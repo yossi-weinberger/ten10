@@ -1,8 +1,8 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { IncomeForm } from '@/components/IncomeForm';
-import { DonationForm } from '@/components/DonationForm';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { IncomeForm } from "@/components/common/IncomeForm";
+import { DonationForm } from "@/components/common/DonationForm";
 
 export function FormTabs() {
   return (

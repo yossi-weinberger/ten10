@@ -1,7 +1,7 @@
-import React from 'react';
-import { StatsCards } from '@/components/dashboard/StatsCards';
-import { MonthlyChart } from '@/components/dashboard/MonthlyChart';
-import { TransactionsDataTable } from '@/components/tables/TransactionsDataTable';
+import React from "react";
+import { StatsCards } from "@/components/common/dashboard/StatsCards";
+import { MonthlyChart } from "@/components/common/dashboard/MonthlyChart";
+import { TransactionsDataTable } from "@/components/common/tables/TransactionsDataTable";
 
 export function HomePage() {
   return (

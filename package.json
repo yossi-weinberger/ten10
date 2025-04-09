@@ -4,11 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
+    "prepare:web": "node scripts/prepare-components.js --target=web",
+    "prepare:desktop": "node scripts/prepare-components.js --target=desktop",
+    "dev:vite": "vite dev",
+    "build:vite": "tsc && vite build",
+    "dev": "npm run prepare:web && npm run dev:vite",
+    "build": "npm run prepare:web && npm run build:vite",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "dev:desktop": "npm run prepare:desktop && tauri dev",
+    "build:desktop": "npm run prepare:desktop && tauri build"
   },
   "dependencies": {
     "@hebcal/core": "^5.2.2",
