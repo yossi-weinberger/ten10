@@ -1,20 +1,21 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { incomeSchema } from '@/lib/schemas';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useDonationStore } from '@/lib/store';
-import { nanoid } from 'nanoid';
+import React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { incomeSchema } from "@/lib/schemas";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useDonationStore } from "@/lib/store";
+import { nanoid } from "nanoid";
+import { addIncome } from "@/lib/dataService";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -22,17 +23,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 
 export function IncomeForm() {
-  const { addIncome, settings } = useDonationStore();
+  const { settings } = useDonationStore();
 
   const form = useForm({
     resolver: zodResolver(incomeSchema),
     defaultValues: {
-      description: '',
+      description: "",
       amount: 0,
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split("T")[0],
       currency: settings.defaultCurrency,
       isChomesh: false,
       isRecurring: false,
@@ -41,14 +42,14 @@ export function IncomeForm() {
   });
 
   const onSubmit = async (data: any) => {
-    addIncome({
+    await addIncome({
       id: nanoid(),
       ...data,
     });
     form.reset({
-      description: '',
+      description: "",
       amount: 0,
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split("T")[0],
       currency: settings.defaultCurrency,
       isChomesh: false,
       isRecurring: false,
@@ -168,7 +169,7 @@ export function IncomeForm() {
           />
         </div>
 
-        {form.watch('isRecurring') && (
+        {form.watch("isRecurring") && (
           <FormField
             control={form.control}
             name="recurringDay"

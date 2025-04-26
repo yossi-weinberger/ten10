@@ -5,12 +5,44 @@ import { Button } from "./components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./components/ui/sheet";
 import { Sidebar } from "./components/layout/Sidebar";
 import { usePlatform } from "./contexts/PlatformContext";
+import { setDataServicePlatform } from "./lib/dataService";
+import { invoke } from "@tauri-apps/api";
+import { useDonationStore } from "./lib/store";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   const { platform } = usePlatform();
+
+  useEffect(() => {
+    if (platform !== "loading") {
+      setDataServicePlatform(platform);
+      if (platform === "desktop") {
+        invoke("init_db")
+          .then(() => {
+            console.log("Database initialized successfully.");
+            Promise.all([invoke("get_incomes"), invoke("get_donations")])
+              .then(([incomes, donations]) => {
+                console.log("Loaded initial data from DB:", {
+                  incomes,
+                  donations,
+                });
+                useDonationStore.setState({
+                  incomes: incomes as any,
+                  donations: donations as any,
+                });
+              })
+              .catch((error) =>
+                console.error("Error loading initial data:", error)
+              );
+          })
+          .catch((error) =>
+            console.error("Error initializing database:", error)
+          );
+      }
+    }
+  }, [platform]);
 
   if (platform === "loading") {
     return <div>Loading platform info...</div>;

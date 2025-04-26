@@ -1,20 +1,21 @@
-import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { donationSchema } from '@/lib/schemas';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useDonationStore } from '@/lib/store';
-import { nanoid } from 'nanoid';
+import React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { donationSchema } from "@/lib/schemas";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useDonationStore } from "@/lib/store";
+import { nanoid } from "nanoid";
+import { addDonation } from "@/lib/dataService";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -22,17 +23,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 
 export function DonationForm() {
-  const { addDonation, settings } = useDonationStore();
+  const { settings } = useDonationStore();
 
   const form = useForm({
     resolver: zodResolver(donationSchema),
     defaultValues: {
-      recipient: '',
+      recipient: "",
       amount: 0,
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split("T")[0],
       currency: settings.defaultCurrency,
       isRecurring: false,
       recurringDay: undefined,
@@ -40,14 +41,14 @@ export function DonationForm() {
   });
 
   const onSubmit = async (data: any) => {
-    addDonation({
+    await addDonation({
       id: nanoid(),
       ...data,
     });
     form.reset({
-      recipient: '',
+      recipient: "",
       amount: 0,
-      date: new Date().toISOString().split('T')[0],
+      date: new Date().toISOString().split("T")[0],
       currency: settings.defaultCurrency,
       isRecurring: false,
       recurringDay: undefined,
@@ -148,7 +149,7 @@ export function DonationForm() {
           )}
         />
 
-        {form.watch('isRecurring') && (
+        {form.watch("isRecurring") && (
           <FormField
             control={form.control}
             name="recurringDay"
