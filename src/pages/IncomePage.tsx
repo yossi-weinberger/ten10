@@ -10,31 +10,32 @@ export function IncomePage() {
   return (
     <div className="grid gap-6">
       <div className="grid gap-2">
-        <h2 className="text-2xl font-bold">הוספת תנועה (זמני)</h2>{" "}
-        {/* Changed title to reflect temporary state */}
+        <h2 className="text-2xl font-bold">הוספת תנועה</h2>{" "}
+        {/* Adjusted title */}
         <p className="text-muted-foreground">
-          השתמש בטופס זה להוספת כל סוגי התנועות (הכנסות, תרומות, הוצאות וכו')
+          הוספת כל סוגי התנועות: הכנסות, הוצאות, תרומות וכו'.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+      {/* Change grid layout: Form takes 2/3, StatsCards take 1/3 */}
+      <div className="grid gap-6 md:grid-cols-3">
+        {/* Form Card (Spans 2 columns) */}
+        <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle>הוסף תנועה חדשה</CardTitle>
           </CardHeader>
           <CardContent>
-            {/* Replace IncomeForm with TransactionForm */}
             <TransactionForm />
           </CardContent>
         </Card>
 
-        <div className="space-y-6">
-          {/* Keep StatsCards for now, though they use old data */}
+        {/* Stats Cards (Spans 1 column, already vertical) */}
+        <div className="space-y-6 md:col-span-1">
           <StatsCards orientation="vertical" />
         </div>
       </div>
 
-      {/* Replace old DataTable with the new one */}
+      {/* Transaction Table (remains below) */}
       <AllTransactionsDataTable title="היסטוריית תנועות" showFilters={true} />
     </div>
   );

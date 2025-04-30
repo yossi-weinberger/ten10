@@ -1,75 +1,75 @@
-import ExcelJS from 'exceljs';
-import type { Income, Donation, Currency } from '@/lib/store';
-import { formatCurrency } from './currency';
+import ExcelJS from "exceljs";
+import type { Transaction } from "@/types/transaction";
+import { transactionTypeLabels } from "@/components/tables/AllTransactionsDataTable";
 
-export async function exportToExcel(incomes: Income[], donations: Donation[], currency: Currency) {
+export async function exportTransactionsToExcel(transactions: Transaction[]) {
   const workbook = new ExcelJS.Workbook();
-  
-  workbook.creator = 'Tenten';
+
+  workbook.creator = "Tenten";
   workbook.created = new Date();
   workbook.modified = new Date();
-  workbook.properties.date1904 = true;
 
-  const incomesSheet = workbook.addWorksheet('הכנסות', {
-    properties: { 
-      defaultRowHeight: 20,
-      rightToLeft: true
-    }
-  });
-  const donationsSheet = workbook.addWorksheet('תרומות', {
-    properties: { 
-      defaultRowHeight: 20,
-      rightToLeft: true
-    }
+  const sheet = workbook.addWorksheet("טרנזקציות", {
+    views: [{ rightToLeft: true }],
+    properties: { defaultRowHeight: 20 },
   });
 
-  incomesSheet.columns = [
-    { header: 'תאריך', key: 'date', width: 12 },
-    { header: 'תיאור', key: 'description', width: 30 },
-    { header: 'סכום', key: 'amount', width: 15 },
-    { header: 'חומש', key: 'chomesh', width: 10 },
-    { header: 'תשלום קבוע', key: 'recurring', width: 15 },
-    { header: 'יום בחודש', key: 'day', width: 12 }
+  sheet.columns = [
+    {
+      header: "תאריך",
+      key: "date",
+      width: 12,
+      style: { numFmt: "dd/mm/yyyy" },
+    },
+    { header: "סוג", key: "type", width: 15 },
+    { header: "תיאור", key: "description", width: 30 },
+    { header: "קטגוריה", key: "category", width: 20 },
+    { header: "מקבל", key: "recipient", width: 20 },
+    { header: "סכום", key: "amount", width: 15, style: { numFmt: "#,##0.00" } },
+    { header: "מטבע", key: "currency", width: 8 },
+    { header: "חומש?", key: "chomesh", width: 8 },
   ];
 
-  donationsSheet.columns = [
-    { header: 'תאריך', key: 'date', width: 12 },
-    { header: 'מקבל', key: 'recipient', width: 30 },
-    { header: 'סכום', key: 'amount', width: 15 },
-    { header: 'תשלום קבוע', key: 'recurring', width: 15 },
-    { header: 'יום בחודש', key: 'day', width: 12 }
-  ];
+  sheet.addRows(
+    transactions.map((t) => {
+      let desc = t.description || "";
 
-  incomesSheet.addRows(incomes.map(income => ({
-    date: income.date,
-    description: income.description,
-    amount: formatCurrency(income.amount, income.currency || currency),
-    chomesh: income.isChomesh ? 'כן' : 'לא',
-    recurring: income.isRecurring ? 'כן' : 'לא',
-    day: income.recurringDay || ''
-  })));
+      return {
+        date: new Date(t.date),
+        type: transactionTypeLabels[t.type] || t.type,
+        description: t.description || "",
+        category: t.category || "",
+        recipient: t.recipient || "",
+        amount: t.amount,
+        currency: t.currency,
+        chomesh: t.type === "income" ? (t.isChomesh ? "כן" : "לא") : "",
+      };
+    })
+  );
 
-  donationsSheet.addRows(donations.map(donation => ({
-    date: donation.date,
-    recipient: donation.recipient,
-    amount: formatCurrency(donation.amount, donation.currency || currency),
-    recurring: donation.isRecurring ? 'כן' : 'לא',
-    day: donation.recurringDay || ''
-  })));
-
-  [incomesSheet, donationsSheet].forEach(sheet => {
-    sheet.getRow(1).font = { bold: true };
-    sheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'right' };
+  sheet.getRow(1).font = { bold: true };
+  sheet.getRow(1).alignment = { vertical: "middle", horizontal: "right" };
+  ["type", "description", "category", "recipient", "chomesh"].forEach((key) => {
+    const col = sheet.getColumn(key);
+    if (col) {
+      col.alignment = {
+        vertical: "middle",
+        horizontal: "right",
+        wrapText: true,
+      };
+    }
   });
 
   const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], { 
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   });
   const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
-  a.download = `tenten-report-${new Date().toISOString().split('T')[0]}.xlsx`;
+  a.download = `tenten-transactions-${
+    new Date().toISOString().split("T")[0]
+  }.xlsx`;
   a.click();
   window.URL.revokeObjectURL(url);
 }

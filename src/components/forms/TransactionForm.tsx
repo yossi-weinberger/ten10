@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -24,10 +24,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Wallet, CreditCard, HandCoins, CheckCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
 // We will need date picker and potentially checkbox later
 
 // Define the possible transaction types for the form select
-const transactionTypes = [
+const allTransactionTypes = [
   "income",
   "donation",
   "expense",
@@ -35,23 +38,64 @@ const transactionTypes = [
   "recognized-expense",
 ] as const; // Use 'as const' for Zod enum
 
-// Base Zod schema - will need refinement for conditional logic
-const transactionFormSchema = z.object({
-  // We'll get ID, userId, createdAt, updatedAt programmatically
-  date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"), // Placeholder - replace with date picker validation later
-  amount: z.coerce.number().positive("Amount must be positive"),
-  currency: z.string().min(1, "Currency is required"), // Later refine with Currency type from store
-  description: z.string().optional(),
-  type: z.enum(transactionTypes, {
-    required_error: "Transaction type is required",
-  }),
-  category: z.string().optional(),
-  // Conditional fields
-  isChomesh: z.boolean().optional(),
-  recipient: z.string().optional(),
-});
+// Define user-facing types to show in the dropdown
+const userFacingTransactionTypes: TransactionType[] = [
+  "income",
+  "expense",
+  "donation",
+];
+
+// Hebrew labels for transaction types
+const transactionTypeLabels: Record<TransactionType, string> = {
+  income: "הכנסה",
+  donation: "תרומה",
+  expense: "הוצאה",
+  "exempt-income": "הכנסה פטורה", // For future use
+  "recognized-expense": "הוצאה מוכרת", // For future use
+};
+
+// Base Zod schema - use allTransactionTypes for validation
+const transactionFormSchema = z
+  .object({
+    // We'll get ID, userId, createdAt, updatedAt programmatically
+    date: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"), // Placeholder - replace with date picker validation later
+    amount: z.preprocess(
+      (val) => (val === "" ? undefined : val), // Convert empty string to undefined first
+      z.coerce // Then coerce
+        .number({
+          invalid_type_error: "הסכום חייב להיות מספר",
+        })
+        .positive({ message: "הסכום חייב להיות חיובי" })
+    ),
+    currency: z.string().min(1, "Currency is required"), // Later refine with Currency type from store
+    description: z.string().optional(),
+    type: z.enum(allTransactionTypes, {
+      // Validate against all possible types
+      required_error: "יש לבחור סוג טרנזקציה", // Translate error message
+    }),
+    category: z.string().optional(),
+    // Conditional fields
+    isChomesh: z.boolean().optional(),
+    recipient: z.string().optional(),
+    // New boolean fields for UI control
+    isExempt: z.boolean().optional(),
+    isRecognized: z.boolean().optional(),
+  })
+  .refine(
+    (data) => {
+      // isChomesh cannot be true if isExempt is true
+      if (data.type === "income" && data.isExempt && data.isChomesh) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "לא ניתן לסמן חומש עבור הכנסה פטורה",
+      path: ["isChomesh"], // Attach error to isChomesh field
+    }
+  );
 
 // TODO: Use discriminatedUnion or refine schema for conditional requirements:
 // - isChomesh: required if type is 'income'
@@ -66,6 +110,19 @@ interface TransactionFormProps {
   onCancel?: () => void; // Callback for cancel action
 }
 
+// Define explicit type for button styles
+type ButtonStyleType = "income" | "expense" | "donation";
+
+// Define active button styles object outside the loop
+const activeButtonStyles: Record<ButtonStyleType, string> = {
+  income:
+    "bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 border-green-300 dark:border-green-700 text-green-800 dark:text-green-100 shadow-sm",
+  expense:
+    "bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 border-red-300 dark:border-red-700 text-red-800 dark:text-red-100 shadow-sm",
+  donation:
+    "bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900 dark:hover:bg-yellow-800 border-yellow-400 dark:border-yellow-700 text-yellow-800 dark:text-yellow-100 shadow-sm",
+};
+
 export function TransactionForm({
   onSubmitSuccess,
   onCancel,
@@ -76,90 +133,147 @@ export function TransactionForm({
   // TODO: Fetch available currencies if needed, or use the type from store
   const availableCurrencies = ["ILS", "USD", "EUR"];
 
+  // State for success animation
+  const [isSuccess, setIsSuccess] = useState(false);
+
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: {
-      date: new Date().toISOString().split("T")[0], // Default to today
-      amount: 0,
+      date: new Date().toISOString().split("T")[0],
+      amount: undefined,
       currency: defaultCurrency,
       description: "",
-      type: undefined, // No default type initially
+      type: "income",
       category: "",
       isChomesh: false,
       recipient: "",
+      isExempt: false,
+      isRecognized: false,
     },
   });
 
   const selectedType = form.watch("type");
+  const isExemptChecked = form.watch("isExempt");
+  const isRecognizedChecked = form.watch("isRecognized");
 
   async function onSubmit(values: TransactionFormValues) {
-    const newTransaction: Transaction = {
-      id: nanoid(), // Generate unique ID
-      user_id: null, // Null for desktop
-      date: values.date, // TODO: Format from date picker if needed
+    // Determine the final transaction type based on initial type and checkboxes
+    let finalType: TransactionType;
+    if (values.type === "income") {
+      finalType = values.isExempt ? "exempt-income" : "income";
+    } else if (values.type === "expense") {
+      finalType = values.isRecognized ? "recognized-expense" : "expense";
+    } else {
+      finalType = values.type as TransactionType; // Should be 'donation' here
+    }
+
+    const newTransaction: Omit<
+      Transaction,
+      "isExempt" | "isRecognized" // Exclude helper fields
+    > = {
+      id: nanoid(),
+      user_id: null,
+      date: values.date,
       amount: values.amount,
-      currency: values.currency as any, // TODO: Ensure type safety from availableCurrencies
+      currency: values.currency as any,
       description: values.description || null,
-      type: values.type as TransactionType, // Cast to TransactionType
+      type: finalType, // Use the determined final type
       category: values.category || null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      // Only include type-specific fields if relevant
-      ...(values.type === "income" && { isChomesh: values.isChomesh || false }),
-      ...(values.type === "donation" && {
+      // Conditionally add isChomesh only if the final type is 'income'
+      ...(finalType === "income" && { isChomesh: values.isChomesh || false }),
+      // Conditionally add recipient only if the final type is 'donation' (redundant check, but safe)
+      ...(finalType === "donation" && {
         recipient: values.recipient || null,
       }),
     };
 
-    console.log("Submitting new transaction:", newTransaction);
+    console.log("Submitting final transaction object:", newTransaction);
     try {
-      await addTransaction(newTransaction);
+      await addTransaction(newTransaction as Transaction);
       console.log("Transaction added successfully!");
-      form.reset(); // Reset form after successful submission
-      onSubmitSuccess?.(); // Call the success callback if provided
+
+      // Get the current type before resetting
+      const currentType = form.getValues("type");
+
+      // Reset the form, preserving the selected type and default currency
+      form.reset({
+        date: new Date().toISOString().split("T")[0],
+        amount: "", // Reset amount back to empty string
+        currency: defaultCurrency,
+        description: "",
+        type: currentType, // Preserve the current type
+        category: "",
+        isChomesh: false,
+        recipient: "",
+        isExempt: false,
+        isRecognized: false,
+      });
+
+      // Trigger success animation
+      setIsSuccess(true);
+      setTimeout(() => {
+        setIsSuccess(false);
+      }, 2000); // Hide after 2 seconds
+
+      onSubmitSuccess?.();
     } catch (error) {
       console.error("Failed to add transaction:", error);
-      // TODO: Show error to user (e.g., using react-hot-toast or Sonner)
     }
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Type Selection */}
-        <FormField
-          control={form.control}
-          name="type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Type *</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select transaction type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {transactionTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {/* TODO: Capitalize/translate type names for display */}
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
+        {/* Type Selection Buttons */}
+        <div>
+          <FormLabel>סוג פעולה *</FormLabel>
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            {/* Explicitly cast mapped type to ButtonStyleType if safe */}
+            {(userFacingTransactionTypes as ButtonStyleType[]).map((type) => (
+              <Button
+                key={type}
+                type="button"
+                onClick={() => {
+                  form.setValue("type", type, { shouldValidate: true });
+                }}
+                className={cn(
+                  "flex flex-col h-auto py-3 px-2 text-center transition-colors duration-150", // Base classes
+                  selectedType === type
+                    ? activeButtonStyles[type] // Use the pre-defined styles object
+                    : // Inactive state colors
+                      "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground text-foreground"
+                )}
+              >
+                {type === "income" && (
+                  <Wallet className="h-5 w-5 mb-1 mx-auto" />
+                )}
+                {type === "expense" && (
+                  <CreditCard className="h-5 w-5 mb-1 mx-auto" />
+                )}
+                {type === "donation" && (
+                  <HandCoins className="h-5 w-5 mb-1 mx-auto" />
+                )}
+                {transactionTypeLabels[type]}
+              </Button>
+            ))}
+          </div>
+          {/* Display validation message for the type field if needed */}
+          {form.formState.errors.type && (
+            <p className="text-sm font-medium text-destructive mt-1">
+              {form.formState.errors.type.message}
+            </p>
           )}
-        />
+        </div>
 
-        {/* Date Field - Placeholder, needs DatePicker */}
+        {/* Date Field */}
         <FormField
           control={form.control}
           name="date"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Date *</FormLabel>
+              <FormLabel>תאריך *</FormLabel>
               <FormControl>
                 <Input type="date" {...field} />
               </FormControl>
@@ -168,46 +282,58 @@ export function TransactionForm({
           )}
         />
 
-        {/* Amount Field */}
-        <FormField
-          control={form.control}
-          name="amount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Amount *</FormLabel>
-              <FormControl>
-                <Input type="number" step="0.01" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Currency Field */}
-        <FormField
-          control={form.control}
-          name="currency"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Currency *</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+        {/* Amount and Currency Fields Side-by-Side */}
+        <div className="grid grid-cols-3 gap-4 items-end">
+          {/* Amount Field (Spanning 2 columns) */}
+          <FormField
+            control={form.control}
+            name="amount"
+            render={({ field }) => (
+              <FormItem className="col-span-2">
+                <FormLabel>סכום *</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select currency" />
-                  </SelectTrigger>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    {...field}
+                    className="text-right"
+                    placeholder="0.00" // Add placeholder instead of default value
+                  />
                 </FormControl>
-                <SelectContent>
-                  {availableCurrencies.map((currency) => (
-                    <SelectItem key={currency} value={currency}>
-                      {currency}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Currency Field (Spanning 1 column) */}
+          <FormField
+            control={form.control}
+            name="currency"
+            render={({ field }) => (
+              <FormItem>
+                {/* <FormLabel>מטבע *</FormLabel> No need for label if it's obvious */}
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="מטבע" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {availableCurrencies.map((currency) => (
+                      <SelectItem key={currency} value={currency}>
+                        {currency}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         {/* Description Field */}
         <FormField
@@ -215,9 +341,13 @@ export function TransactionForm({
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>תיאור</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input
+                  {...field}
+                  placeholder="תיאור הפעולה (אופציונלי)"
+                  className="text-right"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -226,33 +356,63 @@ export function TransactionForm({
 
         {/* --- Conditional Fields --- */}
 
-        {/* isChomesh (for income) */}
+        {/* Fields for 'income' type */}
         {selectedType === "income" && (
-          <FormField
-            control={form.control}
-            name="isChomesh"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">
-                    Calculate Chomesh (20%)?
-                  </FormLabel>
-                  <FormDescription>
-                    Check this if the income requires a 20% tithe instead of
-                    10%.
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  {/* TODO: Replace with shadcn/ui Checkbox */}
-                  <input
-                    type="checkbox"
-                    checked={field.value}
-                    onChange={field.onChange}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
+          <>
+            {/* isExempt Checkbox */}
+            <FormField
+              control={form.control}
+              name="isExempt"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>הכנסה פטורה ממעשר?</FormLabel>
+                    <FormDescription>
+                      יש לסמן אם הכנסה זו אינה חייבת כלל במעשר (למשל, מתנה
+                      מסויימת, החזר הוצאה).
+                    </FormDescription>
+                    <FormMessage />{" "}
+                    {/* Show potential Zod refine errors here */}
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            {/* isChomesh Checkbox (Disabled if isExempt is checked) */}
+            <FormField
+              control={form.control}
+              name="isChomesh"
+              render={({ field }) => (
+                <FormItem
+                  className={`flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 ${
+                    isExemptChecked ? "opacity-50" : ""
+                  }`}
+                >
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={isExemptChecked} // Disable if isExempt is checked
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>לחשב חומש (20%)?</FormLabel>
+                    <FormDescription>
+                      יש לסמן אם ההכנסה דורשת הפרשת 20% במקום 10%.
+                      {isExemptChecked ? " (לא רלוונטי להכנסה פטורה)" : ""}
+                    </FormDescription>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+          </>
         )}
 
         {/* Recipient (for donation) */}
@@ -262,9 +422,13 @@ export function TransactionForm({
             name="recipient"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Recipient/Purpose *</FormLabel>
+                <FormLabel>מקבל/ת התרומה</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="e.g., Charity Name, Tuition" />
+                  <Input
+                    {...field}
+                    placeholder="שם המקבל/ת (אופציונלי)"
+                    className="text-right"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -272,34 +436,71 @@ export function TransactionForm({
           />
         )}
 
-        {/* Category (for expense/recognized-expense) */}
-        {(selectedType === "expense" ||
-          selectedType === "recognized-expense") && (
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <FormControl>
-                  {/* TODO: Replace with Select or Autocomplete using predefined categories */}
-                  <Input {...field} placeholder="e.g., Groceries, Travel" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        {/* Fields for 'expense' type */}
+        {selectedType === "expense" && (
+          <>
+            {/* category */}
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>קטגוריה</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="קטגוריית הוצאה (אופציונלי)"
+                      className="text-right"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* isRecognized Checkbox */}
+            <FormField
+              control={form.control}
+              name="isRecognized"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>הוצאה מוכרת?</FormLabel>
+                    <FormDescription>
+                      יש לסמן אם זו הוצאה המוכרת לניכוי מהכנסות החייבות במעשר
+                      (10% מההוצאה ינוכה מהחוב).
+                    </FormDescription>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+          </>
         )}
 
         {/* Submit and Cancel Buttons */}
-        <div className="flex justify-end space-x-2">
+        <div className="flex justify-end items-center space-x-2">
+          {/* Success Icon Animation */}
+          {isSuccess && (
+            <CheckCircle className="h-5 w-5 text-green-500 animate-pulse" />
+          )}
+
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
-              Cancel
+              ביטול
             </Button>
           )}
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? "Saving..." : "Save Transaction"}
+          <Button
+            type="submit"
+            disabled={form.formState.isSubmitting || isSuccess}
+          >
+            {form.formState.isSubmitting ? "שומר..." : "שמור פעולה"}
           </Button>
         </div>
       </form>

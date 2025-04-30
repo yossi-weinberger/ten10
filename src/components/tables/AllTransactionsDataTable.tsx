@@ -17,12 +17,52 @@ import type { Transaction, TransactionType } from "@/types/transaction";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge"; // For displaying type/category nicely
 import { DateRange } from "react-day-picker"; // Import DateRange
+import { Button } from "@/components/ui/button";
+import {
+  getCoreRowModel,
+  useReactTable,
+  getPaginationRowModel,
+  flexRender,
+} from "@tanstack/react-table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+import { Check } from "lucide-react";
+import { exportTransactionsToExcel } from "@/lib/utils/export-excel";
+import { exportTransactionsToPDF } from "@/lib/utils/export-pdf";
+import { FileDown, FileText, FileSpreadsheet } from "lucide-react";
 
 interface AllTransactionsDataTableProps {
   title?: string;
   showFilters?: boolean;
   defaultDateRange?: "month" | "year" | "all";
 }
+
+// Re-use or define the labels mapping here
+// Export the labels for re-use
+export const transactionTypeLabels: Record<TransactionType, string> = {
+  income: "הכנסה",
+  donation: "תרומה",
+  expense: "הוצאה",
+  "exempt-income": "הכנסה פטורה",
+  "recognized-expense": "הוצאה מוכרת",
+};
+
+// Define colors for badges
+// Export colors if needed elsewhere, otherwise keep local
+const typeBadgeColors: Record<TransactionType, string> = {
+  income: "bg-green-100 text-green-800 border-green-300",
+  expense: "bg-red-100 text-red-800 border-red-300",
+  donation: "bg-yellow-100 text-yellow-800 border-yellow-400",
+  "exempt-income": "bg-blue-100 text-blue-800 border-blue-300",
+  "recognized-expense": "bg-orange-100 text-orange-800 border-orange-300",
+};
 
 // Define columns for the new Transaction model
 const transactionColumns: ColumnDef<Transaction>[] = [
@@ -36,10 +76,20 @@ const transactionColumns: ColumnDef<Transaction>[] = [
     header: "סוג",
     cell: ({ row }) => {
       const type = row.getValue("type") as TransactionType;
-      // TODO: Add color/styling based on type using Badge?
-      return <Badge variant="outline">{type}</Badge>; // Example using Badge
+      // Use Hebrew label and conditional coloring
+      return (
+        <Badge
+          variant="outline"
+          className={cn(
+            "font-medium", // Base style
+            typeBadgeColors[type] || "border-gray-300" // Apply color, fallback if type is unexpected
+          )}
+        >
+          {transactionTypeLabels[type] || type}{" "}
+          {/* Show Hebrew label, fallback to raw type */}
+        </Badge>
+      );
     },
-    // Enable filtering for this column
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
   {
@@ -74,14 +124,17 @@ const transactionColumns: ColumnDef<Transaction>[] = [
   },
   {
     accessorKey: "isChomesh",
-    header: "חומש?",
     cell: ({ row }) => {
       const transaction = row.original;
-      return transaction.type === "income"
-        ? row.getValue("isChomesh")
-          ? "כן"
-          : "לא"
-        : "-";
+      if (transaction.type === "income" && row.getValue("isChomesh")) {
+        return (
+          <Check className="h-4 w-4 mx-auto text-green-600 dark:text-green-400" />
+        );
+      }
+      return "";
+    },
+    header: ({ column }) => {
+      return <div className="text-center">חומש?</div>;
     },
   },
   // Add more columns as needed (e.g., specific category, recipient column if preferred)
@@ -147,52 +200,161 @@ export function AllTransactionsDataTable({
     );
   }, [allTransactions, selectedType, dateRange]);
 
-  // Prepare items for the type filter dropdown
+  // Prepare items for the type filter dropdown with translated labels
   const typeFilterItems = filterableTypes.map((type) => ({
     value: type,
-    label: type,
-  })); // TODO: Translate labels
+    label: transactionTypeLabels[type] || type, // Use Hebrew labels
+  }));
+
+  // Setup react-table instance with pagination
+  const table = useReactTable({
+    data,
+    columns: transactionColumns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(), // Enable pagination
+    initialState: {
+      pagination: {
+        pageSize: 10, // Set default page size to 10
+      },
+    },
+  });
+
+  // Function to get current data for export
+  const getDataForExport = (): Transaction[] => {
+    // Get the rows from the current filtered and sorted view
+    return table.getFilteredRowModel().rows.map((row) => row.original);
+  };
 
   return (
     <Card>
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <CardTitle>{title}</CardTitle>
-        {showFilters && (
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            <DatePickerWithRange
-              date={dateRange}
-              onDateChange={setDateRange}
-              className="w-full sm:w-auto" // Make date picker responsive
-            />
-            {/* Updated Select for single type filtering */}
-            <Select
-              value={selectedType ?? ""} // Use empty string for controlled value when undefined to show placeholder
-              onValueChange={(value) =>
-                setSelectedType(value ? (value as TransactionType) : undefined)
-              } // Set to undefined if value is empty
-            >
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="סנן לפי סוג" />
-              </SelectTrigger>
-              <SelectContent>
-                {/* No explicit "All Types" item needed */}
-                {/* <SelectItem value="">כל הסוגים</SelectItem> */}
-                {typeFilterItems.map((item) => (
-                  <SelectItem key={item.value} value={item.value}>
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          {/* Filters */}
+          {showFilters && (
+            <>
+              <DatePickerWithRange
+                date={dateRange}
+                onDateChange={setDateRange}
+                className="w-full sm:w-auto"
+              />
+              <Select
+                value={selectedType ?? ""}
+                onValueChange={(value) =>
+                  setSelectedType(
+                    value ? (value as TransactionType) : undefined
+                  )
+                }
+              >
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <SelectValue placeholder="סנן לפי סוג" />
+                </SelectTrigger>
+                <SelectContent>
+                  {typeFilterItems.map((item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
+          {/* Export Buttons */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportTransactionsToExcel(getDataForExport())}
+            className="w-full sm:w-auto"
+          >
+            <FileSpreadsheet className="ml-2 h-4 w-4" />
+            ייצוא ל-Excel
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportTransactionsToPDF(getDataForExport())}
+            className="w-full sm:w-auto"
+          >
+            <FileText className="ml-2 h-4 w-4" />
+            ייצוא ל-PDF
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
-        <DataTable
-          columns={transactionColumns}
-          data={data}
-          // Pass any other necessary props to DataTable if it expects them
-        />
+        {/* Use shadcn Table components with react-table */}
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={transactionColumns.length}
+                    className="h-24 text-center"
+                  >
+                    אין נתונים להצגה.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        {/* Pagination Controls */}
+        <div className="flex items-center justify-end space-x-2 py-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            הקודם
+          </Button>
+          <span className="text-sm">
+            עמוד {table.getState().pagination.pageIndex + 1} מתוך{" "}
+            {table.getPageCount()}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            הבא
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
