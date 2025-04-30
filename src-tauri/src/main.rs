@@ -31,6 +31,31 @@ struct Donation {
     recurring_day: Option<i32>,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct Transaction {
+    id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    user_id: Option<String>,
+    date: String, 
+    amount: f64,
+    currency: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    description: Option<String>,
+    #[serde(rename = "type")]
+    transaction_type: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    category: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    created_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    updated_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    is_chomesh: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    recipient: Option<String>,
+}
+
 struct DbState(Mutex<Connection>);
 
 #[tauri::command]
@@ -60,6 +85,24 @@ async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
             currency TEXT NOT NULL,
             is_recurring INTEGER NOT NULL,
             recurring_day INTEGER
+        )",
+        [],
+    ).map_err(|e| e.to_string())?;
+
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS transactions (
+            id TEXT PRIMARY KEY,
+            user_id TEXT,
+            date TEXT NOT NULL,
+            amount REAL NOT NULL,
+            currency TEXT NOT NULL,
+            description TEXT,
+            type TEXT NOT NULL,
+            category TEXT,
+            is_chomesh INTEGER,
+            recipient TEXT,
+            created_at TEXT,
+            updated_at TEXT
         )",
         [],
     ).map_err(|e| e.to_string())?;
@@ -107,6 +150,30 @@ async fn add_donation(db: State<'_, DbState>, donation: Donation) -> Result<(), 
 }
 
 #[tauri::command]
+async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Result<(), String> {
+    let conn = db.0.lock().map_err(|e| e.to_string())?;
+    conn.execute(
+        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
+        (
+            &transaction.id,
+            &transaction.user_id,
+            &transaction.date,
+            &transaction.amount,
+            &transaction.currency,
+            &transaction.description,
+            &transaction.transaction_type,
+            &transaction.category,
+            &transaction.is_chomesh.map(|b| b as i32),
+            &transaction.recipient,
+            &transaction.created_at,
+            &transaction.updated_at,
+        ),
+    ).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+#[tauri::command]
 async fn get_incomes(db: State<'_, DbState>) -> Result<Vec<Income>, String> {
     let conn = db.0.lock().map_err(|e| e.to_string())?;
     let mut stmt = conn.prepare("SELECT id, date, description, amount, currency, is_chomesh, is_recurring, recurring_day FROM incomes")
@@ -119,8 +186,8 @@ async fn get_incomes(db: State<'_, DbState>) -> Result<Vec<Income>, String> {
             description: row.get(2)?,
             amount: row.get(3)?,
             currency: row.get(4)?,
-            is_chomesh: row.get::<usize, i32>(5)? != 0, // Convert INTEGER back to bool
-            is_recurring: row.get::<usize, i32>(6)? != 0, // Convert INTEGER back to bool
+            is_chomesh: row.get::<usize, i32>(5)? != 0,
+            is_recurring: row.get::<usize, i32>(6)? != 0,
             recurring_day: row.get(7)?,
         })
     }).map_err(|e| e.to_string())?;
@@ -142,7 +209,7 @@ async fn get_donations(db: State<'_, DbState>) -> Result<Vec<Donation>, String> 
             recipient: row.get(2)?,
             amount: row.get(3)?,
             currency: row.get(4)?,
-            is_recurring: row.get::<usize, i32>(5)? != 0, // Convert INTEGER back to bool
+            is_recurring: row.get::<usize, i32>(5)? != 0,
             recurring_day: row.get(6)?,
         })
     }).map_err(|e| e.to_string())?;
@@ -152,15 +219,45 @@ async fn get_donations(db: State<'_, DbState>) -> Result<Vec<Donation>, String> 
 }
 
 #[tauri::command]
+async fn get_transactions(db: State<'_, DbState>) -> Result<Vec<Transaction>, String> {
+    let conn = db.0.lock().map_err(|e| e.to_string())?;
+    let mut stmt = conn.prepare("SELECT id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at FROM transactions")
+        .map_err(|e| e.to_string())?;
+
+    let transaction_iter = stmt.query_map([], |row| {
+        let is_chomesh_opt: Option<i32> = row.get(8)?;
+        let is_chomesh_bool_opt = is_chomesh_opt.map(|i| i != 0);
+
+        Ok(Transaction {
+            id: row.get(0)?,
+            user_id: row.get(1)?,
+            date: row.get(2)?,
+            amount: row.get(3)?,
+            currency: row.get(4)?,
+            description: row.get(5)?,
+            transaction_type: row.get(6)?,
+            category: row.get(7)?,
+            is_chomesh: is_chomesh_bool_opt,
+            recipient: row.get(9)?,
+            created_at: row.get(10)?,
+            updated_at: row.get(11)?,
+        })
+    }).map_err(|e| e.to_string())?;
+
+    let transactions = transaction_iter.collect::<Result<Vec<Transaction>, rusqlite::Error>>().map_err(|e| e.to_string())?;
+    Ok(transactions)
+}
+
+#[tauri::command]
 async fn clear_all_data(db: State<'_, DbState>) -> Result<(), String> {
     let conn = db.0.lock().map_err(|e| e.to_string())?;
     conn.execute("DELETE FROM incomes", [])
         .map_err(|e| e.to_string())?;
     conn.execute("DELETE FROM donations", [])
         .map_err(|e| e.to_string())?;
-    // Optionally, reset other data if needed (e.g., VACUUM to shrink DB file)
-    // conn.execute("VACUUM", []).map_err(|e| e.to_string())?;
-    println!("Cleared all incomes and donations from the database.");
+    conn.execute("DELETE FROM transactions", [])
+        .map_err(|e| e.to_string())?;
+    println!("Cleared all incomes, donations, and transactions from the database.");
     Ok(())
 }
 
@@ -175,6 +272,8 @@ fn main() {
             add_donation,
             get_incomes,
             get_donations,
+            add_transaction,
+            get_transactions,
             clear_all_data
         ])
         .run(tauri::generate_context!())

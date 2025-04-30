@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { Transaction } from "../types/transaction";
+import { calculateTotalRequiredDonation } from "./tithe-calculator";
 
 export type Currency = "ILS" | "USD" | "EUR";
 export type CalendarType = "gregorian" | "hebrew";
@@ -39,6 +41,7 @@ export interface Donation {
 interface DonationState {
   incomes: Income[];
   donations: Donation[];
+  transactions: Transaction[];
   requiredDonation: number;
   settings: Settings;
   addIncome: (income: Income) => void;
@@ -48,6 +51,8 @@ interface DonationState {
   updateIncome: (id: string, income: Partial<Income>) => void;
   updateDonation: (id: string, donation: Partial<Donation>) => void;
   updateSettings: (settings: Partial<Settings>) => void;
+  setTransactions: (transactions: Transaction[]) => void;
+  addTransaction: (transaction: Transaction) => void;
 }
 
 const defaultSettings: Settings = {
@@ -65,6 +70,7 @@ export const useDonationStore = create<DonationState>()(
     (set, get) => ({
       incomes: [],
       donations: [],
+      transactions: [],
       requiredDonation: 0,
       settings: defaultSettings,
 
@@ -183,9 +189,23 @@ export const useDonationStore = create<DonationState>()(
           settings: { ...state.settings, ...newSettings },
         }));
       },
+
+      setTransactions: (transactions) => {
+        set(() => ({ transactions }));
+      },
+
+      addTransaction: (transaction) => {
+        set((state) => ({
+          transactions: [...state.transactions, transaction],
+        }));
+      },
     }),
     {
       name: "tenten-donation-store",
     }
   )
 );
+
+export const selectCalculatedBalance = (state: DonationState): number => {
+  return calculateTotalRequiredDonation(state.transactions);
+};

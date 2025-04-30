@@ -65,6 +65,7 @@ The application needs to handle various types of financial entries, each affecti
 
 - A single `transactions` table will be used in both SQLite (Desktop) and Supabase (Web). This table will store all types of financial events (income, donations, expenses, etc.) distinguished by a `type` column.
 - The required tithe balance is not stored in the database. It will be calculated dynamically in the frontend based on the full list of transactions retrieved from the database. (Refer to `llm-instructions/transaction-data-model-and-calculations.md` for technical details).
+- **Status:** This approach has been implemented for the Desktop (SQLite) version. Web (Supabase) version implementation is pending.
 
 ## Future Features (Low Priority)
 

@@ -38,9 +38,12 @@ This document outlines the main technologies and conventions used in this projec
 - **Date/Time**:
   - **`date-fns`**: For general date manipulations.
   - **`@hebcal/core`**: For Hebrew calendar calculations.
+  - **`react-day-picker`**: Used for date range selection (integrated via `shadcn/ui`).
 - **Data Export**:
   - **`exceljs`**: For generating Excel files.
   - **`jspdf`** and **`jspdf-autotable`**: For generating PDF files.
+- **Unique IDs**:
+  - **`nanoid`**: For generating unique identifiers (e.g., for transactions).
 - **Linting**: **ESLint** - Configured in `eslint.config.js`. Ensure code adheres to the linting rules.
 - **Version Control**: **Git** - Project is managed using Git.
 

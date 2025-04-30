@@ -5,9 +5,10 @@ import { Button } from "./components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "./components/ui/sheet";
 import { Sidebar } from "./components/layout/Sidebar";
 import { usePlatform } from "./contexts/PlatformContext";
-import { setDataServicePlatform } from "./lib/dataService";
+import { setDataServicePlatform, loadTransactions } from "./lib/dataService";
 import { invoke } from "@tauri-apps/api";
-import { useDonationStore } from "./lib/store";
+import { useDonationStore, Income, Donation } from "./lib/store";
+import { Transaction } from "./types/transaction";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -22,15 +23,22 @@ function App() {
         invoke("init_db")
           .then(() => {
             console.log("Database initialized successfully.");
-            Promise.all([invoke("get_incomes"), invoke("get_donations")])
-              .then(([incomes, donations]) => {
+
+            Promise.all([
+              invoke<Income[]>("get_incomes"),
+              invoke<Donation[]>("get_donations"),
+              loadTransactions(),
+            ])
+              .then(([incomes, donations, transactions]) => {
                 console.log("Loaded initial data from DB:", {
                   incomes,
                   donations,
+                  transactions,
                 });
                 useDonationStore.setState({
-                  incomes: incomes as any,
-                  donations: donations as any,
+                  incomes: incomes,
+                  donations: donations,
+                  transactions: transactions,
                 });
               })
               .catch((error) =>

@@ -83,3 +83,14 @@ This document outlines the standard approach for handling financial transactions
 
 - Implement and test this new model first for the **Desktop version (SQLite)**.
 - Once validated, apply the same model to the **Web version (Supabase)**, ensuring appropriate RLS policies are set on the `transactions` table.
+
+## 8. Implementation Status (as of [Current Date/Refactoring Completion])
+
+- The unified `Transaction` model and dynamic balance calculation (`calculateTotalRequiredDonation`) have been implemented for the **Desktop version (SQLite)**.
+- This includes:
+  - Updated Rust backend commands (`add_transaction`, `get_transactions`).
+  - Updated Zustand store (`transactions` array, `selectCalculatedBalance` selector).
+  - Updated `dataService` functions.
+  - A new unified `TransactionForm` component.
+  - A new `AllTransactionsDataTable` component.
+- The next steps involve migrating the Web version (Supabase) and then removing the deprecated code (old models, state, functions, DB tables).

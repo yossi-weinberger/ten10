@@ -79,6 +79,9 @@ export function Sidebar({ expanded = false }: SidebarProps) {
         <NavLink to="/donations" icon={Heart}>
           תרומות
         </NavLink>
+        <NavLink to="/add-transaction" icon={PlusCircle}>
+          הוסף תנועה
+        </NavLink>
         <NavLink to="/halacha" icon={Book}>
           הלכות
         </NavLink>
