@@ -22,7 +22,8 @@ This document outlines the standard approach for handling financial transactions
   - `'expense'`: Regular expense (e.g., groceries, utilities). Does not affect tithe calculation.
   - `'exempt-income'`: Income inherently exempt from tithe (e.g., certain gifts, specific stipends, offset rental income). Does not affect tithe calculation. **Note:** Reimbursements for expenses are _not_ exempt income; they should reduce the amount of the original expense recorded (or the expense shouldn't be recorded if fully reimbursed).
   - `'recognized-expense'`: Business or work-related expenses that reduce the income base subject to tithe (e.g., travel, babysitting for work, business investments/ads). Reduces required tithe by 10% of the expense amount.
-- **Specific Fields**: Add fields relevant only to certain types (e.g., `isChomesh`, `recipient`, potentially `categoryId` for expenses later).
+- **Specific Fields**: Fields relevant only to certain types (e.g., `isChomesh`, `recipient`) are defined in the interface but only populated when relevant.
+  **UI Handling**: In the `TransactionForm`, subtypes like `exempt-income` and `recognized-expense` are handled via conditional checkboxes presented under the main `income` or `expense` type selections, simplifying the initial choice for the user while allowing for the necessary detail.
 
 ## 2. State Management (Zustand - `useDonationStore`)
 
@@ -86,11 +87,15 @@ This document outlines the standard approach for handling financial transactions
 
 ## 8. Implementation Status (as of [Current Date/Refactoring Completion])
 
-- The unified `Transaction` model and dynamic balance calculation (`calculateTotalRequiredDonation`) have been implemented for the **Desktop version (SQLite)**.
+- The unified `Transaction` model and dynamic balance calculation (`calculateTotalRequiredDonation`) are fully implemented and utilized for the **Desktop version (SQLite)**.
 - This includes:
   - Updated Rust backend commands (`add_transaction`, `get_transactions`).
   - Updated Zustand store (`transactions` array, `selectCalculatedBalance` selector).
   - Updated `dataService` functions.
-  - A new unified `TransactionForm` component.
-  - A new `AllTransactionsDataTable` component.
+- Key frontend components have been refactored to use the new model:
+  - `StatsCards`: Displays income, expense, donation totals and required balance based on `transactions`. UI colors aligned.
+  - `MonthlyChart`: Displays monthly income, expense, and donation totals based on `transactions`. UI colors aligned.
+  - `TransactionForm`: Unified form for adding all transaction types, using conditional checkboxes for subtypes (`exempt`/`recognized`), and improved UI (type buttons, layout, success indicator).
+  - `AllTransactionsDataTable`: Displays all transactions with sorting, filtering, pagination (10 per page), translated & colored type badges, and an icon for Chomesh.
+- Export functionality (`Excel`, `PDF`) has been updated to work with the `transactions` array and integrated into `AllTransactionsDataTable`.
 - The next steps involve migrating the Web version (Supabase) and then removing the deprecated code (old models, state, functions, DB tables).

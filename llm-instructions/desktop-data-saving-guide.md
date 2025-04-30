@@ -63,19 +63,24 @@ This document explains how data (unified `Transaction` objects) is saved locally
 
 ## 7. Data Flow Summary (Add Transaction on Desktop)
 
-1. User submits the `TransactionForm`.
+1. User submits the **unified `TransactionForm`**.
 2. `onSubmit` calls `addTransaction(newTransaction)` from `dataService.ts`.
 3. `dataService.ts` sees `'desktop'`, calls `invoke('add_transaction', { transaction: newTransaction })`.
 4. Rust `add_transaction` saves the `Transaction` object to the SQLite `transactions` table.
 5. `invoke` returns successfully.
 6. `dataService.ts` **then calls `useDonationStore.getState().addTransaction(newTransaction)`**, updating the `transactions` array in the Zustand store.
-7. UI components (like `AllTransactionsDataTable` or `StatsCards` using the selector) listening to the Zustand store re-render with the updated data or calculated balance.
+7. UI components listening to the Zustand store re-render:
+   - `AllTransactionsDataTable` shows the new transaction.
+   - `StatsCards` updates the totals and the required balance (via the `selectCalculatedBalance` selector).
+   - `MonthlyChart` will include the new transaction in the next month's calculation.
 
 ## 8. Data Flow Summary (Displaying Data/Balance on Desktop)
 
 1. **App Startup:** `App.tsx` detects `'desktop'`, calls `init_db`, then `loadTransactions`, populating the `transactions` array in Zustand via `setState`.
-2. **UI Rendering (Table):** Components like `AllTransactionsDataTable` use `useDonationStore((state) => state.transactions)` to get the data array from the store.
-3. **UI Rendering (Balance):** Components like `StatsCards` use the selector `useDonationStore(selectCalculatedBalance)` to get the dynamically calculated balance.
+2. **UI Rendering (Table):** `AllTransactionsDataTable` uses `useDonationStore((state) => state.transactions)` to get the data array from the store and renders it with pagination.
+3. **UI Rendering (Dashboard):**
+   - `StatsCards` uses the selector `useDonationStore(selectCalculatedBalance)` to get the dynamically calculated balance and also reads `transactions` to compute totals.
+   - `MonthlyChart` uses `useDonationStore((state) => state.transactions)` to calculate and display monthly aggregates.
 4. **Updates:** When new data is added (see flow above), the `transactions` array in the store is updated _after_ the DB save, triggering UI re-renders for components subscribed to `transactions` or the calculated balance.
 
 ## 9. Key Files
@@ -86,10 +91,12 @@ This document explains how data (unified `Transaction` objects) is saved locally
 - `src/lib/dataService.ts` (Abstraction layer, `addTransaction`, `loadTransactions`, invoke calls)
 - `src/lib/store.ts` (Zustand store: `transactions` array, `set/add` actions, `selectCalculatedBalance` selector)
 - `src/lib/tithe-calculator.ts` (Contains `calculateTotalRequiredDonation` logic)
-- UI Components:
-  - `src/components/forms/TransactionForm.tsx` (Unified form)
-  - `src/components/tables/AllTransactionsDataTable.tsx` (Table using `transactions` array)
-  - `src/components/dashboard/StatsCards.tsx` (Uses `selectCalculatedBalance`)
+- **UI Components (Refactored for Unified Model):**
+  - `src/components/forms/TransactionForm.tsx` (Unified form with type buttons, conditional checkboxes)
+  - `src/components/tables/AllTransactionsDataTable.tsx` (Table with filters, sorting, pagination, colored badges, export)
+  - `src/components/dashboard/StatsCards.tsx` (Displays totals & balance, uses selector)
+  - `src/components/dashboard/MonthlyChart.tsx` (Displays monthly aggregates)
+- `src/lib/utils/export-excel.ts` & `src/lib/utils/export-pdf.ts` (Updated export logic)
 - `src-tauri/src/main.rs` (Rust: `Transaction` struct, commands for init, add, get, clear; DB logic)
 - `tenten.db` (The SQLite database file containing the `transactions` table)
 
