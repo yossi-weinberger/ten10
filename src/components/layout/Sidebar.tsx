@@ -3,11 +3,11 @@ import {
   Calculator,
   Home,
   PlusCircle,
-  Heart,
   Settings,
   Info,
   User,
   Book,
+  BarChart,
 } from "lucide-react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -73,14 +73,11 @@ export function Sidebar({ expanded = false }: SidebarProps) {
         <NavLink to="/" icon={Home}>
           דף הבית
         </NavLink>
-        <NavLink to="/income" icon={PlusCircle}>
-          הכנסות
-        </NavLink>
-        <NavLink to="/donations" icon={Heart}>
-          תרומות
-        </NavLink>
         <NavLink to="/add-transaction" icon={PlusCircle}>
           הוסף תנועה
+        </NavLink>
+        <NavLink to="/analytics" icon={BarChart}>
+          ניתוח נתונים
         </NavLink>
         <NavLink to="/halacha" icon={Book}>
           הלכות

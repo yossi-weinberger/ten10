@@ -7,7 +7,7 @@ import { Sidebar } from "./components/layout/Sidebar";
 import { usePlatform } from "./contexts/PlatformContext";
 import { setDataServicePlatform, loadTransactions } from "./lib/dataService";
 import { invoke } from "@tauri-apps/api";
-import { useDonationStore, Income, Donation } from "./lib/store";
+import { useDonationStore } from "./lib/store";
 import { Transaction } from "./types/transaction";
 
 function App() {
@@ -24,25 +24,18 @@ function App() {
           .then(() => {
             console.log("Database initialized successfully.");
 
-            Promise.all([
-              invoke<Income[]>("get_incomes"),
-              invoke<Donation[]>("get_donations"),
-              loadTransactions(),
-            ])
-              .then(([incomes, donations, transactions]) => {
-                console.log("Loaded initial data from DB:", {
-                  incomes,
-                  donations,
-                  transactions,
-                });
+            loadTransactions()
+              .then((transactions) => {
+                console.log(
+                  "Loaded initial transactions from DB:",
+                  transactions
+                );
                 useDonationStore.setState({
-                  incomes: incomes,
-                  donations: donations,
                   transactions: transactions,
                 });
               })
               .catch((error) =>
-                console.error("Error loading initial data:", error)
+                console.error("Error loading initial transactions:", error)
               );
           })
           .catch((error) =>

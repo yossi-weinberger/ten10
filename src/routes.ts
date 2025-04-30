@@ -1,14 +1,18 @@
-import { createRouter, createRoute } from "@tanstack/react-router";
+import {
+  createRouter,
+  createRootRoute,
+  createRoute,
+} from "@tanstack/react-router";
 import App from "./App";
 import { HomePage } from "./pages/HomePage";
-import { IncomePage } from "./pages/IncomePage";
-import { DonationsPage } from "./pages/DonationsPage";
+import { AddTransactionPage } from "./pages/AddTransactionPage";
 import { HalachaPage } from "./pages/HalachaPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { AboutPage } from "./pages/AboutPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
 
-const rootRoute = createRoute({
+const rootRoute = createRootRoute({
   component: App,
 });
 
@@ -18,16 +22,10 @@ const indexRoute = createRoute({
   component: HomePage,
 });
 
-const incomeRoute = createRoute({
+const addTransactionRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/income",
-  component: IncomePage,
-});
-
-const donationsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/donations",
-  component: DonationsPage,
+  path: "/add-transaction",
+  component: AddTransactionPage,
 });
 
 const halachaRoute = createRoute({
@@ -54,14 +52,20 @@ const profileRoute = createRoute({
   component: ProfilePage,
 });
 
+const analyticsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/analytics",
+  component: AnalyticsPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  incomeRoute,
-  donationsRoute,
+  addTransactionRoute,
   halachaRoute,
   settingsRoute,
   aboutRoute,
   profileRoute,
+  analyticsRoute,
 ]);
 
 export const router = createRouter({ routeTree });

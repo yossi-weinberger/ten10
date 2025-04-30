@@ -83,50 +83,58 @@ This document explains how data (unified `Transaction` objects) is saved locally
    - `MonthlyChart` uses `useDonationStore((state) => state.transactions)` to calculate and display monthly aggregates.
 4. **Updates:** When new data is added (see flow above), the `transactions` array in the store is updated _after_ the DB save, triggering UI re-renders for components subscribed to `transactions` or the calculated balance.
 
-## 9. Key Files
+## 9. Key Files (Post-Cleanup)
 
 - `src/types/transaction.ts` (Defines `Transaction` interface)
 - `src/contexts/PlatformContext.tsx` (Platform detection)
-- `src/App.tsx` (Platform init, DB init via invoke, Initial data load via `dataService`)
-- `src/lib/dataService.ts` (Abstraction layer, `addTransaction`, `loadTransactions`, invoke calls)
-- `src/lib/store.ts` (Zustand store: `transactions` array, `set/add` actions, `selectCalculatedBalance` selector)
+- `src/App.tsx` (Platform init, DB init via invoke, Initial **transactions** load)
+- `src/routes.ts` (Defines application routes and navigation structure)
+- `src/lib/dataService.ts` (Abstraction layer: `addTransaction`, `loadTransactions`, `clearAllData`, invoke calls)
+- `src/lib/store.ts` (Zustand store: `transactions` array, `settings`, related actions, `selectCalculatedBalance` selector)
 - `src/lib/tithe-calculator.ts` (Contains `calculateTotalRequiredDonation` logic)
-- **UI Components (Refactored for Unified Model):**
-  - `src/components/forms/TransactionForm.tsx` (Unified form with type buttons, conditional checkboxes)
-  - `src/components/tables/AllTransactionsDataTable.tsx` (Table with filters, sorting, pagination, colored badges, export)
-  - `src/components/dashboard/StatsCards.tsx` (Displays totals & balance, uses selector)
+- **UI Components:**
+  - `src/components/forms/TransactionForm.tsx` (Unified form for adding transactions)
+  - `src/components/tables/AllTransactionsDataTable.tsx` (Displays all transactions with filters, sorting, etc.)
+  - `src/components/dashboard/StatsCards.tsx` (Displays totals & balance)
   - `src/components/dashboard/MonthlyChart.tsx` (Displays monthly aggregates)
-- `src/lib/utils/export-excel.ts` & `src/lib/utils/export-pdf.ts` (Updated export logic)
-- `src-tauri/src/main.rs` (Rust: `Transaction` struct, commands for init, add, get, clear; DB logic)
-- `tenten.db` (The SQLite database file containing the `transactions` table)
+  - `src/components/layout/Sidebar.tsx` (Navigation menu)
+- **Pages:**
+  - `src/pages/HomePage.tsx` (Main dashboard view, likely includes `AllTransactionsDataTable` and `StatsCards`)
+  - `src/pages/AddTransactionPage.tsx` (Page dedicated to `TransactionForm`)
+  - `src/pages/AnalyticsPage.tsx` (Placeholder for future data analysis)
+  - `src/pages/HalachaPage.tsx`, `src/pages/SettingsPage.tsx`, `src/pages/AboutPage.tsx`, `src/pages/ProfilePage.tsx` (Other application pages)
+- `src/lib/utils/export-excel.ts` & `src/lib/utils/export-pdf.ts` (Export logic for `AllTransactionsDataTable`)
+- `src-tauri/src/main.rs` (Rust: `Transaction` struct, commands for init, add, get, clear; DB logic - **cleaned of Income/Donation**)
+- `tenten.db` (The SQLite database file containing **only** the `transactions` table)
 
-## 10. Post-Refactoring Cleanup (Future Step)
+## 10. Post-Refactoring Cleanup (Completed)
 
-Once the new `Transaction` model is fully implemented, tested, and integrated across all relevant parts of the application (including the Web version), the following deprecated components and code should be removed:
+This section documents the deprecated components and code that were removed as part of the refactoring to the unified `Transaction` model.
 
 - **Zustand Store (`store.ts`):**
-  - `Income` and `Donation` interfaces.
-  - `incomes: Income[]` state array.
-  - `donations: Donation[]` state array.
-  - `requiredDonation: number` state field.
-  - Actions: `addIncome`, `addDonation`, `removeIncome`, `removeDonation`, `updateIncome`, `updateDonation`.
+  - `Income` and `Donation` interfaces. (Removed)
+  - `incomes: Income[]` state array. (Removed)
+  - `donations: Donation[]` state array. (Removed)
+  - `requiredDonation: number` state field. (Removed)
+  - Actions: `addIncome`, `addDonation`, `removeIncome`, `removeDonation`, `updateIncome`, `updateDonation`. (Removed)
 - **Data Service (`dataService.ts`):**
-  - Functions: `addIncome`, `addDonation`, `getIncomes`, `getDonations`.
-  - Imports for `Income`, `Donation`.
+  - Functions: `addIncome`, `addDonation`, `getIncomes`, `getDonations`. (Removed)
+  - Imports for `Income`, `Donation`. (Removed)
 - **Rust Backend (`src-tauri/src/main.rs`):**
-  - `Income` and `Donation` structs.
-  - Commands: `add_income`, `add_donation`, `get_incomes`, `get_donations`.
-  - Removal of the above commands from the `.invoke_handler(...)`.
-  - Removal of `CREATE TABLE IF NOT EXISTS incomes` and `CREATE TABLE IF NOT EXISTS donations` from the `init_db` command.
-  - Removal of `DELETE FROM incomes` and `DELETE FROM donations` from the `clear_all_data` command.
+  - `Income` and `Donation` structs. (Removed)
+  - Commands: `add_income`, `add_donation`, `get_incomes`, `get_donations`. (Removed)
+  - Removal of the above commands from the `.invoke_handler(...)`. (Done)
+  - Removal of `CREATE TABLE IF NOT EXISTS incomes` and `CREATE TABLE IF NOT EXISTS donations` from the `init_db` command. (Done)
+  - Removal of `DELETE FROM incomes` and `DELETE FROM donations` from the `clear_all_data` command. (Done)
 - **Database (SQLite - `tenten.db`):**
-  - The `incomes` table.
-  - The `donations` table.
+  - The `incomes` table. (Will be removed on next `init_db`)
+  - The `donations` table. (Will be removed on next `init_db`)
 - **Frontend Components:**
-  - `src/components/IncomeForm.tsx`
-  - `src/components/DonationForm.tsx`
-  - `src/components/tables/TransactionsDataTable.tsx`
+  - `src/components/IncomeForm.tsx` (Removed)
+  - `src/components/DonationForm.tsx` (Removed)
+  - `src/components/tables/TransactionsDataTable.tsx` (Removed)
 - **Pages:**
-  - Potentially simplify or refactor `src/pages/IncomePage.tsx` and `src/pages/DonationsPage.tsx` if they become redundant after the unified table/form are fully integrated (e.g., into a main dashboard or a single transaction history page).
+  - Removed old `DonationsPage.tsx`.
+  - `IncomePage.tsx` refactored and renamed to `AddTransactionPage.tsx`.
 - **Other:**
-  - Any remaining unused imports or utility functions related to the old data structures.
+  - Unused imports related to old structures/components removed from `App.tsx` and `Sidebar.tsx`. (Done)

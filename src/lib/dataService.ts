@@ -1,4 +1,4 @@
-import { useDonationStore, Income, Donation } from "./store";
+import { useDonationStore } from "./store";
 import { Transaction } from "../types/transaction";
 import { PlatformContextType } from "@/contexts/PlatformContext";
 import { invoke } from "@tauri-apps/api";
@@ -9,49 +9,6 @@ export function setDataServicePlatform(
   platform: PlatformContextType["platform"]
 ) {
   currentPlatform = platform;
-}
-
-// --- CRUD API ---
-
-export async function addIncome(income: Income) {
-  console.log("Current platform in addIncome:", currentPlatform);
-  if (currentPlatform === "desktop") {
-    try {
-      console.log("Attempting to add income via Tauri invoke...");
-      const result = await invoke("add_income", { income });
-      console.log("Tauri invoke add_income successful:", result);
-      useDonationStore.getState().addIncome(income);
-      return result;
-    } catch (error) {
-      console.error("Error invoking add_income:", error);
-      throw error; // Re-throw the error so the caller knows something went wrong
-    }
-  } else {
-    // שמירה ב-store (web)
-    useDonationStore.getState().addIncome(income);
-    // Simulate async operation for web for now
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-}
-
-export async function addDonation(donation: Donation) {
-  console.log("Current platform in addDonation:", currentPlatform);
-  if (currentPlatform === "desktop") {
-    try {
-      console.log("Attempting to add donation via Tauri invoke...");
-      const result = await invoke("add_donation", { donation });
-      console.log("Tauri invoke add_donation successful:", result);
-      useDonationStore.getState().addDonation(donation);
-      return result;
-    } catch (error) {
-      console.error("Error invoking add_donation:", error);
-      throw error; // Re-throw the error so the caller knows something went wrong
-    }
-  } else {
-    useDonationStore.getState().addDonation(donation);
-    // Simulate async operation for web for now
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
 }
 
 // --- New CRUD API for Transactions ---
@@ -114,17 +71,6 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
   }
 }
 
-// אפשר להוסיף כאן גם getIncomes, getDonations, removeIncome וכו' בעתיד
-
-// דוגמה ל-get (כרגע מה-store בלבד)
-export function getIncomes() {
-  return useDonationStore.getState().incomes;
-}
-
-export function getDonations() {
-  return useDonationStore.getState().donations;
-}
-
 export async function clearAllData() {
   console.log("Attempting to clear all data...");
   if (currentPlatform === "desktop") {
@@ -145,10 +91,7 @@ export async function clearAllData() {
   // Clear the Zustand store (include transactions)
   console.log("Clearing Zustand store...");
   useDonationStore.setState({
-    incomes: [],
-    donations: [],
     transactions: [], // Clear new transactions array
-    requiredDonation: 0,
   });
   console.log("Zustand store cleared.");
 }
