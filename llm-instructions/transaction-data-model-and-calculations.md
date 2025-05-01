@@ -16,9 +16,12 @@ This document outlines the standard approach for handling financial transactions
   - `category`: `string | null` (Optional category, primarily for 'expense' and 'recognized-expense' types)
   - `createdAt`: `string` (ISO 8601 timestamp, optional)
   - `updatedAt`: `string` (ISO 8601 timestamp, optional)
+    // Recurring Transaction Fields (relevant for income/donation)
+  - `is_recurring`: `boolean` (Optional, indicates if the transaction is a standing order)
+  - `recurring_day_of_month`: `number | null` (Optional, day of month (1-31) for recurring transactions)
 - **Transaction Type (`TransactionType`)**: Enum/string literal union defining the nature of the transaction and its impact on tithe calculation.
-  - `'income'`: Regular income subject to tithe (10% or 20%). Requires `isChomesh: boolean`.
-  - `'donation'`: Includes donations, tzedakah, and mitzvah expenses permissible to be paid from tithe funds (e.g., tuition fees for religious studies). Reduces required tithe by 100% of the amount. Requires `recipient: string` (or similar field indicating purpose).
+  - `'income'`: Regular income subject to tithe (10% or 20%). Requires `isChomesh: boolean`. Can be recurring.
+  - `'donation'`: Includes donations, tzedakah, and mitzvah expenses permissible to be paid from tithe funds (e.g., tuition fees for religious studies). Reduces required tithe by 100% of the amount. Requires `recipient: string` (or similar field indicating purpose). Can be recurring.
   - `'expense'`: Regular expense (e.g., groceries, utilities). Does not affect tithe calculation.
   - `'exempt-income'`: Income inherently exempt from tithe (e.g., certain gifts, specific stipends, offset rental income). Does not affect tithe calculation. **Note:** Reimbursements for expenses are _not_ exempt income; they should reduce the amount of the original expense recorded (or the expense shouldn't be recorded if fully reimbursed).
   - `'recognized-expense'`: Business or work-related expenses that reduce the income base subject to tithe (e.g., travel, babysitting for work, business investments/ads). Reduces required tithe by 10% of the expense amount.
@@ -59,20 +62,22 @@ This document outlines the standard approach for handling financial transactions
 
 **`transactions` Table Schema Example:**
 
-| Column Name   | Data Type (SQL)                     | Description                                                    | Nullable | Notes                                                             |
-| ------------- | ----------------------------------- | -------------------------------------------------------------- | -------- | ----------------------------------------------------------------- |
-| `id`          | `TEXT` / `VARCHAR` / `UUID`         | Primary Key, Unique identifier for the transaction             | No       | Use `nanoid` or DB's UUID generation                              |
-| `user_id`     | `TEXT` / `VARCHAR` / `UUID`         | Foreign Key to users table (Supabase), Identifier of the owner | Yes      | **Crucial for RLS in Supabase**. Can be NULL in SQLite (Desktop). |
-| `date`        | `TEXT` / `DATE`                     | Date of the transaction (YYYY-MM-DD)                           | No       |                                                                   |
-| `amount`      | `REAL` / `NUMERIC` / `DECIMAL`      | Transaction amount (positive value)                            | No       | Choose precision as needed                                        |
-| `currency`    | `TEXT` / `VARCHAR(3)`               | Currency code (e.g., 'ILS')                                    | No       |                                                                   |
-| `description` | `TEXT`                              | User-provided description                                      | Yes      |                                                                   |
-| `type`        | `TEXT` / `VARCHAR`                  | Transaction type ('income', 'donation', 'expense', etc.)       | No       | Consider CHECK constraint for valid types                         |
-| `category`    | `TEXT` / `VARCHAR`                  | Optional category (e.g., 'Housing', 'Food')                    | Yes      | Primarily for expense types                                       |
-| `is_chomesh`  | `BOOLEAN` / `INTEGER(1)`            | Indicates if 20% tithe applies (for 'income' type)             | Yes      | Only relevant for `type = 'income'`, NULL otherwise               |
-| `recipient`   | `TEXT`                              | Recipient/purpose of donation (for 'donation' type)            | Yes      | Only relevant for `type = 'donation'`, NULL otherwise             |
-| `created_at`  | `TEXT` / `TIMESTAMP WITH TIME ZONE` | Timestamp of creation                                          | Yes      | `DEFAULT CURRENT_TIMESTAMP` recommended                           |
-| `updated_at`  | `TEXT` / `TIMESTAMP WITH TIME ZONE` | Timestamp of last update                                       | Yes      | Update using triggers or application logic                        |
+| Column Name              | Data Type (SQL)                     | Description                                                    | Nullable | Notes                                                             |
+| ------------------------ | ----------------------------------- | -------------------------------------------------------------- | -------- | ----------------------------------------------------------------- |
+| `id`                     | `TEXT` / `VARCHAR` / `UUID`         | Primary Key, Unique identifier for the transaction             | No       | Use `nanoid` or DB's UUID generation                              |
+| `user_id`                | `TEXT` / `VARCHAR` / `UUID`         | Foreign Key to users table (Supabase), Identifier of the owner | Yes      | **Crucial for RLS in Supabase**. Can be NULL in SQLite (Desktop). |
+| `date`                   | `TEXT` / `DATE`                     | Date of the transaction (YYYY-MM-DD)                           | No       |                                                                   |
+| `amount`                 | `REAL` / `NUMERIC` / `DECIMAL`      | Transaction amount (positive value)                            | No       | Choose precision as needed                                        |
+| `currency`               | `TEXT` / `VARCHAR(3)`               | Currency code (e.g., 'ILS')                                    | No       |                                                                   |
+| `description`            | `TEXT`                              | User-provided description                                      | Yes      |                                                                   |
+| `type`                   | `TEXT` / `VARCHAR`                  | Transaction type ('income', 'donation', 'expense', etc.)       | No       | Consider CHECK constraint for valid types                         |
+| `category`               | `TEXT` / `VARCHAR`                  | Optional category (e.g., 'Housing', 'Food')                    | Yes      | Primarily for expense types                                       |
+| `is_chomesh`             | `BOOLEAN` / `INTEGER(1)`            | Indicates if 20% tithe applies (for 'income' type)             | Yes      | Only relevant for `type = 'income'`, NULL otherwise               |
+| `recipient`              | `TEXT`                              | Recipient/purpose of donation (for 'donation' type)            | Yes      | Only relevant for `type = 'donation'`, NULL otherwise             |
+| `is_recurring`           | `BOOLEAN` / `INTEGER(1)`            | Indicates if transaction is recurring (standing order)         | Yes      | Typically relevant for `type = 'income'` or `'donation'`          |
+| `recurring_day_of_month` | `INTEGER`                           | Day of month (1-31) for recurring transactions                 | Yes      | Only relevant if `is_recurring = true`, NULL otherwise            |
+| `created_at`             | `TEXT` / `TIMESTAMP WITH TIME ZONE` | Timestamp of creation                                          | Yes      | `DEFAULT CURRENT_TIMESTAMP` recommended                           |
+| `updated_at`             | `TEXT` / `TIMESTAMP WITH TIME ZONE` | Timestamp of last update                                       | Yes      | Update using triggers or application logic                        |
 
 ## 6. Data Flow Summary
 

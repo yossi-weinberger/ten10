@@ -82,6 +82,19 @@ const transactionFormSchema = z
     // New boolean fields for UI control
     isExempt: z.boolean().optional(),
     isRecognized: z.boolean().optional(),
+
+    // Recurring fields
+    is_recurring: z.boolean().optional(),
+    recurring_day_of_month: z.preprocess(
+      // Allow empty string or null to become undefined for optional validation
+      (val) => (val === "" || val === null ? undefined : val),
+      z.coerce
+        .number({ invalid_type_error: "חייב להיות מספר" })
+        .int({ message: "חייב להיות מספר שלם" })
+        .min(1, { message: "היום חייב להיות בין 1 ל-31" })
+        .max(31, { message: "היום חייב להיות בין 1 ל-31" })
+        .optional() // Make it optional initially
+    ),
   })
   .refine(
     (data) => {
@@ -95,8 +108,45 @@ const transactionFormSchema = z
       message: "לא ניתן לסמן חומש עבור הכנסה פטורה",
       path: ["isChomesh"], // Attach error to isChomesh field
     }
+  )
+  // Refine for recurring fields
+  .refine(
+    (data) => {
+      // If it's recurring, day must be provided
+      if (
+        data.is_recurring &&
+        (data.recurring_day_of_month === undefined ||
+          data.recurring_day_of_month === null)
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "יש לבחור יום בחודש עבור הוראת קבע",
+      path: ["recurring_day_of_month"], // Attach error to the day field
+    }
+  )
+  .refine(
+    (data) => {
+      // If it's NOT recurring, day must be null/undefined
+      if (
+        !data.is_recurring &&
+        data.recurring_day_of_month !== undefined &&
+        data.recurring_day_of_month !== null
+      ) {
+        // This case shouldn't happen if UI is correct, but good for robustness
+        // We'll handle setting it to null in onSubmit, so just return true here
+        // Alternatively, you could clear it here using a transform, but refine is simpler
+        return true;
+      }
+      return true;
+    },
+    {
+      // No message needed as we handle this in onSubmit
+      path: ["recurring_day_of_month"],
+    }
   );
-
 // TODO: Use discriminatedUnion or refine schema for conditional requirements:
 // - isChomesh: required if type is 'income'
 // - recipient: required if type is 'donation'
@@ -149,6 +199,8 @@ export function TransactionForm({
       recipient: "",
       isExempt: false,
       isRecognized: false,
+      is_recurring: false,
+      recurring_day_of_month: undefined,
     },
   });
 
@@ -187,7 +239,15 @@ export function TransactionForm({
       ...(finalType === "donation" && {
         recipient: values.recipient || null,
       }),
+      // Add recurring fields
+      is_recurring: values.is_recurring || false,
+      recurring_day_of_month: values.is_recurring
+        ? values.recurring_day_of_month
+        : null,
     };
+
+    // DEBUG: Log the object being sent to the backend
+    console.log("Submitting transaction object:", newTransaction);
 
     console.log("Submitting final transaction object:", newTransaction);
     try {
@@ -209,6 +269,8 @@ export function TransactionForm({
         recipient: "",
         isExempt: false,
         isRecognized: false,
+        is_recurring: false, // Reset recurring flag
+        recurring_day_of_month: undefined, // Reset recurring day
       });
 
       // Trigger success animation
@@ -481,6 +543,79 @@ export function TransactionForm({
                 </FormItem>
               )}
             />
+          </>
+        )}
+
+        {/* --- Recurring Transaction Fields (Income/Donation Only) --- */}
+        {(selectedType === "income" || selectedType === "donation") && (
+          <>
+            {/* is_recurring Checkbox */}
+            <FormField
+              control={form.control}
+              name="is_recurring"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={(checked) => {
+                        field.onChange(checked);
+                        // Reset day field if recurring is unchecked
+                        if (!checked) {
+                          form.setValue("recurring_day_of_month", undefined, {
+                            shouldValidate: true, // Re-validate based on refine
+                          });
+                        }
+                      }}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>הוראת קבע?</FormLabel>
+                    <FormDescription>
+                      האם זו הכנסה/תרומה קבועה שחוזרת מדי חודש?
+                    </FormDescription>
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            {/* recurring_day_of_month Input (Visible only if is_recurring is checked) */}
+            {form.watch("is_recurring") && (
+              <FormField
+                control={form.control}
+                name="recurring_day_of_month"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>יום בחודש לחיוב *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={31}
+                        {...field}
+                        // Ensure value passed to input is string or number, handle null/undefined
+                        value={field.value ?? ""}
+                        onChange={(e) => {
+                          // Convert input value to number or undefined
+                          const numValue =
+                            e.target.value === ""
+                              ? undefined
+                              : parseInt(e.target.value, 10);
+                          field.onChange(numValue);
+                        }}
+                        placeholder="1-31"
+                        className="text-right"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      היום בחודש בו מתבצעת הפעולה הקבועה.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </>
         )}
 
