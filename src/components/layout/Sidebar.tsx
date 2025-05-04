@@ -8,11 +8,14 @@ import {
   User,
   Book,
   BarChart,
+  LogOut,
 } from "lucide-react";
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link, useRouter, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PlatformIndicator } from "./PlatformIndicator";
+import { usePlatform } from "@/contexts/PlatformContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SidebarProps {
   expanded?: boolean;
@@ -21,6 +24,9 @@ interface SidebarProps {
 export function Sidebar({ expanded = false }: SidebarProps) {
   const router = useRouter();
   const currentPath = router.state.location.pathname;
+  const { platform } = usePlatform();
+  const { user, signOut, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
 
   const NavLink = ({
     to,
@@ -55,6 +61,15 @@ export function Sidebar({ expanded = false }: SidebarProps) {
     </Button>
   );
 
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      navigate({ to: "/login", replace: true });
+    } catch (e) {
+      console.error("Logout caught in component:", e);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col py-4">
       <Link to="/" className="flex items-center gap-2 px-4 mb-6">
@@ -88,10 +103,36 @@ export function Sidebar({ expanded = false }: SidebarProps) {
         <NavLink to="/about" icon={Info}>
           אודות
         </NavLink>
-        <NavLink to="/profile" icon={User}>
-          פרופיל
-        </NavLink>
+        {platform === "web" && (
+          <NavLink to="/profile" icon={User}>
+            פרופיל
+          </NavLink>
+        )}
       </nav>
+
+      {platform === "web" && user && (
+        <div className="mt-auto pt-4 border-t border-border/20">
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full h-12 text-red-600 hover:bg-red-100 hover:text-red-700 focus-visible:ring-red-500",
+              expanded ? "justify-start px-4 gap-3" : "justify-center px-0"
+            )}
+            onClick={handleLogout}
+            disabled={authLoading}
+          >
+            <LogOut className="h-6 w-6 min-w-[24px] flex-shrink-0" />
+            <span
+              className={cn(
+                "transition-all duration-200",
+                !expanded && "w-0 overflow-hidden opacity-0"
+              )}
+            >
+              {authLoading ? "מתנתק..." : "התנתק"}
+            </span>
+          </Button>
+        </div>
+      )}
 
       <PlatformIndicator expanded={expanded} />
     </div>

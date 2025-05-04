@@ -2,6 +2,7 @@ import {
   createRouter,
   createRootRoute,
   createRoute,
+  redirect,
 } from "@tanstack/react-router";
 import App from "./App";
 import { HomePage } from "./pages/HomePage";
@@ -11,9 +12,47 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { AboutPage } from "./pages/AboutPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+import { supabase } from "./lib/supabaseClient";
 
 const rootRoute = createRootRoute({
   component: App,
+  beforeLoad: async ({ location }) => {
+    // --- Platform Check ---
+    // If running in Tauri (desktop), skip the auth check entirely
+    if ((window as any)?.__TAURI__) {
+      return; // Allow access on desktop regardless of auth state
+    }
+
+    // --- Web Platform Auth Check ---
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    // Define public routes that don't require authentication
+    const publicRoutes = ["/login", "/signup"];
+
+    // Check if the user is trying to access a protected route on the web without a session
+    if (!session && !publicRoutes.includes(location.pathname)) {
+      // Redirect to the login page
+      throw redirect({
+        to: "/login", // Target route
+        // search: { redirect: location.href }, // Optional: pass original location to redirect back after login
+        replace: true, // Replace history entry to avoid back button issues
+      });
+    }
+
+    // Optional: Redirect logged-in web users away from login/signup pages
+    // if (session && publicRoutes.includes(location.pathname)) {
+    //   throw redirect({
+    //     to: '/',
+    //     replace: true,
+    //   });
+    // }
+
+    // Allow access if user has session OR is accessing a public route on the web
+  },
 });
 
 const indexRoute = createRoute({
@@ -58,6 +97,18 @@ const analyticsRoute = createRoute({
   component: AnalyticsPage,
 });
 
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/login",
+  component: LoginPage,
+});
+
+const signupRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/signup",
+  component: SignupPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   addTransactionRoute,
@@ -66,6 +117,8 @@ const routeTree = rootRoute.addChildren([
   aboutRoute,
   profileRoute,
   analyticsRoute,
+  loginRoute,
+  signupRoute,
 ]);
 
 export const router = createRouter({ routeTree });

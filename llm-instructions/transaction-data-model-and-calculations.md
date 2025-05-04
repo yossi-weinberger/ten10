@@ -104,3 +104,34 @@ This document outlines the standard approach for handling financial transactions
   - `AllTransactionsDataTable`: Displays all transactions with sorting, filtering, pagination (10 per page), translated & colored type badges, and an icon for Chomesh.
 - Export functionality (`Excel`, `PDF`) has been updated to work with the `transactions` array and integrated into `AllTransactionsDataTable`.
 - The next steps involve migrating the Web version (Supabase) and then removing the deprecated code (old models, state, functions, DB tables).
+
+## 9. Modifying the Transaction Model (Adding a New Field)
+
+To add a new field (e.g., `notes`) to the `Transaction` model, you typically need to modify the following areas:
+
+1.  **TypeScript Definition:**
+
+    - Update the `Transaction` interface/type in `src/types/transaction.ts` (or relevant types file).
+    - Example: Add `notes?: string;`
+
+2.  **Database Schema:**
+
+    - **Desktop (SQLite):** Add the corresponding column to the `transactions` table. This might involve modifying initialization code or migration logic within `src-tauri/src/main.rs` or related Rust modules handling DB setup.
+    - Example SQL: `ALTER TABLE transactions ADD COLUMN notes TEXT NULL;`
+    - **Web (Supabase):** Add the corresponding column via the Supabase Dashboard (SQL Editor or Migrations UI) or using Supabase CLI migrations. Ensure appropriate default values or nullability.
+    - Example SQL: `ALTER TABLE transactions ADD COLUMN notes TEXT NULL;`
+    - **RLS (Supabase):** Review and update Row Level Security policies if the new field impacts access control.
+
+3.  **Backend Logic (Desktop - Rust):**
+
+    - Modify Rust functions (`#[tauri::command]`) in `src-tauri/src/main.rs` (or related modules) handling CRUD operations (`add_transaction`, `get_transactions`, etc.) to include the new field in SQL queries (`INSERT`, `UPDATE`, `SELECT`) and in data passed to/from the frontend via `invoke`.
+
+4.  **Frontend Logic (React/TypeScript):**
+    - **Data Fetching/Mutation:** Update functions calling the backend (`invoke` for Rust, `@supabase/supabase-js` methods for Web) to send and receive the new field. Check service files like `src/lib/dataService.ts`.
+    - **Validation (Zod):** Add the field to the Zod schema used for validation (likely near `TransactionForm`). Example: `notes: z.string().optional()`
+    - **UI Components:**
+      - Add input fields to forms (`src/components/TransactionForm.tsx` or similar) using `react-hook-form` and `shadcn/ui`.
+      - Update display components like tables (`src/components/AllTransactionsDataTable.tsx`) or detail views to show the new field if needed.
+    - **State Management (Zustand):** Usually requires no change if the store holds `Transaction[]`, as the type definition update is sufficient.
+
+**Remember to test thoroughly across both Desktop and Web versions after adding a field.**
