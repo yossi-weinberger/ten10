@@ -21,7 +21,7 @@ This document outlines the main technologies and conventions used in this projec
 ## Application Architecture
 
 - **Routing**: **TanStack Router (`@tanstack/react-router`)** - Handles client-side routing.
-- **State Management**: **Zustand** - Used for global state management. The primary data store (`useDonationStore`) holds a unified list of all financial events in `transactions: Transaction[]`. The required tithe balance is calculated dynamically in the frontend using memoized selectors based on this array and is not stored directly in the state. (See `transaction-data-model-and-calculations.md`).
+- **State Management**: **Zustand** - Used for global state management. The primary data store (`useDonationStore`) holds a unified list of all financial events in `transactions: Transaction[]`. The required tithe balance is calculated dynamically in the frontend using memoized selectors based on this array and is not stored directly in the state. (See `transaction-data-model-and-calculations.md`). **Note: Loading and clearing of the `transactions` state is managed by `AuthContext` based on authentication events.**
 - **Forms**: **React Hook Form (`react-hook-form`)** - Used for managing form state and submission.
 - **Schema Validation**: **Zod** - Used for data validation, often integrated with React Hook Form via `@hookform/resolvers`.
 - **Backend-as-a-Service (BaaS)**: **Supabase (`@supabase/supabase-js`)** - Used for backend functionalities like authentication and database **specifically for the web version**. Communication is done **directly from the frontend client**.
@@ -32,7 +32,7 @@ This document outlines the main technologies and conventions used in this projec
     - **Current DB Schema:** Note that the `transactions` table columns in Supabase currently use `camelCase` (e.g., `"isRecurring"`, `"createdAt"`) for historical reasons, except for `id` and `user_id` which are `snake_case`. The `dataService` layer handles mapping.
     - **Primary Key (`id`):** The database generates the `uuid` for the `id` column automatically.
   - **Row Level Security (RLS)**: **MANDATORY AND CRITICAL**. Enable and meticulously configure RLS policies within the Supabase dashboard for the `transactions` table and any other tables containing user-specific or sensitive data. Policies MUST ensure users can only access and modify their own data (typically using `auth.uid()`). **Failure to configure RLS correctly is a major security vulnerability.** (RLS is currently enabled and policies are applied for `transactions`).
-  - **Zustand Integration**: Fetch/update data between Supabase (`transactions` table) and the Zustand store (`transactions` array), respecting authentication state.
+  - **Zustand Integration**: Fetch/update data between Supabase (`transactions` table) and the Zustand store (`transactions` array), respecting authentication state. **Initial load and clearing on sign-out are triggered via `AuthContext`.**
 - **Local Database (Desktop)**: The desktop version uses **SQLite** for local offline storage. It will also utilize a unified `transactions` table structure mirroring the model described in `transaction-data-model-and-calculations.md` (likely using `snake_case` or `camelCase` depending on Rust/frontend implementation).
 
 ## Utilities and Libraries

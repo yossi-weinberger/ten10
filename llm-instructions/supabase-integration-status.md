@@ -13,6 +13,7 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 - **Authentication State Management:**
   - Created `AuthContext` with `onAuthStateChange` listener.
   - Wrapped application with `AuthProvider`.
+  - **AuthContext now handles clearing the `transactions` state (Zustand) on sign-out and reloading data via `dataService` on sign-in/user change.**
 - **Platform-Specific UI:**
   - Created Login (`LoginPage.tsx`) and Signup (`SignupPage.tsx`) pages, displayed only on the web platform.
   - Utilized `PlatformContext` for conditional rendering.
@@ -55,6 +56,7 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - Lets the database generate the `id` (UUID).
   - Maps data between the mixed-case TypeScript `Transaction` type and the camelCase database columns during `insert`.
   - Fetches the newly created record after insert to update the Zustand store correctly.
+  - **State Synchronization:** Transaction data fetched via `dataService` is loaded into the Zustand store (`useDonationStore`), triggered by authentication events managed in `AuthContext`.
 
 ## Remaining Tasks / Next Steps
 
