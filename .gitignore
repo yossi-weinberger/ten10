@@ -31,3 +31,8 @@ dist-ssr
 # Adjust the path if your database is located elsewhere
 /src-tauri/tenten.db*
 /src-tauri/tenten.db*-journal
+
+# Environment variables
+.env
+.env.*
+!.env.example

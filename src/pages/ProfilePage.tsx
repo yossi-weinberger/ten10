@@ -1,19 +1,20 @@
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { UserInfoDisplay } from "@/components/UserInfoDisplay";
 
 export function ProfilePage() {
   return (
     <div className="grid gap-6">
       <div className="grid gap-2">
         <h2 className="text-2xl font-bold">פרופיל</h2>
-        <p className="text-muted-foreground">
-          נהל את פרטי המשתמש שלך
-        </p>
+        <p className="text-muted-foreground">נהל את פרטי המשתמש שלך</p>
       </div>
-      
+
+      <UserInfoDisplay />
+
       <div className="grid gap-6">
         <Card>
           <CardHeader>

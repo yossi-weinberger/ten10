@@ -2,6 +2,7 @@ import { useDonationStore } from "./store";
 import { Transaction } from "../types/transaction";
 import { PlatformContextType } from "@/contexts/PlatformContext";
 import { invoke } from "@tauri-apps/api";
+import { supabase } from "@/lib/supabaseClient"; // Import Supabase client
 
 // פונקציה לקבלת הפלטפורמה (יש להפעיל אותה מהקומפוננטה הראשית)
 let currentPlatform: PlatformContextType["platform"] = "loading";
@@ -16,7 +17,7 @@ export function setDataServicePlatform(
 /**
  * Loads all transactions based on the current platform.
  * On desktop, fetches from SQLite via Tauri.
- * On web, returns an empty array (to be implemented later with Supabase).
+ * On web, fetches from Supabase.
  */
 export async function loadTransactions(): Promise<Transaction[]> {
   console.log("Current platform in loadTransactions:", currentPlatform);
@@ -32,9 +33,34 @@ export async function loadTransactions(): Promise<Transaction[]> {
       console.error("Error invoking get_transactions:", error);
       throw error;
     }
+  } else if (currentPlatform === "web") {
+    console.log(
+      "Web platform: Attempting to load transactions via Supabase..."
+    );
+    try {
+      // RLS ensures only user's transactions are returned
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*") // Select all columns
+        .order("date", { ascending: false }); // Optional: order by date
+
+      if (error) throw error;
+
+      console.log(
+        `Supabase select successful: loaded ${data?.length || 0} transactions.`
+      );
+      // Ensure data conforms to Transaction type if needed (e.g., date format)
+      // Supabase might return date as string, which matches our Transaction type
+      return (data as Transaction[]) || [];
+    } catch (error) {
+      console.error("Error loading transactions from Supabase:", error);
+      // Decide how to handle error: throw, return empty, etc.
+      // Returning empty for now to avoid crashing the app
+      return [];
+    }
   } else {
-    // Placeholder for web - fetch from Supabase later
-    console.log("Web platform: Returning empty transactions array for now.");
+    // Loading state or uninitialized platform
+    console.log("Platform not yet determined, returning empty transactions.");
     return [];
   }
 }
@@ -42,7 +68,7 @@ export async function loadTransactions(): Promise<Transaction[]> {
 /**
  * Adds a single transaction.
  * On desktop, saves to SQLite via Tauri and then updates the Zustand store.
- * On web, does nothing (to be implemented later with Supabase).
+ * On web, saves to Supabase and then updates the Zustand store.
  */
 export async function addTransaction(transaction: Transaction): Promise<void> {
   console.log("Current platform in addTransaction:", currentPlatform);
@@ -61,13 +87,95 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
       console.error("Error invoking add_transaction:", error);
       throw error;
     }
+  } else if (currentPlatform === "web") {
+    console.log("Web platform: Attempting to add transaction via Supabase...");
+    try {
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error("User not authenticated for Supabase operation.");
+      }
+      const userId = user.id;
+
+      // Prepare data for Supabase insert:
+      // Explicitly map fields from the original 'transaction' object (mixed case)
+      // to the target DB column names (camelCase, except user_id and id which is omitted)
+      const transactionToInsert = {
+        // Target DB Column Name (camelCase) : Source TS Object Field (mixed case)
+        user_id: userId, // Keep snake_case
+        date: transaction.date,
+        amount: transaction.amount,
+        currency: transaction.currency,
+        description: transaction.description,
+        type: transaction.type,
+        category: transaction.category,
+        isChomesh: transaction.isChomesh, // camelCase DB <- camelCase TS (assumed)
+        isRecurring: transaction.is_recurring, // camelCase DB <- snake_case TS (from logs)
+        recurringDayOfMonth: transaction.recurring_day_of_month, // camelCase DB <- snake_case TS (from logs)
+        // id, createdAt, updatedAt are handled by DB
+      };
+
+      // Ensure undefined becomes null
+      Object.keys(transactionToInsert).forEach((key) => {
+        if ((transactionToInsert as Record<string, any>)[key] === undefined) {
+          (transactionToInsert as Record<string, any>)[key] = null;
+        }
+      });
+
+      console.log(
+        "Object being sent to Supabase insert (explicitly mapped fields):",
+        transactionToInsert
+      );
+
+      // Insert and select the newly created row
+      const { data: insertedData, error: insertError } = await supabase
+        .from("transactions")
+        .insert(transactionToInsert)
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      if (!insertedData)
+        throw new Error(
+          "Failed to retrieve inserted transaction data from Supabase."
+        );
+
+      console.log(
+        "Supabase insert successful. DB generated ID:",
+        insertedData.id
+      );
+
+      // Map the returned data (DB columns, camelCase) back to Transaction type for the store
+      const transactionForStore: Transaction = {
+        id: insertedData.id,
+        user_id: insertedData.user_id,
+        date: insertedData.date,
+        amount: insertedData.amount,
+        currency: insertedData.currency,
+        description: insertedData.description,
+        type: insertedData.type,
+        category: insertedData.category,
+        isChomesh: insertedData.isChomesh, // map from DB
+        is_recurring: insertedData.isRecurring, // map back to snake_case for TS type
+        recurring_day_of_month: insertedData.recurringDayOfMonth, // map back to snake_case for TS type
+        createdAt: insertedData.createdAt,
+        updatedAt: insertedData.updatedAt,
+      };
+
+      // Update store using the data returned from the database
+      useDonationStore.getState().addTransaction(transactionForStore);
+      console.log("Zustand store updated with DB-generated transaction.");
+    } catch (error) {
+      console.error("Error adding transaction to Supabase:", error);
+      throw error; // Re-throw error
+    }
   } else {
-    // Placeholder for web - save to Supabase later
-    console.log(
-      "Web platform: Not adding transaction to store or backend yet."
-    );
-    // Optionally simulate async for web
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    // Loading state or uninitialized platform
+    console.log("Platform not yet determined, cannot add transaction.");
+    // Optionally throw an error or handle gracefully
+    throw new Error("Cannot add transaction: Platform not initialized.");
   }
 }
 
@@ -82,10 +190,32 @@ export async function clearAllData() {
       console.error("Error invoking clear_all_data:", error);
       throw error;
     }
-  } else {
-    // Placeholder for web - call cloud API endpoint in the future
-    console.log("TODO: Call cloud API to clear user data.");
-    await new Promise((resolve) => setTimeout(resolve, 500));
+  } else if (currentPlatform === "web") {
+    // TODO: Implement clearing user-specific data in Supabase
+    // This would likely involve deleting rows from 'transactions' table
+    // matching the current user ID. BE VERY CAREFUL HERE.
+    console.warn(
+      "Web platform: clearAllData for Supabase not yet implemented."
+    );
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { error } = await supabase
+          .from("transactions")
+          .delete()
+          .eq("user_id", user.id);
+        if (error) throw error;
+        console.log("Supabase transactions cleared for user:", user.id);
+      } else {
+        console.log("No user session found, skipping Supabase clear.");
+      }
+    } catch (error) {
+      console.error("Error clearing Supabase transactions:", error);
+      // Decide if we should still clear Zustand store
+      // For now, let's continue to clear the store even if DB clear fails
+    }
   }
 
   // Clear the Zustand store (include transactions)
