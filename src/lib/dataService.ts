@@ -35,6 +35,14 @@ export async function loadTransactions(): Promise<Transaction[]> {
     }
   } else if (currentPlatform === "web") {
     console.log(
+      "Web platform: DEBUG - Supabase URL:",
+      import.meta.env.VITE_SUPABASE_URL
+    );
+    console.log(
+      "Web platform: DEBUG - Supabase Anon Key:",
+      import.meta.env.VITE_SUPABASE_ANON_KEY
+    );
+    console.log(
       "Web platform: Attempting to load transactions via Supabase..."
     );
     try {
