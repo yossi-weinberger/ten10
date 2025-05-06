@@ -38,13 +38,18 @@ export async function loadTransactions(): Promise<Transaction[]> {
       "Web platform: Attempting to load transactions via Supabase..."
     );
     try {
-      // RLS ensures only user's transactions are returned
+      console.log("Web platform: DEBUG - About to call Supabase select...");
       const { data, error } = await supabase
         .from("transactions")
         .select("*") // Select all columns
         .order("date", { ascending: false }); // Optional: order by date
 
-      if (error) throw error;
+      console.log("Web platform: DEBUG - Supabase select call finished.");
+
+      if (error) {
+        console.error("Supabase returned an error object:", error);
+        throw error;
+      }
 
       console.log(
         `Supabase select successful: loaded ${data?.length || 0} transactions.`
@@ -52,11 +57,16 @@ export async function loadTransactions(): Promise<Transaction[]> {
       // Ensure data conforms to Transaction type if needed (e.g., date format)
       // Supabase might return date as string, which matches our Transaction type
       return (data as Transaction[]) || [];
-    } catch (error) {
-      console.error("Error loading transactions from Supabase:", error);
-      // Decide how to handle error: throw, return empty, etc.
-      // Returning empty for now to avoid crashing the app
-      return [];
+    } catch (errorCaught: any) {
+      console.error(
+        "Error explicitly caught in loadTransactions (Supabase block):",
+        errorCaught
+      );
+      throw new Error(
+        `Failed to load transactions from Supabase. Original error: ${
+          errorCaught?.message || JSON.stringify(errorCaught)
+        }`
+      );
     }
   } else {
     // Loading state or uninitialized platform

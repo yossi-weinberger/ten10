@@ -41,7 +41,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Helper function to load transactions and update store
   const loadAndSetTransactions = async () => {
-    if (platform === "loading") return; // Don't load if platform unknown
+    if (platform === "loading") {
+      console.log(
+        "AuthContext: loadAndSetTransactions - Platform is still loading, returning."
+      );
+      return;
+    }
     console.log(
       "AuthContext: Attempting to load transactions for new session/user..."
     );
@@ -60,16 +65,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   useEffect(() => {
+    console.log("AuthContext: Main useEffect triggered. Platform:", platform); // DEBUG
     setLoading(true);
     // Initial session check
     supabase.auth
       .getSession()
       .then(({ data: { session: initialSession } }) => {
+        console.log(
+          "AuthContext: getSession resolved. Initial session:",
+          initialSession,
+          "Platform:",
+          platform
+        ); // DEBUG
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
         // If session exists initially, load transactions
         if (initialSession && platform !== "loading") {
+          console.log(
+            "AuthContext: Initial session exists and platform is not loading. Calling loadAndSetTransactions."
+          ); // DEBUG
           loadAndSetTransactions();
+        } else if (initialSession && platform === "loading") {
+          console.log(
+            "AuthContext: Initial session exists BUT platform is loading. NOT calling loadAndSetTransactions yet."
+          ); // DEBUG
+        } else if (!initialSession) {
+          console.log("AuthContext: No initial session found."); // DEBUG
         }
         setLoading(false);
       })
@@ -81,9 +102,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Auth state change listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
-        console.log("Auth event:", event, newSession);
-        const previousUserId = user?.id;
-        const newUserId = newSession?.user?.id;
+        console.log(
+          "AuthContext: onAuthStateChange triggered. Event:",
+          event,
+          "New session:",
+          newSession,
+          "Platform:",
+          platform
+        ); // DEBUG
+        // const previousUserId = user?.id; // Not strictly needed with current logic for loadAndSetTransactions
+        // const newUserId = newSession?.user?.id;
 
         setSession(newSession);
         setUser(newSession?.user ?? null);
@@ -91,26 +119,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // --- Zustand Store Handling ---
         if (!newSession || event === "SIGNED_OUT") {
-          // User signed out or session is null
           console.log(
             "AuthContext: Clearing Zustand store due to sign out/null session."
           );
           useDonationStore.setState({ transactions: [] });
         } else if (
           event === "SIGNED_IN" ||
-          (event === "USER_UPDATED" && newUserId !== previousUserId) ||
-          (event === "INITIAL_SESSION" && newUserId)
+          event === "TOKEN_REFRESHED" || // Consider TOKEN_REFRESHED as well
+          event === "USER_UPDATED" || // USER_UPDATED might not always need a full reload if user ID hasn't changed, but safer for now
+          (event === "INITIAL_SESSION" && newSession?.user) // Ensure user exists for INITIAL_SESSION
         ) {
-          // User signed in, changed user, or initial session established
+          console.log(
+            "AuthContext: onAuthStateChange - Condition met to potentially load transactions. Platform:",
+            platform
+          ); // DEBUG
           if (platform !== "loading") {
+            console.log(
+              "AuthContext: onAuthStateChange - Platform is not loading. Calling loadAndSetTransactions."
+            ); // DEBUG
             await loadAndSetTransactions(); // Load data for the new user/session
+          } else {
+            console.log(
+              "AuthContext: onAuthStateChange - Platform is loading. NOT calling loadAndSetTransactions yet."
+            ); // DEBUG
           }
         }
-        // Add handling for TOKEN_REFRESHED if necessary, potentially re-loading data?
       }
     );
 
     return () => {
+      console.log("AuthContext: Unsubscribing auth listener."); // DEBUG
       authListener?.subscription.unsubscribe();
     };
     // Include platform in dependencies to trigger initial load/reload when platform is known
