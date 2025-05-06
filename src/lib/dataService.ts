@@ -55,38 +55,8 @@ export async function loadTransactions(): Promise<Transaction[]> {
 
       console.log(">>> Raw data received from Supabase:", data);
 
-      // Map the snake_case data from Supabase to the Transaction interface
-      const transactions: Transaction[] =
-        data?.map((item) => ({
-          id: item.id,
-          user_id: item.user_id,
-          date: item.date,
-          amount: item.amount,
-          currency: item.currency,
-          description: item.description,
-          type: item.type,
-          category: item.category,
-          is_chomesh: item.is_chomesh, // Use snake_case from DB
-          recipient: item.recipient,
-          is_recurring: item.is_recurring, // Use snake_case from DB
-          recurring_day_of_month: item.recurring_day_of_month, // Use snake_case from DB
-          created_at: item.created_at, // Use snake_case from DB
-          updated_at: item.updated_at, // Use snake_case from DB
-          original_id: item.original_id, // Use snake_case from DB
-          supabase_id: item.supabase_id, // Use snake_case from DB
-          // --- Add potentially needed legacy camelCase fields if UI depends on them ---
-          // isChomesh: item.is_chomesh,
-          // isRecurring: item.is_recurring,
-          // recurringDayOfMonth: item.recurring_day_of_month,
-          // createdAt: item.created_at,
-          // updatedAt: item.updated_at,
-        })) || [];
-
-      console.log(">>> Successfully mapped transactions:", transactions);
-      return transactions;
-
-      // console.log(">>> TEMP: Returning data directly without mapping");
-      // return (data as Transaction[]) || [];
+      console.log(">>> TEMP: Returning data directly without mapping");
+      return (data as Transaction[]) || [];
     } catch (error) {
       console.error(">>> Supabase fetch error in loadTransactions:", error);
       return [];
