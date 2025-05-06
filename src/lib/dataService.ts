@@ -3,7 +3,6 @@ import { Transaction } from "../types/transaction";
 import { PlatformContextType } from "@/contexts/PlatformContext";
 import { invoke } from "@tauri-apps/api";
 import { supabase } from "@/lib/supabaseClient"; // Import Supabase client
-import { nanoid } from "nanoid";
 
 // פונקציה לקבלת הפלטפורמה (יש להפעיל אותה מהקומפוננטה הראשית)
 let currentPlatform: PlatformContextType["platform"] = "loading";
@@ -24,10 +23,7 @@ export async function loadTransactions(): Promise<Transaction[]> {
   console.log("Current platform in loadTransactions:", currentPlatform);
   if (currentPlatform === "desktop") {
     try {
-      console.log(
-        "About to call invoke for: get_transactions on platform:",
-        currentPlatform
-      );
+      console.log("Attempting to load transactions via Tauri invoke...");
       const transactions = await invoke<Transaction[]>("get_transactions");
       console.log(
         `Tauri invoke get_transactions successful: loaded ${transactions.length} transactions.`
@@ -45,20 +41,21 @@ export async function loadTransactions(): Promise<Transaction[]> {
       // RLS ensures only user's transactions are returned
       const { data, error } = await supabase
         .from("transactions")
-        .select("*")
-        .order("date", { ascending: false });
+        .select("*") // Select all columns
+        .order("date", { ascending: false }); // Optional: order by date
 
-      if (error) {
-        console.error(">>> Supabase fetch RAW error:", error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log(">>> Raw data received from Supabase:", data);
-
-      console.log(">>> TEMP: Returning data directly without mapping");
+      console.log(
+        `Supabase select successful: loaded ${data?.length || 0} transactions.`
+      );
+      // Ensure data conforms to Transaction type if needed (e.g., date format)
+      // Supabase might return date as string, which matches our Transaction type
       return (data as Transaction[]) || [];
     } catch (error) {
-      console.error(">>> Supabase fetch error in loadTransactions:", error);
+      console.error("Error loading transactions from Supabase:", error);
+      // Decide how to handle error: throw, return empty, etc.
+      // Returning empty for now to avoid crashing the app
       return [];
     }
   } else {
@@ -77,23 +74,14 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
   console.log("Current platform in addTransaction:", currentPlatform);
   if (currentPlatform === "desktop") {
     try {
-      console.log(
-        "About to call invoke for: add_transaction on platform:",
-        currentPlatform
-      );
       console.log("Attempting to add transaction via Tauri invoke...");
-
-      // If this transaction has a supabase_id, it means it's being imported from Supabase
-      // Otherwise we're creating a new transaction
-      const transactionToSave = { ...transaction };
-
-      await invoke("add_transaction", { transaction: transactionToSave });
+      await invoke("add_transaction", { transaction });
       console.log(
         "Tauri invoke add_transaction successful for ID:",
-        transactionToSave.id
+        transaction.id
       );
       // Update store only after successful DB operation
-      useDonationStore.getState().addTransaction(transactionToSave);
+      useDonationStore.getState().addTransaction(transaction);
       console.log("Zustand store updated with new transaction.");
     } catch (error) {
       console.error("Error invoking add_transaction:", error);
@@ -111,26 +99,22 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
       }
       const userId = user.id;
 
-      // If this is a desktop transaction being imported, save its original ID
-      const original_id = transaction.id.startsWith("desktop_")
-        ? transaction.id
-        : undefined;
-
-      // Prepare data for Supabase insert using snake_case fields
+      // Prepare data for Supabase insert:
+      // Explicitly map fields from the original 'transaction' object (mixed case)
+      // to the target DB column names (camelCase, except user_id and id which is omitted)
       const transactionToInsert = {
-        user_id: userId,
+        // Target DB Column Name (camelCase) : Source TS Object Field (mixed case)
+        user_id: userId, // Keep snake_case
         date: transaction.date,
         amount: transaction.amount,
         currency: transaction.currency,
         description: transaction.description,
         type: transaction.type,
         category: transaction.category,
-        is_chomesh: transaction.is_chomesh || transaction.isChomesh, // Support both naming conventions
-        recipient: transaction.recipient,
-        is_recurring: transaction.is_recurring,
-        recurring_day_of_month: transaction.recurring_day_of_month,
-        original_id, // Store original desktop ID if applicable
-        // id, created_at, updated_at are handled by DB
+        isChomesh: transaction.isChomesh, // camelCase DB <- camelCase TS (assumed)
+        isRecurring: transaction.is_recurring, // camelCase DB <- snake_case TS (from logs)
+        recurringDayOfMonth: transaction.recurring_day_of_month, // camelCase DB <- snake_case TS (from logs)
+        // id, createdAt, updatedAt are handled by DB
       };
 
       // Ensure undefined becomes null
@@ -141,7 +125,7 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
       });
 
       console.log(
-        "Object being sent to Supabase insert (snake_case fields):",
+        "Object being sent to Supabase insert (explicitly mapped fields):",
         transactionToInsert
       );
 
@@ -163,7 +147,7 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
         insertedData.id
       );
 
-      // Map the returned data to Transaction type for the store
+      // Map the returned data (DB columns, camelCase) back to Transaction type for the store
       const transactionForStore: Transaction = {
         id: insertedData.id,
         user_id: insertedData.user_id,
@@ -173,17 +157,11 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
         description: insertedData.description,
         type: insertedData.type,
         category: insertedData.category,
-        is_chomesh: insertedData.is_chomesh,
-        recipient: insertedData.recipient,
-        is_recurring: insertedData.is_recurring,
-        recurring_day_of_month: insertedData.recurring_day_of_month,
-        created_at: insertedData.created_at,
-        updated_at: insertedData.updated_at,
-        original_id: insertedData.original_id,
-        // Legacy fields for backward compatibility
-        isChomesh: insertedData.is_chomesh,
-        createdAt: insertedData.created_at,
-        updatedAt: insertedData.updated_at,
+        isChomesh: insertedData.isChomesh, // map from DB
+        is_recurring: insertedData.isRecurring, // map back to snake_case for TS type
+        recurring_day_of_month: insertedData.recurringDayOfMonth, // map back to snake_case for TS type
+        createdAt: insertedData.createdAt,
+        updatedAt: insertedData.updatedAt,
       };
 
       // Update store using the data returned from the database
@@ -205,10 +183,6 @@ export async function clearAllData() {
   console.log("Attempting to clear all data...");
   if (currentPlatform === "desktop") {
     try {
-      console.log(
-        "About to call invoke for: clear_all_data on platform:",
-        currentPlatform
-      );
       console.log("Invoking clear_all_data...");
       await invoke("clear_all_data"); // This now clears transactions table too
       console.log("SQLite data cleared successfully via invoke.");
@@ -217,7 +191,12 @@ export async function clearAllData() {
       throw error;
     }
   } else if (currentPlatform === "web") {
-    // Implement clearing user-specific data in Supabase
+    // TODO: Implement clearing user-specific data in Supabase
+    // This would likely involve deleting rows from 'transactions' table
+    // matching the current user ID. BE VERY CAREFUL HERE.
+    console.warn(
+      "Web platform: clearAllData for Supabase not yet implemented."
+    );
     try {
       const {
         data: { user },
@@ -245,108 +224,4 @@ export async function clearAllData() {
     transactions: [], // Clear new transactions array
   });
   console.log("Zustand store cleared.");
-}
-
-// --- New Import/Export Functions ---
-
-/**
- * Exports all transactions from the current platform to a JSON string.
- * This can be saved to a file or copied to clipboard.
- */
-export async function exportTransactionsToJson(): Promise<string> {
-  // Get all transactions from the current platform
-  const transactions = await loadTransactions();
-
-  // Create an export object with metadata
-  const exportData = {
-    metadata: {
-      exportDate: new Date().toISOString(),
-      source: currentPlatform,
-      version: "1.0",
-    },
-    transactions,
-  };
-
-  return JSON.stringify(exportData, null, 2);
-}
-
-/**
- * Imports transactions from a JSON string.
- * This allows loading transactions from an export file.
- *
- * @param jsonData JSON string containing transactions to import
- * @param replace If true, will clear existing transactions before import
- * @returns Number of transactions successfully imported
- */
-export async function importTransactionsFromJson(
-  jsonData: string,
-  replace: boolean = false
-): Promise<number> {
-  try {
-    // Parse the JSON data
-    const importData = JSON.parse(jsonData);
-
-    // Validate the import data structure
-    if (!importData.transactions || !Array.isArray(importData.transactions)) {
-      throw new Error("Invalid import data: transactions array not found");
-    }
-
-    // Clear existing data if requested
-    if (replace) {
-      await clearAllData();
-    }
-
-    const transactions: Transaction[] = importData.transactions;
-    const sourceType = importData.metadata?.source || "unknown";
-
-    // Process import based on source and current platform
-    if (currentPlatform === "desktop") {
-      // When importing to desktop
-      if (sourceType === "web") {
-        // From web to desktop: need to generate new IDs, store original supabase_id
-        for (const transaction of transactions) {
-          const newTransaction: Transaction = {
-            ...transaction,
-            id: nanoid(), // Generate new ID for SQLite
-            supabase_id: transaction.id, // Store original Supabase ID
-          };
-          await addTransaction(newTransaction);
-        }
-      } else {
-        // From desktop to desktop: keep original IDs
-        for (const transaction of transactions) {
-          await addTransaction(transaction);
-        }
-      }
-    } else if (currentPlatform === "web") {
-      // When importing to web
-      if (sourceType === "desktop") {
-        // From desktop to web: let Supabase generate IDs, store original_id
-        for (const transaction of transactions) {
-          const newTransaction: Transaction = {
-            ...transaction,
-            id: `desktop_${transaction.id}`, // Temporary ID that will be replaced by Supabase
-            original_id: transaction.id,
-          };
-          await addTransaction(newTransaction);
-        }
-      } else {
-        // From web to web: not likely needed, but keep original IDs
-        for (const transaction of transactions) {
-          // Remove the ID to let Supabase generate a new one
-          const { id, ...transactionWithoutId } = transaction;
-          const newTransaction: Transaction = {
-            ...transactionWithoutId,
-            id: `web_import_${nanoid()}`, // Temporary ID that will be replaced
-          };
-          await addTransaction(newTransaction);
-        }
-      }
-    }
-
-    return transactions.length;
-  } catch (error: any) {
-    console.error("Error importing transactions:", error);
-    throw new Error(`Failed to import transactions: ${error.message}`);
-  }
 }

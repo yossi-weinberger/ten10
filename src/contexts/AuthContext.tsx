@@ -17,8 +17,6 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signOut: () => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
-  logout: () => Promise<void>;
   // Add signIn, signUp methods here later if needed within the context itself
 }
 
@@ -31,7 +29,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
-  const [loadingAuth, setLoadingAuth] = useState(true);
+  const [loading, setLoading] = useState(true);
   const { platform } = usePlatform(); // Get platform info
 
   // Set platform for dataService once known
@@ -62,71 +60,64 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   useEffect(() => {
-    console.log("AuthContext: useEffect mounting, setting up listener...");
-
-    // Attempt to get the initial session immediately
+    setLoading(true);
+    // Initial session check
     supabase.auth
       .getSession()
-      .then(({ data: { session } }) => {
-        console.log("AuthContext: Initial getSession() result:", session);
-        setSession(session);
-        setUser(session?.user ?? null);
-        // Initial load might be quick, but listener ensures we catch changes
-        // setLoadingAuth(false); // Defer setting loading to false until listener confirms
+      .then(({ data: { session: initialSession } }) => {
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
+        // If session exists initially, load transactions
+        if (initialSession && platform !== "loading") {
+          loadAndSetTransactions();
+        }
+        setLoading(false);
       })
       .catch((error) => {
-        console.error("AuthContext: Error in initial getSession():", error);
-        // setLoadingAuth(false); // Still need to stop loading on error
+        console.error("Error getting initial session:", error);
+        setLoading(false);
       });
 
-    // Set up the listener for auth state changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      // --- DETAILED LOGGING INSIDE LISTENER ---
-      console.log(
-        `AuthContext Listener: Event received = ${event}`,
-        "Session data =",
-        session
-      );
+    // Auth state change listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        console.log("Auth event:", event, newSession);
+        const previousUserId = user?.id;
+        const newUserId = newSession?.user?.id;
 
-      setSession(session);
-      setUser(session?.user ?? null);
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        setLoading(false);
 
-      console.log(
-        "AuthContext Listener: State updated (session, user). Setting loadingAuth to false."
-      );
-
-      setLoadingAuth(false); // Set loading to false *after* handling the event
-
-      // --- Load transactions specifically on SIGNED_IN or INITIAL_SESSION ---
-      if (
-        (event === "SIGNED_IN" || event === "INITIAL_SESSION") &&
-        session?.user
-      ) {
-        console.log(
-          `AuthContext (${event}): Attempting to load transactions for user ${session.user.id}...`
-        );
-        loadAndSetTransactions(); // Load data for the new user/session
-      } else if (event === "SIGNED_OUT") {
-        console.log(
-          "AuthContext (SIGNED_OUT): Clearing transactions from Zustand store."
-        );
-        useDonationStore.setState({ transactions: [] }); // Clear data on logout
+        // --- Zustand Store Handling ---
+        if (!newSession || event === "SIGNED_OUT") {
+          // User signed out or session is null
+          console.log(
+            "AuthContext: Clearing Zustand store due to sign out/null session."
+          );
+          useDonationStore.setState({ transactions: [] });
+        } else if (
+          event === "SIGNED_IN" ||
+          (event === "USER_UPDATED" && newUserId !== previousUserId) ||
+          (event === "INITIAL_SESSION" && newUserId)
+        ) {
+          // User signed in, changed user, or initial session established
+          if (platform !== "loading") {
+            await loadAndSetTransactions(); // Load data for the new user/session
+          }
+        }
+        // Add handling for TOKEN_REFRESHED if necessary, potentially re-loading data?
       }
-    });
+    );
 
-    console.log("AuthContext: Listener setup complete.");
-
-    // Cleanup function to unsubscribe when the component unmounts
     return () => {
-      console.log("AuthContext: useEffect unmounting, unsubscribing listener.");
-      subscription?.unsubscribe();
+      authListener?.subscription.unsubscribe();
     };
-  }, []); // Empty dependency array ensures this runs only once on mount
+    // Include platform in dependencies to trigger initial load/reload when platform is known
+  }, [platform]); // Re-run if platform changes (e.g., from loading to web/desktop)
 
   const signOut = async () => {
-    setLoadingAuth(true);
+    setLoading(true);
     // Clear store immediately for faster UI feedback (optional, as onAuthStateChange will also clear)
     // console.log("AuthContext: Clearing Zustand store immediately on signOut call.");
     // useDonationStore.setState({ transactions: [] });
@@ -136,46 +127,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     if (error) {
       console.error("Error signing out:", error);
       toast.error("התנתקות נכשלה: " + error.message);
-      setLoadingAuth(false);
+      setLoading(false);
     }
-  };
-
-  const loginWithGoogle = async () => {
-    setLoadingAuth(true); // Set loading true before initiating login
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        // Optional: Specify redirect URL if needed, otherwise uses config default
-        // redirectTo: 'http://localhost:3000'
-      },
-    });
-    if (error) {
-      console.error("Error logging in with Google:", error);
-      setLoadingAuth(false); // Reset loading state on error
-    }
-    // No need to set loading false here, onAuthStateChange will handle it
-  };
-
-  const logout = async () => {
-    setLoadingAuth(true); // Indicate loading during logout process
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("Error logging out:", error);
-    }
-    // Reset state manually as listener might take a moment or have issues
-    setSession(null);
-    setUser(null);
-    setLoadingAuth(false); // Explicitly set loading false after logout attempt
-    useDonationStore.setState({ transactions: [] }); // Clear store on logout
   };
 
   const value = {
     session,
     user,
-    loading: loadingAuth,
+    loading,
     signOut,
-    loginWithGoogle,
-    logout,
   };
 
   // Don't render children until the initial session check is complete
