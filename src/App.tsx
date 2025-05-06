@@ -9,44 +9,59 @@ import { setDataServicePlatform, loadTransactions } from "./lib/dataService";
 import { invoke } from "@tauri-apps/api";
 import { useDonationStore } from "./lib/store";
 import { Transaction } from "./types/transaction";
+import { useAuth } from "./contexts/AuthContext";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
 
   const { platform } = usePlatform();
+  const { session, loading: loadingAuth } = useAuth();
+
+  console.log("Current platform value in App component:", platform);
 
   useEffect(() => {
+    console.log("Platform useEffect triggered. Platform:", platform);
     if (platform !== "loading") {
       setDataServicePlatform(platform);
       if (platform === "desktop") {
         invoke("init_db")
           .then(() => {
             console.log("Database initialized successfully.");
-
-            loadTransactions()
-              .then((transactions) => {
-                console.log(
-                  "Loaded initial transactions from DB:",
-                  transactions
-                );
-                useDonationStore.setState({
-                  transactions: transactions,
-                });
-              })
-              .catch((error) =>
-                console.error("Error loading initial transactions:", error)
-              );
+            return loadTransactions();
+          })
+          .then((transactions) => {
+            console.log("Loaded initial transactions from DB:", transactions);
+            useDonationStore.setState({ transactions: transactions });
           })
           .catch((error) =>
-            console.error("Error initializing database:", error)
+            console.error("Error initializing/loading desktop data:", error)
           );
       }
     }
   }, [platform]);
 
-  if (platform === "loading") {
-    return <div>Loading platform info...</div>;
+  useEffect(() => {
+    console.log(
+      `Web Data useEffect triggered. loadingAuth=${loadingAuth}, platform=${platform}, session exists=${!!session}`
+    );
+    if (!loadingAuth && platform === "web") {
+      if (session) {
+        console.log(
+          ">>> TEMP: Web session exists, BUT SKIPPING data load for testing."
+        );
+      } else {
+        console.log("Platform is web but no session, clearing transactions.");
+        useDonationStore.setState({ transactions: [] });
+      }
+    }
+  }, [platform, session, loadingAuth]);
+
+  if (platform === "loading" || loadingAuth) {
+    console.log(
+      `App rendering: Loading... Platform=${platform}, Auth=${loadingAuth}`
+    );
+    return <div>Loading App...</div>;
   }
 
   return (

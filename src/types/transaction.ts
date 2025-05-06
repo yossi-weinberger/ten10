@@ -18,14 +18,23 @@ export interface Transaction {
   description?: string | null; // User-provided description
   type: TransactionType;
   category?: string | null; // Optional category (mainly for expense types)
-  createdAt?: string; // ISO 8601 timestamp
-  updatedAt?: string; // ISO 8601 timestamp
+  created_at?: string; // ISO 8601 timestamp
+  updated_at?: string; // ISO 8601 timestamp
 
   // Type-specific fields - use optional chaining or type guards for access
-  isChomesh?: boolean; // Required for 'income' type
+  is_chomesh?: boolean; // Required for 'income' type
   recipient?: string | null; // Required for 'donation' type
 
   // Fields for recurring transactions
   is_recurring?: boolean; // Optional, defaults to false if not present
   recurring_day_of_month?: number | null; // Optional, relevant only if is_recurring is true
+
+  // Sync fields for cross-platform data migration
+  original_id?: string; // To store original nanoid when imported to Supabase
+  supabase_id?: string; // To store original Supabase UUID when imported to SQLite
+
+  // Legacy camelCase aliases for backward compatibility - these will be removed in future
+  isChomesh?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }

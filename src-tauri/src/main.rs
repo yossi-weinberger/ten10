@@ -35,6 +35,18 @@ struct Transaction {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(alias = "recurring_day_of_month")]
     recurring_day_of_month: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    supabase_id: Option<String>,
+    // Legacy camelCase support fields
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(alias = "isChomesh")]
+    is_chomesh_alt: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(alias = "createdAt")]
+    created_at_alt: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(alias = "updatedAt")]
+    updated_at_alt: Option<String>,
 }
 
 struct DbState(Mutex<Connection>);
@@ -58,7 +70,8 @@ async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
             created_at TEXT,
             updated_at TEXT,
             is_recurring INTEGER,
-            recurring_day_of_month INTEGER
+            recurring_day_of_month INTEGER,
+            supabase_id TEXT
         )",
         [],
     ).map_err(|e| e.to_string())?;
@@ -71,10 +84,15 @@ async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Re
     // DEBUG: Print the received transaction struct
     println!("Received transaction in Rust: {:?}", transaction);
 
+    // Prioritize snake_case fields but fall back to camelCase if needed
+    let is_chomesh_value = transaction.is_chomesh.or(transaction.is_chomesh_alt);
+    let created_at_value = transaction.created_at.or(transaction.created_at_alt);
+    let updated_at_value = transaction.updated_at.or(transaction.updated_at_alt);
+
     let conn = db.0.lock().map_err(|e| e.to_string())?;
     conn.execute(
-        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at, is_recurring, recurring_day_of_month)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
+        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at, is_recurring, recurring_day_of_month, supabase_id)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
         (
             &transaction.id,
             &transaction.user_id,
@@ -84,12 +102,13 @@ async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Re
             &transaction.description,
             &transaction.transaction_type,
             &transaction.category,
-            &transaction.is_chomesh.map(|b| b as i32),
+            &is_chomesh_value.map(|b| b as i32),
             &transaction.recipient,
-            &transaction.created_at,
-            &transaction.updated_at,
+            &created_at_value,
+            &updated_at_value,
             &transaction.is_recurring.map(|b| b as i32),
             &transaction.recurring_day_of_month,
+            &transaction.supabase_id,
         ),
     ).map_err(|e| e.to_string())?;
     Ok(())
@@ -98,61 +117,64 @@ async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Re
 #[tauri::command]
 async fn get_transactions(db: State<'_, DbState>) -> Result<Vec<Transaction>, String> {
     let conn = db.0.lock().map_err(|e| e.to_string())?;
-    let mut stmt = conn.prepare(
-        "SELECT id, user_id, date, amount, currency, description, type, category, 
-                is_chomesh, recipient, created_at, updated_at, 
-                is_recurring, recurring_day_of_month 
-         FROM transactions")
+    let mut stmt = conn
+        .prepare("SELECT id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at, is_recurring, recurring_day_of_month, supabase_id FROM transactions")
         .map_err(|e| e.to_string())?;
 
-    let transaction_iter = stmt.query_map([], |row| {
-        let is_chomesh_opt: Option<i32> = row.get(8)?;
-        let is_chomesh_bool_opt = is_chomesh_opt.map(|i| i != 0);
-
-        let is_recurring_opt: Option<i32> = row.get(12)?;
-        let is_recurring_bool_opt = is_recurring_opt.map(|i| i != 0);
-
-        Ok(Transaction {
-            id: row.get(0)?,
-            user_id: row.get(1)?,
-            date: row.get(2)?,
-            amount: row.get(3)?,
-            currency: row.get(4)?,
-            description: row.get(5)?,
-            transaction_type: row.get(6)?,
-            category: row.get(7)?,
-            is_chomesh: is_chomesh_bool_opt,
-            recipient: row.get(9)?,
-            created_at: row.get(10)?,
-            updated_at: row.get(11)?,
-            is_recurring: is_recurring_bool_opt,
-            recurring_day_of_month: row.get(13)?,
+    let transaction_iter = stmt
+        .query_map([], |row| {
+            Ok(Transaction {
+                id: row.get(0)?,
+                user_id: row.get(1)?,
+                date: row.get(2)?,
+                amount: row.get(3)?,
+                currency: row.get(4)?,
+                description: row.get(5)?,
+                transaction_type: row.get(6)?,
+                category: row.get(7)?,
+                is_chomesh: row.get::<_, Option<i32>>(8)?.map(|v| v != 0),
+                recipient: row.get(9)?,
+                created_at: row.get(10)?,
+                updated_at: row.get(11)?,
+                is_recurring: row.get::<_, Option<i32>>(12)?.map(|v| v != 0),
+                recurring_day_of_month: row.get(13)?,
+                supabase_id: row.get(14)?,
+                // Set alternative fields to None as they're only for deserialization
+                is_chomesh_alt: None,
+                created_at_alt: None,
+                updated_at_alt: None,
+            })
         })
-    }).map_err(|e| e.to_string())?;
+        .map_err(|e| e.to_string())?;
 
-    let transactions = transaction_iter.collect::<Result<Vec<Transaction>, rusqlite::Error>>().map_err(|e| e.to_string())?;
+    let mut transactions = Vec::new();
+    for transaction in transaction_iter {
+        transactions.push(transaction.map_err(|e| e.to_string())?);
+    }
+
     Ok(transactions)
 }
 
 #[tauri::command]
 async fn clear_all_data(db: State<'_, DbState>) -> Result<(), String> {
     let conn = db.0.lock().map_err(|e| e.to_string())?;
+    
     conn.execute("DELETE FROM transactions", [])
         .map_err(|e| e.to_string())?;
-    println!("Cleared all transactions from the database.");
+    
     Ok(())
 }
 
 fn main() {
-    let conn = Connection::open("tenten.db").expect("Failed to open database");
-    
     tauri::Builder::default()
-        .manage(DbState(Mutex::new(conn)))
+        .manage(DbState(Mutex::new(
+            Connection::open("tenten.db").expect("Failed to open database"),
+        )))
         .invoke_handler(tauri::generate_handler![
-            init_db, 
+            init_db,
             add_transaction,
             get_transactions,
-            clear_all_data
+            clear_all_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

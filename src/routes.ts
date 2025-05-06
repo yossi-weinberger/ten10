@@ -12,6 +12,7 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { AboutPage } from "./pages/AboutPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
+import { DataSyncPage } from "./pages/DataSyncPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import { supabase } from "./lib/supabaseClient";
@@ -97,6 +98,12 @@ const analyticsRoute = createRoute({
   component: AnalyticsPage,
 });
 
+const syncDataRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/sync",
+  component: DataSyncPage,
+});
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
@@ -117,6 +124,7 @@ const routeTree = rootRoute.addChildren([
   aboutRoute,
   profileRoute,
   analyticsRoute,
+  syncDataRoute,
   loginRoute,
   signupRoute,
 ]);

@@ -9,6 +9,7 @@ import {
   Book,
   BarChart,
   LogOut,
+  RefreshCw,
 } from "lucide-react";
 import { Link, useRouter, useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -93,6 +94,9 @@ export function Sidebar({ expanded = false }: SidebarProps) {
         </NavLink>
         <NavLink to="/analytics" icon={BarChart}>
           ניתוח נתונים
+        </NavLink>
+        <NavLink to="/sync" icon={RefreshCw}>
+          סנכרון נתונים
         </NavLink>
         <NavLink to="/halacha" icon={Book}>
           הלכות
