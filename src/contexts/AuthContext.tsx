@@ -154,8 +154,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user.id
       );
       loadAndSetTransactions(user);
+    } else if (isDataLoading) {
+      // Handle case where isDataLoading is true but conditions are not met
     }
-  }, [user, platform, isDataLoading]); // Keep isDataLoading here to re-evaluate if it becomes false
+  }, [user, platform]);
 
   const signOut = async () => {
     setLoading(true);
