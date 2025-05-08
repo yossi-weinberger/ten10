@@ -19,14 +19,15 @@ export function setDataServicePlatform(
  * On desktop, fetches from SQLite via Tauri.
  * On web, fetches from Supabase.
  */
-export async function loadTransactions(): Promise<Transaction[]> {
-  console.log("Current platform in loadTransactions:", currentPlatform);
+export async function loadTransactions(
+  userIdFromAuthContext?: string
+): Promise<Transaction[]> {
+  console.log("DataService: Loading transactions. Platform:", currentPlatform);
   if (currentPlatform === "desktop") {
     try {
-      console.log("Attempting to load transactions via Tauri invoke...");
       const transactions = await invoke<Transaction[]>("get_transactions");
       console.log(
-        `Tauri invoke get_transactions successful: loaded ${transactions.length} transactions.`
+        `DataService: Tauri load successful: ${transactions.length} transactions.`
       );
       return transactions;
     } catch (error) {
@@ -34,51 +35,68 @@ export async function loadTransactions(): Promise<Transaction[]> {
       throw error;
     }
   } else if (currentPlatform === "web") {
-    console.log(
-      "Web platform: DEBUG - Supabase URL:",
-      import.meta.env.VITE_SUPABASE_URL
-    );
-    console.log(
-      "Web platform: DEBUG - Supabase Anon Key:",
-      import.meta.env.VITE_SUPABASE_ANON_KEY
-    );
-    console.log(
-      "Web platform: Attempting to load transactions via Supabase..."
-    );
     try {
-      console.log("Web platform: DEBUG - About to call Supabase select...");
+      let userIdToQueryWith = userIdFromAuthContext;
+
+      if (!userIdToQueryWith) {
+        console.warn(
+          "DataService: UserID not provided from AuthContext. Falling back to supabase.auth.getUser()."
+        );
+        const {
+          data: { user: supabaseUser },
+          error: supabaseUserError,
+        } = await supabase.auth.getUser();
+        if (supabaseUserError) {
+          console.error(
+            "DataService (Fallback): Error getting user from Supabase:",
+            supabaseUserError
+          );
+          throw supabaseUserError;
+        }
+        if (!supabaseUser) {
+          console.error("DataService (Fallback): No user session found.");
+          throw new Error(
+            "No user session for loading transactions (fallback in loadTransactions)."
+          );
+        }
+        userIdToQueryWith = supabaseUser.id;
+      }
+
+      // RLS in Supabase should handle scoping transactions to the authenticated user.
       const { data, error } = await supabase
         .from("transactions")
-        .select("*") // Select all columns
-        .order("date", { ascending: false }); // Optional: order by date
-
-      console.log("Web platform: DEBUG - Supabase select call finished.");
+        .select("*")
+        .order("date", { ascending: false });
 
       if (error) {
-        console.error("Supabase returned an error object:", error);
+        console.error("DataService: Supabase select returned an error:", error);
         throw error;
       }
 
       console.log(
-        `Supabase select successful: loaded ${data?.length || 0} transactions.`
+        `DataService: Supabase load successful: ${
+          data?.length || 0
+        } transactions.`
       );
-      // Ensure data conforms to Transaction type if needed (e.g., date format)
-      // Supabase might return date as string, which matches our Transaction type
       return (data as Transaction[]) || [];
     } catch (errorCaught: any) {
       console.error(
-        "Error explicitly caught in loadTransactions (Supabase block):",
+        "DataService: Error explicitly caught in loadTransactions (Supabase block):",
         errorCaught
       );
+      const errorMessage =
+        errorCaught instanceof Error
+          ? errorCaught.message
+          : JSON.stringify(errorCaught);
       throw new Error(
-        `Failed to load transactions from Supabase. Original error: ${
-          errorCaught?.message || JSON.stringify(errorCaught)
-        }`
+        `Failed to load transactions from Supabase. Original error: ${errorMessage}`
       );
     }
   } else {
     // Loading state or uninitialized platform
-    console.log("Platform not yet determined, returning empty transactions.");
+    console.log(
+      "DataService: Platform not yet determined, returning empty transactions."
+    );
     return [];
   }
 }

@@ -36,3 +36,4 @@ dist-ssr
 .env
 .env.*
 !.env.example
+test-req.js

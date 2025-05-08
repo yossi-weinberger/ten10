@@ -58,6 +58,20 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - Fetches the newly created record after insert to update the Zustand store correctly.
   - **State Synchronization:** Transaction data fetched via `dataService` is loaded into the Zustand store (`useDonationStore`), triggered by authentication events managed in `AuthContext`.
 
+## Known Issues & Workarounds
+
+### Supabase Client Hangs After Refresh (Chrome/Vite/React)
+
+- **Issue Description:** A significant issue was identified where the `@supabase/supabase-js` client becomes unresponsive to network requests (both `select` and `rpc` calls) after a page refresh when a session is restored from localStorage (`persistSession: true`). The `onAuthStateChange` event fires correctly, indicating a valid session and user, but subsequent attempts to use the client for network operations hang indefinitely without sending a request or throwing a network error. This issue primarily affects Chrome-based browsers in the Vite/React development environment.
+- **Root Cause Analysis:** The problem appears to be a race condition or an internal state inconsistency within the Supabase client during the session recovery process from localStorage after a page refresh. Attempting network requests immediately within the `onAuthStateChange` callback triggers this hung state.
+- **Related GitHub Issue:** This behavior is similar or identical to issues reported by other users: [https://github.com/supabase/supabase-js/issues/1401](https://github.com/supabase/supabase-js/issues/1401)
+- **Workaround Implemented:** To resolve this, the data loading logic was decoupled from the `onAuthStateChange` listener in `AuthContext.tsx`:
+  1.  `onAuthStateChange` now only updates the `session` and `user` state variables.
+  2.  A separate `useEffect` hook was added, dependent on the `user` and `platform` state variables.
+  3.  This `useEffect` initiates the data loading (`loadAndSetTransactions`) only when a valid `user` exists and the `platform` is determined.
+  4.  This separation allows the Supabase client sufficient time to stabilize after session recovery before network requests are initiated, preventing the hang.
+- **Impact:** This workaround successfully resolves the refresh issue and allows the application to function correctly. However, it highlights a potential instability in the current version of `@supabase/supabase-js` under these specific conditions.
+
 ## Remaining Tasks / Next Steps
 
 ### Authentication

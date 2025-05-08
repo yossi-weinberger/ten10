@@ -30,68 +30,77 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const { platform } = usePlatform(); // Get platform info
+  const [isDataLoading, setIsDataLoading] = useState(false);
+  const { platform } = usePlatform();
 
-  // Set platform for dataService once known
   useEffect(() => {
     if (platform !== "loading") {
       setDataServicePlatform(platform);
     }
   }, [platform]);
 
-  // Helper function to load transactions and update store
-  const loadAndSetTransactions = async () => {
+  const loadAndSetTransactions = async (userForLoad: User | null) => {
+    // Simplified logging
+    console.log(
+      "AuthContext: Attempting to load transactions for user:",
+      userForLoad?.id
+    );
+
+    if (!userForLoad) {
+      console.error(
+        "AuthContext: loadAndSetTransactions called with null user. Aborting."
+      );
+      useDonationStore.setState({ transactions: [] });
+      // No need to set isDataLoading false here, as it should be false if called with null user
+      return;
+    }
+
     if (platform === "loading") {
-      console.log(
-        "AuthContext: loadAndSetTransactions - Platform is still loading, returning."
+      console.warn(
+        "AuthContext: loadAndSetTransactions called while platform is loading. Aborting."
       );
       return;
     }
-    console.log(
-      "AuthContext: Attempting to load transactions for new session/user..."
-    );
+
+    // Set loading flag - the calling useEffect already checked !isDataLoading
+    setIsDataLoading(true);
+
     try {
-      const transactions = await loadTransactions(); // dataService handles platform logic
+      // Removed the test RPC Call
+
+      // Actual data loading
+      const transactions = await loadTransactions(
+        platform === "web" ? userForLoad.id : undefined // Use userForLoad.id directly
+      );
       useDonationStore.setState({ transactions: transactions });
       console.log(
-        `AuthContext: Zustand store updated with ${transactions.length} transactions.`
+        `AuthContext: Successfully loaded ${transactions.length} transactions.`
       );
     } catch (error) {
-      console.error("AuthContext: Error loading transactions:", error);
-      toast.error("שגיאה בטעינת נתונים מהשרת.");
-      // Optionally clear store on error?
-      // useDonationStore.setState({ transactions: [] });
+      console.error("AuthContext: Error during data loading sequence:", error);
+      toast.error("שגיאה בטעינת נתונים.");
+      useDonationStore.setState({ transactions: [] });
+    } finally {
+      setIsDataLoading(false);
     }
   };
 
+  // Effect for initial session check and onAuthStateChange listener setup
   useEffect(() => {
-    console.log("AuthContext: Main useEffect triggered. Platform:", platform); // DEBUG
+    console.log("AuthContext: Initializing auth state listener.");
     setLoading(true);
+
     // Initial session check
     supabase.auth
       .getSession()
       .then(({ data: { session: initialSession } }) => {
         console.log(
-          "AuthContext: getSession resolved. Initial session:",
-          initialSession,
-          "Platform:",
-          platform
-        ); // DEBUG
+          "AuthContext: Initial session resolved.",
+          initialSession ? "Session found." : "No session."
+        );
         setSession(initialSession);
-        setUser(initialSession?.user ?? null);
-        // If session exists initially, load transactions
-        if (initialSession && platform !== "loading") {
-          console.log(
-            "AuthContext: Initial session exists and platform is not loading. Calling loadAndSetTransactions."
-          ); // DEBUG
-          loadAndSetTransactions();
-        } else if (initialSession && platform === "loading") {
-          console.log(
-            "AuthContext: Initial session exists BUT platform is loading. NOT calling loadAndSetTransactions yet."
-          ); // DEBUG
-        } else if (!initialSession) {
-          console.log("AuthContext: No initial session found."); // DEBUG
-        }
+        const initialUser = initialSession?.user ?? null;
+        setUser(initialUser); // Trigger data loading useEffect if user exists
         setLoading(false);
       })
       .catch((error) => {
@@ -101,58 +110,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Auth state change listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
-        console.log(
-          "AuthContext: onAuthStateChange triggered. Event:",
-          event,
-          "New session:",
-          newSession,
-          "Platform:",
-          platform
-        ); // DEBUG
-        // const previousUserId = user?.id; // Not strictly needed with current logic for loadAndSetTransactions
-        // const newUserId = newSession?.user?.id;
+      async (event, newAuthStateSession) => {
+        console.log(`AuthContext: Auth state changed. Event: ${event}`);
 
-        setSession(newSession);
-        setUser(newSession?.user ?? null);
-        setLoading(false);
+        setSession(newAuthStateSession);
+        const newCurrentUser = newAuthStateSession?.user ?? null;
+        setUser(newCurrentUser); // Update user state, triggering data loading useEffect
 
-        // --- Zustand Store Handling ---
-        if (!newSession || event === "SIGNED_OUT") {
-          console.log(
-            "AuthContext: Clearing Zustand store due to sign out/null session."
-          );
-          useDonationStore.setState({ transactions: [] });
-        } else if (
-          event === "SIGNED_IN" ||
-          event === "TOKEN_REFRESHED" || // Consider TOKEN_REFRESHED as well
-          event === "USER_UPDATED" || // USER_UPDATED might not always need a full reload if user ID hasn't changed, but safer for now
-          (event === "INITIAL_SESSION" && newSession?.user) // Ensure user exists for INITIAL_SESSION
-        ) {
-          console.log(
-            "AuthContext: onAuthStateChange - Condition met to potentially load transactions. Platform:",
-            platform
-          ); // DEBUG
-          if (platform !== "loading") {
-            console.log(
-              "AuthContext: onAuthStateChange - Platform is not loading. Calling loadAndSetTransactions."
-            ); // DEBUG
-            await loadAndSetTransactions(); // Load data for the new user/session
-          } else {
-            console.log(
-              "AuthContext: onAuthStateChange - Platform is loading. NOT calling loadAndSetTransactions yet."
-            ); // DEBUG
-          }
-        }
+        // Loading state is now primarily managed by the initial getSession and data loading
+        setLoading(false); // Set loading to false once auth state is determined
       }
     );
 
     return () => {
-      console.log("AuthContext: Unsubscribing auth listener."); // DEBUG
+      console.log("AuthContext: Unsubscribing auth listener.");
       authListener?.subscription.unsubscribe();
     };
-    // Include platform in dependencies to trigger initial load/reload when platform is known
-  }, [platform]); // Re-run if platform changes (e.g., from loading to web/desktop)
+  }, []);
+
+  // New useEffect for DATA LOADING based on user and platform state
+  useEffect(() => {
+    // Simplified log
+    console.log(
+      `AuthContext: Data loading effect check. User: ${!!user}, Platform: ${platform}, Loading: ${isDataLoading}`
+    );
+
+    if (platform === "loading") {
+      return; // Wait for platform
+    }
+
+    if (!user) {
+      // Clear data if user logs out
+      useDonationStore.setState({ transactions: [] });
+      // Ensure loading flag is reset if we were loading and user logged out
+      if (isDataLoading) setIsDataLoading(false);
+      return;
+    }
+
+    // Proceed to load data if conditions met
+    if (user && platform !== "loading" && !isDataLoading) {
+      console.log(
+        "AuthContext: Conditions met, initiating data load for user:",
+        user.id
+      );
+      loadAndSetTransactions(user);
+    }
+  }, [user, platform, isDataLoading]); // Keep isDataLoading here to re-evaluate if it becomes false
 
   const signOut = async () => {
     setLoading(true);
