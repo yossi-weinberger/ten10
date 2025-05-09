@@ -58,6 +58,7 @@ This section details how the different parts of the project interact with each o
 │   ├── components/        # Reusable UI components
 │   ├── contexts/          # React Context providers
 │   ├── lib/               # Utility functions and libraries
+│   │   ├── dataManagement.ts # Handles data import/export logic
 │   ├── pages/             # Page components (mapped by router)
 │   ├── types/             # TypeScript type definitions
 │   ├── App.tsx            # Main application component

@@ -75,3 +75,25 @@ The application needs to handle various types of financial entries, each affecti
 - **Goal Management**: Set and track savings or donation goals.
 - **Advanced Halachic Calculations**: Handle more complex scenarios (consultation required).
 - **Direct Data Import**: Import from bank/credit card statements (CSV/Excel).
+
+## Data Management Features
+
+### Data Import/Export
+
+- **Requirement**: Users should be able to export all their transaction data to a local file and import data from such a file. This facilitates data backup, migration between platforms (desktop/web), and data recovery.
+- **Status (Desktop - Phase 1)**:
+  - **Export**: Implemented. Users can export all transactions to a JSON file.
+  - **Import**: Implemented. Users can import transactions from a JSON file, which will overwrite existing data after user confirmation.
+  - **Logic Location**: Core import/export logic for desktop is located in `src/lib/dataManagement.ts`, invoked from `src/pages/SettingsPage.tsx`.
+- **Status (Web)**: Not yet implemented.
+- **Format**: JSON, based on the unified `Transaction` data model.
+- **Pending/Future Improvements**:
+  - Robust data validation (e.g., using Zod schemas) during import to prevent data corruption.
+  - Option for data merging instead of complete overwrite during import (more complex).
+  - Implementation of import/export functionality for the web platform (Supabase).
+  - Enhanced UI for confirmation dialogs (e.g., using `shadcn/ui` components instead of `window.confirm`).
+
+## Future Enhancements / Nice-to-Haves
+
+// ... (existing future enhancements) ...
+// If Data Import/Export was previously here, ensure it's updated or moved to Core Requirements if now considered so.

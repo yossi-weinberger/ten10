@@ -44,11 +44,16 @@ import {
   Percent,
   Trash2,
 } from "lucide-react";
+import { usePlatform } from "@/contexts/PlatformContext";
+import { exportDataDesktop, importDataDesktop } from "@/lib/dataManagement";
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { settings, updateSettings } = useDonationStore();
   const [isClearing, setIsClearing] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const { platform } = usePlatform();
 
   const handleClearData = async () => {
     setIsClearing(true);
@@ -60,6 +65,26 @@ export function SettingsPage() {
       toast.error("שגיאה במחיקת הנתונים.");
     } finally {
       setIsClearing(false);
+    }
+  };
+
+  const handleExportData = async () => {
+    if (platform === "desktop") {
+      await exportDataDesktop({ setIsLoading: setIsExporting });
+    } else if (platform === "web") {
+      toast.error("ייצוא נתונים עבור גרסת ווב עדיין לא נתמך.");
+    } else {
+      toast.error("פלטפורמה לא ידועה, לא ניתן לייצא נתונים.");
+    }
+  };
+
+  const handleImportData = async () => {
+    if (platform === "desktop") {
+      await importDataDesktop({ setIsLoading: setIsImporting });
+    } else if (platform === "web") {
+      toast.error("ייבוא נתונים עבור גרסת ווב עדיין לא נתמך.");
+    } else {
+      toast.error("פלטפורמה לא ידועה, לא ניתן לייבא נתונים.");
     }
   };
 
@@ -191,7 +216,12 @@ export function SettingsPage() {
                 min="0"
                 max="100"
                 className="w-20 text-left"
-                value="10"
+                value={settings.minMaaserPercentage}
+                onChange={(e) =>
+                  updateSettings({
+                    minMaaserPercentage: parseInt(e.target.value, 10) || 0,
+                  })
+                }
               />
             </div>
           </CardContent>
@@ -279,7 +309,14 @@ export function SettingsPage() {
 
             <div className="grid gap-2">
               <Label>תחילת שנת מעשרות</Label>
-              <Select defaultValue="tishrei">
+              <Select
+                value={settings.maaserYearStart}
+                onValueChange={(value) =>
+                  updateSettings({
+                    maaserYearStart: value as "tishrei" | "nisan" | "january",
+                  })
+                }
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="בחר חודש" />
                 </SelectTrigger>
@@ -294,43 +331,94 @@ export function SettingsPage() {
         </Card>
       </div>
 
-      <Card className="border-destructive">
+      <Card className="mt-6">
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Trash2 className="h-5 w-5 text-destructive" />
-            <CardTitle className="text-destructive">אזור סכנה</CardTitle>
+            <CardTitle>ניהול נתונים</CardTitle>
           </div>
-          <CardDescription>פעולות בלתי הפיכות</CardDescription>
+          <CardDescription>
+            ייצא, ייבא או מחק את נתוני האפליקציה שלך. אנא בצע פעולות אלו
+            בזהירות.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" disabled={isClearing}>
-                {isClearing ? "מוחק..." : "מחק את כל הנתונים"}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>אישור מחיקת נתונים</AlertDialogTitle>
-                <AlertDialogDescription>
-                  פעולה זו תמחק לצמיתות את כל נתוני ההכנסות והתרומות שלך. האם
-                  אתה בטוח שברצונך להמשיך?
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>ביטול</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleClearData}
+        <CardContent className="flex flex-col md:flex-row gap-6">
+          <div className="md:w-1/3 space-y-3 rounded-lg border border-destructive bg-card p-4 shadow">
+            <div className="flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-destructive" />
+              <Label className="text-lg font-semibold text-destructive">
+                מחיקת כל הנתונים
+              </Label>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              פעולה זו תמחק לצמיתות את כל נתוני הטרנזקציות מהאפליקציה. מומלץ
+              לייצא נתונים לפני כן.
+            </p>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
                   disabled={isClearing}
+                  className="mt-2 w-full"
                 >
-                  {isClearing ? "מוחק..." : "מחק הכל"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          <p className="text-sm text-muted-foreground mt-2">
-            פעולה זו תמחק את כל ההכנסות והתרומות השמורות באפליקציה.
-          </p>
+                  {isClearing ? "מוחק נתונים..." : "מחק את כל הנתונים"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    אישור סופי למחיקת כל הנתונים
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    האם אתה בטוח לחלוטין שברצונך למחוק לצמיתות את כל הנתונים?
+                    פעולה זו אינה הפיכה.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>ביטול</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleClearData}
+                    disabled={isClearing}
+                    className="bg-destructive hover:bg-destructive/90"
+                  >
+                    {isClearing ? "מוחק..." : "כן, מחק הכל"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+
+          <div className="md:w-2/3 space-y-3 rounded-lg border bg-card p-4 shadow">
+            <div className="flex items-center gap-2">
+              <Label className="text-lg font-semibold">
+                ייבוא וייצוא נתונים
+              </Label>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              ייצא את כל נתוני הטרנזקציות שלך לקובץ גיבוי (JSON), או ייבא נתונים
+              מקובץ כזה.
+              <br />
+              <strong>שים לב:</strong> ייבוא נתונים מקובץ יחליף את כל הנתונים
+              הקיימים.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={handleExportData}
+                disabled={isExporting}
+              >
+                {isExporting ? "מייצא..." : "ייצוא נתונים לקובץ"}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={handleImportData}
+                disabled={isImporting || isExporting}
+              >
+                {isImporting ? "מייבא..." : "ייבוא נתונים מקובץ"}
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

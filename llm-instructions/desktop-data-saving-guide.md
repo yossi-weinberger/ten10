@@ -138,3 +138,35 @@ This section documents the deprecated components and code that were removed as p
   - `IncomePage.tsx` refactored and renamed to `AddTransactionPage.tsx`.
 - **Other:**
   - Unused imports related to old structures/components removed from `App.tsx` and `Sidebar.tsx`. (Done)
+
+## 11. Data Import and Export (Desktop)
+
+The application supports exporting all transaction data to a JSON file and importing data from such a file, allowing for data backup and migration.
+
+### Export Process (Desktop)
+
+1.  **Trigger**: User clicks the "Export Data" button in `SettingsPage.tsx`.
+2.  **Platform Check**: Ensures the platform is `desktop` (logic within `SettingsPage.tsx` before calling the exported function).
+3.  **Function Call**: `handleExportData` in `SettingsPage.tsx` calls `exportDataDesktop` from `src/lib/dataManagement.ts`.
+4.  **Data Retrieval**: The `exportDataDesktop` function calls `invoke<Transaction[]>('get_transactions')` to fetch all transactions from the local SQLite database.
+5.  **JSON Conversion**: The retrieved transaction array is converted to a JSON string.
+6.  **File Save Dialog**: Tauri's `dialog.save()` API is used to prompt the user for a filename and location.
+7.  **File Write**: Tauri's `fs.writeTextFile()` API writes the JSON string to the selected file.
+8.  **Permissions**: Requires `dialog > save: true` and `fs > writeFile: true` (or `fs > all: true`) in `tauri.conf.json` allowlist.
+
+### Import Process (Desktop)
+
+1.  **Trigger**: User clicks the "Import Data" button in `SettingsPage.tsx`.
+2.  **Platform Check**: Ensures the platform is `desktop` (logic within `SettingsPage.tsx` before calling the exported function).
+3.  **Function Call**: `handleImportData` in `SettingsPage.tsx` calls `importDataDesktop` from `src/lib/dataManagement.ts`.
+4.  **File Open Dialog**: The `importDataDesktop` function uses Tauri's `dialog.open()` API to allow the user to select a JSON file.
+5.  **File Read**: Tauri's `fs.readTextFile()` API reads the content of the selected file.
+6.  **JSON Parse & Basic Validation**: The file content is parsed into an array of `Transaction` objects. Basic validation checks if it's an array and if essential fields (e.g., `id`, `amount`) exist.
+    - **TODO**: Implement robust validation using Zod schemas (e.g., a comprehensive `transactionSchema` in `src/lib/schemas.ts`).
+7.  **User Confirmation**: A `window.confirm` dialog warns the user that existing data will be overwritten and asks for confirmation.
+    - **TODO**: Replace with a custom `shadcn/ui AlertDialog` for better UX, integrated within `importDataDesktop` or handled by `SettingsPage.tsx`.
+8.  **Clear Existing Data**: If confirmed, `invoke('clear_all_data')` is called to remove existing transactions from SQLite.
+    - **Note**: Ensure `clear_all_data` command in Rust is appropriate and only targets transaction data if other settings should persist. Or create/use a more specific command like `clear_all_transactions`.
+9.  **Data Insertion**: Each transaction from the imported file is saved to SQLite by calling `invoke('add_transaction', { transaction })`.
+10. **Store Update**: After all transactions are imported, `invoke<Transaction[]>('get_transactions')` is called again, and the Zustand store is updated via `useDonationStore.getState().setTransactions()`.
+11. **Permissions**: Requires `dialog > open: true` and `fs > readFile: true` (or `fs > all: true`) in `tauri.conf.json` allowlist.
