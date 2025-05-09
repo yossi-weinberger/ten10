@@ -95,6 +95,15 @@ const transactionFormSchema = z
         .max(31, { message: "היום חייב להיות בין 1 ל-31" })
         .optional() // Make it optional initially
     ),
+    recurringTotalCount: z.preprocess(
+      // Allow empty string or null to become undefined for optional validation
+      (val) => (val === "" || val === null ? undefined : val),
+      z.coerce
+        .number({ invalid_type_error: "חייב להיות מספר" })
+        .int({ message: "חייב להיות מספר שלם" })
+        .positive({ message: "מספר החזרות חייב להיות חיובי" })
+        .optional()
+    ),
   })
   .refine(
     (data) => {
@@ -125,6 +134,24 @@ const transactionFormSchema = z
     {
       message: "יש לבחור יום בחודש עבור הוראת קבע",
       path: ["recurring_day_of_month"], // Attach error to the day field
+    }
+  )
+  .refine(
+    (data) => {
+      // If it's recurring and recurringTotalCount is provided, it must be a positive number
+      if (
+        data.is_recurring &&
+        data.recurringTotalCount !== undefined &&
+        data.recurringTotalCount !== null &&
+        data.recurringTotalCount <= 0
+      ) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "מספר החזרות חייב להיות גדול מאפס",
+      path: ["recurringTotalCount"],
     }
   )
   .refine(
@@ -201,12 +228,14 @@ export function TransactionForm({
       isRecognized: false,
       is_recurring: false,
       recurring_day_of_month: undefined,
+      recurringTotalCount: undefined,
     },
   });
 
   const selectedType = form.watch("type");
   const isExemptChecked = form.watch("isExempt");
   const isRecognizedChecked = form.watch("isRecognized");
+  const isRecurringChecked = form.watch("is_recurring");
 
   async function onSubmit(values: TransactionFormValues) {
     // Determine the final transaction type based on initial type and checkboxes
@@ -244,6 +273,10 @@ export function TransactionForm({
       recurring_day_of_month: values.is_recurring
         ? values.recurring_day_of_month
         : null,
+      recurringTotalCount:
+        values.is_recurring && values.recurringTotalCount
+          ? values.recurringTotalCount
+          : null,
     };
 
     // DEBUG: Log the object being sent to the backend
@@ -258,9 +291,13 @@ export function TransactionForm({
       const currentType = form.getValues("type");
 
       // Reset the form, preserving the selected type and default currency
+      console.log(
+        "Attempting to reset form. Current amount before reset:",
+        form.getValues("amount")
+      ); // DEBUG
       form.reset({
         date: new Date().toISOString().split("T")[0],
-        amount: "", // Reset amount back to empty string
+        amount: undefined, // Reset amount back to undefined to satisfy TypeScript
         currency: defaultCurrency,
         description: "",
         type: currentType, // Preserve the current type
@@ -271,6 +308,7 @@ export function TransactionForm({
         isRecognized: false,
         is_recurring: false, // Reset recurring flag
         recurring_day_of_month: undefined, // Reset recurring day
+        recurringTotalCount: undefined,
       });
 
       // Trigger success animation
@@ -358,8 +396,13 @@ export function TransactionForm({
                     type="number"
                     step="0.01"
                     {...field}
+                    value={
+                      field.value === undefined || field.value === null
+                        ? "" // Visually clear the input if internal value is undefined/null
+                        : field.value
+                    }
                     className="text-right"
-                    placeholder="0.00" // Add placeholder instead of default value
+                    placeholder="0.00"
                   />
                 </FormControl>
                 <FormMessage />
@@ -546,77 +589,78 @@ export function TransactionForm({
           </>
         )}
 
-        {/* --- Recurring Transaction Fields (Income/Donation Only) --- */}
-        {(selectedType === "income" || selectedType === "donation") && (
-          <>
-            {/* is_recurring Checkbox */}
+        {/* Recurring fields section */}
+        <FormField
+          control={form.control}
+          name="is_recurring"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm mt-4">
+              <div className="space-y-0.5">
+                <FormLabel className="text-base">הוראת קבע</FormLabel>
+                <FormDescription>
+                  סמן אם זוהי טרנזקציה שחוזרת באופן קבוע.
+                </FormDescription>
+              </div>
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        {isRecurringChecked && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 border rounded-lg shadow-sm">
             <FormField
               control={form.control}
-              name="is_recurring"
+              name="recurring_day_of_month"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormItem>
+                  <FormLabel>יום בחודש לחיוב</FormLabel>
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={(checked) => {
-                        field.onChange(checked);
-                        // Reset day field if recurring is unchecked
-                        if (!checked) {
-                          form.setValue("recurring_day_of_month", undefined, {
-                            shouldValidate: true, // Re-validate based on refine
-                          });
-                        }
+                    <Input
+                      type="number"
+                      placeholder="לדוגמה: 15"
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === "" ? null : Number(value));
                       }}
                     />
                   </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>הוראת קבע?</FormLabel>
-                    <FormDescription>
-                      האם זו הכנסה/תרומה קבועה שחוזרת מדי חודש?
-                    </FormDescription>
-                    <FormMessage />
-                  </div>
+                  <FormMessage />
                 </FormItem>
               )}
             />
-
-            {/* recurring_day_of_month Input (Visible only if is_recurring is checked) */}
-            {form.watch("is_recurring") && (
-              <FormField
-                control={form.control}
-                name="recurring_day_of_month"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>יום בחודש לחיוב *</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min={1}
-                        max={31}
-                        {...field}
-                        // Ensure value passed to input is string or number, handle null/undefined
-                        value={field.value ?? ""}
-                        onChange={(e) => {
-                          // Convert input value to number or undefined
-                          const numValue =
-                            e.target.value === ""
-                              ? undefined
-                              : parseInt(e.target.value, 10);
-                          field.onChange(numValue);
-                        }}
-                        placeholder="1-31"
-                        className="text-right"
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      היום בחודש בו מתבצעת הפעולה הקבועה.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-          </>
+            <FormField
+              control={form.control}
+              name="recurringTotalCount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>מספר חזרות (אופציונלי)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="לדוגמה: 6 (לחצי שנה)"
+                      {...field}
+                      value={field.value ?? ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        field.onChange(value === "" ? null : Number(value));
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    השאר ריק להוראת קבע ללא הגבלת חזרות.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         )}
 
         {/* Submit and Cancel Buttons */}

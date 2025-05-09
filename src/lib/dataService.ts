@@ -150,6 +150,7 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
         isChomesh: transaction.isChomesh, // camelCase DB <- camelCase TS (assumed)
         isRecurring: transaction.is_recurring, // camelCase DB <- snake_case TS (from logs)
         recurringDayOfMonth: transaction.recurring_day_of_month, // camelCase DB <- snake_case TS (from logs)
+        recurringTotalCount: transaction.recurringTotalCount, // camelCase DB <- camelCase TS
         // id, createdAt, updatedAt are handled by DB
       };
 
@@ -196,6 +197,7 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
         isChomesh: insertedData.isChomesh, // map from DB
         is_recurring: insertedData.isRecurring, // map back to snake_case for TS type
         recurring_day_of_month: insertedData.recurringDayOfMonth, // map back to snake_case for TS type
+        recurringTotalCount: insertedData.recurringTotalCount, // map from DB
         createdAt: insertedData.createdAt,
         updatedAt: insertedData.updatedAt,
       };

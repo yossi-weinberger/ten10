@@ -35,6 +35,9 @@ struct Transaction {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(alias = "recurring_day_of_month")]
     recurring_day_of_month: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(alias = "recurringTotalCount")]
+    recurring_total_count: Option<i32>,
 }
 
 struct DbState(Mutex<Connection>);
@@ -58,7 +61,8 @@ async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
             created_at TEXT,
             updated_at TEXT,
             is_recurring INTEGER,
-            recurring_day_of_month INTEGER
+            recurring_day_of_month INTEGER,
+            recurring_total_count INTEGER
         )",
         [],
     ).map_err(|e| e.to_string())?;
@@ -73,8 +77,8 @@ async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Re
 
     let conn = db.0.lock().map_err(|e| e.to_string())?;
     conn.execute(
-        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at, is_recurring, recurring_day_of_month)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
+        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at, is_recurring, recurring_day_of_month, recurring_total_count)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
         (
             &transaction.id,
             &transaction.user_id,
@@ -90,6 +94,7 @@ async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Re
             &transaction.updated_at,
             &transaction.is_recurring.map(|b| b as i32),
             &transaction.recurring_day_of_month,
+            &transaction.recurring_total_count,
         ),
     ).map_err(|e| e.to_string())?;
     Ok(())
@@ -101,7 +106,7 @@ async fn get_transactions(db: State<'_, DbState>) -> Result<Vec<Transaction>, St
     let mut stmt = conn.prepare(
         "SELECT id, user_id, date, amount, currency, description, type, category, 
                 is_chomesh, recipient, created_at, updated_at, 
-                is_recurring, recurring_day_of_month 
+                is_recurring, recurring_day_of_month, recurring_total_count
          FROM transactions")
         .map_err(|e| e.to_string())?;
 
@@ -127,6 +132,7 @@ async fn get_transactions(db: State<'_, DbState>) -> Result<Vec<Transaction>, St
             updated_at: row.get(11)?,
             is_recurring: is_recurring_bool_opt,
             recurring_day_of_month: row.get(13)?,
+            recurring_total_count: row.get(14)?,
         })
     }).map_err(|e| e.to_string())?;
 

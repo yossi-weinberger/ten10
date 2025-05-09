@@ -28,4 +28,5 @@ export interface Transaction {
   // Fields for recurring transactions
   is_recurring?: boolean; // Optional, defaults to false if not present
   recurring_day_of_month?: number | null; // Optional, relevant only if is_recurring is true
+  recurringTotalCount?: number | null; // Optional, total number of installments for a recurring transaction
 }
