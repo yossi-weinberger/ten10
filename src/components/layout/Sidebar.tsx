@@ -80,7 +80,7 @@ export function Sidebar({ expanded = false }: SidebarProps) {
             !expanded && "w-0 overflow-hidden opacity-0"
           )}
         >
-          Tenten
+          Ten10
         </h1>
       </Link>
 

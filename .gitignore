@@ -29,8 +29,11 @@ dist-ssr
 
 # SQLite database (if you use tauri-plugin-sqlite)
 # Adjust the path if your database is located elsewhere
+/src-tauri/Ten10.db*
+/src-tauri/Ten10.db*-journal
 /src-tauri/tenten.db*
 /src-tauri/tenten.db*-journal
+
 
 # Environment variables
 .env

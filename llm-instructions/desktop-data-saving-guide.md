@@ -105,7 +105,7 @@ This document explains how data (unified `Transaction` objects) is saved locally
   - `src/pages/HalachaPage.tsx`, `src/pages/SettingsPage.tsx`, `src/pages/AboutPage.tsx`, `src/pages/ProfilePage.tsx` (Other application pages)
 - `src/lib/utils/export-excel.ts` & `src/lib/utils/export-pdf.ts` (Export logic for `AllTransactionsDataTable`)
 - `src-tauri/src/main.rs` (Rust: `Transaction` struct, commands for init, add, get, clear; DB logic - **cleaned of Income/Donation**)
-- `tenten.db` (The SQLite database file containing **only** the `transactions` table)
+- `Ten10.db` (The SQLite database file containing **only** the `transactions` table)
 
 ## 10. Post-Refactoring Cleanup (Completed)
 
@@ -126,7 +126,7 @@ This section documents the deprecated components and code that were removed as p
   - Removal of the above commands from the `.invoke_handler(...)`. (Done)
   - Removal of `CREATE TABLE IF NOT EXISTS incomes` and `CREATE TABLE IF NOT EXISTS donations` from the `init_db` command. (Done)
   - Removal of `DELETE FROM incomes` and `DELETE FROM donations` from the `clear_all_data` command. (Done)
-- **Database (SQLite - `tenten.db`):**
+- **Database (SQLite - `Ten10.db`):**
   - The `incomes` table. (Will be removed on next `init_db`)
   - The `donations` table. (Will be removed on next `init_db`)
 - **Frontend Components:**

@@ -60,5 +60,5 @@ export async function exportTransactionsToPDF(transactions: Transaction[]) {
     },
   });
 
-  doc.save(`tenten-transactions-${new Date().toISOString().split("T")[0]}.pdf`);
+  doc.save(`Ten10-transactions-${new Date().toISOString().split("T")[0]}.pdf`);
 }

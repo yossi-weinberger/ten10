@@ -1,7 +1,7 @@
 [package]
-name = "tenten"
+name = "Ten10"
 version = "0.1.0"
-description = "Tenten - Income and Donation Management App"
+description = "Ten10 - Income and Donation Management App"
 authors = ["you"]
 license = ""
 repository = ""
@@ -22,5 +22,5 @@ rusqlite = { version = "0.29.0", features = ["bundled"] }
 custom-protocol = ["tauri/custom-protocol"]
 
 [[bin]]
-name = "tenten"
+name = "Ten10"
 path = "src/main.rs"

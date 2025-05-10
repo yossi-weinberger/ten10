@@ -10,7 +10,7 @@ import "./index.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider defaultTheme="system" storageKey="tenten-ui-theme">
+    <ThemeProvider defaultTheme="system" storageKey="Ten10-ui-theme">
       <PlatformProvider>
         <AuthProvider>
           <RouterProvider router={router} />

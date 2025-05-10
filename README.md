@@ -1,4 +1,4 @@
-# tenten Project
+# Ten10 Project
 
 This is a [Tauri](https://tauri.app/) application using React and Vite for the frontend.
 
@@ -29,7 +29,7 @@ Before you begin, ensure you have the following installed:
 1.  Clone the repository (if you haven't already):
     ```bash
     git clone <repository-url>
-    cd tenten
+    cd Ten10
     ```
 2.  Install Node.js dependencies:
     ```bash

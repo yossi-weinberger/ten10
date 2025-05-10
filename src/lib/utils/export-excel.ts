@@ -5,7 +5,7 @@ import { transactionTypeLabels } from "@/components/tables/AllTransactionsDataTa
 export async function exportTransactionsToExcel(transactions: Transaction[]) {
   const workbook = new ExcelJS.Workbook();
 
-  workbook.creator = "Tenten";
+  workbook.creator = "Ten10";
   workbook.created = new Date();
   workbook.modified = new Date();
 
@@ -67,7 +67,7 @@ export async function exportTransactionsToExcel(transactions: Transaction[]) {
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `tenten-transactions-${
+  a.download = `Ten10-transactions-${
     new Date().toISOString().split("T")[0]
   }.xlsx`;
   a.click();

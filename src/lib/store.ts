@@ -201,7 +201,7 @@ export const useDonationStore = create<DonationState>()(
       },
     }),
     {
-      name: "tenten-donation-store",
+      name: "Ten10-donation-store",
     }
   )
 );

@@ -12,9 +12,9 @@ This section details how the different parts of the project interact with each o
     - **Events:** The backend can emit events that the frontend listens to, enabling real-time updates or notifications from the backend.
     - **Example Flow:** Clicking a 'Save' button in a form (`src/components/TransactionForm.tsx`) triggers a function that calls `invoke` with the relevant command name (e.g., `add_transaction`) and form data. The Rust code receives the data, processes it (e.g., saves to the DB), and returns a response (success/error) to the frontend.
 
-2.  **Backend (`src-tauri`) <-> Database (`src-tauri/tenten.db`)**:
+2.  **Backend (`src-tauri`) <-> Database (`src-tauri/Ten10.db`)**:
 
-    - **Data Access:** The Rust code in `main.rs` handles all interactions with the SQLite database (`tenten.db`) for the Desktop version. It uses Rust crates (like `rusqlite` or `sqlx`) to execute SQL queries (CRUD operations) for transaction data and other persistent information.
+    - **Data Access:** The Rust code in `main.rs` handles all interactions with the SQLite database (`Ten10.db`) for the Desktop version. It uses Rust crates (like `rusqlite` or `sqlx`) to execute SQL queries (CRUD operations) for transaction data and other persistent information.
     - **Persistence:** This is where application data is stored persistently in the desktop application.
 
 3.  **Frontend Components (`src`)**:
@@ -75,7 +75,7 @@ This section details how the different parts of the project interact with each o
 │   ├── Cargo.lock         # Rust dependency lock file
 │   ├── Cargo.toml         # Rust project manifest and dependencies
 │   ├── tauri.conf.json    # Tauri configuration file
-│   └── tenten.db          # SQLite database file (for Desktop version)
+│   └── Ten10.db          # SQLite database file (for Desktop version)
 ├── .eslint.config.js    # ESLint configuration
 ├── .gitignore             # Files and directories ignored by Git
 ├── index.html             # Main HTML entry point for the frontend

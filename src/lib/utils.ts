@@ -77,7 +77,7 @@ export async function exportToExcel(
 ) {
   const workbook = new ExcelJS.Workbook();
 
-  workbook.creator = "Tenten";
+  workbook.creator = "Ten10";
   workbook.created = new Date();
   workbook.modified = new Date();
   workbook.properties.date1904 = true;
@@ -145,7 +145,7 @@ export async function exportToExcel(
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `tenten-report-${new Date().toISOString().split("T")[0]}.xlsx`;
+  a.download = `Ten10-report-${new Date().toISOString().split("T")[0]}.xlsx`;
   a.click();
   window.URL.revokeObjectURL(url);
 }
@@ -280,5 +280,5 @@ export async function exportToPDF(
     },
   });
 
-  doc.save(`tenten-report-${new Date().toISOString().split("T")[0]}.pdf`);
+  doc.save(`Ten10-report-${new Date().toISOString().split("T")[0]}.pdf`);
 }

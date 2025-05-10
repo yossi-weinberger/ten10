@@ -150,7 +150,7 @@ async fn clear_all_data(db: State<'_, DbState>) -> Result<(), String> {
 }
 
 fn main() {
-    let conn = Connection::open("tenten.db").expect("Failed to open database");
+    let conn = Connection::open("Ten10.db").expect("Failed to open database");
     
     tauri::Builder::default()
         .manage(DbState(Mutex::new(conn)))
