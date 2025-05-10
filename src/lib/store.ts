@@ -15,6 +15,8 @@ export interface Settings {
   notifications: boolean;
   autoCalcChomesh: boolean;
   recurringDonations: boolean;
+  minMaaserPercentage?: number;
+  maaserYearStart?: string;
 }
 
 // export interface Income {
@@ -63,6 +65,8 @@ const defaultSettings: Settings = {
   notifications: true,
   autoCalcChomesh: true,
   recurringDonations: true,
+  minMaaserPercentage: 10,
+  maaserYearStart: "01-01",
 };
 
 export const useDonationStore = create<DonationState>()(

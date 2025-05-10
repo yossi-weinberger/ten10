@@ -45,7 +45,12 @@ import {
   Trash2,
 } from "lucide-react";
 import { usePlatform } from "@/contexts/PlatformContext";
-import { exportDataDesktop, importDataDesktop } from "@/lib/dataManagement";
+import {
+  exportDataDesktop,
+  importDataDesktop,
+  exportDataWeb,
+  importDataWeb,
+} from "@/lib/dataManagement";
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -72,7 +77,7 @@ export function SettingsPage() {
     if (platform === "desktop") {
       await exportDataDesktop({ setIsLoading: setIsExporting });
     } else if (platform === "web") {
-      toast.error("ייצוא נתונים עבור גרסת ווב עדיין לא נתמך.");
+      await exportDataWeb({ setIsLoading: setIsExporting });
     } else {
       toast.error("פלטפורמה לא ידועה, לא ניתן לייצא נתונים.");
     }
@@ -82,7 +87,7 @@ export function SettingsPage() {
     if (platform === "desktop") {
       await importDataDesktop({ setIsLoading: setIsImporting });
     } else if (platform === "web") {
-      toast.error("ייבוא נתונים עבור גרסת ווב עדיין לא נתמך.");
+      await importDataWeb({ setIsLoading: setIsImporting });
     } else {
       toast.error("פלטפורמה לא ידועה, לא ניתן לייבא נתונים.");
     }
