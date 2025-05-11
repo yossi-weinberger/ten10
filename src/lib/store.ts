@@ -25,9 +25,13 @@ interface DonationState {
   transactions: Transaction[];
   requiredDonation: number;
   settings: Settings;
+  lastDbFetchTimestamp?: number | null;
+  _hasHydrated: boolean;
   updateSettings: (settings: Partial<Settings>) => void;
   setTransactions: (transactions: Transaction[]) => void;
   addTransaction: (transaction: Transaction) => void;
+  setLastDbFetchTimestamp: (timestamp: number | null) => void;
+  setHasHydrated: (status: boolean) => void;
 }
 
 const defaultSettings: Settings = {
@@ -48,6 +52,8 @@ export const useDonationStore = create<DonationState>()(
       transactions: [],
       requiredDonation: 0,
       settings: defaultSettings,
+      lastDbFetchTimestamp: null,
+      _hasHydrated: false,
 
       updateSettings: (newSettings) => {
         set((state) => ({
@@ -64,9 +70,36 @@ export const useDonationStore = create<DonationState>()(
           transactions: [...state.transactions, transaction],
         }));
       },
+
+      setLastDbFetchTimestamp: (timestamp) => {
+        set(() => ({ lastDbFetchTimestamp: timestamp }));
+      },
+
+      setHasHydrated: (status) => {
+        set(() => ({ _hasHydrated: status }));
+      },
     }),
     {
       name: "Ten10-donation-store",
+      onRehydrateStorage: () => {
+        console.log("Zustand hydration process started/attempted.");
+        return (state, error) => {
+          if (error) {
+            console.error(
+              "Zustand: An error occurred during rehydration:",
+              error
+            );
+          } else if (state) {
+            console.log("Zustand: Rehydration finished.");
+            state.setHasHydrated(true);
+          } else {
+            console.log(
+              "Zustand: Rehydration completed, but no persisted state was found or state is undefined."
+            );
+            useDonationStore.setState({ _hasHydrated: true });
+          }
+        };
+      },
     }
   )
 );

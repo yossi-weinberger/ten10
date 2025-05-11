@@ -37,6 +37,7 @@ const SignupPage: React.FC = () => {
       signedUpUserId = data.user?.id;
 
       if (data.session && signedUpUserId) {
+        sessionStorage.setItem("forceDbFetchOnLoad", "true");
         const { error: updateError } = await supabase
           .from("profiles")
           .update({

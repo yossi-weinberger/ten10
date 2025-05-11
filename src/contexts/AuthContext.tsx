@@ -32,6 +32,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const { platform } = usePlatform();
+  const setTransactionsInStore = useDonationStore(
+    (state) => state.setTransactions
+  ); // Helper to access zustand action
+  const setLastDbFetchTimestampInStore = useDonationStore(
+    (state) => state.setLastDbFetchTimestamp
+  ); // Helper
+  const hasHydrated = useDonationStore((state) => state._hasHydrated);
+  const lastDbFetchTimestampFromStore = useDonationStore(
+    (state) => state.lastDbFetchTimestamp
+  ); // Added this line
 
   useEffect(() => {
     if (platform !== "loading") {
@@ -39,47 +49,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [platform]);
 
-  const loadAndSetTransactions = async (userForLoad: User | null) => {
-    // Simplified logging
-    console.log(
-      "AuthContext: Attempting to load transactions for user:",
-      userForLoad?.id
-    );
-
+  const loadAndSetTransactionsInternal = async (userForLoad: User | null) => {
     if (!userForLoad) {
       console.error(
-        "AuthContext: loadAndSetTransactions called with null user. Aborting."
+        "AuthContext: loadAndSetTransactionsInternal called with null user. Aborting."
       );
-      useDonationStore.setState({ transactions: [] });
-      // No need to set isDataLoading false here, as it should be false if called with null user
+      useDonationStore.setState({
+        transactions: [],
+        lastDbFetchTimestamp: null,
+      }); // Clear timestamp too
       return;
     }
-
     if (platform === "loading") {
       console.warn(
-        "AuthContext: loadAndSetTransactions called while platform is loading. Aborting."
+        "AuthContext: loadAndSetTransactionsInternal called while platform is loading. Aborting."
+      );
+      return;
+    }
+    if (isDataLoading) {
+      console.log(
+        "AuthContext: loadAndSetTransactionsInternal - prevented re-entry as isDataLoading is true"
       );
       return;
     }
 
-    // Set loading flag - the calling useEffect already checked !isDataLoading
+    console.log(
+      "AuthContext: Initiating data load sequence for user:",
+      userForLoad.id
+    );
     setIsDataLoading(true);
 
     try {
-      // Removed the test RPC Call
-
-      // Actual data loading
-      const transactions = await loadTransactions(
-        platform === "web" ? userForLoad.id : undefined // Use userForLoad.id directly
+      const transactionsFromBackend = await loadTransactions(
+        platform === "web" ? userForLoad.id : undefined
       );
-      useDonationStore.setState({ transactions: transactions });
+
+      useDonationStore.setState({
+        transactions: transactionsFromBackend,
+        lastDbFetchTimestamp: Date.now(),
+      });
       console.log(
-        `AuthContext: Successfully loaded ${transactions.length} transactions.`
+        `AuthContext: Successfully loaded ${transactionsFromBackend.length} transactions from backend.`
       );
     } catch (error) {
       console.error("AuthContext: Error during data loading sequence:", error);
       toast.error("שגיאה בטעינת נתונים.");
-      useDonationStore.setState({ transactions: [] });
+      useDonationStore.setState({ transactions: [] }); // Keep transactions empty on error, timestamp not cleared to avoid loops
     } finally {
       setIsDataLoading(false);
     }
@@ -130,34 +145,75 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // New useEffect for DATA LOADING based on user and platform state
   useEffect(() => {
-    // Simplified log
     console.log(
-      `AuthContext: Data loading effect check. User: ${!!user}, Platform: ${platform}, Loading: ${isDataLoading}`
+      `AuthContext: Data loading effect. User: ${!!user}, Platform: ${platform}, DataLoading: ${isDataLoading}, Hydrated: ${hasHydrated}, Timestamp: ${lastDbFetchTimestampFromStore}`
     );
 
     if (platform === "loading") {
-      return; // Wait for platform
-    }
-
-    if (!user) {
-      // Clear data if user logs out
-      useDonationStore.setState({ transactions: [] });
-      // Ensure loading flag is reset if we were loading and user logged out
-      if (isDataLoading) setIsDataLoading(false);
+      console.log(
+        "AuthContext: Platform is loading, aborting data load check."
+      );
       return;
     }
 
-    // Proceed to load data if conditions met
-    if (user && platform !== "loading" && !isDataLoading) {
+    // Main data loading decision logic starts here
+    if (user && hasHydrated) {
+      const shouldForceFetchFromDb =
+        sessionStorage.getItem("forceDbFetchOnLoad") === "true";
+
+      if (shouldForceFetchFromDb) {
+        sessionStorage.removeItem("forceDbFetchOnLoad");
+        console.log(
+          "AuthContext: 'forceDbFetchOnLoad' flag found (new login), initiating DB load."
+        );
+        loadAndSetTransactionsInternal(user);
+      } else {
+        // Not a new login, check timestamp
+        if (
+          lastDbFetchTimestampFromStore === null ||
+          typeof lastDbFetchTimestampFromStore === "undefined"
+        ) {
+          const currentTransactions = useDonationStore.getState().transactions;
+          if (currentTransactions.length === 0) {
+            console.log(
+              "AuthContext: No timestamp from store hook YET OR it's genuinely null, AND no transactions. Attempting DB load as a precaution."
+            );
+            loadAndSetTransactionsInternal(user);
+          } else {
+            console.log(
+              "AuthContext: No timestamp from store hook YET OR it's genuinely null, but transactions exist. Assuming fresh from persist, will re-eval if timestamp updates."
+            );
+          }
+          return; // Wait for a potential update to lastDbFetchTimestampFromStore from hydration
+        }
+
+        // Timestamp is available and is a number, proceed with staleness check
+        const oneDayInMillis = 24 * 60 * 60 * 1000; // 1 day
+        if (Date.now() - lastDbFetchTimestampFromStore > oneDayInMillis) {
+          console.log(
+            "AuthContext: Data may be stale (older than 1 day based on store hook), initiating DB load."
+          );
+          loadAndSetTransactionsInternal(user);
+        } else {
+          console.log(
+            "AuthContext: Data in Zustand is considered fresh enough (based on store hook), skipping DB load."
+          );
+        }
+      }
+    } else if (user && !hasHydrated) {
       console.log(
-        "AuthContext: Conditions met, initiating data load for user:",
-        user.id
+        "AuthContext: User exists but store not hydrated yet. Waiting for hydration."
       );
-      loadAndSetTransactions(user);
-    } else if (isDataLoading) {
-      // Handle case where isDataLoading is true but conditions are not met
+      // Do nothing, useEffect will re-run when hasHydrated becomes true
     }
-  }, [user, platform]);
+    // If no user, or platform is loading, or already loading data, those cases are handled by earlier returns.
+  }, [
+    user,
+    platform,
+    isDataLoading,
+    hasHydrated,
+    lastDbFetchTimestampFromStore,
+  ]);
 
   const signOut = async () => {
     setLoading(true);

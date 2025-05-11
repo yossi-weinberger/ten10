@@ -13,7 +13,7 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 - **Authentication State Management:**
   - Created `AuthContext` with `onAuthStateChange` listener.
   - Wrapped application with `AuthProvider`.
-  - **AuthContext now handles clearing the `transactions` state (Zustand) on sign-out and reloading data via `dataService` on sign-in/user change.**
+  - **AuthContext now handles clearing the `transactions` state (Zustand) on sign-out. Data loading logic has been enhanced to be conditional (see Optimized Data Fetching below).**
 - **Platform-Specific UI:**
   - Created Login (`LoginPage.tsx`) and Signup (`SignupPage.tsx`) pages, displayed only on the web platform.
   - Utilized `PlatformContext` for conditional rendering.
@@ -41,6 +41,9 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 - **Manual Setup:**
   - Completed Google Sign-In setup in Google Cloud Console and Supabase Dashboard (added Client ID/Secret).
   - Verified Supabase URL Configuration (`Site URL`, `Additional Redirect URLs`) for Magic Link and OAuth.
+- **State Synchronization:**
+  - Transaction data fetched via `dataService` is loaded into the Zustand store (`useDonationStore`), triggered by authentication events and data freshness checks managed in `AuthContext`.
+  - **Optimized Data Fetching:** Implemented conditional data loading from the database to avoid fetching on every page refresh. Data is fetched upon user login (via a `forceDbFetchOnLoad` flag in `sessionStorage`), or if existing data in Zustand is stale (e.g., older than 1 day, based on `lastDbFetchTimestamp` in Zustand). `AuthContext` manages this, including Zustand store rehydration (`_hasHydrated`). `LoginPage.tsx` and `SignupPage.tsx` set the `forceDbFetchOnLoad` flag.
 
 ### Database (Transactions - Web Version)
 

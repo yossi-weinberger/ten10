@@ -90,7 +90,7 @@ This document outlines the standard approach for handling financial transactions
 
 ## 6. Data Flow Summary
 
-- **Load**: Triggered by authentication events (`AuthContext`), fetch all relevant `transactions` from DB (SQLite via Tauri for Desktop, Supabase for Web using `dataService`). Populate `transactions` array in Zustand store, replacing previous content.
+- **Load**: Triggered by authentication events (`AuthContext`) and data freshness checks. Fetches all relevant `transactions` from DB (SQLite via Tauri for Desktop, Supabase for Web using `dataService`) only if explicitly forced (e.g., on new login via `forceDbFetchOnLoad` flag) or if existing data in Zustand is stale (based on `lastDbFetchTimestamp`). Populates `transactions` array in Zustand store, replacing previous content if a fetch occurs.
 - **Display**: Read `transactions` from Zustand store. Calculate balance for display using the memoized selector/`useMemo` calling `calculateTotalRequiredDonation`.
 - **Save**: Persist new/updated/deleted `transaction` to DB (via `dataService`). Upon successful DB operation, update the `transactions` array in the Zustand store.
 - **Clear**: Triggered by authentication events (sign-out) or explicit user action (`clearAllData`), clear the `transactions` array in the Zustand store (and potentially clear data in the DB via `dataService`).

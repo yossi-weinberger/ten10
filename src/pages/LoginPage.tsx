@@ -55,6 +55,7 @@ const LoginPage: React.FC = () => {
         password,
       });
       if (error) throw error;
+      sessionStorage.setItem("forceDbFetchOnLoad", "true");
       toast.success("Logged in successfully!");
       navigate({ to: "/" });
     } catch (error: any) {
@@ -78,6 +79,7 @@ const LoginPage: React.FC = () => {
         },
       });
       if (error) throw error;
+      sessionStorage.setItem("forceDbFetchOnLoad", "true");
       // Redirect happens automatically via Supabase/Google callback
     } catch (error: any) {
       console.error("Error logging in with Google:", error);
