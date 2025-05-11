@@ -2,10 +2,10 @@ import * as React from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
-import { he } from 'date-fns/locale';
-import { formatHebrewDate } from '@/lib/hebrew-date';
-import { useDonationStore } from '@/lib/store';
-import { HDate } from '@hebcal/core';
+import { he } from "date-fns/locale";
+import { formatHebrewDate } from "@/lib/utils";
+import { useDonationStore } from "@/lib/store";
+import { HDate } from "@hebcal/core";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -30,34 +30,34 @@ export function DatePickerWithRange({
   const { settings } = useDonationStore();
 
   const formatDate = (date: Date) => {
-    if (settings.calendarType === 'hebrew') {
+    if (settings.calendarType === "hebrew") {
       return formatHebrewDate(date);
     }
     return format(date, "dd/MM/yyyy", { locale: he });
   };
 
   const formatCaption = (date: Date) => {
-    if (settings.calendarType === 'hebrew') {
+    if (settings.calendarType === "hebrew") {
       const hDate = new HDate(date);
-      return `${hDate.getMonthName('h')} ${hDate.getFullYear()}`;
+      return `${hDate.getMonthName()} ${hDate.getFullYear()}`;
     }
-    return format(date, 'LLLL yyyy', { locale: he });
+    return format(date, "LLLL yyyy", { locale: he });
   };
 
   const formatWeekday = (date: Date) => {
-    if (settings.calendarType === 'hebrew') {
-      const days = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'];
+    if (settings.calendarType === "hebrew") {
+      const days = ["א", "ב", "ג", "ד", "ה", "ו", "ש"];
       return days[date.getDay()];
     }
-    return format(date, 'EEEEEE', { locale: he });
+    return format(date, "EEEEEE", { locale: he });
   };
 
   const formatDay = (date: Date) => {
-    if (settings.calendarType === 'hebrew') {
+    if (settings.calendarType === "hebrew") {
       const hDate = new HDate(date);
       return String(hDate.getDate());
     }
-    return format(date, 'd');
+    return format(date, "d");
   };
 
   return (
@@ -98,7 +98,7 @@ export function DatePickerWithRange({
             formatters={{
               formatCaption,
               formatDay,
-              formatWeekday,
+              formatWeekdayName: formatWeekday,
             }}
             classNames={{
               caption: "text-right font-bold",
@@ -107,7 +107,8 @@ export function DatePickerWithRange({
               head_cell: "text-right font-normal text-muted-foreground",
               cell: "text-right [&:has([aria-selected])]:bg-primary [&:has([aria-selected].day-range-end)]:rounded-l-md [&:has([aria-selected].day-range-start)]:rounded-r-md first:[&:has([aria-selected])]:rounded-r-md last:[&:has([aria-selected])]:rounded-l-md",
               day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
-              day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+              day_selected:
+                "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
               day_today: "bg-accent text-accent-foreground",
             }}
           />

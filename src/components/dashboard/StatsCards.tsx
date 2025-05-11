@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useDonationStore, selectCalculatedBalance } from "@/lib/store";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils/currency";
 import { Wallet, HandCoins, CircleDollarSign, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { startOfMonth, startOfYear } from "date-fns";

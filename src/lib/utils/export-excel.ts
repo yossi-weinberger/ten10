@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import type { Transaction } from "@/types/transaction";
-import { transactionTypeLabels } from "@/components/tables/AllTransactionsDataTable";
+import { transactionTypeLabels } from "@/types/transactionLabels";
 
 export async function exportTransactionsToExcel(transactions: Transaction[]) {
   const workbook = new ExcelJS.Workbook();

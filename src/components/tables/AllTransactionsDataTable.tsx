@@ -37,32 +37,16 @@ import { Check } from "lucide-react";
 import { exportTransactionsToExcel } from "@/lib/utils/export-excel";
 import { exportTransactionsToPDF } from "@/lib/utils/export-pdf";
 import { FileDown, FileText, FileSpreadsheet } from "lucide-react";
+import {
+  transactionTypeLabels,
+  typeBadgeColors,
+} from "@/types/transactionLabels"; // Correct import
 
 interface AllTransactionsDataTableProps {
   title?: string;
   showFilters?: boolean;
   defaultDateRange?: "month" | "year" | "all";
 }
-
-// Re-use or define the labels mapping here
-// Export the labels for re-use
-export const transactionTypeLabels: Record<TransactionType, string> = {
-  income: "הכנסה",
-  donation: "תרומה",
-  expense: "הוצאה",
-  "exempt-income": "הכנסה פטורה",
-  "recognized-expense": "הוצאה מוכרת",
-};
-
-// Define colors for badges
-// Export colors if needed elsewhere, otherwise keep local
-const typeBadgeColors: Record<TransactionType, string> = {
-  income: "bg-green-100 text-green-800 border-green-300",
-  expense: "bg-red-100 text-red-800 border-red-300",
-  donation: "bg-yellow-100 text-yellow-800 border-yellow-400",
-  "exempt-income": "bg-blue-100 text-blue-800 border-blue-300",
-  "recognized-expense": "bg-orange-100 text-orange-800 border-orange-300",
-};
 
 // Define columns for the new Transaction model
 const transactionColumns: ColumnDef<Transaction>[] = [
@@ -76,17 +60,15 @@ const transactionColumns: ColumnDef<Transaction>[] = [
     header: "סוג",
     cell: ({ row }) => {
       const type = row.getValue("type") as TransactionType;
-      // Use Hebrew label and conditional coloring
       return (
         <Badge
           variant="outline"
           className={cn(
-            "font-medium", // Base style
-            typeBadgeColors[type] || "border-gray-300" // Apply color, fallback if type is unexpected
+            "font-medium",
+            typeBadgeColors[type] || "border-gray-300"
           )}
         >
-          {transactionTypeLabels[type] || type}{" "}
-          {/* Show Hebrew label, fallback to raw type */}
+          {transactionTypeLabels[type] || type}
         </Badge>
       );
     },
@@ -118,7 +100,6 @@ const transactionColumns: ColumnDef<Transaction>[] = [
       const transaction = row.original;
       const amount = row.getValue("amount") as number;
       const currency = transaction.currency;
-      // Optional: Add sign based on type? (+ for income, - for others?)
       return formatCurrency(amount, currency);
     },
   },
@@ -137,7 +118,6 @@ const transactionColumns: ColumnDef<Transaction>[] = [
       return <div className="text-center">חומש?</div>;
     },
   },
-  // Add more columns as needed (e.g., specific category, recipient column if preferred)
 ];
 
 // Helper array of transaction types for the filter dropdown

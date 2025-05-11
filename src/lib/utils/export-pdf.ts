@@ -1,8 +1,8 @@
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import type { Transaction } from "@/types/transaction";
-import { addFontToJsPDF } from "../pdf-fonts";
-import { transactionTypeLabels } from "@/components/tables/AllTransactionsDataTable";
+import { addFontToJsPDF } from "./pdf-fonts";
+import { transactionTypeLabels } from "@/types/transactionLabels";
 import { formatCurrency } from "./currency";
 
 export async function exportTransactionsToPDF(transactions: Transaction[]) {
