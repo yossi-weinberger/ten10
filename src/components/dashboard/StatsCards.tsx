@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useDonationStore, selectCalculatedBalance } from "@/lib/store";
@@ -40,24 +40,43 @@ export function StatsCards({
 
   const filteredTransactions = filterByDateRange(transactions);
 
-  const totalIncomes = filteredTransactions
-    .filter((t) => t.type === "income")
-    .reduce((sum, t) => sum + t.amount, 0);
+  const { totalIncome, totalExpenses, totalDonations, chomeshIncomesAmount } =
+    useMemo(() => {
+      // Calculate totals based on the FILTERED transactions
+      return filteredTransactions.reduce(
+        (acc, transaction) => {
+          // Include both 'income' and 'exempt-income' in the displayed total income
+          if (
+            transaction.type === "income" ||
+            transaction.type === "exempt-income"
+          ) {
+            acc.totalIncome += transaction.amount;
+            // Also calculate chomesh amount if it's a regular income
+            if (transaction.type === "income" && transaction.isChomesh) {
+              acc.chomeshIncomesAmount += transaction.amount;
+            }
+          } else if (transaction.type === "expense") {
+            acc.totalExpenses += transaction.amount;
+          } else if (transaction.type === "donation") {
+            acc.totalDonations += transaction.amount;
+          } else if (transaction.type === "recognized-expense") {
+            // Recognized expenses are not displayed as a separate total here
+            // but are accounted for in the requiredDonation calculation elsewhere
+          }
+          return acc;
+        },
+        {
+          totalIncome: 0,
+          totalExpenses: 0,
+          totalDonations: 0,
+          chomeshIncomesAmount: 0,
+        } // Initialize chomesh amount
+      );
+      // Ensure dependency is on the filtered array
+    }, [filteredTransactions]);
 
-  // Calculate SUM of amounts for incomes with Chomesh
-  const chomeshIncomesAmount = filteredTransactions
-    .filter((t) => t.type === "income" && t.isChomesh)
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const totalDonations = filteredTransactions
-    .filter((t) => t.type === "donation")
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  // Calculate total expenses
-  const totalExpenses = filteredTransactions
-    .filter((t) => t.type === "expense") // Filter for 'expense' type
-    .reduce((sum, t) => sum + t.amount, 0);
-
+  // Calculate potential required and progress based on the FILTERED donations
+  // Note: calculatedBalance itself is based on ALL transactions, which is correct for the overall tithe status.
   const potentialTotalRequired =
     totalDonations + Math.max(0, calculatedBalance);
   const donationProgress =
@@ -112,7 +131,7 @@ export function StatsCards({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(totalIncomes)}
+              {formatCurrency(totalIncome)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {chomeshIncomesAmount > 0
@@ -144,8 +163,8 @@ export function StatsCards({
               {formatCurrency(totalDonations)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {totalIncomes > 0
-                ? ((totalDonations / totalIncomes) * 100).toFixed(1) +
+              {totalIncome > 0
+                ? ((totalDonations / totalIncome) * 100).toFixed(1) +
                   "% מסך ההכנסות"
                 : "N/A"}
             </p>
