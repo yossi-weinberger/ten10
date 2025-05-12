@@ -200,6 +200,12 @@ const activeButtonStyles: Record<ButtonStyleType, string> = {
     "bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900 dark:hover:bg-yellow-800 border-yellow-400 dark:border-yellow-700 text-yellow-800 dark:text-yellow-100 shadow-sm",
 };
 
+const backgroundStyles: Record<ButtonStyleType, string> = {
+  income: "bg-green-50 dark:bg-green-950",
+  expense: "bg-red-50 dark:bg-red-950",
+  donation: "bg-yellow-50 dark:bg-yellow-950",
+};
+
 export function TransactionForm({
   onSubmitSuccess,
   onCancel,
@@ -325,7 +331,13 @@ export function TransactionForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className={cn(
+          "space-y-6 p-4 rounded-xl transition-colors duration-200",
+          backgroundStyles[selectedType as ButtonStyleType]
+        )}
+      >
         {/* Type Selection Buttons */}
         <div>
           <FormLabel>סוג פעולה *</FormLabel>
@@ -366,172 +378,89 @@ export function TransactionForm({
             </p>
           )}
         </div>
-
-        {/* Date Field */}
-        <FormField
-          control={form.control}
-          name="date"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>תאריך *</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Amount and Currency Fields Side-by-Side */}
-        <div className="grid grid-cols-3 gap-4 items-end">
-          {/* Amount Field (Spanning 2 columns) */}
+        {/* סכום (כולל מטבע) ותאריך באותה שורה */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+          {/* Amount and Currency - right */}
+          <div className="grid grid-cols-3 gap-4 items-end">
+            <FormField
+              control={form.control}
+              name="amount"
+              render={({ field }) => (
+                <FormItem className="col-span-2">
+                  <FormLabel>סכום *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      {...field}
+                      value={
+                        field.value === undefined || field.value === null
+                          ? ""
+                          : field.value
+                      }
+                      className="text-right"
+                      placeholder="0.00"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="currency"
+              render={({ field }) => (
+                <FormItem>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="מטבע" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {availableCurrencies.map((currency) => (
+                        <SelectItem key={currency} value={currency}>
+                          {currency}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          {/* Date - left */}
           <FormField
             control={form.control}
-            name="amount"
-            render={({ field }) => (
-              <FormItem className="col-span-2">
-                <FormLabel>סכום *</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    {...field}
-                    value={
-                      field.value === undefined || field.value === null
-                        ? "" // Visually clear the input if internal value is undefined/null
-                        : field.value
-                    }
-                    className="text-right"
-                    placeholder="0.00"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Currency Field (Spanning 1 column) */}
-          <FormField
-            control={form.control}
-            name="currency"
+            name="date"
             render={({ field }) => (
               <FormItem>
-                {/* <FormLabel>מטבע *</FormLabel> No need for label if it's obvious */}
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="מטבע" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {availableCurrencies.map((currency) => (
-                      <SelectItem key={currency} value={currency}>
-                        {currency}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormLabel>תאריך *</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
-
-        {/* Description Field */}
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>תיאור</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  placeholder="תיאור הפעולה (אופציונלי)"
-                  className="text-right"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* --- Conditional Fields --- */}
-
-        {/* Fields for 'income' type */}
-        {selectedType === "income" && (
-          <>
-            {/* isExempt Checkbox */}
-            <FormField
-              control={form.control}
-              name="isExempt"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>הכנסה פטורה ממעשר?</FormLabel>
-                    <FormDescription>
-                      יש לסמן אם הכנסה זו אינה חייבת כלל במעשר (למשל, מתנה
-                      מסויימת, החזר הוצאה).
-                    </FormDescription>
-                    <FormMessage />{" "}
-                    {/* Show potential Zod refine errors here */}
-                  </div>
-                </FormItem>
-              )}
-            />
-
-            {/* isChomesh Checkbox (Disabled if isExempt is checked) */}
-            <FormField
-              control={form.control}
-              name="isChomesh"
-              render={({ field }) => (
-                <FormItem
-                  className={`flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 ${
-                    isExemptChecked ? "opacity-50" : ""
-                  }`}
-                >
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={isExemptChecked} // Disable if isExempt is checked
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>לחשב חומש (20%)?</FormLabel>
-                    <FormDescription>
-                      יש לסמן אם ההכנסה דורשת הפרשת 20% במקום 10%.
-                      {isExemptChecked ? " (לא רלוונטי להכנסה פטורה)" : ""}
-                    </FormDescription>
-                    <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
-          </>
-        )}
-
-        {/* Recipient (for donation) */}
-        {selectedType === "donation" && (
+        {/* תיאור וקטגוריה/מקבל תרומה באותה שורה */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+          {/* Description - right */}
           <FormField
             control={form.control}
-            name="recipient"
+            name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>מקבל/ת התרומה</FormLabel>
+                <FormLabel>תיאור</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
-                    placeholder="שם המקבל/ת (אופציונלי)"
+                    placeholder="תיאור הפעולה (אופציונלי)"
                     className="text-right"
                   />
                 </FormControl>
@@ -539,12 +468,8 @@ export function TransactionForm({
               </FormItem>
             )}
           />
-        )}
-
-        {/* Fields for 'expense' type */}
-        {selectedType === "expense" && (
-          <>
-            {/* category */}
+          {/* קטגוריה או מקבל תרומה - left */}
+          {selectedType === "expense" && (
             <FormField
               control={form.control}
               name="category"
@@ -562,55 +487,119 @@ export function TransactionForm({
                 </FormItem>
               )}
             />
-
-            {/* isRecognized Checkbox */}
+          )}
+          {selectedType === "donation" && (
             <FormField
               control={form.control}
-              name="isRecognized"
+              name="recipient"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormItem>
+                  <FormLabel>מקבל/ת התרומה</FormLabel>
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
+                    <Input
+                      {...field}
+                      placeholder="שם המקבל/ת (אופציונלי)"
+                      className="text-right"
                     />
                   </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>הוצאה מוכרת?</FormLabel>
-                    <FormDescription>
-                      יש לסמן אם זו הוצאה המוכרת לניכוי מהכנסות החייבות במעשר
-                      (10% מההוצאה ינוכה מהחוב).
-                    </FormDescription>
-                    <FormMessage />
-                  </div>
+                  <FormMessage />
                 </FormItem>
               )}
             />
-          </>
-        )}
-
-        {/* Recurring fields section */}
-        <FormField
-          control={form.control}
-          name="is_recurring"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 shadow-sm mt-4">
-              <div className="space-y-0.5">
-                <FormLabel className="text-base">הוראת קבע</FormLabel>
-                <FormDescription>
-                  סמן אם זוהי טרנזקציה שחוזרת באופן קבוע.
-                </FormDescription>
+          )}
+        </div>
+        {/* כל הצ'קבוקסים בשורה אחת כריבועים */}
+        <div className="flex flex-row gap-4 mt-2 w-full">
+          {selectedType === "income" && (
+            <>
+              {/* הכנסה פטורה ממעשר */}
+              <div className="flex-1 flex flex-col items-center justify-between rounded-lg p-3 shadow-sm min-w-[100px]">
+                <span className="text-xs font-medium mb-1 text-center">
+                  הכנסה פטורה ממעשר?
+                </span>
+                <span className="text-[11px] text-muted-foreground text-center mb-2">
+                  יש לסמן אם הכנסה זו אינה חייבת כלל במעשר (למשל, מתנה מסויימת,
+                  החזר הוצאה).
+                </span>
+                <FormField
+                  control={form.control}
+                  name="isExempt"
+                  render={({ field }) => (
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="size-6 rounded border"
+                    />
+                  )}
+                />
               </div>
-              <FormControl>
+              {/* חומש */}
+              <div className="flex-1 flex flex-col items-center justify-between rounded-lg p-3 shadow-sm min-w-[100px]">
+                <span className="text-xs font-medium mb-1 text-center">
+                  לחשב חומש (20%)?
+                </span>
+                <span className="text-[11px] text-muted-foreground text-center mb-2">
+                  יש לסמן אם ההכנסה דורשת הפרשת 20% במקום 10%.
+                </span>
+                <FormField
+                  control={form.control}
+                  name="isChomesh"
+                  render={({ field }) => (
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={isExemptChecked}
+                      className="size-6 rounded border"
+                    />
+                  )}
+                />
+              </div>
+            </>
+          )}
+          {selectedType === "expense" && (
+            <div className="flex-1 flex flex-col items-center justify-between rounded-lg p-3 shadow-sm min-w-[100px]">
+              <span className="text-xs font-medium mb-1 text-center">
+                הוצאה מוכרת?
+              </span>
+              <span className="text-[11px] text-muted-foreground text-center mb-2">
+                יש לסמן אם זו הוצאה המוכרת לניכוי מהכנסות החייבות במעשר (10%
+                מההוצאה ינוכה מהחוב).
+              </span>
+              <FormField
+                control={form.control}
+                name="isRecognized"
+                render={({ field }) => (
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    className="size-6 rounded border"
+                  />
+                )}
+              />
+            </div>
+          )}
+          {/* הוראת קבע */}
+          <div className="flex-1 flex flex-col items-center justify-between rounded-lg p-3 shadow-sm min-w-[100px]">
+            <span className="text-xs font-medium mb-1 text-center">
+              הוראת קבע
+            </span>
+            <span className="text-[11px] text-muted-foreground text-center mb-2">
+              סמן אם זוהי טרנזקציה שחוזרת באופן קבוע.
+            </span>
+            <FormField
+              control={form.control}
+              name="is_recurring"
+              render={({ field }) => (
                 <Checkbox
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  className="size-6 rounded border"
                 />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
+              )}
+            />
+          </div>
+        </div>
+        {/* Recurring fields section */}
         {isRecurringChecked && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 border rounded-lg shadow-sm">
             <FormField
@@ -662,7 +651,6 @@ export function TransactionForm({
             />
           </div>
         )}
-
         {/* Submit and Cancel Buttons */}
         <div className="flex justify-end items-center space-x-2">
           {/* Success Icon Animation */}
