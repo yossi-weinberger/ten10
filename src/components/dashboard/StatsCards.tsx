@@ -55,13 +55,13 @@ export function StatsCards({
             if (transaction.type === "income" && transaction.isChomesh) {
               acc.chomeshIncomesAmount += transaction.amount;
             }
-          } else if (transaction.type === "expense") {
+          } else if (
+            transaction.type === "expense" ||
+            transaction.type === "recognized-expense"
+          ) {
             acc.totalExpenses += transaction.amount;
           } else if (transaction.type === "donation") {
             acc.totalDonations += transaction.amount;
-          } else if (transaction.type === "recognized-expense") {
-            // Recognized expenses are not displayed as a separate total here
-            // but are accounted for in the requiredDonation calculation elsewhere
           }
           return acc;
         },
