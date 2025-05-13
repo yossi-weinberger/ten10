@@ -71,11 +71,19 @@ const LoginPage: React.FC = () => {
   const handleLoginGoogle = async () => {
     setLoadingGoogle(true);
     try {
+      const isDevelopment = process.env.NODE_ENV === "development";
+      const redirectURL = isDevelopment
+        ? "http://localhost:5173" // Ensure this matches your dev server and Google Console
+        : window.location.origin; // For production, use the current origin
+
+      console.log(
+        `[LoginPage] Using redirectTo for Google OAuth: ${redirectURL}`
+      ); // Added log
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          // Optional: Specify where Google should redirect after successful auth
-          // redirectTo: window.location.origin,
+          redirectTo: redirectURL,
         },
       });
       if (error) throw error;

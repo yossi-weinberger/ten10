@@ -131,15 +131,15 @@ export function SettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col md:flex-row gap-6">
-          <ClearDataSection
-            handleClearData={handleClearData}
-            isClearing={isClearing}
-          />
           <ImportExportDataSection
             handleExportData={handleExportData}
             isExporting={isExporting}
             handleImportData={handleImportData}
             isImporting={isImporting}
+          />
+          <ClearDataSection
+            handleClearData={handleClearData}
+            isClearing={isClearing}
           />
         </CardContent>
       </Card>

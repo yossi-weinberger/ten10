@@ -38,30 +38,51 @@ export function Sidebar({ expanded = false }: SidebarProps) {
       setProfileLoading(true);
       setProfileFullName(null);
       setProfileAvatarUrl(null);
+      console.log("[Sidebar] Fetching profile for user ID:", session?.user?.id);
 
       async function fetchSidebarProfile() {
         if (!session || !session.user) {
+          console.log("[Sidebar] No session or user, aborting fetch.");
           if (isMounted) setProfileLoading(false);
           return;
         }
         try {
+          console.log(
+            `[Sidebar] Attempting to fetch profile for ID: ${session.user.id}`
+          );
           const { data, error } = await supabase
             .from("profiles")
             .select(`full_name, avatar_url`)
             .eq("id", session.user.id)
             .single();
 
+          console.log("[Sidebar] Supabase response:", { data, error });
+
           if (error && error.code !== "PGRST116") {
+            console.error("[Sidebar] Supabase error:", error);
             throw error;
           }
-          if (isMounted && data) {
-            setProfileFullName(data.full_name);
-            setProfileAvatarUrl(data.avatar_url);
+          if (isMounted) {
+            if (data) {
+              console.log("[Sidebar] Profile data received:", data);
+              setProfileFullName(data.full_name);
+              setProfileAvatarUrl(data.avatar_url);
+            } else {
+              console.log(
+                "[Sidebar] No profile data received (data is null/undefined)."
+              );
+            }
           }
         } catch (err) {
-          console.error("Error fetching sidebar profile:", err);
+          console.error(
+            "[Sidebar] Error in fetchSidebarProfile catch block:",
+            err
+          );
         } finally {
           if (isMounted) {
+            console.log(
+              "[Sidebar] Fetch finished, setting profileLoading to false."
+            );
             setProfileLoading(false);
           }
         }
@@ -152,69 +173,76 @@ export function Sidebar({ expanded = false }: SidebarProps) {
         )}
       </nav>
 
-      <PlatformIndicator expanded={expanded} />
-
-      {platform === "web" && session?.user && (
-        <div className="mt-auto pt-4 border-t border-border/20 px-2">
-          <div
-            className={cn(
-              "flex items-center p-2 rounded-md",
-              expanded ? "gap-3" : "flex-col gap-1 justify-center text-center"
-            )}
-          >
-            {authLoading || profileLoading ? (
-              <>
-                <Skeleton
+      {/* Combined bottom block for user info and platform indicator */}
+      <div className="mt-auto pt-4 border-t border-border/20 px-2">
+        {platform === "web" && session?.user && (
+          <div className="pb-2">
+            {" "}
+            {/* Adjusted: Removed individual mt-auto, pt-4, border-t. Added pb-2 for spacing if needed before PlatformIndicator */}
+            <div
+              className={cn(
+                "flex items-center p-2 rounded-md",
+                expanded ? "gap-3" : "flex-col gap-1 justify-center text-center"
+              )}
+            >
+              {authLoading || profileLoading ? (
+                <>
+                  <Skeleton
+                    className={cn(
+                      "rounded-full flex-shrink-0",
+                      expanded ? "h-10 w-10" : "h-9 w-9"
+                      // Removed !expanded && "mb-1" to control spacing more directly
+                    )}
+                  />
+                  {expanded && (
+                    <div className="flex flex-col gap-1 w-full">
+                      <Skeleton className="h-4 w-3/4" />
+                      <Skeleton className="h-3 w-full" />
+                    </div>
+                  )}
+                </>
+              ) : profileAvatarUrl ? (
+                <img
+                  src={profileAvatarUrl}
+                  alt={profileFullName || "User Avatar"}
                   className={cn(
-                    "h-10 w-10 rounded-full flex-shrink-0",
-                    !expanded && "mb-1"
+                    "rounded-full flex-shrink-0 object-cover",
+                    expanded ? "h-10 w-10" : "h-9 w-9"
                   )}
                 />
-                {expanded && (
-                  <div className="flex flex-col gap-1 w-full">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-3 w-full" />
-                  </div>
-                )}
-              </>
-            ) : profileAvatarUrl ? (
-              <img
-                src={profileAvatarUrl}
-                alt={profileFullName || "User Avatar"}
-                className="h-10 w-10 rounded-full flex-shrink-0 object-cover"
-              />
-            ) : (
-              <div
-                className={cn(
-                  "h-10 w-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0",
-                  !expanded && "mb-1"
-                )}
-              >
-                <User className="h-6 w-6" />
-              </div>
-            )}
-            {!authLoading && !profileLoading && (
-              <div
-                className={cn(
-                  "flex flex-col text-sm transition-all duration-200",
-                  expanded
-                    ? "items-start"
-                    : "w-0 overflow-hidden opacity-0 items-center text-center"
-                )}
-              >
-                {profileFullName && (
-                  <span className="font-semibold">{profileFullName}</span>
-                )}
-                {session.user.email && (
-                  <span className="text-xs text-muted-foreground">
-                    {session.user.email}
-                  </span>
-                )}
-              </div>
-            )}
+              ) : (
+                <div
+                  className={cn(
+                    "rounded-full bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0",
+                    expanded ? "h-10 w-10" : "h-9 w-9"
+                    // Removed !expanded && "mb-1"
+                  )}
+                >
+                  <User className="h-6 w-6" />
+                </div>
+              )}
+              {!authLoading && !profileLoading && (
+                <div
+                  className={cn(
+                    "flex flex-col text-sm transition-all duration-200",
+                    expanded ? "items-start" : "hidden"
+                  )}
+                >
+                  {profileFullName && (
+                    <span className="font-semibold">{profileFullName}</span>
+                  )}
+                  {session.user.email && (
+                    <span className="text-xs text-muted-foreground">
+                      {session.user.email}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+        <PlatformIndicator expanded={expanded} />
+      </div>
     </div>
   );
 }
