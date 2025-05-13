@@ -42,6 +42,7 @@ export function Sidebar({ expanded = false }: SidebarProps) {
       className={cn(
         "w-full h-12",
         expanded ? "justify-start px-4 gap-3" : "justify-center px-0",
+        currentPath !== to && "text-foreground",
         currentPath === to &&
           "relative after:absolute after:inset-y-2 after:right-0 after:w-1 after:bg-primary after:rounded-l-full"
       )}
@@ -77,6 +78,7 @@ export function Sidebar({ expanded = false }: SidebarProps) {
         <h1
           className={cn(
             "text-lg font-bold transition-all duration-200",
+            "dark:text-slate-100",
             !expanded && "w-0 overflow-hidden opacity-0"
           )}
         >
@@ -115,7 +117,7 @@ export function Sidebar({ expanded = false }: SidebarProps) {
           <Button
             variant="ghost"
             className={cn(
-              "w-full h-12 text-red-600 hover:bg-red-100 hover:text-red-700 focus-visible:ring-red-500",
+              "w-full h-12 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-400/20 hover:text-red-700 dark:hover:text-red-300 focus-visible:ring-red-500 dark:focus-visible:ring-red-400",
               expanded ? "justify-start px-4 gap-3" : "justify-center px-0"
             )}
             onClick={handleLogout}

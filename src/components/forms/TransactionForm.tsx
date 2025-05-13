@@ -380,7 +380,7 @@ export function TransactionForm({
         </div>
         {/* סכום (כולל מטבע) ותאריך באותה שורה */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-          {/* Amount and Currency - right */}
+          {/* Amount and Currency - start */}
           <div className="grid grid-cols-3 gap-4 items-end">
             <FormField
               control={form.control}
@@ -398,7 +398,7 @@ export function TransactionForm({
                           ? ""
                           : field.value
                       }
-                      className="text-right"
+                      className="text-start"
                       placeholder="0.00"
                     />
                   </FormControl>
@@ -450,7 +450,7 @@ export function TransactionForm({
         </div>
         {/* תיאור וקטגוריה/מקבל תרומה באותה שורה */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-          {/* Description - right */}
+          {/* Description - start */}
           <FormField
             control={form.control}
             name="description"
@@ -461,7 +461,7 @@ export function TransactionForm({
                   <Input
                     {...field}
                     placeholder="תיאור הפעולה (אופציונלי)"
-                    className="text-right"
+                    className="text-start"
                   />
                 </FormControl>
                 <FormMessage />
@@ -480,7 +480,7 @@ export function TransactionForm({
                     <Input
                       {...field}
                       placeholder="קטגוריית הוצאה (אופציונלי)"
-                      className="text-right"
+                      className="text-start"
                     />
                   </FormControl>
                   <FormMessage />
@@ -499,7 +499,7 @@ export function TransactionForm({
                     <Input
                       {...field}
                       placeholder="שם המקבל/ת (אופציונלי)"
-                      className="text-right"
+                      className="text-start"
                     />
                   </FormControl>
                   <FormMessage />
