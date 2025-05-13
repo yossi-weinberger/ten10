@@ -6,41 +6,15 @@ import { nanoid } from "nanoid";
 import { useDonationStore } from "@/lib/store";
 import { addTransaction } from "@/lib/dataService";
 import { Transaction, TransactionType } from "@/types/transaction";
-import { Button } from "@/components/ui/button";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Wallet,
-  CreditCard,
-  HandCoins,
-  CheckCircle,
-  HelpCircle,
-} from "lucide-react";
+import { Form } from "@/components/ui/form";
+import { CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-// We will need date picker and potentially checkbox later
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TransactionTypeSelector } from "./transaction-form-parts/TransactionTypeSelector";
+import { AmountCurrencyDateFields } from "./transaction-form-parts/AmountCurrencyDateFields";
+import { DescriptionCategoryFields } from "./transaction-form-parts/DescriptionCategoryFields";
+import { TransactionCheckboxes } from "./transaction-form-parts/TransactionCheckboxes";
+import { RecurringFields } from "./transaction-form-parts/RecurringFields";
+import { FormActionButtons } from "./transaction-form-parts/FormActionButtons";
 
 // Define the possible transaction types for the form select
 const allTransactionTypes = [
@@ -50,13 +24,6 @@ const allTransactionTypes = [
   "exempt-income",
   "recognized-expense",
 ] as const; // Use 'as const' for Zod enum
-
-// Define user-facing types to show in the dropdown
-const userFacingTransactionTypes: TransactionType[] = [
-  "income",
-  "expense",
-  "donation",
-];
 
 // Hebrew labels for transaction types
 const transactionTypeLabels: Record<TransactionType, string> = {
@@ -68,7 +35,7 @@ const transactionTypeLabels: Record<TransactionType, string> = {
 };
 
 // Base Zod schema - use allTransactionTypes for validation
-const transactionFormSchema = z
+export const transactionFormSchema = z
   .object({
     // We'll get ID, userId, createdAt, updatedAt programmatically
     date: z
@@ -192,7 +159,7 @@ const transactionFormSchema = z
 // - recipient: required if type is 'donation'
 // - category: perhaps more relevant for 'expense'/'recognized-expense'
 
-type TransactionFormValues = z.infer<typeof transactionFormSchema>;
+export type TransactionFormValues = z.infer<typeof transactionFormSchema>;
 
 interface TransactionFormProps {
   // initialData?: Transaction; // For editing later
@@ -200,26 +167,12 @@ interface TransactionFormProps {
   onCancel?: () => void; // Callback for cancel action
 }
 
-// Define explicit type for button styles
-type ButtonStyleType = "income" | "expense" | "donation";
-
-// Define active button styles object outside the loop
-// Simplified to focus on base active colors, border, and text.
-// Shadow is handled by the base TabTrigger style `data-[state=active]:shadow-md`.
-// Hover states removed for now to isolate the background issue.
-const activeButtonStyles: Record<ButtonStyleType, string> = {
-  income:
-    "data-[state=active]:bg-green-100 dark:data-[state=active]:bg-green-900 border-green-300 dark:border-green-700 text-green-800 dark:text-green-100",
-  expense:
-    "data-[state=active]:bg-red-100 dark:data-[state=active]:bg-red-900 border-red-300 dark:border-red-700 text-red-800 dark:text-red-100",
-  donation:
-    "data-[state=active]:bg-yellow-100 dark:data-[state=active]:bg-yellow-900 border-yellow-400 dark:border-yellow-700 text-yellow-800 dark:text-yellow-100",
-};
-
-const backgroundStyles: Record<ButtonStyleType, string> = {
+const backgroundStyles: Record<TransactionType, string> = {
   income: "bg-green-50 dark:bg-green-950",
   expense: "bg-red-50 dark:bg-red-950",
   donation: "bg-yellow-50 dark:bg-yellow-950",
+  "exempt-income": "bg-green-50 dark:bg-green-950",
+  "recognized-expense": "bg-red-50 dark:bg-red-950",
 };
 
 export function TransactionForm({
@@ -242,7 +195,7 @@ export function TransactionForm({
       amount: undefined,
       currency: defaultCurrency,
       description: "",
-      type: "income",
+      type: "income", // This will be the initial default for the form
       category: "",
       isChomesh: false,
       recipient: "",
@@ -256,7 +209,6 @@ export function TransactionForm({
 
   const selectedType = form.watch("type");
   const isExemptChecked = form.watch("isExempt");
-  const isRecognizedChecked = form.watch("isRecognized");
   const isRecurringChecked = form.watch("is_recurring");
 
   async function onSubmit(values: TransactionFormValues) {
@@ -351,406 +303,37 @@ export function TransactionForm({
         onSubmit={form.handleSubmit(onSubmit)}
         className={cn(
           "space-y-6 p-4 rounded-xl transition-colors duration-200",
-          backgroundStyles[selectedType as ButtonStyleType]
+          backgroundStyles[selectedType]
         )}
       >
-        {/* Type Selection using Tabs */}
-        <Tabs
-          defaultValue={form.getValues("type")}
-          onValueChange={(value) => {
-            form.setValue("type", value as TransactionType, {
-              shouldValidate: true,
-            });
-          }}
-          className="w-full"
-        >
-          <FormLabel>סוג פעולה *</FormLabel>
-          <TabsList className="grid w-full grid-cols-3 gap-1 md:gap-2 mt-2 p-1 h-auto bg-gray-200 dark:bg-gray-800 rounded-lg">
-            {(
-              userFacingTransactionTypes.slice().reverse() as ButtonStyleType[]
-            ).map((type) => (
-              <TabsTrigger
-                key={type}
-                value={type}
-                className={cn(
-                  "flex flex-col items-center justify-center h-auto py-2 px-1 md:py-3 md:px-2 text-center transition-all duration-150 rounded-md data-[state=active]:shadow-md",
-                  selectedType === type
-                    ? activeButtonStyles[type as ButtonStyleType] // Apply active styles
-                    : "bg-transparent hover:bg-accent hover:text-accent-foreground text-foreground" // Inactive styles
-                )}
-              >
-                {type === "income" && (
-                  <Wallet className="h-5 w-5 mb-1 mx-auto" />
-                )}
-                {type === "expense" && (
-                  <CreditCard className="h-5 w-5 mb-1 mx-auto" />
-                )}
-                {type === "donation" && (
-                  <HandCoins className="h-5 w-5 mb-1 mx-auto" />
-                )}
-                <span className="text-xs md:text-sm">
-                  {transactionTypeLabels[type]}
-                </span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-        {/* Display validation message for the type field if needed */}
-        {form.formState.errors.type && (
-          <p className="text-sm font-medium text-destructive mt-1">
-            {form.formState.errors.type.message}
-          </p>
-        )}
-        {/* סכום (כולל מטבע) ותאריך באותה שורה */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-          {/* Amount and Currency - start */}
-          <div className="grid grid-cols-3 gap-4 items-end">
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel>סכום *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      {...field}
-                      value={
-                        field.value === undefined || field.value === null
-                          ? ""
-                          : field.value
-                      }
-                      className="text-start"
-                      placeholder="0.00"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="currency"
-              render={({ field }) => (
-                <FormItem>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="מטבע" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {availableCurrencies.map((currency) => (
-                        <SelectItem key={currency} value={currency}>
-                          {currency}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-          {/* Date - left */}
-          <FormField
-            control={form.control}
-            name="date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>תאריך *</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        {/* תיאור וקטגוריה/מקבל תרומה באותה שורה */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-          {/* Description - start */}
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>תיאור</FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="תיאור הפעולה (אופציונלי)"
-                    className="text-start"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          {/* קטגוריה או מקבל תרומה - left */}
-          {selectedType === "expense" && (
-            <FormField
-              control={form.control}
-              name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>קטגוריה</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="קטגוריית הוצאה (אופציונלי)"
-                      className="text-start"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-          {selectedType === "donation" && (
-            <FormField
-              control={form.control}
-              name="recipient"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>מקבל/ת התרומה</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="שם המקבל/ת (אופציונלי)"
-                      className="text-start"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-        </div>
-        {/* כל הצ'קבוקסים בשורה אחת כריבועים */}
-        <TooltipProvider>
-          <div className="flex flex-row flex-wrap gap-4 mt-2 w-full">
-            {selectedType === "income" && (
-              <>
-                {/* הכנסה פטורה ממעשר */}
-                <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
-                  <div className="flex items-center justify-center mb-2 text-center">
-                    <span className="text-xs font-medium">
-                      הכנסה פטורה ממעשר?
-                    </span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-5 w-5 ml-1 p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                        >
-                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        <p className="max-w-xs text-sm">
-                          יש לסמן אם הכנסה זו אינה חייבת כלל במעשר (למשל, מתנה
-                          מסויימת, החזר הוצאה).
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="isExempt"
-                    render={({ field }) => (
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        className="size-6 rounded border mt-auto"
-                      />
-                    )}
-                  />
-                </div>
-                {/* חומש */}
-                <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
-                  <div className="flex items-center justify-center mb-2 text-center">
-                    <span className="text-xs font-medium">
-                      לחשב חומש (20%)?
-                    </span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-5 w-5 ml-1 p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                        >
-                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        <p className="max-w-xs text-sm">
-                          יש לסמן אם ההכנסה דורשת הפרשת 20% במקום 10%.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="isChomesh"
-                    render={({ field }) => (
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={isExemptChecked}
-                        className="size-6 rounded border mt-auto"
-                      />
-                    )}
-                  />
-                </div>
-              </>
-            )}
-            {selectedType === "expense" && (
-              <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
-                <div className="flex items-center justify-center mb-2 text-center">
-                  <span className="text-xs font-medium">הוצאה מוכרת?</span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-5 w-5 ml-1 p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                      >
-                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      <p className="max-w-xs text-sm">
-                        יש לסמן אם זו הוצאה המוכרת לניכוי מהכנסות החייבות במעשר
-                        (10% מההוצאה ינוכה מהחוב).
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <FormField
-                  control={form.control}
-                  name="isRecognized"
-                  render={({ field }) => (
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      className="size-6 rounded border mt-auto"
-                    />
-                  )}
-                />
-              </div>
-            )}
-            {/* הוראת קבע - should always be visible */}
-            <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
-              <div className="flex items-center justify-center mb-2 text-center">
-                <span className="text-xs font-medium">הוראת קבע</span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-5 w-5 ml-1 p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-                    >
-                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top">
-                    <p className="max-w-xs text-sm">
-                      סמן אם זוהי טרנזקציה שחוזרת באופן קבוע.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-              <FormField
-                control={form.control}
-                name="is_recurring"
-                render={({ field }) => (
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    className="size-6 rounded border mt-auto"
-                  />
-                )}
-              />
-            </div>
-          </div>
-        </TooltipProvider>
-        {/* Recurring fields section */}
-        {isRecurringChecked && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 border rounded-lg shadow-sm">
-            <FormField
-              control={form.control}
-              name="recurring_day_of_month"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>יום בחודש לחיוב</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="לדוגמה: 15"
-                      {...field}
-                      value={field.value ?? ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === "" ? null : Number(value));
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="recurringTotalCount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>מספר חזרות (אופציונלי)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="לדוגמה: 6 (לחצי שנה)"
-                      {...field}
-                      value={field.value ?? ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === "" ? null : Number(value));
-                      }}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    השאר ריק להוראת קבע ללא הגבלת חזרות.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        )}
-        {/* Submit and Cancel Buttons */}
-        <div className="flex justify-end items-center space-x-2">
-          {/* Success Icon Animation */}
-          {isSuccess && (
-            <CheckCircle className="h-5 w-5 text-green-500 animate-pulse" />
-          )}
+        {/* Type Selection using Tabs - Replaced with new component */}
+        <TransactionTypeSelector form={form} selectedType={selectedType} />
 
-          {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
-              ביטול
-            </Button>
-          )}
-          <Button
-            type="submit"
-            disabled={form.formState.isSubmitting || isSuccess}
-          >
-            {form.formState.isSubmitting ? "שומר..." : "שמור פעולה"}
-          </Button>
-        </div>
+        {/* סכום (כולל מטבע) ותאריך באותה שורה - Replaced with new component */}
+        <AmountCurrencyDateFields
+          form={form}
+          availableCurrencies={availableCurrencies}
+        />
+
+        {/* תיאור וקטגוריה/מקבל תרומה באותה שורה - Replaced with new component */}
+        <DescriptionCategoryFields form={form} selectedType={selectedType} />
+
+        {/* כל הצ'קבוקסים בשורה אחת כריבועים - Replaced with new component */}
+        <TransactionCheckboxes
+          form={form}
+          selectedType={selectedType}
+          isExemptChecked={isExemptChecked}
+        />
+
+        {/* Recurring fields section - Replaced with new component where applicable */}
+        {isRecurringChecked && <RecurringFields form={form} />}
+
+        {/* Submit and Cancel Buttons - Replaced with new component */}
+        <FormActionButtons
+          isSubmitting={form.formState.isSubmitting}
+          isSuccess={isSuccess}
+          onCancel={onCancel}
+        />
       </form>
     </Form>
   );
