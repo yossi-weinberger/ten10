@@ -10,7 +10,12 @@ import {
   BarChart,
   LogOut,
 } from "lucide-react";
-import { Link, useRouter, useNavigate } from "@tanstack/react-router";
+import {
+  Link,
+  useRouter,
+  useNavigate,
+  useRouterState,
+} from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PlatformIndicator } from "./PlatformIndicator";
@@ -23,7 +28,7 @@ interface SidebarProps {
 
 export function Sidebar({ expanded = false }: SidebarProps) {
   const router = useRouter();
-  const currentPath = router.state.location.pathname;
+  const currentPath = useRouterState({ select: (s) => s.location.pathname });
   const { platform } = usePlatform();
   const { user, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
