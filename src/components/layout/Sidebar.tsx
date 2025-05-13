@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Calculator,
   Home,
@@ -8,30 +8,74 @@ import {
   User,
   Book,
   BarChart,
-  LogOut,
 } from "lucide-react";
-import {
-  Link,
-  useRouter,
-  useNavigate,
-  useRouterState,
-} from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { PlatformIndicator } from "./PlatformIndicator";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabaseClient";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SidebarProps {
   expanded?: boolean;
 }
 
 export function Sidebar({ expanded = false }: SidebarProps) {
-  const router = useRouter();
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
   const { platform } = usePlatform();
-  const { user, signOut, loading: authLoading } = useAuth();
+  const { session, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+
+  const [profileFullName, setProfileFullName] = useState<string | null>(null);
+  const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
+  const [profileLoading, setProfileLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (platform === "web" && session && session.user && !authLoading) {
+      let isMounted = true;
+      setProfileLoading(true);
+      setProfileFullName(null);
+      setProfileAvatarUrl(null);
+
+      async function fetchSidebarProfile() {
+        if (!session || !session.user) {
+          if (isMounted) setProfileLoading(false);
+          return;
+        }
+        try {
+          const { data, error } = await supabase
+            .from("profiles")
+            .select(`full_name, avatar_url`)
+            .eq("id", session.user.id)
+            .single();
+
+          if (error && error.code !== "PGRST116") {
+            throw error;
+          }
+          if (isMounted && data) {
+            setProfileFullName(data.full_name);
+            setProfileAvatarUrl(data.avatar_url);
+          }
+        } catch (err) {
+          console.error("Error fetching sidebar profile:", err);
+        } finally {
+          if (isMounted) {
+            setProfileLoading(false);
+          }
+        }
+      }
+      fetchSidebarProfile();
+      return () => {
+        isMounted = false;
+      };
+    } else {
+      setProfileLoading(false);
+      setProfileFullName(null);
+      setProfileAvatarUrl(null);
+    }
+  }, [platform, session, authLoading]);
 
   const NavLink = ({
     to,
@@ -66,15 +110,6 @@ export function Sidebar({ expanded = false }: SidebarProps) {
       </Link>
     </Button>
   );
-
-  const handleLogout = async () => {
-    try {
-      await signOut();
-      navigate({ to: "/login", replace: true });
-    } catch (e) {
-      console.error("Logout caught in component:", e);
-    }
-  };
 
   return (
     <div className="h-full flex flex-col py-4">
@@ -117,31 +152,69 @@ export function Sidebar({ expanded = false }: SidebarProps) {
         )}
       </nav>
 
-      {platform === "web" && user && (
-        <div className="mt-auto pt-4 border-t border-border/20">
-          <Button
-            variant="ghost"
+      <PlatformIndicator expanded={expanded} />
+
+      {platform === "web" && session?.user && (
+        <div className="mt-auto pt-4 border-t border-border/20 px-2">
+          <div
             className={cn(
-              "w-full h-12 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-400/20 hover:text-red-700 dark:hover:text-red-300 focus-visible:ring-red-500 dark:focus-visible:ring-red-400",
-              expanded ? "justify-start px-4 gap-3" : "justify-center px-0"
+              "flex items-center p-2 rounded-md",
+              expanded ? "gap-3" : "flex-col gap-1 justify-center text-center"
             )}
-            onClick={handleLogout}
-            disabled={authLoading}
           >
-            <LogOut className="h-6 w-6 min-w-[24px] flex-shrink-0" />
-            <span
-              className={cn(
-                "transition-all duration-200",
-                !expanded && "w-0 overflow-hidden opacity-0"
-              )}
-            >
-              {authLoading ? "מתנתק..." : "התנתק"}
-            </span>
-          </Button>
+            {authLoading || profileLoading ? (
+              <>
+                <Skeleton
+                  className={cn(
+                    "h-10 w-10 rounded-full flex-shrink-0",
+                    !expanded && "mb-1"
+                  )}
+                />
+                {expanded && (
+                  <div className="flex flex-col gap-1 w-full">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-full" />
+                  </div>
+                )}
+              </>
+            ) : profileAvatarUrl ? (
+              <img
+                src={profileAvatarUrl}
+                alt={profileFullName || "User Avatar"}
+                className="h-10 w-10 rounded-full flex-shrink-0 object-cover"
+              />
+            ) : (
+              <div
+                className={cn(
+                  "h-10 w-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0",
+                  !expanded && "mb-1"
+                )}
+              >
+                <User className="h-6 w-6" />
+              </div>
+            )}
+            {!authLoading && !profileLoading && (
+              <div
+                className={cn(
+                  "flex flex-col text-sm transition-all duration-200",
+                  expanded
+                    ? "items-start"
+                    : "w-0 overflow-hidden opacity-0 items-center text-center"
+                )}
+              >
+                {profileFullName && (
+                  <span className="font-semibold">{profileFullName}</span>
+                )}
+                {session.user.email && (
+                  <span className="text-xs text-muted-foreground">
+                    {session.user.email}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       )}
-
-      <PlatformIndicator expanded={expanded} />
     </div>
   );
 }
