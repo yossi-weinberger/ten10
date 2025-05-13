@@ -15,7 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Languages, Moon, Sun } from "lucide-react";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Languages, Moon, Sun, MonitorSmartphone } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 
 // Define the Theme type based on its definition in theme.tsx
@@ -67,26 +68,39 @@ export function LanguageAndDisplaySettingsCard({
           </Select>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-md border">
-              {theme === "dark" ? (
-                <Moon className="h-5 w-5" />
-              ) : (
-                <Sun className="h-5 w-5" />
-              )}
-            </div>
-            <div>
-              <Label>מצב כהה</Label>
-              <p className="text-sm text-muted-foreground">
-                התאם את מראה האפליקציה
-              </p>
-            </div>
-          </div>
-          <Switch
-            checked={theme === "dark"}
-            onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-          />
+        <div className="grid gap-2">
+          <Label>ערכת נושא</Label>
+          <ToggleGroup
+            type="single"
+            value={theme}
+            onValueChange={(value: string) => {
+              if (value) setTheme(value as Theme);
+            }}
+            className="grid grid-cols-3 gap-1 rounded-md border p-1"
+            aria-label="Theme selection"
+          >
+            <ToggleGroupItem
+              value="light"
+              aria-label="Light theme"
+              className="flex-1 justify-center data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
+            >
+              <Sun className="h-5 w-5" />
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="dark"
+              aria-label="Dark theme"
+              className="flex-1 justify-center data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
+            >
+              <Moon className="h-5 w-5" />
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="system"
+              aria-label="System theme"
+              className="flex-1 justify-center data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
+            >
+              <MonitorSmartphone className="h-5 w-5" />
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
       </CardContent>
     </Card>
