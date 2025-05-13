@@ -25,9 +25,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Wallet, CreditCard, HandCoins, CheckCircle } from "lucide-react";
+import {
+  Wallet,
+  CreditCard,
+  HandCoins,
+  CheckCircle,
+  HelpCircle,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 // We will need date picker and potentially checkbox later
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Define the possible transaction types for the form select
 const allTransactionTypes = [
@@ -191,13 +204,16 @@ interface TransactionFormProps {
 type ButtonStyleType = "income" | "expense" | "donation";
 
 // Define active button styles object outside the loop
+// Simplified to focus on base active colors, border, and text.
+// Shadow is handled by the base TabTrigger style `data-[state=active]:shadow-md`.
+// Hover states removed for now to isolate the background issue.
 const activeButtonStyles: Record<ButtonStyleType, string> = {
   income:
-    "bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-800 border-green-300 dark:border-green-700 text-green-800 dark:text-green-100 shadow-sm",
+    "data-[state=active]:bg-green-100 dark:data-[state=active]:bg-green-900 border-green-300 dark:border-green-700 text-green-800 dark:text-green-100",
   expense:
-    "bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 border-red-300 dark:border-red-700 text-red-800 dark:text-red-100 shadow-sm",
+    "data-[state=active]:bg-red-100 dark:data-[state=active]:bg-red-900 border-red-300 dark:border-red-700 text-red-800 dark:text-red-100",
   donation:
-    "bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900 dark:hover:bg-yellow-800 border-yellow-400 dark:border-yellow-700 text-yellow-800 dark:text-yellow-100 shadow-sm",
+    "data-[state=active]:bg-yellow-100 dark:data-[state=active]:bg-yellow-900 border-yellow-400 dark:border-yellow-700 text-yellow-800 dark:text-yellow-100",
 };
 
 const backgroundStyles: Record<ButtonStyleType, string> = {
@@ -338,24 +354,29 @@ export function TransactionForm({
           backgroundStyles[selectedType as ButtonStyleType]
         )}
       >
-        {/* Type Selection Buttons */}
-        <div>
+        {/* Type Selection using Tabs */}
+        <Tabs
+          defaultValue={form.getValues("type")}
+          onValueChange={(value) => {
+            form.setValue("type", value as TransactionType, {
+              shouldValidate: true,
+            });
+          }}
+          className="w-full"
+        >
           <FormLabel>סוג פעולה *</FormLabel>
-          <div className="grid grid-cols-3 gap-2 mt-2">
-            {/* Explicitly cast mapped type to ButtonStyleType if safe */}
-            {(userFacingTransactionTypes as ButtonStyleType[]).map((type) => (
-              <Button
+          <TabsList className="grid w-full grid-cols-3 gap-1 md:gap-2 mt-2 p-1 h-auto bg-gray-200 dark:bg-gray-800 rounded-lg">
+            {(
+              userFacingTransactionTypes.slice().reverse() as ButtonStyleType[]
+            ).map((type) => (
+              <TabsTrigger
                 key={type}
-                type="button"
-                onClick={() => {
-                  form.setValue("type", type, { shouldValidate: true });
-                }}
+                value={type}
                 className={cn(
-                  "flex flex-col h-auto py-3 px-2 text-center transition-colors duration-150", // Base classes
+                  "flex flex-col items-center justify-center h-auto py-2 px-1 md:py-3 md:px-2 text-center transition-all duration-150 rounded-md data-[state=active]:shadow-md",
                   selectedType === type
-                    ? activeButtonStyles[type] // Use the pre-defined styles object
-                    : // Inactive state colors
-                      "border border-input bg-transparent hover:bg-accent hover:text-accent-foreground text-foreground"
+                    ? activeButtonStyles[type as ButtonStyleType] // Apply active styles
+                    : "bg-transparent hover:bg-accent hover:text-accent-foreground text-foreground" // Inactive styles
                 )}
               >
                 {type === "income" && (
@@ -367,17 +388,19 @@ export function TransactionForm({
                 {type === "donation" && (
                   <HandCoins className="h-5 w-5 mb-1 mx-auto" />
                 )}
-                {transactionTypeLabels[type]}
-              </Button>
+                <span className="text-xs md:text-sm">
+                  {transactionTypeLabels[type]}
+                </span>
+              </TabsTrigger>
             ))}
-          </div>
-          {/* Display validation message for the type field if needed */}
-          {form.formState.errors.type && (
-            <p className="text-sm font-medium text-destructive mt-1">
-              {form.formState.errors.type.message}
-            </p>
-          )}
-        </div>
+          </TabsList>
+        </Tabs>
+        {/* Display validation message for the type field if needed */}
+        {form.formState.errors.type && (
+          <p className="text-sm font-medium text-destructive mt-1">
+            {form.formState.errors.type.message}
+          </p>
+        )}
         {/* סכום (כולל מטבע) ותאריך באותה שורה */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
           {/* Amount and Currency - start */}
@@ -509,96 +532,154 @@ export function TransactionForm({
           )}
         </div>
         {/* כל הצ'קבוקסים בשורה אחת כריבועים */}
-        <div className="flex flex-row gap-4 mt-2 w-full">
-          {selectedType === "income" && (
-            <>
-              {/* הכנסה פטורה ממעשר */}
-              <div className="flex-1 flex flex-col items-center justify-between rounded-lg p-3 shadow-sm min-w-[100px]">
-                <span className="text-xs font-medium mb-1 text-center">
-                  הכנסה פטורה ממעשר?
-                </span>
-                <span className="text-[11px] text-muted-foreground text-center mb-2">
-                  יש לסמן אם הכנסה זו אינה חייבת כלל במעשר (למשל, מתנה מסויימת,
-                  החזר הוצאה).
-                </span>
+        <TooltipProvider>
+          <div className="flex flex-row flex-wrap gap-4 mt-2 w-full">
+            {selectedType === "income" && (
+              <>
+                {/* הכנסה פטורה ממעשר */}
+                <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
+                  <div className="flex items-center justify-center mb-2 text-center">
+                    <span className="text-xs font-medium">
+                      הכנסה פטורה ממעשר?
+                    </span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 ml-1 p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                        >
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p className="max-w-xs text-sm">
+                          יש לסמן אם הכנסה זו אינה חייבת כלל במעשר (למשל, מתנה
+                          מסויימת, החזר הוצאה).
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="isExempt"
+                    render={({ field }) => (
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        className="size-6 rounded border mt-auto"
+                      />
+                    )}
+                  />
+                </div>
+                {/* חומש */}
+                <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
+                  <div className="flex items-center justify-center mb-2 text-center">
+                    <span className="text-xs font-medium">
+                      לחשב חומש (20%)?
+                    </span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 ml-1 p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                        >
+                          <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p className="max-w-xs text-sm">
+                          יש לסמן אם ההכנסה דורשת הפרשת 20% במקום 10%.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="isChomesh"
+                    render={({ field }) => (
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={isExemptChecked}
+                        className="size-6 rounded border mt-auto"
+                      />
+                    )}
+                  />
+                </div>
+              </>
+            )}
+            {selectedType === "expense" && (
+              <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
+                <div className="flex items-center justify-center mb-2 text-center">
+                  <span className="text-xs font-medium">הוצאה מוכרת?</span>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 ml-1 p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                      >
+                        <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      <p className="max-w-xs text-sm">
+                        יש לסמן אם זו הוצאה המוכרת לניכוי מהכנסות החייבות במעשר
+                        (10% מההוצאה ינוכה מהחוב).
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <FormField
                   control={form.control}
-                  name="isExempt"
+                  name="isRecognized"
                   render={({ field }) => (
                     <Checkbox
                       checked={field.value}
                       onCheckedChange={field.onChange}
-                      className="size-6 rounded border"
+                      className="size-6 rounded border mt-auto"
                     />
                   )}
                 />
               </div>
-              {/* חומש */}
-              <div className="flex-1 flex flex-col items-center justify-between rounded-lg p-3 shadow-sm min-w-[100px]">
-                <span className="text-xs font-medium mb-1 text-center">
-                  לחשב חומש (20%)?
-                </span>
-                <span className="text-[11px] text-muted-foreground text-center mb-2">
-                  יש לסמן אם ההכנסה דורשת הפרשת 20% במקום 10%.
-                </span>
-                <FormField
-                  control={form.control}
-                  name="isChomesh"
-                  render={({ field }) => (
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={isExemptChecked}
-                      className="size-6 rounded border"
-                    />
-                  )}
-                />
+            )}
+            {/* הוראת קבע - should always be visible */}
+            <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
+              <div className="flex items-center justify-center mb-2 text-center">
+                <span className="text-xs font-medium">הוראת קבע</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-5 w-5 ml-1 p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                    >
+                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <p className="max-w-xs text-sm">
+                      סמן אם זוהי טרנזקציה שחוזרת באופן קבוע.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
-            </>
-          )}
-          {selectedType === "expense" && (
-            <div className="flex-1 flex flex-col items-center justify-between rounded-lg p-3 shadow-sm min-w-[100px]">
-              <span className="text-xs font-medium mb-1 text-center">
-                הוצאה מוכרת?
-              </span>
-              <span className="text-[11px] text-muted-foreground text-center mb-2">
-                יש לסמן אם זו הוצאה המוכרת לניכוי מהכנסות החייבות במעשר (10%
-                מההוצאה ינוכה מהחוב).
-              </span>
               <FormField
                 control={form.control}
-                name="isRecognized"
+                name="is_recurring"
                 render={({ field }) => (
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
-                    className="size-6 rounded border"
+                    className="size-6 rounded border mt-auto"
                   />
                 )}
               />
             </div>
-          )}
-          {/* הוראת קבע */}
-          <div className="flex-1 flex flex-col items-center justify-between rounded-lg p-3 shadow-sm min-w-[100px]">
-            <span className="text-xs font-medium mb-1 text-center">
-              הוראת קבע
-            </span>
-            <span className="text-[11px] text-muted-foreground text-center mb-2">
-              סמן אם זוהי טרנזקציה שחוזרת באופן קבוע.
-            </span>
-            <FormField
-              control={form.control}
-              name="is_recurring"
-              render={({ field }) => (
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  className="size-6 rounded border"
-                />
-              )}
-            />
           </div>
-        </div>
+        </TooltipProvider>
         {/* Recurring fields section */}
         {isRecurringChecked && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 border rounded-lg shadow-sm">
