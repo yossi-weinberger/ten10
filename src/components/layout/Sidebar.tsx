@@ -20,9 +20,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface SidebarProps {
   expanded?: boolean;
+  inSheet?: boolean;
 }
 
-export function Sidebar({ expanded = false }: SidebarProps) {
+export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
   const { platform } = usePlatform();
   const { session, loading: authLoading } = useAuth();
@@ -31,6 +32,9 @@ export function Sidebar({ expanded = false }: SidebarProps) {
   const [profileFullName, setProfileFullName] = useState<string | null>(null);
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState<boolean>(false);
+
+  const expandedWidth = inSheet ? "w-32" : "w-52";
+  const collapsedWidth = "w-16";
 
   useEffect(() => {
     if (platform === "web" && session && session.user && !authLoading) {
@@ -135,8 +139,9 @@ export function Sidebar({ expanded = false }: SidebarProps) {
   return (
     <div
       className={cn(
-        "h-screen overflow-hidden flex flex-col py-4 transition-all duration-200",
-        expanded ? "w-52" : "w-16"
+        "flex flex-col transition-all duration-200",
+        inSheet ? "h-full" : "h-screen overflow-hidden py-4",
+        expanded ? expandedWidth : collapsedWidth
       )}
     >
       <Link to="/" className="flex items-center gap-2 px-4 mb-6">

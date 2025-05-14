@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Outlet } from "@tanstack/react-router";
 import { Button } from "./components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "./components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetClose,
+} from "./components/ui/sheet";
 import { Sidebar } from "./components/layout/Sidebar";
 import { usePlatform } from "./contexts/PlatformContext";
 import { setDataServicePlatform, loadTransactions } from "./lib/dataService";
@@ -69,13 +74,18 @@ function App() {
             <Menu className="h-6 w-6" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="right" className="w-48 p-0">
-          <Sidebar expanded={true} />
+        <SheetContent
+          side="right"
+          className="p-0 flex flex-col w-40 max-w-[180px]"
+        >
+          <div className="flex-1 overflow-y-auto pt-12">
+            <Sidebar expanded={true} inSheet={true} />
+          </div>
         </SheetContent>
       </Sheet>
 
       <div className="flex-1 h-screen overflow-y-auto">
-        <main className="container py-6 px-4 md:px-6">
+        <main className="container py-6 px-4 md:px-6 md:pt-6 pt-20">
           <div className={platform === "desktop" ? "is-desktop" : "is-web"}>
             <Outlet />
           </div>

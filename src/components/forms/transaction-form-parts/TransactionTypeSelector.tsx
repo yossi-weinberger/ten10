@@ -56,7 +56,6 @@ export function TransactionTypeSelector({
       }}
       className="w-full"
     >
-      <FormLabel>סוג פעולה *</FormLabel>
       <TabsList className="grid w-full grid-cols-3 gap-1 md:gap-2 mt-2 p-1 h-auto bg-gray-200 dark:bg-gray-800 rounded-lg">
         {(
           userFacingTransactionTypes.slice().reverse() as ButtonStyleType[]
