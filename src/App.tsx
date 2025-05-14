@@ -52,7 +52,7 @@ function App() {
   return (
     <div className="min-h-screen bg-background flex">
       <div
-        className="hidden md:block w-[4rem] hover:w-48 transition-all duration-300 border-l bg-card overflow-hidden"
+        className="hidden md:block w-[4rem] hover:w-48 transition-all duration-300 border-l bg-card overflow-hidden h-screen"
         onMouseEnter={() => setIsSidebarExpanded(true)}
         onMouseLeave={() => setIsSidebarExpanded(false)}
       >
@@ -74,7 +74,7 @@ function App() {
         </SheetContent>
       </Sheet>
 
-      <div className="flex-1">
+      <div className="flex-1 h-screen overflow-y-auto">
         <main className="container py-6 px-4 md:px-6">
           <div className={platform === "desktop" ? "is-desktop" : "is-web"}>
             <Outlet />

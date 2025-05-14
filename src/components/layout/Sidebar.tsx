@@ -133,7 +133,12 @@ export function Sidebar({ expanded = false }: SidebarProps) {
   );
 
   return (
-    <div className="h-full flex flex-col py-4">
+    <div
+      className={cn(
+        "h-screen overflow-hidden flex flex-col py-4 transition-all duration-200",
+        expanded ? "w-52" : "w-16"
+      )}
+    >
       <Link to="/" className="flex items-center gap-2 px-4 mb-6">
         <Calculator className="h-6 w-6 text-primary flex-shrink-0" />
         <h1
@@ -147,7 +152,7 @@ export function Sidebar({ expanded = false }: SidebarProps) {
         </h1>
       </Link>
 
-      <nav className="flex-1 flex flex-col gap-1">
+      <nav className="flex-1 flex flex-col gap-1 overflow-y-auto">
         <NavLink to="/" icon={Home}>
           דף הבית
         </NavLink>
@@ -231,11 +236,11 @@ export function Sidebar({ expanded = false }: SidebarProps) {
                   {profileFullName && (
                     <span className="font-semibold">{profileFullName}</span>
                   )}
-                  {session.user.email && (
+                  {/* {session.user.email && (
                     <span className="text-xs text-muted-foreground">
                       {session.user.email}
                     </span>
-                  )}
+                  )} */}
                 </div>
               )}
             </div>
