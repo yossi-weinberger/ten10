@@ -1,4 +1,7 @@
-import { Currency } from "../lib/store"; // Import from store.ts where it's defined
+// Remove circular import of Currency from store.ts
+
+// Define the possible currency types
+export type Currency = "ILS" | "USD" | "EUR" | "GBP"; // Added other common currencies
 
 // Define the possible types for a transaction
 export type TransactionType =
@@ -14,7 +17,7 @@ export interface Transaction {
   user_id?: string | null; // Owner identifier (Crucial for Web/Supabase RLS, optional for Desktop/SQLite)
   date: string; // ISO 8601 format (YYYY-MM-DD)
   amount: number; // Positive value
-  currency: Currency; // Defined in store (e.g., 'ILS', 'USD')
+  currency: Currency; // e.g., 'ILS', 'USD'. Defined in this file.
   description?: string | null; // User-provided description
   type: TransactionType;
   category?: string | null; // Optional category (mainly for expense types)

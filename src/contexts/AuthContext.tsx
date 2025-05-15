@@ -31,6 +31,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDataLoading, setIsDataLoading] = useState(false);
+  const [initialForcedLoadDone, setInitialForcedLoadDone] = useState(false);
   const { platform } = usePlatform();
   const setTransactionsInStore = useDonationStore(
     (state) => state.setTransactions
@@ -146,7 +147,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // New useEffect for DATA LOADING based on user and platform state
   useEffect(() => {
     console.log(
-      `AuthContext: Data loading effect. User: ${!!user}, Platform: ${platform}, DataLoading: ${isDataLoading}, Hydrated: ${hasHydrated}, Timestamp: ${lastDbFetchTimestampFromStore}`
+      `AuthContext: Data loading effect. User: ${!!user}, Platform: ${platform}, DataLoading: ${isDataLoading}, Hydrated: ${hasHydrated}, Timestamp: ${lastDbFetchTimestampFromStore}, InitialForcedLoadDone: ${initialForcedLoadDone}`
     );
 
     if (platform === "loading") {
@@ -158,6 +159,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Main data loading decision logic starts here
     if (user && hasHydrated) {
+      /* // START: TEMPORARILY COMMENT OUT ORIGINAL FRESHNESS LOGIC
       const shouldForceFetchFromDb =
         sessionStorage.getItem("forceDbFetchOnLoad") === "true";
 
@@ -184,7 +186,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               "AuthContext: No timestamp from store hook YET OR it's genuinely null, but transactions exist. Assuming fresh from persist, will re-eval if timestamp updates."
             );
           }
-          return; // Wait for a potential update to lastDbFetchTimestampFromStore from hydration
+          return; 
         }
 
         // Timestamp is available and is a number, proceed with staleness check
@@ -200,6 +202,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           );
         }
       }
+      // END: TEMPORARILY COMMENT OUT ORIGINAL FRESHNESS LOGIC */
+
+      // --- START: NEW TEMPORARY LOGIC TO FORCE LOAD ---
+      if (!initialForcedLoadDone) {
+        console.log(
+          "AuthContext: TEMPORARILY FORCING DATA LOAD (once) - Bypassing freshness checks."
+        );
+        loadAndSetTransactionsInternal(user);
+        setInitialForcedLoadDone(true);
+      } else {
+        console.log(
+          "AuthContext: Initial forced data load already performed, skipping."
+        );
+      }
+      // --- END: NEW TEMPORARY LOGIC TO FORCE LOAD ---
     } else if (user && !hasHydrated) {
       console.log(
         "AuthContext: User exists but store not hydrated yet. Waiting for hydration."
@@ -213,6 +230,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isDataLoading,
     hasHydrated,
     lastDbFetchTimestampFromStore,
+    initialForcedLoadDone,
   ]);
 
   const signOut = async () => {

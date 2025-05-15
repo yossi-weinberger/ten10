@@ -6,6 +6,11 @@ use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::State;
 
+mod commands;
+use commands::income_commands::get_desktop_total_income_in_range;
+use commands::expense_commands::get_desktop_total_expenses_in_range;
+use commands::donation_commands::{get_desktop_total_donations_in_range, get_desktop_overall_tithe_balance};
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 struct Transaction {
@@ -40,7 +45,7 @@ struct Transaction {
     recurring_total_count: Option<i32>,
 }
 
-struct DbState(Mutex<Connection>);
+pub struct DbState(Mutex<Connection>);
 
 #[tauri::command]
 async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
@@ -158,7 +163,11 @@ fn main() {
             init_db, 
             add_transaction,
             get_transactions,
-            clear_all_data
+            clear_all_data,
+            get_desktop_total_income_in_range,
+            get_desktop_total_expenses_in_range,
+            get_desktop_total_donations_in_range,
+            get_desktop_overall_tithe_balance
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

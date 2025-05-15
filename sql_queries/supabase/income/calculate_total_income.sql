@@ -1,0 +1,19 @@
+-- File: sql_queries/supabase/income/calculate_total_income.sql
+CREATE OR REPLACE FUNCTION get_total_income_and_chomesh_for_user(
+    p_user_id UUID,
+    p_start_date TEXT,
+    p_end_date TEXT
+)
+RETURNS TABLE(total_income NUMERIC, chomesh_amount NUMERIC) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        COALESCE(SUM(amount), 0) AS total_income,
+        COALESCE(SUM(CASE WHEN "isChomesh" THEN amount ELSE 0 END), 0) AS chomesh_amount
+    FROM transactions
+    WHERE user_id = p_user_id
+      AND type = 'income'
+      AND date >= p_start_date::DATE
+      AND date <= p_end_date::DATE;
+END;
+$$ LANGUAGE plpgsql; 

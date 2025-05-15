@@ -1,9 +1,8 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { Transaction } from "../types/transaction";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { Transaction, Currency } from "../types/transaction";
 import { calculateTotalRequiredDonation } from "./tithe-calculator";
 
-export type Currency = "ILS" | "USD" | "EUR";
 export type CalendarType = "gregorian" | "hebrew";
 export type Language = "he" | "en";
 
@@ -19,19 +18,29 @@ export interface Settings {
   maaserYearStart?: string;
 }
 
-// Income and Donation interfaces removed as they are obsolete
-
 interface DonationState {
   transactions: Transaction[];
   requiredDonation: number;
   settings: Settings;
-  lastDbFetchTimestamp?: number | null;
+  lastDbFetchTimestamp: number | null;
   _hasHydrated: boolean;
+  serverCalculatedTitheBalance?: number | null;
+  serverCalculatedTotalIncome?: number | null;
+  serverCalculatedChomeshAmount?: number | null;
+  serverCalculatedTotalExpenses?: number | null;
+  serverCalculatedTotalDonations: number | null;
   updateSettings: (settings: Partial<Settings>) => void;
   setTransactions: (transactions: Transaction[]) => void;
   addTransaction: (transaction: Transaction) => void;
+  removeTransaction: (id: string) => void;
+  updateTransaction: (updatedTransaction: Transaction) => void;
   setLastDbFetchTimestamp: (timestamp: number | null) => void;
   setHasHydrated: (status: boolean) => void;
+  setServerCalculatedTitheBalance: (balance: number | null) => void;
+  setServerCalculatedTotalIncome: (totalIncome: number | null) => void;
+  setServerCalculatedChomeshAmount: (chomeshAmount: number | null) => void;
+  setServerCalculatedTotalExpenses: (totalExpenses: number | null) => void;
+  setServerCalculatedTotalDonations: (total: number | null) => void;
 }
 
 const defaultSettings: Settings = {
@@ -54,6 +63,11 @@ export const useDonationStore = create<DonationState>()(
       settings: defaultSettings,
       lastDbFetchTimestamp: null,
       _hasHydrated: false,
+      serverCalculatedTitheBalance: null,
+      serverCalculatedTotalIncome: null,
+      serverCalculatedChomeshAmount: null,
+      serverCalculatedTotalExpenses: null,
+      serverCalculatedTotalDonations: null,
 
       updateSettings: (newSettings) => {
         set((state) => ({
@@ -71,6 +85,30 @@ export const useDonationStore = create<DonationState>()(
         }));
       },
 
+      removeTransaction: (id) =>
+        set((state) => {
+          const newTransactions = state.transactions.filter((t) => t.id !== id);
+          const newRequiredDonation =
+            calculateTotalRequiredDonation(newTransactions);
+          return {
+            transactions: newTransactions,
+            requiredDonation: newRequiredDonation,
+          };
+        }),
+
+      updateTransaction: (updatedTransaction) =>
+        set((state) => {
+          const newTransactions = state.transactions.map((t) =>
+            t.id === updatedTransaction.id ? updatedTransaction : t
+          );
+          const newRequiredDonation =
+            calculateTotalRequiredDonation(newTransactions);
+          return {
+            transactions: newTransactions,
+            requiredDonation: newRequiredDonation,
+          };
+        }),
+
       setLastDbFetchTimestamp: (timestamp) => {
         set(() => ({ lastDbFetchTimestamp: timestamp }));
       },
@@ -78,9 +116,30 @@ export const useDonationStore = create<DonationState>()(
       setHasHydrated: (status) => {
         set(() => ({ _hasHydrated: status }));
       },
+
+      setServerCalculatedTitheBalance: (balance) =>
+        set({ serverCalculatedTitheBalance: balance }),
+
+      setServerCalculatedTotalIncome: (totalIncome) =>
+        set({ serverCalculatedTotalIncome: totalIncome }),
+
+      setServerCalculatedChomeshAmount: (chomeshAmount) =>
+        set({ serverCalculatedChomeshAmount: chomeshAmount }),
+
+      setServerCalculatedTotalExpenses: (totalExpenses) =>
+        set({ serverCalculatedTotalExpenses: totalExpenses }),
+
+      setServerCalculatedTotalDonations: (total) =>
+        set({ serverCalculatedTotalDonations: total }),
     }),
     {
       name: "Ten10-donation-store",
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        settings: state.settings,
+        _hasHydrated: state._hasHydrated,
+        lastDbFetchTimestamp: state.lastDbFetchTimestamp,
+      }),
       onRehydrateStorage: () => {
         console.log("Zustand hydration process started/attempted.");
         return (state, error) => {

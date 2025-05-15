@@ -12,6 +12,12 @@ export function setDataServicePlatform(
   currentPlatform = platform;
 }
 
+// Define a type for the data structure returned by server-side calculations
+export interface ServerIncomeData {
+  total_income: number;
+  chomesh_amount: number;
+}
+
 // --- New CRUD API for Transactions ---
 
 /**
@@ -263,3 +269,410 @@ export async function clearAllData() {
   });
   console.log("Zustand store cleared.");
 }
+
+// --- Server-Side Calculation Functions ---
+
+// Web: Fetch total income and chomesh for a user from Supabase
+export async function fetchTotalIncomeForUserWeb(
+  userId: string,
+  startDate: string, // YYYY-MM-DD
+  endDate: string // YYYY-MM-DD
+): Promise<ServerIncomeData | null> {
+  console.log(
+    `DataService (Web): Fetching total income for user ${userId} from ${startDate} to ${endDate}`
+  );
+  try {
+    const { data, error } = await supabase.rpc(
+      "get_total_income_and_chomesh_for_user",
+      {
+        p_user_id: userId,
+        p_start_date: startDate,
+        p_end_date: endDate,
+      }
+    );
+
+    if (error) {
+      console.error("Error fetching total income from Supabase RPC:", error);
+      throw error;
+    }
+    console.log("DataService (Web): Supabase RPC call successful. Data:", data);
+    if (
+      data &&
+      typeof data.total_income === "number" &&
+      typeof data.chomesh_amount === "number"
+    ) {
+      return data as ServerIncomeData;
+    } else if (
+      data &&
+      data.length > 0 &&
+      typeof data[0].total_income === "number" &&
+      typeof data[0].chomesh_amount === "number"
+    ) {
+      // Handle cases where Supabase might return an array with one object
+      console.warn("Supabase RPC returned an array, taking the first element.");
+      return data[0] as ServerIncomeData;
+    } else {
+      console.warn(
+        "DataService (Web): Received unexpected data structure from Supabase RPC or null data:",
+        data
+      );
+      // Ensure we return a structure that matches ServerIncomeData, even if it's zeroed out, or handle as appropriate
+      return { total_income: 0, chomesh_amount: 0 };
+    }
+  } catch (error) {
+    console.error("Error in fetchTotalIncomeForUserWeb:", error);
+    return null; // Or throw error, depending on how you want to handle this
+  }
+}
+
+// Web: Fetch total expenses for a user from Supabase
+export async function fetchTotalExpensesForUserWeb(
+  userId: string,
+  startDate: string, // YYYY-MM-DD
+  endDate: string // YYYY-MM-DD
+): Promise<number | null> {
+  console.log(
+    `DataService (Web): Fetching total expenses for user ${userId} from ${startDate} to ${endDate}`
+  );
+  try {
+    const { data, error } = await supabase.rpc("get_total_expenses_for_user", {
+      p_user_id: userId,
+      p_start_date: startDate,
+      p_end_date: endDate,
+    });
+
+    if (error) {
+      console.error("Error fetching total expenses from Supabase RPC:", error);
+      throw error;
+    }
+    console.log(
+      "DataService (Web): Supabase RPC call for expenses successful. Data:",
+      data
+    );
+    if (typeof data === "number") {
+      return data;
+    } else {
+      console.warn(
+        "DataService (Web): Received unexpected data structure from Supabase RPC for expenses or null data:",
+        data
+      );
+      return 0; // Default to 0 if data is not a number
+    }
+  } catch (error) {
+    console.error("Error in fetchTotalExpensesForUserWeb:", error);
+    return null;
+  }
+}
+
+// Desktop: Fetch total income and chomesh in a date range from SQLite
+export async function fetchTotalIncomeForUserDesktop(
+  startDate: string, // YYYY-MM-DD
+  endDate: string // YYYY-MM-DD
+): Promise<ServerIncomeData> {
+  console.log(
+    `DataService (Desktop): Fetching total income from ${startDate} to ${endDate}`
+  );
+  try {
+    const result = await invoke<ServerIncomeData>(
+      "get_desktop_total_income_in_range",
+      {
+        startDate,
+        endDate,
+      }
+    );
+    console.log(
+      "DataService (Desktop): Tauri invoke successful. Data:",
+      result
+    );
+    return result;
+  } catch (error) {
+    console.error("Error invoking get_desktop_total_income_in_range:", error);
+    // Return a default or error-indicative structure if needed
+    return { total_income: 0, chomesh_amount: 0 };
+  }
+}
+
+// Desktop: Fetch total expenses in a date range from SQLite
+export async function fetchTotalExpensesForUserDesktop(
+  startDate: string, // YYYY-MM-DD
+  endDate: string // YYYY-MM-DD
+): Promise<number> {
+  console.log(
+    `DataService (Desktop): Fetching total expenses from ${startDate} to ${endDate}`
+  );
+  try {
+    const result = await invoke<number>("get_desktop_total_expenses_in_range", {
+      startDate,
+      endDate,
+    });
+    console.log(
+      "DataService (Desktop): Tauri invoke for expenses successful. Data:",
+      result
+    );
+    return result;
+  } catch (error) {
+    console.error("Error invoking get_desktop_total_expenses_in_range:", error);
+    return 0; // Default to 0 in case of error
+  }
+}
+
+// Wrapper function to fetch total income based on platform
+export async function fetchTotalIncomeInRange(
+  userId: string | null, // userId is only needed for web
+  startDate: string,
+  endDate: string
+): Promise<ServerIncomeData | null> {
+  if (currentPlatform === "web") {
+    if (!userId) {
+      console.error(
+        "DataService (fetchTotalIncomeInRange): User ID is required for web platform."
+      );
+      // Try to get user ID from Supabase auth as a fallback
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        console.error(
+          "DataService: No authenticated user found for web operation."
+        );
+        return null; // Or throw an error
+      }
+      return fetchTotalIncomeForUserWeb(user.id, startDate, endDate);
+    }
+    return fetchTotalIncomeForUserWeb(userId, startDate, endDate);
+  } else if (currentPlatform === "desktop") {
+    return fetchTotalIncomeForUserDesktop(startDate, endDate);
+  } else {
+    console.warn(
+      "DataService (fetchTotalIncomeInRange): Platform not determined. Cannot fetch income."
+    );
+    return null; // Or a default value
+  }
+}
+
+// Wrapper function to fetch total expenses based on platform
+export async function fetchTotalExpensesInRange(
+  userId: string | null, // userId is only needed for web
+  startDate: string,
+  endDate: string
+): Promise<number | null> {
+  if (currentPlatform === "web") {
+    if (!userId) {
+      console.error(
+        "DataService (fetchTotalExpensesInRange): User ID is required for web platform."
+      );
+      // Try to get user ID from Supabase auth as a fallback
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        console.error(
+          "DataService: No authenticated user found for web operation (expenses)."
+        );
+        return null;
+      }
+      return fetchTotalExpensesForUserWeb(user.id, startDate, endDate);
+    }
+    return fetchTotalExpensesForUserWeb(userId, startDate, endDate);
+  } else if (currentPlatform === "desktop") {
+    return fetchTotalExpensesForUserDesktop(startDate, endDate);
+  } else {
+    console.warn(
+      "DataService (fetchTotalExpensesInRange): Platform not determined. Cannot fetch expenses."
+    );
+    return null;
+  }
+}
+
+// --- DONATIONS FUNCTIONS START HERE ---
+// Web: Fetch total donations for a user from Supabase
+export async function fetchTotalDonationsForUserWeb(
+  userId: string,
+  startDate: string, // YYYY-MM-DD
+  endDate: string // YYYY-MM-DD
+): Promise<number | null> {
+  console.log(
+    `DataService (Web): Fetching total donations for user ${userId} from ${startDate} to ${endDate}`
+  );
+  try {
+    const { data, error } = await supabase.rpc("get_total_donations_for_user", {
+      p_user_id: userId,
+      p_start_date: startDate,
+      p_end_date: endDate,
+    });
+
+    if (error) {
+      console.error("Error fetching total donations from Supabase RPC:", error);
+      throw error; // Or return null based on desired error handling
+    }
+    console.log(
+      "DataService (Web): Supabase RPC call for donations successful. Data:",
+      data
+    );
+    if (typeof data === "number") {
+      return data;
+    } else {
+      console.warn(
+        "DataService (Web): Received unexpected data structure from Supabase RPC for donations or null data:",
+        data
+      );
+      return 0; // Default to 0 if data is not a number, or handle as appropriate
+    }
+  } catch (error) {
+    console.error("Error in fetchTotalDonationsForUserWeb:", error);
+    return null; // Or throw error
+  }
+}
+
+// Desktop: Fetch total donations in a date range from SQLite
+export async function fetchTotalDonationsForUserDesktop(
+  startDate: string, // YYYY-MM-DD
+  endDate: string // YYYY-MM-DD
+): Promise<number | null> {
+  // Changed return type to Promise<number | null> for consistency
+  console.log(
+    `DataService (Desktop): Fetching total donations from ${startDate} to ${endDate}`
+  );
+  try {
+    const result = await invoke<number>(
+      "get_desktop_total_donations_in_range",
+      {
+        startDate,
+        endDate,
+      }
+    );
+    console.log(
+      "DataService (Desktop): Tauri invoke for donations successful. Data:",
+      result
+    );
+    return result;
+  } catch (error) {
+    console.error(
+      "Error invoking get_desktop_total_donations_in_range:",
+      error
+    );
+    return null; // Return null in case of error, similar to web version
+  }
+}
+
+// Wrapper function to fetch total donations based on platform
+export async function fetchTotalDonationsInRange(
+  userId: string | null, // userId is only needed for web
+  startDate: string,
+  endDate: string
+): Promise<number | null> {
+  if (currentPlatform === "web") {
+    if (!userId) {
+      console.error(
+        "DataService (fetchTotalDonationsInRange): User ID is required for web platform."
+      );
+      // Attempt to get user ID from Supabase auth as a fallback
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        console.error(
+          "DataService: No authenticated user found for web operation (donations)."
+        );
+        return null;
+      }
+      userId = user.id; // Assign fetched userId
+    }
+    return fetchTotalDonationsForUserWeb(userId, startDate, endDate);
+  } else if (currentPlatform === "desktop") {
+    return fetchTotalDonationsForUserDesktop(startDate, endDate);
+  } else {
+    console.warn(
+      "DataService (fetchTotalDonationsInRange): Platform not determined. Cannot fetch donations."
+    );
+    return null;
+  }
+}
+// --- DONATIONS FUNCTIONS END HERE ---
+
+// --- SERVER TITHE BALANCE FUNCTIONS START HERE ---
+// Web: Fetch overall tithe balance for a user from Supabase
+export async function fetchServerTitheBalanceWeb(
+  userId: string
+): Promise<number | null> {
+  console.log(
+    `DataService (Web): Fetching overall tithe balance for user ${userId}`
+  );
+  try {
+    const { data, error } = await supabase.rpc("calculate_user_tithe_balance", {
+      p_user_id: userId,
+    });
+
+    if (error) {
+      console.error(
+        "Error fetching overall tithe balance from Supabase RPC:",
+        error
+      );
+      throw error;
+    }
+    console.log(
+      "DataService (Web): Supabase RPC call for overall tithe balance successful. Data:",
+      data
+    );
+    if (typeof data === "number") {
+      return data;
+    } else {
+      console.warn(
+        "DataService (Web): Received unexpected data structure from Supabase RPC for overall tithe balance or null data:",
+        data
+      );
+      return 0; // Or handle as appropriate
+    }
+  } catch (error) {
+    console.error("Error in fetchServerTitheBalanceWeb:", error);
+    return null;
+  }
+}
+
+// Desktop: Fetch overall tithe balance from SQLite
+export async function fetchServerTitheBalanceDesktop(): Promise<number | null> {
+  console.log(`DataService (Desktop): Fetching overall tithe balance`);
+  try {
+    const result = await invoke<number>("get_desktop_overall_tithe_balance");
+    console.log(
+      "DataService (Desktop): Tauri invoke for overall tithe balance successful. Data:",
+      result
+    );
+    return result;
+  } catch (error) {
+    console.error("Error invoking get_desktop_overall_tithe_balance:", error);
+    return null;
+  }
+}
+
+// Wrapper function to fetch overall tithe balance based on platform
+export async function fetchServerTitheBalance(
+  userId: string | null // userId is only needed for web
+): Promise<number | null> {
+  if (currentPlatform === "web") {
+    if (!userId) {
+      console.error(
+        "DataService (fetchServerTitheBalance): User ID is required for web platform."
+      );
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        console.error(
+          "DataService: No authenticated user found for web operation (tithe balance)."
+        );
+        return null;
+      }
+      userId = user.id;
+    }
+    return fetchServerTitheBalanceWeb(userId);
+  } else if (currentPlatform === "desktop") {
+    return fetchServerTitheBalanceDesktop();
+  } else {
+    console.warn(
+      "DataService (fetchServerTitheBalance): Platform not determined. Cannot fetch overall tithe balance."
+    );
+    return null;
+  }
+}
+// --- SERVER TITHE BALANCE FUNCTIONS END HERE ---
