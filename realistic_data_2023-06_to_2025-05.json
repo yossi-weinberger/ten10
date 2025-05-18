@@ -24,7 +24,7 @@
     "category": "Freelance",
     "recipient": "Chabad House",
     "isRecurring": true,
-    "isChomesh": false,
+    "is_chomesh": false,
     "recurringDayOfMonth": 15,
     "recurringTotalCount": 6
   },
@@ -40,7 +40,7 @@
     "category": "Freelance",
     "recipient": "Landlord",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "5f236fec-6293-4df2-bd6d-6f1aa2fb75e9",
@@ -54,7 +54,7 @@
     "category": "Salary",
     "recipient": "Employer",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "e19f7d92-841a-4e8f-a03f-027ecc62487a",
@@ -68,7 +68,7 @@
     "category": "Refund",
     "recipient": "Partner",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "11ba0cf3-6ac7-46bf-9581-d008a2219406",
@@ -337,7 +337,7 @@
     "category": "Salary",
     "recipient": "Chabad House",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "9b0b8f70-14bb-4a8a-95a0-c2f7a3ff5af6",
@@ -351,7 +351,7 @@
     "category": "Refund",
     "recipient": "Yossi Cohen",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "7c48d738-0e6b-4965-8681-622375e86405",
@@ -473,7 +473,7 @@
     "category": "Salary",
     "recipient": "Chabad House",
     "isRecurring": false,
-    "isChomesh": false
+    "is_chomesh": false
   },
   {
     "id": "084a3b47-119b-41fe-b65f-0ca3c86a57c1",
@@ -569,7 +569,7 @@
     "category": "Salary",
     "recipient": "Partner",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "378bc981-ccd8-4d5a-b45f-ec8b06a2b9ff",
@@ -793,7 +793,7 @@
     "category": "Freelance",
     "recipient": "Partner",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "d7b79347-2c75-4e6f-b91f-7e4b652a57ca",
@@ -833,7 +833,7 @@
     "category": "Refund",
     "recipient": "Electric Company",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "cda4ba43-f7ed-4a82-a422-e613b89f5a77",
@@ -899,7 +899,7 @@
     "category": "Freelance",
     "recipient": "Chabad House",
     "isRecurring": false,
-    "isChomesh": false
+    "is_chomesh": false
   },
   {
     "id": "7c4d7388-c2d8-4313-b389-004c65fe2bcd",
@@ -1006,7 +1006,7 @@
     "category": "Freelance",
     "recipient": "Supplier",
     "isRecurring": true,
-    "isChomesh": false,
+    "is_chomesh": false,
     "recurringDayOfMonth": 11,
     "recurringTotalCount": 7
   },
@@ -1115,7 +1115,7 @@
     "category": "Salary",
     "recipient": "Chabad House",
     "isRecurring": false,
-    "isChomesh": false
+    "is_chomesh": false
   },
   {
     "id": "d9ee906e-5b63-4f6b-86c9-827ef9e14724",
@@ -1168,7 +1168,7 @@
     "category": "Refund",
     "recipient": "Employer",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "3d1522dc-5ca8-409f-a037-4dbf4e18070c",
@@ -1195,7 +1195,7 @@
     "category": "Salary",
     "recipient": "Landlord",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "533da32e-1f37-4537-bf5f-746ce90750e3",
@@ -1209,7 +1209,7 @@
     "category": "Freelance",
     "recipient": "Landlord",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "f81737a3-dbed-496c-96de-afbb2f959d20",
@@ -1223,7 +1223,7 @@
     "category": "Refund",
     "recipient": "Landlord",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "d717dbdb-da1f-482d-92c2-5ed07f56e13a",
@@ -1237,7 +1237,7 @@
     "category": "Salary",
     "recipient": "Yossi Cohen",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "5cb64dd4-5a68-436b-8690-2ffc461f95a3",
@@ -1264,7 +1264,7 @@
     "category": "Salary",
     "recipient": "Moshe Levi",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "c0bc8500-e94a-40d1-8fbe-9595f96075a8",
@@ -1304,7 +1304,7 @@
     "category": "Salary",
     "recipient": "Supplier",
     "isRecurring": true,
-    "isChomesh": false,
+    "is_chomesh": false,
     "recurringDayOfMonth": 23,
     "recurringTotalCount": 12
   },
@@ -1372,7 +1372,7 @@
     "category": "Salary",
     "recipient": "Yossi Cohen",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "0c2b5375-02b4-44cd-908e-8313aa03bdda",
@@ -1399,7 +1399,7 @@
     "category": "Refund",
     "recipient": "Supplier",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "083da31a-d9ad-4e4d-bfde-a386a8e688ac",
@@ -1545,7 +1545,7 @@
     "category": "Refund",
     "recipient": "Moshe Levi",
     "isRecurring": false,
-    "isChomesh": false
+    "is_chomesh": false
   },
   {
     "id": "ec4667e1-01da-485b-820e-bb8ad12c0770",
@@ -1650,7 +1650,7 @@
     "category": "Salary",
     "recipient": "Chabad House",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "6bf6304d-abca-4c72-b736-233c8a71752b",
@@ -1856,7 +1856,7 @@
     "category": "Freelance",
     "recipient": "Landlord",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "386db6ad-ada5-42aa-9f0b-7f24b851f43f",
@@ -2032,7 +2032,7 @@
     "category": "Salary",
     "recipient": "Yossi Cohen",
     "isRecurring": false,
-    "isChomesh": false
+    "is_chomesh": false
   },
   {
     "id": "308575b2-308a-4c5c-896b-d9f7f1b795af",
@@ -2061,7 +2061,7 @@
     "category": "Refund",
     "recipient": "Landlord",
     "isRecurring": true,
-    "isChomesh": true,
+    "is_chomesh": true,
     "recurringDayOfMonth": 4,
     "recurringTotalCount": 3
   },
@@ -2077,7 +2077,7 @@
     "category": "Freelance",
     "recipient": "Supplier",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "354e3faf-41d0-44b3-903f-04534681d9f7",
@@ -2091,7 +2091,7 @@
     "category": "Refund",
     "recipient": "Electric Company",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "f7f73532-1b3d-4397-ad6d-bee3a40cb98e",
@@ -2161,7 +2161,7 @@
     "category": "Freelance",
     "recipient": "Yossi Cohen",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "ca2b465d-88b2-42d3-921c-8735d1f1e7ec",
@@ -2203,7 +2203,7 @@
     "category": "Freelance",
     "recipient": "Moshe Levi",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "3a7eb9bf-b5f2-46ce-b7fb-9c2970610566",
@@ -2338,7 +2338,7 @@
     "category": "Salary",
     "recipient": "Employer",
     "isRecurring": true,
-    "isChomesh": true,
+    "is_chomesh": true,
     "recurringDayOfMonth": 4,
     "recurringTotalCount": 8
   },
@@ -2354,7 +2354,7 @@
     "category": "Freelance",
     "recipient": "Landlord",
     "isRecurring": true,
-    "isChomesh": true,
+    "is_chomesh": true,
     "recurringDayOfMonth": 14,
     "recurringTotalCount": 4
   },
@@ -2467,7 +2467,7 @@
     "category": "Refund",
     "recipient": "Electric Company",
     "isRecurring": false,
-    "isChomesh": true
+    "is_chomesh": true
   },
   {
     "id": "21cb0e85-e7f8-4b93-8aa9-45018e4ea441",
@@ -2481,7 +2481,7 @@
     "category": "Refund",
     "recipient": "Moshe Levi",
     "isRecurring": true,
-    "isChomesh": true,
+    "is_chomesh": true,
     "recurringDayOfMonth": 28,
     "recurringTotalCount": 9
   },
@@ -2497,7 +2497,7 @@
     "category": "Salary",
     "recipient": "Chabad House",
     "isRecurring": true,
-    "isChomesh": false,
+    "is_chomesh": false,
     "recurringDayOfMonth": 21,
     "recurringTotalCount": 3
   },
@@ -2528,7 +2528,7 @@
     "category": "Refund",
     "recipient": "Landlord",
     "isRecurring": true,
-    "isChomesh": true,
+    "is_chomesh": true,
     "recurringDayOfMonth": 11,
     "recurringTotalCount": 9
   },

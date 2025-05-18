@@ -5,16 +5,18 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { Session, User } from "@supabase/supabase-js";
+import { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient"; // Using path alias from tsconfig
 import { toast } from "react-hot-toast";
 import { useDonationStore } from "@/lib/store"; // Import Zustand store
 import { loadTransactions, setDataServicePlatform } from "@/lib/dataService"; // Import data loading function and platform setter
 import { usePlatform } from "./PlatformContext"; // Import usePlatform to set platform for dataService
 
+export type { SupabaseUser as User }; // Re-exporting the User type
+
 interface AuthContextType {
   session: Session | null;
-  user: User | null;
+  user: SupabaseUser | null;
   loading: boolean;
   signOut: () => Promise<void>;
   // Add signIn, signUp methods here later if needed within the context itself
@@ -28,7 +30,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [initialForcedLoadDone, setInitialForcedLoadDone] = useState(false);
@@ -50,7 +52,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [platform]);
 
-  const loadAndSetTransactionsInternal = async (userForLoad: User | null) => {
+  const loadAndSetTransactionsInternal = async (
+    userForLoad: SupabaseUser | null
+  ) => {
     if (!userForLoad) {
       console.error(
         "AuthContext: loadAndSetTransactionsInternal called with null user. Aborting."

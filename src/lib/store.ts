@@ -1,7 +1,12 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { Transaction, Currency } from "../types/transaction";
+import {
+  Transaction,
+  Currency as TransactionCurrency,
+} from "../types/transaction";
 import { calculateTotalRequiredDonation } from "./tithe-calculator";
+
+export type { TransactionCurrency as Currency };
 
 export type CalendarType = "gregorian" | "hebrew";
 export type Language = "he" | "en";
@@ -10,7 +15,7 @@ export interface Settings {
   calendarType: CalendarType;
   theme: "light" | "dark" | "system";
   language: Language;
-  defaultCurrency: Currency;
+  defaultCurrency: TransactionCurrency;
   notifications: boolean;
   autoCalcChomesh: boolean;
   recurringDonations: boolean;
