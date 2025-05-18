@@ -86,7 +86,7 @@ export function TransactionCheckboxes({
               </div>
               <FormField
                 control={form.control}
-                name="isChomesh"
+                name="is_chomesh"
                 render={({ field }) => (
                   <Checkbox
                     checked={field.value}

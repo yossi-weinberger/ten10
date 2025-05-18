@@ -141,26 +141,25 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
       }
       const userId = user.id;
 
-      // Prepare data for Supabase insert:
-      // Explicitly map fields from the original 'transaction' object (mixed case)
-      // to the target DB column names (camelCase, except user_id and id which is omitted)
+      // The incoming 'transaction' object is already in snake_case (due to Transaction type update)
+      // We just need to add user_id and ensure all fields Supabase expects are present or null.
       const transactionToInsert = {
-        // Target DB Column Name (camelCase) : Source TS Object Field (mixed case)
-        user_id: userId, // Keep snake_case
+        user_id: userId,
         date: transaction.date,
         amount: transaction.amount,
         currency: transaction.currency,
-        description: transaction.description,
+        description: transaction.description ?? null,
         type: transaction.type,
-        category: transaction.category,
-        isChomesh: transaction.isChomesh, // camelCase DB <- camelCase TS (assumed)
-        isRecurring: transaction.is_recurring, // camelCase DB <- snake_case TS (from logs)
-        recurringDayOfMonth: transaction.recurring_day_of_month, // camelCase DB <- snake_case TS (from logs)
-        recurringTotalCount: transaction.recurringTotalCount, // camelCase DB <- camelCase TS
-        // id, createdAt, updatedAt are handled by DB
+        category: transaction.category ?? null,
+        is_chomesh: transaction.is_chomesh ?? null,
+        recipient: transaction.recipient ?? null,
+        is_recurring: transaction.is_recurring ?? null,
+        recurring_day_of_month: transaction.recurring_day_of_month ?? null,
+        recurring_total_count: transaction.recurring_total_count ?? null,
+        // id, created_at, updated_at are handled by the database.
       };
 
-      // Ensure undefined becomes null
+      // Ensure undefined becomes null - this loop can be kept or removed if '?? null' is sufficient
       Object.keys(transactionToInsert).forEach((key) => {
         if ((transactionToInsert as Record<string, any>)[key] === undefined) {
           (transactionToInsert as Record<string, any>)[key] = null;
@@ -168,15 +167,14 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
       });
 
       console.log(
-        "Object being sent to Supabase insert (explicitly mapped fields):",
+        "Object being sent to Supabase insert (now snake_case keys):",
         transactionToInsert
       );
 
-      // Insert and select the newly created row
       const { data: insertedData, error: insertError } = await supabase
         .from("transactions")
         .insert(transactionToInsert)
-        .select()
+        .select() // Select all columns (which are now snake_case)
         .single();
 
       if (insertError) throw insertError;
@@ -186,11 +184,13 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
         );
 
       console.log(
-        "Supabase insert successful. DB generated ID:",
+        "Supabase insert successful. DB returned data with snake_case keys. ID:",
         insertedData.id
       );
 
-      // Map the returned data (DB columns, camelCase) back to Transaction type for the store
+      // 'insertedData' now has snake_case keys directly from Supabase.
+      // The 'Transaction' type also expects snake_case keys.
+      // Explicit mapping for safety and clarity:
       const transactionForStore: Transaction = {
         id: insertedData.id,
         user_id: insertedData.user_id,
@@ -200,15 +200,15 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
         description: insertedData.description,
         type: insertedData.type,
         category: insertedData.category,
-        isChomesh: insertedData.isChomesh, // map from DB
-        is_recurring: insertedData.isRecurring, // map back to snake_case for TS type
-        recurring_day_of_month: insertedData.recurringDayOfMonth, // map back to snake_case for TS type
-        recurringTotalCount: insertedData.recurringTotalCount, // map from DB
-        createdAt: insertedData.createdAt,
-        updatedAt: insertedData.updatedAt,
+        is_chomesh: insertedData.is_chomesh,
+        recipient: insertedData.recipient,
+        created_at: insertedData.created_at,
+        updated_at: insertedData.updated_at,
+        is_recurring: insertedData.is_recurring,
+        recurring_day_of_month: insertedData.recurring_day_of_month,
+        recurring_total_count: insertedData.recurring_total_count,
       };
 
-      // Update store using the data returned from the database
       useDonationStore.getState().addTransaction(transactionForStore);
       console.log("Zustand store updated with DB-generated transaction.");
     } catch (error) {

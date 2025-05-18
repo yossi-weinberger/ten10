@@ -21,15 +21,15 @@ export interface Transaction {
   description?: string | null; // User-provided description
   type: TransactionType;
   category?: string | null; // Optional category (mainly for expense types)
-  createdAt?: string; // ISO 8601 timestamp
-  updatedAt?: string; // ISO 8601 timestamp
+  created_at?: string; // Changed from createdAt
+  updated_at?: string; // Changed from updatedAt
 
   // Type-specific fields - use optional chaining or type guards for access
-  isChomesh?: boolean; // Required for 'income' type
+  is_chomesh?: boolean; // Changed from is_chomesh
   recipient?: string | null; // Required for 'donation' type
 
   // Fields for recurring transactions
   is_recurring?: boolean; // Optional, defaults to false if not present
   recurring_day_of_month?: number | null; // Optional, relevant only if is_recurring is true
-  recurringTotalCount?: number | null; // Optional, total number of installments for a recurring transaction
+  recurring_total_count?: number | null; // Changed from recurringTotalCount
 }

@@ -57,7 +57,7 @@ export const transactionFormSchema = z
     }),
     category: z.string().optional(),
     // Conditional fields
-    isChomesh: z.boolean().optional(),
+    is_chomesh: z.boolean().optional(),
     recipient: z.string().optional(),
     // New boolean fields for UI control
     isExempt: z.boolean().optional(),
@@ -87,15 +87,15 @@ export const transactionFormSchema = z
   })
   .refine(
     (data) => {
-      // isChomesh cannot be true if isExempt is true
-      if (data.type === "income" && data.isExempt && data.isChomesh) {
+      // is_chomesh cannot be true if isExempt is true
+      if (data.type === "income" && data.isExempt && data.is_chomesh) {
         return false;
       }
       return true;
     },
     {
       message: "לא ניתן לסמן חומש עבור הכנסה פטורה",
-      path: ["isChomesh"], // Attach error to isChomesh field
+      path: ["is_chomesh"], // Changed from ["isChomesh "]
     }
   )
   // Refine for recurring fields
@@ -155,7 +155,7 @@ export const transactionFormSchema = z
     }
   );
 // TODO: Use discriminatedUnion or refine schema for conditional requirements:
-// - isChomesh: required if type is 'income'
+// - is_chomesh: required if type is 'income'
 // - recipient: required if type is 'donation'
 // - category: perhaps more relevant for 'expense'/'recognized-expense'
 
@@ -197,7 +197,7 @@ export function TransactionForm({
       description: "",
       type: "income", // This will be the initial default for the form
       category: "",
-      isChomesh: false,
+      is_chomesh: false,
       recipient: "",
       isExempt: false,
       isRecognized: false,
@@ -212,88 +212,82 @@ export function TransactionForm({
   const isRecurringChecked = form.watch("is_recurring");
 
   async function onSubmit(values: TransactionFormValues) {
-    // Determine the final transaction type based on initial type and checkboxes
-    let finalType: TransactionType;
-    if (values.type === "income") {
-      finalType = values.isExempt ? "exempt-income" : "income";
-    } else if (values.type === "expense") {
-      finalType = values.isRecognized ? "recognized-expense" : "expense";
-    } else {
-      finalType = values.type as TransactionType; // Should be 'donation' here
+    setIsSuccess(false); // Reset success state
+    console.log("Form values submitted:", values);
+
+    // Determine the actual transaction type based on the form's 'type' and 'isRecognized'/'isExempt'
+    let finalType: TransactionType = values.type;
+    if (values.type === "expense" && values.isRecognized) {
+      finalType = "recognized-expense";
+    } else if (values.type === "income" && values.isExempt) {
+      finalType = "exempt-income";
     }
 
-    const newTransaction: Omit<
-      Transaction,
-      "isExempt" | "isRecognized" // Exclude helper fields
-    > = {
+    // Prepare the transaction object for saving
+    // Ensure all fields match the 'Transaction' type (especially snake_case)
+    const transactionData: Omit<Transaction, "isExempt" | "isRecognized"> = {
       id: nanoid(),
-      user_id: null,
+      user_id: "", // Will be set by Supabase/backend logic in addTransaction
       date: values.date,
       amount: values.amount,
-      currency: values.currency as any,
+      currency: values.currency as Transaction["currency"], // Cast to ensure type compatibility
       description: values.description || null,
-      type: finalType, // Use the determined final type
+      type: finalType,
       category: values.category || null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      // Conditionally add isChomesh only if the final type is 'income'
-      ...(finalType === "income" && { isChomesh: values.isChomesh || false }),
-      // Conditionally add recipient only if the final type is 'donation' (redundant check, but safe)
-      ...(finalType === "donation" && {
-        recipient: values.recipient || null,
-      }),
-      // Add recurring fields
-      is_recurring: values.is_recurring || false,
+
+      is_chomesh: finalType === "income" ? values.is_chomesh || false : null,
+      recipient: finalType === "donation" ? values.recipient || null : null,
+
+      is_recurring:
+        values.is_recurring === undefined
+          ? undefined
+          : values.is_recurring || false, // Ensure undefined or boolean
       recurring_day_of_month: values.is_recurring
-        ? values.recurring_day_of_month
+        ? values.recurring_day_of_month || null
         : null,
-      recurringTotalCount:
-        values.is_recurring && values.recurringTotalCount
-          ? values.recurringTotalCount
-          : null,
+      recurring_total_count: values.is_recurring
+        ? values.recurringTotalCount || null
+        : null,
+
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
-    // DEBUG: Log the object being sent to the backend
-    console.log("Submitting transaction object:", newTransaction);
+    console.log("Transaction object to save:", transactionData);
 
-    console.log("Submitting final transaction object:", newTransaction);
     try {
-      await addTransaction(newTransaction as Transaction);
+      await addTransaction(transactionData as Transaction); // Cast as Transaction after omitting helper fields
+
+      // Update Zustand store (assuming addTransaction doesn't do it)
+      // useDonationStore.getState().addTransaction(transactionData as Transaction);
+
       console.log("Transaction added successfully!");
+      setIsSuccess(true); // Trigger success animation/feedback
 
-      // Get the current type before resetting
-      const currentType = form.getValues("type");
-
-      // Reset the form, preserving the selected type and default currency
-      console.log(
-        "Attempting to reset form. Current amount before reset:",
-        form.getValues("amount")
-      ); // DEBUG
-      form.reset({
-        date: new Date().toISOString().split("T")[0],
-        amount: undefined, // Reset amount back to undefined to satisfy TypeScript
-        currency: defaultCurrency,
-        description: "",
-        type: currentType, // Preserve the current type
-        category: "",
-        isChomesh: false,
-        recipient: "",
-        isExempt: false,
-        isRecognized: false,
-        is_recurring: false, // Reset recurring flag
-        recurring_day_of_month: undefined, // Reset recurring day
-        recurringTotalCount: undefined,
-      });
-
-      // Trigger success animation
-      setIsSuccess(true);
+      // Reset form to default values after a short delay to show success
       setTimeout(() => {
-        setIsSuccess(false);
-      }, 2000); // Hide after 2 seconds
-
-      onSubmitSuccess?.();
+        form.reset({
+          date: new Date().toISOString().split("T")[0],
+          amount: undefined,
+          currency: defaultCurrency,
+          description: "",
+          type: "income", // Reset to a sensible default
+          category: "",
+          is_chomesh: false,
+          recipient: "",
+          isExempt: false,
+          isRecognized: false,
+          is_recurring: false,
+          recurring_day_of_month: undefined,
+          recurringTotalCount: undefined,
+        });
+        setIsSuccess(false); // Reset success state after form reset
+        if (onSubmitSuccess) onSubmitSuccess();
+      }, 1500); // 1.5 seconds delay
     } catch (error) {
-      console.error("Failed to add transaction:", error);
+      console.error("Error adding transaction:", error);
+      // TODO: Show user-friendly error message in the UI
+      // Example: form.setError("root.serverError", { type: "manual", message: "Failed to save transaction." });
     }
   }
 

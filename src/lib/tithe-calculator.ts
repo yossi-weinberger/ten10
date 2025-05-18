@@ -14,9 +14,9 @@ export const calculateTotalRequiredDonation = (
   for (const transaction of transactions) {
     switch (transaction.type) {
       case "income":
-        // Add 10% or 20% (if isChomesh is true) of the income amount.
-        // Default to 10% if isChomesh is not explicitly set (though it should be for income type).
-        balance += transaction.amount * (transaction.isChomesh ? 0.2 : 0.1);
+        // Add 10% or 20% (if is_chomesh is true) of the income amount.
+        // Default to 10% if is_chomesh is not explicitly set (though it should be for income type).
+        balance += transaction.amount * (transaction.is_chomesh ? 0.2 : 0.1);
         break;
       case "donation":
         // Subtract the full donation amount.

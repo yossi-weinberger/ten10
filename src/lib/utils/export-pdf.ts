@@ -178,7 +178,7 @@ export async function exportTransactionsToPDF(transactions: Transaction[]) {
         " "
       );
       const chomeshText =
-        t.type === "income" ? (t.isChomesh ? "כן" : "לא") : "";
+        t.type === "income" ? (t.is_chomesh ? "כן" : "לא") : "";
       const rowData = [
         dateText,
         typeText,

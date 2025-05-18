@@ -64,8 +64,11 @@ The application needs to handle various types of financial entries, each affecti
 **Planned DB Structure & Calculation Approach:**
 
 - A single `transactions` table will be used in both SQLite (Desktop) and Supabase (Web). This table will store all types of financial events (income, donations, expenses, etc.) distinguished by a `type` column.
-- The required tithe balance is not stored in the database. It will be calculated dynamically in the frontend based on the full list of transactions retrieved from the database. (Refer to `llm-instructions/transaction-data-model-and-calculations.md` for technical details).
-- **Status:** This unified model and dynamic calculation approach has been fully implemented for the **Desktop (SQLite) version**, including refactoring of the dashboard, data entry form, transaction table, and export functionalities to utilize this model. Web (Supabase) version implementation is pending.
+- The required tithe balance, as well as other key statistics like total income, total expenses, and total donations (within a given date range or overall), are primarily calculated on the server-side:
+  - **Web (Supabase):** SQL functions (e.g., `calculate_user_tithe_balance`, `get_total_income_and_chomesh_for_user`, `get_total_expenses_for_user`, `get_total_donations_for_user`) are invoked via RPC calls from the frontend.
+  - **Desktop (Tauri/SQLite):** Rust commands (e.g., `get_desktop_overall_tithe_balance`, `get_desktop_total_income_in_range`, `get_desktop_total_expenses_in_range`, `get_desktop_total_donations_in_range`) execute SQL queries directly against the local SQLite database.
+- These server-calculated values are then fetched and displayed in the frontend. Client-side calculations from the full transaction list are currently maintained for comparison and as a fallback but are planned to be phased out. (Refer to `llm-instructions/transaction-data-model-and-calculations.md` and `llm-instructions/data-flow-server-calculations-and-cleanup.md` for technical details).
+- **Status:** This unified model with server-side calculations for key statistics and tithe balance has been implemented for both the **Desktop (SQLite) version** and the **Web (Supabase) version**. Frontend components display these server-calculated values, often alongside client-calculated counterparts for verification during the transition.
 
 ## Future Features (Low Priority)
 

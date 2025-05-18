@@ -12,7 +12,6 @@ use commands::expense_commands::get_desktop_total_expenses_in_range;
 use commands::donation_commands::{get_desktop_total_donations_in_range, get_desktop_overall_tithe_balance};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-#[serde(rename_all = "camelCase")]
 struct Transaction {
     id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -35,13 +34,10 @@ struct Transaction {
     #[serde(skip_serializing_if = "Option::is_none")]
     recipient: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(alias = "is_recurring")]
     is_recurring: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(alias = "recurring_day_of_month")]
     recurring_day_of_month: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(alias = "recurringTotalCount")]
     recurring_total_count: Option<i32>,
 }
 

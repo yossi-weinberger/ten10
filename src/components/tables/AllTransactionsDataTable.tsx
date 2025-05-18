@@ -104,10 +104,10 @@ const transactionColumns: ColumnDef<Transaction>[] = [
     },
   },
   {
-    accessorKey: "isChomesh",
+    accessorKey: "is_chomesh",
     cell: ({ row }) => {
       const transaction = row.original;
-      if (transaction.type === "income" && row.getValue("isChomesh")) {
+      if (transaction.type === "income" && row.getValue("is_chomesh")) {
         return (
           <Check className="h-4 w-4 mx-auto text-green-600 dark:text-green-400" />
         );

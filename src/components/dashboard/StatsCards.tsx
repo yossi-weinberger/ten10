@@ -216,7 +216,7 @@ export function StatsCards({
       .filter(
         (t) =>
           t.type === "income" &&
-          t.isChomesh &&
+          t.is_chomesh &&
           t.date >= activeDateRangeObject.startDate &&
           t.date <= activeDateRangeObject.endDate
       )

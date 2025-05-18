@@ -42,7 +42,7 @@ export async function exportTransactionsToExcel(transactions: Transaction[]) {
         recipient: t.recipient || "",
         amount: t.amount,
         currency: t.currency,
-        chomesh: t.type === "income" ? (t.isChomesh ? "כן" : "לא") : "",
+        chomesh: t.type === "income" ? (t.is_chomesh ? "כן" : "לא") : "",
       };
     })
   );
