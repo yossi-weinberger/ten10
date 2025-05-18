@@ -35,8 +35,8 @@ This document explains how data (unified `Transaction` objects) is saved locally
 ## 4. Backend (Rust) Implementation (`src-tauri/src/main.rs`)
 
 - **File:** `src-tauri/src/main.rs` contains the Rust backend logic.
-- **Data Structure:** Defines a `Transaction` struct mirroring the TypeScript interface, using `#[derive(Serialize, Deserialize)]` and `#[serde(rename_all = "camelCase")]`.
-- **Save Command:** `#[tauri::command] add_transaction(db: State<'_, DbState>, transaction: Transaction)` receives the transaction object, performs an `INSERT` into the `transactions` SQLite table. Handles optional fields and boolean-to-integer conversion (`is_chomesh`).
+- **Data Structure:** Defines a `Transaction` struct mirroring the TypeScript interface (which uses `snake_case` for its fields). It uses `#[derive(Serialize, Deserialize)]`. The `#[serde(rename_all = "camelCase")]` attribute has been removed to ensure consistency with `snake_case` naming used across the application (TypeScript, Database, Rust).
+- **Save Command:** `#[tauri::command] add_transaction(db: State<'_, DbState>, transaction: Transaction)` receives the transaction object, performs an `INSERT` into the `transactions` SQLite table. Handles optional fields and boolean-to-integer conversion (e.g., for `is_chomesh`).
 - **Load Command:** `#[tauri::command] get_transactions(db: State<'_, DbState>)` performs `SELECT * FROM transactions`, maps the results from the database rows back into a `Vec<Transaction>`, handling potential NULLs and integer-to-boolean conversion, and returns the vector.
 - **DB Init Command:** `#[tauri::command] init_db(db: State<'_, DbState>)` ensures the `transactions` table exists (`CREATE TABLE IF NOT EXISTS transactions (...)`) with the correct schema. (It might still create old tables temporarily).
 - **Clear Command:** `#[tauri::command] clear_all_data(db: State<'_, DbState>)` now also executes `DELETE FROM transactions`.

@@ -130,6 +130,7 @@
   - `sql_queries/supabase/expenses/calculate_total_expenses.sql` (הלוגיקה הוטמעה בפונקציית SQL כללית יותר).
   - `sql_queries/sqlite/expenses/select_total_expenses.sql` (השאילתה הוטמעה ישירות בקוד ה-Rust).
   - `src/services/dataService.ts` (אם היה קיים קובץ כזה בנתיב זה והוא מוזג/הוחלף על ידי `src/lib/dataService.ts`).
+  - `src/components/dashboard/TransactionsTable.tsx` (הקומפוננטה לא הייתה בשימוש והוסרה).
 
 ## הערה כללית
 

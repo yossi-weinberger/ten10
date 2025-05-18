@@ -17,7 +17,7 @@
             COALESCE(SUM(
                 CASE
                     WHEN type = 'income' THEN
-                        amount * (CASE WHEN "isChomesh" = TRUE THEN 0.2 ELSE 0.1 END)
+                        amount * (CASE WHEN is_chomesh = TRUE THEN 0.2 ELSE 0.1 END)
                     WHEN type = 'donation' THEN
                         -amount
                     WHEN type = 'recognized-expense' THEN
