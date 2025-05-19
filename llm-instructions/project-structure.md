@@ -8,7 +8,7 @@ This section details how the different parts of the project interact with each o
 
 1.  **Frontend (`src`) <-> Backend (`src-tauri`)**:
 
-    - **Communication:** The React frontend communicates with the Rust backend via Tauri's IPC mechanism. Frontend components invoke Rust functions (`#[tauri::command]`) defined in `src-tauri/src/main.rs` using Tauri's `invoke` function (likely wrapped in a service layer, e.g., `src/lib/dataService.ts`). Allowed commands are specified in `tauri.conf.json` under `tauri > allowlist > invoke`.
+    - **Communication:** The React frontend communicates with the Rust backend via Tauri's IPC mechanism. Frontend components invoke Rust functions (`#[tauri::command]`) defined in `src-tauri/src/main.rs` using Tauri's `invoke` function (likely wrapped in service layers, e.g., `src/lib/transactionService.ts` for transaction-specific DB operations, and `src/lib/dbStatsCardsService.ts` for fetching aggregated statistics from the DB). Allowed commands are specified in `tauri.conf.json` under `tauri > allowlist > invoke`.
     - **Events:** The backend can emit events that the frontend listens to, enabling real-time updates or notifications from the backend.
     - **Example Flow:** Clicking a 'Save' button in a form (`src/components/TransactionForm.tsx`) triggers a function that calls `invoke` with the relevant command name (e.g., `add_transaction`) and form data. The Rust code receives the data, processes it (e.g., saves to the DB), and returns a response (success/error) to the frontend.
 
@@ -59,6 +59,11 @@ This section details how the different parts of the project interact with each o
 │   ├── contexts/          # React Context providers
 │   ├── lib/               # Utility functions and libraries
 │   │   ├── dataManagement.ts # Handles data import/export logic
+│   │   ├── platformService.ts # Handles platform detection and state
+│   │   ├── transactionService.ts # Handles CRUD operations for transactions with the backend
+│   │   ├── dbStatsCardsService.ts # Handles fetching of aggregated statistics for StatsCards from the backend
+│   │   ├── storeService.ts    # Handles interactions with the Zustand store for loading/saving data
+│   │   └── store.ts           # Zustand store definition
 │   ├── pages/             # Page components (mapped by router)
 │   ├── types/             # TypeScript type definitions
 │   ├── App.tsx            # Main application component

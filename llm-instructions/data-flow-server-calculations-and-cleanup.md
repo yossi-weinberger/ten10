@@ -19,11 +19,10 @@
   - **פקודת Rust:** `get_desktop_total_income_in_range(db_state: State<'_, DbState>, start_date: String, end_date: String)`
   - **מיקום:** `src-tauri/src/commands/income_commands.rs`
   - **תיאור:** מבצעת שאילתת SQL מוטמעת על מסד הנתונים המקומי (SQLite) כדי לחשב סך הכנסות וחומש בטווח תאריכים.
-- **שירות נתונים (`src/lib/dataService.ts`):**
-  - **פונקציה ראשית:** `fetchTotalIncomeInRange(userId: string | null, startDate: string, endDate: string): Promise<ServerIncomeData | null>`
+- **שירות נתונים (`src/lib/dbStatsCardsService.ts`):**
+  - **פונקציה ראשית:** `fetchDbCalculatedTotalIncomeForStatsCards(userId: string | null, startDate: string, endDate: string): Promise<ServerIncomeData | null>`
   - **פונקציות עזר:**
     - `fetchTotalIncomeForUserWeb(userId: string, startDate: string, endDate: string)`: קוראת לפונקציית ה-RPC ב-Supabase.
-    - `fetchTotalIncomeForUserDesktop(startDate: string, endDate: string)`: קוראת לפקודת ה-Tauri.
 - **ניהול מצב (Zustand - `src/lib/store.ts`):**
   - **משתני מצב:**
     - `serverCalculatedTotalIncome: number | null`
@@ -32,7 +31,7 @@
     - `setServerCalculatedTotalIncome(totalIncome: number | null)`
     - `setServerCalculatedChomeshAmount(chomeshAmount: number | null)`
 - **ממשק משתמש (UI - `src/components/dashboard/StatsCards.tsx`):**
-  - `useEffect` קורא ל-`fetchTotalIncomeInRange` בעת שינוי טווח התאריכים או פרטי המשתמש/פלטפורמה.
+  - `useEffect` קורא ל-`fetchDbCalculatedTotalIncomeForStatsCards` בעת שינוי טווח התאריכים או פרטי המשתמש/פלטפורמה.
   - משתני `useState` (`isLoadingServerIncome`, `serverIncomeError`) מנהלים את מצב הטעינה והשגיאות.
   - הנתונים (`serverTotalIncome`, `serverChomeshAmount`) מה-store מוצגים בכרטיסייה המתאימה עם סימון (S).
 
@@ -45,16 +44,15 @@
   - **פקודת Rust:** `get_desktop_total_expenses_in_range(db_state: State<'_, DbState>, start_date: String, end_date: String)`
   - **מיקום:** `src-tauri/src/commands/expense_commands.rs`
   - **תיאור:** מבצעת שאילתת SQL מוטמעת על SQLite לסכימת הוצאות (`expense`, `recognized-expense`) בטווח תאריכים.
-- **שירות נתונים (`src/lib/dataService.ts`):**
-  - **פונקציה ראשית:** `fetchTotalExpensesInRange(userId: string | null, startDate: string, endDate: string): Promise<number | null>`
+- **שירות נתונים (`src/lib/dbStatsCardsService.ts`):**
+  - **פונקציה ראשית:** `fetchDbCalculatedTotalExpensesForStatsCards(userId: string | null, startDate: string, endDate: string): Promise<number | null>`
   - **פונקציות עזר:**
     - `fetchTotalExpensesForUserWeb(userId: string, startDate: string, endDate: string)`: קוראת ל-RPC ב-Supabase.
-    - `fetchTotalExpensesForUserDesktop(startDate: string, endDate: string)`: קוראת לפקודת ה-Tauri.
 - **ניהול מצב (Zustand - `src/lib/store.ts`):**
   - **משתנה מצב:** `serverCalculatedTotalExpenses: number | null`
   - **פעולת עדכון:** `setServerCalculatedTotalExpenses(totalExpenses: number | null)`
 - **ממשק משתמש (UI - `src/components/dashboard/StatsCards.tsx`):**
-  - `useEffect` קורא ל-`fetchTotalExpensesInRange`.
+  - `useEffect` קורא ל-`fetchDbCalculatedTotalExpensesForStatsCards`.
   - משתני `useState` (`isLoadingServerExpenses`, `serverExpensesError`) מנהלים טעינה ושגיאות.
   - הנתון (`serverTotalExpenses`) מה-store מוצג בכרטיסייה עם סימון (S).
 
@@ -67,16 +65,15 @@
   - **פקודת Rust:** `get_desktop_total_donations_in_range(db_state: State<'_, DbState>, start_date: String, end_date: String)`
   - **מיקום:** `src-tauri/src/commands/donation_commands.rs`
   - **תיאור:** מבצעת שאילתת SQL מוטמעת על SQLite לסכימת תרומות (`donation`) בטווח תאריכים.
-- **שירות נתונים (`src/lib/dataService.ts`):**
-  - **פונקציה ראשית:** `fetchTotalDonationsInRange(userId: string | null, startDate: string, endDate: string): Promise<number | null>`
+- **שירות נתונים (`src/lib/dbStatsCardsService.ts`):**
+  - **פונקציה ראשית:** `fetchDbCalculatedTotalDonationsForStatsCards(userId: string | null, startDate: string, endDate: string): Promise<number | null>`
   - **פונקציות עזר:**
     - `fetchTotalDonationsForUserWeb(userId: string, startDate: string, endDate: string)`: קוראת ל-RPC ב-Supabase.
-    - `fetchTotalDonationsForUserDesktop(startDate: string, endDate: string)`: קוראת לפקודת ה-Tauri.
 - **ניהול מצב (Zustand - `src/lib/store.ts`):**
   - **משתנה מצב:** `serverCalculatedTotalDonations: number | null`
   - **פעולת עדכון:** `setServerCalculatedTotalDonations(totalDonations: number | null)`
 - **ממשק משתמש (UI - `src/components/dashboard/StatsCards.tsx`):**
-  - `useEffect` קורא ל-`fetchTotalDonationsInRange`.
+  - `useEffect` קורא ל-`fetchDbCalculatedTotalDonationsForStatsCards`.
   - משתני `useState` (`isLoadingServerDonations`, `serverDonationsError`) מנהלים טעינה ושגיאות.
   - הנתון (`serverTotalDonations`) מה-store מוצג בכרטיסייה עם סימון (S). חישוב האחוז מההכנסות (S) מתבצע גם הוא.
 
@@ -89,16 +86,15 @@
   - **פקודת Rust:** `get_desktop_overall_tithe_balance(db_state: State<'_, DbState>)`
   - **מיקום:** `src-tauri/src/commands/donation_commands.rs`
   - **תיאור:** קוראת את כל הטרנזקציות מ-SQLite ומחשבת את יתרת המעשר הכוללת בלוגיקה דומה לפונקציית ה-SQL ב-Supabase.
-- **שירות נתונים (`src/lib/dataService.ts`):**
-  - **פונקציה ראשית:** `fetchServerTitheBalance(userId: string | null): Promise<number | null>`
+- **שירות נתונים (`src/lib/dbStatsCardsService.ts`):**
+  - **פונקציה ראשית:** `fetchDbCalculatedTitheBalanceForStatsCards(userId: string | null): Promise<number | null>`
   - **פונקציות עזר:**
     - `fetchServerTitheBalanceWeb(userId: string)`: קוראת ל-RPC ב-Supabase.
-    - `fetchServerTitheBalanceDesktop()`: קוראת לפקודת ה-Tauri.
 - **ניהול מצב (Zustand - `src/lib/store.ts`):**
   - **משתנה מצב:** `serverCalculatedTitheBalance: number | null`
   - **פעולת עדכון:** `setServerCalculatedTitheBalance(balance: number | null)`
 - **ממשק משתמש (UI - `src/components/dashboard/StatsCards.tsx`):**
-  - `useEffect` קורא ל-`fetchServerTitheBalance` (לא תלוי בטווח תאריכים).
+  - `useEffect` קורא ל-`fetchDbCalculatedTitheBalanceForStatsCards` (לא תלוי בטווח תאריכים).
   - משתני `useState` (`isLoadingServerTitheBalance`, `serverTitheBalanceError`) מנהלים טעינה ושגיאות.
   - הנתון (`serverCalculatedTitheBalance`) מה-store מוצג בכרטיסייה עם סימון (S).
 
@@ -129,7 +125,7 @@
 - **קבצים שנמחקו בתהליך:**
   - `sql_queries/supabase/expenses/calculate_total_expenses.sql` (הלוגיקה הוטמעה בפונקציית SQL כללית יותר).
   - `sql_queries/sqlite/expenses/select_total_expenses.sql` (השאילתה הוטמעה ישירות בקוד ה-Rust).
-  - `src/services/dataService.ts` (אם היה קיים קובץ כזה בנתיב זה והוא מוזג/הוחלף על ידי `src/lib/dataService.ts`).
+  - `src/lib/dataService.ts` (הקובץ המקורי פוצל למספר שירותים: `platformService.ts`, `transactionService.ts`, `dbStatsCardsService.ts`, `storeService.ts`).
   - `src/components/dashboard/TransactionsTable.tsx` (הקומפוננטה לא הייתה בשימוש והוסרה).
 
 ## הערה כללית
