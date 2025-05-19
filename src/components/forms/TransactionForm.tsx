@@ -23,6 +23,7 @@ const allTransactionTypes = [
   "expense",
   "exempt-income",
   "recognized-expense",
+  "non_tithe_donation",
 ] as const; // Use 'as const' for Zod enum
 
 // Hebrew labels for transaction types
@@ -32,6 +33,7 @@ const transactionTypeLabels: Record<TransactionType, string> = {
   expense: "הוצאה",
   "exempt-income": "הכנסה פטורה", // For future use
   "recognized-expense": "הוצאה מוכרת", // For future use
+  non_tithe_donation: "תרומה שאינה ממעשר", // Renamed label
 };
 
 // Base Zod schema - use allTransactionTypes for validation
@@ -62,6 +64,7 @@ export const transactionFormSchema = z
     // New boolean fields for UI control
     isExempt: z.boolean().optional(),
     isRecognized: z.boolean().optional(),
+    isFromPersonalFunds: z.boolean().optional(),
 
     // Recurring fields
     is_recurring: z.boolean().optional(),
@@ -173,6 +176,7 @@ const backgroundStyles: Record<TransactionType, string> = {
   donation: "bg-yellow-50 dark:bg-yellow-950",
   "exempt-income": "bg-green-50 dark:bg-green-950",
   "recognized-expense": "bg-red-50 dark:bg-red-950",
+  non_tithe_donation: "bg-yellow-50 dark:bg-yellow-950", // Renamed, kept style same as donation
 };
 
 export function TransactionForm({
@@ -201,6 +205,7 @@ export function TransactionForm({
       recipient: "",
       isExempt: false,
       isRecognized: false,
+      isFromPersonalFunds: false,
       is_recurring: false,
       recurring_day_of_month: undefined,
       recurringTotalCount: undefined,
@@ -210,22 +215,28 @@ export function TransactionForm({
   const selectedType = form.watch("type");
   const isExemptChecked = form.watch("isExempt");
   const isRecurringChecked = form.watch("is_recurring");
+  const isFromPersonalFundsChecked = form.watch("isFromPersonalFunds");
 
   async function onSubmit(values: TransactionFormValues) {
     setIsSuccess(false); // Reset success state
     console.log("Form values submitted:", values);
 
-    // Determine the actual transaction type based on the form's 'type' and 'isRecognized'/'isExempt'
+    // Determine the actual transaction type based on the form's 'type' and checkboxes
     let finalType: TransactionType = values.type;
     if (values.type === "expense" && values.isRecognized) {
       finalType = "recognized-expense";
     } else if (values.type === "income" && values.isExempt) {
       finalType = "exempt-income";
+    } else if (values.type === "donation" && values.isFromPersonalFunds) {
+      finalType = "non_tithe_donation"; // Renamed
     }
 
     // Prepare the transaction object for saving
     // Ensure all fields match the 'Transaction' type (especially snake_case)
-    const transactionData: Omit<Transaction, "isExempt" | "isRecognized"> = {
+    const transactionData: Omit<
+      Transaction,
+      "isExempt" | "isRecognized" | "isFromPersonalFunds" // Exclude UI-only fields
+    > = {
       id: nanoid(),
       user_id: "", // Will be set by Supabase/backend logic in addTransaction
       date: values.date,
@@ -235,13 +246,14 @@ export function TransactionForm({
       type: finalType,
       category: values.category || null,
 
-      is_chomesh: finalType === "income" ? values.is_chomesh || false : null,
+      is_chomesh:
+        finalType === "income" ? values.is_chomesh || false : undefined,
       recipient: finalType === "donation" ? values.recipient || null : null,
 
       is_recurring:
-        values.is_recurring === undefined
-          ? undefined
-          : values.is_recurring || false, // Ensure undefined or boolean
+        typeof values.is_recurring === "boolean"
+          ? values.is_recurring
+          : undefined,
       recurring_day_of_month: values.is_recurring
         ? values.recurring_day_of_month || null
         : null,
@@ -277,6 +289,7 @@ export function TransactionForm({
           recipient: "",
           isExempt: false,
           isRecognized: false,
+          isFromPersonalFunds: false,
           is_recurring: false,
           recurring_day_of_month: undefined,
           recurringTotalCount: undefined,
@@ -317,6 +330,7 @@ export function TransactionForm({
           form={form}
           selectedType={selectedType}
           isExemptChecked={isExemptChecked}
+          isFromPersonalFundsChecked={isFromPersonalFundsChecked}
         />
 
         {/* Recurring fields section - Replaced with new component where applicable */}

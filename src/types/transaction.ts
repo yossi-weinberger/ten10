@@ -9,7 +9,8 @@ export type TransactionType =
   | "donation"
   | "expense"
   | "exempt-income"
-  | "recognized-expense";
+  | "recognized-expense"
+  | "non_tithe_donation"; // Renamed from donation_from_personal_funds
 
 // Define the core Transaction interface
 export interface Transaction {

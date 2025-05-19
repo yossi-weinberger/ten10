@@ -28,6 +28,7 @@ export const calculateTotalRequiredDonation = (
         break;
       case "expense":
       case "exempt-income":
+      case "non_tithe_donation":
         // These types do not affect the tithe balance.
         break;
       default:

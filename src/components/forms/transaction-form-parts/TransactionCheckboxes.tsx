@@ -17,12 +17,14 @@ interface TransactionCheckboxesProps {
   form: UseFormReturn<TransactionFormValues>;
   selectedType: TransactionType;
   isExemptChecked?: boolean; // Optional as it's only relevant for income
+  isFromPersonalFundsChecked?: boolean; // New prop for the new checkbox
 }
 
 export function TransactionCheckboxes({
   form,
   selectedType,
   isExemptChecked,
+  isFromPersonalFundsChecked, // Destructure new prop
 }: TransactionCheckboxesProps) {
   return (
     <TooltipProvider>
@@ -124,6 +126,41 @@ export function TransactionCheckboxes({
             <FormField
               control={form.control}
               name="isRecognized"
+              render={({ field }) => (
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  className="size-6 rounded border mt-auto"
+                />
+              )}
+            />
+          </div>
+        )}
+        {selectedType === "donation" && (
+          <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
+            <div className="flex items-center justify-center mb-2 text-center">
+              <span className="text-xs font-medium">תרומה מכספים אישיים?</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 ml-1 p-0 hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                  >
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  <p className="max-w-xs text-sm">
+                    יש לסמן אם תרומה זו ניתנת מכספים אישיים ואינה אמורה לרדת
+                    מיתרת המעשר.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <FormField
+              control={form.control}
+              name="isFromPersonalFunds" // Bind to the new form field
               render={({ field }) => (
                 <Checkbox
                   checked={field.value}
