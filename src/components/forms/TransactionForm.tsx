@@ -283,7 +283,7 @@ export function TransactionForm({
           amount: undefined,
           currency: defaultCurrency,
           description: "",
-          type: "income", // Reset to a sensible default
+          type: values.type, // Changed from "income" to preserve the last selected type
           category: "",
           is_chomesh: false,
           recipient: "",
