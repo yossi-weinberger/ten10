@@ -5,6 +5,7 @@ import {
   Currency as TransactionCurrency,
 } from "../types/transaction";
 import { calculateTotalRequiredDonation } from "./tithe-calculator";
+import { ServerDonationData } from "./dbStatsCardsService";
 
 export type { TransactionCurrency as Currency };
 
@@ -34,6 +35,7 @@ interface DonationState {
   serverCalculatedChomeshAmount?: number | null;
   serverCalculatedTotalExpenses?: number | null;
   serverCalculatedTotalDonations: number | null;
+  serverCalculatedDonationsData: ServerDonationData | null;
   updateSettings: (settings: Partial<Settings>) => void;
   setTransactions: (transactions: Transaction[]) => void;
   addTransaction: (transaction: Transaction) => void;
@@ -46,6 +48,7 @@ interface DonationState {
   setServerCalculatedChomeshAmount: (chomeshAmount: number | null) => void;
   setServerCalculatedTotalExpenses: (totalExpenses: number | null) => void;
   setServerCalculatedTotalDonations: (total: number | null) => void;
+  setServerCalculatedDonationsData: (data: ServerDonationData | null) => void;
 }
 
 const defaultSettings: Settings = {
@@ -73,6 +76,7 @@ export const useDonationStore = create<DonationState>()(
       serverCalculatedChomeshAmount: null,
       serverCalculatedTotalExpenses: null,
       serverCalculatedTotalDonations: null,
+      serverCalculatedDonationsData: null,
 
       updateSettings: (newSettings) => {
         set((state) => ({
@@ -136,6 +140,9 @@ export const useDonationStore = create<DonationState>()(
 
       setServerCalculatedTotalDonations: (total) =>
         set({ serverCalculatedTotalDonations: total }),
+
+      setServerCalculatedDonationsData: (data) =>
+        set({ serverCalculatedDonationsData: data }),
     }),
     {
       name: "Ten10-donation-store",

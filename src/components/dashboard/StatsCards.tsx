@@ -47,6 +47,7 @@ export function StatsCards({
     isLoadingServerExpenses,
     serverExpensesError,
     serverTotalDonations,
+    serverCalculatedDonationsData,
     isLoadingServerDonations,
     serverDonationsError,
     serverTitheBalance,
@@ -116,7 +117,7 @@ export function StatsCards({
         <DonationsStatCard
           label={activeDateRangeObject.label}
           clientTotalDonations={clientTotalDonations ?? null}
-          serverTotalDonations={serverTotalDonations ?? null}
+          serverTotalDonationsData={serverCalculatedDonationsData ?? null}
           isLoadingServerDonations={isLoadingServerDonations}
           serverDonationsError={serverDonationsError}
           clientTotalIncome={clientTotalIncome ?? null}

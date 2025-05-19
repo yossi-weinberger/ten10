@@ -1,40 +1,56 @@
 use rusqlite::{params, Connection};
+use serde::Serialize;
 use tauri::State;
 
 use crate::DbState;
+
+// New struct for returning detailed donation data
+#[derive(Serialize, Debug)]
+pub struct DesktopDonationData {
+    total_donations_amount: f64,
+    non_tithe_donation_amount: f64,
+}
 
 #[tauri::command]
 pub async fn get_desktop_total_donations_in_range(
     db_state: State<'_, DbState>,
     start_date: String,
     end_date: String,
-) -> Result<f64, String> {
+) -> Result<DesktopDonationData, String> {
     let query_sql = "
         SELECT
-            COALESCE(SUM(amount), 0)
+            COALESCE(SUM(CASE WHEN type = 'donation' OR type = 'non_tithe_donation' THEN amount ELSE 0 END), 0) AS total_donations_amount,
+            COALESCE(SUM(CASE WHEN type = 'non_tithe_donation' THEN amount ELSE 0 END), 0) AS non_tithe_donation_amount
         FROM
             transactions
         WHERE
-            type = 'donation' AND
+            (type = 'donation' OR type = 'non_tithe_donation') AND
             strftime('%Y-%m-%dT%H:%M:%S.%fZ', date) BETWEEN ?1 AND ?2;
     ";
 
     println!(
-        "Desktop Query (donation_commands.rs): Fetching donations between {} and {}",
+        "Desktop Query (donation_commands.rs): Fetching detailed donations between {} and {}",
         start_date, end_date
     );
 
     let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
     let conn: &Connection = &*conn_guard;
 
-    match conn.query_row::<f64, _, _>(&query_sql, params![start_date, end_date], |row| row.get(0)) {
-        Ok(total_donations) => {
-            println!("Desktop Query Result (donation_commands.rs): total_donations = {}", total_donations);
-            Ok(total_donations)
+    match conn.query_row(
+        &query_sql, 
+        params![start_date, end_date], 
+        |row| Ok(DesktopDonationData {
+            total_donations_amount: row.get(0)?,
+            non_tithe_donation_amount: row.get(1)?,
+        })
+    ) {
+        Ok(donation_data) => {
+            println!("Desktop Query Result (donation_commands.rs): donation_data = {:?}", donation_data);
+            Ok(donation_data)
         }
         Err(e) => {
             eprintln!("Desktop Query Error (donation_commands.rs): {}", e);
-            Err(format!("Failed to fetch total donations with rusqlite: {}", e))
+            Err(format!("Failed to fetch detailed donations with rusqlite: {}", e))
         }
     }
 }

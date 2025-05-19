@@ -18,6 +18,12 @@ export interface ServerIncomeData {
   chomesh_amount: number;
 }
 
+// Define a type for the data structure returned by server-side calculations for Donations
+export interface ServerDonationData {
+  total_donations_amount: number;
+  non_tithe_donation_amount: number;
+}
+
 // --- New CRUD API for Transactions ---
 
 /**
@@ -490,7 +496,7 @@ export async function fetchTotalDonationsForUserWeb(
   userId: string,
   startDate: string, // YYYY-MM-DD
   endDate: string // YYYY-MM-DD
-): Promise<number | null> {
+): Promise<ServerDonationData | null> {
   console.log(
     `DataService (Web): Fetching total donations for user ${userId} from ${startDate} to ${endDate}`
   );
@@ -509,15 +515,28 @@ export async function fetchTotalDonationsForUserWeb(
       "DataService (Web): Supabase RPC call for donations successful. Data:",
       data
     );
-    if (typeof data === "number") {
-      return data;
-    } else {
-      console.warn(
-        "DataService (Web): Received unexpected data structure from Supabase RPC for donations or null data:",
-        data
-      );
-      return 0; // Default to 0 if data is not a number, or handle as appropriate
+    // Supabase RPCs that return TABLE now return an array of objects
+    if (data && Array.isArray(data) && data.length > 0) {
+      const result = data[0];
+      if (
+        typeof result.total_donations_amount === "number" &&
+        typeof result.non_tithe_donation_amount === "number"
+      ) {
+        return result as ServerDonationData;
+      }
+    } else if (
+      data &&
+      typeof data.total_donations_amount === "number" &&
+      typeof data.non_tithe_donation_amount === "number"
+    ) {
+      // Fallback for cases where it might directly return an object
+      return data as ServerDonationData;
     }
+    console.warn(
+      "DataService (Web): Received unexpected data structure from Supabase RPC for donations or null/empty data:",
+      data
+    );
+    return { total_donations_amount: 0, non_tithe_donation_amount: 0 }; // Default value
   } catch (error) {
     console.error("Error in fetchTotalDonationsForUserWeb:", error);
     return null; // Or throw error
@@ -528,24 +547,37 @@ export async function fetchTotalDonationsForUserWeb(
 export async function fetchTotalDonationsForUserDesktop(
   startDate: string, // YYYY-MM-DD
   endDate: string // YYYY-MM-DD
-): Promise<number | null> {
-  // Changed return type to Promise<number | null> for consistency
+): Promise<ServerDonationData | null> {
+  // Changed return type to Promise<ServerDonationData | null> for consistency
   console.log(
     `DataService (Desktop): Fetching total donations from ${startDate} to ${endDate}`
   );
   try {
-    const result = await invoke<number>(
-      "get_desktop_total_donations_in_range",
-      {
-        startDate,
-        endDate,
-      }
-    );
+    // TODO: Update Tauri command "get_desktop_total_donations_in_range"
+    // to return ServerDonationData structure
+    const result = await invoke<{
+      total_donations_amount: number;
+      non_tithe_donation_amount: number;
+    }>("get_desktop_total_donations_in_range", {
+      startDate,
+      endDate,
+    });
     console.log(
       "DataService (Desktop): Tauri invoke for donations successful. Data:",
       result
     );
-    return result;
+    if (
+      result &&
+      typeof result.total_donations_amount === "number" &&
+      typeof result.non_tithe_donation_amount === "number"
+    ) {
+      return result;
+    }
+    console.warn(
+      "DataService (Desktop): Tauri command did not return expected ServerDonationData structure. Data:",
+      result
+    );
+    return { total_donations_amount: 0, non_tithe_donation_amount: 0 }; // Default structure
   } catch (error) {
     console.error(
       "Error invoking get_desktop_total_donations_in_range:",
@@ -560,7 +592,7 @@ export async function fetchTotalDonationsInRange(
   userId: string | null, // userId is only needed for web
   startDate: string,
   endDate: string
-): Promise<number | null> {
+): Promise<ServerDonationData | null> {
   if (currentPlatform === "web") {
     if (!userId) {
       console.error(

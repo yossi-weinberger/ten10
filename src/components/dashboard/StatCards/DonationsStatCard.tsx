@@ -2,11 +2,12 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HandCoins } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/currency";
+import { ServerDonationData } from "@/lib/dbStatsCardsService"; // Assuming ServerDonationData is exported there or define locally
 
 interface DonationsStatCardProps {
   label: string | undefined;
   clientTotalDonations: number | null;
-  serverTotalDonations: number | null;
+  serverTotalDonationsData: ServerDonationData | null; // Changed prop name and type
   isLoadingServerDonations: boolean;
   serverDonationsError: string | null;
   clientTotalIncome: number | null; // Needed for percentage calculation
@@ -17,13 +18,17 @@ interface DonationsStatCardProps {
 export function DonationsStatCard({
   label,
   clientTotalDonations,
-  serverTotalDonations,
+  serverTotalDonationsData, // Changed prop name
   isLoadingServerDonations,
   serverDonationsError,
   clientTotalIncome,
   serverTotalIncome,
   isLoadingServerIncome,
 }: DonationsStatCardProps) {
+  const serverTotalDonations = serverTotalDonationsData?.total_donations_amount;
+  const serverNonTitheDonations =
+    serverTotalDonationsData?.non_tithe_donation_amount;
+
   return (
     <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -50,7 +55,7 @@ export function DonationsStatCard({
               <p className="text-xs text-red-500">שגיאת S</p>
             )}
             {!isLoadingServerDonations &&
-              typeof serverTotalDonations === "number" && (
+              typeof serverTotalDonations === "number" && ( // Use the extracted variable
                 <>
                   <span className="text-lg font-semibold">
                     {formatCurrency(serverTotalDonations)}
@@ -61,7 +66,7 @@ export function DonationsStatCard({
                 </>
               )}
             {!isLoadingServerDonations &&
-              serverTotalDonations === null &&
+              serverTotalDonations === null && // Check the extracted variable
               !serverDonationsError && (
                 <>
                   <span className="text-lg font-semibold">
@@ -83,7 +88,7 @@ export function DonationsStatCard({
             : "לא ניתן לחשב אחוז מהכנסות (C)"}
           {typeof serverTotalIncome === "number" &&
             serverTotalIncome > 0 &&
-            typeof serverTotalDonations === "number" &&
+            typeof serverTotalDonations === "number" && // Use extracted variable
             serverTotalDonations >= 0 &&
             !isLoadingServerIncome && // Ensure income is loaded before calculating server percentage
             !isLoadingServerDonations && (
@@ -93,6 +98,14 @@ export function DonationsStatCard({
               </span>
             )}
         </p>
+        {/* Display non_tithe_donation_amount from server */}
+        {!isLoadingServerDonations &&
+          typeof serverNonTitheDonations === "number" &&
+          serverNonTitheDonations > 0 && (
+            <p className="text-xs text-muted-foreground mt-1">
+              מתוכן {formatCurrency(serverNonTitheDonations)} תרומה אישית (S)
+            </p>
+          )}
       </CardContent>
     </Card>
   );

@@ -6,6 +6,7 @@ import {
   fetchTotalExpensesInRange,
   fetchTotalDonationsInRange,
   fetchServerTitheBalance,
+  ServerDonationData,
 } from "@/lib/dataService";
 import { User } from "@/contexts/AuthContext";
 import { DateRangeObject } from "./useDateControls";
@@ -49,6 +50,12 @@ export function useServerStats(
   );
   const setServerTotalDonations = useDonationStore(
     (state) => state.setServerCalculatedTotalDonations
+  );
+  const serverCalculatedDonationsData = useDonationStore(
+    (state) => state.serverCalculatedDonationsData
+  );
+  const setServerCalculatedDonationsData = useDonationStore(
+    (state) => state.setServerCalculatedDonationsData
   );
   const [isLoadingServerDonations, setIsLoadingServerDonations] =
     useState(false);
@@ -161,13 +168,19 @@ export function useServerStats(
             // console.log(
             //   `useServerStats: Fetching server donations. User: ${effectiveUserId}, Range: ${activeDateRangeObject.startDate}-${activeDateRangeObject.endDate}, Platform: ${platform}`
             // );
-            const donationsData: number | null =
+            const donationsData: ServerDonationData | null =
               await fetchTotalDonationsInRange(
                 effectiveUserId,
                 activeDateRangeObject.startDate,
                 activeDateRangeObject.endDate
               );
-            setServerTotalDonations(donationsData);
+            setServerCalculatedDonationsData(donationsData);
+
+            if (donationsData) {
+              setServerTotalDonations(donationsData.total_donations_amount);
+            } else {
+              setServerTotalDonations(null);
+            }
           } catch (error) {
             console.error(
               "useServerStats: Failed to fetch server total donations:",
@@ -176,7 +189,7 @@ export function useServerStats(
             setServerDonationsError(
               error instanceof Error ? error.message : String(error)
             );
-            setServerTotalDonations(null);
+            setServerCalculatedDonationsData(null);
           }
           setIsLoadingServerDonations(false);
         };
@@ -232,6 +245,7 @@ export function useServerStats(
     setServerChomeshAmount,
     setServerTotalExpenses,
     setServerTotalDonations,
+    setServerCalculatedDonationsData,
     setServerTitheBalance,
   ]);
 
@@ -244,6 +258,7 @@ export function useServerStats(
     isLoadingServerExpenses,
     serverExpensesError,
     serverTotalDonations,
+    serverCalculatedDonationsData,
     isLoadingServerDonations,
     serverDonationsError,
     serverTitheBalance,

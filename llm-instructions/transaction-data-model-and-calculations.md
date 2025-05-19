@@ -26,6 +26,7 @@ This document outlines the standard approach for handling financial transactions
   - `'expense'`: Regular expense (e.g., groceries, utilities). Does not affect tithe calculation.
   - `'exempt-income'`: Income inherently exempt from tithe (e.g., certain gifts, specific stipends, offset rental income). Does not affect tithe calculation. **Note:** Reimbursements for expenses are _not_ exempt income; they should reduce the amount of the original expense recorded (or the expense shouldn't be recorded if fully reimbursed).
   - `'recognized-expense'`: Business or work-related expenses that reduce the income base subject to tithe (e.g., travel, babysitting for work, business investments/ads). Reduces required tithe by 10% of the expense amount.
+  - `'non_tithe_donation'`: Represents a donation made from personal, non-tithe funds. It does not reduce the required tithe amount. However, it _is_ included in the total sum of donations for reporting purposes and can be displayed separately.
 - **Specific Fields**: Fields relevant only to certain types (e.g., `is_chomesh`, `recipient`) are defined in the interface but only populated when relevant.
   **UI Handling**: In the `TransactionForm`, subtypes like `exempt-income` and `recognized-expense` are handled via conditional checkboxes presented under the main `income` or `expense` type selections, simplifying the initial choice for the user while allowing for the necessary detail.
 
@@ -45,6 +46,7 @@ This document outlines the standard approach for handling financial transactions
   - `expense`: No change to the balance.
   - `exempt-income`: No change to the balance.
   - `recognized-expense`: Subtract `amount * 0.1` from the balance.
+  - `non_tithe_donation`: No change to the balance.
 - The final balance **can be negative**. A negative balance indicates a surplus, meaning the user has donated more than the calculated required amount up to that point.
 - This function is the **single source of truth** for the required tithe balance.
 
@@ -71,7 +73,7 @@ This document outlines the standard approach for handling financial transactions
 | `amount`                 | `REAL` / `NUMERIC` / `DECIMAL`      | Transaction amount (positive value)                            | No       | Choose precision as needed                                                                                   |
 | `currency`               | `TEXT` / `VARCHAR(3)`               | Currency code (e.g., 'ILS')                                    | No       |                                                                                                              |
 | `description`            | `TEXT`                              | User-provided description                                      | Yes      |                                                                                                              |
-| `type`                   | `TEXT` / `VARCHAR`                  | Transaction type ('income', 'donation', 'expense', etc.)       | No       | Consider CHECK constraint for valid types                                                                    |
+| `type`                   | `TEXT` / `VARCHAR`                  | Transaction type ('income', 'donation', 'expense', etc.)       | No       | Consider CHECK constraint for valid types (must include `non_tithe_donation`)                                |
 | `category`               | `TEXT` / `VARCHAR`                  | Optional category (e.g., 'Housing', 'Food')                    | Yes      | Primarily for expense types                                                                                  |
 | `is_chomesh`             | `BOOLEAN` / `INTEGER(1)`            | Indicates if 20% tithe applies (for 'income' type)             | Yes      | Only relevant for `type = 'income'`, NULL otherwise                                                          |
 | `recipient`              | `TEXT`                              | Recipient/purpose of donation (for 'donation' type)            | Yes      | Only relevant for `type = 'donation'`, NULL otherwise                                                        |
@@ -108,7 +110,7 @@ This document outlines the standard approach for handling financial transactions
   - Updated Zustand store (`transactions` array, `selectCalculatedBalance` selector).
   - Updated `dataService` functions.
 - Key frontend components have been refactored to use the new model:
-  - `StatsCards`: Displays income, expense, donation totals and required balance based on `transactions`. UI colors aligned.
+  - `StatsCards`: Displays income, expense, donation totals and required balance based on `transactions`. UI colors aligned. The donations card now also displays the breakdown of `non_tithe_donation` amounts based on server calculations.
   - `MonthlyChart`: Displays monthly income, expense, and donation totals based on `transactions`. UI colors aligned.
   - `TransactionForm`: Unified form for adding all transaction types, using conditional checkboxes for subtypes (`exempt`/`recognized`), and improved UI (type buttons, layout, success indicator).
   - `AllTransactionsDataTable`: Displays all transactions with sorting, filtering, pagination (10 per page), translated & colored type badges, and an icon for Chomesh.
