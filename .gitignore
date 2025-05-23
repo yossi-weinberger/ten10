@@ -40,3 +40,7 @@ dist-ssr
 .env.*
 !.env.example
 test-req.js
+
+# Test reports and results
+playwright-report/
+test-results/
