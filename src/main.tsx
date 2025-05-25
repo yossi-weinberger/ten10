@@ -5,6 +5,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import { router } from "./routes";
 import { ThemeProvider } from "./lib/theme";
 import { PlatformProvider } from "./contexts/PlatformContext";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { AuthProvider } from "./contexts/AuthContext";
 import "./index.css";
 
@@ -15,6 +16,7 @@ createRoot(document.getElementById("root")!).render(
         <AuthProvider>
           <RouterProvider router={router} />
           <Toaster position="top-center" />
+          <SpeedInsights />
         </AuthProvider>
       </PlatformProvider>
     </ThemeProvider>
