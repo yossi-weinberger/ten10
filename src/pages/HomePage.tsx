@@ -1,7 +1,7 @@
 import React from "react";
 import { StatsCards } from "@/components/dashboard/StatsCards";
 import { MonthlyChart } from "@/components/dashboard/MonthlyChart";
-import { AllTransactionsDataTable } from "@/components/tables/AllTransactionsDataTable";
+// import { AllTransactionsDataTable } from "@/components/tables/AllTransactionsDataTable";
 
 export function HomePage() {
   return (
@@ -15,7 +15,7 @@ export function HomePage() {
 
       <StatsCards />
       <MonthlyChart />
-      <AllTransactionsDataTable />
+      {/* <AllTransactionsDataTable /> */}
     </div>
   );
 }
