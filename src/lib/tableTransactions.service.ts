@@ -263,4 +263,100 @@ export class TableTransactionsService {
       throw new Error("Platform not supported for deleteTransaction");
     }
   }
+
+  static async getTransactionsForExport(
+    filters: TableTransactionFilters,
+    platform: Platform
+  ): Promise<Transaction[]> {
+    console.log(
+      "TableTransactionsService: Fetching all transactions for export. Platform:",
+      platform,
+      "Filters:",
+      filters
+    );
+
+    if (platform === "web") {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error(
+            "User not authenticated for fetching transactions for export."
+          );
+        }
+
+        const rpcParams = {
+          p_user_id: user.id,
+          p_date_from: filters.dateRange.from
+            ? filters.dateRange.from.toISOString().split("T")[0]
+            : null,
+          p_date_to: filters.dateRange.to
+            ? filters.dateRange.to.toISOString().split("T")[0]
+            : null,
+          p_types: filters.types.length > 0 ? filters.types : null,
+          p_search: filters.search || null,
+          // Sorting is not typically applied for a full data export,
+          // but if the RPC supports it, it could be added.
+          // For now, we assume the RPC `export_user_transactions` handles its own default sorting or no sorting.
+        };
+
+        console.log(
+          "TableTransactionsService: Calling RPC 'export_user_transactions' with params:",
+          JSON.stringify(rpcParams, null, 2)
+        );
+
+        // Note: The RPC function 'export_user_transactions' needs to be created in Supabase.
+        // It should return SETOF transactions or a JSON array of transactions.
+        const { data: rpcData, error: rpcError } = await supabase.rpc(
+          "export_user_transactions",
+          rpcParams
+        );
+
+        if (rpcError) {
+          console.error(
+            "Supabase RPC export_user_transactions error:",
+            rpcError
+          );
+          throw rpcError;
+        }
+
+        // Assuming rpcData is an array of Transaction objects
+        if (!Array.isArray(rpcData)) {
+          console.error(
+            "Supabase RPC export_user_transactions unexpected response structure:",
+            rpcData
+          );
+          throw new Error(
+            "Unexpected data structure from export_user_transactions RPC."
+          );
+        }
+
+        const transactions: Transaction[] = rpcData;
+        console.log(
+          `TableTransactionsService: Parsed ${transactions.length} transactions for export.`
+        );
+        return transactions;
+      } catch (error) {
+        console.error(
+          "Error in TableTransactionsService.getTransactionsForExport (Supabase):",
+          error
+        );
+        throw error;
+      }
+    } else if (platform === "desktop") {
+      console.warn(
+        "TableTransactionsService: Desktop getTransactionsForExport not yet implemented. Returning empty data."
+      );
+      // TODO: Implement desktop version using Tauri invoke to a Rust command
+      // const transactions: Transaction[] = await invoke("export_desktop_transactions", { filters });
+      // return transactions;
+      return [];
+    } else {
+      console.error(
+        "TableTransactionsService: Platform not supported for getTransactionsForExport."
+      );
+      throw new Error("Platform not supported for getTransactionsForExport");
+    }
+  }
 }

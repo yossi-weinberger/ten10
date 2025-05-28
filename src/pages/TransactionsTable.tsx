@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Transaction, TransactionType } from "@/types/transaction";
 import { TransactionsFilters } from "@/components/transactions/TransactionsFilters";
+import { ExportButton } from "@/components/transactions/ExportButton"; // Import ExportButton
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -25,7 +26,11 @@ import {
   MoreHorizontal,
   Trash2,
   Edit3,
+  Loader2, // Import Loader2
+  RotateCcw, // For Undo
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton"; // Import Skeleton
+import { toast } from "sonner"; // Import toast
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,7 +78,8 @@ export function TransactionsTable() {
     pagination,
     sorting,
     setSorting,
-    deleteTransaction,
+    deleteTransaction, // This will now be a direct delete
+    // undoDeleteTransaction, // Removed
   } = useTableTransactionsStore();
 
   const { platform } = usePlatform();
@@ -85,8 +91,21 @@ export function TransactionsTable() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
+    console.log(
+      "TransactionsTable useEffect for fetchTransactions triggered. Platform:",
+      platform,
+      "Sorting:",
+      JSON.stringify(sorting)
+    );
     if (platform !== "loading") {
+      console.log(
+        "TransactionsTable: Platform is not loading, calling fetchTransactions(true, platform)."
+      );
       fetchTransactions(true, platform);
+    } else {
+      console.log(
+        "TransactionsTable: Platform is loading, fetchTransactions NOT called."
+      );
     }
   }, [fetchTransactions, platform, sorting]);
 
@@ -129,7 +148,25 @@ export function TransactionsTable() {
 
   const handleDeleteConfirm = async () => {
     if (transactionToDelete) {
-      await deleteTransaction(transactionToDelete.id, platform);
+      const deletedTransactionId = transactionToDelete.id;
+      const deletedTransactionDescription =
+        transactionToDelete.description || "תנועה זו";
+
+      if (platform === "web" || platform === "desktop") {
+        try {
+          await deleteTransaction(deletedTransactionId, platform);
+          toast.success(`"${deletedTransactionDescription}" נמחקה בהצלחה.`);
+        } catch (error: any) {
+          console.error("Failed to delete transaction from component:", error);
+          toast.error(
+            `שגיאה במחיקת "${deletedTransactionDescription}": ${
+              error.message || "שגיאה לא ידועה"
+            }`
+          );
+        }
+      } else {
+        toast.error("לא ניתן למחוק, הפלטפורמה עדיין בטעינה או לא תקינה.");
+      }
     }
     setIsDeleteDialogOpen(false);
     setTransactionToDelete(null);
@@ -143,7 +180,10 @@ export function TransactionsTable() {
   return (
     <div className="container mx-auto py-4 space-y-6">
       <h1 className="text-3xl font-bold text-center">טבלת תנועות</h1>
-      <TransactionsFilters />
+      <div className="flex justify-between items-center gap-4">
+        <TransactionsFilters />
+        <ExportButton />
+      </div>
       {error && (
         <p className="text-red-500 text-center py-4">
           שגיאה בטעינת נתונים: {error}
@@ -180,14 +220,22 @@ export function TransactionsTable() {
               </TableHeader>
               <TableBody>
                 {loading && transactions.length === 0 && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={sortableColumns.length + 3}
-                      className="h-24 text-center"
-                    >
-                      טוען נתונים...
-                    </TableCell>
-                  </TableRow>
+                  <>
+                    {Array.from({ length: 5 }).map((_, rowIndex) => (
+                      <TableRow key={`skeleton-row-${rowIndex}`}>
+                        {Array.from({ length: sortableColumns.length + 3 }).map(
+                          (_, cellIndex) => (
+                            <TableCell
+                              key={`skeleton-cell-${rowIndex}-${cellIndex}`}
+                              className="text-right whitespace-nowrap"
+                            >
+                              <Skeleton className="h-6 w-full" />
+                            </TableCell>
+                          )
+                        )}
+                      </TableRow>
+                    ))}
+                  </>
                 )}
                 {!loading && !error && transactions.length === 0 && (
                   <TableRow>
@@ -280,13 +328,26 @@ export function TransactionsTable() {
         </CardContent>
       </Card>
       {loading && transactions.length > 0 && (
-        <p className="text-center mt-4">טוען עוד נתונים...</p>
-      )}
-      {!loading && pagination.hasMore && (
-        <div className="text-center mt-6">
-          <Button onClick={handleLoadMore}>טען עוד</Button>
+        <div className="text-center mt-4">
+          <Button variant="outline" disabled>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            טוען עוד נתונים...
+          </Button>
         </div>
       )}
+      <div
+        className="flex justify-center items-center mt-6 space-x-4"
+        dir="rtl"
+      >
+        {!loading && pagination.hasMore && (
+          <Button onClick={handleLoadMore}>טען עוד</Button>
+        )}
+        {transactions.length > 0 && (
+          <p className="text-sm text-muted-foreground">
+            מציג {transactions.length} מתוך {pagination.totalCount} תנועות
+          </p>
+        )}
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog
