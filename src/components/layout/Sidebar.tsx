@@ -8,6 +8,7 @@ import {
   User,
   Book,
   BarChart,
+  Table,
 } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -166,6 +167,9 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         </NavLink>
         <NavLink to="/analytics" icon={BarChart}>
           ניתוח נתונים
+        </NavLink>
+        <NavLink to="/transactionsTable" icon={Table}>
+          טבלת נתונים
         </NavLink>
         <NavLink to="/halacha" icon={Book}>
           הלכות
