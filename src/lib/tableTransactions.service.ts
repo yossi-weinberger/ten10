@@ -68,10 +68,10 @@ export class TableTransactionsService {
           rpcParams
         );
 
-        console.log(
-          "TableTransactionsService: Raw rpcData:",
-          JSON.stringify(rpcData, null, 2)
-        );
+        // console.log(
+        //   "TableTransactionsService: Raw rpcData:",
+        //   JSON.stringify(rpcData, null, 2)
+        // );
         console.log(
           "TableTransactionsService: Raw rpcError:",
           JSON.stringify(rpcError, null, 2)
