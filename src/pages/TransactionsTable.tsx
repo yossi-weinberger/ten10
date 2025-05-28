@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useTableTransactionsStore } from "@/lib/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,33 @@ import {
   transactionTypeLabels,
   typeBadgeColors,
 } from "@/types/transactionLabels";
-import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react"; // Import icons
+import {
+  ArrowUp,
+  ArrowDown,
+  ChevronsUpDown,
+  MoreHorizontal,
+  Trash2,
+  Edit3,
+} from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { TransactionEditModal } from "@/components/transactions/TransactionEditModal";
 
 const formatBoolean = (value: boolean | null | undefined) => {
   if (value === true) return "כן";
@@ -26,8 +52,7 @@ const formatBoolean = (value: boolean | null | undefined) => {
   return "-";
 };
 
-// Define which columns are sortable and their corresponding field names in Transaction type
-type SortableField = keyof Transaction | string; // Allow string for custom/non-direct fields if any
+type SortableField = keyof Transaction | string;
 const sortableColumns: { label: string; field: SortableField }[] = [
   { label: "תאריך", field: "date" },
   { label: "תיאור", field: "description" },
@@ -36,8 +61,6 @@ const sortableColumns: { label: string; field: SortableField }[] = [
   { label: "סוג", field: "type" },
   { label: "קטגוריה", field: "category" },
   { label: "נמען/משלם", field: "recipient" },
-  // { label: "חומש?", field: "is_chomesh" }, // Booleans might be tricky to sort meaningfully in DB
-  // { label: "קבועה?", field: "is_recurring" },
 ];
 
 export function TransactionsTable() {
@@ -48,17 +71,24 @@ export function TransactionsTable() {
     fetchTransactions,
     setLoadMorePagination,
     pagination,
-    sorting, // Get sorting state
-    setSorting, // Get setSorting action
+    sorting,
+    setSorting,
+    deleteTransaction,
   } = useTableTransactionsStore();
 
   const { platform } = usePlatform();
+  const [transactionToDelete, setTransactionToDelete] =
+    useState<Transaction | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] =
+    useState<Transaction | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (platform !== "loading") {
       fetchTransactions(true, platform);
     }
-  }, [fetchTransactions, platform, sorting]); // Add sorting to dependency array
+  }, [fetchTransactions, platform, sorting]);
 
   if (platform === "loading") {
     return (
@@ -90,6 +120,24 @@ export function TransactionsTable() {
       return <ArrowUp className="ml-2 h-4 w-4" />;
     }
     return <ArrowDown className="ml-2 h-4 w-4" />;
+  };
+
+  const handleDeleteInitiate = (transaction: Transaction) => {
+    setTransactionToDelete(transaction);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (transactionToDelete) {
+      await deleteTransaction(transactionToDelete.id, platform);
+    }
+    setIsDeleteDialogOpen(false);
+    setTransactionToDelete(null);
+  };
+
+  const handleEditInitiate = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setIsEditModalOpen(true);
   };
 
   return (
@@ -125,14 +173,16 @@ export function TransactionsTable() {
                   <TableHead className="text-right whitespace-nowrap">
                     קבועה?
                   </TableHead>
-                  {/* <TableHead className="text-right">פעולות</TableHead> */}
+                  <TableHead className="text-center whitespace-nowrap">
+                    פעולות
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading && transactions.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={sortableColumns.length + 2}
+                      colSpan={sortableColumns.length + 3}
                       className="h-24 text-center"
                     >
                       טוען נתונים...
@@ -142,7 +192,7 @@ export function TransactionsTable() {
                 {!loading && !error && transactions.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={sortableColumns.length + 2}
+                      colSpan={sortableColumns.length + 3}
                       className="h-24 text-center"
                     >
                       לא נמצאו תנועות.
@@ -195,7 +245,33 @@ export function TransactionsTable() {
                     <TableCell className="text-right whitespace-nowrap">
                       {formatBoolean(transaction.is_recurring)}
                     </TableCell>
-                    {/* <TableCell className="text-right">TODO: Actions</TableCell> */}
+                    <TableCell className="text-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">פתח תפריט</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>פעולות</DropdownMenuLabel>
+                          <DropdownMenuItem
+                            onClick={() => handleEditInitiate(transaction)}
+                          >
+                            <Edit3 className="mr-2 h-4 w-4" />
+                            עריכה
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteInitiate(transaction)}
+                            className="text-red-600 hover:!text-red-600 focus:!text-red-600"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            מחיקה
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -210,6 +286,49 @@ export function TransactionsTable() {
         <div className="text-center mt-6">
           <Button onClick={handleLoadMore}>טען עוד</Button>
         </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>אישור מחיקת תנועה</AlertDialogTitle>
+            <AlertDialogDescription>
+              האם אתה בטוח שברצונך למחוק את התנועה "
+              {transactionToDelete?.description || "זו"}" מתאריך{" "}
+              {transactionToDelete?.date
+                ? new Date(transactionToDelete.date).toLocaleDateString("he-IL")
+                : ""}
+              ? לא ניתן לשחזר פעולה זו.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
+              ביטול
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              מחק
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit Transaction Modal */}
+      {isEditModalOpen && editingTransaction && (
+        <TransactionEditModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingTransaction(null);
+          }}
+          transaction={editingTransaction}
+        />
       )}
     </div>
   );

@@ -12,6 +12,16 @@ export type TransactionType =
   | "recognized-expense"
   | "non_tithe_donation"; // Renamed from donation_from_personal_funds
 
+// Array of literal types for Zod enum
+export const TransactionTypeValues: [TransactionType, ...TransactionType[]] = [
+  "income",
+  "donation",
+  "expense",
+  "exempt-income",
+  "recognized-expense",
+  "non_tithe_donation",
+];
+
 // Define the core Transaction interface
 export interface Transaction {
   id: string; // Unique identifier (e.g., nanoid())

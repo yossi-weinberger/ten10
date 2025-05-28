@@ -109,7 +109,6 @@ export class TableTransactionsService {
           );
           singleRowData = { transactions: [], total_count: 0 };
         } else {
-          // Assuming rpcData is the single object if not an array or null
           singleRowData = rpcData as {
             transactions: Transaction[];
             total_count: number;
@@ -125,11 +124,8 @@ export class TableTransactionsService {
             "Original rpcData:",
             rpcData
           );
-          // Ensure a valid structure for return, even if it's empty
           if (responseData && typeof responseData.total_count === "number") {
-            // This means the structure is { transactions: null or [], total_count: number } which is fine.
           } else {
-            // Fallback to a definite empty structure if still problematic
             console.error(
               "Fallback: Returning empty due to persistent unexpected structure."
             );
@@ -173,15 +169,55 @@ export class TableTransactionsService {
       `TableTransactionsService: Updating transaction ${id}. Platform: ${platform}`
     );
     if (platform === "web") {
-      const { data, error } = await supabase
-        .from("transactions")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-      if (error) throw error;
-      if (!data) throw new Error("No data returned after update");
-      return data as Transaction;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated for updating transaction.");
+      }
+
+      // Ensure 'id', 'user_id', 'created_at', 'updated_at' are not in the updates payload
+      // as they are handled by the RPC or should not be changed by user directly.
+      // The RPC function 'update_user_transaction' has an allowed_columns list.
+      const {
+        id: transactionIdInput, // Avoid passing 'id' from updates to RPC p_updates
+        user_id: userIdInput, // Avoid passing 'user_id' from updates
+        created_at: createdAtInput,
+        updated_at: updatedAtInput,
+        ...validUpdatesPayload
+      } = updates;
+
+      const { data, error: rpcError } = await supabase.rpc(
+        "update_user_transaction",
+        {
+          p_transaction_id: id,
+          p_user_id: user.id,
+          p_updates: validUpdatesPayload,
+        }
+      );
+
+      if (rpcError) {
+        console.error(
+          `Supabase RPC update_user_transaction error for transaction ${id}:`,
+          rpcError
+        );
+        throw rpcError;
+      }
+
+      // RPC returns SETOF transactions, data will be an array with the updated row.
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        // This case might happen if the RPC's "IF NOT FOUND THEN RAISE EXCEPTION" was commented out
+        // and no row was actually updated (e.g., wrong user_id or transaction_id).
+        // Or if the RPC had an issue but didn't throw a PostgREST error.
+        console.error(
+          `No data returned or empty array from RPC update_user_transaction for transaction ${id}. Original RPC data:`,
+          data
+        );
+        throw new Error(
+          `Failed to update transaction ${id} or no data returned.`
+        );
+      }
+      return data[0] as Transaction; // Return the first (and only) updated row
     } else if (platform === "desktop") {
       console.warn("Desktop updateTransaction not implemented yet.");
       throw new Error("Desktop update not implemented.");
@@ -197,11 +233,29 @@ export class TableTransactionsService {
       `TableTransactionsService: Deleting transaction ${id}. Platform: ${platform}`
     );
     if (platform === "web") {
-      const { error } = await supabase
-        .from("transactions")
-        .delete()
-        .eq("id", id);
-      if (error) throw error;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("User not authenticated for deleting transaction.");
+      }
+
+      const { error: rpcError } = await supabase.rpc(
+        "delete_user_transaction",
+        {
+          p_transaction_id: id,
+          p_user_id: user.id,
+        }
+      );
+
+      if (rpcError) {
+        console.error(
+          `Supabase RPC delete_user_transaction error for transaction ${id}:`,
+          rpcError
+        );
+        throw rpcError;
+      }
+      console.log(`Transaction ${id} delete initiated successfully via RPC.`);
     } else if (platform === "desktop") {
       console.warn("Desktop deleteTransaction not implemented yet.");
       throw new Error("Desktop delete not implemented.");
