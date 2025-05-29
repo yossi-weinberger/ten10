@@ -463,20 +463,14 @@ export class TableTransactionsService {
     console.log(
       `TableTransactionsService: Updating transaction ${id}. Platform: ${platform}`
     );
-    if (platform === "web") {
-      // ... existing code ...
-    } else if (platform === "desktop") {
+    if (platform === "desktop") {
       console.log(
         `TableTransactionsService: Invoking update_transaction_handler for ID: ${id} with updates:`,
         updates
       );
       try {
-        // Assuming a Rust command `update_transaction_handler` will be created.
-        // It would likely take { transactionId: string, updates: Partial<Transaction> }
-        // For now, we are just passing updates. The Rust side needs to handle this structure.
-        // Also, the Rust side will need to return the updated transaction.
         const updatedTransaction = await invoke<Transaction>(
-          "update_transaction_handler", // This command needs to be created in Rust
+          "update_transaction_handler",
           { transactionId: id, updates: updates }
         );
         console.log(
@@ -486,15 +480,47 @@ export class TableTransactionsService {
         return updatedTransaction;
       } catch (error) {
         console.error("Error invoking update_transaction_handler:", error);
-        // It's important that the Rust command `update_transaction_handler` exists and is registered.
         throw new Error(
           `Failed to update transaction on desktop: ${
             error instanceof Error ? error.message : String(error)
           }`
         );
       }
+    } else if (platform === "web") {
+      try {
+        const { data, error } = await supabase
+          .from("transactions")
+          .update(updates)
+          .eq("id", id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error(
+            `TableTransactionsService: Supabase update error for ID ${id}:`,
+            error
+          );
+          throw error;
+        }
+        if (!data) {
+          throw new Error(`Supabase update for ID ${id} did not return data.`);
+        }
+        console.log(
+          `TableTransactionsService: Supabase update successful for ID: ${id}`
+        );
+        return data as Transaction;
+      } catch (error) {
+        console.error(`Error updating transaction ${id} in Supabase:`, error);
+        throw error;
+      }
+    } else {
+      console.error(
+        `TableTransactionsService: Platform ${platform} not supported for updateTransaction.`
+      );
+      throw new Error(
+        `Platform ${platform} not supported for updateTransaction.`
+      );
     }
-    throw new Error("Platform not supported for updateTransaction");
   }
 
   static async deleteTransaction(
@@ -504,9 +530,7 @@ export class TableTransactionsService {
     console.log(
       `TableTransactionsService: Deleting transaction ${id}. Platform: ${platform}`
     );
-    if (platform === "web") {
-      // ... existing code ...
-    } else if (platform === "desktop") {
+    if (platform === "desktop") {
       try {
         console.log(
           `TableTransactionsService: Invoking delete_transaction_handler for ID: ${id}`
@@ -515,7 +539,6 @@ export class TableTransactionsService {
         console.log(
           "TableTransactionsService: Desktop delete_transaction_handler successful."
         );
-        return; // No specific data returned on success
       } catch (error) {
         console.error("Error invoking delete_transaction_handler:", error);
         throw new Error(
@@ -524,8 +547,35 @@ export class TableTransactionsService {
           }`
         );
       }
+    } else if (platform === "web") {
+      try {
+        const { error } = await supabase
+          .from("transactions")
+          .delete()
+          .eq("id", id);
+
+        if (error) {
+          console.error(
+            `TableTransactionsService: Supabase delete error for ID ${id}:`,
+            error
+          );
+          throw error;
+        }
+        console.log(
+          `TableTransactionsService: Supabase delete successful for ID: ${id}`
+        );
+      } catch (error) {
+        console.error(`Error deleting transaction ${id} from Supabase:`, error);
+        throw error;
+      }
+    } else {
+      console.error(
+        `TableTransactionsService: Platform ${platform} not supported for deleteTransaction.`
+      );
+      throw new Error(
+        `Platform ${platform} not supported for deleteTransaction.`
+      );
     }
-    throw new Error("Platform not supported for deleteTransaction");
   }
 
   static async getTransactionsForExport(
@@ -536,7 +586,83 @@ export class TableTransactionsService {
       `TableTransactionsService: Getting transactions for export. Platform: ${platform}`
     );
     if (platform === "web") {
-      // ... existing code ...
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error("User not authenticated for exporting transactions.");
+        }
+
+        const rpcParams = {
+          p_user_id: user.id,
+          p_offset: 0, // Fetch all records starting from the beginning
+          p_limit: 1000000, // A large limit to fetch all/most records
+          p_date_from: filters.dateRange.from
+            ? new Date(filters.dateRange.from).toISOString().split("T")[0]
+            : null,
+          p_date_to: filters.dateRange.to
+            ? new Date(filters.dateRange.to).toISOString().split("T")[0]
+            : null,
+          p_types: filters.types.length > 0 ? filters.types : null,
+          p_search: filters.search || null,
+          p_sort_field: "date", // Default sort for export consistency
+          p_sort_direction: "desc", // Default sort for export consistency
+        };
+
+        console.log(
+          "TableTransactionsService: Calling RPC 'get_user_transactions' for export with params:",
+          JSON.stringify(rpcParams, null, 2)
+        );
+
+        const { data: rpcData, error: rpcError } = await supabase.rpc(
+          "get_user_transactions",
+          rpcParams
+        );
+
+        if (rpcError) {
+          console.error(
+            "Supabase RPC get_user_transactions for export error:",
+            rpcError
+          );
+          throw rpcError;
+        }
+
+        let responseData: {
+          transactions: Transaction[];
+          total_count: number; // total_count is part of the RPC response but less relevant for full export
+        } | null = null;
+
+        if (Array.isArray(rpcData)) {
+          if (rpcData.length > 0) {
+            responseData = rpcData[0] as {
+              transactions: Transaction[];
+              total_count: number;
+            };
+          } else {
+            responseData = { transactions: [], total_count: 0 };
+          }
+        } else if (rpcData) {
+          responseData = rpcData as {
+            transactions: Transaction[];
+            total_count: number;
+          };
+        } else {
+          responseData = { transactions: [], total_count: 0 };
+        }
+
+        const transactions: Transaction[] = responseData.transactions || [];
+        console.log(
+          `TableTransactionsService: Supabase export successful, fetched ${transactions.length} transactions.`
+        );
+        return transactions;
+      } catch (error) {
+        console.error(
+          "Error in TableTransactionsService.getTransactionsForExport (Supabase):",
+          error
+        );
+        throw error;
+      }
     } else if (platform === "desktop") {
       try {
         const payload: ExportTransactionsFiltersPayload = {
