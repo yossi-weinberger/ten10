@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useTableTransactionsStore } from "@/lib/tableTransactions.store";
-import { initialTableTransactionFilters } from "@/types/tableTransactions.types";
+import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
+import { initialTableTransactionFilters } from "@/lib/tableTransactions/tableTransactions.types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,8 +55,12 @@ export function TransactionsFilters() {
   const [localDateRange, setLocalDateRange] = useState<DateRange | undefined>(
     storeFilters.dateRange.from || storeFilters.dateRange.to
       ? {
-          from: storeFilters.dateRange.from || undefined,
-          to: storeFilters.dateRange.to || undefined,
+          from: storeFilters.dateRange.from
+            ? new Date(storeFilters.dateRange.from)
+            : undefined,
+          to: storeFilters.dateRange.to
+            ? new Date(storeFilters.dateRange.to)
+            : undefined,
         }
       : undefined
   );
@@ -75,8 +79,12 @@ export function TransactionsFilters() {
     setLocalDateRange(selectedDateRange);
     setStoreFilters({
       dateRange: {
-        from: selectedDateRange?.from || null,
-        to: selectedDateRange?.to || null,
+        from: selectedDateRange?.from
+          ? selectedDateRange.from.toISOString().split("T")[0]
+          : null,
+        to: selectedDateRange?.to
+          ? selectedDateRange.to.toISOString().split("T")[0]
+          : null,
       },
     });
   };
@@ -95,8 +103,12 @@ export function TransactionsFilters() {
       initialTableTransactionFilters.dateRange.from ||
         initialTableTransactionFilters.dateRange.to
         ? {
-            from: initialTableTransactionFilters.dateRange.from || undefined,
-            to: initialTableTransactionFilters.dateRange.to || undefined,
+            from: initialTableTransactionFilters.dateRange.from
+              ? new Date(initialTableTransactionFilters.dateRange.from)
+              : undefined,
+            to: initialTableTransactionFilters.dateRange.to
+              ? new Date(initialTableTransactionFilters.dateRange.to)
+              : undefined,
           }
         : undefined
     );

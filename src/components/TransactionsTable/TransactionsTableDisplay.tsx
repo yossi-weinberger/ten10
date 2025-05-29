@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useTableTransactionsStore } from "@/lib/tableTransactions.store";
+import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { Table, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { TransactionsFilters } from "./TransactionsFilters";

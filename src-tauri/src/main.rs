@@ -10,7 +10,7 @@ mod commands;
 use commands::income_commands::get_desktop_total_income_in_range;
 use commands::expense_commands::get_desktop_total_expenses_in_range;
 use commands::donation_commands::{get_desktop_total_donations_in_range, get_desktop_overall_tithe_balance};
-use commands::transaction_commands::{delete_transaction_handler, export_transactions_handler, get_filtered_transactions_handler};
+use commands::transaction_commands::{delete_transaction_handler, export_transactions_handler, get_filtered_transactions_handler, update_transaction_handler};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct Transaction {
@@ -167,7 +167,8 @@ fn main() {
             get_desktop_overall_tithe_balance,
             delete_transaction_handler,
             export_transactions_handler,
-            get_filtered_transactions_handler
+            get_filtered_transactions_handler,
+            update_transaction_handler
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

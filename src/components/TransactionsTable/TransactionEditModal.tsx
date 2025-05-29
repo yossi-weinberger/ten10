@@ -24,14 +24,16 @@ import { TransactionTypeValues } from "@/types/transaction";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { transactionBaseSchema } from "@/lib/schemas";
-import { useTableTransactionsStore } from "@/lib/tableTransactions.store";
+import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { transactionTypeLabels } from "@/types/transactionLabels";
 import { z } from "zod"; // Import z
 
-// For the edit form, we don't want to validate server-set timestamps like created_at/updated_at
+// For the edit form, we don't want to validate server-set timestamps or IDs
 // if they are part of the defaultValues. We only care about fields the user can change.
 const transactionUpdateSchema = transactionBaseSchema.partial().extend({
+  id: z.string().optional(), // Accept any string for ID in the form, or undefined
+  user_id: z.string().nullable().optional(), // Accept any string, null, or undefined for user_id
   created_at: z.any().optional(),
   updated_at: z.any().optional(),
 });

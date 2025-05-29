@@ -9,7 +9,8 @@ import { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient"; // Using path alias from tsconfig
 import { toast } from "react-hot-toast";
 import { useDonationStore } from "@/lib/store"; // Import Zustand store
-import { useTableTransactionsStore } from "@/lib/tableTransactions.store"; // Import table transactions store
+import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
+// Import table transactions store
 import { loadTransactions, setDataServicePlatform } from "@/lib/dataService"; // Import data loading function and platform setter
 import { usePlatform } from "./PlatformContext"; // Import usePlatform to set platform for dataService
 

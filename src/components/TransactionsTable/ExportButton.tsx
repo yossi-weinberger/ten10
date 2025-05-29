@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Download, Loader2 } from "lucide-react"; // Added Loader2
-import { useTableTransactionsStore } from "@/lib/tableTransactions.store";
+import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store"; // Updated path
 import { usePlatform } from "@/contexts/PlatformContext";
 
 export function ExportButton() {

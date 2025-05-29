@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Transaction } from "../types/transaction";
+import { Transaction } from "../../types/transaction"; // Updated path
 import {
   TableTransactionFilters,
   TableSortConfig,
@@ -7,13 +7,13 @@ import {
   initialTableTransactionFilters,
   initialTableSortConfig,
   initialTablePaginationState,
-} from "../types/tableTransactions.types";
-import { TableTransactionsService } from "./transactionService.ts";
-import { Platform } from "@/contexts/PlatformContext"; // Import Platform type
-import { exportTransactionsToPDF } from "./utils/export-pdf";
-import { exportTransactionsToExcel } from "./utils/export-excel";
-import { exportTransactionsToCSV } from "./utils/export-csv"; // Import CSV export function
-import { supabase } from "@/lib/supabaseClient"; // Import supabase client
+} from "./tableTransactions.types"; // Updated path
+import { TableTransactionsService } from "./tableTransactionService"; // Updated path
+import { Platform } from "@/contexts/PlatformContext"; // Path should be relative to new location
+import { exportTransactionsToPDF } from "../utils/export-pdf"; // Updated path
+import { exportTransactionsToExcel } from "../utils/export-excel"; // Updated path
+import { exportTransactionsToCSV } from "../utils/export-csv"; // Updated path
+import { supabase } from "../supabaseClient"; // Updated path
 import type {
   RealtimeChannel,
   RealtimePostgresChangesPayload,
@@ -29,32 +29,24 @@ export interface TableTransactionsState {
   error: string | null; // General error for fetching transactions
   exportLoading: boolean; // Specific loading for export action
   exportError: string | null; // Specific error for export action
-  // realtimeChannel: RealtimeChannel | null; // REMOVED: For Supabase realtime subscription
-  // transactionPendingUndo: { // Removed for direct delete
-  //   transaction: Transaction;
-  //   timeoutId: NodeJS.Timeout;
-  // } | null; // For undo delete
 
   // Actions
   fetchTransactions: (reset?: boolean, platform?: Platform) => Promise<void>;
   setLoadMorePagination: () => void;
   setFilters: (filters: Partial<TableTransactionFilters>) => void;
-  setSorting: (newSortField: keyof Transaction | string) => void; // Changed signature
-  updateTransactionState: (id: string, updates: Partial<Transaction>) => void; // For optimistic updates
-  deleteTransactionState: (id: string) => void; // For optimistic updates
-  deleteTransaction: (id: string, platform: Platform) => Promise<void>; // Actual delete action
+  setSorting: (newSortField: keyof Transaction | string) => void;
+  updateTransactionState: (id: string, updates: Partial<Transaction>) => void;
+  deleteTransactionState: (id: string) => void;
+  deleteTransaction: (id: string, platform: Platform) => Promise<void>;
   updateTransaction: (
     id: string,
     updates: Partial<Transaction>,
     platform: Platform
-  ) => Promise<void>; // Actual update action
+  ) => Promise<void>;
   exportTransactions: (
     format: "csv" | "excel" | "pdf",
     platform: Platform
-  ) => Promise<void>; // Added for export
-  // setupRealtimeSubscription: (userId: string) => void; // REMOVED
-  // cleanupRealtimeSubscription: () => void; // REMOVED
-  // undoDeleteTransaction: () => Promise<void>; // Removed for direct delete
+  ) => Promise<void>;
   resetFiltersState: () => void;
   resetStore: () => void;
 }
@@ -70,8 +62,6 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
     error: null,
     exportLoading: false,
     exportError: null,
-    // realtimeChannel: null, // REMOVED
-    // transactionPendingUndo: null, // Removed for direct delete
 
     // Actions
     fetchTransactions: async (reset?: boolean, platform?: Platform) => {
@@ -81,8 +71,6 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         }`
       );
       if (get().loading && !reset) {
-        // If already loading and this is not a reset call (e.g. from loadMore), prevent re-fetch.
-        // A reset call (e.g. from filter/sort change) should proceed.
         console.log(
           "TableTransactionsStore: fetchTransactions - already loading and not a reset, aborting."
         );
@@ -195,7 +183,6 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           newSortField
         )}`
       );
-      // newSortField is keyof Transaction | string
       const currentSorting = get().sorting;
       let newDirection: "asc" | "desc" = "asc";
       if (
@@ -205,23 +192,20 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         newDirection = "desc";
       }
       set({ sorting: { field: newSortField, direction: newDirection } });
-      // The component (TransactionsTable.tsx) will observe 'sorting' changes and trigger fetch.
     },
 
     updateTransactionState: (id, updates) => {
       set((state) => ({
-        transactions: state.transactions.map(
-          (t) =>
-            t.id === id
-              ? { ...t, ...updates, updated_at: new Date().toISOString() }
-              : t // Also update updated_at optimistically
+        transactions: state.transactions.map((t) =>
+          t.id === id
+            ? { ...t, ...updates, updated_at: new Date().toISOString() }
+            : t
         ),
       }));
     },
 
     updateTransaction: async (id, updates, platform) => {
       const originalTransactions = get().transactions;
-      // Find the specific transaction to get its original state for potential rollback
       const transactionToUpdate = originalTransactions.find((t) => t.id === id);
       if (!transactionToUpdate) {
         console.error("Transaction to update not found in store:", id);
@@ -230,28 +214,27 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
       }
       const originalTransactionState = { ...transactionToUpdate };
 
-      // Optimistic update
       get().updateTransactionState(id, updates);
-      set({ error: null }); // Clear previous errors
+      set({ error: null });
 
       try {
+        // userIdForUpdate logic was part of the original code but seems unnecessary
+        // as TableTransactionsService.updateTransaction does not expect it.
+        // If user context is needed within the service, it should be handled by the service itself (e.g., via supabase.auth.getUser()).
+
         const updatedTransactionFromServer =
           await TableTransactionsService.updateTransaction(
             id,
             updates,
             platform
           );
-        // If successful, update the state with the potentially more complete/accurate data from server
         get().updateTransactionState(id, updatedTransactionFromServer);
-        // Consider adding a toast notification for success.
       } catch (err: any) {
         console.error("Failed to update transaction:", err);
-        // Revert optimistic update
         get().updateTransactionState(id, originalTransactionState);
         set({
           error: err.message || "Failed to update transaction.",
         });
-        // Consider adding a toast notification for failure.
       }
     },
 
@@ -261,14 +244,14 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         pagination: {
           ...state.pagination,
           totalCount: Math.max(0, state.pagination.totalCount - 1),
-        }, // Adjust total count
+        },
       }));
     },
 
     deleteTransaction: async (id, platform) => {
       const originalTransactions = get().transactions;
       const originalPagination = get().pagination;
-      const transactionToDelete = originalTransactions.find((t) => t.id === id); // Keep a reference for potential rollback
+      const transactionToDelete = originalTransactions.find((t) => t.id === id);
 
       if (!transactionToDelete) {
         console.error("Transaction to delete not found in store:", id);
@@ -276,29 +259,21 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         return;
       }
 
-      // Optimistic update
       get().deleteTransactionState(id);
-      set({ error: null }); // Clear previous errors
+      set({ error: null });
 
       try {
         await TableTransactionsService.deleteTransaction(id, platform);
-        // If successful, the optimistic update is already done.
-        // TODO: Toast "Transaction deleted successfully" (from component or here)
       } catch (err: any) {
         console.error("Failed to delete transaction from server:", err);
-        // Revert optimistic update
         set({
           error: err.message || "Failed to delete transaction.",
-          transactions: originalTransactions, // Revert to original transactions list
-          pagination: originalPagination, // Revert pagination to original state
+          transactions: originalTransactions,
+          pagination: originalPagination,
         });
-        // TODO: Toast "Failed to delete transaction from server" (from component or here)
-        throw err; // Re-throw to allow component to also handle if needed
+        throw err;
       }
     },
-
-    // undoDeleteTransaction: async () => { // Removed
-    // },
 
     resetFiltersState: () => {
       set({ filters: initialTableTransactionFilters });
@@ -317,11 +292,9 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
 
     exportTransactions: async (format, platform) => {
       const { filters } = get();
-      set({ exportLoading: true, exportError: null, error: null }); // Use exportLoading and clear general error
+      set({ exportLoading: true, exportError: null, error: null });
 
       try {
-        // Step 1: Fetch all transactions based on current filters
-        // This service method and the corresponding RPC need to be implemented
         const transactionsToExport =
           await TableTransactionsService.getTransactionsForExport(
             filters,
@@ -331,11 +304,9 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         if (!transactionsToExport || transactionsToExport.length === 0) {
           console.warn("No transactions to export.");
           set({ exportLoading: false, exportError: "אין נתונים ליצוא." });
-          // User will see this error via toast in ExportButton
           return;
         }
 
-        // Step 2: Perform the export based on the format
         if (format === "pdf") {
           await exportTransactionsToPDF(transactionsToExport);
         } else if (format === "excel") {
@@ -346,21 +317,13 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           throw new Error("Unsupported export format");
         }
         set({ exportLoading: false, exportError: null });
-        // Success toast will be shown in ExportButton
       } catch (err: any) {
         console.error(`Failed to export transactions to ${format}:`, err);
         set({
           exportError: err.message || `Failed to export to ${format}`,
           exportLoading: false,
         });
-        // Error toast will be shown in ExportButton
       }
     },
-
-    // setupRealtimeSubscription: (userId) => { // REMOVED
-    // },
-
-    // cleanupRealtimeSubscription: () => { // REMOVED
-    // },
   })
 );

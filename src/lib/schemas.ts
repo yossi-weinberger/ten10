@@ -10,7 +10,7 @@ const currencyEnumValues = ["ILS", "USD", "EUR", "GBP"] as [
 // Base schema for common transaction fields
 export const transactionBaseSchema = z.object({
   id: z.string().uuid().optional(), // Optional for creation, present for updates
-  user_id: z.string().uuid().optional(), // Usually set by backend or context
+  user_id: z.string().uuid().nullable().optional(), // Now allows null, in addition to string UUID or undefined
   date: z.string().refine((val) => /^\d{4}-\d{2}-\d{2}$/.test(val), {
     message: "תאריך חייב להיות בפורמט YYYY-MM-DD",
   }),

@@ -1,9 +1,9 @@
-import { Transaction } from "./transaction";
+import { Transaction } from "../../types/transaction"; // Updated path
 
 export interface TableTransactionFilters {
   dateRange: {
-    from: Date | null;
-    to: Date | null;
+    from: string | null;
+    to: string | null;
   };
   types: string[]; // Array of TransactionType strings
   search: string; // For category, description, or recipient

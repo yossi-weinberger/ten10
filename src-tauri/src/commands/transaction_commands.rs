@@ -1,6 +1,6 @@
 // src-tauri/src/commands/transaction_commands.rs
 
-use rusqlite::{params, Connection, Result, OptionalExtension, ToSql};
+use rusqlite::{params, Result, OptionalExtension, ToSql};
 use serde::{Deserialize, Serialize};
 use tauri::State;
 use crate::DbState; // Assuming DbState is in lib.rs or main.rs and accessible
@@ -46,6 +46,138 @@ impl Transaction {
     }
 }
 
+#[derive(Deserialize, Debug)]
+pub struct TransactionUpdatePayload {
+    // Define the fields you expect to receive for an update
+    // This should mirror the structure sent from TypeScript,
+    // but only include fields that can actually be updated.
+    // All fields should be Option<T> because the frontend might only send changed fields.
+    pub date: Option<String>,
+    pub amount: Option<f64>,
+    pub currency: Option<String>,
+    pub description: Option<String>,
+    #[serde(rename = "type")]
+    pub type_str: Option<String>,
+    pub category: Option<String>,
+    pub is_chomesh: Option<bool>,
+    pub is_recurring: Option<bool>,
+    pub recurring_day_of_month: Option<i32>,
+    pub recipient: Option<String>,
+    // user_id is typically not updated by the user directly
+    // updated_at should be handled by the database or set here to current time
+}
+
+#[tauri::command]
+pub fn update_transaction_handler(
+    db_state: State<'_, DbState>,
+    id: String,
+    payload: TransactionUpdatePayload,
+) -> std::result::Result<(), String> {
+    println!("[Rust DEBUG] update_transaction_handler called for ID: {} with payload: {:?}", id, payload);
+    let conn_guard = db_state.0.lock().map_err(|e| format!("DB lock error: {}", e))?;
+    let conn = &*conn_guard;
+
+    let mut set_clauses: Vec<String> = Vec::new();
+    let mut params_dynamic: Vec<Box<dyn ToSql>> = Vec::new();
+
+    if let Some(date) = &payload.date {
+        set_clauses.push("date = ?".to_string());
+        params_dynamic.push(Box::new(date.clone()));
+    }
+    if let Some(amount) = payload.amount {
+        set_clauses.push("amount = ?".to_string());
+        params_dynamic.push(Box::new(amount));
+    }
+    if let Some(currency) = &payload.currency {
+        set_clauses.push("currency = ?".to_string());
+        params_dynamic.push(Box::new(currency.clone()));
+    }
+    // For Option<String> fields like description, category, recipient:
+    // We want to set them to NULL if an explicit null is passed,
+    // or update them if a string is passed.
+    // If the key is not in the payload, we don't touch the field.
+    if payload.description.is_some() {
+        set_clauses.push("description = ?".to_string());
+        params_dynamic.push(Box::new(payload.description.clone()));
+    }
+    if let Some(type_str) = &payload.type_str {
+        set_clauses.push("type = ?".to_string());
+        params_dynamic.push(Box::new(type_str.clone()));
+    }
+    if payload.category.is_some() {
+        set_clauses.push("category = ?".to_string());
+        params_dynamic.push(Box::new(payload.category.clone()));
+    }
+    if let Some(is_chomesh) = payload.is_chomesh {
+        set_clauses.push("is_chomesh = ?".to_string());
+        params_dynamic.push(Box::new(is_chomesh as i32));
+    }
+
+    if let Some(is_recurring_val) = payload.is_recurring {
+        set_clauses.push("is_recurring = ?".to_string());
+        params_dynamic.push(Box::new(is_recurring_val as i32));
+        if !is_recurring_val {
+            set_clauses.push("recurring_day_of_month = ?".to_string());
+            params_dynamic.push(Box::new(Option::<i32>::None)); // Explicitly set to NULL
+        } else {
+            // If is_recurring is true, only update recurring_day_of_month if it's provided
+            if let Some(day) = payload.recurring_day_of_month {
+                set_clauses.push("recurring_day_of_month = ?".to_string());
+                params_dynamic.push(Box::new(day));
+            }
+        }
+    } else {
+        // is_recurring was not in payload, but maybe recurring_day_of_month was?
+        // This logic ensures recurring_day_of_month is only set if is_recurring is true (or also being set to true).
+        // If is_recurring is not changing, we might still want to change the day.
+        // However, to prevent setting a day without is_recurring being true,
+        // we should be careful. The current logic: if is_recurring is not provided,
+        // we only set recurring_day_of_month if it IS provided.
+        // This might need refinement based on exact desired behavior if is_recurring is absent from payload.
+        if let Some(day) = payload.recurring_day_of_month {
+             // Consider fetching current is_recurring state if we want to be super safe
+            set_clauses.push("recurring_day_of_month = ?".to_string());
+            params_dynamic.push(Box::new(day));
+        }
+    }
+
+    if payload.recipient.is_some() {
+        set_clauses.push("recipient = ?".to_string());
+        params_dynamic.push(Box::new(payload.recipient.clone()));
+    }
+
+    set_clauses.push("updated_at = CURRENT_TIMESTAMP".to_string());
+
+    if set_clauses.is_empty() {
+        // Or, if only updated_at is present, perhaps return Ok(()) if that's considered a valid no-op update.
+        return Err("No updatable fields provided.".to_string());
+    }
+
+    params_dynamic.push(Box::new(id.clone()));
+
+    let query = format!(
+        "UPDATE transactions SET {} WHERE id = ?{}",
+        set_clauses.join(", "),
+        params_dynamic.len()
+    );
+    
+    println!("[Rust DEBUG] Update query: {}", query);
+    let params_for_rusqlite: Vec<&dyn ToSql> = params_dynamic.iter().map(|p| p.as_ref()).collect();
+
+    match conn.execute(&query, params_for_rusqlite.as_slice()) {
+        Ok(0) => Err(format!("Transaction with ID {} not found.", id)), // Changed message
+        Ok(affected_rows) => {
+            println!("[Rust DEBUG] Successfully updated {} row(s) for ID: {}", affected_rows, id);
+            Ok(())
+        }
+        Err(e) => {
+            let err_msg = format!("[Rust ERROR] Failed to update transaction: {}. Query: {}", e, query);
+            println!("{}", err_msg);
+            Err(err_msg)
+        }
+    }
+}
+
 #[tauri::command]
 pub fn delete_transaction_handler(
     db_state: State<'_, DbState>,
@@ -84,7 +216,7 @@ pub fn export_transactions_handler(
 
     if let Some(search_term) = &filters.search {
         if !search_term.is_empty() {
-            where_clauses.push(format!("(description LIKE ?{0} OR category LIKE ?{0} OR recipient LIKE ?{0})", param_idx));
+            where_clauses.push(format!("(LOWER(description) LIKE LOWER(?{0}) OR LOWER(category) LIKE LOWER(?{0}) OR LOWER(recipient) LIKE LOWER(?{0}))", param_idx));
             sql_params.push(Box::new(format!("%{}%", search_term)));
             param_idx += 1;
         }
@@ -113,6 +245,7 @@ pub fn export_transactions_handler(
                 sql_params.push(Box::new(t_type.clone()));
             }
             // param_idx would need to be incremented by types.len() here if more params followed
+            // current_param_idx += types.len(); // This line seems to cause the warning, let's comment it out for now if it's the one for export_transactions_handler
         }
     }
     
@@ -188,15 +321,15 @@ pub fn get_filtered_transactions_handler(
     let count_query_select = "SELECT COUNT(*) FROM transactions".to_string();
     
     let mut where_clauses: Vec<String> = Vec::new();
-    let mut sql_params_dynamic: Vec<Box<dyn ToSql>> = Vec::new(); // Reverted: Removed Send + Sync
+    let mut sql_params_dynamic: Vec<Box<dyn ToSql>> = Vec::new(); 
     let mut current_param_idx = 1;
-    let mut params_debug_strings: Vec<String> = Vec::new(); // For debug printing params
+    let mut params_debug_strings: Vec<String> = Vec::new(); 
 
     if let Some(search_term) = &args.filters.search {
         if !search_term.is_empty() {
             let actual_search_term = format!("%{}%", search_term);
             println!("[Rust DEBUG] Applying search filter: {}", actual_search_term);
-            where_clauses.push(format!("(description LIKE ?{0} OR category LIKE ?{0} OR recipient LIKE ?{0})", current_param_idx));
+            where_clauses.push(format!("(LOWER(description) LIKE LOWER(?{0}) OR LOWER(category) LIKE LOWER(?{0}) OR LOWER(recipient) LIKE LOWER(?{0}))", current_param_idx));
             sql_params_dynamic.push(Box::new(actual_search_term.clone()));
             params_debug_strings.push(actual_search_term);
             current_param_idx += 1;
@@ -231,7 +364,7 @@ pub fn get_filtered_transactions_handler(
                 sql_params_dynamic.push(Box::new(t_type.clone()));
                 params_debug_strings.push(t_type.clone());
             }
-            current_param_idx += types.len();
+            // current_param_idx += types.len(); // This is for get_filtered_transactions_handler, comment out if unused after this block
         }
     }
     
