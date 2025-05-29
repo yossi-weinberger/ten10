@@ -16,7 +16,7 @@ import {
   transactionTypeLabels,
   typeBadgeColors,
 } from "@/types/transactionLabels";
-import { formatBoolean, cn } from "@/utils/formatting"; // Import helper functions
+import { formatBoolean, cn } from "@/lib/utils/formatting"; // Import helper functions
 
 interface TransactionRowProps {
   transaction: Transaction;

@@ -144,7 +144,7 @@ export function TransactionsTableDisplay() {
               <TableBody>
                 {loading && transactions.length === 0 && (
                   <>
-                    {Array.from({ length: 5 }).map((_, rowIndex) => (
+                    {Array.from({ length: 20 }).map((_, rowIndex) => (
                       <TableRow key={`skeleton-row-${rowIndex}`}>
                         {Array.from({ length: sortableColumns.length + 3 }).map(
                           (_, cellIndex) => (

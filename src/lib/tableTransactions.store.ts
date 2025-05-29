@@ -8,7 +8,7 @@ import {
   initialTableSortConfig,
   initialTablePaginationState,
 } from "../types/tableTransactions.types";
-import { TableTransactionsService } from "./tableTransactions.service";
+import { TableTransactionsService } from "./transactionService.ts";
 import { Platform } from "@/contexts/PlatformContext"; // Import Platform type
 import { exportTransactionsToPDF } from "./utils/export-pdf";
 import { exportTransactionsToExcel } from "./utils/export-excel";
