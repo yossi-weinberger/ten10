@@ -9,6 +9,8 @@ import { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient"; // Using path alias from tsconfig
 import { toast } from "react-hot-toast";
 import { useDonationStore } from "@/lib/store"; // Import Zustand store
+import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
+// Import table transactions store
 import { loadTransactions, setDataServicePlatform } from "@/lib/dataService"; // Import data loading function and platform setter
 import { usePlatform } from "./PlatformContext"; // Import usePlatform to set platform for dataService
 
@@ -145,13 +147,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => {
       console.log("AuthContext: Unsubscribing auth listener.");
       authListener?.subscription.unsubscribe();
+      // Cleanup realtime subscription on component unmount as well - REMOVED
+      // useTableTransactionsStore.getState().cleanupRealtimeSubscription();
     };
   }, []);
 
-  // New useEffect for DATA LOADING based on user and platform state
+  // New useEffect for DATA LOADING AND REALTIME SUBSCRIPTION based on user and platform state
   useEffect(() => {
+    // const { setupRealtimeSubscription, cleanupRealtimeSubscription } = // REMOVED
+    //   useTableTransactionsStore.getState(); // REMOVED
     console.log(
-      `AuthContext: Data loading effect. User: ${!!user}, Platform: ${platform}, DataLoading: ${isDataLoading}, Hydrated: ${hasHydrated}, Timestamp: ${lastDbFetchTimestampFromStore}, InitialForcedLoadDone: ${initialForcedLoadDone}`
+      `AuthContext: Data loading effect (Realtime REMOVED). User: ${!!user}, Platform: ${platform}, DataLoading: ${isDataLoading}, Hydrated: ${hasHydrated}, Timestamp: ${lastDbFetchTimestampFromStore}, InitialForcedLoadDone: ${initialForcedLoadDone}`
     );
 
     if (platform === "loading") {
@@ -226,14 +232,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         "AuthContext: User exists but store not hydrated yet. Waiting for hydration."
       );
       // Do nothing, useEffect will re-run when hasHydrated becomes true
+    } else if (!user && platform === "web") {
+      // User logged out or no user on web, ensure cleanup
+      console.log("AuthContext: No user on web. (Realtime cleanup REMOVED)");
+      // cleanupRealtimeSubscription(); // REMOVED
     }
-    // If no user, or platform is loading, or already loading data, those cases are handled by earlier returns.
+
+    // Setup realtime subscription if user is logged in on web - REMOVED
+    // if (user && platform === "web") {
+    //   console.log(
+    //     "AuthContext: Setting up realtime subscription for user:",
+    //     user.id
+    //   );
+    //   setupRealtimeSubscription(user.id);
+    // } else {
+    //   // Cleanup if not on web or no user (this might be redundant due to the above else if, but safe)
+    //   cleanupRealtimeSubscription(); // REMOVED
+    // }
+
+    // Cleanup function for this useEffect - REMOVED Realtime part
+    // return () => {
+    //   if (platform === "web") {
+    //     // Only cleanup if it might have been set up
+    //     console.log(
+    //       "AuthContext: useEffect cleanup for realtime subscription."
+    //     );
+    //     cleanupRealtimeSubscription(); // REMOVED
+    //   }
+    // };
   }, [
     user,
     platform,
-    isDataLoading,
+    // isDataLoading, // Removed: Realtime setup should not depend on data loading state
     hasHydrated,
-    lastDbFetchTimestampFromStore,
+    // lastDbFetchTimestampFromStore, // Removed: Realtime setup should not depend on data freshness timestamp
     initialForcedLoadDone,
   ]);
 

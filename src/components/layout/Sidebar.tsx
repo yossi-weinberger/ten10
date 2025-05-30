@@ -8,6 +8,7 @@ import {
   User,
   Book,
   BarChart,
+  Table,
 } from "lucide-react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -127,7 +128,8 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         <span
           className={cn(
             "transition-all duration-200",
-            !expanded && "w-0 overflow-hidden opacity-0"
+            !expanded && "w-0 overflow-hidden",
+            !expanded ? "opacity-0" : "opacity-100"
           )}
         >
           {children}
@@ -148,9 +150,10 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         <Calculator className="h-6 w-6 text-primary flex-shrink-0" />
         <h1
           className={cn(
-            "text-lg font-bold transition-all duration-200",
-            "dark:text-slate-100",
-            !expanded && "w-0 overflow-hidden opacity-0"
+            "text-lg font-bold dark:text-slate-100",
+            "transition-all duration-200",
+            !expanded && "w-0 overflow-hidden",
+            !expanded ? "opacity-0" : "opacity-100"
           )}
         >
           Ten10
@@ -166,6 +169,9 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         </NavLink>
         <NavLink to="/analytics" icon={BarChart}>
           ניתוח נתונים
+        </NavLink>
+        <NavLink to="/transactionsTable" icon={Table}>
+          טבלת נתונים
         </NavLink>
         <NavLink to="/halacha" icon={Book}>
           הלכות

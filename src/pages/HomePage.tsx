@@ -1,8 +1,6 @@
 import React from "react";
 import { StatsCards } from "@/components/dashboard/StatsCards";
 import { MonthlyChart } from "@/components/dashboard/MonthlyChart";
-import { AllTransactionsDataTable } from "@/components/tables/AllTransactionsDataTable";
-
 export function HomePage() {
   return (
     <div className="grid gap-6">
@@ -15,7 +13,7 @@ export function HomePage() {
 
       <StatsCards />
       <MonthlyChart />
-      <AllTransactionsDataTable />
+      {/* <AllTransactionsDataTable /> */}
     </div>
   );
 }

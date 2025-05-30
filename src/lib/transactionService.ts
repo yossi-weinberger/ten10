@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api";
 import { supabase } from "@/lib/supabaseClient";
 import { Transaction } from "../types/transaction";
 import { getCurrentPlatform } from "./platformService";
+import { Platform } from "@/contexts/PlatformContext";
 
 /**
  * Loads all transactions from the backend based on the current platform.
