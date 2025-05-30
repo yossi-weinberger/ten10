@@ -8,7 +8,10 @@ This section details how the different parts of the project interact with each o
 
 1.  **Frontend (`src`) <-> Backend (`src-tauri`)**:
 
-    - **Communication:** The React frontend communicates with the Rust backend via Tauri's IPC mechanism. Frontend components invoke Rust functions (`#[tauri::command]`) defined in `src-tauri/src/main.rs` using Tauri's `invoke` function (likely wrapped in service layers, e.g., `src/lib/transactionService.ts` for transaction-specific DB operations, and `src/lib/dbStatsCardsService.ts` for fetching aggregated statistics from the DB). Allowed commands are specified in `tauri.conf.json` under `tauri > allowlist > invoke`.
+    - **Communication:** The React frontend communicates with the Rust backend via Tauri's IPC mechanism. Frontend components invoke Rust functions (`#[tauri::command]`) defined in `src-tauri/src/main.rs` using Tauri's `invoke` function. This is often wrapped in service layers:
+      - `src/lib/dataService.ts` for general, basic data operations (e.g., initial load to `useDonationStore`, simple add transaction outside table context).
+      - `src/lib/transactionService.ts` for complex, table-specific operations (e.g., fetching paginated/filtered transactions via `get_filtered_transactions_handler`, updating via `update_transaction_handler`, deleting via `delete_transaction_handler`, and exporting via `export_transactions_handler` for desktop; or corresponding RPC calls for web).
+    - Allowed commands are specified in `tauri.conf.json` under `tauri > allowlist > invoke`.
     - **Events:** The backend can emit events that the frontend listens to, enabling real-time updates or notifications from the backend.
     - **Example Flow:** Clicking a 'Save' button in a form (`src/components/TransactionForm.tsx`) triggers a function that calls `invoke` with the relevant command name (e.g., `add_transaction`) and form data. The Rust code receives the data, processes it (e.g., saves to the DB), and returns a response (success/error) to the frontend.
 
@@ -24,6 +27,7 @@ This section details how the different parts of the project interact with each o
     - **State Management:** A library like Zustand (likely configured in `src/lib/store/` or similar) manages global or shared state (e.g., the list of transactions). React Context (`src/contexts/`) might be used for simpler global state or function propagation.
     - **Logic & Utilities:** Helper functions and business logic (like tithe calculation) reside in `src/lib/`.
     - **Types:** `src/types/` contains shared TypeScript definitions for type safety and consistency.
+    - **Transactions Table Specifics:** The interactive transactions table involves `src/pages/TransactionsTable.tsx` which uses `src/components/TransactionsTable/TransactionsTableDisplay.tsx`. This display component orchestrates data fetching and manipulation through `src/lib/tableTransactions.store.ts` (the table's dedicated Zustand store) and `src/lib/transactionService.ts` (which handles backend communication for fetching, updating, deleting, and exporting table data).
 
 4.  **Build Process**:
 
@@ -56,15 +60,18 @@ This section details how the different parts of the project interact with each o
 │   └── fonts/             # Font files
 ├── src/                   # Frontend source code (React + TypeScript)
 │   ├── components/        # Reusable UI components
+│   │   ├── TransactionsTable/ # Sub-components for the interactive transactions table (Display, Filters, Row, Modal, etc.)
 │   ├── contexts/          # React Context providers
 │   ├── lib/               # Utility functions and libraries
 │   │   ├── dataManagement.ts # Handles data import/export logic
 │   │   ├── platformService.ts # Handles platform detection and state
-│   │   ├── transactionService.ts # Handles CRUD operations for transactions with the backend
+│   │   ├── transactionService.ts # Handles complex CRUD and export operations for the interactive transactions table with the backend
 │   │   ├── dbStatsCardsService.ts # Handles fetching of aggregated statistics for StatsCards from the backend
-│   │   ├── storeService.ts    # Handles interactions with the Zustand store for loading/saving data
-│   │   └── store.ts           # Zustand store definition
+│   │   ├── storeService.ts    # Handles interactions with the Zustand store for loading/saving data (potentially for useDonationStore)
+│   │   ├── store.ts           # Zustand store definition (useDonationStore for general data)
+│   │   └── tableTransactions.store.ts # Zustand store for managing the state of the interactive transactions table
 │   ├── pages/             # Page components (mapped by router)
+│   │   └── TransactionsTable.tsx # Main page component for the interactive transactions table
 │   ├── types/             # TypeScript type definitions
 │   ├── App.tsx            # Main application component
 │   ├── index.css          # Global CSS styles

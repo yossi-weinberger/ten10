@@ -11,100 +11,130 @@ This document explains how data (unified `Transaction` objects) is saved locally
 - **Hook:** `usePlatform` hook allows components to access the current platform state.
 - **Initialization:** `src/App.tsx` uses `useEffect` to call `setDataServicePlatform` once the platform state is determined (not `'loading'`).
 
-## 2. Data Service Abstraction (`dataService.ts`)
+## 2. Data Service Abstraction (`dataService.ts` and `transactionService.ts`)
 
-- **File:** `src/lib/dataService.ts` acts as the abstraction layer for all data operations related to transactions.
-- **State:** It holds the `currentPlatform` variable (set by `setDataServicePlatform`).
-- **Add Operation:**
-  - `addTransaction(transaction: Transaction)`: Checks `currentPlatform`.
-  - If `'desktop'`, it calls Tauri `invoke('add_transaction', { transaction })` to save to the `transactions` table in SQLite.
-  - **Crucially, upon successful invocation, it _also_ calls `useDonationStore.getState().addTransaction(transaction)` to update the in-memory `transactions` array in the Zustand store.**
-  - If `'web'`, it should eventually call the Supabase API (currently placeholder).
-- **Load Operation:**
-  - `loadTransactions()`: Checks `currentPlatform`.
-  - If `'desktop'`, it calls Tauri `invoke('get_transactions')` to retrieve all `Transaction` records from the SQLite `transactions` table. The returned array is used to populate the Zustand store.
-  - If `'web'`, it should eventually fetch from Supabase (currently returns empty array).
+- **`src/lib/dataService.ts`**: This service handles basic, general data operations.
+
+  - **State:** It holds the `currentPlatform` variable (set by `setDataServicePlatform`).
+  - **Add Operation (General):**
+    - `addTransaction(transaction: Transaction)`: Checks `currentPlatform`.
+    - If `'desktop'`, it calls Tauri `invoke('add_transaction_handler', { transaction })` to save to the `transactions` table in SQLite.
+    - **Crucially, upon successful invocation, it _also_ calls `useDonationStore.getState().addTransaction(transaction)` to update the in-memory `transactions` array in the general Zustand store (`useDonationStore`).**
+    - If `'web'`, it should eventually call the Supabase API (currently placeholder for general add, table uses specific RPCs).
+  - **Load Operation (General):**
+    - `loadTransactions()`: Checks `currentPlatform`.
+    - If `'desktop'`, it calls Tauri `invoke('get_transactions_handler')` to retrieve all `Transaction` records from the SQLite `transactions` table. The returned array is used to populate the `useDonationStore`.
+    - If `'web'`, it should eventually fetch from Supabase (currently returns empty array for general load, table uses specific RPCs).
+
+- **`src/lib/transactionService.ts` (`TableTransactionsService` class):** This service is specifically designed for the complex interactions of the main interactive transactions table.
+  - It provides methods like `fetchTransactions`, `updateTransaction`, `deleteTransaction`, and `exportTransactions`.
+  - These methods use `platform` context to call appropriate backend functions:
+    - **Desktop (Tauri):** Invokes specific Tauri commands like `get_filtered_transactions_handler`, `update_transaction_handler`, `delete_transaction_handler`, and `export_transactions_handler`.
+    - **Web (Supabase):** Invokes specific Supabase RPC functions like `get_paginated_transactions`, `update_user_transaction`, `delete_user_transaction`, and `export_user_transactions`.
+  - This service interacts with `useTableTransactionsStore` to update the table's state upon successful operations.
 
 ## 3. Frontend to Backend Communication (Tauri Invoke)
 
-- **Mechanism:** When `currentPlatform` is `'desktop'`, `dataService.ts` (for saving/loading) and `App.tsx` (for initial load) use the `invoke` function imported from `@tauri-apps/api`.
-- **Usage (Save):** `await invoke('add_transaction', { transaction: transactionData })`
-- **Usage (Load):** `await invoke<Transaction[]>('get_transactions')` (expects `Vec<Transaction>` back)
+- **Mechanism:** When `currentPlatform` is `'desktop'`:
+  - `dataService.ts` (for general save/load) uses `invoke` with commands like `add_transaction_handler` and `get_transactions_handler`.
+  - `transactionService.ts` (for table-specific operations) uses `invoke` with commands like `get_filtered_transactions_handler`, `update_transaction_handler`, `delete_transaction_handler`.
+- **Usage (Save - General):** `await invoke('add_transaction_handler', { transaction: transactionData })`
+- **Usage (Load - General):** `await invoke<Transaction[]>('get_transactions_handler')`
+- **Usage (Load - Table Specific):** `await invoke<PaginatedTransactionsResponse>('get_filtered_transactions_handler', { args: { filters, pagination, sorting } })`
 - **Error Handling:** `try...catch` blocks should wrap `invoke` calls to handle potential errors during DB operations.
 
 ## 4. Backend (Rust) Implementation (`src-tauri/src/main.rs`)
 
 - **File:** `src-tauri/src/main.rs` contains the Rust backend logic.
 - **Data Structure:** Defines a `Transaction` struct mirroring the TypeScript interface (which uses `snake_case` for its fields). It uses `#[derive(Serialize, Deserialize)]`. The `#[serde(rename_all = "camelCase")]` attribute has been removed to ensure consistency with `snake_case` naming used across the application (TypeScript, Database, Rust).
-- **Save Command:** `#[tauri::command] add_transaction(db: State<'_, DbState>, transaction: Transaction)` receives the transaction object, performs an `INSERT` into the `transactions` SQLite table. Handles optional fields and boolean-to-integer conversion (e.g., for `is_chomesh`).
-- **Load Command:** `#[tauri::command] get_transactions(db: State<'_, DbState>)` performs `SELECT * FROM transactions`, maps the results from the database rows back into a `Vec<Transaction>`, handling potential NULLs and integer-to-boolean conversion, and returns the vector.
+- **Save Command (General):** `#[tauri::command] add_transaction_handler(db: State<'_, DbState>, transaction: Transaction)` receives the transaction object, performs an `INSERT` into the `transactions` SQLite table. Handles optional fields and boolean-to-integer conversion (e.g., for `is_chomesh`).
+- **Load Command (General):** `#[tauri::command] get_transactions_handler(db: State<'_, DbState>)` performs `SELECT * FROM transactions`, maps the results from the database rows back into a `Vec<Transaction>`, handling potential NULLs and integer-to-boolean conversion, and returns the vector.
+- **Table-Specific Commands:**
+  - `#[tauri::command] get_filtered_transactions_handler(db_state: State<'_, DbState>, args: GetFilteredTransactionsArgs)`: Fetches paginated and filtered transactions for the table.
+  - `#[tauri::command] update_transaction_handler(db_state: State<'_, DbState>, transaction_id: String, updates: UpdateTransactionPayload)`: Updates a specific transaction.
+  - `#[tauri::command] delete_transaction_handler(db_state: State<'_, DbState>, transaction_id: String)`: Deletes a specific transaction.
+  - `#[tauri::command] export_transactions_handler(db_state: State<'_, DbState>, args: ExportTransactionsArgs)`: Fetches all transactions matching filters/sorting for export.
 - **DB Init Command:** `#[tauri::command] init_db(db: State<'_, DbState>)` ensures the `transactions` table exists (`CREATE TABLE IF NOT EXISTS transactions (...)`) with the correct schema. (It might still create old tables temporarily).
 - **Clear Command:** `#[tauri::command] clear_all_data(db: State<'_, DbState>)` now also executes `DELETE FROM transactions`.
 - **Database Connection:** Managed via `DbState(Mutex<Connection>)`.
-- **Handler:** All relevant commands (`init_db`, `add_transaction`, `get_transactions`, `clear_all_data`, etc.) are registered in the `.invoke_handler(...)`.
+- **Handler:** All relevant commands (`init_db`, `add_transaction_handler`, `get_transactions_handler`, `clear_all_data`, `get_filtered_transactions_handler`, `update_transaction_handler`, `delete_transaction_handler`, etc.) are registered in the `.invoke_handler(...)`.
 
-## 5. Zustand Store (`store.ts`)
+## 5. Zustand Store (`store.ts` and `tableTransactions.store.ts`)
 
-- **State:** `useDonationStore` now holds `transactions: Transaction[] = []`. The previous `incomes`, `donations`, and `requiredDonation` fields are deprecated and will be removed.
-- **Actions:**
-  - `setTransactions(transactions: Transaction[])`: Replaces the entire array (used during initial load).
-  - `addTransaction(transaction: Transaction)`: Adds a single transaction to the array (called by `dataService` after successful DB save).
-- **Balance Calculation:** The required tithe balance is **not stored** in the state. It's calculated dynamically using a selector.
-- **Selector:** `selectCalculatedBalance(state: DonationState): number` uses the imported `calculateTotalRequiredDonation(state.transactions)` function (`src/lib/tithe-calculator.ts`) to compute the balance on demand. Zustand memoizes this selection.
+- **`useDonationStore` (`src/lib/store.ts`):**
+
+  - **State:** Holds `transactions: Transaction[] = []` for general purposes (e.g., overall tithe calculation). The previous `incomes`, `donations`, and `requiredDonation` fields are deprecated and will be removed.
+  - **Actions:**
+    - `setTransactions(transactions: Transaction[])`: Replaces the entire array (used during initial general load).
+    - `addTransaction(transaction: Transaction)`: Adds a single transaction to the array (called by `dataService` after successful general DB save).
+  - **Balance Calculation:** The overall required tithe balance is **not stored** in the state. It's calculated dynamically using a selector `selectCalculatedBalance(state: DonationState)` which uses `calculateTotalRequiredDonation(state.transactions)`.
+
+- **`useTableTransactionsStore` (`src/lib/tableTransactions.store.ts`):**
+  - **State:** Manages all state related to the interactive transactions table: `transactions` (current page/view), `loading`, `error`, `pagination`, `filters`, `sorting`, `exportLoading`, `exportError`.
+  - **Actions:** Provides actions to `fetchTransactions`, `updateTransaction`, `deleteTransaction`, `exportTransactions`, `setFilters`, `setSorting`, `setLoadMorePagination`, etc. These actions typically use `transactionService.ts` for backend communication.
 
 ## 6. Database Initialization and Initial Load
 
 - **DB Init Command:** `init_db` ensures the `transactions` table exists.
 - **Trigger:** Invoked once from `src/App.tsx` when `platform === 'desktop'`.
-- **Initial Data Load:** _Immediately after_ `init_db` succeeds in `App.tsx`:
-  1. `dataService.loadTransactions()` is called. This invokes `get_transactions` in Rust.
-  2. The returned array (`Vec<Transaction>`) is used to **overwrite** the `transactions` state in the Zustand store using `useDonationStore.setState({ transactions: ... })`. (Old data like incomes/donations might still be loaded temporarily).
-  3. This populates the Zustand store (the UI's data source) with the current state of the `transactions` table in the SQLite DB.
+- **Initial Data Load (General - `useDonationStore`):** _Immediately after_ `init_db` succeeds in `App.tsx`:
+  1. `dataService.loadTransactions()` is called. This invokes `get_transactions_handler` in Rust.
+  2. The returned array (`Vec<Transaction>`) is used to **overwrite** the `transactions` state in `useDonationStore` using `useDonationStore.setState({ transactions: ... })`.
+  3. This populates `useDonationStore` (used for overall calculations) with the current state of the `transactions` table in the SQLite DB.
+- **Initial Data Load (Transactions Table - `useTableTransactionsStore`):**
+  - The `TransactionsTableDisplay.tsx` component, upon mount (and after platform identification), triggers `fetchTransactions(true, 'desktop')` from `useTableTransactionsStore`. This fetches the first page of data for the table.
 
-## 7. Data Flow Summary (Add Transaction on Desktop)
+## 7. Data Flow Summary (Add Transaction on Desktop - Table Context)
 
-1. User submits the **unified `TransactionForm`**.
-2. `onSubmit` calls `addTransaction(newTransaction)` from `dataService.ts`.
-3. `dataService.ts` sees `'desktop'`, calls `invoke('add_transaction', { transaction: newTransaction })`.
-4. Rust `add_transaction` saves the `Transaction` object to the SQLite `transactions` table.
-5. `invoke` returns successfully.
-6. `dataService.ts` **then calls `useDonationStore.getState().addTransaction(newTransaction)`**, updating the `transactions` array in the Zustand store.
-7. UI components listening to the Zustand store re-render:
-   - `AllTransactionsDataTable` shows the new transaction.
-   - `StatsCards` updates the totals and the required balance (via the `selectCalculatedBalance` selector).
-   - `MonthlyChart` will include the new transaction in the next month's calculation.
+1. User interacts with the `TransactionEditModal` (for new or existing transaction, initiated from `TransactionsTableDisplay`).
+2. `onSubmit` in `TransactionEditModal` calls `updateTransaction` (or a new `addTransactionToTable` if distinct) action in `useTableTransactionsStore`.
+3. The store action calls the relevant method in `transactionService.ts` (e.g., `TableTransactionsService.updateTransaction` or a new `addTransaction`).
+4. `transactionService.ts` sees `'desktop'`, calls `invoke('update_transaction_handler', { ... })` or `invoke('add_transaction_handler', { ... })` (if `add_transaction_handler` is reused, or a new specific one for table).
+5. Rust command saves/updates the `Transaction` object in the SQLite `transactions` table.
+6. `invoke` returns successfully.
+7. `transactionService.ts` returns success to the store action.
+8. The store action updates its local `transactions` array (e.g., adds/modifies the item) and potentially re-fetches or updates pagination if needed.
+9. UI components listening to `useTableTransactionsStore` (e.g., `TransactionsTableDisplay`, `TransactionRow`) re-render.
 
 ## 8. Data Flow Summary (Displaying Data/Balance on Desktop)
 
-1. **App Startup:** `App.tsx` detects `'desktop'`, calls `init_db`, then `loadTransactions`, populating the `transactions` array in Zustand via `setState`.
-2. **UI Rendering (Table):** `AllTransactionsDataTable` uses `useDonationStore((state) => state.transactions)` to get the data array from the store and renders it with pagination.
-3. **UI Rendering (Dashboard):**
-   - `StatsCards` uses the selector `useDonationStore(selectCalculatedBalance)` to get the dynamically calculated balance and also reads `transactions` to compute totals.
-   - `MonthlyChart` uses `useDonationStore((state) => state.transactions)` to calculate and display monthly aggregates.
-4. **Updates:** When new data is added (see flow above), the `transactions` array in the store is updated _after_ the DB save, triggering UI re-renders for components subscribed to `transactions` or the calculated balance.
+1. **App Startup (General Data):** `App.tsx` detects `'desktop'`, calls `init_db`, then `dataService.loadTransactions()`, populating the `transactions` array in `useDonationStore`.
+2. **App Startup (Table Data):** `TransactionsTable.tsx` (via `TransactionsTableDisplay.tsx`) triggers `fetchTransactions` from `useTableTransactionsStore`, loading the initial view for the table.
+3. **UI Rendering (Table):** `TransactionsTableDisplay` and `TransactionRow` use `useTableTransactionsStore` to get the data array for the current view and render it.
+4. **UI Rendering (Dashboard - Overall Balance):**
+   - `StatsCards` uses the selector `useDonationStore(selectCalculatedBalance)` to get the dynamically calculated overall tithe balance from `useDonationStore`.
+5. **Updates (Table Context):** When new data is added/edited/deleted via the table UI, `useTableTransactionsStore` is updated after the DB save, triggering UI re-renders for table components.
 
-## 9. Key Files (Post-Cleanup)
+## 9. Key Files (Post-Cleanup & Table Integration)
 
 - `src/types/transaction.ts` (Defines `Transaction` interface)
 - `src/contexts/PlatformContext.tsx` (Platform detection)
-- `src/App.tsx` (Platform init, DB init via invoke, Initial **transactions** load)
+- `src/App.tsx` (Platform init, DB init via invoke, Initial general `transactions` load to `useDonationStore`)
 - `src/routes.ts` (Defines application routes and navigation structure)
-- `src/lib/dataService.ts` (Abstraction layer: `addTransaction`, `loadTransactions`, `clearAllData`, invoke calls)
-- `src/lib/store.ts` (Zustand store: `transactions` array, `settings`, related actions, `selectCalculatedBalance` selector)
-- `src/lib/tithe-calculator.ts` (Contains `calculateTotalRequiredDonation` logic)
+- `src/lib/dataService.ts` (Abstraction layer for general CRUD: `addTransaction`, `loadTransactions`, `clearAllData`)
+- `src/lib/transactionService.ts` (Service for interactive table: `fetchTransactions`, `updateTransaction`, `deleteTransaction`, `exportTransactions`)
+- `src/lib/store.ts` (Zustand store - `useDonationStore`: general `transactions` array, `settings`, `selectCalculatedBalance` selector)
+- `src/lib/tableTransactions.store.ts` (Zustand store - `useTableTransactionsStore`: table-specific state and actions)
+- `src/lib/tithe-calculator.ts` (Contains `calculateTotalRequiredDonation` logic for overall balance)
 - **UI Components:**
-  - `src/components/forms/TransactionForm.tsx` (Unified form for adding transactions)
-  - `src/components/tables/AllTransactionsDataTable.tsx` (Displays all transactions with filters, sorting, etc.)
-  - `src/components/dashboard/StatsCards.tsx` (Displays totals & balance)
-  - `src/components/dashboard/MonthlyChart.tsx` (Displays monthly aggregates)
+  - `src/components/forms/TransactionForm.tsx` (Unified form, potentially used by `TransactionEditModal`)
+  - `src/pages/TransactionsTable.tsx` (Hosts the new interactive table)
+  - `src/components/TransactionsTable/TransactionsTableDisplay.tsx` (Core display logic for the table)
+  - `src/components/TransactionsTable/TransactionsFilters.tsx` (Filtering UI and logic)
+  - `src/components/TransactionsTable/TransactionsTableHeader.tsx` (Table header and sorting)
+  - `src/components/TransactionsTable/TransactionRow.tsx` (Single row rendering and actions)
+  - `src/components/TransactionsTable/TransactionEditModal.tsx` (Modal for adding/editing transactions in table context)
+  - `src/components/TransactionsTable/ExportButton.tsx` (Export functionality for the table)
+  - `src/components/TransactionsTable/TransactionsTableFooter.tsx` (Pagination and load more)
+  - `src/components/dashboard/StatsCards.tsx` (Displays totals & overall balance from `useDonationStore`)
+  - `src/components/dashboard/MonthlyChart.tsx` (Displays monthly aggregates from `useDonationStore` or a similar general source)
   - `src/components/layout/Sidebar.tsx` (Navigation menu)
 - **Pages:**
-  - `src/pages/HomePage.tsx` (Main dashboard view, likely includes `AllTransactionsDataTable` and `StatsCards`)
-  - `src/pages/AddTransactionPage.tsx` (Page dedicated to `TransactionForm`)
+  - `src/pages/HomePage.tsx` (Main dashboard view, includes `StatsCards`, `MonthlyChart`, and likely the new `TransactionsTable` page/component)
+  - `src/pages/AddTransactionPage.tsx` (Potentially for adding transactions outside the main table, or could be deprecated if all additions go through `TransactionEditModal`)
   - `src/pages/AnalyticsPage.tsx` (Placeholder for future data analysis)
   - `src/pages/HalachaPage.tsx`, `src/pages/SettingsPage.tsx`, `src/pages/AboutPage.tsx`, `src/pages/ProfilePage.tsx` (Other application pages)
-- `src/lib/utils/export-excel.ts` & `src/lib/utils/export-pdf.ts` (Export logic for `AllTransactionsDataTable`)
-- `src-tauri/src/main.rs` (Rust: `Transaction` struct, commands for init, add, get, clear; DB logic - **cleaned of Income/Donation**)
+- `src-tauri/src/main.rs` (Rust: `Transaction` struct, commands for init, general add/get, table-specific handlers for filtered get, update, delete, export; DB logic)
 - `Ten10.db` (The SQLite database file containing **only** the `transactions` table)
 
 ## 10. Post-Refactoring Cleanup (Completed)

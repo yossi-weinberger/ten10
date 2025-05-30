@@ -98,5 +98,16 @@ The application needs to handle various types of financial entries, each affecti
 
 ## Future Enhancements / Nice-to-Haves
 
-// ... (existing future enhancements) ...
-// If Data Import/Export was previously here, ensure it's updated or moved to Core Requirements if now considered so.
+- **User Interface (UI):** Intuitive, clean, and modern, with support for light and dark modes.
+- **Display Components:**
+  - **Dashboard:** Display key financial summaries (required tithe balance, total income, total expenses, total donations) using statistics cards (`StatsCards`) and a monthly chart (`MonthlyChart`).
+  - **Interactive Transactions Table:** A central component for displaying, managing, and analyzing all financial transactions. Supports advanced filtering (free text search, date range, transaction types), dynamic sorting by columns, pagination ("Load More"), editing and deleting transactions directly from the table, and exporting the displayed data (after filtering and sorting) to CSV, Excel, and PDF formats.
+  - **Forms:** Clear and user-friendly forms for adding and editing transactions (`TransactionForm`, `TransactionEditModal`).
+- **Backend Services:**
+  - **Create, Read, Update, Delete (CRUD) of transactions:** The user will be able to add, view, edit, and delete financial transactions.
+  - **Filtering and Sorting Transactions:** The user will be able to filter transactions by various criteria (such as date range, transaction type, free text search) and sort them by different columns (such as date, amount, description).
+  - **Pagination:** The user will be able to load additional data in long tables using a "Load More" button.
+  - **Tithe Balance Calculation:** The system will automatically calculate the required tithe balance based on the entered transactions.
+  - **Data Export:** The user will be able to export the list of transactions (including filtered transactions displayed in the table) to common formats like CSV, Excel, and PDF.
+  - **Backup and Restore (Desktop):** The user will be able to back up and restore the local database.
+  - **User Settings:** The user will be able to customize various settings, such as currency and language preferences.

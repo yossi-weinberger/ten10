@@ -54,12 +54,18 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 - **Row Level Security (RLS) Enabled:** RLS has been activated for the `transactions` table.
 - **RLS Policies Applied:** Created and verified policies (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) ensuring users can only access their own data (`USING (auth.uid() = user_id)`).
 - **`updated_at` Trigger:** Configured a trigger using the shared `handle_updated_at` function to automatically update the `updated_at` column on changes (this function expects the column to be named `updated_at`).
-- **`dataService.ts` Integration:** Updated `loadTransactions` and `addTransaction` functions to interact with the Supabase `transactions` table for the web platform.
-  - Fetches user data using Anon Key (RLS enforced).
-  - Lets the database generate the `id` (UUID).
-  - Handles data consistently using `snake_case` for both TypeScript objects and database interactions.
-  - Fetches the newly created record after insert to update the Zustand store correctly.
-  - **State Synchronization:** Transaction data fetched via `dataService` is loaded into the Zustand store (`useDonationStore`), triggered by authentication events managed in `AuthContext`.
+- \*\*Service Layer Integration (`dataService.ts` and `transactionService.ts`):
+  - `dataService.ts` (General Operations): Original integration for basic `loadTransactions` and `addTransaction` with the Supabase `transactions` table for the web platform. This service handles general data loading into `useDonationStore`.
+  - `transactionService.ts` (Table-Specific Operations): This service (`TableTransactionsService`) is now the primary interface for the interactive transactions table when running on the web platform. It uses Supabase RPC functions for:
+    - `fetchTransactions`: Calls a Supabase RPC like `get_paginated_transactions` to fetch filtered, sorted, and paginated data.
+    - `updateTransaction`: Calls a Supabase RPC (e.g., `update_user_transaction`) to update a specific transaction.
+    - `deleteTransaction`: Calls a Supabase RPC (e.g., `delete_user_transaction`) to delete a transaction.
+    - `exportTransactions`: Calls a Supabase RPC (e.g., `export_user_transactions`) to fetch all relevant data for export, respecting filters and sorting.
+  - Both services fetch user data using the Anon Key (RLS enforced) and let the database generate the `id` (UUID).
+  - Data is handled consistently using `snake_case` for both TypeScript objects and database interactions.
+  - **State Synchronization:**
+    - General transaction data (for `useDonationStore`) is loaded via `dataService.ts` as triggered by `AuthContext`.
+    - The interactive transactions table (`useTableTransactionsStore`) fetches and manages its own data subset via `transactionService.ts`.
 
 ## Known Issues & Workarounds
 
@@ -83,9 +89,10 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - Implement the actual Profile page (`/profile`) allowing users to view/update `full_name`, `avatar_url`, etc. (Partially done - display exists, update form needs completion).
   - Implement password update functionality on the Profile page.
 
-### Database
+### Database & Services (Web - Supabase)
 
-- **Data Service Completeness:** Add `updateTransaction` and `deleteTransaction` functions to `dataService.ts` with platform-specific logic (Supabase for web).
+- **RPC Function Implementation & Verification:** Ensure all Supabase RPC functions used by `transactionService.ts` (e.g., `get_paginated_transactions`, `update_user_transaction`, `delete_user_transaction`, `export_user_transactions`) are fully implemented, tested, and secured with appropriate RLS-aware logic within the SQL functions themselves (e.g., checking `auth.uid()`).
+- **`transactionService.ts` Completeness:** Confirm that all methods in `transactionService.ts` for the web platform correctly map to and handle responses from their respective Supabase RPCs, including error handling.
 - **Data Synchronization/Migration:** Define a strategy for potential data sync or migration between Desktop (SQLite) and Web (Supabase) if needed in the future.
 - **Naming Convention Alignment:** Alignment to `snake_case` for the `Transaction` TypeScript type and the Supabase database schema has been completed, enhancing consistency.
 

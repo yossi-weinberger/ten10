@@ -1,197 +1,197 @@
-# סקירה טכנית מפורטת: טבלת התנועות (Transactions Table)
+# Detailed Technical Overview: Transactions Table
 
-## 1. מבוא
+## 1. Introduction
 
-טבלת התנועות היא רכיב מרכזי באפליקציית Ten10, המאפשר למשתמשים לצפות, לנהל ולנתח את כל התנועות הפיננסיות שלהם. היא מציגה נתונים בצורה ברורה ומאורגנת, ומספקת כלים לסינון, מיון, עריכה, מחיקה וייצוא של תנועות. הטבלה תומכת בפלטפורמות Web (באמצעות Supabase) ו-Desktop (באמצעות SQLite), כאשר הלוגיקה המרכזית של התצוגה והאינטראקציה משותפת, והגישה לנתונים מותאמת לפלטפורמה הספציפית.
+The Transactions Table is a central component in the Ten10 application, allowing users to view, manage, and analyze all their financial transactions. It presents data clearly and organized, providing tools for filtering, sorting, editing, deleting, and exporting transactions. The table supports Web (via Supabase) and Desktop (via SQLite) platforms, with shared core display and interaction logic, and platform-specific data access.
 
-## 2. רכיבים מרכזיים ופונקציונליות
+## 2. Core Components and Functionality
 
-הפונקציונליות של טבלת התנועות ממומשת באמצעות מספר רכיבי React, הפועלים יחדיו ליצירת חווית משתמש קוהרנטית.
+The Transactions Table functionality is implemented through several React components working together to create a cohesive user experience.
 
 ### 2.1. `src/pages/TransactionsTable.tsx`
 
-זהו רכיב העמוד הראשי המארח את טבלת התנועות. אחריותו העיקרית היא:
+This is the main page component hosting the transactions table. Its primary responsibilities are:
 
-- **זיהוי פלטפורמה:** שימוש ב-Hook `usePlatform` מהקונטקסט `PlatformContext` כדי לקבוע את סביבת הריצה הנוכחית (web/desktop/loading).
-- **מצב טעינה ראשוני:** הצגת הודעת "טוען נתוני פלטפורמה..." בזמן שהפלטפורמה מזוהה (כאשר `platform === "loading"`).
-- **מבנה העמוד:** עיטוף רכיב התצוגה המרכזי (`TransactionsTableDisplay`) והצגת כותרת ראשית לעמוד ("טבלת תנועות").
+- **Platform Detection:** Uses the `usePlatform` Hook from `PlatformContext` to determine the current runtime environment (web/desktop/loading).
+- **Initial Loading State:** Displays a "Loading platform data..." message while the platform is being identified (`platform === "loading"`).
+- **Page Structure:** Wraps the main display component (`TransactionsTableDisplay`) and shows a main page title ("Transactions Table").
 
 ### 2.2. `src/components/TransactionsTable/TransactionsTableDisplay.tsx`
 
-זהו רכיב הליבה של הטבלה, המנהל את רוב הלוגיקה הקשורה לתצוגת הנתונים ולאינטראקציה איתם.
+This is the core table component, managing most of the logic related to data display and interaction.
 
-- **טעינת נתונים:**
-  - **שליפה ראשונית:** מבצע שליפה ראשונית של נתונים באמצעות הפעולה `fetchTransactions` מה-store הגלובלי `useTableTransactionsStore`. שליפה זו מתבצעת כאשר הרכיב נטען והפלטפורמה זוהתה (`platform !== "loading"`).
-  - **שליפה חוזרת:** שליפה מחדש של נתונים מתבצעת גם כאשר הגדרות המיון (`sorting` מה-store) משתנות, או כאשר הפילטרים המוגדרים ב-store משתנים. לוגיקה זו ממומשת באמצעות `useEffect` המקשיב לשינויים אלו.
-- **טיפול במצבי טעינה ושגיאות:**
-  - **שלדי טעינה (Skeletons):** מציג אנימציית טעינה באמצעות רכיב `Skeleton` כאשר הנתונים נמצאים בתהליך טעינה (`loading === true`) ואין עדיין תנועות להצגה (`transactions.length === 0`).
-  - **הודעת שגיאה:** מציג הודעת שגיאה למשתמש (השגיאה נלקחת מהשדה `error` ב-store) אם הפעולה `fetchTransactions` נכשלת.
-  - **אין נתונים:** מציג הודעה "לא נמצאו תנועות" אם הטעינה הסתיימה ללא שגיאות אך לא נמצאו תנועות התואמות את הקריטריונים.
-- **טעינת נתונים נוספים (Pagination - "Load More"):**
-  - כאשר המשתמש מגיע לסוף הרשימה המוצגת וקיימים עוד נתונים לטעינה (לפי `pagination.hasMore` מה-store), לחיצה על כפתור "טען עוד" (הנמצא ברכיב `TransactionsTableFooter`) מפעילה את הפעולה `setLoadMorePagination` מה-store (כדי לעדכן את מספר העמוד הנוכחי). לאחר מכן, היא קוראת ל-`fetchTransactions(false, platform)` כדי לשלוף את העמוד הבא של הנתונים, מבלי לאפס את הנתונים שכבר נטענו.
-- **מיון (Sorting):**
-  - משתמש ברכיב `TransactionsTableHeader` להצגת כותרות העמודות.
-  - מאפשר לחיצה על כותרות עמודות הניתנות למיון (כפי שמוגדר במערך `sortableColumns`). לחיצה כזו מפעילה את הפונקציה `handleSort`, אשר בתורה קוראת לפעולה `setSorting` מה-store עם שם השדה הנבחר.
-- **פעולות על שורת תנועה:**
-  - **עריכה:** לחיצה על כפתור "עריכה" בשורת תנועה ספציפית מפעילה את הפונקציה `handleEditInitiate`. פונקציה זו מעדכנת את המצב המקומי `editingTransaction` עם פרטי התנועה שנבחרה ופותחת את המודל `TransactionEditModal` לעריכת הפרטים.
-  - **מחיקה:** לחיצה על כפתור "מחיקה" מפעילה את `handleDeleteInitiate`. פונקציה זו שומרת את התנועה המיועדת למחיקה במשתנה מצב מקומי (`transactionToDelete`) ופותחת דיאלוג אישור (`AlertDialog`). לאחר אישור המשתמש, הפונקציה `handleDeleteConfirm` קוראת לפעולה `deleteTransaction` מה-store, יחד עם מזהה התנועה והפלטפורמה הנוכחית. הודעות על הצלחה או שגיאה במחיקה מוצגות באמצעות `toast`.
-- **רכיבי משנה עיקריים:**
-  - `TransactionsFilters`: ממשק משתמש לסינון הנתונים המוצגים.
-  - `ExportButton`: כפתור לייצוא הנתונים לפורמטים שונים.
-  - `Table`, `TableBody`, `TableRow`, `TableCell`: רכיבי בסיס של הטבלה מבית `shadcn/ui`.
-  - `TransactionsTableHeader`: רכיב האחראי על הצגת כותרות הטבלה וניהול לוגיקת המיון.
-  - `TransactionRow`: רכיב האחראי על הצגת שורת תנועה בודדת בטבלה.
-  - `TransactionsTableFooter`: רכיב המציג את כפתור "טען עוד" ומידע על כמות הנתונים המוצגת.
+- **Data Loading:**
+  - **Initial Fetch:** Performs an initial data fetch using the `fetchTransactions` action from the global `useTableTransactionsStore`. This fetch occurs when the component loads and the platform is identified (`platform !== "loading"`).
+  - **Re-fetch:** Data is also re-fetched when sort settings (`sorting` from the store) change, or when defined filters in the store change. This logic is implemented using `useEffect` listening to these changes.
+- **Handling Loading and Error States:**
+  - **Loading Skeletons:** Displays a loading animation using the `Skeleton` component when data is loading (`loading === true`) and there are no transactions to display yet (`transactions.length === 0`).
+  - **Error Message:** Displays an error message to the user (error taken from the `error` field in the store) if `fetchTransactions` fails.
+  - **No Data:** Displays a "No transactions found" message if loading finishes without errors but no transactions matching the criteria are found.
+- **Loading More Data (Pagination - "Load More"):**
+  - When the user reaches the end of the displayed list and more data is available to load (according to `pagination.hasMore` from the store), clicking the "Load More" button (in `TransactionsTableFooter`) triggers the `setLoadMorePagination` action from the store (to update the current page number). It then calls `fetchTransactions(false, platform)` to fetch the next page of data without resetting already loaded data.
+- **Sorting:**
+  - Uses the `TransactionsTableHeader` component to display column headers.
+  - Allows clicking on sortable column headers (as defined in the `sortableColumns` array). Clicking triggers the `handleSort` function, which in turn calls the `setSorting` action from the store with the selected field name.
+- **Transaction Row Actions:**
+  - **Edit:** Clicking the "Edit" button on a specific transaction row triggers the `handleEditInitiate` function. This function updates the local `editingTransaction` state with the selected transaction's details and opens the `TransactionEditModal` for editing.
+  - **Delete:** Clicking the "Delete" button triggers `handleDeleteInitiate`. This function saves the transaction to be deleted in a local state variable (`transactionToDelete`) and opens an `AlertDialog` for confirmation. After user confirmation, the `handleDeleteConfirm` function calls the `deleteTransaction` action from the store, along with the transaction ID and current platform. Success or error messages for deletion are displayed using `toast`.
+- **Main Sub-components:**
+  - `TransactionsFilters`: UI for filtering displayed data.
+  - `ExportButton`: Button for exporting data to various formats.
+  - `Table`, `TableBody`, `TableRow`, `TableCell`: Base table components from `shadcn/ui`.
+  - `TransactionsTableHeader`: Component responsible for displaying table headers and managing sort logic.
+  - `TransactionRow`: Component responsible for displaying a single transaction row in the table.
+  - `TransactionsTableFooter`: Component displaying the "Load More" button and information about the amount of data displayed.
 
 ### 2.3. `src/components/TransactionsTable/TransactionsFilters.tsx`
 
-רכיב זה מאפשר למשתמש לסנן את התנועות המוצגות בטבלה לפי קריטריונים שונים.
+This component allows the user to filter transactions displayed in the table by various criteria.
 
-- **שדות סינון זמינים:**
-  - **חיפוש טקסט חופשי:** שדה קלט `Input` המאפשר חיפוש בתיאור התנועה, בקטגוריה או בנמען/משלם.
-  - **טווח תאריכים:** שימוש ברכיב `DatePickerWithRange` לבחירת תאריך התחלה ותאריך סיום לסינון.
-  - **סוגי תנועות:** בחירה מרובה של סוגי תנועות מתוך רשימה נפתחת (`DropdownMenu`) המכילה פריטי `DropdownMenuCheckboxItem`. רשימת הסוגים האפשריים (`availableTransactionTypes`) והתרגומים שלהם (`transactionTypeTranslations`) מוגדרים ישירות ברכיב.
-- **ניהול מצב הסינון (מקומי וגלובלי):**
-  - הרכיב משתמש ב-`useState` מקומי עבור ערכי הקלט (לדוגמה, `localSearch`, `localDateRange`, `localTypes`). זאת, כדי לספק חווית משתמש רספונסיבית ולמנוע עדכונים תכופים מדי ל-store הגלובלי.
-  - ערך החיפוש החופשי מסונכרן ל-store הגלובלי (`setStoreFilters({ search: localSearch })`) באמצעות `setTimeout` של 500 מילישניות, כדי למנוע שליפות נתונים מרובות בזמן שהמשתמש מקליד.
-  - שינויים בטווח התאריכים ובבחירת סוגי התנועות מעדכנים ישירות את ה-store הגלובלי (`setStoreFilters`).
-- **איפוס סינונים:**
-  - כפתור "אפס סינונים" מאפס את המצב המקומי של שדות הסינון לערכים ההתחלתיים שלהם (המוגדרים ב-`initialTableTransactionFilters`). בנוסף, הוא קורא לפעולה `resetStoreFiltersState` מה-store (המאפסת את אובייקט הפילטרים ב-store), ומפעיל שליפה מחדש של הנתונים (אם הפלטפורמה אינה בטעינה).
-- **שליפה אוטומטית של נתונים:**
-  - שינוי ב-`storeFilters` (שנגרם כתוצאה משינוי באחד הפילטרים על ידי המשתמש) גורר שליפה מחדש של הנתונים. הלוגיקה לשליפה זו נמצאת ברכיב `TransactionsTableDisplay.tsx`, בתוך `useEffect` המקשיב לשינויים ב-`storeFilters` וב-`platform`.
+- **Available Filter Fields:**
+  - **Free Text Search:** `Input` field allowing search in transaction description, category, or recipient/payer.
+  - **Date Range:** Uses `DatePickerWithRange` component to select start and end dates for filtering.
+  - **Transaction Types:** Multiple selection of transaction types from a `DropdownMenu` containing `DropdownMenuCheckboxItem` items. The list of possible types (`availableTransactionTypes`) and their translations (`transactionTypeTranslations`) are defined directly in the component.
+- **Filter State Management (Local and Global):**
+  - The component uses local `useState` for input values (e.g., `localSearch`, `localDateRange`, `localTypes`). This provides a responsive user experience and prevents too frequent updates to the global store.
+  - Free text search value is synchronized to the global store (`setStoreFilters({ search: localSearch })`) using a 500ms `setTimeout` to prevent multiple data fetches while the user types.
+  - Changes in date range and transaction type selection directly update the global store (`setStoreFilters`).
+- **Reset Filters:**
+  - "Reset Filters" button resets the local state of filter fields to their initial values (defined in `initialTableTransactionFilters`). It also calls the `resetStoreFiltersState` action from the store (resetting the filters object in the store) and triggers a data re-fetch (if the platform is not loading).
+- **Automatic Data Fetching:**
+  - A change in `storeFilters` (caused by user changing a filter) triggers a data re-fetch. The logic for this fetch is in `TransactionsTableDisplay.tsx`, within a `useEffect` listening to changes in `storeFilters` and `platform`.
 
 ### 2.4. `src/components/TransactionsTable/TransactionsTableHeader.tsx`
 
-רכיב זה אחראי על הצגת כותרות העמודות בטבלה ועל מימוש לוגיקת המיון האינטראקטיבית.
+This component is responsible for displaying column headers in the table and implementing interactive sorting logic.
 
-- **קלט (Props):** מקבל את הגדרות המיון הנוכחיות (`sorting: TableSortConfig`), פונקציה לעדכון המיון (`handleSort`), ורשימה של עמודות הניתנות למיון (`sortableColumns`).
-- **אינטראקטיביות:** כל כותרת עמודה הניתנת למיון היא לחיצה. לחיצה על כותרת קוראת לפונקציה `handleSort` עם שם השדה של העמודה הרלוונטית.
-- **חיווי מיון:** מציג אייקונים של חץ (למעלה, למטה, או לשני הכיוונים – באמצעות הרכיבים `ArrowUp`, `ArrowDown`, `ChevronsUpDown` מ-`lucide-react`) ליד כל עמודה הניתנת למיון. האייקון משתנה בהתאם למצב המיון הנוכחי (האם השדה ממוין כעת, ובאיזה כיוון – עולה או יורד).
+- **Props:** Receives current sort settings (`sorting: TableSortConfig`), a function to update sorting (`handleSort`), and a list of sortable columns (`sortableColumns`).
+- **Interactivity:** Each sortable column header is clickable. Clicking a header calls the `handleSort` function with the field name of the relevant column.
+- **Sort Indication:** Displays arrow icons (up, down, or both - using `ArrowUp`, `ArrowDown`, `ChevronsUpDown` components from `lucide-react`) next to each sortable column. The icon changes based on the current sort state (whether the field is currently sorted, and in which direction - ascending or descending).
 
 ### 2.5. `src/components/TransactionsTable/TransactionRow.tsx`
 
-רכיב זה אחראי על הצגת שורת תנועה בודדת בטבלת התנועות.
+This component is responsible for displaying a single transaction row in the transactions table.
 
-- **קלט (Props):** מקבל אובייקט `transaction` המייצג תנועה בודדת, ואת הפונקציות `onEdit` ו-`onDelete` כפרמטרים.
-- **עיצוב נתונים להצגה:**
-  - **תאריך:** מפורמט לתצוגה של "dd/MM/yyyy" (ספציפית ללוקליזציה `he-IL`).
-  - **סכום:** מפורמט כמספר עם שתי ספרות אחרי הנקודה העשרונית.
-  - **סוג תנועה:** מציג רכיב `Badge` צבעוני, המכיל את התווית המתורגמת של סוג התנועה (התוויות נלקחות מהאובייקט `transactionTypeLabels`). צבע הרקע של ה-`Badge` נקבע על ידי הגדרות הצבע באובייקט `typeBadgeColors` ומוחל באמצעות הפונקציה `cn` (classnames).
-  - **ערכים בוליאניים:** שדות כמו `is_chomesh` ו-`is_recurring` מפורמטים להצגה כ-"כן" או "לא" באמצעות הפונקציה `formatBoolean`.
-  - **שדות טקסטואליים:** שדות כמו תיאור, קטגוריה, ונמען/משלם מוצגים כפי שהם. אם השדה ריק, מוצג "-".
-- **תפריט פעולות:** מציג תפריט נפתח (`DropdownMenu`) המופעל על ידי אייקון שלוש נקודות (`MoreHorizontal`). התפריט מכיל אפשרויות "עריכה" (עם אייקון `Edit3`) ו"מחיקה" (עם אייקון `Trash2` וצבע אדום להדגשה).
+- **Props:** Receives a `transaction` object representing a single transaction, and `onEdit` and `onDelete` functions as parameters.
+- **Data Formatting for Display:**
+  - **Date:** Formatted for "dd/MM/yyyy" display (specific to `he-IL` localization).
+  - **Amount:** Formatted as a number with two decimal places.
+  - **Transaction Type:** Displays a colored `Badge` component containing the translated label of the transaction type (labels taken from `transactionTypeLabels` object). The badge's background color is determined by color settings in `typeBadgeColors` object and applied using the `cn` (classnames) function.
+  - **Boolean Values:** Fields like `is_chomesh` and `is_recurring` are formatted for display as "Yes" or "No" using the `formatBoolean` function.
+  - **Textual Fields:** Fields like description, category, and recipient/payer are displayed as is. If a field is empty, "-" is displayed.
+- **Actions Menu:** Displays a `DropdownMenu` triggered by a three-dot icon (`MoreHorizontal`). The menu contains "Edit" (with `Edit3` icon) and "Delete" (with `Trash2` icon and red color for emphasis) options.
 
 ### 2.6. `src/components/TransactionsTable/TransactionEditModal.tsx`
 
-מודל קופץ המאפשר למשתמש לערוך את פרטי תנועה קיימת.
+A popup modal allowing the user to edit the details of an existing transaction.
 
-- **ניהול טופס וולידציה:**
-  - משתמש בספריית `react-hook-form` לניהול מצב הטופס.
-  - משתמש ב-`zodResolver` לביצוע ולידציה של הקלט מול סכימה מוגדרת (`transactionUpdateSchema`). סכימה זו מבוססת על `transactionBaseSchema` אך מאפשרת עדכון חלקי של הנתונים ואינה דורשת למלא שדות שרת כמו `created_at` (שכן אלו נקבעים על ידי השרת).
-- **אכלוס ראשוני של הטופס:**
-  - כאשר המודל נפתח עם תנועה ספציפית (המועברת דרך ה-prop `transaction`), שדות הטופס מאוכלסים בערכי התנועה הקיימים. שדה התאריך מומר לפורמט `yyyy-MM-dd` הנדרש על ידי שדה קלט מסוג `date`.
-  - אם לא מועברת תנועה (מצב שלא אמור לקרות בשימוש הנוכחי), הטופס מאותחל עם ערכים ריקים או ערכי ברירת מחדל.
-- **שדות הטופס:**
-  - כולל שדות קלט עבור: תאריך, תיאור, סכום, מטבע (רכיב `Select` עם `currencyOptions`), סוג תנועה (רכיב `Select` עם `TransactionTypeValues` והתוויות מ-`transactionTypeLabels`), קטגוריה, ונמען/משלם.
-  - מכיל תיבות סימון (`Checkbox`) עבור "הפרשת חומש?" (`is_chomesh`) ו-"תנועה קבועה?" (`is_recurring`).
-  - אם האפשרות "תנועה קבועה" מסומנת, מופיע שדה קלט נוסף עבור "יום בחודש לתנועה קבועה" (`recurring_day_of_month`).
-- **לוגיקת שליחת הטופס (`onSubmit`):**
-  - מוודאת שתנועה לעריכה אכן קיימת (`transaction.id`) ושהפלטפורמה אינה במצב טעינה.
-  - בונה אובייקט `updatePayload` המכיל רק את השדות שהמשתמש יכול לשנות ואכן שינה. שדות בוליאניים נשלחים תמיד. שדות ריקים או `null` מטופלים בהתאם (למשל, אם `is_recurring` אינו מסומן, `recurring_day_of_month` מוגדר ל-`null`).
-  - קוראת לפעולה `updateTransaction` מה-store הגלובלי, ומעבירה לה את מזהה התנועה, את `updatePayload` המכיל את השינויים, ואת הפלטפורמה הנוכחית.
-  - בסיום מוצלח של פעולת העדכון, המודל נסגר. שגיאות פוטנציאליות נרשמות בקונסול.
+- **Form Management and Validation:**
+  - Uses `react-hook-form` library to manage form state.
+  - Uses `zodResolver` to perform input validation against a defined schema (`transactionUpdateSchema`). This schema is based on `transactionBaseSchema` but allows partial data updates and does not require filling server fields like `created_at` (as these are set by the server).
+- **Initial Form Population:**
+  - When the modal opens with a specific transaction (passed via the `transaction` prop), form fields are populated with existing transaction values. The date field is converted to `yyyy-MM-dd` format required by a `date` type input field.
+  - If no transaction is passed (a state that should not occur in current usage), the form is initialized with empty or default values.
+- **Form Fields:**
+  - Includes input fields for: date, description, amount, currency (`Select` component with `currencyOptions`), transaction type (`Select` component with `TransactionTypeValues` and labels from `transactionTypeLabels`), category, and recipient/payer.
+  - Contains `Checkbox` for "Chomesh deduction?" (`is_chomesh`) and "Recurring transaction?" (`is_recurring`).
+  - If "Recurring transaction" is checked, an additional input field for "Day of month for recurring transaction" (`recurring_day_of_month`) appears.
+- **Form Submission Logic (`onSubmit`):**
+  - Ensures a transaction to edit actually exists (`transaction.id`) and the platform is not in a loading state.
+  - Builds an `updatePayload` object containing only fields the user can change and actually changed. Boolean fields are always sent. Empty or `null` fields are handled accordingly (e.g., if `is_recurring` is not checked, `recurring_day_of_month` is set to `null`).
+  - Calls the `updateTransaction` action from the global store, passing it the transaction ID, the `updatePayload` containing changes, and the current platform.
+  - Upon successful update, the modal closes. Potential errors are logged to the console.
 
 ### 2.7. `src/components/TransactionsTable/ExportButton.tsx`
 
-רכיב זה מאפשר למשתמש לייצא את הנתונים המוצגים כעת בטבלה (לאחר החלת הסינונים הפעילים).
+This component allows the user to export the data currently displayed in the table (after applying active filters).
 
-- **ממשק משתמש:** משתמש ברכיב `DropdownMenu` כדי להציע למשתמש שלושה פורמטים לייצוא: Excel (XLSX), PDF, ו-CSV.
-- **לוגיקת ייצוא:**
-  - בבחירת פורמט ייצוא, הרכיב קורא לפעולה `exportTransactions(format, platform)` מה-store הגלובלי. הפלטפורמה הנוכחית (`platform`) נלקחת מה-`PlatformContext`.
-- **חיווי טעינה וטיפול בשגיאות:**
-  - מציג חיווי טעינה ויזואלי (אייקון `Loader2` מסתובב והכיתוב "מייצא...") ושולט על מצב `disabled` של הכפתור ושל פריטי התפריט בזמן שתהליך הייצוא מתבצע (בהתבסס על הדגל `exportLoading` מה-store).
-  - מציג הודעות `toast` של ספריית `sonner` (הודעת הצלחה או הודעת שגיאה) בסיום פעולת הייצוא. הצגת ההודעות מופעלת על ידי `useEffect` המקשיב לשינויים בדגלים `exportLoading` ו-`exportError` מה-store.
+- **User Interface:** Uses a `DropdownMenu` component to offer the user three export formats: Excel (XLSX), PDF, and CSV.
+- **Export Logic:**
+  - Upon selecting an export format, the component calls the `exportTransactions(format, platform)` action from the global store. The current platform (`platform`) is taken from `PlatformContext`.
+- **Loading Indication and Error Handling:**
+  - Displays a visual loading indicator (spinning `Loader2` icon and "Exporting..." text) and controls the `disabled` state of the button and menu items while the export process is ongoing (based on the `exportLoading` flag from the store).
+  - Displays `toast` messages from the `sonner` library (success or error message) upon completion of the export operation. Message display is triggered by `useEffect` listening to changes in `exportLoading` and `exportError` flags from the store.
 
 ### 2.8. `src/components/TransactionsTable/TransactionsTableFooter.tsx`
 
-רכיב זה אחראי על הצגת החלק התחתון של טבלת התנועות, כולל אפשרויות פגינציה ומידע על כמות הנתונים המוצגת.
+This component is responsible for displaying the bottom part of the transactions table, including pagination options and information about the amount of data displayed.
 
-- **כפתור "טען עוד":** מציג כפתור "טען עוד" כאשר קיימים עוד נתונים לטעינה (`pagination.hasMore` מה-store) והטעינה אינה מתבצעת כעת. לחיצה על הכפתור קוראת לפונקציה `handleLoadMore` שהועברה כ-prop מהרכיב האב (`TransactionsTableDisplay`).
-- **מידע על כמות הנתונים:** מציג טקסט המציין כמה תנועות מוצגות כעת מתוך המספר הכולל של התנועות העונות על הקריטריונים (המידע נלקח מהשדות `transactionsLength` ו-`pagination.totalCount`).
-- **חיווי טעינה:** מציג חיווי טעינה ("טוען עוד נתונים..." עם אייקון `Loader2` מסתובב) כאשר הדגל `loading` מה-store הוא `true` ויש כבר תנועות מוצגות (כלומר, זוהי טעינה של "עוד" נתונים ולא טעינה ראשונית של הטבלה).
+- **"Load More" Button:** Displays a "Load More" button when more data is available to load (`pagination.hasMore` from the store) and loading is not currently in progress. Clicking the button calls the `handleLoadMore` function passed as a prop from the parent component (`TransactionsTableDisplay`).
+- **Data Count Information:** Displays text indicating how many transactions are currently displayed out of the total number of transactions meeting the criteria (information taken from `transactionsLength` and `pagination.totalCount` fields).
+- **Loading Indication:** Displays a loading indicator ("Loading more data..." with a spinning `Loader2` icon) when the `loading` flag from the store is `true` and transactions are already displayed (i.e., this is loading "more" data, not an initial table load).
 
-## 3. ניהול מצב מרכזי (`src/lib/tableTransactions.store.ts`)
+## 3. Central State Management (`src/lib/tableTransactions.store.ts`)
 
-ה-store הגלובלי של Zustand, `useTableTransactionsStore`, מרכז את כל המצב (state) והלוגיקה העסקית הקשורה באופן ישיר לטבלת התנועות.
+The Zustand global store, `useTableTransactionsStore`, centralizes all state and business logic directly related to the transactions table.
 
-- **שדות עיקריים במצב (State Fields):**
-  - `transactions: Transaction[]`: מערך התנועות הנוכחי שמוצג בטבלה.
-  - `loading: boolean`: דגל המציין האם מתבצעת כעת טעינת נתונים מהשרת.
-  - `error: string | null`: מחרוזת המכילה הודעת שגיאה במקרה של כשל בשליפת נתונים, או `null` אם אין שגיאה.
-  - `pagination`: אובייקט המכיל את פרטי הפגינציה:
-    - `page: number`: מספר העמוד הנוכחי.
-    - `limit: number`: מספר הפריטים המוצגים בעמוד.
-    - `hasMore: boolean`: דגל המציין האם יש עוד עמודים לטעון.
-    - `totalCount: number`: המספר הכולל של התנועות העונות על הקריטריונים של הסינון הנוכחי.
-  - `filters`: אובייקט המכיל את הגדרות הסינון הנוכחיות:
-    - `search: string`: מחרוזת החיפוש החופשי.
-    - `dateRange: { from: Date | null; to: Date | null }`: טווח התאריכים הנבחר.
-    - `types: string[]`: מערך של סוגי תנועות שנבחרו לסינון.
-  - `sorting`: אובייקט המכיל את הגדרות המיון הנוכחיות:
-    - `field: SortableField`: השדה שלפיו מתבצע המיון.
-    - `direction: "asc" | "desc"`: כיוון המיון (עולה או יורד).
-  - `exportLoading: boolean`: דגל המציין האם מתבצע כעת תהליך ייצוא נתונים.
-  - `exportError: string | null`: הודעת שגיאה במקרה של כשל בתהליך הייצוא.
-- **פעולות מרכזיות (Actions):**
+- **Main State Fields:**
+  - `transactions: Transaction[]`: Array of current transactions displayed in the table.
+  - `loading: boolean`: Flag indicating if data is currently being fetched from the server.
+  - `error: string | null`: String containing an error message in case of data fetching failure, or `null` if no error.
+  - `pagination`: Object containing pagination details:
+    - `page: number`: Current page number.
+    - `limit: number`: Number of items displayed per page.
+    - `hasMore: boolean`: Flag indicating if there are more pages to load.
+    - `totalCount: number`: Total number of transactions meeting current filter criteria.
+  - `filters`: Object containing current filter settings:
+    - `search: string`: Free text search string.
+    - `dateRange: { from: Date | null; to: Date | null }`: Selected date range.
+    - `types: string[]`: Array of transaction types selected for filtering.
+  - `sorting`: Object containing current sort settings:
+    - `field: SortableField`: Field by which sorting is performed.
+    - `direction: "asc" | "desc"`: Sort direction (ascending or descending).
+  - `exportLoading: boolean`: Flag indicating if data export is currently in progress.
+  - `exportError: string | null`: Error message in case of export failure.
+- **Main Actions:**
   - `fetchTransactions(reset: boolean, platform: Platform)`:
-    - אחראית על שליפת התנועות מה-backend (באמצעות קריאה לפונקציה מתאימה ב-`transactionService`).
-    - אם הפרמטר `reset` הוא `true` (לדוגמה, בטעינה ראשונה של הטבלה או לאחר שינוי פילטר/מיון), הפעולה מאפסת את הפגינציה וטוענת את העמוד הראשון של הנתונים.
-    - אם `reset` הוא `false` (לדוגמה, כאשר המשתמש לוחץ על "טען עוד"), הפעולה טוענת את העמוד הבא של הנתונים.
-    - מעדכנת את השדות `transactions` (מוסיפה נתונים חדשים או מחליפה את הקיימים), `loading`, `error`, ו-`pagination` בהתאם לתשובה שמתקבלת מהשירות.
+    - Responsible for fetching transactions from the backend (by calling an appropriate function in `transactionService`).
+    - If `reset` parameter is `true` (e.g., on initial table load or after filter/sort change), the action resets pagination and loads the first page of data.
+    - If `reset` is `false` (e.g., when user clicks "Load More"), the action loads the next page of data.
+    - Updates `transactions` (adds new data or replaces existing), `loading`, `error`, and `pagination` fields according to the response from the service.
   - `updateTransaction(transactionId: string, updates: Partial<Transaction>, platform: Platform)`:
-    - אחראית על עדכון תנועה קיימת (באמצעות קריאה ל-`transactionService`).
-    - לאחר קבלת אישור הצלחה מהשרת, הפעולה מעדכנת את התנועה הרלוונטית במערך `transactions` המקומי ב-store.
+    - Responsible for updating an existing transaction (by calling `transactionService`).
+    - After receiving success confirmation from the server, the action updates the relevant transaction in the local `transactions` array in the store.
   - `deleteTransaction(transactionId: string, platform: Platform)`:
-    - אחראית על מחיקת תנועה (באמצעות קריאה ל-`transactionService`).
-    - לאחר קבלת אישור הצלחה מהשרת, הפעולה מסירה את התנועה ממערך `transactions` המקומי ב-store.
+    - Responsible for deleting a transaction (by calling `transactionService`).
+    - After receiving success confirmation from the server, the action removes the transaction from the local `transactions` array in the store.
   - `exportTransactions(format: 'csv' | 'excel' | 'pdf', platform: Platform)`:
-    - מפעילה את תהליך ייצוא הנתונים. הפעולה שולפת את כל הנתונים הרלוונטיים מהשרת (ללא פגינציה, אך תוך התחשבות בפילטרים ובמיון הנוכחיים – באמצעות קריאה ל-`transactionService.getAllTransactionsForExport`). לאחר מכן, היא משתמשת בספריות צד-לקוח (`exceljs`, `jspdf`, ופונקציה ייעודית ליצירת CSV) כדי ליצור ולהוריד את הקובץ בפורמט המבוקש.
-    - מעדכנת את הדגלים `exportLoading` ו-`exportError` בהתאם להתקדמות התהליך ולשגיאות אפשריות.
-  - `setFilters(newFilters: Partial<TableTransactionFilters>)`: מעדכנת את אובייקט הפילטרים ב-store.
-  - `resetFiltersState()`: מאפסת את אובייקט הפילטרים ב-store לערכים ההתחלתיים המוגדרים ב-`initialTableTransactionFilters`.
-  - `setSorting(field: SortableField)`: מעדכנת את הגדרות המיון. אם המיון מתבצע על אותו שדה, כיוון המיון מתהפך. אם נבחר שדה חדש, המיון מתבצע בסדר עולה לפי השדה החדש.
-  - `setLoadMorePagination()`: מגדילה את מספר העמוד (`page`) באובייקט הפגינציה, לצורך טעינת הנתונים של העמוד הבא.
-  - `clearStore()`: מאפסת את כל ה-state של ה-store לערכיו ההתחלתיים (שימושי, למשל, בעת התנתקות של משתמש מהמערכת).
+    - Initiates the data export process. The action fetches all relevant data from the server (unpaginated, but respecting current filters and sorting – by calling `transactionService.getAllTransactionsForExport`). Then, it uses client-side libraries (`exceljs`, `jspdf`, and a custom function for CSV creation) to generate and download the file in the requested format.
+    - Updates `exportLoading` and `exportError` flags based on process progress and potential errors.
+  - `setFilters(newFilters: Partial<TableTransactionFilters>)`: Updates the filters object in the store.
+  - `resetFiltersState()`: Resets the filters object in the store to initial values defined in `initialTableTransactionFilters`.
+  - `setSorting(field: SortableField)`: Updates sort settings. If sorting by the same field, sort direction is reversed. If a new field is selected, sorting is done ascending by the new field.
+  - `setLoadMorePagination()`: Increments the page number (`page`) in the pagination object for loading the next page's data.
+  - `clearStore()`: Resets the entire store state to its initial values (useful, e.g., on user logout).
 
-## 4. אינטראקציה עם ה-Backend (באמצעות `src/lib/transactionService.ts`)
+## 4. Backend Interaction (via `src/lib/transactionService.ts`)
 
-ה-store `tableTransactions.store.ts` אינו מתקשר ישירות עם ה-backend (בין אם זה Supabase או Tauri). הוא מבצע זאת דרך קובץ השירות `src/lib/transactionService.ts`, אשר מייצא את הקלאס `TableTransactionsService`. הקלאס מכיל מתודות סטטיות לביצוע הפעולות השונות מול ה-backend, בהתאם לפלטפורמה.
+The `tableTransactions.store.ts` store does not communicate directly with the backend (whether Supabase or Tauri). It does so through the `src/lib/transactionService.ts` service file, which exports the `TableTransactionsService` class. This class contains static methods for performing various operations against the backend, according to the platform.
 
 - **`TableTransactionsService.fetchTransactions(params: FetchTransactionsParams)`:**
-  (הפרמטר `params` כולל את הפלטפורמה, הפילטרים, הפגינציה והמיון)
+  (The `params` parameter includes platform, filters, pagination, and sorting)
 
-  - **עבור Web (Supabase):** פונקציה זו קוראת לפונקציית RPC (Remote Procedure Call) שהוגדרה ב-Supabase (לדוגמה, פונקציה בשם `get_paginated_transactions` או דומה לה). פונקציית ה-RPC ב-Supabase מקבלת את הפילטרים, הגדרות הפגינציה והמיון, ומחזירה את רשימת התנועות המתאימה ואת המספר הכולל של התנועות שעונות על הפילטרים.
-  - **עבור Desktop (Tauri):** פונקציה זו קוראת לפקודת Rust דרך ממשק `invoke` של Tauri (לדוגמה, `invoke('get_filtered_transactions_handler', { args: { filters, pagination, sorting } })`). פקודת ה-Rust בצד השרת תבצע שאילתת SQL על קובץ ה-SQLite המקומי, תוך התחשבות בפילטרים, במיון, ובפגינציה. היא מחזירה את רשימת התנועות ואת הספירה הכוללת.
+  - **For Web (Supabase):** This function calls an RPC (Remote Procedure Call) function defined in Supabase (e.g., a function named `get_paginated_transactions` or similar). The Supabase RPC function receives filters, pagination settings, and sorting, and returns the corresponding list of transactions and the total number of transactions matching the filters.
+  - **For Desktop (Tauri):** This function calls a Rust command via Tauri's `invoke` interface (e.g., `invoke('get_filtered_transactions_handler', { args: { filters, pagination, sorting } })`). The server-side Rust command will execute an SQL query on the local SQLite file, considering filters, sorting, and pagination. It returns the list of transactions and the total count.
 
 - **`TableTransactionsService.updateTransaction(transactionId: string, updates: Partial<Transaction>, platform: Platform, userId?: string)`:**
 
-  - **עבור Web (Supabase):** מבצעת קריאת `supabase.from('transactions').update(updates).eq('id', transactionId).eq('user_id', userId)` (או קריאה דומה, תוך הבטחה שמשתמש יכול לעדכן רק את התנועות השייכות לו, באמצעות RLS או פונקציית RPC).
-  - **עבור Desktop (Tauri):** קוראת לפקודת Rust (לדוגמה, `invoke('update_transaction_handler', { transactionId, updates })`) שתבצע פקודת `UPDATE` על טבלת `transactions` במסד הנתונים SQLite.
+  - **For Web (Supabase):** Executes a `supabase.from('transactions').update(updates).eq('id', transactionId).eq('user_id', userId)` call (or similar, ensuring a user can only update their own transactions, via RLS or an RPC function).
+  - **For Desktop (Tauri):** Calls a Rust command (e.g., `invoke('update_transaction_handler', { transactionId, updates })`) that will execute an `UPDATE` command on the `transactions` table in the SQLite database.
 
 - **`TableTransactionsService.deleteTransaction(transactionId: string, platform: Platform, userId?: string)`:**
 
-  - **עבור Web (Supabase):** מבצעת קריאת `supabase.from('transactions').delete().eq('id', transactionId).eq('user_id', userId)` (או קריאה דומה באמצעות פונקציית RPC כמו `delete_user_transaction`).
-  - **עבור Desktop (Tauri):** קוראת לפקודת Rust (לדוגמה, `invoke('delete_transaction_handler', { transactionId })`) שתבצע פקודת `DELETE` ממסד הנתונים SQLite.
+  - **For Web (Supabase):** Executes a `supabase.from('transactions').delete().eq('id', transactionId).eq('user_id', userId)` call (or similar via an RPC function like `delete_user_transaction`).
+  - **For Desktop (Tauri):** Calls a Rust command (e.g., `invoke('delete_transaction_handler', { transactionId })`) that will execute a `DELETE` command from the SQLite database.
 
 - **`TableTransactionsService.exportTransactions(filters: ExportTransactionsFilters, sorting: TableSortConfig, platform: Platform, userId?: string)`:**
-  - פונקציה זו אחראית על ייצוא הנתונים.
-  - **עבור Web (Supabase):** קוראת לפונקציית RPC (לדוגמה `export_user_transactions`) המקבלת את הפילטרים והמיון ומחזירה את כל הנתונים הרלוונטיים.
-  - **עבור Desktop (Tauri):** קוראת לפקודת Rust (לדוגמה, `invoke('export_transactions_handler', { filters, sorting })`) אשר שולפת את כל הנתונים מה-SQLite בהתאם לפילטרים והמיון.
-  - בשני המקרים, הנתונים המלאים (ללא פגינציה) נשלחים חזרה ל-frontend, שם הם מעובדים ומומרים לקובץ בפורמט המבוקש (CSV, Excel, PDF).
+  - This function is responsible for data export.
+  - **For Web (Supabase):** Calls an RPC function (e.g., `export_user_transactions`) that receives filters and sorting and returns all relevant data.
+  - **For Desktop (Tauri):** Calls a Rust command (e.g., `invoke('export_transactions_handler', { filters, sorting })`) which fetches all data from SQLite according to filters and sorting.
+  - In both cases, the full data (unpaginated) is sent back to the frontend, where it is processed and converted to a file in the requested format (CSV, Excel, PDF).
 
-## 5. שאילתות מסד נתונים (Web - Supabase - דוגמה רעיונית)
+## 5. Database Queries (Web - Supabase - Conceptual Example)
 
-עבור פלטפורמת ה-Web המשתמשת ב-Supabase, סביר להניח שהפונקציה `get_filtered_transactions` (או פונקציה בשם דומה) שמופעלת באמצעות RPC תבצע שאילתת SQL מורכבת. להלן המחשה סכמטית של האופן שבו שאילתה כזו עשויה להיראות (זהו קוד SQL רעיוני בלבד ואינו בהכרח המימוש המדויק):
+For the Web platform using Supabase, the `get_filtered_transactions` function (or a similarly named function) triggered via RPC will likely execute a complex SQL query. Below is a schematic illustration of what such a query might look like (this is conceptual SQL only and not necessarily the exact implementation):
 
 ```sql
 -- Conceptual SQL for a Supabase RPC function: get_filtered_transactions
@@ -229,16 +229,16 @@ LIMIT p_limit
 OFFSET p_offset;
 ```
 
-**הערה:** המימוש בפועל של שאילתת SQL דינמית, במיוחד בכל הקשור למיון דינמי והעברת מערכים כפרמטרים (כמו `p_types`), ידרוש תשומת לב לפרטי התחביר של PL/pgSQL (שפת הפונקציות של PostgreSQL) או שימוש בטכניקות מתאימות לבניית שאילתות בצד השרת.
+**Note:** The actual implementation of a dynamic SQL query, especially regarding dynamic sorting and passing arrays as parameters (like `p_types`), will require attention to PL/pgSQL syntax details (PostgreSQL's function language) or using appropriate server-side query building techniques.
 
-## 6. הגדרת משיכת נתונים מ-SQLite (גרסת Desktop)
+## 6. SQLite Data Fetching Configuration (Desktop Version)
 
-חלק זה מתאר את השלבים הנדרשים למימוש משיכת נתונים מ-SQLite עבור גרסת הדסקטופ, תוך התחשבות בסינון, מיון ופגינציה. הדוגמאות וההסברים כאן מתבססים גם על האופן שבו רכיבים אחרים בפרויקט, כמו `StatsCards.tsx` (דרך `useServerStats.ts` ו-`dataService.ts`), ניגשים לנתוני SQLite דרך פקודות Tauri.
+This section describes the steps required to implement data fetching from SQLite for the desktop version, considering filtering, sorting, and pagination. The examples and explanations here are also based on how other components in the project, like `StatsCards.tsx` (via `useServerStats.ts` and `dataService.ts`), access SQLite data through Tauri commands.
 
-### 6.1. עדכון קוד Rust (`src-tauri/src/main.rs`)
+### 6.1. Rust Code Update (`src-tauri/src/main.rs`)
 
-- **הגדרת מבני נתונים (Structs) עבור פרמטרים ותשובה:**
-  יש להגדיר מבני נתונים ב-Rust שייצגו את הפילטרים, הפגינציה והמיון המגיעים מה-frontend, וכן מבנה נתונים עבור התשובה שתכלול את רשימת התנועות ואת הספירה הכוללת.
+- **Data Structure Definitions (Structs) for Parameters and Response:**
+  Define Rust data structures to represent filters, pagination, and sorting coming from the frontend, and a data structure for the response that will include the list of transactions and total count.
 
   ```rust
   // In src-tauri/src/main.rs
@@ -278,10 +278,10 @@ OFFSET p_offset;
   }
   ```
 
-  (יש לוודא שמבנה הנתונים `Transaction` ב-Rust תואם לזה שב-TypeScript ושהוא ניתן לסריאליזציה עם `Serialize`).
+  (Ensure the `Transaction` data structure in Rust matches the one in TypeScript and is serializable with `Serialize`).
 
-- **יצירת פקודת Tauri חדשה (לדוגמה, `get_filtered_transactions_handler`):**
-  פקודה זו תקבל את הפרמטר `args: GetFilteredTransactionsArgs`. היא אחראית על בניית שאילתת SQL דינמית עבור SQLite והרצתה. בניית SQL דינמי דורשת זהירות רבה למניעת SQL Injection. שימוש בפרמטרים מסומנים (`?`) של ספריית `rusqlite` הוא קריטי.
+- **Create a New Tauri Command (e.g., `get_filtered_transactions_handler`):**
+  This command will receive the `args: GetFilteredTransactionsArgs` parameter. It is responsible for building a dynamic SQL query for SQLite and executing it. Building dynamic SQL requires great care to prevent SQL Injection. Using marked parameters (`?`) of the `rusqlite` library is critical.
 
   ```rust
   use rusqlite::{params, Connection, Result, ToSql, OptionalExtension}; // Ensure imports
@@ -405,20 +405,20 @@ OFFSET p_offset;
   }
   ```
 
-  **הערות חשובות על קוד ה-Rust:**
+  **Important Notes on Rust Code:**
 
-  - **בטיחות SQL:** בניית שאילתות SQL דינמיות דורשת זהירות רבה. יש לוודא ששמות שדות המיון (`sort_field`) עוברים ולידציה ולא מוזרקים ישירות לשאילתה. עבור סעיפי `WHERE`, שימוש בסימן שאלה (`?`) והעברת הערכים דרך `params` (או `rusqlite::params!`) היא הדרך הנכונה והבטוחה.
-  - **טיפול בשגיאות:** יש להחזיר `Result` ולטפל בשגיאות `rusqlite` בצורה נאותה, ולהמיר אותן למחרוזת שגיאה ברורה עבור ה-frontend.
-  - **המרה למבנה `Transaction`:** יש לוודא שהמיפוי משורת ה-SQLite למבנה ה-`Transaction` ב-Rust (שצריך להיות מוגדר גם ב-Rust ותואם ל-TypeScript) מדויק. זה כולל טיפול בערכי `NULL` והמרת טיפוסים (למשל, `INTEGER` ב-SQLite ל-`bool` או `Option<i32>` ב-Rust).
-  - **שדה `type`:** אם שדה `type` ב-DB הוא מסוג `TEXT` (כמו `income`, `expense`), ובמבנה `Transaction` ב-Rust (וב-TS) הוא Enum או טיפוס מחרוזתי מוגבל, יש לוודא שההמרות מתבצעות כראוי. בקוד הדוגמה, השדה נקרא `type_str` כדי למנוע התנגשות עם מילת המפתח `type` ב-Rust, אם `Transaction` Struct יכלול שדה בשם `type`.
+  - **SQL Safety:** Building dynamic SQL queries requires great care. Ensure sort field names (`sort_field`) are validated and not directly injected into the query. For `WHERE` clauses, using question marks (`?`) and passing values via `params` (or `rusqlite::params!`) is the correct and safe way.
+  - **Error Handling:** Return `Result` and handle `rusqlite` errors properly, converting them to a clear error string for the frontend.
+  - **Conversion to `Transaction` Struct:** Ensure the mapping from SQLite row to Rust `Transaction` struct (which should also be defined in Rust and match TypeScript) is accurate. This includes handling `NULL` values and type conversions (e.g., `INTEGER` in SQLite to `bool` or `Option<i32>` in Rust).
+  - **`type` field:** If the `type` field in the DB is `TEXT` (like `income`, `expense`), and in the Rust (and TS) `Transaction` struct it's an Enum or a limited string type, ensure conversions are handled correctly. In the example code, the field is named `type_str` to avoid collision with the `type` keyword in Rust, if the `Transaction` Struct were to include a field named `type`.
 
-- **רישום הפקודה:** יש להוסיף את הפקודה החדשה לרשימת הפקודות ב-`main.rs` בתוך `tauri::generate_handler![...]`. לדוגמה: ` .invoke_handler(tauri::generate_handler![..., get_filtered_transactions_handler])`
+- **Command Registration:** Add the new command to the list of commands in `main.rs` within `tauri::generate_handler![...]`. For example: ` .invoke_handler(tauri::generate_handler![..., get_filtered_transactions_handler])`
 
-### 6.2. עדכון `src/lib/transactionService.ts` (או קובץ שירות דומה ב-Frontend)
+### 6.2. Update `src/lib/transactionService.ts` (or similar service file in Frontend)
 
-- יש ליצור פונקציה חדשה, לדוגמה `getTransactionsFromDesktopService`, שתקבל את אובייקטי הפילטרים, הפגינציה והמיון מה-store. **חשוב: פונקציה זו (והפקודה ב-Rust שהיא קוראת לה) אינה צריכה לקבל `userId` עבור פלטפורמת הדסקטופ, שכן ההקשר הוא מקומי למשתמש.**
-- פונקציה זו תקרא ל-`invoke('get_filtered_transactions_handler', { args: { filters, pagination, sorting } })`, כאשר `args` הוא האובייקט המכיל את כל הפרמטרים הנדרשים על ידי פקודת ה-Rust.
-- הפונקציה תחזיר את התשובה שמתקבלת מה-Rust (`PaginatedTransactionsResponse`).
+- Create a new function, e.g., `getTransactionsFromDesktopService`, that will receive filter, pagination, and sort objects from the store. **Important: This function (and the Rust command it calls) should not receive `userId` for the desktop platform, as the context is local to the user.**
+- This function will call `invoke('get_filtered_transactions_handler', { args: { filters, pagination, sorting } })`, where `args` is the object containing all parameters required by the Rust command.
+- The function will return the response received from Rust (`PaginatedTransactionsResponse`).
 
   ```typescript
   // In a service file like src/lib/transactionService.ts
@@ -512,11 +512,11 @@ OFFSET p_offset;
   }
   ```
 
-### 6.3. עדכון `src/lib/tableTransactions.store.ts`
+### 6.3. Update `src/lib/tableTransactions.store.ts`
 
-- בתוך הפעולה `fetchTransactions`, כאשר `platform === 'desktop'`, הפעולה תקרא לפונקציה החדשה `getTransactionsFromDesktopService`.
-- היא תעביר את `state.filters`, `state.pagination` (או את החלקים הרלוונטיים ממנו כמו `page` ו-`limit`), ו-`state.sorting` לפונקציה זו. **אין צורך להעביר `userId` לפונקציית השירות של הדסקטופ.**
-- לאחר קבלת התשובה מה-Rust, היא תעדכן את המצב של ה-store (`transactions`, `pagination.totalCount`, `pagination.hasMore`).
+- Inside the `fetchTransactions` action, when `platform === 'desktop'`, the action will call the new `getTransactionsFromDesktopService` function.
+- It will pass `state.filters`, `state.pagination` (or relevant parts like `page` and `limit`), and `state.sorting` to this function. **No need to pass `userId` to the desktop service function.**
+- After receiving the response from Rust, it will update the store's state (`transactions`, `pagination.totalCount`, `pagination.hasMore`).
 
   ```typescript
   // Inside fetchTransactions action in tableTransactions.store.ts
@@ -566,6 +566,4 @@ OFFSET p_offset;
   // ...
   ```
 
-תהליך זה מכסה את השינויים העיקריים הנדרשים. החלק המורכב והקריטי ביותר הוא המימוש הנכון והבטוח של פקודת ה-Rust, ובמיוחד בניית שאילתות ה-SQL הדינמיות בצורה מאובטחת ויעילה. חשוב לבדוק היטב את כל מקרי הקצה של הפילטרים והמיון, ולוודא שהטיפול ב-`userId` (או היעדרו) עקבי בכל שכבות האפליקציה עבור כל פלטפורמה.
-
-</rewritten_file>
+This process covers the main required changes. The most complex and critical part is the correct and safe implementation of the Rust command, especially building dynamic SQL queries securely and efficiently. It's important to thoroughly test all edge cases of filters and sorting, and ensure `userId` handling (or its absence) is consistent across all application layers for each platform.

@@ -2,6 +2,8 @@
 
 This guide outlines the recommended steps and considerations for performing schema migrations in the Ten10 application, covering both the web (Supabase/PostgreSQL) and desktop (Tauri/SQLite) environments. The goal is to ensure that schema changes are applied consistently and safely, minimizing the risk of data loss or application instability.
 
+This document outlines the process and considerations for migrating the Ten10 application from its older data model (separate `incomes`, `donations`, `expenses` tables, potentially `camelCase` column names) to a new, unified `transactions` table using `snake_case` for column names and a single `Transaction` data model for all financial events. This migration has largely been accomplished with the implementation of the new interactive transactions table.
+
 ## Guiding Principles
 
 1.  **Atomicity**: All schema changes within a single migration step should be atomic. If one part of a migration fails, the entire set of changes in that step should be rolled back (where possible).
@@ -10,20 +12,42 @@ This guide outlines the recommended steps and considerations for performing sche
 4.  **Version Control**: All migration scripts must be committed to version control.
 5.  **Testing**: Test migrations thoroughly in a development environment before applying them to production.
 
-## 1. Web Environment (Supabase / PostgreSQL)
+## 1. Goals of Migration (Achieved/In Progress)
 
-For the web application using Supabase, migrations are managed via the Supabase CLI. This provides a robust way to generate, apply, and track database schema changes.
+- **Unified Data Model:** Consolidate all financial events (income, expenses, donations, etc.) into a single `Transaction` type and a corresponding `transactions` database table. (Largely Achieved for new table)
+- **Simplified Logic:** Streamline frontend and backend logic for data handling and calculations by working with a single data structure. (Achieved for new table)
+- **Improved Consistency:** Enforce `snake_case` for all database column names and corresponding TypeScript model fields to improve code readability and reduce mapping errors. (Achieved for new table and related models)
+- **Enhanced Performance & Scalability:** Optimize database queries and frontend processing by working with a structured, unified table. (Ongoing, new table uses optimized queries)
+- **Clear Path for Future Features:** Provide a solid foundation for future enhancements like advanced reporting and analytics.
 
-**Key Commands:**
+## 2. Key Migration Steps (Largely Completed for New Table Context)
 
-- `supabase db diff -f <migration_name>`: Compares your local database (if you're developing locally with Supabase) or a shadow database to your remote Supabase project and generates a SQL migration file.
-- `supabase migration new <migration_name>`: Creates a new empty migration file if you prefer to write the SQL manually.
-- `supabase migration up`: Applies all pending local migration files to your linked Supabase project.
-- `supabase db reset`: Resets your local database (if used) and re-applies all migrations. **Use with caution.**
+### Step 1: Define the Unified `Transaction` Model and `transactions` Table Schema (Completed)
 
-**Common Migration Tasks (PostgreSQL Syntax):**
+- **TypeScript Model (`src/types/transaction.ts`):** A comprehensive `Transaction` interface was defined, encompassing all common fields and type-specific fields using `snake_case`.
+- **Database Schema (`transactions` table):** The schema for the `public.transactions` table (Supabase) and local SQLite `transactions` table was established with `snake_case` column names, mirroring the TypeScript model. This includes `id (UUID/TEXT)`, `user_id (UUID/TEXT)`, `date (TEXT/DATE)`, `amount (REAL/NUMERIC)`, `currency (TEXT)`, `description (TEXT)`, `type (TEXT)`, `category (TEXT)`, `is_chomesh (BOOLEAN/INTEGER)`, `is_recurring (BOOLEAN/INTEGER)`, `recurring_day_of_month (INTEGER)`, `recipient (TEXT)`, `created_at`, `updated_at`.
 
-### a. Adding a New Column
+### Step 2: Create New Unified `transactions` Table (Completed)
+
+- **Supabase:** The `public.transactions` table was created with RLS enabled and appropriate policies.
+- **SQLite (Desktop):** The `init_db` command in Rust (`src-tauri/src/main.rs`) was updated to create the `transactions` table with the new schema if it doesn't exist.
+
+### Step 3: Adapt Backend Logic (Completed for New Table Context)
+
+- \*\*Rust (Desktop - `src-tauri/src/main.rs`):
+  - General-purpose commands like `add_transaction_handler` and `get_transactions_handler` were updated/created to work with the unified `transactions` table and `snake_case` model.
+  - Specific commands for the interactive table (`get_filtered_transactions_handler`, `update_transaction_handler`, `delete_transaction_handler`, `export_transactions_handler`) were created to interact with the `transactions` table using the new model and providing filtered/paginated results.
+- \*\*Supabase (Web):
+  - Basic CRUD operations for general use might still be performed directly via the Supabase client library (e.g., in `dataService.ts`) on the `transactions` table.
+  - For the interactive transactions table, specific PostgreSQL RPC functions (e.g., `get_paginated_transactions`, `update_user_transaction`, `delete_user_transaction`, `export_user_transactions`) were created. These functions encapsulate the logic for querying and manipulating the `transactions` table, respecting RLS and handling filters, sorting, and pagination.
+
+### Step 4: Update Frontend Code (Completed for New Table Context)
+
+- \*\*State Management (`Zustand`):
+  - `useDonationStore` (`src/lib/store.ts`) was simplified to hold a general `transactions: Transaction[]` array (using the new model).
+  - `useTableTransactionsStore` (`src/lib/tableTransactions.store.ts`) was introduced to manage the specific state and data for the new interactive transactions table, also using the unified `Transaction` model.
+- \*\*Service Layers:
+  - `dataService.ts` was updated to interact with the unified `transactions` table for general data loading (into `useDonationStore`) and potentially for adding transactions outside the new table's context.
 
 ```sql
 -- Example: Add a 'notes' text column to the 'transactions' table
