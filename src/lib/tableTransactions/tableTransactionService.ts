@@ -3,6 +3,11 @@ import { supabase } from "../supabaseClient"; // Updated path
 import { Transaction } from "../../types/transaction"; // Updated path
 import { Platform } from "../../contexts/PlatformContext"; // Updated path
 import { TableTransactionFilters } from "./tableTransactions.types"; // Updated path
+import {
+  updateTransaction as updateTransactionInDataService,
+  deleteTransaction as deleteTransactionInDataService,
+  TransactionUpdatePayload, // Assuming TransactionUpdatePayload is exported from dataService or a shared types file
+} from "../dataService"; // Adjusted path to dataService
 
 interface FetchTransactionsParams {
   offset: number;
@@ -212,65 +217,27 @@ export class TableTransactionsService {
     id: string,
     updates: Partial<Transaction>,
     platform: Platform
-  ): Promise<Transaction> {
+  ): Promise<void> {
     console.log(
-      `TableTransactionsService: Updating transaction ${id}. Platform: ${platform}`
+      `TableTransactionsService: updateTransaction for ID ${id} - delegating to dataService. Platform awareness is in dataService.`
     );
-    if (platform === "desktop") {
-      console.log(
-        `TableTransactionsService: Invoking update_transaction_handler for ID: ${id} with updates:`,
-        updates
+    try {
+      await updateTransactionInDataService(
+        id,
+        updates as TransactionUpdatePayload
       );
-      try {
-        await invoke("update_transaction_handler", {
-          id: id,
-          payload: updates,
-        });
-        console.log(
-          `TableTransactionsService: Desktop update_transaction_handler call for ID: ${id} presumably successful.`
-        );
-        return { id, ...updates } as Transaction;
-      } catch (error) {
-        console.error("Error invoking update_transaction_handler:", error);
-        throw new Error(
-          `Failed to update transaction on desktop: ${
-            error instanceof Error ? error.message : String(error)
-          }`
-        );
-      }
-    } else if (platform === "web") {
-      try {
-        const { data, error } = await supabase
-          .from("transactions")
-          .update(updates)
-          .eq("id", id)
-          .select()
-          .single();
-
-        if (error) {
-          console.error(
-            `TableTransactionsService: Supabase update error for ID ${id}:`,
-            error
-          );
-          throw error;
-        }
-        if (!data) {
-          throw new Error(`Supabase update for ID ${id} did not return data.`);
-        }
-        console.log(
-          `TableTransactionsService: Supabase update successful for ID: ${id}`
-        );
-        return data as Transaction;
-      } catch (error) {
-        console.error(`Error updating transaction ${id} in Supabase:`, error);
-        throw error;
-      }
-    } else {
+      console.log(
+        `TableTransactionsService: dataService.updateTransaction call for ID: ${id} presumed successful.`
+      );
+    } catch (error) {
       console.error(
-        `TableTransactionsService: Platform ${platform} not supported for updateTransaction.`
+        `TableTransactionsService: Error calling dataService.updateTransaction for ID ${id}:`,
+        error
       );
       throw new Error(
-        `Platform ${platform} not supported for updateTransaction.`
+        `Failed to update transaction via dataService: ${
+          error instanceof Error ? error.message : String(error)
+        }`
       );
     }
   }
@@ -280,52 +247,22 @@ export class TableTransactionsService {
     platform: Platform
   ): Promise<void> {
     console.log(
-      `TableTransactionsService: Deleting transaction ${id}. Platform: ${platform}`
+      `TableTransactionsService: deleteTransaction for ID ${id} - delegating to dataService. Platform awareness is in dataService.`
     );
-    if (platform === "desktop") {
-      try {
-        console.log(
-          `TableTransactionsService: Invoking delete_transaction_handler for ID: ${id}`
-        );
-        await invoke("delete_transaction_handler", { transactionId: id });
-        console.log(
-          "TableTransactionsService: Desktop delete_transaction_handler successful."
-        );
-      } catch (error) {
-        console.error("Error invoking delete_transaction_handler:", error);
-        throw new Error(
-          `Failed to delete transaction on desktop: ${
-            error instanceof Error ? error.message : String(error)
-          }`
-        );
-      }
-    } else if (platform === "web") {
-      try {
-        const { error } = await supabase
-          .from("transactions")
-          .delete()
-          .eq("id", id);
-
-        if (error) {
-          console.error(
-            `TableTransactionsService: Supabase delete error for ID ${id}:`,
-            error
-          );
-          throw error;
-        }
-        console.log(
-          `TableTransactionsService: Supabase delete successful for ID: ${id}`
-        );
-      } catch (error) {
-        console.error(`Error deleting transaction ${id} from Supabase:`, error);
-        throw error;
-      }
-    } else {
+    try {
+      await deleteTransactionInDataService(id);
+      console.log(
+        `TableTransactionsService: dataService.deleteTransaction call for ID: ${id} presumed successful.`
+      );
+    } catch (error) {
       console.error(
-        `TableTransactionsService: Platform ${platform} not supported for deleteTransaction.`
+        `TableTransactionsService: Error calling dataService.deleteTransaction for ID ${id}:`,
+        error
       );
       throw new Error(
-        `Platform ${platform} not supported for deleteTransaction.`
+        `Failed to delete transaction via dataService: ${
+          error instanceof Error ? error.message : String(error)
+        }`
       );
     }
   }

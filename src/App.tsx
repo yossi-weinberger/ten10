@@ -10,10 +10,8 @@ import {
 } from "./components/ui/sheet";
 import { Sidebar } from "./components/layout/Sidebar";
 import { usePlatform } from "./contexts/PlatformContext";
-import { setDataServicePlatform, loadTransactions } from "./lib/dataService";
+import { setDataServicePlatform } from "./lib/dataService";
 import { invoke } from "@tauri-apps/api";
-import { useDonationStore } from "./lib/store";
-import { Transaction } from "./types/transaction";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -28,20 +26,6 @@ function App() {
         invoke("init_db")
           .then(() => {
             console.log("Database initialized successfully.");
-
-            loadTransactions()
-              .then((transactions) => {
-                console.log(
-                  "Loaded initial transactions from DB:",
-                  transactions
-                );
-                useDonationStore.setState({
-                  transactions: transactions,
-                });
-              })
-              .catch((error) =>
-                console.error("Error loading initial transactions:", error)
-              );
           })
           .catch((error) =>
             console.error("Error initializing database:", error)

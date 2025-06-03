@@ -211,6 +211,218 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
   }
 }
 
+/**
+ * Deletes a single transaction by its ID.
+ * On desktop, calls Tauri command.
+ * On web, calls Supabase.
+ */
+export async function deleteTransaction(transactionId: string): Promise<void> {
+  console.log(
+    `DataService: Attempting to delete transaction ID: ${transactionId}. Platform: ${currentPlatform}`
+  );
+
+  if (currentPlatform === "desktop") {
+    try {
+      await invoke("delete_transaction_handler", { transactionId });
+      console.log(
+        `DataService: Tauri delete_transaction_handler successful for ID: ${transactionId}`
+      );
+      useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
+    } catch (error) {
+      console.error(
+        `DataService: Error invoking delete_transaction_handler for ID ${transactionId}:`,
+        error
+      );
+      throw error;
+    }
+  } else if (currentPlatform === "web") {
+    try {
+      const { error } = await supabase
+        .from("transactions")
+        .delete()
+        .eq("id", transactionId);
+
+      if (error) {
+        console.error(
+          `DataService: Error deleting transaction ID ${transactionId} from Supabase:`,
+          error
+        );
+        throw error;
+      }
+      console.log(
+        `DataService: Supabase delete successful for transaction ID: ${transactionId}`
+      );
+      useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
+    } catch (error) {
+      console.error(
+        `DataService: Error deleting transaction ID ${transactionId} from Supabase (catch block):`,
+        error
+      );
+      throw error;
+    }
+  } else {
+    console.warn(
+      `DataService: Platform not yet determined. Cannot delete transaction ID: ${transactionId}.`
+    );
+    throw new Error(
+      "Cannot delete transaction: Platform not initialized or unknown."
+    );
+  }
+}
+
+// --- START definition of TransactionUpdatePayload (mirroring Rust's TransactionUpdatePayload) ---
+// This should ideally be in a shared types file or derived more directly
+// from the main Transaction type if all fields are optional for update.
+export interface TransactionUpdatePayload {
+  date?: string;
+  amount?: number;
+  currency?: string;
+  description?: string | null; // Allow explicitly setting to null
+  type?: string; // Note: in Rust it's type_str, ensure mapping if needed or align names
+  category?: string | null; // Allow explicitly setting to null
+  is_chomesh?: boolean;
+  is_recurring?: boolean;
+  recurring_day_of_month?: number | null; // Allow explicitly setting to null if is_recurring is false
+  recipient?: string | null; // Allow explicitly setting to null
+  // user_id is typically not updated
+  // created_at is not updated
+  // updated_at is handled by the backend (Rust sets it to CURRENT_TIMESTAMP)
+}
+// --- END definition of TransactionUpdatePayload ---
+
+/**
+ * Updates a single transaction by its ID with the given payload.
+ * On desktop, calls Tauri command.
+ * On web, calls Supabase.
+ */
+export async function updateTransaction(
+  transactionId: string,
+  payload: TransactionUpdatePayload // Using the defined interface
+): Promise<void> {
+  console.log(
+    `DataService: Attempting to update transaction ID: ${transactionId} with payload:`,
+    payload,
+    `Platform: ${currentPlatform}`
+  );
+
+  // Basic validation for payload to prevent sending empty updates if not desired
+  if (Object.keys(payload).length === 0) {
+    console.warn(
+      "DataService: updateTransaction called with an empty payload."
+    );
+    // Depending on desired behavior, you might throw an error or return early
+    // For now, let's proceed, as the backend might handle this (e.g., only update updated_at)
+  }
+
+  if (currentPlatform === "desktop") {
+    try {
+      // The Rust handler `update_transaction_handler` expects an object with `id` and `payload` keys.
+      await invoke("update_transaction_handler", {
+        id: transactionId,
+        payload,
+      });
+      console.log(
+        `DataService: Tauri update_transaction_handler successful for ID: ${transactionId}`
+      );
+      useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
+    } catch (error) {
+      console.error(
+        `DataService: Error invoking update_transaction_handler for ID ${transactionId}:`,
+        error
+      );
+      throw error;
+    }
+  } else if (currentPlatform === "web") {
+    try {
+      // For Supabase, the payload should directly be the object of fields to update.
+      // Ensure the payload keys match Supabase column names (snake_case).
+      // The `TransactionUpdatePayload` above uses camelCase for JS consistency,
+      // so if Supabase expects snake_case, a transformation might be needed here
+      // OR ensure the payload sent from the form ALREADY uses snake_case if it's simpler.
+      // For now, assuming Supabase client handles or columns are named matching camelCase,
+      // or that the payload will be structured with snake_case keys if necessary before calling this.
+      // Let's assume for now payload is already in correct format for Supabase (or client handles it)
+
+      // Supabase requires snake_case for column names if your DB is set up that way.
+      // The Transaction type itself uses snake_case due to `db_name` in the original type,
+      // but TransactionUpdatePayload was defined with JS-style camelCase for frontend forms.
+      // We need to convert `payload` to snake_case before sending to Supabase.
+      const snakeCasePayload: { [key: string]: any } = {};
+      for (const key in payload) {
+        if (Object.prototype.hasOwnProperty.call(payload, key)) {
+          const snakeKey = key.replace(
+            /[A-Z]/g,
+            (letter) => `_${letter.toLowerCase()}`
+          );
+          snakeCasePayload[snakeKey] = (payload as any)[key];
+        }
+      }
+      // Specifically handle 'type' -> 'type' (if your Supabase column is 'type')
+      // or 'type' -> 'transaction_type' if that's the column name.
+      // The Transaction type has 'type', let's assume Supabase column is also 'type'.
+      // If TransactionUpdatePayload has 'type' and it needs to be 'type_str' for Rust but 'type' for Supabase:
+      if (snakeCasePayload.type && !snakeCasePayload.type_str) {
+        // This depends on how 'type' is named in TransactionUpdatePayload vs Supabase column.
+        // If TransactionUpdatePayload has `type` and Supabase table column is also `type`.
+        // If Supabase expects `transaction_type` but payload has `type`, map it here.
+        // For now, the conversion above should handle typical camel to snake, e.g. isChomesh -> is_chomesh.
+        // 'type' will remain 'type'.
+      }
+      // Remove 'type_str' if it exists from conversion but Supabase expects 'type'
+      // delete snakeCasePayload.type_str; // This is risky if 'type' wasn't in payload.
+
+      console.log(
+        "DataService: Supabase update payload (after potential snake_case conversion):",
+        snakeCasePayload
+      );
+
+      const { data, error } = await supabase
+        .from("transactions")
+        .update(snakeCasePayload) // Send the converted payload
+        .eq("id", transactionId)
+        .select(); // Optionally select to get the updated row back
+
+      if (error) {
+        console.error(
+          `DataService: Error updating transaction ID ${transactionId} in Supabase:`,
+          error
+        );
+        throw error;
+      }
+      if (!data || data.length === 0) {
+        // This might happen if RLS prevents update or row doesn't exist,
+        // or if .select() wasn't called or didn't return data.
+        // For update, supabase might not return data by default unless .select() is used.
+        // And even with .select(), if no rows matched, data could be empty.
+        console.warn(
+          `DataService: Supabase update for transaction ID ${transactionId} completed, but no data returned or no rows affected. This might be expected if the row didn't exist or RLS prevented the update/select.`
+        );
+        // We might still want to update the timestamp if the operation didn't error,
+        // assuming the backend handled it or it was a 'no-op' on a non-existent row.
+        // However, if an update to a non-existent row should be an error, the backend should signal it.
+      }
+      console.log(
+        `DataService: Supabase update successful for transaction ID: ${transactionId}. Data:`,
+        data
+      );
+      useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
+    } catch (error) {
+      console.error(
+        `DataService: Error updating transaction ID ${transactionId} in Supabase (catch block):`,
+        error
+      );
+      throw error;
+    }
+  } else {
+    console.warn(
+      `DataService: Platform not yet determined. Cannot update transaction ID: ${transactionId}.`
+    );
+    throw new Error(
+      "Cannot update transaction: Platform not initialized or unknown."
+    );
+  }
+}
+
 export async function clearAllData() {
   console.log("Attempting to clear all data...");
   if (currentPlatform === "desktop") {

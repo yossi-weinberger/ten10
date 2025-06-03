@@ -214,27 +214,27 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
       }
       const originalTransactionState = { ...transactionToUpdate };
 
+      // Optimistic update
       get().updateTransactionState(id, updates);
       set({ error: null });
 
       try {
-        // userIdForUpdate logic was part of the original code but seems unnecessary
-        // as TableTransactionsService.updateTransaction does not expect it.
-        // If user context is needed within the service, it should be handled by the service itself (e.g., via supabase.auth.getUser()).
-
-        const updatedTransactionFromServer =
-          await TableTransactionsService.updateTransaction(
-            id,
-            updates,
-            platform
-          );
-        get().updateTransactionState(id, updatedTransactionFromServer);
+        // Call the service (which now calls dataService and returns void)
+        await TableTransactionsService.updateTransaction(id, updates, platform);
+        // After successful update via dataService (which updates lastDbFetchTimestamp),
+        // we rely on optimistic update for table smoothness. Other components (like StatsCards) will update via lastDbFetchTimestamp.
+        console.log(
+          `TableTransactionsStore: Update for ${id} successful on server. Optimistic update applied to table.`
+        );
       } catch (err: any) {
         console.error("Failed to update transaction:", err);
+        // Rollback optimistic update
         get().updateTransactionState(id, originalTransactionState);
         set({
           error: err.message || "Failed to update transaction.",
         });
+        // Optionally re-throw if the caller needs to handle it further
+        // throw err;
       }
     },
 
@@ -259,13 +259,20 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         return;
       }
 
+      // Optimistic update
       get().deleteTransactionState(id);
       set({ error: null });
 
       try {
         await TableTransactionsService.deleteTransaction(id, platform);
+        // After successful deletion via dataService (which updates lastDbFetchTimestamp),
+        // we rely on optimistic update for table smoothness. Other components (like StatsCards) will update via lastDbFetchTimestamp.
+        console.log(
+          `TableTransactionsStore: Deletion for ${id} successful on server. Optimistic update applied to table.`
+        );
       } catch (err: any) {
         console.error("Failed to delete transaction from server:", err);
+        // Rollback optimistic update
         set({
           error: err.message || "Failed to delete transaction.",
           transactions: originalTransactions,
