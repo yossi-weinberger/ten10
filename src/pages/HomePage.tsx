@@ -13,7 +13,6 @@ export function HomePage() {
 
       <StatsCards />
       <MonthlyChart />
-      {/* <AllTransactionsDataTable /> */}
     </div>
   );
 }

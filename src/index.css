@@ -35,6 +35,11 @@
     --ring: 160 50% 47%;
     
     --radius: 0.5rem;
+
+    /* Chart colors */
+    --chart-green: 142.1 70.6% 45.3%; /* Example Green for light mode */
+    --chart-yellow: 47.9 95.8% 53.1%; /* Example Yellow for light mode */
+    --chart-red: 0 72.2% 50.6%;     /* Example Red for light mode */
   }
 
   .dark {
@@ -65,6 +70,11 @@
     --border: 220 15% 73%;
     --input: 220 15% 73%;
     --ring: 160 50% 47%;
+
+    /* Chart colors for dark mode */
+    --chart-green: 142.1 70.6% 35.3%;  /* Example Green for dark mode */
+    --chart-yellow: 47.9 95.8% 43.1%; /* Example Yellow for dark mode */
+    --chart-red: 0 72.2% 40.6%;      /* Example Red for dark mode */
   }
 }
 

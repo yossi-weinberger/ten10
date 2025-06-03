@@ -1,27 +1,19 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
 import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils";
 import { format, parse, subMonths } from "date-fns";
 import { he } from "date-fns/locale";
-import {
-  fetchServerMonthlyChartData,
-  MonthlyDataPoint,
-} from "@/lib/chartService";
+import { fetchServerMonthlyChartData } from "@/lib/chartService";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { RotateCcw } from "lucide-react";
+import {
+  AreaChartInteractive,
+  MonthlyChartDataPoint,
+} from "@/components/charts/area-chart-interactive";
+import { ChartConfig } from "@/components/ui/chart";
 
 const nameMapping: { [key: string]: string } = {
   income: "הכנסות",
@@ -29,30 +21,22 @@ const nameMapping: { [key: string]: string } = {
   expenses: "הוצאות",
 };
 
-const CustomTooltip = ({ active, payload, label }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200 dark:bg-gray-800 dark:border-gray-700 dir-rtl">
-        <p className="font-bold mb-2 text-right">{label}</p>
-        {payload.map((entry: any, index: number) => (
-          <div key={index} className="flex items-center justify-end gap-2">
-            <span className="text-right">{formatCurrency(entry.value)}</span>
-            <span className="font-medium">
-              {nameMapping[entry.name] || entry.name}:
-            </span>
-            <div
-              className="w-3 h-3 rounded-full ml-1"
-              style={{ backgroundColor: entry.color }}
-            />
-          </div>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
-
 const NUM_MONTHS_TO_FETCH = 6;
+
+const monthlyChartConfig: ChartConfig = {
+  income: {
+    label: nameMapping.income,
+    color: "hsl(var(--chart-green))",
+  },
+  donations: {
+    label: nameMapping.donations,
+    color: "hsl(var(--chart-yellow))",
+  },
+  expenses: {
+    label: nameMapping.expenses,
+    color: "hsl(var(--chart-red))",
+  },
+};
 
 export function MonthlyChart() {
   const { user } = useAuth();
@@ -84,12 +68,19 @@ export function MonthlyChart() {
   }));
 
   const [initialLoadAttempted, setInitialLoadAttempted] = useState(false);
+  const [platformReady, setPlatformReady] = useState(false);
+
+  useEffect(() => {
+    if (platform !== "loading") {
+      setPlatformReady(true);
+    }
+  }, [platform]);
 
   const loadData = useCallback(
     async (loadMore = false, isReset = false) => {
-      if (platform === "loading") {
+      if (!platformReady) {
         console.log(
-          "MonthlyChart: loadData called but platform is still loading. Aborting."
+          "MonthlyChart: loadData called but platform is not ready. Aborting."
         );
         return;
       }
@@ -97,9 +88,7 @@ export function MonthlyChart() {
       setServerMonthlyChartDataError(null);
 
       if (isReset) {
-        setServerMonthlyChartData([], false);
         setCurrentChartEndDate(null);
-        setInitialLoadAttempted(false);
         setCanLoadMoreChartData(true);
       } else if (!loadMore) {
         setInitialLoadAttempted(true);
@@ -120,10 +109,6 @@ export function MonthlyChart() {
       console.log(
         "MonthlyChart: Preparing to fetch data. endDateForFetch:",
         endDateForFetch,
-        "Type:",
-        typeof endDateForFetch,
-        "Is Date instance:",
-        endDateForFetch instanceof Date,
         "LoadMore:",
         loadMore,
         "IsReset:",
@@ -138,7 +123,7 @@ export function MonthlyChart() {
           NUM_MONTHS_TO_FETCH
         );
         if (data) {
-          if (data.length < NUM_MONTHS_TO_FETCH) {
+          if (data.length < NUM_MONTHS_TO_FETCH && (loadMore || !isReset)) {
             setCanLoadMoreChartData(false);
           }
           setServerMonthlyChartData(data, loadMore && !isReset);
@@ -165,6 +150,7 @@ export function MonthlyChart() {
       }
     },
     [
+      platformReady,
       platform,
       userId,
       setIsLoadingServerMonthlyChartData,
@@ -182,62 +168,77 @@ export function MonthlyChart() {
 
   useEffect(() => {
     const canFetchData =
-      platform === "desktop" || (user?.id && platform === "web");
+      platformReady &&
+      (platform === "desktop" || (user?.id && platform === "web"));
 
     if (
       canFetchData &&
       !isLoadingServerMonthlyChartData &&
-      initialLoadAttempted === false
+      !initialLoadAttempted
     ) {
       console.log(
-        "[MonthlyChart] useEffect: Initial data fetch conditions met. Platform:",
+        "[MonthlyChart] useEffect [platformReady, user, ...]: Initial data fetch conditions met. Platform:",
         platform,
         "User ID:",
         user?.id
       );
       loadData(false, false);
       setInitialLoadAttempted(true);
-    } else {
-      // console.log("[MonthlyChart] useEffect: Initial data fetch conditions NOT met. Platform:", platform, "User ID:", user?.id, "isLoading:", isLoadingServerMonthlyChartData, "initialLoadAttempted:", initialLoadAttempted);
     }
   }, [
+    platformReady,
     user?.id,
     platform,
     isLoadingServerMonthlyChartData,
     loadData,
     initialLoadAttempted,
-    currentChartEndDate,
   ]);
 
-  const formattedChartData = React.useMemo(() => {
-    return serverMonthlyChartData
-      .map((item) => ({
-        ...item,
-        month: format(
-          parse(item.month_label, "yyyy-MM", new Date()),
-          "MMM yyyy",
-          {
-            locale: he,
-          }
-        ),
-      }))
-      .sort(
-        (a, b) =>
-          parse(a.month_label, "yyyy-MM", new Date()).getTime() -
-          parse(b.month_label, "yyyy-MM", new Date()).getTime()
-      );
-  }, [serverMonthlyChartData]);
+  const formattedChartDataForAreaChart: MonthlyChartDataPoint[] =
+    React.useMemo(() => {
+      if (!serverMonthlyChartData) return [];
+
+      return serverMonthlyChartData
+        .slice()
+        .sort((itemA, itemB) => {
+          const dateA = parse(
+            itemA.month_label,
+            "yyyy-MM",
+            new Date()
+          ).getTime();
+          const dateB = parse(
+            itemB.month_label,
+            "yyyy-MM",
+            new Date()
+          ).getTime();
+          return dateA - dateB;
+        })
+        .map((item) => ({
+          month: format(
+            parse(item.month_label, "yyyy-MM", new Date()),
+            "MMM yyyy",
+            {
+              locale: he,
+            }
+          ),
+          income: item.income,
+          donations: item.donations,
+          expenses: item.expenses,
+        }));
+    }, [serverMonthlyChartData]);
 
   if (
-    platform === "loading" ||
-    (isLoadingServerMonthlyChartData && !initialLoadAttempted)
+    !platformReady ||
+    (isLoadingServerMonthlyChartData &&
+      !initialLoadAttempted &&
+      serverMonthlyChartData.length === 0)
   ) {
     return (
       <Card dir="rtl" className="bg-gradient-to-br from-background to-muted/20">
         <CardHeader>
           <CardTitle>סיכום חודשי</CardTitle>
         </CardHeader>
-        <CardContent className="h-[400px] flex items-center justify-center">
+        <CardContent className="h-[450px] flex items-center justify-center">
           <p>טוען נתונים...</p>
         </CardContent>
       </Card>
@@ -250,7 +251,7 @@ export function MonthlyChart() {
         <CardHeader>
           <CardTitle>סיכום חודשי</CardTitle>
         </CardHeader>
-        <CardContent className="h-[400px] flex items-center justify-center">
+        <CardContent className="h-[450px] flex items-center justify-center">
           <p className="text-red-500">
             שגיאה בטעינת נתונים: {serverMonthlyChartDataError}
           </p>
@@ -269,7 +270,7 @@ export function MonthlyChart() {
         <CardHeader>
           <CardTitle>סיכום חודשי</CardTitle>
         </CardHeader>
-        <CardContent className="h-[400px] flex items-center justify-center">
+        <CardContent className="h-[450px] flex items-center justify-center">
           <p>לא נמצאו נתונים להצגה.</p>
         </CardContent>
       </Card>
@@ -281,55 +282,13 @@ export function MonthlyChart() {
       <CardHeader>
         <CardTitle>סיכום חודשי</CardTitle>
       </CardHeader>
-      <CardContent className="h-[450px]">
-        {serverMonthlyChartData.length > 0 ? (
+      <CardContent className="">
+        {formattedChartDataForAreaChart.length > 0 ? (
           <>
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart
-                data={formattedChartData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis
-                  dataKey="month"
-                  className="text-sm font-medium"
-                  tick={{ fill: "currentColor" }}
-                />
-                <YAxis
-                  orientation="right"
-                  className="text-sm font-medium"
-                  tick={{ fill: "currentColor" }}
-                  tickFormatter={(value) => `₪${value.toLocaleString()}`}
-                />
-                <Tooltip
-                  content={<CustomTooltip />}
-                  cursor={{ fill: "rgba(200, 200, 200, 0.1)" }}
-                />
-                <Legend
-                  wrapperStyle={{ paddingTop: "20px" }}
-                  formatter={(value) => (
-                    <span className="text-sm font-medium">
-                      {nameMapping[value] || value}
-                    </span>
-                  )}
-                />
-                <Bar
-                  dataKey="income"
-                  fill="hsl(142.1 70.6% 45.3%)"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey="expenses"
-                  fill="hsl(0 72.2% 50.6%)"
-                  radius={[4, 4, 0, 0]}
-                />
-                <Bar
-                  dataKey="donations"
-                  fill="hsl(47.9 95.8% 53.1%)"
-                  radius={[4, 4, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            <AreaChartInteractive
+              chartData={formattedChartDataForAreaChart}
+              chartConfig={monthlyChartConfig}
+            />
             <div className="flex justify-center items-center gap-4 mt-4">
               {canLoadMoreChartData && (
                 <Button
