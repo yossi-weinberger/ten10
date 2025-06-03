@@ -1,0 +1,90 @@
+import { invoke } from "@tauri-apps/api/tauri";
+import { supabase } from "./supabaseClient"; // Assuming supabaseClient is correctly set up
+// import { getCurrentPlatform } from "./platformService"; // No longer needed
+import { type Platform } from "./platformService"; // Corrected import for Platform type
+
+export interface MonthlyDataPoint {
+  month_label: string; // "YYYY-MM"
+  הכנסות: number;
+  תרומות: number;
+  הוצאות: number;
+}
+
+export type ServerMonthlyDataResponse = MonthlyDataPoint[];
+
+const SUPABASE_RPC_FUNCTION_NAME = "get_monthly_financial_summary";
+const TAURI_COMMAND_NAME = "get_desktop_monthly_financial_summary";
+
+export async function fetchServerMonthlyChartData(
+  platform: Platform,
+  userId: string | null,
+  endDate: Date, // JavaScript Date object
+  numMonths: number
+): Promise<ServerMonthlyDataResponse | null> {
+  // Validate endDate
+  if (!(endDate instanceof Date) || isNaN(endDate.getTime())) {
+    console.error(
+      "ChartService: Invalid endDate received. Expected a valid Date object. Received:",
+      endDate
+    );
+    return null;
+  }
+
+  const endDateStr = endDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+
+  console.log(
+    `ChartService: Fetching monthly chart data for ${numMonths} months ending ${endDateStr}, platform: ${platform}`
+  );
+
+  try {
+    if (platform === "web") {
+      if (!userId) {
+        console.warn(
+          "ChartService: User ID is required for web platform but not provided."
+        );
+        return null;
+      }
+      const { data, error } = await supabase.rpc(SUPABASE_RPC_FUNCTION_NAME, {
+        p_user_id: userId,
+        p_end_date: endDateStr,
+        p_num_months: numMonths,
+      });
+
+      if (error) {
+        console.error(
+          `ChartService: Error calling ${SUPABASE_RPC_FUNCTION_NAME} RPC:`,
+          error
+        );
+        throw error;
+      }
+      console.log("ChartService: Successfully fetched chart data (Web):", data);
+      return data as ServerMonthlyDataResponse;
+    } else if (platform === "desktop") {
+      const data = await invoke<ServerMonthlyDataResponse>(TAURI_COMMAND_NAME, {
+        endDateStr: endDateStr,
+        numMonths: numMonths,
+      });
+      console.log(
+        "ChartService: Successfully fetched chart data (Desktop):",
+        data
+      );
+      return data;
+    } else {
+      // This case should ideally not be hit if MonthlyChart calls this function
+      // only after platform is 'web' or 'desktop'.
+      // The 'loading' case should be handled by the calling component.
+      console.warn(
+        "ChartService: fetchServerMonthlyChartData called with platform:",
+        platform
+      );
+      return null;
+    }
+  } catch (errorCaught: any) {
+    console.error("ChartService: Exception fetching chart data:", errorCaught);
+    throw new Error(
+      `Failed to fetch chart data. Original error: ${
+        errorCaught.message || errorCaught
+      }`
+    );
+  }
+}

@@ -5,12 +5,14 @@ use rusqlite::{Connection, Result};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::State;
+use env_logger;
 
 mod commands;
 use commands::income_commands::get_desktop_total_income_in_range;
 use commands::expense_commands::get_desktop_total_expenses_in_range;
 use commands::donation_commands::{get_desktop_total_donations_in_range, get_desktop_overall_tithe_balance};
 use commands::transaction_commands::{delete_transaction_handler, export_transactions_handler, get_filtered_transactions_handler, update_transaction_handler};
+use commands::chart_commands::get_desktop_monthly_financial_summary;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct Transaction {
@@ -152,6 +154,8 @@ async fn clear_all_data(db: State<'_, DbState>) -> Result<(), String> {
 }
 
 fn main() {
+    env_logger::init();
+
     let conn = Connection::open("Ten10.db").expect("Failed to open database");
     
     tauri::Builder::default()
@@ -168,7 +172,8 @@ fn main() {
             delete_transaction_handler,
             export_transactions_handler,
             get_filtered_transactions_handler,
-            update_transaction_handler
+            update_transaction_handler,
+            get_desktop_monthly_financial_summary
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

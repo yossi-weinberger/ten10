@@ -2,7 +2,7 @@
 name = "Ten10"
 version = "0.1.0"
 description = "Ten10 - Income and Donation Management App"
-authors = ["you"]
+authors = ["Yossi Weinberger"]
 license = ""
 repository = ""
 edition = "2021"
@@ -18,6 +18,9 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 rusqlite = { version = "0.29.0", features = ["bundled"] }
 # sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-rustls", "macros"] } # Removed sqlx
+chrono = { version = "0.4.35", features = ["serde"] }
+log = "0.4.21"
+env_logger = "0.11.3"
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]
@@ -25,3 +28,10 @@ custom-protocol = ["tauri/custom-protocol"]
 [[bin]]
 name = "Ten10"
 path = "src/main.rs"
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true
