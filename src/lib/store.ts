@@ -40,9 +40,6 @@ export interface DonationState {
   serverMonthlyChartDataError: string | null;
   canLoadMoreChartData: boolean;
   updateSettings: (settings: Partial<Settings>) => void;
-  addTransaction: (transaction: Transaction) => void;
-  removeTransaction: (id: string) => void;
-  updateTransaction: (updatedTransaction: Transaction) => void;
   setLastDbFetchTimestamp: (timestamp: number | null) => void;
   setHasHydrated: (status: boolean) => void;
   setServerCalculatedTitheBalance: (balance: number | null) => void;
@@ -95,27 +92,6 @@ export const useDonationStore = create<DonationState>()(
         set((state) => ({
           settings: { ...state.settings, ...newSettings },
         }));
-      },
-
-      addTransaction: (transaction) => {
-        console.warn(
-          "[Deprecation Warning] useDonationStore.addTransaction was called, but it no longer manages a local transactions list. Ensure backend is updated and UI reflects changes from server data sources. Transaction: ",
-          transaction
-        );
-      },
-
-      removeTransaction: (id) => {
-        console.warn(
-          "[Deprecation Warning] useDonationStore.removeTransaction was called, but it no longer manages a local transactions list. Ensure backend is updated and UI reflects changes from server data sources. ID: ",
-          id
-        );
-      },
-
-      updateTransaction: (updatedTransaction) => {
-        console.warn(
-          "[Deprecation Warning] useDonationStore.updateTransaction was called, but it no longer manages a local transactions list. Ensure backend is updated and UI reflects changes from server data sources. Transaction: ",
-          updatedTransaction
-        );
       },
 
       setLastDbFetchTimestamp: (timestamp) => {

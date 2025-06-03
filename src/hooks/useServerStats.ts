@@ -75,8 +75,15 @@ export function useServerStats(
     string | null
   >(null);
 
+  const lastDbFetchTimestamp = useDonationStore(
+    (state) => state.lastDbFetchTimestamp
+  );
+
   useEffect(() => {
     const effectiveUserId = platform === "web" ? user?.id || null : null;
+    console.log(
+      `useServerStats useEffect triggered. Platform: ${platform}, UserID: ${effectiveUserId}, DateRange: ${activeDateRangeObject.startDate}-${activeDateRangeObject.endDate}, Timestamp: ${lastDbFetchTimestamp}`
+    );
 
     if (activeDateRangeObject.startDate && activeDateRangeObject.endDate) {
       if ((platform === "web" && effectiveUserId) || platform === "desktop") {
@@ -247,6 +254,7 @@ export function useServerStats(
     setServerTotalDonations,
     setServerCalculatedDonationsData,
     setServerTitheBalance,
+    lastDbFetchTimestamp,
   ]);
 
   return {

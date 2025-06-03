@@ -105,46 +105,6 @@ async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Re
 }
 
 #[tauri::command]
-async fn get_transactions(db: State<'_, DbState>) -> Result<Vec<Transaction>, String> {
-    let conn = db.0.lock().map_err(|e| e.to_string())?;
-    let mut stmt = conn.prepare(
-        "SELECT id, user_id, date, amount, currency, description, type, category, 
-                is_chomesh, recipient, created_at, updated_at, 
-                is_recurring, recurring_day_of_month, recurring_total_count
-         FROM transactions")
-        .map_err(|e| e.to_string())?;
-
-    let transaction_iter = stmt.query_map([], |row| {
-        let is_chomesh_opt: Option<i32> = row.get(8)?;
-        let is_chomesh_bool_opt = is_chomesh_opt.map(|i| i != 0);
-
-        let is_recurring_opt: Option<i32> = row.get(12)?;
-        let is_recurring_bool_opt = is_recurring_opt.map(|i| i != 0);
-
-        Ok(Transaction {
-            id: row.get(0)?,
-            user_id: row.get(1)?,
-            date: row.get(2)?,
-            amount: row.get(3)?,
-            currency: row.get(4)?,
-            description: row.get(5)?,
-            transaction_type: row.get(6)?,
-            category: row.get(7)?,
-            is_chomesh: is_chomesh_bool_opt,
-            recipient: row.get(9)?,
-            created_at: row.get(10)?,
-            updated_at: row.get(11)?,
-            is_recurring: is_recurring_bool_opt,
-            recurring_day_of_month: row.get(13)?,
-            recurring_total_count: row.get(14)?,
-        })
-    }).map_err(|e| e.to_string())?;
-
-    let transactions = transaction_iter.collect::<Result<Vec<Transaction>, rusqlite::Error>>().map_err(|e| e.to_string())?;
-    Ok(transactions)
-}
-
-#[tauri::command]
 async fn clear_all_data(db: State<'_, DbState>) -> Result<(), String> {
     let conn = db.0.lock().map_err(|e| e.to_string())?;
     conn.execute("DELETE FROM transactions", [])
@@ -163,7 +123,6 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             init_db, 
             add_transaction,
-            get_transactions,
             clear_all_data,
             get_desktop_total_income_in_range,
             get_desktop_total_expenses_in_range,

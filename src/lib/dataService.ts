@@ -131,6 +131,7 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
       console.log(
         "Desktop transaction added to DB. Zustand store (global list) is no longer updated from here."
       );
+      useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
     } catch (error) {
       console.error("Error invoking add_transaction:", error);
       throw error;
@@ -197,6 +198,7 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
       console.log(
         "Web transaction added to DB. Zustand store (global list) is no longer updated from here."
       );
+      useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
     } catch (error) {
       console.error("Error adding transaction to Supabase:", error);
       throw error; // Re-throw error
