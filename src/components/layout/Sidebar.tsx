@@ -160,16 +160,20 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         </h1>
       </Link>
 
-      <nav className="flex-1 flex flex-col gap-1 overflow-y-auto">
+      <nav
+        className={cn(
+          "flex-1 flex flex-col gap-1 overflow-y-auto overflow-x-hidden"
+        )}
+      >
         <NavLink to="/" icon={Home}>
           דף הבית
         </NavLink>
         <NavLink to="/add-transaction" icon={PlusCircle}>
           הוסף תנועה
         </NavLink>
-        <NavLink to="/analytics" icon={BarChart}>
+        {/* <NavLink to="/analytics" icon={BarChart}>
           ניתוח נתונים
-        </NavLink>
+        </NavLink> */}
         <NavLink to="/transactionsTable" icon={Table}>
           טבלת נתונים
         </NavLink>
@@ -182,11 +186,6 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         <NavLink to="/about" icon={Info}>
           אודות
         </NavLink>
-        {platform === "web" && (
-          <NavLink to="/profile" icon={User}>
-            פרופיל
-          </NavLink>
-        )}
       </nav>
 
       {/* Combined bottom block for user info and platform indicator */}
@@ -195,9 +194,10 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
           <div className="pb-2">
             {" "}
             {/* Adjusted: Removed individual mt-auto, pt-4, border-t. Added pb-2 for spacing if needed before PlatformIndicator */}
-            <div
+            <Link
+              to="/profile"
               className={cn(
-                "flex items-center p-2 rounded-md",
+                "flex items-center p-2 rounded-md hover:bg-muted/50 transition-colors",
                 expanded ? "gap-3" : "flex-col gap-1 justify-center text-center"
               )}
             >
@@ -254,7 +254,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
                   )} */}
                 </div>
               )}
-            </div>
+            </Link>
           </div>
         )}
         <PlatformIndicator expanded={expanded} />

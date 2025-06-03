@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Calculator } from "lucide-react"; // Assuming Calculator icon is used, adjust if another
+import { Badge } from "@/components/ui/badge";
 
 // Define the specific settings properties needed by this component
 interface CalendarSettings {
@@ -25,18 +26,28 @@ interface CalendarSettings {
 interface CalendarSettingsCardProps {
   calendarSettings: CalendarSettings;
   updateSettings: (newSettings: Partial<CalendarSettings>) => void;
+  disabled?: boolean;
 }
 
 export function CalendarSettingsCard({
   calendarSettings,
   updateSettings,
+  disabled = false,
 }: CalendarSettingsCardProps) {
   return (
-    <Card>
+    <Card className={disabled ? "opacity-50 pointer-events-none" : ""}>
       <CardHeader>
         <div className="flex items-center gap-2">
           <Calculator className="h-5 w-5 text-primary" />
           <CardTitle>הגדרות לוח שנה</CardTitle>
+          {disabled && (
+            <Badge
+              variant="outline"
+              className="ml-auto text-amber-600 border-amber-600 dark:text-amber-500 dark:border-amber-500"
+            >
+              בקרוב
+            </Badge>
+          )}
         </div>
         <CardDescription>הגדרות תצוגת תאריכים</CardDescription>
       </CardHeader>
@@ -50,6 +61,7 @@ export function CalendarSettingsCard({
                 calendarType: value as "gregorian" | "hebrew",
               })
             }
+            disabled={disabled}
           >
             <SelectTrigger>
               <SelectValue placeholder="בחר סוג לוח שנה" />
@@ -74,6 +86,7 @@ export function CalendarSettingsCard({
                   | undefined,
               })
             }
+            disabled={disabled}
           >
             <SelectTrigger>
               <SelectValue placeholder="בחר חודש" />

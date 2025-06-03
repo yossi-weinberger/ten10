@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Wallet, Calculator, Percent } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 // Define the specific settings properties needed by this component
 interface FinancialSettings {
@@ -28,11 +29,15 @@ interface FinancialSettings {
 interface FinancialSettingsCardProps {
   financialSettings: FinancialSettings;
   updateSettings: (newSettings: Partial<FinancialSettings>) => void;
+  disableAutoCalcChomesh?: boolean;
+  disableMinMaaserPercentage?: boolean;
 }
 
 export function FinancialSettingsCard({
   financialSettings,
   updateSettings,
+  disableAutoCalcChomesh = false,
+  disableMinMaaserPercentage = false,
 }: FinancialSettingsCardProps) {
   return (
     <Card>
@@ -71,17 +76,27 @@ export function FinancialSettingsCard({
               <Calculator className="h-5 w-5" />
             </div>
             <div>
-              <Label>חישוב חומש אוטומטי</Label>
+              <Label htmlFor="autoCalcChomeshSwitch">חישוב חומש אוטומטי</Label>
               <p className="text-sm text-muted-foreground">
                 חשב אוטומטית את החומש בהכנסות חדשות
               </p>
+              {disableAutoCalcChomesh && (
+                <Badge
+                  variant="outline"
+                  className="mt-1 text-amber-600 border-amber-600 dark:text-amber-500 dark:border-amber-500"
+                >
+                  בקרוב
+                </Badge>
+              )}
             </div>
           </div>
           <Switch
+            id="autoCalcChomeshSwitch"
             checked={financialSettings.autoCalcChomesh}
             onCheckedChange={(checked) =>
               updateSettings({ autoCalcChomesh: checked })
             }
+            disabled={disableAutoCalcChomesh}
           />
         </div>
 
@@ -91,13 +106,24 @@ export function FinancialSettingsCard({
               <Percent className="h-5 w-5" />
             </div>
             <div>
-              <Label>אחוז מעשר מינימלי</Label>
+              <Label htmlFor="minMaaserPercentageInput">
+                אחוז מעשר מינימלי
+              </Label>
               <p className="text-sm text-muted-foreground">
                 הגדר אחוז מינימלי לתרומה מכל הכנסה
               </p>
+              {disableMinMaaserPercentage && (
+                <Badge
+                  variant="outline"
+                  className="mt-1 text-amber-600 border-amber-600 dark:text-amber-500 dark:border-amber-500"
+                >
+                  בקרוב
+                </Badge>
+              )}
             </div>
           </div>
           <Input
+            id="minMaaserPercentageInput"
             type="number"
             min="0"
             max="100"
@@ -108,6 +134,7 @@ export function FinancialSettingsCard({
                 minMaaserPercentage: parseInt(e.target.value, 10) || 0,
               })
             }
+            disabled={disableMinMaaserPercentage}
           />
         </div>
       </CardContent>

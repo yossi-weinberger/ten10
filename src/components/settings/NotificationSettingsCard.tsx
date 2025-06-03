@@ -9,6 +9,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { BellRing, Bell, CreditCard } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 // Define the specific settings properties needed by this component
 interface NotificationSettings {
@@ -19,18 +20,28 @@ interface NotificationSettings {
 interface NotificationSettingsCardProps {
   notificationSettings: NotificationSettings;
   updateSettings: (newSettings: Partial<NotificationSettings>) => void;
+  disabled?: boolean;
 }
 
 export function NotificationSettingsCard({
   notificationSettings,
   updateSettings,
+  disabled = false,
 }: NotificationSettingsCardProps) {
   return (
-    <Card>
+    <Card className={disabled ? "opacity-50 pointer-events-none" : ""}>
       <CardHeader>
         <div className="flex items-center gap-2">
           <BellRing className="h-5 w-5 text-primary" />
           <CardTitle>התראות ותזכורות</CardTitle>
+          {disabled && (
+            <Badge
+              variant="outline"
+              className="ml-auto text-amber-600 border-amber-600 dark:text-amber-500 dark:border-amber-500"
+            >
+              בקרוב
+            </Badge>
+          )}
         </div>
         <CardDescription>הגדרות התראות ותזכורות</CardDescription>
       </CardHeader>
@@ -52,6 +63,7 @@ export function NotificationSettingsCard({
             onCheckedChange={(checked) =>
               updateSettings({ notifications: checked })
             }
+            disabled={disabled}
           />
         </div>
 
@@ -72,6 +84,7 @@ export function NotificationSettingsCard({
             onCheckedChange={(checked) =>
               updateSettings({ recurringDonations: checked })
             }
+            disabled={disabled}
           />
         </div>
       </CardContent>

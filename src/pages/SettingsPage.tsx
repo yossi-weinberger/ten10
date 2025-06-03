@@ -82,13 +82,15 @@ export function SettingsPage() {
 
         <FinancialSettingsCard
           financialSettings={{
-            defaultCurrency: settings.defaultCurrency,
+            defaultCurrency: settings.defaultCurrency as "ILS" | "USD" | "EUR",
             autoCalcChomesh: settings.autoCalcChomesh,
             minMaaserPercentage: settings.minMaaserPercentage,
           }}
           updateSettings={(newFinancialSettings) =>
             updateSettings(newFinancialSettings)
           }
+          disableAutoCalcChomesh={true}
+          disableMinMaaserPercentage={true}
         />
 
         <NotificationSettingsCard
@@ -99,6 +101,7 @@ export function SettingsPage() {
           updateSettings={(newNotificationSettings) =>
             updateSettings(newNotificationSettings)
           }
+          disabled={true}
         />
 
         <CalendarSettingsCard
@@ -117,6 +120,7 @@ export function SettingsPage() {
           updateSettings={(newCalendarSettings) =>
             updateSettings(newCalendarSettings)
           }
+          disabled={true}
         />
       </div>
 
