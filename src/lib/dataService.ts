@@ -128,9 +128,9 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
         "Tauri invoke add_transaction successful for ID:",
         transaction.id
       );
-      // Update store only after successful DB operation
-      useDonationStore.getState().addTransaction(transaction);
-      console.log("Zustand store updated with new transaction.");
+      console.log(
+        "Desktop transaction added to DB. Zustand store (global list) is no longer updated from here."
+      );
     } catch (error) {
       console.error("Error invoking add_transaction:", error);
       throw error;
@@ -194,29 +194,9 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
         insertedData.id
       );
 
-      // 'insertedData' now has snake_case keys directly from Supabase.
-      // The 'Transaction' type also expects snake_case keys.
-      // Explicit mapping for safety and clarity:
-      const transactionForStore: Transaction = {
-        id: insertedData.id,
-        user_id: insertedData.user_id,
-        date: insertedData.date,
-        amount: insertedData.amount,
-        currency: insertedData.currency,
-        description: insertedData.description,
-        type: insertedData.type,
-        category: insertedData.category,
-        is_chomesh: insertedData.is_chomesh,
-        recipient: insertedData.recipient,
-        created_at: insertedData.created_at,
-        updated_at: insertedData.updated_at,
-        is_recurring: insertedData.is_recurring,
-        recurring_day_of_month: insertedData.recurring_day_of_month,
-        recurring_total_count: insertedData.recurring_total_count,
-      };
-
-      useDonationStore.getState().addTransaction(transactionForStore);
-      console.log("Zustand store updated with DB-generated transaction.");
+      console.log(
+        "Web transaction added to DB. Zustand store (global list) is no longer updated from here."
+      );
     } catch (error) {
       console.error("Error adding transaction to Supabase:", error);
       throw error; // Re-throw error
@@ -271,9 +251,24 @@ export async function clearAllData() {
   // Clear the Zustand store (include transactions)
   console.log("Clearing Zustand store...");
   useDonationStore.setState({
-    transactions: [], // Clear new transactions array
+    // transactions: [], // REMOVE THIS LINE - transactions field no longer exists in the store
+    // We might want to clear other relevant parts of the store here if needed,
+    // e.g., server-calculated values, but for now, just removing the erroneous line.
+    // For a full clear, we might iterate over keys or list them explicitly.
+    // Example of clearing other fields if desired:
+    // serverCalculatedTitheBalance: null,
+    // serverCalculatedTotalIncome: null,
+    // serverCalculatedChomeshAmount: null,
+    // serverCalculatedTotalExpenses: null,
+    // serverCalculatedTotalDonations: null,
+    // serverCalculatedDonationsData: null,
+    // serverMonthlyChartData: [],
+    // currentChartEndDate: null,
+    lastDbFetchTimestamp: null, // It's good to clear this as well
   });
-  console.log("Zustand store cleared.");
+  console.log(
+    "Zustand store cleared (transactions field removed from this operation)."
+  );
 }
 
 // --- Server-Side Calculation Functions ---

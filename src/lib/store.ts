@@ -4,7 +4,6 @@ import {
   Transaction,
   Currency as TransactionCurrency,
 } from "../types/transaction";
-import { calculateTotalRequiredDonation } from "./tithe-calculator";
 import { ServerDonationData } from "./dbStatsCardsService";
 import { MonthlyDataPoint } from "./chartService";
 
@@ -26,12 +25,10 @@ export interface Settings {
 }
 
 export interface DonationState {
-  transactions: Transaction[];
-  requiredDonation: number;
+  serverCalculatedTitheBalance?: number | null;
   settings: Settings;
   lastDbFetchTimestamp: number | null;
   _hasHydrated: boolean;
-  serverCalculatedTitheBalance?: number | null;
   serverCalculatedTotalIncome?: number | null;
   serverCalculatedChomeshAmount?: number | null;
   serverCalculatedTotalExpenses?: number | null;
@@ -43,7 +40,6 @@ export interface DonationState {
   serverMonthlyChartDataError: string | null;
   canLoadMoreChartData: boolean;
   updateSettings: (settings: Partial<Settings>) => void;
-  setTransactions: (transactions: Transaction[]) => void;
   addTransaction: (transaction: Transaction) => void;
   removeTransaction: (id: string) => void;
   updateTransaction: (updatedTransaction: Transaction) => void;
@@ -80,12 +76,10 @@ const defaultSettings: Settings = {
 export const useDonationStore = create<DonationState>()(
   persist(
     (set, get) => ({
-      transactions: [],
-      requiredDonation: 0,
+      serverCalculatedTitheBalance: null,
       settings: defaultSettings,
       lastDbFetchTimestamp: null,
       _hasHydrated: false,
-      serverCalculatedTitheBalance: null,
       serverCalculatedTotalIncome: null,
       serverCalculatedChomeshAmount: null,
       serverCalculatedTotalExpenses: null,
@@ -103,39 +97,26 @@ export const useDonationStore = create<DonationState>()(
         }));
       },
 
-      setTransactions: (transactions) => {
-        set(() => ({ transactions }));
-      },
-
       addTransaction: (transaction) => {
-        set((state) => ({
-          transactions: [...state.transactions, transaction],
-        }));
+        console.warn(
+          "[Deprecation Warning] useDonationStore.addTransaction was called, but it no longer manages a local transactions list. Ensure backend is updated and UI reflects changes from server data sources. Transaction: ",
+          transaction
+        );
       },
 
-      removeTransaction: (id) =>
-        set((state) => {
-          const newTransactions = state.transactions.filter((t) => t.id !== id);
-          const newRequiredDonation =
-            calculateTotalRequiredDonation(newTransactions);
-          return {
-            transactions: newTransactions,
-            requiredDonation: newRequiredDonation,
-          };
-        }),
+      removeTransaction: (id) => {
+        console.warn(
+          "[Deprecation Warning] useDonationStore.removeTransaction was called, but it no longer manages a local transactions list. Ensure backend is updated and UI reflects changes from server data sources. ID: ",
+          id
+        );
+      },
 
-      updateTransaction: (updatedTransaction) =>
-        set((state) => {
-          const newTransactions = state.transactions.map((t) =>
-            t.id === updatedTransaction.id ? updatedTransaction : t
-          );
-          const newRequiredDonation =
-            calculateTotalRequiredDonation(newTransactions);
-          return {
-            transactions: newTransactions,
-            requiredDonation: newRequiredDonation,
-          };
-        }),
+      updateTransaction: (updatedTransaction) => {
+        console.warn(
+          "[Deprecation Warning] useDonationStore.updateTransaction was called, but it no longer manages a local transactions list. Ensure backend is updated and UI reflects changes from server data sources. Transaction: ",
+          updatedTransaction
+        );
+      },
 
       setLastDbFetchTimestamp: (timestamp) => {
         set(() => ({ lastDbFetchTimestamp: timestamp }));
@@ -245,7 +226,6 @@ export const useDonationStore = create<DonationState>()(
       name: "Ten10-donation-store",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
-        transactions: state.transactions,
         settings: state.settings,
         _hasHydrated: state._hasHydrated,
         lastDbFetchTimestamp: state.lastDbFetchTimestamp,
@@ -272,7 +252,3 @@ export const useDonationStore = create<DonationState>()(
     }
   )
 );
-
-export const selectCalculatedBalance = (state: DonationState): number => {
-  return calculateTotalRequiredDonation(state.transactions);
-};

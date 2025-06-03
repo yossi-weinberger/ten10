@@ -2,31 +2,28 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HandCoins } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/currency";
-import { ServerDonationData } from "@/lib/dbStatsCardsService"; // Assuming ServerDonationData is exported there or define locally
+import { ServerDonationData } from "@/lib/dbStatsCardsService";
 
 interface DonationsStatCardProps {
   label: string | undefined;
-  clientTotalDonations: number | null;
-  serverTotalDonationsData: ServerDonationData | null; // Changed prop name and type
+  serverTotalDonationsData: ServerDonationData | null;
   isLoadingServerDonations: boolean;
   serverDonationsError: string | null;
-  clientTotalIncome: number | null; // Needed for percentage calculation
-  serverTotalIncome: number | null; // Needed for percentage calculation
-  isLoadingServerIncome: boolean; // To avoid showing stale percentage
+  serverTotalIncome: number | null;
+  isLoadingServerIncome: boolean;
 }
 
 export function DonationsStatCard({
   label,
-  clientTotalDonations,
-  serverTotalDonationsData, // Changed prop name
+  serverTotalDonationsData,
   isLoadingServerDonations,
   serverDonationsError,
-  clientTotalIncome,
   serverTotalIncome,
   isLoadingServerIncome,
 }: DonationsStatCardProps) {
-  const serverTotalDonations = serverTotalDonationsData?.total_donations_amount;
-  const serverNonTitheDonations =
+  const serverTotalDonationsAmount =
+    serverTotalDonationsData?.total_donations_amount;
+  const serverNonTitheDonationsAmount =
     serverTotalDonationsData?.non_tithe_donation_amount;
 
   return (
@@ -39,71 +36,53 @@ export function DonationsStatCard({
       </CardHeader>
       <CardContent>
         <div className="flex items-baseline justify-between">
-          <div>
-            <span className="text-2xl font-bold">
-              {typeof clientTotalDonations === "number"
-                ? formatCurrency(clientTotalDonations)
-                : "-"}
-            </span>
-            <span className="text-xs text-muted-foreground ml-1">(C)</span>
-          </div>
-          <div className="text-right">
+          <div className="text-left">
             {isLoadingServerDonations && (
-              <p className="text-xs animate-pulse">טוען S...</p>
+              <p className="text-xs animate-pulse">טוען...</p>
             )}
             {serverDonationsError && (
-              <p className="text-xs text-red-500">שגיאת S</p>
+              <p className="text-xs text-red-500">שגיאה</p>
             )}
             {!isLoadingServerDonations &&
-              typeof serverTotalDonations === "number" && ( // Use the extracted variable
+              typeof serverTotalDonationsAmount === "number" && (
                 <>
-                  <span className="text-lg font-semibold">
-                    {formatCurrency(serverTotalDonations)}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-1">
-                    (S)
+                  <span className="text-2xl font-bold">
+                    {formatCurrency(serverTotalDonationsAmount)}
                   </span>
                 </>
               )}
             {!isLoadingServerDonations &&
-              serverTotalDonations === null && // Check the extracted variable
+              serverTotalDonationsAmount === undefined &&
               !serverDonationsError && (
                 <>
-                  <span className="text-lg font-semibold">
+                  <span className="text-2xl font-bold">
                     {formatCurrency(0)}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-1">
-                    (S)
                   </span>
                 </>
               )}
           </div>
         </div>
         <p className="text-xs text-muted-foreground mt-1">
-          {typeof clientTotalIncome === "number" &&
-          clientTotalIncome > 0 &&
-          typeof clientTotalDonations === "number"
-            ? ((clientTotalDonations / clientTotalIncome) * 100).toFixed(1) +
-              "% מסך ההכנסות (C)"
-            : "לא ניתן לחשב אחוז מהכנסות (C)"}
           {typeof serverTotalIncome === "number" &&
             serverTotalIncome > 0 &&
-            typeof serverTotalDonations === "number" && // Use extracted variable
-            serverTotalDonations >= 0 &&
-            !isLoadingServerIncome && // Ensure income is loaded before calculating server percentage
+            typeof serverTotalDonationsAmount === "number" &&
+            serverTotalDonationsAmount >= 0 &&
+            !isLoadingServerIncome &&
             !isLoadingServerDonations && (
               <span className="block text-xs text-muted-foreground">
-                {((serverTotalDonations / serverTotalIncome) * 100).toFixed(1) +
-                  "% מסך ההכנסות (S)"}
+                {(
+                  (serverTotalDonationsAmount / serverTotalIncome) *
+                  100
+                ).toFixed(1) + "% מסך ההכנסות"}
               </span>
             )}
         </p>
-        {/* Display non_tithe_donation_amount from server */}
+
         {!isLoadingServerDonations &&
-          typeof serverNonTitheDonations === "number" &&
-          serverNonTitheDonations > 0 && (
+          typeof serverNonTitheDonationsAmount === "number" &&
+          serverNonTitheDonationsAmount > 0 && (
             <p className="text-xs text-muted-foreground mt-1">
-              מתוכן {formatCurrency(serverNonTitheDonations)} תרומה אישית (S)
+              מתוכן {formatCurrency(serverNonTitheDonationsAmount)} תרומה אישית
             </p>
           )}
       </CardContent>

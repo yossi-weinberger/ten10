@@ -1,14 +1,12 @@
 import React from "react";
-import { useDonationStore, selectCalculatedBalance } from "@/lib/store";
+// import { useDonationStore } from "@/lib/store"; // REMOVE IF NOT USED
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
 import {
   useDateControls,
   DateRangeSelectionType,
-  DateRangeObject,
 } from "@/hooks/useDateControls";
-import { useClientStats } from "@/hooks/useClientStats";
 import { useServerStats } from "@/hooks/useServerStats";
 import { IncomeStatCard } from "./StatCards/IncomeStatCard";
 import { ExpensesStatCard } from "./StatCards/ExpensesStatCard";
@@ -20,7 +18,6 @@ export function StatsCards({
 }: {
   orientation?: "horizontal" | "vertical";
 }) {
-  const transactions = useDonationStore((state) => state.transactions);
   const { user } = useAuth();
   const { platform } = usePlatform();
 
@@ -30,13 +27,6 @@ export function StatsCards({
     activeDateRangeObject,
     dateRangeLabels,
   } = useDateControls();
-
-  const {
-    clientTotalIncome,
-    clientTotalExpenses,
-    clientTotalDonations,
-    clientChomeshAmountInRange,
-  } = useClientStats(transactions, activeDateRangeObject);
 
   const {
     serverTotalIncome,
@@ -55,21 +45,26 @@ export function StatsCards({
     serverTitheBalanceError,
   } = useServerStats(activeDateRangeObject, user, platform);
 
-  const clientCalculatedOverallRequired = useDonationStore(
-    selectCalculatedBalance
-  );
+  const actualServerTotalDonations =
+    serverCalculatedDonationsData?.total_donations_amount ??
+    serverTotalDonations ??
+    0;
+  const actualServerTitheBalance = serverTitheBalance ?? 0;
 
-  const donationProgress =
-    (clientCalculatedOverallRequired ?? 0) > 0
-      ? Math.min(
-          100,
-          ((clientTotalDonations ?? 0) /
-            (clientCalculatedOverallRequired ?? 1)) *
-            100
-        )
-      : (clientCalculatedOverallRequired ?? 0) <= 0
-      ? 100
-      : 0;
+  let donationProgress = 0; // Ensure it's initialized
+  const currentDonations = actualServerTotalDonations;
+  const remainingTithe =
+    actualServerTitheBalance > 0 ? actualServerTitheBalance : 0;
+  const totalTitheObligation = currentDonations + remainingTithe;
+
+  if (totalTitheObligation <= 0) {
+    donationProgress = 100;
+  } else {
+    donationProgress = Math.min(
+      100,
+      (currentDonations / totalTitheObligation) * 100
+    );
+  }
 
   const containerClass =
     orientation === "horizontal"
@@ -96,11 +91,9 @@ export function StatsCards({
       <div className={containerClass}>
         <IncomeStatCard
           label={activeDateRangeObject.label}
-          clientTotalIncome={clientTotalIncome ?? null}
           serverTotalIncome={serverTotalIncome ?? null}
           isLoadingServerIncome={isLoadingServerIncome}
           serverIncomeError={serverIncomeError}
-          clientChomeshAmountInRange={clientChomeshAmountInRange ?? 0}
           serverChomeshAmount={serverChomeshAmount ?? null}
           platform={platform}
           user={user}
@@ -108,7 +101,6 @@ export function StatsCards({
 
         <ExpensesStatCard
           label={activeDateRangeObject.label}
-          clientTotalExpenses={clientTotalExpenses ?? null}
           serverTotalExpenses={serverTotalExpenses ?? null}
           isLoadingServerExpenses={isLoadingServerExpenses}
           serverExpensesError={serverExpensesError}
@@ -116,19 +108,14 @@ export function StatsCards({
 
         <DonationsStatCard
           label={activeDateRangeObject.label}
-          clientTotalDonations={clientTotalDonations ?? null}
           serverTotalDonationsData={serverCalculatedDonationsData ?? null}
           isLoadingServerDonations={isLoadingServerDonations}
           serverDonationsError={serverDonationsError}
-          clientTotalIncome={clientTotalIncome ?? null}
           serverTotalIncome={serverTotalIncome ?? null}
           isLoadingServerIncome={isLoadingServerIncome}
         />
 
         <OverallRequiredStatCard
-          clientCalculatedOverallRequired={
-            clientCalculatedOverallRequired ?? null
-          }
           serverTitheBalance={serverTitheBalance ?? null}
           isLoadingServerTitheBalance={isLoadingServerTitheBalance}
           serverTitheBalanceError={serverTitheBalanceError}

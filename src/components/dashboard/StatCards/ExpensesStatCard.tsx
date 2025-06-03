@@ -5,7 +5,6 @@ import { formatCurrency } from "@/lib/utils/currency";
 
 interface ExpensesStatCardProps {
   label: string | undefined;
-  clientTotalExpenses: number | null;
   serverTotalExpenses: number | null;
   isLoadingServerExpenses: boolean;
   serverExpensesError: string | null;
@@ -13,7 +12,6 @@ interface ExpensesStatCardProps {
 
 export function ExpensesStatCard({
   label,
-  clientTotalExpenses,
   serverTotalExpenses,
   isLoadingServerExpenses,
   serverExpensesError,
@@ -28,29 +26,18 @@ export function ExpensesStatCard({
       </CardHeader>
       <CardContent>
         <div className="flex items-baseline justify-between">
-          <div>
-            <span className="text-2xl font-bold">
-              {typeof clientTotalExpenses === "number"
-                ? formatCurrency(clientTotalExpenses)
-                : "-"}
-            </span>
-            <span className="text-xs text-muted-foreground ml-1">(C)</span>
-          </div>
-          <div className="text-right">
+          <div className="text-left">
             {isLoadingServerExpenses && (
-              <p className="text-xs animate-pulse">טוען S...</p>
+              <p className="text-xs animate-pulse">טוען...</p>
             )}
             {serverExpensesError && (
-              <p className="text-xs text-red-500">שגיאת S</p>
+              <p className="text-xs text-red-500">שגיאה</p>
             )}
             {!isLoadingServerExpenses &&
               typeof serverTotalExpenses === "number" && (
                 <>
-                  <span className="text-lg font-semibold">
+                  <span className="text-2xl font-bold">
                     {formatCurrency(serverTotalExpenses)}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-1">
-                    (S)
                   </span>
                 </>
               )}
@@ -58,17 +45,13 @@ export function ExpensesStatCard({
               serverTotalExpenses === null &&
               !serverExpensesError && (
                 <>
-                  <span className="text-lg font-semibold">
+                  <span className="text-2xl font-bold">
                     {formatCurrency(0)}
-                  </span>
-                  <span className="text-xs text-muted-foreground ml-1">
-                    (S)
                   </span>
                 </>
               )}
           </div>
         </div>
-        <p className="text-xs text-muted-foreground mt-1">מחושב מקומית</p>
       </CardContent>
     </Card>
   );

@@ -9,9 +9,10 @@ import { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient"; // Using path alias from tsconfig
 import { toast } from "react-hot-toast";
 import { useDonationStore } from "@/lib/store"; // Import Zustand store
-import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
+// import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store"; // This seems unused in the provided snippet, might be removable if not used elsewhere
 // Import table transactions store
-import { loadTransactions, setDataServicePlatform } from "@/lib/dataService"; // Import data loading function and platform setter
+// import { loadTransactions, setDataServicePlatform } from "@/lib/dataService"; // loadTransactions will be removed from dataService, setDataServicePlatform is still used.
+import { setDataServicePlatform } from "@/lib/dataService";
 import { usePlatform } from "./PlatformContext"; // Import usePlatform to set platform for dataService
 
 export type { SupabaseUser as User }; // Re-exporting the User type
@@ -34,19 +35,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isDataLoading, setIsDataLoading] = useState(false);
+  // const [isDataLoading, setIsDataLoading] = useState(false); // REMOVE if loadAndSetTransactionsInternal is removed and not used otherwise
   const [initialForcedLoadDone, setInitialForcedLoadDone] = useState(false);
   const { platform } = usePlatform();
-  const setTransactionsInStore = useDonationStore(
-    (state) => state.setTransactions
-  ); // Helper to access zustand action
-  const setLastDbFetchTimestampInStore = useDonationStore(
-    (state) => state.setLastDbFetchTimestamp
-  ); // Helper
   const hasHydrated = useDonationStore((state) => state._hasHydrated);
   const lastDbFetchTimestampFromStore = useDonationStore(
     (state) => state.lastDbFetchTimestamp
-  ); // Added this line
+  );
 
   useEffect(() => {
     if (platform !== "loading") {
@@ -54,6 +49,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [platform]);
 
+  // REMOVE THE ENTIRE loadAndSetTransactionsInternal function block
+  /*
   const loadAndSetTransactionsInternal = async (
     userForLoad: SupabaseUser | null
   ) => {
@@ -62,9 +59,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         "AuthContext: loadAndSetTransactionsInternal called with null user. Aborting."
       );
       useDonationStore.setState({
-        transactions: [],
         lastDbFetchTimestamp: null,
-      }); // Clear timestamp too
+      });
       return;
     }
     if (platform === "loading") {
@@ -73,39 +69,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       );
       return;
     }
-    if (isDataLoading) {
-      console.log(
-        "AuthContext: loadAndSetTransactionsInternal - prevented re-entry as isDataLoading is true"
-      );
-      return;
-    }
+    // if (isDataLoading) { // This check would also be removed
+    //   console.log(
+    //     "AuthContext: loadAndSetTransactionsInternal - prevented re-entry as isDataLoading is true"
+    //   );
+    //   return;
+    // }
 
     console.log(
       "AuthContext: Initiating data load sequence for user:",
       userForLoad.id
     );
-    setIsDataLoading(true);
+    // setIsDataLoading(true); // REMOVE
 
     try {
-      const transactionsFromBackend = await loadTransactions(
-        platform === "web" ? userForLoad.id : undefined
-      );
+      await loadTransactions(platform === "web" ? userForLoad.id : undefined); // loadTransactions itself will be removed from dataService
 
       useDonationStore.setState({
-        transactions: transactionsFromBackend,
         lastDbFetchTimestamp: Date.now(),
       });
       console.log(
-        `AuthContext: Successfully loaded ${transactionsFromBackend.length} transactions from backend.`
+        "AuthContext: loadTransactions call completed and lastDbFetchTimestamp updated."
       );
     } catch (error) {
       console.error("AuthContext: Error during data loading sequence:", error);
       toast.error("שגיאה בטעינת נתונים.");
-      useDonationStore.setState({ transactions: [] }); // Keep transactions empty on error, timestamp not cleared to avoid loops
     } finally {
-      setIsDataLoading(false);
+      // setIsDataLoading(false); // REMOVE
     }
   };
+  */
 
   // Effect for initial session check and onAuthStateChange listener setup
   useEffect(() => {
@@ -157,7 +150,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // const { setupRealtimeSubscription, cleanupRealtimeSubscription } = // REMOVED
     //   useTableTransactionsStore.getState(); // REMOVED
     console.log(
-      `AuthContext: Data loading effect (Realtime REMOVED). User: ${!!user}, Platform: ${platform}, DataLoading: ${isDataLoading}, Hydrated: ${hasHydrated}, Timestamp: ${lastDbFetchTimestampFromStore}, InitialForcedLoadDone: ${initialForcedLoadDone}`
+      `AuthContext: Data loading effect (Realtime REMOVED). User: ${!!user}, Platform: ${platform}, Hydrated: ${hasHydrated}, Timestamp: ${lastDbFetchTimestampFromStore}, InitialForcedLoadDone: ${initialForcedLoadDone}`
     );
 
     if (platform === "loading") {
@@ -214,16 +207,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
       // END: TEMPORARILY COMMENT OUT ORIGINAL FRESHNESS LOGIC */
 
-      // --- START: NEW TEMPORARY LOGIC TO FORCE LOAD ---
+      // --- START: NEW TEMPORARY LOGIC TO FORCE LOAD (NOW MODIFIED) ---
       if (!initialForcedLoadDone) {
         console.log(
-          "AuthContext: TEMPORARILY FORCING DATA LOAD (once) - Bypassing freshness checks."
+          "AuthContext: Initial data load sequence (e.g., for settings or timestamp) - loadAndSetTransactionsInternal call REMOVED. Only setting initialForcedLoadDone."
         );
-        loadAndSetTransactionsInternal(user);
+        // loadAndSetTransactionsInternal(user); // REMOVE THIS CALL
+        // If loadAndSetTransactionsInternal had other purposes like setting lastDbFetchTimestamp, that logic might need to be moved or called differently.
+        // For now, we assume its primary goal (populating global transactions) is gone.
+        // We might still want to update lastDbFetchTimestamp on login, but not necessarily by loading all transactions.
+        // Let's update the timestamp directly here for now to signify an auth event / potential data refresh point.
+        useDonationStore.setState({ lastDbFetchTimestamp: Date.now() });
         setInitialForcedLoadDone(true);
       } else {
         console.log(
-          "AuthContext: Initial forced data load already performed, skipping."
+          "AuthContext: Initial forced data load/setup already performed, skipping."
         );
       }
       // --- END: NEW TEMPORARY LOGIC TO FORCE LOAD ---
