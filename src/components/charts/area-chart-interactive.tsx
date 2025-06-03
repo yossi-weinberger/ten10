@@ -177,7 +177,7 @@ export function AreaChartInteractive({
                   <Area
                     key={key}
                     dataKey={key}
-                    type="linear" // Changed from "natural" to "linear"
+                    type="monotoneX" // Changed from "linear" to "monotoneX"
                     fill={`url(#fill-gradient-${key})`}
                     stroke={`var(--color-${key})`}
                     fillOpacity={1} // Opacity is handled by the gradient
