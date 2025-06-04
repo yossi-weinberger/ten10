@@ -28,7 +28,7 @@ pub fn get_desktop_total_income_in_range(
             COALESCE(SUM(CASE WHEN is_chomesh THEN amount ELSE 0 END), 0) AS chomesh_amount
         FROM transactions
         WHERE
-            type = 'income' AND
+            (type = 'income' OR type = 'exempt-income') AND
             date >= ?1 AND
             date <= ?2;
     ";
