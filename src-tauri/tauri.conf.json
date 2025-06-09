@@ -33,7 +33,7 @@
     },
     "bundle": {
       "active": true,
-      "targets": "nsis",
+      "targets": ["nsis", "msi"],
       "identifier": "com.ten10.dev",
       "icon": [
         "icons/32x32.png",
@@ -44,7 +44,10 @@
       ],
       "windows": {
         "nsis": {
-          "language": "Hebrew"
+          "languages": ["Hebrew", "English"]
+        },
+        "wix": {
+          "language": "he-IL"
         }
       }
     },
