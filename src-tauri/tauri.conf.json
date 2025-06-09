@@ -44,7 +44,8 @@
       ],
       "windows": {
         "nsis": {
-          "languages": ["Hebrew", "English"]
+          "languages": ["Hebrew", "English"],
+          "displayLanguageSelector": true
         },
         "wix": {
           "language": "he-IL"

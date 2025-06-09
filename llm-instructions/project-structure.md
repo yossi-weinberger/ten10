@@ -8,26 +8,27 @@ This section details how the different parts of the project interact with each o
 
 1.  **Frontend (`src`) <-> Backend (`src-tauri`)**:
 
-    - **Communication:** The React frontend communicates with the Rust backend via Tauri's IPC mechanism. Frontend components invoke Rust functions (`#[tauri::command]`) defined in `src-tauri/src/main.rs` using Tauri's `invoke` function. This is often wrapped in service layers:
-      - `src/lib/dataService.ts` for general, basic data operations (e.g., initial load to `useDonationStore`, simple add transaction outside table context).
-      - `src/lib/transactionService.ts` for complex, table-specific operations (e.g., fetching paginated/filtered transactions via `get_filtered_transactions_handler`, updating via `update_transaction_handler`, deleting via `delete_transaction_handler`, and exporting via `export_transactions_handler` for desktop; or corresponding RPC calls for web).
-    - Allowed commands are specified in `tauri.conf.json` under `tauri > allowlist > invoke`.
+    - **Communication:** The React frontend communicates with the Rust backend via Tauri's IPC mechanism. Frontend components invoke Rust functions (`#[tauri::command]`) defined in `src-tauri/src/`. The core backend logic is in `main.rs`, which now delegates specific functionalities to modules within the `src-tauri/src/commands/` directory (e.g., `transaction_commands.rs`, `chart_commands.rs`). This is often wrapped in service layers on the frontend:
+      - `src/lib/dataService.ts` for general, basic data operations.
+      - `src/lib/tableTransactions/tableTransactionService.ts` for complex, table-specific operations (e.g., fetching paginated/filtered transactions, updating, deleting, and exporting).
+    - Allowed commands are registered in `src-tauri/src/main.rs` within the `tauri::generate_handler!` macro and are ultimately controlled by the `tauri.conf.json` allowlist.
     - **Events:** The backend can emit events that the frontend listens to, enabling real-time updates or notifications from the backend.
-    - **Example Flow:** Clicking a 'Save' button in a form (`src/components/TransactionForm.tsx`) triggers a function that calls `invoke` with the relevant command name (e.g., `add_transaction`) and form data. The Rust code receives the data, processes it (e.g., saves to the DB), and returns a response (success/error) to the frontend.
+    - **Example Flow:** Clicking a 'Save' button in a form (`src/components/forms/TransactionForm.tsx`) triggers a function that calls `invoke` with the relevant command name (e.g., `add_transaction`) and form data. The Rust code in `main.rs` receives the data, processes it (e.g., saves to the DB), and returns a response (success/error) to the frontend.
 
 2.  **Backend (`src-tauri`) <-> Database (`src-tauri/Ten10.db`)**:
 
-    - **Data Access:** The Rust code in `main.rs` handles all interactions with the SQLite database (`Ten10.db`) for the Desktop version. It uses Rust crates (like `rusqlite` or `sqlx`) to execute SQL queries (CRUD operations) for transaction data and other persistent information.
+    - **Data Access:** The Rust code in `src-tauri/src/` handles all interactions with the SQLite database (`Ten10.db`) for the Desktop version. It uses the `rusqlite` crate to execute SQL queries (CRUD operations). The database logic is organized into command modules (e.g., `transaction_commands.rs` for transaction-related queries).
     - **Persistence:** This is where application data is stored persistently in the desktop application.
 
 3.  **Frontend Components (`src`)**:
 
-    - **Composition:** Page components (`src/pages/`) assemble the UI using reusable sub-components (`src/components/`).
-    - **Routing:** `src/routes.ts` defines application routes, mapping paths to page components. `src/App.tsx` likely sets up the main Router.
-    - **State Management:** A library like Zustand (likely configured in `src/lib/store/` or similar) manages global or shared state (e.g., the list of transactions). React Context (`src/contexts/`) might be used for simpler global state or function propagation.
-    - **Logic & Utilities:** Helper functions and business logic (like tithe calculation) reside in `src/lib/`.
+    - **Composition:** Page components (`src/pages/`) assemble the UI using reusable sub-components from `src/components/`. The `components` directory is further organized by feature (e.g., `dashboard`, `forms`, `settings`, `TransactionsTable`) and a shared `ui` directory for generic components (many from `shadcn/ui`).
+    - **Routing:** `src/routes.ts` defines application routes, mapping paths to page components. `src/App.tsx` sets up the main Router.
+    - **State Management:** Zustand is used for global state management. `src/lib/store.ts` (`useDonationStore`) handles general application state, while `src/lib/tableTransactions/tableTransactions.store.ts` is dedicated to managing the complex state of the interactive transactions table.
+    - **Contexts:** React Context (`src/contexts/`) is used for providing app-wide state like authentication (`AuthContext.tsx`) and platform detection (`PlatformContext.tsx`).
+    - **Logic & Utilities:** Helper functions and business logic are located in `src/lib/` and `src/lib/utils/`. This includes services for backend communication (`dataService.ts`, `dbStatsCardsService.ts`, `tableTransactionService.ts`), data management (`dataManagement.ts`), and various utilities like formatting and date helpers.
     - **Types:** `src/types/` contains shared TypeScript definitions for type safety and consistency.
-    - **Transactions Table Specifics:** The interactive transactions table involves `src/pages/TransactionsTable.tsx` which uses `src/components/TransactionsTable/TransactionsTableDisplay.tsx`. This display component orchestrates data fetching and manipulation through `src/lib/tableTransactions.store.ts` (the table's dedicated Zustand store) and `src/lib/transactionService.ts` (which handles backend communication for fetching, updating, deleting, and exporting table data).
+    - **Transactions Table Specifics:** The interactive transactions table is centered around `src/pages/TransactionsTable.tsx`. It uses components from `src/components/TransactionsTable/` (like `TransactionsTableDisplay.tsx`, `TransactionEditModal.tsx`, etc.). Data flow is managed by `src/lib/tableTransactions/tableTransactions.store.ts` (Zustand store) and `src/lib/tableTransactions/tableTransactionService.ts` (backend communication).
 
 4.  **Build Process**:
 
@@ -36,7 +37,7 @@ This section details how the different parts of the project interact with each o
 
 5.  **Configuration & Environment**:
 
-    - **Frontend:** `package.json` (Node.js dependencies, scripts), `tsconfig.*.json` (TypeScript settings), `tailwind.config.js` & `postcss.config.js` (styling), `.eslint.config.js` (linting rules).
+    - **Frontend:** `package.json` (Node.js dependencies, scripts), `tsconfig.*.json` (TypeScript settings), `tailwind.config.js` & `postcss.config.js` (styling), `eslint.config.js` (linting rules).
     - **Backend:** `Cargo.toml` (Rust dependencies, project settings), `tauri.conf.json` (Tauri application settings - permissions, window properties, icons, allowlist, etc.).
 
 6.  **LLM Instructions (`llm-instructions`)**:
@@ -46,7 +47,7 @@ This section details how the different parts of the project interact with each o
 /
 ├── .bolt/                 # Bolt configuration (if used)
 ├── .git/                  # Git repository data
-├── .github/               # GitHub specific files (workflows, etc.) - Assuming based on standard practice, not listed
+├── .github/               # GitHub specific files (workflows, etc.)
 ├── dist/                  # Build output directory for the frontend
 ├── llm-instructions/      # Instructions and guidelines for LLM development
 │   ├── desktop-data-saving-guide.md
@@ -60,35 +61,118 @@ This section details how the different parts of the project interact with each o
 │   └── fonts/             # Font files
 ├── src/                   # Frontend source code (React + TypeScript)
 │   ├── components/        # Reusable UI components
-│   │   ├── TransactionsTable/ # Sub-components for the interactive transactions table (Display, Filters, Row, Modal, etc.)
-│   ├── contexts/          # React Context providers
-│   ├── lib/               # Utility functions and libraries
-│   │   ├── dataManagement.ts # Handles data import/export logic
-│   │   ├── platformService.ts # Handles platform detection and state
-│   │   ├── transactionService.ts # Handles complex CRUD and export operations for the interactive transactions table with the backend
-│   │   ├── dbStatsCardsService.ts # Handles fetching of aggregated statistics for StatsCards from the backend
-│   │   ├── storeService.ts    # Handles interactions with the Zustand store for loading/saving data (potentially for useDonationStore)
-│   │   ├── store.ts           # Zustand store definition (useDonationStore for general data)
-│   │   └── tableTransactions.store.ts # Zustand store for managing the state of the interactive transactions table
-│   ├── pages/             # Page components (mapped by router)
-│   │   └── TransactionsTable.tsx # Main page component for the interactive transactions table
-│   ├── types/             # TypeScript type definitions
-│   ├── App.tsx            # Main application component
-│   ├── index.css          # Global CSS styles
-│   ├── main.tsx           # Application entry point
-│   ├── routes.ts          # Route definitions
-│   └── vite-env.d.ts      # Vite environment types
+│   │   ├── charts/
+│   │   │   └── area-chart-interactive.tsx
+│   │   ├── dashboard/
+│   │   │   ├── StatCards/
+│   │   │   │   ├── DonationsStatCard.tsx
+│   │   │   │   ├── ExpensesStatCard.tsx
+│   │   │   │   ├── IncomeStatCard.tsx
+│   │   │   │   ├── MagicStatCard.tsx
+│   │   │   │   └── OverallRequiredStatCard.tsx
+│   │   │   ├── MonthlyChart.tsx
+│   │   │   └── StatsCards.tsx
+│   │   ├── forms/
+│   │   │   ├── transaction-form-parts/
+│   │   │   │   ├── AmountCurrencyDateFields.tsx
+│   │   │   │   ├── DescriptionCategoryFields.tsx
+│   │   │   │   ├── FormActionButtons.tsx
+│   │   │   │   ├── RecurringFields.tsx
+│   │   │   │   ├── TransactionCheckboxes.tsx
+│   │   │   │   └── TransactionTypeSelector.tsx
+│   │   │   └── TransactionForm.tsx
+│   │   ├── layout/
+│   │   │   ├── PlatformIndicator.tsx
+│   │   │   └── Sidebar.tsx
+│   │   ├── settings/
+│   │   │   ├── CalendarSettingsCard.tsx
+│   │   │   ├── ClearDataSection.tsx
+│   │   │   ├── FinancialSettingsCard.tsx
+│   │   │   ├── ImportExportDataSection.tsx
+│   │   │   ├── LanguageAndDisplaySettingsCard.tsx
+│   │   │   └── NotificationSettingsCard.tsx
+│   │   ├── tables/
+│   │   │   └── AllTransactionsDataTable.tsx
+│   │   ├── TransactionsTable/
+│   │   │   ├── ExportButton.tsx
+│   │   │   ├── TransactionEditModal.tsx
+│   │   │   ├── TransactionRow.tsx
+│   │   │   ├── TransactionsFilters.tsx
+│   │   │   ├── TransactionsTableDisplay.tsx
+│   │   │   ├── TransactionsTableFooter.tsx
+│   │   │   └── TransactionsTableHeader.tsx
+│   │   ├── ui/  # shadcn/ui components and other generic UI elements
+│   │   │   ├── accordion.tsx
+│   │   │   ├── alert-dialog.tsx
+│   │   └── UserInfoDisplay.tsx
+│   ├── contexts/
+│   │   ├── AuthContext.tsx
+│   │   └── PlatformContext.tsx
+│   ├── hooks/
+│   │   ├── useAnimatedCounter.ts
+│   │   ├── useDateControls.ts
+│   │   └── useServerStats.ts
+│   ├── lib/
+│   │   ├── tableTransactions/
+│   │   │   ├── tableTransactionService.ts
+│   │   │   ├── tableTransactions.store.ts
+│   │   │   └── tableTransactions.types.ts
+│   │   ├── utils/
+│   │   │   ├── currency.ts
+│   │   │   ├── export-csv.ts
+│   │   │   ├── export-excel.ts
+│   │   │   ├── export-pdf.ts
+│   │   │   ├── formatting.tsx
+│   │   │   ├── hebrew-date.ts
+│   │   │   └── index.ts
+│   │   ├── chartService.ts
+│   │   ├── dataManagement.ts
+│   │   ├── dataService.ts
+│   │   ├── dbStatsCardsService.ts
+│   │   ├── platformService.ts
+│   │   ├── schemas.ts
+│   │   ├── store.ts
+│   │   ├── supabaseClient.ts
+│   │   ├── theme.tsx
+│   │   └── tithe-calculator.ts
+│   ├── pages/
+│   │   ├── AboutPage.tsx
+│   │   ├── AddTransactionPage.tsx
+│   │   ├── AnalyticsPage.tsx
+│   │   ├── HalachaPage.tsx
+│   │   ├── HomePage.tsx
+│   │   ├── LoginPage.tsx
+│   │   ├── ProfilePage.tsx
+│   │   ├── SettingsPage.tsx
+│   │   ├── SignupPage.tsx
+│   │   └── TransactionsTable.tsx
+│   ├── types/
+│   │   ├── transaction.ts
+│   │   └── transactionLabels.ts
+│   ├── utils/ # (currently empty)
+│   ├── App.tsx
+│   ├── index.css
+│   ├── main.tsx
+│   ├── routes.ts
+│   └── vite-env.d.ts
 ├── src-tauri/             # Backend source code (Rust + Tauri)
 │   ├── icons/             # Application icons
 │   ├── src/               # Rust source code
-│   │   └── main.rs        # Main Rust application entry point and backend logic
+│   │   ├── commands/      # Backend command modules
+│   │   │   ├── chart_commands.rs
+│   │   │   ├── donation_commands.rs
+│   │   │   ├── expense_commands.rs
+│   │   │   ├── income_commands.rs
+│   │   │   ├── mod.rs
+│   │   │   └── transaction_commands.rs
+│   │   └── main.rs        # Main Rust application entry point and command handler
 │   ├── target/            # Rust build output directory
 │   ├── build.rs           # Rust build script
 │   ├── Cargo.lock         # Rust dependency lock file
 │   ├── Cargo.toml         # Rust project manifest and dependencies
 │   ├── tauri.conf.json    # Tauri configuration file
-│   └── Ten10.db          # SQLite database file (for Desktop version)
-├── .eslint.config.js    # ESLint configuration
+│   └── Ten10.db           # SQLite database file (for Desktop version)
+├── .eslint.config.js      # ESLint configuration
 ├── .gitignore             # Files and directories ignored by Git
 ├── index.html             # Main HTML entry point for the frontend
 ├── package-lock.json      # NPM dependency lock file
