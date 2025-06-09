@@ -1,13 +1,15 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { HandCoins } from "lucide-react";
+import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { HandHelping } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/currency";
-import { ServerDonationData } from "@/lib/dbStatsCardsService";
 import CountUp from "react-countup";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
+import { ServerDonationData } from "@/lib/dataService";
+import { Progress } from "@/components/ui/progress";
+import { MagicStatCard } from "./MagicStatCard";
 
 interface DonationsStatCardProps {
-  label: string | undefined;
+  label: string;
   serverTotalDonationsData: ServerDonationData | null;
   isLoadingServerDonations: boolean;
   serverDonationsError: string | null;
@@ -21,12 +23,9 @@ export function DonationsStatCard({
   isLoadingServerDonations,
   serverDonationsError,
   serverTotalIncome,
-  isLoadingServerIncome,
 }: DonationsStatCardProps) {
   const serverTotalDonationsAmount =
     serverTotalDonationsData?.total_donations_amount;
-  const serverNonTitheDonationsAmount =
-    serverTotalDonationsData?.non_tithe_donation_amount;
 
   const {
     displayValue: totalDonationsDisplayValue,
@@ -36,20 +35,28 @@ export function DonationsStatCard({
     isLoading: isLoadingServerDonations,
   });
 
+  const percentageOfIncome =
+    serverTotalIncome && serverTotalDonationsAmount
+      ? (serverTotalDonationsAmount / serverTotalIncome) * 100
+      : 0;
+
   return (
-    <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900">
+    <MagicStatCard
+      className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900 hover:shadow-yellow-200/50 dark:hover:shadow-yellow-900/50"
+      gradientColor="rgba(234, 179, 8, 0.3)"
+    >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">
           סך התרומות ({label})
         </CardTitle>
-        <HandCoins className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+        <HandHelping className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
       </CardHeader>
       <CardContent>
         <div className="text-right" style={{ minHeight: "calc(1.5rem * 1.5)" }}>
           {serverDonationsError ? (
-            <p className="text-xs text-red-500">שגיאה</p>
+            <p className="text-xs text-red-500">שגיאה בטעינה</p>
           ) : (
-            <span className="text-2xl font-bold">
+            <span className="text-3xl font-bold bg-gradient-to-r from-yellow-500 to-orange-500 bg-clip-text text-transparent dark:from-yellow-400 dark:to-orange-400">
               <CountUp
                 start={totalDonationsStartAnimateValue}
                 end={totalDonationsDisplayValue}
@@ -60,37 +67,14 @@ export function DonationsStatCard({
             </span>
           )}
         </div>
+        <Progress value={percentageOfIncome} className="mt-2" />
         <p
-          className="text-xs text-muted-foreground mt-1 text-right"
+          className="text-xs text-muted-foreground mt-2 text-right"
           style={{ minHeight: "1.2em" }}
         >
-          {!isLoadingServerIncome &&
-            !isLoadingServerDonations &&
-            typeof serverTotalIncome === "number" &&
-            serverTotalIncome > 0 &&
-            typeof serverTotalDonationsAmount === "number" &&
-            serverTotalDonationsAmount >= 0 && (
-              <span className="block text-xs text-muted-foreground">
-                {(
-                  (serverTotalDonationsAmount / serverTotalIncome) *
-                  100
-                ).toFixed(1) + "% מסך ההכנסות"}
-              </span>
-            )}
+          {percentageOfIncome.toFixed(1)}% מתוך סך ההכנסות
         </p>
-
-        {!isLoadingServerDonations &&
-          !serverDonationsError &&
-          typeof serverNonTitheDonationsAmount === "number" &&
-          serverNonTitheDonationsAmount > 0 && (
-            <p
-              className="text-xs text-muted-foreground mt-1 text-right"
-              style={{ minHeight: "1.2em" }}
-            >
-              מתוכן {formatCurrency(serverNonTitheDonationsAmount)} תרומה אישית
-            </p>
-          )}
       </CardContent>
-    </Card>
+    </MagicStatCard>
   );
 }

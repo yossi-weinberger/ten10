@@ -7,6 +7,7 @@ import { ThemeProvider } from "./lib/theme";
 import { PlatformProvider } from "./contexts/PlatformContext";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { AuthProvider } from "./contexts/AuthContext";
+import { StagewiseToolbar } from "@stagewise/toolbar-react";
 import "./index.css";
 
 createRoot(document.getElementById("root")!).render(
@@ -22,3 +23,20 @@ createRoot(document.getElementById("root")!).render(
     </ThemeProvider>
   </StrictMode>
 );
+
+// Initialize toolbar separately
+// const toolbarConfig = {
+//   plugins: [], // Add your custom plugins here
+// };
+
+// document.addEventListener("DOMContentLoaded", () => {
+//   const toolbarRoot = document.createElement("div");
+//   toolbarRoot.id = "stagewise-toolbar-root"; // Ensure a unique ID
+//   document.body.appendChild(toolbarRoot);
+
+//   createRoot(toolbarRoot).render(
+//     <StrictMode>
+//       <StagewiseToolbar config={toolbarConfig} />
+//     </StrictMode>
+//   );
+// });

@@ -21,9 +21,7 @@ export function AddTransactionPage() {
       <div className="grid gap-6 md:grid-cols-3">
         {/* Form Card (Spans 2 columns) */}
         <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>הוסף תנועה חדשה</CardTitle>
-          </CardHeader>
+          <CardHeader></CardHeader>
           <CardContent>
             <TransactionForm />
           </CardContent>

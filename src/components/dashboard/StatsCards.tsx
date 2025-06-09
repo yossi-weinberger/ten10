@@ -69,10 +69,13 @@ export function StatsCards({
   const containerClass =
     orientation === "horizontal"
       ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4"
-      : "grid gap-4";
+      : "grid grid-rows-4 gap-4 flex-grow";
+
+  const rootContainerClass =
+    orientation === "vertical" ? "space-y-4 h-full flex flex-col" : "space-y-4";
 
   return (
-    <div className="space-y-4">
+    <div className={rootContainerClass}>
       <div className="flex justify-end gap-2">
         {(Object.keys(dateRangeLabels) as DateRangeSelectionType[]).map(
           (rangeKey) => (
@@ -89,8 +92,14 @@ export function StatsCards({
       </div>
 
       <div className={containerClass}>
+        <OverallRequiredStatCard
+          serverTitheBalance={serverTitheBalance ?? null}
+          isLoadingServerTitheBalance={isLoadingServerTitheBalance}
+          serverTitheBalanceError={serverTitheBalanceError}
+          donationProgress={donationProgress}
+        />
         <IncomeStatCard
-          label={activeDateRangeObject.label}
+          label={activeDateRangeObject.label ?? ""}
           serverTotalIncome={serverTotalIncome ?? null}
           isLoadingServerIncome={isLoadingServerIncome}
           serverIncomeError={serverIncomeError}
@@ -100,26 +109,19 @@ export function StatsCards({
         />
 
         <ExpensesStatCard
-          label={activeDateRangeObject.label}
+          label={activeDateRangeObject.label ?? ""}
           serverTotalExpenses={serverTotalExpenses ?? null}
           isLoadingServerExpenses={isLoadingServerExpenses}
           serverExpensesError={serverExpensesError}
         />
 
         <DonationsStatCard
-          label={activeDateRangeObject.label}
+          label={activeDateRangeObject.label ?? ""}
           serverTotalDonationsData={serverCalculatedDonationsData ?? null}
           isLoadingServerDonations={isLoadingServerDonations}
           serverDonationsError={serverDonationsError}
           serverTotalIncome={serverTotalIncome ?? null}
           isLoadingServerIncome={isLoadingServerIncome}
-        />
-
-        <OverallRequiredStatCard
-          serverTitheBalance={serverTitheBalance ?? null}
-          isLoadingServerTitheBalance={isLoadingServerTitheBalance}
-          serverTitheBalanceError={serverTitheBalanceError}
-          donationProgress={donationProgress}
         />
       </div>
     </div>
