@@ -37,6 +37,11 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ["lucide-react"],
   },
+  build: {
+    rollupOptions: {
+      external: [/^@tauri-apps\//],
+    },
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
