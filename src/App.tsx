@@ -11,7 +11,7 @@ import {
 import { Sidebar } from "./components/layout/Sidebar";
 import { usePlatform } from "./contexts/PlatformContext";
 import { setDataServicePlatform } from "./lib/dataService";
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

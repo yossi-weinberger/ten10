@@ -13,7 +13,7 @@ To create a clear and intuitive platform for managing income and the correspondi
 The audience is divided into two groups:
 
 1.  **Online Users**: Individuals with internet access will use a React web application (likely hosted on Vercel). Data will be stored in Supabase, which will also handle authentication and user management.
-2.  **Offline Users**: Individuals without internet access will use a desktop version built from the React codebase using Tauri. Data will be stored locally on the user's computer using SQLite. Authentication and user management are not required for these users as they work offline locally.
+2.  **Offline Users**: Individuals without internet access will use a desktop version built from the React codebase using Tauri v2. Data will be stored locally on the user's computer using SQLite. Authentication and user management are not required for these users as they work offline locally.
 
 **Important Note**: Each user utilizes only one platform (either web or desktop). There is no need for synchronization between the two platforms.
 

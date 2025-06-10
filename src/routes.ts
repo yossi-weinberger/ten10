@@ -16,13 +16,15 @@ import { TransactionsTable } from "./pages/TransactionsTable";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import { supabase } from "./lib/supabaseClient";
+import { isTauri } from "@tauri-apps/api/core";
 
 const rootRoute = createRootRoute({
   component: App,
   beforeLoad: async ({ location }) => {
     // --- Platform Check ---
-    // If running in Tauri (desktop), skip the auth check entirely
-    if ((window as any)?.__TAURI__) {
+    // The correct way to check for Tauri in v2
+    const isDesktop = await isTauri();
+    if (isDesktop) {
       return; // Allow access on desktop regardless of auth state
     }
 

@@ -1,7 +1,7 @@
 import { useDonationStore } from "./store";
 import { Transaction } from "../types/transaction";
 import { PlatformContextType } from "@/contexts/PlatformContext";
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 import { supabase } from "@/lib/supabaseClient"; // Import Supabase client
 
 // פונקציה לקבלת הפלטפורמה (יש להפעיל אותה מהקומפוננטה הראשית)

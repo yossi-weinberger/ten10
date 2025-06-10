@@ -1,9 +1,9 @@
 // src-tauri/src/commands/transaction_commands.rs
 
-use rusqlite::{params, Result, OptionalExtension, ToSql};
+use crate::DbState;
+use rusqlite::{params, OptionalExtension, Result, ToSql};
 use serde::{Deserialize, Serialize};
-use tauri::State;
-use crate::DbState; // Assuming DbState is in lib.rs or main.rs and accessible
+use tauri::State; // Assuming DbState is in lib.rs or main.rs and accessible
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Transaction {
@@ -29,19 +29,49 @@ impl Transaction {
     fn from_row(row: &rusqlite::Row<'_>) -> Result<Self> {
         Ok(Transaction {
             id: row.get("id")?,
-            user_id: row.get::<_, Option<String>>("user_id").optional()?.flatten(),
+            user_id: row
+                .get::<_, Option<String>>("user_id")
+                .optional()?
+                .flatten(),
             date: row.get("date")?,
             amount: row.get("amount")?,
             currency: row.get("currency")?,
-            description: row.get::<_, Option<String>>("description").optional()?.flatten(),
+            description: row
+                .get::<_, Option<String>>("description")
+                .optional()?
+                .flatten(),
             type_str: row.get("type")?,
-            category: row.get::<_, Option<String>>("category").optional()?.flatten(),
-            is_chomesh: row.get::<_, Option<i64>>("is_chomesh").optional()?.flatten().map(|v| v != 0),
-            is_recurring: row.get::<_, Option<i64>>("is_recurring").optional()?.flatten().map(|v| v != 0),
-            recurring_day_of_month: row.get::<_, Option<i64>>("recurring_day_of_month").optional()?.flatten().map(|v| v as i32),
-            recipient: row.get::<_, Option<String>>("recipient").optional()?.flatten(),
-            created_at: row.get::<_, Option<String>>("created_at").optional()?.flatten(),
-            updated_at: row.get::<_, Option<String>>("updated_at").optional()?.flatten(),
+            category: row
+                .get::<_, Option<String>>("category")
+                .optional()?
+                .flatten(),
+            is_chomesh: row
+                .get::<_, Option<i64>>("is_chomesh")
+                .optional()?
+                .flatten()
+                .map(|v| v != 0),
+            is_recurring: row
+                .get::<_, Option<i64>>("is_recurring")
+                .optional()?
+                .flatten()
+                .map(|v| v != 0),
+            recurring_day_of_month: row
+                .get::<_, Option<i64>>("recurring_day_of_month")
+                .optional()?
+                .flatten()
+                .map(|v| v as i32),
+            recipient: row
+                .get::<_, Option<String>>("recipient")
+                .optional()?
+                .flatten(),
+            created_at: row
+                .get::<_, Option<String>>("created_at")
+                .optional()?
+                .flatten(),
+            updated_at: row
+                .get::<_, Option<String>>("updated_at")
+                .optional()?
+                .flatten(),
         })
     }
 }
@@ -73,8 +103,14 @@ pub fn update_transaction_handler(
     id: String,
     payload: TransactionUpdatePayload,
 ) -> std::result::Result<(), String> {
-    println!("[Rust DEBUG] update_transaction_handler called for ID: {} with payload: {:?}", id, payload);
-    let conn_guard = db_state.0.lock().map_err(|e| format!("DB lock error: {}", e))?;
+    println!(
+        "[Rust DEBUG] update_transaction_handler called for ID: {} with payload: {:?}",
+        id, payload
+    );
+    let conn_guard = db_state
+        .0
+        .lock()
+        .map_err(|e| format!("DB lock error: {}", e))?;
     let conn = &*conn_guard;
 
     let mut set_clauses: Vec<String> = Vec::new();
@@ -135,7 +171,7 @@ pub fn update_transaction_handler(
         // we only set recurring_day_of_month if it IS provided.
         // This might need refinement based on exact desired behavior if is_recurring is absent from payload.
         if let Some(day) = payload.recurring_day_of_month {
-             // Consider fetching current is_recurring state if we want to be super safe
+            // Consider fetching current is_recurring state if we want to be super safe
             set_clauses.push("recurring_day_of_month = ?".to_string());
             params_dynamic.push(Box::new(day));
         }
@@ -160,18 +196,24 @@ pub fn update_transaction_handler(
         set_clauses.join(", "),
         params_dynamic.len()
     );
-    
+
     println!("[Rust DEBUG] Update query: {}", query);
     let params_for_rusqlite: Vec<&dyn ToSql> = params_dynamic.iter().map(|p| p.as_ref()).collect();
 
     match conn.execute(&query, params_for_rusqlite.as_slice()) {
         Ok(0) => Err(format!("Transaction with ID {} not found.", id)), // Changed message
         Ok(affected_rows) => {
-            println!("[Rust DEBUG] Successfully updated {} row(s) for ID: {}", affected_rows, id);
+            println!(
+                "[Rust DEBUG] Successfully updated {} row(s) for ID: {}",
+                affected_rows, id
+            );
             Ok(())
         }
         Err(e) => {
-            let err_msg = format!("[Rust ERROR] Failed to update transaction: {}. Query: {}", e, query);
+            let err_msg = format!(
+                "[Rust ERROR] Failed to update transaction: {}. Query: {}",
+                e, query
+            );
             println!("{}", err_msg);
             Err(err_msg)
         }
@@ -183,11 +225,20 @@ pub fn delete_transaction_handler(
     db_state: State<'_, DbState>,
     transaction_id: String,
 ) -> std::result::Result<(), String> {
-    let conn_guard = db_state.0.lock().map_err(|e| format!("DB lock error: {}", e))?;
+    let conn_guard = db_state
+        .0
+        .lock()
+        .map_err(|e| format!("DB lock error: {}", e))?;
     let conn = &*conn_guard;
 
-    match conn.execute("DELETE FROM transactions WHERE id = ?1", params![transaction_id]) {
-        Ok(0) => Err(format!("Transaction with ID {} not found or not deleted.", transaction_id)), // No rows affected
+    match conn.execute(
+        "DELETE FROM transactions WHERE id = ?1",
+        params![transaction_id],
+    ) {
+        Ok(0) => Err(format!(
+            "Transaction with ID {} not found or not deleted.",
+            transaction_id
+        )), // No rows affected
         Ok(_) => Ok(()), // Successfully deleted
         Err(e) => Err(format!("Failed to delete transaction: {}", e)),
     }
@@ -206,7 +257,10 @@ pub fn export_transactions_handler(
     db_state: State<'_, DbState>,
     filters: ExportFiltersPayload,
 ) -> std::result::Result<Vec<Transaction>, String> {
-    let conn_guard = db_state.0.lock().map_err(|e| format!("DB lock error: {}", e))?;
+    let conn_guard = db_state
+        .0
+        .lock()
+        .map_err(|e| format!("DB lock error: {}", e))?;
     let conn = &*conn_guard;
 
     let mut query = "SELECT id, user_id, date, amount, currency, description, type, category, is_chomesh, is_recurring, recurring_day_of_month, recipient, created_at, updated_at FROM transactions".to_string();
@@ -239,7 +293,9 @@ pub fn export_transactions_handler(
 
     if let Some(types) = &filters.types {
         if !types.is_empty() {
-            let placeholders: Vec<String> = (0..types.len()).map(|i| format!("?{}", param_idx + i)).collect();
+            let placeholders: Vec<String> = (0..types.len())
+                .map(|i| format!("?{}", param_idx + i))
+                .collect();
             where_clauses.push(format!("type IN ({})", placeholders.join(", ")));
             for t_type in types {
                 sql_params.push(Box::new(t_type.clone()));
@@ -248,7 +304,7 @@ pub fn export_transactions_handler(
             // current_param_idx += types.len(); // This line seems to cause the warning, let's comment it out for now if it's the one for export_transactions_handler
         }
     }
-    
+
     let params_for_rusqlite: Vec<&dyn ToSql> = sql_params.iter().map(|p| p.as_ref()).collect();
 
     if !where_clauses.is_empty() {
@@ -258,13 +314,21 @@ pub fn export_transactions_handler(
 
     query.push_str(" ORDER BY date DESC, created_at DESC");
 
-    let mut stmt = conn.prepare(&query).map_err(|e| format!("Failed to prepare statement: {}", e))?;
-    let transactions_iter = stmt.query_map(params_for_rusqlite.as_slice(), |row| Transaction::from_row(row))
+    let mut stmt = conn
+        .prepare(&query)
+        .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+    let transactions_iter = stmt
+        .query_map(params_for_rusqlite.as_slice(), |row| {
+            Transaction::from_row(row)
+        })
         .map_err(|e| format!("Failed to query transactions for export: {}", e))?;
 
     let mut transactions_vec = Vec::new();
     for transaction_result in transactions_iter {
-        transactions_vec.push(transaction_result.map_err(|e| format!("Failed to map transaction row for export: {}", e))?);
+        transactions_vec.push(
+            transaction_result
+                .map_err(|e| format!("Failed to map transaction row for export: {}", e))?,
+        );
     }
 
     Ok(transactions_vec)
@@ -280,7 +344,7 @@ pub struct TableFiltersPayload {
 
 #[derive(Deserialize, Debug)]
 pub struct TablePaginationPayload {
-    page: usize, // Current page number (1-indexed from frontend)
+    page: usize,  // Current page number (1-indexed from frontend)
     limit: usize, // Items per page
 }
 
@@ -308,7 +372,10 @@ pub fn get_filtered_transactions_handler(
     db_state: State<'_, DbState>,
     args: GetFilteredTransactionsArgs,
 ) -> std::result::Result<PaginatedTransactionsResponse, String> {
-    println!("[Rust DEBUG] get_filtered_transactions_handler called with args: {:?}", args);
+    println!(
+        "[Rust DEBUG] get_filtered_transactions_handler called with args: {:?}",
+        args
+    );
 
     let conn_guard = db_state.0.lock().map_err(|e| {
         let err_msg = format!("[Rust ERROR] DB lock error: {}", e);
@@ -319,16 +386,19 @@ pub fn get_filtered_transactions_handler(
 
     let base_query_select = "SELECT id, user_id, date, amount, currency, description, type, category, is_chomesh, is_recurring, recurring_day_of_month, recipient, created_at, updated_at FROM transactions".to_string();
     let count_query_select = "SELECT COUNT(*) FROM transactions".to_string();
-    
+
     let mut where_clauses: Vec<String> = Vec::new();
-    let mut sql_params_dynamic: Vec<Box<dyn ToSql>> = Vec::new(); 
+    let mut sql_params_dynamic: Vec<Box<dyn ToSql>> = Vec::new();
     let mut current_param_idx = 1;
-    let mut params_debug_strings: Vec<String> = Vec::new(); 
+    let mut params_debug_strings: Vec<String> = Vec::new();
 
     if let Some(search_term) = &args.filters.search {
         if !search_term.is_empty() {
             let actual_search_term = format!("%{}%", search_term);
-            println!("[Rust DEBUG] Applying search filter: {}", actual_search_term);
+            println!(
+                "[Rust DEBUG] Applying search filter: {}",
+                actual_search_term
+            );
             where_clauses.push(format!("(LOWER(description) LIKE LOWER(?{0}) OR LOWER(category) LIKE LOWER(?{0}) OR LOWER(recipient) LIKE LOWER(?{0}))", current_param_idx));
             sql_params_dynamic.push(Box::new(actual_search_term.clone()));
             params_debug_strings.push(actual_search_term);
@@ -358,7 +428,9 @@ pub fn get_filtered_transactions_handler(
     if let Some(types) = &args.filters.types {
         if !types.is_empty() {
             println!("[Rust DEBUG] Applying types filter: {:?}", types);
-            let placeholders: Vec<String> = (0..types.len()).map(|i| format!("?{}", current_param_idx + i)).collect();
+            let placeholders: Vec<String> = (0..types.len())
+                .map(|i| format!("?{}", current_param_idx + i))
+                .collect();
             where_clauses.push(format!("type IN ({})", placeholders.join(", ")));
             for t_type in types {
                 sql_params_dynamic.push(Box::new(t_type.clone()));
@@ -367,72 +439,99 @@ pub fn get_filtered_transactions_handler(
             // current_param_idx += types.len(); // This is for get_filtered_transactions_handler, comment out if unused after this block
         }
     }
-    
-    let params_for_rusqlite: Vec<&dyn ToSql> = sql_params_dynamic.iter().map(|p| p.as_ref()).collect();
+
+    let params_for_rusqlite: Vec<&dyn ToSql> =
+        sql_params_dynamic.iter().map(|p| p.as_ref()).collect();
 
     let mut where_suffix = String::new();
     if !where_clauses.is_empty() {
         where_suffix = format!(" WHERE {}", where_clauses.join(" AND "));
     }
     println!("[Rust DEBUG] Constructed WHERE clause: {}", where_suffix);
-    println!("[Rust DEBUG] Parameters for WHERE (debug strings): {:?}", params_debug_strings);
+    println!(
+        "[Rust DEBUG] Parameters for WHERE (debug strings): {:?}",
+        params_debug_strings
+    );
 
     let final_count_query = format!("{}{}", count_query_select, where_suffix);
     println!("[Rust DEBUG] Final COUNT query: {}", final_count_query);
 
-    let total_count: i64 = match conn.query_row(
-        &final_count_query,
-        params_for_rusqlite.as_slice(),
-        |row| row.get(0),
-    ) {
-        Ok(count) => {
-            println!("[Rust DEBUG] Total count from DB: {}", count);
-            count
-        }
-        Err(e) => {
-            let err_msg = format!("[Rust ERROR] Failed to count transactions: {}. Query: {}, Params (debug): {:?}", e, final_count_query, params_debug_strings);
-            println!("{}", err_msg);
-            return Err(err_msg);
-        }
-    };
+    let total_count: i64 =
+        match conn.query_row(&final_count_query, params_for_rusqlite.as_slice(), |row| {
+            row.get(0)
+        }) {
+            Ok(count) => {
+                println!("[Rust DEBUG] Total count from DB: {}", count);
+                count
+            }
+            Err(e) => {
+                let err_msg = format!(
+                "[Rust ERROR] Failed to count transactions: {}. Query: {}, Params (debug): {:?}",
+                e, final_count_query, params_debug_strings
+            );
+                println!("{}", err_msg);
+                return Err(err_msg);
+            }
+        };
 
     let sort_field = match args.sorting.field.to_lowercase().as_str() {
         "date" => "date",
         "amount" => "amount",
         "description" => "description",
         "currency" => "currency",
-        "type" => "type", 
+        "type" => "type",
         "category" => "category",
         "recipient" => "recipient",
-        _ => "created_at", 
+        _ => "created_at",
     };
-    let sort_direction = if args.sorting.direction.to_lowercase() == "asc" { "ASC" } else { "DESC" };
+    let sort_direction = if args.sorting.direction.to_lowercase() == "asc" {
+        "ASC"
+    } else {
+        "DESC"
+    };
     let order_by_clause = format!(" ORDER BY {} {} ", sort_field, sort_direction);
     println!("[Rust DEBUG] ORDER BY clause: {}", order_by_clause);
 
     let limit_clause = format!(" LIMIT {} ", args.pagination.limit);
     let offset_value = (args.pagination.page.saturating_sub(1)) * args.pagination.limit;
     let offset_clause = format!(" OFFSET {} ", offset_value);
-    
-    println!("[Rust DEBUG] LIMIT clause: {}, OFFSET clause: {}", limit_clause, offset_clause);
 
-    let final_select_query = format!("{}{}{}{}{}", base_query_select, where_suffix, order_by_clause, limit_clause, offset_clause);
+    println!(
+        "[Rust DEBUG] LIMIT clause: {}, OFFSET clause: {}",
+        limit_clause, offset_clause
+    );
+
+    let final_select_query = format!(
+        "{}{}{}{}{}",
+        base_query_select, where_suffix, order_by_clause, limit_clause, offset_clause
+    );
     println!("[Rust DEBUG] Final SELECT query: {}", final_select_query);
-    println!("[Rust DEBUG] Parameters for SELECT (debug strings): {:?}", params_debug_strings);
+    println!(
+        "[Rust DEBUG] Parameters for SELECT (debug strings): {:?}",
+        params_debug_strings
+    );
 
     let mut stmt = match conn.prepare(&final_select_query) {
         Ok(s) => s,
         Err(e) => {
-            let err_msg = format!("[Rust ERROR] Failed to prepare select statement: {}. Query: {}", e, final_select_query);
+            let err_msg = format!(
+                "[Rust ERROR] Failed to prepare select statement: {}. Query: {}",
+                e, final_select_query
+            );
             println!("{}", err_msg);
             return Err(err_msg);
         }
     };
 
-    let transactions_iter = match stmt.query_map(params_for_rusqlite.as_slice(), |row| Transaction::from_row(row)) {
+    let transactions_iter = match stmt.query_map(params_for_rusqlite.as_slice(), |row| {
+        Transaction::from_row(row)
+    }) {
         Ok(iter) => iter,
         Err(e) => {
-            let err_msg = format!("[Rust ERROR] Failed to query transactions: {}. Query: {}, Params (debug): {:?}", e, final_select_query, params_debug_strings);
+            let err_msg = format!(
+                "[Rust ERROR] Failed to query transactions: {}. Query: {}, Params (debug): {:?}",
+                e, final_select_query, params_debug_strings
+            );
             println!("{}", err_msg);
             return Err(err_msg);
         }
@@ -449,11 +548,14 @@ pub fn get_filtered_transactions_handler(
             }
         }
     }
-    println!("[Rust DEBUG] Number of transactions fetched: {}", transactions.len());
+    println!(
+        "[Rust DEBUG] Number of transactions fetched: {}",
+        transactions.len()
+    );
     println!("[Rust DEBUG] Returning PaginatedTransactionsResponse: total_count: {}, transactions_count: {}", total_count, transactions.len());
 
     Ok(PaginatedTransactionsResponse {
         transactions,
         total_count,
     })
-} 
+}

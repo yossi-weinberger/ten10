@@ -20,10 +20,11 @@
 import React, {
   createContext,
   useContext,
+  ReactNode,
   useState,
   useEffect,
-  ReactNode,
 } from "react";
+import { platform as getTauriPlatform } from "@tauri-apps/plugin-os";
 
 // 1. Define possible platform states
 export type Platform = "web" | "desktop" | "loading";
@@ -33,31 +34,11 @@ export interface PlatformContextType {
   platform: Platform;
 }
 
-// 3. Create the context with a default value ('loading' initially)
-export const PlatformContext = createContext<PlatformContextType>({
-  platform: "loading",
-});
-
-// --- Provider and Hook will be added below ---
-```
-
----
-
-## שלב 2: יצירת ה-Provider
-
-**מטרה:** הרכיב שיבצע את זיהוי הפלטפורמה ויספק את הערך ל-Context.
-
-- ישתמש ב-`useState` כדי להחזיק את ערך הפלטפורמה הנוכחי.
-- ישתמש ב-`useEffect` (שירוץ פעם אחת בטעינה) כדי לבדוק את סביבת הריצה.
-  - **עבור Tauri:** בדוק `window.__TAURI__`.
-  - **עבור Electron:** בדוק `window.electron?.isElectron` (או מה שהוגדר ב-preload).
-- יעדכן את ה-state עם הפלטפורמה שזוהתה (`'desktop'` או `'web'`).
-- יעטוף את ה-`children` שלו עם `PlatformContext.Provider` ויספק את ערך ה-state העדכני.
-
-**קוד (`src/contexts/PlatformContext.tsx` - המשך):**
-
-```typescript
-// ... (imports and context creation from Step 1) ...
+// 3. Create the context with an initial undefined value
+// This helps the hook ensure it's used inside a provider.
+const PlatformContext = createContext<PlatformContextType | undefined>(
+  undefined
+);
 
 interface PlatformProviderProps {
   children: ReactNode;
@@ -70,17 +51,20 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({
   const [platform, setPlatform] = useState<Platform>("loading");
 
   useEffect(() => {
-    // --- Detection Logic ---
-    // Adjust the condition based on your desktop framework (Tauri/Electron)
-    const isDesktop = Boolean(
-      (window as any).__TAURI__ || // Check for Tauri
-        (window as any).electron?.isElectron // Check for Electron (example)
-    );
-
+    // --- Detection Logic using tauri-plugin-os ---
+    // This is the modern approach for Tauri v2.
+    // We assume if we can call a Tauri plugin, we are on desktop.
+    let isDesktop = false;
+    try {
+      // getTauriPlatform() will throw an error if not in a Tauri environment
+      // This is a reliable way to check for Tauri's presence.
+      getTauriPlatform();
+      isDesktop = true;
+    } catch (e) {
+      // If the function throws, we're not in a Tauri environment.
+      isDesktop = false;
+    }
     setPlatform(isDesktop ? "desktop" : "web");
-    // --- End Detection Logic ---
-
-    // Run this effect only once on component mount
   }, []);
 
   return (
@@ -89,23 +73,6 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({
     </PlatformContext.Provider>
   );
 };
-
-// --- Hook will be added below ---
-```
-
----
-
-## שלב 3: יצירת ה-Hook הייעודי
-
-**מטרה:** לספק דרך נוחה וקצרה לקומפוננטות "לצרוך" את ערך ה-Context.
-
-- פונקציה (`usePlatform`) שמשתמשת ב-`useContext` כדי לקבל את הערך מ-`PlatformContext`.
-- כוללת בדיקה לוודא שה-Hook נקרא בתוך עץ קומפוננטות שעטוף ב-`PlatformProvider`.
-
-**קוד (`src/contexts/PlatformContext.tsx` - סיום):**
-
-```typescript
-// ... (imports, context creation, and Provider from Steps 1 & 2) ...
 
 // 5. Create the custom hook for consuming the context
 export const usePlatform = (): PlatformContextType => {
@@ -118,62 +85,9 @@ export const usePlatform = (): PlatformContextType => {
 };
 ```
 
-**הקובץ המלא `src/contexts/PlatformContext.tsx` יראה כך:**
-
-```typescript
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
-
-export type Platform = "web" | "desktop" | "loading";
-
-export interface PlatformContextType {
-  platform: Platform;
-}
-
-export const PlatformContext = createContext<PlatformContextType>({
-  platform: "loading",
-});
-
-interface PlatformProviderProps {
-  children: ReactNode;
-}
-
-export const PlatformProvider: React.FC<PlatformProviderProps> = ({
-  children,
-}) => {
-  const [platform, setPlatform] = useState<Platform>("loading");
-
-  useEffect(() => {
-    const isDesktop = Boolean(
-      (window as any).__TAURI__ || (window as any).electron?.isElectron
-    );
-    setPlatform(isDesktop ? "desktop" : "web");
-  }, []);
-
-  return (
-    <PlatformContext.Provider value={{ platform }}>
-      {children}
-    </PlatformContext.Provider>
-  );
-};
-
-export const usePlatform = (): PlatformContextType => {
-  const context = useContext(PlatformContext);
-  if (context === undefined) {
-    throw new Error("usePlatform must be used within a PlatformProvider");
-  }
-  return context;
-};
-```
-
 ---
 
-## שלב 4: עטיפת האפליקציה
+## שלב 2: עטיפת האפליקציה
 
 **מטרה:** לגרום ל-Provider להיות זמין לכל הקומפוננטות באפליקציה.
 
@@ -187,14 +101,20 @@ export const usePlatform = (): PlatformContextType => {
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
+import { AuthProvider } from "./contexts/AuthContext";
 import { PlatformProvider } from "./contexts/PlatformContext"; // Import the provider
 import "./index.css";
+import { ThemeProvider } from "./lib/theme";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     {/* Wrap the entire App with the provider */}
     <PlatformProvider>
-      <App />
+      <AuthProvider>
+        <ThemeProvider>
+          <App />
+        </ThemeProvider>
+      </AuthProvider>
     </PlatformProvider>
   </React.StrictMode>
 );
@@ -202,7 +122,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 
 ---
 
-## שלב 5: שימוש ב-Hook בקומפוננטות
+## שלב 3: שימוש ב-Hook בקומפוננטות
 
 **מטרה:** לגשת למידע הפלטפורמה בתוך כל קומפוננטה שצריכה אותו.
 
@@ -261,3 +181,41 @@ export default MyComponent;
 
 - **טעינת נתונים תלויית פלטפורמה:** קומפוננטות או contexts אחרים (כמו `AuthContext` שמנהל אימות וטעינת נתונים תלויי-משתמש) יכולים להשתמש ב-`usePlatform()` כדי לקבוע איזה `dataService` להפעיל (למשל, גישה ל-SQLite דרך Tauri עבור `desktop`, או גישה ל-Supabase עבור `web`). טעינת הנתונים עצמה תופעל בדרך כלל לאחר שהפלטפורמה זוהתה (כלומר, הערך אינו `'loading'`) ולאחר שתנאים נוספים (כמו זיהוי משתמש מאומת) התקיימו.
 - **אופטימיזציה:** עבור אפליקציות גדולות מאוד, ניתן לשקול אופטימיזציות כמו `React.memo` בקומפוננטות שצורכות את ה-context אם יש חשש מרינדורים מיותרים עקב שינויים ב-context (למרות שבמקרה זה, ערך ה-`platform` צפוי להשתנות רק פעם אחת מטעינה לערך הסופי).
+
+## תצורת בנייה (Build Configuration) קריטית עבור Tauri
+
+כאשר משתמשים ב-Vite לבניית אפליקציית React עבור Tauri, ישנה הגדרה קריטית בקובץ `vite.config.ts` שחובה להכיר.
+
+**הבעיה:** בברירת המחדל, `vite build` מייצר קובץ `index.html` עם נתיבים אבסולוטיים לקבצי ה-JavaScript וה-CSS (למשל, `/assets/index.js`). נתיבים אלו עובדים נכון בסביבת שרת ווב רגיל, אך נכשלים באפליקציית Tauri מכיוון שהיא טוענת את ה-HTML ישירות ממערכת הקבצים, ושם נתיב אבסולוטי כזה אינו תקין.
+
+**התסמין:** האפליקציה נטענת עם מסך לבן, ובקונסולת המפתחים (אם זמינה) תופיע שגיאה מסוג `Uncaught SyntaxError: Unexpected token '<'`, המצביעה על כך שבמקום קובץ JS, נטען קובץ ה-HTML הראשי.
+
+**הפתרון:** יש להורות ל-Vite לייצר נתיבים יחסיים. עושים זאת על ידי הוספת התכונה `base: "./"` לאובייקט הקונפיגורציה ב-`vite.config.ts`.
+
+```typescript
+// vite.config.ts
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import path from "path";
+
+export default defineConfig({
+  plugins: [react()],
+  // >> ADD THIS LINE FOR TAURI BUILDS <<
+  base: "./",
+  // >> END OF ADDED LINE <<
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
+});
+```
+
+הגדרה זו מבטיחה שהנתיבים ב-`index.html` יהיו יחסיים (למשל, `./assets/index.js`), מה שמאפשר לאפליקציית ה-Tauri למצוא ולטעון אותם כראוי.
+
+---
+
+## היסטוריית פיתוח וניפוי באגים
+
+מדריך זה מתאר את הפתרון הנכון והנוכחי. עם זאת, תהליך ההגעה לפתרון זה כלל מספר שלבי איתור באגים חשובים.
+תיעוד מפורט של התהליך, כולל ניסיונות שנכשלו וניתוח שורש הבעיה, נמצא במסמך [סיכום איתור באגים של Tauri v2](./tauri-v2-build-and-platform-detection-summary.md). מומלץ לעיין בו כדי להבין את ההקשר המלא, במיוחד אם נתקלים בבעיות בנייה (build) דומות בעתיד.

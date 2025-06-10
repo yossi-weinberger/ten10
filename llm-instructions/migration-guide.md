@@ -1,6 +1,6 @@
 # LLM Guide: Schema Migration Procedure
 
-This guide outlines the recommended steps and considerations for performing schema migrations in the Ten10 application, covering both the web (Supabase/PostgreSQL) and desktop (Tauri/SQLite) environments. The goal is to ensure that schema changes are applied consistently and safely, minimizing the risk of data loss or application instability.
+This guide outlines the recommended steps and considerations for performing schema migrations in the Ten10 application, covering both the web (Supabase/PostgreSQL) and desktop (Tauri v2 / SQLite) environments. The goal is to ensure that schema changes are applied consistently and safely, minimizing the risk of data loss or application instability.
 
 This document outlines the process and considerations for migrating the Ten10 application from its older data model (separate `incomes`, `donations`, `expenses` tables, potentially `camelCase` column names) to a new, unified `transactions` table using `snake_case` for column names and a single `Transaction` data model for all financial events. This migration has largely been accomplished with the implementation of the new interactive transactions table.
 

@@ -1,4 +1,4 @@
-# LLM Guide: Desktop Data Saving and Retrieval Process (Tauri + SQLite with Unified Transaction Model)
+# LLM Guide: Desktop Data Saving and Retrieval Process (Tauri v2 + SQLite with Unified Transaction Model)
 
 This document explains how data (unified `Transaction` objects) is saved locally and retrieved for display when the application runs in a desktop environment using Tauri and SQLite.
 

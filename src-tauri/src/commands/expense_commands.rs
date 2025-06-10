@@ -30,12 +30,18 @@ pub async fn get_desktop_total_expenses_in_range(
 
     match conn.query_row::<f64, _, _>(&query_sql, params![start_date, end_date], |row| row.get(0)) {
         Ok(total_expenses) => {
-            println!("Desktop Query Result (expense_commands.rs): total_expenses = {}", total_expenses);
+            println!(
+                "Desktop Query Result (expense_commands.rs): total_expenses = {}",
+                total_expenses
+            );
             Ok(total_expenses)
         }
         Err(e) => {
             eprintln!("Desktop Query Error (expense_commands.rs): {}", e);
-            Err(format!("Failed to fetch total expenses with rusqlite: {}", e))
+            Err(format!(
+                "Failed to fetch total expenses with rusqlite: {}",
+                e
+            ))
         }
     }
-} 
+}

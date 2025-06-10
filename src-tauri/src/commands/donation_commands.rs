@@ -36,21 +36,25 @@ pub async fn get_desktop_total_donations_in_range(
     let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
     let conn: &Connection = &*conn_guard;
 
-    match conn.query_row(
-        &query_sql, 
-        params![start_date, end_date], 
-        |row| Ok(DesktopDonationData {
+    match conn.query_row(&query_sql, params![start_date, end_date], |row| {
+        Ok(DesktopDonationData {
             total_donations_amount: row.get(0)?,
             non_tithe_donation_amount: row.get(1)?,
         })
-    ) {
+    }) {
         Ok(donation_data) => {
-            println!("Desktop Query Result (donation_commands.rs): donation_data = {:?}", donation_data);
+            println!(
+                "Desktop Query Result (donation_commands.rs): donation_data = {:?}",
+                donation_data
+            );
             Ok(donation_data)
         }
         Err(e) => {
             eprintln!("Desktop Query Error (donation_commands.rs): {}", e);
-            Err(format!("Failed to fetch detailed donations with rusqlite: {}", e))
+            Err(format!(
+                "Failed to fetch detailed donations with rusqlite: {}",
+                e
+            ))
         }
     }
 }
@@ -69,8 +73,8 @@ pub async fn get_desktop_overall_tithe_balance(
 
     let rows = match stmt.query_map([], |row| {
         Ok((
-            row.get::<usize, String>(0)?, // type
-            row.get::<usize, f64>(1)?,    // amount
+            row.get::<usize, String>(0)?,      // type
+            row.get::<usize, f64>(1)?,         // amount
             row.get::<usize, Option<i32>>(2)?, // is_chomesh (INTEGER in SQLite, can be NULL)
         ))
     }) {
@@ -100,6 +104,9 @@ pub async fn get_desktop_overall_tithe_balance(
             Err(e) => return Err(format!("Error processing row: {}", e)),
         }
     }
-    println!("Desktop Query Result (donation_commands.rs): overall_tithe_balance = {}", balance);
+    println!(
+        "Desktop Query Result (donation_commands.rs): overall_tithe_balance = {}",
+        balance
+    );
     Ok(balance)
-} 
+}

@@ -2,59 +2,34 @@
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
-    "devPath": "http://localhost:5173",
-    "distDir": "../dist"
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173"
   },
-  "package": {
-    "productName": "Ten10",
-    "version": "0.1.0"
-  },
-  "tauri": {
-    "allowlist": {
-      "all": false,
-      "shell": {
-        "all": false,
-        "open": true
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "msi"],
+    "windows": {
+      "nsis": {
+        "displayLanguageSelector": true,
+        "languages": ["Hebrew", "English"]
       },
-      "dialog": {
-        "all": false,
-        "ask": false,
-        "confirm": false,
-        "message": false,
-        "open": true,
-        "save": true
-      },
-      "fs": {
-        "all": false,
-        "readFile": true,
-        "writeFile": true,
-        "scope": []
+      "wix": {
+        "language": ["he-IL", "en-US"]
       }
     },
-    "bundle": {
-      "active": true,
-      "targets": ["nsis", "msi"],
-      "identifier": "com.ten10.dev",
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
-      "windows": {
-        "nsis": {
-          "languages": ["Hebrew", "English"],
-          "displayLanguageSelector": true
-        },
-        "wix": {
-          "language": "he-IL"
-        }
-      }
-    },
-    "security": {
-      "csp": null
-    },
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  },
+  "productName": "Ten10",
+  "version": "0.1.0",
+  "identifier": "com.ten10.dev",
+  "plugins": {},
+  "app": {
     "windows": [
       {
         "fullscreen": false,
@@ -67,6 +42,9 @@
         "width": 1024,
         "height": 768
       }
-    ]
+    ],
+    "security": {
+      "csp": null
+    }
   }
 }

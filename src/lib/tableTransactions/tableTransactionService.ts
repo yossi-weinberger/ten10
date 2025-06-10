@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api";
+import { invoke } from "@tauri-apps/api/core";
 import { supabase } from "../supabaseClient"; // Updated path
 import { Transaction } from "../../types/transaction"; // Updated path
 import { Platform } from "../../contexts/PlatformContext"; // Updated path

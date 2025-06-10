@@ -1,10 +1,11 @@
 import React, {
   createContext,
   useContext,
+  ReactNode,
   useState,
   useEffect,
-  ReactNode,
 } from "react";
+import { platform as getTauriPlatform } from "@tauri-apps/plugin-os";
 
 // 1. Define possible platform states
 export type Platform = "web" | "desktop" | "loading";
@@ -15,9 +16,9 @@ export interface PlatformContextType {
 }
 
 // 3. Create the context with a default value ('loading' initially)
-export const PlatformContext = createContext<PlatformContextType>({
-  platform: "loading",
-});
+const PlatformContext = createContext<PlatformContextType | undefined>(
+  undefined
+);
 
 // --- Provider and Hook will be added below ---
 
@@ -32,14 +33,16 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({
   const [platform, setPlatform] = useState<Platform>("loading");
 
   useEffect(() => {
-    // --- Detection Logic ---
-    // Check specifically for Tauri
-    const isDesktop = Boolean((window as any).__TAURI__);
-
+    let isDesktop = false;
+    try {
+      // getTauriPlatform() will throw an error if not in a Tauri environment
+      getTauriPlatform();
+      isDesktop = true;
+    } catch (e) {
+      // If the above function throws, we're not in a Tauri environment.
+      isDesktop = false;
+    }
     setPlatform(isDesktop ? "desktop" : "web");
-    // --- End Detection Logic ---
-
-    // Run this effect only once on component mount
   }, []);
 
   return (
@@ -52,7 +55,7 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({
 // --- Hook will be added below ---
 
 // 5. Create the custom hook for consuming the context
-export const usePlatform = (): PlatformContextType => {
+export const usePlatform = () => {
   const context = useContext(PlatformContext);
   if (context === undefined) {
     // Ensure the hook is used within the provider tree

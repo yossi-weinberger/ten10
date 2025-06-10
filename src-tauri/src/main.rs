@@ -1,25 +1,30 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use env_logger;
 use rusqlite::{Connection, Result};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
 use tauri::State;
-use env_logger;
 
 mod commands;
-use commands::income_commands::get_desktop_total_income_in_range;
-use commands::expense_commands::get_desktop_total_expenses_in_range;
-use commands::donation_commands::{get_desktop_total_donations_in_range, get_desktop_overall_tithe_balance};
-use commands::transaction_commands::{delete_transaction_handler, export_transactions_handler, get_filtered_transactions_handler, update_transaction_handler};
 use commands::chart_commands::get_desktop_monthly_financial_summary;
+use commands::donation_commands::{
+    get_desktop_overall_tithe_balance, get_desktop_total_donations_in_range,
+};
+use commands::expense_commands::get_desktop_total_expenses_in_range;
+use commands::income_commands::get_desktop_total_income_in_range;
+use commands::transaction_commands::{
+    delete_transaction_handler, export_transactions_handler, get_filtered_transactions_handler,
+    update_transaction_handler,
+};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct Transaction {
     id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     user_id: Option<String>,
-    date: String, 
+    date: String,
     amount: f64,
     currency: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -49,7 +54,7 @@ pub struct DbState(Mutex<Connection>);
 #[tauri::command]
 async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
     let conn = db.0.lock().map_err(|e| e.to_string())?;
-    
+
     conn.execute(
         "CREATE TABLE IF NOT EXISTS transactions (
             id TEXT PRIMARY KEY,
@@ -69,7 +74,8 @@ async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
             recurring_total_count INTEGER
         )",
         [],
-    ).map_err(|e| e.to_string())?;
+    )
+    .map_err(|e| e.to_string())?;
 
     Ok(())
 }
@@ -117,11 +123,15 @@ fn main() {
     env_logger::init();
 
     let conn = Connection::open("Ten10.db").expect("Failed to open database");
-    
+
     tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_fs::init())
         .manage(DbState(Mutex::new(conn)))
         .invoke_handler(tauri::generate_handler![
-            init_db, 
+            init_db,
             add_transaction,
             clear_all_data,
             get_desktop_total_income_in_range,

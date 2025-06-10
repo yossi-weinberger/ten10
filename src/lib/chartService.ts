@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/core";
 import { supabase } from "./supabaseClient"; // Assuming supabaseClient is correctly set up
 // import { getCurrentPlatform } from "./platformService"; // No longer needed
 import { type Platform } from "./platformService"; // Corrected import for Platform type

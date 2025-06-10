@@ -1,6 +1,6 @@
-import { invoke } from "@tauri-apps/api/tauri";
-import { save, open } from "@tauri-apps/api/dialog";
-import { writeTextFile, readTextFile } from "@tauri-apps/api/fs";
+import { invoke } from "@tauri-apps/api/core";
+import { save, open } from "@tauri-apps/plugin-dialog";
+import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
 import { Transaction } from "@/types/transaction";
 import { useDonationStore } from "@/lib/store";
 import toast from "react-hot-toast";
@@ -129,9 +129,9 @@ export const importDataDesktop = async ({
 
       for (const transaction of transactionsToImport) {
         const transactionForRust: any = { ...transaction };
-        if (transactionForRust.type && !transactionForRust.transaction_type) {
-          transactionForRust.transaction_type = transactionForRust.type;
-          delete transactionForRust.type;
+        if (transactionForRust.transaction_type && !transactionForRust.type) {
+          transactionForRust.type = transactionForRust.transaction_type;
+          delete transactionForRust.transaction_type;
         }
         await invoke("add_transaction", { transaction: transactionForRust });
       }

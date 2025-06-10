@@ -6,10 +6,11 @@ This document outlines the main technologies and conventions used in this projec
 
 - **Language**: **TypeScript** - All new code should be written in TypeScript.
 - **Frontend Library**: **React** (v18) - Utilize functional components and Hooks.
-- **Desktop Framework**: **Tauri** - Used for building the cross-platform desktop application. The frontend communicates with the Rust backend via Tauri's API (`@tauri-apps/api`). Note the specific `allowlist` configuration in `src-tauri/tauri.conf.json` which restricts available system APIs (only `shell > open` is explicitly enabled).
+- **Desktop Application**: **Tauri (v2)** - For building a cross-platform desktop application from the React codebase. Requires Rust knowledge for the backend part (`src-tauri`).
 - **Build Tool**: **Vite** - Handles development server and production builds. Configuration is in `vite.config.ts`.
   - Uses `@vitejs/plugin-react`.
   - Path alias `@` is configured to point to the `src/` directory.
+  - **Tauri Build Note:** When building for Tauri, it is critical to set `base: './'` in `vite.config.ts`. This ensures that asset paths in the final `index.html` are relative (e.g., `./assets/index.js`), which is required for the application to load correctly when served from the local file system by Tauri. Without this, the build will fail to load with a blank screen.
 - **Package Manager**: **npm** - Use `npm` for managing dependencies (`package.json` and `package-lock.json`).
 
 ## UI and Styling
