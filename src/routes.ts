@@ -16,14 +16,16 @@ import { TransactionsTable } from "./pages/TransactionsTable";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import { supabase } from "./lib/supabaseClient";
-import { isTauri } from "@tauri-apps/api/core";
 
 const rootRoute = createRootRoute({
   component: App,
   beforeLoad: async ({ location }) => {
     // --- Platform Check ---
-    // The correct way to check for Tauri in v2
-    const isDesktop = await isTauri();
+    // A simple, synchronous check for the Tauri-injected global.
+    // This runs before React components, so we can't use the context/manager here.
+    // @ts-expect-error -- this is a Tauri-specific global
+    const isDesktop = !!window.__TAURI_INTERNALS__;
+
     if (isDesktop) {
       return; // Allow access on desktop regardless of auth state
     }

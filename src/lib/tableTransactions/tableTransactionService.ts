@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+// import { invoke } from "@tauri-apps/api/core"; // STATIC IMPORT REMOVED
 import { supabase } from "../supabaseClient"; // Updated path
 import { Transaction } from "../../types/transaction"; // Updated path
 import { Platform } from "../../contexts/PlatformContext"; // Updated path
@@ -162,6 +162,7 @@ export class TableTransactionsService {
     } else if (platform === "desktop") {
       // Desktop implementation
       try {
+        const { invoke } = await import("@tauri-apps/api/core");
         const payload: GetFilteredTransactionsArgsPayload = {
           filters: {
             search: filters.search || null,
@@ -354,6 +355,7 @@ export class TableTransactionsService {
       }
     } else if (platform === "desktop") {
       try {
+        const { invoke } = await import("@tauri-apps/api/core");
         const payload: ExportTransactionsFiltersPayload = {
           search: filters.search || null,
           date_from: filters.dateRange.from
@@ -370,7 +372,7 @@ export class TableTransactionsService {
         );
         const transactions = await invoke<Transaction[]>(
           "export_transactions_handler",
-          { filters: payload } // The Rust command expects 'filters' as the argument name
+          { filters: payload }
         );
         console.log(
           "TableTransactionsService: Desktop export_transactions_handler successful, transactions count:",
@@ -378,12 +380,8 @@ export class TableTransactionsService {
         );
         return transactions;
       } catch (error) {
-        console.error("Error invoking export_transactions_handler:", error);
-        throw new Error(
-          `Failed to export transactions from desktop: ${
-            error instanceof Error ? error.message : String(error)
-          }`
-        );
+        console.error("Error exporting desktop transactions:", error);
+        return [];
       }
     }
     throw new Error("Platform not supported for getTransactionsForExport");
