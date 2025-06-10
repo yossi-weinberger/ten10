@@ -117,7 +117,6 @@ export function MonthlyChart() {
 
       try {
         const data = await fetchServerMonthlyChartData(
-          platform,
           userId ?? null,
           endDateForFetch,
           NUM_MONTHS_TO_FETCH
@@ -151,7 +150,6 @@ export function MonthlyChart() {
     },
     [
       platformReady,
-      platform,
       userId,
       setIsLoadingServerMonthlyChartData,
       setServerMonthlyChartDataError,

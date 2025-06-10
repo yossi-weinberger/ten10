@@ -5,9 +5,9 @@ import { getPlatform } from "./platformManager";
 
 export interface MonthlyDataPoint {
   month_label: string; // "YYYY-MM"
-  הכנסות: number;
-  תרומות: number;
-  הוצאות: number;
+  income: number;
+  donations: number;
+  expenses: number;
 }
 
 export type ServerMonthlyDataResponse = MonthlyDataPoint[];
