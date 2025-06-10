@@ -5,7 +5,6 @@ import React, {
   useState,
   useEffect,
 } from "react";
-import { platform as getTauriPlatform } from "@tauri-apps/plugin-os";
 
 // 1. Define possible platform states
 export type Platform = "web" | "desktop" | "loading";
@@ -33,16 +32,28 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({
   const [platform, setPlatform] = useState<Platform>("loading");
 
   useEffect(() => {
-    let isDesktop = false;
-    try {
-      // getTauriPlatform() will throw an error if not in a Tauri environment
-      getTauriPlatform();
-      isDesktop = true;
-    } catch (e) {
-      // If the above function throws, we're not in a Tauri environment.
-      isDesktop = false;
-    }
-    setPlatform(isDesktop ? "desktop" : "web");
+    const detectPlatform = async () => {
+      // A reliable way to check if running inside Tauri.
+      // @ts-expect-error __TAURI_INTERNALS__ is injected by Tauri.
+      if (window.__TAURI_INTERNALS__) {
+        try {
+          // Dynamically import the plugin ONLY if in Tauri.
+          // Vite/Rollup will handle this and not bundle it for web.
+          const osPlugin = await import("@tauri-apps/plugin-os");
+          await osPlugin.platform(); // Calling it to be sure
+          setPlatform("desktop");
+        } catch (e) {
+          console.error("Tauri environment detected, but OS plugin failed:", e);
+          // Fallback for safety
+          setPlatform("web");
+        }
+      } else {
+        // Not in a Tauri environment
+        setPlatform("web");
+      }
+    };
+
+    detectPlatform();
   }, []);
 
   return (

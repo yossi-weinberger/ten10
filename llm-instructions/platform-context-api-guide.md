@@ -24,7 +24,10 @@ import React, {
   useState,
   useEffect,
 } from "react";
-import { platform as getTauriPlatform } from "@tauri-apps/plugin-os";
+
+// NOTE: We do not statically import from '@tauri-apps/plugin-os'.
+// This is crucial to prevent build failures on web-only environments like Vercel,
+// which cannot resolve Tauri-specific plugins during the build process.
 
 // 1. Define possible platform states
 export type Platform = "web" | "desktop" | "loading";
@@ -51,20 +54,34 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({
   const [platform, setPlatform] = useState<Platform>("loading");
 
   useEffect(() => {
-    // --- Detection Logic using tauri-plugin-os ---
-    // This is the modern approach for Tauri v2.
-    // We assume if we can call a Tauri plugin, we are on desktop.
-    let isDesktop = false;
-    try {
-      // getTauriPlatform() will throw an error if not in a Tauri environment
-      // This is a reliable way to check for Tauri's presence.
-      getTauriPlatform();
-      isDesktop = true;
-    } catch (e) {
-      // If the function throws, we're not in a Tauri environment.
-      isDesktop = false;
-    }
-    setPlatform(isDesktop ? "desktop" : "web");
+    const detectPlatform = async () => {
+      // This is the most reliable method to detect if the app is running in a
+      // Tauri environment without breaking web builds. The `__TAURI_INTERNALS__`
+      // global is injected by Tauri's webview, so its presence is a definitive sign.
+      // @ts-expect-error -- this is a Tauri-specific global and is not typed
+      if (window.__TAURI_INTERNALS__) {
+        try {
+          // Dynamically import the plugin ONLY when we are sure we're in Tauri.
+          // Vite/Rollup will code-split this import, creating a separate chunk
+          // that is only loaded on demand, thus keeping it out of the main web bundle.
+          const osPlugin = await import("@tauri-apps/plugin-os");
+          await osPlugin.platform(); // A simple call to ensure the plugin loaded correctly.
+          setPlatform("desktop");
+        } catch (e) {
+          console.error(
+            "Tauri environment detected, but OS plugin failed to load:",
+            e
+          );
+          // As a safety fallback, assume web if the plugin fails.
+          setPlatform("web");
+        }
+      } else {
+        // If the global does not exist, we are definitely on a standard web platform.
+        setPlatform("web");
+      }
+    };
+
+    detectPlatform();
   }, []);
 
   return (
