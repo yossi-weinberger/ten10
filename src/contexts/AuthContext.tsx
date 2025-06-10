@@ -12,7 +12,7 @@ import { useDonationStore } from "@/lib/store"; // Import Zustand store
 // import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store"; // This seems unused in the provided snippet, might be removable if not used elsewhere
 // Import table transactions store
 // import { loadTransactions, setDataServicePlatform } from "@/lib/dataService"; // loadTransactions will be removed from dataService, setDataServicePlatform is still used.
-import { setDataServicePlatform } from "@/lib/dataService";
+// import { setDataServicePlatform } from "@/lib/dataService"; // REMOVED
 import { usePlatform } from "./PlatformContext"; // Import usePlatform to set platform for dataService
 
 export type { SupabaseUser as User }; // Re-exporting the User type
@@ -42,12 +42,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const lastDbFetchTimestampFromStore = useDonationStore(
     (state) => state.lastDbFetchTimestamp
   );
-
-  useEffect(() => {
-    if (platform !== "loading") {
-      setDataServicePlatform(platform);
-    }
-  }, [platform]);
 
   // REMOVE THE ENTIRE loadAndSetTransactionsInternal function block
   /*
