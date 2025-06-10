@@ -10,8 +10,7 @@ import {
 } from "./components/ui/sheet";
 import { Sidebar } from "./components/layout/Sidebar";
 import { usePlatform } from "./contexts/PlatformContext";
-import { setDataServicePlatform } from "./lib/dataService";
-import { invoke } from "@tauri-apps/api/core";
+import { setPlatform as setGlobalPlatform } from "./lib/platformManager";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -21,15 +20,19 @@ function App() {
 
   useEffect(() => {
     if (platform !== "loading") {
-      setDataServicePlatform(platform);
+      setGlobalPlatform(platform);
       if (platform === "desktop") {
-        invoke("init_db")
-          .then(() => {
-            console.log("Database initialized successfully.");
+        import("@tauri-apps/api/core")
+          .then(({ invoke }) => {
+            invoke("init_db")
+              .then(() => {
+                console.log("Database initialized successfully.");
+              })
+              .catch((error) =>
+                console.error("Error initializing database:", error)
+              );
           })
-          .catch((error) =>
-            console.error("Error initializing database:", error)
-          );
+          .catch((e) => console.error("Failed to load Tauri core API", e));
       }
     }
   }, [platform]);

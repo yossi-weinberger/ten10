@@ -1,6 +1,3 @@
-import { invoke } from "@tauri-apps/api/core";
-import { save, open } from "@tauri-apps/plugin-dialog";
-import { writeTextFile, readTextFile } from "@tauri-apps/plugin-fs";
 import { Transaction } from "@/types/transaction";
 import { useDonationStore } from "@/lib/store";
 import toast from "react-hot-toast";
@@ -26,6 +23,11 @@ export const exportDataDesktop = async ({
 }: DataManagementOptions): Promise<void> => {
   setIsLoading(true);
   try {
+    // Dynamic imports for Tauri modules
+    const { invoke } = await import("@tauri-apps/api/core");
+    const { save } = await import("@tauri-apps/plugin-dialog");
+    const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+
     const emptyFilters: ExportFiltersPayload = {};
     const transactions = await invoke<Transaction[]>(
       "export_transactions_handler",
@@ -73,6 +75,11 @@ export const importDataDesktop = async ({
 }: DataManagementOptions): Promise<void> => {
   setIsLoading(true);
   try {
+    // Dynamic imports for Tauri modules
+    const { invoke } = await import("@tauri-apps/api/core");
+    const { open } = await import("@tauri-apps/plugin-dialog");
+    const { readTextFile } = await import("@tauri-apps/plugin-fs");
+
     const selectedPath = await open({
       title: "בחר קובץ גיבוי לייבוא",
       multiple: false,

@@ -1,16 +1,19 @@
 import { useDonationStore } from "./store";
 import { Transaction } from "../types/transaction";
-import { PlatformContextType } from "@/contexts/PlatformContext";
-import { invoke } from "@tauri-apps/api/core";
+// import { PlatformContextType } from "@/contexts/PlatformContext"; // NO LONGER NEEDED
+import { getPlatform } from "./platformManager";
+// import { invoke } from "@tauri-apps/api/core"; // STATIC IMPORT REMOVED
 import { supabase } from "@/lib/supabaseClient"; // Import Supabase client
 
-// פונקציה לקבלת הפלטפורמה (יש להפעיל אותה מהקומפוננטה הראשית)
-let currentPlatform: PlatformContextType["platform"] = "loading";
-export function setDataServicePlatform(
-  platform: PlatformContextType["platform"]
-) {
-  currentPlatform = platform;
-}
+// The platform is no longer managed here. It is set once in App.tsx
+// and retrieved via getPlatform() from the platformManager.
+//
+// let currentPlatform: PlatformContextType["platform"] = "loading";
+// export function setDataServicePlatform(
+//   platform: PlatformContextType["platform"]
+// ) {
+//   currentPlatform = platform;
+// }
 
 // Define a type for the data structure returned by server-side calculations
 export interface ServerIncomeData {
@@ -34,9 +37,11 @@ export interface ServerDonationData {
 export async function loadTransactions(
   userIdFromAuthContext?: string
 ): Promise<Transaction[]> {
+  const currentPlatform = getPlatform();
   console.log("DataService: Loading transactions. Platform:", currentPlatform);
   if (currentPlatform === "desktop") {
     try {
+      const { invoke } = await import("@tauri-apps/api/core");
       const transactions = await invoke<Transaction[]>("get_transactions");
       console.log(
         `DataService: Tauri load successful: ${transactions.length} transactions.`
@@ -119,10 +124,12 @@ export async function loadTransactions(
  * On web, saves to Supabase and then updates the Zustand store.
  */
 export async function addTransaction(transaction: Transaction): Promise<void> {
+  const currentPlatform = getPlatform();
   console.log("Current platform in addTransaction:", currentPlatform);
   if (currentPlatform === "desktop") {
     try {
       console.log("Attempting to add transaction via Tauri invoke...");
+      const { invoke } = await import("@tauri-apps/api/core");
       await invoke("add_transaction", { transaction });
       console.log(
         "Tauri invoke add_transaction successful for ID:",
@@ -217,12 +224,14 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
  * On web, calls Supabase.
  */
 export async function deleteTransaction(transactionId: string): Promise<void> {
+  const currentPlatform = getPlatform();
   console.log(
     `DataService: Attempting to delete transaction ID: ${transactionId}. Platform: ${currentPlatform}`
   );
 
   if (currentPlatform === "desktop") {
     try {
+      const { invoke } = await import("@tauri-apps/api/core");
       await invoke("delete_transaction_handler", { transactionId });
       console.log(
         `DataService: Tauri delete_transaction_handler successful for ID: ${transactionId}`
@@ -299,10 +308,9 @@ export async function updateTransaction(
   transactionId: string,
   payload: TransactionUpdatePayload // Using the defined interface
 ): Promise<void> {
+  const currentPlatform = getPlatform();
   console.log(
-    `DataService: Attempting to update transaction ID: ${transactionId} with payload:`,
-    payload,
-    `Platform: ${currentPlatform}`
+    `DataService: Updating transaction ${transactionId}. Platform: ${currentPlatform}`
   );
 
   // Basic validation for payload to prevent sending empty updates if not desired
@@ -316,7 +324,7 @@ export async function updateTransaction(
 
   if (currentPlatform === "desktop") {
     try {
-      // The Rust handler `update_transaction_handler` expects an object with `id` and `payload` keys.
+      const { invoke } = await import("@tauri-apps/api/core");
       await invoke("update_transaction_handler", {
         id: transactionId,
         payload,
@@ -424,10 +432,12 @@ export async function updateTransaction(
 }
 
 export async function clearAllData() {
-  console.log("Attempting to clear all data...");
+  const currentPlatform = getPlatform();
+  console.log("DataService: Clearing all data. Platform:", currentPlatform);
   if (currentPlatform === "desktop") {
     try {
       console.log("Invoking clear_all_data...");
+      const { invoke } = await import("@tauri-apps/api/core");
       await invoke("clear_all_data"); // This now clears transactions table too
       console.log("SQLite data cleared successfully via invoke.");
     } catch (error) {
@@ -588,6 +598,7 @@ export async function fetchTotalIncomeForUserDesktop(
     `DataService (Desktop): Fetching total income from ${startDate} to ${endDate}`
   );
   try {
+    const { invoke } = await import("@tauri-apps/api/core");
     const result = await invoke<ServerIncomeData>(
       "get_desktop_total_income_in_range",
       {
@@ -616,6 +627,7 @@ export async function fetchTotalExpensesForUserDesktop(
     `DataService (Desktop): Fetching total expenses from ${startDate} to ${endDate}`
   );
   try {
+    const { invoke } = await import("@tauri-apps/api/core");
     const result = await invoke<number>("get_desktop_total_expenses_in_range", {
       startDate,
       endDate,
@@ -637,6 +649,10 @@ export async function fetchTotalIncomeInRange(
   startDate: string,
   endDate: string
 ): Promise<ServerIncomeData | null> {
+  const currentPlatform = getPlatform();
+  console.log(
+    `DataService: Fetching total income for range. Platform: ${currentPlatform}`
+  );
   if (currentPlatform === "web") {
     if (!userId) {
       console.error(
@@ -671,6 +687,10 @@ export async function fetchTotalExpensesInRange(
   startDate: string,
   endDate: string
 ): Promise<number | null> {
+  const currentPlatform = getPlatform();
+  console.log(
+    `DataService: Fetching total expenses for range. Platform: ${currentPlatform}`
+  );
   if (currentPlatform === "web") {
     if (!userId) {
       console.error(
@@ -764,13 +784,14 @@ export async function fetchTotalDonationsForUserDesktop(
   try {
     // TODO: Update Tauri command "get_desktop_total_donations_in_range"
     // to return ServerDonationData structure
-    const result = await invoke<{
-      total_donations_amount: number;
-      non_tithe_donation_amount: number;
-    }>("get_desktop_total_donations_in_range", {
-      startDate,
-      endDate,
-    });
+    const { invoke } = await import("@tauri-apps/api/core");
+    const result = await invoke<ServerDonationData>(
+      "get_total_donations_in_range_handler",
+      {
+        startDate,
+        endDate,
+      }
+    );
     console.log(
       "DataService (Desktop): Tauri invoke for donations successful. Data:",
       result
@@ -789,7 +810,7 @@ export async function fetchTotalDonationsForUserDesktop(
     return { total_donations_amount: 0, non_tithe_donation_amount: 0 }; // Default structure
   } catch (error) {
     console.error(
-      "Error invoking get_desktop_total_donations_in_range:",
+      "Error invoking get_total_donations_in_range_handler:",
       error
     );
     return null; // Return null in case of error, similar to web version
@@ -802,6 +823,10 @@ export async function fetchTotalDonationsInRange(
   startDate: string,
   endDate: string
 ): Promise<ServerDonationData | null> {
+  const currentPlatform = getPlatform();
+  console.log(
+    `DataService: Fetching total donations for range. Platform: ${currentPlatform}`
+  );
   if (currentPlatform === "web") {
     if (!userId) {
       console.error(
@@ -874,14 +899,11 @@ export async function fetchServerTitheBalanceWeb(
 export async function fetchServerTitheBalanceDesktop(): Promise<number | null> {
   console.log(`DataService (Desktop): Fetching overall tithe balance`);
   try {
-    const result = await invoke<number>("get_desktop_overall_tithe_balance");
-    console.log(
-      "DataService (Desktop): Tauri invoke for overall tithe balance successful. Data:",
-      result
-    );
-    return result;
+    const { invoke } = await import("@tauri-apps/api/core");
+    const balance = await invoke<number>("get_tithe_balance_handler");
+    return balance;
   } catch (error) {
-    console.error("Error invoking get_desktop_overall_tithe_balance:", error);
+    console.error("Error invoking get_tithe_balance_handler:", error);
     return null;
   }
 }
@@ -890,6 +912,10 @@ export async function fetchServerTitheBalanceDesktop(): Promise<number | null> {
 export async function fetchServerTitheBalance(
   userId: string | null // userId is only needed for web
 ): Promise<number | null> {
+  const currentPlatform = getPlatform();
+  console.log(
+    `DataService: Fetching server tithe balance. Platform: ${currentPlatform}`
+  );
   if (currentPlatform === "web") {
     if (!userId) {
       console.error(

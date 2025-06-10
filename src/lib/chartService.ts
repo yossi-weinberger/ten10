@@ -1,7 +1,7 @@
-import { invoke } from "@tauri-apps/api/core";
+// import { invoke } from "@tauri-apps/api/core"; // STATIC IMPORT REMOVED
 import { supabase } from "./supabaseClient"; // Assuming supabaseClient is correctly set up
 // import { getCurrentPlatform } from "./platformService"; // No longer needed
-import { type Platform } from "./platformService"; // Corrected import for Platform type
+import { getPlatform } from "./platformManager";
 
 export interface MonthlyDataPoint {
   month_label: string; // "YYYY-MM"
@@ -16,7 +16,6 @@ const SUPABASE_RPC_FUNCTION_NAME = "get_monthly_financial_summary";
 const TAURI_COMMAND_NAME = "get_desktop_monthly_financial_summary";
 
 export async function fetchServerMonthlyChartData(
-  platform: Platform,
   userId: string | null,
   endDate: Date, // JavaScript Date object
   numMonths: number
@@ -31,6 +30,7 @@ export async function fetchServerMonthlyChartData(
   }
 
   const endDateStr = endDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+  const platform = getPlatform();
 
   console.log(
     `ChartService: Fetching monthly chart data for ${numMonths} months ending ${endDateStr}, platform: ${platform}`
@@ -60,6 +60,7 @@ export async function fetchServerMonthlyChartData(
       console.log("ChartService: Successfully fetched chart data (Web):", data);
       return data as ServerMonthlyDataResponse;
     } else if (platform === "desktop") {
+      const { invoke } = await import("@tauri-apps/api/core");
       const data = await invoke<ServerMonthlyDataResponse>(TAURI_COMMAND_NAME, {
         endDateStr: endDateStr,
         numMonths: numMonths,

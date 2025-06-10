@@ -1,6 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
+// import { invoke } from "@tauri-apps/api/core"; // STATIC IMPORT REMOVED
 import { supabase } from "@/lib/supabaseClient";
-import { getCurrentPlatform } from "./platformService";
+import { getPlatform } from "./platformManager";
 
 export interface ServerIncomeData {
   total_income: number;
@@ -75,6 +75,7 @@ async function fetchTotalIncomeForUserDesktop(
     `DbStatsCardsService (Desktop): Fetching total income from ${startDate} to ${endDate}`
   );
   try {
+    const { invoke } = await import("@tauri-apps/api/core");
     const result = await invoke<ServerIncomeData>(
       "get_desktop_total_income_in_range",
       {
@@ -99,7 +100,7 @@ export async function fetchDbCalculatedTotalIncomeForStatsCards(
   startDate: string,
   endDate: string
 ): Promise<ServerIncomeData | null> {
-  const currentPlatform = getCurrentPlatform();
+  const currentPlatform = getPlatform();
   if (currentPlatform === "web") {
     if (!userId) {
       console.error(
@@ -175,6 +176,7 @@ async function fetchTotalExpensesForUserDesktop(
     `DbStatsCardsService (Desktop): Fetching total expenses from ${startDate} to ${endDate}`
   );
   try {
+    const { invoke } = await import("@tauri-apps/api/core");
     const result = await invoke<number>("get_desktop_total_expenses_in_range", {
       startDate,
       endDate,
@@ -196,7 +198,7 @@ export async function fetchDbCalculatedTotalExpensesForStatsCards(
   startDate: string,
   endDate: string
 ): Promise<number | null> {
-  const currentPlatform = getCurrentPlatform();
+  const currentPlatform = getPlatform();
   if (currentPlatform === "web") {
     if (!userId) {
       console.error(
@@ -283,6 +285,7 @@ async function fetchTotalDonationsForUserDesktop(
     `DbStatsCardsService (Desktop): Fetching total donations from ${startDate} to ${endDate}`
   );
   try {
+    const { invoke } = await import("@tauri-apps/api/core");
     const result = await invoke<{
       total_donations_amount: number;
       non_tithe_donation_amount: number;
@@ -321,7 +324,7 @@ export async function fetchDbCalculatedTotalDonationsForStatsCards(
   startDate: string,
   endDate: string
 ): Promise<ServerDonationData | null> {
-  const currentPlatform = getCurrentPlatform();
+  const currentPlatform = getPlatform();
   if (currentPlatform === "web") {
     if (!userId) {
       console.error(
@@ -391,6 +394,7 @@ async function fetchServerTitheBalanceWeb(
 async function fetchServerTitheBalanceDesktop(): Promise<number | null> {
   console.log(`DbStatsCardsService (Desktop): Fetching overall tithe balance`);
   try {
+    const { invoke } = await import("@tauri-apps/api/core");
     const result = await invoke<number>("get_desktop_overall_tithe_balance");
     console.log(
       "DbStatsCardsService (Desktop): Tauri invoke for overall tithe balance successful. Data:",
@@ -407,7 +411,7 @@ async function fetchServerTitheBalanceDesktop(): Promise<number | null> {
 export async function fetchDbCalculatedTitheBalanceForStatsCards(
   userId: string | null // userId is only needed for web
 ): Promise<number | null> {
-  const currentPlatform = getCurrentPlatform();
+  const currentPlatform = getPlatform();
   if (currentPlatform === "web") {
     if (!userId) {
       console.error(
