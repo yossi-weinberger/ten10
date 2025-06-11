@@ -24,23 +24,64 @@ export const TransactionTypeValues: [TransactionType, ...TransactionType[]] = [
 
 // Define the core Transaction interface
 export interface Transaction {
-  id: string; // Unique identifier (e.g., nanoid())
-  user_id?: string | null; // Owner identifier (Crucial for Web/Supabase RLS, optional for Desktop/SQLite)
-  date: string; // ISO 8601 format (YYYY-MM-DD)
-  amount: number; // Positive value
-  currency: Currency; // e.g., 'ILS', 'USD'. Defined in this file.
-  description?: string | null; // User-provided description
+  id: string; // Unique identifier (nanoid)
+  user_id: string; // From Supabase auth
+  date: string; // ISO 8601 date string (YYYY-MM-DD)
+  amount: number;
+  currency: "ILS" | "USD" | "EUR";
+  description: string | null;
   type: TransactionType;
-  category?: string | null; // Optional category (mainly for expense types)
-  created_at?: string; // Changed from createdAt
-  updated_at?: string; // Changed from updatedAt
+  category: string | null;
+  created_at?: string; // ISO 8601 date string
+  updated_at?: string; // ISO 8601 date string
 
-  // Type-specific fields - use optional chaining or type guards for access
-  is_chomesh?: boolean; // Changed from is_chomesh
-  recipient?: string | null; // Required for 'donation' type
+  // Type-specific fields
+  is_chomesh?: boolean | null;
+  recipient?: string | null;
 
-  // Fields for recurring transactions
-  is_recurring?: boolean; // Optional, defaults to false if not present
-  recurring_day_of_month?: number | null; // Optional, relevant only if is_recurring is true
-  recurring_total_count?: number | null; // Changed from recurringTotalCount
+  // Link to the recurring definition
+  source_recurring_id?: string | null;
+
+  // DEPRECATED - to be removed after migration
+  is_recurring?: boolean | null;
+  recurring_day_of_month?: number | null;
+  recurring_total_count?: number | null;
 }
+
+export interface RecurringTransaction {
+  id: string;
+  user_id: string;
+  status: "active" | "paused" | "completed" | "cancelled";
+  start_date: string; // ISO 8601 date string
+  next_due_date: string; // ISO 8601 date string
+  frequency: "daily" | "weekly" | "monthly" | "yearly";
+  day_of_month?: number; // For 'monthly'
+  total_occurrences?: number;
+  execution_count: number;
+  description?: string;
+  amount: number;
+  currency: string;
+  type: TransactionType;
+  category?: string;
+  is_chomesh?: boolean;
+  recipient?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export type TransactionCategory =
+  | "salary"
+  | "bonus"
+  | "commission"
+  | "dividend"
+  | "interest"
+  | "rent"
+  | "royalty"
+  | "sale"
+  | "service"
+  | "tax"
+  | "tip"
+  | "transfer"
+  | "utility"
+  | "wage"
+  | "other";
