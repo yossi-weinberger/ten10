@@ -10,13 +10,33 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { MoreHorizontal, Trash2, Edit3 } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit3, Repeat, Infinity } from "lucide-react";
 import {
   transactionTypeLabels,
   typeBadgeColors,
 } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting"; // Import helper functions
+
+const recurringStatusMap: { [key: string]: string } = {
+  active: "פעיל",
+  paused: "מושהה",
+  completed: "הושלם",
+  cancelled: "בוטל",
+};
+
+const recurringFrequencyMap: { [key: string]: string } = {
+  daily: "יומי",
+  weekly: "שבועי",
+  monthly: "חודשי",
+  yearly: "שנתי",
+};
 
 interface TransactionRowProps {
   transaction: Transaction;
@@ -71,8 +91,60 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
       <TableCell className="text-right whitespace-nowrap">
         {formatBoolean(transaction.is_chomesh)}
       </TableCell>
-      <TableCell className="text-right whitespace-nowrap">
-        {formatBoolean(transaction.is_recurring)}
+      <TableCell className="text-center whitespace-nowrap">
+        {transaction.recurring_info ? (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "cursor-default",
+                    transaction.recurring_info.status === "active"
+                      ? "border-green-500 text-green-700"
+                      : "border-gray-400 text-gray-600"
+                  )}
+                >
+                  <div className="flex items-center gap-1">
+                    {transaction.recurring_info.total_occurrences ? (
+                      <span>
+                        {transaction.recurring_info.execution_count}/
+                        {transaction.recurring_info.total_occurrences}
+                      </span>
+                    ) : (
+                      <div className="flex items-center gap-1" dir="ltr">
+                        <span>
+                          {transaction.recurring_info.execution_count}
+                        </span>
+                        <span>/</span>
+                        <Infinity className="h-3 w-3" />
+                      </div>
+                    )}
+                  </div>
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  סטטוס:{" "}
+                  {recurringStatusMap[transaction.recurring_info.status] ||
+                    transaction.recurring_info.status}
+                </p>
+                <p>
+                  תדירות:{" "}
+                  {recurringFrequencyMap[
+                    transaction.recurring_info.frequency
+                  ] || transaction.recurring_info.frequency}
+                </p>
+                {transaction.recurring_info.frequency === "monthly" &&
+                  transaction.recurring_info.day_of_month && (
+                    <p>יום חיוב: {transaction.recurring_info.day_of_month}</p>
+                  )}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : (
+          "-"
+        )}
       </TableCell>
       <TableCell className="text-center">
         <DropdownMenu>

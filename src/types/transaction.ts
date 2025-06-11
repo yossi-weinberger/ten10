@@ -22,6 +22,15 @@ export const TransactionTypeValues: [TransactionType, ...TransactionType[]] = [
   "non_tithe_donation",
 ];
 
+export interface RecurringInfo {
+  id: string;
+  frequency: "daily" | "weekly" | "monthly" | "yearly";
+  status: "active" | "paused" | "completed" | "cancelled";
+  execution_count: number;
+  total_occurrences?: number | null;
+  day_of_month?: number | null;
+}
+
 // Define the core Transaction interface
 export interface Transaction {
   id: string; // Unique identifier (nanoid)
@@ -41,6 +50,7 @@ export interface Transaction {
 
   // Link to the recurring definition
   source_recurring_id?: string | null;
+  recurring_info?: RecurringInfo | null;
 
   // DEPRECATED - to be removed after migration
   is_recurring?: boolean | null;
