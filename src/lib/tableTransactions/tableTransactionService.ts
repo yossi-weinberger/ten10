@@ -12,14 +12,7 @@ import {
 interface FetchTransactionsParams {
   offset: number;
   limit: number;
-  filters: {
-    search: string | null;
-    dateRange: {
-      from: string | null;
-      to: string | null;
-    };
-    types: string[];
-  };
+  filters: TableTransactionFilters;
   sorting: {
     field: string;
     direction: string;
@@ -97,6 +90,18 @@ export class TableTransactionsService {
           p_search: filters.search || null,
           p_sort_field: sorting.field as string,
           p_sort_direction: sorting.direction,
+          p_is_recurring:
+            filters.isRecurring === "all"
+              ? null
+              : filters.isRecurring === "recurring",
+          p_recurring_statuses:
+            filters.recurringStatuses.length > 0
+              ? filters.recurringStatuses
+              : null,
+          p_recurring_frequencies:
+            filters.recurringFrequencies.length > 0
+              ? filters.recurringFrequencies
+              : null,
         };
 
         console.log(
@@ -173,6 +178,7 @@ export class TableTransactionsService {
               ? new Date(filters.dateRange.to).toISOString().split("T")[0]
               : null,
             types: filters.types.length > 0 ? filters.types : null,
+            // TODO: Add recurring filters to desktop payload
           },
           pagination: {
             page: offset / limit + 1, // Calculate page number for Rust

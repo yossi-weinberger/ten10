@@ -1,5 +1,7 @@
 import { Transaction } from "../../types/transaction"; // Updated path
 
+export type IsRecurringFilter = "all" | "recurring" | "non-recurring";
+
 export interface TableTransactionFilters {
   dateRange: {
     from: string | null;
@@ -7,6 +9,9 @@ export interface TableTransactionFilters {
   };
   types: string[]; // Array of TransactionType strings
   search: string; // For category, description, or recipient
+  isRecurring: IsRecurringFilter;
+  recurringStatuses: string[];
+  recurringFrequencies: string[];
 }
 
 export interface TableSortConfig {
@@ -26,6 +31,9 @@ export const initialTableTransactionFilters: TableTransactionFilters = {
   dateRange: { from: null, to: null },
   types: [],
   search: "",
+  isRecurring: "all",
+  recurringStatuses: [],
+  recurringFrequencies: [],
 };
 
 export const initialTableSortConfig: TableSortConfig = {
