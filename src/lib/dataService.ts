@@ -786,7 +786,7 @@ export async function fetchTotalDonationsForUserDesktop(
     // to return ServerDonationData structure
     const { invoke } = await import("@tauri-apps/api/core");
     const result = await invoke<ServerDonationData>(
-      "get_total_donations_in_range_handler",
+      "get_desktop_total_donations_in_range",
       {
         startDate,
         endDate,
@@ -810,7 +810,7 @@ export async function fetchTotalDonationsForUserDesktop(
     return { total_donations_amount: 0, non_tithe_donation_amount: 0 }; // Default structure
   } catch (error) {
     console.error(
-      "Error invoking get_total_donations_in_range_handler:",
+      "Error invoking get_desktop_total_donations_in_range:",
       error
     );
     return null; // Return null in case of error, similar to web version
@@ -900,10 +900,10 @@ export async function fetchServerTitheBalanceDesktop(): Promise<number | null> {
   console.log(`DataService (Desktop): Fetching overall tithe balance`);
   try {
     const { invoke } = await import("@tauri-apps/api/core");
-    const balance = await invoke<number>("get_tithe_balance_handler");
+    const balance = await invoke<number>("get_desktop_overall_tithe_balance");
     return balance;
   } catch (error) {
-    console.error("Error invoking get_tithe_balance_handler:", error);
+    console.error("Error invoking get_desktop_overall_tithe_balance:", error);
     return null;
   }
 }

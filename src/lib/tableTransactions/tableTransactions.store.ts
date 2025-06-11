@@ -283,7 +283,13 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
     },
 
     resetFiltersState: () => {
-      set({ filters: initialTableTransactionFilters });
+      set({
+        filters: initialTableTransactionFilters,
+        pagination: {
+          ...get().pagination,
+          currentPage: 1,
+        },
+      });
     },
 
     resetStore: () => {

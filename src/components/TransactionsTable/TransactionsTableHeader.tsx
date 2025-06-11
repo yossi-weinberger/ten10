@@ -45,7 +45,9 @@ export const TransactionsTableHeader: React.FC<
           </TableHead>
         ))}
         <TableHead className="text-right whitespace-nowrap">חומש?</TableHead>
-        <TableHead className="text-right whitespace-nowrap">קבועה?</TableHead>
+        <TableHead className="text-center whitespace-nowrap">
+          הוראת קבע
+        </TableHead>
         <TableHead className="text-center whitespace-nowrap">פעולות</TableHead>
       </TableRow>
     </TableHeader>
