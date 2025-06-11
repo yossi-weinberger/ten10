@@ -14,6 +14,9 @@ use commands::donation_commands::{
 };
 use commands::expense_commands::get_desktop_total_expenses_in_range;
 use commands::income_commands::get_desktop_total_income_in_range;
+use commands::recurring_transaction_commands::{
+    add_recurring_transaction_handler, execute_due_recurring_transactions_handler,
+};
 use commands::transaction_commands::{
     delete_transaction_handler, export_transactions_handler, get_filtered_transactions_handler,
     update_transaction_handler,
@@ -47,6 +50,8 @@ struct Transaction {
     recurring_day_of_month: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     recurring_total_count: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    source_recurring_id: Option<String>,
 }
 
 pub struct DbState(Mutex<Connection>);
@@ -55,6 +60,7 @@ pub struct DbState(Mutex<Connection>);
 async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
     let conn = db.0.lock().map_err(|e| e.to_string())?;
 
+    // Create transactions table
     conn.execute(
         "CREATE TABLE IF NOT EXISTS transactions (
             id TEXT PRIMARY KEY,
@@ -77,7 +83,56 @@ async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
     )
     .map_err(|e| e.to_string())?;
 
+    // Create recurring_transactions table
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS recurring_transactions (
+            id TEXT PRIMARY KEY,
+            user_id TEXT,
+            status TEXT NOT NULL DEFAULT 'active',
+            start_date TEXT NOT NULL,
+            next_due_date TEXT NOT NULL,
+            frequency TEXT NOT NULL DEFAULT 'monthly',
+            day_of_month INTEGER NOT NULL,
+            total_occurrences INTEGER,
+            execution_count INTEGER NOT NULL DEFAULT 0,
+            description TEXT,
+            amount REAL NOT NULL,
+            currency TEXT NOT NULL,
+            type TEXT NOT NULL,
+            category TEXT,
+            is_chomesh INTEGER,
+            recipient TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )",
+        [],
+    )
+    .map_err(|e| e.to_string())?;
+
+    // Add source_recurring_id to transactions table if it doesn't exist
+    // Use a helper function to check for column existence to avoid errors on re-runs
+    if !column_exists(&conn, "transactions", "source_recurring_id").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE transactions ADD COLUMN source_recurring_id TEXT",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
     Ok(())
+}
+
+// Helper function to check if a column exists in a table
+fn column_exists(conn: &Connection, table_name: &str, column_name: &str) -> Result<bool> {
+    let mut stmt = conn.prepare(&format!("PRAGMA table_info({})", table_name))?;
+    let mut rows = stmt.query([])?;
+    while let Some(row) = rows.next()? {
+        let name: String = row.get(1)?;
+        if name.eq_ignore_ascii_case(column_name) {
+            return Ok(true);
+        }
+    }
+    Ok(false)
 }
 
 #[tauri::command]
@@ -87,8 +142,8 @@ async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Re
 
     let conn = db.0.lock().map_err(|e| e.to_string())?;
     conn.execute(
-        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at, is_recurring, recurring_day_of_month, recurring_total_count)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)",
+        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at, is_recurring, recurring_day_of_month, recurring_total_count, source_recurring_id)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
         (
             &transaction.id,
             &transaction.user_id,
@@ -105,6 +160,7 @@ async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Re
             &transaction.is_recurring.map(|b| b as i32),
             &transaction.recurring_day_of_month,
             &transaction.recurring_total_count,
+            &transaction.source_recurring_id,
         ),
     ).map_err(|e| e.to_string())?;
     Ok(())
@@ -142,7 +198,9 @@ fn main() {
             export_transactions_handler,
             get_filtered_transactions_handler,
             update_transaction_handler,
-            get_desktop_monthly_financial_summary
+            get_desktop_monthly_financial_summary,
+            execute_due_recurring_transactions_handler,
+            add_recurring_transaction_handler
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

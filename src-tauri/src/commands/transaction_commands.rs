@@ -22,6 +22,7 @@ pub struct Transaction {
     pub recipient: Option<String>,
     pub created_at: Option<String>, // ISO 8601 format
     pub updated_at: Option<String>, // ISO 8601 format
+    pub source_recurring_id: Option<String>, // Added field
 }
 
 // Helper to map rusqlite row to Transaction
@@ -70,6 +71,10 @@ impl Transaction {
                 .flatten(),
             updated_at: row
                 .get::<_, Option<String>>("updated_at")
+                .optional()?
+                .flatten(),
+            source_recurring_id: row
+                .get::<_, Option<String>>("source_recurring_id")
                 .optional()?
                 .flatten(),
         })

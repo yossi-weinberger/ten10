@@ -27,6 +27,20 @@ function App() {
             invoke("init_db")
               .then(() => {
                 console.log("Database initialized successfully.");
+                // Now, execute the recurring transactions handler
+                invoke("execute_due_recurring_transactions_handler")
+                  .then((message) => {
+                    console.log(
+                      "Recurring transactions handler executed:",
+                      message
+                    );
+                  })
+                  .catch((error) =>
+                    console.error(
+                      "Error executing recurring transactions handler:",
+                      error
+                    )
+                  );
               })
               .catch((error) =>
                 console.error("Error initializing database:", error)

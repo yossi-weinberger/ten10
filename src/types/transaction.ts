@@ -34,7 +34,7 @@ export interface RecurringInfo {
 // Define the core Transaction interface
 export interface Transaction {
   id: string; // Unique identifier (nanoid)
-  user_id: string; // From Supabase auth
+  user_id?: string | null; // From Supabase auth, optional for desktop
   date: string; // ISO 8601 date string (YYYY-MM-DD)
   amount: number;
   currency: "ILS" | "USD" | "EUR";
@@ -60,7 +60,7 @@ export interface Transaction {
 
 export interface RecurringTransaction {
   id: string;
-  user_id: string;
+  user_id?: string | null; // Optional for desktop
   status: "active" | "paused" | "completed" | "cancelled";
   start_date: string; // ISO 8601 date string
   next_due_date: string; // ISO 8601 date string
