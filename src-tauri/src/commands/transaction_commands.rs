@@ -340,11 +340,16 @@ pub fn export_transactions_handler(
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct TableFiltersPayload {
     search: Option<String>,
     date_from: Option<String>, // ISO date string "YYYY-MM-DD"
     date_to: Option<String>,   // ISO date string "YYYY-MM-DD"
     types: Option<Vec<String>>,
+    // Filters for recurring transactions
+    show_only: Option<String>, // "all", "recurring", "regular"
+    recurring_statuses: Option<Vec<String>>,
+    recurring_frequencies: Option<Vec<String>>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -389,8 +394,20 @@ pub fn get_filtered_transactions_handler(
     })?;
     let conn = &*conn_guard;
 
-    let base_query_select = "SELECT id, user_id, date, amount, currency, description, type, category, is_chomesh, is_recurring, recurring_day_of_month, recipient, created_at, updated_at FROM transactions".to_string();
-    let count_query_select = "SELECT COUNT(*) FROM transactions".to_string();
+    let base_query_select = "
+        SELECT 
+            t.id, t.user_id, t.date, t.amount, t.currency, t.description, 
+            t.type, t.category, t.is_chomesh, t.is_recurring, t.recurring_day_of_month, 
+            t.recipient, t.created_at, t.updated_at, t.source_recurring_id 
+        FROM transactions t
+        LEFT JOIN recurring_transactions rt ON t.source_recurring_id = rt.id
+    ".to_string();
+
+    let count_query_select = "
+        SELECT COUNT(t.id) 
+        FROM transactions t
+        LEFT JOIN recurring_transactions rt ON t.source_recurring_id = rt.id
+    ".to_string();
 
     let mut where_clauses: Vec<String> = Vec::new();
     let mut sql_params_dynamic: Vec<Box<dyn ToSql>> = Vec::new();
@@ -404,7 +421,7 @@ pub fn get_filtered_transactions_handler(
                 "[Rust DEBUG] Applying search filter: {}",
                 actual_search_term
             );
-            where_clauses.push(format!("(LOWER(description) LIKE LOWER(?{0}) OR LOWER(category) LIKE LOWER(?{0}) OR LOWER(recipient) LIKE LOWER(?{0}))", current_param_idx));
+            where_clauses.push(format!("(LOWER(t.description) LIKE LOWER(?{0}) OR LOWER(t.category) LIKE LOWER(?{0}) OR LOWER(t.recipient) LIKE LOWER(?{0}))", current_param_idx));
             sql_params_dynamic.push(Box::new(actual_search_term.clone()));
             params_debug_strings.push(actual_search_term);
             current_param_idx += 1;
@@ -414,7 +431,7 @@ pub fn get_filtered_transactions_handler(
     if let Some(date_from) = &args.filters.date_from {
         if !date_from.is_empty() {
             println!("[Rust DEBUG] Applying date_from filter: {}", date_from);
-            where_clauses.push(format!("date >= ?{}", current_param_idx));
+            where_clauses.push(format!("t.date >= ?{}", current_param_idx));
             sql_params_dynamic.push(Box::new(date_from.clone()));
             params_debug_strings.push(date_from.clone());
             current_param_idx += 1;
@@ -423,7 +440,7 @@ pub fn get_filtered_transactions_handler(
     if let Some(date_to) = &args.filters.date_to {
         if !date_to.is_empty() {
             println!("[Rust DEBUG] Applying date_to filter: {}", date_to);
-            where_clauses.push(format!("date <= ?{}", current_param_idx));
+            where_clauses.push(format!("t.date <= ?{}", current_param_idx));
             sql_params_dynamic.push(Box::new(date_to.clone()));
             params_debug_strings.push(date_to.clone());
             current_param_idx += 1;
@@ -436,12 +453,57 @@ pub fn get_filtered_transactions_handler(
             let placeholders: Vec<String> = (0..types.len())
                 .map(|i| format!("?{}", current_param_idx + i))
                 .collect();
-            where_clauses.push(format!("type IN ({})", placeholders.join(", ")));
+            where_clauses.push(format!("t.type IN ({})", placeholders.join(", ")));
             for t_type in types {
                 sql_params_dynamic.push(Box::new(t_type.clone()));
                 params_debug_strings.push(t_type.clone());
             }
-            // current_param_idx += types.len(); // This is for get_filtered_transactions_handler, comment out if unused after this block
+            current_param_idx += types.len();
+        }
+    }
+
+    // --- New Recurring Transaction Filters ---
+    if let Some(show_only) = &args.filters.show_only {
+        match show_only.as_str() {
+            "recurring" => {
+                println!("[Rust DEBUG] Applying show_only filter: recurring");
+                where_clauses.push("t.source_recurring_id IS NOT NULL".to_string());
+            }
+            "regular" => {
+                println!("[Rust DEBUG] Applying show_only filter: regular");
+                where_clauses.push("t.source_recurring_id IS NULL".to_string());
+            }
+            _ => {} // "all" or any other value means no filter
+        }
+    }
+    
+    if let Some(statuses) = &args.filters.recurring_statuses {
+        if !statuses.is_empty() {
+            println!("[Rust DEBUG] Applying recurring_statuses filter: {:?}", statuses);
+            let placeholders: Vec<String> = (0..statuses.len())
+                .map(|i| format!("?{}", current_param_idx + i))
+                .collect();
+            where_clauses.push(format!("rt.status IN ({})", placeholders.join(", ")));
+            for status in statuses {
+                sql_params_dynamic.push(Box::new(status.clone()));
+                params_debug_strings.push(status.clone());
+            }
+            current_param_idx += statuses.len();
+        }
+    }
+
+    if let Some(frequencies) = &args.filters.recurring_frequencies {
+        if !frequencies.is_empty() {
+            println!("[Rust DEBUG] Applying recurring_frequencies filter: {:?}", frequencies);
+            let placeholders: Vec<String> = (0..frequencies.len())
+                .map(|i| format!("?{}", current_param_idx + i))
+                .collect();
+            where_clauses.push(format!("rt.frequency IN ({})", placeholders.join(", ")));
+            for frequency in frequencies {
+                sql_params_dynamic.push(Box::new(frequency.clone()));
+                params_debug_strings.push(frequency.clone());
+            }
+            // current_param_idx += frequencies.len();
         }
     }
 
@@ -480,14 +542,14 @@ pub fn get_filtered_transactions_handler(
         };
 
     let sort_field = match args.sorting.field.to_lowercase().as_str() {
-        "date" => "date",
-        "amount" => "amount",
-        "description" => "description",
-        "currency" => "currency",
-        "type" => "type",
-        "category" => "category",
-        "recipient" => "recipient",
-        _ => "created_at",
+        "date" => "t.date",
+        "amount" => "t.amount",
+        "description" => "t.description",
+        "currency" => "t.currency",
+        "type" => "t.type",
+        "category" => "t.category",
+        "recipient" => "t.recipient",
+        _ => "t.created_at",
     };
     let sort_direction = if args.sorting.direction.to_lowercase() == "asc" {
         "ASC"

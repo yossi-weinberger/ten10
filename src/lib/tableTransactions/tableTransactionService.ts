@@ -36,6 +36,9 @@ interface GetFilteredTransactionsArgsPayload {
     date_from: string | null;
     date_to: string | null;
     types: string[] | null;
+    showOnly: string | null;
+    recurringStatuses: string[] | null;
+    recurringFrequencies: string[] | null;
   };
   pagination: {
     page: number;
@@ -178,7 +181,16 @@ export class TableTransactionsService {
               ? new Date(filters.dateRange.to).toISOString().split("T")[0]
               : null,
             types: filters.types.length > 0 ? filters.types : null,
-            // TODO: Add recurring filters to desktop payload
+            showOnly:
+              filters.isRecurring === "all" ? null : filters.isRecurring,
+            recurringStatuses:
+              filters.recurringStatuses.length > 0
+                ? filters.recurringStatuses
+                : null,
+            recurringFrequencies:
+              filters.recurringFrequencies.length > 0
+                ? filters.recurringFrequencies
+                : null,
           },
           pagination: {
             page: offset / limit + 1, // Calculate page number for Rust

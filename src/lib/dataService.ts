@@ -1,5 +1,11 @@
 import { useDonationStore } from "./store";
-import { Transaction } from "../types/transaction";
+import { Transaction, RecurringTransaction } from "../types/transaction";
+import { TransactionFormValues } from "../types/forms";
+import {
+  createRecurringTransaction,
+  NewRecurringTransaction,
+} from "./recurringTransactionsService";
+import { nanoid } from "nanoid";
 // import { PlatformContextType } from "@/contexts/PlatformContext"; // NO LONGER NEEDED
 import { getPlatform } from "./platformManager";
 // import { invoke } from "@tauri-apps/api/core"; // STATIC IMPORT REMOVED
@@ -215,6 +221,51 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
     console.log("Platform not yet determined, cannot add transaction.");
     // Optionally throw an error or handle gracefully
     throw new Error("Cannot add transaction: Platform not initialized.");
+  }
+}
+
+/**
+ * Adds a new recurring transaction definition.
+ * This is currently a DESKTOP-ONLY operation.
+ * On desktop, saves to recurring_transactions table via Tauri.
+ */
+export async function addRecurringTransaction(
+  recTransaction: RecurringTransaction
+): Promise<void> {
+  const currentPlatform = getPlatform();
+  console.log("Current platform in addRecurringTransaction:", currentPlatform);
+  if (currentPlatform === "desktop") {
+    try {
+      console.log(
+        "Attempting to add recurring transaction via Tauri invoke..."
+      );
+      const { invoke } = await import("@tauri-apps/api/core");
+      await invoke("add_recurring_transaction_handler", { recTransaction });
+      console.log(
+        "Tauri invoke add_recurring_transaction_handler successful for ID:",
+        recTransaction.id
+      );
+      // We might want to trigger a refetch or update a separate store for recurring definitions
+      useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
+    } catch (error) {
+      console.error("Error invoking add_recurring_transaction_handler:", error);
+      throw error;
+    }
+  } else if (currentPlatform === "web") {
+    // This part is handled by a different service/RPC call in the web version
+    // and is not part of this function's responsibility.
+    console.warn(
+      "addRecurringTransaction is a desktop-only function in dataService. Web should use its own service."
+    );
+    throw new Error("This function is not implemented for the web platform.");
+  } else {
+    // Loading state or uninitialized platform
+    console.log(
+      "Platform not yet determined, cannot add recurring transaction."
+    );
+    throw new Error(
+      "Cannot add recurring transaction: Platform not initialized."
+    );
   }
 }
 
@@ -943,3 +994,81 @@ export async function fetchServerTitheBalance(
   }
 }
 // --- SERVER TITHE BALANCE FUNCTIONS END HERE ---
+
+/**
+ * Handles the logic for submitting a transaction form.
+ * It determines whether to create a standard or recurring transaction
+ * and calls the appropriate service based on the platform.
+ * @param values - The data from the transaction form.
+ */
+export async function handleTransactionSubmit(
+  values: TransactionFormValues
+): Promise<void> {
+  console.log("handleTransactionSubmit received values:", values);
+  const platform = getPlatform();
+
+  // Logic for recurring transactions
+  if (values.is_recurring) {
+    if (platform === "desktop") {
+      const now = new Date();
+      const newRecTransaction: RecurringTransaction = {
+        id: nanoid(),
+        status: "active",
+        start_date: values.date,
+        next_due_date: values.date,
+        frequency: values.frequency || "monthly",
+        day_of_month: values.recurring_day_of_month || now.getDate(),
+        total_occurrences: values.recurringTotalCount,
+        execution_count: 0,
+        description: values.description,
+        amount: values.amount,
+        currency: values.currency as RecurringTransaction["currency"],
+        type: values.type,
+        category: values.category,
+        is_chomesh: values.is_chomesh,
+        recipient: values.recipient,
+        user_id: null,
+        created_at: now.toISOString(),
+        updated_at: now.toISOString(),
+      };
+      await addRecurringTransaction(newRecTransaction);
+    } else {
+      // Web platform
+      const definition: NewRecurringTransaction = {
+        start_date: values.date,
+        next_due_date: values.date,
+        frequency: values.frequency || "monthly",
+        day_of_month: values.recurring_day_of_month || new Date().getDate(),
+        total_occurrences: values.recurringTotalCount,
+        amount: values.amount,
+        currency: values.currency as RecurringTransaction["currency"],
+        description: values.description,
+        type: values.type,
+        category: values.category,
+        is_chomesh: values.is_chomesh,
+        recipient: values.recipient,
+      };
+      await createRecurringTransaction(definition);
+    }
+  } else {
+    // Logic for standard, non-recurring transactions
+    const newTransaction: Transaction = {
+      id: nanoid(),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      date: values.date,
+      amount: values.amount,
+      currency: values.currency as Transaction["currency"],
+      description: values.description || null,
+      type: values.type,
+      category: values.category || null,
+      is_chomesh: values.is_chomesh,
+      recipient: values.recipient || null,
+      is_recurring: false,
+      recurring_day_of_month: null,
+      source_recurring_id: null,
+      user_id: null,
+    };
+    await addTransaction(newTransaction);
+  }
+}

@@ -270,9 +270,7 @@ export function TransactionsFilters() {
               <SelectContent>
                 <SelectItem value="all">הכל</SelectItem>
                 <SelectItem value="recurring">הוראות קבע בלבד</SelectItem>
-                <SelectItem value="non-recurring">
-                  תנועות רגילות בלבד
-                </SelectItem>
+                <SelectItem value="regular">תנועות רגילות בלבד</SelectItem>
               </SelectContent>
             </Select>
           </div>
