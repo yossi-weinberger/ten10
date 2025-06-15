@@ -6,6 +6,15 @@ use serde::{Deserialize, Serialize};
 use tauri::State; // Assuming DbState is in lib.rs or main.rs and accessible
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct RecurringInfo {
+    pub status: String,
+    pub frequency: String,
+    pub execution_count: i32,
+    pub total_occurrences: Option<i32>,
+    pub day_of_month: i32,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Transaction {
     pub id: String,
     pub user_id: Option<String>,
@@ -23,6 +32,16 @@ pub struct Transaction {
     pub created_at: Option<String>, // ISO 8601 format
     pub updated_at: Option<String>, // ISO 8601 format
     pub source_recurring_id: Option<String>, // Added field
+}
+
+// A new struct for the frontend response that includes the recurring info
+#[derive(Serialize, Debug, Clone)]
+pub struct TransactionForTable {
+    // Flatten the original transaction fields
+    #[serde(flatten)]
+    pub transaction: Transaction,
+    // Add the recurring info field
+    pub recurring_info: Option<RecurringInfo>,
 }
 
 // Helper to map rusqlite row to Transaction
@@ -372,8 +391,9 @@ pub struct GetFilteredTransactionsArgs {
 }
 
 #[derive(Serialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct PaginatedTransactionsResponse {
-    transactions: Vec<Transaction>,
+    transactions: Vec<TransactionForTable>,
     total_count: i64,
 }
 
@@ -398,7 +418,12 @@ pub fn get_filtered_transactions_handler(
         SELECT 
             t.id, t.user_id, t.date, t.amount, t.currency, t.description, 
             t.type, t.category, t.is_chomesh, t.is_recurring, t.recurring_day_of_month, 
-            t.recipient, t.created_at, t.updated_at, t.source_recurring_id 
+            t.recipient, t.created_at, t.updated_at, t.source_recurring_id,
+            rt.status as recurring_status,
+            rt.frequency as recurring_frequency,
+            rt.execution_count as recurring_execution_count,
+            rt.total_occurrences as recurring_total_occurrences,
+            rt.day_of_month as recurring_day_of_month_def
         FROM transactions t
         LEFT JOIN recurring_transactions rt ON t.source_recurring_id = rt.id
     ".to_string();
@@ -591,7 +616,23 @@ pub fn get_filtered_transactions_handler(
     };
 
     let transactions_iter = match stmt.query_map(params_for_rusqlite.as_slice(), |row| {
-        Transaction::from_row(row)
+        let transaction = Transaction::from_row(row)?;
+
+        let recurring_info = match row.get::<_, Option<String>>("recurring_status")? {
+            Some(status) => Some(RecurringInfo {
+                status,
+                frequency: row.get("recurring_frequency")?,
+                execution_count: row.get("recurring_execution_count")?,
+                total_occurrences: row.get("recurring_total_occurrences")?,
+                day_of_month: row.get("recurring_day_of_month_def")?,
+            }),
+            None => None,
+        };
+
+        Ok(TransactionForTable {
+            transaction,
+            recurring_info,
+        })
     }) {
         Ok(iter) => iter,
         Err(e) => {

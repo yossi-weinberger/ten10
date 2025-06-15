@@ -27,7 +27,7 @@ interface FetchTransactionsResponse {
 
 interface PaginatedTransactionsResponseFromRust {
   transactions: Transaction[];
-  total_count: number;
+  totalCount: number;
 }
 
 interface GetFilteredTransactionsArgsPayload {
@@ -215,7 +215,7 @@ export class TableTransactionsService {
         );
         return {
           data: response.transactions,
-          totalCount: Number(response.total_count),
+          totalCount: Number(response.totalCount),
         };
       } catch (error) {
         console.error(
