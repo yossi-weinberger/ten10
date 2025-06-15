@@ -32,6 +32,7 @@ pub struct Transaction {
     pub created_at: Option<String>, // ISO 8601 format
     pub updated_at: Option<String>, // ISO 8601 format
     pub source_recurring_id: Option<String>, // Added field
+    pub occurrence_number: Option<i32>,
 }
 
 // A new struct for the frontend response that includes the recurring info
@@ -94,6 +95,10 @@ impl Transaction {
                 .flatten(),
             source_recurring_id: row
                 .get::<_, Option<String>>("source_recurring_id")
+                .optional()?
+                .flatten(),
+            occurrence_number: row
+                .get::<_, Option<i32>>("occurrence_number")
                 .optional()?
                 .flatten(),
         })
@@ -419,6 +424,7 @@ pub fn get_filtered_transactions_handler(
             t.id, t.user_id, t.date, t.amount, t.currency, t.description, 
             t.type, t.category, t.is_chomesh, t.is_recurring, t.recurring_day_of_month, 
             t.recipient, t.created_at, t.updated_at, t.source_recurring_id,
+            t.occurrence_number,
             rt.status as recurring_status,
             rt.frequency as recurring_frequency,
             rt.execution_count as recurring_execution_count,

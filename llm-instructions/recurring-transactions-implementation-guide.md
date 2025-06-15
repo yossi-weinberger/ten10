@@ -138,9 +138,9 @@ BEGIN
     LOOP
         -- Insert the new transaction based on the recurring definition
         INSERT INTO public.transactions (
-            user_id, date, amount, currency, description, type, category, is_chomesh, recipient, source_recurring_id
+            user_id, date, amount, currency, description, type, category, is_chomesh, recipient, source_recurring_id, occurrence_number
         ) VALUES (
-            rec.user_id, rec.next_due_date, rec.amount, rec.currency, rec.description, rec.type, rec.category, rec.is_chomesh, rec.recipient, rec.id
+            rec.user_id, rec.next_due_date, rec.amount, rec.currency, rec.description, rec.type, rec.category, rec.is_chomesh, rec.recipient, rec.id, rec.execution_count + 1
         ) RETURNING id INTO new_transaction_id;
 
         -- Update the recurring transaction definition

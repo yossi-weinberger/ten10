@@ -51,6 +51,7 @@ export interface Transaction {
   // Link to the recurring definition
   source_recurring_id?: string | null;
   recurring_info?: RecurringInfo | null;
+  occurrence_number?: number | null;
 
   // DEPRECATED - to be removed after migration
   is_recurring?: boolean | null;

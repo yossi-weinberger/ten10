@@ -162,12 +162,13 @@ pub fn execute_due_recurring_transactions_handler(
             let new_transaction_id = Uuid::new_v4().to_string();
             let now_iso = Local::now().to_rfc3339();
             if let Err(e) = tx.execute(
-                "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, source_recurring_id, created_at, updated_at)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
+                "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, source_recurring_id, created_at, updated_at, occurrence_number)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
                 params![
                     new_transaction_id, rec.user_id, current_due_date.format("%Y-%m-%d").to_string(),
                     rec.amount, rec.currency, rec.description, rec.type_str, rec.category,
                     rec.is_chomesh.map(|b| b as i32), rec.recipient, rec.id, now_iso, now_iso,
+                    rec.execution_count + 1,
                 ],
             ) {
                 eprintln!("[RUST ERROR] Failed to insert new transaction for {}: {}. Rolling back this batch.", original_rec_id, e);

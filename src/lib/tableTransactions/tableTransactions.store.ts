@@ -196,11 +196,19 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
 
     updateTransactionState: (id, updates) => {
       set((state) => ({
-        transactions: state.transactions.map((t) =>
-          t.id === id
-            ? { ...t, ...updates, updated_at: new Date().toISOString() }
-            : t
-        ),
+        transactions: state.transactions.map((t) => {
+          if (t.id === id) {
+            // Preserve the existing occurrence_number if it's not in the updates
+            const newUpdates = {
+              ...updates,
+              occurrence_number:
+                updates.occurrence_number ?? t.occurrence_number,
+              updated_at: new Date().toISOString(),
+            };
+            return { ...t, ...newUpdates };
+          }
+          return t;
+        }),
       }));
     },
 

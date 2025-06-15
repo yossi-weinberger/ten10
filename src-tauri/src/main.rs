@@ -119,6 +119,15 @@ async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     }
 
+    // Add occurrence_number to transactions table if it doesn't exist
+    if !column_exists(&conn, "transactions", "occurrence_number").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE transactions ADD COLUMN occurrence_number INTEGER",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
     Ok(())
 }
 
