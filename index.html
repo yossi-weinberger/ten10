@@ -6,9 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ten10</title>
     <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/loader.css" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="pre-loader">
+        <svg class="spinner" viewBox="0 0 50 50">
+          <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+        </svg>
+        <div class="text">Ten10</div>
+        <p>טוען נתונים, אנא המתן...</p>
+      </div>
+    </div>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
     <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>

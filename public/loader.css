@@ -1,0 +1,56 @@
+#pre-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #020817; /* Matches Tailwind dark bg-background */
+  color: #94a3b8; /* Matches muted-foreground */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+#pre-loader .spinner {
+  animation: rotate 2s linear infinite;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+}
+
+#pre-loader .spinner .path {
+  stroke: #334155; /* A dark, subtle border */
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
+}
+
+#pre-loader .text {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #f8fafc; /* Lighter text for the brand name */
+}
+
+#pre-loader p {
+   margin-top: 1rem;
+} 

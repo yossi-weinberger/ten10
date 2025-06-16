@@ -40,6 +40,10 @@ This document outlines the main technologies and conventions used in this projec
   - **Known Issue (Chrome Refresh Hang):** A client-side issue exists where the Supabase client may hang on network requests after a page refresh with a persisted session in Chrome/Vite. The current workaround involves decoupling data fetching from the `onAuthStateChange` listener and using a separate `useEffect` in `AuthContext` triggered by user state changes. See `supabase-integration-status.md` for details and the related GitHub issue.
 - **Local Database (Desktop)**: The desktop version uses **SQLite** for local offline storage. It also utilizes a unified `transactions` table structure mirroring the model described in `transaction-data-model-and-calculations.md`, using `snake_case` for column names, consistent with the Rust and frontend TypeScript implementations. The main transactions table interacts with the SQLite database via specific Tauri commands (e.g., `get_filtered_transactions_handler`, `update_transaction_handler`, `delete_transaction_handler`) invoked through `transactionService.ts`.
 
+- **Initial Load Strategy (Pre-loader)**: To prevent a "white screen" while the main application bundle is loading, a two-stage loading strategy is used.
+  - **Stage 1 (Static Loader)**: A lightweight, static pre-loader is implemented directly in `index.html` with its own dedicated CSS file (`public/loader.css`). It uses a simple HTML structure and a CSS-animated SVG, allowing the browser to render it instantly without waiting for JavaScript. This provides immediate visual feedback to the user.
+  - **Stage 2 (App Readiness)**: The main React component (`App.tsx`) contains a state (`isAppReady`) that is initially `false`. While false, the component returns `null`, allowing the static loader to remain visible. The state is set to `true` only after all critical asynchronous initializations (like DB setup on desktop) are complete. This creates a seamless transition from the pre-loader to the fully interactive application without any flicker.
+
 ## Utilities and Libraries
 
 - **Date/Time**:
