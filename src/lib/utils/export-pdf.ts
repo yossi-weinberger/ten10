@@ -1,8 +1,54 @@
-import { PDFDocument, StandardFonts, rgb, PDFFont } from "pdf-lib";
-import fontkit from "@pdf-lib/fontkit"; // Import fontkit
-import type { Transaction } from "@/types/transaction";
-import { transactionTypeLabels } from "@/types/transactionLabels";
+import { PDFDocument, rgb, PDFFont, cmyk } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
+import { Transaction } from "@/types/transaction";
+import { format } from "date-fns";
 import { formatCurrency } from "./currency";
+import {
+  transactionTypeLabels,
+  typeBadgeColors,
+} from "@/types/transactionLabels";
+
+// Import fonts directly using Vite's ?url feature for robust path handling
+import assistantFontUrl from "/fonts/Assistant-VariableFont_wght.ttf?url";
+
+// Helper to convert Tailwind-like CSS color strings to pdf-lib's RGB format
+// Note: This is a simplified parser and won't handle all CSS color formats.
+// It expects something like "bg-green-100 text-green-800 border-green-300"
+// and extracts the text color.
+function parseTailwindColor(colorString: string): {
+  textColor: any;
+  bgColor: any;
+} {
+  const colorMap: Record<string, any> = {
+    "green-800": rgb(0.09, 0.34, 0.16),
+    "red-800": rgb(0.6, 0.16, 0.16),
+    "yellow-800": rgb(0.54, 0.35, 0.04),
+    "blue-800": rgb(0.12, 0.3, 0.6),
+    "rose-800": rgb(0.62, 0.15, 0.29),
+    "orange-800": rgb(0.6, 0.28, 0.05),
+    "green-100": rgb(0.93, 0.98, 0.94),
+    "red-100": rgb(0.99, 0.94, 0.94),
+    "yellow-100": rgb(0.99, 0.97, 0.91),
+    "blue-100": rgb(0.93, 0.95, 0.99),
+    "rose-100": rgb(0.99, 0.93, 0.95),
+    "orange-100": rgb(0.99, 0.95, 0.91),
+  };
+
+  const textColorMatch = colorString.match(/text-([a-z]+)-(\d+)/);
+  const bgColorMatch = colorString.match(/bg-([a-z]+)-(\d+)/);
+
+  const textColorKey = textColorMatch
+    ? `${textColorMatch[1]}-${textColorMatch[2]}`
+    : null;
+  const bgColorKey = bgColorMatch
+    ? `${bgColorMatch[1]}-${bgColorMatch[2]}`
+    : null;
+
+  return {
+    textColor: textColorKey ? colorMap[textColorKey] : rgb(0, 0, 0),
+    bgColor: bgColorKey ? colorMap[bgColorKey] : rgb(1, 1, 1),
+  };
+}
 
 // Helper function to download the PDF
 function downloadPdf(bytes: Uint8Array, filename: string) {
@@ -13,247 +59,325 @@ function downloadPdf(bytes: Uint8Array, filename: string) {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  URL.revokeObjectURL(link.href); // Clean up
+  URL.revokeObjectURL(link.href);
 }
 
-export async function exportTransactionsToPDF(transactions: Transaction[]) {
+export async function exportTransactionsToPDF(
+  transactions: Transaction[],
+  filters: {
+    dateRange: {
+      from?: Date;
+      to?: Date;
+    };
+  },
+  totalCount: number
+) {
   try {
-    // 1. Create a new PDFDocument
     const pdfDoc = await PDFDocument.create();
-
-    // *** IMPORTANT: Register fontkit instance ***
     pdfDoc.registerFontkit(fontkit);
 
-    // 2. Load custom font (Assistant)
-    const fontUrl = "/fonts/Assistant-VariableFont_wght.ttf"; // Path relative to public folder
-    const fontBytes = await fetch(fontUrl).then((res) => res.arrayBuffer());
+    const fontBytes = await fetch(assistantFontUrl).then((res) =>
+      res.arrayBuffer()
+    );
+    const customFont = await pdfDoc.embedFont(fontBytes);
+    const boldFont = customFont;
 
-    // 3. Embed the font
-    // Note: Variable font support might be limited. Boldness might not render differently.
-    const assistantFont = await pdfDoc.embedFont(fontBytes);
-
-    // 4. Add a page
-    const page = pdfDoc.addPage(); // Default A4 size
+    let page = pdfDoc.addPage();
     const { width, height } = page.getSize();
-    const margin = 40;
-    const usableWidth = width - 2 * margin;
-    let y = height - margin; // Start drawing from top
+    const margin = 30;
+    const contentWidth = width - 2 * margin;
+    const textColor = rgb(0, 0, 0); // Pure black for max readability
 
-    // 5. Define styles
-    const fontSizeHeader = 20;
-    const fontSizeSubheader = 14;
-    const fontSizeTable = 10;
-    const fontColor = rgb(0, 0, 0); // Black
-    const headerColor = rgb(0.23, 0.23, 0.23); // Dark grey like pdfmake #3c3c3c
-
-    // Helper to draw right-aligned text (basic RTL simulation)
-    const drawRightAlignedText = (
+    const drawRtlText = (
       text: string,
-      font: PDFFont,
-      size: number,
-      xEnd: number,
-      currentY: number,
-      color = fontColor
+      options: {
+        x: number;
+        y: number;
+        font: PDFFont;
+        size: number;
+        color?: any;
+      }
     ) => {
-      const textWidth = font.widthOfTextAtSize(text, size);
+      const textWidth = options.font.widthOfTextAtSize(text, options.size);
       page.drawText(text, {
-        x: xEnd - textWidth,
-        y: currentY,
-        font: font,
-        size: size,
-        color: color,
+        ...options,
+        x: options.x - textWidth,
       });
-      return font.heightAtSize(size); // Return text height for Y positioning
     };
 
-    // 6. Draw Headers
-    y -= fontSizeHeader * 1.2; // Move down for first header
-    drawRightAlignedText(
-      "דוח תנועות",
-      assistantFont,
-      fontSizeHeader,
-      width - margin,
-      y,
-      fontColor
-    );
-    y -= fontSizeSubheader * 1.5; // Space before next header
-    drawRightAlignedText(
-      "תנועות",
-      assistantFont,
-      fontSizeSubheader,
-      width - margin,
-      y,
-      fontColor
-    );
-    y -= fontSizeSubheader * 1.5; // Space before table
+    let y = height - margin - 10;
 
-    // 7. Draw Table Headers
-    const tableHeaders = ["תאריך", "סוג", "פרטים", "סכום", "חומש?"];
-    // Define column widths (approximate based on content, adjust as needed)
-    const colWidths = [70, 80, usableWidth - 70 - 80 - 70 - 50, 70, 50];
-    let currentX = margin;
-    const tableHeaderY = y;
-    const headerHeight = assistantFont.heightAtSize(fontSizeTable + 1) * 1.5; // Increased height for padding
-
-    // Draw header background
+    // --- 1. Header ---
+    const titleX = width - margin;
+    // Draw Logo Placeholder
     page.drawRectangle({
       x: margin,
-      y: tableHeaderY - headerHeight + 5, // Adjust y based on new height
-      width: usableWidth,
-      height: headerHeight,
-      color: headerColor,
+      y: y - 40,
+      width: 60,
+      height: 60,
+      color: rgb(0.92, 0.92, 0.92),
+    });
+    page.drawText("לוגו", {
+      x: margin + 22,
+      y: y - 15,
+      font: customFont,
+      size: 10,
+      color: rgb(0.6, 0.6, 0.6),
     });
 
-    const headerTextY =
-      tableHeaderY -
-      headerHeight +
-      (headerHeight - assistantFont.heightAtSize(fontSizeTable + 1)) / 2 +
-      2; // Center text vertically
+    drawRtlText("דוח תנועות", {
+      x: titleX,
+      y,
+      font: boldFont,
+      size: 24,
+      color: rgb(0.1, 0.3, 0.6),
+    });
+    y -= 28;
 
-    // Draw header text (Right-to-left visual order)
-    let colXEnd = width - margin;
-    for (let i = 0; i < tableHeaders.length; i++) {
-      const headerText = tableHeaders[i];
-      const colWidth = colWidths[i];
-      const textWidth = assistantFont.widthOfTextAtSize(
-        headerText,
-        fontSizeTable + 1
-      );
-      let textX;
-      if (i < tableHeaders.length - 1) {
-        // Right align with padding
-        textX = colXEnd - textWidth - 5;
-      } else {
-        // Center "חומש?"
-        textX = colXEnd - colWidth + (colWidth - textWidth) / 2;
-      }
-      page.drawText(headerText, {
-        x: textX,
-        y: headerTextY, // Use calculated Y
-        font: assistantFont,
-        size: fontSizeTable + 1,
-        color: rgb(1, 1, 1),
-      });
-      colXEnd -= colWidth;
+    const dateRange = filters.dateRange;
+    let dateRangeText = "כל התאריכים";
+    if (dateRange.from && dateRange.to) {
+      dateRangeText = `מתאריך ${format(dateRange.from, "dd/MM/yy")} עד ${format(
+        dateRange.to,
+        "dd/MM/yy"
+      )}`;
     }
-
-    // Define table line style
-    const tableLineColor = rgb(0.8, 0.8, 0.8);
-    const tableLineWidth = 0.5;
-
-    // Draw Top border of table body
-    const tableBodyStartY = tableHeaderY - headerHeight + 5;
-    page.drawLine({
-      start: { x: margin, y: tableBodyStartY },
-      end: { x: width - margin, y: tableBodyStartY },
-      thickness: tableLineWidth,
-      color: tableLineColor,
+    drawRtlText(dateRangeText, {
+      x: titleX,
+      y,
+      font: customFont,
+      size: 9,
+      color: textColor,
     });
+    y -= 14;
 
-    y = tableBodyStartY; // Reset Y to start of table body content area
+    const creationDateText = `הופק בתאריך: ${format(
+      new Date(),
+      "dd/MM/yyyy HH:mm"
+    )}`;
+    drawRtlText(creationDateText, {
+      x: titleX,
+      y,
+      font: customFont,
+      size: 9,
+      color: textColor,
+    });
+    y -= 14;
 
-    // 8. Draw Table Rows
-    const rowHeight = assistantFont.heightAtSize(fontSizeTable) * 1.8; // Increased line spacing slightly
-    const tableBottomY = y - transactions.length * rowHeight; // Calculate final bottom Y
+    const countText = `מציג ${transactions.length} מתוך ${totalCount} תנועות`;
+    drawRtlText(countText, {
+      x: titleX,
+      y,
+      font: boldFont,
+      size: 9,
+      color: textColor,
+    });
+    y -= 25;
 
-    transactions.forEach((t, rowIndex) => {
-      y -= rowHeight; // Move Y position UP for the current row FIRST
+    // --- 2. Table ---
+    let tableTop = y;
+    const tableHeaders = [
+      "תאריך",
+      "סוג",
+      "פרטים",
+      "קטגוריה",
+      "נמען",
+      "הוראת קבע",
+      "חומש?",
+      "סכום",
+    ];
+    const columnWidths = [55, 75, 120, 70, 70, 70, 40, 60];
+    const tableHeaderHeight = 25;
+    const tableRowHeight = 40;
 
-      if (y < margin) {
-        // TODO: Implement pagination
-        console.warn("Pagination not implemented: content might overflow.");
-        return;
+    const drawTableHeader = (yPos: number) => {
+      page.drawRectangle({
+        x: margin,
+        y: yPos - tableHeaderHeight,
+        width: contentWidth,
+        height: tableHeaderHeight,
+        color: rgb(0.15, 0.15, 0.15),
+      });
+      let currentX = width - margin;
+      tableHeaders.forEach((header, i) => {
+        const textWidth = boldFont.widthOfTextAtSize(header, 10);
+        page.drawText(header, {
+          x: currentX - columnWidths[i] + (columnWidths[i] - textWidth) / 2,
+          y: yPos - tableHeaderHeight + 8,
+          font: boldFont,
+          size: 10,
+          color: rgb(1, 1, 1),
+        });
+        currentX -= columnWidths[i];
+      });
+    };
+
+    drawTableHeader(tableTop);
+    y = tableTop - tableHeaderHeight;
+
+    for (const t of transactions) {
+      if (y < margin + tableRowHeight) {
+        page = pdfDoc.addPage();
+        y = height - margin;
+        tableTop = y;
+        drawTableHeader(tableTop);
+        y = tableTop - tableHeaderHeight;
       }
-      const rowTextY =
-        y + (rowHeight - assistantFont.heightAtSize(fontSizeTable)) / 2; // Center text vertically
 
-      const dateText = new Date(t.date).toLocaleDateString("he-IL");
-      const typeText = transactionTypeLabels[t.type] || t.type;
-      const detailsText =
-        t.description ||
-        (t.type === "donation" ? t.recipient : t.category) ||
-        "-";
-      const amountText = formatCurrency(t.amount, t.currency).replace(
-        /\\u00a0/g,
-        " "
-      );
+      const rowY = y - tableRowHeight;
+      if (transactions.indexOf(t) % 2 !== 0) {
+        page.drawRectangle({
+          x: margin,
+          y: rowY,
+          width: contentWidth,
+          height: tableRowHeight,
+          color: rgb(0.97, 0.98, 0.99),
+        });
+      }
+
+      page.drawLine({
+        start: { x: margin, y: rowY },
+        end: { x: width - margin, y: rowY },
+        thickness: 0.5,
+        color: rgb(0.9, 0.9, 0.9),
+      });
+
+      const freqMap: { [key: string]: string } = {
+        daily: "יומית",
+        weekly: "שבועית",
+        monthly: "חודשית",
+        yearly: "שנתית",
+      };
+
+      let detailsText = t.description || "-";
+      let recurringStatusText = "-";
+      const currentOccurrence =
+        t.occurrence_number ?? t.recurring_info?.execution_count;
+
+      if (t.recurring_info) {
+        const freqText =
+          freqMap[t.recurring_info.frequency] || t.recurring_info.frequency;
+        detailsText += ` (ה"ק ${freqText})`;
+        const totalOccurrences = t.recurring_info.total_occurrences || "∞";
+        recurringStatusText = `(${
+          currentOccurrence ?? "?"
+        }/${totalOccurrences})`;
+      }
+
       const chomeshText =
-        t.type === "income" ? (t.is_chomesh ? "כן" : "לא") : "";
+        t.type === "income" ? (t.is_chomesh ? "כן" : "לא") : "-";
+
       const rowData = [
-        dateText,
-        typeText,
+        format(new Date(t.date), "dd/MM/yy"),
+        transactionTypeLabels[t.type] || t.type,
         detailsText,
-        amountText,
+        t.category || "-",
+        t.recipient || "-",
+        recurringStatusText,
         chomeshText,
+        formatCurrency(t.amount),
       ];
 
-      colXEnd = width - margin; // Reset for each row
-      for (let i = 0; i < rowData.length; i++) {
-        const cellText = rowData[i];
-        const colWidth = colWidths[i];
-        const textWidth = assistantFont.widthOfTextAtSize(
-          cellText,
-          fontSizeTable
-        );
-        let textX;
+      let cellX = width - margin;
+      rowData.forEach((cellText, i) => {
+        const colWidth = columnWidths[i];
 
-        if (i === rowData.length - 1) {
-          // Center "חומש?" value
-          textX = colXEnd - colWidth + (colWidth - textWidth) / 2;
+        // Special handling for the 'type' column with color badges
+        if (i === 1) {
+          const { textColor: badgeTextColor, bgColor: badgeBgColor } =
+            parseTailwindColor(typeBadgeColors[t.type] || "");
+          const textWidth = customFont.widthOfTextAtSize(cellText, 9);
+          const badgeVPadding = 4;
+          const badgeHPadding = 8;
+          const badgeWidth = textWidth + badgeHPadding * 2;
+          const badgeHeight = customFont.heightAtSize(9) + badgeVPadding * 2;
+
+          const badgeX = cellX - colWidth + (colWidth - badgeWidth) / 2;
+          const badgeY = rowY + (tableRowHeight - badgeHeight) / 2;
+
+          const rectOptions = {
+            x: badgeX,
+            y: badgeY,
+            width: badgeWidth,
+            height: badgeHeight,
+            color: badgeBgColor,
+          };
+          page.drawRectangle(rectOptions);
+
+          const textX = badgeX + badgeHPadding;
+          const textY = badgeY + badgeVPadding;
+
+          page.drawText(cellText, {
+            x: textX,
+            y: textY,
+            font: customFont,
+            size: 9,
+            color: badgeTextColor,
+          });
         } else {
-          // Default right align with padding
-          textX = colXEnd - textWidth - 5;
+          // Default text drawing for other columns
+          const lines = [];
+          const words = cellText.split(" ");
+          let currentLine = "";
+          for (const word of words) {
+            const testLine =
+              currentLine.length > 0 ? `${currentLine} ${word}` : word;
+            if (customFont.widthOfTextAtSize(testLine, 9) > colWidth - 8) {
+              lines.push(currentLine);
+              currentLine = word;
+            } else {
+              currentLine = testLine;
+            }
+          }
+          lines.push(currentLine);
+
+          let lineY =
+            rowY +
+            tableRowHeight -
+            (tableRowHeight - lines.length * 11) / 2 -
+            8;
+          for (const line of lines) {
+            const textWidth = customFont.widthOfTextAtSize(line, 9);
+            page.drawText(line, {
+              x: cellX - colWidth + (colWidth - textWidth) / 2,
+              y: lineY,
+              font: customFont,
+              size: 9,
+              color: textColor,
+            });
+            lineY -= 11;
+          }
         }
-
-        page.drawText(cellText, {
-          x: textX,
-          y: rowTextY,
-          font: assistantFont,
-          size: fontSizeTable,
-          color: fontColor,
-          maxWidth: colWidth - 10, // Add maxWidth to prevent overflow (basic)
-        });
-        colXEnd -= colWidth;
-      }
-
-      // Draw horizontal line AT THE BOTTOM of the current row space
-      page.drawLine({
-        start: { x: margin, y: y },
-        end: { x: width - margin, y: y },
-        thickness: tableLineWidth,
-        color: tableLineColor,
+        cellX -= colWidth;
       });
-    });
 
-    // 9. Draw Vertical Lines
-    let currentColumnX = margin;
-    page.drawLine({
-      start: { x: currentColumnX, y: tableBodyStartY },
-      end: { x: currentColumnX, y: tableBottomY },
-      thickness: tableLineWidth,
-      color: tableLineColor,
-    }); // Left border
-    for (let i = colWidths.length - 1; i >= 0; i--) {
-      // Iterate RTL visually
-      currentColumnX += colWidths[i];
-      page.drawLine({
-        start: { x: currentColumnX, y: tableBodyStartY },
-        end: { x: currentColumnX, y: tableBottomY },
-        thickness: tableLineWidth,
-        color: tableLineColor,
-      }); // Right border of column i
+      y -= tableRowHeight;
     }
 
-    // 10. Serialize the PDFDocument to bytes
-    const pdfBytes = await pdfDoc.save();
+    // --- 4. Footer ---
+    const pages = pdfDoc.getPages();
+    for (let i = 0; i < pages.length; i++) {
+      const p = pages[i];
+      const pageText = `עמוד ${i + 1} מתוך ${pages.length}`;
+      const textWidth = customFont.widthOfTextAtSize(pageText, 8);
+      p.drawText(pageText, {
+        x: width / 2 - textWidth / 2,
+        y: margin / 2,
+        font: customFont,
+        size: 8,
+        color: rgb(0.5, 0.5, 0.5),
+      });
+    }
 
-    // 11. Trigger download
-    downloadPdf(
-      pdfBytes,
-      `Ten10-transactions-${new Date().toISOString().split("T")[0]}.pdf`
-    );
+    const pdfBytes = await pdfDoc.save();
+    const fromDate = filters.dateRange.from
+      ? format(filters.dateRange.from, "yyyy-MM-dd")
+      : "start";
+    const toDate = filters.dateRange.to
+      ? format(filters.dateRange.to, "yyyy-MM-dd")
+      : "end";
+    downloadPdf(pdfBytes, `Ten10_Transactions_${fromDate}_to_${toDate}.pdf`);
   } catch (error) {
-    console.error("Error exporting transactions to PDF with pdf-lib:", error);
-    // Handle error appropriately, maybe show a notification to the user
+    console.error("Error exporting transactions to PDF:", error);
   }
 }

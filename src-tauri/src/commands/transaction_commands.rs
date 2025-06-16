@@ -274,92 +274,169 @@ pub fn delete_transaction_handler(
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct ExportFiltersPayload {
     search: Option<String>,
-    date_from: Option<String>, // ISO date string "YYYY-MM-DD"
-    date_to: Option<String>,   // ISO date string "YYYY-MM-DD"
+    date_from: Option<String>,
+    date_to: Option<String>,
     types: Option<Vec<String>>,
+    show_only: Option<String>,
+    recurring_statuses: Option<Vec<String>>,
+    recurring_frequencies: Option<Vec<String>>,
 }
 
 #[tauri::command]
 pub fn export_transactions_handler(
     db_state: State<'_, DbState>,
     filters: ExportFiltersPayload,
-) -> std::result::Result<Vec<Transaction>, String> {
+) -> std::result::Result<Vec<TransactionForTable>, String> {
+    println!("[Rust DEBUG] export_transactions_handler called with filters: {:?}", filters);
+
     let conn_guard = db_state
         .0
         .lock()
-        .map_err(|e| format!("DB lock error: {}", e))?;
+        .map_err(|e| format!("[Rust ERROR] DB lock error: {}", e))?;
     let conn = &*conn_guard;
 
-    let mut query = "SELECT id, user_id, date, amount, currency, description, type, category, is_chomesh, is_recurring, recurring_day_of_month, recipient, created_at, updated_at FROM transactions".to_string();
+    let base_query = "
+        SELECT 
+            t.id, t.user_id, t.date, t.amount, t.currency, t.description, 
+            t.type, t.category, t.is_chomesh, t.is_recurring, t.recurring_day_of_month, 
+            t.recipient, t.created_at, t.updated_at, t.source_recurring_id,
+            t.occurrence_number,
+            rt.status as recurring_status,
+            rt.frequency as recurring_frequency,
+            rt.execution_count as recurring_execution_count,
+            rt.total_occurrences as recurring_total_occurrences,
+            rt.day_of_month as recurring_day_of_month_def
+        FROM transactions t
+        LEFT JOIN recurring_transactions rt ON t.source_recurring_id = rt.id
+    ";
+
     let mut where_clauses: Vec<String> = Vec::new();
-    let mut sql_params: Vec<Box<dyn ToSql>> = Vec::new();
-    let mut param_idx = 1;
+    let mut sql_params_dynamic: Vec<Box<dyn ToSql>> = Vec::new();
+    let mut current_param_idx = 1;
 
     if let Some(search_term) = &filters.search {
         if !search_term.is_empty() {
-            where_clauses.push(format!("(LOWER(description) LIKE LOWER(?{0}) OR LOWER(category) LIKE LOWER(?{0}) OR LOWER(recipient) LIKE LOWER(?{0}))", param_idx));
-            sql_params.push(Box::new(format!("%{}%", search_term)));
-            param_idx += 1;
+            where_clauses.push(format!("(LOWER(t.description) LIKE LOWER(?{0}) OR LOWER(t.category) LIKE LOWER(?{0}) OR LOWER(t.recipient) LIKE LOWER(?{0}))", current_param_idx));
+            sql_params_dynamic.push(Box::new(format!("%{}%", search_term)));
+            current_param_idx += 1;
         }
     }
 
     if let Some(date_from) = &filters.date_from {
         if !date_from.is_empty() {
-            where_clauses.push(format!("date >= ?{}", param_idx));
-            sql_params.push(Box::new(date_from.clone()));
-            param_idx += 1;
+            where_clauses.push(format!("t.date >= ?{}", current_param_idx));
+            sql_params_dynamic.push(Box::new(date_from.clone()));
+            current_param_idx += 1;
         }
     }
     if let Some(date_to) = &filters.date_to {
         if !date_to.is_empty() {
-            where_clauses.push(format!("date <= ?{}", param_idx));
-            sql_params.push(Box::new(date_to.clone()));
-            param_idx += 1;
+            where_clauses.push(format!("t.date <= ?{}", current_param_idx));
+            sql_params_dynamic.push(Box::new(date_to.clone()));
+            current_param_idx += 1;
         }
     }
 
     if let Some(types) = &filters.types {
         if !types.is_empty() {
             let placeholders: Vec<String> = (0..types.len())
-                .map(|i| format!("?{}", param_idx + i))
+                .map(|i| format!("?{}", current_param_idx + i))
                 .collect();
-            where_clauses.push(format!("type IN ({})", placeholders.join(", ")));
+            where_clauses.push(format!("t.type IN ({})", placeholders.join(", ")));
             for t_type in types {
-                sql_params.push(Box::new(t_type.clone()));
+                sql_params_dynamic.push(Box::new(t_type.clone()));
             }
-            // param_idx would need to be incremented by types.len() here if more params followed
-            // current_param_idx += types.len(); // This line seems to cause the warning, let's comment it out for now if it's the one for export_transactions_handler
+            current_param_idx += types.len();
         }
     }
 
-    let params_for_rusqlite: Vec<&dyn ToSql> = sql_params.iter().map(|p| p.as_ref()).collect();
-
-    if !where_clauses.is_empty() {
-        query.push_str(" WHERE ");
-        query.push_str(&where_clauses.join(" AND "));
+    // --- Apply Recurring Transaction Filters for Export ---
+    if let Some(show_only) = &filters.show_only {
+        match show_only.as_str() {
+            "recurring" => {
+                where_clauses.push("t.source_recurring_id IS NOT NULL".to_string());
+            }
+            "regular" => {
+                where_clauses.push("t.source_recurring_id IS NULL".to_string());
+            }
+            _ => {} // "all" or any other value means no filter on this
+        }
     }
 
-    query.push_str(" ORDER BY date DESC, created_at DESC");
+    if let Some(statuses) = &filters.recurring_statuses {
+        if !statuses.is_empty() {
+            let placeholders: Vec<String> = (0..statuses.len())
+                .map(|i| format!("?{}", current_param_idx + i))
+                .collect();
+            where_clauses.push(format!("rt.status IN ({})", placeholders.join(", ")));
+            for status in statuses {
+                sql_params_dynamic.push(Box::new(status.clone()));
+            }
+            current_param_idx += statuses.len();
+        }
+    }
+
+    if let Some(frequencies) = &filters.recurring_frequencies {
+        if !frequencies.is_empty() {
+            let placeholders: Vec<String> = (0..frequencies.len())
+                .map(|i| format!("?{}", current_param_idx + i))
+                .collect();
+            where_clauses.push(format!("rt.frequency IN ({})", placeholders.join(", ")));
+            for freq in frequencies {
+                sql_params_dynamic.push(Box::new(freq.clone()));
+            }
+        }
+    }
+
+    let mut final_query = base_query.to_string();
+    if !where_clauses.is_empty() {
+        final_query.push_str(" WHERE ");
+        final_query.push_str(&where_clauses.join(" AND "));
+    }
+
+    final_query.push_str(" ORDER BY t.date DESC, t.created_at DESC");
+
+    println!("[Rust DEBUG] Export query: {}", final_query);
+
+    let params_for_rusqlite: Vec<&dyn ToSql> = sql_params_dynamic.iter().map(|p| p.as_ref()).collect();
 
     let mut stmt = conn
-        .prepare(&query)
-        .map_err(|e| format!("Failed to prepare statement: {}", e))?;
+        .prepare(&final_query)
+        .map_err(|e| format!("[Rust ERROR] Failed to prepare statement: {}", e))?;
+    
     let transactions_iter = stmt
         .query_map(params_for_rusqlite.as_slice(), |row| {
-            Transaction::from_row(row)
+            let transaction = Transaction::from_row(row)?;
+            let recurring_info = if row.get::<_, Option<String>>("source_recurring_id")?.is_some() {
+                Some(RecurringInfo {
+                    status: row.get("recurring_status")?,
+                    frequency: row.get("recurring_frequency")?,
+                    execution_count: row.get("recurring_execution_count")?,
+                    total_occurrences: row.get("recurring_total_occurrences").ok(),
+                    day_of_month: row.get("recurring_day_of_month_def")?,
+                })
+            } else {
+                None
+            };
+            Ok(TransactionForTable {
+                transaction,
+                recurring_info,
+            })
         })
-        .map_err(|e| format!("Failed to query transactions for export: {}", e))?;
+        .map_err(|e| format!("[Rust ERROR] Failed to query transactions for export: {}", e))?;
 
     let mut transactions_vec = Vec::new();
     for transaction_result in transactions_iter {
         transactions_vec.push(
             transaction_result
-                .map_err(|e| format!("Failed to map transaction row for export: {}", e))?,
+                .map_err(|e| format!("[Rust ERROR] Failed to map transaction row for export: {}", e))?,
         );
     }
 
+    println!("[Rust DEBUG] Export successful. Found {} transactions.", transactions_vec.len());
     Ok(transactions_vec)
 }
 
@@ -367,11 +444,11 @@ pub fn export_transactions_handler(
 #[serde(rename_all = "camelCase")]
 pub struct TableFiltersPayload {
     search: Option<String>,
-    date_from: Option<String>, // ISO date string "YYYY-MM-DD"
-    date_to: Option<String>,   // ISO date string "YYYY-MM-DD"
+    date_from: Option<String>,
+    date_to: Option<String>,
     types: Option<Vec<String>>,
     // Filters for recurring transactions
-    show_only: Option<String>, // "all", "recurring", "regular"
+    show_only: Option<String>,
     recurring_statuses: Option<Vec<String>>,
     recurring_frequencies: Option<Vec<String>>,
 }

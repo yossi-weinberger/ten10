@@ -33,8 +33,8 @@ interface PaginatedTransactionsResponseFromRust {
 interface GetFilteredTransactionsArgsPayload {
   filters: {
     search: string | null;
-    date_from: string | null;
-    date_to: string | null;
+    dateFrom: string | null;
+    dateTo: string | null;
     types: string[] | null;
     showOnly: string | null;
     recurringStatuses: string[] | null;
@@ -52,9 +52,12 @@ interface GetFilteredTransactionsArgsPayload {
 
 interface ExportTransactionsFiltersPayload {
   search: string | null;
-  date_from: string | null;
-  date_to: string | null;
+  dateFrom: string | null;
+  dateTo: string | null;
   types: string[] | null;
+  showOnly: string | null;
+  recurringStatuses: string[] | null;
+  recurringFrequencies: string[] | null;
 }
 
 export class TableTransactionsService {
@@ -174,10 +177,10 @@ export class TableTransactionsService {
         const payload: GetFilteredTransactionsArgsPayload = {
           filters: {
             search: filters.search || null,
-            date_from: filters.dateRange.from
+            dateFrom: filters.dateRange.from
               ? new Date(filters.dateRange.from).toISOString().split("T")[0]
               : null,
-            date_to: filters.dateRange.to
+            dateTo: filters.dateRange.to
               ? new Date(filters.dateRange.to).toISOString().split("T")[0]
               : null,
             types: filters.types.length > 0 ? filters.types : null,
@@ -286,122 +289,31 @@ export class TableTransactionsService {
     }
   }
 
-  static async getTransactionsForExport(
+  static async getDataForExport(
     filters: TableTransactionFilters,
     platform: Platform
-  ): Promise<Transaction[]> {
+  ): Promise<{ transactions: Transaction[]; totalCount: number }> {
+    console.log("Preparing data for export with filters:", filters);
+
+    // To get the total count and all transactions, we call the same
+    // fetching logic as the main table, but with a very high limit to get all records.
+    // We can use the existing fetchTransactions method for this.
+    // The sorting doesn't matter for the export file itself, but we'll use the default.
+    const response = await this.fetchTransactions({
+      offset: 0,
+      limit: 10000, // A high limit to fetch all records for export
+      filters,
+      sorting: { field: "date", direction: "desc" },
+      platform,
+    });
+
     console.log(
-      `TableTransactionsService: Getting transactions for export. Platform: ${platform}`
+      `Got ${response.data.length} transactions for export with a total count of ${response.totalCount}`
     );
-    if (platform === "web") {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user) {
-          throw new Error("User not authenticated for exporting transactions.");
-        }
 
-        const rpcParams = {
-          p_user_id: user.id,
-          p_offset: 0, // Fetch all records starting from the beginning
-          p_limit: 1000000, // A large limit to fetch all/most records
-          p_date_from: filters.dateRange.from
-            ? new Date(filters.dateRange.from).toISOString().split("T")[0]
-            : null,
-          p_date_to: filters.dateRange.to
-            ? new Date(filters.dateRange.to).toISOString().split("T")[0]
-            : null,
-          p_types: filters.types.length > 0 ? filters.types : null,
-          p_search: filters.search || null,
-          p_sort_field: "date", // Default sort for export consistency
-          p_sort_direction: "desc", // Default sort for export consistency
-        };
-
-        console.log(
-          "TableTransactionsService: Calling RPC 'get_user_transactions' for export with params:",
-          JSON.stringify(rpcParams, null, 2)
-        );
-
-        const { data: rpcData, error: rpcError } = await supabase.rpc(
-          "get_user_transactions",
-          rpcParams
-        );
-
-        if (rpcError) {
-          console.error(
-            "Supabase RPC get_user_transactions for export error:",
-            rpcError
-          );
-          throw rpcError;
-        }
-
-        let responseData: {
-          transactions: Transaction[];
-          total_count: number; // total_count is part of the RPC response but less relevant for full export
-        } | null = null;
-
-        if (Array.isArray(rpcData)) {
-          if (rpcData.length > 0) {
-            responseData = rpcData[0] as {
-              transactions: Transaction[];
-              total_count: number;
-            };
-          } else {
-            responseData = { transactions: [], total_count: 0 };
-          }
-        } else if (rpcData) {
-          responseData = rpcData as {
-            transactions: Transaction[];
-            total_count: number;
-          };
-        } else {
-          responseData = { transactions: [], total_count: 0 };
-        }
-
-        const transactions: Transaction[] = responseData.transactions || [];
-        console.log(
-          `TableTransactionsService: Supabase export successful, fetched ${transactions.length} transactions.`
-        );
-        return transactions;
-      } catch (error) {
-        console.error(
-          "Error in TableTransactionsService.getTransactionsForExport (Supabase):",
-          error
-        );
-        throw error;
-      }
-    } else if (platform === "desktop") {
-      try {
-        const { invoke } = await import("@tauri-apps/api/core");
-        const payload: ExportTransactionsFiltersPayload = {
-          search: filters.search || null,
-          date_from: filters.dateRange.from
-            ? new Date(filters.dateRange.from).toISOString().split("T")[0]
-            : null,
-          date_to: filters.dateRange.to
-            ? new Date(filters.dateRange.to).toISOString().split("T")[0]
-            : null,
-          types: filters.types.length > 0 ? filters.types : null,
-        };
-        console.log(
-          "TableTransactionsService: Invoking export_transactions_handler with payload:",
-          JSON.stringify(payload)
-        );
-        const transactions = await invoke<Transaction[]>(
-          "export_transactions_handler",
-          { filters: payload }
-        );
-        console.log(
-          "TableTransactionsService: Desktop export_transactions_handler successful, transactions count:",
-          transactions.length
-        );
-        return transactions;
-      } catch (error) {
-        console.error("Error exporting desktop transactions:", error);
-        return [];
-      }
-    }
-    throw new Error("Platform not supported for getTransactionsForExport");
+    return {
+      transactions: response.data,
+      totalCount: response.totalCount,
+    };
   }
 }
