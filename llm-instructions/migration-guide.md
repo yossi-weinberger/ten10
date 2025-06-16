@@ -25,7 +25,7 @@ This document outlines the process and considerations for migrating the Ten10 ap
 ### Step 1: Define the Unified `Transaction` Model and `transactions` Table Schema (Completed)
 
 - **TypeScript Model (`src/types/transaction.ts`):** A comprehensive `Transaction` interface was defined, encompassing all common fields and type-specific fields using `snake_case`.
-- **Database Schema (`transactions` table):** The schema for the `public.transactions` table (Supabase) and local SQLite `transactions` table was established with `snake_case` column names, mirroring the TypeScript model. This includes `id (UUID/TEXT)`, `user_id (UUID/TEXT)`, `date (TEXT/DATE)`, `amount (REAL/NUMERIC)`, `currency (TEXT)`, `description (TEXT)`, `type (TEXT)`, `category (TEXT)`, `is_chomesh (BOOLEAN/INTEGER)`, `is_recurring (BOOLEAN/INTEGER)`, `recurring_day_of_month (INTEGER)`, `recipient (TEXT)`, `created_at`, `updated_at`.
+- **Database Schema (`transactions` table):** The schema for the `public.transactions` table (Supabase) and local SQLite `transactions` table was established with `snake_case` column names, mirroring the TypeScript model. This includes `id (UUID/TEXT)`, `user_id (UUID/TEXT)`, `date (TEXT/DATE)`, `amount (REAL/NUMERIC)`, `currency (TEXT)`, `description (TEXT)`, `type (TEXT)`, `category (TEXT)`, `is_chomesh (BOOLEAN/INTEGER)`, `recipient (TEXT)`, `created_at`, `updated_at`.
 
 ### Step 2: Create New Unified `transactions` Table (Completed)
 

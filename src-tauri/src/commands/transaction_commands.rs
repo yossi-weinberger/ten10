@@ -26,8 +26,6 @@ pub struct Transaction {
     pub type_str: String, // Renamed from 'type' to avoid Rust keyword clash
     pub category: Option<String>,
     pub is_chomesh: Option<bool>,
-    pub is_recurring: Option<bool>,
-    pub recurring_day_of_month: Option<i32>,
     pub recipient: Option<String>,
     pub created_at: Option<String>, // ISO 8601 format
     pub updated_at: Option<String>, // ISO 8601 format
@@ -71,16 +69,6 @@ impl Transaction {
                 .optional()?
                 .flatten()
                 .map(|v| v != 0),
-            is_recurring: row
-                .get::<_, Option<i64>>("is_recurring")
-                .optional()?
-                .flatten()
-                .map(|v| v != 0),
-            recurring_day_of_month: row
-                .get::<_, Option<i64>>("recurring_day_of_month")
-                .optional()?
-                .flatten()
-                .map(|v| v as i32),
             recipient: row
                 .get::<_, Option<String>>("recipient")
                 .optional()?
@@ -119,8 +107,6 @@ pub struct TransactionUpdatePayload {
     pub type_str: Option<String>,
     pub category: Option<String>,
     pub is_chomesh: Option<bool>,
-    pub is_recurring: Option<bool>,
-    pub recurring_day_of_month: Option<i32>,
     pub recipient: Option<String>,
     // user_id is typically not updated by the user directly
     // updated_at should be handled by the database or set here to current time
@@ -176,34 +162,6 @@ pub fn update_transaction_handler(
     if let Some(is_chomesh) = payload.is_chomesh {
         set_clauses.push("is_chomesh = ?".to_string());
         params_dynamic.push(Box::new(is_chomesh as i32));
-    }
-
-    if let Some(is_recurring_val) = payload.is_recurring {
-        set_clauses.push("is_recurring = ?".to_string());
-        params_dynamic.push(Box::new(is_recurring_val as i32));
-        if !is_recurring_val {
-            set_clauses.push("recurring_day_of_month = ?".to_string());
-            params_dynamic.push(Box::new(Option::<i32>::None)); // Explicitly set to NULL
-        } else {
-            // If is_recurring is true, only update recurring_day_of_month if it's provided
-            if let Some(day) = payload.recurring_day_of_month {
-                set_clauses.push("recurring_day_of_month = ?".to_string());
-                params_dynamic.push(Box::new(day));
-            }
-        }
-    } else {
-        // is_recurring was not in payload, but maybe recurring_day_of_month was?
-        // This logic ensures recurring_day_of_month is only set if is_recurring is true (or also being set to true).
-        // If is_recurring is not changing, we might still want to change the day.
-        // However, to prevent setting a day without is_recurring being true,
-        // we should be careful. The current logic: if is_recurring is not provided,
-        // we only set recurring_day_of_month if it IS provided.
-        // This might need refinement based on exact desired behavior if is_recurring is absent from payload.
-        if let Some(day) = payload.recurring_day_of_month {
-            // Consider fetching current is_recurring state if we want to be super safe
-            set_clauses.push("recurring_day_of_month = ?".to_string());
-            params_dynamic.push(Box::new(day));
-        }
     }
 
     if payload.recipient.is_some() {
@@ -489,33 +447,23 @@ pub fn get_filtered_transactions_handler(
         args
     );
 
-    let conn_guard = db_state.0.lock().map_err(|e| {
-        let err_msg = format!("[Rust ERROR] DB lock error: {}", e);
-        println!("{}", err_msg);
-        err_msg
-    })?;
+    let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
     let conn = &*conn_guard;
 
-    let base_query_select = "
-        SELECT 
-            t.id, t.user_id, t.date, t.amount, t.currency, t.description, 
-            t.type, t.category, t.is_chomesh, t.is_recurring, t.recurring_day_of_month, 
-            t.recipient, t.created_at, t.updated_at, t.source_recurring_id,
-            t.occurrence_number,
-            rt.status as recurring_status,
-            rt.frequency as recurring_frequency,
-            rt.execution_count as recurring_execution_count,
-            rt.total_occurrences as recurring_total_occurrences,
-            rt.day_of_month as recurring_day_of_month_def
-        FROM transactions t
-        LEFT JOIN recurring_transactions rt ON t.source_recurring_id = rt.id
+    // Base query with JOIN
+    let select_query = "
+      SELECT
+        t.id, t.user_id, t.date, t.amount, t.currency, t.description, t.type, t.category, t.is_chomesh, t.recipient, t.created_at, t.updated_at, t.source_recurring_id, t.occurrence_number,
+        rt.status as recurring_status,
+        rt.frequency as recurring_frequency,
+        rt.execution_count as recurring_execution_count,
+        rt.total_occurrences as recurring_total_occurrences,
+        rt.day_of_month as recurring_day_of_month_def
+      FROM transactions t
+      LEFT JOIN recurring_transactions rt ON t.source_recurring_id = rt.id
     ".to_string();
 
-    let count_query_select = "
-        SELECT COUNT(t.id) 
-        FROM transactions t
-        LEFT JOIN recurring_transactions rt ON t.source_recurring_id = rt.id
-    ".to_string();
+    let count_query = "SELECT COUNT(t.id) FROM transactions t LEFT JOIN recurring_transactions rt ON t.source_recurring_id = rt.id".to_string();
 
     let mut where_clauses: Vec<String> = Vec::new();
     let mut sql_params_dynamic: Vec<Box<dyn ToSql>> = Vec::new();
@@ -628,7 +576,7 @@ pub fn get_filtered_transactions_handler(
         params_debug_strings
     );
 
-    let final_count_query = format!("{}{}", count_query_select, where_suffix);
+    let final_count_query = format!("{}{}", count_query, where_suffix);
     println!("[Rust DEBUG] Final COUNT query: {}", final_count_query);
 
     let total_count: i64 =
@@ -678,7 +626,7 @@ pub fn get_filtered_transactions_handler(
 
     let final_select_query = format!(
         "{}{}{}{}{}",
-        base_query_select, where_suffix, order_by_clause, limit_clause, offset_clause
+        select_query, where_suffix, order_by_clause, limit_clause, offset_clause
     );
     println!("[Rust DEBUG] Final SELECT query: {}", final_select_query);
     println!(

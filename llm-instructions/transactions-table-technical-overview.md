@@ -92,12 +92,11 @@ A popup modal allowing the user to edit the details of an existing transaction.
   - When the modal opens with a specific transaction (passed via the `transaction` prop), form fields are populated with existing transaction values. The date field is converted to `yyyy-MM-dd` format required by a `date` type input field.
   - If no transaction is passed (a state that should not occur in current usage), the form is initialized with empty or default values.
 - **Form Fields:**
-  - Includes input fields for: date, description, amount, currency (`Select` component with `currencyOptions`), transaction type (`Select` component with `TransactionTypeValues` and labels from `transactionTypeLabels`), category, and recipient/payer.
-  - Contains `Checkbox` for "Chomesh deduction?" (`is_chomesh`) and "Recurring transaction?" (`is_recurring`).
-  - If "Recurring transaction" is checked, an additional input field for "Day of month for recurring transaction" (`recurring_day_of_month`) appears.
+  - Includes input fields for: date, description, amount, currency (`Select` component with `currencyOptions`), transaction type (`Select` component with `transactionTypeValues` and labels from `transactionTypeLabels`), category, and recipient/payer.
+  - Contains `Checkbox` for "Chomesh deduction?" (`is_chomesh`).
 - **Form Submission Logic (`onSubmit`):**
   - Ensures a transaction to edit actually exists (`transaction.id`) and the platform is not in a loading state.
-  - Builds an `updatePayload` object containing only fields the user can change and actually changed. Boolean fields are always sent. Empty or `null` fields are handled accordingly (e.g., if `is_recurring` is not checked, `recurring_day_of_month` is set to `null`).
+  - Builds an `updatePayload` object containing only fields the user can change and actually changed. Boolean fields are always sent.
   - Calls the `updateTransaction` action from the global store, passing it the transaction ID, the `updatePayload` containing changes, and the current platform.
   - Upon successful update, the modal closes. Potential errors are logged to the console.
 
@@ -201,7 +200,7 @@ For the Web platform using Supabase, the `get_filtered_transactions` function (o
 
 SELECT
     id, user_id, date, amount, currency, description, type, category,
-    is_chomesh, is_recurring, recurring_day_of_month, recipient,
+    is_chomesh, recipient,
     created_at, updated_at,
     (SELECT COUNT(*) FROM public.transactions sub
      WHERE sub.user_id = p_user_id -- Ensure user matches
@@ -298,7 +297,7 @@ This section describes the steps required to implement data fetching from SQLite
       let conn_guard = db_state.0.lock().map_err(|e| format!("DB lock error: {}", e))?;
       let conn = &*conn_guard;
 
-      let mut base_query = "SELECT id, user_id, date, amount, currency, description, type, category, is_chomesh, is_recurring, recurring_day_of_month, recipient, created_at, updated_at FROM transactions".to_string();
+      let mut base_query = "SELECT id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at FROM transactions".to_string();
       let mut count_query = "SELECT COUNT(*) FROM transactions".to_string();
 
       let mut where_clauses: Vec<String> = Vec::new();
@@ -384,8 +383,6 @@ This section describes the steps required to implement data fetching from SQLite
                   type_str: row.get("type")?, // Assuming 'type' in DB is TEXT
                   category: row.get::<_, Option<String>>("category").optional()?.flatten(),
                   is_chomesh: row.get::<_, Option<i64>>("is_chomesh").optional()?.flatten().map(|v| v != 0),
-                  is_recurring: row.get::<_, Option<i64>>("is_recurring").optional()?.flatten().map(|v| v != 0),
-                  recurring_day_of_month: row.get::<_, Option<i64>>("recurring_day_of_month").optional()?.flatten().map(|v| v as i32),
                   recipient: row.get::<_, Option<String>>("recipient").optional()?.flatten(),
                   created_at: row.get::<_, Option<String>>("created_at").optional()?.flatten(),
                   updated_at: row.get::<_, Option<String>>("updated_at").optional()?.flatten(),

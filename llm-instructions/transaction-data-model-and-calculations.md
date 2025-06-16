@@ -16,10 +16,6 @@ This document outlines the standard approach for handling financial transactions
   - `category`: `string | null` (Optional category, primarily for 'expense' and 'recognized-expense' types)
   - `created_at`: `string` (ISO 8601 timestamp, optional)
   - `updated_at`: `string` (ISO 8601 timestamp, optional)
-    // Recurring Transaction Fields (relevant for income/donation)
-  - `is_recurring`: `boolean` (Optional, indicates if the transaction is a standing order)
-  - `recurring_day_of_month`: `number | null` (Optional, day of month (1-31) for recurring transactions)
-  - `recurring_total_count`: `number | null` (Optional, total number of installments for a recurring transaction. Null or 0 can represent unlimited installments.)
 - **Transaction Type (`TransactionType`)**: Enum/string literal union defining the nature of the transaction and its impact on tithe calculation.
   - `'income'`: Regular income subject to tithe (10% or 20%). Requires `is_chomesh: boolean`. Can be recurring.
   - `'donation'`: Includes donations, tzedakah, and mitzvah expenses permissible to be paid from tithe funds (e.g., tuition fees for religious studies). Reduces required tithe by 100% of the amount. Requires `recipient: string` (or similar field indicating purpose). Can be recurring.
@@ -82,27 +78,24 @@ This document outlines the standard approach for handling financial transactions
 
 **`transactions` Table Schema Example (Consistent `snake_case`):**
 
-| Column Name              | Data Type (SQL)                     | Description                                                    | Nullable | Notes                                                                         |
-| ------------------------ | ----------------------------------- | -------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------- |
-| `id`                     | `TEXT` / `VARCHAR` / `UUID`         | Primary Key, Unique identifier for the transaction             | No       | Use `nanoid` or DB's UUID generation                                          |
-| `user_id`                | `TEXT` / `VARCHAR` / `UUID`         | Foreign Key to users table (Supabase), Identifier of the owner | Yes      | **Crucial for RLS in Supabase**. Can be NULL in SQLite (Desktop).             |
-| `date`                   | `TEXT` / `DATE`                     | Date of the transaction (YYYY-MM-DD)                           | No       |                                                                               |
-| `amount`                 | `REAL` / `NUMERIC` / `DECIMAL`      | Transaction amount (positive value)                            | No       | Choose precision as needed                                                    |
-| `currency`               | `TEXT` / `VARCHAR(3)`               | Currency code (e.g., 'ILS')                                    | No       |                                                                               |
-| `description`            | `TEXT`                              | User-provided description                                      | Yes      |                                                                               |
-| `type`                   | `TEXT` / `VARCHAR`                  | Transaction type ('income', 'donation', 'expense', etc.)       | No       | Consider CHECK constraint for valid types (must include `non_tithe_donation`) |
-| `category`               | `TEXT` / `VARCHAR`                  | Optional category (e.g., 'Housing', 'Food')                    | Yes      | Primarily for expense types                                                   |
-| `is_chomesh`             | `BOOLEAN` / `INTEGER(1)`            | Indicates if 20% tithe applies (for 'income' type)             | Yes      | Only relevant for `type = 'income'`, NULL otherwise                           |
-| `recipient`              | `TEXT`                              | Recipient/purpose of donation (for 'donation' type)            | Yes      | Only relevant for `type = 'donation'`, NULL otherwise                         |
-| `is_recurring`           | `BOOLEAN` / `INTEGER(1)`            | Indicates if transaction is recurring (standing order)         | Yes      | Typically relevant for `type = 'income'` or `'donation'`                      |
-| `recurring_day_of_month` | `INTEGER`                           | Day of month (1-31) for recurring transactions                 | Yes      | Only relevant if `is_recurring = true`, NULL otherwise                        |
-| `recurring_total_count`  | `INTEGER`                           | Total number of installments for a recurring transaction       | Yes      | Only relevant if `is_recurring = true`, `NULL` otherwise.                     |
-| `created_at`             | `TEXT` / `TIMESTAMP WITH TIME ZONE` | Timestamp of creation                                          | Yes      | `DEFAULT CURRENT_TIMESTAMP` recommended                                       |
-| `updated_at`             | `TEXT` / `TIMESTAMP WITH TIME ZONE` | Timestamp of last update                                       | Yes      | Update using triggers or application logic                                    |
+| Column Name   | Data Type (SQL)                     | Description                                                    | Nullable | Notes                                                                         |
+| ------------- | ----------------------------------- | -------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------- |
+| `id`          | `TEXT` / `VARCHAR` / `UUID`         | Primary Key, Unique identifier for the transaction             | No       | Use `nanoid` or DB's UUID generation                                          |
+| `user_id`     | `TEXT` / `VARCHAR` / `UUID`         | Foreign Key to users table (Supabase), Identifier of the owner | Yes      | **Crucial for RLS in Supabase**. Can be NULL in SQLite (Desktop).             |
+| `date`        | `TEXT` / `DATE`                     | Date of the transaction (YYYY-MM-DD)                           | No       |                                                                               |
+| `amount`      | `REAL` / `NUMERIC` / `DECIMAL`      | Transaction amount (positive value)                            | No       | Choose precision as needed                                                    |
+| `currency`    | `TEXT` / `VARCHAR(3)`               | Currency code (e.g., 'ILS')                                    | No       |                                                                               |
+| `description` | `TEXT`                              | User-provided description                                      | Yes      |                                                                               |
+| `type`        | `TEXT` / `VARCHAR`                  | Transaction type ('income', 'donation', 'expense', etc.)       | No       | Consider CHECK constraint for valid types (must include `non_tithe_donation`) |
+| `category`    | `TEXT` / `VARCHAR`                  | Optional category (e.g., 'Housing', 'Food')                    | Yes      | Primarily for expense types                                                   |
+| `is_chomesh`  | `BOOLEAN` / `INTEGER(1)`            | Indicates if 20% tithe applies (for 'income' type)             | Yes      | Only relevant for `type = 'income'`, NULL otherwise                           |
+| `recipient`   | `TEXT`                              | Recipient/purpose of donation (for 'donation' type)            | Yes      | Only relevant for `type = 'donation'`, NULL otherwise                         |
+| `created_at`  | `TEXT` / `TIMESTAMP WITH TIME ZONE` | Timestamp of creation                                          | Yes      | `DEFAULT CURRENT_TIMESTAMP` recommended                                       |
+| `updated_at`  | `TEXT` / `TIMESTAMP WITH TIME ZONE` | Timestamp of last update                                       | Yes      | Update using triggers or application logic                                    |
 
 **Current Supabase Implementation Note :**
 
-- **Naming Convention:** The column names in the Supabase `transactions` table and the corresponding TypeScript `Transaction` type now consistently use **`snake_case`** (e.g., `is_chomesh`, `created_at`, `recurring_total_count`). This was a deliberate change to improve consistency and maintainability across the codebase.
+- **Naming Convention:** The column names in the Supabase `transactions` table and the corresponding TypeScript `Transaction` type now consistently use **`snake_case`** (e.g., `is_chomesh`, `created_at`, `updated_at`). This was a deliberate change to improve consistency and maintainability across the codebase.
 - **Primary Key (`id`):** The `id` column in Supabase is of type `uuid` and its value is automatically generated by the database (`DEFAULT gen_random_uuid()`). The frontend **does not** send an `id` when creating new transactions.
 - **TypeScript Type (`Transaction`):** The `Transaction` type in TypeScript (`src/types/transaction.ts`) now also uses `snake_case` for all its fields, matching the database schema. Service layers like the `data-layer` module ensure data is handled correctly with this consistent naming.
 

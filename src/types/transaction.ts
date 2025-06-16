@@ -6,21 +6,21 @@ export type Currency = "ILS" | "USD" | "EUR" | "GBP"; // Added other common curr
 // Define the possible types for a transaction
 export type TransactionType =
   | "income"
-  | "donation"
   | "expense"
+  | "donation"
   | "exempt-income"
   | "recognized-expense"
-  | "non_tithe_donation"; // Renamed from donation_from_personal_funds
+  | "non_tithe_donation";
 
 // Array of literal types for Zod enum
-export const TransactionTypeValues: [TransactionType, ...TransactionType[]] = [
+export const transactionTypes = [
   "income",
-  "donation",
   "expense",
+  "donation",
   "exempt-income",
   "recognized-expense",
   "non_tithe_donation",
-];
+] as const;
 
 export interface RecurringInfo {
   id: string;
@@ -33,30 +33,20 @@ export interface RecurringInfo {
 
 // Define the core Transaction interface
 export interface Transaction {
-  id: string; // Unique identifier (nanoid)
-  user_id?: string | null; // From Supabase auth, optional for desktop
-  date: string; // ISO 8601 date string (YYYY-MM-DD)
+  id: string;
+  user_id: string | null;
+  created_at: string;
+  updated_at: string;
+  date: string; // ISO 8601 date string (e.g., "2023-10-27")
   amount: number;
   currency: "ILS" | "USD" | "EUR";
   description: string | null;
   type: TransactionType;
   category: string | null;
-  created_at?: string; // ISO 8601 date string
-  updated_at?: string; // ISO 8601 date string
-
-  // Type-specific fields
-  is_chomesh?: boolean | null;
-  recipient?: string | null;
-
-  // Link to the recurring definition
-  source_recurring_id?: string | null;
-  recurring_info?: RecurringInfo | null;
-  occurrence_number?: number | null;
-
-  // DEPRECATED - to be removed after migration
-  is_recurring?: boolean | null;
-  recurring_day_of_month?: number | null;
-  recurring_total_count?: number | null;
+  is_chomesh: boolean | null;
+  recipient: string | null;
+  source_recurring_id: string | null; // Foreign key to recurring_transactions table
+  occurrence_number?: number | null; // e.g., "3" for the 3rd of 12 payments
 }
 
 export interface RecurringTransaction {

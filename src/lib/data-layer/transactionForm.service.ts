@@ -81,10 +81,8 @@ export async function handleTransactionSubmit(
       description: values.description || null,
       type: values.type,
       category: values.category || null,
-      is_chomesh: values.is_chomesh,
+      is_chomesh: values.is_chomesh ?? false,
       recipient: values.recipient || null,
-      is_recurring: false,
-      recurring_day_of_month: null,
       source_recurring_id: null,
       user_id: null,
     };

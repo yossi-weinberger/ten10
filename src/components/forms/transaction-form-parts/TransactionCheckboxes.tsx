@@ -12,6 +12,9 @@ import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
 import type { TransactionFormValues } from "../TransactionForm"; // Adjust path as needed
 import { TransactionType } from "@/types/transaction"; // Import TransactionType
+import { FormControl, FormItem, FormLabel } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 interface TransactionCheckboxesProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -90,12 +93,17 @@ export function TransactionCheckboxes({
                 control={form.control}
                 name="is_chomesh"
                 render={({ field }) => (
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={isExemptChecked}
-                    className="size-6 rounded border mt-auto"
-                  />
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">הפרשת חומש?</FormLabel>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
                 )}
               />
             </div>
@@ -104,7 +112,7 @@ export function TransactionCheckboxes({
         {selectedType === "expense" && (
           <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
             <div className="flex items-center justify-center mb-2 text-center">
-              <span className="text-xs font-medium">הוצאה מוכרת?</span>
+              <span className="text-xs font-medium">הוצאה מוכרת למעשר?</span>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -125,13 +133,21 @@ export function TransactionCheckboxes({
             </div>
             <FormField
               control={form.control}
-              name="isRecognized"
+              name="is_tithable_expense"
               render={({ field }) => (
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  className="size-6 rounded border mt-auto"
-                />
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">
+                      הוצאה מוכרת למעשר?
+                    </FormLabel>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
               )}
             />
           </div>
