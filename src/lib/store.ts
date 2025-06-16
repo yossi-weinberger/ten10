@@ -4,8 +4,9 @@ import {
   Transaction,
   Currency as TransactionCurrency,
 } from "../types/transaction";
-import { ServerDonationData } from "./dbStatsCardsService";
-import { MonthlyDataPoint } from "./chartService";
+import { ServerIncomeData } from "./data-layer/analytics.service";
+import { ServerDonationData } from "./data-layer/stats.service";
+import { MonthlyDataPoint } from "./data-layer/chart.service";
 
 export type { TransactionCurrency as Currency };
 

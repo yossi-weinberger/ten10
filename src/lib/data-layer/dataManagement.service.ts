@@ -1,11 +1,11 @@
 import { Transaction } from "@/types/transaction";
-import { useDonationStore } from "@/lib/store";
+import { useDonationStore } from "../store";
 import toast from "react-hot-toast";
 import {
   addTransaction,
   clearAllData as clearAllDataFromDataService,
-} from "./dataService";
-import { supabase } from "./supabaseClient";
+} from "./index";
+import { supabase } from "@/lib/supabaseClient";
 
 interface DataManagementOptions {
   setIsLoading: (loading: boolean) => void;

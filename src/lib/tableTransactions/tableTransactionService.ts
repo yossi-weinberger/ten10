@@ -7,7 +7,7 @@ import {
   updateTransaction as updateTransactionInDataService,
   deleteTransaction as deleteTransactionInDataService,
   TransactionUpdatePayload, // Assuming TransactionUpdatePayload is exported from dataService or a shared types file
-} from "../dataService"; // Adjusted path to dataService
+} from "../data-layer"; // Adjusted path to dataService
 
 interface FetchTransactionsParams {
   offset: number;

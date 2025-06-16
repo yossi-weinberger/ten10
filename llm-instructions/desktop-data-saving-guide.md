@@ -11,22 +11,22 @@ This document explains how data (unified `Transaction` objects) is saved locally
 - **Hook:** `usePlatform` hook allows components to access the current platform state.
 - **Initialization:** `src/App.tsx` uses `useEffect` to call `setDataServicePlatform` once the platform state is determined (not `'loading'`).
 
-## 2. Data Service Abstraction (`dataService.ts` and `transactionService.ts`)
+## 2. Data Service Abstraction (`data-layer/index.ts` and `tableTransactions/tableTransactionService.ts`)
 
-- **`src/lib/dataService.ts`**: This service handles basic, general data operations.
+- **`src/lib/data-layer/index.ts`**: This is the main entry point for the data layer module. It aggregates and exports functions from various service files within the `data-layer` directory (like `transactions.service.ts`), which handle the actual data operations.
 
-  - **State:** It holds the `currentPlatform` variable (set by `setDataServicePlatform`).
+  - **State:** The current platform is now typically accessed via the `usePlatform` hook directly where needed, rather than being stored in a central service variable.
   - **Add Operation (General):**
-    - `addTransaction(transaction: Transaction)`: Checks `currentPlatform`.
+    - An exported `addTransaction` function (likely originating from `transactions.service.ts`) checks the platform.
     - If `'desktop'`, it calls Tauri `invoke('add_transaction_handler', { transaction })` to save to the `transactions` table in SQLite.
     - **Crucially, upon successful invocation, it _also_ calls `useDonationStore.getState().addTransaction(transaction)` to update the in-memory `transactions` array in the general Zustand store (`useDonationStore`).**
     - If `'web'`, it should eventually call the Supabase API (currently placeholder for general add, table uses specific RPCs).
   - **Load Operation (General):**
-    - `loadTransactions()`: Checks `currentPlatform`.
+    - An exported `loadTransactions` function checks the platform.
     - If `'desktop'`, it calls Tauri `invoke('get_transactions_handler')` to retrieve all `Transaction` records from the SQLite `transactions` table. The returned array is used to populate the `useDonationStore`.
     - If `'web'`, it should eventually fetch from Supabase (currently returns empty array for general load, table uses specific RPCs).
 
-- **`src/lib/transactionService.ts` (`TableTransactionsService` class):** This service is specifically designed for the complex interactions of the main interactive transactions table.
+- **`src/lib/tableTransactions/tableTransactionService.ts` (`TableTransactionsService` class):** This service is specifically designed for the complex interactions of the main interactive transactions table.
   - It provides methods like `fetchTransactions`, `updateTransaction`, `deleteTransaction`, and `exportTransactions`.
   - These methods use `platform` context to call appropriate backend functions:
     - **Desktop (Tauri):** Invokes specific Tauri commands like `get_filtered_transactions_handler`, `update_transaction_handler`, `delete_transaction_handler`, and `export_transactions_handler`.
@@ -35,9 +35,9 @@ This document explains how data (unified `Transaction` objects) is saved locally
 
 ## 3. Frontend to Backend Communication (Tauri Invoke)
 
-- **Mechanism:** When `currentPlatform` is `'desktop'`:
-  - `dataService.ts` (for general save/load) uses `invoke` with commands like `add_transaction_handler` and `get_transactions_handler`.
-  - `transactionService.ts` (for table-specific operations) uses `invoke` with commands like `get_filtered_transactions_handler`, `update_transaction_handler`, `delete_transaction_handler`.
+- **Mechanism:** When `platform` is `'desktop'`:
+  - The data layer services (e.g., `transactions.service.ts`) use `invoke` with commands like `add_transaction_handler` and `get_transactions_handler`.
+  - `tableTransactionService.ts` (for table-specific operations) uses `invoke` with commands like `get_filtered_transactions_handler`, `update_transaction_handler`, `delete_transaction_handler`.
 - **Usage (Save - General):** `await invoke('add_transaction_handler', { transaction: transactionData })`
 - **Usage (Load - General):** `await invoke<Transaction[]>('get_transactions_handler')`
 - **Usage (Load - Table Specific):** `await invoke<PaginatedTransactionsResponse>('get_filtered_transactions_handler', { args: { filters, pagination, sorting } })`
@@ -66,19 +66,19 @@ This document explains how data (unified `Transaction` objects) is saved locally
   - **State:** Holds `transactions: Transaction[] = []` for general purposes (e.g., overall tithe calculation). The previous `incomes`, `donations`, and `requiredDonation` fields are deprecated and will be removed.
   - **Actions:**
     - `setTransactions(transactions: Transaction[])`: Replaces the entire array (used during initial general load).
-    - `addTransaction(transaction: Transaction)`: Adds a single transaction to the array (called by `dataService` after successful general DB save).
+    - `addTransaction(transaction: Transaction)`: Adds a single transaction to the array (called by `data-layer` after successful general DB save).
   - **Balance Calculation:** The overall required tithe balance is **not stored** in the state. It's calculated dynamically using a selector `selectCalculatedBalance(state: DonationState)` which uses `calculateTotalRequiredDonation(state.transactions)`.
 
-- **`useTableTransactionsStore` (`src/lib/tableTransactions.store.ts`):**
+- **`useTableTransactionsStore` (`src/lib/tableTransactions/tableTransactions.store.ts`):**
   - **State:** Manages all state related to the interactive transactions table: `transactions` (current page/view), `loading`, `error`, `pagination`, `filters`, `sorting`, `exportLoading`, `exportError`.
-  - **Actions:** Provides actions to `fetchTransactions`, `updateTransaction`, `deleteTransaction`, `exportTransactions`, `setFilters`, `setSorting`, `setLoadMorePagination`, etc. These actions typically use `transactionService.ts` for backend communication.
+  - **Actions:** Provides actions to `fetchTransactions`, `updateTransaction`, `deleteTransaction`, `exportTransactions`, `setFilters`, `setSorting`, `setLoadMorePagination`, etc. These actions typically use `tableTransactionService.ts` for backend communication.
 
 ## 6. Database Initialization and Initial Load
 
 - **DB Init Command:** `init_db` ensures the `transactions` table exists.
 - **Trigger:** Invoked once from `src/App.tsx` when `platform === 'desktop'`.
 - **Initial Data Load (General - `useDonationStore`):** _Immediately after_ `init_db` succeeds in `App.tsx`:
-  1. `dataService.loadTransactions()` is called. This invokes `get_transactions_handler` in Rust.
+  1. The `loadTransactions()` function from the data layer is called. This invokes `get_transactions_handler` in Rust.
   2. The returned array (`Vec<Transaction>`) is used to **overwrite** the `transactions` state in `useDonationStore` using `useDonationStore.setState({ transactions: ... })`.
   3. This populates `useDonationStore` (used for overall calculations) with the current state of the `transactions` table in the SQLite DB.
 - **Initial Data Load (Transactions Table - `useTableTransactionsStore`):**
@@ -88,17 +88,17 @@ This document explains how data (unified `Transaction` objects) is saved locally
 
 1. User interacts with the `TransactionEditModal` (for new or existing transaction, initiated from `TransactionsTableDisplay`).
 2. `onSubmit` in `TransactionEditModal` calls `updateTransaction` (or a new `addTransactionToTable` if distinct) action in `useTableTransactionsStore`.
-3. The store action calls the relevant method in `transactionService.ts` (e.g., `TableTransactionsService.updateTransaction` or a new `addTransaction`).
-4. `transactionService.ts` sees `'desktop'`, calls `invoke('update_transaction_handler', { ... })` or `invoke('add_transaction_handler', { ... })` (if `add_transaction_handler` is reused, or a new specific one for table).
+3. The store action calls the relevant method in `tableTransactionService.ts` (e.g., `TableTransactionsService.updateTransaction` or a new `addTransaction`).
+4. `tableTransactionService.ts` sees `'desktop'`, calls `invoke('update_transaction_handler', { ... })` or `invoke('add_transaction_handler', { ... })` (if `add_transaction_handler` is reused, or a new specific one for table).
 5. Rust command saves/updates the `Transaction` object in the SQLite `transactions` table.
 6. `invoke` returns successfully.
-7. `transactionService.ts` returns success to the store action.
+7. `tableTransactionService.ts` returns success to the store action.
 8. The store action updates its local `transactions` array (e.g., adds/modifies the item) and potentially re-fetches or updates pagination if needed.
 9. UI components listening to `useTableTransactionsStore` (e.g., `TransactionsTableDisplay`, `TransactionRow`) re-render.
 
 ## 8. Data Flow Summary (Displaying Data/Balance on Desktop)
 
-1. **App Startup (General Data):** `App.tsx` detects `'desktop'`, calls `init_db`, then `dataService.loadTransactions()`, populating the `transactions` array in `useDonationStore`.
+1. **App Startup (General Data):** `App.tsx` detects `'desktop'`, calls `init_db`, then `loadTransactions()`, populating the `transactions` array in `useDonationStore`.
 2. **App Startup (Table Data):** `TransactionsTable.tsx` (via `TransactionsTableDisplay.tsx`) triggers `fetchTransactions` from `useTableTransactionsStore`, loading the initial view for the table.
 3. **UI Rendering (Table):** `TransactionsTableDisplay` and `TransactionRow` use `useTableTransactionsStore` to get the data array for the current view and render it.
 4. **UI Rendering (Dashboard - Overall Balance):**
@@ -111,10 +111,10 @@ This document explains how data (unified `Transaction` objects) is saved locally
 - `src/contexts/PlatformContext.tsx` (Platform detection)
 - `src/App.tsx` (Platform init, DB init via invoke, Initial general `transactions` load to `useDonationStore`)
 - `src/routes.ts` (Defines application routes and navigation structure)
-- `src/lib/dataService.ts` (Abstraction layer for general CRUD: `addTransaction`, `loadTransactions`, `clearAllData`)
-- `src/lib/transactionService.ts` (Service for interactive table: `fetchTransactions`, `updateTransaction`, `deleteTransaction`, `exportTransactions`)
+- `src/lib/data-layer/` (Directory for data service modules like `transactions.service.ts`, `stats.service.ts`, etc.)
+- `src/lib/tableTransactions/tableTransactionService.ts` (Service for interactive table: `fetchTransactions`, `updateTransaction`, `deleteTransaction`, `exportTransactions`)
 - `src/lib/store.ts` (Zustand store - `useDonationStore`: general `transactions` array, `settings`, `selectCalculatedBalance` selector)
-- `src/lib/tableTransactions.store.ts` (Zustand store - `useTableTransactionsStore`: table-specific state and actions)
+- `src/lib/tableTransactions/tableTransactions.store.ts` (Zustand store - `useTableTransactionsStore`: table-specific state and actions)
 - `src/lib/tithe-calculator.ts` (Contains `calculateTotalRequiredDonation` logic for overall balance)
 - **UI Components:**
   - `src/components/forms/TransactionForm.tsx` (Unified form, potentially used by `TransactionEditModal`)
@@ -147,7 +147,7 @@ This section documents the deprecated components and code that were removed as p
   - `donations: Donation[]` state array. (Removed)
   - `requiredDonation: number` state field. (Removed)
   - Actions: `addIncome`, `addDonation`, `removeIncome`, `removeDonation`, `updateIncome`, `updateDonation`. (Removed)
-- **Data Service (`dataService.ts`):**
+- **Data Service (`data-layer/` module):**
   - Functions: `addIncome`, `addDonation`, `getIncomes`, `getDonations`. (Removed)
   - Imports for `Income`, `Donation`. (Removed)
 - **Rust Backend (`src-tauri/src/main.rs`):**
@@ -177,7 +177,7 @@ The application supports exporting all transaction data to a JSON file and impor
 
 1.  **Trigger**: User clicks the "Export Data" button in `SettingsPage.tsx`.
 2.  **Platform Check**: Ensures the platform is `desktop` (logic within `SettingsPage.tsx` before calling the exported function).
-3.  **Function Call**: `handleExportData` in `SettingsPage.tsx` calls `exportDataDesktop` from `src/lib/dataManagement.ts`.
+3.  **Function Call**: `handleExportData` in `SettingsPage.tsx` calls `exportDataDesktop` from `src/lib/data-layer/dataManagement.service.ts`.
 4.  **Data Retrieval**: The `exportDataDesktop` function calls `invoke<Transaction[]>('get_transactions')` to fetch all transactions from the local SQLite database.
 5.  **JSON Conversion**: The retrieved transaction array is converted to a JSON string.
 6.  **File Save Dialog**: Tauri's `dialog.save()` API is used to prompt the user for a filename and location.
@@ -188,7 +188,7 @@ The application supports exporting all transaction data to a JSON file and impor
 
 1.  **Trigger**: User clicks the "Import Data" button in `SettingsPage.tsx`.
 2.  **Platform Check**: Ensures the platform is `desktop` (logic within `SettingsPage.tsx` before calling the exported function).
-3.  **Function Call**: `handleImportData` in `SettingsPage.tsx` calls `importDataDesktop` from `src/lib/dataManagement.ts`.
+3.  **Function Call**: `handleImportData` in `SettingsPage.tsx` calls `importDataDesktop` from `src/lib/data-layer/dataManagement.service.ts`.
 4.  **File Open Dialog**: The `importDataDesktop` function uses Tauri's `dialog.open()` API to allow the user to select a JSON file.
 5.  **File Read**: Tauri's `fs.readTextFile()` API reads the content of the selected file.
 6.  **JSON Parse & Basic Validation**: The file content is parsed into an array of `Transaction` objects. Basic validation checks if it's an array and if essential fields (e.g., `id`, `amount`) exist.

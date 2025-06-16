@@ -1,13 +1,14 @@
 // This service is dedicated to handling the logic from the TransactionForm
-import { getPlatform } from "./platformManager";
+import { getPlatform } from "../platformManager";
 import { TransactionFormValues } from "@/types/forms";
 import { Transaction, RecurringTransaction } from "@/types/transaction";
 import { nanoid } from "nanoid";
-import { addTransaction, addRecurringTransaction } from "./dataService";
+import { addRecurringTransaction } from "./index";
+import { addTransaction } from "./transactions.service";
 import {
   createRecurringTransaction,
   NewRecurringTransaction,
-} from "./recurringTransactionsService";
+} from "./recurringTransactions.service";
 
 /**
  * Handles the logic for submitting a transaction form.

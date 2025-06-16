@@ -1,16 +1,19 @@
-// import { invoke } from "@tauri-apps/api/core"; // STATIC IMPORT REMOVED
+import { getPlatform } from "../platformManager";
 import { supabase } from "@/lib/supabaseClient";
-import { getPlatform } from "./platformManager";
 
+// Define a type for the data structure returned by server-side calculations
 export interface ServerIncomeData {
   total_income: number;
   chomesh_amount: number;
 }
 
+// Define a type for the data structure returned by server-side calculations for Donations
 export interface ServerDonationData {
   total_donations_amount: number;
   non_tithe_donation_amount: number;
 }
+
+// --- Server-Side Calculation Functions ---
 
 // Web: Fetch total income and chomesh for a user from Supabase
 async function fetchTotalIncomeForUserWeb(
@@ -19,7 +22,7 @@ async function fetchTotalIncomeForUserWeb(
   endDate: string // YYYY-MM-DD
 ): Promise<ServerIncomeData | null> {
   console.log(
-    `DbStatsCardsService (Web): Fetching total income for user ${userId} from ${startDate} to ${endDate}`
+    `AnalyticsService (Web): Fetching total income for user ${userId} from ${startDate} to ${endDate}`
   );
   try {
     const { data, error } = await supabase.rpc(
@@ -35,10 +38,6 @@ async function fetchTotalIncomeForUserWeb(
       console.error("Error fetching total income from Supabase RPC:", error);
       throw error;
     }
-    console.log(
-      "DbStatsCardsService (Web): Supabase RPC call successful. Data:",
-      data
-    );
     if (
       data &&
       typeof data.total_income === "number" &&
@@ -51,79 +50,16 @@ async function fetchTotalIncomeForUserWeb(
       typeof data[0].total_income === "number" &&
       typeof data[0].chomesh_amount === "number"
     ) {
-      console.warn("Supabase RPC returned an array, taking the first element.");
       return data[0] as ServerIncomeData;
     } else {
       console.warn(
-        "DbStatsCardsService (Web): Received unexpected data structure from Supabase RPC or null data:",
+        "AnalyticsService (Web): Received unexpected data structure from Supabase RPC or null data:",
         data
       );
       return { total_income: 0, chomesh_amount: 0 };
     }
   } catch (error) {
     console.error("Error in fetchTotalIncomeForUserWeb:", error);
-    return null;
-  }
-}
-
-// Desktop: Fetch total income and chomesh in a date range from SQLite
-async function fetchTotalIncomeForUserDesktop(
-  startDate: string, // YYYY-MM-DD
-  endDate: string // YYYY-MM-DD
-): Promise<ServerIncomeData> {
-  console.log(
-    `DbStatsCardsService (Desktop): Fetching total income from ${startDate} to ${endDate}`
-  );
-  try {
-    const { invoke } = await import("@tauri-apps/api/core");
-    const result = await invoke<ServerIncomeData>(
-      "get_desktop_total_income_in_range",
-      {
-        startDate,
-        endDate,
-      }
-    );
-    console.log(
-      "DbStatsCardsService (Desktop): Tauri invoke successful. Data:",
-      result
-    );
-    return result;
-  } catch (error) {
-    console.error("Error invoking get_desktop_total_income_in_range:", error);
-    return { total_income: 0, chomesh_amount: 0 };
-  }
-}
-
-// Wrapper function to fetch total income based on platform
-export async function fetchDbCalculatedTotalIncomeForStatsCards(
-  userId: string | null, // userId is only needed for web
-  startDate: string,
-  endDate: string
-): Promise<ServerIncomeData | null> {
-  const currentPlatform = getPlatform();
-  if (currentPlatform === "web") {
-    if (!userId) {
-      console.error(
-        "DbStatsCardsService (fetchDbCalculatedTotalIncomeForStatsCards): User ID is required for web platform."
-      );
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        console.error(
-          "DbStatsCardsService: No authenticated user found for web operation."
-        );
-        return null;
-      }
-      return fetchTotalIncomeForUserWeb(user.id, startDate, endDate);
-    }
-    return fetchTotalIncomeForUserWeb(userId, startDate, endDate);
-  } else if (currentPlatform === "desktop") {
-    return fetchTotalIncomeForUserDesktop(startDate, endDate);
-  } else {
-    console.warn(
-      "DbStatsCardsService (fetchDbCalculatedTotalIncomeForStatsCards): Platform not determined. Cannot fetch income."
-    );
     return null;
   }
 }
@@ -135,7 +71,7 @@ async function fetchTotalExpensesForUserWeb(
   endDate: string // YYYY-MM-DD
 ): Promise<number | null> {
   console.log(
-    `DbStatsCardsService (Web): Fetching total expenses for user ${userId} from ${startDate} to ${endDate}`
+    `AnalyticsService (Web): Fetching total expenses for user ${userId} from ${startDate} to ${endDate}`
   );
   try {
     const { data, error } = await supabase.rpc("get_total_expenses_for_user", {
@@ -148,15 +84,11 @@ async function fetchTotalExpensesForUserWeb(
       console.error("Error fetching total expenses from Supabase RPC:", error);
       throw error;
     }
-    console.log(
-      "DbStatsCardsService (Web): Supabase RPC call for expenses successful. Data:",
-      data
-    );
     if (typeof data === "number") {
       return data;
     } else {
       console.warn(
-        "DbStatsCardsService (Web): Received unexpected data structure from Supabase RPC for expenses or null data:",
+        "AnalyticsService (Web): Received unexpected data structure from Supabase RPC for expenses or null data:",
         data
       );
       return 0;
@@ -167,13 +99,37 @@ async function fetchTotalExpensesForUserWeb(
   }
 }
 
+// Desktop: Fetch total income and chomesh in a date range from SQLite
+async function fetchTotalIncomeForUserDesktop(
+  startDate: string, // YYYY-MM-DD
+  endDate: string // YYYY-MM-DD
+): Promise<ServerIncomeData> {
+  console.log(
+    `AnalyticsService (Desktop): Fetching total income from ${startDate} to ${endDate}`
+  );
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    const result = await invoke<ServerIncomeData>(
+      "get_desktop_total_income_in_range",
+      {
+        startDate,
+        endDate,
+      }
+    );
+    return result;
+  } catch (error) {
+    console.error("Error invoking get_desktop_total_income_in_range:", error);
+    return { total_income: 0, chomesh_amount: 0 };
+  }
+}
+
 // Desktop: Fetch total expenses in a date range from SQLite
 async function fetchTotalExpensesForUserDesktop(
   startDate: string, // YYYY-MM-DD
   endDate: string // YYYY-MM-DD
 ): Promise<number> {
   console.log(
-    `DbStatsCardsService (Desktop): Fetching total expenses from ${startDate} to ${endDate}`
+    `AnalyticsService (Desktop): Fetching total expenses from ${startDate} to ${endDate}`
   );
   try {
     const { invoke } = await import("@tauri-apps/api/core");
@@ -181,10 +137,6 @@ async function fetchTotalExpensesForUserDesktop(
       startDate,
       endDate,
     });
-    console.log(
-      "DbStatsCardsService (Desktop): Tauri invoke for expenses successful. Data:",
-      result
-    );
     return result;
   } catch (error) {
     console.error("Error invoking get_desktop_total_expenses_in_range:", error);
@@ -192,8 +144,39 @@ async function fetchTotalExpensesForUserDesktop(
   }
 }
 
+// Wrapper function to fetch total income based on platform
+export async function fetchTotalIncomeInRange(
+  userId: string | null, // userId is only needed for web
+  startDate: string,
+  endDate: string
+): Promise<ServerIncomeData | null> {
+  const currentPlatform = getPlatform();
+  if (currentPlatform === "web") {
+    if (!userId) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        console.error(
+          "AnalyticsService: No authenticated user found for web operation."
+        );
+        return null;
+      }
+      userId = user.id;
+    }
+    return fetchTotalIncomeForUserWeb(userId, startDate, endDate);
+  } else if (currentPlatform === "desktop") {
+    return fetchTotalIncomeForUserDesktop(startDate, endDate);
+  } else {
+    console.warn(
+      "AnalyticsService (fetchTotalIncomeInRange): Platform not determined."
+    );
+    return null;
+  }
+}
+
 // Wrapper function to fetch total expenses based on platform
-export async function fetchDbCalculatedTotalExpensesForStatsCards(
+export async function fetchTotalExpensesInRange(
   userId: string | null, // userId is only needed for web
   startDate: string,
   endDate: string
@@ -201,39 +184,36 @@ export async function fetchDbCalculatedTotalExpensesForStatsCards(
   const currentPlatform = getPlatform();
   if (currentPlatform === "web") {
     if (!userId) {
-      console.error(
-        "DbStatsCardsService (fetchDbCalculatedTotalExpensesForStatsCards): User ID is required for web platform."
-      );
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
         console.error(
-          "DbStatsCardsService: No authenticated user found for web operation (expenses)."
+          "AnalyticsService: No authenticated user found for web operation."
         );
         return null;
       }
-      return fetchTotalExpensesForUserWeb(user.id, startDate, endDate);
+      userId = user.id;
     }
     return fetchTotalExpensesForUserWeb(userId, startDate, endDate);
   } else if (currentPlatform === "desktop") {
     return fetchTotalExpensesForUserDesktop(startDate, endDate);
   } else {
     console.warn(
-      "DbStatsCardsService (fetchDbCalculatedTotalExpensesForStatsCards): Platform not determined. Cannot fetch expenses."
+      "AnalyticsService (fetchTotalExpensesInRange): Platform not determined."
     );
     return null;
   }
 }
 
-// Web: Fetch total donations for a user from Supabase
+// --- DONATIONS FUNCTIONS ---
 async function fetchTotalDonationsForUserWeb(
   userId: string,
   startDate: string, // YYYY-MM-DD
   endDate: string // YYYY-MM-DD
 ): Promise<ServerDonationData | null> {
   console.log(
-    `DbStatsCardsService (Web): Fetching total donations for user ${userId} from ${startDate} to ${endDate}`
+    `AnalyticsService (Web): Fetching total donations for user ${userId} from ${startDate} to ${endDate}`
   );
   try {
     const { data, error } = await supabase.rpc("get_total_donations_for_user", {
@@ -246,10 +226,6 @@ async function fetchTotalDonationsForUserWeb(
       console.error("Error fetching total donations from Supabase RPC:", error);
       throw error;
     }
-    console.log(
-      "DbStatsCardsService (Web): Supabase RPC call for donations successful. Data:",
-      data
-    );
     if (data && Array.isArray(data) && data.length > 0) {
       const result = data[0];
       if (
@@ -266,7 +242,7 @@ async function fetchTotalDonationsForUserWeb(
       return data as ServerDonationData;
     }
     console.warn(
-      "DbStatsCardsService (Web): Received unexpected data structure from Supabase RPC for donations or null/empty data:",
+      "AnalyticsService (Web): Received unexpected data structure from Supabase RPC for donations:",
       data
     );
     return { total_donations_amount: 0, non_tithe_donation_amount: 0 };
@@ -276,26 +252,21 @@ async function fetchTotalDonationsForUserWeb(
   }
 }
 
-// Desktop: Fetch total donations in a date range from SQLite
 async function fetchTotalDonationsForUserDesktop(
   startDate: string, // YYYY-MM-DD
   endDate: string // YYYY-MM-DD
 ): Promise<ServerDonationData | null> {
   console.log(
-    `DbStatsCardsService (Desktop): Fetching total donations from ${startDate} to ${endDate}`
+    `AnalyticsService (Desktop): Fetching total donations from ${startDate} to ${endDate}`
   );
   try {
     const { invoke } = await import("@tauri-apps/api/core");
-    const result = await invoke<{
-      total_donations_amount: number;
-      non_tithe_donation_amount: number;
-    }>("get_desktop_total_donations_in_range", {
-      startDate,
-      endDate,
-    });
-    console.log(
-      "DbStatsCardsService (Desktop): Tauri invoke for donations successful. Data:",
-      result
+    const result = await invoke<ServerDonationData>(
+      "get_desktop_total_donations_in_range",
+      {
+        startDate,
+        endDate,
+      }
     );
     if (
       result &&
@@ -305,7 +276,7 @@ async function fetchTotalDonationsForUserDesktop(
       return result;
     }
     console.warn(
-      "DbStatsCardsService (Desktop): Tauri command did not return expected ServerDonationData structure. Data:",
+      "AnalyticsService (Desktop): Tauri command did not return expected ServerDonationData structure. Data:",
       result
     );
     return { total_donations_amount: 0, non_tithe_donation_amount: 0 };
@@ -318,8 +289,7 @@ async function fetchTotalDonationsForUserDesktop(
   }
 }
 
-// Wrapper function to fetch total donations based on platform
-export async function fetchDbCalculatedTotalDonationsForStatsCards(
+export async function fetchTotalDonationsInRange(
   userId: string | null, // userId is only needed for web
   startDate: string,
   endDate: string
@@ -327,15 +297,12 @@ export async function fetchDbCalculatedTotalDonationsForStatsCards(
   const currentPlatform = getPlatform();
   if (currentPlatform === "web") {
     if (!userId) {
-      console.error(
-        "DbStatsCardsService (fetchDbCalculatedTotalDonationsForStatsCards): User ID is required for web platform."
-      );
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
         console.error(
-          "DbStatsCardsService: No authenticated user found for web operation (donations)."
+          "AnalyticsService: No authenticated user found for web operation."
         );
         return null;
       }
@@ -346,18 +313,18 @@ export async function fetchDbCalculatedTotalDonationsForStatsCards(
     return fetchTotalDonationsForUserDesktop(startDate, endDate);
   } else {
     console.warn(
-      "DbStatsCardsService (fetchDbCalculatedTotalDonationsForStatsCards): Platform not determined. Cannot fetch donations."
+      "AnalyticsService (fetchTotalDonationsInRange): Platform not determined."
     );
     return null;
   }
 }
 
-// Web: Fetch overall tithe balance for a user from Supabase
+// --- TITHE BALANCE FUNCTIONS ---
 async function fetchServerTitheBalanceWeb(
   userId: string
 ): Promise<number | null> {
   console.log(
-    `DbStatsCardsService (Web): Fetching overall tithe balance for user ${userId}`
+    `AnalyticsService (Web): Fetching overall tithe balance for user ${userId}`
   );
   try {
     const { data, error } = await supabase.rpc("calculate_user_tithe_balance", {
@@ -371,15 +338,11 @@ async function fetchServerTitheBalanceWeb(
       );
       throw error;
     }
-    console.log(
-      "DbStatsCardsService (Web): Supabase RPC call for overall tithe balance successful. Data:",
-      data
-    );
     if (typeof data === "number") {
       return data;
     } else {
       console.warn(
-        "DbStatsCardsService (Web): Received unexpected data structure from Supabase RPC for overall tithe balance or null data:",
+        "AnalyticsService (Web): Received unexpected data structure from Supabase RPC for overall tithe balance:",
         data
       );
       return 0;
@@ -390,39 +353,30 @@ async function fetchServerTitheBalanceWeb(
   }
 }
 
-// Desktop: Fetch overall tithe balance from SQLite
 async function fetchServerTitheBalanceDesktop(): Promise<number | null> {
-  console.log(`DbStatsCardsService (Desktop): Fetching overall tithe balance`);
+  console.log(`AnalyticsService (Desktop): Fetching overall tithe balance`);
   try {
     const { invoke } = await import("@tauri-apps/api/core");
-    const result = await invoke<number>("get_desktop_overall_tithe_balance");
-    console.log(
-      "DbStatsCardsService (Desktop): Tauri invoke for overall tithe balance successful. Data:",
-      result
-    );
-    return result;
+    const balance = await invoke<number>("get_desktop_overall_tithe_balance");
+    return balance;
   } catch (error) {
     console.error("Error invoking get_desktop_overall_tithe_balance:", error);
     return null;
   }
 }
 
-// Wrapper function to fetch overall tithe balance based on platform
-export async function fetchDbCalculatedTitheBalanceForStatsCards(
+export async function fetchServerTitheBalance(
   userId: string | null // userId is only needed for web
 ): Promise<number | null> {
   const currentPlatform = getPlatform();
   if (currentPlatform === "web") {
     if (!userId) {
-      console.error(
-        "DbStatsCardsService (fetchDbCalculatedTitheBalanceForStatsCards): User ID is required for web platform."
-      );
       const {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
         console.error(
-          "DbStatsCardsService: No authenticated user found for web operation (tithe balance)."
+          "AnalyticsService: No authenticated user found for web operation."
         );
         return null;
       }
@@ -433,7 +387,7 @@ export async function fetchDbCalculatedTitheBalanceForStatsCards(
     return fetchServerTitheBalanceDesktop();
   } else {
     console.warn(
-      "DbStatsCardsService (fetchDbCalculatedTitheBalanceForStatsCards): Platform not determined. Cannot fetch overall tithe balance."
+      "AnalyticsService (fetchServerTitheBalance): Platform not determined."
     );
     return null;
   }

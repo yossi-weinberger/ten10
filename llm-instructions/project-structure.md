@@ -26,7 +26,7 @@ This section details how the different parts of the project interact with each o
     - **Routing:** `src/routes.ts` defines application routes, mapping paths to page components. `src/App.tsx` sets up the main Router.
     - **State Management:** Zustand is used for global state management. `src/lib/store.ts` (`useDonationStore`) handles general application state, while `src/lib/tableTransactions/tableTransactions.store.ts` is dedicated to managing the complex state of the interactive transactions table.
     - **Contexts:** React Context (`src/contexts/`) is used for providing app-wide state like authentication (`AuthContext.tsx`) and platform detection (`PlatformContext.tsx`).
-    - **Logic & Utilities:** Helper functions and business logic are located in `src/lib/` and `src/lib/utils/`. This includes services for backend communication (`dataService.ts`, `dbStatsCardsService.ts`, `tableTransactionService.ts`), data management (`dataManagement.ts`), and various utilities like formatting and date helpers.
+    - **Logic & Utilities:** Helper functions and business logic are located in `src/lib/` and `src/lib/utils/`. This includes the data layer module (`src/lib/data-layer`) which handles all backend communication, data management (`dataManagement.service.ts`), and various utilities like formatting and date helpers. The service for the interactive table (`tableTransactionService.ts`) is located in its own module.
     - **Types:** `src/types/` contains shared TypeScript definitions for type safety and consistency.
     - **Transactions Table Specifics:** The interactive transactions table is centered around `src/pages/TransactionsTable.tsx`. It uses components from `src/components/TransactionsTable/` (like `TransactionsTableDisplay.tsx`, `TransactionEditModal.tsx`, etc.). Data flow is managed by `src/lib/tableTransactions/tableTransactions.store.ts` (Zustand store) and `src/lib/tableTransactions/tableTransactionService.ts` (backend communication).
 
@@ -113,6 +113,15 @@ This section details how the different parts of the project interact with each o
 │   │   ├── useDateControls.ts
 │   │   └── useServerStats.ts
 │   ├── lib/
+│   │   ├── data-layer/
+│   │   │   ├── analytics.service.ts
+│   │   │   ├── chart.service.ts
+│   │   │   ├── dataManagement.service.ts
+│   │   │   ├── index.ts
+│   │   │   ├── recurringTransactions.service.ts
+│   │   │   ├── stats.service.ts
+│   │   │   ├── transactionForm.service.ts
+│   │   │   └── transactions.service.ts
 │   │   ├── tableTransactions/
 │   │   │   ├── tableTransactionService.ts
 │   │   │   ├── tableTransactions.store.ts
@@ -125,11 +134,6 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── formatting.tsx
 │   │   │   ├── hebrew-date.ts
 │   │   │   └── index.ts
-│   │   ├── chartService.ts
-│   │   ├── dataManagement.ts
-│   │   ├── dataService.ts
-│   │   ├── dbStatsCardsService.ts
-│   │   ├── platformService.ts
 │   │   ├── schemas.ts
 │   │   ├── store.ts
 │   │   ├── supabaseClient.ts

@@ -38,7 +38,7 @@ This document outlines the process and considerations for migrating the Ten10 ap
   - General-purpose commands like `add_transaction_handler` and `get_transactions_handler` were updated/created to work with the unified `transactions` table and `snake_case` model.
   - Specific commands for the interactive table (`get_filtered_transactions_handler`, `update_transaction_handler`, `delete_transaction_handler`, `export_transactions_handler`) were created to interact with the `transactions` table using the new model and providing filtered/paginated results.
 - \*\*Supabase (Web):
-  - Basic CRUD operations for general use might still be performed directly via the Supabase client library (e.g., in `dataService.ts`) on the `transactions` table.
+  - Basic CRUD operations for general use might still be performed directly via the Supabase client library (e.g., in the `data-layer` module) on the `transactions` table.
   - For the interactive transactions table, specific PostgreSQL RPC functions (e.g., `get_paginated_transactions`, `update_user_transaction`, `delete_user_transaction`, `export_user_transactions`) were created. These functions encapsulate the logic for querying and manipulating the `transactions` table, respecting RLS and handling filters, sorting, and pagination.
 
 ### Step 4: Update Frontend Code (Completed for New Table Context)
@@ -47,7 +47,7 @@ This document outlines the process and considerations for migrating the Ten10 ap
   - `useDonationStore` (`src/lib/store.ts`) was simplified to hold a general `transactions: Transaction[]` array (using the new model).
   - `useTableTransactionsStore` (`src/lib/tableTransactions.store.ts`) was introduced to manage the specific state and data for the new interactive transactions table, also using the unified `Transaction` model.
 - \*\*Service Layers:
-  - `dataService.ts` was updated to interact with the unified `transactions` table for general data loading (into `useDonationStore`) and potentially for adding transactions outside the new table's context.
+  - The `data-layer` module was updated to interact with the unified `transactions` table for general data loading (into `useDonationStore`) and potentially for adding transactions outside the new table's context.
 
 ```sql
 -- Example: Add a 'notes' text column to the 'transactions' table

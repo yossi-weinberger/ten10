@@ -188,7 +188,7 @@ $$ LANGUAGE plpgsql;
 
 **סטטוס:** ✅ **בוצע**
 
-- ניצור קובץ חדש, `src/lib/recurringTransactionsService.ts` (או נוסיף לקובץ שירות קיים).
+- נוצר קובץ חדש, `src/lib/data-layer/recurringTransactions.service.ts` (או נוסף לקובץ שירות קיים).
 - השירות יכיל פונקציות CRUD לניהול הוראות קבע באמצעות קריאות RPC ל-Supabase.
   - `createRecurringTransaction(definition)`
   - `getRecurringTransactions()`
@@ -279,7 +279,7 @@ $$ LANGUAGE plpgsql;
 
 בוצע Refactoring משמעותי כדי להפריד בין הלוגיקה העסקית לשכבת התצוגה.
 
-- **שירות ייעודי:** נוצר קובץ חדש, `src/lib/transactionFormService.ts`, המרכז את כל הלוגיקה של שליחת הטופס.
+- **שירות ייעודי:** נוצר קובץ חדש, `src/lib/data-layer/transactionForm.service.ts`, המרכז את כל הלוגיקה של שליחת הטופס.
 - **לוגיקה חכמה:** פונקציית `handleTransactionSubmit` יודעת להבדיל בין ווב לדסקטופ:
   - **בדסקטופ:** היא בונה אובייקט `RecurringTransaction` מלא וקוראת לפקודת ה-Rust `add_recurring_transaction_handler` כדי ליצור **הגדרת הוראת קבע בלבד**.
   - **בווב:** היא משתמשת בלוגיקה הקיימת ליצירת הוראת קבע דרך שירותי Supabase.
