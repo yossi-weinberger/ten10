@@ -133,25 +133,15 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
       const userId = user.id;
 
       const transactionToInsert = {
+        ...transaction,
         user_id: userId,
-        date: transaction.date,
-        amount: transaction.amount,
-        currency: transaction.currency,
-        description: transaction.description ?? null,
-        type: transaction.type,
-        category: transaction.category ?? null,
-        is_chomesh: transaction.is_chomesh ?? null,
-        recipient: transaction.recipient ?? null,
-        is_recurring: transaction.is_recurring ?? null,
-        recurring_day_of_month: transaction.recurring_day_of_month ?? null,
-        recurring_total_count: transaction.recurring_total_count ?? null,
       };
 
-      Object.keys(transactionToInsert).forEach((key) => {
-        if ((transactionToInsert as Record<string, any>)[key] === undefined) {
-          (transactionToInsert as Record<string, any>)[key] = null;
-        }
-      });
+      delete (transactionToInsert as any).is_recurring;
+      delete (transactionToInsert as any).recurring_day_of_month;
+      delete (transactionToInsert as any).recurring_total_count;
+      delete (transactionToInsert as any).recurring_info;
+      delete (transactionToInsert as any).id;
 
       const { data: insertedData, error: insertError } = await supabase
         .from("transactions")
@@ -241,8 +231,6 @@ export interface TransactionUpdatePayload {
   type?: string;
   category?: string | null;
   is_chomesh?: boolean;
-  is_recurring?: boolean;
-  recurring_day_of_month?: number | null;
   recipient?: string | null;
 }
 

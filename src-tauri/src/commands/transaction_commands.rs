@@ -12,6 +12,8 @@ pub struct RecurringInfo {
     pub execution_count: i32,
     pub total_occurrences: Option<i32>,
     pub day_of_month: i32,
+    pub start_date: String,
+    pub next_due_date: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -259,14 +261,16 @@ pub fn export_transactions_handler(
     let base_query = "
         SELECT 
             t.id, t.user_id, t.date, t.amount, t.currency, t.description, 
-            t.type, t.category, t.is_chomesh, t.is_recurring, t.recurring_day_of_month, 
+            t.type, t.category, t.is_chomesh, 
             t.recipient, t.created_at, t.updated_at, t.source_recurring_id,
             t.occurrence_number,
             rt.status as recurring_status,
             rt.frequency as recurring_frequency,
             rt.execution_count as recurring_execution_count,
             rt.total_occurrences as recurring_total_occurrences,
-            rt.day_of_month as recurring_day_of_month_def
+            rt.day_of_month as recurring_day_of_month_def,
+            rt.start_date as recurring_start_date,
+            rt.next_due_date as recurring_next_due_date
         FROM transactions t
         LEFT JOIN recurring_transactions rt ON t.source_recurring_id = rt.id
     ";
@@ -368,16 +372,17 @@ pub fn export_transactions_handler(
     let transactions_iter = stmt
         .query_map(params_for_rusqlite.as_slice(), |row| {
             let transaction = Transaction::from_row(row)?;
-            let recurring_info = if row.get::<_, Option<String>>("source_recurring_id")?.is_some() {
-                Some(RecurringInfo {
-                    status: row.get("recurring_status")?,
+            let recurring_info = match row.get::<_, Option<String>>("recurring_status")? {
+                Some(status) => Some(RecurringInfo {
+                    status,
                     frequency: row.get("recurring_frequency")?,
                     execution_count: row.get("recurring_execution_count")?,
                     total_occurrences: row.get("recurring_total_occurrences").ok(),
                     day_of_month: row.get("recurring_day_of_month_def")?,
-                })
-            } else {
-                None
+                    start_date: row.get("recurring_start_date")?,
+                    next_due_date: row.get("recurring_next_due_date")?,
+                }),
+                None => None,
             };
             Ok(TransactionForTable {
                 transaction,
@@ -452,15 +457,17 @@ pub fn get_filtered_transactions_handler(
 
     // Base query with JOIN
     let select_query = "
-      SELECT
+        SELECT 
         t.id, t.user_id, t.date, t.amount, t.currency, t.description, t.type, t.category, t.is_chomesh, t.recipient, t.created_at, t.updated_at, t.source_recurring_id, t.occurrence_number,
-        rt.status as recurring_status,
-        rt.frequency as recurring_frequency,
-        rt.execution_count as recurring_execution_count,
-        rt.total_occurrences as recurring_total_occurrences,
-        rt.day_of_month as recurring_day_of_month_def
-      FROM transactions t
-      LEFT JOIN recurring_transactions rt ON t.source_recurring_id = rt.id
+            rt.status as recurring_status,
+            rt.frequency as recurring_frequency,
+            rt.execution_count as recurring_execution_count,
+            rt.total_occurrences as recurring_total_occurrences,
+            rt.day_of_month as recurring_day_of_month_def,
+            rt.start_date as recurring_start_date,
+            rt.next_due_date as recurring_next_due_date
+        FROM transactions t
+        LEFT JOIN recurring_transactions rt ON t.source_recurring_id = rt.id
     ".to_string();
 
     let count_query = "SELECT COUNT(t.id) FROM transactions t LEFT JOIN recurring_transactions rt ON t.source_recurring_id = rt.id".to_string();
@@ -654,8 +661,10 @@ pub fn get_filtered_transactions_handler(
                 status,
                 frequency: row.get("recurring_frequency")?,
                 execution_count: row.get("recurring_execution_count")?,
-                total_occurrences: row.get("recurring_total_occurrences")?,
+                total_occurrences: row.get("recurring_total_occurrences").ok(),
                 day_of_month: row.get("recurring_day_of_month_def")?,
+                start_date: row.get("recurring_start_date")?,
+                next_due_date: row.get("recurring_next_due_date")?,
             }),
             None => None,
         };

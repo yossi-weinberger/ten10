@@ -23,12 +23,13 @@ export const transactionTypes = [
 ] as const;
 
 export interface RecurringInfo {
-  id: string;
-  frequency: "daily" | "weekly" | "monthly" | "yearly";
-  status: "active" | "paused" | "completed" | "cancelled";
+  status: string;
+  frequency: string;
   execution_count: number;
-  total_occurrences?: number | null;
-  day_of_month?: number | null;
+  total_occurrences: number | null;
+  day_of_month: number;
+  start_date: string;
+  next_due_date: string;
 }
 
 // Define the core Transaction interface
