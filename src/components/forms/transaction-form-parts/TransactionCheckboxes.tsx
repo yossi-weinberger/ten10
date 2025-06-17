@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
-import type { TransactionFormValues } from "../TransactionForm"; // Adjust path as needed
+import type { TransactionFormValues } from "@/types/forms"; // Adjust path as needed
 import { TransactionType } from "@/types/transaction"; // Import TransactionType
 import { FormControl, FormItem, FormLabel } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
@@ -99,7 +99,7 @@ export function TransactionCheckboxes({
                     </div>
                     <FormControl>
                       <Switch
-                        checked={field.value}
+                        checked={field.value ?? false}
                         onCheckedChange={field.onChange}
                       />
                     </FormControl>
@@ -133,7 +133,7 @@ export function TransactionCheckboxes({
             </div>
             <FormField
               control={form.control}
-              name="is_tithable_expense"
+              name="isRecognized"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
@@ -143,7 +143,7 @@ export function TransactionCheckboxes({
                   </div>
                   <FormControl>
                     <Switch
-                      checked={field.value}
+                      checked={field.value ?? false}
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
