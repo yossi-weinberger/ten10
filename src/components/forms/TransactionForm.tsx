@@ -14,6 +14,7 @@ import { DescriptionCategoryFields } from "./transaction-form-parts/DescriptionC
 import { TransactionCheckboxes } from "./transaction-form-parts/TransactionCheckboxes";
 import { RecurringFields } from "./transaction-form-parts/RecurringFields";
 import { FormActionButtons } from "./transaction-form-parts/FormActionButtons";
+import { CURRENCIES } from "@/lib/currencies";
 
 // Hebrew labels for transaction types
 const transactionTypeLabels: Record<TransactionType, string> = {
@@ -69,8 +70,6 @@ export function TransactionForm({
     ? storedDefaultCurrency
     : "ILS";
 
-  const availableCurrencies = ["ILS", "USD", "EUR"];
-
   // State for success animation
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -108,13 +107,13 @@ export function TransactionForm({
       setIsSuccess(true);
       setTimeout(() => {
         setIsSuccess(false);
-        const currentType = form.getValues("type");
+        // Reset the form but preserve the last selected transaction type
         form.reset({
           date: new Date().toISOString().split("T")[0],
           amount: undefined,
-          currency: defaultCurrency, // Reset to a guaranteed valid currency
+          currency: defaultCurrency,
           description: "",
-          type: currentType,
+          type: values.type, // Preserve the last selected type from the submitted values
           category: "",
           is_chomesh: false,
           recipient: "",
@@ -127,7 +126,7 @@ export function TransactionForm({
           recurringTotalCount: undefined,
         });
         if (onSubmitSuccess) onSubmitSuccess();
-      }, 1500);
+      }, 1500); // Reset after 1.5s
     } catch (error) {
       console.error("Error during form submission process:", error);
       // TODO: Add user-facing error message (e.g., using a toast library)
@@ -149,7 +148,7 @@ export function TransactionForm({
         {/* סכום (כולל מטבע) ותאריך באותה שורה - Replaced with new component */}
         <AmountCurrencyDateFields
           form={form}
-          availableCurrencies={availableCurrencies}
+          availableCurrencies={CURRENCIES}
         />
 
         {/* תיאור וקטגוריה/מקבל תרומה באותה שורה - Replaced with new component */}

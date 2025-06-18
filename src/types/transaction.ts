@@ -1,7 +1,7 @@
 // Remove circular import of Currency from store.ts
 
 // Define the possible currency types
-export type Currency = "ILS" | "USD" | "EUR" | "GBP"; // Added other common currencies
+export type Currency = "ILS" | "USD" | "EUR";
 
 // Define the possible types for a transaction
 export type TransactionType =
@@ -87,3 +87,5 @@ export type TransactionCategory =
   | "utility"
   | "wage"
   | "other";
+
+export type Status = "pending" | "completed" | "cancelled" | "failed";
