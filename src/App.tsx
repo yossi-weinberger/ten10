@@ -15,6 +15,7 @@ import { setPlatform as setGlobalPlatform } from "./lib/platformManager";
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isAppReady, setIsAppReady] = useState(false);
 
   const { platform } = usePlatform();
 
@@ -28,31 +29,38 @@ function App() {
               .then(() => {
                 console.log("Database initialized successfully.");
                 // Now, execute the recurring transactions handler
-                invoke("execute_due_recurring_transactions_handler")
-                  .then((message) => {
-                    console.log(
-                      "Recurring transactions handler executed:",
-                      message
-                    );
-                  })
-                  .catch((error) =>
-                    console.error(
-                      "Error executing recurring transactions handler:",
-                      error
-                    )
-                  );
+                return invoke("execute_due_recurring_transactions_handler");
+              })
+              .then((message) => {
+                console.log(
+                  "Recurring transactions handler executed:",
+                  message
+                );
               })
               .catch((error) =>
-                console.error("Error initializing database:", error)
-              );
+                console.error(
+                  "Error during desktop initialization sequence:",
+                  error
+                )
+              )
+              .finally(() => {
+                setIsAppReady(true);
+              });
           })
-          .catch((e) => console.error("Failed to load Tauri core API", e));
+          .catch((e) => {
+            console.error("Failed to load Tauri core API", e);
+            setIsAppReady(true);
+          });
+      } else {
+        // For web, we can consider the app ready once platform is known.
+        // Auth and data loading are handled within components/contexts.
+        setIsAppReady(true);
       }
     }
   }, [platform]);
 
-  if (platform === "loading") {
-    return <div>Loading platform info...</div>;
+  if (!isAppReady) {
+    return null;
   }
 
   return (

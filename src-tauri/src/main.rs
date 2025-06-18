@@ -45,12 +45,6 @@ struct Transaction {
     #[serde(skip_serializing_if = "Option::is_none")]
     recipient: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    is_recurring: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    recurring_day_of_month: Option<i32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    recurring_total_count: Option<i32>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     source_recurring_id: Option<String>,
 }
 
@@ -74,10 +68,7 @@ async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
             is_chomesh INTEGER,
             recipient TEXT,
             created_at TEXT,
-            updated_at TEXT,
-            is_recurring INTEGER,
-            recurring_day_of_month INTEGER,
-            recurring_total_count INTEGER
+            updated_at TEXT
         )",
         [],
     )
@@ -119,6 +110,27 @@ async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     }
 
+    // Add occurrence_number to transactions table if it doesn't exist
+    if !column_exists(&conn, "transactions", "occurrence_number").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE transactions ADD COLUMN occurrence_number INTEGER",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    // --- Cleanup: Drop old recurring columns if they exist ---
+    let columns_to_drop = vec!["is_recurring", "recurring_day_of_month", "recurring_total_count"];
+    for col in columns_to_drop {
+        if column_exists(&conn, "transactions", col).map_err(|e| e.to_string())? {
+            // Note: DROP COLUMN might not be supported in older SQLite versions,
+            // but it's available in versions shipped with recent tauri builds.
+            conn.execute(&format!("ALTER TABLE transactions DROP COLUMN {}", col), [])
+                .map_err(|e| e.to_string())?;
+            println!("[DB Migration] Dropped deprecated column: {}", col);
+        }
+    }
+
     Ok(())
 }
 
@@ -142,8 +154,8 @@ async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Re
 
     let conn = db.0.lock().map_err(|e| e.to_string())?;
     conn.execute(
-        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at, is_recurring, recurring_day_of_month, recurring_total_count, source_recurring_id)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16)",
+        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at, source_recurring_id)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
         (
             &transaction.id,
             &transaction.user_id,
@@ -157,9 +169,6 @@ async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Re
             &transaction.recipient,
             &transaction.created_at,
             &transaction.updated_at,
-            &transaction.is_recurring.map(|b| b as i32),
-            &transaction.recurring_day_of_month,
-            &transaction.recurring_total_count,
             &transaction.source_recurring_id,
         ),
     ).map_err(|e| e.to_string())?;

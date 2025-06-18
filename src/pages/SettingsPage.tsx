@@ -8,21 +8,23 @@ import {
 } from "@/components/ui/card";
 import { useTheme } from "@/lib/theme";
 import { useDonationStore } from "@/lib/store";
-import { clearAllData } from "@/lib/dataService";
+import { clearAllData } from "@/lib/data-layer";
 import toast from "react-hot-toast";
 import { usePlatform } from "@/contexts/PlatformContext";
 import {
-  exportDataDesktop,
-  importDataDesktop,
   exportDataWeb,
   importDataWeb,
-} from "@/lib/dataManagement";
+  exportDataDesktop,
+  importDataDesktop,
+} from "@/lib/data-layer/dataManagement.service";
 import { LanguageAndDisplaySettingsCard } from "@/components/settings/LanguageAndDisplaySettingsCard";
 import { FinancialSettingsCard } from "@/components/settings/FinancialSettingsCard";
 import { NotificationSettingsCard } from "@/components/settings/NotificationSettingsCard";
 import { CalendarSettingsCard } from "@/components/settings/CalendarSettingsCard";
 import { ClearDataSection } from "@/components/settings/ClearDataSection";
 import { ImportExportDataSection } from "@/components/settings/ImportExportDataSection";
+import { Button } from "@/components/ui/button";
+import { getPlatform } from "@/lib/platformManager";
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();

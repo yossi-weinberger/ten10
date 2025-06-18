@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { TransactionTypeValues, Currency } from "../types/transaction"; // Import Currency type as well
+import { transactionTypes, Currency } from "../types/transaction"; // Import Currency type as well
 
 // Define currency values from the Currency type for Zod enum
 const currencyEnumValues = ["ILS", "USD", "EUR", "GBP"] as [
@@ -29,7 +29,7 @@ export const transactionBaseSchema = z.object({
     .max(255, "תיאור ארוך מדי (מקסימום 255 תווים)")
     .optional()
     .nullable(),
-  type: z.enum(TransactionTypeValues, {
+  type: z.enum(transactionTypes, {
     errorMap: () => ({ message: "סוג תנועה לא תקין" }),
   }),
   category: z.string().max(100, "קטגוריה ארוכה מדי").optional().nullable(),
@@ -51,6 +51,9 @@ export const transactionBaseSchema = z.object({
     .nullable(),
   created_at: z.string().datetime().optional(),
   updated_at: z.string().datetime().optional(),
+  source_recurring_id: z.string().optional().nullable(),
+  occurrence_number: z.number().optional().nullable(),
+  recurring_info: z.any().optional(), // Allow any shape for now, can be refined later
 });
 
 // Specific schemas can extend or refine the base if needed
@@ -70,4 +73,8 @@ export const donationSchema = transactionBaseSchema.extend({
 
 export const expenseSchema = transactionBaseSchema.extend({
   type: z.literal("expense"),
+});
+
+export const transactionFormSchema = transactionBaseSchema.extend({
+  is_recurring_checkbox: z.boolean().optional(),
 });

@@ -29,6 +29,7 @@ export interface TableTransactionsState {
   error: string | null; // General error for fetching transactions
   exportLoading: boolean; // Specific loading for export action
   exportError: string | null; // Specific error for export action
+  totalCount: number; // Added for total count
 
   // Actions
   fetchTransactions: (reset?: boolean, platform?: Platform) => Promise<void>;
@@ -62,6 +63,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
     error: null,
     exportLoading: false,
     exportError: null,
+    totalCount: 0,
 
     // Actions
     fetchTransactions: async (reset?: boolean, platform?: Platform) => {
@@ -196,11 +198,19 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
 
     updateTransactionState: (id, updates) => {
       set((state) => ({
-        transactions: state.transactions.map((t) =>
-          t.id === id
-            ? { ...t, ...updates, updated_at: new Date().toISOString() }
-            : t
-        ),
+        transactions: state.transactions.map((t) => {
+          if (t.id === id) {
+            // Preserve the existing occurrence_number if it's not in the updates
+            const newUpdates = {
+              ...updates,
+              occurrence_number:
+                updates.occurrence_number ?? t.occurrence_number,
+              updated_at: new Date().toISOString(),
+            };
+            return { ...t, ...newUpdates };
+          }
+          return t;
+        }),
       }));
     },
 
@@ -238,58 +248,87 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
       }
     },
 
-    deleteTransactionState: (id) => {
+    deleteTransactionState: (id: string) => {
       set((state) => ({
         transactions: state.transactions.filter((t) => t.id !== id),
+        totalCount: state.totalCount > 0 ? state.totalCount - 1 : 0,
         pagination: {
           ...state.pagination,
-          totalCount: Math.max(0, state.pagination.totalCount - 1),
+          totalCount:
+            state.pagination.totalCount > 0
+              ? state.pagination.totalCount - 1
+              : 0,
         },
       }));
     },
 
     deleteTransaction: async (id, platform) => {
-      const originalTransactions = get().transactions;
-      const originalPagination = get().pagination;
-      const transactionToDelete = originalTransactions.find((t) => t.id === id);
+      const originalTransactions = [...get().transactions];
+      const originalTotalCount = get().totalCount;
+      const originalPagination = { ...get().pagination };
 
-      if (!transactionToDelete) {
-        console.error("Transaction to delete not found in store:", id);
-        set({ error: "Transaction to delete not found." });
-        return;
-      }
-
-      // Optimistic update
+      // Optimistic delete
       get().deleteTransactionState(id);
       set({ error: null });
 
       try {
         await TableTransactionsService.deleteTransaction(id, platform);
-        // After successful deletion via dataService (which updates lastDbFetchTimestamp),
-        // we rely on optimistic update for table smoothness. Other components (like StatsCards) will update via lastDbFetchTimestamp.
-        console.log(
-          `TableTransactionsStore: Deletion for ${id} successful on server. Optimistic update applied to table.`
-        );
+        console.log(`Transaction ${id} deleted successfully from server.`);
       } catch (err: any) {
-        console.error("Failed to delete transaction from server:", err);
-        // Rollback optimistic update
+        console.error("Failed to delete transaction:", err);
         set({
-          error: err.message || "Failed to delete transaction.",
           transactions: originalTransactions,
+          totalCount: originalTotalCount,
           pagination: originalPagination,
+          error: err.message || "Failed to delete transaction.",
         });
-        throw err;
+      }
+    },
+
+    exportTransactions: async (format, platform) => {
+      console.log(`TableTransactionsStore: Exporting to ${format}`);
+      set({ exportLoading: true, exportError: null });
+
+      try {
+        const { filters } = get();
+        const { transactions: transactionsToExport, totalCount } =
+          await TableTransactionsService.getDataForExport(filters, platform);
+
+        console.log(
+          `Exporting ${transactionsToExport.length} transactions with a total count of ${totalCount}.`
+        );
+
+        if (format === "pdf") {
+          const exportFilters = {
+            dateRange: {
+              from: filters.dateRange.from
+                ? new Date(filters.dateRange.from)
+                : undefined,
+              to: filters.dateRange.to
+                ? new Date(filters.dateRange.to)
+                : undefined,
+            },
+          };
+          await exportTransactionsToPDF(
+            transactionsToExport,
+            exportFilters,
+            totalCount
+          );
+        } else if (format === "excel") {
+          await exportTransactionsToExcel(transactionsToExport);
+        } else if (format === "csv") {
+          await exportTransactionsToCSV(transactionsToExport);
+        }
+      } catch (err: any) {
+        console.error("Failed to export transactions:", err);
+        set({ exportError: err.message || "Failed to export transactions." });
+      } finally {
+        set({ exportLoading: false });
       }
     },
 
     resetFiltersState: () => {
-      set({
-        filters: initialTableTransactionFilters,
-        pagination: {
-          ...get().pagination,
-          currentPage: 1,
-        },
-      });
+      set({ filters: initialTableTransactionFilters });
     },
 
     resetStore: () => {
@@ -300,43 +339,10 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         pagination: initialTablePaginationState,
         loading: false,
         error: null,
+        exportLoading: false,
+        exportError: null,
+        totalCount: 0,
       });
-    },
-
-    exportTransactions: async (format, platform) => {
-      const { filters } = get();
-      set({ exportLoading: true, exportError: null, error: null });
-
-      try {
-        const transactionsToExport =
-          await TableTransactionsService.getTransactionsForExport(
-            filters,
-            platform
-          );
-
-        if (!transactionsToExport || transactionsToExport.length === 0) {
-          console.warn("No transactions to export.");
-          set({ exportLoading: false, exportError: "אין נתונים ליצוא." });
-          return;
-        }
-
-        if (format === "pdf") {
-          await exportTransactionsToPDF(transactionsToExport);
-        } else if (format === "excel") {
-          await exportTransactionsToExcel(transactionsToExport);
-        } else if (format === "csv") {
-          await exportTransactionsToCSV(transactionsToExport);
-        } else {
-          throw new Error("Unsupported export format");
-        }
-        set({ exportLoading: false, exportError: null });
-      } catch (err: any) {
-        console.error(`Failed to export transactions to ${format}:`, err);
-        set({
-          exportError: err.message || `Failed to export to ${format}`,
-          exportLoading: false,
-        });
-      }
     },
   })
 );

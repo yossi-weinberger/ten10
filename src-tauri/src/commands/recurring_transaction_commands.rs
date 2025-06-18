@@ -26,7 +26,7 @@ pub struct Transaction {
 // use crate::commands::transaction_commands::Transaction; // This was causing a conflict, using local definition for now.
 use crate::DbState;
 use chrono::{Local, Months, NaiveDate};
-use rusqlite::{params, Connection, Result as RusqliteResult, Transaction as RusqliteTransaction};
+use rusqlite::{params, Connection, Result as RusqliteResult};
 use serde::{Deserialize, Serialize};
 use tauri::State;
 use uuid::Uuid;
@@ -79,17 +79,6 @@ impl RecurringTransaction {
     }
 }
 
-fn get_due_recurring_transactions(
-    conn: &Connection,
-    today: &str,
-) -> RusqliteResult<Vec<RecurringTransaction>> {
-    let mut stmt = conn.prepare(
-        "SELECT * FROM recurring_transactions WHERE status = 'active' AND next_due_date <= ?1",
-    )?;
-    let rows = stmt.query_map(params![today], RecurringTransaction::from_row)?;
-    rows.collect()
-}
-
 fn calculate_next_due_date(current_due_date_str: &str, frequency: &str) -> Result<String, String> {
     let current_date = NaiveDate::parse_from_str(current_due_date_str, "%Y-%m-%d")
         .map_err(|e| format!("Failed to parse date: {}", e))?;
@@ -104,76 +93,23 @@ fn calculate_next_due_date(current_due_date_str: &str, frequency: &str) -> Resul
     Ok(next_date.format("%Y-%m-%d").to_string())
 }
 
-
-fn process_single_recurring_transaction(
-    db_transaction: &RusqliteTransaction,
-    rec: &RecurringTransaction,
-) -> Result<(), String> {
-    let new_transaction_id = Uuid::new_v4().to_string();
-    let now = Local::now().to_rfc3339();
-
-    // 1. Insert the new transaction
-    db_transaction
-        .execute(
-            "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, source_recurring_id, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
-            params![
-                new_transaction_id,
-                rec.user_id,
-                rec.next_due_date, // The date of execution is the due date
-                rec.amount,
-                rec.currency,
-                rec.description,
-                rec.type_str,
-                rec.category,
-                rec.is_chomesh.map(|b| b as i32),
-                rec.recipient,
-                rec.id, // Link to the source recurring transaction
-                now,
-                now,
-            ],
-        )
-        .map_err(|e| format!("Failed to insert new transaction: {}", e))?;
-
-    // 2. Update the recurring transaction definition
-    let new_execution_count = rec.execution_count + 1;
-    let new_next_due_date = calculate_next_due_date(&rec.next_due_date, &rec.frequency)?;
-    
-    let new_status = if let Some(total) = rec.total_occurrences {
-        if new_execution_count >= total {
-            "completed"
-        } else {
-            "active"
-        }
-    } else {
-        "active" // No total occurrences, so it's always active
-    };
-
-    db_transaction
-        .execute(
-            "UPDATE recurring_transactions 
-             SET execution_count = ?1, next_due_date = ?2, status = ?3, updated_at = ?4
-             WHERE id = ?5",
-            params![
-                new_execution_count,
-                new_next_due_date,
-                new_status,
-                Local::now().to_rfc3339(),
-                rec.id
-            ],
-        )
-        .map_err(|e| format!("Failed to update recurring transaction: {}", e))?;
-
-    Ok(())
+fn get_due_recurring_transactions(
+    conn: &Connection,
+    today: &str,
+) -> RusqliteResult<Vec<RecurringTransaction>> {
+    let mut stmt = conn.prepare(
+        "SELECT * FROM recurring_transactions WHERE status = 'active' AND next_due_date <= ?1",
+    )?;
+    let rows = stmt.query_map(params![today], RecurringTransaction::from_row)?;
+    rows.collect()
 }
-
 
 #[tauri::command]
 pub fn execute_due_recurring_transactions_handler(
     db_state: State<'_, DbState>,
 ) -> std::result::Result<String, String> {
     let start_time = std::time::Instant::now();
-    println!("[RUST] execute_due_recurring_transactions_handler called.");
+    println!("[RUST] Starting optimized recurring transactions execution.");
 
     let mut conn = db_state
         .0
@@ -181,41 +117,111 @@ pub fn execute_due_recurring_transactions_handler(
         .map_err(|e| format!("DB lock error: {}", e))?;
 
     let today_str = Local::now().format("%Y-%m-%d").to_string();
+    let today_date = NaiveDate::parse_from_str(&today_str, "%Y-%m-%d")
+        .expect("Could not parse today's date. This should not happen.");
 
-    let due_transactions = get_due_recurring_transactions(&conn, &today_str)
-        .map_err(|e| format!("Failed to query due transactions: {}", e))?;
-    
+    let due_transactions = match get_due_recurring_transactions(&conn, &today_str) {
+        Ok(trans) => trans,
+        Err(e) => return Err(format!("Failed to query due transactions: {}", e)),
+    };
+
     if due_transactions.is_empty() {
         return Ok("No recurring transactions were due. Execution finished.".to_string());
     }
-    
-    let num_due = due_transactions.len();
-    println!("[RUST] Found {} due recurring transaction(s). Processing...", num_due);
-    let mut processed_count = 0;
 
-    for rec in due_transactions {
-        // Use a database transaction for each recurring item to ensure atomicity
-        let db_tx = conn.transaction().map_err(|e| format!("Failed to start DB transaction: {}", e))?;
-        
-        match process_single_recurring_transaction(&db_tx, &rec) {
-            Ok(_) => {
-                db_tx.commit().map_err(|e| format!("Failed to commit DB transaction: {}", e))?;
-                processed_count += 1;
-                println!("[RUST] Successfully processed recurring transaction ID: {}", rec.id);
-            }
+    let num_due_definitions = due_transactions.len();
+    println!("[RUST] Found {} due recurring transaction definition(s). Processing...", num_due_definitions);
+    let mut total_processed_occurrences = 0;
+
+    'processing_loop: for mut rec in due_transactions {
+        let tx = match conn.transaction() {
+            Ok(tx) => tx,
+            Err(e) => return Err(format!("Failed to start DB transaction: {}", e)),
+        };
+
+        let mut occurrences_in_batch = 0;
+        let original_rec_id = rec.id.clone();
+
+        let mut current_due_date = match NaiveDate::parse_from_str(&rec.next_due_date, "%Y-%m-%d") {
+            Ok(date) => date,
             Err(e) => {
-                println!("[RUST ERROR] Failed to process recurring transaction ID: {}. Error: {}", rec.id, e);
-                // The transaction will be rolled back automatically on drop
-                // We can choose to continue to the next one or stop
+                eprintln!("[RUST ERROR] Could not parse date for recurring transaction {}: {}. Skipping.", original_rec_id, e);
+                continue; // Skip this recurring transaction
+            }
+        };
+
+        // Inner loop to process all past-due occurrences for this one recurring transaction
+        while current_due_date <= today_date {
+            if let Some(total) = rec.total_occurrences {
+                if rec.execution_count >= total {
+                    rec.status = "completed".to_string();
+                    break;
+                }
+            }
+
+            let new_transaction_id = Uuid::new_v4().to_string();
+            let now_iso = Local::now().to_rfc3339();
+            if let Err(e) = tx.execute(
+                "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, source_recurring_id, created_at, updated_at, occurrence_number)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
+                params![
+                    new_transaction_id, rec.user_id, current_due_date.format("%Y-%m-%d").to_string(),
+                    rec.amount, rec.currency, rec.description, rec.type_str, rec.category,
+                    rec.is_chomesh.map(|b| b as i32), rec.recipient, rec.id, now_iso, now_iso,
+                    rec.execution_count + 1,
+                ],
+            ) {
+                eprintln!("[RUST ERROR] Failed to insert new transaction for {}: {}. Rolling back this batch.", original_rec_id, e);
+                if let Err(rb_err) = tx.rollback() {
+                     eprintln!("[RUST ERROR] Failed to rollback transaction: {}", rb_err);
+                }
+                continue 'processing_loop; // Error in this batch, rollback and move to the next recurring transaction.
+            }
+
+            total_processed_occurrences += 1;
+            occurrences_in_batch += 1;
+            rec.execution_count += 1;
+
+            // Calculate the next due date for the next iteration
+            match calculate_next_due_date(&current_due_date.format("%Y-%m-%d").to_string(), &rec.frequency) {
+                Ok(next_date_str) => {
+                    current_due_date = NaiveDate::parse_from_str(&next_date_str, "%Y-%m-%d")
+                        .expect("calculate_next_due_date returned an invalid date format");
+                }
+                Err(e) => {
+                     eprintln!("[RUST ERROR] Could not calculate next due date for {}: {}. Stopping processing for this item.", original_rec_id, e);
+                     break;
+                }
             }
         }
+
+        // Update the recurring transaction definition with its new state
+        rec.next_due_date = current_due_date.format("%Y-%m-%d").to_string();
+        
+        if let Err(e) = tx.execute(
+            "UPDATE recurring_transactions SET execution_count = ?1, next_due_date = ?2, status = ?3, updated_at = ?4 WHERE id = ?5",
+            params![rec.execution_count, rec.next_due_date, rec.status, Local::now().to_rfc3339(), rec.id],
+        ) {
+            eprintln!("[RUST ERROR] Failed to update recurring transaction {}: {}. Rolling back.", original_rec_id, e);
+            if let Err(rb_err) = tx.rollback() {
+                eprintln!("[RUST ERROR] Failed to rollback transaction: {}", rb_err);
+            }
+            continue; // Move to the next recurring transaction
+        }
+
+        if let Err(e) = tx.commit() {
+            eprintln!("[RUST ERROR] Failed to commit transaction for {}: {}.", original_rec_id, e);
+        } else {
+            println!("[RUST] Successfully processed {} occurrence(s) for recurring ID: {}", occurrences_in_batch, original_rec_id);
+        }
     }
-    
+
     let duration = start_time.elapsed();
     let result_message = format!(
-        "Successfully processed {} out of {} due recurring transactions in {:?}",
-        processed_count, num_due, duration
+        "Execution finished in {:?}. Processed {} transaction occurrence(s) from {} definition(s).",
+        duration, total_processed_occurrences, num_due_definitions
     );
+
     println!("[RUST] {}", result_message);
     Ok(result_message)
 }

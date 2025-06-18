@@ -4,7 +4,7 @@ import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils";
 import { format, parse, subMonths } from "date-fns";
 import { he } from "date-fns/locale";
-import { fetchServerMonthlyChartData } from "@/lib/chartService";
+import { fetchServerMonthlyChartData } from "@/lib/data-layer/chart.service";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";

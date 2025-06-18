@@ -108,13 +108,15 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
                   <div className="flex items-center gap-1">
                     {transaction.recurring_info.total_occurrences ? (
                       <span>
-                        {transaction.recurring_info.execution_count}/
-                        {transaction.recurring_info.total_occurrences}
+                        {transaction.occurrence_number ??
+                          transaction.recurring_info.execution_count}
+                        /{transaction.recurring_info.total_occurrences}
                       </span>
                     ) : (
                       <div className="flex items-center gap-1" dir="ltr">
                         <span>
-                          {transaction.recurring_info.execution_count}
+                          {transaction.occurrence_number ??
+                            transaction.recurring_info.execution_count}
                         </span>
                         <span>/</span>
                         <Infinity className="h-3 w-3" />

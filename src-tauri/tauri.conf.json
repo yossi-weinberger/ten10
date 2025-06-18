@@ -35,7 +35,6 @@
         "fullscreen": false,
         "maximized": true,
         "resizable": true,
-        "transparent": true,
         "decorations": true,
         "acceptFirstMouse": true,
         "title": "Ten10",

@@ -1,11 +1,12 @@
 import { Transaction } from "@/types/transaction";
-import { useDonationStore } from "@/lib/store";
+import { useDonationStore } from "../store";
 import toast from "react-hot-toast";
+import { nanoid } from "nanoid";
 import {
   addTransaction,
   clearAllData as clearAllDataFromDataService,
-} from "./dataService";
-import { supabase } from "./supabaseClient";
+} from "./index";
+import { supabase } from "@/lib/supabaseClient";
 
 interface DataManagementOptions {
   setIsLoading: (loading: boolean) => void;
@@ -134,13 +135,52 @@ export const importDataDesktop = async ({
 
       await invoke("clear_all_data");
 
-      for (const transaction of transactionsToImport) {
-        const transactionForRust: any = { ...transaction };
-        if (transactionForRust.transaction_type && !transactionForRust.type) {
-          transactionForRust.type = transactionForRust.transaction_type;
-          delete transactionForRust.transaction_type;
+      const recurringIdMap = new Map<string, string>();
+      for (const item of transactionsToImport) {
+        try {
+          // The item from web export can be a complex object
+          const transaction = (item as any).transaction || item;
+          const recurringInfo = (item as any).recurring_info;
+          const webSourceRecurringId = recurringInfo?.id;
+
+          let desktopSourceRecurringId: string | undefined = undefined;
+
+          if (recurringInfo && webSourceRecurringId) {
+            if (recurringIdMap.has(webSourceRecurringId)) {
+              desktopSourceRecurringId =
+                recurringIdMap.get(webSourceRecurringId);
+            } else {
+              // This is the first time we see this recurring definition.
+              // We need to create it in the desktop DB.
+              const newDesktopId = nanoid();
+              const definitionToInsert = {
+                // We construct a payload that matches what `add_recurring_transaction_handler` expects
+                // It's based on the Transaction object itself, which holds the details
+                ...transaction,
+                ...recurringInfo,
+                id: newDesktopId, // Let Rust generate a new ID
+                user_id: undefined, // Not needed for desktop
+              };
+
+              await invoke("add_recurring_transaction_handler", {
+                recTransaction: definitionToInsert,
+              });
+
+              desktopSourceRecurringId = newDesktopId;
+              recurringIdMap.set(webSourceRecurringId, newDesktopId);
+            }
+          }
+
+          // Now, add the individual transaction, linking it to the new recurring ID if it exists
+          const transactionForRust = {
+            ...transaction,
+            source_recurring_id: desktopSourceRecurringId,
+          };
+
+          await invoke("add_transaction", { transaction: transactionForRust });
+        } catch (error) {
+          console.error("Error processing imported item:", item, error);
         }
-        await invoke("add_transaction", { transaction: transactionForRust });
       }
 
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
@@ -177,7 +217,7 @@ async function fetchAllTransactionsForExportWeb(): Promise<Transaction[]> {
 
   const { data, error } = await supabase
     .from("transactions")
-    .select("*")
+    .select("*, recurring_transactions(*)")
     .order("date", { ascending: false });
 
   if (error) {
@@ -185,9 +225,15 @@ async function fetchAllTransactionsForExportWeb(): Promise<Transaction[]> {
     throw error;
   }
 
-  return ((data as Transaction[]) || []).map((t_db) => {
-    const t_js: any = { ...t_db };
-    return t_js as Transaction;
+  return (data || []).map((t_db: any) => {
+    const recurring_info = t_db.recurring_transactions;
+    delete t_db.recurring_transactions;
+
+    const transaction: Transaction = {
+      ...t_db,
+      recurring_info: recurring_info || undefined,
+    };
+    return transaction;
   });
 }
 
@@ -296,17 +342,107 @@ export const importDataWeb = async ({
             return;
           }
 
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (!user) throw new Error("User not authenticated for web import.");
+
           await clearAllDataFromDataService();
 
+          const recurringIdMap = new Map<string, string>();
           let importCount = 0;
-          for (const transaction of transactionsToImport) {
+
+          for (const item of transactionsToImport) {
             try {
-              await addTransaction(transaction as Transaction);
+              const transaction = (item as any).transaction || item;
+              const recurringInfo = (item as any).recurring_info;
+              const desktopSourceRecurringId = transaction.source_recurring_id;
+
+              let webSourceRecurringId: string | undefined = undefined;
+
+              if (recurringInfo && desktopSourceRecurringId) {
+                if (recurringIdMap.has(desktopSourceRecurringId)) {
+                  webSourceRecurringId = recurringIdMap.get(
+                    desktopSourceRecurringId
+                  );
+                } else {
+                  const {
+                    status,
+                    frequency,
+                    execution_count,
+                    total_occurrences,
+                    day_of_month,
+                    start_date,
+                    next_due_date,
+                  } = recurringInfo;
+                  const {
+                    description,
+                    amount,
+                    currency,
+                    type,
+                    category,
+                    is_chomesh,
+                    recipient,
+                  } = transaction;
+
+                  const definitionToInsert = {
+                    user_id: user.id,
+                    status,
+                    frequency,
+                    execution_count,
+                    total_occurrences,
+                    day_of_month,
+                    start_date,
+                    next_due_date,
+                    description,
+                    amount,
+                    currency,
+                    type,
+                    category,
+                    is_chomesh,
+                    recipient,
+                  };
+
+                  const { data: newDefinition, error: definitionError } =
+                    await supabase
+                      .from("recurring_transactions")
+                      .insert(definitionToInsert)
+                      .select("id")
+                      .single();
+
+                  if (definitionError) {
+                    console.error(
+                      "Error creating recurring definition for",
+                      desktopSourceRecurringId,
+                      definitionError
+                    );
+                    continue;
+                  }
+
+                  if (newDefinition) {
+                    webSourceRecurringId = newDefinition.id;
+                    recurringIdMap.set(
+                      desktopSourceRecurringId,
+                      newDefinition.id
+                    );
+                  }
+                }
+              }
+
+              const transactionToInsert = {
+                ...transaction,
+                user_id: user.id,
+                source_recurring_id: webSourceRecurringId,
+              };
+
+              delete (transactionToInsert as any).recurring_info;
+
+              await addTransaction(transactionToInsert as Transaction);
               importCount++;
             } catch (singleAddError) {
               console.error(
                 "Error importing single transaction (web):",
-                transaction.id,
+                item.id,
                 singleAddError
               );
             }

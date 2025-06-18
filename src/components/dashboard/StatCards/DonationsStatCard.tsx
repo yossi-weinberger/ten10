@@ -4,7 +4,7 @@ import { HandHelping } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/currency";
 import CountUp from "react-countup";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
-import { ServerDonationData } from "@/lib/dataService";
+import { ServerDonationData } from "@/lib/data-layer";
 import { Progress } from "@/components/ui/progress";
 import { MagicStatCard } from "./MagicStatCard";
 

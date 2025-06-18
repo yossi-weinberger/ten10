@@ -7,7 +7,7 @@ import {
   fetchTotalDonationsInRange,
   fetchServerTitheBalance,
   ServerDonationData,
-} from "@/lib/dataService";
+} from "@/lib/data-layer";
 import { User } from "@/contexts/AuthContext";
 import { DateRangeObject } from "./useDateControls";
 import { Platform } from "@/contexts/PlatformContext";

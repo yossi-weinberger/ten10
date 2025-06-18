@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Transaction, TransactionType, Currency } from "@/types/transaction";
-import { TransactionTypeValues } from "@/types/transaction";
+import { transactionTypes } from "@/types/transaction";
 import { useForm, SubmitHandler, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { transactionBaseSchema } from "@/lib/schemas";
@@ -261,13 +261,12 @@ export function TransactionEditModal({
               render={({ field }) => (
                 <Select onValueChange={field.onChange} value={field.value}>
                   <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="בחר סוג תנועה" />
+                    <SelectValue placeholder="בחר סוג" />
                   </SelectTrigger>
                   <SelectContent>
-                    {TransactionTypeValues.map((typeVal) => (
-                      <SelectItem key={typeVal} value={typeVal}>
-                        {transactionTypeLabels[typeVal as TransactionType] ||
-                          typeVal}
+                    {transactionTypes.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {transactionTypeLabels[t]}
                       </SelectItem>
                     ))}
                   </SelectContent>

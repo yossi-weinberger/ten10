@@ -15,11 +15,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { TransactionFormValues } from "../TransactionForm";
+import type { TransactionFormValues } from "@/types/forms";
+import { type CurrencyObject } from "@/lib/currencies";
 
 interface AmountCurrencyDateFieldsProps {
   form: UseFormReturn<TransactionFormValues>;
-  availableCurrencies: string[];
+  availableCurrencies: readonly CurrencyObject[];
 }
 
 export function AmountCurrencyDateFields({
@@ -67,8 +68,8 @@ export function AmountCurrencyDateFields({
                 </FormControl>
                 <SelectContent>
                   {availableCurrencies.map((currency) => (
-                    <SelectItem key={currency} value={currency}>
-                      {currency}
+                    <SelectItem key={currency.code} value={currency.code}>
+                      {`${currency.symbol} ${currency.code}`}
                     </SelectItem>
                   ))}
                 </SelectContent>

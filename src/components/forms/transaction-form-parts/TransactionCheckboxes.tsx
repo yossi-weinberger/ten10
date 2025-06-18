@@ -10,8 +10,11 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
-import type { TransactionFormValues } from "../TransactionForm"; // Adjust path as needed
+import type { TransactionFormValues } from "@/types/forms"; // Adjust path as needed
 import { TransactionType } from "@/types/transaction"; // Import TransactionType
+import { FormControl, FormItem, FormLabel } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 interface TransactionCheckboxesProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -91,8 +94,11 @@ export function TransactionCheckboxes({
                 name="is_chomesh"
                 render={({ field }) => (
                   <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+                    checked={field.value ?? false}
+                    onCheckedChange={(checked) => {
+                      if (isExemptChecked) return;
+                      field.onChange(checked);
+                    }}
                     disabled={isExemptChecked}
                     className="size-6 rounded border mt-auto"
                   />
@@ -104,7 +110,7 @@ export function TransactionCheckboxes({
         {selectedType === "expense" && (
           <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
             <div className="flex items-center justify-center mb-2 text-center">
-              <span className="text-xs font-medium">הוצאה מוכרת?</span>
+              <span className="text-xs font-medium">הוצאה מוכרת למעשר?</span>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -128,7 +134,7 @@ export function TransactionCheckboxes({
               name="isRecognized"
               render={({ field }) => (
                 <Checkbox
-                  checked={field.value}
+                  checked={field.value ?? false}
                   onCheckedChange={field.onChange}
                   className="size-6 rounded border mt-auto"
                 />

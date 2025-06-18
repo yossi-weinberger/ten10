@@ -1,7 +1,7 @@
 // import { invoke } from "@tauri-apps/api/core"; // STATIC IMPORT REMOVED
-import { supabase } from "./supabaseClient"; // Assuming supabaseClient is correctly set up
+import { supabase } from "@/lib/supabaseClient";
 // import { getCurrentPlatform } from "./platformService"; // No longer needed
-import { getPlatform } from "./platformManager";
+import { getPlatform } from "../platformManager";
 
 export interface MonthlyDataPoint {
   month_label: string; // "YYYY-MM"

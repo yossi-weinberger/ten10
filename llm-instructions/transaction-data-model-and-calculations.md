@@ -16,10 +16,6 @@ This document outlines the standard approach for handling financial transactions
   - `category`: `string | null` (Optional category, primarily for 'expense' and 'recognized-expense' types)
   - `created_at`: `string` (ISO 8601 timestamp, optional)
   - `updated_at`: `string` (ISO 8601 timestamp, optional)
-    // Recurring Transaction Fields (relevant for income/donation)
-  - `is_recurring`: `boolean` (Optional, indicates if the transaction is a standing order)
-  - `recurring_day_of_month`: `number | null` (Optional, day of month (1-31) for recurring transactions)
-  - `recurring_total_count`: `number | null` (Optional, total number of installments for a recurring transaction. Null or 0 can represent unlimited installments.)
 - **Transaction Type (`TransactionType`)**: Enum/string literal union defining the nature of the transaction and its impact on tithe calculation.
   - `'income'`: Regular income subject to tithe (10% or 20%). Requires `is_chomesh: boolean`. Can be recurring.
   - `'donation'`: Includes donations, tzedakah, and mitzvah expenses permissible to be paid from tithe funds (e.g., tuition fees for religious studies). Reduces required tithe by 100% of the amount. Requires `recipient: string` (or similar field indicating purpose). Can be recurring.
@@ -49,7 +45,7 @@ This document outlines the standard approach for handling financial transactions
   - `filters`: Stores active filter criteria (`search`, `dateRange`, `types`).
   - `sorting`: Stores current sorting configuration (`field`, `direction`).
   - `exportLoading: boolean`, `exportError: string | null`: Manages state for data export operations.
-- **Data Fetching:** This store is responsible for fetching its own data through `transactionService.ts` (`TableTransactionsService.fetchTransactions`), which handles platform-specific calls to Supabase RPCs or Tauri commands designed for paginated and filtered data.
+- **Data Fetching:** This store is responsible for fetching its own data through `src/lib/tableTransactions/tableTransactionService.ts` (`TableTransactionsService.fetchTransactions`), which handles platform-specific calls to Supabase RPCs or Tauri commands designed for paginated and filtered data.
 - **Relationship with `useDonationStore`:** These two stores operate largely independently. `useDonationStore` might hold a broader set of all transactions for general calculations, while `useTableTransactionsStore` manages the specific view and interaction logic for the main transactions table. There isn't typically a direct data flow from one to the other for the `transactions` array itself; each fetches data as needed for its purpose.
 
 ## 3. Balance Calculation Logic (Overall Tithe Balance)
@@ -82,44 +78,41 @@ This document outlines the standard approach for handling financial transactions
 
 **`transactions` Table Schema Example (Consistent `snake_case`):**
 
-| Column Name              | Data Type (SQL)                     | Description                                                    | Nullable | Notes                                                                         |
-| ------------------------ | ----------------------------------- | -------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------- |
-| `id`                     | `TEXT` / `VARCHAR` / `UUID`         | Primary Key, Unique identifier for the transaction             | No       | Use `nanoid` or DB's UUID generation                                          |
-| `user_id`                | `TEXT` / `VARCHAR` / `UUID`         | Foreign Key to users table (Supabase), Identifier of the owner | Yes      | **Crucial for RLS in Supabase**. Can be NULL in SQLite (Desktop).             |
-| `date`                   | `TEXT` / `DATE`                     | Date of the transaction (YYYY-MM-DD)                           | No       |                                                                               |
-| `amount`                 | `REAL` / `NUMERIC` / `DECIMAL`      | Transaction amount (positive value)                            | No       | Choose precision as needed                                                    |
-| `currency`               | `TEXT` / `VARCHAR(3)`               | Currency code (e.g., 'ILS')                                    | No       |                                                                               |
-| `description`            | `TEXT`                              | User-provided description                                      | Yes      |                                                                               |
-| `type`                   | `TEXT` / `VARCHAR`                  | Transaction type ('income', 'donation', 'expense', etc.)       | No       | Consider CHECK constraint for valid types (must include `non_tithe_donation`) |
-| `category`               | `TEXT` / `VARCHAR`                  | Optional category (e.g., 'Housing', 'Food')                    | Yes      | Primarily for expense types                                                   |
-| `is_chomesh`             | `BOOLEAN` / `INTEGER(1)`            | Indicates if 20% tithe applies (for 'income' type)             | Yes      | Only relevant for `type = 'income'`, NULL otherwise                           |
-| `recipient`              | `TEXT`                              | Recipient/purpose of donation (for 'donation' type)            | Yes      | Only relevant for `type = 'donation'`, NULL otherwise                         |
-| `is_recurring`           | `BOOLEAN` / `INTEGER(1)`            | Indicates if transaction is recurring (standing order)         | Yes      | Typically relevant for `type = 'income'` or `'donation'`                      |
-| `recurring_day_of_month` | `INTEGER`                           | Day of month (1-31) for recurring transactions                 | Yes      | Only relevant if `is_recurring = true`, NULL otherwise                        |
-| `recurring_total_count`  | `INTEGER`                           | Total number of installments for a recurring transaction       | Yes      | Only relevant if `is_recurring = true`, `NULL` otherwise.                     |
-| `created_at`             | `TEXT` / `TIMESTAMP WITH TIME ZONE` | Timestamp of creation                                          | Yes      | `DEFAULT CURRENT_TIMESTAMP` recommended                                       |
-| `updated_at`             | `TEXT` / `TIMESTAMP WITH TIME ZONE` | Timestamp of last update                                       | Yes      | Update using triggers or application logic                                    |
+| Column Name   | Data Type (SQL)                     | Description                                                    | Nullable | Notes                                                                         |
+| ------------- | ----------------------------------- | -------------------------------------------------------------- | -------- | ----------------------------------------------------------------------------- |
+| `id`          | `TEXT` / `VARCHAR` / `UUID`         | Primary Key, Unique identifier for the transaction             | No       | Use `nanoid` or DB's UUID generation                                          |
+| `user_id`     | `TEXT` / `VARCHAR` / `UUID`         | Foreign Key to users table (Supabase), Identifier of the owner | Yes      | **Crucial for RLS in Supabase**. Can be NULL in SQLite (Desktop).             |
+| `date`        | `TEXT` / `DATE`                     | Date of the transaction (YYYY-MM-DD)                           | No       |                                                                               |
+| `amount`      | `REAL` / `NUMERIC` / `DECIMAL`      | Transaction amount (positive value)                            | No       | Choose precision as needed                                                    |
+| `currency`    | `TEXT` / `VARCHAR(3)`               | Currency code (e.g., 'ILS')                                    | No       |                                                                               |
+| `description` | `TEXT`                              | User-provided description                                      | Yes      |                                                                               |
+| `type`        | `TEXT` / `VARCHAR`                  | Transaction type ('income', 'donation', 'expense', etc.)       | No       | Consider CHECK constraint for valid types (must include `non_tithe_donation`) |
+| `category`    | `TEXT` / `VARCHAR`                  | Optional category (e.g., 'Housing', 'Food')                    | Yes      | Primarily for expense types                                                   |
+| `is_chomesh`  | `BOOLEAN` / `INTEGER(1)`            | Indicates if 20% tithe applies (for 'income' type)             | Yes      | Only relevant for `type = 'income'`, NULL otherwise                           |
+| `recipient`   | `TEXT`                              | Recipient/purpose of donation (for 'donation' type)            | Yes      | Only relevant for `type = 'donation'`, NULL otherwise                         |
+| `created_at`  | `TEXT` / `TIMESTAMP WITH TIME ZONE` | Timestamp of creation                                          | Yes      | `DEFAULT CURRENT_TIMESTAMP` recommended                                       |
+| `updated_at`  | `TEXT` / `TIMESTAMP WITH TIME ZONE` | Timestamp of last update                                       | Yes      | Update using triggers or application logic                                    |
 
 **Current Supabase Implementation Note :**
 
-- **Naming Convention:** The column names in the Supabase `transactions` table and the corresponding TypeScript `Transaction` type now consistently use **`snake_case`** (e.g., `is_chomesh`, `created_at`, `recurring_total_count`). This was a deliberate change to improve consistency and maintainability across the codebase.
+- **Naming Convention:** The column names in the Supabase `transactions` table and the corresponding TypeScript `Transaction` type now consistently use **`snake_case`** (e.g., `is_chomesh`, `created_at`, `updated_at`). This was a deliberate change to improve consistency and maintainability across the codebase.
 - **Primary Key (`id`):** The `id` column in Supabase is of type `uuid` and its value is automatically generated by the database (`DEFAULT gen_random_uuid()`). The frontend **does not** send an `id` when creating new transactions.
-- **TypeScript Type (`Transaction`):** The `Transaction` type in TypeScript (`src/types/transaction.ts`) now also uses `snake_case` for all its fields, matching the database schema. Service layers like `transactionService.ts` ensure data is handled correctly with this consistent naming.
+- **TypeScript Type (`Transaction`):** The `Transaction` type in TypeScript (`src/types/transaction.ts`) now also uses `snake_case` for all its fields, matching the database schema. Service layers like the `data-layer` module ensure data is handled correctly with this consistent naming.
 
 ## 6. Data Flow Summary
 
 ### 6.1. General Data Flow (e.g., for Overall Tithe Balance, non-table specific data)
 
-- **Load**: Triggered by authentication events (`AuthContext`) and data freshness checks. Fetches all relevant `transactions` from DB (SQLite via Tauri for Desktop, Supabase for Web using `dataService` or similar general service) only if explicitly forced or if existing data in `useDonationStore` is stale. Populates `transactions` array in `useDonationStore`.
+- **Load**: Triggered by authentication events (`AuthContext`) and data freshness checks. Fetches all relevant `transactions` from DB (SQLite via Tauri for Desktop, Supabase for Web using the `data-layer` module or similar general service) only if explicitly forced or if existing data in `useDonationStore` is stale. Populates `transactions` array in `useDonationStore`.
 - **Display**: Read `transactions` from `useDonationStore`. Calculate overall tithe balance for display using the memoized selector/`useMemo` calling `calculateTotalRequiredDonation`.
-- **Save (General/Legacy)**: If using a general `dataService` to add transactions outside the table context, it would persist to DB and then potentially update `useDonationStore`.
+- **Save (General/Legacy)**: If using a general service from the `data-layer` module to add transactions outside the table context, it would persist to DB and then potentially update `useDonationStore`.
 
 ### 6.2. Data Flow for the Interactive Transactions Table
 
 - **Load/Fetch**: The `TransactionsTableDisplay` component, upon mount or when filters/sorting/pagination change (and platform is identified), triggers the `fetchTransactions` action in `useTableTransactionsStore`.
   - This action sets `loading` to true.
-  - It then calls the appropriate method in `transactionService.ts` (e.g., `TableTransactionsService.fetchTransactions`), passing the current filters, pagination, sorting, and platform.
-  - `transactionService.ts` invokes the relevant Supabase RPC (e.g., `get_paginated_transactions`) or Tauri command (e.g., `get_filtered_transactions_handler`).
+  - It then calls the appropriate method in `src/lib/tableTransactions/tableTransactionService.ts` (`TableTransactionsService.fetchTransactions`), passing the current filters, pagination, sorting, and platform.
+  - `tableTransactionService.ts` invokes the relevant Supabase RPC (e.g., `get_paginated_transactions`) or Tauri command (e.g., `get_filtered_transactions_handler`).
   - The response (a page of transactions and total count) is returned to the store.
   - The store updates its `transactions` array, `pagination` details, and sets `loading` to false. `error` is updated if necessary.
 - **Display**: `TransactionsTableDisplay` and its sub-components (`TransactionRow`, `TransactionsTableFooter`) subscribe to `useTableTransactionsStore` and re-render when its state (e.g., `transactions`, `loading`, `pagination.hasMore`) changes.
@@ -127,13 +120,13 @@ This document outlines the standard approach for handling financial transactions
   - User interaction in `TransactionRow` (e.g., clicking "Edit" or "Delete") triggers handlers in `TransactionsTableDisplay`.
   - For "Edit", `TransactionEditModal` is opened. Upon submission, its `onSubmit` function calls the `updateTransaction` action in `useTableTransactionsStore`.
   - For "Delete", after confirmation, `handleDeleteConfirm` calls the `deleteTransaction` action in `useTableTransactionsStore`.
-  - These store actions then call the respective methods in `transactionService.ts` (`updateTransaction`, `deleteTransaction`), which interact with the backend.
+  - These store actions then call the respective methods in `src/lib/tableTransactions/tableTransactionService.ts` (`updateTransaction`, `deleteTransaction`), which interact with the backend.
   - Upon successful backend operation, the store updates its local `transactions` array (e.g., modifies the item or removes it) to reflect the change immediately in the UI.
 - **Export**:
   - User selects an export format in `ExportButton.tsx`.
   - The `exportTransactions` action in `useTableTransactionsStore` is called.
   - This action sets `exportLoading` to true.
-  - It calls `transactionService.ts` (`TableTransactionsService.exportTransactions`), which fetches _all_ relevant data (respecting filters/sort, but not paginated) from the backend.
+  - It calls `src/lib/tableTransactions/tableTransactionService.ts` (`TableTransactionsService.exportTransactions`), which fetches _all_ relevant data (respecting filters/sort, but not paginated) from the backend.
   - Once data is received, client-side libraries (`exceljs`, `jspdf`) are used to generate and download the file.
   - `exportLoading` and `exportError` are updated accordingly.
 
@@ -148,7 +141,7 @@ This document outlines the standard approach for handling financial transactions
 - The dynamic calculation for the _overall tithe balance_ (`calculateTotalRequiredDonation`) is defined and can be used with data from `useDonationStore`.
 - **A new, comprehensive interactive transactions table has been implemented as per `llm-instructions/transactions-table-technical-overview.md`. This includes:**
   - **Dedicated Store:** `useTableTransactionsStore` (`src/lib/tableTransactions.store.ts`) for managing the table's specific state (filtered/sorted/paginated data, loading states, filters, etc.).
-  - **Dedicated Service:** `transactionService.ts` (`TableTransactionsService`) for handling data operations (fetch, update, delete, export) for the table, interacting with platform-specific backends (Supabase RPCs for web, Tauri commands for desktop).
+  - **Dedicated Service:** `src/lib/tableTransactions/tableTransactionService.ts` (`TableTransactionsService`) for handling data operations (fetch, update, delete, export) for the table, interacting with platform-specific backends (Supabase RPCs for web, Tauri commands for desktop).
   - **Core Table Components:**
     - `src/pages/TransactionsTable.tsx`: Main page hosting the table.
     - `src/components/TransactionsTable/TransactionsTableDisplay.tsx`: Core logic for data fetching, display, edit/delete initiation.
@@ -182,7 +175,7 @@ To add a new field (e.g., `notes`) to the `Transaction` model, you typically nee
     - Modify Rust functions (`#[tauri::command]`) in `src-tauri/src/main.rs` (or related modules) handling CRUD operations (`add_transaction`, `get_transactions`, etc.) to include the new field in SQL queries (`INSERT`, `UPDATE`, `SELECT`) and in data passed to/from the frontend via `invoke`.
 
 4.  **Frontend Logic (React/TypeScript):**
-    - **Data Fetching/Mutation:** Update functions calling the backend (`invoke` for Rust, `@supabase/supabase-js` methods for Web) to send and receive the new field. Check service files like `src/lib/dataService.ts`.
+    - **Data Fetching/Mutation:** Update functions calling the backend (`invoke` for Rust, `@supabase/supabase-js` methods for Web) to send and receive the new field. Check service files in `src/lib/data-layer/`.
     - **Validation (Zod):** Add the field to the Zod schema used for validation (likely near `TransactionForm`). Example: `notes: z.string().optional()`
     - **UI Components:**
       - Add input fields to forms (`src/components/TransactionForm.tsx` or similar) using `react-hook-form` and `shadcn/ui`.

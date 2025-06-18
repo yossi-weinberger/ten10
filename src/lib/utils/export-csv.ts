@@ -1,5 +1,9 @@
-import type { Transaction } from "@/types/transaction";
 import { transactionTypeLabels } from "@/types/transactionLabels";
+import type { Transaction } from "@/types/transaction";
+import {
+  recurringFrequencyLabels,
+  recurringStatusLabels,
+} from "@/types/recurringTransactionLabels";
 
 function escapeCsvCell(
   cellData: string | number | boolean | null | undefined
@@ -40,18 +44,28 @@ export function exportTransactionsToCSV(
     "סכום",
     "מטבע",
     "חומש?",
-    "קבועה?",
-    "יום בחודש (קבועה)",
-    "סך חזרות (קבועה)",
+    "סוג תנועה",
+    'סטטוס ה"ק',
+    'תדירות ה"ק',
+    'התקדמות ה"ק',
     "מזהה",
     "מזהה משתמש",
     "נוצר בתאריך",
     "עודכן בתאריך",
+    'מזהה ה"ק מקור',
   ];
 
   const csvRows = [
     headers.join(","), // Header row
     ...transactions.map((t) => {
+      const r = t.recurring_info;
+
+      const progress = r
+        ? r.total_occurrences
+          ? `${r.execution_count} מתוך ${r.total_occurrences}`
+          : `${r.execution_count}`
+        : "";
+
       const row = [
         new Date(t.date).toLocaleDateString("he-IL", {
           year: "numeric",
@@ -65,13 +79,15 @@ export function exportTransactionsToCSV(
         t.amount,
         t.currency,
         t.is_chomesh ? "כן" : t.is_chomesh === false ? "לא" : "",
-        t.is_recurring ? "כן" : t.is_recurring === false ? "לא" : "",
-        t.recurring_day_of_month ?? "",
-        t.recurring_total_count ?? "",
+        r ? "הוראת קבע" : "רגילה",
+        r ? recurringStatusLabels[r.status] || r.status : "",
+        r ? recurringFrequencyLabels[r.frequency] || r.frequency : "",
+        progress,
         t.id,
-        t.user_id,
+        t.user_id || "",
         t.created_at ? new Date(t.created_at).toLocaleString("he-IL") : "",
         t.updated_at ? new Date(t.updated_at).toLocaleString("he-IL") : "",
+        t.source_recurring_id || "",
       ];
       return row.map(escapeCsvCell).join(",");
     }),

@@ -87,7 +87,7 @@ The application needs to handle various types of financial entries, each affecti
 - **Status (Desktop - Phase 1)**:
   - **Export**: Implemented. Users can export all transactions to a JSON file.
   - **Import**: Implemented. Users can import transactions from a JSON file, which will overwrite existing data after user confirmation.
-  - **Logic Location**: Core import/export logic for desktop is located in `src/lib/dataManagement.ts`, invoked from `src/pages/SettingsPage.tsx`.
+  - **Logic Location**: Core import/export logic for desktop is located in `src/lib/data-layer/dataManagement.service.ts`, invoked from `src/pages/SettingsPage.tsx`.
 - **Status (Web)**: Not yet implemented.
 - **Format**: JSON, based on the unified `Transaction` data model.
 - **Pending/Future Improvements**:
