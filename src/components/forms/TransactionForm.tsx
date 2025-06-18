@@ -51,10 +51,24 @@ export function TransactionForm({
   onSubmitSuccess,
   onCancel,
 }: TransactionFormProps) {
-  const defaultCurrency = useDonationStore(
+  const storedDefaultCurrency = useDonationStore(
     (state) => state.settings.defaultCurrency
   );
-  // TODO: Fetch available currencies if needed, or use the type from store
+
+  // The form schema only allows these currencies.
+  const validCurrencies: Array<TransactionFormValues["currency"]> = [
+    "ILS",
+    "USD",
+    "EUR",
+  ];
+
+  // If the stored currency isn't one of the valid ones, default to ILS.
+  const defaultCurrency = validCurrencies.includes(
+    storedDefaultCurrency as (typeof validCurrencies)[number]
+  )
+    ? storedDefaultCurrency
+    : "ILS";
+
   const availableCurrencies = ["ILS", "USD", "EUR"];
 
   // State for success animation
@@ -94,9 +108,26 @@ export function TransactionForm({
       setIsSuccess(true);
       setTimeout(() => {
         setIsSuccess(false);
-        form.reset();
+        const currentType = form.getValues("type");
+        form.reset({
+          date: new Date().toISOString().split("T")[0],
+          amount: undefined,
+          currency: defaultCurrency, // Reset to a guaranteed valid currency
+          description: "",
+          type: currentType,
+          category: "",
+          is_chomesh: false,
+          recipient: "",
+          isExempt: false,
+          isRecognized: false,
+          isFromPersonalFunds: false,
+          is_recurring: false,
+          frequency: "monthly",
+          recurring_day_of_month: undefined,
+          recurringTotalCount: undefined,
+        });
         if (onSubmitSuccess) onSubmitSuccess();
-      }, 1500); // Reset after 1.5s
+      }, 1500);
     } catch (error) {
       console.error("Error during form submission process:", error);
       // TODO: Add user-facing error message (e.g., using a toast library)
