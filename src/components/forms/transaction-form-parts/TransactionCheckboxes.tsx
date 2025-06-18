@@ -93,17 +93,15 @@ export function TransactionCheckboxes({
                 control={form.control}
                 name="is_chomesh"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">הפרשת חומש?</FormLabel>
-                    </div>
-                    <FormControl>
-                      <Switch
-                        checked={field.value ?? false}
-                        onCheckedChange={field.onChange}
-                      />
-                    </FormControl>
-                  </FormItem>
+                  <Checkbox
+                    checked={field.value ?? false}
+                    onCheckedChange={(checked) => {
+                      if (isExemptChecked) return;
+                      field.onChange(checked);
+                    }}
+                    disabled={isExemptChecked}
+                    className="size-6 rounded border mt-auto"
+                  />
                 )}
               />
             </div>
@@ -135,19 +133,11 @@ export function TransactionCheckboxes({
               control={form.control}
               name="isRecognized"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">
-                      הוצאה מוכרת למעשר?
-                    </FormLabel>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value ?? false}
-                      onCheckedChange={field.onChange}
-                    />
-                  </FormControl>
-                </FormItem>
+                <Checkbox
+                  checked={field.value ?? false}
+                  onCheckedChange={field.onChange}
+                  className="size-6 rounded border mt-auto"
+                />
               )}
             />
           </div>

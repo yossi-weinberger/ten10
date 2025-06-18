@@ -80,8 +80,20 @@ export const transactionFormSchema = z
   })
   .refine(
     (data) => {
+      if (data.type === "income" && data.isExempt && data.is_chomesh) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "לא ניתן לסמן חומש עבור הכנסה פטורה",
+      path: ["is_chomesh"],
+    }
+  )
+  .refine(
+    (data) => {
       if (data.type === "donation") {
-        return !!data.recipient;
+        return true;
       }
       return true;
     },
