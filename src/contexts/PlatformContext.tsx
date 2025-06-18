@@ -5,6 +5,7 @@ import React, {
   useState,
   useEffect,
 } from "react";
+import AppLoader from "../components/layout/AppLoader";
 
 // 1. Define possible platform states
 export type Platform = "web" | "desktop" | "loading";
@@ -56,6 +57,14 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({
     detectPlatform();
   }, []);
 
+  // While platform is being detected, show a loader
+  if (platform === "loading") {
+    // This was commented out to debug platform detection.
+    // If detection now works, we can re-evaluate this loader logic.
+    return <AppLoader />;
+  }
+
+  // Once platform is detected, provide it to children
   return (
     <PlatformContext.Provider value={{ platform }}>
       {children}
