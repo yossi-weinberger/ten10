@@ -7,7 +7,6 @@ import {
   TransactionType,
 } from "@/types/transaction";
 import { nanoid } from "nanoid";
-import { addRecurringTransaction } from "./index";
 import { addTransaction } from "./transactions.service";
 import {
   createRecurringTransaction,
@@ -56,47 +55,22 @@ export async function handleTransactionSubmit(
 
   // Logic for recurring transactions
   if (values.is_recurring) {
-    if (platform === "desktop") {
-      const now = new Date();
-      const newRecTransaction: RecurringTransaction = {
-        id: nanoid(),
-        status: "active",
-        start_date: values.date,
-        next_due_date: values.date,
-        frequency: values.frequency || "monthly",
-        day_of_month: dayOfMonth,
-        total_occurrences: values.recurringTotalCount,
-        execution_count: 0,
-        description: values.description ?? undefined,
-        amount: values.amount,
-        currency: values.currency as RecurringTransaction["currency"],
-        type: finalType,
-        category: values.category ?? undefined,
-        is_chomesh: values.is_chomesh ?? undefined,
-        recipient: values.recipient ?? undefined,
-        user_id: null,
-        created_at: now.toISOString(),
-        updated_at: now.toISOString(),
-      };
-      await addRecurringTransaction(newRecTransaction);
-    } else {
-      // Web platform
-      const definition: NewRecurringTransaction = {
-        start_date: values.date,
-        next_due_date: values.date,
-        frequency: values.frequency || "monthly",
-        day_of_month: dayOfMonth,
-        total_occurrences: values.recurringTotalCount,
-        amount: values.amount,
-        currency: values.currency as RecurringTransaction["currency"],
-        description: values.description ?? undefined,
-        type: finalType,
-        category: values.category ?? undefined,
-        is_chomesh: values.is_chomesh ?? undefined,
-        recipient: values.recipient ?? undefined,
-      };
-      await createRecurringTransaction(definition);
-    }
+    const definition: NewRecurringTransaction = {
+      start_date: values.date,
+      next_due_date: values.date,
+      frequency: values.frequency || "monthly",
+      day_of_month: dayOfMonth,
+      total_occurrences: values.recurringTotalCount,
+      amount: values.amount,
+      currency: values.currency as RecurringTransaction["currency"],
+      description: values.description ?? undefined,
+      type: finalType,
+      category: values.category ?? undefined,
+      is_chomesh: values.is_chomesh ?? undefined,
+      recipient: values.recipient ?? undefined,
+    };
+    // The createRecurringTransaction function is platform-aware
+    await createRecurringTransaction(definition);
   } else {
     // Logic for standard, non-recurring transactions
     const newTransaction: Transaction = {

@@ -177,10 +177,20 @@ async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Re
 
 #[tauri::command]
 async fn clear_all_data(db: State<'_, DbState>) -> Result<(), String> {
-    let conn = db.0.lock().map_err(|e| e.to_string())?;
-    conn.execute("DELETE FROM transactions", [])
+    let mut conn = db.0.lock().map_err(|e| e.to_string())?;
+    
+    let tx = conn.transaction().map_err(|e| e.to_string())?;
+
+    tx.execute("DELETE FROM recurring_transactions", [])
+        .map_err(|e| e.to_string())?;
+    println!("Cleared all recurring_transactions from the database.");
+
+    tx.execute("DELETE FROM transactions", [])
         .map_err(|e| e.to_string())?;
     println!("Cleared all transactions from the database.");
+
+    tx.commit().map_err(|e| e.to_string())?;
+    
     Ok(())
 }
 
