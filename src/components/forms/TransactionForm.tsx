@@ -15,6 +15,9 @@ import { TransactionCheckboxes } from "./transaction-form-parts/TransactionCheck
 import { RecurringFields } from "./transaction-form-parts/RecurringFields";
 import { FormActionButtons } from "./transaction-form-parts/FormActionButtons";
 import { CURRENCIES } from "@/lib/currencies";
+import { Transaction } from "@/types/transaction";
+import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
+import { usePlatform } from "@/contexts/PlatformContext";
 
 // Hebrew labels for transaction types
 const transactionTypeLabels: Record<TransactionType, string> = {
@@ -34,7 +37,8 @@ const transactionTypeLabels: Record<TransactionType, string> = {
 // - category: perhaps more relevant for 'expense'/'recognized-expense'
 
 interface TransactionFormProps {
-  // initialData?: Transaction; // For editing later
+  initialData?: Transaction | null; // For editing
+  isEditMode?: boolean;
   onSubmitSuccess?: () => void; // Callback after successful submission
   onCancel?: () => void; // Callback for cancel action
 }
@@ -49,9 +53,15 @@ const backgroundStyles: Record<TransactionType, string> = {
 };
 
 export function TransactionForm({
+  initialData,
+  isEditMode = false,
   onSubmitSuccess,
   onCancel,
 }: TransactionFormProps) {
+  const { platform } = usePlatform();
+  const updateTransaction = useTableTransactionsStore(
+    (state) => state.updateTransaction
+  );
   const storedDefaultCurrency = useDonationStore(
     (state) => state.settings.defaultCurrency
   );
@@ -80,7 +90,7 @@ export function TransactionForm({
       amount: undefined,
       currency: defaultCurrency,
       description: "",
-      type: "income", // This will be the initial default for the form
+      type: "income",
       category: "",
       is_chomesh: false,
       recipient: "",
@@ -88,11 +98,29 @@ export function TransactionForm({
       isRecognized: false,
       isFromPersonalFunds: false,
       is_recurring: false,
-      frequency: "monthly", // Default to monthly
+      frequency: "monthly",
       recurring_day_of_month: undefined,
       recurringTotalCount: undefined,
     },
   });
+
+  // Use useEffect to reset the form when initialData changes (for editing)
+  React.useEffect(() => {
+    if (isEditMode && initialData) {
+      const defaultVals: Partial<TransactionFormValues> = {
+        ...initialData,
+        date: initialData.date
+          ? new Date(initialData.date).toISOString().split("T")[0]
+          : "",
+        // Map backend fields to form fields if necessary
+        isExempt: initialData.type === "exempt-income",
+        isRecognized: initialData.type === "recognized-expense",
+        isFromPersonalFunds: initialData.type === "non_tithe_donation",
+        is_recurring: !!initialData.source_recurring_id, // Example logic
+      };
+      form.reset(defaultVals);
+    }
+  }, [initialData, isEditMode, form]);
 
   const selectedType = form.watch("type");
   const isExemptChecked = form.watch("isExempt");
@@ -101,35 +129,68 @@ export function TransactionForm({
 
   async function onSubmit(values: TransactionFormValues) {
     setIsSuccess(false);
-    console.log("Form values submitted to onSubmit handler:", values);
-    try {
-      await handleTransactionSubmit(values);
-      setIsSuccess(true);
-      setTimeout(() => {
-        setIsSuccess(false);
-        // Reset the form but preserve the last selected transaction type
-        form.reset({
-          date: new Date().toISOString().split("T")[0],
-          amount: undefined,
-          currency: defaultCurrency,
-          description: "",
-          type: values.type, // Preserve the last selected type from the submitted values
-          category: "",
-          is_chomesh: false,
-          recipient: "",
-          isExempt: false,
-          isRecognized: false,
-          isFromPersonalFunds: false,
-          is_recurring: false,
-          frequency: "monthly",
-          recurring_day_of_month: undefined,
-          recurringTotalCount: undefined,
-        });
+    console.log("Form values submitted:", values);
+
+    if (isEditMode) {
+      if (!initialData || !initialData.id) {
+        console.error("Cannot update: missing initial data or transaction ID.");
+        return;
+      }
+      // Logic for updating an existing transaction
+      const updatePayload: Partial<Transaction> = {};
+      (Object.keys(values) as Array<keyof TransactionFormValues>).forEach(
+        (key) => {
+          if (values[key] !== initialData[key as keyof Transaction]) {
+            const value = values[key];
+            updatePayload[key as keyof Transaction] =
+              value === "" ? null : (value as any);
+          }
+        }
+      );
+      if (Object.keys(updatePayload).length > 0) {
+        try {
+          await updateTransaction(initialData.id, updatePayload, platform);
+          setIsSuccess(true);
+          setTimeout(() => {
+            setIsSuccess(false);
+            if (onSubmitSuccess) onSubmitSuccess();
+          }, 1500);
+        } catch (error) {
+          console.error("Error updating transaction:", error);
+        }
+      } else {
+        console.log("No changes detected, skipping update.");
         if (onSubmitSuccess) onSubmitSuccess();
-      }, 1500); // Reset after 1.5s
-    } catch (error) {
-      console.error("Error during form submission process:", error);
-      // TODO: Add user-facing error message (e.g., using a toast library)
+      }
+    } else {
+      // Logic for creating a new transaction
+      try {
+        await handleTransactionSubmit(values);
+        setIsSuccess(true);
+        setTimeout(() => {
+          setIsSuccess(false);
+          form.reset({
+            date: new Date().toISOString().split("T")[0],
+            amount: undefined,
+            currency: defaultCurrency,
+            description: "",
+            type: values.type,
+            category: "",
+            is_chomesh: false,
+            recipient: "",
+            isExempt: false,
+            isRecognized: false,
+            isFromPersonalFunds: false,
+            is_recurring: false,
+            frequency: "monthly",
+            recurring_day_of_month: undefined,
+            recurringTotalCount: undefined,
+          });
+          if (onSubmitSuccess) onSubmitSuccess();
+        }, 1500);
+      } catch (error) {
+        console.error("Error creating transaction:", error);
+      }
     }
   }
 
@@ -170,6 +231,7 @@ export function TransactionForm({
           isSubmitting={form.formState.isSubmitting}
           isSuccess={isSuccess}
           onCancel={onCancel}
+          isEditMode={isEditMode}
         />
       </form>
     </Form>

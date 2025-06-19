@@ -42,6 +42,17 @@ export default defineConfig(() => {
     optimizeDeps: {
       exclude: ["lucide-react"],
     },
+    // VITAL: This configuration is crucial for building a hybrid Tauri (Desktop) + Vercel (Web) app.
+    // THE PROBLEM:
+    // - A 'tauri build' for desktop NEEDS to bundle the '@tauri-apps/' modules to function.
+    // - A 'vercel build' for the web WILL FAIL if it tries to resolve '@tauri-apps/' modules,
+    //   as they don't exist on the Vercel build servers and are irrelevant for a web-only deployment.
+    // THE SOLUTION:
+    // We reliably detect if the build is running on Vercel by checking `process.env.VERCEL`.
+    // - If it IS a Vercel build (`isVercel` is true), we mark all Tauri modules as 'external'.
+    //   This tells Vite to ignore them, preventing the web build from breaking.
+    // - If it is NOT a Vercel build (i.e., a local `tauri build`), we provide an empty 'external'
+    //   array, which allows Vite to correctly bundle all necessary Tauri modules for the desktop app.
     build: {
       rollupOptions: {
         // If on Vercel, exclude Tauri modules. Otherwise (local build), include them.

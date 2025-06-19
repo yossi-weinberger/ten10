@@ -137,6 +137,7 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
         user_id: userId,
       };
 
+      // Clean up fields that should not be sent on insert
       delete (transactionToInsert as any).is_recurring;
       delete (transactionToInsert as any).recurring_day_of_month;
       delete (transactionToInsert as any).recurring_total_count;
@@ -248,16 +249,38 @@ export async function updateTransaction(
 
   if (Object.keys(payload).length === 0) {
     console.warn(
-      "TransactionsService: updateTransaction called with an empty payload."
+      `TransactionsService: Update for transaction ${transactionId} was called with an empty payload. Aborting.`
     );
+    return;
   }
+
+  // Sanitize payload to only include keys defined in TransactionUpdatePayload
+  const sanitizedPayload: TransactionUpdatePayload = {};
+  if (payload.date !== undefined) sanitizedPayload.date = payload.date;
+  if (payload.amount !== undefined) sanitizedPayload.amount = payload.amount;
+  if (payload.currency !== undefined)
+    sanitizedPayload.currency = payload.currency;
+  if (payload.description !== undefined)
+    sanitizedPayload.description = payload.description;
+  if (payload.type !== undefined) sanitizedPayload.type = payload.type;
+  if (payload.category !== undefined)
+    sanitizedPayload.category = payload.category;
+  if (payload.is_chomesh !== undefined)
+    sanitizedPayload.is_chomesh = payload.is_chomesh;
+  if (payload.recipient !== undefined)
+    sanitizedPayload.recipient = payload.recipient;
+
+  console.log(
+    `TransactionsService: Cleaned payload for transaction ${transactionId}:`,
+    sanitizedPayload
+  );
 
   if (currentPlatform === "desktop") {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
       await invoke("update_transaction_handler", {
         id: transactionId,
-        payload,
+        payload: sanitizedPayload,
       });
       console.log(
         `TransactionsService: Tauri update successful for ID: ${transactionId}`
@@ -272,25 +295,9 @@ export async function updateTransaction(
     }
   } else if (currentPlatform === "web") {
     try {
-      const snakeCasePayload: { [key: string]: any } = {};
-      for (const key in payload) {
-        if (Object.prototype.hasOwnProperty.call(payload, key)) {
-          const snakeKey = key.replace(
-            /[A-Z]/g,
-            (letter) => `_${letter.toLowerCase()}`
-          );
-          snakeCasePayload[snakeKey] = (payload as any)[key];
-        }
-      }
-
-      console.log(
-        "TransactionsService: Supabase update payload (snake_case):",
-        snakeCasePayload
-      );
-
       const { data, error } = await supabase
         .from("transactions")
-        .update(snakeCasePayload)
+        .update(sanitizedPayload)
         .eq("id", transactionId)
         .select();
 
@@ -307,7 +314,8 @@ export async function updateTransaction(
         );
       }
       console.log(
-        `TransactionsService: Supabase update successful for ID: ${transactionId}.`
+        `TransactionsService: Supabase update successful for transaction:`,
+        data
       );
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
     } catch (error) {

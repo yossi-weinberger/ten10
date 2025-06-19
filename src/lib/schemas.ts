@@ -2,10 +2,7 @@ import { z } from "zod";
 import { transactionTypes, Currency } from "../types/transaction"; // Import Currency type as well
 
 // Define currency values from the Currency type for Zod enum
-const currencyEnumValues = ["ILS", "USD", "EUR", "GBP"] as [
-  Currency,
-  ...Currency[]
-];
+const currencyEnumValues: [Currency, ...Currency[]] = ["ILS", "USD", "EUR"];
 
 // Base schema for common transaction fields
 export const transactionBaseSchema = z.object({
@@ -14,21 +11,13 @@ export const transactionBaseSchema = z.object({
   date: z.string().refine((val) => /^\d{4}-\d{2}-\d{2}$/.test(val), {
     message: "תאריך חייב להיות בפורמט YYYY-MM-DD",
   }),
-  amount: z.coerce // Use coerce for automatic string to number conversion
+  amount: z.coerce
     .number({ invalid_type_error: "סכום חייב להיות מספר" })
     .min(0.01, "הסכום חייב להיות גדול מ-0"),
-  currency: z
-    .enum(currencyEnumValues, {
-      // Use currencyEnumValues
-      errorMap: () => ({ message: "מטבע לא תקין" }),
-    })
-    .default("ILS"),
-  description: z
-    .string()
-    .min(2, "תיאור חייב להכיל לפחות 2 תווים")
-    .max(255, "תיאור ארוך מדי (מקסימום 255 תווים)")
-    .optional()
-    .nullable(),
+  currency: z.enum(currencyEnumValues, {
+    errorMap: () => ({ message: "מטבע לא תקין" }),
+  }),
+  description: z.string().max(255).nullable().optional(),
   type: z.enum(transactionTypes, {
     errorMap: () => ({ message: "סוג תנועה לא תקין" }),
   }),

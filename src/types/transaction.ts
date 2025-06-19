@@ -46,8 +46,12 @@ export interface Transaction {
   category: string | null;
   is_chomesh: boolean | null;
   recipient: string | null;
-  source_recurring_id: string | null; // Foreign key to recurring_transactions table
-  occurrence_number?: number | null; // e.g., "3" for the 3rd of 12 payments
+  source_recurring_id?: string | null; // UUID linking to the recurring_transactions table
+  execution_count?: number | null; // e.g., 3 (for the 3rd payment)
+  total_occurrences?: number | null; // e.g., 12 (for a total of 12 payments)
+  recurring_status?: "active" | "paused" | "completed" | "cancelled" | null;
+  recurring_frequency?: string | null;
+  occurrence_number?: number | null;
 }
 
 export interface RecurringTransaction {

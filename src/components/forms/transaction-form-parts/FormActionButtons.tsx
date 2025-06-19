@@ -6,12 +6,14 @@ interface FormActionButtonsProps {
   isSubmitting: boolean;
   isSuccess: boolean;
   onCancel?: () => void;
+  isEditMode?: boolean;
 }
 
 export function FormActionButtons({
   isSubmitting,
   isSuccess,
   onCancel,
+  isEditMode = false,
 }: FormActionButtonsProps) {
   return (
     <div className="flex justify-end items-center space-x-2">
@@ -26,7 +28,13 @@ export function FormActionButtons({
         </Button>
       )}
       <Button type="submit" disabled={isSubmitting || isSuccess}>
-        {isSubmitting ? "שומר..." : "שמור פעולה"}
+        {isSubmitting
+          ? "שומר..."
+          : isSuccess
+          ? "נשמר בהצלחה!"
+          : isEditMode
+          ? "שמור שינויים"
+          : "הוסף תנועה"}
       </Button>
     </div>
   );
