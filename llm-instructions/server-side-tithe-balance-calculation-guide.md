@@ -43,21 +43,20 @@
     - **`SELECT COALESCE(SUM(...), 0) INTO v_balance ...`**: זוהי ליבת החישוב, זהה למה שדנו עליו, עם `COALESCE` כדי להבטיח שיוחזר `0` אם אין טרנזקציות למשתמש (ולא `NULL`).
     - **`LANGUAGE plpgsql`**: מציין את שפת הפרוצדורה (שפת ברירת המחדל של PostgreSQL לפונקציות).
 
-**שלב 2: הוספת פונקציה חדשה לשליפת היתרה ב-`src/lib/dataService.ts`**
+**שלב 2: הוספת פונקציה חדשה לשליפת היתרה ב-`src/lib/data-layer/analytics.service.ts`**
 
-1.  פתח את הקובץ `src/lib/dataService.ts`.
+1.  פתח את הקובץ `src/lib/data-layer/analytics.service.ts`.
 2.  הוסף את הפונקציה האסינכרונית הבאה, שתשתמש ב-`supabase.rpc()` כדי לקרוא לפונקציית ה-SQL שיצרת:
 
     ```typescript
-    // At the top with other imports:
-    // import { supabase } from "./supabaseClient"; // Make sure supabase client is imported
+    // import { supabase } from "../supabaseClient"; // Make sure supabase client is imported
 
     // Add this new function:
-    export async function fetchUserTitheBalance(
+    export async function fetchServerTitheBalanceWeb(
       userId: string
-    ): Promise<number> {
+    ): Promise<number | null> {
       console.log(
-        "DataService: Fetching user tithe balance from Supabase for user:",
+        "AnalyticsService: Fetching user tithe balance from Supabase for user:",
         userId
       );
       try {
@@ -68,22 +67,22 @@
 
         if (error) {
           console.error(
-            "DataService: Error calling calculate_user_tithe_balance RPC:",
+            "AnalyticsService: Error calling calculate_user_tithe_balance RPC:",
             error
           );
           throw error;
         }
 
-        console.log("DataService: Successfully fetched tithe balance:", data);
-        // Assuming 'data' is the numeric balance.
-        // If 'data' could be null or undefined in some RPC scenarios, handle appropriately.
-        return typeof data === "number" ? data : 0;
+        console.log(
+          "AnalyticsService: Successfully fetched tithe balance:",
+          data
+        );
+        return typeof data === "number" ? data : null;
       } catch (errorCaught: any) {
         console.error(
-          "DataService: Exception fetching tithe balance:",
+          "AnalyticsService: Exception fetching tithe balance:",
           errorCaught
         );
-        // Consider re-throwing or returning a default/error indicator
         throw new Error(
           `Failed to fetch tithe balance. Original error: ${
             errorCaught.message || errorCaught
@@ -93,7 +92,7 @@
     }
     ```
 
-**שלב 3: עדכון ה-Store ב-`src/lib/store.ts` (אופציונלי, אך מומלץ לניהול מרכזי)**
+**שלב 3: עדכון ה-Store ב-`src/lib/store.ts`**
 
 1.  פתח את הקובץ `src/lib/store.ts`.
 2.  הוסף שדה חדש לממשק `DonationState` ואתחול שלו, יחד עם פעולה לעדכונו:
@@ -160,88 +159,38 @@
     );
     ```
 
-    - שים לב ששמרנו את `requiredDonation` הקיים, והוספנו `serverCalculatedTitheBalance`.
+    - שים לב ששדה ה-`requiredDonation` המחושב בצד הלקוח הוסר, ואנו מסתמכים כעת על `serverCalculatedTitheBalance` כמקור האמת.
 
-**שלב 4: שליפת הנתון האגרגטיבי והצגתו (לדוגמה, ב-`AuthContext.tsx`)**
+**שלב 4: שליפת הנתון האגרגטיבי והצגתו**
 
-1.  פתח את `src/contexts/AuthContext.tsx`.
-2.  נצטרך להוסיף לוגיקה שתקרא ל-`fetchUserTitheBalance` כאשר המשתמש מאומת. אפשר לעשות זאת ב-`useEffect` הקיים שמטפל בטעינת נתונים, או ב-`useEffect` נפרד.
-3.  נאחסן את התוצאה ב-Zustand store.
+הקריאה לפונקציית השירות מתבצעת כעת ב-hook ייעודי בשם `useServerStats.ts`, אשר מופעל מהקומפוננטה `StatsCards.tsx`. ה-hook דואג לקרוא לגרסה המתאימה לפלטפורמה (ווב או דסקטופ).
 
-    ```typescript
-    // In AuthContext.tsx
+1.  **קובץ שירות (`analytics.service.ts`):**
 
-    // Import the new service function and store action
-    import {
-      fetchUserTitheBalance /*, other imports from dataService */,
-    } from "@/lib/dataService";
-    // const setTransactionsInStore = useDonationStore((state) => state.setTransactions); // existing
-    const setServerCalculatedTitheBalanceInStore = useDonationStore(
-      (state) => state.setServerCalculatedTitheBalance
-    ); // New store action
+    - הפונקציה `fetchServerTitheBalance` מבדילה בין הפלטפורמות.
+    - **ווב:** קוראת ל-`fetchServerTitheBalanceWeb` (שהוצגה למעלה).
+    - **דסקטופ:** קוראת לפקודת Rust `get_desktop_overall_tithe_balance` באמצעות `invoke`.
 
-    // ... inside the AuthProvider component
+2.  **Hook (`src/hooks/useServerStats.ts`):**
 
-    // You might want a new state for loading this specific balance
-    const [isFetchingTitheBalance, setIsFetchingTitheBalance] = useState(false);
+    - `useEffect` קורא ל-`fetchServerTitheBalance` מהשירות.
+    - הוא מנהל מצבי טעינה ושגיאה (`isLoadingServerTitheBalance`, `serverTitheBalanceError`).
+    - עם קבלת התוצאה, הוא מעדכן את ה-Zustand store באמצעות `setServerCalculatedTitheBalance`.
 
-    // Example: Modify or add a useEffect to fetch the server-calculated balance
-    useEffect(() => {
-      const loadServerBalance = async () => {
-        if (user && hasHydrated && !isFetchingTitheBalance) {
-          // We only fetch this if not already fetching, and user is available + store hydrated
-          // You might add more conditions, e.g., only on login, or less frequently than all transactions
-          console.log(
-            "AuthContext: Attempting to fetch server-calculated tithe balance for user:",
-            user.id
-          );
-          setIsFetchingTitheBalance(true);
-          try {
-            const balance = await fetchUserTitheBalance(user.id);
-            setServerCalculatedTitheBalanceInStore(balance);
-            console.log(
-              "AuthContext: Successfully set server-calculated tithe balance in store:",
-              balance
-            );
-          } catch (error) {
-            console.error(
-              "AuthContext: Failed to fetch/set server-calculated tithe balance:",
-              error
-            );
-            // Optionally set it to null or an error state in the store
-            setServerCalculatedTitheBalanceInStore(null);
-          } finally {
-            setIsFetchingTitheBalance(false);
-          }
-        }
-      };
+3.  **הצגת הנתון החדש ב-UI (`StatsCards.tsx`):**
 
-      loadServerBalance();
-    }, [
-      user,
-      hasHydrated,
-      isFetchingTitheBalance,
-      setServerCalculatedTitheBalanceInStore /* other dependencies if needed */,
-    ]);
-
-    // ... rest of AuthContext
-    ```
-
-4.  **הצגת הנתון החדש ב-UI:**
-
-    - בקומפוננטה שמציגה את הכרטיסייה "נדרש לתרומה", קרא את הערך החדש `serverCalculatedTitheBalance` מה-`useDonationStore`.
-    - תוכל להציג אותו _לצד_ הנתון הקיים (`requiredDonation`) לצורך השוואה ובדיקה.
+    - הקומפוננטה קוראת ל-hook `useServerStats()`.
+    - היא צורכת את `serverCalculatedTitheBalance` ישירות מה-store של Zustand.
+    - הערך מוצג בכרטיסייה "נדרש לתרומה" עם סימון "(S)" המציין שמדובר בחישוב שרת.
 
     לדוגמה, בקומפוננטת הכרטיסייה:
 
     ```typescript
-    // const requiredDonation = useDonationStore((state) => state.requiredDonation); // Existing
     const serverBalance = useDonationStore(
       (state) => state.serverCalculatedTitheBalance
     );
 
     // ... in your JSX
-    // <p>נדרש לתרומה (קליינט): {formatCurrency(requiredDonation)}</p>
     // <p>נדרש לתרומה (שרת): {serverBalance !== null ? formatCurrency(serverBalance) : 'טוען...'}</p>
     ```
 
@@ -249,9 +198,8 @@
 
 - הרץ את האפליקציה.
 - בצע לוגין.
-- בדוק את ערכי "נדרש לתרומה" (הישן המחושב בקליינט והחדש המגיע מהשרת) בכרטיסייה הרלוונטית.
 - ודא שהקונסול לוגים מראים שהפונקציות החדשות נקראות ושהנתונים נשלפים ונשמרים כצפוי.
-- השווה את שני הערכים. הם אמורים להיות זהים אם הלוגיקה בשני המקומות תואמת.
+- ודא שהערך המוצג בכרטיסייה "נדרש לתרומה" הוא הערך המגיע מהשרת.
 
 ---
 

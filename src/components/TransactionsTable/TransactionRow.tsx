@@ -1,5 +1,9 @@
 import React from "react";
-import { Transaction, TransactionType } from "@/types/transaction";
+import {
+  Transaction,
+  TransactionForTable,
+  TransactionType,
+} from "@/types/transaction";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +43,7 @@ const recurringFrequencyMap: { [key: string]: string } = {
 };
 
 interface TransactionRowProps {
-  transaction: Transaction;
+  transaction: TransactionForTable;
   onEdit: (transaction: Transaction) => void;
   onDelete: (transaction: Transaction) => void;
 }

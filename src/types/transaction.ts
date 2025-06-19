@@ -54,6 +54,10 @@ export interface Transaction {
   occurrence_number?: number | null;
 }
 
+export interface TransactionForTable extends Transaction {
+  recurring_info: RecurringInfo | null;
+}
+
 export interface RecurringTransaction {
   id: string;
   user_id?: string | null; // Optional for desktop

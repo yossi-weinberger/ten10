@@ -8,12 +8,12 @@ This section details how the different parts of the project interact with each o
 
 1.  **Frontend (`src`) <-> Backend (`src-tauri`)**:
 
-    - **Communication:** The React frontend communicates with the Rust backend via Tauri's IPC mechanism. Frontend components invoke Rust functions (`#[tauri::command]`) defined in `src-tauri/src/`. The core backend logic is in `main.rs`, which now delegates specific functionalities to modules within the `src-tauri/src/commands/` directory (e.g., `transaction_commands.rs`, `chart_commands.rs`). This is often wrapped in service layers on the frontend:
-      - `src/lib/dataService.ts` for general, basic data operations.
-      - `src/lib/tableTransactions/tableTransactionService.ts` for complex, table-specific operations (e.g., fetching paginated/filtered transactions, updating, deleting, and exporting).
-    - Allowed commands are registered in `src-tauri/src/main.rs` within the `tauri::generate_handler!` macro and are ultimately controlled by the `tauri.conf.json` allowlist.
+    - **Communication:** The React frontend communicates with the Rust backend via Tauri's IPC mechanism. Frontend components invoke Rust functions (`#[tauri::command]`). The core backend logic is modular:
+      - **`src-tauri/src/models.rs`**: Defines all shared data structures (structs like `Transaction`, `RecurringTransaction`, etc.), acting as a single source of truth for data models.
+      - **`src-tauri/src/commands/`**: This directory contains various modules that encapsulate the business logic. Each module (e.g., `transaction_commands.rs`, `db_commands.rs`) exposes a set of `#[tauri::command]` functions.
+      - **`src-tauri/src/main.rs`**: Serves as the application entry point. It initializes the database connection and registers all the command handlers from the `commands` modules.
     - **Events:** The backend can emit events that the frontend listens to, enabling real-time updates or notifications from the backend.
-    - **Example Flow:** Clicking a 'Save' button in a form (`src/components/forms/TransactionForm.tsx`) triggers a function that calls `invoke` with the relevant command name (e.g., `add_transaction`) and form data. The Rust code in `main.rs` receives the data, processes it (e.g., saves to the DB), and returns a response (success/error) to the frontend.
+    - **Example Flow:** Clicking a 'Save' button in a form (`src/components/forms/TransactionForm.tsx`) triggers a function that calls `invoke` with the relevant command name (e.g., `add_transaction`) and form data. The Rust code in the corresponding command module receives the data, processes it (e.g., saves to the DB), and returns a response (success/error) to the frontend.
 
 2.  **Backend (`src-tauri`) <-> Database (`src-tauri/Ten10.db`)**:
 
@@ -164,11 +164,14 @@ This section details how the different parts of the project interact with each o
 │   ├── src/               # Rust source code
 │   │   ├── commands/      # Backend command modules
 │   │   │   ├── chart_commands.rs
+│   │   │   ├── db_commands.rs
 │   │   │   ├── donation_commands.rs
 │   │   │   ├── expense_commands.rs
 │   │   │   ├── income_commands.rs
 │   │   │   ├── mod.rs
+│   │   │   ├── recurring_transaction_commands.rs
 │   │   │   └── transaction_commands.rs
+│   │   ├── models.rs      # Centralized Rust data models (structs)
 │   │   └── main.rs        # Main Rust application entry point and command handler
 │   ├── target/            # Rust build output directory
 │   ├── build.rs           # Rust build script

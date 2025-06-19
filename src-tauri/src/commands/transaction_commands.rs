@@ -1,99 +1,10 @@
 // src-tauri/src/commands/transaction_commands.rs
 
 use crate::DbState;
-use rusqlite::{params, OptionalExtension, Result, ToSql};
+use crate::models::{RecurringInfo, Transaction, TransactionForTable};
+use rusqlite::{params, Result, ToSql};
 use serde::{Deserialize, Serialize};
 use tauri::State; // Assuming DbState is in lib.rs or main.rs and accessible
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct RecurringInfo {
-    pub status: String,
-    pub frequency: String,
-    pub execution_count: i32,
-    pub total_occurrences: Option<i32>,
-    pub day_of_month: i32,
-    pub start_date: String,
-    pub next_due_date: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Transaction {
-    pub id: String,
-    pub user_id: Option<String>,
-    pub date: String, // ISO 8601 format (e.g., "YYYY-MM-DDTHH:MM:SS.sssZ")
-    pub amount: f64,
-    pub currency: String,
-    pub description: Option<String>,
-    #[serde(rename = "type")] // To match the 'type' field from DB/JS
-    pub type_str: String, // Renamed from 'type' to avoid Rust keyword clash
-    pub category: Option<String>,
-    pub is_chomesh: Option<bool>,
-    pub recipient: Option<String>,
-    pub created_at: Option<String>, // ISO 8601 format
-    pub updated_at: Option<String>, // ISO 8601 format
-    pub source_recurring_id: Option<String>, // Added field
-    pub occurrence_number: Option<i32>,
-}
-
-// A new struct for the frontend response that includes the recurring info
-#[derive(Serialize, Debug, Clone)]
-pub struct TransactionForTable {
-    // Flatten the original transaction fields
-    #[serde(flatten)]
-    pub transaction: Transaction,
-    // Add the recurring info field
-    pub recurring_info: Option<RecurringInfo>,
-}
-
-// Helper to map rusqlite row to Transaction
-impl Transaction {
-    fn from_row(row: &rusqlite::Row<'_>) -> Result<Self> {
-        Ok(Transaction {
-            id: row.get("id")?,
-            user_id: row
-                .get::<_, Option<String>>("user_id")
-                .optional()?
-                .flatten(),
-            date: row.get("date")?,
-            amount: row.get("amount")?,
-            currency: row.get("currency")?,
-            description: row
-                .get::<_, Option<String>>("description")
-                .optional()?
-                .flatten(),
-            type_str: row.get("type")?,
-            category: row
-                .get::<_, Option<String>>("category")
-                .optional()?
-                .flatten(),
-            is_chomesh: row
-                .get::<_, Option<i64>>("is_chomesh")
-                .optional()?
-                .flatten()
-                .map(|v| v != 0),
-            recipient: row
-                .get::<_, Option<String>>("recipient")
-                .optional()?
-                .flatten(),
-            created_at: row
-                .get::<_, Option<String>>("created_at")
-                .optional()?
-                .flatten(),
-            updated_at: row
-                .get::<_, Option<String>>("updated_at")
-                .optional()?
-                .flatten(),
-            source_recurring_id: row
-                .get::<_, Option<String>>("source_recurring_id")
-                .optional()?
-                .flatten(),
-            occurrence_number: row
-                .get::<_, Option<i32>>("occurrence_number")
-                .optional()?
-                .flatten(),
-        })
-    }
-}
 
 #[derive(Deserialize, Debug)]
 pub struct TransactionUpdatePayload {
@@ -106,7 +17,7 @@ pub struct TransactionUpdatePayload {
     pub currency: Option<String>,
     pub description: Option<String>,
     #[serde(rename = "type")]
-    pub type_str: Option<String>,
+    pub transaction_type: Option<String>,
     pub category: Option<String>,
     pub is_chomesh: Option<bool>,
     pub recipient: Option<String>,
@@ -153,7 +64,7 @@ pub fn update_transaction_handler(
         set_clauses.push("description = ?".to_string());
         params_dynamic.push(Box::new(payload.description.clone()));
     }
-    if let Some(type_str) = &payload.type_str {
+    if let Some(type_str) = &payload.transaction_type {
         set_clauses.push("type = ?".to_string());
         params_dynamic.push(Box::new(type_str.clone()));
     }
@@ -371,7 +282,7 @@ pub fn export_transactions_handler(
     
     let transactions_iter = stmt
         .query_map(params_for_rusqlite.as_slice(), |row| {
-            let transaction = Transaction::from_row(row)?;
+            let transaction = crate::models::Transaction::from_row(row)?;
             let recurring_info = match row.get::<_, Option<String>>("recurring_status")? {
                 Some(status) => Some(RecurringInfo {
                     status,
@@ -447,18 +358,24 @@ pub fn get_filtered_transactions_handler(
     db_state: State<'_, DbState>,
     args: GetFilteredTransactionsArgs,
 ) -> std::result::Result<PaginatedTransactionsResponse, String> {
-    println!(
-        "[Rust DEBUG] get_filtered_transactions_handler called with args: {:?}",
-        args
-    );
+    let filters = args.filters;
+    let pagination = args.pagination;
+    let sorting = args.sorting;
 
-    let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
+    println!("[Rust DEBUG] get_filtered_transactions_handler called with filters: {:?}, pagination: {:?}, sorting: {:?}", filters, pagination, sorting);
+
+    let conn_guard = db_state
+        .0
+        .lock()
+        .map_err(|e| format!("[Rust ERROR] DB lock error: {}", e))?;
     let conn = &*conn_guard;
 
-    // Base query with JOIN
-    let select_query = "
+    let base_select = "
         SELECT 
-        t.id, t.user_id, t.date, t.amount, t.currency, t.description, t.type, t.category, t.is_chomesh, t.recipient, t.created_at, t.updated_at, t.source_recurring_id, t.occurrence_number,
+            t.id, t.user_id, t.date, t.amount, t.currency, t.description, 
+            t.type, t.category, t.is_chomesh, 
+            t.recipient, t.created_at, t.updated_at, t.source_recurring_id,
+            t.occurrence_number,
             rt.status as recurring_status,
             rt.frequency as recurring_frequency,
             rt.execution_count as recurring_execution_count,
@@ -466,244 +383,196 @@ pub fn get_filtered_transactions_handler(
             rt.day_of_month as recurring_day_of_month_def,
             rt.start_date as recurring_start_date,
             rt.next_due_date as recurring_next_due_date
+    ";
+    let base_from = "
         FROM transactions t
         LEFT JOIN recurring_transactions rt ON t.source_recurring_id = rt.id
-    ".to_string();
-
-    let count_query = "SELECT COUNT(t.id) FROM transactions t LEFT JOIN recurring_transactions rt ON t.source_recurring_id = rt.id".to_string();
+    ";
 
     let mut where_clauses: Vec<String> = Vec::new();
     let mut sql_params_dynamic: Vec<Box<dyn ToSql>> = Vec::new();
     let mut current_param_idx = 1;
-    let mut params_debug_strings: Vec<String> = Vec::new();
 
-    if let Some(search_term) = &args.filters.search {
+    if let Some(search_term) = &filters.search {
         if !search_term.is_empty() {
-            let actual_search_term = format!("%{}%", search_term);
-            println!(
-                "[Rust DEBUG] Applying search filter: {}",
-                actual_search_term
-            );
             where_clauses.push(format!("(LOWER(t.description) LIKE LOWER(?{0}) OR LOWER(t.category) LIKE LOWER(?{0}) OR LOWER(t.recipient) LIKE LOWER(?{0}))", current_param_idx));
-            sql_params_dynamic.push(Box::new(actual_search_term.clone()));
-            params_debug_strings.push(actual_search_term);
+            sql_params_dynamic.push(Box::new(format!("%{}%", search_term)));
             current_param_idx += 1;
         }
     }
 
-    if let Some(date_from) = &args.filters.date_from {
+    if let Some(date_from) = &filters.date_from {
         if !date_from.is_empty() {
-            println!("[Rust DEBUG] Applying date_from filter: {}", date_from);
             where_clauses.push(format!("t.date >= ?{}", current_param_idx));
             sql_params_dynamic.push(Box::new(date_from.clone()));
-            params_debug_strings.push(date_from.clone());
             current_param_idx += 1;
         }
     }
-    if let Some(date_to) = &args.filters.date_to {
+    if let Some(date_to) = &filters.date_to {
         if !date_to.is_empty() {
-            println!("[Rust DEBUG] Applying date_to filter: {}", date_to);
             where_clauses.push(format!("t.date <= ?{}", current_param_idx));
             sql_params_dynamic.push(Box::new(date_to.clone()));
-            params_debug_strings.push(date_to.clone());
             current_param_idx += 1;
         }
     }
 
-    if let Some(types) = &args.filters.types {
+    if let Some(types) = &filters.types {
         if !types.is_empty() {
-            println!("[Rust DEBUG] Applying types filter: {:?}", types);
             let placeholders: Vec<String> = (0..types.len())
                 .map(|i| format!("?{}", current_param_idx + i))
                 .collect();
             where_clauses.push(format!("t.type IN ({})", placeholders.join(", ")));
             for t_type in types {
                 sql_params_dynamic.push(Box::new(t_type.clone()));
-                params_debug_strings.push(t_type.clone());
             }
             current_param_idx += types.len();
         }
     }
 
     // --- New Recurring Transaction Filters ---
-    if let Some(show_only) = &args.filters.show_only {
+    if let Some(show_only) = &filters.show_only {
         match show_only.as_str() {
             "recurring" => {
-                println!("[Rust DEBUG] Applying show_only filter: recurring");
                 where_clauses.push("t.source_recurring_id IS NOT NULL".to_string());
             }
             "regular" => {
-                println!("[Rust DEBUG] Applying show_only filter: regular");
                 where_clauses.push("t.source_recurring_id IS NULL".to_string());
             }
             _ => {} // "all" or any other value means no filter
         }
     }
     
-    if let Some(statuses) = &args.filters.recurring_statuses {
+    if let Some(statuses) = &filters.recurring_statuses {
         if !statuses.is_empty() {
-            println!("[Rust DEBUG] Applying recurring_statuses filter: {:?}", statuses);
             let placeholders: Vec<String> = (0..statuses.len())
                 .map(|i| format!("?{}", current_param_idx + i))
                 .collect();
             where_clauses.push(format!("rt.status IN ({})", placeholders.join(", ")));
             for status in statuses {
                 sql_params_dynamic.push(Box::new(status.clone()));
-                params_debug_strings.push(status.clone());
             }
             current_param_idx += statuses.len();
         }
     }
 
-    if let Some(frequencies) = &args.filters.recurring_frequencies {
+    if let Some(frequencies) = &filters.recurring_frequencies {
         if !frequencies.is_empty() {
-            println!("[Rust DEBUG] Applying recurring_frequencies filter: {:?}", frequencies);
             let placeholders: Vec<String> = (0..frequencies.len())
                 .map(|i| format!("?{}", current_param_idx + i))
                 .collect();
             where_clauses.push(format!("rt.frequency IN ({})", placeholders.join(", ")));
             for frequency in frequencies {
                 sql_params_dynamic.push(Box::new(frequency.clone()));
-                params_debug_strings.push(frequency.clone());
             }
-            // current_param_idx += frequencies.len();
+            current_param_idx += frequencies.len();
         }
     }
 
-    let params_for_rusqlite: Vec<&dyn ToSql> =
-        sql_params_dynamic.iter().map(|p| p.as_ref()).collect();
-
-    let mut where_suffix = String::new();
-    if !where_clauses.is_empty() {
-        where_suffix = format!(" WHERE {}", where_clauses.join(" AND "));
-    }
-    println!("[Rust DEBUG] Constructed WHERE clause: {}", where_suffix);
-    println!(
-        "[Rust DEBUG] Parameters for WHERE (debug strings): {:?}",
-        params_debug_strings
-    );
-
-    let final_count_query = format!("{}{}", count_query, where_suffix);
-    println!("[Rust DEBUG] Final COUNT query: {}", final_count_query);
-
-    let total_count: i64 =
-        match conn.query_row(&final_count_query, params_for_rusqlite.as_slice(), |row| {
-            row.get(0)
-        }) {
-            Ok(count) => {
-                println!("[Rust DEBUG] Total count from DB: {}", count);
-                count
-            }
-            Err(e) => {
-                let err_msg = format!(
-                "[Rust ERROR] Failed to count transactions: {}. Query: {}, Params (debug): {:?}",
-                e, final_count_query, params_debug_strings
-            );
-                println!("{}", err_msg);
-                return Err(err_msg);
-            }
-        };
-
-    let sort_field = match args.sorting.field.to_lowercase().as_str() {
-        "date" => "t.date",
-        "amount" => "t.amount",
-        "description" => "t.description",
-        "currency" => "t.currency",
-        "type" => "t.type",
-        "category" => "t.category",
-        "recipient" => "t.recipient",
-        _ => "t.created_at",
-    };
-    let sort_direction = if args.sorting.direction.to_lowercase() == "asc" {
-        "ASC"
+    let where_clause_str = if !where_clauses.is_empty() {
+        format!(" WHERE {}", where_clauses.join(" AND "))
     } else {
-        "DESC"
-    };
-    let order_by_clause = format!(" ORDER BY {} {} ", sort_field, sort_direction);
-    println!("[Rust DEBUG] ORDER BY clause: {}", order_by_clause);
-
-    let limit_clause = format!(" LIMIT {} ", args.pagination.limit);
-    let offset_value = (args.pagination.page.saturating_sub(1)) * args.pagination.limit;
-    let offset_clause = format!(" OFFSET {} ", offset_value);
-
-    println!(
-        "[Rust DEBUG] LIMIT clause: {}, OFFSET clause: {}",
-        limit_clause, offset_clause
-    );
-
-    let final_select_query = format!(
-        "{}{}{}{}{}",
-        select_query, where_suffix, order_by_clause, limit_clause, offset_clause
-    );
-    println!("[Rust DEBUG] Final SELECT query: {}", final_select_query);
-    println!(
-        "[Rust DEBUG] Parameters for SELECT (debug strings): {:?}",
-        params_debug_strings
-    );
-
-    let mut stmt = match conn.prepare(&final_select_query) {
-        Ok(s) => s,
-        Err(e) => {
-            let err_msg = format!(
-                "[Rust ERROR] Failed to prepare select statement: {}. Query: {}",
-                e, final_select_query
-            );
-            println!("{}", err_msg);
-            return Err(err_msg);
-        }
+        "".to_string()
     };
 
-    let transactions_iter = match stmt.query_map(params_for_rusqlite.as_slice(), |row| {
-        let transaction = Transaction::from_row(row)?;
+    let query_string_for_count = format!(
+        "SELECT COUNT(t.id) {} {}",
+        base_from, where_clause_str
+    );
 
-        let recurring_info = match row.get::<_, Option<String>>("recurring_status")? {
-            Some(status) => Some(RecurringInfo {
-                status,
-                frequency: row.get("recurring_frequency")?,
-                execution_count: row.get("recurring_execution_count")?,
-                total_occurrences: row.get("recurring_total_occurrences").ok(),
-                day_of_month: row.get("recurring_day_of_month_def")?,
-                start_date: row.get("recurring_start_date")?,
-                next_due_date: row.get("recurring_next_due_date")?,
-            }),
-            None => None,
-        };
+    println!("[Rust DEBUG] Count Query: {}", query_string_for_count);
+    let params_for_rusqlite: Vec<&dyn ToSql> = sql_params_dynamic.iter().map(|p| p.as_ref()).collect();
 
-        Ok(TransactionForTable {
-            transaction,
-            recurring_info,
+    let total_count: i64 = conn
+        .query_row(
+            &query_string_for_count,
+            params_for_rusqlite.as_slice(),
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+
+    println!("[Rust DEBUG] Total count: {}", total_count);
+
+    sql_params_dynamic.push(Box::new(pagination.limit));
+    sql_params_dynamic.push(Box::new((pagination.page - 1) * pagination.limit));
+
+    let query_string_for_data = format!(
+        "{} {} {} ORDER BY {} {} LIMIT ?{} OFFSET ?{}",
+        base_select,
+        base_from,
+        where_clause_str,
+        sorting.field,
+        sorting.direction,
+        current_param_idx,
+        current_param_idx + 1
+    );
+
+    println!("[Rust DEBUG] Data Query: {}", query_string_for_data);
+    let params_for_rusqlite: Vec<&dyn ToSql> = sql_params_dynamic.iter().map(|p| p.as_ref()).collect();
+
+    let mut stmt = conn.prepare(&query_string_for_data).map_err(|e| e.to_string())?;
+    let transactions_iter = stmt
+        .query_map(params_for_rusqlite.as_slice(), |row| {
+            let recurring_status: Option<String> = row.get("recurring_status")?;
+            
+            let recurring_info = if recurring_status.is_some() {
+                Some(RecurringInfo {
+                    status: recurring_status.unwrap(),
+                    frequency: row.get("recurring_frequency")?,
+                    execution_count: row.get("recurring_execution_count")?,
+                    total_occurrences: row.get("recurring_total_occurrences")?,
+                    day_of_month: row.get("recurring_day_of_month_def")?,
+                    start_date: row.get("recurring_start_date")?,
+                    next_due_date: row.get("recurring_next_due_date")?,
+                })
+            } else {
+                None
+            };
+
+            Ok(TransactionForTable {
+                transaction: Transaction::from_row(row)?,
+                recurring_info,
+            })
         })
-    }) {
-        Ok(iter) => iter,
-        Err(e) => {
-            let err_msg = format!(
-                "[Rust ERROR] Failed to query transactions: {}. Query: {}, Params (debug): {:?}",
-                e, final_select_query, params_debug_strings
-            );
-            println!("{}", err_msg);
-            return Err(err_msg);
-        }
-    };
+    .map_err(|e| e.to_string())?;
 
     let mut transactions = Vec::new();
-    for transaction_result in transactions_iter {
-        match transaction_result {
-            Ok(transaction) => transactions.push(transaction),
-            Err(e) => {
-                let err_msg = format!("[Rust ERROR] Failed to map transaction row: {}", e);
-                println!("{}", err_msg);
-                return Err(err_msg);
-            }
-        }
+    for tr in transactions_iter {
+        transactions.push(tr.map_err(|e| e.to_string())?);
     }
-    println!(
-        "[Rust DEBUG] Number of transactions fetched: {}",
-        transactions.len()
-    );
+
+    println!("[Rust DEBUG] Number of transactions fetched: {}", transactions.len());
     println!("[Rust DEBUG] Returning PaginatedTransactionsResponse: total_count: {}, transactions_count: {}", total_count, transactions.len());
 
     Ok(PaginatedTransactionsResponse {
         transactions,
         total_count,
     })
+}
+
+#[tauri::command]
+pub async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Result<(), String> {
+    // DEBUG: Print the received transaction struct
+    println!("Received transaction in Rust: {:?}", transaction);
+
+    let conn = db.0.lock().map_err(|e| e.to_string())?;
+    conn.execute(
+        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at, source_recurring_id)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
+        (
+            &transaction.id,
+            &transaction.user_id,
+            &transaction.date,
+            &transaction.amount,
+            &transaction.currency,
+            &transaction.description,
+            &transaction.transaction_type,
+            &transaction.category,
+            &transaction.is_chomesh.map(|b| b as i32),
+            &transaction.recipient,
+            &transaction.created_at,
+            &transaction.updated_at,
+            &transaction.source_recurring_id,
+        ),
+    ).map_err(|e| e.to_string())?;
+    Ok(())
 }

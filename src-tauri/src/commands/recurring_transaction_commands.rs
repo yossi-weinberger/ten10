@@ -1,83 +1,11 @@
 // src-tauri/src/commands/recurring_transaction_commands.rs
 
-// TODO: Refactor by moving shared structs like Transaction to a central models.rs file
-// For now, defining it locally to avoid complex module dependencies.
-// This definition should be kept in sync with other Transaction structs.
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Transaction {
-    pub id: String,
-    pub user_id: Option<String>,
-    pub date: String,
-    pub amount: f64,
-    pub currency: String,
-    pub description: Option<String>,
-    #[serde(rename = "type")]
-    pub type_str: String,
-    pub category: Option<String>,
-    pub is_chomesh: Option<bool>,
-    pub is_recurring: Option<bool>,
-    pub recurring_day_of_month: Option<i32>,
-    pub recipient: Option<String>,
-    pub created_at: Option<String>,
-    pub updated_at: Option<String>,
-    pub source_recurring_id: Option<String>,
-}
-
-// use crate::commands::transaction_commands::Transaction; // This was causing a conflict, using local definition for now.
+use crate::models::RecurringTransaction;
 use crate::DbState;
 use chrono::{Local, Months, NaiveDate};
 use rusqlite::{params, Connection, Result as RusqliteResult};
-use serde::{Deserialize, Serialize};
 use tauri::State;
 use uuid::Uuid;
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct RecurringTransaction {
-    pub id: String,
-    pub user_id: Option<String>,
-    pub status: String,
-    pub start_date: String,
-    pub next_due_date: String,
-    pub frequency: String,
-    pub day_of_month: i32,
-    pub total_occurrences: Option<i32>,
-    pub execution_count: i32,
-    pub description: Option<String>,
-    pub amount: f64,
-    pub currency: String,
-    #[serde(rename = "type")]
-    pub type_str: String,
-    pub category: Option<String>,
-    pub is_chomesh: Option<bool>,
-    pub recipient: Option<String>,
-    pub created_at: String,
-    pub updated_at: String,
-}
-
-impl RecurringTransaction {
-    fn from_row(row: &rusqlite::Row<'_>) -> RusqliteResult<Self> {
-        Ok(RecurringTransaction {
-            id: row.get("id")?,
-            user_id: row.get("user_id")?,
-            status: row.get("status")?,
-            start_date: row.get("start_date")?,
-            next_due_date: row.get("next_due_date")?,
-            frequency: row.get("frequency")?,
-            day_of_month: row.get("day_of_month")?,
-            total_occurrences: row.get("total_occurrences")?,
-            execution_count: row.get("execution_count")?,
-            description: row.get("description")?,
-            amount: row.get("amount")?,
-            currency: row.get("currency")?,
-            type_str: row.get("type")?,
-            category: row.get("category")?,
-            is_chomesh: row.get::<_, Option<i32>>("is_chomesh")?.map(|v| v != 0),
-            recipient: row.get("recipient")?,
-            created_at: row.get("created_at")?,
-            updated_at: row.get("updated_at")?,
-        })
-    }
-}
 
 fn calculate_next_due_date(current_due_date_str: &str, frequency: &str) -> Result<String, String> {
     let current_date = NaiveDate::parse_from_str(current_due_date_str, "%Y-%m-%d")
@@ -100,7 +28,7 @@ fn get_due_recurring_transactions(
     let mut stmt = conn.prepare(
         "SELECT * FROM recurring_transactions WHERE status = 'active' AND next_due_date <= ?1",
     )?;
-    let rows = stmt.query_map(params![today], RecurringTransaction::from_row)?;
+    let rows = stmt.query_map(params![today], |row| RecurringTransaction::from_row(row))?;
     rows.collect()
 }
 
@@ -166,7 +94,7 @@ pub fn execute_due_recurring_transactions_handler(
                  VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
                 params![
                     new_transaction_id, rec.user_id, current_due_date.format("%Y-%m-%d").to_string(),
-                    rec.amount, rec.currency, rec.description, rec.type_str, rec.category,
+                    rec.amount, rec.currency, rec.description, rec.transaction_type, rec.category,
                     rec.is_chomesh.map(|b| b as i32), rec.recipient, rec.id, now_iso, now_iso,
                     rec.execution_count + 1,
                 ],
@@ -253,9 +181,9 @@ pub fn add_recurring_transaction_handler(
             rec_transaction.description,
             rec_transaction.amount,
             rec_transaction.currency,
-            rec_transaction.type_str,
+            rec_transaction.transaction_type,
             rec_transaction.category,
-            rec_transaction.is_chomesh.map(|b| b as i32),
+            rec_transaction.is_chomesh,
             rec_transaction.recipient,
             rec_transaction.created_at,
             rec_transaction.updated_at,

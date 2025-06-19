@@ -243,11 +243,10 @@ $$ LANGUAGE plpgsql;
 
 **סטטוס:** ✅ **בוצע**
 
-- קוד ה-Rust ב-`src-tauri/src/main.rs` עודכן.
 - פונקציית `init_db` הורחבה וכעת היא מבצעת את הפעולות הבאות באופן אידמפוטנטי (בטוח לריצות חוזרות):
   - יוצרת את טבלת `recurring_transactions` אם אינה קיימת.
   - מוסיפה את עמודת `source_recurring_id` לטבלת `transactions` אם אינה קיימת.
-- ה-Struct של `Transaction` עודכן בכל הקבצים הרלוונטיים (`main.rs`, `transaction_commands.rs`) כדי לתמוך בשדה החדש `source_recurring_id`.
+- ה-Struct של `Transaction` ושל מבני נתונים רלוונטיים אחרים עודכנו בקובץ המרכזי `src-tauri/src/models.rs` כדי לתמוך בשדות החדשים.
 
 ### 4.2: לוגיקת צד-שרת (Rust)
 

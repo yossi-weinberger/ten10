@@ -30,13 +30,14 @@ This document outlines the process and considerations for migrating the Ten10 ap
 ### Step 2: Create New Unified `transactions` Table (Completed)
 
 - **Supabase:** The `public.transactions` table was created with RLS enabled and appropriate policies.
-- **SQLite (Desktop):** The `init_db` command in Rust (`src-tauri/src/main.rs`) was updated to create the `transactions` table with the new schema if it doesn't exist.
+- **SQLite (Desktop):** The `init_db` command in Rust (now located in `src-tauri/src/commands/db_commands.rs`) was updated to create the `transactions` table with the new schema if it doesn't exist.
 
 ### Step 3: Adapt Backend Logic (Completed for New Table Context)
 
-- \*\*Rust (Desktop - `src-tauri/src/main.rs`):
-  - General-purpose commands like `add_transaction_handler` and `get_transactions_handler` were updated/created to work with the unified `transactions` table and `snake_case` model.
-  - Specific commands for the interactive table (`get_filtered_transactions_handler`, `update_transaction_handler`, `delete_transaction_handler`, `export_transactions_handler`) were created to interact with the `transactions` table using the new model and providing filtered/paginated results.
+- \*\*Rust (Desktop - `src-tauri/`):
+  - The backend logic was refactored into modules within `src-tauri/src/commands/`.
+  - The data models (structs) were centralized in `src-tauri/src/models.rs`.
+  - Commands for the interactive table (`get_filtered_transactions_handler`, `update_transaction_handler`, etc. in `transaction_commands.rs`) were created to interact with the `transactions` table using the new model.
 - \*\*Supabase (Web):
   - Basic CRUD operations for general use might still be performed directly via the Supabase client library (e.g., in the `data-layer` module) on the `transactions` table.
   - For the interactive transactions table, specific PostgreSQL RPC functions (e.g., `get_paginated_transactions`, `update_user_transaction`, `delete_user_transaction`, `export_user_transactions`) were created. These functions encapsulate the logic for querying and manipulating the `transactions` table, respecting RLS and handling filters, sorting, and pagination.
@@ -202,7 +203,7 @@ When you (the user) request a schema change (e.g., "add a 'priority' field to tr
 
     - Modify TypeScript types/interfaces (e.g., `Transaction` in `src/types/transaction.ts`).
     - Update forms, tables, and any data handling logic (`dataService.ts`, Zustand store, UI components) to reflect the new schema.
-    - Update Rust structs and database interaction logic (`src-tauri/src/main.rs`) if new fields are added or changed.
+    - Update Rust structs in `src-tauri/src/models.rs` and the corresponding database interaction logic in the relevant `src-tauri/src/commands/` modules.
 
 6.  **Testing:**
 
@@ -235,7 +236,8 @@ Let's say we want to add an optional `due_date` (TEXT, ISO8601 format) to transa
 **3. Application Code Changes:**
 
 - `src/types/transaction.ts`: Add `dueDate?: string;` to `Transaction` interface.
-- `src-tauri/src/main.rs`: Add `due_date: Option<String>,` to Rust `Transaction` struct. Update `INSERT` and `SELECT` logic.
+- `src-tauri/src/models.rs`: Add `due_date: Option<String>,` to the appropriate Rust struct.
+- `src-tauri/src/commands/transaction_commands.rs`: Update `INSERT` and `SELECT` logic in the relevant command handlers.
 - Update `TransactionForm.tsx` to include an optional date picker for `dueDate`.
 - Update `AllTransactionsDataTable.tsx` to display `dueDate`.
 - Update import/export logic in `dataManagement.ts` to handle `dueDate`.
