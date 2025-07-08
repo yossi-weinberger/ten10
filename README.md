@@ -151,3 +151,5 @@ These documents should be consulted when making changes or adding new features t
 ## Automated Dependency Updates
 
 This repository uses [Dependabot](https://docs.github.com/en/code-security/dependabot) to keep npm packages and GitHub Actions workflows up to date.
+
+<!-- Triggering a new Vercel deployment -->
