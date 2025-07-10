@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { he } from "date-fns/locale";
-import { formatHebrewDate } from "@/lib/utils";
+import { formatHebrewDate } from "@/lib/utils/hebrew-date";
 import { useDonationStore } from "@/lib/store";
 import { HDate } from "@hebcal/core";
 

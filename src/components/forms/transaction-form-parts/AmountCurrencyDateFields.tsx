@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/select";
 import type { TransactionFormValues } from "@/types/forms";
 import { type CurrencyObject } from "@/lib/currencies";
+import { DatePicker } from "@/components/ui/date-picker";
+import { format, parse } from "date-fns";
 
 interface AmountCurrencyDateFieldsProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -87,7 +89,20 @@ export function AmountCurrencyDateFields({
           <FormItem>
             <FormLabel>תאריך *</FormLabel>
             <FormControl>
-              <Input type="date" {...field} />
+              <DatePicker
+                date={
+                  field.value
+                    ? parse(field.value, "yyyy-MM-dd", new Date())
+                    : undefined
+                }
+                setDate={(date) => {
+                  if (date) {
+                    field.onChange(format(date, "yyyy-MM-dd"));
+                  } else {
+                    field.onChange("");
+                  }
+                }}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
