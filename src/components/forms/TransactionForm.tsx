@@ -174,7 +174,7 @@ export function TransactionForm({
             amount: undefined,
             currency: defaultCurrency,
             description: "",
-            type: values.type,
+            type: form.getValues("type"), // Use the current form value, not the submitted one
             category: "",
             is_chomesh: false,
             recipient: "",
