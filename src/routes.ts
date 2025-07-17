@@ -16,6 +16,7 @@ import { TransactionsTable } from "./pages/TransactionsTable";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import { supabase } from "./lib/supabaseClient";
+import { NotFoundPage } from "./pages/NotFoundPage";
 
 const rootRoute = createRootRoute({
   component: App,
@@ -120,6 +121,12 @@ const signupRoute = createRoute({
   component: SignupPage,
 });
 
+const notFoundRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "*",
+  component: NotFoundPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   addTransactionRoute,
@@ -131,6 +138,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   signupRoute,
   transactionsTableRoute,
+  notFoundRoute,
 ]);
 
 export const router = createRouter({ routeTree });
