@@ -128,7 +128,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         <Icon className="h-6 w-6 min-w-[24px] flex-shrink-0" />
         <span
           className={cn(
-            "transition-all duration-200",
+            "transition-all duration-200 whitespace-nowrap min-w-0",
             !expanded && "w-0 overflow-hidden",
             !expanded ? "opacity-0" : "opacity-100"
           )}
@@ -151,7 +151,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         <Calculator className="h-6 w-6 text-primary flex-shrink-0" />
         <h1
           className={cn(
-            "text-lg font-bold dark:text-slate-100",
+            "text-lg font-bold dark:text-slate-100 whitespace-nowrap min-w-0",
             "transition-all duration-200",
             !expanded && "w-0 overflow-hidden",
             !expanded ? "opacity-0" : "opacity-100"
