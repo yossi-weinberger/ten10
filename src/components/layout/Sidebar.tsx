@@ -119,7 +119,8 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         expanded ? "justify-start px-4 gap-3" : "justify-center px-0",
         currentPath !== to && "text-foreground",
         currentPath === to &&
-          "relative after:absolute after:inset-y-2 after:right-0 after:w-1 after:bg-primary after:rounded-l-full"
+          "relative after:absolute after:inset-y-2 after:right-0 after:w-1 after:bg-primary after:rounded-l-full",
+        "[&_svg]:size-6" // Force icon size to be consistent
       )}
       asChild
     >
