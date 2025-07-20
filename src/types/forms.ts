@@ -56,7 +56,7 @@ export const transactionFormSchema = z
     // Recurring fields
     is_recurring: z.boolean().optional(),
     frequency: z
-      .enum(["monthly", "weekly", "yearly"], {
+      .enum(["monthly", "weekly", "yearly", "daily"], {
         required_error: "יש לבחור תדירות",
       })
       .optional(),
@@ -72,11 +72,16 @@ export const transactionFormSchema = z
     recurringTotalCount: z.preprocess(
       (val) => (val === "" || val === null ? undefined : val),
       z.coerce
-        .number({ invalid_type_error: "חייב להיות מספר" })
-        .int({ message: "חייב להיות מספר שלם" })
+        .number({
+          invalid_type_error: "חייב להיות מספר",
+        })
+        .int()
         .positive({ message: "מספר החזרות חייב להיות חיובי" })
         .optional()
     ),
+
+    // Fields for editing recurring transactions
+    status: z.enum(["active", "paused", "completed", "cancelled"]).optional(),
   })
   .refine(
     (data) => {
