@@ -232,6 +232,7 @@ export function RecurringTransactionsTableDisplay() {
                             <DropdownMenuLabel>פעולות</DropdownMenuLabel>
                             <DropdownMenuItem
                               onClick={() => handleEditClick(rec)}
+                              disabled={rec.status === "completed"}
                             >
                               עריכה
                             </DropdownMenuItem>

@@ -13,6 +13,7 @@ import {
   recurringEditSchema,
 } from "@/components/forms/RecurringTransactionEditForm"; // Import the new form
 import { z } from "zod";
+import { toast } from "sonner";
 
 interface RecurringTransactionEditModalProps {
   isOpen: boolean;
@@ -43,8 +44,10 @@ export function RecurringTransactionEditModal({
       await updateRecurringTransaction(transaction.id, updateValues);
       fetchRecurring();
       onClose();
+      toast.success("הוראת הקבע עודכנה בהצלחה!");
     } catch (error) {
       console.error("Failed to update recurring transaction:", error);
+      toast.error("שגיאה בעדכון הוראת הקבע.");
     }
   };
 
@@ -54,7 +57,8 @@ export function RecurringTransactionEditModal({
         <DialogHeader>
           <DialogTitle>עריכת הוראת קבע</DialogTitle>
           <DialogDescription>
-            עדכן את פרטי הוראת הקבע. שינויים יישמרו לאחר לחיצה על שמור.
+            עדכן את פרטי הוראת הקבע. שינויים יחולו רק על תנועות עתידיות ולא
+            ישפיעו על תנועות שכבר בוצעו.
           </DialogDescription>
         </DialogHeader>
         <RecurringTransactionEditForm

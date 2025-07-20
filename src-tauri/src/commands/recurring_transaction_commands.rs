@@ -333,3 +333,19 @@ pub fn update_recurring_transaction_handler(
 
     Ok(updated_rec)
 } 
+
+#[tauri::command]
+pub fn get_recurring_transaction_by_id_handler(
+    db_state: State<'_, DbState>,
+    id: String,
+) -> std::result::Result<RecurringTransaction, String> {
+    let conn = db_state.0.lock().map_err(|e| e.to_string())?;
+    
+    let mut stmt = conn.prepare("SELECT * FROM recurring_transactions WHERE id = ?1")
+        .map_err(|e| e.to_string())?;
+        
+    let rec = stmt.query_row(params![id], |row| RecurringTransaction::from_row(row))
+        .map_err(|e| e.to_string())?;
+
+    Ok(rec)
+} 

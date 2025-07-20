@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { Outlet } from "@tanstack/react-router";
 import { Button } from "./components/ui/button";
+import { Toaster } from "@/components/ui/sonner";
 import {
   Sheet,
   SheetContent,
@@ -100,6 +101,7 @@ function App() {
           </div>
         </main>
       </div>
+      <Toaster richColors />
     </div>
   );
 }
