@@ -17,6 +17,7 @@ use commands::expense_commands::get_desktop_total_expenses_in_range;
 use commands::income_commands::get_desktop_total_income_in_range;
 use commands::recurring_transaction_commands::{
     add_recurring_transaction_handler, execute_due_recurring_transactions_handler,
+    get_recurring_transactions_handler, update_recurring_transaction_handler,
 };
 use commands::transaction_commands::{
     add_transaction,
@@ -51,7 +52,9 @@ fn main() {
             update_transaction_handler,
             get_desktop_monthly_financial_summary,
             execute_due_recurring_transactions_handler,
-            add_recurring_transaction_handler
+            add_recurring_transaction_handler,
+            get_recurring_transactions_handler,
+            update_recurring_transaction_handler,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
