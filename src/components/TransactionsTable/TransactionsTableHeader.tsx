@@ -1,7 +1,7 @@
 import React from "react";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
-import { Transaction } from "@/types/transaction"; // Assuming Transaction type is needed for SortableField
+import { Transaction } from "@/types/transaction";
 
 export type SortableField = keyof Transaction | string;
 
@@ -11,7 +11,10 @@ export interface TableSortConfig {
 }
 
 interface TransactionsTableHeaderProps {
-  sorting: TableSortConfig;
+  sorting: {
+    field: string;
+    direction: "asc" | "desc";
+  };
   handleSort: (field: SortableField) => void;
   sortableColumns: { label: string; field: SortableField }[];
 }
