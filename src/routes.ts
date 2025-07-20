@@ -17,6 +17,7 @@ import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import { supabase } from "./lib/supabaseClient";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { RecurringTransactionsTable } from "./pages/RecurringTransactionsTable";
 
 const rootRoute = createRootRoute({
   component: App,
@@ -109,6 +110,12 @@ const transactionsTableRoute = createRoute({
   component: TransactionsTable,
 });
 
+const recurringTransactionsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/recurring-transactions",
+  component: RecurringTransactionsTable,
+});
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
@@ -138,6 +145,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   signupRoute,
   transactionsTableRoute,
+  recurringTransactionsRoute,
   notFoundRoute,
 ]);
 
