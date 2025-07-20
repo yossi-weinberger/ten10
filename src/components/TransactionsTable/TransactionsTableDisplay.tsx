@@ -24,6 +24,8 @@ import {
   SortableField,
 } from "./TransactionsTableHeader"; // TableSortConfig is also exported but not directly used here for props
 import { TransactionsTableFooter } from "./TransactionsTableFooter";
+import { useNavigate } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 
 // Define Transaction type (can be imported from a central types file if available)
 type Transaction = import("@/types/transaction").Transaction;
@@ -54,6 +56,7 @@ export function TransactionsTableDisplay() {
   } = useTableTransactionsStore();
 
   const { platform } = usePlatform(); // platform is used directly here for API calls
+  const navigate = useNavigate();
 
   const [transactionToDelete, setTransactionToDelete] =
     useState<Transaction | null>(null);
@@ -124,6 +127,13 @@ export function TransactionsTableDisplay() {
       {/* Removed container and py-4 for better composability */}
       {/* The main title <h1 className="text-3xl font-bold text-center">טבלת תנועות</h1> can be added by the parent page component */}
       <div className="flex justify-between items-center gap-4">
+        <Button
+          onClick={() => navigate({ to: "/recurring-transactions" })}
+          variant="outline"
+          className="mb-4"
+        >
+          הצג הוראות קבע
+        </Button>
         <TransactionsFilters />
         <ExportButton />
       </div>
@@ -170,7 +180,7 @@ export function TransactionsTableDisplay() {
                     </TableCell>
                   </TableRow>
                 )}
-                {transactions.map((transaction: Transaction) => (
+                {transactions.map((transaction: TransactionForTable) => (
                   <TransactionRow
                     key={transaction.id}
                     transaction={transaction}
