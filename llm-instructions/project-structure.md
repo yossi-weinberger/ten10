@@ -50,12 +50,21 @@ This section details how the different parts of the project interact with each o
 ├── .github/               # GitHub specific files (workflows, etc.)
 ├── dist/                  # Build output directory for the frontend
 ├── llm-instructions/      # Instructions and guidelines for LLM development
+│   ├── data-flow-server-calculations-and-cleanup.md
 │   ├── desktop-data-saving-guide.md
+│   ├── migration-guide.md
+│   ├── multi-language-and-responsive-design-guide.md
 │   ├── platform-context-api-guide.md
 │   ├── project-overview-and-requirements.md
 │   ├── project-structure.md  # This file
 │   ├── project-tech-stack-and-guidelines.md
-│   └── transaction-data-model-and-calculations.md
+│   ├── recurring-transactions-implementation-guide.md
+│   ├── server-side-tithe-balance-calculation-guide.md
+│   ├── session_summary_monthly_chart_platform_issues.md
+│   ├── supabase-integration-status.md
+│   ├── tauri-v2-build-and-platform-detection-summary.md
+│   ├── transaction-data-model-and-calculations.md
+│   ├── transactions-table-technical-overview.md
 ├── node_modules/          # Project dependencies
 ├── public/                # Static assets served directly
 │   └── fonts/             # Font files
@@ -64,13 +73,13 @@ This section details how the different parts of the project interact with each o
 │   │   ├── charts/
 │   │   │   └── area-chart-interactive.tsx
 │   │   ├── dashboard/
+│   │   │   ├── MonthlyChart.tsx
 │   │   │   ├── StatCards/
 │   │   │   │   ├── DonationsStatCard.tsx
 │   │   │   │   ├── ExpensesStatCard.tsx
 │   │   │   │   ├── IncomeStatCard.tsx
 │   │   │   │   ├── MagicStatCard.tsx
 │   │   │   │   └── OverallRequiredStatCard.tsx
-│   │   │   ├── MonthlyChart.tsx
 │   │   │   └── StatsCards.tsx
 │   │   ├── forms/
 │   │   │   ├── transaction-form-parts/
@@ -82,6 +91,7 @@ This section details how the different parts of the project interact with each o
 │   │   │   │   └── TransactionTypeSelector.tsx
 │   │   │   └── TransactionForm.tsx
 │   │   ├── layout/
+│   │   │   ├── AppLoader.tsx
 │   │   │   ├── PlatformIndicator.tsx
 │   │   │   └── Sidebar.tsx
 │   │   ├── settings/
@@ -101,9 +111,57 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── TransactionsTableDisplay.tsx
 │   │   │   ├── TransactionsTableFooter.tsx
 │   │   │   └── TransactionsTableHeader.tsx
-│   │   ├── ui/  # shadcn/ui components and other generic UI elements
+│   │   ├── ui/            # shadcn/ui components and other generic UI elements
 │   │   │   ├── accordion.tsx
 │   │   │   ├── alert-dialog.tsx
+│   │   │   ├── alert.tsx
+│   │   │   ├── aspect-ratio.tsx
+│   │   │   ├── avatar.tsx
+│   │   │   ├── badge.tsx
+│   │   │   ├── breadcrumb.tsx
+│   │   │   ├── button.tsx
+│   │   │   ├── calendar.tsx
+│   │   │   ├── card.tsx
+│   │   │   ├── carousel.tsx
+│   │   │   ├── chart.tsx
+│   │   │   ├── checkbox.tsx
+│   │   │   ├── collapsible.tsx
+│   │   │   ├── command.tsx
+│   │   │   ├── context-menu.tsx
+│   │   │   ├── data-table.tsx
+│   │   │   ├── date-picker.tsx
+│   │   │   ├── date-range-picker.tsx
+│   │   │   ├── dialog.tsx
+│   │   │   ├── drawer.tsx
+│   │   │   ├── dropdown-menu.tsx
+│   │   │   ├── form.tsx
+│   │   │   ├── hover-card.tsx
+│   │   │   ├── input-otp.tsx
+│   │   │   ├── input.tsx
+│   │   │   ├── label.tsx
+│   │   │   ├── menubar.tsx
+│   │   │   ├── navigation-menu.tsx
+│   │   │   ├── pagination.tsx
+│   │   │   ├── popover.tsx
+│   │   │   ├── progress.tsx
+│   │   │   ├── radio-group.tsx
+│   │   │   ├── resizable.tsx
+│   │   │   ├── scroll-area.tsx
+│   │   │   ├── select.tsx
+│   │   │   ├── separator.tsx
+│   │   │   ├── sheet.tsx
+│   │   │   ├── skeleton.tsx
+│   │   │   ├── slider.tsx
+│   │   │   ├── sonner.tsx
+│   │   │   ├── switch.tsx
+│   │   │   ├── table.tsx
+│   │   │   ├── tabs.tsx
+│   │   │   ├── textarea.tsx
+│   │   │   ├── toast.tsx
+│   │   │   ├── toaster.tsx
+│   │   │   ├── toggle-group.tsx
+│   │   │   ├── toggle.tsx
+│   │   │   └── tooltip.tsx
 │   │   └── UserInfoDisplay.tsx
 │   ├── contexts/
 │   │   ├── AuthContext.tsx
@@ -113,6 +171,7 @@ This section details how the different parts of the project interact with each o
 │   │   ├── useDateControls.ts
 │   │   └── useServerStats.ts
 │   ├── lib/
+│   │   ├── currencies.ts
 │   │   ├── data-layer/
 │   │   │   ├── analytics.service.ts
 │   │   │   ├── chart.service.ts
@@ -122,10 +181,17 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── stats.service.ts
 │   │   │   ├── transactionForm.service.ts
 │   │   │   └── transactions.service.ts
+│   │   ├── dataService.ts
+│   │   ├── platformManager.ts
+│   │   ├── schemas.ts
+│   │   ├── store.ts
+│   │   ├── supabaseClient.ts
 │   │   ├── tableTransactions/
-│   │   │   ├── tableTransactionService.ts
 │   │   │   ├── tableTransactions.store.ts
-│   │   │   └── tableTransactions.types.ts
+│   │   │   ├── tableTransactions.types.ts
+│   │   │   └── tableTransactionService.ts
+│   │   ├── theme.tsx
+│   │   ├── tithe-calculator.ts
 │   │   ├── utils/
 │   │   │   ├── currency.ts
 │   │   │   ├── export-csv.ts
@@ -134,11 +200,7 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── formatting.tsx
 │   │   │   ├── hebrew-date.ts
 │   │   │   └── index.ts
-│   │   ├── schemas.ts
-│   │   ├── store.ts
-│   │   ├── supabaseClient.ts
-│   │   ├── theme.tsx
-│   │   └── tithe-calculator.ts
+│   │   └── utils.ts
 │   ├── pages/
 │   │   ├── AboutPage.tsx
 │   │   ├── AddTransactionPage.tsx
@@ -146,23 +208,53 @@ This section details how the different parts of the project interact with each o
 │   │   ├── HalachaPage.tsx
 │   │   ├── HomePage.tsx
 │   │   ├── LoginPage.tsx
+│   │   ├── NotFoundPage.tsx
 │   │   ├── ProfilePage.tsx
 │   │   ├── SettingsPage.tsx
 │   │   ├── SignupPage.tsx
 │   │   └── TransactionsTable.tsx
 │   ├── types/
+│   │   ├── forms.ts
+│   │   ├── recurringTransactionLabels.ts
 │   │   ├── transaction.ts
-│   │   └── transactionLabels.ts
-│   ├── utils/ # (currently empty)
+│   │   ├── transactionLabels.ts
+│   ├── utils/ # Utility functions (if any)
 │   ├── App.tsx
 │   ├── index.css
 │   ├── main.tsx
 │   ├── routes.ts
 │   └── vite-env.d.ts
 ├── src-tauri/             # Backend source code (Rust + Tauri)
-│   ├── icons/             # Application icons
-│   ├── src/               # Rust source code
-│   │   ├── commands/      # Backend command modules
+│   ├── 2.0.0-rc
+│   ├── build.rs
+│   ├── capabilities/
+│   │   └── migrated.json
+│   ├── Cargo.toml
+│   ├── gen/
+│   │   └── schemas/
+│   │       ├── acl-manifests.json
+│   │       ├── capabilities.json
+│   │       ├── desktop-schema.json
+│   │       └── windows-schema.json
+│   ├── icons/
+│   │   ├── 128x128.png
+│   │   ├── 128x128@2x.png
+│   │   ├── 32x32.png
+│   │   ├── icon.icns
+│   │   ├── icon.ico
+│   │   ├── icon.png
+│   │   ├── Square107x107Logo.png
+│   │   ├── Square142x142Logo.png
+│   │   ├── Square150x150Logo.png
+│   │   ├── Square284x284Logo.png
+│   │   ├── Square30x30Logo.png
+│   │   ├── Square310x310Logo.png
+│   │   ├── Square44x44Logo.png
+│   │   ├── Square71x71Logo.png
+│   │   ├── Square89x89Logo.png
+│   │   └── StoreLogo.png
+│   ├── src/
+│   │   ├── commands/
 │   │   │   ├── chart_commands.rs
 │   │   │   ├── db_commands.rs
 │   │   │   ├── donation_commands.rs
@@ -171,25 +263,34 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── mod.rs
 │   │   │   ├── recurring_transaction_commands.rs
 │   │   │   └── transaction_commands.rs
-│   │   ├── models.rs      # Centralized Rust data models (structs)
-│   │   └── main.rs        # Main Rust application entry point and command handler
-│   ├── target/            # Rust build output directory
-│   ├── build.rs           # Rust build script
-│   ├── Cargo.lock         # Rust dependency lock file
-│   ├── Cargo.toml         # Rust project manifest and dependencies
-│   ├── tauri.conf.json    # Tauri configuration file
+│   │   ├── main.rs
+│   │   └── models.rs
+│   ├── tauri.conf.json
 │   └── Ten10.db           # SQLite database file (for Desktop version)
-├── .eslint.config.js      # ESLint configuration
-├── .gitignore             # Files and directories ignored by Git
+├── components.json
+├── eslint.config.js
 ├── index.html             # Main HTML entry point for the frontend
 ├── package-lock.json      # NPM dependency lock file
 ├── package.json           # Project manifest and dependencies (Node.js)
 ├── postcss.config.js      # PostCSS configuration
+├── public/
+│   ├── fonts/
+│   │   ├── Assistant-VariableFont_wght.ttf
+│   │   ├── Rubik-Medium.ttf
+│   │   ├── Rubik-Regular.ttf
+│   │   └── Rubik-SemiBold.ttf
+│   ├── icon-192.png
+│   ├── icon-512.png
+│   ├── loader.css
+│   └── manifest.json
 ├── README.md              # Project README file
+├── realistic_data_2023-06_to_2025-05.json
 ├── tailwind.config.js     # Tailwind CSS configuration
+├── ten10_backup_desktop_2025-06-17.json
 ├── TODO.md                # To-do list or notes
 ├── tsconfig.app.json      # TypeScript configuration for the application
 ├── tsconfig.json          # Base TypeScript configuration
 ├── tsconfig.node.json     # TypeScript configuration for Node.js environment (e.g., Vite config)
+├── vercel.json
 └── vite.config.ts         # Vite build tool configuration
 ```
