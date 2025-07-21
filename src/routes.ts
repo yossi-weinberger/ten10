@@ -106,12 +106,18 @@ const analyticsRoute = createRoute({
 
 const transactionsTableRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/transactionsTable",
+  path: "/transactions-table",
+  // By omitting the component, this route becomes a "layout-less" or "grouping" route
+});
+
+const transactionsTableIndexRoute = createRoute({
+  getParentRoute: () => transactionsTableRoute,
+  path: "/",
   component: TransactionsTable,
 });
 
 const recurringTransactionsRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => transactionsTableRoute,
   path: "/recurring-transactions",
   component: RecurringTransactionsTable,
 });
@@ -144,8 +150,10 @@ const routeTree = rootRoute.addChildren([
   analyticsRoute,
   loginRoute,
   signupRoute,
-  transactionsTableRoute,
-  recurringTransactionsRoute,
+  transactionsTableRoute.addChildren([
+    transactionsTableIndexRoute,
+    recurringTransactionsRoute,
+  ]),
   notFoundRoute,
 ]);
 
