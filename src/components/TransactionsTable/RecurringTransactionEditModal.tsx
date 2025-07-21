@@ -26,22 +26,16 @@ export function RecurringTransactionEditModal({
   onClose,
   transaction,
 }: RecurringTransactionEditModalProps) {
-  if (!transaction) return null;
-
   const { fetchRecurring } = useRecurringTableStore();
 
   const handleUpdate = async (values: z.infer<typeof recurringEditSchema>) => {
     try {
       const updateValues = {
         ...values,
-        day_of_month:
-          values.day_of_month === null ? undefined : values.day_of_month,
-        total_occurrences:
-          values.total_occurrences === null
-            ? undefined
-            : values.total_occurrences,
+        day_of_month: values.day_of_month ?? undefined,
+        total_occurrences: values.total_occurrences ?? undefined,
       };
-      await updateRecurringTransaction(transaction.id, updateValues);
+      await updateRecurringTransaction(transaction!.id, updateValues);
       fetchRecurring();
       onClose();
       toast.success("הוראת הקבע עודכנה בהצלחה!");
@@ -57,15 +51,21 @@ export function RecurringTransactionEditModal({
         <DialogHeader>
           <DialogTitle>עריכת הוראת קבע</DialogTitle>
           <DialogDescription>
-            עדכן את פרטי הוראת הקבע. שינויים יחולו רק על תנועות עתידיות ולא
-            ישפיעו על תנועות שכבר בוצעו.
+            עדכן את פרטי הוראת הקבע. שינויים יחולו רק על תנועות עתידיות.
           </DialogDescription>
         </DialogHeader>
-        <RecurringTransactionEditForm
-          initialData={transaction}
-          onSubmit={handleUpdate}
-          onCancel={onClose}
-        />
+
+        {transaction ? (
+          <RecurringTransactionEditForm
+            initialData={transaction}
+            onSubmit={handleUpdate}
+            onCancel={onClose}
+          />
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            לא נבחרה הוראה לעריכה.
+          </p>
+        )}
       </DialogContent>
     </Dialog>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
   Table,
   TableBody,
@@ -64,15 +64,15 @@ export function RecurringTransactionsTableDisplay() {
   const [selectedTransaction, setSelectedTransaction] =
     useState<RecurringTransaction | null>(null);
 
-  const handleEditClick = (transaction: RecurringTransaction) => {
+  const handleEditClick = useCallback((transaction: RecurringTransaction) => {
     setSelectedTransaction(transaction);
     setIsEditModalOpen(true);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setIsEditModalOpen(false);
     setSelectedTransaction(null);
-  };
+  }, []);
 
   const {
     recurring,
@@ -88,9 +88,12 @@ export function RecurringTransactionsTableDisplay() {
     fetchRecurring();
   }, [fetchRecurring, sorting, filters]);
 
-  const handleSort = (field: SortableField) => {
-    setSorting(field);
-  };
+  const handleSort = useCallback(
+    (field: SortableField) => {
+      setSorting(field);
+    },
+    [setSorting]
+  );
 
   const sortableColumns = useMemo(
     () => [
