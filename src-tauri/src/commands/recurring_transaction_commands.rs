@@ -349,3 +349,16 @@ pub fn get_recurring_transaction_by_id_handler(
 
     Ok(rec)
 } 
+
+#[tauri::command]
+pub fn delete_recurring_transaction_handler(
+    db_state: State<'_, DbState>,
+    id: String,
+) -> std::result::Result<(), String> {
+    let conn = db_state.0.lock().map_err(|e| e.to_string())?;
+    
+    conn.execute("DELETE FROM recurring_transactions WHERE id = ?1", params![id])
+        .map_err(|e| e.to_string())?;
+    
+    Ok(())
+} 

@@ -26,6 +26,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { deleteRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
 import { MoreHorizontal, Repeat, Infinity } from "lucide-react";
 import { RecurringTransaction, TransactionType } from "@/types/transaction";
 import {
@@ -63,6 +75,9 @@ export function RecurringTransactionsTableDisplay() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
     useState<RecurringTransaction | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] =
+    useState<RecurringTransaction | null>(null);
 
   const handleEditClick = useCallback((transaction: RecurringTransaction) => {
     setSelectedTransaction(transaction);
@@ -73,6 +88,26 @@ export function RecurringTransactionsTableDisplay() {
     setIsEditModalOpen(false);
     setSelectedTransaction(null);
   }, []);
+
+  const handleDeleteClick = (transaction: RecurringTransaction) => {
+    setTransactionToDelete(transaction);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!transactionToDelete) return;
+    try {
+      await deleteRecurringTransaction(transactionToDelete.id);
+      toast.success("הוראת הקבע נמחקה בהצלחה.");
+      fetchRecurring(); // Refresh the table
+    } catch (error) {
+      console.error("Failed to delete recurring transaction:", error);
+      toast.error("שגיאה במחיקת הוראת הקבע.");
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setTransactionToDelete(null);
+    }
+  };
 
   const {
     recurring,
@@ -239,8 +274,12 @@ export function RecurringTransactionsTableDisplay() {
                             >
                               עריכה
                             </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
-                              מחק (לא פעיל)
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onClick={() => handleDeleteClick(rec)}
+                              disabled={rec.status === "completed"}
+                            >
+                              מחק
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -257,6 +296,32 @@ export function RecurringTransactionsTableDisplay() {
         onClose={handleCloseModal}
         transaction={selectedTransaction}
       />
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>אישור מחיקה</AlertDialogTitle>
+            <AlertDialogDescription>
+              האם אתה בטוח? פעולה זו תמחק את הגדרת הוראת הקבע ותמנע יצירת תנועות
+              עתידיות. תנועות שכבר נוצרו במסגרת הוראה זו לא יימחקו. לא ניתן
+              לשחזר פעולה זו.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
+              ביטול
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              מחק
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

@@ -103,3 +103,30 @@ export async function updateRecurringTransaction(
   }
   throw new Error("Unsupported platform");
 }
+
+export async function deleteRecurringTransaction(id: string): Promise<void> {
+  const platform = getPlatform();
+
+  if (platform === "web") {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error("User not authenticated for deleting transaction");
+    }
+    const { error } = await supabase.rpc("delete_recurring_transaction", {
+      p_id: id,
+      p_user_id: user.id,
+    });
+
+    if (error) {
+      console.error("Error deleting recurring transaction via RPC:", error);
+      throw error;
+    }
+  } else if (platform === "desktop") {
+    const { invoke } = await import("@tauri-apps/api/core");
+    await invoke("delete_recurring_transaction_handler", { id });
+  } else {
+    throw new Error("Unsupported platform");
+  }
+}
