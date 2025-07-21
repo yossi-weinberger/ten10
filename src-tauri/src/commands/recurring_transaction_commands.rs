@@ -6,6 +6,26 @@ use chrono::{Local, Months, NaiveDate};
 use rusqlite::{params, Connection, Result as RusqliteResult};
 use tauri::State;
 use uuid::Uuid;
+use serde::{Deserialize, Serialize};
+use rusqlite::types::ToSql;
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TableSortingPayload {
+    pub field: String,
+    pub direction: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TableFiltersPayload {
+    pub search: Option<String>,
+    pub statuses: Option<Vec<String>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct GetRecurringTransactionsArgs {
+    pub sorting: TableSortingPayload,
+    pub filters: TableFiltersPayload,
+}
 
 fn calculate_next_due_date(current_due_date_str: &str, frequency: &str) -> Result<String, String> {
     let current_date = NaiveDate::parse_from_str(current_due_date_str, "%Y-%m-%d")
@@ -190,6 +210,155 @@ pub fn add_recurring_transaction_handler(
         ],
     )
     .map_err(|e| format!("Failed to insert recurring transaction: {}", e))?;
+    
+    Ok(())
+} 
+
+#[tauri::command]
+pub fn get_recurring_transactions_handler(
+    db_state: State<'_, DbState>,
+    args: GetRecurringTransactionsArgs,
+) -> std::result::Result<Vec<RecurringTransaction>, String> {
+    let conn = db_state.0.lock().map_err(|e| e.to_string())?;
+    let sorting = args.sorting;
+    let filters = args.filters;
+
+    let sort_field = match sorting.field.as_str() {
+        "description" | "amount" | "next_due_date" | "status" | "type" => sorting.field,
+        _ => "next_due_date".to_string(),
+    };
+    let sort_direction = if sorting.direction.to_lowercase() == "desc" { "DESC" } else { "ASC" };
+
+    let mut where_clauses: Vec<String> = Vec::new();
+    let mut params: Vec<Box<dyn ToSql>> = Vec::new();
+
+    if let Some(search_term) = filters.search {
+        where_clauses.push("description LIKE ?".to_string());
+        params.push(Box::new(format!("%{}%", search_term)));
+    }
+
+    if let Some(statuses) = filters.statuses {
+        if !statuses.is_empty() {
+            let placeholders = statuses.iter().map(|_| "?").collect::<Vec<_>>().join(", ");
+            where_clauses.push(format!("status IN ({})", placeholders));
+            for status in statuses {
+                params.push(Box::new(status));
+            }
+        }
+    }
+
+    let where_sql = if where_clauses.is_empty() {
+        "".to_string()
+    } else {
+        format!("WHERE {}", where_clauses.join(" AND "))
+    };
+
+    let query = format!(
+        "SELECT * FROM recurring_transactions {} ORDER BY {} {}",
+        where_sql, sort_field, sort_direction
+    );
+
+    let mut stmt = conn.prepare(&query).map_err(|e| e.to_string())?;
+    let params_slice: Vec<&dyn ToSql> = params.iter().map(|p| p.as_ref()).collect();
+    let rows = stmt.query_map(params_slice.as_slice(), |row| RecurringTransaction::from_row(row))
+        .map_err(|e| e.to_string())?;
+
+    let mut recurring = Vec::new();
+    for row in rows {
+        recurring.push(row.map_err(|e| e.to_string())?);
+    }
+    Ok(recurring)
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct UpdateRecurringTransactionPayload {
+    pub id: String,
+    pub updates: serde_json::Value,
+}
+
+#[tauri::command]
+pub fn update_recurring_transaction_handler(
+    db_state: State<'_, DbState>,
+    id: String,
+    updates: serde_json::Value,
+) -> std::result::Result<RecurringTransaction, String> {
+    let conn = db_state.0.lock().map_err(|e| e.to_string())?;
+    
+    let mut set_clauses = Vec::new();
+    let mut params: Vec<Box<dyn ToSql>> = Vec::new();
+    let updates_map = updates.as_object().ok_or("Invalid updates format")?;
+
+    for (key, value) in updates_map {
+        set_clauses.push(format!("{} = ?", key));
+        match value {
+            serde_json::Value::Number(n) => {
+                if n.is_f64() {
+                    params.push(Box::new(n.as_f64().unwrap()));
+                } else {
+                    params.push(Box::new(n.as_i64().unwrap()));
+                }
+            }
+            serde_json::Value::String(s) => params.push(Box::new(s.clone())),
+            serde_json::Value::Bool(b) => params.push(Box::new(*b)),
+            serde_json::Value::Null => params.push(Box::new(rusqlite::types::Null)),
+            _ => return Err(format!("Unsupported value type for key: {}", key)),
+        }
+    }
+    
+    if set_clauses.is_empty() {
+        return Err("No fields to update".to_string());
+    }
+
+    set_clauses.push("updated_at = ?".to_string());
+    params.push(Box::new(Local::now().to_rfc3339()));
+
+    let query = format!(
+        "UPDATE recurring_transactions SET {} WHERE id = ?",
+        set_clauses.join(", ")
+    );
+
+    let mut final_params = params;
+    final_params.push(Box::new(id.clone()));
+
+    let params_slice: Vec<&dyn ToSql> = final_params.iter().map(|p| p.as_ref()).collect();
+
+    conn.execute(&query, params_slice.as_slice())
+        .map_err(|e| format!("DB execute error: {}", e))?;
+
+    // Fetch and return the updated transaction
+    let mut stmt = conn.prepare("SELECT * FROM recurring_transactions WHERE id = ?1")
+        .map_err(|e| e.to_string())?;
+    let updated_rec = stmt.query_row(params![id], |row| RecurringTransaction::from_row(row))
+        .map_err(|e| e.to_string())?;
+
+    Ok(updated_rec)
+} 
+
+#[tauri::command]
+pub fn get_recurring_transaction_by_id_handler(
+    db_state: State<'_, DbState>,
+    id: String,
+) -> std::result::Result<RecurringTransaction, String> {
+    let conn = db_state.0.lock().map_err(|e| e.to_string())?;
+    
+    let mut stmt = conn.prepare("SELECT * FROM recurring_transactions WHERE id = ?1")
+        .map_err(|e| e.to_string())?;
+        
+    let rec = stmt.query_row(params![id], |row| RecurringTransaction::from_row(row))
+        .map_err(|e| e.to_string())?;
+
+    Ok(rec)
+} 
+
+#[tauri::command]
+pub fn delete_recurring_transaction_handler(
+    db_state: State<'_, DbState>,
+    id: String,
+) -> std::result::Result<(), String> {
+    let conn = db_state.0.lock().map_err(|e| e.to_string())?;
+    
+    conn.execute("DELETE FROM recurring_transactions WHERE id = ?1", params![id])
+        .map_err(|e| e.to_string())?;
     
     Ok(())
 } 

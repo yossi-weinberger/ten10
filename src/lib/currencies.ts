@@ -1,6 +1,6 @@
 export const CURRENCIES = [
-  { code: "ILS", symbol: "₪", name: "שקל ישראלי" },
-  { code: "USD", symbol: "$", name: "דולר אמריקאי" },
+  { code: "ILS", symbol: "₪", name: "שקל" },
+  { code: "USD", symbol: "$", name: "דולר" },
   { code: "EUR", symbol: "€", name: "אירו" },
 ] as const;
 

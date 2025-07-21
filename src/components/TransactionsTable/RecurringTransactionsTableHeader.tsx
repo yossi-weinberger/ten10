@@ -1,27 +1,23 @@
 import React from "react";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
-import { Transaction } from "@/types/transaction";
+import { RecurringTransaction } from "@/types/transaction";
 
-export type SortableField = keyof Transaction | string;
+export type SortableField = keyof RecurringTransaction | string;
 
-export interface TableSortConfig {
-  field: SortableField;
-  direction: "asc" | "desc";
-}
-
-interface TransactionsTableHeaderProps {
+interface RecurringTableHeaderProps {
   sorting: {
     field: string;
     direction: "asc" | "desc";
   };
   handleSort: (field: SortableField) => void;
   sortableColumns: { label: string; field: SortableField }[];
+  extraColumns?: { label: string }[];
 }
 
-export const TransactionsTableHeader: React.FC<
-  TransactionsTableHeaderProps
-> = ({ sorting, handleSort, sortableColumns }) => {
+export const RecurringTransactionsTableHeader: React.FC<
+  RecurringTableHeaderProps
+> = ({ sorting, handleSort, sortableColumns, extraColumns = [] }) => {
   const renderSortIcon = (field: SortableField) => {
     if (sorting.field !== field) {
       return <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />;
@@ -47,11 +43,14 @@ export const TransactionsTableHeader: React.FC<
             </div>
           </TableHead>
         ))}
-        <TableHead className="text-right whitespace-nowrap">חומש?</TableHead>
-        <TableHead className="text-center whitespace-nowrap">
-          הוראת קבע
-        </TableHead>
-        <TableHead className="text-center whitespace-nowrap">פעולות</TableHead>
+        {extraColumns.map((col, index) => (
+          <TableHead
+            key={`extra-${index}`}
+            className="text-center whitespace-nowrap"
+          >
+            {col.label}
+          </TableHead>
+        ))}
       </TableRow>
     </TableHeader>
   );

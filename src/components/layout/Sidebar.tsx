@@ -111,33 +111,38 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
     to: string;
     icon: React.ElementType;
     children: React.ReactNode;
-  }) => (
-    <Button
-      variant={currentPath === to ? "secondary" : "ghost"}
-      className={cn(
-        "w-full h-12",
-        expanded ? "justify-start px-4 gap-3" : "justify-center px-0",
-        currentPath !== to && "text-foreground",
-        currentPath === to &&
-          "relative after:absolute after:inset-y-2 after:right-0 after:w-1 after:bg-primary after:rounded-l-full",
-        "[&_svg]:size-6" // Force icon size to be consistent
-      )}
-      asChild
-    >
-      <Link to={to}>
-        <Icon className="h-6 w-6 min-w-[24px] flex-shrink-0" />
-        <span
-          className={cn(
-            "transition-all duration-200 whitespace-nowrap min-w-0",
-            !expanded && "w-0 overflow-hidden",
-            !expanded ? "opacity-0" : "opacity-100"
-          )}
-        >
-          {children}
-        </span>
-      </Link>
-    </Button>
-  );
+  }) => {
+    const isActive =
+      to === "/" ? currentPath === to : currentPath.startsWith(to);
+
+    return (
+      <Button
+        variant={isActive ? "secondary" : "ghost"}
+        className={cn(
+          "w-full h-12",
+          expanded ? "justify-start px-4 gap-3" : "justify-center px-0",
+          !isActive && "text-foreground",
+          isActive &&
+            "relative after:absolute after:inset-y-2 after:right-0 after:w-1 after:bg-primary after:rounded-l-full",
+          "[&_svg]:size-6" // Force icon size to be consistent
+        )}
+        asChild
+      >
+        <Link to={to}>
+          <Icon className="h-6 w-6 min-w-[24px] flex-shrink-0" />
+          <span
+            className={cn(
+              "transition-all duration-200 whitespace-nowrap min-w-0",
+              !expanded && "w-0 overflow-hidden",
+              !expanded ? "opacity-0" : "opacity-100"
+            )}
+          >
+            {children}
+          </span>
+        </Link>
+      </Button>
+    );
+  };
 
   return (
     <div
@@ -175,7 +180,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         {/* <NavLink to="/analytics" icon={BarChart}>
           ניתוח נתונים
         </NavLink> */}
-        <NavLink to="/transactionsTable" icon={Table}>
+        <NavLink to="/transactions-table" icon={Table}>
           טבלת נתונים
         </NavLink>
         <NavLink to="/halacha" icon={Book}>

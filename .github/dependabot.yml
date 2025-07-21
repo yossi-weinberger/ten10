@@ -4,6 +4,15 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    # Increase the number of open pull requests from the default of 5
+    open-pull-requests-limit: 10
+    # Group patch and minor updates to reduce noise
+    groups:
+      patch-and-minor-updates:
+        update-types:
+          - "minor"
+          - "patch"
+
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

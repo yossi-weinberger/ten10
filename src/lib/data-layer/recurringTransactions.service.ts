@@ -97,3 +97,51 @@ export async function getRecurringTransactions(): Promise<
 
   return data || [];
 }
+
+/**
+ * Fetches a single recurring transaction by its ID.
+ * @param id The ID of the recurring transaction.
+ * @returns A single recurring transaction object.
+ */
+export async function getRecurringTransactionById(
+  id: string
+): Promise<RecurringTransaction> {
+  const platform = getPlatform();
+
+  if (platform === "web") {
+    const { data, error } = await supabase
+      .rpc("get_recurring_transaction_by_id", { p_id: id })
+      .single();
+
+    if (error) {
+      console.error(
+        "Error fetching recurring transaction by ID from Supabase:",
+        error
+      );
+      throw error;
+    }
+    if (!data) {
+      throw new Error(`Recurring transaction with ID ${id} not found.`);
+    }
+    return data as RecurringTransaction;
+  } else if (platform === "desktop") {
+    const { invoke } = await import("@tauri-apps/api/core");
+    try {
+      const result: RecurringTransaction = await invoke(
+        "get_recurring_transaction_by_id_handler",
+        { id }
+      );
+      return result;
+    } catch (error) {
+      console.error(
+        "Error fetching recurring transaction by ID from Desktop:",
+        error
+      );
+      throw new Error(
+        `Failed to fetch recurring transaction with ID ${id} from desktop database.`
+      );
+    }
+  } else {
+    throw new Error("Unsupported platform");
+  }
+}

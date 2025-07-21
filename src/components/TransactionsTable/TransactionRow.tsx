@@ -26,7 +26,7 @@ import {
   transactionTypeLabels,
   typeBadgeColors,
 } from "@/types/transactionLabels";
-import { formatBoolean, cn } from "@/lib/utils/formatting"; // Import helper functions
+import { formatBoolean, cn } from "@/lib/utils/formatting";
 
 const recurringStatusMap: { [key: string]: string } = {
   active: "פעיל",
@@ -46,12 +46,16 @@ interface TransactionRowProps {
   transaction: TransactionForTable;
   onEdit: (transaction: Transaction) => void;
   onDelete: (transaction: Transaction) => void;
+  onEditRecurring: (recurringId: string) => void;
+  isFetchingRec: boolean;
 }
 
 const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   transaction,
   onEdit,
   onDelete,
+  onEditRecurring,
+  isFetchingRec,
 }) => {
   return (
     <TableRow key={transaction.id}>
@@ -155,7 +159,11 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
       <TableCell className="text-center">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
+            <Button
+              variant="ghost"
+              className="h-8 w-8 p-0"
+              disabled={isFetchingRec}
+            >
               <span className="sr-only">פתח תפריט</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
@@ -166,6 +174,20 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
               <Edit3 className="mr-2 h-4 w-4" />
               עריכה
             </DropdownMenuItem>
+            {transaction.source_recurring_id && (
+              <DropdownMenuItem
+                onClick={() =>
+                  onEditRecurring(transaction.source_recurring_id!)
+                }
+                disabled={
+                  isFetchingRec ||
+                  transaction.recurring_info?.status === "completed"
+                }
+              >
+                <Repeat className="mr-2 h-4 w-4" />
+                <span>{isFetchingRec ? "טוען..." : 'ערוך הו"ק'}</span>
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => onDelete(transaction)}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { Table, TableBody, TableRow, TableCell } from "@/components/ui/table";
@@ -18,12 +18,17 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { TransactionEditModal } from "./TransactionEditModal";
+import { RecurringTransactionEditModal } from "./RecurringTransactionEditModal";
 import { TransactionRow } from "./TransactionRow";
 import {
   TransactionsTableHeader,
   SortableField,
 } from "./TransactionsTableHeader"; // TableSortConfig is also exported but not directly used here for props
 import { TransactionsTableFooter } from "./TransactionsTableFooter";
+import { useNavigate } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+import { getRecurringTransactionById } from "@/lib/data-layer/recurringTransactions.service";
+import { RecurringTransaction, TransactionForTable } from "@/types/transaction";
 
 // Define Transaction type (can be imported from a central types file if available)
 type Transaction = import("@/types/transaction").Transaction;
@@ -54,6 +59,7 @@ export function TransactionsTableDisplay() {
   } = useTableTransactionsStore();
 
   const { platform } = usePlatform(); // platform is used directly here for API calls
+  const navigate = useNavigate();
 
   const [transactionToDelete, setTransactionToDelete] =
     useState<Transaction | null>(null);
@@ -62,6 +68,11 @@ export function TransactionsTableDisplay() {
     useState<Transaction | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+  const [editingRecTransaction, setEditingRecTransaction] =
+    useState<RecurringTransaction | null>(null);
+  const [isRecEditModalOpen, setIsRecEditModalOpen] = useState(false);
+  const [isFetchingRec, setIsFetchingRec] = useState(false);
+
   useEffect(() => {
     // Initial fetch logic remains here as it depends on platform and sorting from the store
     if (platform !== "loading") {
@@ -69,21 +80,24 @@ export function TransactionsTableDisplay() {
     }
   }, [fetchTransactions, platform, sorting]);
 
-  const handleLoadMore = () => {
+  const handleLoadMore = useCallback(() => {
     setLoadMorePagination();
     fetchTransactions(false, platform); // platform is available from usePlatform hook
-  };
+  }, [setLoadMorePagination, fetchTransactions, platform]);
 
-  const handleSort = (field: SortableField) => {
-    setSorting(field);
-  };
+  const handleSort = useCallback(
+    (field: SortableField) => {
+      setSorting(field);
+    },
+    [setSorting]
+  );
 
-  const handleDeleteInitiate = (transaction: Transaction) => {
+  const handleDeleteInitiate = useCallback((transaction: Transaction) => {
     setTransactionToDelete(transaction);
     setIsDeleteDialogOpen(true);
-  };
+  }, []);
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = useCallback(async () => {
     if (transactionToDelete) {
       const deletedTransactionId = transactionToDelete.id;
       const deletedTransactionDescription =
@@ -107,26 +121,48 @@ export function TransactionsTableDisplay() {
     }
     setIsDeleteDialogOpen(false);
     setTransactionToDelete(null);
-  };
+  }, [transactionToDelete, platform, deleteTransaction]);
 
-  const handleEditInitiate = (transaction: Transaction) => {
+  const handleEditInitiate = useCallback((transaction: Transaction) => {
     setEditingTransaction(transaction);
     setIsEditModalOpen(true);
-  };
+  }, []);
+
+  const handleEditRecurringInitiate = useCallback(async (recId: string) => {
+    setIsFetchingRec(true);
+    try {
+      const recData = await getRecurringTransactionById(recId);
+      setEditingRecTransaction(recData);
+      setIsRecEditModalOpen(true);
+    } catch (error) {
+      console.error("Failed to fetch recurring transaction details", error);
+      toast.error("שגיאה בטעינת פרטי הוראת הקבע.");
+    } finally {
+      setIsFetchingRec(false);
+    }
+  }, []);
 
   // The initial platform loading check (spinner/message) should be handled by the parent page component (src/pages/TransactionsTable.tsx)
   // If platform is loading, this component might not even be rendered, or rendered with a specific loading state passed via props.
   // For now, assuming this component is rendered when platform is determined.
 
   return (
-    <div className="space-y-6">
-      {" "}
-      {/* Removed container and py-4 for better composability */}
-      {/* The main title <h1 className="text-3xl font-bold text-center">טבלת תנועות</h1> can be added by the parent page component */}
-      <div className="flex justify-between items-center gap-4">
-        <TransactionsFilters />
+    <div className="space-y-4">
+      <TransactionsFilters />
+
+      <div className="flex justify-between items-center gap-4 mb-4">
         <ExportButton />
+        <Button
+          onClick={() =>
+            navigate({ to: "/transactions-table/recurring-transactions" })
+          }
+          variant="default"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          הצג הוראות קבע
+        </Button>
       </div>
+
       {error && (
         <p className="text-red-500 text-center py-4">
           שגיאה בטעינת נתונים: {error}
@@ -170,12 +206,14 @@ export function TransactionsTableDisplay() {
                     </TableCell>
                   </TableRow>
                 )}
-                {transactions.map((transaction: Transaction) => (
+                {transactions.map((transaction) => (
                   <TransactionRow
                     key={transaction.id}
-                    transaction={transaction}
+                    transaction={transaction as TransactionForTable}
                     onEdit={handleEditInitiate}
                     onDelete={handleDeleteInitiate}
+                    onEditRecurring={handleEditRecurringInitiate}
+                    isFetchingRec={isFetchingRec}
                   />
                 ))}
               </TableBody>
@@ -228,6 +266,16 @@ export function TransactionsTableDisplay() {
             setEditingTransaction(null);
           }}
           transaction={editingTransaction}
+        />
+      )}
+      {isRecEditModalOpen && editingRecTransaction && (
+        <RecurringTransactionEditModal
+          isOpen={isRecEditModalOpen}
+          onClose={() => {
+            setIsRecEditModalOpen(false);
+            setEditingRecTransaction(null);
+          }}
+          transaction={editingRecTransaction}
         />
       )}
     </div>
