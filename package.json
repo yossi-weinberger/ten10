@@ -42,7 +42,7 @@
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@stagewise/toolbar": "^0.4.5",
-    "@stagewise/toolbar-react": "^0.4.5",
+    "@stagewise/toolbar-react": "^0.6.2",
     "@supabase/supabase-js": "^2.50.0",
     "@tanstack/react-router": "^1.128.3",
     "@tanstack/react-table": "^8.21.3",
