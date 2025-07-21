@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { ListFilter } from "lucide-react";
 
 const availableTransactionTypes: TransactionType[] = [
@@ -98,6 +98,11 @@ export function TransactionsFilters() {
   const [localRecurringFrequencies, setLocalRecurringFrequencies] = useState<
     string[]
   >(storeFilters.recurringFrequencies);
+
+  // Added state for dropdown visibility
+  const [typesDropdownOpen, setTypesDropdownOpen] = useState(false);
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const [frequencyDropdownOpen, setFrequencyDropdownOpen] = useState(false);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -195,169 +200,222 @@ export function TransactionsFilters() {
     }
   }, [storeFilters, platform, fetchTransactions]); // Re-fetch when storeFilters or platform changes
 
+  const stopPropagation = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
+  };
+
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle className="text-lg">סינון תנועות</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-6 items-end">
-          <div>
-            <Label htmlFor="search" className="mb-1 block">
-              חיפוש חופשי
-            </Label>
-            <Input
-              id="search"
-              placeholder="תיאור, קטגוריה, נמען..."
-              value={localSearch}
-              onChange={(e) => setLocalSearch(e.target.value)}
-            />
-          </div>
+    <Card className="mb-4">
+      <CardContent className="p-4">
+        <div className="flex flex-wrap items-end gap-4">
+          {/* Main Filters Group */}
+          <div className="flex flex-wrap items-end gap-4 flex-1 min-w-full sm:min-w-0">
+            {/* Free Search */}
+            <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+              <Label
+                htmlFor="search"
+                className="mb-2 block text-sm font-medium"
+              >
+                חיפוש חופשי
+              </Label>
+              <Input
+                id="search"
+                placeholder="תיאור, קטגוריה, נמען..."
+                value={localSearch}
+                onChange={(e) => setLocalSearch(e.target.value)}
+                className="w-full"
+              />
+            </div>
 
-          <div>
-            <Label className="mb-1 block">טווח תאריכים</Label>
-            <DatePickerWithRange
-              date={localDateRange}
-              onDateChange={handleDateChange}
-            />
-          </div>
+            {/* Date Range */}
+            <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+              <Label className="mb-2 block text-sm font-medium">
+                טווח תאריכים
+              </Label>
+              <DatePickerWithRange
+                date={localDateRange}
+                onDateChange={handleDateChange}
+              />
+            </div>
 
-          <div>
-            <Label className="mb-1 block">סוגי תנועות</Label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  <span>
-                    {localTypes.length === 0
-                      ? "כל הסוגים"
-                      : localTypes.length === 1
-                      ? transactionTypeTranslations[
-                          localTypes[0] as TransactionType
-                        ]
-                      : `${localTypes.length} סוגים נבחרו`}
-                  </span>
-                  <ListFilter className="ml-2 h-4 w-4 opacity-50" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="start">
-                <DropdownMenuLabel>בחר סוגי תנועות</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {availableTransactionTypes.map((type) => (
-                  <DropdownMenuCheckboxItem
-                    key={type}
-                    checked={localTypes.includes(type)}
-                    onCheckedChange={(checked) =>
-                      handleTypeChange(type, !!checked)
-                    }
-                  >
-                    {transactionTypeTranslations[type]}
-                  </DropdownMenuCheckboxItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          <div>
-            <Label className="mb-1 block">הוראות קבע</Label>
-            <Select
-              value={localIsRecurring}
-              onValueChange={handleIsRecurringChange}
-              dir="rtl"
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="סנן הוראות קבע..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">הכל</SelectItem>
-                <SelectItem value="recurring">הוראות קבע בלבד</SelectItem>
-                <SelectItem value="regular">תנועות רגילות בלבד</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-x-2">
-            <div>
-              <Label className="mb-1 block">סטטוס קבע</Label>
-              <DropdownMenu>
+            {/* Transaction Types */}
+            <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+              <Label className="mb-2 block text-sm font-medium">
+                סוגי תנועות
+              </Label>
+              <DropdownMenu
+                open={typesDropdownOpen}
+                onOpenChange={setTypesDropdownOpen}
+              >
                 <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between"
-                    disabled={localIsRecurring !== "recurring"}
-                  >
+                  <Button variant="outline" className="w-full justify-between">
                     <span>
-                      {localRecurringStatuses.length === 0
-                        ? "כל הסטטוסים"
-                        : `${localRecurringStatuses.length} נבחרו`}
+                      {localTypes.length === 0
+                        ? "כל הסוגים"
+                        : localTypes.length === 1
+                        ? transactionTypeTranslations[
+                            localTypes[0] as TransactionType
+                          ]
+                        : `${localTypes.length} סוגים נבחרו`}
                     </span>
                     <ListFilter className="ml-2 h-4 w-4 opacity-50" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                  <DropdownMenuLabel>סינון לפי סטטוס</DropdownMenuLabel>
+                <DropdownMenuContent
+                  className="w-56"
+                  align="start"
+                  onClick={stopPropagation}
+                >
+                  <DropdownMenuLabel>בחר סוגי תנועות</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {Object.entries(recurringStatusOptions).map(
-                    ([value, label]) => (
-                      <DropdownMenuCheckboxItem
-                        key={value}
-                        checked={localRecurringStatuses.includes(value)}
-                        onCheckedChange={(checked) =>
-                          handleRecurringStatusChange(value, !!checked)
-                        }
-                      >
-                        {label}
-                      </DropdownMenuCheckboxItem>
-                    )
-                  )}
+                  {availableTransactionTypes.map((type) => (
+                    <DropdownMenuCheckboxItem
+                      key={type}
+                      checked={localTypes.includes(type)}
+                      onCheckedChange={(checked) =>
+                        handleTypeChange(type, !!checked)
+                      }
+                      onClick={stopPropagation} // Prevent closing
+                    >
+                      {transactionTypeTranslations[type]}
+                    </DropdownMenuCheckboxItem>
+                  ))}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <div>
-              <Label className="mb-1 block">תדירות קבע</Label>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-between"
-                    disabled={localIsRecurring !== "recurring"}
-                  >
-                    <span>
-                      {localRecurringFrequencies.length === 0
-                        ? "כל התדירויות"
-                        : `${localRecurringFrequencies.length} נבחרו`}
-                    </span>
-                    <ListFilter className="ml-2 h-4 w-4 opacity-50" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56">
-                  <DropdownMenuLabel>סינון לפי תדירות</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {Object.entries(recurringFrequencyOptions).map(
-                    ([value, label]) => (
-                      <DropdownMenuCheckboxItem
-                        key={value}
-                        checked={localRecurringFrequencies.includes(value)}
-                        onCheckedChange={(checked) =>
-                          handleRecurringFrequencyChange(value, !!checked)
-                        }
-                      >
-                        {label}
-                      </DropdownMenuCheckboxItem>
-                    )
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+
+            {/* Recurring Filter */}
+            <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+              <Label className="mb-2 block text-sm font-medium">
+                הוראות קבע
+              </Label>
+              <Select
+                value={localIsRecurring}
+                onValueChange={handleIsRecurringChange}
+                dir="rtl"
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="סנן הוראות קבע..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">הכל</SelectItem>
+                  <SelectItem value="recurring">הוראות קבע בלבד</SelectItem>
+                  <SelectItem value="regular">תנועות רגילות בלבד</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          <div className="col-start-1 lg:col-start-auto xl:col-start-5 flex items-end">
-            <Button
-              onClick={handleResetFilters}
-              variant="outline"
-              className="w-full"
-            >
-              אפס סינונים
-            </Button>
+          {/* Conditional Recurring Filters & Reset Button Group */}
+          <div className="flex flex-wrap items-end gap-4 w-full sm:w-auto">
+            {localIsRecurring === "recurring" && (
+              <>
+                {/* Recurring Status */}
+                <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+                  <Label className="mb-2 block text-sm font-medium">
+                    סטטוס קבע
+                  </Label>
+                  <DropdownMenu
+                    open={statusDropdownOpen}
+                    onOpenChange={setStatusDropdownOpen}
+                  >
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                        disabled={localIsRecurring !== "recurring"}
+                      >
+                        <span>
+                          {localRecurringStatuses.length === 0
+                            ? "כל הסטטוסים"
+                            : `${localRecurringStatuses.length} נבחרו`}
+                        </span>
+                        <ListFilter className="ml-2 h-4 w-4 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      className="w-56"
+                      onClick={stopPropagation}
+                    >
+                      <DropdownMenuLabel>סינון לפי סטטוס</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {Object.entries(recurringStatusOptions).map(
+                        ([value, label]) => (
+                          <DropdownMenuCheckboxItem
+                            key={value}
+                            checked={localRecurringStatuses.includes(value)}
+                            onCheckedChange={(checked) =>
+                              handleRecurringStatusChange(value, !!checked)
+                            }
+                            onClick={stopPropagation} // Prevent closing
+                          >
+                            {label}
+                          </DropdownMenuCheckboxItem>
+                        )
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Recurring Frequency */}
+                <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+                  <Label className="mb-2 block text-sm font-medium">
+                    תדירות קבע
+                  </Label>
+                  <DropdownMenu
+                    open={frequencyDropdownOpen}
+                    onOpenChange={setFrequencyDropdownOpen}
+                  >
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                        disabled={localIsRecurring !== "recurring"}
+                      >
+                        <span>
+                          {localRecurringFrequencies.length === 0
+                            ? "כל התדירויות"
+                            : `${localRecurringFrequencies.length} נבחרו`}
+                        </span>
+                        <ListFilter className="ml-2 h-4 w-4 opacity-50" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      className="w-56"
+                      onClick={stopPropagation}
+                    >
+                      <DropdownMenuLabel>סינון לפי תדירות</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {Object.entries(recurringFrequencyOptions).map(
+                        ([value, label]) => (
+                          <DropdownMenuCheckboxItem
+                            key={value}
+                            checked={localRecurringFrequencies.includes(value)}
+                            onCheckedChange={(checked) =>
+                              handleRecurringFrequencyChange(value, !!checked)
+                            }
+                            onClick={stopPropagation} // Prevent closing
+                          >
+                            {label}
+                          </DropdownMenuCheckboxItem>
+                        )
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </>
+            )}
+
+            {/* Reset Button */}
+            <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+              <Button
+                onClick={handleResetFilters}
+                variant="outline"
+                className="w-full"
+              >
+                אפס סינונים
+              </Button>
+            </div>
           </div>
         </div>
       </CardContent>

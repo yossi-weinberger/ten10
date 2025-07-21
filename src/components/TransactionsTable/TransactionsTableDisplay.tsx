@@ -147,21 +147,22 @@ export function TransactionsTableDisplay() {
   // For now, assuming this component is rendered when platform is determined.
 
   return (
-    <div className="space-y-6">
-      {" "}
-      {/* Removed container and py-4 for better composability */}
-      {/* The main title <h1 className="text-3xl font-bold text-center">טבלת תנועות</h1> can be added by the parent page component */}
-      <div className="flex justify-between items-center gap-4">
+    <div className="space-y-4">
+      <TransactionsFilters />
+
+      <div className="flex justify-between items-center gap-4 mb-4">
+        <ExportButton />
         <Button
-          onClick={() => navigate({ to: "/recurring-transactions" })}
-          variant="outline"
-          className="mb-4"
+          onClick={() =>
+            navigate({ to: "/transactions-table/recurring-transactions" })
+          }
+          variant="default"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
         >
           הצג הוראות קבע
         </Button>
-        <TransactionsFilters />
-        <ExportButton />
       </div>
+
       {error && (
         <p className="text-red-500 text-center py-4">
           שגיאה בטעינת נתונים: {error}
