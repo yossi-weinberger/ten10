@@ -9,7 +9,7 @@ export function ProfilePage() {
   return (
     <div className="grid gap-6">
       <div className="grid gap-2">
-        <h2 className="text-2xl font-bold">פרופיל</h2>
+        <h2 className="text-2xl font-bold text-foreground">פרופיל</h2>
         <p className="text-muted-foreground">נהל את פרטי המשתמש שלך</p>
       </div>
 

@@ -6,7 +6,7 @@ export function AboutPage() {
   return (
     <div className="grid gap-6">
       <div className="grid gap-2">
-        <h2 className="text-2xl font-bold">אודות Ten10</h2>
+        <h2 className="text-2xl font-bold text-foreground">אודות Ten10</h2>
         <p className="text-muted-foreground">
           מידע על האפליקציה והצוות מאחוריה
         </p>

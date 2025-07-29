@@ -70,7 +70,7 @@ export function SettingsPage() {
   return (
     <div className="grid gap-6">
       <div className="grid gap-2">
-        <h2 className="text-2xl font-bold">הגדרות</h2>
+        <h2 className="text-2xl font-bold text-foreground">הגדרות</h2>
         <p className="text-muted-foreground">התאם את האפליקציה להעדפותיך</p>
       </div>
 

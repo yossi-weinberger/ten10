@@ -84,6 +84,11 @@ export function StatsCards({
               variant={dateRangeSelection === rangeKey ? "default" : "outline"}
               size="sm"
               onClick={() => setDateRangeSelection(rangeKey)}
+              className={
+                dateRangeSelection !== rangeKey
+                  ? "bg-transparent text-foreground hover:bg-muted/50"
+                  : ""
+              }
             >
               {dateRangeLabels[rangeKey]}
             </Button>

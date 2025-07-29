@@ -52,6 +52,7 @@ export function ExportButton() {
         <Button
           variant="outline"
           disabled={exportLoading || platform === "loading"}
+          className="bg-transparent text-foreground hover:bg-muted/50"
         >
           {exportLoading ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -67,18 +68,21 @@ export function ExportButton() {
         <DropdownMenuItem
           onClick={() => handleExport("excel")}
           disabled={exportLoading || platform === "loading"}
+          className="text-foreground"
         >
           Excel (XLSX)
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handleExport("pdf")}
           disabled={exportLoading || platform === "loading"}
+          className="text-foreground"
         >
           PDF
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => handleExport("csv")}
           disabled={exportLoading || platform === "loading"}
+          className="text-foreground"
         >
           CSV
         </DropdownMenuItem>

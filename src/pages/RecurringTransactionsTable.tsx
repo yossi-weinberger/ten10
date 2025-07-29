@@ -9,7 +9,9 @@ export function RecurringTransactionsTable() {
   if (platform === "loading") {
     return (
       <div className="container mx-auto py-4">
-        <h1 className="text-3xl font-bold text-center mb-6">טבלת הוראות קבע</h1>
+        <h1 className="text-3xl font-bold text-center mb-6 text-foreground">
+          טבלת הוראות קבע
+        </h1>
         <Card>
           <CardContent className="pt-6">
             <p className="text-center">טוען נתוני פלטפורמה...</p>
@@ -21,7 +23,9 @@ export function RecurringTransactionsTable() {
 
   return (
     <div className="container mx-auto py-4">
-      <h1 className="text-3xl font-bold text-center mb-6">טבלת הוראות קבע</h1>
+      <h1 className="text-3xl font-bold text-center mb-6 text-foreground">
+        טבלת הוראות קבע
+      </h1>
       <RecurringTransactionsTableDisplay />
     </div>
   );

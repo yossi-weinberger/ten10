@@ -10,7 +10,7 @@ export function AddTransactionPage() {
   return (
     <div className="grid gap-6">
       <div className="grid gap-2">
-        <h2 className="text-2xl font-bold">הוספת תנועה</h2>{" "}
+        <h2 className="text-2xl font-bold text-foreground">הוספת תנועה</h2>{" "}
         {/* Adjusted title */}
         <p className="text-muted-foreground">
           הוספת כל סוגי התנועות: הכנסות, הוצאות, תרומות וכו'.
