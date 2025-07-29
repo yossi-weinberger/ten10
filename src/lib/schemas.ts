@@ -12,30 +12,38 @@ export const transactionBaseSchema = z.object({
     message: "תאריך חייב להיות בפורמט YYYY-MM-DD",
   }),
   amount: z.coerce
-    .number({ invalid_type_error: "סכום חייב להיות מספר" })
-    .min(0.01, "הסכום חייב להיות גדול מ-0"),
+    .number({ error: "סכום חייב להיות מספר" })
+    .min(0.01, { error: "הסכום חייב להיות גדול מ-0" }),
   currency: z.enum(currencyEnumValues, {
-    errorMap: () => ({ message: "מטבע לא תקין" }),
+    error: "מטבע לא תקין",
   }),
   description: z.string().max(255).nullable().optional(),
   type: z.enum(transactionTypes, {
-    errorMap: () => ({ message: "סוג תנועה לא תקין" }),
+    error: "סוג תנועה לא תקין",
   }),
-  category: z.string().max(100, "קטגוריה ארוכה מדי").optional().nullable(),
+  category: z
+    .string()
+    .max(100, { error: "קטגוריה ארוכה מדי" })
+    .optional()
+    .nullable(),
   is_chomesh: z.boolean().default(false).optional().nullable(),
-  recipient: z.string().max(100, "נמען/משלם ארוך מדי").optional().nullable(),
+  recipient: z
+    .string()
+    .max(100, { error: "נמען/משלם ארוך מדי" })
+    .optional()
+    .nullable(),
   is_recurring: z.boolean().default(false).optional().nullable(),
   recurring_day_of_month: z.coerce // Use coerce
-    .number({ invalid_type_error: "יום בחודש חייב להיות מספר" })
-    .int({ message: "יום בחודש חייב להיות שלם" })
-    .min(1, { message: "יום בחודש חייב להיות לפחות 1" })
-    .max(31, { message: "יום בחודש חייב להיות לכל היותר 31" })
+    .number({ error: "יום בחודש חייב להיות מספר" })
+    .int({ error: "יום בחודש חייב להיות שלם" })
+    .min(1, { error: "יום בחודש חייב להיות לפחות 1" })
+    .max(31, { error: "יום בחודש חייב להיות לכל היותר 31" })
     .optional()
     .nullable(),
   recurring_total_count: z.coerce // Use coerce
-    .number({ invalid_type_error: "מספר חזרות חייב להיות מספר" })
-    .int({ message: "מספר חזרות חייב להיות שלם" })
-    .min(1, { message: "מספר חזרות חייב להיות לפחות 1" })
+    .number({ error: "מספר חזרות חייב להיות מספר" })
+    .int({ error: "מספר חזרות חייב להיות שלם" })
+    .min(1, { error: "מספר חזרות חייב להיות לפחות 1" })
     .optional()
     .nullable(),
   created_at: z.string().datetime().optional(),

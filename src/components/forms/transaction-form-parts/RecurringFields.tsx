@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { TransactionFormValues } from "../TransactionForm"; // Adjust path as needed
+import { TransactionFormValues } from "@/types/forms";
 
 interface RecurringFieldsProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -57,18 +57,14 @@ export function RecurringFields({ form }: RecurringFieldsProps) {
         name="recurring_day_of_month"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>יום בחודש לחיוב</FormLabel>
+            <FormLabel>יום חיוב בחודש</FormLabel>
             <FormControl>
               <Input
                 type="number"
-                placeholder="לדוגמה: 15"
+                min={1}
+                max={31}
                 {...field}
-                value={field.value ?? ""} // Ensure value is not null/undefined for input
-                onChange={(e) => {
-                  const value = e.target.value;
-                  // Allow empty string to clear the field, which will be handled by Zod preprocess
-                  field.onChange(value === "" ? null : Number(value));
-                }}
+                value={field.value ?? ""}
               />
             </FormControl>
             <FormMessage />
@@ -80,23 +76,15 @@ export function RecurringFields({ form }: RecurringFieldsProps) {
         name="recurringTotalCount"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>מספר חזרות (אופציונלי)</FormLabel>
+            <FormLabel>מספר חזרות (ריק ללא הגבלה)</FormLabel>
             <FormControl>
               <Input
                 type="number"
-                placeholder="לדוגמה: 6 (לחצי שנה)"
+                min={1}
                 {...field}
-                value={field.value ?? ""} // Ensure value is not null/undefined for input
-                onChange={(e) => {
-                  const value = e.target.value;
-                  // Allow empty string to clear the field, which will be handled by Zod preprocess
-                  field.onChange(value === "" ? null : Number(value));
-                }}
+                value={field.value ?? ""}
               />
             </FormControl>
-            <FormDescription>
-              השאר ריק להוראת קבע ללא הגבלת חזרות.
-            </FormDescription>
             <FormMessage />
           </FormItem>
         )}

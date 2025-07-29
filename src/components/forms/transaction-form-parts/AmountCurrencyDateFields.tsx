@@ -38,17 +38,13 @@ export function AmountCurrencyDateFields({
           name="amount"
           render={({ field }) => (
             <FormItem className="col-span-2">
-              <FormLabel>סכום *</FormLabel>
+              <FormLabel>סכום</FormLabel>
               <FormControl>
                 <Input
                   type="number"
                   step="0.01"
                   {...field}
-                  value={
-                    field.value === undefined || field.value === null
-                      ? ""
-                      : field.value
-                  }
+                  value={field.value ?? ""}
                   className="text-start"
                   placeholder="0.00"
                 />

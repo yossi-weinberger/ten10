@@ -85,6 +85,7 @@ export function TransactionForm({
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
+    mode: "onChange",
     defaultValues: {
       date: new Date().toISOString().split("T")[0],
       amount: undefined,
@@ -121,6 +122,8 @@ export function TransactionForm({
       form.reset(defaultVals);
     }
   }, [initialData, isEditMode, form]);
+
+  console.log("Form errors:", form.formState.errors);
 
   const selectedType = form.watch("type");
   const isExemptChecked = form.watch("isExempt");
