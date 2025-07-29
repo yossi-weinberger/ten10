@@ -22,36 +22,7 @@ import { recurringStatusLabels } from "@/types/recurringTransactionLabels";
 import { RecurringTransaction } from "@/types/transaction";
 import { CURRENCIES, CurrencyObject } from "@/lib/currencies";
 import { FormActionButtons } from "./transaction-form-parts/FormActionButtons";
-
-export const recurringEditSchema = z.object({
-  amount: z.coerce
-    .number({ error: "הסכום חייב להיות מספר" })
-    .positive({ error: "הסכום חייב להיות חיובי" }),
-  currency: z.enum(["ILS", "USD", "EUR"]),
-  description: z.string().optional(),
-  status: z.enum(["active", "paused", "completed", "cancelled"]),
-  total_occurrences: z.preprocess(
-    (val) => (val === "" ? null : val),
-    z.coerce
-      .number({ error: "מספר חזרות חייב להיות מספר" })
-      .int({ error: "מספר חזרות חייב להיות שלם" })
-      .positive({ error: "מספר חזרות חייב להיות חיובי" })
-      .optional()
-      .nullable()
-  ),
-  day_of_month: z.preprocess(
-    (val) => (val === "" ? null : val),
-    z.coerce
-      .number({ error: "יום בחודש חייב להיות מספר" })
-      .int({ error: "יום בחודש חייב להיות מספר שלם" })
-      .min(1, { error: "היום בחודש חייב להיות בין 1 ל-31" })
-      .max(31, { error: "היום בחודש חייב להיות בין 1 ל-31" })
-      .optional()
-      .nullable()
-  ),
-});
-
-type RecurringEditFormValues = z.infer<typeof recurringEditSchema>;
+import { RecurringEditFormValues, recurringEditSchema } from "@/lib/schemas";
 
 interface RecurringTransactionEditFormProps {
   initialData: RecurringTransaction;

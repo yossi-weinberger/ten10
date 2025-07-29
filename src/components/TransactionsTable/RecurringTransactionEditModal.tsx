@@ -8,10 +8,8 @@ import {
 import { RecurringTransaction } from "@/types/transaction";
 import { updateRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
 import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.store";
-import {
-  RecurringTransactionEditForm,
-  recurringEditSchema,
-} from "@/components/forms/RecurringTransactionEditForm"; // Import the new form
+import { RecurringTransactionEditForm } from "@/components/forms/RecurringTransactionEditForm";
+import { RecurringEditFormValues, recurringEditSchema } from "@/lib/schemas";
 import { z } from "zod";
 import { toast } from "sonner";
 
@@ -28,7 +26,7 @@ export function RecurringTransactionEditModal({
 }: RecurringTransactionEditModalProps) {
   const { fetchRecurring } = useRecurringTableStore();
 
-  const handleUpdate = async (values: z.infer<typeof recurringEditSchema>) => {
+  const handleUpdate = async (values: RecurringEditFormValues) => {
     try {
       const updateValues = {
         ...values,

@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDonationStore } from "@/lib/store";
 import { handleTransactionSubmit } from "@/lib/data-layer/transactionForm.service";
-import { TransactionFormValues, transactionFormSchema } from "@/types/forms";
+import { TransactionFormValues, transactionFormSchema } from "@/lib/schemas";
 import { TransactionType } from "@/types/transaction";
 import { Form } from "@/components/ui/form";
 import { CheckCircle } from "lucide-react";
