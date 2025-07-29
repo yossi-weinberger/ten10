@@ -16,23 +16,22 @@ export const transactionFormSchema = z
   .object({
     amount: z.coerce
       .number({
-        required_error: "יש להזין סכום",
-        invalid_type_error: "הסכום חייב להיות מספר",
+        error: "הסכום חייב להיות מספר",
       })
-      .positive({ message: "הסכום חייב להיות גדול מאפס" }),
+      .positive({ error: "הסכום חייב להיות גדול מאפס" }),
     currency: z.enum(["ILS", "USD", "EUR"], {
-      required_error: "יש לבחור מטבע",
+      error: "יש לבחור מטבע",
     }),
     date: z.string().refine((date) => !isNaN(Date.parse(date)), {
       message: "תאריך לא תקין",
     }),
     description: z
       .string()
-      .max(100, { message: "התיאור יכול להכיל עד 100 תווים" })
+      .max(100, { error: "התיאור יכול להכיל עד 100 תווים" })
       .optional()
       .nullable(),
     type: z.enum(transactionTypes, {
-      required_error: "יש לבחור סוג טרנזקציה",
+      error: "יש לבחור סוג טרנזקציה",
     }),
     category: z
       .string()
@@ -57,26 +56,26 @@ export const transactionFormSchema = z
     is_recurring: z.boolean().optional(),
     frequency: z
       .enum(["monthly", "weekly", "yearly", "daily"], {
-        required_error: "יש לבחור תדירות",
+        error: "יש לבחור תדירות",
       })
       .optional(),
     recurring_day_of_month: z.preprocess(
       (val) => (val === "" || val === null ? undefined : val),
       z.coerce
-        .number({ invalid_type_error: "חייב להיות מספר" })
-        .int({ message: "חייב להיות מספר שלם" })
-        .min(1, { message: "היום חייב להיות בין 1 ל-31" })
-        .max(31, { message: "היום חייב להיות בין 1 ל-31" })
+        .number({ error: "חייב להיות מספר" })
+        .int({ error: "חייב להיות מספר שלם" })
+        .min(1, { error: "היום חייב להיות בין 1 ל-31" })
+        .max(31, { error: "היום חייב להיות בין 1 ל-31" })
         .optional()
     ),
     recurringTotalCount: z.preprocess(
       (val) => (val === "" || val === null ? undefined : val),
       z.coerce
         .number({
-          invalid_type_error: "חייב להיות מספר",
+          error: "חייב להיות מספר",
         })
         .int()
-        .positive({ message: "מספר החזרות חייב להיות חיובי" })
+        .positive({ error: "מספר החזרות חייב להיות חיובי" })
         .optional()
     ),
 

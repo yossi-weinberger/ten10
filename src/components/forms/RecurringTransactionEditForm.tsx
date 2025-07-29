@@ -24,7 +24,7 @@ import { CURRENCIES, CurrencyObject } from "@/lib/currencies";
 import { FormActionButtons } from "./transaction-form-parts/FormActionButtons";
 
 export const recurringEditSchema = z.object({
-  amount: z.coerce.number().positive("הסכום חייב להיות חיובי"),
+  amount: z.coerce.number().positive({ error: "הסכום חייב להיות חיובי" }),
   currency: z.enum(["ILS", "USD", "EUR"]),
   description: z.string().optional(),
   status: z.enum(["active", "paused", "completed", "cancelled"]),
@@ -32,8 +32,8 @@ export const recurringEditSchema = z.object({
   day_of_month: z.coerce
     .number()
     .int()
-    .min(1, "היום בחודש חייב להיות בין 1 ל-31")
-    .max(31, "היום בחודש חייב להיות בין 1 ל-31")
+    .min(1, { error: "היום בחודש חייב להיות בין 1 ל-31" })
+    .max(31, { error: "היום בחודש חייב להיות בין 1 ל-31" })
     .optional()
     .nullable(),
 });
