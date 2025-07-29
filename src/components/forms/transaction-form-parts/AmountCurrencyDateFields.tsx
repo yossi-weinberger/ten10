@@ -15,8 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { TransactionFormValues } from "@/types/forms";
-import { type CurrencyObject } from "@/lib/currencies";
+import { CURRENCIES, CurrencyObject } from "@/lib/currencies";
+import { TransactionFormValues } from "@/lib/schemas";
 import { DatePicker } from "@/components/ui/date-picker";
 import { format, parse } from "date-fns";
 
@@ -30,9 +30,9 @@ export function AmountCurrencyDateFields({
   availableCurrencies,
 }: AmountCurrencyDateFieldsProps) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-      {/* Amount and Currency - start */}
-      <div className="grid grid-cols-3 gap-4 items-end">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Amount and Currency */}
+      <div className="grid grid-cols-3 gap-2 items-end">
         <FormField
           control={form.control}
           name="amount"
@@ -49,7 +49,9 @@ export function AmountCurrencyDateFields({
                   placeholder="0.00"
                 />
               </FormControl>
-              <FormMessage />
+              <div className="h-5">
+                <FormMessage />
+              </div>
             </FormItem>
           )}
         />
@@ -72,7 +74,9 @@ export function AmountCurrencyDateFields({
                   ))}
                 </SelectContent>
               </Select>
-              <FormMessage />
+              <div className="h-5">
+                <FormMessage />
+              </div>
             </FormItem>
           )}
         />
@@ -100,7 +104,9 @@ export function AmountCurrencyDateFields({
                 }}
               />
             </FormControl>
-            <FormMessage />
+            <div className="h-5">
+              <FormMessage />
+            </div>
           </FormItem>
         )}
       />

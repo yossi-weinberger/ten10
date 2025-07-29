@@ -83,7 +83,9 @@ export function RecurringTransactionEditForm({
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
-                <FormMessage />
+                <div className="h-5">
+                  <FormMessage />
+                </div>
               </FormItem>
             )}
           />
@@ -99,7 +101,9 @@ export function RecurringTransactionEditForm({
                   <FormControl>
                     <Input type="number" step="0.01" {...field} />
                   </FormControl>
-                  <FormMessage />
+                  <div className="h-5">
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
@@ -127,7 +131,9 @@ export function RecurringTransactionEditForm({
                       ))}
                     </SelectContent>
                   </Select>
-                  <FormMessage />
+                  <div className="h-5">
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
@@ -160,7 +166,9 @@ export function RecurringTransactionEditForm({
                     )}
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <div className="h-5">
+                  <FormMessage />
+                </div>
               </FormItem>
             )}
           />
@@ -183,7 +191,9 @@ export function RecurringTransactionEditForm({
                     }}
                   />
                 </FormControl>
-                <FormMessage />
+                <div className="h-5">
+                  <FormMessage />
+                </div>
               </FormItem>
             )}
           />
@@ -209,7 +219,9 @@ export function RecurringTransactionEditForm({
                       }}
                     />
                   </FormControl>
-                  <FormMessage />
+                  <div className="h-5">
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />

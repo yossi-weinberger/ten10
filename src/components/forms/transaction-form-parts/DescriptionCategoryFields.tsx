@@ -8,7 +8,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type { TransactionFormValues } from "../TransactionForm"; // Adjust path as needed
+import { TransactionFormValues } from "@/lib/schemas";
 import { TransactionType } from "@/types/transaction"; // Import TransactionType
 
 interface DescriptionCategoryFieldsProps {
@@ -36,7 +36,9 @@ export function DescriptionCategoryFields({
                 className="text-start"
               />
             </FormControl>
-            <FormMessage />
+            <div className="h-5">
+              <FormMessage />
+            </div>
           </FormItem>
         )}
       />
@@ -55,7 +57,9 @@ export function DescriptionCategoryFields({
                   className="text-start"
                 />
               </FormControl>
-              <FormMessage />
+              <div className="h-5">
+                <FormMessage />
+              </div>
             </FormItem>
           )}
         />
@@ -74,7 +78,9 @@ export function DescriptionCategoryFields({
                   className="text-start"
                 />
               </FormControl>
-              <FormMessage />
+              <div className="h-5">
+                <FormMessage />
+              </div>
             </FormItem>
           )}
         />

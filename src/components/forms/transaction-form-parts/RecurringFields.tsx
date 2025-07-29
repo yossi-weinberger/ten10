@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TransactionFormValues } from "@/types/forms";
+import { TransactionFormValues } from "@/lib/schemas";
 
 interface RecurringFieldsProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -48,7 +48,9 @@ export function RecurringFields({ form }: RecurringFieldsProps) {
                 </SelectItem>
               </SelectContent>
             </Select>
-            <FormMessage />
+            <div className="h-5">
+              <FormMessage />
+            </div>
           </FormItem>
         )}
       />
@@ -67,7 +69,9 @@ export function RecurringFields({ form }: RecurringFieldsProps) {
                 value={field.value ?? ""}
               />
             </FormControl>
-            <FormMessage />
+            <div className="h-5">
+              <FormMessage />
+            </div>
           </FormItem>
         )}
       />
@@ -85,7 +89,9 @@ export function RecurringFields({ form }: RecurringFieldsProps) {
                 value={field.value ?? ""}
               />
             </FormControl>
-            <FormMessage />
+            <div className="h-5">
+              <FormMessage />
+            </div>
           </FormItem>
         )}
       />
