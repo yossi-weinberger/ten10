@@ -14,7 +14,7 @@ This document provides comprehensive instructions for adapting the Ten10 applica
 - **Translation Files:** Store translations in JSON files (e.g., `public/locales/en/translation.json`, `public/locales/he/translation.json`).
 - **Key-based Lookups:** Replace hardcoded strings in components with calls to the `t()` function from `useTranslation()`.
 - **Directionality (`dir`):** Dynamically set the `dir` attribute on the `<html>` tag (`rtl` or `ltr`) based on the selected language.
-- **Logical Properties (CSS):** Prioritize Tailwind's logical properties (`ms-`, `me-`, `ps-`, `pe-`, `text-start`, `text-end`, `border-s`, etc.) over physical ones (`ml-`, `mr-`, `text-left`, etc.) for styles that need to adapt to RTL/LTR.
+- **Logical Properties & RTL Variants (CSS):** Prioritize Tailwind's logical properties (`ms-`, `me-`, `text-start`, etc.). For more complex layout changes (e.g., reordering elements), use Tailwind's built-in `rtl:` variants, which are automatically enabled when an ancestor element has the `dir="rtl"` attribute. For example: `rtl:order-1` or `rtl:flex-row-reverse`.
 
 ### 2. Consistent Visual Theme & Dark Mode
 
@@ -117,7 +117,7 @@ Create a component to allow users to switch languages. This component would call
 **f. Dynamic Directionality:**
 In `App.tsx` or a similar top-level component:
 
-```typescript
+````typescript
 // src/App.tsx
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
@@ -131,7 +131,38 @@ function App() {
 
   // ... rest of App component
 }
+
+**g. Implementing `i18n.dir()`:**
+
+For the `i18n.dir()` function to work, it needs to be defined. This function determines the text direction based on the current language.
+
+**1. Update `src/lib/i18n.ts`:**
+Add the following snippet to your i18n configuration file. It checks the language and returns "rtl" for Hebrew.
+
+```typescript
+// src/lib/i18n.ts
+// After the i18n.init({...}); call
+
+// Add direction support based on language
+i18n.dir = (lng?: string) => {
+  const language = lng || i18n.language;
+  return language === "he" ? "rtl" : "ltr";
+};
+````
+
+**2. Update TypeScript Declarations (`src/declarations.d.ts`):**
+To ensure TypeScript recognizes the new `dir` method on the `i18n` object, add the following declaration:
+
+```typescript
+// src/declarations.d.ts
+declare module "i18next" {
+  interface i18n {
+    dir(lng?: string): "ltr" | "rtl";
+  }
+}
 ```
+
+````
 
 ## III. Component and Page Specific Instructions
 
@@ -333,7 +364,7 @@ The following sections detail necessary changes for specific components and page
   const formattedDate = format(new Date(yourDate), "PPpp", {
     locale: currentLocale,
   }); // PPpp is an example format
-  ```
+````
 
 - **Currency:** `formatCurrency` utility.
 

@@ -16,8 +16,17 @@ This document outlines the main technologies and conventions used in this projec
 ## UI and Styling
 
 - **UI Components**: **shadcn/ui** - This is the primary component library, built on top of Radix UI and styled with Tailwind CSS. Prefer using existing `shadcn/ui` components or building new ones following its patterns. Key dependencies include `@radix-ui/react-*`, `class-variance-authority`, `clsx`, `tailwind-merge`, and `tailwindcss-animate`.
-- **Styling**: **Tailwind CSS** - Utility-first CSS framework. Configuration is in `tailwind.config.js` and `postcss.config.js`. Use Tailwind utility classes for styling.
+- **Styling**: **Tailwind CSS** - Utility-first CSS framework. Configuration is in `tailwind.config.js` and `postcss.config.js`. Use Tailwind utility classes for styling. The project leverages Tailwind's built-in support for `rtl:` variants, which are automatically active when the HTML `dir` attribute is set to `rtl`.
 - **Icons**: **Lucide Icons (`lucide-react`)** - Preferred icon library. Note the exclusion from Vite's `optimizeDeps` in `vite.config.ts`.
+
+### RTL/LTR Implementation Strategy
+
+The application follows a clear strategy for handling text directionality:
+
+1.  **Global Direction:** The `dir` attribute on the root `<html>` element is set dynamically in `App.tsx` based on the current language from `i18next`.
+2.  **Custom `i18n.dir()` Function:** A custom `i18n.dir()` function was added to `i18n.ts` (and declared in `declarations.d.ts`) to provide the current direction (`'rtl'` or `'ltr'`) to components. This is used to conditionally apply styles or logic.
+3.  **Tailwind Variants:** Layout adjustments are primarily handled using Tailwind's built-in `rtl:` variants (e.g., `rtl:order-1`, `rtl:flex-row-reverse`), which work automatically when `dir="rtl"` is set. This is preferred over conditional classes in JSX.
+4.  **Component-Level `dir`:** In some complex components or where parent context is insufficient (e.g., `shadcn/ui` dialogs or scroll areas), the `dir={i18n.dir()}` prop is passed directly to ensure correct rendering.
 
 ## Application Architecture
 
