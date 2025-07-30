@@ -1,0 +1,15 @@
+{
+  "pageTitle": "Laws of Ma'aser Kesafim",
+  "pageDescription": "Information and laws about Ma'aser Kesafim and Chomesh",
+  "tabs": {
+    "introduction": "Introduction",
+    "faq": "FAQ",
+    "tithes": "Tithes",
+    "income": "Income",
+    "expenses": "Expenses"
+  },
+  "placeholder": {
+    "title": "Coming Soon...",
+    "description": "Content for this section will be added soon."
+  }
+}

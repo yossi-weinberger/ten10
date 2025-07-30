@@ -1,0 +1,15 @@
+{
+  "pageTitle": "הלכות מעשר כספים",
+  "pageDescription": "מידע והלכות בנושא מעשר כספים וחומש",
+  "tabs": {
+    "introduction": "מבוא",
+    "faq": "שאלות נפוצות",
+    "tithes": "מעשרות",
+    "income": "הכנסות",
+    "expenses": "הוצאות"
+  },
+  "placeholder": {
+    "title": "בקרוב...",
+    "description": "התוכן עבור חלק זה יתווסף בקרוב."
+  }
+}

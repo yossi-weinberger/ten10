@@ -1,0 +1,22 @@
+{
+  "cardTitle": "Questions and Answers",
+  "cardDescription": "Answers to frequently asked questions about Ma'aser Kesafim",
+  "questions": [
+    {
+      "question": "From what exactly is ma'aser separated?",
+      "answer": "Ma'aser is separated from all types of income: salary, business profits, interest, monetary gifts, inheritance, and more. A rabbi should be consulted for special cases."
+    },
+    {
+      "question": "Is it permissible to pay debts from ma'aser funds?",
+      "answer": "As a rule, one should not pay existing debts or obligations from ma'aser funds. The ma'aser is intended for charity and not for paying personal debts."
+    },
+    {
+      "question": "To whom can ma'aser funds be given?",
+      "answer": "Ma'aser funds are primarily intended for the poor, but can also be donated to Torah institutions, free-loan societies (Gemachim), and for the support of Torah. A rabbi should be consulted regarding specific purposes."
+    },
+    {
+      "question": "Is it permissible to make a condition on ma'aser funds?",
+      "answer": "It is permissible to stipulate at the beginning of the separation that one may use the ma'aser funds for needy relatives or specific charitable purposes."
+    }
+  ]
+}
