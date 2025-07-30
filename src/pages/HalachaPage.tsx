@@ -1,4 +1,5 @@
-import React from "react";
+import React, { Suspense } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -12,176 +13,172 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Book } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// A fallback component for when translations are loading
+const LoadingFallback = () => (
+  <div className="space-y-4">
+    <Skeleton className="h-10 w-1/2 mx-auto" />
+    <Skeleton className="h-8 w-3/4 mx-auto" />
+    <div className="p-4 border rounded-md">
+      <Skeleton className="h-8 w-full mb-4" />
+      <Skeleton className="h-40 w-full" />
+    </div>
+  </div>
+);
+
+// --- Reusable Content Components ---
+
+// For sections with a title and body
+const InfoSection = ({ title, body }: { title: string; body: string }) => (
+  <div>
+    <h4 className="font-semibold text-lg mb-1">{title}</h4>
+    <p className="text-muted-foreground">{body}</p>
+  </div>
+);
+
+// --- Tab Content Components ---
+
+const IntroductionTab = () => {
+  const { t, i18n } = useTranslation("halacha-introduction");
+  const isRtl = i18n.dir() === "rtl";
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Book className="h-5 w-5 text-primary" />
+          <CardTitle>{t("cardTitle")}</CardTitle>
+        </div>
+        <CardDescription>{t("cardDescription")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-[400px] pl-4">
+          <div
+            className={`space-y-6 ${isRtl ? "text-right" : "text-left"}`}
+            dir={i18n.dir()}
+          >
+            {(
+              t("content", { returnObjects: true }) as Array<{
+                title: string;
+                body: string;
+              }>
+            ).map((item, index) => (
+              <InfoSection key={index} title={item.title} body={item.body} />
+            ))}
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
+  );
+};
+
+const FaqTab = () => {
+  const { t, i18n } = useTranslation("halacha-faq");
+  const isRtl = i18n.dir() === "rtl";
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Book className="h-5 w-5 text-primary" />
+          <CardTitle>{t("cardTitle")}</CardTitle>
+        </div>
+        <CardDescription>{t("cardDescription")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Accordion
+          type="single"
+          collapsible
+          className="w-full"
+          dir={i18n.dir()}
+        >
+          {(
+            t("questions", { returnObjects: true }) as Array<{
+              question: string;
+              answer: string;
+            }>
+          ).map((item, index) => (
+            <AccordionItem value={`item-${index}`} key={index}>
+              <AccordionTrigger className={isRtl ? "text-right" : "text-left"}>
+                {item.question}
+              </AccordionTrigger>
+              <AccordionContent
+                className={isRtl ? "text-right pr-2" : "text-left pl-2"}
+              >
+                {item.answer}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
+      </CardContent>
+    </Card>
+  );
+};
+
+const PlaceholderTab = () => {
+  const { t, i18n } = useTranslation("halacha-common");
+  return (
+    <Card>
+      <CardHeader dir={i18n.dir()}>
+        <CardTitle>{t("placeholder.title")}</CardTitle>
+      </CardHeader>
+      <CardContent dir={i18n.dir()}>
+        <p>{t("placeholder.description")}</p>
+      </CardContent>
+    </Card>
+  );
+};
+
+// --- Main Page Component ---
+function HalachaPageContent() {
+  const { t, i18n } = useTranslation("halacha-common");
+
+  return (
+    <div className="grid gap-6" dir={i18n.dir()}>
+      <div className="grid gap-2 text-center">
+        <h2 className="text-3xl font-bold text-foreground">{t("pageTitle")}</h2>
+        <p className="text-muted-foreground text-lg">{t("pageDescription")}</p>
+      </div>
+
+      <Tabs defaultValue="introduction" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="introduction">
+            {t("tabs.introduction")}
+          </TabsTrigger>
+          <TabsTrigger value="faq">{t("tabs.faq")}</TabsTrigger>
+          <TabsTrigger value="tithes">{t("tabs.tithes")}</TabsTrigger>
+          <TabsTrigger value="income">{t("tabs.income")}</TabsTrigger>
+          <TabsTrigger value="expenses">{t("tabs.expenses")}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="introduction">
+          <IntroductionTab />
+        </TabsContent>
+        <TabsContent value="faq">
+          <FaqTab />
+        </TabsContent>
+        <TabsContent value="tithes">
+          <PlaceholderTab />
+        </TabsContent>
+        <TabsContent value="income">
+          <PlaceholderTab />
+        </TabsContent>
+        <TabsContent value="expenses">
+          <PlaceholderTab />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
 
 export function HalachaPage() {
   return (
-    <div className="grid gap-6">
-      <div className="grid gap-2">
-        <h2 className="text-2xl font-bold text-foreground">הלכות מעשר כספים</h2>
-        <p className="text-muted-foreground">
-          מידע והלכות בנושא מעשר כספים וחומש
-        </p>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Book className="h-5 w-5 text-primary" />
-              <CardTitle>מבוא למעשר כספים</CardTitle>
-            </div>
-            <CardDescription>מידע כללי על מצוות מעשר כספים</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[400px] pl-4">
-              <div className="space-y-4 text-right">
-                <p className="text-right">
-                  מעשר כספים הוא מנהג קדום שנהגו בו ישראל, להפריש עשירית
-                  מרווחיהם לצדקה. אף שאין זו חובה מן התורה, רבים נוהגים בו כחובה
-                  גמורה.
-                </p>
-                <p className="text-right">
-                  יש הנוהגים להפריש חומש (20%) מהכנסותיהם, וזוהי מידת חסידות
-                  המקובלת על פי דברי חז"ל "המבזבז אל יבזבז יותר מחומש".
-                </p>
-                <p className="text-right">
-                  חשוב לציין כי ההפרשה נעשית מהרווח הנקי, לאחר ניכוי הוצאות
-                  הכרחיות וחיוני המחיה.
-                </p>
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Book className="h-5 w-5 text-primary" />
-              <CardTitle>שאלות נפוצות</CardTitle>
-            </div>
-            <CardDescription>
-              תשובות לשאלות נפוצות בנושא מעשר כספים
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1">
-                <AccordionTrigger className="text-right">
-                  ממה מפרישים מעשר?
-                </AccordionTrigger>
-                <AccordionContent className="text-right">
-                  מפרישים מעשר מכל סוגי ההכנסות: משכורת, רווחים מעסק, ריבית,
-                  מתנות כספיות, ירושה ועוד. יש להתייעץ עם רב לגבי מקרים מיוחדים.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-2">
-                <AccordionTrigger className="text-right">
-                  האם מותר לשלם חובות ממעשר?
-                </AccordionTrigger>
-                <AccordionContent className="text-right">
-                  ככלל, אין לשלם חובות או התחייבויות קיימות מכספי מעשר. המעשר
-                  מיועד לצדקה ולא לתשלום חובות אישיים.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-3">
-                <AccordionTrigger className="text-right">
-                  למי מותר לתת את כספי המעשר?
-                </AccordionTrigger>
-                <AccordionContent className="text-right">
-                  כספי מעשר מיועדים בעיקר לעניים, אך ניתן גם לתרום למוסדות תורה,
-                  גמ"חים, והחזקת תורה. יש להתייעץ עם רב לגבי מטרות ספציפיות.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-4">
-                <AccordionTrigger className="text-right">
-                  האם מותר להתנות מעשר?
-                </AccordionTrigger>
-                <AccordionContent className="text-right">
-                  מותר להתנות בתחילת ההפרשה שיוכל להשתמש בכספי המעשר גם עבור
-                  קרובי משפחה נזקקים או מטרות צדקה מסוימות.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
-
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Book className="h-5 w-5 text-primary" />
-              <CardTitle>הלכות מעשר</CardTitle>
-            </div>
-            <CardDescription>הלכות מרכזיות בדיני מעשר כספים</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Accordion type="single" collapsible className="w-full">
-              <AccordionItem value="item-1">
-                <AccordionTrigger className="text-right">
-                  חישוב המעשר
-                </AccordionTrigger>
-                <AccordionContent>
-                  <ul className="list-disc list-inside space-y-2 text-right">
-                    <li>יש לחשב מעשר מהרווח הנקי לאחר ניכוי הוצאות הכרחיות</li>
-                    <li>מומלץ לנהל חשבון מסודר של ההכנסות וההפרשות</li>
-                    <li>
-                      ניתן להפריש מעשר בכל פעם שמקבלים הכנסה או לעשות חישוב
-                      תקופתי
-                    </li>
-                    <li>יש המהדרים להפריש חומש (20%) במקום מעשר (10%)</li>
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-2">
-                <AccordionTrigger className="text-right">
-                  זמן ההפרשה
-                </AccordionTrigger>
-                <AccordionContent>
-                  <ul className="list-disc list-inside space-y-2 text-right">
-                    <li>רצוי להפריש מעשר מיד עם קבלת ההכנסה</li>
-                    <li>ניתן לעכב את ההפרשה לזמן קצוב אם יש צורך</li>
-                    <li>אין להשתמש בכספי המעשר לצרכים אישיים גם באופן זמני</li>
-                    <li>מומלץ לקבוע זמן קבוע לחישוב והפרשת המעשר</li>
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-3">
-                <AccordionTrigger className="text-right">
-                  ייעוד כספי המעשר
-                </AccordionTrigger>
-                <AccordionContent>
-                  <ul className="list-disc list-inside space-y-2 text-right">
-                    <li>עיקר מצוות מעשר כספים היא נתינה לעניים</li>
-                    <li>ניתן לתת לקרובי משפחה נזקקים</li>
-                    <li>מותר לתרום למוסדות תורה וחסד</li>
-                    <li>אין להשתמש בכספי מעשר לקיום מצוות אחרות שחייב בהן</li>
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-4">
-                <AccordionTrigger className="text-right">
-                  הנהגות וסייגים
-                </AccordionTrigger>
-                <AccordionContent>
-                  <ul className="list-disc list-inside space-y-2 text-right">
-                    <li>ראוי להתנות בתחילת ההפרשה שאינו מקבל עליו נדר</li>
-                    <li>טוב לנהל רישום מסודר של ההפרשות והנתינות</li>
-                    <li>יש להיזהר שלא לבייש את מקבלי המעשר</li>
-                    <li>עדיף לתת לעניי עירו תחילה</li>
-                  </ul>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <Suspense fallback={<LoadingFallback />}>
+      <HalachaPageContent />
+    </Suspense>
   );
 }
