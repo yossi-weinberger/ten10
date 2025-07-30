@@ -34,4 +34,10 @@ i18n
     },
   });
 
+// Add direction support based on language
+i18n.dir = (lng?: string) => {
+  const language = lng || i18n.language;
+  return language === "he" ? "rtl" : "ltr";
+};
+
 export default i18n;

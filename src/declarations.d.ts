@@ -1,0 +1,8 @@
+declare module "tailwindcss-rtl";
+
+// Add i18n dir method declaration
+declare module "i18next" {
+  interface i18n {
+    dir(lng?: string): "ltr" | "rtl";
+  }
+}

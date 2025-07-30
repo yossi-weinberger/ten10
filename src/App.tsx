@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Menu, X } from "lucide-react";
 import { Outlet } from "@tanstack/react-router";
 import { Button } from "./components/ui/button";
@@ -19,6 +20,12 @@ function App() {
   const [isAppReady, setIsAppReady] = useState(false);
 
   const { platform } = usePlatform();
+  const { i18n } = useTranslation();
+
+  useEffect(() => {
+    document.documentElement.dir = i18n.dir();
+    document.documentElement.lang = i18n.language;
+  }, [i18n, i18n.language]);
 
   useEffect(() => {
     if (platform !== "loading") {

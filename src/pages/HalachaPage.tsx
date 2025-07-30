@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Card,
@@ -18,7 +18,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Book } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// A fallback component for when translations are loading
 const LoadingFallback = () => (
   <div className="space-y-4">
     <Skeleton className="h-10 w-1/2 mx-auto" />
@@ -30,37 +29,31 @@ const LoadingFallback = () => (
   </div>
 );
 
-// --- Reusable Content Components ---
-
-// For sections with a title and body
-const InfoSection = ({ title, body }: { title: string; body: string }) => (
-  <div>
-    <h4 className="font-semibold text-lg mb-1">{title}</h4>
-    <p className="text-muted-foreground">{body}</p>
-  </div>
-);
-
-// --- Tab Content Components ---
+const InfoSection = ({ title, body }: { title: string; body: string }) => {
+  const { i18n } = useTranslation();
+  return (
+    <div dir={i18n.dir()}>
+      <h4 className="font-semibold text-lg mb-1">{title}</h4>
+      <p className="text-muted-foreground">{body}</p>
+    </div>
+  );
+};
 
 const IntroductionTab = () => {
   const { t, i18n } = useTranslation("halacha-introduction");
-  const isRtl = i18n.dir() === "rtl";
 
   return (
-    <Card>
+    <Card dir={i18n.dir()}>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Book className="h-5 w-5 text-primary" />
-          <CardTitle>{t("cardTitle")}</CardTitle>
+          <Book className="h-5 w-5 text-primary rtl:order-1" />
+          <CardTitle className="rtl:order-2">{t("cardTitle")}</CardTitle>
         </div>
         <CardDescription>{t("cardDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[400px] pl-4">
-          <div
-            className={`space-y-6 ${isRtl ? "text-right" : "text-left"}`}
-            dir={i18n.dir()}
-          >
+        <ScrollArea className="h-[400px] ps-4" dir={i18n.dir()}>
+          <div className="space-y-6">
             {(
               t("content", { returnObjects: true }) as Array<{
                 title: string;
@@ -78,24 +71,17 @@ const IntroductionTab = () => {
 
 const FaqTab = () => {
   const { t, i18n } = useTranslation("halacha-faq");
-  const isRtl = i18n.dir() === "rtl";
-
   return (
-    <Card>
+    <Card dir={i18n.dir()}>
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Book className="h-5 w-5 text-primary" />
-          <CardTitle>{t("cardTitle")}</CardTitle>
+          <Book className="h-5 w-5 text-primary rtl:order-1" />
+          <CardTitle className="rtl:order-2">{t("cardTitle")}</CardTitle>
         </div>
         <CardDescription>{t("cardDescription")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <Accordion
-          type="single"
-          collapsible
-          className="w-full"
-          dir={i18n.dir()}
-        >
+        <Accordion type="single" collapsible className="w-full">
           {(
             t("questions", { returnObjects: true }) as Array<{
               question: string;
@@ -103,12 +89,10 @@ const FaqTab = () => {
             }>
           ).map((item, index) => (
             <AccordionItem value={`item-${index}`} key={index}>
-              <AccordionTrigger className={isRtl ? "text-right" : "text-left"}>
+              <AccordionTrigger className="no-underline hover:no-underline text-base">
                 {item.question}
               </AccordionTrigger>
-              <AccordionContent
-                className={isRtl ? "text-right pr-2" : "text-left pl-2"}
-              >
+              <AccordionContent className="ps-2">
                 {item.answer}
               </AccordionContent>
             </AccordionItem>
@@ -122,54 +106,57 @@ const FaqTab = () => {
 const PlaceholderTab = () => {
   const { t, i18n } = useTranslation("halacha-common");
   return (
-    <Card>
-      <CardHeader dir={i18n.dir()}>
+    <Card dir={i18n.dir()}>
+      <CardHeader>
         <CardTitle>{t("placeholder.title")}</CardTitle>
       </CardHeader>
-      <CardContent dir={i18n.dir()}>
+      <CardContent>
         <p>{t("placeholder.description")}</p>
       </CardContent>
     </Card>
   );
 };
 
-// --- Main Page Component ---
 function HalachaPageContent() {
-  const { t, i18n } = useTranslation("halacha-common");
+  const { t } = useTranslation("halacha-common");
+
+  const tabs = [
+    {
+      value: "introduction",
+      label: t("tabs.introduction"),
+      component: <IntroductionTab />,
+    },
+    { value: "faq", label: t("tabs.faq"), component: <FaqTab /> },
+    { value: "tithes", label: t("tabs.tithes"), component: <PlaceholderTab /> },
+    { value: "income", label: t("tabs.income"), component: <PlaceholderTab /> },
+    {
+      value: "expenses",
+      label: t("tabs.expenses"),
+      component: <PlaceholderTab />,
+    },
+  ];
 
   return (
-    <div className="grid gap-6" dir={i18n.dir()}>
+    <div className="grid gap-6">
       <div className="grid gap-2 text-center">
         <h2 className="text-3xl font-bold text-foreground">{t("pageTitle")}</h2>
         <p className="text-muted-foreground text-lg">{t("pageDescription")}</p>
       </div>
 
       <Tabs defaultValue="introduction" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="introduction">
-            {t("tabs.introduction")}
-          </TabsTrigger>
-          <TabsTrigger value="faq">{t("tabs.faq")}</TabsTrigger>
-          <TabsTrigger value="tithes">{t("tabs.tithes")}</TabsTrigger>
-          <TabsTrigger value="income">{t("tabs.income")}</TabsTrigger>
-          <TabsTrigger value="expenses">{t("tabs.expenses")}</TabsTrigger>
+        <TabsList className="flex w-full rtl:flex-row-reverse">
+          {tabs.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value} className="flex-1">
+              {tab.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        <TabsContent value="introduction">
-          <IntroductionTab />
-        </TabsContent>
-        <TabsContent value="faq">
-          <FaqTab />
-        </TabsContent>
-        <TabsContent value="tithes">
-          <PlaceholderTab />
-        </TabsContent>
-        <TabsContent value="income">
-          <PlaceholderTab />
-        </TabsContent>
-        <TabsContent value="expenses">
-          <PlaceholderTab />
-        </TabsContent>
+        {tabs.map((tab) => (
+          <TabsContent key={tab.value} value={tab.value}>
+            {tab.component}
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   );

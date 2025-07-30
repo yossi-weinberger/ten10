@@ -1,90 +1,88 @@
-@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@200;300;400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Assistant:wght@200;300;400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+
 @layer base {
   :root {
     --background: 150 100% 98%;
     --foreground: 20 80% 10%;
-    
+
     --card: 150 100% 98%;
     --card-foreground: 20 80% 10%;
-    
+
     --popover: 150 100% 98%;
     --popover-foreground: 20 80% 10%;
-    
+
     --primary: 160 50% 47%;
     --primary-foreground: 0 0% 98%;
-    
+
     --secondary: 45 80% 60%;
     --secondary-foreground: 20 80% 10%;
-    
+
     --muted: 220 15% 73%;
     --muted-foreground: 20 80% 10%;
-    
+
     --accent: 220 15% 73%;
     --accent-foreground: 20 80% 10%;
-    
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    
+
     --border: 220 15% 73%;
     --input: 220 15% 73%;
     --ring: 160 50% 47%;
-    
+
     --radius: 0.5rem;
 
     /* Chart colors */
     --chart-green: 142.1 70.6% 45.3%; /* Example Green for light mode */
     --chart-yellow: 47.9 95.8% 53.1%; /* Example Yellow for light mode */
-    --chart-red: 0 72.2% 50.6%;     /* Example Red for light mode */
+    --chart-red: 0 72.2% 50.6%; /* Example Red for light mode */
   }
 
   .dark {
     --background: 20 80% 10%;
     --foreground: 150 100% 98%;
-    
+
     --card: 20 80% 10%;
     --card-foreground: 150 100% 98%;
-    
+
     --popover: 20 80% 10%;
     --popover-foreground: 150 100% 98%;
-    
+
     --primary: 160 50% 47%;
     --primary-foreground: 150 100% 98%;
-    
+
     --secondary: 45 80% 60%;
     --secondary-foreground: 150 100% 98%;
-    
+
     --muted: 220 15% 73%;
     --muted-foreground: 150 100% 98%;
-    
+
     --accent: 220 15% 73%;
     --accent-foreground: 150 100% 98%;
-    
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 150 100% 98%;
-    
+
     --border: 220 15% 73%;
     --input: 220 15% 73%;
     --ring: 160 50% 47%;
 
     /* Chart colors for dark mode */
-    --chart-green: 142.1 70.6% 35.3%;  /* Example Green for dark mode */
+    --chart-green: 142.1 70.6% 35.3%; /* Example Green for dark mode */
     --chart-yellow: 47.9 95.8% 43.1%; /* Example Yellow for dark mode */
-    --chart-red: 0 72.2% 40.6%;      /* Example Red for dark mode */
+    --chart-red: 0 72.2% 40.6%; /* Example Red for dark mode */
   }
 }
 
-:root {
-  direction: rtl;
-}
+/* Direction is now controlled dynamically by i18n in App.tsx */
 
 body {
   margin: 0;
-  font-family: 'Assistant', system-ui, -apple-system, sans-serif;
+  font-family: "Assistant", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -103,11 +101,11 @@ input[type="number"] {
   .card-hover {
     @apply transition-all duration-300 hover:shadow-hover hover:-translate-y-1;
   }
-  
+
   .input-focus {
     @apply focus:ring-2 focus:ring-primary/20 focus:border-primary;
   }
-  
+
   .button-hover {
     @apply hover:shadow-soft active:transform active:translate-y-0.5;
   }
