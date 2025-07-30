@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-import rtl from "tailwindcss-rtl";
+// import rtl from "tailwindcss-rtl";
 
 export default {
   darkMode: ["class"],
@@ -91,5 +91,5 @@ export default {
       },
     },
   },
-  plugins: [rtl, require("@tailwindcss/forms"), require("tailwindcss-animate")],
+  plugins: [require("@tailwindcss/forms"), require("tailwindcss-animate")],
 };
