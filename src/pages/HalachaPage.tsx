@@ -1,13 +1,6 @@
 import { Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import {
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -18,12 +11,24 @@ import { Book } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const LoadingFallback = () => (
-  <div className="space-y-4">
-    <Skeleton className="h-10 w-1/2 mx-auto" />
-    <Skeleton className="h-8 w-3/4 mx-auto" />
-    <div className="p-4 border rounded-md">
-      <Skeleton className="h-8 w-full mb-4" />
-      <Skeleton className="h-40 w-full" />
+  <div className="max-w-4xl mx-auto space-y-6">
+    {/* Header skeleton */}
+    <div className="text-center space-y-3">
+      <div className="flex items-center justify-center gap-2">
+        <Skeleton className="h-6 w-6 rounded" />
+        <Skeleton className="h-8 w-48" />
+      </div>
+      <Skeleton className="h-6 w-96 mx-auto" />
+    </div>
+
+    {/* Content skeleton */}
+    <div className="space-y-4">
+      <Skeleton className="h-6 w-32" />
+      <Skeleton className="h-20 w-full" />
+      <Skeleton className="h-6 w-48" />
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-6 w-40" />
+      <Skeleton className="h-24 w-full" />
     </div>
   </div>
 );
@@ -160,16 +165,23 @@ const IntroductionTab = () => {
 
 const FaqTab = () => {
   const { t, i18n } = useTranslation("halacha-faq");
+
   return (
-    <Card dir={i18n.dir()}>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Book className="h-5 w-5 text-primary rtl:order-1" />
-          <CardTitle className="rtl:order-2">{t("cardTitle")}</CardTitle>
+    <div className="max-w-4xl mx-auto" dir={i18n.dir()}>
+      {/* Header */}
+      <div className="mb-8 text-center">
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <Book className="h-6 w-6 text-primary rtl:order-1" />
+          <h1 className="text-2xl font-bold rtl:order-2">{t("cardTitle")}</h1>
         </div>
-        <CardDescription>{t("cardDescription")}</CardDescription>
-      </CardHeader>
-      <CardContent>
+        <p className="text-muted-foreground text-lg">{t("cardDescription")}</p>
+      </div>
+
+      {/* Content */}
+      <div
+        className="prose prose-slate dark:prose-invert max-w-none"
+        dir={i18n.dir()}
+      >
         <Accordion type="single" collapsible className="w-full">
           {(
             t("questions", { returnObjects: true }) as Array<{
@@ -182,13 +194,16 @@ const FaqTab = () => {
                 {item.question}
               </AccordionTrigger>
               <AccordionContent className="ps-2">
-                {item.answer}
+                <div
+                  className="text-muted-foreground leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: formatText(item.answer) }}
+                />
               </AccordionContent>
             </AccordionItem>
           ))}
         </Accordion>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
@@ -526,6 +541,15 @@ const ChomeshTab = () => {
 
 function HalachaPageContent() {
   const { t } = useTranslation("halacha-common");
+
+  // Pre-load all namespaces to avoid loading delays
+  useTranslation("halacha-introduction");
+  useTranslation("halacha-principles");
+  useTranslation("halacha-faq");
+  useTranslation("halacha-tithes");
+  useTranslation("halacha-income");
+  useTranslation("halacha-expenses");
+  useTranslation("halacha-chomesh");
 
   const tabs = [
     {
