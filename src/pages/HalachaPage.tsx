@@ -92,19 +92,22 @@ const InfoSection = ({
 const IntroductionTab = () => {
   const { t, i18n } = useTranslation("halacha-introduction");
 
-  const introduction = t("introduction", { returnObjects: true }) as
-    | { title: string; body: string }
-    | undefined;
-  const sources = t("sources", { returnObjects: true }) as
-    | { title: string; body: string }
-    | undefined;
-  const content = t("content", { returnObjects: true }) as Array<{
-    title: string;
-    body: string;
-    isHighlighted?: boolean;
-    isImportant?: boolean;
-  }>;
-
+  const introduction = getTypedTranslation(t, "introduction", {
+    title: "",
+    body: "",
+  });
+  const sources = getTypedTranslation(t, "sources", {
+    title: "",
+    body: "",
+  });
+  const content = getTypedTranslation(t, "content", [
+    {
+      title: "",
+      body: "",
+      isHighlighted: false,
+      isImportant: false,
+    },
+  ]);
   return (
     <div className="max-w-4xl mx-auto" dir={i18n.dir()}>
       {/* Header */}
