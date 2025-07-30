@@ -9,6 +9,7 @@ import { SpeedInsights } from "@vercel/speed-insights/react";
 import { AuthProvider } from "./contexts/AuthContext";
 import { StagewiseToolbar } from "@stagewise/toolbar-react";
 import "./index.css";
+import "./lib/i18n";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
