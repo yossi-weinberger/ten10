@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -7,7 +8,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -19,10 +19,8 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Languages, Moon, Sun, MonitorSmartphone } from "lucide-react";
 import { useTheme } from "@/lib/theme";
 
-// Define the Theme type based on its definition in theme.tsx
 type Theme = "light" | "dark" | "system";
 
-// Define the specific settings properties needed by this component
 interface LanguageSettings {
   language: "he" | "en";
 }
@@ -40,36 +38,44 @@ export function LanguageAndDisplaySettingsCard({
   languageSettings,
   updateSettings,
 }: LanguageAndDisplaySettingsCardProps) {
+  const { t, i18n } = useTranslation("settings");
+
+  const handleLanguageChange = (lang: "he" | "en") => {
+    i18n.changeLanguage(lang);
+    updateSettings({ language: lang });
+  };
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
           <Languages className="h-5 w-5 text-primary" />
-          <CardTitle>שפה ותצוגה</CardTitle>
+          <CardTitle>{t("cardTitle")}</CardTitle>
         </div>
-        <CardDescription>הגדרות שפה ותצוגה כלליות</CardDescription>
+        <CardDescription>{t("cardDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
         <div className="grid gap-2">
-          <Label>שפה</Label>
+          <Label>{t("languageLabel")}</Label>
           <Select
             value={languageSettings.language}
             onValueChange={(value) =>
-              updateSettings({ language: value as "he" | "en" })
+              handleLanguageChange(value as "he" | "en")
             }
+            dir={i18n.dir()}
           >
             <SelectTrigger>
-              <SelectValue placeholder="בחר שפה" />
+              <SelectValue placeholder={t("languagePlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="he">עברית</SelectItem>
-              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="he">{t("hebrew")}</SelectItem>
+              <SelectItem value="en">{t("english")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="grid gap-2">
-          <Label>ערכת נושא</Label>
+          <Label>{t("themeLabel")}</Label>
           <ToggleGroup
             type="single"
             value={theme}
@@ -77,25 +83,25 @@ export function LanguageAndDisplaySettingsCard({
               if (value) setTheme(value as Theme);
             }}
             className="grid grid-cols-3 gap-1 rounded-md border p-1"
-            aria-label="Theme selection"
+            aria-label={t("themeLabel")}
           >
             <ToggleGroupItem
               value="light"
-              aria-label="Light theme"
+              aria-label={t("lightTheme")}
               className="flex-1 justify-center data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
             >
               <Sun className="h-5 w-5" />
             </ToggleGroupItem>
             <ToggleGroupItem
               value="dark"
-              aria-label="Dark theme"
+              aria-label={t("darkTheme")}
               className="flex-1 justify-center data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
             >
               <Moon className="h-5 w-5" />
             </ToggleGroupItem>
             <ToggleGroupItem
               value="system"
-              aria-label="System theme"
+              aria-label={t("systemTheme")}
               className="flex-1 justify-center data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
             >
               <MonitorSmartphone className="h-5 w-5" />
