@@ -14,7 +14,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Book } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -29,43 +28,133 @@ const LoadingFallback = () => (
   </div>
 );
 
-const InfoSection = ({ title, body }: { title: string; body: string }) => {
+const formatText = (text: string) => {
+  // Convert **text** to bold and *text* to italic
+  return text
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.*?)\*/g, "<em>$1</em>");
+};
+
+const InfoSection = ({
+  title,
+  body,
+  isHighlighted = false,
+  isImportant = false,
+}: {
+  title: string;
+  body: string;
+  isHighlighted?: boolean;
+  isImportant?: boolean;
+}) => {
   const { i18n } = useTranslation();
+
   return (
-    <div dir={i18n.dir()}>
-      <h4 className="font-semibold text-lg mb-1">{title}</h4>
-      <p className="text-muted-foreground">{body}</p>
-    </div>
+    <section
+      dir={i18n.dir()}
+      className={`mb-6 ${
+        isHighlighted
+          ? "bg-blue-50 dark:bg-blue-950/20 p-6 rounded-lg border border-blue-200 dark:border-blue-800"
+          : isImportant
+          ? "bg-amber-50 dark:bg-amber-950/20 p-6 rounded-lg border border-amber-200 dark:border-amber-800"
+          : ""
+      }`}
+    >
+      <h3
+        className={`text-lg font-semibold mb-3 ${
+          isHighlighted
+            ? "text-blue-900 dark:text-blue-100"
+            : isImportant
+            ? "text-amber-900 dark:text-amber-100"
+            : ""
+        }`}
+      >
+        {title}
+      </h3>
+      <div
+        className={`leading-relaxed ${
+          isHighlighted
+            ? "text-blue-800 dark:text-blue-200"
+            : isImportant
+            ? "text-amber-800 dark:text-amber-200"
+            : "text-muted-foreground"
+        }`}
+        dangerouslySetInnerHTML={{ __html: formatText(body) }}
+      />
+    </section>
   );
 };
 
 const IntroductionTab = () => {
   const { t, i18n } = useTranslation("halacha-introduction");
 
+  const introduction = t("introduction", { returnObjects: true }) as
+    | { title: string; body: string }
+    | undefined;
+  const sources = t("sources", { returnObjects: true }) as
+    | { title: string; body: string }
+    | undefined;
+  const content = t("content", { returnObjects: true }) as Array<{
+    title: string;
+    body: string;
+    isHighlighted?: boolean;
+    isImportant?: boolean;
+  }>;
+
   return (
-    <Card dir={i18n.dir()}>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Book className="h-5 w-5 text-primary rtl:order-1" />
-          <CardTitle className="rtl:order-2">{t("cardTitle")}</CardTitle>
+    <div className="max-w-4xl mx-auto" dir={i18n.dir()}>
+      {/* Header */}
+      <div className="mb-8 text-center">
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <Book className="h-6 w-6 text-primary rtl:order-1" />
+          <h1 className="text-2xl font-bold rtl:order-2">{t("cardTitle")}</h1>
         </div>
-        <CardDescription>{t("cardDescription")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-[400px] ps-4" dir={i18n.dir()}>
-          <div className="space-y-6">
-            {(
-              t("content", { returnObjects: true }) as Array<{
-                title: string;
-                body: string;
-              }>
-            ).map((item, index) => (
-              <InfoSection key={index} title={item.title} body={item.body} />
-            ))}
+        <p className="text-muted-foreground text-lg">{t("cardDescription")}</p>
+      </div>
+
+      {/* Content */}
+      <div
+        className="prose prose-slate dark:prose-invert max-w-none"
+        dir={i18n.dir()}
+      >
+        {/* Introduction Section */}
+        {introduction && (
+          <div className="mb-8 pb-6 border-b border-border">
+            <h2 className="text-xl font-semibold mb-3">{introduction.title}</h2>
+            <div
+              className="text-muted-foreground leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: formatText(introduction.body),
+              }}
+            />
           </div>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+        )}
+
+        {/* Sources Section */}
+        {sources && (
+          <div className="mb-8 pb-6 border-b border-border">
+            <h2 className="text-xl font-semibold mb-3">{sources.title}</h2>
+            <div
+              className="text-muted-foreground leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: formatText(sources.body) }}
+            />
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="space-y-6">
+          {content &&
+            content.map((item, index) => (
+              <InfoSection
+                key={index}
+                title={item.title}
+                body={item.body}
+                isHighlighted={item.isHighlighted}
+                isImportant={item.isImportant}
+              />
+            ))}
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -103,17 +192,335 @@ const FaqTab = () => {
   );
 };
 
-const PlaceholderTab = () => {
-  const { t, i18n } = useTranslation("halacha-common");
+const PrinciplesTab = () => {
+  const { t, i18n } = useTranslation("halacha-principles");
+
+  const introduction = t("introduction", { returnObjects: true }) as
+    | { title: string; body: string }
+    | undefined;
+  const principles = t("principles", { returnObjects: true }) as Array<{
+    number: string;
+    title: string;
+    body: string;
+    isHighlighted?: boolean;
+    isImportant?: boolean;
+  }>;
+
   return (
-    <Card dir={i18n.dir()}>
-      <CardHeader>
-        <CardTitle>{t("placeholder.title")}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p>{t("placeholder.description")}</p>
-      </CardContent>
-    </Card>
+    <div className="max-w-4xl mx-auto" dir={i18n.dir()}>
+      {/* Header */}
+      <div className="mb-8 text-center">
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <Book className="h-6 w-6 text-primary rtl:order-1" />
+          <h1 className="text-2xl font-bold rtl:order-2">{t("cardTitle")}</h1>
+        </div>
+        <p className="text-muted-foreground text-lg">{t("cardDescription")}</p>
+      </div>
+
+      {/* Content */}
+      <div
+        className="prose prose-slate dark:prose-invert max-w-none"
+        dir={i18n.dir()}
+      >
+        {/* Introduction Section */}
+        {introduction && (
+          <div className="mb-8 pb-6 border-b border-border">
+            <h2 className="text-xl font-semibold mb-3">{introduction.title}</h2>
+            <div
+              className="text-muted-foreground leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: formatText(introduction.body),
+              }}
+            />
+          </div>
+        )}
+
+        {/* Principles */}
+        <div className="space-y-6">
+          {principles &&
+            principles.map((principle, index) => (
+              <section
+                key={index}
+                className={`mb-6 ${
+                  principle.isHighlighted
+                    ? "bg-blue-50 dark:bg-blue-950/20 p-6 rounded-lg border border-blue-200 dark:border-blue-800"
+                    : principle.isImportant
+                    ? "bg-amber-50 dark:bg-amber-950/20 p-6 rounded-lg border border-amber-200 dark:border-amber-800"
+                    : ""
+                }`}
+                dir={i18n.dir()}
+              >
+                <h3
+                  className={`text-lg font-semibold mb-3 flex items-center gap-3 ${
+                    principle.isHighlighted
+                      ? "text-blue-900 dark:text-blue-100"
+                      : principle.isImportant
+                      ? "text-amber-900 dark:text-amber-100"
+                      : ""
+                  }`}
+                >
+                  <span className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold rtl:order-1">
+                    {principle.number}
+                  </span>
+                  <span className="rtl:order-2">{principle.title}</span>
+                </h3>
+                <div
+                  className={`leading-relaxed ${
+                    principle.isHighlighted
+                      ? "text-blue-800 dark:text-blue-200"
+                      : principle.isImportant
+                      ? "text-amber-800 dark:text-amber-200"
+                      : "text-muted-foreground"
+                  }`}
+                  dangerouslySetInnerHTML={{
+                    __html: formatText(principle.body),
+                  }}
+                />
+              </section>
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const IncomeTab = () => {
+  const { t, i18n } = useTranslation("halacha-income");
+
+  const introduction = t("introduction", { returnObjects: true }) as
+    | { title: string; body: string }
+    | undefined;
+  const content = t("content", { returnObjects: true }) as Array<{
+    title: string;
+    body: string;
+    isHighlighted?: boolean;
+    isImportant?: boolean;
+  }>;
+
+  return (
+    <div className="max-w-4xl mx-auto" dir={i18n.dir()}>
+      {/* Header */}
+      <div className="mb-8 text-center">
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <Book className="h-6 w-6 text-primary rtl:order-1" />
+          <h1 className="text-2xl font-bold rtl:order-2">{t("cardTitle")}</h1>
+        </div>
+        <p className="text-muted-foreground text-lg">{t("cardDescription")}</p>
+      </div>
+
+      {/* Content */}
+      <div
+        className="prose prose-slate dark:prose-invert max-w-none"
+        dir={i18n.dir()}
+      >
+        {/* Introduction Section */}
+        {introduction && (
+          <div className="mb-8 pb-6 border-b border-border">
+            <h2 className="text-xl font-semibold mb-3">{introduction.title}</h2>
+            <div
+              className="text-muted-foreground leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: formatText(introduction.body),
+              }}
+            />
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="space-y-6">
+          {content &&
+            content.map((item, index) => (
+              <InfoSection
+                key={index}
+                title={item.title}
+                body={item.body}
+                isHighlighted={item.isHighlighted}
+                isImportant={item.isImportant}
+              />
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ExpensesTab = () => {
+  const { t, i18n } = useTranslation("halacha-expenses");
+
+  const introduction = t("introduction", { returnObjects: true }) as
+    | { title: string; body: string }
+    | undefined;
+  const content = t("content", { returnObjects: true }) as Array<{
+    title: string;
+    body: string;
+    isHighlighted?: boolean;
+    isImportant?: boolean;
+  }>;
+
+  return (
+    <div className="max-w-4xl mx-auto" dir={i18n.dir()}>
+      {/* Header */}
+      <div className="mb-8 text-center">
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <Book className="h-6 w-6 text-primary rtl:order-1" />
+          <h1 className="text-2xl font-bold rtl:order-2">{t("cardTitle")}</h1>
+        </div>
+        <p className="text-muted-foreground text-lg">{t("cardDescription")}</p>
+      </div>
+
+      {/* Content */}
+      <div
+        className="prose prose-slate dark:prose-invert max-w-none"
+        dir={i18n.dir()}
+      >
+        {/* Introduction Section */}
+        {introduction && (
+          <div className="mb-8 pb-6 border-b border-border">
+            <h2 className="text-xl font-semibold mb-3">{introduction.title}</h2>
+            <div
+              className="text-muted-foreground leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: formatText(introduction.body),
+              }}
+            />
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="space-y-6">
+          {content &&
+            content.map((item, index) => (
+              <InfoSection
+                key={index}
+                title={item.title}
+                body={item.body}
+                isHighlighted={item.isHighlighted}
+                isImportant={item.isImportant}
+              />
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TithesTab = () => {
+  const { t, i18n } = useTranslation("halacha-tithes");
+
+  const introduction = t("introduction", { returnObjects: true }) as
+    | { title: string; body: string }
+    | undefined;
+  const content = t("content", { returnObjects: true }) as Array<{
+    title: string;
+    body: string;
+    isHighlighted?: boolean;
+    isImportant?: boolean;
+  }>;
+
+  return (
+    <div className="max-w-4xl mx-auto" dir={i18n.dir()}>
+      {/* Header */}
+      <div className="mb-8 text-center">
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <Book className="h-6 w-6 text-primary rtl:order-1" />
+          <h1 className="text-2xl font-bold rtl:order-2">{t("cardTitle")}</h1>
+        </div>
+        <p className="text-muted-foreground text-lg">{t("cardDescription")}</p>
+      </div>
+
+      {/* Content */}
+      <div
+        className="prose prose-slate dark:prose-invert max-w-none"
+        dir={i18n.dir()}
+      >
+        {/* Introduction Section */}
+        {introduction && (
+          <div className="mb-8 pb-6 border-b border-border">
+            <h2 className="text-xl font-semibold mb-3">{introduction.title}</h2>
+            <div
+              className="text-muted-foreground leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: formatText(introduction.body),
+              }}
+            />
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="space-y-6">
+          {content &&
+            content.map((item, index) => (
+              <InfoSection
+                key={index}
+                title={item.title}
+                body={item.body}
+                isHighlighted={item.isHighlighted}
+                isImportant={item.isImportant}
+              />
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ChomeshTab = () => {
+  const { t, i18n } = useTranslation("halacha-chomesh");
+
+  const introduction = t("introduction", { returnObjects: true }) as
+    | { title: string; body: string }
+    | undefined;
+  const content = t("content", { returnObjects: true }) as Array<{
+    title: string;
+    body: string;
+    isHighlighted?: boolean;
+    isImportant?: boolean;
+  }>;
+
+  return (
+    <div className="max-w-4xl mx-auto" dir={i18n.dir()}>
+      {/* Header */}
+      <div className="mb-8 text-center">
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <Book className="h-6 w-6 text-primary rtl:order-1" />
+          <h1 className="text-2xl font-bold rtl:order-2">{t("cardTitle")}</h1>
+        </div>
+        <p className="text-muted-foreground text-lg">{t("cardDescription")}</p>
+      </div>
+
+      {/* Content */}
+      <div
+        className="prose prose-slate dark:prose-invert max-w-none"
+        dir={i18n.dir()}
+      >
+        {/* Introduction Section */}
+        {introduction && (
+          <div className="mb-8 pb-6 border-b border-border">
+            <h2 className="text-xl font-semibold mb-3">{introduction.title}</h2>
+            <div
+              className="text-muted-foreground leading-relaxed"
+              dangerouslySetInnerHTML={{
+                __html: formatText(introduction.body),
+              }}
+            />
+          </div>
+        )}
+
+        {/* Main Content */}
+        <div className="space-y-6">
+          {content &&
+            content.map((item, index) => (
+              <InfoSection
+                key={index}
+                title={item.title}
+                body={item.body}
+                isHighlighted={item.isHighlighted}
+                isImportant={item.isImportant}
+              />
+            ))}
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -126,13 +533,23 @@ function HalachaPageContent() {
       label: t("tabs.introduction"),
       component: <IntroductionTab />,
     },
+    {
+      value: "principles",
+      label: t("tabs.principles"),
+      component: <PrinciplesTab />,
+    },
     { value: "faq", label: t("tabs.faq"), component: <FaqTab /> },
-    { value: "tithes", label: t("tabs.tithes"), component: <PlaceholderTab /> },
-    { value: "income", label: t("tabs.income"), component: <PlaceholderTab /> },
+    { value: "tithes", label: t("tabs.tithes"), component: <TithesTab /> },
+    { value: "income", label: t("tabs.income"), component: <IncomeTab /> },
     {
       value: "expenses",
       label: t("tabs.expenses"),
-      component: <PlaceholderTab />,
+      component: <ExpensesTab />,
+    },
+    {
+      value: "chomesh",
+      label: t("tabs.chomesh"),
+      component: <ChomeshTab />,
     },
   ];
 
