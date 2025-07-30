@@ -1,5 +1,4 @@
 /** @type {import('tailwindcss').Config} */
-// import rtl from "tailwindcss-rtl";
 
 export default {
   darkMode: ["class"],
