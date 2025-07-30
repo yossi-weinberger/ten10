@@ -21,6 +21,8 @@ i18n
       "halacha-tithes",
       "halacha-income",
       "halacha-expenses",
+      "halacha-principles",
+      "halacha-chomesh",
     ],
     defaultNS: "halacha-common",
 
