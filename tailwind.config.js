@@ -1,7 +1,8 @@
 /** @type {import('tailwindcss').Config} */
+
 export default {
   darkMode: ["class"],
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     container: {
       center: true,
@@ -47,7 +48,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Assistant', 'system-ui', 'sans-serif'],
+        sans: ["Assistant", "system-ui", "sans-serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -55,8 +56,8 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        'soft': '0 2px 8px -2px rgba(0, 0, 0, 0.1)',
-        'hover': '0 8px 20px -4px rgba(0, 0, 0, 0.15)',
+        soft: "0 2px 8px -2px rgba(0, 0, 0, 0.1)",
+        hover: "0 8px 20px -4px rgba(0, 0, 0, 0.15)",
       },
       keyframes: {
         "accordion-down": {
@@ -76,21 +77,18 @@ export default {
           to: { height: "0" },
         },
         float: {
-          '0%, 100%': { transform: 'translateY(0)' },
-          '50%': { transform: 'translateY(-5px)' },
-        }
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-5px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "collapsible-down": "collapsible-down 0.2s ease-out",
         "collapsible-up": "collapsible-up 0.2s ease-out",
-        'float': 'float 3s ease-in-out infinite',
+        float: "float 3s ease-in-out infinite",
       },
     },
   },
-  plugins: [
-    require('@tailwindcss/forms'),
-    require("tailwindcss-animate")
-  ],
-}
+  plugins: [require("@tailwindcss/forms"), require("tailwindcss-animate")],
+};

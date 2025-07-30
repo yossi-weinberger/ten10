@@ -1,0 +1,42 @@
+{
+  "cardTitle": "Rules for Separating *Chomesh* for *Tzedakah*",
+  "cardDescription": "*Halachos* and practical guidance for separating *chomesh* (20%) from income for *tzedakah* - *mitzvah min hamuvchar*",
+  "introduction": {
+    "title": "About Separating *Chomesh*",
+    "body": "There are those who are meticulous to separate *chomesh* - 20% of all their income for *tzedakah*. It is transmitted in the name of the *Vilna Gaon* zt\"l and other great ones that separating *ma'aser* brings about abundant livelihood, and separating *chomesh* brings about wealth."
+  },
+  "content": [
+    {
+      "title": "The Source for Separating *Chomesh*",
+      "isHighlighted": true,
+      "body": "*Chomesh* is mentioned in the *Gemara* in *Masechet Ketubot* [50a]. Indeed the *Gemara* explicitly states only that the *Chachamim's* enactment was that it is forbidden to separate more than *chomesh*, but in the *Yerushalmi* at the beginning of *Masechet Pe'ah* it implies that the *Chachamim's* enactment - and even transmitted thus to *Moshe* from *Sinai* - to separate *chomesh* for *mitzvah min hamuvchar*. The *Beit Yosef* wrote that from here is the source of the *Rambam*, *Tur* and also *Shulchan Aruch* who brought the matter of '*chomesh*' as the *d'rabbanan* measure for *mitzvah min hamuvchar* in *tzedakah*. The *Gemara* quotes the words of *Yaakov Avinu* 'and all that You will give me I will surely tithe to You' and explains that the intention is for twice *ma'aser*."
+    },
+    {
+      "title": "Opinion of the *Vilna Gaon* - Obligation of *Chomesh* in Certain Circumstances",
+      "isHighlighted": true,
+      "body": "According to the approach of the *Rambam* and after him the *Tur* and *Shulchan Aruch*, there is no special law of '*ma'aser*', only *ma'aser* is a measure in giving *tzedakah*. The measure of *ma'aser* is an intermediate measure, less than that is *ayin ra'ah* and giving *chomesh* is *mitzvah min hamuvchar*. **The *Chafetz Chaim* wrote in *Ahavas Chesed* that according to the opinion of the *Vilna Gaon* and others, when there are poor before him and there is no one to help them, a complete obligation falls to separate up to *chomesh*, when his hand reaches with profit.** *Maran* in '*Derech Emunah*' deduced from the *Rambam's* words that in such a situation one is obligated even more than *chomesh*, but one need not pressure himself."
+    },
+    {
+      "title": "Partial *Chomesh* Separation",
+      "body": "In principle one separates only *ma'aser* and only from part of the income separates *chomesh*. When income comes from the side, a grant or gift and the like, any other easy income, and one wants to separate *chomesh* from it. **Maran HaGaon Rav Chaim zt\"l ruled that one for whom it is difficult to separate *chomesh* from all his income, there is value in separating *chomesh* from part of his income and thereby fulfill also the *mitzvah* of separating *chomesh* partially.** And so we found in '*Divrei Yechezkel*' by the Rabbi of Shinova on the verse said about *Avraham*, 'and he gave him *ma'aser* from all' 'What emerges for us from this is that if a person comes easily to profit, perhaps he needs to give twice *ma'aser* which is *chomesh*'. This custom is especially important, because it can bring a person into separating *chomesh* gradually."
+    },
+    {
+      "title": "Leniencies in *Chomesh* Separation Compared to *Ma'aser*",
+      "isImportant": true,
+      "body": "Those who do separate *chomesh* from all their income but rely on certain leniencies regarding *chomesh*, in defining income, expenses and donations. **The *poskim* agreed that in separating *chomesh* one can be more lenient than *ma'aser* in several matters.** **Examples:** Regarding *chomesh* they said, that all agree that one need not separate from objects received, or that one can use *chomesh* money for *hiddur mitzvah* that he would not have spent without the *chomesh* money. Even those who are stringent and careful to separate *ma'aser* only to the poor and not for various *mitzvah* needs, are lenient to donate from *chomesh* for *mitzvah* needs. And likewise those who tithe rental income from an apartment they rent out that goes to pay rent for the apartment they live in, supporting married sons who are Torah learners, and many other lenient opinions."
+    },
+    {
+      "title": "Warning - Not to Be Too Lenient",
+      "isImportant": true,
+      "body": "**One must be careful, if being too lenient in *chomesh* calculations** [such as calculating children's tuition as expenses for *chomesh*, and likewise their wedding expenses, but for *ma'aser* not calculating them] **it turns out that ultimately, the *chomesh* giver does not separate more for *tzedakah* than the *ma'aser* giver, almost. And this is absurd!** Income that one is lenient with and does not want to separate *chomesh* from, only *ma'aser*, and likewise expenses and also donations that one is lenient and considers them for *chomesh* but does not consider them for *ma'aser*, are recorded only in the leniencies table and not in the main table."
+    },
+    {
+      "title": "Advice of the *Chafetz Chaim* - Calculate *Ma'aser* Twice",
+      "body": "The '*Chafetz Chaim*' brings in '*Ahavas Chesed*' that due to the great importance in giving *ma'aser* precisely, **those who give *chomesh* should not immediately arrange the calculation of *chomesh* but should arrange the calculation of *ma'aser* and separate for *tzedakah* twice *ma'aser*.** [In the software his words were taken into account in the form of calculating the *chomesh* amount]. Since all months are connected together, if one began using the leniencies table one must always separate according to the total appearing there and not according to the regular total for *chomesh* separators."
+    },
+    {
+      "title": "Prohibition to Separate More Than *Chomesh*",
+      "body": "On the other hand, **one should not separate more than *chomesh*. *Chazal* enacted an enactment and forbade separating more than *chomesh*.** Many details and distinctions were said about this in the *poskim* and brought in the compilation books. [In *Ahavas Chesed* and after him in *Derech Emunah* they detail six ways that it is permitted and even a *mitzvah* to distribute *tzedakah* more than *chomesh*]. This is not the place to detail, and for whom the matter is relevant in practice should look in these books or ask a wise person."
+    }
+  ]
+}

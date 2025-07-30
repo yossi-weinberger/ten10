@@ -38,7 +38,7 @@ In both platforms, data is loaded from the respective database (Supabase for web
 ## Additional Features
 
 - **Theme**: Light and Dark mode support.
-- **Language**: Multi-language support (starting with Hebrew and English). Default to Hebrew initially.
+- **Language**: Multi-language support (starting with Hebrew and English), with full Right-to-Left (RTL) layout support for Hebrew. Default to Hebrew initially.
 - **Currency**: Multi-currency support (starting with ILS, USD, EUR).
 - **Calendar**: Support for Gregorian and Hebrew calendars.
 

@@ -1,0 +1,12 @@
+{
+  "cardTitle": "שפה ותצוגה",
+  "cardDescription": "הגדרות שפה ותצוגה כלליות",
+  "languageLabel": "שפה",
+  "languagePlaceholder": "בחר שפה",
+  "hebrew": "עברית",
+  "english": "English",
+  "themeLabel": "ערכת נושא",
+  "lightTheme": "ערכת נושא בהירה",
+  "darkTheme": "ערכת נושא כהה",
+  "systemTheme": "ערכת נושא מערכת"
+}

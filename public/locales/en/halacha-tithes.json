@@ -1,0 +1,50 @@
+{
+  "cardTitle": "Donations Considered *Ma'aser*",
+  "cardDescription": "*Halachos* and practical guidance regarding donations and purposes that may be contributed to from *ma'aser* money",
+  "introduction": {
+    "title": "The Basic Rule",
+    "body": "Every amount separated as *ma'aser* should be donated for purposes of *tzedakah*, kindness and good deeds. However, there are clear rules defining what is permitted to donate to and what is forbidden."
+  },
+  "content": [
+    {
+      "title": "Iron Rule - What One is Obligated in Cannot be Paid from *Ma'aser*",
+      "isHighlighted": true,
+      "body": "**What one is obligated in according to *halacha*, or what he committed himself to, is forbidden to pay from *ma'aser* even if they are for *tzedakah* or *mitzvah* purposes.** **Examples of prohibition:** Expenses for *mitzvos* he is obligated in like *tefillin*, *tzitzis*, four species, *matzah* and the like. Also *mitzvos d'rabbanan* like gifts to the poor on Purim. One who spends to support his adult sons and daughters, since today this is considered a complete obligation, should not pay from *ma'aser*. And likewise payment of tuition that he is not obligated in by law but is accepted today as an obligation."
+    },
+    {
+      "title": "Personal Commitments - Forbidden to Pay from *Ma'aser*",
+      "isHighlighted": true,
+      "body": "What a person himself committed to for *tzedakah* or *mitzvah* purpose, is forbidden to pay from *ma'aser*. And likewise *mitzvos* he is not obligated in, if he did not intend at the time of commitment to give from *ma'aser*, he is forbidden to give from *ma'aser* money. **Examples:** Bought '*aliyos*' in synagogue and did not intend at the time that it should be from *ma'aser* account, it is forbidden to pay from *ma'aser* money. And likewise automatic donations to organizations. **Exception:** If at the time he committed he thought to give from *ma'aser*, or this is always his way, it is permitted."
+    },
+    {
+      "title": "What Purposes Can One Donate To - Dispute of *Poskim*",
+      "body": "Great *poskim* of earlier generations disagreed whether to give *ma'aser* only to the poor, or whether one can donate to any *mitzvah* matter and holy purpose. **Conclusion of later authorities in practice:** To be lenient to donate from *ma'aser* money to *mitzvah* purposes. Some advise dividing the *ma'aser* half to the poor and half to other important *mitzvah* purposes. **Examples of *mitzvah* purposes:** Buying books for study, printing books, synagogue expenses, *kiruv* organizations, education and Torah dissemination, building Torah institutions and *mikvaos*, organizations helping the sick, kindness organizations etc."
+    },
+    {
+      "title": "Rule for Distinguishing Between *Mitzvah* and Living Expenses",
+      "isImportant": true,
+      "body": "**The great rule:** Only when the main intention of the expense is for the *mitzvah*, and without the *mitzvah* he would not have made this expense, can it be considered for *ma'aser*. **Negative example:** Food, clothing and housing - certainly he needs these to be able to learn and fulfill *mitzvos*, but without his spiritual work he would also make these expenses, therefore they cannot be considered *mitzvah* needs. **Positive example:** One who supports Torah and donates to institutions and *yeshivos* - his money serves for the students' livelihood, the entire amount is considered *tzedakah* *mehadrin*, even incidental expenses."
+    },
+    {
+      "title": "Donation for Consideration - Lotteries and Insurance",
+      "isImportant": true,
+      "body": "**The rule:** Any donation for which one receives full consideration cannot be considered a donation. **Buying lottery tickets from *ma'aser* money:** There is great discussion about this among later *poskim*. Some *poskim* forbid buying lottery tickets from *ma'aser* money. Others hold that one must evaluate how much the lottery tickets are actually worth and only what is added beyond the true value may be taken from *ma'aser*. **In practice:** One must distinguish between one who buys also for *tzedakah* purposes and one whose entire intention is only to win prizes. **Similar examples:** Health funds advertising permission to pay supplementary health insurance from *ma'aser* money - one should ask in detail a *rav* expert in these *halachos*."
+    },
+    {
+      "title": "\"*Arevim*\" and Life Insurance - Permitted",
+      "body": "It is customary today to have arrangements called '*arevim*' or '*kol yisrael arevim*' and the like that also serve as a kind of life insurance. It is clear that for life insurance one should not separate from *ma'aser* money because one receives consideration for his money. **But here is the permission:** Since the money all goes to orphans and they only made an arrangement that everyone counted in the group will also receive for any trouble that should not come, and there is no real commitment here, as any of the group partners can withdraw at any time, it is permitted and a *mitzvah* to donate for this purpose from *ma'aser* money."
+    },
+    {
+      "title": "Loans and *Gemachim* - Complete *Tzedakah*",
+      "body": "One who lends money to the needy from *ma'aser* money or deposits money in a *gemach* to be lent to any needy person, is considered complete *tzedakah* and one may initially separate from *ma'aser*. This is the conclusion of the *Chafetz Chaim* in his book *Ahavas Chesed*. **Custom today:** To deposit money in a *gemach* and at children's weddings receive an increased loan from the *gemach*. *Rabbis* are lenient to consider monthly payments as *ma'aser*. **Conditions:** One must be careful that the intention in depositing should also be for the benefit of the borrowing public, and not merely a savings plan. When receiving the loan one need not tithe, but repayment installments are not considered *ma'aser*."
+    },
+    {
+      "title": "Bank Fees and Trade with the Poor",
+      "body": "**Bank fees:** The fee the bank deducts for automatic payments or check deposits is also included in the *tzedakah* amount like all other institutional expenses and is considered *ma'aser* (so ruled *Maran HaGaon Rav Chaim Kanievsky* zt\"l). **Trade with the poor:** *HaGaon Rav Yitzchak Zilberstein* shlita ruled that a craftsman or seller who gives a discount and waives for the poor can consider this amount as *tzedakah* when separating *ma'aser*, provided that without the discount the poor person would have paid him the full price. And likewise one who waives a debt owed by the poor person with intention to deduct this amount from *ma'aser*."
+    },
+    {
+      "title": "Laws of *Hekdesh* - \"*Bal Te'acher*\"",
+      "body": "*Tzedakah* is like *hekdesh* and one transgresses '*bal te'acher*' if not giving it immediately to the poor or *mitzvah* purposes. Therefore if one wants the name of *tzedakah* to take effect immediately on the *ma'aser* to fulfill the *mitzvah* of *ma'aser* or *chomesh*, it is proper to stipulate that he can distribute bit by bit as he sees fit and whenever he wants. [The software includes this condition in a note in the table, meaning that the name of *tzedakah* takes effect immediately but on condition that he can pay bit by bit as needed]."
+    }
+  ]
+}

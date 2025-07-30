@@ -1,0 +1,12 @@
+{
+  "cardTitle": "Language and Display",
+  "cardDescription": "General language and display settings",
+  "languageLabel": "Language",
+  "languagePlaceholder": "Select language",
+  "hebrew": "עברית",
+  "english": "English",
+  "themeLabel": "Theme",
+  "lightTheme": "Light theme",
+  "darkTheme": "Dark theme",
+  "systemTheme": "System theme"
+}
