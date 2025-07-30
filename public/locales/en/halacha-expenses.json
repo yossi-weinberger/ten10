@@ -1,1 +1,45 @@
-{}
+{
+  "cardTitle": "Recognized Expenses for *Ma'aser*",
+  "cardDescription": "*Halachos* and practical guidance regarding expenses that may be deducted from income before separating *ma'aser*",
+  "introduction": {
+    "title": "The Basic Rule",
+    "body": "Expenses that do not belong to daily living expenses are deducted from income, and only what remains is tithed. Generally there are three types of personal expenses: routine living expenses, expenses for livelihood and business investments, and losses and damages."
+  },
+  "content": [
+    {
+      "title": "Routine Living Expenses - Not Deducted from Income",
+      "isHighlighted": true,
+      "body": "Any expense incurred for living needs such as food, clothing, rent and mortgage payments on residential apartments and all other daily needs are considered regular living expenses and one must tithe before deducting these expenses. **Examples:** Buying products, renting an apartment, buying furniture and household items, hiring craftsmen, paying for services, medical expenses and the like - all these are considered \"living expenses\" and are not considered recognized expenses. **Leniency for *kollel* students:** When livelihood is extremely tight, contemporary *poskim* are lenient to deduct all living expenses like food, clothing etc. and tithe only the money that remains, if any."
+    },
+    {
+      "title": "Expenses for Livelihood and Business Investments - Deducted from Income",
+      "isHighlighted": true,
+      "body": "All types of expenses for livelihood and business investments are deducted from income before calculating the *ma'aser* amount and only from what remains of the net profit do we deduct ten percent for *ma'aser*. **Examples:** Travel expenses to work, buying special clothing for work, rent, property tax, furniture, advertising and renovating the business premises etc. **Important to remember:** The homeowner's work salary is not considered an expense. Also losses and all kinds of damages occurring in business are considered \"recognized expenses\"."
+    },
+    {
+      "title": "Rule for Distinguishing Between Living and Business Expenses",
+      "isImportant": true,
+      "body": "**The great rule:** Expenses that one would have incurred anyway even without the need for livelihood or business, even though they also serve the business, are not considered business expenses. **Positive example:** Buying special and respectable clothes to advance business, even though sometimes he uses them not for business purposes, should be considered a recognized expense since without the business need he would not have bought them. **Negative example:** Regular clothing, food etc. are certainly not included in business expenses even though they enable work."
+    },
+    {
+      "title": "Mortgages on Business Assets and Salary Slips",
+      "body": "**Mortgage on business property:** *HaGaon Rav Yosef Shalom Elyashiv* zt\"l and others ruled that one should not deduct monthly payments from income since the property ultimately remains his. Unless the property will remain in the business's possession permanently. **Salary slips:** Salary slips sometimes show amounts designated for clothing, health, travel expenses etc. - these amounts are not deducted from income only when the expenses are actually realized."
+    },
+    {
+      "title": "Losses and Damages in Business - Deducted from Income",
+      "body": "It is clear that losses and damages in business are deducted from profit amounts because overall this reduces the total profit. The *poskim* add that losses from one business can also be deducted from the profit of another business. **Routine maintenance expenses:** Routine maintenance expenses needed for business such as building rent payments, vehicle rental, fuel, electricity, cleaning expenses and the like are included in business expenses deducted from income."
+    },
+    {
+      "title": "Private Damages - Dispute Among *Poskim*",
+      "body": "Private damages at home and all other losses not in business - some say not to deduct from income, but other *poskim* wrote that these losses are also deducted like business deductions, since ultimately one is left with less income in that month. **The distinguishing rule:** Anything for which one receives consideration for the expense is considered a regular living expense. Only if one receives no consideration for the expense, it is considered a loss."
+    },
+    {
+      "title": "Examples of Recognized and Unrecognized Losses",
+      "body": "**Recognized losses:** Fire, theft, damage, accident, illness involving special expenses, loss - all these are considered net loss without consideration. **Unrecognized losses:** Small damages that occur frequently like getting stuck on a nail and tearing one's garment or dropping a cup and breaking it - are not considered losses since this is the way of a person living his life. **Appliances that break:** When an appliance breaks when it is \"old and full of days\" it is not considered a loss, but if it broke prematurely it is considered a loss."
+    },
+    {
+      "title": "Taxes - Income Tax and Property Tax",
+      "body": "Some *poskim* distinguish between income tax and property tax on residential apartments. **Income tax:** Even what one pays from personal salary is recognized as an expense for *ma'aser* purposes and is considered an amount not earned since it is difficult to define exactly the consideration received. **Residential property tax:** It is not recognized as an expense since one receives defined municipal services in return. **Business property tax:** It is clear that it is considered a business expense and deducted from profits. **In times of hardship:** Some are lenient to consider residential property tax also as a recognized expense."
+    }
+  ]
+}

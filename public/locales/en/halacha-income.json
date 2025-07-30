@@ -1,1 +1,49 @@
-{}
+{
+  "cardTitle": "Income Subject to *Ma'aser*",
+  "cardDescription": "*Halachos* and practical guidance regarding income that is subject to *Ma'aser Kesafim* separation",
+  "introduction": {
+    "title": "The Basic Rule",
+    "body": "All money that comes in from any source and any profit earned must have *ma'aser* calculated from it, that is 10%, and separated for *tzedakah*. Income received in cash and also those not received in cash, such as salary, business profits, gifts, inheritances and the like, must be recorded accurately and the *ma'aser* that must be separated calculated."
+  },
+  "content": [
+    {
+      "title": "Gifts and Inheritances",
+      "isHighlighted": true,
+      "body": "If one receives objects as a gift or inheritance, there is no need to tithe them, and likewise an apartment or any other real estate, even when selling them and receiving payment for them. This was ruled by Rabbi Nissim Karelitz zt\"l in '*Chut HaShani*' and many other *poskim*, according to the custom of the world. However, for a gift of money or inheritance of a sum of money, one must separate *ma'aser* even if the giver already separated. If one received an object as a gift not for use but as monetary value, for debt payment and the like, some say one must tithe it, but according to most *poskim* there is no need to tithe."
+    },
+    {
+      "title": "Money for Specific Purpose",
+      "body": "If one received money to buy something specific like an apartment or any other object, one should not separate *ma'aser* except from the surplus if any remains, according to most *poskim*. Likewise, one who receives a sum of money and knows that the giver insists that he use the entire amount, such as support from parents who insist on this and the like, should not separate because the giver's intention determines."
+    },
+    {
+      "title": "Rental Income and Apartments",
+      "isHighlighted": true,
+      "body": "Rental income earned from an apartment that one rents out is subject to *ma'aser* like any other income. One who rents out an apartment and rents another to live in, *poskim* wrote that he does not tithe the income from the rental, and likewise one who rents out an apartment and pays the mortgage on the apartment he lives in. However, one who rents out a large apartment and rents a small apartment, it seems that the difference amount certainly must be tithed like any income. **Example:** One who rents out a large apartment for 5000 ₪ and rents another apartment for 2000 ₪ - the 2000 ₪ need not be tithed, but the difference he profits of 3000 ₪ seemingly must be tithed."
+    },
+    {
+      "title": "Pension Funds and Scholarships",
+      "body": "The amounts appearing on the salary slip that the employer contributes to pension funds, continuing education, pension and the like, and also amounts deducted from salary contributed by the employee himself and not included in the \"net\" amount of the salary are not considered income now. Only in the future, when receiving these accumulated amounts, one must tithe each amount. A scholarship from a *kollel* or any other institution must be tithed."
+    },
+    {
+      "title": "Allowances and Support",
+      "body": "Financial support or allowance from National Insurance such as child allowance, old age pension, disability or widowhood allowance and certainly guaranteed income allowance must be tithed. One who receives financial support or food vouchers from a *tzedakah* fund need not tithe them. One who receives any allowance or support for a specific purpose is exempt from tithing this amount if he truly spends it for that purpose. **Example:** One who receives disability or old age pension, and also one who receives support from a private person must tithe. But an amount received specifically for maintaining a caregiver or any other medical treatment need not be tithed."
+    },
+    {
+      "title": "Loans and Loss Prevention",
+      "body": "A loan that one took need not be tithed, because it is not considered profit since it must be returned. Whether taking for his livelihood needs and certainly if borrowing to invest in business. It is clear that loss prevention is not subject to *ma'aser* obligation, for example, if he or others succeeded in preventing loss in his assets, he need not calculate how much he \"earned\" and separate a tenth of this amount."
+    },
+    {
+      "title": "Discounts and Free Services",
+      "body": "All types of discounts certainly need not be tithed. From property tax discounts to all discounts received in special store sales, one need not tithe the discount amount even though he seemingly \"earned\" this amount. Any service received for free, even though one was prepared to pay money for it and it turns out he \"receives\" monetary value, need not be tithed. **Example:** One wanted to pay a babysitter and his sister volunteered to babysit for free, he need not separate a tenth from the amount saved."
+    },
+    {
+      "title": "Return of Lost Money",
+      "body": "Some wrote that money that according to people's understanding is his and he did not earn anew, need not be tithed. Since in *Ma'aser Kesafim* we follow custom and people's understanding. **Example:** One lost an object and despaired of it and after time it was returned to him, or lent money to a person and despaired of it and later he repaid his debt, this is not considered \"income\" and need not be tithed, even though *halachically*, since he despaired, he is like one who earned a sum of money anew."
+    },
+    {
+      "title": "Investments and Funds",
+      "isImportant": true,
+      "body": "When investing money in all types of investments, one must tithe first the principal and then all subsequent profits, even though when reducing from the principal one reduces profits to *tzedakah* later. This is what all *poskim* wrote according to the *Yerushalmi*. This applies when the principal exists all the time and yields profits like bank savings or stock investment and the like. But if investing in purchasing business equipment and the like, one must calculate these expenses and deduct them from profits. **Example:** One received or earned 1000 ₪ must tithe immediately and deduct 100 ₪. Later when investing the remaining 900 ₪ in business, one deducts this amount from profits, meaning one saves the *ma'aser* from this amount. It turns out that ultimately one tithed from the principal a total of only 10 ₪ and not the full amount of 100 ₪."
+    }
+  ]
+}

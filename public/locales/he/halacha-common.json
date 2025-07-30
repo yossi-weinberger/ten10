@@ -3,10 +3,12 @@
   "pageDescription": "מידע והלכות בנושא מעשר כספים וחומש",
   "tabs": {
     "introduction": "מבוא",
+    "principles": "כללים ויסודות",
     "faq": "שאלות נפוצות",
-    "tithes": "מעשרות",
-    "income": "הכנסות",
-    "expenses": "הוצאות"
+    "tithes": "תרומות הנחשבות למעשר",
+    "income": "הכנסות החייבות במעשר",
+    "expenses": "הוצאות המוכרות למעשר",
+    "chomesh": "חומש"
   },
   "placeholder": {
     "title": "בקרוב...",

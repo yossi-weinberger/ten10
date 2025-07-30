@@ -1,18 +1,47 @@
 {
-  "cardTitle": "Introduction to Ma'aser Kesafim",
-  "cardDescription": "General information about the mitzvah of Ma'aser Kesafim",
+  "cardTitle": "*Halacha* of *Ma'aser Kesafim* - Introduction",
+  "cardDescription": "Fundamental information and practical guidance in the *halachos* of *Ma'aser Kesafim* and *Chomesh* according to the *poskim*",
+  "introduction": {
+    "title": "About This Guide",
+    "body": "By popular request, we have included a practical *halachic* guide. The idea behind this guide is to convey the principles succinctly, explained with sound reasoning accompanied by examples and illustrations. Those interested only in the practical aspects should focus on the highlighted rules. It is clear that in certain cases one should consult with a *Rav* who is well-versed in these *halachos* and also familiar with the questioner's financial situation."
+  },
+  "sources": {
+    "title": "Sources of the *Halachos*",
+    "body": "The *halachos* are compiled according to the Rambam's *Hilchos Matanos Aniyim*, the Tur and *Shulchan Aruch Yoreh Deah Hilchos Tzedakah*, and according to the rulings of the later *poskim*. Primarily based on the rulings of the *Chafetz Chaim* zt\"l in \"*Ahavas Chesed*\" and Maran HaGaon R' Chaim Kanievsky zt\"l in \"*Derech Emunah*\" on the Rambam."
+  },
   "content": [
     {
-      "title": "What is Ma'aser Kesafim?",
-      "body": "Ma'aser Kesafim is an ancient custom practiced by the Jewish people, to set aside a tenth of their profits for charity. Although it is not a Torah obligation, many treat it as a complete obligation."
+      "title": "The Nature of *Ma'aser Kesafim* and Its *Halachic* Foundation",
+      "isHighlighted": true,
+      "body": "Almost all *poskim* hold that *Ma'aser Kesafim* is at most *midrabanan*, and according to many *poskim* it is merely a good and ancient custom dating back to the times of the holy *Avos*. Regarding Avraham Avinu it is written \"and he gave him *ma'aser* from everything,\" and regarding Yaakov Avinu \"and all that You give me, I will surely give a tenth to You.\" Since separating *ma'aser* is not an absolute obligation, we judge favorably many of our Jewish brethren who are not careful to calculate and separate *Ma'aser Kesafim*."
     },
     {
-      "title": "And what is Chomesh?",
-      "body": "Some have the custom of setting aside a fifth (20%) of their income, which is a measure of piety based on the words of the Sages: 'One who spends generously should not spend more than a fifth'."
+      "title": "The Promised Blessing and Permission to Test Through *Ma'aser*",
+      "isImportant": true,
+      "body": "It is an accepted principle that giving *ma'aser* to *tzedakah* is a wonderful *segulah* for abundant and honorable sustenance. This is explicit in the *Nevi'im*: \"Bring all the *ma'aser* to the storehouse... and test Me now in this, says Hashem of hosts, if I will not open for you the windows of heaven and pour out for you blessing until there is no more room\" (Malachi 3:10). Based on this verse, it is ruled in the *Shulchan Aruch* (Y.D. 247:4) that although it is forbidden to test Hashem, regarding *ma'aser* it is permitted to test - that is, to give in order to receive abundance and to expect to see if Hashem will indeed bestow abundance without limit."
     },
     {
-      "title": "From what is it separated?",
-      "body": "It is important to note that the separation is made from the net profit, after deducting necessary expenses and the cost of living."
+      "title": "The Importance of Precise Calculation and Stipulation",
+      "isHighlighted": true,
+      "body": "The *poskim* and also the *mekubalim* emphasize that it is worthwhile to calculate the *ma'aser* precisely and not to give *ma'aser* based on estimates. The *Chafetz Chaim* wrote that it is proper to stipulate at the beginning of adopting the practice of separating *ma'aser*, that a tenth of the *tzedakah* given will be for *ma'aser* and the remainder for *chomesh*. It is clear that one should not exaggerate - there is no need, and it is also impractical, to record every small amount donated to *tzedakah*."
+    },
+    {
+      "title": "Differences of Opinion and Various Levels of Separation",
+      "body": "Since according to most *poskim* separating *Ma'aser Kesafim* is no more than a good custom, there are no clear rules in *halacha* regarding all aspects of this *ma'aser*. The *poskim* established the rules according to their judgment, hence extreme differences of opinion regarding many details. We find different levels: from the minimal level that deducts from income the essential living expenses and only gives *ma'aser* from what remains, to the highest level that gives *ma'aser* even on the value of the apartment, furniture, gifts, and hospitality received. Between these two extremes exist many intermediate levels from which one can choose."
+    },
+    {
+      "title": "The Middle Path and the Promised Blessing",
+      "isHighlighted": true,
+      "body": "The rules and definitions in this guide are faithful to the middle path, accepted and agreed upon by most *poskim*. It is agreed in *halacha* that even one who does not follow all the stringencies but follows the basic rules will merit blessing. However, it appears that the more one invests in *ma'aser* and *chomesh* with all the careful calculations, the greater blessing one merits, up to the extraordinary wealth promised: \"Give a tenth so that you may become wealthy.\""
+    },
+    {
+      "title": "*Tzedakah* Giving in Our Generation and Modern Methods",
+      "body": "Our generation has been blessed with giving *tzedakah* in enormous amounts for countless important purposes. There exist many vast *Torah* institutions that need support, *chesed* organizations, *kiruv* organizations, and organizations engaged in various *mitzvos*. The abundance of *tzedakah* with which our generation has been blessed is part of the destiny of \"*ikvesa dimeshicha*\" - that *tzedakah* will hasten the complete redemption. Modern means of transferring funds and standing orders make it very easy today to transfer amounts to *tzedakah*. When asked whether one should be careful to give *tzedakah* by hand in small amounts, Maran HaGaon R' Chaim zt\"l answered that it is still preferable to sign a standing order."
+    },
+    {
+      "title": "Practical Conclusion",
+      "isImportant": true,
+      "body": "And if we are already giving much *tzedakah* anyway, why not make the proper calculations and also give for the sake of *ma'aser* and merit Hashem's promised blessing? Careful attention to precise calculation of *ma'aser*, together with the use of modern means available to us, can bring great blessing and contribute significantly to strengthening *Torah* and *chesed* in the world."
     }
   ]
 }
