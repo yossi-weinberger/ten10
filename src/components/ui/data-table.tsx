@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { FileSpreadsheet, FileText, FileJson } from 'lucide-react';
 import { exportToExcel, exportToPDF } from '@/lib/utils';
 import { useDonationStore } from '@/lib/store';
+import { useShallow } from 'zustand/react/shallow';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -40,7 +41,13 @@ export function DataTable<TData, TValue>({
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = React.useState('');
-  const { settings, incomes, donations } = useDonationStore();
+  const { settings, incomes, donations } = useDonationStore(
+    useShallow((state: any) => ({
+      settings: state.settings,
+      incomes: state.incomes,
+      donations: state.donations,
+    }))
+  );
 
   const table = useReactTable({
     data,
