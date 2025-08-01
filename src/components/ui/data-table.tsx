@@ -42,7 +42,7 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = React.useState('');
   const { settings, incomes, donations } = useDonationStore(
-    useShallow((state: any) => ({
+    useShallow((state: DonationStoreState) => ({
       settings: state.settings,
       incomes: state.incomes,
       donations: state.donations,
