@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { Table, TableBody, TableRow, TableCell } from "@/components/ui/table";
@@ -56,7 +57,19 @@ export function TransactionsTableDisplay() {
     sorting,
     setSorting,
     deleteTransaction,
-  } = useTableTransactionsStore();
+  } = useTableTransactionsStore(
+    useShallow((state) => ({
+      transactions: state.transactions,
+      loading: state.loading,
+      error: state.error,
+      fetchTransactions: state.fetchTransactions,
+      setLoadMorePagination: state.setLoadMorePagination,
+      pagination: state.pagination,
+      sorting: state.sorting,
+      setSorting: state.setSorting,
+      deleteTransaction: state.deleteTransaction,
+    }))
+  );
 
   const { platform } = usePlatform(); // platform is used directly here for API calls
   const navigate = useNavigate();

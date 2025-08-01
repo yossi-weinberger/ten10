@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import {
   initialTableTransactionFilters,
@@ -64,15 +65,18 @@ const recurringFrequencyOptions = {
 
 export function TransactionsFilters() {
   const { platform } = usePlatform();
-  const storeFilters = useTableTransactionsStore((state) => state.filters);
-  const setStoreFilters = useTableTransactionsStore(
-    (state) => state.setFilters
-  );
-  const resetStoreFiltersState = useTableTransactionsStore(
-    (state) => state.resetFiltersState
-  );
-  const fetchTransactions = useTableTransactionsStore(
-    (state) => state.fetchTransactions
+  const {
+    storeFilters,
+    setStoreFilters,
+    resetStoreFiltersState,
+    fetchTransactions,
+  } = useTableTransactionsStore(
+    useShallow((state) => ({
+      storeFilters: state.filters,
+      setStoreFilters: state.setFilters,
+      resetStoreFiltersState: state.resetFiltersState,
+      fetchTransactions: state.fetchTransactions,
+    }))
   );
 
   const [localSearch, setLocalSearch] = useState(storeFilters.search);
