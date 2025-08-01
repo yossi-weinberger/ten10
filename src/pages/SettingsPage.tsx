@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/card";
 import { useTheme } from "@/lib/theme";
 import { useDonationStore } from "@/lib/store";
+import { useShallow } from "zustand/react/shallow";
 import { clearAllData } from "@/lib/data-layer";
 import toast from "react-hot-toast";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -23,12 +24,15 @@ import { NotificationSettingsCard } from "@/components/settings/NotificationSett
 import { CalendarSettingsCard } from "@/components/settings/CalendarSettingsCard";
 import { ClearDataSection } from "@/components/settings/ClearDataSection";
 import { ImportExportDataSection } from "@/components/settings/ImportExportDataSection";
-import { Button } from "@/components/ui/button";
-import { getPlatform } from "@/lib/platformManager";
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
-  const { settings, updateSettings } = useDonationStore();
+  const { settings, updateSettings } = useDonationStore(
+    useShallow((state) => ({
+      settings: state.settings,
+      updateSettings: state.updateSettings,
+    }))
+  );
   const [isClearing, setIsClearing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);

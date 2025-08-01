@@ -27,7 +27,7 @@ export function DatePickerWithRange({
   date,
   onDateChange,
 }: DatePickerWithRangeProps) {
-  const { settings } = useDonationStore();
+  const settings = useDonationStore((state) => state.settings);
 
   const formatDate = (date: Date) => {
     if (settings.calendarType === "hebrew") {
