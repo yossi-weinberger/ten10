@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Calculator,
   Home,
@@ -29,6 +30,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
   const { platform } = usePlatform();
   const { session, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation("navigation");
 
   const [profileFullName, setProfileFullName] = useState<string | null>(null);
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
@@ -123,7 +125,10 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
           expanded ? "justify-start px-4 gap-3" : "justify-center px-0",
           !isActive && "text-foreground",
           isActive &&
-            "relative after:absolute after:inset-y-2 after:right-0 after:w-1 after:bg-primary after:rounded-l-full",
+            "relative after:absolute after:inset-y-2 after:w-1 after:bg-primary",
+          isActive && i18n.dir() === "rtl"
+            ? "after:right-0 after:rounded-l-full"
+            : "after:left-0 after:rounded-r-full",
           "[&_svg]:size-6" // Force icon size to be consistent
         )}
         asChild
@@ -151,6 +156,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         inSheet ? "h-full" : "h-screen overflow-hidden py-4",
         expanded ? expandedWidth : collapsedWidth
       )}
+      dir={i18n.dir()}
     >
       <Link to="/" className="flex items-center gap-2 px-4 mb-6">
         <Calculator className="h-6 w-6 text-primary flex-shrink-0" />
@@ -162,7 +168,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
             !expanded ? "opacity-0" : "opacity-100"
           )}
         >
-          Ten10
+          {t("appName")}
         </h1>
       </Link>
 
@@ -172,25 +178,25 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         )}
       >
         <NavLink to="/" icon={Home}>
-          דף הבית
+          {t("menu.home")}
         </NavLink>
         <NavLink to="/add-transaction" icon={PlusCircle}>
-          הוסף תנועה
+          {t("menu.addTransaction")}
         </NavLink>
         {/* <NavLink to="/analytics" icon={BarChart}>
-          ניתוח נתונים
+          {t("menu.analytics")}
         </NavLink> */}
         <NavLink to="/transactions-table" icon={Table}>
-          טבלת נתונים
+          {t("menu.transactionsTable")}
         </NavLink>
         <NavLink to="/halacha" icon={Book}>
-          הלכות
+          {t("menu.halacha")}
         </NavLink>
         <NavLink to="/settings" icon={Settings}>
-          הגדרות
+          {t("menu.settings")}
         </NavLink>
         <NavLink to="/about" icon={Info}>
-          אודות
+          {t("menu.about")}
         </NavLink>
       </nav>
 
@@ -202,6 +208,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
             {/* Adjusted: Removed individual mt-auto, pt-4, border-t. Added pb-2 for spacing if needed before PlatformIndicator */}
             <Link
               to="/profile"
+              aria-label={t("menu.profile")}
               className={cn(
                 "flex items-center p-2 rounded-md hover:bg-muted/50 transition-colors",
                 expanded ? "gap-3" : "flex-col gap-1 justify-center text-center"

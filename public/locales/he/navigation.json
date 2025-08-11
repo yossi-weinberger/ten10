@@ -1,0 +1,18 @@
+{
+  "appName": "Ten10",
+  "menu": {
+    "home": "דף הבית",
+    "addTransaction": "הוסף תנועה",
+    "analytics": "ניתוח נתונים",
+    "transactionsTable": "טבלת נתונים",
+    "halacha": "הלכות",
+    "settings": "הגדרות",
+    "about": "אודות",
+    "profile": "פרופיל"
+  },
+  "user": {
+    "loading": "טוען...",
+    "guest": "אורח",
+    "profile": "פרופיל משתמש"
+  }
+}

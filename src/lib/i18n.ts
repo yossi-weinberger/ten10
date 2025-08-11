@@ -15,6 +15,7 @@ i18n
     // Define namespaces for your translation files
     ns: [
       "common",
+      "navigation",
       "settings",
       "halacha-common",
       "halacha-introduction",
