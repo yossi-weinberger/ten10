@@ -50,13 +50,15 @@ export function LanguageAndDisplaySettingsCard({
       <CardHeader>
         <div className="flex items-center gap-2">
           <Languages className="h-5 w-5 text-primary" />
-          <CardTitle>{t("cardTitle")}</CardTitle>
+          <CardTitle>{t("languageAndDisplay.cardTitle")}</CardTitle>
         </div>
-        <CardDescription>{t("cardDescription")}</CardDescription>
+        <CardDescription>
+          {t("languageAndDisplay.cardDescription")}
+        </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
         <div className="grid gap-2">
-          <Label>{t("languageLabel")}</Label>
+          <Label>{t("languageAndDisplay.languageLabel")}</Label>
           <Select
             value={languageSettings.language}
             onValueChange={(value) =>
@@ -65,17 +67,23 @@ export function LanguageAndDisplaySettingsCard({
             dir={i18n.dir()}
           >
             <SelectTrigger>
-              <SelectValue placeholder={t("languagePlaceholder")} />
+              <SelectValue
+                placeholder={t("languageAndDisplay.languagePlaceholder")}
+              />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="he">{t("hebrew")}</SelectItem>
-              <SelectItem value="en">{t("english")}</SelectItem>
+              <SelectItem value="he">
+                {t("languageAndDisplay.hebrew")}
+              </SelectItem>
+              <SelectItem value="en">
+                {t("languageAndDisplay.english")}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="grid gap-2">
-          <Label>{t("themeLabel")}</Label>
+          <Label>{t("languageAndDisplay.themeLabel")}</Label>
           <ToggleGroup
             type="single"
             value={theme}
@@ -83,25 +91,25 @@ export function LanguageAndDisplaySettingsCard({
               if (value) setTheme(value as Theme);
             }}
             className="grid grid-cols-3 gap-1 rounded-md border p-1"
-            aria-label={t("themeLabel")}
+            aria-label={t("languageAndDisplay.themeLabel")}
           >
             <ToggleGroupItem
               value="light"
-              aria-label={t("lightTheme")}
+              aria-label={t("languageAndDisplay.lightTheme")}
               className="flex-1 justify-center data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
             >
               <Sun className="h-5 w-5" />
             </ToggleGroupItem>
             <ToggleGroupItem
               value="dark"
-              aria-label={t("darkTheme")}
+              aria-label={t("languageAndDisplay.darkTheme")}
               className="flex-1 justify-center data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
             >
               <Moon className="h-5 w-5" />
             </ToggleGroupItem>
             <ToggleGroupItem
               value="system"
-              aria-label={t("systemTheme")}
+              aria-label={t("languageAndDisplay.systemTheme")}
               className="flex-1 justify-center data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
             >
               <MonitorSmartphone className="h-5 w-5" />

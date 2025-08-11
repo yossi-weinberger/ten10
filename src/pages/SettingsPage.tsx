@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -33,15 +34,17 @@ export function SettingsPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const { platform } = usePlatform();
+  const { t } = useTranslation("settings");
+  const { t: tCommon } = useTranslation("common");
 
   const handleClearData = async () => {
     setIsClearing(true);
     try {
       await clearAllData();
-      toast.success("כל הנתונים נמחקו בהצלחה!");
+      toast.success(tCommon("toast.settings.clearDataSuccess"));
     } catch (error) {
       console.error("Failed to clear data:", error);
-      toast.error("שגיאה במחיקת הנתונים.");
+      toast.error(tCommon("toast.settings.clearDataError"));
     } finally {
       setIsClearing(false);
     }
@@ -53,7 +56,7 @@ export function SettingsPage() {
     } else if (platform === "web") {
       await exportDataWeb({ setIsLoading: setIsExporting });
     } else {
-      toast.error("פלטפורמה לא ידועה, לא ניתן לייצא נתונים.");
+      toast.error(tCommon("toast.settings.exportError"));
     }
   };
 
@@ -63,15 +66,15 @@ export function SettingsPage() {
     } else if (platform === "web") {
       await importDataWeb({ setIsLoading: setIsImporting });
     } else {
-      toast.error("פלטפורמה לא ידועה, לא ניתן לייבא נתונים.");
+      toast.error(tCommon("toast.settings.importError"));
     }
   };
 
   return (
     <div className="grid gap-6">
       <div className="grid gap-2">
-        <h2 className="text-2xl font-bold text-foreground">הגדרות</h2>
-        <p className="text-muted-foreground">התאם את האפליקציה להעדפותיך</p>
+        <h2 className="text-2xl font-bold text-foreground">{t("pageTitle")}</h2>
+        <p className="text-muted-foreground">{t("pageDescription")}</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -129,12 +132,9 @@ export function SettingsPage() {
       <Card className="mt-6">
         <CardHeader>
           <div className="flex items-center gap-2">
-            <CardTitle>ניהול נתונים</CardTitle>
+            <CardTitle>{t("dataManagementTitle")}</CardTitle>
           </div>
-          <CardDescription>
-            ייצא, ייבא או מחק את נתוני האפליקציה שלך. אנא בצע פעולות אלו
-            בזהירות.
-          </CardDescription>
+          <CardDescription>{t("dataManagementDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col md:flex-row gap-6">
           <ImportExportDataSection

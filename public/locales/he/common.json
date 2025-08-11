@@ -1,0 +1,45 @@
+{
+  "toast": {
+    "settings": {
+      "saveSuccess": "ההגדרות נשמרו בהצלחה",
+      "saveError": "שגיאה בשמירת ההגדרות",
+      "exportSuccess": "הנתונים יוצאו בהצלחה",
+      "exportError": "שגיאה בייצוא הנתונים",
+      "importSuccess": "הנתונים יובאו בהצלחה",
+      "importError": "שגיאה בייבוא הנתונים",
+      "clearDataSuccess": "הנתונים נמחקו בהצלחה",
+      "clearDataError": "שגיאה במחיקת הנתונים",
+      "clearDataConfirm": "האם אתה בטוח שברצונך למחוק את כל הנתונים?"
+    },
+    "transaction": {
+      "addSuccess": "העסקה נוספה בהצלחה",
+      "updateSuccess": "העסקה עודכנה בהצלחה",
+      "deleteSuccess": "העסקה נמחקה בהצלחה",
+      "error": "אירעה שגיאה בעיבוד העסקה"
+    }
+  },
+  "actions": {
+    "save": "שמור",
+    "cancel": "ביטול",
+    "delete": "מחק",
+    "edit": "ערוך",
+    "add": "הוסף",
+    "export": "ייצא",
+    "import": "ייבא",
+    "clear": "נקה",
+    "confirm": "אשר",
+    "close": "סגור",
+    "search": "חיפוש",
+    "filter": "סינון",
+    "reset": "איפוס",
+    "apply": "החל"
+  },
+  "labels": {
+    "loading": "טוען...",
+    "noData": "אין נתונים",
+    "error": "שגיאה",
+    "success": "הצלחה",
+    "warning": "אזהרה",
+    "info": "מידע"
+  }
+}

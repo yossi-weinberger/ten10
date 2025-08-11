@@ -1,12 +1,71 @@
 {
-  "cardTitle": "Language and Display",
-  "cardDescription": "General language and display settings",
-  "languageLabel": "Language",
-  "languagePlaceholder": "Select language",
-  "hebrew": "עברית",
-  "english": "English",
-  "themeLabel": "Theme",
-  "lightTheme": "Light theme",
-  "darkTheme": "Dark theme",
-  "systemTheme": "System theme"
+  "pageTitle": "Settings",
+  "pageDescription": "Customize the application to your preferences",
+  "dataManagementTitle": "Data Management",
+  "dataManagementDescription": "Export, import, or delete your application data. Please perform these actions with caution.",
+  "languageAndDisplay": {
+    "cardTitle": "Language and Display",
+    "cardDescription": "General language and display settings",
+    "languageLabel": "Language",
+    "languagePlaceholder": "Select language",
+    "hebrew": "עברית",
+    "english": "English",
+    "themeLabel": "Theme",
+    "lightTheme": "Light theme",
+    "darkTheme": "Dark theme",
+    "systemTheme": "System theme"
+  },
+  "financial": {
+    "cardTitle": "Financial Settings",
+    "cardDescription": "Currency and calculation settings",
+    "defaultCurrencyLabel": "Default Currency",
+    "currencyPlaceholder": "Select currency",
+    "currencyILS": "₪ Shekel",
+    "currencyUSD": "$ Dollar",
+    "currencyEUR": "€ Euro",
+    "autoCalcChomeshLabel": "Automatic Chomesh Calculation",
+    "autoCalcChomeshDescription": "Automatically calculate chomesh on new income",
+    "minMaaserPercentageLabel": "Minimum Ma'aser Percentage",
+    "minMaaserPercentageDescription": "Set minimum percentage for donation from all income",
+    "comingSoon": "Coming Soon"
+  },
+  "notifications": {
+    "cardTitle": "Notifications",
+    "cardDescription": "Notification and reminder settings",
+    "monthlyReminderLabel": "Monthly Reminder",
+    "monthlyReminderDescription": "Get a reminder to update your tithes",
+    "reminderDayLabel": "Reminder Day",
+    "reminderDayPlaceholder": "Select day",
+    "reminderTimeLabel": "Reminder Time",
+    "reminderTimePlaceholder": "Select time",
+    "emailNotificationsLabel": "Email Notifications",
+    "emailNotificationsDescription": "Receive notifications and summaries via email",
+    "comingSoon": "Coming Soon"
+  },
+  "calendar": {
+    "cardTitle": "Calendar",
+    "cardDescription": "Date and calendar settings",
+    "hebrewCalendarLabel": "Hebrew Calendar",
+    "hebrewCalendarDescription": "Display dates in Hebrew calendar",
+    "weekStartLabel": "Week Start",
+    "weekStartPlaceholder": "Select day",
+    "sunday": "Sunday",
+    "monday": "Monday",
+    "saturday": "Saturday"
+  },
+  "importExport": {
+    "exportTitle": "Export Data",
+    "exportDescription": "Export all application data to a file",
+    "exportButton": "Export Data",
+    "importTitle": "Import Data",
+    "importDescription": "Import data from a backup file",
+    "importButton": "Import Data"
+  },
+  "clearData": {
+    "title": "Clear Data",
+    "description": "Permanently delete all application data",
+    "warningTitle": "Warning!",
+    "warningDescription": "This action will permanently delete all your data and cannot be undone.",
+    "confirmButton": "Delete All Data"
+  }
 }

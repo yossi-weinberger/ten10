@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -34,26 +35,27 @@ export function CalendarSettingsCard({
   updateSettings,
   disabled = false,
 }: CalendarSettingsCardProps) {
+  const { t, i18n } = useTranslation("settings");
   return (
     <Card className={disabled ? "opacity-50 pointer-events-none" : ""}>
       <CardHeader>
         <div className="flex items-center gap-2">
           <Calculator className="h-5 w-5 text-primary" />
-          <CardTitle>הגדרות לוח שנה</CardTitle>
+          <CardTitle>{t("calendar.cardTitle")}</CardTitle>
           {disabled && (
             <Badge
               variant="outline"
               className="ml-auto text-amber-600 border-amber-600 dark:text-amber-500 dark:border-amber-500"
             >
-              בקרוב
+              {t("financial.comingSoon")}
             </Badge>
           )}
         </div>
-        <CardDescription>הגדרות תצוגת תאריכים</CardDescription>
+        <CardDescription>{t("calendar.cardDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
         <div className="grid gap-2">
-          <Label>סוג לוח שנה</Label>
+          <Label>{t("calendar.hebrewCalendarLabel")}</Label>
           <Select
             value={calendarSettings.calendarType}
             onValueChange={(value) =>
@@ -62,9 +64,10 @@ export function CalendarSettingsCard({
               })
             }
             disabled={disabled}
+            dir={i18n.dir()}
           >
             <SelectTrigger>
-              <SelectValue placeholder="בחר סוג לוח שנה" />
+              <SelectValue placeholder={t("calendar.weekStartPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="gregorian">לוח גרגוריאני</SelectItem>
@@ -74,7 +77,7 @@ export function CalendarSettingsCard({
         </div>
 
         <div className="grid gap-2">
-          <Label>תחילת שנת מעשרות</Label>
+          <Label>{t("calendar.weekStartLabel")}</Label>
           <Select
             value={calendarSettings.maaserYearStart}
             onValueChange={(value) =>
@@ -87,9 +90,10 @@ export function CalendarSettingsCard({
               })
             }
             disabled={disabled}
+            dir={i18n.dir()}
           >
             <SelectTrigger>
-              <SelectValue placeholder="בחר חודש" />
+              <SelectValue placeholder={t("calendar.weekStartPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="tishrei">תשרי</SelectItem>

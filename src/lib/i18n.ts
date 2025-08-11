@@ -14,6 +14,7 @@ i18n
 
     // Define namespaces for your translation files
     ns: [
+      "common",
       "settings",
       "halacha-common",
       "halacha-introduction",
@@ -24,7 +25,7 @@ i18n
       "halacha-principles",
       "halacha-chomesh",
     ],
-    defaultNS: "halacha-common",
+    defaultNS: "common",
 
     backend: {
       // Path where translation files are stored

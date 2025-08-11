@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
@@ -15,16 +16,17 @@ export function ImportExportDataSection({
   handleImportData,
   isImporting,
 }: ImportExportDataSectionProps) {
+  const { t } = useTranslation("settings");
+  const { t: tCommon } = useTranslation("common");
   return (
     <div className="md:w-2/3 space-y-3 rounded-lg border bg-card p-4 shadow">
       <div className="flex items-center gap-2">
-        <Label className="text-lg font-semibold">ייבוא וייצוא נתונים</Label>
+        <Label className="text-lg font-semibold">
+          {t("importExport.exportTitle")}
+        </Label>
       </div>
       <p className="text-sm text-muted-foreground">
-        ייצא את כל נתוני הטרנזקציות שלך לקובץ גיבוי (JSON), או ייבא נתונים מקובץ
-        כזה.
-        <br />
-        <strong>שים לב:</strong> ייבוא נתונים מקובץ יחליף את כל הנתונים הקיימים.
+        {t("importExport.exportDescription")}
       </p>
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <Button
@@ -33,7 +35,9 @@ export function ImportExportDataSection({
           onClick={handleExportData}
           disabled={isExporting}
         >
-          {isExporting ? "מייצא..." : "ייצוא נתונים לקובץ"}
+          {isExporting
+            ? tCommon("labels.loading")
+            : t("importExport.exportButton")}
         </Button>
         <Button
           variant="outline"
@@ -41,7 +45,9 @@ export function ImportExportDataSection({
           onClick={handleImportData}
           disabled={isImporting || isExporting} // Disable import if export is also in progress
         >
-          {isImporting ? "מייבא..." : "ייבוא נתונים מקובץ"}
+          {isImporting
+            ? tCommon("labels.loading")
+            : t("importExport.importButton")}
         </Button>
       </div>
     </div>

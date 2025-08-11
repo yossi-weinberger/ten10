@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -28,22 +29,23 @@ export function NotificationSettingsCard({
   updateSettings,
   disabled = false,
 }: NotificationSettingsCardProps) {
+  const { t } = useTranslation("settings");
   return (
     <Card className={disabled ? "opacity-50 pointer-events-none" : ""}>
       <CardHeader>
         <div className="flex items-center gap-2">
           <BellRing className="h-5 w-5 text-primary" />
-          <CardTitle>התראות ותזכורות</CardTitle>
+          <CardTitle>{t("notifications.cardTitle")}</CardTitle>
           {disabled && (
             <Badge
               variant="outline"
               className="ml-auto text-amber-600 border-amber-600 dark:text-amber-500 dark:border-amber-500"
             >
-              בקרוב
+              {t("notifications.comingSoon")}
             </Badge>
           )}
         </div>
-        <CardDescription>הגדרות התראות ותזכורות</CardDescription>
+        <CardDescription>{t("notifications.cardDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
         <div className="flex items-center justify-between">
@@ -52,9 +54,9 @@ export function NotificationSettingsCard({
               <Bell className="h-5 w-5" />
             </div>
             <div>
-              <Label>התראות</Label>
+              <Label>{t("notifications.monthlyReminderLabel")}</Label>
               <p className="text-sm text-muted-foreground">
-                קבל התראות על תרומות ותשלומים
+                {t("notifications.monthlyReminderDescription")}
               </p>
             </div>
           </div>
@@ -73,9 +75,9 @@ export function NotificationSettingsCard({
               <CreditCard className="h-5 w-5" />
             </div>
             <div>
-              <Label>תזכורות לתרומות קבועות</Label>
+              <Label>{t("notifications.emailNotificationsLabel")}</Label>
               <p className="text-sm text-muted-foreground">
-                קבל תזכורות על תרומות קבועות
+                {t("notifications.emailNotificationsDescription")}
               </p>
             </div>
           </div>
