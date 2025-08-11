@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { CircleDollarSign, Sparkles } from "lucide-react";
@@ -23,6 +24,7 @@ export function OverallRequiredStatCard({
   serverTitheBalanceError,
   donationProgress,
 }: OverallRequiredStatCardProps) {
+  const { t } = useTranslation("dashboard");
   const {
     displayValue: titheBalanceDisplayValue,
     startAnimateValue: titheBalanceStartAnimateValue,
@@ -41,7 +43,7 @@ export function OverallRequiredStatCard({
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="flex items-center gap-2 text-sm font-medium">
           <Sparkles className="h-4 w-4 text-purple-500 dark:text-purple-400" />
-          נדרש לתרומה (כללי)
+          {t("statsCards.overallRequired.title")}
         </CardTitle>
         <CircleDollarSign className="h-5 w-5 text-purple-600 dark:text-purple-400" />
       </CardHeader>
@@ -54,7 +56,7 @@ export function OverallRequiredStatCard({
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
         >
           {serverTitheBalanceError ? (
-            <p className="text-xs text-red-500">שגיאה בטעינה</p>
+            <p className="text-xs text-red-500">{t("monthlyChart.error")}</p>
           ) : (
             <span className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent dark:from-purple-400 dark:to-indigo-400">
               <CountUp
@@ -87,10 +89,12 @@ export function OverallRequiredStatCard({
           style={{ minHeight: "1.2em" }}
         >
           {displayBalanceForText <= 0
-            ? `עברת את היעד ב-${formatCurrency(
-                Math.abs(displayBalanceForText)
-              )} (יתרה)`
-            : `${donationProgress.toFixed(1)}% מהיעד הושלם`}
+            ? t("statsCards.overallRequired.exceededGoal", {
+                amount: formatCurrency(Math.abs(displayBalanceForText)),
+              })
+            : t("statsCards.overallRequired.goalProgress", {
+                percentage: donationProgress.toFixed(1),
+              })}
         </motion.p>
       </CardContent>
     </MagicStatCard>

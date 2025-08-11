@@ -1,0 +1,63 @@
+{
+  "homePage": {
+    "title": "Welcome to Ten10",
+    "subtitle": "Manage your income and donations easily and simply"
+  },
+  "dateRange": {
+    "month": "From start of month",
+    "year": "From start of year",
+    "all": "All time"
+  },
+  "statsCards": {
+    "income": {
+      "title": "Income",
+      "currentMonth": "This Month",
+      "lastMonth": "Last Month",
+      "change": "Change",
+      "withChomesh": "including chomesh"
+    },
+    "expenses": {
+      "title": "Expenses",
+      "currentMonth": "This Month",
+      "lastMonth": "Last Month",
+      "change": "Change"
+    },
+    "donations": {
+      "title": "Donations",
+      "currentMonth": "This Month",
+      "lastMonth": "Last Month",
+      "change": "Change",
+      "percentageOfIncome": "{{percentage}}% of total income"
+    },
+    "overallRequired": {
+      "title": "Overall Required",
+      "currentMonth": "This Month",
+      "lastMonth": "Last Month",
+      "change": "Change",
+      "exceededGoal": "Exceeded goal by {{amount}} (surplus)",
+      "goalProgress": "{{percentage}}% of goal completed"
+    },
+    "magic": {
+      "title": "Magic",
+      "currentMonth": "This Month",
+      "lastMonth": "Last Month",
+      "change": "Change"
+    }
+  },
+  "monthlyChart": {
+    "title": "Monthly Summary",
+    "description": "Track income, expenses and donations",
+    "income": "Income",
+    "expenses": "Expenses",
+    "donations": "Donations",
+    "overallRequired": "Overall Required",
+    "magic": "Magic",
+    "month": "Month",
+    "amount": "Amount",
+    "noData": "No data to display",
+    "loading": "Loading...",
+    "error": "Error loading data",
+    "loadMore": "Load more months",
+    "reset": "Reset"
+  }
+}

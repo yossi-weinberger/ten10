@@ -16,6 +16,7 @@ i18n
     ns: [
       "common",
       "navigation",
+      "dashboard",
       "settings",
       "halacha-common",
       "halacha-introduction",
