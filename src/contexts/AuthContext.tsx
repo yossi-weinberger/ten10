@@ -88,7 +88,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       );
     } catch (error) {
       console.error("AuthContext: Error during data loading sequence:", error);
-      toast.error(i18n.t("common.dataLoadError", "Error loading data."));
+      toast.error(t("common.dataLoadError", "Error loading data."));
     } finally {
       // setIsDataLoading(false); // REMOVE
     }
