@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreditCard, TrendingDown } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/currency";
@@ -19,6 +20,7 @@ export function ExpensesStatCard({
   isLoadingServerExpenses,
   serverExpensesError,
 }: ExpensesStatCardProps) {
+  const { t } = useTranslation("dashboard");
   const {
     displayValue: totalExpensesDisplayValue,
     startAnimateValue: totalExpensesStartAnimateValue,
@@ -34,14 +36,14 @@ export function ExpensesStatCard({
     >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">
-          {`סך הוצאות (${label})`}
+          {t("statsCards.expenses.title")} ({label})
         </CardTitle>
         <CreditCard className="h-5 w-5 text-red-600 dark:text-red-400" />
       </CardHeader>
       <CardContent>
         <div className="text-right" style={{ minHeight: "calc(1.5rem * 1.5)" }}>
           {serverExpensesError ? (
-            <p className="text-xs text-red-500">שגיאה בטעינה</p>
+            <p className="text-xs text-red-500">{t("monthlyChart.error")}</p>
           ) : (
             <span className="text-3xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent dark:from-red-400 dark:to-rose-400">
               <CountUp

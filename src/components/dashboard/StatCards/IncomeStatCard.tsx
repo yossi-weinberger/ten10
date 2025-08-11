@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -33,6 +34,7 @@ export function IncomeStatCard({
   platform,
   user,
 }: IncomeStatCardProps) {
+  const { t } = useTranslation("dashboard");
   const {
     displayValue: incomeDisplayValue,
     startAnimateValue: incomeStartAnimateValue,
@@ -56,19 +58,21 @@ export function IncomeStatCard({
     >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium">
-          סך ההכנסות ({label})
+          {t("statsCards.income.title")} ({label})
         </CardTitle>
         <Wallet className="h-5 w-5 text-green-600 dark:text-green-400" />
       </CardHeader>
       <CardContent>
         <div className="text-right" style={{ minHeight: "calc(1.5rem * 1.5)" }}>
           {serverIncomeError ? (
-            <p className="text-xs text-red-500">שגיאה</p>
+            <p className="text-xs text-red-500">{t("monthlyChart.error")}</p>
           ) : platform === "web" &&
             !user &&
             serverTotalIncome === null &&
             !isLoadingServerIncome ? (
-            <p className="text-xs text-orange-500">התחבר</p>
+            <p className="text-xs text-orange-500">
+              {t("monthlyChart.noData")}
+            </p>
           ) : (
             <span className="text-3xl font-bold bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent dark:from-green-400 dark:to-teal-400">
               <CountUp
@@ -97,7 +101,7 @@ export function IncomeStatCard({
                   decimals={2}
                   formattingFn={formatCurrency}
                 />{" "}
-                מתוכם עם חומש
+                {t("statsCards.income.withChomesh")}
               </span>
             )}
         </p>

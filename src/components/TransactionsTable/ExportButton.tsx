@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -15,6 +16,7 @@ import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransact
 import { usePlatform } from "@/contexts/PlatformContext";
 
 export function ExportButton() {
+  const { t } = useTranslation("data-tables");
   const { exportTransactions, exportLoading, exportError } =
     useTableTransactionsStore(
       useShallow((state) => ({
@@ -29,9 +31,9 @@ export function ExportButton() {
   useEffect(() => {
     if (prevExportLoading && !exportLoading) {
       if (exportError) {
-        toast.error(`שגיאה ביצוא: ${exportError}`);
+        toast.error(t("export.error", { error: exportError }));
       } else {
-        toast.success("הנתונים יוצאו בהצלחה!");
+        toast.success(t("export.success"));
       }
     }
     setPrevExportLoading(exportLoading);
@@ -45,7 +47,7 @@ export function ExportButton() {
     } catch (error) {
       // This catch is more for unexpected errors not handled by the store's try/catch
       console.error(`Unexpected error during export to ${format}:`, error);
-      toast.error("אירעה שגיאה לא צפויה במהלך היצוא.");
+      toast.error(t("export.unexpectedError"));
     }
   };
 
@@ -62,11 +64,11 @@ export function ExportButton() {
           ) : (
             <Download className="mr-2 h-4 w-4" />
           )}
-          {exportLoading ? "מייצא..." : "יצוא נתונים"}
+          {exportLoading ? t("export.loading") : t("export.title")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>בחר פורמט ליצוא</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("export.selectFormat")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => handleExport("excel")}

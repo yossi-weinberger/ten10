@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Transaction,
   TransactionForTable,
@@ -22,25 +23,12 @@ import {
 } from "@/components/ui/tooltip";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MoreHorizontal, Trash2, Edit3, Repeat, Infinity } from "lucide-react";
-import {
-  transactionTypeLabels,
-  typeBadgeColors,
-} from "@/types/transactionLabels";
+import { typeBadgeColors } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting";
 
-const recurringStatusMap: { [key: string]: string } = {
-  active: "פעיל",
-  paused: "מושהה",
-  completed: "הושלם",
-  cancelled: "בוטל",
-};
+// Moved to translation files - will use t() instead
 
-const recurringFrequencyMap: { [key: string]: string } = {
-  daily: "יומי",
-  weekly: "שבועי",
-  monthly: "חודשי",
-  yearly: "שנתי",
-};
+// Moved to translation files - will use t() instead
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
@@ -57,6 +45,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   onEditRecurring,
   isFetchingRec,
 }) => {
+  const { t } = useTranslation("data-tables");
   return (
     <TableRow key={transaction.id}>
       <TableCell className="text-right whitespace-nowrap">
@@ -86,8 +75,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
             typeBadgeColors[transaction.type as TransactionType]
           )}
         >
-          {transactionTypeLabels[transaction.type as TransactionType] ||
-            transaction.type}
+          {t(`types.${transaction.type}`, transaction.type)}
         </Badge>
       </TableCell>
       <TableCell className="text-right">
@@ -135,19 +123,25 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
               </TooltipTrigger>
               <TooltipContent>
                 <p>
-                  סטטוס:{" "}
-                  {recurringStatusMap[transaction.recurring_info.status] ||
-                    transaction.recurring_info.status}
+                  {t("recurring.status")}:{" "}
+                  {t(
+                    `recurring.statuses.${transaction.recurring_info.status}`,
+                    transaction.recurring_info.status
+                  )}
                 </p>
                 <p>
-                  תדירות:{" "}
-                  {recurringFrequencyMap[
+                  {t("recurring.frequency")}:{" "}
+                  {t(
+                    `recurring.frequencies.${transaction.recurring_info.frequency}`,
                     transaction.recurring_info.frequency
-                  ] || transaction.recurring_info.frequency}
+                  )}
                 </p>
                 {transaction.recurring_info.frequency === "monthly" &&
                   transaction.recurring_info.day_of_month && (
-                    <p>יום חיוב: {transaction.recurring_info.day_of_month}</p>
+                    <p>
+                      {t("recurring.dayOfMonth")}:{" "}
+                      {transaction.recurring_info.day_of_month}
+                    </p>
                   )}
               </TooltipContent>
             </Tooltip>
@@ -164,15 +158,15 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
               className="h-8 w-8 p-0"
               disabled={isFetchingRec}
             >
-              <span className="sr-only">פתח תפריט</span>
+              <span className="sr-only">{t("accessibility.openMenu")}</span>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>פעולות</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("actions.title")}</DropdownMenuLabel>
             <DropdownMenuItem onClick={() => onEdit(transaction)}>
               <Edit3 className="mr-2 h-4 w-4" />
-              עריכה
+              {t("actions.edit")}
             </DropdownMenuItem>
             {transaction.source_recurring_id && (
               <DropdownMenuItem
@@ -185,7 +179,11 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
                 }
               >
                 <Repeat className="mr-2 h-4 w-4" />
-                <span>{isFetchingRec ? "טוען..." : 'ערוך הו"ק'}</span>
+                <span>
+                  {isFetchingRec
+                    ? t("messages.loading")
+                    : t("actions.editRecurring")}
+                </span>
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
@@ -194,7 +192,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
               className="text-red-600 hover:!text-red-600 focus:!text-red-600"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              מחיקה
+              {t("actions.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

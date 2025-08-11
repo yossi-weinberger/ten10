@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 
 export function UserInfoDisplay() {
   const { platform } = usePlatform();
@@ -16,6 +17,7 @@ export function UserInfoDisplay() {
   const [profileLoading, setProfileLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation("auth");
 
   const handleLogout = async () => {
     try {
@@ -63,7 +65,10 @@ export function UserInfoDisplay() {
       } catch (err: any) {
         console.error("Error fetching profile:", err);
         if (isMounted) {
-          setError(err.message || "Failed to load profile data.");
+          setError(
+            err.message ||
+              t("profile.loadError")
+          );
         }
       } finally {
         if (isMounted) {
@@ -86,9 +91,11 @@ export function UserInfoDisplay() {
   const isLoading = authLoading || profileLoading;
 
   return (
-    <Card className="mb-6">
+    <Card className="mb-6" dir={i18n.dir()}>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>פרטי משתמש נוכחי</CardTitle>
+        <CardTitle>
+          {t("profile.userInfo.title", "Current User Details")}
+        </CardTitle>
         {session?.user && (
           <Button
             variant="ghost"
@@ -100,10 +107,10 @@ export function UserInfoDisplay() {
             <LogOut className="h-5 w-5" />
             <span>
               {isLoading && !authLoading
-                ? "טוען..."
+                ? t("common.loading", "Loading...")
                 : authLoading
-                ? "טוען..."
-                : "התנתק"}
+                ? t("common.loading", "Loading...")
+                : t("navigation.logout", "Logout")}
             </span>
           </Button>
         )}
@@ -125,21 +132,31 @@ export function UserInfoDisplay() {
           )}
           <div className="space-y-1">
             <div>
-              <span className="font-semibold">שם מלא: </span>
+              <span className="font-semibold">
+                {t("profile.userInfo.fullName", "Full name")}:{" "}
+              </span>
               {isLoading ? (
                 <Skeleton className="h-4 w-[150px] inline-block" />
               ) : error && !fullName ? (
                 <span className="text-destructive">{error}</span>
               ) : (
-                <span>{fullName ?? "לא זמין"}</span>
+                <span>
+                  {fullName ??
+                    t("profile.userInfo.notAvailable", "Not available")}
+                </span>
               )}
             </div>
             <div>
-              <span className="font-semibold">דואר אלקטרוני: </span>
+              <span className="font-semibold">
+                {t("profile.userInfo.email", "Email")}:{" "}
+              </span>
               {isLoading ? (
                 <Skeleton className="h-4 w-[200px] inline-block" />
               ) : (
-                <span>{session?.user?.email || "לא זמין"}</span>
+                <span>
+                  {session?.user?.email ||
+                    t("profile.userInfo.notAvailable", "Not available")}
+                </span>
               )}
             </div>
           </div>

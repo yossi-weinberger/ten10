@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { Transaction } from "@/types/transaction";
@@ -22,6 +23,7 @@ interface TransactionsTableHeaderProps {
 export const TransactionsTableHeader: React.FC<
   TransactionsTableHeaderProps
 > = ({ sorting, handleSort, sortableColumns }) => {
+  const { t } = useTranslation("data-tables");
   const renderSortIcon = (field: SortableField) => {
     if (sorting.field !== field) {
       return <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />;
@@ -47,11 +49,15 @@ export const TransactionsTableHeader: React.FC<
             </div>
           </TableHead>
         ))}
-        <TableHead className="text-right whitespace-nowrap">חומש?</TableHead>
-        <TableHead className="text-center whitespace-nowrap">
-          הוראת קבע
+        <TableHead className="text-right whitespace-nowrap">
+          {t("columns.chomesh")}
         </TableHead>
-        <TableHead className="text-center whitespace-nowrap">פעולות</TableHead>
+        <TableHead className="text-center whitespace-nowrap">
+          {t("columns.recurring")}
+        </TableHead>
+        <TableHead className="text-center whitespace-nowrap">
+          {t("columns.actions")}
+        </TableHead>
       </TableRow>
     </TableHeader>
   );

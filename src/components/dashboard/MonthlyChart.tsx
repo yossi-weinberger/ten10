@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDonationStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
@@ -16,33 +17,28 @@ import {
 } from "@/components/charts/area-chart-interactive";
 import { ChartConfig } from "@/components/ui/chart";
 
-const nameMapping: { [key: string]: string } = {
-  income: "הכנסות",
-  donations: "תרומות",
-  expenses: "הוצאות",
-};
-
 const NUM_MONTHS_TO_FETCH = 6;
 
-const monthlyChartConfig: ChartConfig = {
-  income: {
-    label: nameMapping.income,
-    color: "hsl(var(--chart-green))",
-  },
-  donations: {
-    label: nameMapping.donations,
-    color: "hsl(var(--chart-yellow))",
-  },
-  expenses: {
-    label: nameMapping.expenses,
-    color: "hsl(var(--chart-red))",
-  },
-};
-
 export function MonthlyChart() {
+  const { t, i18n } = useTranslation("dashboard");
   const { user } = useAuth();
   const userId = user?.id;
   const { platform } = usePlatform();
+
+  const monthlyChartConfig: ChartConfig = {
+    income: {
+      label: t("monthlyChart.income"),
+      color: "hsl(var(--chart-green))",
+    },
+    donations: {
+      label: t("monthlyChart.donations"),
+      color: "hsl(var(--chart-yellow))",
+    },
+    expenses: {
+      label: t("monthlyChart.expenses"),
+      color: "hsl(var(--chart-red))",
+    },
+  };
   const {
     serverMonthlyChartData,
     currentChartEndDate,
@@ -281,7 +277,7 @@ export function MonthlyChart() {
   return (
     <Card dir="rtl" className="bg-gradient-to-br from-background to-muted/20">
       <CardHeader>
-        <CardTitle>סיכום חודשי</CardTitle>
+        <CardTitle>{t("monthlyChart.title")}</CardTitle>
       </CardHeader>
       <CardContent className="">
         {formattedChartDataForAreaChart.length > 0 ? (
@@ -298,8 +294,8 @@ export function MonthlyChart() {
                 >
                   {isLoadingServerMonthlyChartData &&
                   serverMonthlyChartData.length > 0
-                    ? "טוען עוד..."
-                    : "טען עוד חודשים"}
+                    ? t("monthlyChart.loading")
+                    : t("monthlyChart.loadMore")}
                 </Button>
               )}
               <Button

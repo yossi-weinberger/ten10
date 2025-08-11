@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +25,7 @@ export function RecurringTransactionEditModal({
   onClose,
   transaction,
 }: RecurringTransactionEditModalProps) {
+  const { t } = useTranslation("data-tables");
   const { fetchRecurring } = useRecurringTableStore();
 
   const handleUpdate = async (values: RecurringEditFormValues) => {
@@ -36,10 +38,10 @@ export function RecurringTransactionEditModal({
       await updateRecurringTransaction(transaction!.id, updateValues);
       fetchRecurring();
       onClose();
-      toast.success("הוראת הקבע עודכנה בהצלחה!");
+      toast.success(t("messages.recurringUpdateSuccess"));
     } catch (error) {
       console.error("Failed to update recurring transaction:", error);
-      toast.error("שגיאה בעדכון הוראת הקבע.");
+      toast.error(t("messages.recurringUpdateError"));
     }
   };
 
@@ -47,9 +49,9 @@ export function RecurringTransactionEditModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>עריכת הוראת קבע</DialogTitle>
+          <DialogTitle>{t("modal.editRecurringTitle")}</DialogTitle>
           <DialogDescription>
-            עדכן את פרטי הוראת הקבע. שינויים יחולו רק על תנועות עתידיות.
+            {t("modal.editRecurringDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -61,7 +63,7 @@ export function RecurringTransactionEditModal({
           />
         ) : (
           <p className="text-sm text-muted-foreground">
-            לא נבחרה הוראה לעריכה.
+            {t("modal.noRecurringSelected")}
           </p>
         )}
       </DialogContent>

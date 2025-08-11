@@ -1,12 +1,71 @@
 {
-  "cardTitle": "שפה ותצוגה",
-  "cardDescription": "הגדרות שפה ותצוגה כלליות",
-  "languageLabel": "שפה",
-  "languagePlaceholder": "בחר שפה",
-  "hebrew": "עברית",
-  "english": "English",
-  "themeLabel": "ערכת נושא",
-  "lightTheme": "ערכת נושא בהירה",
-  "darkTheme": "ערכת נושא כהה",
-  "systemTheme": "ערכת נושא מערכת"
+  "pageTitle": "הגדרות",
+  "pageDescription": "התאם את האפליקציה להעדפותיך",
+  "dataManagementTitle": "ניהול נתונים",
+  "dataManagementDescription": "ייצא, ייבא או מחק את נתוני האפליקציה שלך. אנא בצע פעולות אלו בזהירות.",
+  "languageAndDisplay": {
+    "cardTitle": "שפה ותצוגה",
+    "cardDescription": "הגדרות שפה ותצוגה כלליות",
+    "languageLabel": "שפה",
+    "languagePlaceholder": "בחר שפה",
+    "hebrew": "עברית",
+    "english": "English",
+    "themeLabel": "ערכת נושא",
+    "lightTheme": "ערכת נושא בהירה",
+    "darkTheme": "ערכת נושא כהה",
+    "systemTheme": "ערכת נושא מערכת"
+  },
+  "financial": {
+    "cardTitle": "הגדרות כספים",
+    "cardDescription": "הגדרות מטבע וחישובים",
+    "defaultCurrencyLabel": "מטבע ברירת מחדל",
+    "currencyPlaceholder": "בחר מטבע",
+    "currencyILS": "₪ שקל",
+    "currencyUSD": "$ דולר",
+    "currencyEUR": "€ יורו",
+    "autoCalcChomeshLabel": "חישוב חומש אוטומטי",
+    "autoCalcChomeshDescription": "חשב אוטומטית את החומש בהכנסות חדשות",
+    "minMaaserPercentageLabel": "אחוז מעשר מינימלי",
+    "minMaaserPercentageDescription": "הגדר אחוז מינימלי לתרומה מכל הכנסה",
+    "comingSoon": "בקרוב"
+  },
+  "notifications": {
+    "cardTitle": "התראות",
+    "cardDescription": "הגדרות התראות ותזכורות",
+    "monthlyReminderLabel": "תזכורת חודשית",
+    "monthlyReminderDescription": "קבל תזכורת לעדכן את המעשרות שלך",
+    "reminderDayLabel": "יום תזכורת",
+    "reminderDayPlaceholder": "בחר יום",
+    "reminderTimeLabel": "שעת תזכורת",
+    "reminderTimePlaceholder": "בחר שעה",
+    "emailNotificationsLabel": "התראות במייל",
+    "emailNotificationsDescription": "קבל התראות וסיכומים במייל",
+    "comingSoon": "בקרוב"
+  },
+  "calendar": {
+    "cardTitle": "לוח שנה",
+    "cardDescription": "הגדרות תאריכים ולוח שנה",
+    "hebrewCalendarLabel": "לוח עברי",
+    "hebrewCalendarDescription": "הצג תאריכים בלוח העברי",
+    "weekStartLabel": "תחילת שבוע",
+    "weekStartPlaceholder": "בחר יום",
+    "sunday": "ראשון",
+    "monday": "שני",
+    "saturday": "שבת"
+  },
+  "importExport": {
+    "exportTitle": "ייצוא נתונים",
+    "exportDescription": "ייצא את כל נתוני האפליקציה לקובץ",
+    "exportButton": "ייצא נתונים",
+    "importTitle": "ייבוא נתונים",
+    "importDescription": "ייבא נתונים מקובץ גיבוי",
+    "importButton": "ייבא נתונים"
+  },
+  "clearData": {
+    "title": "מחיקת נתונים",
+    "description": "מחק את כל נתוני האפליקציה באופן סופי",
+    "warningTitle": "אזהרה!",
+    "warningDescription": "פעולה זו תמחק את כל הנתונים שלך באופן סופי ולא ניתן לבטל אותה.",
+    "confirmButton": "מחק את כל הנתונים"
+  }
 }

@@ -44,3 +44,4 @@ test-req.js
 # Test reports and results
 playwright-report/
 test-results/
+"src-tauri/gen/" 

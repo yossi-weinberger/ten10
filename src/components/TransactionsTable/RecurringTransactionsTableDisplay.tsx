@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Table,
   TableBody,
@@ -40,15 +41,8 @@ import { toast } from "sonner";
 import { deleteRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
 import { MoreHorizontal, Repeat, Infinity } from "lucide-react";
 import { RecurringTransaction, TransactionType } from "@/types/transaction";
-import {
-  recurringFrequencyLabels,
-  recurringStatusLabels,
-  recurringStatusBadgeColors,
-} from "@/types/recurringTransactionLabels";
-import {
-  transactionTypeLabels,
-  typeBadgeColors,
-} from "@/types/transactionLabels";
+import { recurringStatusBadgeColors } from "@/types/recurringTransactionLabels";
+import { typeBadgeColors } from "@/types/transactionLabels";
 import { RecurringTransactionEditModal } from "./RecurringTransactionEditModal";
 import {
   Card,
@@ -72,6 +66,7 @@ import {
 } from "./RecurringTransactionsTableHeader";
 
 export function RecurringTransactionsTableDisplay() {
+  const { t } = useTranslation("data-tables");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
     useState<RecurringTransaction | null>(null);
@@ -98,11 +93,11 @@ export function RecurringTransactionsTableDisplay() {
     if (!transactionToDelete) return;
     try {
       await deleteRecurringTransaction(transactionToDelete.id);
-      toast.success("הוראת הקבע נמחקה בהצלחה.");
+      toast.success(t("messages.recurringDeleteSuccess"));
       fetchRecurring(); // Refresh the table
     } catch (error) {
       console.error("Failed to delete recurring transaction:", error);
-      toast.error("שגיאה במחיקת הוראת הקבע.");
+      toast.error(t("messages.recurringDeleteError"));
     } finally {
       setIsDeleteDialogOpen(false);
       setTransactionToDelete(null);
@@ -132,14 +127,23 @@ export function RecurringTransactionsTableDisplay() {
 
   const sortableColumns = useMemo(
     () => [
-      { label: "סוג", field: "type" as SortableField },
-      { label: "תיאור", field: "description" as SortableField },
-      { label: "סכום", field: "amount" as SortableField },
-      { label: "תדירות", field: "frequency" as SortableField },
-      { label: "תאריך ביצוע הבא", field: "next_due_date" as SortableField },
-      { label: "סטטוס", field: "status" as SortableField },
+      { label: t("columns.type"), field: "type" as SortableField },
+      {
+        label: t("columns.description"),
+        field: "description" as SortableField,
+      },
+      { label: t("columns.amount"), field: "amount" as SortableField },
+      {
+        label: t("recurringColumns.frequency"),
+        field: "frequency" as SortableField,
+      },
+      {
+        label: t("recurringColumns.nextDueDate"),
+        field: "next_due_date" as SortableField,
+      },
+      { label: t("recurringColumns.status"), field: "status" as SortableField },
     ],
-    []
+    [t]
   );
 
   return (
@@ -147,10 +151,8 @@ export function RecurringTransactionsTableDisplay() {
       <RecurringTransactionsFilters />
       <Card className="mt-4">
         <CardHeader>
-          <CardTitle>הוראות קבע</CardTitle>
-          <CardDescription>
-            רשימת כל הוראות הקבע הפעילות והלא פעילות.
-          </CardDescription>
+          <CardTitle>{t("recurringTable.title")}</CardTitle>
+          <CardDescription>{t("recurringTable.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -159,7 +161,10 @@ export function RecurringTransactionsTableDisplay() {
                 sorting={sorting}
                 handleSort={handleSort}
                 sortableColumns={sortableColumns}
-                extraColumns={[{ label: "התקדמות" }, { label: "פעולות" }]}
+                extraColumns={[
+                  { label: t("recurringColumns.progress") },
+                  { label: t("columns.actions") },
+                ]}
               />
               <TableBody>
                 {loading &&
@@ -173,7 +178,7 @@ export function RecurringTransactionsTableDisplay() {
                 {!loading && !error && recurring.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={8} className="h-24 text-center">
-                      לא נמצאו הוראות קבע.
+                      {t("recurringTable.noData")}
                     </TableCell>
                   </TableRow>
                 )}
@@ -183,7 +188,7 @@ export function RecurringTransactionsTableDisplay() {
                       colSpan={8}
                       className="h-24 text-center text-red-500"
                     >
-                      שגיאה בטעינת הנתונים: {error}
+                      {t("messages.loadingError", { error })}
                     </TableCell>
                   </TableRow>
                 )}
@@ -198,8 +203,7 @@ export function RecurringTransactionsTableDisplay() {
                             typeBadgeColors[rec.type as TransactionType]
                           )}
                         >
-                          {transactionTypeLabels[rec.type as TransactionType] ||
-                            rec.type}
+                          {t(`types.${rec.type}`, rec.type)}
                         </Badge>
                       </TableCell>
                       <TableCell>{rec.description || "-"}</TableCell>
@@ -211,8 +215,10 @@ export function RecurringTransactionsTableDisplay() {
                         {rec.currency}
                       </TableCell>
                       <TableCell>
-                        {recurringFrequencyLabels[rec.frequency] ||
-                          rec.frequency}
+                        {t(
+                          `recurring.frequencies.${rec.frequency}`,
+                          rec.frequency
+                        )}
                       </TableCell>
                       <TableCell>
                         {new Date(rec.next_due_date).toLocaleDateString(
@@ -227,7 +233,7 @@ export function RecurringTransactionsTableDisplay() {
                             recurringStatusBadgeColors[rec.status]
                           )}
                         >
-                          {recurringStatusLabels[rec.status] || rec.status}
+                          {t(`recurring.statuses.${rec.status}`, rec.status)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -251,8 +257,10 @@ export function RecurringTransactionsTableDisplay() {
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>
-                                בוצעו {rec.execution_count} תשלומים מתוך{" "}
-                                {rec.total_occurrences || "∞"}.
+                                {t("recurringTable.executionTooltip", {
+                                  executed: rec.execution_count,
+                                  total: rec.total_occurrences || "∞",
+                                })}
                               </p>
                             </TooltipContent>
                           </Tooltip>
@@ -262,24 +270,28 @@ export function RecurringTransactionsTableDisplay() {
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">פתח תפריט</span>
+                              <span className="sr-only">
+                                {t("accessibility.openMenu")}
+                              </span>
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>פעולות</DropdownMenuLabel>
+                            <DropdownMenuLabel>
+                              {t("actions.title")}
+                            </DropdownMenuLabel>
                             <DropdownMenuItem
                               onClick={() => handleEditClick(rec)}
                               disabled={rec.status === "completed"}
                             >
-                              עריכה
+                              {t("actions.edit")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-red-600"
                               onClick={() => handleDeleteClick(rec)}
                               disabled={rec.status === "completed"}
                             >
-                              מחק
+                              {t("actions.delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -302,22 +314,22 @@ export function RecurringTransactionsTableDisplay() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>אישור מחיקה</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("recurringTable.deleteTitle")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              האם אתה בטוח? פעולה זו תמחק את הגדרת הוראת הקבע ותמנע יצירת תנועות
-              עתידיות. תנועות שכבר נוצרו במסגרת הוראה זו לא יימחקו. לא ניתן
-              לשחזר פעולה זו.
+              {t("recurringTable.deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
-              ביטול
+              {t("actions.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
               className="bg-red-600 hover:bg-red-700"
             >
-              מחק
+              {t("actions.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

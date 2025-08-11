@@ -1,0 +1,18 @@
+{
+  "appName": "Ten10",
+  "menu": {
+    "home": "Home",
+    "addTransaction": "Add Transaction",
+    "analytics": "Analytics",
+    "transactionsTable": "Data Table",
+    "halacha": "Laws",
+    "settings": "Settings",
+    "about": "About",
+    "profile": "Profile"
+  },
+  "user": {
+    "loading": "Loading...",
+    "guest": "Guest",
+    "profile": "User Profile"
+  }
+}

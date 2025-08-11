@@ -1,0 +1,121 @@
+{
+  "addTransactionPage": {
+    "title": "הוספת תנועה",
+    "subtitle": "הוספת כל סוגי התנועות: הכנסות, הוצאות, תרומות וכו'."
+  },
+  "transactionForm": {
+    "title": "פרטי התנועה",
+    "transactionType": {
+      "label": "סוג התנועה",
+      "income": "הכנסה",
+      "expense": "הוצאה",
+      "donation": "תרומה",
+      "exempt-income": "הכנסה פטורה ממעשר",
+      "recognized-expense": "הוצאה מוכרת",
+      "non_tithe_donation": "תרומה שאינה ממעשר"
+    },
+    "amount": {
+      "label": "סכום",
+      "placeholder": "0.00"
+    },
+    "currency": {
+      "label": "מטבע",
+      "placeholder": "בחר מטבע"
+    },
+    "date": {
+      "label": "תאריך",
+      "placeholder": "בחר תאריך"
+    },
+    "description": {
+      "label": "תיאור",
+      "placeholder": "תיאור הפעולה (אופציונלי)"
+    },
+    "category": {
+      "label": "קטגוריה",
+      "placeholder": "קטגוריית הוצאה (אופציונלי)",
+      "income": {
+        "salary": "משכורת",
+        "business": "עסק",
+        "freelance": "עבודה עצמאית",
+        "investment": "השקעות",
+        "gift": "מתנה",
+        "other": "אחר"
+      },
+      "expense": {
+        "food": "מזון",
+        "transportation": "תחבורה",
+        "housing": "דיור",
+        "utilities": "שירותים",
+        "healthcare": "בריאות",
+        "education": "חינוך",
+        "entertainment": "בידור",
+        "shopping": "קניות",
+        "other": "אחר"
+      },
+      "donation": {
+        "charity": "צדקה",
+        "religious": "דתי",
+        "education": "חינוך",
+        "health": "בריאות",
+        "community": "קהילה",
+        "other": "אחר"
+      }
+    },
+    "recipient": {
+      "label": "מקבל/ת התרומה",
+      "placeholder": "שם המקבל/ת (אופציונלי)"
+    },
+    "recurringTransaction": {
+      "isRecurring": "(הוראת קבע) תנועה קבועה",
+      "tooltip": "סמן אם זוהי טרנזקציה שחוזרת באופן קבוע.",
+      "frequency": {
+        "label": "תדירות",
+        "placeholder": "בחר תדירות",
+        "daily": "יומי",
+        "weekly": "שבועי",
+        "monthly": "חודשי",
+        "quarterly": "רבעוני",
+        "yearly": "שנתי"
+      },
+      "endDate": {
+        "label": "תאריך סיום",
+        "placeholder": "בחר תאריך סיום (אופציונלי)"
+      },
+      "dayOfMonth": "יום חיוב בחודש",
+      "totalCount": "מספר חזרות (ריק ללא הגבלה)",
+      "comingSoon": "בקרוב"
+    },
+    "exemptIncome": {
+      "label": "הכנסה פטורה ממעשר?",
+      "tooltip": "יש לסמן אם הכנסה זו אינה חייבת כלל במעשר (למשל, מתנה מסוימת, החזר הוצאה)."
+    },
+    "chomesh": {
+      "label": "לחשב חומש (20%)?",
+      "tooltip": "יש לסמן אם ההכנסה דורשת הפרשת 20% במקום 10%."
+    },
+    "recognizedExpense": {
+      "label": "הוצאה מוכרת למעשר?",
+      "tooltip": "יש לסמן אם זו הוצאה המוכרת לניכוי מהכנסות החייבות במעשר (10% מההוצאה ינוכה מהחוב)."
+    },
+    "personalFunds": {
+      "label": "תרומה מכספים אישיים?",
+      "tooltip": "יש לסמן אם תרומה זו ניתנת מכספים אישיים ואינה אמורה לרדת מיתרת המעשר."
+    },
+    "taxDeductible": "זכאי לניכוי ממס",
+    "includeInCalculations": "כלול בחישובי מעשר",
+    "actions": {
+      "submit": "הוסף תנועה",
+      "submitting": "מוסיף...",
+      "save": "שמור שינויים",
+      "reset": "איפוס",
+      "cancel": "ביטול"
+    },
+    "messages": {
+      "success": "התנועה נוספה בהצלחה",
+      "error": "שגיאה בהוספת התנועה",
+      "invalidAmount": "סכום לא חוקי",
+      "invalidDate": "תאריך לא חוקי",
+      "requiredField": "שדה חובה"
+    }
+  }
+}

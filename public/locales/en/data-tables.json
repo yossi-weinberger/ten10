@@ -1,0 +1,162 @@
+{
+  "transactionsTable": {
+    "pageTitle": "Transactions Table",
+    "loading": "Loading platform data..."
+  },
+  "header": {
+    "title": "Transactions",
+    "searchPlaceholder": "Search transactions...",
+    "totalTransactions": "{{count}} transactions total",
+    "selectedTransactions": "{{count}} transactions selected",
+    "clearSelection": "Clear selection"
+  },
+  "filters": {
+    "dateRange": "Date Range",
+    "type": "Transaction Type",
+    "category": "Category",
+    "amount": "Amount",
+    "currency": "Currency",
+    "reset": "Reset Filters",
+    "apply": "Apply Filters"
+  },
+  "columns": {
+    "select": "Select",
+    "date": "Date",
+    "type": "Type",
+    "description": "Description",
+    "category": "Category",
+    "amount": "Amount",
+    "currency": "Currency",
+    "recipient": "Recipient/Payer",
+    "chomesh": "Chomesh?",
+    "recurring": "Recurring",
+    "actions": "Actions"
+  },
+  "types": {
+    "income": "Income",
+    "expense": "Expense",
+    "donation": "Donation",
+    "exempt-income": "Exempt Income",
+    "recognized-expense": "Recognized Expense",
+    "non_tithe_donation": "Non-Tithe Donation"
+  },
+  "actions": {
+    "title": "Actions",
+    "edit": "Edit",
+    "editRecurring": "Edit Recurring",
+    "delete": "Delete",
+    "duplicate": "Duplicate",
+    "export": "Export",
+    "cancel": "Cancel"
+  },
+  "export": {
+    "title": "Export Data",
+    "loading": "Exporting...",
+    "selectFormat": "Select export format",
+    "success": "Data exported successfully!",
+    "error": "Export error: {{error}}",
+    "unexpectedError": "An unexpected error occurred during export."
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{current}} of {{total}}",
+    "rowsPerPage": "Rows per page",
+    "of": "of",
+    "selected": "selected",
+    "loadingMore": "Loading more data...",
+    "loadMore": "Load More",
+    "showing": "Showing {{current}} of {{total}} transactions"
+  },
+  "messages": {
+    "noData": "No transactions found",
+    "loading": "Loading...",
+    "error": "Error loading data",
+    "deleteConfirm": "Are you sure you want to delete this transaction?",
+    "deleteSuccess": "Transaction deleted successfully",
+    "deleteError": "Error deleting transaction",
+    "updateSuccess": "Transaction updated successfully",
+    "updateError": "Error updating transaction",
+    "recurringUpdateSuccess": "Recurring transaction updated successfully!",
+    "recurringUpdateError": "Error updating recurring transaction.",
+    "recurringDeleteSuccess": "Recurring transaction deleted successfully.",
+    "recurringDeleteError": "Error deleting recurring transaction."
+  },
+  "buttons": {
+    "showRecurring": "Show Recurring"
+  },
+  "dialog": {
+    "deleteTitle": "Confirm Transaction Deletion",
+    "deleteDescription": "Are you sure you want to delete the transaction \"{{description}}\" from {{date}}? This action cannot be undone."
+  },
+  "modal": {
+    "editTitle": "Edit Transaction",
+    "editDescription": "Update transaction details. Changes will be saved immediately.",
+    "editRecurringTitle": "Edit Recurring Transaction",
+    "editRecurringDescription": "Update recurring transaction details. Changes will apply only to future transactions.",
+    "noRecurringSelected": "No recurring transaction selected for editing."
+  },
+  "accessibility": {
+    "openMenu": "Open menu"
+  },
+  "recurring": {
+    "status": "Status",
+    "frequency": "Frequency",
+    "dayOfMonth": "Day of charge",
+    "statuses": {
+      "active": "Active",
+      "paused": "Paused",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "frequencies": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    }
+  },
+  "filters": {
+    "freeSearch": "Free Search",
+    "searchPlaceholder": "Description, category, recipient...",
+    "dateRange": "Date Range",
+    "transactionTypes": "Transaction Types",
+    "allTypes": "All Types",
+    "typesSelected": "{{count}} types selected",
+    "selectTransactionTypes": "Select transaction types",
+    "recurringTransactions": "Recurring Transactions",
+    "filterRecurringPlaceholder": "Filter recurring transactions...",
+    "all": "All",
+    "recurringOnly": "Recurring Only",
+    "regularOnly": "Regular Only",
+    "recurringStatus": "Recurring Status",
+    "allStatuses": "All Statuses",
+    "statusesSelected": "{{count}} selected",
+    "filterByStatus": "Filter by status",
+    "recurringFrequency": "Recurring Frequency",
+    "allFrequencies": "All Frequencies",
+    "frequenciesSelected": "{{count}} selected",
+    "filterByFrequency": "Filter by frequency",
+    "resetFilters": "Reset Filters"
+  },
+  "recurringFilters": {
+    "title": "Filter Recurring Transactions",
+    "searchPlaceholder": "Search by description...",
+    "filterByStatus": "Filter by status",
+    "statusesSelected": "{{count}} statuses selected"
+  },
+  "recurringColumns": {
+    "frequency": "Frequency",
+    "nextDueDate": "Next Due Date",
+    "status": "Status",
+    "progress": "Progress"
+  },
+  "recurringTable": {
+    "title": "Recurring Transactions",
+    "description": "List of all active and inactive recurring transactions.",
+    "noData": "No recurring transactions found.",
+    "executionTooltip": "{{executed}} payments completed out of {{total}}.",
+    "deleteTitle": "Confirm Deletion",
+    "deleteDescription": "Are you sure? This action will delete the recurring transaction setup and prevent future transactions from being created. Transactions already created under this setup will not be deleted. This action cannot be undone."
+  }
+}

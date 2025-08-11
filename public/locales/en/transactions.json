@@ -1,0 +1,121 @@
+{
+  "addTransactionPage": {
+    "title": "Add Transaction",
+    "subtitle": "Add all types of transactions: income, expenses, donations, etc."
+  },
+  "transactionForm": {
+    "title": "Transaction Details",
+    "transactionType": {
+      "label": "Transaction Type",
+      "income": "Income",
+      "expense": "Expense",
+      "donation": "Donation",
+      "exempt-income": "Exempt Income",
+      "recognized-expense": "Recognized Expense",
+      "non_tithe_donation": "Non-Tithe Donation"
+    },
+    "amount": {
+      "label": "Amount",
+      "placeholder": "0.00"
+    },
+    "currency": {
+      "label": "Currency",
+      "placeholder": "Select currency"
+    },
+    "date": {
+      "label": "Date",
+      "placeholder": "Select date"
+    },
+    "description": {
+      "label": "Description",
+      "placeholder": "Transaction description (optional)"
+    },
+    "category": {
+      "label": "Category",
+      "placeholder": "Expense category (optional)",
+      "income": {
+        "salary": "Salary",
+        "business": "Business",
+        "freelance": "Freelance",
+        "investment": "Investment",
+        "gift": "Gift",
+        "other": "Other"
+      },
+      "expense": {
+        "food": "Food",
+        "transportation": "Transportation",
+        "housing": "Housing",
+        "utilities": "Utilities",
+        "healthcare": "Healthcare",
+        "education": "Education",
+        "entertainment": "Entertainment",
+        "shopping": "Shopping",
+        "other": "Other"
+      },
+      "donation": {
+        "charity": "Charity",
+        "religious": "Religious",
+        "education": "Education",
+        "health": "Health",
+        "community": "Community",
+        "other": "Other"
+      }
+    },
+    "recipient": {
+      "label": "Donation Recipient",
+      "placeholder": "Recipient name (optional)"
+    },
+    "recurringTransaction": {
+      "isRecurring": "Recurring Transaction",
+      "tooltip": "Check if this is a transaction that repeats regularly.",
+      "frequency": {
+        "label": "Frequency",
+        "placeholder": "Select frequency",
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "quarterly": "Quarterly",
+        "yearly": "Yearly"
+      },
+      "endDate": {
+        "label": "End Date",
+        "placeholder": "Select end date (optional)"
+      },
+      "dayOfMonth": "Day of month for charge",
+      "totalCount": "Number of repetitions (empty for unlimited)",
+      "comingSoon": "Coming Soon"
+    },
+    "exemptIncome": {
+      "label": "Exempt from Ma'aser?",
+      "tooltip": "Check if this income is not subject to ma'aser at all (e.g., certain gifts, expense reimbursements)."
+    },
+    "chomesh": {
+      "label": "Calculate Chomesh (20%)?",
+      "tooltip": "Check if this income requires setting aside 20% instead of 10%."
+    },
+    "recognizedExpense": {
+      "label": "Recognized Expense for Ma'aser?",
+      "tooltip": "Check if this is an expense recognized for deduction from ma'aser-obligated income (10% of the expense will be deducted from the debt)."
+    },
+    "personalFunds": {
+      "label": "Donation from Personal Funds?",
+      "tooltip": "Check if this donation is given from personal funds and should not reduce the ma'aser balance."
+    },
+    "taxDeductible": "Tax Deductible",
+    "includeInCalculations": "Include in Ma'aser Calculations",
+    "actions": {
+      "submit": "Add Transaction",
+      "submitting": "Adding...",
+      "save": "Save Changes",
+      "reset": "Reset",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "success": "Transaction added successfully",
+      "error": "Error adding transaction",
+      "invalidAmount": "Invalid amount",
+      "invalidDate": "Invalid date",
+      "requiredField": "Required field"
+    }
+  }
+}

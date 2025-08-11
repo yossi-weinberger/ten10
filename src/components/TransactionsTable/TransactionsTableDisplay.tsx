@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -34,19 +35,22 @@ import { RecurringTransaction, TransactionForTable } from "@/types/transaction";
 // Define Transaction type (can be imported from a central types file if available)
 type Transaction = import("@/types/transaction").Transaction;
 
-// sortableColumns definition remains here as it's specific to this table's configuration
-// and passed to TransactionsTableHeader
-const sortableColumns: { label: string; field: SortableField }[] = [
-  { label: "תאריך", field: "date" },
-  { label: "תיאור", field: "description" },
-  { label: "סכום", field: "amount" },
-  { label: "מטבע", field: "currency" },
-  { label: "סוג", field: "type" },
-  { label: "קטגוריה", field: "category" },
-  { label: "נמען/משלם", field: "recipient" },
-];
+// sortableColumns definition - will be defined inside the component to use t()
 
 export function TransactionsTableDisplay() {
+  const { t } = useTranslation("data-tables");
+
+  // sortableColumns definition with translations
+  const sortableColumns: { label: string; field: SortableField }[] = [
+    { label: t("columns.date"), field: "date" },
+    { label: t("columns.description"), field: "description" },
+    { label: t("columns.amount"), field: "amount" },
+    { label: t("columns.currency"), field: "currency" },
+    { label: t("columns.type"), field: "type" },
+    { label: t("columns.category"), field: "category" },
+    { label: t("columns.recipient"), field: "recipient" },
+  ];
+
   const {
     transactions,
     loading,
@@ -114,22 +118,27 @@ export function TransactionsTableDisplay() {
     if (transactionToDelete) {
       const deletedTransactionId = transactionToDelete.id;
       const deletedTransactionDescription =
-        transactionToDelete.description || "תנועה זו";
+        transactionToDelete.description || t("messages.defaultTransactionName");
 
       if (platform === "web" || platform === "desktop") {
         try {
           await deleteTransaction(deletedTransactionId, platform);
-          toast.success(`"${deletedTransactionDescription}" נמחקה בהצלחה.`);
+          toast.success(
+            t("messages.deleteSuccess", {
+              description: deletedTransactionDescription,
+            })
+          );
         } catch (err: any) {
           console.error("Failed to delete transaction from component:", err);
           toast.error(
-            `שגיאה במחיקת "${deletedTransactionDescription}": ${
-              err.message || "שגיאה לא ידועה"
-            }`
+            t("messages.deleteErrorWithDescription", {
+              description: deletedTransactionDescription,
+              error: err.message || t("messages.unknownError"),
+            })
           );
         }
       } else {
-        toast.error("לא ניתן למחוק, הפלטפורמה עדיין בטעינה או לא תקינה.");
+        toast.error(t("messages.platformError"));
       }
     }
     setIsDeleteDialogOpen(false);
@@ -149,7 +158,7 @@ export function TransactionsTableDisplay() {
       setIsRecEditModalOpen(true);
     } catch (error) {
       console.error("Failed to fetch recurring transaction details", error);
-      toast.error("שגיאה בטעינת פרטי הוראת הקבע.");
+      toast.error(t("messages.recurringError"));
     } finally {
       setIsFetchingRec(false);
     }
@@ -172,13 +181,13 @@ export function TransactionsTableDisplay() {
           variant="default"
           className="bg-primary hover:bg-primary/90 text-primary-foreground"
         >
-          הצג הוראות קבע
+          {t("buttons.showRecurring")}
         </Button>
       </div>
 
       {error && (
         <p className="text-red-500 text-center py-4">
-          שגיאה בטעינת נתונים: {error}
+          {t("messages.loadingError", { error })}
         </p>
       )}
       <Card>
@@ -215,7 +224,7 @@ export function TransactionsTableDisplay() {
                       colSpan={sortableColumns.length + 3}
                       className="h-24 text-center"
                     >
-                      לא נמצאו תנועות.
+                      {t("messages.noData")}
                     </TableCell>
                   </TableRow>
                 )}
@@ -247,25 +256,29 @@ export function TransactionsTableDisplay() {
       >
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
-            <AlertDialogTitle>אישור מחיקת תנועה</AlertDialogTitle>
+            <AlertDialogTitle>{t("dialog.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              האם אתה בטוח שברצונך למחוק את התנועה "
-              {transactionToDelete?.description || "זו"}" מתאריך{" "}
-              {transactionToDelete?.date
-                ? new Date(transactionToDelete.date).toLocaleDateString("he-IL")
-                : ""}
-              ? לא ניתן לשחזר פעולה זו.
+              {t("dialog.deleteDescription", {
+                description:
+                  transactionToDelete?.description ||
+                  t("messages.defaultTransactionName"),
+                date: transactionToDelete?.date
+                  ? new Date(transactionToDelete.date).toLocaleDateString(
+                      "he-IL"
+                    )
+                  : "",
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
-              ביטול
+              {t("actions.cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-red-600 hover:bg-red-700"
             >
-              מחק
+              {t("actions.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

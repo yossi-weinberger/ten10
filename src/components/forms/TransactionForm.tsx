@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDonationStore } from "@/lib/store";
@@ -18,16 +19,6 @@ import { CURRENCIES } from "@/lib/currencies";
 import { Transaction } from "@/types/transaction";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
-
-// Hebrew labels for transaction types
-const transactionTypeLabels: Record<TransactionType, string> = {
-  income: "הכנסה",
-  donation: "תרומה",
-  expense: "הוצאה",
-  "exempt-income": "הכנסה פטורה", // For future use
-  "recognized-expense": "הוצאה מוכרת", // For future use
-  non_tithe_donation: "תרומה שאינה ממעשר", // Renamed label
-};
 
 // Zod schema is now imported from "@/types/forms"
 
@@ -58,7 +49,19 @@ export function TransactionForm({
   onSubmitSuccess,
   onCancel,
 }: TransactionFormProps) {
+  const { t } = useTranslation("transactions");
   const { platform } = usePlatform();
+
+  // Transaction type labels with i18n
+  const transactionTypeLabels: Record<TransactionType, string> = {
+    income: t("transactionForm.transactionType.income"),
+    donation: t("transactionForm.transactionType.donation"),
+    expense: t("transactionForm.transactionType.expense"),
+    "exempt-income": t("transactionForm.transactionType.exempt-income"), // For future use
+    "recognized-expense": t("transactionForm.transactionType.recognized-expense"), // For future use
+    non_tithe_donation: t("transactionForm.transactionType.non_tithe_donation"), // Renamed label
+  };
+
   const updateTransaction = useTableTransactionsStore(
     (state) => state.updateTransaction
   );

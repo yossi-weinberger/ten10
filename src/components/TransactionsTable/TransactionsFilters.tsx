@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import {
@@ -39,31 +40,10 @@ const availableTransactionTypes: TransactionType[] = [
   "non_tithe_donation",
 ];
 
-// TODO: Provide translations for types
-const transactionTypeTranslations: Record<TransactionType, string> = {
-  income: "הכנסה",
-  donation: "תרומה",
-  expense: "הוצאה",
-  "exempt-income": "הכנסה פטורה",
-  "recognized-expense": "הוצאה מוכרת",
-  non_tithe_donation: "תרומה אישית (לא ממעשר)",
-};
-
-const recurringStatusOptions = {
-  active: "פעיל",
-  paused: "מושהה",
-  completed: "הושלם",
-  cancelled: "בוטל",
-};
-
-const recurringFrequencyOptions = {
-  daily: "יומי",
-  weekly: "שבועי",
-  monthly: "חודשי",
-  yearly: "שנתי",
-};
+// Moved to translation files - will use t() function
 
 export function TransactionsFilters() {
+  const { t } = useTranslation("data-tables");
   const { platform } = usePlatform();
   const {
     storeFilters,
@@ -220,11 +200,11 @@ export function TransactionsFilters() {
                 htmlFor="search"
                 className="mb-2 block text-sm font-medium"
               >
-                חיפוש חופשי
+                {t("filters.freeSearch")}
               </Label>
               <Input
                 id="search"
-                placeholder="תיאור, קטגוריה, נמען..."
+                placeholder={t("filters.searchPlaceholder")}
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
                 className="w-full"
@@ -234,7 +214,7 @@ export function TransactionsFilters() {
             {/* Date Range */}
             <div className="flex-grow sm:flex-grow-0 sm:w-auto">
               <Label className="mb-2 block text-sm font-medium">
-                טווח תאריכים
+                {t("filters.dateRange")}
               </Label>
               <DatePickerWithRange
                 date={localDateRange}
@@ -245,7 +225,7 @@ export function TransactionsFilters() {
             {/* Transaction Types */}
             <div className="flex-grow sm:flex-grow-0 sm:w-auto">
               <Label className="mb-2 block text-sm font-medium">
-                סוגי תנועות
+                {t("filters.transactionTypes")}
               </Label>
               <DropdownMenu
                 open={typesDropdownOpen}
@@ -255,12 +235,12 @@ export function TransactionsFilters() {
                   <Button variant="outline" className="w-full justify-between">
                     <span>
                       {localTypes.length === 0
-                        ? "כל הסוגים"
+                        ? t("filters.allTypes")
                         : localTypes.length === 1
-                        ? transactionTypeTranslations[
-                            localTypes[0] as TransactionType
-                          ]
-                        : `${localTypes.length} סוגים נבחרו`}
+                        ? t(`types.${localTypes[0]}`)
+                        : t("filters.typesSelected", {
+                            count: localTypes.length,
+                          })}
                     </span>
                     <ListFilter className="ml-2 h-4 w-4 opacity-50" />
                   </Button>
@@ -270,7 +250,9 @@ export function TransactionsFilters() {
                   align="start"
                   onClick={stopPropagation}
                 >
-                  <DropdownMenuLabel>בחר סוגי תנועות</DropdownMenuLabel>
+                  <DropdownMenuLabel>
+                    {t("filters.selectTransactionTypes")}
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {availableTransactionTypes.map((type) => (
                     <DropdownMenuCheckboxItem
@@ -281,7 +263,7 @@ export function TransactionsFilters() {
                       }
                       onClick={stopPropagation} // Prevent closing
                     >
-                      {transactionTypeTranslations[type]}
+                      {t(`types.${type}`)}
                     </DropdownMenuCheckboxItem>
                   ))}
                 </DropdownMenuContent>
@@ -291,7 +273,7 @@ export function TransactionsFilters() {
             {/* Recurring Filter */}
             <div className="flex-grow sm:flex-grow-0 sm:w-auto">
               <Label className="mb-2 block text-sm font-medium">
-                הוראות קבע
+                {t("filters.recurringTransactions")}
               </Label>
               <Select
                 value={localIsRecurring}
@@ -299,12 +281,18 @@ export function TransactionsFilters() {
                 dir="rtl"
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="סנן הוראות קבע..." />
+                  <SelectValue
+                    placeholder={t("filters.filterRecurringPlaceholder")}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">הכל</SelectItem>
-                  <SelectItem value="recurring">הוראות קבע בלבד</SelectItem>
-                  <SelectItem value="regular">תנועות רגילות בלבד</SelectItem>
+                  <SelectItem value="all">{t("filters.all")}</SelectItem>
+                  <SelectItem value="recurring">
+                    {t("filters.recurringOnly")}
+                  </SelectItem>
+                  <SelectItem value="regular">
+                    {t("filters.regularOnly")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -317,7 +305,7 @@ export function TransactionsFilters() {
                 {/* Recurring Status */}
                 <div className="flex-grow sm:flex-grow-0 sm:w-auto">
                   <Label className="mb-2 block text-sm font-medium">
-                    סטטוס קבע
+                    {t("filters.recurringStatus")}
                   </Label>
                   <DropdownMenu
                     open={statusDropdownOpen}
@@ -331,8 +319,10 @@ export function TransactionsFilters() {
                       >
                         <span>
                           {localRecurringStatuses.length === 0
-                            ? "כל הסטטוסים"
-                            : `${localRecurringStatuses.length} נבחרו`}
+                            ? t("filters.allStatuses")
+                            : t("filters.statusesSelected", {
+                                count: localRecurringStatuses.length,
+                              })}
                         </span>
                         <ListFilter className="ml-2 h-4 w-4 opacity-50" />
                       </Button>
@@ -341,10 +331,12 @@ export function TransactionsFilters() {
                       className="w-56"
                       onClick={stopPropagation}
                     >
-                      <DropdownMenuLabel>סינון לפי סטטוס</DropdownMenuLabel>
+                      <DropdownMenuLabel>
+                        {t("filters.filterByStatus")}
+                      </DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      {Object.entries(recurringStatusOptions).map(
-                        ([value, label]) => (
+                      {["active", "paused", "completed", "cancelled"].map(
+                        (value) => (
                           <DropdownMenuCheckboxItem
                             key={value}
                             checked={localRecurringStatuses.includes(value)}
@@ -353,7 +345,7 @@ export function TransactionsFilters() {
                             }
                             onClick={stopPropagation} // Prevent closing
                           >
-                            {label}
+                            {t(`recurring.statuses.${value}`)}
                           </DropdownMenuCheckboxItem>
                         )
                       )}
@@ -364,7 +356,7 @@ export function TransactionsFilters() {
                 {/* Recurring Frequency */}
                 <div className="flex-grow sm:flex-grow-0 sm:w-auto">
                   <Label className="mb-2 block text-sm font-medium">
-                    תדירות קבע
+                    {t("filters.recurringFrequency")}
                   </Label>
                   <DropdownMenu
                     open={frequencyDropdownOpen}
@@ -378,8 +370,10 @@ export function TransactionsFilters() {
                       >
                         <span>
                           {localRecurringFrequencies.length === 0
-                            ? "כל התדירויות"
-                            : `${localRecurringFrequencies.length} נבחרו`}
+                            ? t("filters.allFrequencies")
+                            : t("filters.frequenciesSelected", {
+                                count: localRecurringFrequencies.length,
+                              })}
                         </span>
                         <ListFilter className="ml-2 h-4 w-4 opacity-50" />
                       </Button>
@@ -388,22 +382,22 @@ export function TransactionsFilters() {
                       className="w-56"
                       onClick={stopPropagation}
                     >
-                      <DropdownMenuLabel>סינון לפי תדירות</DropdownMenuLabel>
+                      <DropdownMenuLabel>
+                        {t("filters.filterByFrequency")}
+                      </DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      {Object.entries(recurringFrequencyOptions).map(
-                        ([value, label]) => (
-                          <DropdownMenuCheckboxItem
-                            key={value}
-                            checked={localRecurringFrequencies.includes(value)}
-                            onCheckedChange={(checked) =>
-                              handleRecurringFrequencyChange(value, !!checked)
-                            }
-                            onClick={stopPropagation} // Prevent closing
-                          >
-                            {label}
-                          </DropdownMenuCheckboxItem>
-                        )
-                      )}
+                      {["daily", "weekly", "monthly", "yearly"].map((value) => (
+                        <DropdownMenuCheckboxItem
+                          key={value}
+                          checked={localRecurringFrequencies.includes(value)}
+                          onCheckedChange={(checked) =>
+                            handleRecurringFrequencyChange(value, !!checked)
+                          }
+                          onClick={stopPropagation} // Prevent closing
+                        >
+                          {t(`recurring.frequencies.${value}`)}
+                        </DropdownMenuCheckboxItem>
+                      ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -417,7 +411,7 @@ export function TransactionsFilters() {
                 variant="outline"
                 className="w-full"
               >
-                אפס סינונים
+                {t("filters.resetFilters")}
               </Button>
             </div>
           </div>

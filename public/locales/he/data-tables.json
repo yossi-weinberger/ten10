@@ -1,0 +1,168 @@
+{
+  "transactionsTable": {
+    "pageTitle": "טבלת תנועות",
+    "loading": "טוען נתוני פלטפורמה..."
+  },
+  "header": {
+    "title": "תנועות",
+    "searchPlaceholder": "חיפוש תנועות...",
+    "totalTransactions": "{{count}} תנועות בסך הכל",
+    "selectedTransactions": "{{count}} תנועות נבחרו",
+    "clearSelection": "בטל בחירה"
+  },
+  "filters": {
+    "dateRange": "טווח תאריכים",
+    "type": "סוג תנועה",
+    "category": "קטגוריה",
+    "amount": "סכום",
+    "currency": "מטבע",
+    "reset": "איפוס מסננים",
+    "apply": "החל מסננים"
+  },
+  "columns": {
+    "select": "בחר",
+    "date": "תאריך",
+    "type": "סוג",
+    "description": "תיאור",
+    "category": "קטגוריה",
+    "amount": "סכום",
+    "currency": "מטבע",
+    "recipient": "נמען/משלם",
+    "chomesh": "חומש?",
+    "recurring": "הוראת קבע",
+    "actions": "פעולות"
+  },
+  "types": {
+    "income": "הכנסה",
+    "expense": "הוצאה",
+    "donation": "תרומה",
+    "exempt-income": "הכנסה פטורה",
+    "recognized-expense": "הוצאה מוכרת",
+    "non_tithe_donation": "תרומה שאינה ממעשר"
+  },
+  "actions": {
+    "title": "פעולות",
+    "edit": "עריכה",
+    "editRecurring": "ערוך הו\"ק",
+    "delete": "מחיקה",
+    "duplicate": "שכפול",
+    "export": "ייצוא",
+    "cancel": "ביטול"
+  },
+  "export": {
+    "title": "יצוא נתונים",
+    "loading": "מייצא...",
+    "selectFormat": "בחר פורמט ליצוא",
+    "success": "הנתונים יוצאו בהצלחה!",
+    "error": "שגיאה ביצוא: {{error}}",
+    "unexpectedError": "אירעה שגיאה לא צפויה במהלך היצוא."
+  },
+  "pagination": {
+    "previous": "הקודם",
+    "next": "הבא",
+    "page": "עמוד {{current}} מתוך {{total}}",
+    "rowsPerPage": "שורות לעמוד",
+    "of": "מתוך",
+    "selected": "נבחרו",
+    "loadingMore": "טוען עוד נתונים...",
+    "loadMore": "טען עוד",
+    "showing": "מציג {{current}} מתוך {{total}} תנועות"
+  },
+  "messages": {
+    "noData": "לא נמצאו תנועות",
+    "loading": "טוען...",
+    "error": "שגיאה בטעינת הנתונים",
+    "deleteConfirm": "האם אתה בטוח שברצונך למחוק תנועה זו?",
+    "deleteSuccess": "\"{{description}}\" נמחקה בהצלחה",
+    "deleteError": "שגיאה במחיקת התנועה",
+    "updateSuccess": "התנועה עודכנה בהצלחה",
+    "updateError": "שגיאה בעדכון התנועה",
+    "defaultTransactionName": "תנועה זו",
+    "deleteErrorWithDescription": "שגיאה במחיקת \"{{description}}\": {{error}}",
+    "platformError": "לא ניתן למחוק, הפלטפורמה עדיין בטעינה או לא תקינה",
+    "recurringError": "שגיאה בטעינת פרטי הוראת הקבע",
+    "loadingError": "שגיאה בטעינת נתונים: {{error}}",
+    "unknownError": "שגיאה לא ידועה",
+    "recurringUpdateSuccess": "הוראת הקבע עודכנה בהצלחה!",
+    "recurringUpdateError": "שגיאה בעדכון הוראת הקבע.",
+    "recurringDeleteSuccess": "הוראת הקבע נמחקה בהצלחה.",
+    "recurringDeleteError": "שגיאה במחיקת הוראת הקבע."
+  },
+  "buttons": {
+    "showRecurring": "הצג הוראות קבע"
+  },
+  "dialog": {
+    "deleteTitle": "אישור מחיקת תנועה",
+    "deleteDescription": "האם אתה בטוח שברצונך למחוק את התנועה \"{{description}}\" מתאריך {{date}}? לא ניתן לשחזר פעולה זו."
+  },
+  "modal": {
+    "editTitle": "עריכת תנועה",
+    "editDescription": "עדכן את פרטי התנועה. שינויים יישמרו באופן מיידי.",
+    "editRecurringTitle": "עריכת הוראת קבע",
+    "editRecurringDescription": "עדכן את פרטי הוראת הקבע. שינויים יחולו רק על תנועות עתידיות.",
+    "noRecurringSelected": "לא נבחרה הוראה לעריכה."
+  },
+  "accessibility": {
+    "openMenu": "פתח תפריט"
+  },
+  "recurring": {
+    "status": "סטטוס",
+    "frequency": "תדירות",
+    "dayOfMonth": "יום חיוב",
+    "statuses": {
+      "active": "פעיל",
+      "paused": "מושהה",
+      "completed": "הושלם",
+      "cancelled": "בוטל"
+    },
+    "frequencies": {
+      "daily": "יומי",
+      "weekly": "שבועי",
+      "monthly": "חודשי",
+      "yearly": "שנתי"
+    }
+  },
+  "filters": {
+    "freeSearch": "חיפוש חופשי",
+    "searchPlaceholder": "תיאור, קטגוריה, נמען...",
+    "dateRange": "טווח תאריכים",
+    "transactionTypes": "סוגי תנועות",
+    "allTypes": "כל הסוגים",
+    "typesSelected": "{{count}} סוגים נבחרו",
+    "selectTransactionTypes": "בחר סוגי תנועות",
+    "recurringTransactions": "הוראות קבע",
+    "filterRecurringPlaceholder": "סנן הוראות קבע...",
+    "all": "הכל",
+    "recurringOnly": "הוראות קבע בלבד",
+    "regularOnly": "תנועות רגילות בלבד",
+    "recurringStatus": "סטטוס קבע",
+    "allStatuses": "כל הסטטוסים",
+    "statusesSelected": "{{count}} נבחרו",
+    "filterByStatus": "סינון לפי סטטוס",
+    "recurringFrequency": "תדירות קבע",
+    "allFrequencies": "כל התדירויות",
+    "frequenciesSelected": "{{count}} נבחרו",
+    "filterByFrequency": "סינון לפי תדירות",
+    "resetFilters": "אפס סינונים"
+  },
+  "recurringFilters": {
+    "title": "סינון הוראות קבע",
+    "searchPlaceholder": "חיפוש לפי תיאור...",
+    "filterByStatus": "סנן לפי סטטוס",
+    "statusesSelected": "{{count}} סטטוסים נבחרו"
+  },
+  "recurringColumns": {
+    "frequency": "תדירות",
+    "nextDueDate": "תאריך ביצוע הבא",
+    "status": "סטטוס",
+    "progress": "התקדמות"
+  },
+  "recurringTable": {
+    "title": "הוראות קבע",
+    "description": "רשימת כל הוראות הקבע הפעילות והלא פעילות.",
+    "noData": "לא נמצאו הוראות קבע.",
+    "executionTooltip": "בוצעו {{executed}} תשלומים מתוך {{total}}.",
+    "deleteTitle": "אישור מחיקה",
+    "deleteDescription": "האם אתה בטוח? פעולה זו תמחק את הגדרת הוראת הקבע ותמנע יצירת תנועות עתידיות. תנועות שכבר נוצרו במסגרת הוראה זו לא יימחקו. לא ניתן לשחזר פעולה זו."
+  }
+}

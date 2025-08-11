@@ -1,0 +1,63 @@
+{
+  "homePage": {
+    "title": "ברוכים הבאים ל-Ten10",
+    "subtitle": "נהל את ההכנסות והתרומות שלך בקלות ובפשטות"
+  },
+  "dateRange": {
+    "month": "מתחילת החודש",
+    "year": "מתחילת השנה",
+    "all": "מאז ומתמיד"
+  },
+  "statsCards": {
+    "income": {
+      "title": "הכנסות",
+      "currentMonth": "החודש",
+      "lastMonth": "חודש קודם",
+      "change": "שינוי",
+      "withChomesh": "מתוכם עם חומש"
+    },
+    "expenses": {
+      "title": "הוצאות",
+      "currentMonth": "החודש",
+      "lastMonth": "חודש קודם",
+      "change": "שינוי"
+    },
+    "donations": {
+      "title": "תרומות",
+      "currentMonth": "החודש",
+      "lastMonth": "חודש קודם",
+      "change": "שינוי",
+      "percentageOfIncome": "{{percentage}}% מתוך סך ההכנסות"
+    },
+    "overallRequired": {
+      "title": "נדרש כולל",
+      "currentMonth": "החודש",
+      "lastMonth": "חודש קודם",
+      "change": "שינוי",
+      "exceededGoal": "עברת את היעד ב-{{amount}} (יתרה)",
+      "goalProgress": "{{percentage}}% מהיעד הושלם"
+    },
+    "magic": {
+      "title": "קסם",
+      "currentMonth": "החודש",
+      "lastMonth": "חודש קודם",
+      "change": "שינוי"
+    }
+  },
+  "monthlyChart": {
+    "title": "סיכום חודשי",
+    "description": "מעקב אחר הכנסות, הוצאות ותרומות",
+    "income": "הכנסות",
+    "expenses": "הוצאות",
+    "donations": "תרומות",
+    "overallRequired": "נדרש כולל",
+    "magic": "קסם",
+    "month": "חודש",
+    "amount": "סכום",
+    "noData": "אין נתונים להצגה",
+    "loading": "טוען...",
+    "error": "שגיאה בטעינת הנתונים",
+    "loadMore": "טען עוד חודשים",
+    "reset": "איפוס"
+  }
+}

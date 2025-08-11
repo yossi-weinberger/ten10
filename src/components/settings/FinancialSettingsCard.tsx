@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -39,18 +40,20 @@ export function FinancialSettingsCard({
   disableAutoCalcChomesh = false,
   disableMinMaaserPercentage = false,
 }: FinancialSettingsCardProps) {
+  const { t, i18n } = useTranslation("settings");
+
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center gap-2">
           <Wallet className="h-5 w-5 text-primary" />
-          <CardTitle>הגדרות כספים</CardTitle>
+          <CardTitle>{t("financial.cardTitle")}</CardTitle>
         </div>
-        <CardDescription>הגדרות מטבע וחישובים</CardDescription>
+        <CardDescription>{t("financial.cardDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
         <div className="grid gap-2">
-          <Label>מטבע ברירת מחדל</Label>
+          <Label>{t("financial.defaultCurrencyLabel")}</Label>
           <Select
             value={financialSettings.defaultCurrency}
             onValueChange={(value) =>
@@ -58,14 +61,15 @@ export function FinancialSettingsCard({
                 defaultCurrency: value as "ILS" | "USD" | "EUR",
               })
             }
+            dir={i18n.dir()}
           >
             <SelectTrigger>
-              <SelectValue placeholder="בחר מטבע" />
+              <SelectValue placeholder={t("financial.currencyPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ILS">₪ שקל</SelectItem>
-              <SelectItem value="USD">$ דולר</SelectItem>
-              <SelectItem value="EUR">€ יורו</SelectItem>
+              <SelectItem value="ILS">{t("financial.currencyILS")}</SelectItem>
+              <SelectItem value="USD">{t("financial.currencyUSD")}</SelectItem>
+              <SelectItem value="EUR">{t("financial.currencyEUR")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -76,16 +80,18 @@ export function FinancialSettingsCard({
               <Calculator className="h-5 w-5" />
             </div>
             <div>
-              <Label htmlFor="autoCalcChomeshSwitch">חישוב חומש אוטומטי</Label>
+              <Label htmlFor="autoCalcChomeshSwitch">
+                {t("financial.autoCalcChomeshLabel")}
+              </Label>
               <p className="text-sm text-muted-foreground">
-                חשב אוטומטית את החומש בהכנסות חדשות
+                {t("financial.autoCalcChomeshDescription")}
               </p>
               {disableAutoCalcChomesh && (
                 <Badge
                   variant="outline"
                   className="mt-1 text-amber-600 border-amber-600 dark:text-amber-500 dark:border-amber-500"
                 >
-                  בקרוב
+                  {t("financial.comingSoon")}
                 </Badge>
               )}
             </div>
@@ -107,17 +113,17 @@ export function FinancialSettingsCard({
             </div>
             <div>
               <Label htmlFor="minMaaserPercentageInput">
-                אחוז מעשר מינימלי
+                {t("financial.minMaaserPercentageLabel")}
               </Label>
               <p className="text-sm text-muted-foreground">
-                הגדר אחוז מינימלי לתרומה מכל הכנסה
+                {t("financial.minMaaserPercentageDescription")}
               </p>
               {disableMinMaaserPercentage && (
                 <Badge
                   variant="outline"
                   className="mt-1 text-amber-600 border-amber-600 dark:text-amber-500 dark:border-amber-500"
                 >
-                  בקרוב
+                  {t("financial.comingSoon")}
                 </Badge>
               )}
             </div>

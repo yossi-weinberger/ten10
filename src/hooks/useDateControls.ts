@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export type DateRangeSelectionType = "month" | "year" | "all";
 
@@ -8,15 +9,16 @@ export interface DateRangeObject {
   label?: string;
 }
 
-export const dateRangeLabels: Record<DateRangeSelectionType, string> = {
-  month: "מתחילת החודש",
-  year: "מתחילת השנה",
-  all: "מאז ומתמיד",
-};
-
 export function useDateControls() {
+  const { t } = useTranslation("dashboard");
   const [dateRangeSelection, setDateRangeSelection] =
     useState<DateRangeSelectionType>("month");
+
+  const dateRangeLabels: Record<DateRangeSelectionType, string> = {
+    month: t("dateRange.month"),
+    year: t("dateRange.year"),
+    all: t("dateRange.all"),
+  };
 
   const activeDateRangeObject = useMemo((): DateRangeObject => {
     const today = new Date();
@@ -32,7 +34,7 @@ export function useDateControls() {
         endDateStr = new Date(today.getFullYear(), today.getMonth() + 1, 0)
           .toISOString()
           .split("T")[0];
-        label = dateRangeLabels.month;
+        label = t("dateRange.month");
         break;
       case "year":
         startDateStr = new Date(today.getFullYear(), 0, 1)
@@ -41,12 +43,12 @@ export function useDateControls() {
         endDateStr = new Date(today.getFullYear(), 11, 31)
           .toISOString()
           .split("T")[0];
-        label = dateRangeLabels.year;
+        label = t("dateRange.year");
         break;
       case "all":
         startDateStr = "1970-01-01";
         endDateStr = new Date().toISOString().split("T")[0];
-        label = dateRangeLabels.all;
+        label = t("dateRange.all");
         break;
       default:
         startDateStr = new Date(today.getFullYear(), today.getMonth(), 1)
@@ -55,10 +57,10 @@ export function useDateControls() {
         endDateStr = new Date(today.getFullYear(), today.getMonth() + 1, 0)
           .toISOString()
           .split("T")[0];
-        label = dateRangeLabels.month;
+        label = t("dateRange.month");
     }
     return { startDate: startDateStr, endDate: endDateStr, label };
-  }, [dateRangeSelection]);
+  }, [dateRangeSelection, t]);
 
   return {
     dateRangeSelection,

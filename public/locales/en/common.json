@@ -1,0 +1,46 @@
+{
+  "toast": {
+    "settings": {
+      "saveSuccess": "Settings saved successfully",
+      "saveError": "Error saving settings",
+      "exportSuccess": "Data exported successfully",
+      "exportError": "Error exporting data",
+      "importSuccess": "Data imported successfully",
+      "importError": "Error importing data",
+      "clearDataSuccess": "Data cleared successfully",
+      "clearDataError": "Error clearing data",
+      "clearDataConfirm": "Are you sure you want to clear all data?"
+    },
+    "transaction": {
+      "addSuccess": "Transaction added successfully",
+      "updateSuccess": "Transaction updated successfully",
+      "deleteSuccess": "Transaction deleted successfully",
+      "error": "An error occurred while processing the transaction"
+    }
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "export": "Export",
+    "import": "Import",
+    "clear": "Clear",
+    "confirm": "Confirm",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "reset": "Reset",
+    "apply": "Apply"
+  },
+  "labels": {
+    "loading": "Loading...",
+    "noData": "No data",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info"
+  },
+  "dataLoadError": "Error loading data."
+}

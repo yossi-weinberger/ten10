@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 // import { IncomeForm } from '@/components/IncomeForm'; // Comment out old form import
 import { TransactionForm } from "@/components/forms/TransactionForm"; // Import the new form
@@ -7,13 +8,16 @@ import { TransactionForm } from "@/components/forms/TransactionForm"; // Import 
 import { StatsCards } from "@/components/dashboard/StatsCards";
 
 export function AddTransactionPage() {
+  const { t } = useTranslation("transactions");
+
   return (
     <div className="grid gap-6">
       <div className="grid gap-2">
-        <h2 className="text-2xl font-bold text-foreground">הוספת תנועה</h2>{" "}
-        {/* Adjusted title */}
+        <h2 className="text-2xl font-bold text-foreground">
+          {t("addTransactionPage.title")}
+        </h2>
         <p className="text-muted-foreground">
-          הוספת כל סוגי התנועות: הכנסות, הוצאות, תרומות וכו'.
+          {t("addTransactionPage.subtitle")}
         </p>
       </div>
 
