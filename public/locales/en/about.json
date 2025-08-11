@@ -1,0 +1,19 @@
+{
+  "analytics": {
+    "title": "Advanced Data Analytics",
+    "placeholder": "Advanced charts and analysis will be displayed here..."
+  },
+  "page": {
+    "title": "About Ten10",
+    "subtitle": "Information about the application and the team behind it"
+  },
+  "appInfo": {
+    "title": "About the Application",
+    "description1": "Ten10 is an application for managing income and donations, designed to help you track your income and manage your donations efficiently and conveniently.",
+    "description2": "The application allows you to manage your tithe, track regular donations, and receive reminders when you need to donate."
+  },
+  "thanks": {
+    "title": "Thanks",
+    "description": "Special thanks to all the contributors and users who help us improve the application and make it better."
+  }
+}

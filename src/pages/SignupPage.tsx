@@ -4,11 +4,13 @@ import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
+import { useTranslation } from "react-i18next";
 
 const SignupPage: React.FC = () => {
   const { platform } = usePlatform();
   const { loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation("auth");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,7 +22,7 @@ const SignupPage: React.FC = () => {
   const handleSignup = async (event: React.FormEvent) => {
     event.preventDefault();
     if (password !== confirmPassword) {
-      toast.error("הסיסמאות אינן תואמות!");
+      toast.error(t("signup.toasts.passwordMismatch"));
       return;
     }
     setLoading(true);
@@ -47,27 +49,29 @@ const SignupPage: React.FC = () => {
           .eq("id", signedUpUserId);
 
         if (updateError) {
-          toast.error(
-            "ההרשמה הצליחה, אך עדכון הפרופיל נכשל. אנא עדכן אותו בדף הפרופיל."
-          );
+          toast.error(t("signup.toasts.profileUpdateError"));
           console.error("Error updating profile after signup:", updateError);
         } else {
-          toast.success("הרשמה והתחברות הושלמו בהצלחה!");
+          toast.success(t("signup.toasts.signupSuccess"));
         }
         navigate({ to: "/" });
       } else if (data.user) {
-        toast.success("הרשמה הושלמה! יש לאשר את כתובת המייל שנשלחה אליך.");
+        toast.success(t("signup.toasts.signupCompleteEmailConfirm"));
         setEmail("");
         setPassword("");
         setConfirmPassword("");
         setFullName("");
         setMailingListConsent(false);
       } else {
-        toast.error("אירעה שגיאה בלתי צפויה בהרשמה.");
+        toast.error(t("signup.toasts.unexpectedError"));
       }
     } catch (error: any) {
       console.error("Error signing up:", error);
-      toast.error(error.error_description || error.message || "הרשמה נכשלה");
+      toast.error(
+        error.error_description ||
+          error.message ||
+          t("signup.toasts.signupError")
+      );
     } finally {
       setLoading(false);
     }
@@ -76,31 +80,32 @@ const SignupPage: React.FC = () => {
   if (platform === "desktop") {
     return (
       <div className="p-4">
-        <h1 className="text-xl font-semibold">Sign Up</h1>
-        <p className="mt-2 text-gray-600">
-          Account creation is only available in the web version.
-        </p>
+        <h1 className="text-xl font-semibold">{t("signup.title")}</h1>
+        <p className="mt-2 text-gray-600">{t("signup.onlyWebAvailable")}</p>
       </div>
     );
   }
 
   if (platform === "loading") {
-    return <div>Loading platform...</div>;
+    return <div>{t("platformLoading")}</div>;
   }
 
   const isAnyLoading = loading || authLoading;
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+    <div
+      className="flex justify-center items-center min-h-screen bg-gray-100"
+      dir={i18n.dir()}
+    >
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center">יצירת חשבון</h1>
+        <h1 className="text-2xl font-bold text-center">{t("signup.title")}</h1>
         <form onSubmit={handleSignup} className="space-y-4">
           <div>
             <label
               htmlFor="full-name"
               className="block text-sm font-medium text-gray-700"
             >
-              שם מלא
+              {t("signup.fullNameLabel")}
             </label>
             <input
               id="full-name"
@@ -111,7 +116,7 @@ const SignupPage: React.FC = () => {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="ישראל ישראלי"
+              placeholder={t("signup.fullNamePlaceholder")}
               disabled={isAnyLoading}
             />
           </div>
@@ -120,7 +125,7 @@ const SignupPage: React.FC = () => {
               htmlFor="email"
               className="block text-sm font-medium text-gray-700"
             >
-              כתובת מייל
+              {t("signup.emailLabel")}
             </label>
             <input
               id="email"
@@ -131,7 +136,7 @@ const SignupPage: React.FC = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="you@example.com"
+              placeholder={t("signup.emailPlaceholder")}
               disabled={isAnyLoading}
             />
           </div>
@@ -140,7 +145,7 @@ const SignupPage: React.FC = () => {
               htmlFor="password"
               className="block text-sm font-medium text-gray-700"
             >
-              סיסמה
+              {t("signup.passwordLabel")}
             </label>
             <input
               id="password"
@@ -151,7 +156,7 @@ const SignupPage: React.FC = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="••••••••"
+              placeholder={t("signup.passwordPlaceholder")}
               disabled={isAnyLoading}
             />
           </div>
@@ -160,7 +165,7 @@ const SignupPage: React.FC = () => {
               htmlFor="confirm-password"
               className="block text-sm font-medium text-gray-700"
             >
-              אימות סיסמה
+              {t("signup.confirmPasswordLabel")}
             </label>
             <input
               id="confirm-password"
@@ -171,7 +176,7 @@ const SignupPage: React.FC = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="••••••••"
+              placeholder={t("signup.confirmPasswordPlaceholder")}
               disabled={isAnyLoading}
             />
           </div>
@@ -191,7 +196,7 @@ const SignupPage: React.FC = () => {
               htmlFor="mailing-list-consent"
               className="ml-2 block text-sm text-gray-900"
             >
-              אני מאשר/ת קבלת עדכונים ודיוור במייל
+              {t("signup.mailingListLabel")}
             </label>
           </div>
           <div>
@@ -200,16 +205,18 @@ const SignupPage: React.FC = () => {
               disabled={isAnyLoading}
               className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              {isAnyLoading ? "יוצר חשבון..." : "הרשמה"}
+              {isAnyLoading
+                ? t("signup.signUpButtonLoading")
+                : t("signup.signUpButton")}
             </button>
           </div>
           <p className="text-center text-sm text-gray-600">
-            יש לך כבר חשבון?{" "}
+            {t("signup.hasAccount")}{" "}
             <Link
               to="/login"
               className="font-medium text-indigo-600 hover:text-indigo-500"
             >
-              התחבר/י
+              {t("signup.signInLink")}
             </Link>
           </p>
         </form>

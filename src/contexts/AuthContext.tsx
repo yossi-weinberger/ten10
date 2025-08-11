@@ -9,6 +9,7 @@ import { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient"; // Using path alias from tsconfig
 import { toast } from "react-hot-toast";
 import { useDonationStore } from "@/lib/store"; // Import Zustand store
+import i18n from "@/lib/i18n";
 // import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store"; // This seems unused in the provided snippet, might be removable if not used elsewhere
 // Import table transactions store
 // import { loadTransactions, setDataServicePlatform } from "@/lib/dataService"; // loadTransactions will be removed from dataService, setDataServicePlatform is still used.
@@ -87,7 +88,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       );
     } catch (error) {
       console.error("AuthContext: Error during data loading sequence:", error);
-      toast.error("שגיאה בטעינת נתונים.");
+      toast.error(i18n.t("common.dataLoadError", "Error loading data."));
     } finally {
       // setIsDataLoading(false); // REMOVE
     }
@@ -271,7 +272,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // State update and store clearing will be handled by onAuthStateChange listener.
     if (error) {
       console.error("Error signing out:", error);
-      toast.error("התנתקות נכשלה: " + error.message);
+      toast.error(
+        i18n.t("auth.signOut.error", "Sign out failed: ") + error.message
+      );
       setLoading(false);
     }
   };

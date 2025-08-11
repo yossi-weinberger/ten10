@@ -41,5 +41,6 @@
     "success": "Success",
     "warning": "Warning",
     "info": "Info"
-  }
+  },
+  "dataLoadError": "Error loading data."
 }

@@ -20,6 +20,8 @@ i18n
       "transactions",
       "data-tables",
       "settings",
+      "auth",
+      "about",
       "halacha-common",
       "halacha-introduction",
       "halacha-faq",
