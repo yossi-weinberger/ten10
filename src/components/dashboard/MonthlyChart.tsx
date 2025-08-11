@@ -295,7 +295,7 @@ export function MonthlyChart() {
                   {isLoadingServerMonthlyChartData &&
                   serverMonthlyChartData.length > 0
                     ? t("monthlyChart.loading")
-                    : t("monthlyChart.loadMore", "טען עוד חודשים")}
+                    : t("monthlyChart.loadMore")}
                 </Button>
               )}
               <Button
