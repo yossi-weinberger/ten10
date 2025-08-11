@@ -57,8 +57,8 @@ export function TransactionForm({
     income: t("transactionForm.transactionType.income"),
     donation: t("transactionForm.transactionType.donation"),
     expense: t("transactionForm.transactionType.expense"),
-    "exempt-income": "הכנסה פטורה", // For future use
-    "recognized-expense": "הוצאה מוכרת", // For future use
+    "exempt-income": t("transactionForm.transactionType.exempt-income"), // For future use
+    "recognized-expense": t("transactionForm.transactionType.recognized-expense"), // For future use
     non_tithe_donation: t("transactionForm.transactionType.non_tithe_donation"), // Renamed label
   };
 
