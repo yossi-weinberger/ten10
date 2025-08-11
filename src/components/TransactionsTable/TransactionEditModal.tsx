@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -20,6 +21,8 @@ export function TransactionEditModal({
   onClose,
   transaction,
 }: TransactionEditModalProps) {
+  const { t } = useTranslation("data-tables");
+
   if (!isOpen || !transaction) {
     return null;
   }
@@ -28,9 +31,9 @@ export function TransactionEditModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl" dir="rtl">
         <DialogHeader className="text-right">
-          <DialogTitle>עריכת תנועה</DialogTitle>
+          <DialogTitle>{t("modal.editTitle")}</DialogTitle>
           <DialogDescription className="text-right">
-            עדכן את פרטי התנועה. שינויים יישמרו באופן מיידי.
+            {t("modal.editDescription")}
           </DialogDescription>
         </DialogHeader>
         <div className="py-4">
