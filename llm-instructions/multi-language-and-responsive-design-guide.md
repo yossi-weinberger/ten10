@@ -53,10 +53,10 @@ This document provides comprehensive instructions for adapting the Ten10 applica
 npm install i18next react-i18next i18next-browser-languagedetector i18next-http-backend
 ```
 
-**b. Configuration File (`src/i18n.ts`):**
+**b. Configuration File (`src/lib/i18n.ts`):**
 
 ```typescript
-// src/i18n.ts
+// src/lib/i18n.ts
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
@@ -68,7 +68,25 @@ i18n
   .use(initReactI18next) // Passes i18n down to react-i18next
   .init({
     fallbackLng: "he", // Default language if detection fails
-    debug: process.env.NODE_ENV === "development", // Enable debug output in development
+    debug: process.env.NODE_ENV === "development",
+
+    // Define namespaces for organizing translations
+    ns: [
+      "common",
+      "navigation",
+      "dashboard",
+      "transactions",
+      "settings",
+      "data-tables",
+      "halacha-common",
+      "halacha-introduction",
+      "halacha-faq",
+      "halacha-tithes",
+      "halacha-income",
+      "halacha-expenses",
+    ],
+    defaultNS: "common",
+
     interpolation: {
       escapeValue: false, // React already safes from xss
     },
@@ -77,9 +95,15 @@ i18n
       caches: ["localStorage"],
     },
     backend: {
-      loadPath: "/locales/{{lng}}/translation.json", // Path to translation files
+      loadPath: "/locales/{{lng}}/{{ns}}.json", // Support for namespaces
     },
   });
+
+// Add direction support based on language
+i18n.dir = (lng?: string) => {
+  const language = lng || i18n.language;
+  return language === "he" ? "rtl" : "ltr";
+};
 
 export default i18n;
 ```
@@ -88,26 +112,67 @@ export default i18n;
 
 ```typescript
 // src/main.tsx
-import "./i18n"; // Import the i18n configuration
+import "./lib/i18n"; // Import the i18n configuration
 // ... other imports
 ```
 
-**d. Add Translation Files:**
+**d. Add Translation Files by Namespace:**
 
-- Create `public/locales/he/translation.json`:
+**Organized file structure:**
+
+```
+public/locales/
+├── he/
+│   ├── common.json           # Common UI texts, toast messages
+│   ├── navigation.json       # Sidebar, menu items
+│   ├── dashboard.json        # Home page, stats, charts
+│   ├── transactions.json     # Transaction forms
+│   ├── settings.json         # Settings page
+│   ├── data-tables.json      # Tables, filters, actions
+│   ├── halacha-common.json   # Halacha page common texts
+│   ├── halacha-introduction.json
+│   ├── halacha-faq.json
+│   ├── halacha-tithes.json
+│   ├── halacha-income.json
+│   └── halacha-expenses.json
+└── en/
+    ├── common.json
+    ├── navigation.json
+    ├── dashboard.json
+    ├── transactions.json
+    ├── settings.json
+    ├── data-tables.json
+    ├── halacha-common.json
+    ├── halacha-introduction.json
+    ├── halacha-faq.json
+    ├── halacha-tithes.json
+    ├── halacha-income.json
+    └── halacha-expenses.json
+```
+
+**Example namespace content:**
+
+- `public/locales/he/common.json`:
   ```json
   {
-    "greeting": "שלום!",
-    "sidebar_home": "דף הבית"
-    // ... add all Hebrew strings
+    "loading": "טוען...",
+    "save": "שמור",
+    "cancel": "ביטול",
+    "delete": "מחק",
+    "edit": "ערוך",
+    "toasts": {
+      "success": "הפעולה בוצעה בהצלחה",
+      "error": "אירעה שגיאה"
+    }
   }
   ```
-- Create `public/locales/en/translation.json`:
+- `public/locales/he/navigation.json`:
   ```json
   {
-    "greeting": "Hello!",
-    "sidebar_home": "Home"
-    // ... add all English strings
+    "appName": "Ten10",
+    "home": "דף הבית",
+    "addTransaction": "הוסף תנועה",
+    "allTransactions": "כל התנועות"
   }
   ```
 
@@ -163,6 +228,92 @@ declare module "i18next" {
 ```
 
 ````
+
+## II.2. Practical Implementation Steps
+
+### Step-by-Step Translation Process
+
+**1. Component Analysis:**
+- Identify all hardcoded strings in the component
+- Determine which namespace(s) the component should use
+- Look for usage of label constants (e.g., `transactionTypeLabels`, `recurringStatusLabels`)
+
+**2. Component Updates:**
+```typescript
+// Add translation hook
+import { useTranslation } from "react-i18next";
+
+// Inside component
+const { t, i18n } = useTranslation("namespace-name");
+
+// Replace hardcoded strings
+"הוסף תנועה" → t("addTransaction")
+
+// Replace label constants with dynamic translations
+transactionTypeLabels[type] → t(`types.${type}`, type)
+
+// Remove unused imports
+// Remove: import { transactionTypeLabels } from "@/types/transactionLabels";
+```
+
+**3. Translation File Updates:**
+```json
+// Add new keys to appropriate namespace files
+{
+  "addTransaction": "הוסף תנועה",
+  "types": {
+    "income": "הכנסה",
+    "expense": "הוצאה",
+    "donation": "תרומה"
+  }
+}
+```
+
+**4. Clean Up:**
+- Remove hardcoded constant objects that were replaced
+- Remove unused imports
+- Remove Hebrew fallback strings from `t()` calls: `t("key", "fallback")` → `t("key")`
+
+### Common Patterns
+
+**Dynamic Type/Status Labels:**
+```typescript
+// Old approach
+import { transactionTypeLabels } from "@/types/transactionLabels";
+const label = transactionTypeLabels[transaction.type];
+
+// New approach
+const { t } = useTranslation("data-tables");
+const label = t(`types.${transaction.type}`, transaction.type);
+```
+
+**Toast Messages:**
+```typescript
+// Common namespace for shared toasts
+const { t } = useTranslation("common");
+toast.success(t("toasts.deleteSuccess"));
+
+// Specific namespace for specific messages
+const { t } = useTranslation("data-tables");
+toast.success(t("messages.recurringDeleteSuccess"));
+```
+
+**Interpolation:**
+```typescript
+// With variables
+t("pagination.showing", { current: 5, total: 100 })
+// JSON: "showing": "מציג {{current}} מתוך {{total}} תנועות"
+```
+
+### Namespace Guidelines
+
+- **`common`**: UI elements, buttons, toasts, general actions
+- **`navigation`**: Menu items, app name, routing-related texts
+- **`dashboard`**: Home page, stats, charts, date ranges
+- **`transactions`**: Transaction forms, types, validation
+- **`settings`**: Settings page and all its cards
+- **`data-tables`**: Tables, filters, columns, actions, pagination
+- **`halacha-*`**: Halacha page content by sections
 
 ## III. Component and Page Specific Instructions
 
