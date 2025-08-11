@@ -101,7 +101,7 @@ export function IncomeStatCard({
                   decimals={2}
                   formattingFn={formatCurrency}
                 />{" "}
-                {t("statsCards.income.withChomesh", "מתוכם עם חומש")}
+                {t("statsCards.income.withChomesh")}
               </span>
             )}
         </p>
