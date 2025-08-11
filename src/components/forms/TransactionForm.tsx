@@ -59,7 +59,7 @@ export function TransactionForm({
     expense: t("transactionForm.transactionType.expense"),
     "exempt-income": "הכנסה פטורה", // For future use
     "recognized-expense": "הוצאה מוכרת", // For future use
-    non_tithe_donation: "תרומה שאינה ממעשר", // Renamed label
+    non_tithe_donation: t("transactionForm.transactionType.non_tithe_donation"), // Renamed label
   };
 
   const updateTransaction = useTableTransactionsStore(
