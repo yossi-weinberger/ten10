@@ -1,0 +1,76 @@
+{
+  "transactionsTable": {
+    "pageTitle": "Transactions Table",
+    "loading": "Loading platform data..."
+  },
+  "header": {
+    "title": "Transactions",
+    "searchPlaceholder": "Search transactions...",
+    "totalTransactions": "{{count}} transactions total",
+    "selectedTransactions": "{{count}} transactions selected",
+    "clearSelection": "Clear selection"
+  },
+  "filters": {
+    "dateRange": "Date Range",
+    "type": "Transaction Type",
+    "category": "Category",
+    "amount": "Amount",
+    "currency": "Currency",
+    "reset": "Reset Filters",
+    "apply": "Apply Filters"
+  },
+  "columns": {
+    "select": "Select",
+    "date": "Date",
+    "type": "Type",
+    "description": "Description",
+    "category": "Category",
+    "amount": "Amount",
+    "currency": "Currency",
+    "recipient": "Recipient/Payer",
+    "chomesh": "Chomesh?",
+    "recurring": "Recurring",
+    "actions": "Actions"
+  },
+  "types": {
+    "income": "Income",
+    "expense": "Expense",
+    "donation": "Donation",
+    "exempt-income": "Exempt Income",
+    "recognized-expense": "Recognized Expense",
+    "non_tithe_donation": "Non-Tithe Donation"
+  },
+  "actions": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "duplicate": "Duplicate",
+    "export": "Export"
+  },
+  "export": {
+    "button": "Export Data",
+    "csv": "Export CSV",
+    "excel": "Export Excel",
+    "pdf": "Export PDF",
+    "exporting": "Exporting...",
+    "success": "Data exported successfully",
+    "error": "Error exporting data"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{current}} of {{total}}",
+    "rowsPerPage": "Rows per page",
+    "of": "of",
+    "selected": "selected"
+  },
+  "messages": {
+    "noData": "No transactions found",
+    "loading": "Loading...",
+    "error": "Error loading data",
+    "deleteConfirm": "Are you sure you want to delete this transaction?",
+    "deleteSuccess": "Transaction deleted successfully",
+    "deleteError": "Error deleting transaction",
+    "updateSuccess": "Transaction updated successfully",
+    "updateError": "Error updating transaction"
+  }
+}

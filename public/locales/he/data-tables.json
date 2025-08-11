@@ -1,0 +1,90 @@
+{
+  "transactionsTable": {
+    "pageTitle": "טבלת תנועות",
+    "loading": "טוען נתוני פלטפורמה..."
+  },
+  "header": {
+    "title": "תנועות",
+    "searchPlaceholder": "חיפוש תנועות...",
+    "totalTransactions": "{{count}} תנועות בסך הכל",
+    "selectedTransactions": "{{count}} תנועות נבחרו",
+    "clearSelection": "בטל בחירה"
+  },
+  "filters": {
+    "dateRange": "טווח תאריכים",
+    "type": "סוג תנועה",
+    "category": "קטגוריה",
+    "amount": "סכום",
+    "currency": "מטבע",
+    "reset": "איפוס מסננים",
+    "apply": "החל מסננים"
+  },
+  "columns": {
+    "select": "בחר",
+    "date": "תאריך",
+    "type": "סוג",
+    "description": "תיאור",
+    "category": "קטגוריה",
+    "amount": "סכום",
+    "currency": "מטבע",
+    "recipient": "נמען/משלם",
+    "chomesh": "חומש?",
+    "recurring": "הוראת קבע",
+    "actions": "פעולות"
+  },
+  "types": {
+    "income": "הכנסה",
+    "expense": "הוצאה",
+    "donation": "תרומה",
+    "exempt-income": "הכנסה פטורה",
+    "recognized-expense": "הוצאה מוכרת",
+    "non_tithe_donation": "תרומה שאינה ממעשר"
+  },
+  "actions": {
+    "edit": "עריכה",
+    "delete": "מחק",
+    "duplicate": "שכפול",
+    "export": "ייצוא",
+    "cancel": "ביטול"
+  },
+  "export": {
+    "button": "ייצוא נתונים",
+    "csv": "ייצוא CSV",
+    "excel": "ייצוא Excel",
+    "pdf": "ייצוא PDF",
+    "exporting": "מייצא...",
+    "success": "הנתונים יוצאו בהצלחה",
+    "error": "שגיאה בייצוא הנתונים"
+  },
+  "pagination": {
+    "previous": "הקודם",
+    "next": "הבא",
+    "page": "עמוד {{current}} מתוך {{total}}",
+    "rowsPerPage": "שורות לעמוד",
+    "of": "מתוך",
+    "selected": "נבחרו"
+  },
+  "messages": {
+    "noData": "לא נמצאו תנועות",
+    "loading": "טוען...",
+    "error": "שגיאה בטעינת הנתונים",
+    "deleteConfirm": "האם אתה בטוח שברצונך למחוק תנועה זו?",
+    "deleteSuccess": "\"{{description}}\" נמחקה בהצלחה",
+    "deleteError": "שגיאה במחיקת התנועה",
+    "updateSuccess": "התנועה עודכנה בהצלחה",
+    "updateError": "שגיאה בעדכון התנועה",
+    "defaultTransactionName": "תנועה זו",
+    "deleteErrorWithDescription": "שגיאה במחיקת \"{{description}}\": {{error}}",
+    "platformError": "לא ניתן למחוק, הפלטפורמה עדיין בטעינה או לא תקינה",
+    "recurringError": "שגיאה בטעינת פרטי הוראת הקבע",
+    "loadingError": "שגיאה בטעינת נתונים: {{error}}",
+    "unknownError": "שגיאה לא ידועה"
+  },
+  "buttons": {
+    "showRecurring": "הצג הוראות קבע"
+  },
+  "dialog": {
+    "deleteTitle": "אישור מחיקת תנועה",
+    "deleteDescription": "האם אתה בטוח שברצונך למחוק את התנועה \"{{description}}\" מתאריך {{date}}? לא ניתן לשחזר פעולה זו."
+  }
+}
