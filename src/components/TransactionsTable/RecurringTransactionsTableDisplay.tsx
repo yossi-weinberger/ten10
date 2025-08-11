@@ -41,15 +41,8 @@ import { toast } from "sonner";
 import { deleteRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
 import { MoreHorizontal, Repeat, Infinity } from "lucide-react";
 import { RecurringTransaction, TransactionType } from "@/types/transaction";
-import {
-  recurringFrequencyLabels,
-  recurringStatusLabels,
-  recurringStatusBadgeColors,
-} from "@/types/recurringTransactionLabels";
-import {
-  transactionTypeLabels,
-  typeBadgeColors,
-} from "@/types/transactionLabels";
+import { recurringStatusBadgeColors } from "@/types/recurringTransactionLabels";
+import { typeBadgeColors } from "@/types/transactionLabels";
 import { RecurringTransactionEditModal } from "./RecurringTransactionEditModal";
 import {
   Card,
@@ -210,8 +203,7 @@ export function RecurringTransactionsTableDisplay() {
                             typeBadgeColors[rec.type as TransactionType]
                           )}
                         >
-                          {transactionTypeLabels[rec.type as TransactionType] ||
-                            rec.type}
+                          {t(`types.${rec.type}`, rec.type)}
                         </Badge>
                       </TableCell>
                       <TableCell>{rec.description || "-"}</TableCell>
@@ -223,8 +215,10 @@ export function RecurringTransactionsTableDisplay() {
                         {rec.currency}
                       </TableCell>
                       <TableCell>
-                        {recurringFrequencyLabels[rec.frequency] ||
-                          rec.frequency}
+                        {t(
+                          `recurring.frequencies.${rec.frequency}`,
+                          rec.frequency
+                        )}
                       </TableCell>
                       <TableCell>
                         {new Date(rec.next_due_date).toLocaleDateString(
@@ -239,7 +233,7 @@ export function RecurringTransactionsTableDisplay() {
                             recurringStatusBadgeColors[rec.status]
                           )}
                         >
-                          {recurringStatusLabels[rec.status] || rec.status}
+                          {t(`recurring.statuses.${rec.status}`, rec.status)}
                         </Badge>
                       </TableCell>
                       <TableCell>

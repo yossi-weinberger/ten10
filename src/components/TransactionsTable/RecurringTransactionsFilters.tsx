@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { recurringStatusLabels } from "@/types/recurringTransactionLabels";
+// Removed - using translations instead
 import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.store";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ListFilter } from "lucide-react";

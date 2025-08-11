@@ -23,10 +23,7 @@ import {
 } from "@/components/ui/tooltip";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MoreHorizontal, Trash2, Edit3, Repeat, Infinity } from "lucide-react";
-import {
-  transactionTypeLabels,
-  typeBadgeColors,
-} from "@/types/transactionLabels";
+import { typeBadgeColors } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting";
 
 // Moved to translation files - will use t() instead
@@ -78,8 +75,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
             typeBadgeColors[transaction.type as TransactionType]
           )}
         >
-          {transactionTypeLabels[transaction.type as TransactionType] ||
-            transaction.type}
+          {t(`types.${transaction.type}`, transaction.type)}
         </Badge>
       </TableCell>
       <TableCell className="text-right">

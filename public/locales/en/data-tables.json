@@ -82,6 +82,9 @@
     "recurringDeleteSuccess": "Recurring transaction deleted successfully.",
     "recurringDeleteError": "Error deleting recurring transaction."
   },
+  "buttons": {
+    "showRecurring": "Show Recurring"
+  },
   "dialog": {
     "deleteTitle": "Confirm Transaction Deletion",
     "deleteDescription": "Are you sure you want to delete the transaction \"{{description}}\" from {{date}}? This action cannot be undone."
