@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import {
   FormControl,
@@ -24,6 +25,7 @@ interface RecurringFieldsProps {
 }
 
 export function RecurringFields({ form }: RecurringFieldsProps) {
+  const { t } = useTranslation("transactions");
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 p-4 border rounded-lg shadow-sm">
       <FormField
@@ -31,20 +33,30 @@ export function RecurringFields({ form }: RecurringFieldsProps) {
         name="frequency"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>תדירות</FormLabel>
+            <FormLabel>
+              {t("transactionForm.recurringTransaction.frequency.label")}
+            </FormLabel>
             <Select onValueChange={field.onChange} defaultValue={field.value}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="בחר תדירות..." />
+                  <SelectValue
+                    placeholder={t(
+                      "transactionForm.recurringTransaction.frequency.placeholder"
+                    )}
+                  />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="monthly">חודשי</SelectItem>
+                <SelectItem value="monthly">
+                  {t("transactionForm.recurringTransaction.frequency.monthly")}
+                </SelectItem>
                 <SelectItem value="weekly" disabled>
-                  שבועי (בקרוב)
+                  {t("transactionForm.recurringTransaction.frequency.weekly")} (
+                  {t("transactionForm.recurringTransaction.comingSoon")})
                 </SelectItem>
                 <SelectItem value="yearly" disabled>
-                  שנתי (בקרוב)
+                  {t("transactionForm.recurringTransaction.frequency.yearly")} (
+                  {t("transactionForm.recurringTransaction.comingSoon")})
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -59,7 +71,9 @@ export function RecurringFields({ form }: RecurringFieldsProps) {
         name="recurring_day_of_month"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>יום חיוב בחודש</FormLabel>
+            <FormLabel>
+              {t("transactionForm.recurringTransaction.dayOfMonth")}
+            </FormLabel>
             <FormControl>
               <Input
                 type="number"
@@ -80,7 +94,9 @@ export function RecurringFields({ form }: RecurringFieldsProps) {
         name="recurringTotalCount"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>מספר חזרות (ריק ללא הגבלה)</FormLabel>
+            <FormLabel>
+              {t("transactionForm.recurringTransaction.totalCount")}
+            </FormLabel>
             <FormControl>
               <Input
                 type="number"

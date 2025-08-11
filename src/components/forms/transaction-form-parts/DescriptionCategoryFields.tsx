@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import {
   FormControl,
@@ -20,6 +21,7 @@ export function DescriptionCategoryFields({
   form,
   selectedType,
 }: DescriptionCategoryFieldsProps) {
+  const { t } = useTranslation("transactions");
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
       {/* Description - start */}
@@ -28,11 +30,11 @@ export function DescriptionCategoryFields({
         name="description"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>תיאור</FormLabel>
+            <FormLabel>{t("transactionForm.description.label")}</FormLabel>
             <FormControl>
               <Input
                 {...field}
-                placeholder="תיאור הפעולה (אופציונלי)"
+                placeholder={t("transactionForm.description.placeholder")}
                 className="text-start"
               />
             </FormControl>
@@ -49,11 +51,11 @@ export function DescriptionCategoryFields({
           name="category"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>קטגוריה</FormLabel>
+              <FormLabel>{t("transactionForm.category.label")}</FormLabel>
               <FormControl>
                 <Input
                   {...field}
-                  placeholder="קטגוריית הוצאה (אופציונלי)"
+                  placeholder={t("transactionForm.category.placeholder")}
                   className="text-start"
                 />
               </FormControl>
@@ -70,11 +72,11 @@ export function DescriptionCategoryFields({
           name="recipient"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>מקבל/ת התרומה</FormLabel>
+              <FormLabel>{t("transactionForm.recipient.label")}</FormLabel>
               <FormControl>
                 <Input
                   {...field}
-                  placeholder="שם המקבל/ת (אופציונלי)"
+                  placeholder={t("transactionForm.recipient.placeholder")}
                   className="text-start"
                 />
               </FormControl>

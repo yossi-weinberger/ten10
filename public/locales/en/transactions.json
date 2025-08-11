@@ -32,7 +32,7 @@
     },
     "category": {
       "label": "Category",
-      "placeholder": "Select category",
+      "placeholder": "Expense category (optional)",
       "income": {
         "salary": "Salary",
         "business": "Business",
@@ -61,8 +61,13 @@
         "other": "Other"
       }
     },
+    "recipient": {
+      "label": "Donation Recipient",
+      "placeholder": "Recipient name (optional)"
+    },
     "recurringTransaction": {
       "isRecurring": "Recurring Transaction",
+      "tooltip": "Check if this is a transaction that repeats regularly.",
       "frequency": {
         "label": "Frequency",
         "placeholder": "Select frequency",
@@ -75,13 +80,33 @@
       "endDate": {
         "label": "End Date",
         "placeholder": "Select end date (optional)"
-      }
+      },
+      "dayOfMonth": "Day of month for charge",
+      "totalCount": "Number of repetitions (empty for unlimited)",
+      "comingSoon": "Coming Soon"
+    },
+    "exemptIncome": {
+      "label": "Exempt from Ma'aser?",
+      "tooltip": "Check if this income is not subject to ma'aser at all (e.g., certain gifts, expense reimbursements)."
+    },
+    "chomesh": {
+      "label": "Calculate Chomesh (20%)?",
+      "tooltip": "Check if this income requires setting aside 20% instead of 10%."
+    },
+    "recognizedExpense": {
+      "label": "Recognized Expense for Ma'aser?",
+      "tooltip": "Check if this is an expense recognized for deduction from ma'aser-obligated income (10% of the expense will be deducted from the debt)."
+    },
+    "personalFunds": {
+      "label": "Donation from Personal Funds?",
+      "tooltip": "Check if this donation is given from personal funds and should not reduce the ma'aser balance."
     },
     "taxDeductible": "Tax Deductible",
     "includeInCalculations": "Include in Ma'aser Calculations",
     "actions": {
       "submit": "Add Transaction",
       "submitting": "Adding...",
+      "save": "Save Changes",
       "reset": "Reset",
       "cancel": "Cancel"
     },

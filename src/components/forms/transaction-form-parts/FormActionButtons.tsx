@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { CheckCircle } from "lucide-react";
 
@@ -15,6 +16,7 @@ export function FormActionButtons({
   onCancel,
   isEditMode = false,
 }: FormActionButtonsProps) {
+  const { t } = useTranslation("transactions");
   return (
     <div className="flex justify-end items-center space-x-2">
       {/* Success Icon Animation */}
@@ -24,17 +26,17 @@ export function FormActionButtons({
 
       {onCancel && (
         <Button type="button" variant="outline" onClick={onCancel}>
-          ביטול
+          {t("transactionForm.actions.cancel")}
         </Button>
       )}
       <Button type="submit" disabled={isSubmitting || isSuccess}>
         {isSubmitting
-          ? "שומר..."
+          ? t("transactionForm.actions.submitting")
           : isSuccess
-          ? "נשמר בהצלחה!"
+          ? t("transactionForm.messages.success")
           : isEditMode
-          ? "שמור שינויים"
-          : "הוסף תנועה"}
+          ? t("transactionForm.actions.save")
+          : t("transactionForm.actions.submit")}
       </Button>
     </div>
   );

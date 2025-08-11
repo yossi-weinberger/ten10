@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import { FormField } from "@/components/ui/form"; // Only FormField might be needed directly if others are wrapped
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,6 +30,7 @@ export function TransactionCheckboxes({
   isExemptChecked,
   isFromPersonalFundsChecked, // Destructure new prop
 }: TransactionCheckboxesProps) {
+  const { t } = useTranslation("transactions");
   return (
     <TooltipProvider>
       <div className="flex flex-row flex-wrap gap-4 mt-2 w-full">
@@ -37,7 +39,9 @@ export function TransactionCheckboxes({
             {/* הכנסה פטורה ממעשר */}
             <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
               <div className="flex items-center justify-center mb-2 text-center">
-                <span className="text-xs font-medium">הכנסה פטורה ממעשר?</span>
+                <span className="text-xs font-medium">
+                  {t("transactionForm.exemptIncome.label")}
+                </span>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -50,8 +54,7 @@ export function TransactionCheckboxes({
                   </TooltipTrigger>
                   <TooltipContent side="top">
                     <p className="max-w-xs text-sm">
-                      יש לסמן אם הכנסה זו אינה חייבת כלל במעשר (למשל, מתנה
-                      מסויימת, החזר הוצאה).
+                      {t("transactionForm.exemptIncome.tooltip")}
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -71,7 +74,9 @@ export function TransactionCheckboxes({
             {/* חומש */}
             <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
               <div className="flex items-center justify-center mb-2 text-center">
-                <span className="text-xs font-medium">לחשב חומש (20%)?</span>
+                <span className="text-xs font-medium">
+                  {t("transactionForm.chomesh.label")}
+                </span>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -84,7 +89,7 @@ export function TransactionCheckboxes({
                   </TooltipTrigger>
                   <TooltipContent side="top">
                     <p className="max-w-xs text-sm">
-                      יש לסמן אם ההכנסה דורשת הפרשת 20% במקום 10%.
+                      {t("transactionForm.chomesh.tooltip")}
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -110,7 +115,9 @@ export function TransactionCheckboxes({
         {selectedType === "expense" && (
           <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
             <div className="flex items-center justify-center mb-2 text-center">
-              <span className="text-xs font-medium">הוצאה מוכרת למעשר?</span>
+              <span className="text-xs font-medium">
+                {t("transactionForm.recognizedExpense.label")}
+              </span>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -123,8 +130,7 @@ export function TransactionCheckboxes({
                 </TooltipTrigger>
                 <TooltipContent side="top">
                   <p className="max-w-xs text-sm">
-                    יש לסמן אם זו הוצאה המוכרת לניכוי מהכנסות החייבות במעשר (10%
-                    מההוצאה ינוכה מהחוב).
+                    {t("transactionForm.recognizedExpense.tooltip")}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -145,7 +151,9 @@ export function TransactionCheckboxes({
         {selectedType === "donation" && (
           <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
             <div className="flex items-center justify-center mb-2 text-center">
-              <span className="text-xs font-medium">תרומה מכספים אישיים?</span>
+              <span className="text-xs font-medium">
+                {t("transactionForm.personalFunds.label")}
+              </span>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -158,8 +166,7 @@ export function TransactionCheckboxes({
                 </TooltipTrigger>
                 <TooltipContent side="top">
                   <p className="max-w-xs text-sm">
-                    יש לסמן אם תרומה זו ניתנת מכספים אישיים ואינה אמורה לרדת
-                    מיתרת המעשר.
+                    {t("transactionForm.personalFunds.tooltip")}
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -180,7 +187,9 @@ export function TransactionCheckboxes({
         {/* הוראת קבע - should always be visible */}
         <div className="flex-1 flex flex-col items-center justify-start rounded-lg p-3 shadow-sm min-w-[120px] border border-border min-h-[100px]">
           <div className="flex items-center justify-center mb-2 text-center">
-            <span className="text-xs font-medium">הוראת קבע</span>
+            <span className="text-xs font-medium">
+              {t("transactionForm.recurringTransaction.isRecurring")}
+            </span>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -193,7 +202,7 @@ export function TransactionCheckboxes({
               </TooltipTrigger>
               <TooltipContent side="top">
                 <p className="max-w-xs text-sm">
-                  סמן אם זוהי טרנזקציה שחוזרת באופן קבוע.
+                  {t("transactionForm.recurringTransaction.tooltip")}
                 </p>
               </TooltipContent>
             </Tooltip>
