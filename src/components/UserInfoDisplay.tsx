@@ -67,7 +67,7 @@ export function UserInfoDisplay() {
         if (isMounted) {
           setError(
             err.message ||
-              t("profile.loadError", "Failed to load profile data.")
+              t("profile.loadError")
           );
         }
       } finally {
