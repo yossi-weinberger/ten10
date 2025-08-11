@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@hebcal/core": "^5.10.1",
-    "@hookform/resolvers": "^5.2.0",
+    "@hookform/resolvers": "^5.2.1",
     "@pdf-lib/fontkit": "^1.1.1",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
@@ -78,11 +78,11 @@
     "react-resizable-panels": "^3.0.3",
     "recharts": "^3.1.0",
     "sonner": "^2.0.6",
-    "tailwind-merge": "^2.6.0",
+    "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
     "zod": "^4.0.10",
-    "zustand": "^4.5.7"
+    "zustand": "^5.0.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.32.0",

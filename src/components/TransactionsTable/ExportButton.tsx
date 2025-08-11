@@ -11,17 +11,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Download, Loader2 } from "lucide-react"; // Added Loader2
+import { useShallow } from "zustand/react/shallow";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store"; // Updated path
 import { usePlatform } from "@/contexts/PlatformContext";
 
 export function ExportButton() {
   const { t } = useTranslation("data-tables");
   const { exportTransactions, exportLoading, exportError } =
-    useTableTransactionsStore((state) => ({
-      exportTransactions: state.exportTransactions,
-      exportLoading: state.exportLoading,
-      exportError: state.exportError,
-    }));
+    useTableTransactionsStore(
+      useShallow((state) => ({
+        exportTransactions: state.exportTransactions,
+        exportLoading: state.exportLoading,
+        exportError: state.exportError,
+      }))
+    );
   const { platform } = usePlatform();
   const [prevExportLoading, setPrevExportLoading] = useState(false);
 
