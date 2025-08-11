@@ -17,6 +17,7 @@ i18n
       "common",
       "navigation",
       "dashboard",
+      "transactions",
       "settings",
       "halacha-common",
       "halacha-introduction",

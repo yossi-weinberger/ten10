@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormLabel } from "@/components/ui/form";
@@ -13,15 +14,6 @@ const userFacingTransactionTypes: TransactionType[] = [
   "expense",
   "donation",
 ];
-
-// Hebrew labels for transaction types
-const transactionTypeLabels: Record<TransactionType, string> = {
-  income: "הכנסה",
-  donation: "תרומה",
-  expense: "הוצאה",
-  "exempt-income": "הכנסה פטורה", // Not currently in userFacing, but kept for completeness if needed later
-  "recognized-expense": "הוצאה מוכרת", // Not currently in userFacing, but kept for completeness if needed later
-};
 
 // Define explicit type for button styles
 type ButtonStyleType = "income" | "expense" | "donation";
@@ -46,48 +38,66 @@ export function TransactionTypeSelector({
   form,
   selectedType,
 }: TransactionTypeSelectorProps) {
+  const { t } = useTranslation("transactions");
+
+  // Transaction type labels with i18n
+  const transactionTypeLabels: Record<TransactionType, string> = {
+    income: t("transactionForm.transactionType.income"),
+    donation: t("transactionForm.transactionType.donation"),
+    expense: t("transactionForm.transactionType.expense"),
+    "exempt-income": t("transactionForm.transactionType.exempt-income"),
+    "recognized-expense": t(
+      "transactionForm.transactionType.recognized-expense"
+    ),
+    non_tithe_donation: t("transactionForm.transactionType.non_tithe_donation"),
+  };
   return (
-    <Tabs
-      value={selectedType}
-      onValueChange={(value) => {
-        form.setValue("type", value as TransactionType, {
-          shouldValidate: true,
-        });
-      }}
-      className="w-full"
-    >
-      <TabsList className="grid w-full grid-cols-3 gap-1 md:gap-2 mt-2 p-1 h-auto bg-gray-200 dark:bg-gray-800 rounded-lg">
-        {(
-          userFacingTransactionTypes.slice().reverse() as ButtonStyleType[]
-        ).map((type) => (
-          <TabsTrigger
-            key={type}
-            value={type}
-            className={cn(
-              "flex flex-col items-center justify-center h-auto py-2 px-1 md:py-3 md:px-2 text-center transition-all duration-150 rounded-md data-[state=active]:shadow-md",
-              selectedType === type
-                ? activeButtonStyles[type as ButtonStyleType]
-                : "bg-transparent hover:bg-accent hover:text-accent-foreground text-foreground"
-            )}
-          >
-            {type === "income" && <Wallet className="h-5 w-5 mb-1 mx-auto" />}
-            {type === "expense" && (
-              <CreditCard className="h-5 w-5 mb-1 mx-auto" />
-            )}
-            {type === "donation" && (
-              <HandCoins className="h-5 w-5 mb-1 mx-auto" />
-            )}
-            <span className="text-xs md:text-sm">
-              {transactionTypeLabels[type as TransactionType]}
-            </span>
-          </TabsTrigger>
-        ))}
-      </TabsList>
-      {form.formState.errors.type && (
-        <p className="text-sm font-medium text-destructive mt-1">
-          {form.formState.errors.type.message}
-        </p>
-      )}
-    </Tabs>
+    <div className="space-y-2">
+      <FormLabel className="text-base font-medium">
+        {t("transactionForm.transactionType.label")}
+      </FormLabel>
+      <Tabs
+        value={selectedType}
+        onValueChange={(value) => {
+          form.setValue("type", value as TransactionType, {
+            shouldValidate: true,
+          });
+        }}
+        className="w-full"
+      >
+        <TabsList className="grid w-full grid-cols-3 gap-1 md:gap-2 mt-2 p-1 h-auto bg-gray-200 dark:bg-gray-800 rounded-lg">
+          {(
+            userFacingTransactionTypes.slice().reverse() as ButtonStyleType[]
+          ).map((type) => (
+            <TabsTrigger
+              key={type}
+              value={type}
+              className={cn(
+                "flex flex-col items-center justify-center h-auto py-2 px-1 md:py-3 md:px-2 text-center transition-all duration-150 rounded-md data-[state=active]:shadow-md",
+                selectedType === type
+                  ? activeButtonStyles[type as ButtonStyleType]
+                  : "bg-transparent hover:bg-accent hover:text-accent-foreground text-foreground"
+              )}
+            >
+              {type === "income" && <Wallet className="h-5 w-5 mb-1 mx-auto" />}
+              {type === "expense" && (
+                <CreditCard className="h-5 w-5 mb-1 mx-auto" />
+              )}
+              {type === "donation" && (
+                <HandCoins className="h-5 w-5 mb-1 mx-auto" />
+              )}
+              <span className="text-xs md:text-sm">
+                {transactionTypeLabels[type as TransactionType]}
+              </span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {form.formState.errors.type && (
+          <p className="text-sm font-medium text-destructive mt-1">
+            {form.formState.errors.type.message}
+          </p>
+        )}
+      </Tabs>
+    </div>
   );
 }

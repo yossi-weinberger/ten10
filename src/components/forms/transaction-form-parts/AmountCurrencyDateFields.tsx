@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import {
   FormControl,
@@ -29,6 +30,7 @@ export function AmountCurrencyDateFields({
   form,
   availableCurrencies,
 }: AmountCurrencyDateFieldsProps) {
+  const { t } = useTranslation("transactions");
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Amount and Currency */}
@@ -38,7 +40,7 @@ export function AmountCurrencyDateFields({
           name="amount"
           render={({ field }) => (
             <FormItem className="col-span-2">
-              <FormLabel>סכום</FormLabel>
+              <FormLabel>{t("transactionForm.amount.label")}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
@@ -46,7 +48,7 @@ export function AmountCurrencyDateFields({
                   {...field}
                   value={field.value ?? ""}
                   className="text-start"
-                  placeholder="0.00"
+                  placeholder={t("transactionForm.amount.placeholder")}
                 />
               </FormControl>
               <div className="h-5">
@@ -63,7 +65,9 @@ export function AmountCurrencyDateFields({
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="מטבע" />
+                    <SelectValue
+                      placeholder={t("transactionForm.currency.placeholder")}
+                    />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
@@ -87,7 +91,7 @@ export function AmountCurrencyDateFields({
         name="date"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>תאריך *</FormLabel>
+            <FormLabel>{t("transactionForm.date.label")} *</FormLabel>
             <FormControl>
               <DatePicker
                 date={

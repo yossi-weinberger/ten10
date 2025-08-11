@@ -1,0 +1,96 @@
+{
+  "addTransactionPage": {
+    "title": "הוספת תנועה",
+    "subtitle": "הוספת כל סוגי התנועות: הכנסות, הוצאות, תרומות וכו'."
+  },
+  "transactionForm": {
+    "title": "פרטי התנועה",
+    "transactionType": {
+      "label": "סוג התנועה",
+      "income": "הכנסה",
+      "expense": "הוצאה",
+      "donation": "תרומה",
+      "exempt-income": "הכנסה פטורה ממעשר",
+      "recognized-expense": "הוצאה מוכרת",
+      "non_tithe_donation": "תרומה שאינה ממעשר"
+    },
+    "amount": {
+      "label": "סכום",
+      "placeholder": "0.00"
+    },
+    "currency": {
+      "label": "מטבע",
+      "placeholder": "בחר מטבע"
+    },
+    "date": {
+      "label": "תאריך",
+      "placeholder": "בחר תאריך"
+    },
+    "description": {
+      "label": "תיאור",
+      "placeholder": "תיאור התנועה (אופציונלי)"
+    },
+    "category": {
+      "label": "קטגוריה",
+      "placeholder": "בחר קטגוריה",
+      "income": {
+        "salary": "משכורת",
+        "business": "עסק",
+        "freelance": "עבודה עצמאית",
+        "investment": "השקעות",
+        "gift": "מתנה",
+        "other": "אחר"
+      },
+      "expense": {
+        "food": "מזון",
+        "transportation": "תחבורה",
+        "housing": "דיור",
+        "utilities": "שירותים",
+        "healthcare": "בריאות",
+        "education": "חינוך",
+        "entertainment": "בידור",
+        "shopping": "קניות",
+        "other": "אחר"
+      },
+      "donation": {
+        "charity": "צדקה",
+        "religious": "דתי",
+        "education": "חינוך",
+        "health": "בריאות",
+        "community": "קהילה",
+        "other": "אחר"
+      }
+    },
+    "recurringTransaction": {
+      "isRecurring": "תנועה קבועה",
+      "frequency": {
+        "label": "תדירות",
+        "placeholder": "בחר תדירות",
+        "daily": "יומי",
+        "weekly": "שבועי",
+        "monthly": "חודשי",
+        "quarterly": "רבעוני",
+        "yearly": "שנתי"
+      },
+      "endDate": {
+        "label": "תאריך סיום",
+        "placeholder": "בחר תאריך סיום (אופציונלי)"
+      }
+    },
+    "taxDeductible": "זכאי לניכוי ממס",
+    "includeInCalculations": "כלול בחישובי מעשר",
+    "actions": {
+      "submit": "הוסף תנועה",
+      "submitting": "מוסיף...",
+      "reset": "איפוס",
+      "cancel": "ביטול"
+    },
+    "messages": {
+      "success": "התנועה נוספה בהצלחה",
+      "error": "שגיאה בהוספת התנועה",
+      "invalidAmount": "סכום לא חוקי",
+      "invalidDate": "תאריך לא חוקי",
+      "requiredField": "שדה חובה"
+    }
+  }
+}

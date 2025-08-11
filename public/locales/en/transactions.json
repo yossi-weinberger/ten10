@@ -1,0 +1,96 @@
+{
+  "addTransactionPage": {
+    "title": "Add Transaction",
+    "subtitle": "Add all types of transactions: income, expenses, donations, etc."
+  },
+  "transactionForm": {
+    "title": "Transaction Details",
+    "transactionType": {
+      "label": "Transaction Type",
+      "income": "Income",
+      "expense": "Expense",
+      "donation": "Donation",
+      "exempt-income": "Exempt Income",
+      "recognized-expense": "Recognized Expense",
+      "non_tithe_donation": "Non-Tithe Donation"
+    },
+    "amount": {
+      "label": "Amount",
+      "placeholder": "0.00"
+    },
+    "currency": {
+      "label": "Currency",
+      "placeholder": "Select currency"
+    },
+    "date": {
+      "label": "Date",
+      "placeholder": "Select date"
+    },
+    "description": {
+      "label": "Description",
+      "placeholder": "Transaction description (optional)"
+    },
+    "category": {
+      "label": "Category",
+      "placeholder": "Select category",
+      "income": {
+        "salary": "Salary",
+        "business": "Business",
+        "freelance": "Freelance",
+        "investment": "Investment",
+        "gift": "Gift",
+        "other": "Other"
+      },
+      "expense": {
+        "food": "Food",
+        "transportation": "Transportation",
+        "housing": "Housing",
+        "utilities": "Utilities",
+        "healthcare": "Healthcare",
+        "education": "Education",
+        "entertainment": "Entertainment",
+        "shopping": "Shopping",
+        "other": "Other"
+      },
+      "donation": {
+        "charity": "Charity",
+        "religious": "Religious",
+        "education": "Education",
+        "health": "Health",
+        "community": "Community",
+        "other": "Other"
+      }
+    },
+    "recurringTransaction": {
+      "isRecurring": "Recurring Transaction",
+      "frequency": {
+        "label": "Frequency",
+        "placeholder": "Select frequency",
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "quarterly": "Quarterly",
+        "yearly": "Yearly"
+      },
+      "endDate": {
+        "label": "End Date",
+        "placeholder": "Select end date (optional)"
+      }
+    },
+    "taxDeductible": "Tax Deductible",
+    "includeInCalculations": "Include in Ma'aser Calculations",
+    "actions": {
+      "submit": "Add Transaction",
+      "submitting": "Adding...",
+      "reset": "Reset",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "success": "Transaction added successfully",
+      "error": "Error adding transaction",
+      "invalidAmount": "Invalid amount",
+      "invalidDate": "Invalid date",
+      "requiredField": "Required field"
+    }
+  }
+}
