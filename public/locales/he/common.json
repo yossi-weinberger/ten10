@@ -42,5 +42,47 @@
     "warning": "אזהרה",
     "info": "מידע"
   },
-  "dataLoadError": "שגיאה בטעינת נתונים."
+  "dataLoadError": "שגיאה בטעינת נתונים.",
+  "export": {
+    "transactionTypes": {
+      "income": "הכנסה",
+      "expense": "הוצאה",
+      "donation": "תרומה",
+      "exempt-income": "הכנסה פטורה",
+      "recognized-expense": "הוצאה מוכרת",
+      "non_tithe_donation": "תרומה שאינה ממעשר"
+    },
+    "pdf": {
+      "logo": "לוגו",
+      "title": "דוח תנועות",
+      "allDates": "כל התאריכים",
+      "dateRange": "מתאריך {{from}} עד {{to}}",
+      "createdOn": "הופק בתאריך: {{date}}",
+      "showing": "מציג {{current}} מתוך {{total}} תנועות",
+      "columns": {
+        "date": "תאריך",
+        "type": "סוג",
+        "details": "פרטים",
+        "category": "קטגוריה",
+        "recipient": "נמען",
+        "recurring": "הוראת קבע",
+        "chomesh": "חומש?",
+        "amount": "סכום"
+      },
+      "frequencies": {
+        "daily": "יומית",
+        "weekly": "שבועית",
+        "monthly": "חודשית",
+        "yearly": "שנתית"
+      },
+      "recurringPrefix": "ה\"ק",
+      "yes": "כן",
+      "no": "לא",
+      "page": "עמוד {{current}} מתוך {{total}}"
+    }
+  },
+  "boolean": {
+    "yes": "כן",
+    "no": "לא"
+  }
 }

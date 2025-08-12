@@ -42,5 +42,47 @@
     "warning": "Warning",
     "info": "Info"
   },
-  "dataLoadError": "Error loading data."
+  "dataLoadError": "Error loading data.",
+  "export": {
+    "transactionTypes": {
+      "income": "Income",
+      "expense": "Expense",
+      "donation": "Donation",
+      "exempt-income": "Exempt Income",
+      "recognized-expense": "Recognized Expense",
+      "non_tithe_donation": "Non-Tithe Donation"
+    },
+    "pdf": {
+      "logo": "Logo",
+      "title": "Transactions Report",
+      "allDates": "All Dates",
+      "dateRange": "From {{from}} to {{to}}",
+      "createdOn": "Generated on: {{date}}",
+      "showing": "Showing {{current}} out of {{total}} transactions",
+      "columns": {
+        "date": "Date",
+        "type": "Type",
+        "details": "Details",
+        "category": "Category",
+        "recipient": "Recipient",
+        "recurring": "Recurring",
+        "chomesh": "Tithe?",
+        "amount": "Amount"
+      },
+      "frequencies": {
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "yearly": "Yearly"
+      },
+      "recurringPrefix": "Rec.",
+      "yes": "Yes",
+      "no": "No",
+      "page": "Page {{current}} of {{total}}"
+    }
+  },
+  "boolean": {
+    "yes": "Yes",
+    "no": "No"
+  }
 }

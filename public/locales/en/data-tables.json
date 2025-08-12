@@ -1,4 +1,5 @@
 {
+  "sheetName": "Transactions",
   "transactionsTable": {
     "pageTitle": "Transactions Table",
     "loading": "Loading platform data..."
@@ -11,13 +12,27 @@
     "clearSelection": "Clear selection"
   },
   "filters": {
+    "freeSearch": "Free Search",
+    "searchPlaceholder": "Description, category, recipient...",
     "dateRange": "Date Range",
-    "type": "Transaction Type",
-    "category": "Category",
-    "amount": "Amount",
-    "currency": "Currency",
-    "reset": "Reset Filters",
-    "apply": "Apply Filters"
+    "transactionTypes": "Transaction Types",
+    "allTypes": "All Types",
+    "typesSelected": "{{count}} types selected",
+    "selectTransactionTypes": "Select transaction types",
+    "recurringTransactions": "Recurring Transactions",
+    "filterRecurringPlaceholder": "Filter recurring transactions...",
+    "all": "All",
+    "recurringOnly": "Recurring Only",
+    "regularOnly": "Regular Only",
+    "recurringStatus": "Recurring Status",
+    "allStatuses": "All Statuses",
+    "statusesSelected": "{{count}} selected",
+    "filterByStatus": "Filter by status",
+    "recurringFrequency": "Recurring Frequency",
+    "allFrequencies": "All Frequencies",
+    "frequenciesSelected": "{{count}} selected",
+    "filterByFrequency": "Filter by frequency",
+    "resetFilters": "Reset Filters"
   },
   "columns": {
     "select": "Select",
@@ -30,7 +45,15 @@
     "recipient": "Recipient/Payer",
     "chomesh": "Chomesh?",
     "recurring": "Recurring",
-    "actions": "Actions"
+    "actions": "Actions",
+    "movementType": "Movement Type",
+    "recurringStatus": "Rec. Status",
+    "recurringProgress": "Rec. Progress",
+    "id": "ID",
+    "userId": "User ID",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At",
+    "sourceRecurringId": "Source Rec. ID"
   },
   "types": {
     "income": "Income",
@@ -85,6 +108,10 @@
   "buttons": {
     "showRecurring": "Show Recurring"
   },
+  "movementType": {
+    "recurring": "Recurring",
+    "regular": "Regular"
+  },
   "dialog": {
     "deleteTitle": "Confirm Transaction Deletion",
     "deleteDescription": "Are you sure you want to delete the transaction \"{{description}}\" from {{date}}? This action cannot be undone."
@@ -116,29 +143,7 @@
       "yearly": "Yearly"
     }
   },
-  "filters": {
-    "freeSearch": "Free Search",
-    "searchPlaceholder": "Description, category, recipient...",
-    "dateRange": "Date Range",
-    "transactionTypes": "Transaction Types",
-    "allTypes": "All Types",
-    "typesSelected": "{{count}} types selected",
-    "selectTransactionTypes": "Select transaction types",
-    "recurringTransactions": "Recurring Transactions",
-    "filterRecurringPlaceholder": "Filter recurring transactions...",
-    "all": "All",
-    "recurringOnly": "Recurring Only",
-    "regularOnly": "Regular Only",
-    "recurringStatus": "Recurring Status",
-    "allStatuses": "All Statuses",
-    "statusesSelected": "{{count}} selected",
-    "filterByStatus": "Filter by status",
-    "recurringFrequency": "Recurring Frequency",
-    "allFrequencies": "All Frequencies",
-    "frequenciesSelected": "{{count}} selected",
-    "filterByFrequency": "Filter by frequency",
-    "resetFilters": "Reset Filters"
-  },
+
   "recurringFilters": {
     "title": "Filter Recurring Transactions",
     "searchPlaceholder": "Search by description...",

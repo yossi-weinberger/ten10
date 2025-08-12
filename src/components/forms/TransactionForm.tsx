@@ -57,9 +57,11 @@ export function TransactionForm({
     income: t("transactionForm.transactionType.income"),
     donation: t("transactionForm.transactionType.donation"),
     expense: t("transactionForm.transactionType.expense"),
-    "exempt-income": t("transactionForm.transactionType.exempt-income"), // For future use
-    "recognized-expense": t("transactionForm.transactionType.recognized-expense"), // For future use
-    non_tithe_donation: t("transactionForm.transactionType.non_tithe_donation"), // Renamed label
+    "exempt-income": t("transactionForm.transactionType.exempt-income"),
+    "recognized-expense": t(
+      "transactionForm.transactionType.recognized-expense"
+    ),
+    non_tithe_donation: t("transactionForm.transactionType.non_tithe_donation"),
   };
 
   const updateTransaction = useTableTransactionsStore(
@@ -212,16 +214,16 @@ export function TransactionForm({
         {/* Type Selection using Tabs - Replaced with new component */}
         <TransactionTypeSelector form={form} selectedType={selectedType} />
 
-        {/* סכום (כולל מטבע) ותאריך באותה שורה - Replaced with new component */}
+        {/* Amount, currency and date fields - Replaced with new component */}
         <AmountCurrencyDateFields
           form={form}
           availableCurrencies={CURRENCIES}
         />
 
-        {/* תיאור וקטגוריה/מקבל תרומה באותה שורה - Replaced with new component */}
+        {/* Description and category/recipient fields - Replaced with new component */}
         <DescriptionCategoryFields form={form} selectedType={selectedType} />
 
-        {/* כל הצ'קבוקסים בשורה אחת כריבועים - Replaced with new component */}
+        {/* All checkboxes in one row as squares - Replaced with new component */}
         <TransactionCheckboxes
           form={form}
           selectedType={selectedType}
