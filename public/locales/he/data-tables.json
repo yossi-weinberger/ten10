@@ -1,4 +1,5 @@
 {
+  "sheetName": "תנועות",
   "transactionsTable": {
     "pageTitle": "טבלת תנועות",
     "loading": "טוען נתוני פלטפורמה..."
@@ -30,7 +31,15 @@
     "recipient": "נמען/משלם",
     "chomesh": "חומש?",
     "recurring": "הוראת קבע",
-    "actions": "פעולות"
+    "actions": "פעולות",
+    "movementType": "סוג תנועה",
+    "recurringStatus": "סטטוס ה\"ק",
+    "recurringProgress": "התקדמות ה\"ק",
+    "id": "מזהה",
+    "userId": "מזהה משתמש",
+    "createdAt": "נוצר בתאריך",
+    "updatedAt": "עודכן בתאריך",
+    "sourceRecurringId": "מזהה ה\"ק מקור"
   },
   "types": {
     "income": "הכנסה",
@@ -90,6 +99,10 @@
   },
   "buttons": {
     "showRecurring": "הצג הוראות קבע"
+  },
+  "movementType": {
+    "recurring": "הוראת קבע",
+    "regular": "רגילה"
   },
   "dialog": {
     "deleteTitle": "אישור מחיקת תנועה",

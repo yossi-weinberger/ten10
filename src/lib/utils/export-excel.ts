@@ -15,7 +15,11 @@ export async function exportTransactionsToExcel(
 
   const isHebrew = currentLanguage === "he";
 
-  const sheet = workbook.addWorksheet(isHebrew ? "עסקאות" : "Transactions", {
+  const sheetName = i18n.t("sheetName", {
+    lng: currentLanguage,
+    ns: "data-tables",
+  });
+  const sheet = workbook.addWorksheet(sheetName, {
     views: [{ rightToLeft: isHebrew }],
     properties: { defaultRowHeight: 20 },
   });
@@ -23,67 +27,76 @@ export async function exportTransactionsToExcel(
   // Column order: Date, Type, Amount+Currency, Description, Category, Is Chomesh, Is Recurring, Rec Status, Rec Progress
   const baseColumns = [
     {
-      header:
-        i18n.t("columns.date", { lng: currentLanguage, ns: "data-tables" }) ||
-        (isHebrew ? "תאריך" : "Date"),
+      header: i18n.t("columns.date", {
+        lng: currentLanguage,
+        ns: "data-tables",
+      }),
       key: "date",
       width: 12,
       style: { numFmt: "dd/mm/yyyy" },
     },
     {
-      header:
-        i18n.t("columns.type", { lng: currentLanguage, ns: "data-tables" }) ||
-        (isHebrew ? "סוג" : "Type"),
+      header: i18n.t("columns.type", {
+        lng: currentLanguage,
+        ns: "data-tables",
+      }),
       key: "type",
       width: 15,
     },
     {
-      header:
-        i18n.t("columns.amount", { lng: currentLanguage, ns: "data-tables" }) ||
-        (isHebrew ? "סכום" : "Amount"),
+      header: i18n.t("columns.amount", {
+        lng: currentLanguage,
+        ns: "data-tables",
+      }),
       key: "amount",
       width: 18,
       style: { numFmt: "#,##0.00" }, // Generic number format, currency will be set per cell
     },
     {
-      header:
-        i18n.t("columns.description", {
-          lng: currentLanguage,
-          ns: "data-tables",
-        }) || (isHebrew ? "תיאור" : "Description"),
+      header: i18n.t("columns.description", {
+        lng: currentLanguage,
+        ns: "data-tables",
+      }),
       key: "description",
       width: 30,
     },
     {
-      header:
-        i18n.t("columns.category", {
-          lng: currentLanguage,
-          ns: "data-tables",
-        }) || (isHebrew ? "קטגוריה" : "Category"),
+      header: i18n.t("columns.category", {
+        lng: currentLanguage,
+        ns: "data-tables",
+      }),
       key: "category",
       width: 20,
     },
     {
-      header:
-        i18n.t("columns.chomesh", {
-          lng: currentLanguage,
-          ns: "data-tables",
-        }) || (isHebrew ? "חומש?" : "Chomesh?"),
+      header: i18n.t("columns.chomesh", {
+        lng: currentLanguage,
+        ns: "data-tables",
+      }),
       key: "is_chomesh",
       width: 10,
     },
     {
-      header: isHebrew ? "הוראת קבע?" : "Recurring?",
+      header: i18n.t("columns.recurring", {
+        lng: currentLanguage,
+        ns: "data-tables",
+      }),
       key: "is_recurring",
       width: 12,
     },
     {
-      header: isHebrew ? 'סטטוס הו"ק' : "Rec. Status",
+      header: i18n.t("columns.recurringStatus", {
+        lng: currentLanguage,
+        ns: "data-tables",
+      }),
       key: "recurring_status",
       width: 18,
     },
     {
-      header: isHebrew ? 'התקדמות הו"ק' : "Rec. Progress",
+      header: i18n.t("columns.recurringProgress", {
+        lng: currentLanguage,
+        ns: "data-tables",
+      }),
       key: "recurring_progress",
       width: 18,
     },
@@ -98,20 +111,10 @@ export async function exportTransactionsToExcel(
       transaction.source_recurring_id || transaction.recurring_frequency
     );
     const frequencyText = transaction.recurring_frequency
-      ? (isHebrew
-          ? {
-              daily: "יומית",
-              weekly: "שבועית",
-              monthly: "חודשית",
-              yearly: "שנתית",
-            }
-          : {
-              daily: "Daily",
-              weekly: "Weekly",
-              monthly: "Monthly",
-              yearly: "Yearly",
-            })[transaction.recurring_frequency] ||
-        transaction.recurring_frequency
+      ? i18n.t(`pdf.frequencies.${transaction.recurring_frequency}`, {
+          lng: currentLanguage,
+          ns: "common",
+        }) || transaction.recurring_frequency
       : "";
 
     const progressText =
@@ -134,20 +137,12 @@ export async function exportTransactionsToExcel(
       is_chomesh:
         transaction.type === "income"
           ? transaction.is_chomesh
-            ? isHebrew
-              ? "כן"
-              : "Yes"
-            : isHebrew
-            ? "לא"
-            : "No"
+            ? i18n.t("boolean.yes", { lng: currentLanguage, ns: "common" })
+            : i18n.t("boolean.no", { lng: currentLanguage, ns: "common" })
           : "",
       is_recurring: isRecurring
-        ? isHebrew
-          ? "כן"
-          : "Yes"
-        : isHebrew
-        ? "לא"
-        : "No",
+        ? i18n.t("boolean.yes", { lng: currentLanguage, ns: "common" })
+        : i18n.t("boolean.no", { lng: currentLanguage, ns: "common" }),
       recurring_status: frequencyText,
       recurring_progress: progressText,
     };
@@ -212,9 +207,8 @@ export async function exportTransactionsToExcel(
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `Ten10-transactions-${
-    new Date().toISOString().split("T")[0]
-  }.xlsx`;
+  const baseName = filename.replace(/\.xlsx$/i, "");
+  a.download = `${baseName}-${new Date().toISOString().split("T")[0]}.xlsx`;
   a.click();
   window.URL.revokeObjectURL(url);
 }

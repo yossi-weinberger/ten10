@@ -35,33 +35,31 @@ export function exportTransactionsToCSV(
   const isHebrew = currentLanguage === "he";
 
   const headers = [
-    i18n.t("columns.date", { lng: currentLanguage, ns: "data-tables" }) ||
-      (isHebrew ? "תאריך" : "Date"),
-    i18n.t("columns.type", { lng: currentLanguage, ns: "data-tables" }) ||
-      (isHebrew ? "סוג" : "Type"),
-    i18n.t("columns.description", {
+    i18n.t("columns.date", { lng: currentLanguage, ns: "data-tables" }),
+    i18n.t("columns.type", { lng: currentLanguage, ns: "data-tables" }),
+    i18n.t("columns.description", { lng: currentLanguage, ns: "data-tables" }),
+    i18n.t("columns.category", { lng: currentLanguage, ns: "data-tables" }),
+    i18n.t("columns.recipient", { lng: currentLanguage, ns: "data-tables" }),
+    i18n.t("columns.amount", { lng: currentLanguage, ns: "data-tables" }),
+    i18n.t("columns.currency", { lng: currentLanguage, ns: "data-tables" }),
+    i18n.t("columns.chomesh", { lng: currentLanguage, ns: "data-tables" }),
+    i18n.t("columns.movementType", { lng: currentLanguage, ns: "data-tables" }),
+    i18n.t("columns.recurringStatus", {
       lng: currentLanguage,
       ns: "data-tables",
-    }) || (isHebrew ? "תיאור" : "Description"),
-    i18n.t("columns.category", { lng: currentLanguage, ns: "data-tables" }) ||
-      (isHebrew ? "קטגוריה" : "Category"),
-    i18n.t("columns.recipient", { lng: currentLanguage, ns: "data-tables" }) ||
-      (isHebrew ? "נמען/משלם" : "Recipient/Payer"),
-    i18n.t("columns.amount", { lng: currentLanguage, ns: "data-tables" }) ||
-      (isHebrew ? "סכום" : "Amount"),
-    i18n.t("columns.currency", { lng: currentLanguage, ns: "data-tables" }) ||
-      (isHebrew ? "מטבע" : "Currency"),
-    i18n.t("columns.chomesh", { lng: currentLanguage, ns: "data-tables" }) ||
-      (isHebrew ? "חומש?" : "Chomesh?"),
-    isHebrew ? "סוג תנועה" : "Movement Type",
-    isHebrew ? 'סטטוס ה"ק' : "Rec. Status",
-    isHebrew ? 'תדירות ה"ק' : "Rec. Frequency",
-    isHebrew ? 'התקדמות ה"ק' : "Rec. Progress",
-    isHebrew ? "מזהה" : "ID",
-    isHebrew ? "מזהה משתמש" : "User ID",
-    isHebrew ? "נוצר בתאריך" : "Created At",
-    isHebrew ? "עודכן בתאריך" : "Updated At",
-    isHebrew ? 'מזהה ה"ק מקור' : "Source Rec. ID",
+    }),
+    i18n.t("columns.recurringProgress", {
+      lng: currentLanguage,
+      ns: "data-tables",
+    }),
+    i18n.t("columns.id", { lng: currentLanguage, ns: "data-tables" }),
+    i18n.t("columns.userId", { lng: currentLanguage, ns: "data-tables" }),
+    i18n.t("columns.createdAt", { lng: currentLanguage, ns: "data-tables" }),
+    i18n.t("columns.updatedAt", { lng: currentLanguage, ns: "data-tables" }),
+    i18n.t("columns.sourceRecurringId", {
+      lng: currentLanguage,
+      ns: "data-tables",
+    }),
   ];
 
   const csvRows = [
@@ -73,20 +71,10 @@ export function exportTransactionsToCSV(
       );
 
       const frequencyText = transaction.recurring_frequency
-        ? (isHebrew
-            ? {
-                daily: "יומית",
-                weekly: "שבועית",
-                monthly: "חודשית",
-                yearly: "שנתית",
-              }
-            : {
-                daily: "Daily",
-                weekly: "Weekly",
-                monthly: "Monthly",
-                yearly: "Yearly",
-              })[transaction.recurring_frequency] ||
-          transaction.recurring_frequency
+        ? i18n.t(`pdf.frequencies.${transaction.recurring_frequency}`, {
+            lng: currentLanguage,
+            ns: "common",
+          }) || transaction.recurring_frequency
         : "";
 
       const progressText =
@@ -114,21 +102,19 @@ export function exportTransactionsToCSV(
         transaction.amount,
         transaction.currency,
         transaction.is_chomesh
-          ? isHebrew
-            ? "כן"
-            : "Yes"
+          ? i18n.t("boolean.yes", { lng: currentLanguage, ns: "common" })
           : transaction.is_chomesh === false
-          ? isHebrew
-            ? "לא"
-            : "No"
+          ? i18n.t("boolean.no", { lng: currentLanguage, ns: "common" })
           : "",
         isRecurring
-          ? isHebrew
-            ? "הוראת קבע"
-            : "Recurring"
-          : isHebrew
-          ? "רגילה"
-          : "Regular",
+          ? i18n.t("movementType.recurring", {
+              lng: currentLanguage,
+              ns: "data-tables",
+            })
+          : i18n.t("movementType.regular", {
+              lng: currentLanguage,
+              ns: "data-tables",
+            }),
         "", // recurring status - not available in current Transaction type
         frequencyText,
         progressText,

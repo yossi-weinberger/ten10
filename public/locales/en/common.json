@@ -80,5 +80,9 @@
       "no": "No",
       "page": "Page {{current}} of {{total}}"
     }
+  },
+  "boolean": {
+    "yes": "Yes",
+    "no": "No"
   }
 }
