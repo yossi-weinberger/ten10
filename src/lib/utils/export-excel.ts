@@ -1,11 +1,11 @@
 import ExcelJS from "exceljs";
 import type { Transaction } from "@/types/transaction";
+import i18n from "@/lib/i18n";
 
 export async function exportTransactionsToExcel(
   transactions: Transaction[],
   filename = "Ten10-transactions.xlsx",
-  currentLanguage: string = "he",
-  translations?: Record<string, string>
+  currentLanguage: string = "he"
 ) {
   const workbook = new ExcelJS.Workbook();
 
@@ -13,69 +13,9 @@ export async function exportTransactionsToExcel(
   workbook.created = new Date();
   workbook.modified = new Date();
 
-  // Use provided translations or fallback to static ones
   const isHebrew = currentLanguage === "he";
-  const t = (key: string) => {
-    if (translations && translations[key]) {
-      return translations[key];
-    }
 
-    // Fallback static translations
-    const fallbackTranslations = isHebrew
-      ? {
-          "sheet.name": "עסקאות",
-          "columns.date": "תאריך",
-          "columns.type": "סוג",
-          "columns.amount": "סכום",
-          "columns.description": "תיאור",
-          "columns.category": "קטגוריה",
-          "columns.is_chomesh": "חומש?",
-          "columns.is_recurring": "הוראת קבע?",
-          "columns.recurring_status": 'סטטוס הו"ק',
-          "columns.recurring_progress": 'התקדמות הו"ק',
-          "values.yes": "כן",
-          "values.no": "לא",
-          "transactionTypes.income": "הכנסה",
-          "transactionTypes.expense": "הוצאה",
-          "transactionTypes.donation": "תרומה",
-          "transactionTypes.exempt-income": "הכנסה פטורה",
-          "transactionTypes.recognized-expense": "הוצאה מוכרת",
-          "transactionTypes.non_tithe_donation": "תרומה ללא מעשר",
-          "frequencies.daily": "יומית",
-          "frequencies.weekly": "שבועית",
-          "frequencies.monthly": "חודשית",
-          "frequencies.yearly": "שנתית",
-        }
-      : {
-          "sheet.name": "Transactions",
-          "columns.date": "Date",
-          "columns.type": "Type",
-          "columns.amount": "Amount",
-          "columns.description": "Description",
-          "columns.category": "Category",
-          "columns.is_chomesh": "Chomesh?",
-          "columns.is_recurring": "Recurring?",
-          "columns.recurring_status": "Rec. Status",
-          "columns.recurring_progress": "Rec. Progress",
-          "values.yes": "Yes",
-          "values.no": "No",
-          "transactionTypes.income": "Income",
-          "transactionTypes.expense": "Expense",
-          "transactionTypes.donation": "Donation",
-          "transactionTypes.exempt-income": "Exempt Income",
-          "transactionTypes.recognized-expense": "Recognized Expense",
-          "transactionTypes.non_tithe_donation": "Non-tithe Donation",
-          "frequencies.daily": "Daily",
-          "frequencies.weekly": "Weekly",
-          "frequencies.monthly": "Monthly",
-          "frequencies.yearly": "Yearly",
-        };
-    return (
-      fallbackTranslations[key as keyof typeof fallbackTranslations] || key
-    );
-  };
-
-  const sheet = workbook.addWorksheet(t("sheet.name"), {
+  const sheet = workbook.addWorksheet(isHebrew ? "עסקאות" : "Transactions", {
     views: [{ rightToLeft: isHebrew }],
     properties: { defaultRowHeight: 20 },
   });
@@ -83,29 +23,67 @@ export async function exportTransactionsToExcel(
   // Column order: Date, Type, Amount+Currency, Description, Category, Is Chomesh, Is Recurring, Rec Status, Rec Progress
   const baseColumns = [
     {
-      header: t("columns.date"),
+      header:
+        i18n.t("columns.date", { lng: currentLanguage, ns: "data-tables" }) ||
+        (isHebrew ? "תאריך" : "Date"),
       key: "date",
       width: 12,
       style: { numFmt: "dd/mm/yyyy" },
     },
-    { header: t("columns.type"), key: "type", width: 15 },
     {
-      header: t("columns.amount"),
+      header:
+        i18n.t("columns.type", { lng: currentLanguage, ns: "data-tables" }) ||
+        (isHebrew ? "סוג" : "Type"),
+      key: "type",
+      width: 15,
+    },
+    {
+      header:
+        i18n.t("columns.amount", { lng: currentLanguage, ns: "data-tables" }) ||
+        (isHebrew ? "סכום" : "Amount"),
       key: "amount",
       width: 18,
       style: { numFmt: "#,##0.00" }, // Generic number format, currency will be set per cell
     },
-    { header: t("columns.description"), key: "description", width: 30 },
-    { header: t("columns.category"), key: "category", width: 20 },
-    { header: t("columns.is_chomesh"), key: "is_chomesh", width: 10 },
-    { header: t("columns.is_recurring"), key: "is_recurring", width: 12 },
     {
-      header: t("columns.recurring_status"),
+      header:
+        i18n.t("columns.description", {
+          lng: currentLanguage,
+          ns: "data-tables",
+        }) || (isHebrew ? "תיאור" : "Description"),
+      key: "description",
+      width: 30,
+    },
+    {
+      header:
+        i18n.t("columns.category", {
+          lng: currentLanguage,
+          ns: "data-tables",
+        }) || (isHebrew ? "קטגוריה" : "Category"),
+      key: "category",
+      width: 20,
+    },
+    {
+      header:
+        i18n.t("columns.chomesh", {
+          lng: currentLanguage,
+          ns: "data-tables",
+        }) || (isHebrew ? "חומש?" : "Chomesh?"),
+      key: "is_chomesh",
+      width: 10,
+    },
+    {
+      header: isHebrew ? "הוראת קבע?" : "Recurring?",
+      key: "is_recurring",
+      width: 12,
+    },
+    {
+      header: isHebrew ? 'סטטוס הו"ק' : "Rec. Status",
       key: "recurring_status",
       width: 18,
     },
     {
-      header: t("columns.recurring_progress"),
+      header: isHebrew ? 'התקדמות הו"ק' : "Rec. Progress",
       key: "recurring_progress",
       width: 18,
     },
@@ -119,22 +97,20 @@ export async function exportTransactionsToExcel(
     const isRecurring = !!(
       transaction.source_recurring_id || transaction.recurring_frequency
     );
-    const freqMap = isHebrew
-      ? {
-          daily: "יומית",
-          weekly: "שבועית",
-          monthly: "חודשית",
-          yearly: "שנתית",
-        }
-      : {
-          daily: "Daily",
-          weekly: "Weekly",
-          monthly: "Monthly",
-          yearly: "Yearly",
-        };
-
     const frequencyText = transaction.recurring_frequency
-      ? freqMap[transaction.recurring_frequency as keyof typeof freqMap] ||
+      ? (isHebrew
+          ? {
+              daily: "יומית",
+              weekly: "שבועית",
+              monthly: "חודשית",
+              yearly: "שנתית",
+            }
+          : {
+              daily: "Daily",
+              weekly: "Weekly",
+              monthly: "Monthly",
+              yearly: "Yearly",
+            })[transaction.recurring_frequency] ||
         transaction.recurring_frequency
       : "";
 
@@ -147,17 +123,31 @@ export async function exportTransactionsToExcel(
 
     const rowData = {
       date: new Date(transaction.date),
-      type: t(`transactionTypes.${transaction.type}`) || transaction.type,
+      type:
+        i18n.t(`export.transactionTypes.${transaction.type}`, {
+          lng: currentLanguage,
+          ns: "common",
+        }) || transaction.type,
       amount: transaction.amount,
       description: transaction.description || "",
       category: transaction.category || "",
       is_chomesh:
         transaction.type === "income"
           ? transaction.is_chomesh
-            ? t("values.yes")
-            : t("values.no")
+            ? isHebrew
+              ? "כן"
+              : "Yes"
+            : isHebrew
+            ? "לא"
+            : "No"
           : "",
-      is_recurring: isRecurring ? t("values.yes") : t("values.no"),
+      is_recurring: isRecurring
+        ? isHebrew
+          ? "כן"
+          : "Yes"
+        : isHebrew
+        ? "לא"
+        : "No",
       recurring_status: frequencyText,
       recurring_progress: progressText,
     };

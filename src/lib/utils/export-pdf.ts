@@ -1,10 +1,10 @@
-import { PDFDocument, rgb, PDFFont, cmyk } from "pdf-lib";
+import { PDFDocument, rgb, PDFFont } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { Transaction } from "@/types/transaction";
 import { format } from "date-fns";
 import { formatCurrency } from "./currency";
 import { typeBadgeColors } from "@/types/transactionLabels";
-import i18n from "i18next";
+import i18n from "@/lib/i18n";
 
 // Import fonts directly using Vite's ?url feature for robust path handling
 import assistantFontUrl from "/fonts/Assistant-VariableFont_wght.ttf?url";
@@ -146,7 +146,7 @@ export async function exportTransactionsToPDF(
       dateRangeText = i18n.t("export.pdf.dateRange", {
         from: format(dateRange.from, "dd/MM/yy"),
         to: format(dateRange.to, "dd/MM/yy"),
-        lng: i18n.language,
+        lng: currentLanguage,
       });
     }
     drawDirectionalText(dateRangeText, {
@@ -160,7 +160,7 @@ export async function exportTransactionsToPDF(
 
     const creationDateText = i18n.t("export.pdf.createdOn", {
       date: format(new Date(), "dd/MM/yyyy HH:mm"),
-      lng: i18n.language,
+      lng: currentLanguage,
     });
     drawDirectionalText(creationDateText, {
       x: titleX,
@@ -174,7 +174,7 @@ export async function exportTransactionsToPDF(
     const countText = i18n.t("export.pdf.showing", {
       current: transactions.length,
       total: totalCount,
-      lng: i18n.language,
+      lng: currentLanguage,
     });
     drawDirectionalText(countText, {
       x: titleX,
@@ -412,7 +412,7 @@ export async function exportTransactionsToPDF(
       const pageText = i18n.t("export.pdf.page", {
         current: i + 1,
         total: pages.length,
-        lng: i18n.language,
+        lng: currentLanguage,
       });
       const textWidth = customFont.widthOfTextAtSize(pageText, 8);
       p.drawText(pageText, {
