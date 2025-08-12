@@ -3,10 +3,8 @@ import fontkit from "@pdf-lib/fontkit";
 import { Transaction } from "@/types/transaction";
 import { format } from "date-fns";
 import { formatCurrency } from "./currency";
-import {
-  transactionTypeLabels,
-  typeBadgeColors,
-} from "@/types/transactionLabels";
+import { typeBadgeColors } from "@/types/transactionLabels";
+import i18n from "i18next";
 
 // Import fonts directly using Vite's ?url feature for robust path handling
 import assistantFontUrl from "/fonts/Assistant-VariableFont_wght.ttf?url";
@@ -70,7 +68,8 @@ export async function exportTransactionsToPDF(
       to?: Date;
     };
   },
-  totalCount: number
+  totalCount: number,
+  currentLanguage: string = "he"
 ) {
   try {
     const pdfDoc = await PDFDocument.create();
@@ -84,11 +83,13 @@ export async function exportTransactionsToPDF(
 
     let page = pdfDoc.addPage();
     const { width, height } = page.getSize();
-    const margin = 30;
+    const margin = 15;
     const contentWidth = width - 2 * margin;
     const textColor = rgb(0, 0, 0); // Pure black for max readability
 
-    const drawRtlText = (
+    // Helper function for direction-aware text alignment
+    const isRtl = currentLanguage === "he";
+    const drawDirectionalText = (
       text: string,
       options: {
         x: number;
@@ -98,34 +99,39 @@ export async function exportTransactionsToPDF(
         color?: any;
       }
     ) => {
-      const textWidth = options.font.widthOfTextAtSize(text, options.size);
-      page.drawText(text, {
-        ...options,
-        x: options.x - textWidth,
-      });
+      if (isRtl) {
+        const textWidth = options.font.widthOfTextAtSize(text, options.size);
+        page.drawText(text, {
+          ...options,
+          x: options.x - textWidth,
+        });
+      } else {
+        page.drawText(text, options);
+      }
     };
 
     let y = height - margin - 10;
 
     // --- 1. Header ---
-    const titleX = width - margin;
-    // Draw Logo Placeholder
+    const titleX = isRtl ? width - margin : margin;
+    // Logo position: left in Hebrew (RTL), right in English (LTR)
+    const logoX = isRtl ? margin : width - margin - 60;
     page.drawRectangle({
-      x: margin,
+      x: logoX,
       y: y - 40,
       width: 60,
       height: 60,
       color: rgb(0.92, 0.92, 0.92),
     });
-    page.drawText("לוגו", {
-      x: margin + 22,
+    page.drawText(i18n.t("export.pdf.logo", { lng: currentLanguage }), {
+      x: logoX + 22,
       y: y - 15,
       font: customFont,
       size: 10,
       color: rgb(0.6, 0.6, 0.6),
     });
 
-    drawRtlText("דוח תנועות", {
+    drawDirectionalText(i18n.t("export.pdf.title", { lng: currentLanguage }), {
       x: titleX,
       y,
       font: boldFont,
@@ -135,14 +141,15 @@ export async function exportTransactionsToPDF(
     y -= 28;
 
     const dateRange = filters.dateRange;
-    let dateRangeText = "כל התאריכים";
+    let dateRangeText = i18n.t("export.pdf.allDates", { lng: currentLanguage });
     if (dateRange.from && dateRange.to) {
-      dateRangeText = `מתאריך ${format(dateRange.from, "dd/MM/yy")} עד ${format(
-        dateRange.to,
-        "dd/MM/yy"
-      )}`;
+      dateRangeText = i18n.t("export.pdf.dateRange", {
+        from: format(dateRange.from, "dd/MM/yy"),
+        to: format(dateRange.to, "dd/MM/yy"),
+        lng: i18n.language,
+      });
     }
-    drawRtlText(dateRangeText, {
+    drawDirectionalText(dateRangeText, {
       x: titleX,
       y,
       font: customFont,
@@ -151,11 +158,11 @@ export async function exportTransactionsToPDF(
     });
     y -= 14;
 
-    const creationDateText = `הופק בתאריך: ${format(
-      new Date(),
-      "dd/MM/yyyy HH:mm"
-    )}`;
-    drawRtlText(creationDateText, {
+    const creationDateText = i18n.t("export.pdf.createdOn", {
+      date: format(new Date(), "dd/MM/yyyy HH:mm"),
+      lng: i18n.language,
+    });
+    drawDirectionalText(creationDateText, {
       x: titleX,
       y,
       font: customFont,
@@ -164,8 +171,12 @@ export async function exportTransactionsToPDF(
     });
     y -= 14;
 
-    const countText = `מציג ${transactions.length} מתוך ${totalCount} תנועות`;
-    drawRtlText(countText, {
+    const countText = i18n.t("export.pdf.showing", {
+      current: transactions.length,
+      total: totalCount,
+      lng: i18n.language,
+    });
+    drawDirectionalText(countText, {
       x: titleX,
       y,
       font: boldFont,
@@ -176,17 +187,18 @@ export async function exportTransactionsToPDF(
 
     // --- 2. Table ---
     let tableTop = y;
+    // New column order: Date, Type, Amount, Description, Category, Recipient, Chomesh, Recurring
     const tableHeaders = [
-      "תאריך",
-      "סוג",
-      "פרטים",
-      "קטגוריה",
-      "נמען",
-      "הוראת קבע",
-      "חומש?",
-      "סכום",
+      i18n.t("export.pdf.columns.date", { lng: currentLanguage }),
+      i18n.t("export.pdf.columns.type", { lng: currentLanguage }),
+      i18n.t("export.pdf.columns.amount", { lng: currentLanguage }),
+      i18n.t("export.pdf.columns.details", { lng: currentLanguage }),
+      i18n.t("export.pdf.columns.category", { lng: currentLanguage }),
+      i18n.t("export.pdf.columns.recipient", { lng: currentLanguage }),
+      i18n.t("export.pdf.columns.chomesh", { lng: currentLanguage }),
+      i18n.t("export.pdf.columns.recurring", { lng: currentLanguage }),
     ];
-    const columnWidths = [55, 75, 120, 70, 70, 70, 40, 60];
+    const columnWidths = [55, 75, 60, 120, 70, 70, 40, 70];
     const tableHeaderHeight = 25;
     const tableRowHeight = 40;
 
@@ -198,18 +210,36 @@ export async function exportTransactionsToPDF(
         height: tableHeaderHeight,
         color: rgb(0.15, 0.15, 0.15),
       });
-      let currentX = width - margin;
-      tableHeaders.forEach((header, i) => {
-        const textWidth = boldFont.widthOfTextAtSize(header, 10);
-        page.drawText(header, {
-          x: currentX - columnWidths[i] + (columnWidths[i] - textWidth) / 2,
-          y: yPos - tableHeaderHeight + 8,
-          font: boldFont,
-          size: 10,
-          color: rgb(1, 1, 1),
+
+      if (isRtl) {
+        // RTL: Start from right and go left
+        let currentX = width - margin;
+        tableHeaders.forEach((header, i) => {
+          const textWidth = boldFont.widthOfTextAtSize(header, 10);
+          page.drawText(header, {
+            x: currentX - columnWidths[i] + (columnWidths[i] - textWidth) / 2,
+            y: yPos - tableHeaderHeight + 8,
+            font: boldFont,
+            size: 10,
+            color: rgb(1, 1, 1),
+          });
+          currentX -= columnWidths[i];
         });
-        currentX -= columnWidths[i];
-      });
+      } else {
+        // LTR: Start from left and go right
+        let currentX = margin;
+        tableHeaders.forEach((header, i) => {
+          const textWidth = boldFont.widthOfTextAtSize(header, 10);
+          page.drawText(header, {
+            x: currentX + (columnWidths[i] - textWidth) / 2,
+            y: yPos - tableHeaderHeight + 8,
+            font: boldFont,
+            size: 10,
+            color: rgb(1, 1, 1),
+          });
+          currentX += columnWidths[i];
+        });
+      }
     };
 
     drawTableHeader(tableTop);
@@ -243,46 +273,63 @@ export async function exportTransactionsToPDF(
       });
 
       const freqMap: { [key: string]: string } = {
-        daily: "יומית",
-        weekly: "שבועית",
-        monthly: "חודשית",
-        yearly: "שנתית",
+        daily: i18n.t("export.pdf.frequencies.daily", { lng: currentLanguage }),
+        weekly: i18n.t("export.pdf.frequencies.weekly", {
+          lng: currentLanguage,
+        }),
+        monthly: i18n.t("export.pdf.frequencies.monthly", {
+          lng: currentLanguage,
+        }),
+        yearly: i18n.t("export.pdf.frequencies.yearly", {
+          lng: currentLanguage,
+        }),
       };
 
+      // Description field - only contains the notes/description, no additions
       let detailsText = t.description || "-";
       let recurringStatusText = "-";
-      const currentOccurrence =
-        t.occurrence_number ?? t.recurring_info?.execution_count;
 
-      if (t.recurring_info) {
-        const freqText =
-          freqMap[t.recurring_info.frequency] || t.recurring_info.frequency;
-        detailsText += ` (ה"ק ${freqText})`;
-        const totalOccurrences = t.recurring_info.total_occurrences || "∞";
-        recurringStatusText = `(${
-          currentOccurrence ?? "?"
-        }/${totalOccurrences})`;
+      // Handle recurring status in separate column
+      if (t.source_recurring_id || t.recurring_frequency) {
+        const freqText = t.recurring_frequency
+          ? freqMap[t.recurring_frequency] || t.recurring_frequency
+          : "-";
+
+        if (t.occurrence_number && t.total_occurrences) {
+          recurringStatusText = `${freqText} (${t.occurrence_number}/${t.total_occurrences})`;
+        } else if (t.occurrence_number) {
+          recurringStatusText = `${freqText} (${t.occurrence_number}/∞)`;
+        } else {
+          recurringStatusText = freqText;
+        }
       }
 
       const chomeshText =
-        t.type === "income" ? (t.is_chomesh ? "כן" : "לא") : "-";
+        t.type === "income"
+          ? t.is_chomesh
+            ? i18n.t("export.pdf.yes", { lng: currentLanguage })
+            : i18n.t("export.pdf.no", { lng: currentLanguage })
+          : "-";
 
+      // Match the new column order: Date, Type, Amount, Description, Category, Recipient, Chomesh, Recurring
       const rowData = [
         format(new Date(t.date), "dd/MM/yy"),
-        transactionTypeLabels[t.type] || t.type,
+        i18n.t(`export.transactionTypes.${t.type}`, { lng: currentLanguage }) ||
+          t.type,
+        formatCurrency(t.amount),
         detailsText,
         t.category || "-",
         t.recipient || "-",
-        recurringStatusText,
         chomeshText,
-        formatCurrency(t.amount),
+        recurringStatusText,
       ];
 
-      let cellX = width - margin;
+      let cellX = isRtl ? width - margin : margin;
       rowData.forEach((cellText, i) => {
         const colWidth = columnWidths[i];
 
         // Special handling for the 'type' column with color badges
+        // Type column is now always at index 1 (second column)
         if (i === 1) {
           const { textColor: badgeTextColor, bgColor: badgeBgColor } =
             parseTailwindColor(typeBadgeColors[t.type] || "");
@@ -292,7 +339,9 @@ export async function exportTransactionsToPDF(
           const badgeWidth = textWidth + badgeHPadding * 2;
           const badgeHeight = customFont.heightAtSize(9) + badgeVPadding * 2;
 
-          const badgeX = cellX - colWidth + (colWidth - badgeWidth) / 2;
+          const badgeX = isRtl
+            ? cellX - colWidth + (colWidth - badgeWidth) / 2
+            : cellX + (colWidth - badgeWidth) / 2;
           const badgeY = rowY + (tableRowHeight - badgeHeight) / 2;
 
           const rectOptions = {
@@ -339,7 +388,9 @@ export async function exportTransactionsToPDF(
           for (const line of lines) {
             const textWidth = customFont.widthOfTextAtSize(line, 9);
             page.drawText(line, {
-              x: cellX - colWidth + (colWidth - textWidth) / 2,
+              x: isRtl
+                ? cellX - colWidth + (colWidth - textWidth) / 2
+                : cellX + (colWidth - textWidth) / 2,
               y: lineY,
               font: customFont,
               size: 9,
@@ -348,7 +399,7 @@ export async function exportTransactionsToPDF(
             lineY -= 11;
           }
         }
-        cellX -= colWidth;
+        cellX = isRtl ? cellX - colWidth : cellX + colWidth;
       });
 
       y -= tableRowHeight;
@@ -358,7 +409,11 @@ export async function exportTransactionsToPDF(
     const pages = pdfDoc.getPages();
     for (let i = 0; i < pages.length; i++) {
       const p = pages[i];
-      const pageText = `עמוד ${i + 1} מתוך ${pages.length}`;
+      const pageText = i18n.t("export.pdf.page", {
+        current: i + 1,
+        total: pages.length,
+        lng: i18n.language,
+      });
       const textWidth = customFont.widthOfTextAtSize(pageText, 8);
       p.drawText(pageText, {
         x: width / 2 - textWidth / 2,

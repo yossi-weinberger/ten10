@@ -1,9 +1,9 @@
-import { transactionTypeLabels } from "@/types/transactionLabels";
 import type { Transaction } from "@/types/transaction";
 import {
   recurringFrequencyLabels,
   recurringStatusLabels,
 } from "@/types/recurringTransactionLabels";
+import i18n from "@/lib/i18n";
 
 function escapeCsvCell(
   cellData: string | number | boolean | null | undefined
@@ -27,7 +27,8 @@ function escapeCsvCell(
 
 export function exportTransactionsToCSV(
   transactions: Transaction[],
-  filename = "Ten10-transactions.csv"
+  filename = "Ten10-transactions.csv",
+  currentLanguage: string = "he"
 ) {
   if (!transactions || transactions.length === 0) {
     console.warn("No transactions to export to CSV.");
@@ -72,7 +73,8 @@ export function exportTransactionsToCSV(
           month: "2-digit",
           day: "2-digit",
         }),
-        transactionTypeLabels[t.type] || t.type,
+        i18n.t(`export.transactionTypes.${t.type}`, { lng: currentLanguage }) ||
+          t.type,
         t.description || "",
         t.category || "",
         t.recipient || "",

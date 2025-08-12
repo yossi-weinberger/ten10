@@ -14,6 +14,7 @@ import { exportTransactionsToPDF } from "../utils/export-pdf"; // Updated path
 import { exportTransactionsToExcel } from "../utils/export-excel"; // Updated path
 import { exportTransactionsToCSV } from "../utils/export-csv"; // Updated path
 import { supabase } from "../supabaseClient"; // Updated path
+import i18n from "../i18n"; // For current language
 import type {
   RealtimeChannel,
   RealtimePostgresChangesPayload,
@@ -312,12 +313,21 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           await exportTransactionsToPDF(
             transactionsToExport,
             exportFilters,
-            totalCount
+            totalCount,
+            i18n.language
           );
         } else if (format === "excel") {
-          await exportTransactionsToExcel(transactionsToExport);
+          await exportTransactionsToExcel(
+            transactionsToExport,
+            "Ten10-transactions.xlsx",
+            i18n.language
+          );
         } else if (format === "csv") {
-          await exportTransactionsToCSV(transactionsToExport);
+          await exportTransactionsToCSV(
+            transactionsToExport,
+            "Ten10-transactions.csv",
+            i18n.language
+          );
         }
       } catch (err: any) {
         console.error("Failed to export transactions:", err);
