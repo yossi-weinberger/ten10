@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Card,
@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Languages, Moon, Sun, MonitorSmartphone } from "lucide-react";
-import { useTheme } from "@/lib/theme";
 
 type Theme = "light" | "dark" | "system";
 
@@ -41,9 +40,36 @@ export function LanguageAndDisplaySettingsCard({
   const { t, i18n } = useTranslation("settings");
 
   const handleLanguageChange = (lang: "he" | "en") => {
-    i18n.changeLanguage(lang);
+    (i18n as any).changeLanguage(lang);
     updateSettings({ language: lang });
   };
+
+  // Sliding indicator logic (inspired by Ibelick's sliding tab bar)
+  const toggleRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [sliderLeft, setSliderLeft] = useState(0);
+  const [sliderWidth, setSliderWidth] = useState(0);
+
+  const getActiveIndex = () => {
+    const order: Array<Theme> = ["light", "dark", "system"];
+    const idx = order.indexOf(theme);
+    return idx === -1 ? 0 : idx;
+  };
+
+  useEffect(() => {
+    const index = getActiveIndex();
+    const current = toggleRefs.current[index];
+    if (!current) return;
+
+    const update = () => {
+      setSliderLeft(current.offsetLeft ?? 0);
+      setSliderWidth(current.clientWidth ?? 0);
+    };
+
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [theme]);
 
   return (
     <Card>
@@ -90,27 +116,41 @@ export function LanguageAndDisplaySettingsCard({
             onValueChange={(value: string) => {
               if (value) setTheme(value as Theme);
             }}
-            className="grid grid-cols-3 gap-1 rounded-md border p-1"
+            className="relative grid grid-cols-3 gap-1 rounded-md border p-1"
             aria-label={t("languageAndDisplay.themeLabel")}
           >
+            {/* sliding background */}
+            <span
+              className="absolute inset-y-1 z-0 rounded-md bg-accent shadow-sm transition-[left,width] duration-500 ease-in-out"
+              style={{ left: sliderLeft, width: sliderWidth }}
+            />
             <ToggleGroupItem
               value="light"
               aria-label={t("languageAndDisplay.lightTheme")}
-              className="flex-1 justify-center data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
+              className="relative z-10 flex-1 justify-center hover:bg-transparent data-[state=on]:bg-transparent data-[state=on]:text-accent-foreground"
+              ref={(el) => {
+                toggleRefs.current[0] = el;
+              }}
             >
               <Sun className="h-5 w-5" />
             </ToggleGroupItem>
             <ToggleGroupItem
               value="dark"
               aria-label={t("languageAndDisplay.darkTheme")}
-              className="flex-1 justify-center data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
+              className="relative z-10 flex-1 justify-center hover:bg-transparent data-[state=on]:bg-transparent data-[state=on]:text-accent-foreground"
+              ref={(el) => {
+                toggleRefs.current[1] = el;
+              }}
             >
               <Moon className="h-5 w-5" />
             </ToggleGroupItem>
             <ToggleGroupItem
               value="system"
               aria-label={t("languageAndDisplay.systemTheme")}
-              className="flex-1 justify-center data-[state=on]:bg-accent data-[state=on]:text-accent-foreground"
+              className="relative z-10 flex-1 justify-center hover:bg-transparent data-[state=on]:bg-transparent data-[state=on]:text-accent-foreground"
+              ref={(el) => {
+                toggleRefs.current[2] = el;
+              }}
             >
               <MonitorSmartphone className="h-5 w-5" />
             </ToggleGroupItem>
