@@ -34,8 +34,10 @@ export function DescriptionCategoryFields({
             <FormControl>
               <Input
                 {...field}
+                value={field.value ?? ""}
                 placeholder={t("transactionForm.description.placeholder")}
                 className="text-start"
+                autoComplete="on"
               />
             </FormControl>
             <div className="h-5">
@@ -55,6 +57,7 @@ export function DescriptionCategoryFields({
               <FormControl>
                 <Input
                   {...field}
+                  value={field.value ?? ""}
                   placeholder={t("transactionForm.category.placeholder")}
                   className="text-start"
                 />
@@ -76,6 +79,7 @@ export function DescriptionCategoryFields({
               <FormControl>
                 <Input
                   {...field}
+                  value={field.value ?? ""}
                   placeholder={t("transactionForm.recipient.placeholder")}
                   className="text-start"
                 />
