@@ -79,7 +79,7 @@ export function TransactionForm({
   const [isSuccess, setIsSuccess] = useState(false);
 
   const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(transactionFormSchema) as any,
+    resolver: zodResolver(transactionFormSchema),
     mode: "onChange",
     defaultValues: {
       date: new Date().toISOString().split("T")[0],
