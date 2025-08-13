@@ -7,7 +7,7 @@ import { handleTransactionSubmit } from "@/lib/data-layer/transactionForm.servic
 import { TransactionFormValues, transactionFormSchema } from "@/lib/schemas";
 import { TransactionType } from "@/types/transaction";
 import { Form } from "@/components/ui/form";
-import { CheckCircle } from "lucide-react";
+// import { CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TransactionTypeSelector } from "./transaction-form-parts/TransactionTypeSelector";
 import { AmountCurrencyDateFields } from "./transaction-form-parts/AmountCurrencyDateFields";
@@ -52,17 +52,7 @@ export function TransactionForm({
   const { t } = useTranslation("transactions");
   const { platform } = usePlatform();
 
-  // Transaction type labels with i18n
-  const transactionTypeLabels: Record<TransactionType, string> = {
-    income: t("transactionForm.transactionType.income"),
-    donation: t("transactionForm.transactionType.donation"),
-    expense: t("transactionForm.transactionType.expense"),
-    "exempt-income": t("transactionForm.transactionType.exempt-income"),
-    "recognized-expense": t(
-      "transactionForm.transactionType.recognized-expense"
-    ),
-    non_tithe_donation: t("transactionForm.transactionType.non_tithe_donation"),
-  };
+  // Labels are handled where rendered
 
   const updateTransaction = useTableTransactionsStore(
     (state) => state.updateTransaction
@@ -89,7 +79,7 @@ export function TransactionForm({
   const [isSuccess, setIsSuccess] = useState(false);
 
   const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(transactionFormSchema),
+    resolver: zodResolver(transactionFormSchema) as any,
     mode: "onChange",
     defaultValues: {
       date: new Date().toISOString().split("T")[0],
@@ -206,6 +196,7 @@ export function TransactionForm({
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
+        autoComplete="on"
         className={cn(
           "space-y-6 p-4 rounded-xl transition-colors duration-200",
           backgroundStyles[selectedType]
