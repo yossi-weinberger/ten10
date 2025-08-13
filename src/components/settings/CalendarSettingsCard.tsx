@@ -45,7 +45,7 @@ export function CalendarSettingsCard({
           {disabled && (
             <Badge
               variant="outline"
-              className="ml-auto text-amber-600 border-amber-600 dark:text-amber-500 dark:border-amber-500"
+              className="ml-auto whitespace-nowrap text-amber-600 border-amber-600 dark:text-amber-500 dark:border-amber-500"
             >
               {t("financial.comingSoon")}
             </Badge>
@@ -53,55 +53,76 @@ export function CalendarSettingsCard({
         </div>
         <CardDescription>{t("calendar.cardDescription")}</CardDescription>
       </CardHeader>
-      <CardContent className="grid gap-4">
-        <div className="grid gap-2">
-          <Label>{t("calendar.hebrewCalendarLabel")}</Label>
-          <Select
-            value={calendarSettings.calendarType}
-            onValueChange={(value) =>
-              updateSettings({
-                calendarType: value as "gregorian" | "hebrew",
-              })
-            }
-            disabled={disabled}
-            dir={i18n.dir()}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={t("calendar.weekStartPlaceholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="gregorian">לוח גרגוריאני</SelectItem>
-              <SelectItem value="hebrew">לוח עברי</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+      <CardContent className="grid gap-4 min-h-[140px]">
+        {disabled ? (
+          <>
+            <div className="grid gap-2">
+              <Label>{t("calendar.hebrewCalendarLabel")}</Label>
+              <div className="h-10 rounded-md border bg-muted/20 text-muted-foreground px-3 flex items-center">
+                {t("calendar.hebrewCalendarLabel")}
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label>{t("calendar.weekStartLabel")}</Label>
+              <div className="h-10 rounded-md border bg-muted/20 text-muted-foreground px-3 flex items-center">
+                {t("calendar.weekStartPlaceholder")}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="grid gap-2">
+              <Label>{t("calendar.hebrewCalendarLabel")}</Label>
+              <Select
+                value={calendarSettings.calendarType}
+                onValueChange={(value) =>
+                  updateSettings({
+                    calendarType: value as "gregorian" | "hebrew",
+                  })
+                }
+                dir={i18n.dir()}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={t("calendar.weekStartPlaceholder")}
+                  />
+                </SelectTrigger>
+                <SelectContent position="item-aligned">
+                  <SelectItem value="gregorian">לוח גרגוריאני</SelectItem>
+                  <SelectItem value="hebrew">לוח עברי</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-        <div className="grid gap-2">
-          <Label>{t("calendar.weekStartLabel")}</Label>
-          <Select
-            value={calendarSettings.maaserYearStart}
-            onValueChange={(value) =>
-              updateSettings({
-                maaserYearStart: value as
-                  | "tishrei"
-                  | "nisan"
-                  | "january"
-                  | undefined,
-              })
-            }
-            disabled={disabled}
-            dir={i18n.dir()}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={t("calendar.weekStartPlaceholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="tishrei">תשרי</SelectItem>
-              <SelectItem value="nisan">ניסן</SelectItem>
-              <SelectItem value="january">ינואר</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+            <div className="grid gap-2">
+              <Label>{t("calendar.weekStartLabel")}</Label>
+              <Select
+                value={calendarSettings.maaserYearStart}
+                onValueChange={(value) =>
+                  updateSettings({
+                    maaserYearStart: value as
+                      | "tishrei"
+                      | "nisan"
+                      | "january"
+                      | undefined,
+                  })
+                }
+                dir={i18n.dir()}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={t("calendar.weekStartPlaceholder")}
+                  />
+                </SelectTrigger>
+                <SelectContent position="item-aligned">
+                  <SelectItem value="tishrei">תשרי</SelectItem>
+                  <SelectItem value="nisan">ניסן</SelectItem>
+                  <SelectItem value="january">ינואר</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );
