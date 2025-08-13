@@ -1,4 +1,3 @@
-import React from "react";
 import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import { FormField } from "@/components/ui/form"; // Only FormField might be needed directly if others are wrapped
@@ -11,24 +10,20 @@ import {
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
-import type { TransactionFormValues } from "@/types/forms"; // Adjust path as needed
+import type { TransactionFormValues } from "@/lib/schemas";
 import { TransactionType } from "@/types/transaction"; // Import TransactionType
-import { FormControl, FormItem, FormLabel } from "@/components/ui/form";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+// removed unused FormControl, FormItem, FormLabel, Label imports
 
 interface TransactionCheckboxesProps {
   form: UseFormReturn<TransactionFormValues>;
   selectedType: TransactionType;
   isExemptChecked?: boolean; // Optional as it's only relevant for income
-  isFromPersonalFundsChecked?: boolean; // New prop for the new checkbox
 }
 
 export function TransactionCheckboxes({
   form,
   selectedType,
   isExemptChecked,
-  isFromPersonalFundsChecked, // Destructure new prop
 }: TransactionCheckboxesProps) {
   const { t } = useTranslation("transactions");
   return (

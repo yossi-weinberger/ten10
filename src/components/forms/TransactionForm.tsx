@@ -123,7 +123,6 @@ export function TransactionForm({
   const selectedType = form.watch("type");
   const isExemptChecked = form.watch("isExempt");
   const isRecurringChecked = form.watch("is_recurring");
-  const isFromPersonalFundsChecked = form.watch("isFromPersonalFunds");
 
   async function onSubmit(values: TransactionFormValues) {
     setIsSuccess(false);
@@ -219,7 +218,6 @@ export function TransactionForm({
           form={form}
           selectedType={selectedType}
           isExemptChecked={isExemptChecked}
-          isFromPersonalFundsChecked={isFromPersonalFundsChecked}
         />
 
         {/* Recurring fields section - Replaced with new component where applicable */}
