@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Accordion,
@@ -595,6 +595,28 @@ function HalachaPageContent() {
     },
   ];
 
+  // Tabs slider state (similar to LanguageAndDisplaySettingsCard)
+  const [activeTab, setActiveTab] = useState<string>("introduction");
+  const triggerRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const [sliderLeft, setSliderLeft] = useState(0);
+  const [sliderWidth, setSliderWidth] = useState(0);
+
+  useEffect(() => {
+    const index = tabs.findIndex((t) => t.value === activeTab);
+    const current = triggerRefs.current[index];
+    if (!current) return;
+
+    const update = () => {
+      setSliderLeft(current.offsetLeft ?? 0);
+      setSliderWidth(current.clientWidth ?? 0);
+    };
+
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
   return (
     <div className="grid gap-6">
       <div className="grid gap-2 text-center">
@@ -602,10 +624,21 @@ function HalachaPageContent() {
         <p className="text-muted-foreground text-lg">{t("pageDescription")}</p>
       </div>
 
-      <Tabs defaultValue="introduction" className="w-full">
-        <TabsList className="flex w-full rtl:flex-row-reverse">
-          {tabs.map((tab) => (
-            <TabsTrigger key={tab.value} value={tab.value} className="flex-1">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="relative flex w-full rtl:flex-row-reverse bg-transparent border">
+          <span
+            className="absolute inset-y-1 z-0 rounded-md bg-accent shadow-sm transition-[left,width] duration-500 ease-in-out"
+            style={{ left: sliderLeft, width: sliderWidth }}
+          />
+          {tabs.map((tab, index) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="relative z-10 flex-1 transition-colors hover:bg-transparent data-[state=active]:bg-transparent data-[state=active]:text-accent-foreground data-[state=active]:font-semibold"
+              ref={(el) => {
+                triggerRefs.current[index] = el;
+              }}
+            >
               {tab.label}
             </TabsTrigger>
           ))}
