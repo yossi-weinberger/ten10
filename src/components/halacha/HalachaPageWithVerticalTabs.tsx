@@ -206,8 +206,8 @@ function HalachaPageContent() {
   return (
     <div className="grid gap-6">
       {/* Page Header */}
-      <div className="space-y-3 text-center">
-        <h1 className="text-3xl font-bold text-foreground">{t("pageTitle")}</h1>
+      <div className="space-y-3">
+        <h1 className="text-2xl font-bold text-foreground">{t("pageTitle")}</h1>
         <p className="text-muted-foreground text-lg">{t("pageDescription")}</p>
       </div>
 
