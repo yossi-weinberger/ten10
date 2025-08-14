@@ -186,7 +186,7 @@ function HalachaPageContent() {
       </div>
 
       {/* Main Content Layout */}
-      <div className="flex gap-8 rtl:flex-row-reverse">
+      <div className="flex flex-row rtl:flex-row">
         {/* Vertical Tabs Navigation */}
         <div className="w-64 flex-shrink-0">
           <div className="sticky top-6">
@@ -224,7 +224,7 @@ function HalachaPageContent() {
         </div>
 
         {/* Content Area with Continuous Scroll */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 ltr:ml-8 rtl:mr-8">
           <div
             ref={scrollContainerRef}
             className="space-y-12 max-h-[calc(100vh-12rem)] overflow-y-auto scroll-smooth"
