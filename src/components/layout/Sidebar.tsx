@@ -656,8 +656,10 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState<boolean>(false);
 
-  const navRef = useRef<HTMLElement | null>(null);
-  const sliderRef = useRef<HTMLDivElement | null>(null);
+  // Parent wrapper (non-scroll) that contains: scrollable nav + bottom profile card
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
   const [sliderStyle, setSliderStyle] = useState<SliderStyle>({
     opacity: 0,
     top: 0,
@@ -667,35 +669,34 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
   const expandedWidth = inSheet ? "w-32" : "w-52";
   const collapsedWidth = "w-16";
 
-  // ----- Measure & position the slider -----
+  // --- Slider measurement (active item background) ---
   useLayoutEffect(() => {
-    const navEl = navRef.current;
-    if (!navEl) return;
+    const listEl = listRef.current;
+    const scrollEl = scrollRef.current;
+    if (!listEl) return;
 
     let raf = 0;
 
     const measure = () => {
-      if (!navEl) return;
-      const activeButton = navEl.querySelector(
+      if (!listEl) return;
+      const activeEl = listEl.querySelector(
         '[data-active="true"]'
       ) as HTMLElement | null;
 
-      if (!activeButton) {
+      if (!activeEl) {
         setSliderStyle((prev) =>
           prev.opacity === 0 ? prev : { ...prev, opacity: 0 }
         );
         return;
       }
 
-      // top relative to nav's visible viewport (accounts for scroll)
-      const navRect = navEl.getBoundingClientRect();
-      const btnRect = activeButton.getBoundingClientRect();
-      const top = btnRect.top - navRect.top; // equals offsetTop - scrollTop
-      const height = btnRect.height; // or activeButton.offsetHeight
+      const listRect = listEl.getBoundingClientRect();
+      const elRect = activeEl.getBoundingClientRect();
+      const top = elRect.top - listRect.top; // works for both scrolled nav and bottom card
+      const height = elRect.height;
 
-      // Avoid extra renders
       setSliderStyle((prev) => {
-        const next: SliderStyle = { opacity: 1, top, height };
+        const next = { opacity: 1, top, height };
         return prev.opacity === next.opacity &&
           prev.top === next.top &&
           prev.height === next.height
@@ -704,33 +705,39 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
       });
     };
 
-    const scheduleMeasure = () => {
+    const schedule = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(measure);
     };
 
-    // initial measure
-    scheduleMeasure();
+    schedule();
+    window.addEventListener("resize", schedule);
+    // listen to the inner scroller only (since parent doesn't scroll)
+    scrollEl?.addEventListener("scroll", schedule, { passive: true });
 
-    // keep in sync on scroll/resize/content resize
-    navEl.addEventListener("scroll", scheduleMeasure, { passive: true });
-    window.addEventListener("resize", scheduleMeasure);
-    const ro =
+    // observe size/content changes
+    const roList =
       typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(scheduleMeasure)
+        ? new ResizeObserver(schedule)
         : null;
-    ro?.observe(navEl);
+    const roScroll =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(schedule)
+        : null;
+
+    roList?.observe(listEl);
+    scrollEl && roScroll?.observe(scrollEl);
 
     return () => {
       cancelAnimationFrame(raf);
-      navEl.removeEventListener("scroll", scheduleMeasure);
-      window.removeEventListener("resize", scheduleMeasure);
-      ro?.disconnect();
+      window.removeEventListener("resize", schedule);
+      scrollEl?.removeEventListener("scroll", schedule);
+      roList?.disconnect();
+      roScroll?.disconnect();
     };
-    // rerun on route/expand/lang changes
   }, [currentPath, expanded, i18n.language]);
 
-  // ----- Profile fetch (unchanged logic, עם הקשחות קטנות) -----
+  // --- Profile fetch ---
   useEffect(() => {
     if (platform === "web" && session?.user && !authLoading) {
       let isMounted = true;
@@ -785,9 +792,9 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
 
     return (
       <Button
-        variant="ghost" // All buttons are ghost; slider הוא הרקע
+        variant="ghost"
         className={cn(
-          "w-full h-12 z-10", // מעל הסליידר
+          "w-full h-12 z-10",
           "transition-colors duration-200",
           expanded ? "justify-start px-4 gap-3" : "justify-center px-0",
           isActive
@@ -836,16 +843,16 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         </h1>
       </Link>
 
-      <nav
-        ref={navRef}
+      {/* Parent wrapper (non-scroll) */}
+      <div
+        ref={listRef}
         className={cn(
-          "flex-1 flex flex-col gap-1 overflow-y-auto overflow-x-hidden p-1",
-          "relative"
+          "relative flex-1 p-1", // not scrollable
+          "flex flex-col min-h-0 gap-1"
         )}
       >
-        {/* Sliding background + side indicator */}
+        {/* Slider overlay over the whole wrapper */}
         <div
-          ref={sliderRef}
           className="absolute z-0 bg-secondary rounded-md transition-[transform,height,opacity] duration-200 ease-in-out pointer-events-none"
           style={{
             opacity: sliderStyle.opacity,
@@ -854,7 +861,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
             left: "0.25rem",
             right: "0.25rem",
             top: 0,
-            willChange: "transform, height",
+            willChange: "transform,height",
           }}
         >
           <div
@@ -867,91 +874,106 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
           />
         </div>
 
-        <NavLink to="/" icon={Home}>
-          {t("menu.home")}
-        </NavLink>
-        <NavLink to="/add-transaction" icon={PlusCircle}>
-          {t("menu.addTransaction")}
-        </NavLink>
-        {/* <NavLink to="/analytics" icon={BarChart}>
-          {t("menu.analytics")}
-        </NavLink> */}
-        <NavLink to="/transactions-table" icon={Table}>
-          {t("menu.transactionsTable")}
-        </NavLink>
-        <NavLink to="/halacha" icon={Book}>
-          {t("menu.halacha")}
-        </NavLink>
-        <NavLink to="/settings" icon={Settings}>
-          {t("menu.settings")}
-        </NavLink>
-        <NavLink to="/about" icon={Info}>
-          {t("menu.about")}
-        </NavLink>
-      </nav>
+        {/* Scrollable NAV area */}
+        <div
+          ref={scrollRef}
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
+        >
+          <nav className="flex flex-col gap-1">
+            <NavLink to="/" icon={Home}>
+              {t("menu.home")}
+            </NavLink>
+            <NavLink to="/add-transaction" icon={PlusCircle}>
+              {t("menu.addTransaction")}
+            </NavLink>
+            {/* <NavLink to="/analytics" icon={BarChart}>
+              {t("menu.analytics")}
+            </NavLink> */}
+            <NavLink to="/transactions-table" icon={Table}>
+              {t("menu.transactionsTable")}
+            </NavLink>
+            <NavLink to="/halacha" icon={Book}>
+              {t("menu.halacha")}
+            </NavLink>
+            <NavLink to="/settings" icon={Settings}>
+              {t("menu.settings")}
+            </NavLink>
+            <NavLink to="/about" icon={Info}>
+              {t("menu.about")}
+            </NavLink>
+          </nav>
+        </div>
 
-      <div className="mt-auto pt-4 border-t border-border/20 px-2">
+        {/* Divider spans the padded width */}
+        <div className="my-2 h-px bg-border/20 -mx-1" />
+
+        {/* Bottom-pinned Profile card (NOT inside the scroller) */}
         {platform === "web" && session?.user && (
-          <div className="pb-2">
-            <Link
-              to="/profile"
-              aria-label={t("menu.profile")}
-              className={cn(
-                "flex items-center p-2 rounded-md hover:bg-muted/50 transition-colors",
-                expanded ? "gap-3" : "flex-col gap-1 justify-center text-center"
-              )}
-            >
-              {authLoading || profileLoading ? (
-                <>
-                  <Skeleton
-                    className={cn(
-                      "rounded-full flex-shrink-0",
-                      expanded ? "h-10 w-10" : "h-9 w-9"
-                    )}
-                  />
-                  {expanded && (
-                    <div className="flex flex-col gap-1 w-full">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-full" />
-                    </div>
-                  )}
-                </>
-              ) : profileAvatarUrl ? (
-                <img
-                  src={profileAvatarUrl}
-                  alt={profileFullName || "User Avatar"}
-                  loading="lazy"
-                  decoding="async"
+          <Link
+            to="/profile"
+            data-active={currentPath.startsWith("/profile")}
+            aria-label={t("menu.profile")}
+            className={cn(
+              "flex items-center p-2 rounded-md transition-colors relative z-10",
+              "hover:bg-muted/50",
+              expanded ? "gap-3" : "flex-col gap-1 justify-center text-center"
+            )}
+          >
+            {authLoading || profileLoading ? (
+              <>
+                <Skeleton
                   className={cn(
-                    "rounded-full flex-shrink-0 object-cover",
+                    "rounded-full flex-shrink-0",
                     expanded ? "h-10 w-10" : "h-9 w-9"
                   )}
                 />
-              ) : (
-                <div
-                  className={cn(
-                    "rounded-full bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0",
-                    expanded ? "h-10 w-10" : "h-9 w-9"
-                  )}
-                >
-                  <User className="h-6 w-6" />
-                </div>
-              )}
-              {!authLoading && !profileLoading && (
-                <div
-                  className={cn(
-                    "flex flex-col text-sm transition-all duration-200",
-                    expanded ? "items-start" : "hidden"
-                  )}
-                >
-                  {profileFullName && (
-                    <span className="font-semibold">{profileFullName}</span>
-                  )}
-                </div>
-              )}
-            </Link>
-          </div>
+                {expanded && (
+                  <div className="flex flex-col gap-1 w-full">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-full" />
+                  </div>
+                )}
+              </>
+            ) : profileAvatarUrl ? (
+              <img
+                src={profileAvatarUrl}
+                alt={profileFullName || "User Avatar"}
+                loading="lazy"
+                decoding="async"
+                className={cn(
+                  "rounded-full object-cover flex-shrink-0",
+                  expanded ? "h-10 w-10" : "h-9 w-9"
+                )}
+              />
+            ) : (
+              <div
+                className={cn(
+                  "rounded-full bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0",
+                  expanded ? "h-10 w-10" : "h-9 w-9"
+                )}
+              >
+                <User className="h-6 w-6" />
+              </div>
+            )}
+
+            {!authLoading && !profileLoading && (
+              <div
+                className={cn(
+                  "flex flex-col text-sm transition-all duration-200",
+                  expanded ? "items-start" : "hidden"
+                )}
+              >
+                {profileFullName && (
+                  <span className="font-semibold">{profileFullName}</span>
+                )}
+              </div>
+            )}
+          </Link>
         )}
+      </div>
+
+      {/* Bottom area (separate): platform indicator & border */}
+      <div className="mt-auto pt-4 border-t border-border/20 px-2">
         <PlatformIndicator expanded={expanded} />
       </div>
     </div>
