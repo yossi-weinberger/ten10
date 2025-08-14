@@ -1,4 +1,11 @@
-import { Suspense, useState, useRef, useEffect, useMemo } from "react";
+import {
+  Suspense,
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -78,9 +85,74 @@ function HalachaPageContent() {
   const tabsListRef = useRef<HTMLDivElement | null>(null);
   const [sliderStyle, setSliderStyle] = useState({});
   const isClickScrolling = useRef(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkIsMobile = () => setIsMobile(window.innerWidth < 768);
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
+    return () => window.removeEventListener("resize", checkIsMobile);
+  }, []);
+
+  const handleTabClick = useCallback(
+    (value: string) => {
+      isClickScrolling.current = true;
+      setActiveTab(value);
+      const index = tabs.findIndex((tab) => tab.value === value);
+      const section = sectionRefs.current[index];
+
+      if (section) {
+        if (isMobile) {
+          // For mobile, a simple scrollIntoView is best.
+          // The `scroll-mt-24` class on the section handles the sticky header offset.
+          section.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        } else {
+          // For desktop, retain the custom animation for the inner scroll container.
+          const scrollContainer = scrollContainerRef.current;
+          if (scrollContainer) {
+            const containerRect = scrollContainer.getBoundingClientRect();
+            const sectionRect = section.getBoundingClientRect();
+            const scrollTop = scrollContainer.scrollTop;
+            const targetScrollTop =
+              scrollTop + (sectionRect.top - containerRect.top) - 20;
+
+            const startTime = performance.now();
+            const startPosition = scrollTop;
+            const distance = targetScrollTop - startPosition;
+            const duration = 800;
+
+            function animateScroll(currentTime: number) {
+              const elapsed = currentTime - startTime;
+              const progress = Math.min(elapsed / duration, 1);
+              const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+              const currentPosition = startPosition + distance * easeOutCubic;
+
+              if (scrollContainer) {
+                scrollContainer.scrollTop = currentPosition;
+              }
+
+              if (progress < 1) {
+                requestAnimationFrame(animateScroll);
+              }
+            }
+            requestAnimationFrame(animateScroll);
+          }
+        }
+      }
+
+      setTimeout(() => {
+        isClickScrolling.current = false;
+      }, 1000);
+    },
+    [tabs, isMobile]
+  );
 
   // Effect for updating slider position for vertical tabs
   useEffect(() => {
+    if (isMobile) return;
     const activeIndex = tabs.findIndex((tab) => tab.value === activeTab);
     const trigger = triggerRefs.current[activeIndex];
     const list = tabsListRef.current;
@@ -94,15 +166,15 @@ function HalachaPageContent() {
       height: triggerRect.height,
       transition: "top 0.3s ease, height 0.3s ease",
     });
-  }, [activeTab, tabs]);
+  }, [activeTab, tabs, isMobile]);
 
   // Scroll container ref for intersection observer
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Effect for scroll-based tab activation using Intersection Observer
   useEffect(() => {
-    const scrollContainer = scrollContainerRef.current;
-    if (!scrollContainer) return;
+    const rootElement = isMobile ? null : scrollContainerRef.current;
+    if (!isMobile && !rootElement) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -118,9 +190,9 @@ function HalachaPageContent() {
         }
       },
       {
-        root: scrollContainer, // Use the scroll container as root
-        rootMargin: "-10% 0px -50% 0px",
-        threshold: [0.1, 0.3, 0.5, 0.7], // Multiple thresholds for better detection
+        root: rootElement,
+        rootMargin: isMobile ? "-100px 0px -50% 0px" : "-10% 0px -50% 0px",
+        threshold: [0.1, 0.3, 0.5, 0.7],
       }
     );
 
@@ -129,76 +201,34 @@ function HalachaPageContent() {
     });
 
     return () => observer.disconnect();
-  }, [tabs]);
-
-  const handleTabClick = (value: string) => {
-    isClickScrolling.current = true;
-    setActiveTab(value);
-    const index = tabs.findIndex((tab) => tab.value === value);
-    const section = sectionRefs.current[index];
-    const scrollContainer = scrollContainerRef.current;
-
-    if (section && scrollContainer) {
-      // Calculate the position of the section relative to the scroll container
-      const containerRect = scrollContainer.getBoundingClientRect();
-      const sectionRect = section.getBoundingClientRect();
-      const scrollTop = scrollContainer.scrollTop;
-      const targetScrollTop =
-        scrollTop + (sectionRect.top - containerRect.top) - 20; // 20px offset
-
-      // Custom smooth scroll animation
-      const startTime = performance.now();
-      const startPosition = scrollTop;
-      const distance = targetScrollTop - startPosition;
-      const duration = 800; // 800ms for smooth animation
-
-      function animateScroll(currentTime: number) {
-        const elapsed = currentTime - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-
-        // Easing function for smooth animation (ease-out-cubic)
-        const easeOutCubic = 1 - Math.pow(1 - progress, 3);
-        const currentPosition = startPosition + distance * easeOutCubic;
-
-        if (scrollContainer) {
-          scrollContainer.scrollTop = currentPosition;
-        }
-
-        if (progress < 1) {
-          requestAnimationFrame(animateScroll);
-        }
-      }
-
-      requestAnimationFrame(animateScroll);
-    }
-
-    setTimeout(() => {
-      isClickScrolling.current = false;
-    }, 900); // Should be longer than scroll duration (800ms)
-  };
+  }, [tabs, isMobile]);
 
   return (
     <div className="grid gap-6">
       {/* Page Header */}
-      <div className="text-center space-y-3">
+      <div className="space-y-3 text-center">
         <h1 className="text-3xl font-bold text-foreground">{t("pageTitle")}</h1>
         <p className="text-muted-foreground text-lg">{t("pageDescription")}</p>
       </div>
 
       {/* Main Content Layout */}
-      <div className="flex flex-row rtl:flex-row">
-        {/* Vertical Tabs Navigation */}
-        <div className="w-64 flex-shrink-0">
-          <div className="sticky top-6">
+      <div className="flex flex-col md:flex-row">
+        {/* Tabs Navigation (responsive) */}
+        <div className="sticky top-0 z-10 bg-background py-2 md:static md:w-64 md:flex-shrink-0 md:bg-transparent md:py-0">
+          <div className="md:sticky md:top-6">
             <div
               ref={tabsListRef}
-              className="relative bg-card border rounded-lg p-2 space-y-1"
+              className="relative rounded-lg border bg-card p-2 
+                         flex flex-row flex-wrap gap-2
+                         md:flex-col md:space-y-1 md:gap-0"
             >
-              {/* Active tab slider */}
-              <div
-                className="absolute left-2 rtl:right-2 rtl:left-auto w-[calc(100%-1rem)] bg-accent rounded-md transition-all duration-300 ease-in-out z-0"
-                style={sliderStyle}
-              />
+              {/* Active tab slider - DESKTOP ONLY */}
+              {!isMobile && (
+                <div
+                  className="absolute left-2 w-[calc(100%-1rem)] rounded-md bg-accent transition-all duration-300 ease-in-out rtl:right-2 rtl:left-auto z-0"
+                  style={sliderStyle}
+                />
+              )}
 
               {tabs.map((tab, index) => (
                 <button
@@ -208,11 +238,12 @@ function HalachaPageContent() {
                   }}
                   onClick={() => handleTabClick(tab.value)}
                   className={`
-                    relative z-10 w-full px-4 py-3 rounded-md transition-all duration-200 text-left rtl:text-right
+                    relative z-10 flex-grow rounded-md px-3 py-2 text-sm transition-all duration-200
+                    md:w-full md:px-4 md:py-3 md:text-base md:text-left md:rtl:text-right
                     ${
                       activeTab === tab.value
-                        ? "text-accent-foreground font-semibold"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                        ? "bg-primary text-primary-foreground md:bg-transparent md:font-semibold md:text-accent-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80 md:bg-transparent md:hover:bg-muted/50 md:hover:text-foreground"
                     }
                   `}
                 >
@@ -224,10 +255,10 @@ function HalachaPageContent() {
         </div>
 
         {/* Content Area with Continuous Scroll */}
-        <div className="flex-1 min-w-0 ltr:ml-8 rtl:mr-8">
+        <div className="flex-1 min-w-0 md:ltr:ml-8 md:rtl:mr-8">
           <div
             ref={scrollContainerRef}
-            className="space-y-12 max-h-[calc(100vh-12rem)] overflow-y-auto scroll-smooth"
+            className="space-y-12 md:max-h-[calc(100vh-12rem)] md:overflow-y-auto"
           >
             {tabs.map((tab, index) => (
               <section
@@ -236,7 +267,7 @@ function HalachaPageContent() {
                 ref={(el) => {
                   sectionRefs.current[index] = el;
                 }}
-                className="scroll-mt-24"
+                className="scroll-mt-[155px]"
               >
                 {tab.component}
               </section>

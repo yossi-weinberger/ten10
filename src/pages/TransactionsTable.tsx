@@ -25,7 +25,7 @@ export function TransactionsTable() {
 
   return (
     <div className="container mx-auto py-4">
-      <h1 className="text-3xl font-bold text-center mb-6 text-foreground">
+      <h1 className="text-2xl font-bold mb-6 text-foreground">
         {t("transactionsTable.pageTitle")}
       </h1>
       <TransactionsTableDisplay />
