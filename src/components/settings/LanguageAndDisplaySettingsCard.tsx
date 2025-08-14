@@ -40,7 +40,7 @@ export function LanguageAndDisplaySettingsCard({
   const { t, i18n } = useTranslation("settings");
 
   const handleLanguageChange = (lang: "he" | "en") => {
-    (i18n as any).changeLanguage(lang);
+    (i18n as i18nType).changeLanguage(lang);
     updateSettings({ language: lang });
   };
 
