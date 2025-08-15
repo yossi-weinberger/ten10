@@ -46,7 +46,6 @@ export function TransactionsTableDisplay() {
     { label: t("columns.date"), field: "date" },
     { label: t("columns.description"), field: "description" },
     { label: t("columns.amount"), field: "amount" },
-    { label: t("columns.currency"), field: "currency" },
     { label: t("columns.type"), field: "type" },
     { label: t("columns.category"), field: "category" },
     { label: t("columns.recipient"), field: "recipient" },
@@ -205,7 +204,7 @@ export function TransactionsTableDisplay() {
                   <>
                     {Array.from({ length: 20 }).map((_, rowIndex) => (
                       <TableRow key={`skeleton-row-${rowIndex}`}>
-                        {Array.from({ length: sortableColumns.length + 3 }).map(
+                        {Array.from({ length: sortableColumns.length + 2 }).map(
                           (_, cellIndex) => (
                             <TableCell
                               key={`skeleton-cell-${rowIndex}-${cellIndex}`}
@@ -222,7 +221,7 @@ export function TransactionsTableDisplay() {
                 {!loading && !error && transactions.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={sortableColumns.length + 3}
+                      colSpan={sortableColumns.length + 2}
                       className="h-24 text-center"
                     >
                       {t("messages.noData")}

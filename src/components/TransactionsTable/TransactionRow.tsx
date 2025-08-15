@@ -26,6 +26,7 @@ import { MoreHorizontal, Trash2, Edit3, Repeat, Infinity } from "lucide-react";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
+import { formatCurrency } from "@/lib/utils/currency";
 
 // Moved to translation files - will use t() instead
 
@@ -60,13 +61,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
         {transaction.description || "-"}
       </TableCell>
       <TableCell className="text-right font-medium whitespace-nowrap">
-        {transaction.amount.toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}
-      </TableCell>
-      <TableCell className="text-right whitespace-nowrap">
-        {transaction.currency}
+        {formatCurrency(transaction.amount, transaction.currency)}
       </TableCell>
       <TableCell className="text-right whitespace-nowrap">
         <Badge

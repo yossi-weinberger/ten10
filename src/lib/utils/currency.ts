@@ -1,36 +1,49 @@
-import type { Currency } from "@/lib/store";
+import { CURRENCIES } from "../currencies";
+import type { CurrencyCode } from "../currencies";
 
 export function formatCurrency(
   amount: number,
-  currency: Currency = "ILS"
+  currencyCode: CurrencyCode = "ILS"
 ): string {
-  const formats: Record<Currency, { locale: string; currency: string }> = {
-    ILS: { locale: "he-IL", currency: "ILS" },
-    USD: { locale: "en-US", currency: "USD" },
-    EUR: { locale: "de-DE", currency: "EUR" },
+  // Map currency codes to their appropriate locales for correct formatting.
+  const localeMap: Record<CurrencyCode, string> = {
+    ILS: "he-IL",
+    USD: "en-US",
+    EUR: "de-DE", // Using German locale for Euro symbol convention
   };
 
-  const format = formats[currency];
+  const locale = localeMap[currencyCode] || "he-IL"; // Fallback to Hebrew locale
 
-  // Round the amount to one decimal place
-  const roundedAmount = Math.round(amount * 10) / 10;
+  const isInteger = amount % 1 === 0;
 
-  return new Intl.NumberFormat(format.locale, {
+  const options: Intl.NumberFormatOptions = {
     style: "currency",
-    currency: format.currency,
-    minimumFractionDigits: 1, // Ensure one digit after decimal point
-    maximumFractionDigits: 1, // Ensure one digit after decimal point
-  }).format(roundedAmount);
+    currency: currencyCode,
+  };
+
+  if (isInteger) {
+    // For whole numbers, display no decimal places.
+    options.minimumFractionDigits = 0;
+    options.maximumFractionDigits = 0;
+  } else {
+    // For numbers with decimals, round to exactly one decimal place.
+    options.minimumFractionDigits = 1;
+    options.maximumFractionDigits = 1;
+  }
+
+  return new Intl.NumberFormat(locale, options).format(amount);
 }
 
 export function convertCurrency(
   amount: number,
-  from: Currency,
-  to: Currency
+  from: CurrencyCode,
+  to: CurrencyCode
 ): number {
   if (from === to) return amount;
 
-  const rates: Record<Currency, Record<Currency, number>> = {
+  // This is a simplified conversion rate map.
+  // In a real-world application, this would come from an API.
+  const rates: Record<CurrencyCode, Record<CurrencyCode, number>> = {
     ILS: { USD: 0.27, EUR: 0.25, ILS: 1 },
     USD: { ILS: 3.7, EUR: 0.93, USD: 1 },
     EUR: { ILS: 4, USD: 1.07, EUR: 1 },

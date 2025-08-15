@@ -66,6 +66,7 @@ import {
 } from "./RecurringTransactionsTableHeader";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
 import { DeleteConfirmationDialog } from "../ui/DeleteConfirmationDialog";
+import { formatCurrency } from "@/lib/utils/currency";
 
 export function RecurringTransactionsTableDisplay() {
   const { t } = useTranslation("data-tables");
@@ -210,11 +211,7 @@ export function RecurringTransactionsTableDisplay() {
                       </TableCell>
                       <TableCell>{rec.description || "-"}</TableCell>
                       <TableCell className="font-medium whitespace-nowrap">
-                        {rec.amount.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}{" "}
-                        {rec.currency}
+                        {formatCurrency(rec.amount, rec.currency)}
                       </TableCell>
                       <TableCell>
                         {t(
