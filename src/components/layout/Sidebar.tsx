@@ -618,7 +618,7 @@
 // }
 
 // Version 3 of the sidebar
-import React, { useState, useLayoutEffect, useRef, useEffect } from "react";
+import { useState, useLayoutEffect, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Calculator,
