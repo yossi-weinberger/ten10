@@ -30,7 +30,7 @@
       "percentageOfIncome": "{{percentage}}% מתוך סך ההכנסות"
     },
     "overallRequired": {
-      "title": "נדרש כולל",
+      "title": "יתרה לתרומת מעשר",
       "currentMonth": "החודש",
       "lastMonth": "חודש קודם",
       "change": "שינוי",
@@ -50,7 +50,7 @@
     "income": "הכנסות",
     "expenses": "הוצאות",
     "donations": "תרומות",
-    "overallRequired": "נדרש כולל",
+    "overallRequired": "יתרה לתרומת מעשר",
     "magic": "קסם",
     "month": "חודש",
     "amount": "סכום",
