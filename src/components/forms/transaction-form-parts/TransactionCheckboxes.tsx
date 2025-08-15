@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { HelpCircle } from "lucide-react";
 import type { TransactionFormValues } from "@/lib/schemas";
 import { TransactionType } from "@/types/transaction"; // Import TransactionType
-// removed unused FormControl, FormItem, FormLabel, Label imports
 
 interface TransactionCheckboxesProps {
   form: UseFormReturn<TransactionFormValues>;
