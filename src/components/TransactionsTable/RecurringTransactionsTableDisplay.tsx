@@ -64,6 +64,8 @@ import {
   RecurringTransactionsTableHeader,
   SortableField,
 } from "./RecurringTransactionsTableHeader";
+import { RecurringProgressBadge } from "./RecurringProgressBadge";
+import { DeleteConfirmationDialog } from "../ui/DeleteConfirmationDialog";
 
 export function RecurringTransactionsTableDisplay() {
   const { t } = useTranslation("data-tables");
@@ -237,34 +239,14 @@ export function RecurringTransactionsTableDisplay() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge
-                                variant="secondary"
-                                className="cursor-pointer"
-                              >
-                                <Repeat className="w-4 h-4 ml-1" />
-                                {rec.total_occurrences ? (
-                                  <span>
-                                    {rec.execution_count} /{" "}
-                                    {rec.total_occurrences}
-                                  </span>
-                                ) : (
-                                  <Infinity className="w-4 h-4" />
-                                )}
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>
-                                {t("recurringTable.executionTooltip", {
-                                  executed: rec.execution_count,
-                                  total: rec.total_occurrences || "∞",
-                                })}
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <RecurringProgressBadge
+                          status={rec.status}
+                          type={rec.type}
+                          executionCount={rec.execution_count}
+                          totalOccurrences={rec.total_occurrences}
+                          frequency={rec.frequency}
+                          dayOfMonth={rec.day_of_month}
+                        />
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
@@ -308,32 +290,13 @@ export function RecurringTransactionsTableDisplay() {
         onClose={handleCloseModal}
         transaction={selectedTransaction}
       />
-      <AlertDialog
-        open={isDeleteDialogOpen}
+      <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("recurringTable.deleteTitle")}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("recurringTable.deleteDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
-              {t("actions.cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {t("actions.delete")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onConfirm={handleConfirmDelete}
+        title={t("recurringTable.deleteTitle")}
+        description={t("recurringTable.deleteDescription")}
+      />
     </>
   );
 }
