@@ -31,6 +31,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { getRecurringTransactionById } from "@/lib/data-layer/recurringTransactions.service";
 import { RecurringTransaction, TransactionForTable } from "@/types/transaction";
+import { DeleteConfirmationDialog } from "../ui/DeleteConfirmationDialog";
 
 // Define Transaction type (can be imported from a central types file if available)
 type Transaction = import("@/types/transaction").Transaction;
@@ -250,39 +251,20 @@ export function TransactionsTableDisplay() {
         handleLoadMore={handleLoadMore}
       />
       {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={isDeleteDialogOpen}
+      <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-      >
-        <AlertDialogContent dir="rtl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("dialog.deleteTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("dialog.deleteDescription", {
-                description:
-                  transactionToDelete?.description ||
-                  t("messages.defaultTransactionName"),
-                date: transactionToDelete?.date
-                  ? new Date(transactionToDelete.date).toLocaleDateString(
-                      "he-IL"
-                    )
-                  : "",
-              })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
-              {t("actions.cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {t("actions.delete")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onConfirm={handleDeleteConfirm}
+        title={t("dialog.deleteTitle")}
+        description={t("dialog.deleteDescription", {
+          description:
+            transactionToDelete?.description ||
+            t("messages.defaultTransactionName"),
+          date: transactionToDelete?.date
+            ? new Date(transactionToDelete.date).toLocaleDateString("he-IL")
+            : "",
+        })}
+      />
       {/* Edit Transaction Modal */}
       {isEditModalOpen && editingTransaction && (
         <TransactionEditModal

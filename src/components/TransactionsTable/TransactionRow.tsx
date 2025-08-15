@@ -25,6 +25,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { MoreHorizontal, Trash2, Edit3, Repeat, Infinity } from "lucide-react";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting";
+import { RecurringProgressBadge } from "./RecurringProgressBadge";
 
 // Moved to translation files - will use t() instead
 
@@ -89,63 +90,15 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
       </TableCell>
       <TableCell className="text-center whitespace-nowrap">
         {transaction.recurring_info ? (
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "cursor-default",
-                    transaction.recurring_info.status === "active"
-                      ? "border-green-500 text-green-700"
-                      : "border-gray-400 text-gray-600"
-                  )}
-                >
-                  <div className="flex items-center gap-1">
-                    {transaction.recurring_info.total_occurrences ? (
-                      <span>
-                        {transaction.occurrence_number ??
-                          transaction.recurring_info.execution_count}
-                        /{transaction.recurring_info.total_occurrences}
-                      </span>
-                    ) : (
-                      <div className="flex items-center gap-1" dir="ltr">
-                        <span>
-                          {transaction.occurrence_number ??
-                            transaction.recurring_info.execution_count}
-                        </span>
-                        <span>/</span>
-                        <Infinity className="h-3 w-3" />
-                      </div>
-                    )}
-                  </div>
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  {t("recurring.status")}:{" "}
-                  {t(
-                    `recurring.statuses.${transaction.recurring_info.status}`,
-                    transaction.recurring_info.status
-                  )}
-                </p>
-                <p>
-                  {t("recurring.frequency")}:{" "}
-                  {t(
-                    `recurring.frequencies.${transaction.recurring_info.frequency}`,
-                    transaction.recurring_info.frequency
-                  )}
-                </p>
-                {transaction.recurring_info.frequency === "monthly" &&
-                  transaction.recurring_info.day_of_month && (
-                    <p>
-                      {t("recurring.dayOfMonth")}:{" "}
-                      {transaction.recurring_info.day_of_month}
-                    </p>
-                  )}
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <RecurringProgressBadge
+            status={transaction.recurring_info.status}
+            type={transaction.type}
+            executionCount={transaction.recurring_info.execution_count}
+            totalOccurrences={transaction.recurring_info.total_occurrences}
+            occurrenceNumber={transaction.occurrence_number}
+            frequency={transaction.recurring_info.frequency}
+            dayOfMonth={transaction.recurring_info.day_of_month}
+          />
         ) : (
           "-"
         )}
