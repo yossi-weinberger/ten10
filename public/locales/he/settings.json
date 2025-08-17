@@ -27,6 +27,9 @@
       "title": "הערה חשובה לגבי שינוי מטבע",
       "description": "שינוי מטבע ברירת המחדל משפיע רק על תצוגת הסכומים. הוא אינו מבצע המרה של תנועות קיימות. בשלב זה, לקבלת חישובים מדויקים, מומלץ להזין את כל התנועות באותו המטבע."
     },
+    "currencyNameILS": "שקל",
+    "currencyNameUSD": "דולר",
+    "currencyNameEUR": "אירו",
     "autoCalcChomeshLabel": "חישוב אוטומטי של חומש",
     "autoCalcChomeshDescription": "הוסף חומש באופן אוטומטי לכל ההכנסות.",
     "minMaaserPercentageLabel": "אחוז מעשר מינימלי",
