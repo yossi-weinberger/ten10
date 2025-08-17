@@ -17,8 +17,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Wallet, Calculator, Percent } from "lucide-react";
+import { Wallet, Calculator, Percent, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Define the specific settings properties needed by this component
 interface FinancialSettings {
@@ -72,6 +73,13 @@ export function FinancialSettingsCard({
               <SelectItem value="EUR">{t("financial.currencyEUR")}</SelectItem>
             </SelectContent>
           </Select>
+          <Alert variant="destructive" className="mt-2">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>{t("financial.currencyWarning.title")}</AlertTitle>
+            <AlertDescription>
+              {t("financial.currencyWarning.description")}
+            </AlertDescription>
+          </Alert>
         </div>
 
         <div className="flex items-center justify-between">

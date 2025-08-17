@@ -20,11 +20,15 @@
     "cardDescription": "הגדרות מטבע וחישובים",
     "defaultCurrencyLabel": "מטבע ברירת מחדל",
     "currencyPlaceholder": "בחר מטבע",
-    "currencyILS": "₪ שקל",
-    "currencyUSD": "$ דולר",
-    "currencyEUR": "€ יורו",
-    "autoCalcChomeshLabel": "חישוב חומש אוטומטי",
-    "autoCalcChomeshDescription": "חשב אוטומטית את החומש בהכנסות חדשות",
+    "currencyILS": "שקל ישראלי (ILS)",
+    "currencyUSD": "דולר אמריקאי (USD)",
+    "currencyEUR": "אירו (EUR)",
+    "currencyWarning": {
+      "title": "הערה חשובה לגבי שינוי מטבע",
+      "description": "שינוי מטבע ברירת המחדל משפיע רק על תצוגת הסכומים. הוא אינו מבצע המרה של תנועות קיימות. בשלב זה, לקבלת חישובים מדויקים, מומלץ להזין את כל התנועות באותו המטבע."
+    },
+    "autoCalcChomeshLabel": "חישוב אוטומטי של חומש",
+    "autoCalcChomeshDescription": "הוסף חומש באופן אוטומטי לכל ההכנסות.",
     "minMaaserPercentageLabel": "אחוז מעשר מינימלי",
     "minMaaserPercentageDescription": "הגדר אחוז מינימלי לתרומה מכל הכנסה",
     "comingSoon": "בקרוב"
