@@ -50,20 +50,20 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   const { t } = useTranslation("data-tables");
   return (
     <TableRow key={transaction.id}>
-      <TableCell className="text-right whitespace-nowrap">
+      <TableCell className="text-start whitespace-nowrap">
         {new Date(transaction.date).toLocaleDateString("he-IL", {
           year: "numeric",
           month: "2-digit",
           day: "2-digit",
         })}
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="text-start">
         {transaction.description || "-"}
       </TableCell>
-      <TableCell className="text-right font-medium whitespace-nowrap">
+      <TableCell className="text-center font-medium whitespace-nowrap">
         {formatCurrency(transaction.amount, transaction.currency)}
       </TableCell>
-      <TableCell className="text-right whitespace-nowrap">
+      <TableCell className="text-center whitespace-nowrap">
         <Badge
           variant="outline"
           className={cn(
@@ -74,13 +74,13 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
           {t(`types.${transaction.type}`, transaction.type)}
         </Badge>
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="text-center">
         {transaction.category || "-"}
       </TableCell>
-      <TableCell className="text-right">
+      <TableCell className="text-center">
         {transaction.recipient || "-"}
       </TableCell>
-      <TableCell className="text-right whitespace-nowrap">
+      <TableCell className="text-center whitespace-nowrap">
         {formatBoolean(transaction.is_chomesh)}
       </TableCell>
       <TableCell className="text-center whitespace-nowrap">
