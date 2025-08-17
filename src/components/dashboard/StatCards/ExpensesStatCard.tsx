@@ -6,6 +6,7 @@ import { formatCurrency } from "@/lib/utils/currency";
 import CountUp from "react-countup";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { MagicStatCard } from "./MagicStatCard";
+import { useDonationStore } from "@/lib/store";
 
 interface ExpensesStatCardProps {
   label: string | undefined;
@@ -20,7 +21,10 @@ export function ExpensesStatCard({
   isLoadingServerExpenses,
   serverExpensesError,
 }: ExpensesStatCardProps) {
-  const { t } = useTranslation("dashboard");
+  const { t, i18n } = useTranslation("dashboard");
+  const defaultCurrency = useDonationStore(
+    (state) => state.settings.defaultCurrency
+  );
   const {
     displayValue: totalExpensesDisplayValue,
     startAnimateValue: totalExpensesStartAnimateValue,
@@ -51,7 +55,9 @@ export function ExpensesStatCard({
                 end={totalExpensesDisplayValue}
                 duration={0.75}
                 decimals={2}
-                formattingFn={formatCurrency}
+                formattingFn={(value) =>
+                  formatCurrency(value, defaultCurrency, i18n.language)
+                }
               />
             </span>
           )}

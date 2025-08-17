@@ -10,6 +10,7 @@ import CountUp from "react-countup";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { motion } from "framer-motion";
 import { MagicStatCard } from "./MagicStatCard";
+import { useDonationStore } from "@/lib/store";
 
 interface OverallRequiredStatCardProps {
   serverTitheBalance: number | null;
@@ -24,7 +25,10 @@ export function OverallRequiredStatCard({
   serverTitheBalanceError,
   donationProgress,
 }: OverallRequiredStatCardProps) {
-  const { t } = useTranslation("dashboard");
+  const { t, i18n } = useTranslation("dashboard");
+  const defaultCurrency = useDonationStore(
+    (state) => state.settings.defaultCurrency
+  );
   const {
     displayValue: titheBalanceDisplayValue,
     startAnimateValue: titheBalanceStartAnimateValue,
@@ -64,7 +68,9 @@ export function OverallRequiredStatCard({
                 end={titheBalanceDisplayValue}
                 duration={0.75}
                 decimals={2}
-                formattingFn={formatCurrency}
+                formattingFn={(value) =>
+                  formatCurrency(value, defaultCurrency, i18n.language)
+                }
               />
             </span>
           )}
@@ -90,7 +96,11 @@ export function OverallRequiredStatCard({
         >
           {displayBalanceForText <= 0
             ? t("statsCards.overallRequired.exceededGoal", {
-                amount: formatCurrency(Math.abs(displayBalanceForText)),
+                amount: formatCurrency(
+                  Math.abs(displayBalanceForText),
+                  defaultCurrency,
+                  i18n.language
+                ),
               })
             : t("statsCards.overallRequired.goalProgress", {
                 percentage: donationProgress.toFixed(1),

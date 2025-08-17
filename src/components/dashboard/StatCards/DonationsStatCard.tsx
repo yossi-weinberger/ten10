@@ -8,6 +8,7 @@ import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { ServerDonationData } from "@/lib/data-layer";
 import { Progress } from "@/components/ui/progress";
 import { MagicStatCard } from "./MagicStatCard";
+import { useDonationStore } from "@/lib/store";
 
 interface DonationsStatCardProps {
   label: string;
@@ -25,7 +26,10 @@ export function DonationsStatCard({
   serverDonationsError,
   serverTotalIncome,
 }: DonationsStatCardProps) {
-  const { t } = useTranslation("dashboard");
+  const { t, i18n } = useTranslation("dashboard");
+  const defaultCurrency = useDonationStore(
+    (state) => state.settings.defaultCurrency
+  );
   const serverTotalDonationsAmount =
     serverTotalDonationsData?.total_donations_amount;
 
@@ -64,7 +68,9 @@ export function DonationsStatCard({
                 end={totalDonationsDisplayValue}
                 duration={0.75}
                 decimals={2}
-                formattingFn={formatCurrency}
+                formattingFn={(value) =>
+                  formatCurrency(value, defaultCurrency, i18n.language)
+                }
               />
             </span>
           )}
