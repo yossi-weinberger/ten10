@@ -69,7 +69,7 @@ import { DeleteConfirmationDialog } from "../ui/DeleteConfirmationDialog";
 import { formatCurrency } from "@/lib/utils/currency";
 
 export function RecurringTransactionsTableDisplay() {
-  const { t } = useTranslation("data-tables");
+  const { t, i18n } = useTranslation("data-tables");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
     useState<RecurringTransaction | null>(null);
@@ -198,7 +198,7 @@ export function RecurringTransactionsTableDisplay() {
                 {!loading &&
                   recurring.map((rec) => (
                     <TableRow key={rec.id}>
-                      <TableCell className="text-right whitespace-nowrap">
+                      <TableCell className="text-center whitespace-nowrap">
                         <Badge
                           variant="outline"
                           className={cn(
@@ -209,22 +209,28 @@ export function RecurringTransactionsTableDisplay() {
                           {t(`types.${rec.type}`, rec.type)}
                         </Badge>
                       </TableCell>
-                      <TableCell>{rec.description || "-"}</TableCell>
-                      <TableCell className="font-medium whitespace-nowrap">
-                        {formatCurrency(rec.amount, rec.currency)}
+                      <TableCell className="text-start">
+                        {rec.description || "-"}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center font-medium whitespace-nowrap">
+                        {formatCurrency(
+                          rec.amount,
+                          rec.currency,
+                          i18n.language
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
                         {t(
                           `recurring.frequencies.${rec.frequency}`,
                           rec.frequency
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         {new Date(rec.next_due_date).toLocaleDateString(
                           "he-IL"
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         <Badge
                           variant="outline"
                           className={cn(
@@ -235,7 +241,7 @@ export function RecurringTransactionsTableDisplay() {
                           {t(`recurring.statuses.${rec.status}`, rec.status)}
                         </Badge>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         <RecurringProgressBadge
                           status={rec.status}
                           type={rec.type}
@@ -245,7 +251,7 @@ export function RecurringTransactionsTableDisplay() {
                           dayOfMonth={rec.day_of_month}
                         />
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">

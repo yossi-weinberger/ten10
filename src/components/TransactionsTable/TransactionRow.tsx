@@ -47,7 +47,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   onEditRecurring,
   isFetchingRec,
 }) => {
-  const { t } = useTranslation("data-tables");
+  const { t, i18n } = useTranslation("data-tables");
   return (
     <TableRow key={transaction.id}>
       <TableCell className="text-start whitespace-nowrap">
@@ -61,7 +61,11 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
         {transaction.description || "-"}
       </TableCell>
       <TableCell className="text-center font-medium whitespace-nowrap">
-        {formatCurrency(transaction.amount, transaction.currency)}
+        {formatCurrency(
+          transaction.amount,
+          transaction.currency,
+          i18n.language
+        )}
       </TableCell>
       <TableCell className="text-center whitespace-nowrap">
         <Badge
