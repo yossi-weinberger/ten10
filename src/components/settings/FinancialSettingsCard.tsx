@@ -48,9 +48,9 @@ export function FinancialSettingsCard({
       </CardHeader>
       <CardContent className="grid gap-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-          <div className="grid gap-2">
+          <div className="grid gap-2 p-2">
             <Label>{t("financial.defaultCurrencyLabel")}</Label>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4 ">
               <Button
                 variant={
                   financialSettings.defaultCurrency === "ILS"
