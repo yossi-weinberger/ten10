@@ -3,16 +3,24 @@ import type { CurrencyCode } from "../currencies";
 
 export function formatCurrency(
   amount: number,
-  currencyCode: CurrencyCode = "ILS"
+  currencyCode: CurrencyCode = "ILS",
+  lang: string = "he"
 ): string {
   // Map currency codes to their appropriate locales for correct formatting.
-  const localeMap: Record<CurrencyCode, string> = {
-    ILS: "he-IL",
-    USD: "en-US",
-    EUR: "de-DE", // Using German locale for Euro symbol convention
+  const localeMap: Record<string, Record<CurrencyCode, string>> = {
+    he: {
+      ILS: "he-IL",
+      USD: "he-IL",
+      EUR: "he-IL",
+    },
+    en: {
+      ILS: "en-IL",
+      USD: "en-US",
+      EUR: "en-GB",
+    },
   };
 
-  const locale = localeMap[currencyCode] || "he-IL"; // Fallback to Hebrew locale
+  const locale = localeMap[lang]?.[currencyCode] || "he-IL"; // Fallback to Hebrew locale
 
   const isInteger = amount % 1 === 0;
 
