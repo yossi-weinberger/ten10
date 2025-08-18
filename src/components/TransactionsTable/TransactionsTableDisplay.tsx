@@ -39,7 +39,7 @@ type Transaction = import("@/types/transaction").Transaction;
 // sortableColumns definition - will be defined inside the component to use t()
 
 export function TransactionsTableDisplay() {
-  const { t } = useTranslation("data-tables");
+  const { t, i18n } = useTranslation("data-tables");
 
   // sortableColumns definition with translations
   const sortableColumns: { label: string; field: SortableField }[] = [
@@ -260,7 +260,9 @@ export function TransactionsTableDisplay() {
             transactionToDelete?.description ||
             t("messages.defaultTransactionName"),
           date: transactionToDelete?.date
-            ? new Date(transactionToDelete.date).toLocaleDateString("he-IL")
+            ? new Date(transactionToDelete.date).toLocaleDateString(
+                i18n.language
+              )
             : "",
         })}
       />
