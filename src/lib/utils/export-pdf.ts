@@ -316,7 +316,7 @@ export async function exportTransactionsToPDF(
         format(new Date(t.date), "dd/MM/yy"),
         i18n.t(`export.transactionTypes.${t.type}`, { lng: currentLanguage }) ||
           t.type,
-        formatCurrency(t.amount),
+        formatCurrency(t.amount, t.currency, currentLanguage),
         detailsText,
         t.category || "-",
         t.recipient || "-",

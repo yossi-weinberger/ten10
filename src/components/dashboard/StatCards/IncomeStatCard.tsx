@@ -14,6 +14,7 @@ import CountUp from "react-countup";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { Platform } from "@/contexts/PlatformContext";
 import { MagicStatCard } from "./MagicStatCard";
+import { useDonationStore } from "@/lib/store";
 
 interface IncomeStatCardProps {
   label: string | undefined;
@@ -34,7 +35,10 @@ export function IncomeStatCard({
   platform,
   user,
 }: IncomeStatCardProps) {
-  const { t } = useTranslation("dashboard");
+  const { t, i18n } = useTranslation("dashboard");
+  const defaultCurrency = useDonationStore(
+    (state) => state.settings.defaultCurrency
+  );
   const {
     displayValue: incomeDisplayValue,
     startAnimateValue: incomeStartAnimateValue,
@@ -80,7 +84,9 @@ export function IncomeStatCard({
                 end={incomeDisplayValue}
                 duration={0.75}
                 decimals={2}
-                formattingFn={formatCurrency}
+                formattingFn={(value) =>
+                  formatCurrency(value, defaultCurrency, i18n.language)
+                }
               />
             </span>
           )}
@@ -99,7 +105,9 @@ export function IncomeStatCard({
                   end={chomeshDisplayValue}
                   duration={0.75}
                   decimals={2}
-                  formattingFn={formatCurrency}
+                  formattingFn={(value) =>
+                    formatCurrency(value, defaultCurrency, i18n.language)
+                  }
                 />{" "}
                 {t("statsCards.income.withChomesh")}
               </span>

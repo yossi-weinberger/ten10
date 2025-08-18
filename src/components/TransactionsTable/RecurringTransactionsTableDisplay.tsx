@@ -64,9 +64,12 @@ import {
   RecurringTransactionsTableHeader,
   SortableField,
 } from "./RecurringTransactionsTableHeader";
+import { RecurringProgressBadge } from "./RecurringProgressBadge";
+import { DeleteConfirmationDialog } from "../ui/DeleteConfirmationDialog";
+import { formatCurrency } from "@/lib/utils/currency";
 
 export function RecurringTransactionsTableDisplay() {
-  const { t } = useTranslation("data-tables");
+  const { t, i18n } = useTranslation("data-tables");
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
     useState<RecurringTransaction | null>(null);
@@ -195,7 +198,7 @@ export function RecurringTransactionsTableDisplay() {
                 {!loading &&
                   recurring.map((rec) => (
                     <TableRow key={rec.id}>
-                      <TableCell className="text-right whitespace-nowrap">
+                      <TableCell className="text-center whitespace-nowrap">
                         <Badge
                           variant="outline"
                           className={cn(
@@ -206,26 +209,28 @@ export function RecurringTransactionsTableDisplay() {
                           {t(`types.${rec.type}`, rec.type)}
                         </Badge>
                       </TableCell>
-                      <TableCell>{rec.description || "-"}</TableCell>
-                      <TableCell className="font-medium whitespace-nowrap">
-                        {rec.amount.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}{" "}
-                        {rec.currency}
+                      <TableCell className="text-start">
+                        {rec.description || "-"}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center font-medium whitespace-nowrap">
+                        {formatCurrency(
+                          rec.amount,
+                          rec.currency,
+                          i18n.language
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
                         {t(
                           `recurring.frequencies.${rec.frequency}`,
                           rec.frequency
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         {new Date(rec.next_due_date).toLocaleDateString(
                           "he-IL"
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         <Badge
                           variant="outline"
                           className={cn(
@@ -236,37 +241,17 @@ export function RecurringTransactionsTableDisplay() {
                           {t(`recurring.statuses.${rec.status}`, rec.status)}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Badge
-                                variant="secondary"
-                                className="cursor-pointer"
-                              >
-                                <Repeat className="w-4 h-4 ml-1" />
-                                {rec.total_occurrences ? (
-                                  <span>
-                                    {rec.execution_count} /{" "}
-                                    {rec.total_occurrences}
-                                  </span>
-                                ) : (
-                                  <Infinity className="w-4 h-4" />
-                                )}
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>
-                                {t("recurringTable.executionTooltip", {
-                                  executed: rec.execution_count,
-                                  total: rec.total_occurrences || "∞",
-                                })}
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                      <TableCell className="text-center">
+                        <RecurringProgressBadge
+                          status={rec.status}
+                          type={rec.type}
+                          executionCount={rec.execution_count}
+                          totalOccurrences={rec.total_occurrences}
+                          frequency={rec.frequency}
+                          dayOfMonth={rec.day_of_month}
+                        />
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -308,32 +293,13 @@ export function RecurringTransactionsTableDisplay() {
         onClose={handleCloseModal}
         transaction={selectedTransaction}
       />
-      <AlertDialog
-        open={isDeleteDialogOpen}
+      <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("recurringTable.deleteTitle")}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("recurringTable.deleteDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
-              {t("actions.cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmDelete}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {t("actions.delete")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onConfirm={handleConfirmDelete}
+        title={t("recurringTable.deleteTitle")}
+        description={t("recurringTable.deleteDescription")}
+      />
     </>
   );
 }

@@ -65,7 +65,7 @@ const defaultSettings: Settings = {
   language: "he",
   defaultCurrency: "ILS",
   notifications: true,
-  autoCalcChomesh: true,
+  autoCalcChomesh: false,
   recurringDonations: true,
   minMaaserPercentage: 10,
   maaserYearStart: "01-01",

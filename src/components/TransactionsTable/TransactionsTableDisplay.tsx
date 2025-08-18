@@ -31,6 +31,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { getRecurringTransactionById } from "@/lib/data-layer/recurringTransactions.service";
 import { RecurringTransaction, TransactionForTable } from "@/types/transaction";
+import { DeleteConfirmationDialog } from "../ui/DeleteConfirmationDialog";
 
 // Define Transaction type (can be imported from a central types file if available)
 type Transaction = import("@/types/transaction").Transaction;
@@ -38,14 +39,13 @@ type Transaction = import("@/types/transaction").Transaction;
 // sortableColumns definition - will be defined inside the component to use t()
 
 export function TransactionsTableDisplay() {
-  const { t } = useTranslation("data-tables");
+  const { t, i18n } = useTranslation("data-tables");
 
   // sortableColumns definition with translations
   const sortableColumns: { label: string; field: SortableField }[] = [
     { label: t("columns.date"), field: "date" },
     { label: t("columns.description"), field: "description" },
     { label: t("columns.amount"), field: "amount" },
-    { label: t("columns.currency"), field: "currency" },
     { label: t("columns.type"), field: "type" },
     { label: t("columns.category"), field: "category" },
     { label: t("columns.recipient"), field: "recipient" },
@@ -204,7 +204,7 @@ export function TransactionsTableDisplay() {
                   <>
                     {Array.from({ length: 20 }).map((_, rowIndex) => (
                       <TableRow key={`skeleton-row-${rowIndex}`}>
-                        {Array.from({ length: sortableColumns.length + 3 }).map(
+                        {Array.from({ length: sortableColumns.length + 2 }).map(
                           (_, cellIndex) => (
                             <TableCell
                               key={`skeleton-cell-${rowIndex}-${cellIndex}`}
@@ -221,7 +221,7 @@ export function TransactionsTableDisplay() {
                 {!loading && !error && transactions.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={sortableColumns.length + 3}
+                      colSpan={sortableColumns.length + 2}
                       className="h-24 text-center"
                     >
                       {t("messages.noData")}
@@ -250,39 +250,22 @@ export function TransactionsTableDisplay() {
         handleLoadMore={handleLoadMore}
       />
       {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={isDeleteDialogOpen}
+      <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
-      >
-        <AlertDialogContent dir="rtl">
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t("dialog.deleteTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("dialog.deleteDescription", {
-                description:
-                  transactionToDelete?.description ||
-                  t("messages.defaultTransactionName"),
-                date: transactionToDelete?.date
-                  ? new Date(transactionToDelete.date).toLocaleDateString(
-                      "he-IL"
-                    )
-                  : "",
-              })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
-              {t("actions.cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-700"
-            >
-              {t("actions.delete")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onConfirm={handleDeleteConfirm}
+        title={t("dialog.deleteTitle")}
+        description={t("dialog.deleteDescription", {
+          description:
+            transactionToDelete?.description ||
+            t("messages.defaultTransactionName"),
+          date: transactionToDelete?.date
+            ? new Date(transactionToDelete.date).toLocaleDateString(
+                i18n.language
+              )
+            : "",
+        })}
+      />
       {/* Edit Transaction Modal */}
       {isEditModalOpen && editingTransaction && (
         <TransactionEditModal

@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { RecurringTransaction } from "@/types/transaction";
+import { cn } from "@/lib/utils/formatting";
 
 export type SortableField = keyof RecurringTransaction | string;
 
@@ -14,6 +15,21 @@ interface RecurringTableHeaderProps {
   handleSort: (field: SortableField) => void;
   sortableColumns: { label: string; field: SortableField }[];
   extraColumns?: { label: string }[];
+}
+
+function getAlignmentClass(field: SortableField): string {
+  switch (field) {
+    case "description":
+      return "text-start";
+    case "type":
+    case "amount":
+    case "frequency":
+    case "next_due_date":
+    case "status":
+      return "text-center";
+    default:
+      return "text-start";
+  }
 }
 
 export const RecurringTransactionsTableHeader: React.FC<
@@ -36,10 +52,20 @@ export const RecurringTransactionsTableHeader: React.FC<
         {sortableColumns.map((col) => (
           <TableHead
             key={col.field}
-            className="text-right whitespace-nowrap cursor-pointer hover:bg-muted/50"
+            className={cn(
+              "whitespace-nowrap cursor-pointer hover:bg-muted/50",
+              getAlignmentClass(col.field)
+            )}
             onClick={() => handleSort(col.field)}
           >
-            <div className="flex items-center justify-end">
+            <div
+              className={cn(
+                "flex items-center",
+                getAlignmentClass(col.field) === "text-center"
+                  ? "justify-center"
+                  : ""
+              )}
+            >
               {col.label}
               {renderSortIcon(col.field)}
             </div>

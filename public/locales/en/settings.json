@@ -20,11 +20,18 @@
     "cardDescription": "Currency and calculation settings",
     "defaultCurrencyLabel": "Default Currency",
     "currencyPlaceholder": "Select currency",
-    "currencyILS": "₪ Shekel",
-    "currencyUSD": "$ Dollar",
-    "currencyEUR": "€ Euro",
-    "autoCalcChomeshLabel": "Automatic Chomesh Calculation",
-    "autoCalcChomeshDescription": "Automatically calculate chomesh on new income",
+    "currencyILS": "Israeli Shekel (ILS)",
+    "currencyUSD": "US Dollar (USD)",
+    "currencyEUR": "Euro (EUR)",
+    "currencyWarning": {
+      "title": "Important Note on Currency Change",
+      "description": "Changing the default currency only affects the display of summarized amounts (like in the dashboard). It does not convert existing transactions. At this stage, for accurate calculations, it is recommended to enter all transactions in the same currency."
+    },
+    "currencyNameILS": "Shekel",
+    "currencyNameUSD": "Dollar",
+    "currencyNameEUR": "Euro",
+    "autoCalcChomeshLabel": "Automatically calculate Chomesh",
+    "autoCalcChomeshDescription": "Automatically add Chomesh to all income.",
     "minMaaserPercentageLabel": "Minimum Ma'aser Percentage",
     "minMaaserPercentageDescription": "Set minimum percentage for donation from all income",
     "comingSoon": "Coming Soon"

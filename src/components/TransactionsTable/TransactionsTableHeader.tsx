@@ -34,22 +34,45 @@ export const TransactionsTableHeader: React.FC<
     return <ArrowDown className="ml-2 h-4 w-4" />;
   };
 
+  const getAlignmentClass = (field: SortableField) => {
+    switch (field) {
+      case "date":
+      case "description":
+        return "text-start";
+      case "amount":
+      case "type":
+      case "category":
+      case "recipient":
+        return "text-center";
+      default:
+        return "text-start";
+    }
+  };
+
   return (
     <TableHeader>
       <TableRow>
         {sortableColumns.map((col) => (
           <TableHead
             key={col.field}
-            className="text-right whitespace-nowrap cursor-pointer hover:bg-muted/50"
+            className={`${getAlignmentClass(
+              col.field
+            )} whitespace-nowrap cursor-pointer hover:bg-muted/50`}
             onClick={() => handleSort(col.field)}
           >
-            <div className="flex items-center justify-end">
+            <div
+              className={`flex items-center ${
+                getAlignmentClass(col.field) === "text-center"
+                  ? "justify-center"
+                  : ""
+              }`}
+            >
               {col.label}
               {renderSortIcon(col.field)}
             </div>
           </TableHead>
         ))}
-        <TableHead className="text-right whitespace-nowrap">
+        <TableHead className="text-center whitespace-nowrap">
           {t("columns.chomesh")}
         </TableHead>
         <TableHead className="text-center whitespace-nowrap">
