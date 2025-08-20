@@ -65,10 +65,7 @@ export function UserInfoDisplay() {
       } catch (err: any) {
         console.error("Error fetching profile:", err);
         if (isMounted) {
-          setError(
-            err.message ||
-              t("profile.loadError")
-          );
+          setError(err.message || t("profile.loadError"));
         }
       } finally {
         if (isMounted) {
