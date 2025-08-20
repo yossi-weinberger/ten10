@@ -52,7 +52,7 @@ export const PrinciplesTab = () => {
                     ? "text-blue-900 dark:text-blue-100"
                     : principle.isImportant
                     ? "text-amber-900 dark:text-amber-100"
-                    : ""
+                    : "text-foreground"
                 }`}
               >
                 <span className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold rtl:order-1">
@@ -66,7 +66,7 @@ export const PrinciplesTab = () => {
                     ? "text-blue-800 dark:text-blue-200"
                     : principle.isImportant
                     ? "text-amber-800 dark:text-amber-200"
-                    : "text-muted-foreground"
+                    : "text-foreground"
                 }`}
                 dangerouslySetInnerHTML={{
                   __html: formatText(principle.body),

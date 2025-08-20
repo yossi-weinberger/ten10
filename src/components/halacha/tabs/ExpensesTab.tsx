@@ -21,9 +21,11 @@ export const ExpensesTab = () => {
       {/* Introduction Section */}
       {introduction && (
         <div className="mb-8 pb-6 border-b border-border">
-          <h2 className="text-xl font-semibold mb-3">{introduction.title}</h2>
+          <h2 className="text-xl font-semibold mb-3 text-foreground">
+            {introduction.title}
+          </h2>
           <div
-            className="text-muted-foreground leading-relaxed"
+            className="text-foreground leading-relaxed"
             dangerouslySetInnerHTML={{
               __html: formatText(introduction.body),
             }}

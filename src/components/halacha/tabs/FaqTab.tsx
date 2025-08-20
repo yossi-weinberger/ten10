@@ -21,12 +21,12 @@ export const FaqTab = () => {
           }>
         ).map((item, index) => (
           <AccordionItem value={`item-${index}`} key={index}>
-            <AccordionTrigger className="no-underline hover:no-underline text-base">
+            <AccordionTrigger className="no-underline hover:no-underline text-base text-foreground text-right">
               {item.question}
             </AccordionTrigger>
             <AccordionContent className="ps-2">
               <div
-                className="text-muted-foreground leading-relaxed"
+                className="text-foreground leading-relaxed"
                 dangerouslySetInnerHTML={{ __html: formatText(item.answer) }}
               />
             </AccordionContent>
