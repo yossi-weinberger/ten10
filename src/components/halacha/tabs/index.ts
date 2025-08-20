@@ -5,3 +5,4 @@ export { IncomeTab } from "./IncomeTab";
 export { ExpensesTab } from "./ExpensesTab";
 export { TithesTab } from "./TithesTab";
 export { ChomeshTab } from "./ChomeshTab";
+export { ContentTab } from "./ContentTab";
