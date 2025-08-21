@@ -125,7 +125,8 @@ export function StatCard({
         isSpecial ? specialStyles.shadow : styles.shadow
       } ${isSpecial ? specialStyles.border : ""} ${
         isSpecial ? specialStyles.ring : ""
-      } transition-all duration-300 h-[190px]`}
+        //controls the card height
+      } transition-all duration-300 h-[175px]`}
       gradientColor={styles.gradient}
     >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -136,7 +137,7 @@ export function StatCard({
         <Icon className={`h-5 w-5 ${styles.icon}`} />
       </CardHeader>
       <CardContent>
-        <div className="text-right h-16">
+        <div className="text-right h-12">
           {error ? (
             <p className="text-xs text-red-500">{t("monthlyChart.error")}</p>
           ) : (
