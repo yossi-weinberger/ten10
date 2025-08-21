@@ -1,5 +1,4 @@
 import React from "react";
-// import { useDonationStore } from "@/lib/store"; // REMOVE IF NOT USED
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -8,10 +7,22 @@ import {
   DateRangeSelectionType,
 } from "@/hooks/useDateControls";
 import { useServerStats } from "@/hooks/useServerStats";
-import { IncomeStatCard } from "./StatCards/IncomeStatCard";
-import { ExpensesStatCard } from "./StatCards/ExpensesStatCard";
-import { DonationsStatCard } from "./StatCards/DonationsStatCard";
-import { OverallRequiredStatCard } from "./StatCards/OverallRequiredStatCard";
+import {
+  Wallet,
+  CreditCard,
+  HandHelping,
+  CircleDollarSign,
+  TrendingUp,
+  TrendingDown,
+  Sparkles,
+} from "lucide-react";
+import { StatCard } from "./StatCards/StatCard";
+import { Progress } from "@/components/ui/progress";
+import { motion } from "framer-motion";
+import CountUp from "react-countup";
+import { formatCurrency } from "@/lib/utils/currency";
+import { useDonationStore } from "@/lib/store";
+import { useTranslation } from "react-i18next";
 
 export function StatsCards({
   orientation = "horizontal",
@@ -20,6 +31,10 @@ export function StatsCards({
 }) {
   const { user } = useAuth();
   const { platform } = usePlatform();
+  const { t, i18n } = useTranslation("dashboard");
+  const defaultCurrency = useDonationStore(
+    (state) => state.settings.defaultCurrency
+  );
 
   const {
     dateRangeSelection,
@@ -36,7 +51,6 @@ export function StatsCards({
     serverTotalExpenses,
     isLoadingServerExpenses,
     serverExpensesError,
-    serverTotalDonations,
     serverCalculatedDonationsData,
     isLoadingServerDonations,
     serverDonationsError,
@@ -45,26 +59,92 @@ export function StatsCards({
     serverTitheBalanceError,
   } = useServerStats(activeDateRangeObject, user, platform);
 
-  const actualServerTotalDonations =
-    serverCalculatedDonationsData?.total_donations_amount ??
-    serverTotalDonations ??
-    0;
-  const actualServerTitheBalance = serverTitheBalance ?? 0;
+  // Income Card Subtitle Logic
+  const incomeSubtitle =
+    !isLoadingServerIncome &&
+    !serverIncomeError &&
+    typeof serverChomeshAmount === "number" &&
+    serverChomeshAmount > 0 ? (
+      <span className="block text-xs text-muted-foreground">
+        <CountUp
+          end={serverChomeshAmount}
+          duration={0.75}
+          decimals={2}
+          formattingFn={(value) =>
+            formatCurrency(value, defaultCurrency, i18n.language)
+          }
+        />{" "}
+        {t("statsCards.income.withChomesh")}
+      </span>
+    ) : null;
 
-  let donationProgress = 0; // Ensure it's initialized
-  const currentDonations = actualServerTotalDonations;
-  const remainingTithe =
-    actualServerTitheBalance > 0 ? actualServerTitheBalance : 0;
-  const totalTitheObligation = currentDonations + remainingTithe;
+  // Donations Card Subtitle Logic
+  const serverTotalDonationsAmount =
+    serverCalculatedDonationsData?.total_donations_amount;
+  const percentageOfIncome =
+    serverTotalIncome && serverTotalDonationsAmount
+      ? (serverTotalDonationsAmount / serverTotalIncome) * 100
+      : 0;
+  const donationsSubtitle = (
+    <>
+      <Progress value={percentageOfIncome} className="mt-2" />
+      <p
+        className="text-xs text-muted-foreground mt-2 text-right"
+        style={{ minHeight: "1.2em" }}
+      >
+        {t("statsCards.donations.percentageOfIncome", {
+          percentage: percentageOfIncome.toFixed(1),
+        })}
+      </p>
+    </>
+  );
 
-  if (totalTitheObligation <= 0) {
-    donationProgress = 100;
-  } else {
-    donationProgress = Math.min(
-      100,
-      (currentDonations / totalTitheObligation) * 100
-    );
-  }
+  // Overall Required Card Subtitle Logic
+  const donationProgress =
+    (serverTotalDonationsAmount ?? 0) /
+      ((serverTotalDonationsAmount ?? 0) + (serverTitheBalance ?? 0)) >
+    0
+      ? ((serverTotalDonationsAmount ?? 0) /
+          ((serverTotalDonationsAmount ?? 0) + (serverTitheBalance ?? 0))) *
+        100
+      : 100;
+
+  const displayBalanceForText = serverTitheBalance ?? 0;
+  const overallRequiredSubtitle = (
+    <>
+      <div className="mt-4 relative">
+        <Progress
+          value={donationProgress}
+          className="h-2.5 bg-purple-200 dark:bg-purple-800"
+        />
+        <div
+          className="absolute top-0 left-0 h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full opacity-75"
+          style={{
+            width: `${Math.min(donationProgress, 100)}%`,
+            transition: "width 1s ease-in-out",
+          }}
+        />
+      </div>
+      <motion.p
+        initial={{ opacity: 0.8 }}
+        whileHover={{ opacity: 1 }}
+        className="text-xs text-muted-foreground mt-2 text-right font-medium"
+        style={{ minHeight: "1.2em" }}
+      >
+        {displayBalanceForText <= 0
+          ? t("statsCards.overallRequired.exceededGoal", {
+              amount: formatCurrency(
+                Math.abs(displayBalanceForText),
+                defaultCurrency,
+                i18n.language
+              ),
+            })
+          : t("statsCards.overallRequired.goalProgress", {
+              percentage: donationProgress.toFixed(1),
+            })}
+      </motion.p>
+    </>
+  );
 
   const containerClass =
     orientation === "horizontal"
@@ -97,36 +177,59 @@ export function StatsCards({
       </div>
 
       <div className={containerClass}>
-        <OverallRequiredStatCard
-          serverTitheBalance={serverTitheBalance ?? null}
-          isLoadingServerTitheBalance={isLoadingServerTitheBalance}
-          serverTitheBalanceError={serverTitheBalanceError}
-          donationProgress={donationProgress}
+        <motion.div
+          initial={{ scale: 1 }}
+          whileHover={{ scale: 1.05 }}
+          transition={{ type: "spring", stiffness: 400, damping: 10 }}
+        >
+          <StatCard
+            title={t("statsCards.overallRequired.title")}
+            value={serverTitheBalance}
+            isLoading={isLoadingServerTitheBalance}
+            error={serverTitheBalanceError}
+            icon={CircleDollarSign}
+            colorScheme="purple"
+            subtitleContent={overallRequiredSubtitle}
+            titleIcon={Sparkles}
+          />
+        </motion.div>
+        <StatCard
+          title={`${t("statsCards.income.title")} (${
+            activeDateRangeObject.label ?? ""
+          })`}
+          value={serverTotalIncome}
+          isLoading={isLoadingServerIncome}
+          error={serverIncomeError}
+          icon={Wallet}
+          colorScheme="green"
+          subtitleContent={incomeSubtitle}
+          footerContent={
+            <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+          }
         />
-        <IncomeStatCard
-          label={activeDateRangeObject.label ?? ""}
-          serverTotalIncome={serverTotalIncome ?? null}
-          isLoadingServerIncome={isLoadingServerIncome}
-          serverIncomeError={serverIncomeError}
-          serverChomeshAmount={serverChomeshAmount ?? null}
-          platform={platform}
-          user={user}
+        <StatCard
+          title={`${t("statsCards.expenses.title")} (${
+            activeDateRangeObject.label ?? ""
+          })`}
+          value={serverTotalExpenses}
+          isLoading={isLoadingServerExpenses}
+          error={serverExpensesError}
+          icon={CreditCard}
+          colorScheme="red"
+          footerContent={
+            <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
+          }
         />
-
-        <ExpensesStatCard
-          label={activeDateRangeObject.label ?? ""}
-          serverTotalExpenses={serverTotalExpenses ?? null}
-          isLoadingServerExpenses={isLoadingServerExpenses}
-          serverExpensesError={serverExpensesError}
-        />
-
-        <DonationsStatCard
-          label={activeDateRangeObject.label ?? ""}
-          serverTotalDonationsData={serverCalculatedDonationsData ?? null}
-          isLoadingServerDonations={isLoadingServerDonations}
-          serverDonationsError={serverDonationsError}
-          serverTotalIncome={serverTotalIncome ?? null}
-          isLoadingServerIncome={isLoadingServerIncome}
+        <StatCard
+          title={`${t("statsCards.donations.title")} (${
+            activeDateRangeObject.label ?? ""
+          })`}
+          value={serverCalculatedDonationsData?.total_donations_amount ?? null}
+          isLoading={isLoadingServerDonations}
+          error={serverDonationsError}
+          icon={HandHelping}
+          colorScheme="orange"
+          subtitleContent={donationsSubtitle}
         />
       </div>
     </div>
