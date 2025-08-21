@@ -24,6 +24,7 @@ export const ContentTab = ({ namespace }: ContentTabProps) => {
     "introduction",
     defaultIntroduction
   );
+
   // The 'sources' section is optional, so we handle it carefully.
   const sourcesKeyExists = i18n.exists("sources", { ns: namespace });
   const sources = sourcesKeyExists
@@ -32,10 +33,18 @@ export const ContentTab = ({ namespace }: ContentTabProps) => {
 
   const content = getTypedTranslation(t, "content", [defaultContentItem]);
 
+  // --- NEW: compute validContent once ---
+  const items = Array.isArray(content) ? content : [];
+  const validContent = items.filter((item) => {
+    const title = (item.title ?? "").trim();
+    const body = (item.body ?? "").trim();
+    return title !== "" || body !== "";
+  });
+
   return (
     <HalachaTabLayout title={t("cardTitle")} description={t("cardDescription")}>
       {/* Introduction Section */}
-      {introduction && introduction.title && (
+      {introduction && (introduction.title ?? "").trim() !== "" && (
         <div className="mb-8 pb-6 border-b border-border">
           <h2 className="text-xl font-semibold mb-3 text-foreground">
             {introduction.title}
@@ -50,7 +59,7 @@ export const ContentTab = ({ namespace }: ContentTabProps) => {
       )}
 
       {/* Sources Section (optional) */}
-      {sources && sources.title && (
+      {sources && (sources.title ?? "").trim() !== "" && (
         <div className="mb-8 pb-6 border-b border-border">
           <h2 className="text-xl font-semibold mb-3 text-foreground">
             {sources.title}
@@ -64,9 +73,8 @@ export const ContentTab = ({ namespace }: ContentTabProps) => {
 
       {/* Main Content */}
       <div className="space-y-6">
-        {content &&
-          content.some(item => item.title !== "") && // Check if any item has meaningful content
-          content.map((item, index) => (
+        {validContent.length > 0 &&
+          validContent.map((item, index) => (
             <InfoSection
               key={index}
               title={item.title}
