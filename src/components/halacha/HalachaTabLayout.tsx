@@ -21,7 +21,9 @@ export const HalachaTabLayout = ({
       <div className="mb-8 text-center">
         <div className="flex items-center justify-center gap-2 mb-3">
           <Book className="h-6 w-6 text-primary rtl:order-1" />
-          <h1 className="text-2xl font-bold rtl:order-2">{title}</h1>
+          <h1 className="text-2xl font-bold rtl:order-2 text-foreground">
+            {title}
+          </h1>
         </div>
         <p className="text-muted-foreground text-lg">{description}</p>
       </div>

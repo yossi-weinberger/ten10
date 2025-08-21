@@ -9,13 +9,9 @@ import {
 import { useTranslation } from "react-i18next";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  IntroductionTab,
-  FaqTab,
   PrinciplesTab,
-  IncomeTab,
-  ExpensesTab,
-  TithesTab,
-  ChomeshTab,
+  FaqTab,
+  ContentTab, // Using the generic tab
 } from "./tabs";
 
 const LoadingFallback = () => (
@@ -59,7 +55,7 @@ function HalachaPageContent() {
       {
         value: "introduction",
         label: t("tabs.introduction"),
-        component: <IntroductionTab />,
+        component: <ContentTab namespace="halacha-introduction" />,
       },
       {
         value: "principles",
@@ -67,14 +63,26 @@ function HalachaPageContent() {
         component: <PrinciplesTab />,
       },
       { value: "faq", label: t("tabs.faq"), component: <FaqTab /> },
-      { value: "tithes", label: t("tabs.tithes"), component: <TithesTab /> },
-      { value: "income", label: t("tabs.income"), component: <IncomeTab /> },
+      {
+        value: "tithes",
+        label: t("tabs.tithes"),
+        component: <ContentTab namespace="halacha-tithes" />,
+      },
+      {
+        value: "income",
+        label: t("tabs.income"),
+        component: <ContentTab namespace="halacha-income" />,
+      },
       {
         value: "expenses",
         label: t("tabs.expenses"),
-        component: <ExpensesTab />,
+        component: <ContentTab namespace="halacha-expenses" />,
       },
-      { value: "chomesh", label: t("tabs.chomesh"), component: <ChomeshTab /> },
+      {
+        value: "chomesh",
+        label: t("tabs.chomesh"),
+        component: <ContentTab namespace="halacha-chomesh" />,
+      },
     ],
     [t]
   );

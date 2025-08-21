@@ -33,7 +33,7 @@ export const InfoSection = ({
             ? "text-blue-900 dark:text-blue-100"
             : isImportant
             ? "text-amber-900 dark:text-amber-100"
-            : ""
+            : "text-foreground"
         }`}
       >
         {title}
@@ -44,7 +44,7 @@ export const InfoSection = ({
             ? "text-blue-800 dark:text-blue-200"
             : isImportant
             ? "text-amber-800 dark:text-amber-200"
-            : "text-muted-foreground"
+            : "text-foreground"
         }`}
         dangerouslySetInnerHTML={{ __html: formatText(body) }}
       />

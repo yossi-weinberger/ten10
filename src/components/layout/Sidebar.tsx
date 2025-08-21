@@ -959,7 +959,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
             {!authLoading && !profileLoading && (
               <div
                 className={cn(
-                  "flex flex-col text-sm transition-all duration-200",
+                  "flex flex-col text-sm transition-all duration-200 text-foreground",
                   expanded ? "items-start" : "hidden"
                 )}
               >
