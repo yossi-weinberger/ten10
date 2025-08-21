@@ -122,17 +122,14 @@ export function StatsCards({
   const overallRequiredSubtitle = (
     <>
       <div className="mt-4 relative">
-        <Progress
-          value={donationProgress}
-          className="h-2.5 bg-blue-200 dark:bg-blue-800"
-        />
-        <div
-          className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-sky-500 rounded-full opacity-75"
-          style={{
-            width: `${Math.min(donationProgress, 100)}%`,
-            transition: "width 1s ease-in-out",
-          }}
-        />
+        <div className="h-2.5 bg-blue-200 dark:bg-blue-800 rounded-full">
+          <div
+            className="h-full bg-gradient-to-r from-blue-500 to-sky-500 rounded-full transition-all duration-1000 ease-in-out"
+            style={{
+              width: `${Math.min(donationProgress, 100)}%`,
+            }}
+          />
+        </div>
       </div>
       <motion.p
         initial={{ opacity: 0.8 }}
