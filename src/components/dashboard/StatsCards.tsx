@@ -14,7 +14,7 @@ import {
   CircleDollarSign,
   TrendingUp,
   TrendingDown,
-  Sparkles,
+  Scale,
 } from "lucide-react";
 import { StatCard } from "./StatCards/StatCard";
 import { Progress } from "@/components/ui/progress";
@@ -87,7 +87,16 @@ export function StatsCards({
       : 0;
   const donationsSubtitle = (
     <>
-      <Progress value={percentageOfIncome} className="mt-2" />
+      <div className="mt-2 relative">
+        <div className="h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full">
+          <div
+            className="h-full bg-gradient-to-r from-yellow-500 to-amber-500 rounded-full transition-all duration-1000 ease-in-out"
+            style={{
+              width: `${Math.min(percentageOfIncome, 100)}%`,
+            }}
+          />
+        </div>
+      </div>
       <p
         className="text-xs text-muted-foreground mt-2 text-right"
         style={{ minHeight: "1.2em" }}
@@ -115,10 +124,10 @@ export function StatsCards({
       <div className="mt-4 relative">
         <Progress
           value={donationProgress}
-          className="h-2.5 bg-purple-200 dark:bg-purple-800"
+          className="h-2.5 bg-blue-200 dark:bg-blue-800"
         />
         <div
-          className="absolute top-0 left-0 h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full opacity-75"
+          className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-sky-500 rounded-full opacity-75"
           style={{
             width: `${Math.min(donationProgress, 100)}%`,
             transition: "width 1s ease-in-out",
@@ -187,10 +196,10 @@ export function StatsCards({
             value={serverTitheBalance}
             isLoading={isLoadingServerTitheBalance}
             error={serverTitheBalanceError}
-            icon={CircleDollarSign}
-            colorScheme="purple"
+            icon={Scale}
+            colorScheme="blue"
             subtitleContent={overallRequiredSubtitle}
-            titleIcon={Sparkles}
+            isSpecial={true}
           />
         </motion.div>
         <StatCard

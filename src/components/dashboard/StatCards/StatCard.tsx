@@ -27,6 +27,7 @@ interface StatCardProps {
   colorScheme: ColorScheme;
   footerContent?: React.ReactNode;
   subtitleContent?: React.ReactNode;
+  isSpecial?: boolean; // Add special prop for enhanced styling
 }
 
 const colorStyles: Record<
@@ -93,6 +94,7 @@ export function StatCard({
   colorScheme,
   footerContent,
   subtitleContent,
+  isSpecial = false, // Default to false
 }: StatCardProps) {
   const { t, i18n } = useTranslation("dashboard");
   const defaultCurrency = useDonationStore(
@@ -106,9 +108,24 @@ export function StatCard({
 
   const styles = colorStyles[colorScheme];
 
+  // Special styling for the overall required card
+  const specialStyles = isSpecial
+    ? {
+        border: "border-2 border-blue-500 dark:border-blue-400",
+        shadow:
+          "shadow-lg hover:shadow-xl shadow-blue-500/20 dark:shadow-blue-400/20",
+        bg: "bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 dark:from-blue-950 dark:via-blue-900 dark:to-blue-800",
+        ring: "ring-2 ring-blue-200 dark:ring-blue-800",
+      }
+    : {};
+
   return (
     <MagicStatCard
-      className={`${styles.bg} ${styles.shadow}`}
+      className={`${isSpecial ? specialStyles.bg : styles.bg} ${
+        isSpecial ? specialStyles.shadow : styles.shadow
+      } ${isSpecial ? specialStyles.border : ""} ${
+        isSpecial ? specialStyles.ring : ""
+      } transition-all duration-300 h-[190px]`}
       gradientColor={styles.gradient}
     >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -119,7 +136,7 @@ export function StatCard({
         <Icon className={`h-5 w-5 ${styles.icon}`} />
       </CardHeader>
       <CardContent>
-        <div className="text-right" style={{ minHeight: "calc(1.5rem * 1.5)" }}>
+        <div className="text-right h-16">
           {error ? (
             <p className="text-xs text-red-500">{t("monthlyChart.error")}</p>
           ) : (
@@ -137,10 +154,7 @@ export function StatCard({
           )}
         </div>
         {subtitleContent && (
-          <div
-            className="text-xs text-muted-foreground mt-1 text-right"
-            style={{ minHeight: "1.2em" }}
-          >
+          <div className="text-xs text-muted-foreground mt-1 text-right h-12">
             {subtitleContent}
           </div>
         )}
