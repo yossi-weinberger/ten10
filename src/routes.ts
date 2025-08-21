@@ -21,6 +21,7 @@ import { RecurringTransactionsTable } from "./pages/RecurringTransactionsTable";
 
 const rootRoute = createRootRoute({
   component: App,
+  notFoundComponent: NotFoundPage,
   beforeLoad: async ({ location }) => {
     // --- Platform Check ---
     // A simple, synchronous check for the Tauri-injected global.
@@ -134,12 +135,6 @@ const signupRoute = createRoute({
   component: SignupPage,
 });
 
-const notFoundRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "*",
-  component: NotFoundPage,
-});
-
 const routeTree = rootRoute.addChildren([
   indexRoute,
   addTransactionRoute,
@@ -154,7 +149,6 @@ const routeTree = rootRoute.addChildren([
     transactionsTableIndexRoute,
     recurringTransactionsRoute,
   ]),
-  notFoundRoute,
 ]);
 
 export const router = createRouter({ routeTree });
