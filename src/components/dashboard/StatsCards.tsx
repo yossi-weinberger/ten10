@@ -228,7 +228,7 @@ export function StatsCards({
           isLoading={isLoadingServerDonations}
           error={serverDonationsError}
           icon={HandHelping}
-          colorScheme="orange"
+          colorScheme="yellow"
           subtitleContent={donationsSubtitle}
         />
       </div>

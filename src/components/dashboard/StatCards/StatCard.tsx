@@ -15,7 +15,7 @@ import { MagicStatCard } from "./MagicStatCard";
 import { useDonationStore } from "@/lib/store";
 
 // Define a type for the color schemes for better type safety
-type ColorScheme = "green" | "red" | "blue" | "purple" | "orange";
+type ColorScheme = "green" | "red" | "blue" | "purple" | "orange" | "yellow";
 
 interface StatCardProps {
   title: string;
@@ -73,6 +73,13 @@ const colorStyles: Record<
     icon: "text-orange-600 dark:text-orange-400",
     text: "bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent dark:from-orange-400 dark:to-amber-400",
     gradient: "rgba(249, 115, 22, 0.3)",
+  },
+  yellow: {
+    bg: "bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950 dark:to-yellow-900",
+    shadow: "hover:shadow-yellow-200/50 dark:hover:shadow-yellow-900/50",
+    icon: "text-yellow-600 dark:text-yellow-400",
+    text: "bg-gradient-to-r from-yellow-500 to-amber-500 bg-clip-text text-transparent dark:from-yellow-400 dark:to-amber-400",
+    gradient: "rgba(234, 179, 8, 0.3)",
   },
 };
 
