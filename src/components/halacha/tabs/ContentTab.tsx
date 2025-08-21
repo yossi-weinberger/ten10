@@ -65,7 +65,7 @@ export const ContentTab = ({ namespace }: ContentTabProps) => {
       {/* Main Content */}
       <div className="space-y-6">
         {content &&
-          content.length > 1 && // Check if content is not just the default
+          content.some(item => item.title !== "") && // Check if any item has meaningful content
           content.map((item, index) => (
             <InfoSection
               key={index}

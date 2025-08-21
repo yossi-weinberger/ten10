@@ -42,7 +42,10 @@ export function ProfilePage() {
       setConfirmPassword("");
     } catch (error: any) {
       console.error("Error updating password:", error);
-      toast.error(error.error_description || error.message);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error updating password:", error);
+      }
+      toast.error(t("profile.security.updateError"));
     } finally {
       setLoading(false);
     }
