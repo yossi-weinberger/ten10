@@ -41,7 +41,6 @@ export function ProfilePage() {
       setNewPassword("");
       setConfirmPassword("");
     } catch (error: any) {
-      console.error("Error updating password:", error);
       if (process.env.NODE_ENV === "development") {
         console.error("Error updating password:", error);
       }
