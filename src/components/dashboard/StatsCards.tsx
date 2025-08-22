@@ -108,24 +108,25 @@ export function StatsCards({
     </>
   );
 
-  // Overall Required Card Subtitle Logic
-  const donations = Math.max(
-    0,
-    serverCalculatedDonationsData?.total_donations_amount ?? 0
-  );
-  const balance = serverTitheBalance ?? 0;
+  // Overall Required Card Subtitle Logic (handles negatives safely)
+  const rawDonations =
+    serverCalculatedDonationsData?.total_donations_amount ?? 0;
+  const rawBalance = serverTitheBalance ?? 0;
 
-  let donationProgress: number;
-  if (balance <= 0) {
+  const donations = Math.max(0, rawDonations); // refunds shouldn't create negative progress
+  const balancePositive = Math.max(0, rawBalance); // only positive balance counts toward remaining
+
+  const donationProgress = (() => {
     // goal reached or exceeded
-    donationProgress = 100;
-  } else {
-    const denom = donations + Math.max(0, balance);
-    donationProgress = denom === 0 ? 0 : (donations / denom) * 100;
-  }
+    if (rawBalance <= 0) return 100;
 
-  // clamp to [0..100]
-  donationProgress = Math.min(100, Math.max(0, donationProgress));
+    const denom = donations + balancePositive;
+    if (denom === 0) return 0;
+
+    const pct = (donations / denom) * 100;
+    // final safety clamp
+    return Math.min(100, Math.max(0, pct));
+  })();
 
   const displayBalanceForText = serverTitheBalance ?? 0;
   const overallRequiredSubtitle = (
