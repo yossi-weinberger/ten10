@@ -109,14 +109,23 @@ export function StatsCards({
   );
 
   // Overall Required Card Subtitle Logic
-  const donationProgress =
-    (serverTotalDonationsAmount ?? 0) /
-      ((serverTotalDonationsAmount ?? 0) + (serverTitheBalance ?? 0)) >
-    0
-      ? ((serverTotalDonationsAmount ?? 0) /
-          ((serverTotalDonationsAmount ?? 0) + (serverTitheBalance ?? 0))) *
-        100
-      : 100;
+  const donations = Math.max(
+    0,
+    serverCalculatedDonationsData?.total_donations_amount ?? 0
+  );
+  const balance = serverTitheBalance ?? 0;
+
+  let donationProgress: number;
+  if (balance <= 0) {
+    // goal reached or exceeded
+    donationProgress = 100;
+  } else {
+    const denom = donations + Math.max(0, balance);
+    donationProgress = denom === 0 ? 0 : (donations / denom) * 100;
+  }
+
+  // clamp to [0..100]
+  donationProgress = Math.min(100, Math.max(0, donationProgress));
 
   const displayBalanceForText = serverTitheBalance ?? 0;
   const overallRequiredSubtitle = (
