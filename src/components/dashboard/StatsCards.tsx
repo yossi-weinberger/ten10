@@ -10,7 +10,7 @@ import { useServerStats } from "@/hooks/useServerStats";
 import {
   Wallet,
   CreditCard,
-  HandHelping,
+  HandCoins,
   CircleDollarSign,
   TrendingUp,
   TrendingDown,
@@ -285,7 +285,7 @@ export function StatsCards({
           value={serverCalculatedDonationsData?.total_donations_amount ?? null}
           isLoading={isLoadingServerDonations}
           error={serverDonationsError}
-          icon={HandHelping}
+          icon={HandCoins}
           colorScheme="yellow"
           subtitleContent={donationsSubtitle}
           onAddClick={handleDonationsAdd}
