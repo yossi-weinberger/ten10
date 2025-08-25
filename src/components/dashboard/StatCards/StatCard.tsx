@@ -1,4 +1,5 @@
 import React from "react";
+import { TooltipPortal } from "@radix-ui/react-tooltip";
 import { useTranslation } from "react-i18next";
 import {
   Card,
@@ -204,17 +205,19 @@ export function StatCard({
                   onClick={onAddClick}
                   className={`h-9 w-9 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
                 >
-                  <BadgePlus className="h-5 w-5" />
+                  <BadgePlus className="h-5 w-5 [&]:!size-5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent
-                className="z-[9999]"
-                side="top"
-                align="center"
-                sideOffset={8}
-              >
-                <p dir={i18n.dir()}>{addButtonTooltip}</p>
-              </TooltipContent>
+              <TooltipPortal>
+                <TooltipContent
+                  className="z-[9999] bg-gray-800 text-white px-2 py-1 rounded text-sm shadow-lg"
+                  side="top"
+                  align="center"
+                  sideOffset={8}
+                >
+                  <p dir={i18n.dir()}>{addButtonTooltip}</p>
+                </TooltipContent>
+              </TooltipPortal>
             </Tooltip>
           </TooltipProvider>
         </div>

@@ -241,7 +241,7 @@ export function StatsCards({
             subtitleContent={overallRequiredSubtitle}
             isSpecial={true}
             onAddClick={handleOverallRequiredAdd}
-            showAddButton={true}
+            showAddButton={false}
             addButtonTooltip={t("statsCards.overallRequired.addDonation")}
           />
         </motion.div>
