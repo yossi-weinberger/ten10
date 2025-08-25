@@ -161,7 +161,7 @@ export function StatsCards({
   const displayBalanceForText = serverTitheBalance ?? 0;
   const overallRequiredSubtitle = (
     <>
-      <div className="mt-4 relative">
+      <div className="mt-2 relative">
         <div className="h-2.5 bg-blue-200 dark:bg-blue-800 rounded-full">
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-sky-500 rounded-full transition-all duration-1000 ease-in-out"
