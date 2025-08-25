@@ -23,6 +23,7 @@ import CountUp from "react-countup";
 import { formatCurrency } from "@/lib/utils/currency";
 import { useDonationStore } from "@/lib/store";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "@tanstack/react-router";
 
 export function StatsCards({
   orientation = "horizontal",
@@ -32,9 +33,35 @@ export function StatsCards({
   const { user } = useAuth();
   const { platform } = usePlatform();
   const { t, i18n } = useTranslation("dashboard");
+  const navigate = useNavigate();
   const defaultCurrency = useDonationStore(
     (state) => state.settings.defaultCurrency
   );
+
+  // Navigation functions for each stat card
+  const navigateToAddTransaction = (transactionType: string) => {
+    navigate({
+      to: "/add-transaction",
+      search: { type: transactionType },
+    });
+  };
+
+  const handleOverallRequiredAdd = () => {
+    // For overall required, we'll default to income since it's the main contributor
+    navigateToAddTransaction("income");
+  };
+
+  const handleIncomeAdd = () => {
+    navigateToAddTransaction("income");
+  };
+
+  const handleExpensesAdd = () => {
+    navigateToAddTransaction("expense");
+  };
+
+  const handleDonationsAdd = () => {
+    navigateToAddTransaction("donation");
+  };
 
   const {
     dateRangeSelection,
@@ -207,6 +234,8 @@ export function StatsCards({
             colorScheme="blue"
             subtitleContent={overallRequiredSubtitle}
             isSpecial={true}
+            onAddClick={handleOverallRequiredAdd}
+            showAddButton={true}
           />
         </motion.div>
         <StatCard
@@ -222,6 +251,8 @@ export function StatsCards({
           footerContent={
             <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
           }
+          onAddClick={handleIncomeAdd}
+          showAddButton={true}
         />
         <StatCard
           title={`${t("statsCards.expenses.title")} (${
@@ -235,6 +266,8 @@ export function StatsCards({
           footerContent={
             <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
           }
+          onAddClick={handleExpensesAdd}
+          showAddButton={true}
         />
         <StatCard
           title={`${t("statsCards.donations.title")} (${
@@ -246,6 +279,8 @@ export function StatsCards({
           icon={HandHelping}
           colorScheme="yellow"
           subtitleContent={donationsSubtitle}
+          onAddClick={handleDonationsAdd}
+          showAddButton={true}
         />
       </div>
     </div>

@@ -7,12 +7,13 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, Plus } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/currency";
 import CountUp from "react-countup";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { MagicStatCard } from "./MagicStatCard";
 import { useDonationStore } from "@/lib/store";
+import { Button } from "@/components/ui/button";
 
 // Define a type for the color schemes for better type safety
 type ColorScheme = "green" | "red" | "blue" | "purple" | "orange" | "yellow";
@@ -28,6 +29,8 @@ interface StatCardProps {
   footerContent?: React.ReactNode;
   subtitleContent?: React.ReactNode;
   isSpecial?: boolean; // Add special prop for enhanced styling
+  onAddClick?: () => void; // New prop for add button functionality
+  showAddButton?: boolean; // New prop to control add button visibility
 }
 
 const colorStyles: Record<
@@ -95,6 +98,8 @@ export function StatCard({
   footerContent,
   subtitleContent,
   isSpecial = false, // Default to false
+  onAddClick,
+  showAddButton = false, // Default to false
 }: StatCardProps) {
   const { t, i18n } = useTranslation("dashboard");
   const defaultCurrency = useDonationStore(
@@ -134,7 +139,19 @@ export function StatCard({
           {TitleIcon && <TitleIcon className={`h-4 w-4 ${styles.icon}`} />}
           {title}
         </CardTitle>
-        <Icon className={`h-5 w-5 ${styles.icon}`} />
+        <div className="flex items-center gap-2">
+          {showAddButton && onAddClick && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onAddClick}
+              className={`h-6 w-6 p-0 hover:bg-white/20 dark:hover:bg-black/20 ${styles.icon}`}
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+          )}
+          <Icon className={`h-5 w-5 ${styles.icon}`} />
+        </div>
       </CardHeader>
       <CardContent>
         <div className="text-right h-12">
