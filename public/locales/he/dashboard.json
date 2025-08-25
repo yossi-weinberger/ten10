@@ -14,20 +14,23 @@
       "currentMonth": "החודש",
       "lastMonth": "חודש קודם",
       "change": "שינוי",
-      "withChomesh": "מתוכם עם חומש"
+      "withChomesh": "מתוכם עם חומש",
+      "addIncome": "הוסף הכנסה"
     },
     "expenses": {
       "title": "הוצאות",
       "currentMonth": "החודש",
       "lastMonth": "חודש קודם",
-      "change": "שינוי"
+      "change": "שינוי",
+      "addExpense": "הוסף הוצאה"
     },
     "donations": {
       "title": "תרומות",
       "currentMonth": "החודש",
       "lastMonth": "חודש קודם",
       "change": "שינוי",
-      "percentageOfIncome": "{{percentage}}% מתוך סך ההכנסות"
+      "percentageOfIncome": "{{percentage}}% מתוך סך ההכנסות",
+      "addDonation": "הוסף תרומה"
     },
     "overallRequired": {
       "title": "יתרה לתרומת מעשר",
@@ -35,7 +38,8 @@
       "lastMonth": "חודש קודם",
       "change": "שינוי",
       "exceededGoal": "עברת את היעד ב-{{amount}} (יתרה)",
-      "goalProgress": "{{percentage}}% מהיעד הושלם"
+      "goalProgress": "{{percentage}}% מהיעד הושלם",
+      "addDonation": "הוסף תרומה"
     },
     "magic": {
       "title": "קסם",

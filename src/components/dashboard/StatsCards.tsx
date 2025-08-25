@@ -47,8 +47,8 @@ export function StatsCards({
   };
 
   const handleOverallRequiredAdd = () => {
-    // For overall required, we'll default to income since it's the main contributor
-    navigateToAddTransaction("income");
+    // For overall required, we'll navigate to donation since it reduces the required amount
+    navigateToAddTransaction("donation");
   };
 
   const handleIncomeAdd = () => {
@@ -92,7 +92,7 @@ export function StatsCards({
     !serverIncomeError &&
     typeof serverChomeshAmount === "number" &&
     serverChomeshAmount > 0 ? (
-      <span className="block text-xs text-muted-foreground">
+      <span className="block text-xs text-muted-foreground" dir={i18n.dir()}>
         <CountUp
           end={serverChomeshAmount}
           duration={0.75}
@@ -125,8 +125,11 @@ export function StatsCards({
         </div>
       </div>
       <p
-        className="text-xs text-muted-foreground mt-2 text-right"
+        className={`text-xs text-muted-foreground mt-2 ${
+          i18n.dir() === "rtl" ? "text-right" : "text-left"
+        }`}
         style={{ minHeight: "1.2em" }}
+        dir={i18n.dir()}
       >
         {t("statsCards.donations.percentageOfIncome", {
           percentage: percentageOfIncome.toFixed(1),
@@ -171,8 +174,11 @@ export function StatsCards({
       <motion.p
         initial={{ opacity: 0.8 }}
         whileHover={{ opacity: 1 }}
-        className="text-xs text-muted-foreground mt-2 text-right font-medium"
+        className={`text-xs text-muted-foreground mt-2 ${
+          i18n.dir() === "rtl" ? "text-right" : "text-left"
+        } font-medium`}
         style={{ minHeight: "1.2em" }}
+        dir={i18n.dir()}
       >
         {displayBalanceForText <= 0
           ? t("statsCards.overallRequired.exceededGoal", {
@@ -236,6 +242,7 @@ export function StatsCards({
             isSpecial={true}
             onAddClick={handleOverallRequiredAdd}
             showAddButton={true}
+            addButtonTooltip={t("statsCards.overallRequired.addDonation")}
           />
         </motion.div>
         <StatCard
@@ -253,6 +260,7 @@ export function StatsCards({
           }
           onAddClick={handleIncomeAdd}
           showAddButton={true}
+          addButtonTooltip={t("statsCards.income.addIncome")}
         />
         <StatCard
           title={`${t("statsCards.expenses.title")} (${
@@ -268,6 +276,7 @@ export function StatsCards({
           }
           onAddClick={handleExpensesAdd}
           showAddButton={true}
+          addButtonTooltip={t("statsCards.expenses.addExpense")}
         />
         <StatCard
           title={`${t("statsCards.donations.title")} (${
@@ -281,6 +290,7 @@ export function StatsCards({
           subtitleContent={donationsSubtitle}
           onAddClick={handleDonationsAdd}
           showAddButton={true}
+          addButtonTooltip={t("statsCards.donations.addDonation")}
         />
       </div>
     </div>

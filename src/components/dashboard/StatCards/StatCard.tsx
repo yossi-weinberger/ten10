@@ -7,13 +7,19 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { LucideIcon, Plus } from "lucide-react";
+import { LucideIcon, BadgePlus } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/currency";
 import CountUp from "react-countup";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { MagicStatCard } from "./MagicStatCard";
 import { useDonationStore } from "@/lib/store";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Define a type for the color schemes for better type safety
 type ColorScheme = "green" | "red" | "blue" | "purple" | "orange" | "yellow";
@@ -31,6 +37,7 @@ interface StatCardProps {
   isSpecial?: boolean; // Add special prop for enhanced styling
   onAddClick?: () => void; // New prop for add button functionality
   showAddButton?: boolean; // New prop to control add button visibility
+  addButtonTooltip?: string; // New prop for tooltip text
 }
 
 const colorStyles: Record<
@@ -100,6 +107,7 @@ export function StatCard({
   isSpecial = false, // Default to false
   onAddClick,
   showAddButton = false, // Default to false
+  addButtonTooltip = "", // Default to empty string
 }: StatCardProps) {
   const { t, i18n } = useTranslation("dashboard");
   const defaultCurrency = useDonationStore(
@@ -139,24 +147,18 @@ export function StatCard({
           {TitleIcon && <TitleIcon className={`h-4 w-4 ${styles.icon}`} />}
           {title}
         </CardTitle>
-        <div className="flex items-center gap-2">
-          {showAddButton && onAddClick && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onAddClick}
-              className={`h-6 w-6 p-0 hover:bg-white/20 dark:hover:bg-black/20 ${styles.icon}`}
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
-          )}
-          <Icon className={`h-5 w-5 ${styles.icon}`} />
-        </div>
+        <Icon className={`h-5 w-5 ${styles.icon}`} />
       </CardHeader>
       <CardContent>
-        <div className="text-right h-12">
+        <div
+          className={`${
+            i18n.dir() === "rtl" ? "text-right" : "text-left"
+          } h-12`}
+        >
           {error ? (
-            <p className="text-xs text-red-500">{t("monthlyChart.error")}</p>
+            <p className="text-xs text-red-500" dir={i18n.dir()}>
+              {t("monthlyChart.error")}
+            </p>
           ) : (
             <span className={`text-3xl font-bold ${styles.text}`}>
               <CountUp
@@ -172,13 +174,45 @@ export function StatCard({
           )}
         </div>
         {subtitleContent && (
-          <div className="text-xs text-muted-foreground mt-1 text-right h-12">
+          <div
+            className={`text-xs text-muted-foreground mt-1 ${
+              i18n.dir() === "rtl" ? "text-right" : "text-left"
+            } h-12`}
+            dir={i18n.dir()}
+          >
             {subtitleContent}
           </div>
         )}
       </CardContent>
       {footerContent && (
         <CardFooter className="pt-2">{footerContent}</CardFooter>
+      )}
+
+      {/* Add Button positioned at bottom with absolute positioning */}
+      {showAddButton && onAddClick && (
+        <div
+          className={`absolute bottom-2 ${
+            i18n.dir() === "rtl" ? "left-2" : "right-2"
+          }`}
+        >
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onAddClick}
+                  className={`h-8 w-8 p-0 hover:bg-white/50 dark:hover:bg-black/50 transition-all duration-200 hover:scale-110 ${styles.icon} border border-gray-300 dark:border-gray-600 bg-white/80 dark:bg-gray-800/80 shadow-sm`}
+                >
+                  <BadgePlus className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p dir={i18n.dir()}>{addButtonTooltip}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       )}
     </MagicStatCard>
   );
