@@ -87,63 +87,11 @@ function MyComponent() {
 
 **Root Causes:**
 
-1. `overflow-hidden` on parent components
-2. `position: relative` with overflow constraints
-3. Insufficient z-index values
+- **Cause:** The parent container has `overflow: hidden` or it's a stacking context (`position: relative`).
+- **Solution 1:** The best solution is to use a global `TooltipProvider` and ensure no parent has `overflow: hidden`.
+- **Solution 2:** Add a high `z-index` to the tooltip content.
 
-**Solutions:**
-
-#### Solution 1: Remove Overflow Constraints
-
-```tsx
-// Before (problematic)
-<div className="overflow-hidden">
-  <Tooltip>...</Tooltip>
-</div>
-
-// After (fixed)
-<div className="overflow-visible">
-  <Tooltip>...</Tooltip>
-</div>
-```
-
-#### Solution 2: Add High Z-Index
-
-```tsx
-<TooltipContent side="top" className="z-[9999]">
-  <p>Tooltip content</p>
-</TooltipContent>
-```
-
-#### Solution 3: Use Portal (Advanced)
-
-```tsx
-import { TooltipPortal } from "@radix-ui/react-tooltip";
-
-<TooltipContent side="top" className="z-[9999]">
-  <TooltipPortal>
-    <p>Tooltip content</p>
-  </TooltipPortal>
-</TooltipContent>;
-```
-
-### 2.2 Problem: Tooltip Doesn't Appear
-
-**Symptoms:**
-
-- No tooltip shows on hover
-- Console errors about missing context
-- Tooltip appears briefly then disappears
-
-**Root Causes:**
-
-1. Missing `TooltipProvider`
-2. `TooltipProvider` in wrong location
-3. Incorrect component hierarchy
-
-**Solutions:**
-
-#### Solution 1: Ensure Global TooltipProvider
+#### Solution 1: Use a Global `TooltipProvider`
 
 ```tsx
 // In App.tsx
