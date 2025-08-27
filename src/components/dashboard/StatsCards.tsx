@@ -10,7 +10,7 @@ import { useServerStats } from "@/hooks/useServerStats";
 import {
   Wallet,
   CreditCard,
-  HandHelping,
+  HandCoins,
   CircleDollarSign,
   TrendingUp,
   TrendingDown,
@@ -23,6 +23,7 @@ import CountUp from "react-countup";
 import { formatCurrency } from "@/lib/utils/currency";
 import { useDonationStore } from "@/lib/store";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "@tanstack/react-router";
 
 export function StatsCards({
   orientation = "horizontal",
@@ -32,9 +33,35 @@ export function StatsCards({
   const { user } = useAuth();
   const { platform } = usePlatform();
   const { t, i18n } = useTranslation("dashboard");
+  const navigate = useNavigate();
   const defaultCurrency = useDonationStore(
     (state) => state.settings.defaultCurrency
   );
+
+  // Navigation functions for each stat card
+  const navigateToAddTransaction = (transactionType: string) => {
+    navigate({
+      to: "/add-transaction",
+      search: { type: transactionType },
+    });
+  };
+
+  // const handleOverallRequiredAdd = () => {
+  //   // For overall required, we'll navigate to donation since it reduces the required amount
+  //   navigateToAddTransaction("donation");
+  // };
+
+  const handleIncomeAdd = () => {
+    navigateToAddTransaction("income");
+  };
+
+  const handleExpensesAdd = () => {
+    navigateToAddTransaction("expense");
+  };
+
+  const handleDonationsAdd = () => {
+    navigateToAddTransaction("donation");
+  };
 
   const {
     dateRangeSelection,
@@ -65,7 +92,7 @@ export function StatsCards({
     !serverIncomeError &&
     typeof serverChomeshAmount === "number" &&
     serverChomeshAmount > 0 ? (
-      <span className="block text-xs text-muted-foreground">
+      <span className="block text-xs text-muted-foreground" dir={i18n.dir()}>
         <CountUp
           end={serverChomeshAmount}
           duration={0.75}
@@ -98,8 +125,11 @@ export function StatsCards({
         </div>
       </div>
       <p
-        className="text-xs text-muted-foreground mt-2 text-right"
+        className={`text-xs text-muted-foreground mt-2 ${
+          i18n.dir() === "rtl" ? "text-right" : "text-left"
+        }`}
         style={{ minHeight: "1.2em" }}
+        dir={i18n.dir()}
       >
         {t("statsCards.donations.percentageOfIncome", {
           percentage: percentageOfIncome.toFixed(1),
@@ -131,7 +161,7 @@ export function StatsCards({
   const displayBalanceForText = serverTitheBalance ?? 0;
   const overallRequiredSubtitle = (
     <>
-      <div className="mt-4 relative">
+      <div className="mt-2 relative">
         <div className="h-2.5 bg-blue-200 dark:bg-blue-800 rounded-full">
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-sky-500 rounded-full transition-all duration-1000 ease-in-out"
@@ -144,8 +174,11 @@ export function StatsCards({
       <motion.p
         initial={{ opacity: 0.8 }}
         whileHover={{ opacity: 1 }}
-        className="text-xs text-muted-foreground mt-2 text-right font-medium"
+        className={`text-xs text-muted-foreground mt-2 ${
+          i18n.dir() === "rtl" ? "text-right" : "text-left"
+        } font-medium`}
         style={{ minHeight: "1.2em" }}
+        dir={i18n.dir()}
       >
         {displayBalanceForText <= 0
           ? t("statsCards.overallRequired.exceededGoal", {
@@ -207,6 +240,9 @@ export function StatsCards({
             colorScheme="blue"
             subtitleContent={overallRequiredSubtitle}
             isSpecial={true}
+            // onAddClick={handleOverallRequiredAdd}
+            showAddButton={false}
+            addButtonTooltip={t("statsCards.overallRequired.addDonation")}
           />
         </motion.div>
         <StatCard
@@ -222,6 +258,9 @@ export function StatsCards({
           footerContent={
             <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
           }
+          onAddClick={handleIncomeAdd}
+          showAddButton={true}
+          addButtonTooltip={t("statsCards.income.addIncome")}
         />
         <StatCard
           title={`${t("statsCards.expenses.title")} (${
@@ -235,6 +274,9 @@ export function StatsCards({
           footerContent={
             <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
           }
+          onAddClick={handleExpensesAdd}
+          showAddButton={true}
+          addButtonTooltip={t("statsCards.expenses.addExpense")}
         />
         <StatCard
           title={`${t("statsCards.donations.title")} (${
@@ -243,9 +285,12 @@ export function StatsCards({
           value={serverCalculatedDonationsData?.total_donations_amount ?? null}
           isLoading={isLoadingServerDonations}
           error={serverDonationsError}
-          icon={HandHelping}
+          icon={HandCoins}
           colorScheme="yellow"
           subtitleContent={donationsSubtitle}
+          onAddClick={handleDonationsAdd}
+          showAddButton={true}
+          addButtonTooltip={t("statsCards.donations.addDonation")}
         />
       </div>
     </div>

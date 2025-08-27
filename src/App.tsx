@@ -10,6 +10,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from "./components/ui/sheet";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "./components/layout/Sidebar";
 import { usePlatform } from "./contexts/PlatformContext";
 import { setPlatform as setGlobalPlatform } from "./lib/platformManager";
@@ -72,44 +73,46 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <div
-        className="hidden md:block w-[4rem] hover:w-48 transition-all duration-300 bg-card overflow-hidden h-screen shadow-lg"
-        onMouseEnter={() => setIsSidebarExpanded(true)}
-        onMouseLeave={() => setIsSidebarExpanded(false)}
-      >
-        <Sidebar expanded={isSidebarExpanded} />
-      </div>
-
-      <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-        <SheetTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden fixed top-4 right-4 z-50"
-          >
-            <Menu className="h-6 w-6" />
-          </Button>
-        </SheetTrigger>
-        <SheetContent
-          side="right"
-          className="p-0 flex flex-col w-40 max-w-[180px]"
+    <TooltipProvider>
+      <div className="min-h-screen bg-background flex">
+        <div
+          className="hidden md:block w-[4rem] hover:w-48 transition-all duration-300 bg-card overflow-hidden h-screen shadow-lg"
+          onMouseEnter={() => setIsSidebarExpanded(true)}
+          onMouseLeave={() => setIsSidebarExpanded(false)}
         >
-          <div className="flex-1 overflow-y-auto pt-12">
-            <Sidebar expanded={true} inSheet={true} />
-          </div>
-        </SheetContent>
-      </Sheet>
+          <Sidebar expanded={isSidebarExpanded} />
+        </div>
 
-      <div className="flex-1 h-screen overflow-y-auto">
-        <main className="container py-6 px-4 md:px-6 md:pt-6 pt-20">
-          <div className={platform === "desktop" ? "is-desktop" : "is-web"}>
-            <Outlet />
-          </div>
-        </main>
+        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+          <SheetTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden fixed top-4 right-4 z-50"
+            >
+              <Menu className="h-6 w-6" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent
+            side="right"
+            className="p-0 flex flex-col w-40 max-w-[180px]"
+          >
+            <div className="flex-1 overflow-y-auto pt-12">
+              <Sidebar expanded={true} inSheet={true} />
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        <div className="flex-1 h-screen overflow-y-auto">
+          <main className="container py-6 px-4 md:px-6 md:pt-6 pt-20">
+            <div className={platform === "desktop" ? "is-desktop" : "is-web"}>
+              <Outlet />
+            </div>
+          </main>
+        </div>
+        <Toaster richColors />
       </div>
-      <Toaster richColors />
-    </div>
+    </TooltipProvider>
   );
 }
 

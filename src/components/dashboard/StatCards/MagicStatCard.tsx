@@ -45,11 +45,11 @@ export function MagicStatCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="relative h-full"
+      className="h-full"
     >
       <Card
         className={cn(
-          "group relative overflow-hidden h-full",
+          "group overflow-visible h-full",
           "transition-all duration-300 hover:scale-[1.02] hover:shadow-lg",
           className
         )}

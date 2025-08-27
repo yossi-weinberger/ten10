@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +19,7 @@ import { CURRENCIES } from "@/lib/currencies";
 import { Transaction } from "@/types/transaction";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
+import { useSearch } from "@tanstack/react-router";
 
 // Zod schema is now imported from "@/types/forms"
 
@@ -51,6 +52,7 @@ export function TransactionForm({
 }: TransactionFormProps) {
   const { t } = useTranslation("transactions");
   const { platform } = usePlatform();
+  const search = useSearch({ from: "/add-transaction" });
 
   // Labels are handled where rendered
 
@@ -86,7 +88,18 @@ export function TransactionForm({
       amount: undefined,
       currency: defaultCurrency,
       description: "",
-      type: "income",
+      type:
+        typeof search.type === "string" &&
+        [
+          "income",
+          "expense",
+          "donation",
+          "exempt-income",
+          "recognized-expense",
+          "non_tithe_donation",
+        ].includes(search.type as TransactionType)
+          ? (search.type as TransactionType)
+          : "income", // Use URL param if valid, else default to "income"
       category: "",
       is_chomesh: false,
       recipient: "",
@@ -99,6 +112,24 @@ export function TransactionForm({
       recurringTotalCount: undefined,
     },
   });
+
+  // Update form when URL search params change
+  useEffect(() => {
+    if (
+      search.type &&
+      search.type !== form.getValues("type") &&
+      [
+        "income",
+        "expense",
+        "donation",
+        "exempt-income",
+        "recognized-expense",
+        "non_tithe_donation",
+      ].includes(search.type as TransactionType)
+    ) {
+      form.setValue("type", search.type as TransactionType);
+    }
+  }, [search.type, form]);
 
   // Use useEffect to reset the form when initialData changes (for editing)
   React.useEffect(() => {

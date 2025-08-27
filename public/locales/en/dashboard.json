@@ -14,20 +14,23 @@
       "currentMonth": "This Month",
       "lastMonth": "Last Month",
       "change": "Change",
-      "withChomesh": "including chomesh"
+      "withChomesh": "including chomesh",
+      "addIncome": "Add Income"
     },
     "expenses": {
       "title": "Expenses",
       "currentMonth": "This Month",
       "lastMonth": "Last Month",
-      "change": "Change"
+      "change": "Change",
+      "addExpense": "Add Expense"
     },
     "donations": {
       "title": "Donations",
       "currentMonth": "This Month",
       "lastMonth": "Last Month",
       "change": "Change",
-      "percentageOfIncome": "{{percentage}}% of total income"
+      "percentageOfIncome": "{{percentage}}% of total income",
+      "addDonation": "Add Donation"
     },
     "overallRequired": {
       "title": "Overall Required",
@@ -35,7 +38,8 @@
       "lastMonth": "Last Month",
       "change": "Change",
       "exceededGoal": "Exceeded goal by {{amount}} (surplus)",
-      "goalProgress": "{{percentage}}% of goal completed"
+      "goalProgress": "{{percentage}}% of goal completed",
+      "addDonation": "Add Donation"
     },
     "magic": {
       "title": "Magic",

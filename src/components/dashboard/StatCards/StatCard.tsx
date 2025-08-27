@@ -7,12 +7,18 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, BadgePlus } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/currency";
 import CountUp from "react-countup";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { MagicStatCard } from "./MagicStatCard";
 import { useDonationStore } from "@/lib/store";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Define a type for the color schemes for better type safety
 type ColorScheme = "green" | "red" | "blue" | "purple" | "orange" | "yellow";
@@ -28,6 +34,9 @@ interface StatCardProps {
   footerContent?: React.ReactNode;
   subtitleContent?: React.ReactNode;
   isSpecial?: boolean; // Add special prop for enhanced styling
+  onAddClick?: () => void; // New prop for add button functionality
+  showAddButton?: boolean; // New prop to control add button visibility
+  addButtonTooltip?: string; // New prop for tooltip text
 }
 
 const colorStyles: Record<
@@ -95,6 +104,9 @@ export function StatCard({
   footerContent,
   subtitleContent,
   isSpecial = false, // Default to false
+  onAddClick,
+  showAddButton = false, // Default to false
+  addButtonTooltip = "", // Default to empty string
 }: StatCardProps) {
   const { t, i18n } = useTranslation("dashboard");
   const defaultCurrency = useDonationStore(
@@ -129,40 +141,80 @@ export function StatCard({
       } transition-all duration-300 h-[175px]`}
       gradientColor={styles.gradient}
     >
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm font-medium">
-          {TitleIcon && <TitleIcon className={`h-4 w-4 ${styles.icon}`} />}
-          {title}
-        </CardTitle>
-        <Icon className={`h-5 w-5 ${styles.icon}`} />
-      </CardHeader>
-      <CardContent>
-        <div className="text-right h-12">
-          {error ? (
-            <p className="text-xs text-red-500">{t("monthlyChart.error")}</p>
-          ) : (
-            <span className={`text-3xl font-bold ${styles.text}`}>
-              <CountUp
-                start={startAnimateValue}
-                end={displayValue}
-                duration={0.75}
-                decimals={2}
-                formattingFn={(val) =>
-                  formatCurrency(val, defaultCurrency, i18n.language)
-                }
-              />
-            </span>
+      <div className="relative h-full">
+        <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm font-medium">
+            {TitleIcon && <TitleIcon className={`h-4 w-4 ${styles.icon}`} />}
+            {title}
+          </CardTitle>
+          <Icon className={`h-5 w-5 ${styles.icon}`} />
+        </CardHeader>
+        <CardContent>
+          <div
+            className={`${
+              i18n.dir() === "rtl" ? "text-right" : "text-left"
+            } h-12`}
+          >
+            {error ? (
+              <p className="text-xs text-red-500" dir={i18n.dir()}>
+                {t("monthlyChart.error")}
+              </p>
+            ) : (
+              <span className={`text-3xl font-bold ${styles.text}`}>
+                <CountUp
+                  start={startAnimateValue}
+                  end={displayValue}
+                  duration={0.75}
+                  decimals={2}
+                  formattingFn={(val) =>
+                    formatCurrency(val, defaultCurrency, i18n.language)
+                  }
+                />
+              </span>
+            )}
+          </div>
+          {subtitleContent && (
+            <div
+              className={`text-xs text-muted-foreground mt-1 ${
+                i18n.dir() === "rtl" ? "text-right" : "text-left"
+              } h-12`}
+              dir={i18n.dir()}
+            >
+              {subtitleContent}
+            </div>
           )}
-        </div>
-        {subtitleContent && (
-          <div className="text-xs text-muted-foreground mt-1 text-right h-12">
-            {subtitleContent}
+        </CardContent>
+        {footerContent && (
+          <CardFooter className="pt-2">{footerContent}</CardFooter>
+        )}
+
+        {/* Add Button positioned at bottom with absolute positioning */}
+        {showAddButton && onAddClick && (
+          <div
+            className={`absolute bottom-2 ${
+              i18n.dir() === "rtl" ? "left-2" : "right-2"
+            }`}
+          >
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onAddClick}
+                  className={`h-9 w-9 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
+                >
+                  <BadgePlus className="h-5 w-5 [&]:!size-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="top">
+                <p className="max-w-xs text-sm" dir={i18n.dir()}>
+                  {addButtonTooltip}
+                </p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         )}
-      </CardContent>
-      {footerContent && (
-        <CardFooter className="pt-2">{footerContent}</CardFooter>
-      )}
+      </div>
     </MagicStatCard>
   );
 }
