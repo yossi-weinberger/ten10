@@ -88,7 +88,18 @@ export function TransactionForm({
       amount: undefined,
       currency: defaultCurrency,
       description: "",
-      type: (search.type as TransactionType) || "income", // Use URL param if available
+      type:
+        typeof search.type === "string" &&
+        [
+          "income",
+          "expense",
+          "donation",
+          "exempt-income",
+          "recognized-expense",
+          "non_tithe_donation",
+        ].includes(search.type as TransactionType)
+          ? (search.type as TransactionType)
+          : "income", // Use URL param if valid, else default to "income"
       category: "",
       is_chomesh: false,
       recipient: "",
@@ -104,7 +115,18 @@ export function TransactionForm({
 
   // Update form when URL search params change
   useEffect(() => {
-    if (search.type && search.type !== form.getValues("type")) {
+    if (
+      search.type &&
+      search.type !== form.getValues("type") &&
+      [
+        "income",
+        "expense",
+        "donation",
+        "exempt-income",
+        "recognized-expense",
+        "non_tithe_donation",
+      ].includes(search.type as TransactionType)
+    ) {
       form.setValue("type", search.type as TransactionType);
     }
   }, [search.type, form]);
