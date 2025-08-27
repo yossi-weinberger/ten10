@@ -46,10 +46,10 @@ export function StatsCards({
     });
   };
 
-  const handleOverallRequiredAdd = () => {
-    // For overall required, we'll navigate to donation since it reduces the required amount
-    navigateToAddTransaction("donation");
-  };
+  // const handleOverallRequiredAdd = () => {
+  //   // For overall required, we'll navigate to donation since it reduces the required amount
+  //   navigateToAddTransaction("donation");
+  // };
 
   const handleIncomeAdd = () => {
     navigateToAddTransaction("income");
@@ -240,7 +240,7 @@ export function StatsCards({
             colorScheme="blue"
             subtitleContent={overallRequiredSubtitle}
             isSpecial={true}
-            onAddClick={handleOverallRequiredAdd}
+            // onAddClick={handleOverallRequiredAdd}
             showAddButton={false}
             addButtonTooltip={t("statsCards.overallRequired.addDonation")}
           />
