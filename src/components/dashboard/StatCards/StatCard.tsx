@@ -1,5 +1,4 @@
 import React from "react";
-import { TooltipPortal } from "@radix-ui/react-tooltip";
 import { useTranslation } from "react-i18next";
 import {
   Card,
@@ -18,7 +17,6 @@ import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -196,30 +194,23 @@ export function StatCard({
             i18n.dir() === "rtl" ? "left-2" : "right-2"
           }`}
         >
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onAddClick}
-                  className={`h-9 w-9 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
-                >
-                  <BadgePlus className="h-5 w-5 [&]:!size-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipPortal>
-                <TooltipContent
-                  className="z-[9999] bg-gray-800 text-white px-2 py-1 rounded text-sm shadow-lg"
-                  side="top"
-                  align="center"
-                  sideOffset={8}
-                >
-                  <p dir={i18n.dir()}>{addButtonTooltip}</p>
-                </TooltipContent>
-              </TooltipPortal>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onAddClick}
+                className={`h-9 w-9 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
+              >
+                <BadgePlus className="h-5 w-5 [&]:!size-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="max-w-xs text-sm" dir={i18n.dir()}>
+                {addButtonTooltip}
+              </p>
+            </TooltipContent>
+          </Tooltip>
         </div>
       )}
     </MagicStatCard>

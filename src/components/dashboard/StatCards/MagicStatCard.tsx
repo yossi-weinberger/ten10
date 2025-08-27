@@ -49,7 +49,7 @@ export function MagicStatCard({
     >
       <Card
         className={cn(
-          "group relative overflow-hidden h-full",
+          "group relative overflow-visible h-full",
           "transition-all duration-300 hover:scale-[1.02] hover:shadow-lg",
           className
         )}
