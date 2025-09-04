@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Card,
@@ -13,6 +13,8 @@ import { useShallow } from "zustand/react/shallow";
 import { clearAllData } from "@/lib/data-layer";
 import toast from "react-hot-toast";
 import { usePlatform } from "@/contexts/PlatformContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabaseClient";
 import {
   exportDataWeb,
   importDataWeb,
@@ -38,6 +40,7 @@ export function SettingsPage() {
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const { platform } = usePlatform();
+  const { user } = useAuth();
   const { t } = useTranslation("settings");
   const { t: tCommon } = useTranslation("common");
 
@@ -106,11 +109,34 @@ export function SettingsPage() {
           notificationSettings={{
             notifications: settings.notifications,
             recurringDonations: settings.recurringDonations,
+            reminderEnabled: settings.reminderEnabled,
+            reminderDayOfMonth: settings.reminderDayOfMonth,
           }}
-          updateSettings={(newNotificationSettings) =>
-            updateSettings(newNotificationSettings)
-          }
-          disabled={true}
+          updateSettings={async (newNotificationSettings) => {
+            // Update local settings immediately
+            updateSettings(newNotificationSettings);
+
+            // Update Supabase for web users
+            if (platform === "web" && user) {
+              try {
+                await supabase
+                  .from("profiles")
+                  .update({
+                    reminder_enabled: newNotificationSettings.reminderEnabled,
+                    reminder_day_of_month:
+                      newNotificationSettings.reminderDayOfMonth,
+                  })
+                  .eq("id", user.id);
+              } catch (error) {
+                console.error(
+                  "Failed to update reminder settings in Supabase:",
+                  error
+                );
+                toast.error(tCommon("toast.settings.updateError"));
+              }
+            }
+          }}
+          disabled={false}
         />
 
         <CalendarSettingsCard

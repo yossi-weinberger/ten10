@@ -9,7 +9,8 @@
       "importError": "שגיאה בייבוא הנתונים",
       "clearDataSuccess": "הנתונים נמחקו בהצלחה",
       "clearDataError": "שגיאה במחיקת הנתונים",
-      "clearDataConfirm": "האם אתה בטוח שברצונך למחוק את כל הנתונים?"
+      "clearDataConfirm": "האם אתה בטוח שברצונך למחוק את כל הנתונים?",
+      "updateError": "שגיאה בעדכון ההגדרות"
     },
     "transaction": {
       "addSuccess": "העסקה נוספה בהצלחה",
