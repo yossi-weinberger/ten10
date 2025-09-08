@@ -92,15 +92,15 @@
   "reminders": {
     "positive": {
       "title": "Monthly Tithe Reminder",
-      "body": "Your current tithe balance is {{amount}} ILS. It's a great time to donate!"
+      "body": "Time to update your income and expenses! Your current tithe balance is {{amount}} ILS."
     },
     "negative": {
-      "title": "Monthly Tithe Reminder",
-      "body": "Great job! You've exceeded your monthly tithe goal by {{amount}} ILS."
+      "title": "Monthly Update Reminder",
+      "body": "Great job meeting your goal! Don't forget to update your latest income and expenses to stay organized."
     },
     "zero": {
-      "title": "Monthly Tithe Reminder",
-      "body": "You've met your monthly tithe goal. Well done!"
+      "title": "Monthly Update Reminder",
+      "body": "You've met your monthly tithe goal. Don't forget to update your latest data!"
     }
   }
 }

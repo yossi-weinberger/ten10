@@ -39,17 +39,17 @@
   "notifications": {
     "cardTitle": "Notifications",
     "cardDescription": "Notification and reminder settings",
-    "reminderDayLabel": "Reminder Day",
-    "reminderDayPlaceholder": "Select day",
+    "emailNotificationsLabel": "Email Notifications",
+    "emailNotificationsDescription": "Receive notifications and summaries via email",
+    "desktopNotificationsLabel": "Desktop Notifications",
+    "desktopNotificationsDescription": "Get reminders on your computer",
+    "reminderDayLabel": "Reminder Day:",
     "day1": "1st of month",
     "day10": "10th of month",
     "day15": "15th of month",
     "day20": "20th of month",
-    "emailNotificationsLabel": "Email Notifications",
-    "emailNotificationsDescription": "Receive notifications and summaries via email",
-    "desktopNotificationsLabel": "Desktop Notifications",
-    "desktopNotificationsDescription": "Receive notifications and summaries on your computer",
-    "comingSoon": "Coming Soon"
+    "autostartLabel": "Launch at Startup",
+    "autostartDescription": "Recommended to get timely reminders, even if the app is closed."
   },
   "calendar": {
     "cardTitle": "Calendar",

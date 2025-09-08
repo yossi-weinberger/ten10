@@ -39,17 +39,17 @@
   "notifications": {
     "cardTitle": "התראות",
     "cardDescription": "הגדרות התראות ותזכורות",
-    "reminderDayLabel": "יום תזכורת",
-    "reminderDayPlaceholder": "בחר יום",
+    "emailNotificationsLabel": "התראות במייל",
+    "emailNotificationsDescription": "קבל התראות וסיכומים במייל",
+    "desktopNotificationsLabel": "התראות במחשב",
+    "desktopNotificationsDescription": "קבל תזכורות במחשב שלך",
+    "reminderDayLabel": "יום שליחת התזכורת:",
     "day1": "1 בחודש",
     "day10": "10 בחודש",
     "day15": "15 בחודש",
     "day20": "20 בחודש",
-    "emailNotificationsLabel": "התראות במייל",
-    "emailNotificationsDescription": "קבל התראות וסיכומים במייל",
-    "desktopNotificationsLabel": "התראות במחשב",
-    "desktopNotificationsDescription": "קבל התראות וסיכומים במחשב",
-    "comingSoon": "בקרוב"
+    "autostartLabel": "הפעלה אוטומטית עם המחשב",
+    "autostartDescription": "מומלץ לקבלת תזכורות בזמן, גם אם האפליקציה סגורה."
   },
   "calendar": {
     "cardTitle": "לוח שנה",
