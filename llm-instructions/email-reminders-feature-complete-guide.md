@@ -782,6 +782,18 @@ The feature is now **fully operational in production** with:
 - ✅ **Robust Error Handling**: Comprehensive monitoring and logging
 - ✅ **Seamless Development**: Integrates with existing workflow
 
+### Desktop Notifications (Completed)
+
+As a counterpart to email reminders for web users, the application now implements native system notifications for desktop users, ensuring they receive timely reminders even when working offline.
+
+- **Technology**: The feature is built using the `@tauri-apps/plugin-notification` Tauri plugin, which allows the frontend to trigger native OS notifications.
+- **Trigger**: The reminder check is initiated once the application starts (`App.tsx`), ensuring it runs each time the user launches the app. It leverages the existing platform detection (`PlatformContext`) to run exclusively on the desktop version.
+- **Logic**: The core logic resides in `src/lib/data-layer/reminder.service.ts`. It reuses the user's reminder settings (day of the month, enabled status) from the Zustand store. It calculates the user's overall tithe balance and generates a notification with one of three messages (positive balance, negative balance, or zero balance), encouraging the user to update their income, expenses, and donations.
+- **User Control**:
+  - The same "Enable Reminders" toggle in the settings controls both email (web) and desktop notifications.
+  - An "Autostart" option (`Launch at Startup`) was added to the settings for desktop users, allowing the application to launch with the system. This is recommended to ensure reminders are not missed if the user forgets to open the application.
+- **Permissions**: The application will request the user's permission to show notifications on the first run. The necessary permissions (`notification:default` and `autostart:default`) are configured in `src-tauri/capabilities/migrated.json`.
+
 ### Key Benefits of the New Architecture
 
 1. **Maintainability**: Each module has a single responsibility
@@ -799,4 +811,5 @@ The feature is now **fully operational in production** with:
 **Architecture**: ✅ **MODULAR AND MAINTAINABLE**
 **Cron Job**: Active (18:00 UTC daily)
 **CI/CD**: ✅ **AUTOMATED DEPLOYMENT**
+**Desktop Notifications**: ✅ **OPERATIONAL**
 **Next Phase**: Feature Enhancement and Analytics

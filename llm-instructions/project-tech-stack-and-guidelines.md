@@ -7,6 +7,10 @@ This document outlines the main technologies and conventions used in this projec
 - **Language**: **TypeScript** - All new code should be written in TypeScript.
 - **Frontend Library**: **React** (v18) - Utilize functional components and Hooks.
 - **Desktop Application**: **Tauri (v2)** - For building a cross-platform desktop application from the React codebase. Requires Rust knowledge for the backend part (`src-tauri`).
+  - **Tauri Plugins Used**:
+    - `@tauri-apps/plugin-os`: For platform detection.
+    - `@tauri-apps/plugin-notification`: For sending native system notifications.
+    - `@tauri-apps/plugin-autostart`: To enable the application to launch on system startup.
 - **Build Tool**: **Vite** - Handles development server and production builds. Configuration is in `vite.config.ts`.
   - Uses `@vitejs/plugin-react`.
   - Path alias `@` is configured to point to the `src/` directory.

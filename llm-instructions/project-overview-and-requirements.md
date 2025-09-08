@@ -70,9 +70,14 @@ The application needs to handle various types of financial entries, each affecti
 - These server-calculated values are then fetched and displayed in the frontend. Client-side calculations from the full transaction list are currently maintained for comparison and as a fallback but are planned to be phased out. (Refer to `llm-instructions/transaction-data-model-and-calculations.md` and `llm-instructions/data-flow-server-calculations-and-cleanup.md` for technical details).
 - **Status:** This unified model with server-side calculations for key statistics and tithe balance has been implemented for both the **Desktop (SQLite) version** and the **Web (Supabase) version**. Frontend components display these server-calculated values, often alongside client-calculated counterparts for verification during the transition.
 
+### Reminders & Notifications
+
+- **Requirement**: The application should provide reminders to users.
+- **Status (Web)**: Implemented. Web users can opt-in to receive monthly email reminders. The content is personalized based on their current tithe balance. This is handled by a Supabase Edge Function triggered by a daily cron job.
+- **Status (Desktop)**: Implemented. Desktop users can receive native system notifications. The logic is triggered on application startup and uses the same user settings as the web version. To ensure timely reminders, an "Autostart" option is provided in the settings, allowing the application to launch on system startup.
+
 ## Future Features (Low Priority)
 
-- **Reminders & Notifications**: e.g., for tithing, bill payments, budget limits.
 - **Advanced Reporting**: Annual summaries, period comparisons, custom expense categories.
 - **Budgeting Tools**: Define and track budgets for expense categories.
 - **Goal Management**: Set and track savings or donation goals.
