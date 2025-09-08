@@ -16,7 +16,7 @@ import {
   enableAutostart,
   disableAutostart,
   isAutostartEnabled,
-} from "@/lib/data-layer/autostart.service";
+} from "@/lib/data-layer/reminders";
 
 // Define the specific settings properties needed by this component
 interface NotificationSettings {

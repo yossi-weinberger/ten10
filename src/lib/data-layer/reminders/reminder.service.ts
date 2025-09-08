@@ -1,5 +1,5 @@
 import { useDonationStore } from "@/lib/store";
-import { fetchServerTitheBalance } from "./analytics.service";
+import { fetchServerTitheBalance } from "../analytics.service";
 import { showDesktopNotification } from "./notification.service";
 import { TFunction } from "i18next";
 
@@ -56,12 +56,13 @@ export async function checkAndSendDesktopReminder(t: TFunction): Promise<void> {
     const today = new Date();
     const currentDayOfMonth = today.getDate();
 
-    /* // NOTE: This check is temporarily disabled for testing.
+    // NOTE: This check is temporarily disabled for testing.
     if (currentDayOfMonth !== dayOfMonth) {
-      console.log(`Today is day ${currentDayOfMonth}, but reminder is set for day ${dayOfMonth}. Exiting.`);
+      console.log(
+        `Today is day ${currentDayOfMonth}, but reminder is set for day ${dayOfMonth}. Exiting.`
+      );
       return;
     }
-    */
 
     const lastReminderDate = localStorage.getItem(LAST_REMINDER_DATE_KEY);
     const todayStr = today.toISOString().split("T")[0];

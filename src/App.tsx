@@ -16,7 +16,7 @@ import { usePlatform } from "./contexts/PlatformContext";
 import { setPlatform as setGlobalPlatform } from "./lib/platformManager";
 import { init_db } from "@/lib/data-layer/db_commands";
 import { useDonationStore } from "./lib/store";
-import { checkAndSendDesktopReminder } from "./lib/data-layer/reminder.service";
+import { checkAndSendDesktopReminder } from "./lib/data-layer/reminders";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
