@@ -27,6 +27,7 @@ tauri-plugin-shell = "2.0.0-rc"
 tauri-plugin-dialog = "2.0.0-rc"
 tauri-plugin-os = "2.2.1"
 tauri-plugin-notification = "2.0.0-rc.5"
+tauri-plugin-autostart = "2.0.0-rc"
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

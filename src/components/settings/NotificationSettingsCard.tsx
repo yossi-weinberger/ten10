@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -8,9 +9,14 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { BellRing, Mail, Monitor } from "lucide-react";
+import { BellRing, Mail, Monitor, Power } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { usePlatform } from "@/contexts/PlatformContext";
+import {
+  enableAutostart,
+  disableAutostart,
+  isAutostartEnabled,
+} from "@/lib/data-layer/autostart.service";
 
 // Define the specific settings properties needed by this component
 interface NotificationSettings {
@@ -33,13 +39,30 @@ export function NotificationSettingsCard({
 }: NotificationSettingsCardProps) {
   const { t } = useTranslation("settings");
   const { platform } = usePlatform();
+  const [autostartStatus, setAutostartStatus] = useState(false);
 
   const isWeb = platform === "web";
+  const isDesktop = platform === "desktop";
+
+  useEffect(() => {
+    if (isDesktop) {
+      isAutostartEnabled().then(setAutostartStatus);
+    }
+  }, [isDesktop]);
 
   const handleDayChange = (day: 1 | 10 | 15 | 20) => {
     updateSettings({
       reminderDayOfMonth: day,
     });
+  };
+
+  const handleAutostartChange = async (enabled: boolean) => {
+    if (enabled) {
+      await enableAutostart();
+    } else {
+      await disableAutostart();
+    }
+    setAutostartStatus(enabled);
   };
 
   return (
@@ -125,6 +148,28 @@ export function NotificationSettingsCard({
             ))}
           </div>
         </div>
+
+        {/* Autostart Toggle - Desktop only */}
+        {isDesktop && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-md border">
+                <Power className="h-5 w-5" />
+              </div>
+              <div>
+                <Label>{t("notifications.autostartLabel")}</Label>
+                <p className="text-sm text-muted-foreground">
+                  {t("notifications.autostartDescription")}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={autostartStatus}
+              onCheckedChange={handleAutostartChange}
+              disabled={disabled}
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -21,6 +21,7 @@
     "notification:default",
     "fs:default",
     "shell:default",
-    "dialog:default"
+    "dialog:default",
+    "autostart:default"
   ]
 }

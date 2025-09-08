@@ -13,9 +13,9 @@ const LAST_REMINDER_DATE_KEY = "lastReminderDate";
  * @returns An object with title and body for the notification.
  */
 function generateReminderContent(t: TFunction, titheBalance: number) {
-  const isPositive = titheBalance > 0;
-  const isNegative = titheBalance < 0;
-  const absBalance = Math.abs(titheBalance).toFixed(2);
+  const isPositive = titheBalance > 0.005; // Use a small tolerance
+  const isNegative = titheBalance < -0.005;
+  const absBalance = Math.abs(titheBalance).toFixed(2); // Always format to 2 decimal places
 
   let title: string;
   let body: string;

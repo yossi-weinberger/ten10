@@ -21,7 +21,7 @@ serve(async (req) => {
 
     // Get current date and check if it's a reminder day
     const currentDay = new Date().getDate();
-    const reminderDays = [1, 7, 10, 15, 20]; // 7 added for testing
+    const reminderDays = [1, 8, 10, 15, 20]; // 7 added for testing
 
     // Test mode support
     const body = await req.json().catch(() => ({}));
