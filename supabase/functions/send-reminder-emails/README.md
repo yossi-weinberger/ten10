@@ -1,4 +1,4 @@
-ט# Send Reminder Emails Function
+# Send Reminder Emails Function
 
 This Edge Function sends personalized monthly reminder emails to users about their tithe obligations.
 
