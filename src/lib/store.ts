@@ -73,7 +73,7 @@ const defaultSettings: Settings = {
 
 export const useDonationStore = create<DonationState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       serverCalculatedTitheBalance: null,
       settings: defaultSettings,
       lastDbFetchTimestamp: null,
