@@ -98,10 +98,10 @@ body {
 
 /*maks the content to be full width*/
 
-.container {
+/* .container {
   max-width: 100%;
   overflow-x: hidden;
-}
+} */
 
 /* Fix for grid layouts that might cause horizontal overflow */
 /* .grid {
