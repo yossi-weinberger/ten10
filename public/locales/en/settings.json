@@ -39,15 +39,17 @@
   "notifications": {
     "cardTitle": "Notifications",
     "cardDescription": "Notification and reminder settings",
-    "monthlyReminderLabel": "Monthly Reminder",
-    "monthlyReminderDescription": "Get a reminder to update your tithes",
-    "reminderDayLabel": "Reminder Day",
-    "reminderDayPlaceholder": "Select day",
-    "reminderTimeLabel": "Reminder Time",
-    "reminderTimePlaceholder": "Select time",
     "emailNotificationsLabel": "Email Notifications",
     "emailNotificationsDescription": "Receive notifications and summaries via email",
-    "comingSoon": "Coming Soon"
+    "desktopNotificationsLabel": "Desktop Notifications",
+    "desktopNotificationsDescription": "Get reminders on your computer",
+    "reminderDayLabel": "Reminder Day:",
+    "day1": "1st of month",
+    "day10": "10th of month",
+    "day15": "15th of month",
+    "day20": "20th of month",
+    "autostartLabel": "Launch at Startup",
+    "autostartDescription": "Recommended to get timely reminders, even if the app is closed."
   },
   "calendar": {
     "cardTitle": "Calendar",

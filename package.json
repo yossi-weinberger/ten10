@@ -1,14 +1,15 @@
 {
   "name": "ten10",
   "private": true,
-  "version": "0.2.8",
+  "version": "0.2.9",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "deploy-supabase": "node supabase/scripts/deploy-functions.js"
   },
   "dependencies": {
     "@hebcal/core": "^5.10.1",
@@ -45,8 +46,10 @@
     "@tanstack/react-router": "^1.131.27",
     "@tanstack/react-table": "^8.21.3",
     "@tauri-apps/api": "^2.8.0",
+    "@tauri-apps/plugin-autostart": "^2.5.0",
     "@tauri-apps/plugin-dialog": "^2.3.3",
     "@tauri-apps/plugin-fs": "^2.4.2",
+    "@tauri-apps/plugin-notification": "^2.3.1",
     "@tauri-apps/plugin-os": "^2.3.1",
     "@tauri-apps/plugin-shell": "^2.3.0",
     "@vercel/speed-insights": "^1.2.0",
@@ -91,6 +94,7 @@
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^5.0.1",
     "autoprefixer": "^10.4.21",
+    "dotenv": "^17.2.2",
     "eslint": "^9.34.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",

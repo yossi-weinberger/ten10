@@ -14,6 +14,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "./components/layout/Sidebar";
 import { usePlatform } from "./contexts/PlatformContext";
 import { setPlatform as setGlobalPlatform } from "./lib/platformManager";
+import { init_db } from "@/lib/data-layer/db_commands";
+import { useDonationStore } from "./lib/store";
+import { checkAndSendDesktopReminder } from "./lib/data-layer/reminders";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -21,7 +24,7 @@ function App() {
   const [isAppReady, setIsAppReady] = useState(false);
 
   const { platform } = usePlatform();
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
 
   useEffect(() => {
     document.documentElement.dir = i18n.dir();
@@ -45,6 +48,11 @@ function App() {
                   "Recurring transactions handler executed:",
                   message
                 );
+                // Check for desktop reminders after recurring transactions
+                return checkAndSendDesktopReminder(t);
+              })
+              .then(() => {
+                console.log("Desktop reminder check complete.");
               })
               .catch((error) =>
                 console.error(
@@ -66,7 +74,7 @@ function App() {
         setIsAppReady(true);
       }
     }
-  }, [platform]);
+  }, [platform, t]);
 
   if (!isAppReady) {
     return null;

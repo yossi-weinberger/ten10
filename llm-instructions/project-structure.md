@@ -174,10 +174,13 @@ This section details how the different parts of the project interact with each o
 │   │   ├── currencies.ts
 │   │   ├── data-layer/
 │   │   │   ├── analytics.service.ts
+│   │   │   ├── autostart.service.ts
 │   │   │   ├── chart.service.ts
 │   │   │   ├── dataManagement.service.ts
 │   │   │   ├── index.ts
+│   │   │   ├── notification.service.ts
 │   │   │   ├── recurringTransactions.service.ts
+│   │   │   ├── reminder.service.ts
 │   │   │   ├── stats.service.ts
 │   │   │   ├── transactionForm.service.ts
 │   │   │   └── transactions.service.ts

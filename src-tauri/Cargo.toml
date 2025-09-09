@@ -1,6 +1,6 @@
 [package]
 name = "Ten10"
-version = "0.2.8"
+version = "0.2.9"
 description = "Ten10 - Income and Donation Management App"
 authors = ["Yossi Weinberger"]
 license = ""
@@ -13,12 +13,12 @@ edition = "2021"
 tauri-build = { version = "2.0.0-rc", features = [] }
 
 [dependencies]
-tauri = { version = "2.0.0-rc", features = ["devtools"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-rusqlite = { version = "0.29.0", features = ["bundled"] }
+tauri = { version = "2.0.0-rc.15", features = ["devtools"] }
+serde = { version = "1.0.203", features = ["derive"] }
+serde_json = "1.0.117"
+rusqlite = { version = "0.31.0", features = ["chrono", "bundled"] }
 # sqlx = { version = "0.7", features = ["sqlite", "runtime-tokio-rustls", "macros"] } # Removed sqlx
-chrono = { version = "0.4.35", features = ["serde"] }
+chrono = { version = "0.4.38", features = ["serde"] }
 log = "0.4.21"
 env_logger = "0.11.3"
 uuid = { version = "1.8.0", features = ["v4", "serde"] }
@@ -26,6 +26,8 @@ tauri-plugin-fs = "2.0.0-rc"
 tauri-plugin-shell = "2.0.0-rc"
 tauri-plugin-dialog = "2.0.0-rc"
 tauri-plugin-os = "2.2.1"
+tauri-plugin-notification = "2.0.0-rc.5"
+tauri-plugin-autostart = "2.0.0-rc"
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

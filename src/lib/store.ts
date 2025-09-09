@@ -1,10 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import {
-  Transaction,
-  Currency as TransactionCurrency,
-} from "../types/transaction";
-import { ServerIncomeData } from "./data-layer/analytics.service";
+import { Currency as TransactionCurrency } from "../types/transaction";
 import { ServerDonationData } from "./data-layer/stats.service";
 import { MonthlyDataPoint } from "./data-layer/chart.service";
 
@@ -23,6 +19,8 @@ export interface Settings {
   recurringDonations: boolean;
   minMaaserPercentage?: number;
   maaserYearStart?: string;
+  reminderEnabled: boolean;
+  reminderDayOfMonth: 1 | 10 | 15 | 20;
 }
 
 export interface DonationState {
@@ -69,6 +67,8 @@ const defaultSettings: Settings = {
   recurringDonations: true,
   minMaaserPercentage: 10,
   maaserYearStart: "01-01",
+  reminderEnabled: false,
+  reminderDayOfMonth: 10,
 };
 
 export const useDonationStore = create<DonationState>()(
@@ -217,6 +217,21 @@ export const useDonationStore = create<DonationState>()(
             );
           } else if (state) {
             console.log("Zustand: Rehydration finished.");
+
+            // Migration: Add reminder settings if they don't exist
+            if (state.settings.reminderEnabled === undefined) {
+              console.log(
+                "Zustand: Adding missing reminderEnabled to existing settings"
+              );
+              state.settings.reminderEnabled = false;
+            }
+            if (state.settings.reminderDayOfMonth === undefined) {
+              console.log(
+                "Zustand: Adding missing reminderDayOfMonth to existing settings"
+              );
+              state.settings.reminderDayOfMonth = 10;
+            }
+
             state.setHasHydrated(true);
           } else {
             console.log(
