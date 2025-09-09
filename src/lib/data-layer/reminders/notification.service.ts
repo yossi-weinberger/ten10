@@ -1,9 +1,10 @@
-import {
-  isPermissionGranted,
-  requestPermission,
-  sendNotification,
-  type NotificationOptions,
-} from "@tauri-apps/plugin-notification";
+// Define the notification options type locally to avoid import issues
+interface NotificationOptions {
+  title: string;
+  body: string;
+  icon?: string;
+  sound?: string;
+}
 
 /**
  * Shows a desktop notification.
@@ -15,6 +16,15 @@ export async function showDesktopNotification(
   options: NotificationOptions
 ): Promise<void> {
   try {
+    // @ts-expect-error -- Tauri-specific global
+    if (!window.__TAURI_INTERNALS__) {
+      console.warn("Notification service called in non-Tauri environment");
+      return;
+    }
+
+    const { isPermissionGranted, requestPermission, sendNotification } =
+      await import("@tauri-apps/plugin-notification");
+
     let permissionGranted = await isPermissionGranted();
 
     if (!permissionGranted) {

@@ -1,11 +1,16 @@
-import { isEnabled, enable, disable } from "@tauri-apps/plugin-autostart";
-
 /**
  * Checks if the application is set to launch on startup.
  * @returns A promise that resolves to true if autostart is enabled, false otherwise.
  */
 export async function isAutostartEnabled(): Promise<boolean> {
   try {
+    // @ts-expect-error -- Tauri-specific global
+    if (!window.__TAURI_INTERNALS__) {
+      console.warn("Autostart service called in non-Tauri environment");
+      return false;
+    }
+
+    const { isEnabled } = await import("@tauri-apps/plugin-autostart");
     return await isEnabled();
   } catch (error) {
     console.error("Failed to check autostart status:", error);
@@ -18,6 +23,13 @@ export async function isAutostartEnabled(): Promise<boolean> {
  */
 export async function enableAutostart(): Promise<void> {
   try {
+    // @ts-expect-error -- Tauri-specific global
+    if (!window.__TAURI_INTERNALS__) {
+      console.warn("Autostart service called in non-Tauri environment");
+      return;
+    }
+
+    const { enable } = await import("@tauri-apps/plugin-autostart");
     await enable();
     console.log("Autostart enabled.");
   } catch (error) {
@@ -30,6 +42,13 @@ export async function enableAutostart(): Promise<void> {
  */
 export async function disableAutostart(): Promise<void> {
   try {
+    // @ts-expect-error -- Tauri-specific global
+    if (!window.__TAURI_INTERNALS__) {
+      console.warn("Autostart service called in non-Tauri environment");
+      return;
+    }
+
+    const { disable } = await import("@tauri-apps/plugin-autostart");
     await disable();
     console.log("Autostart disabled.");
   } catch (error) {
