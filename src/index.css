@@ -85,7 +85,34 @@ body {
   font-family: "Assistant", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
+
+/* Prevent multiple scrollbars */
+html,
+body {
+  overflow: hidden;
+}
+
+/* Prevent scrollbars on specific elements */
+
+/*makes the content to be full width*/
+
+/* .container {
+  max-width: 100%;
+  overflow-x: hidden;
+} */
+
+/* Fix for grid layouts that might cause horizontal overflow */
+/* .grid {
+  max-width: 100%;
+} */
+
+/* Ensure cards don't cause overflow */
+/* .card {
+  max-width: 100%;
+  overflow: hidden;
+} */
 
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {

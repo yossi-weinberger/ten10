@@ -30,18 +30,7 @@
   "identifier": "com.ten10.dev",
   "plugins": {},
   "app": {
-    "windows": [
-      {
-        "fullscreen": false,
-        "maximized": true,
-        "resizable": true,
-        "decorations": true,
-        "acceptFirstMouse": true,
-        "title": "Ten10",
-        "width": 1024,
-        "height": 768
-      }
-    ],
+    "windows": [],
     "security": {
       "csp": null
     }
