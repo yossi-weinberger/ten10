@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { EmailService } from "./email-service.ts";
 import { UserService } from "./user-service.ts";
+import { SimpleEmailService } from "./simple-email-service.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,7 +17,7 @@ serve(async (req) => {
   try {
     // Initialize services
     const userService = new UserService();
-    const emailService = new EmailService();
+    const emailService = new SimpleEmailService();
 
     // Get current date and check if it's a reminder day
     const currentDay = new Date().getDate();
@@ -76,9 +76,15 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("Error in send-reminder-emails function:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    return new Response(
+      JSON.stringify({
+        error: error.message,
+        stack: error.stack,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 500,
+      }
+    );
   }
 });
