@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSearch } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 
 interface UnsubscribePayload {
@@ -13,12 +14,16 @@ interface UnsubscribePayload {
 }
 
 export default function UnsubscribePage() {
+  const { t } = useTranslation("auth");
   const search = useSearch({ from: "/unsubscribe" });
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading"
   );
   const [message, setMessage] = useState("");
   const [title, setTitle] = useState("");
+  const [unsubscribeType, setUnsubscribeType] = useState<"reminder" | "all">(
+    "all"
+  );
 
   useEffect(() => {
     const token = (search as any).token;
@@ -26,13 +31,14 @@ export default function UnsubscribePage() {
 
     if (!token) {
       setStatus("error");
-      setTitle("קישור לא תקין");
-      setMessage("הקישור שלחצת עליו אינו תקין או פג תוקפו.");
+      setTitle(t("unsubscribe.error.invalidToken.title"));
+      setMessage(t("unsubscribe.error.invalidToken.message"));
       return;
     }
 
+    setUnsubscribeType(type as "reminder" | "all");
     handleUnsubscribe(token, type as "reminder" | "all");
-  }, [search]);
+  }, [search, t]);
 
   const handleUnsubscribe = async (token: string, type: "reminder" | "all") => {
     try {
@@ -41,10 +47,8 @@ export default function UnsubscribePage() {
 
       if (!payload) {
         setStatus("error");
-        setTitle("קישור פג תוקף");
-        setMessage(
-          "הקישור שלחצת עליו פג תוקפו. אנא פנה לדף ההגדרות באפליקציה."
-        );
+        setTitle(t("unsubscribe.error.expiredToken.title"));
+        setMessage(t("unsubscribe.error.expiredToken.message"));
         return;
       }
 
@@ -58,27 +62,25 @@ export default function UnsubscribePage() {
       if (error) {
         console.error("Error updating preferences:", error);
         setStatus("error");
-        setTitle("שגיאה");
-        setMessage("אירעה שגיאה בעת עדכון ההעדפות. אנא נסה שוב מאוחר יותר.");
+        setTitle(t("unsubscribe.error.updateFailed.title"));
+        setMessage(t("unsubscribe.error.updateFailed.message"));
         return;
       }
 
       // Success
       setStatus("success");
       if (type === "reminder") {
-        setTitle("התזכורות בוטלו בהצלחה");
-        setMessage(
-          "לא תקבל יותר תזכורות חודשיות. תוכל להפעיל אותן מחדש בהגדרות האפליקציה."
-        );
+        setTitle(t("unsubscribe.success.reminder.title"));
+        setMessage(t("unsubscribe.success.reminder.message"));
       } else {
-        setTitle("הסרת מרשימת התפוצה בוטלה בהצלחה");
-        setMessage("הוסרת מרשימת התפוצה שלנו. לא תקבל יותר מיילים מ-Ten10.");
+        setTitle(t("unsubscribe.success.all.title"));
+        setMessage(t("unsubscribe.success.all.message"));
       }
     } catch (error) {
       console.error("Unsubscribe error:", error);
       setStatus("error");
-      setTitle("שגיאה");
-      setMessage("אירעה שגיאה לא צפויה. אנא נסה שוב מאוחר יותר.");
+      setTitle(t("unsubscribe.error.general.title"));
+      setMessage(t("unsubscribe.error.general.message"));
     }
   };
 
@@ -105,34 +107,50 @@ export default function UnsubscribePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mb-4">
-            {status === "loading" && (
-              <Loader2 className="h-16 w-16 animate-spin mx-auto text-blue-500" />
-            )}
-            {status === "success" && (
-              <CheckCircle className="h-16 w-16 mx-auto text-green-500" />
-            )}
-            {status === "error" && (
-              <XCircle className="h-16 w-16 mx-auto text-red-500" />
-            )}
+    <div className="grid gap-6">
+      <div className="grid gap-2">
+        <h2 className="text-2xl font-bold text-foreground">
+          {title || t("unsubscribe.processing")}
+        </h2>
+        <p className="text-muted-foreground">
+          {status === "loading"
+            ? t("unsubscribe.processingMessage")
+            : t("unsubscribe.pageSubtitle")}
+        </p>
+      </div>
+
+      <Card className="max-w-2xl mx-auto">
+        <CardContent className="pt-6">
+          <div className="flex flex-col items-center justify-center text-center space-y-6 min-h-[300px]">
+            <div>
+              {status === "loading" && (
+                <Loader2 className="h-16 w-16 animate-spin text-primary" />
+              )}
+              {status === "success" && (
+                <CheckCircle className="h-16 w-16 text-green-600 dark:text-green-400" />
+              )}
+              {status === "error" && (
+                <XCircle className="h-16 w-16 text-destructive" />
+              )}
+            </div>
+
+            <div className="space-y-6 flex flex-col items-center">
+              <p className="text-lg leading-relaxed text-foreground text-center max-w-md">
+                {message || t("unsubscribe.processingMessage")}
+              </p>
+
+              {status !== "loading" && (
+                <Button
+                  onClick={() =>
+                    (window.location.href = "https://ten10-app.com")
+                  }
+                  className="min-w-40"
+                >
+                  {t("unsubscribe.backToApp")}
+                </Button>
+              )}
+            </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-right">
-            {title || "מעבד בקשה..."}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-center">
-          <p className="text-gray-600 mb-6 text-right leading-relaxed">
-            {message || "אנא המתן בזמן שאנו מעבדים את הבקשה שלך..."}
-          </p>
-          <Button
-            onClick={() => (window.location.href = "https://ten10-app.com")}
-            className="w-full"
-          >
-            חזור לאפליקציה
-          </Button>
         </CardContent>
       </Card>
     </div>
