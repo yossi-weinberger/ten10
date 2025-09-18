@@ -20,14 +20,41 @@ serve(async (req) => {
     const emailService = new SimpleEmailService();
 
     // Get current date and check if it's a reminder day
-    const currentDay = new Date().getDate();
-    const reminderDays = [1, 8, 10, 15, 20]; // 7 added for testing
+    const currentDate = new Date();
+    const currentDay = currentDate.getDate();
+    const currentDayOfWeek = currentDate.getDay(); // 0 = Sunday, 6 = Saturday
+    const reminderDays = [1, 5, 10, 15, 20]; // 7 added for testing
 
-    // Test mode support
-    const body = await req.json().catch(() => ({}));
-    const isTest = body.test === true;
+    let effectiveDay = currentDay;
 
-    if (!reminderDays.includes(currentDay) && !isTest) {
+    // If today is Saturday (6), skip sending emails
+    if (currentDayOfWeek === 6) {
+      return new Response(
+        JSON.stringify({
+          message: `Today is Saturday. Email reminders are not sent on Shabbat.`,
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
+
+    // If today is Sunday (0), check if yesterday (Saturday) was a reminder day
+    if (currentDayOfWeek === 0) {
+      const yesterday = new Date(currentDate);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayDay = yesterday.getDate();
+
+      if (reminderDays.includes(yesterdayDay)) {
+        effectiveDay = yesterdayDay; // Send reminders for yesterday's missed day
+        console.log(
+          `Sunday: Sending reminders for Saturday (day ${yesterdayDay}) that was skipped due to Shabbat`
+        );
+      }
+    }
+
+    if (!reminderDays.includes(effectiveDay)) {
       return new Response(
         JSON.stringify({
           message: `Today (${currentDay}) is not a reminder day. Reminder days: ${reminderDays.join(
@@ -42,15 +69,14 @@ serve(async (req) => {
     }
 
     // Get users with tithe balances
-    const testDay = isTest ? 7 : currentDay;
     const usersWithBalances = await userService.getUsersWithTitheBalances(
-      testDay
+      effectiveDay
     );
 
     if (usersWithBalances.length === 0) {
       return new Response(
         JSON.stringify({
-          message: `No users found with reminders enabled for day ${testDay}`,
+          message: `No users found with reminders enabled for day ${effectiveDay}`,
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -62,11 +88,14 @@ serve(async (req) => {
     // Send bulk reminder emails
     const results = await emailService.sendBulkReminders(usersWithBalances);
 
+    const sundayMessage =
+      currentDayOfWeek === 0 && effectiveDay !== currentDay
+        ? ` (sending Saturday reminders on Sunday due to Shabbat)`
+        : "";
+
     return new Response(
       JSON.stringify({
-        message: `Processed ${
-          usersWithBalances.length
-        } users for day ${testDay}${isTest ? " (TEST MODE)" : ""}`,
+        message: `Processed ${usersWithBalances.length} users for day ${effectiveDay}${sundayMessage}`,
         results,
       }),
       {
