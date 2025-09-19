@@ -8,6 +8,10 @@ export interface EmailTemplateData {
   isPositive: boolean;
   isNegative: boolean;
   userName?: string;
+  unsubscribeUrls?: {
+    reminderUrl: string;
+    allUrl: string;
+  };
 }
 
 export function generateReminderEmailHTML(data: EmailTemplateData): string {
@@ -87,9 +91,50 @@ export function generateReminderEmailHTML(data: EmailTemplateData): string {
         <!-- Footer -->
         <hr style="margin: 40px 0 20px 0; border: none; border-top: 1px solid #e5e7eb;">
         
+        <!-- Unsubscribe Buttons -->
+        ${
+          data.unsubscribeUrls
+            ? `
+        <div style="text-align: center; margin: 0 0 30px 0;">
+          <div style="margin: 0 0 15px 0;">
+            <a href="${data.unsubscribeUrls.reminderUrl}" 
+               style="background-color: #f59e0b; 
+                      color: white; 
+                      padding: 10px 20px; 
+                      text-decoration: none; 
+                      border-radius: 6px; 
+                      display: inline-block;
+                      font-weight: 500;
+                      font-size: 14px;
+                      margin: 0 5px;">
+              הפסקת תזכורות חודשיות
+            </a>
+          </div>
+          <div style="margin: 0;">
+            <a href="${data.unsubscribeUrls.allUrl}" 
+               style="background-color: #6b7280; 
+                      color: white; 
+                      padding: 8px 16px; 
+                      text-decoration: none; 
+                      border-radius: 6px; 
+                      display: inline-block;
+                      font-weight: 400;
+                      font-size: 12px;">
+              ביטול הרשמה מכל המיילים
+            </a>
+          </div>
+        </div>
+        `
+            : ""
+        }
+        
         <div style="text-align: center;">
           <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px 0;">
-            אם אינך רוצה לקבל תזכורות אלו, תוכל לבטל אותן בהגדרות האפליקציה.
+            ${
+              data.unsubscribeUrls
+                ? "תוכל גם להגיע לדף ההגדרות באפליקציה לעדכון העדפות המייל שלך."
+                : "אם אינך רוצה לקבל תזכורות אלו, תוכל לבטל אותן בהגדרות האפליקציה."
+            }
           </p>
           <p style="color: #9ca3af; font-size: 12px; margin: 0;">
             © 2025 Ten10. כל הזכויות שמורות.
