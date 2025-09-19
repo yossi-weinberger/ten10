@@ -14,6 +14,32 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Security: Check for valid authorization
+  const authorization = req.headers.get("Authorization");
+  const validAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const validServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
+  if (!authorization || !authorization.includes("Bearer")) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized - Missing Bearer token" }),
+      {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
+  }
+
+  // Extract token from "Bearer TOKEN" format
+  const token = authorization.replace("Bearer ", "");
+
+  // Allow either ANON_KEY (for manual testing) or SERVICE_ROLE_KEY (for cron job)
+  if (token !== validAnonKey && token !== validServiceKey) {
+    return new Response(JSON.stringify({ error: "Invalid token" }), {
+      status: 403,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
     // Initialize services
     const userService = new UserService();
