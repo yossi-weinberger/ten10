@@ -21,13 +21,12 @@ export default function UnsubscribePage() {
   );
   const [message, setMessage] = useState("");
   const [title, setTitle] = useState("");
-  const [unsubscribeType, setUnsubscribeType] = useState<"reminder" | "all">(
-    "all"
-  );
+  const [, setUnsubscribeType] = useState<"reminder" | "all">("all");
 
   useEffect(() => {
-    const token = (search as any).token;
-    const type = (search as any).type || "all";
+    const searchParams = search as { token?: string; type?: string };
+    const token = searchParams.token;
+    const type = searchParams.type || "all";
 
     if (!token) {
       setStatus("error");
@@ -88,18 +87,20 @@ export default function UnsubscribePage() {
     token: string
   ): Promise<UnsubscribePayload | null> => {
     try {
-      // Simple JWT decode (without verification for now - we'll add proper verification later)
-      const parts = token.split(".");
-      if (parts.length !== 3) return null;
+      // Call Supabase function to verify the JWT token with proper signature validation
+      const { data, error } = await supabase.functions.invoke(
+        "verify-unsubscribe-token",
+        {
+          body: { token },
+        }
+      );
 
-      const payload = JSON.parse(atob(parts[1]));
-
-      // Check expiration
-      if (payload.exp < Date.now() / 1000) {
+      if (error) {
+        console.error("Token verification error:", error);
         return null;
       }
 
-      return payload as UnsubscribePayload;
+      return data?.payload || null;
     } catch (error) {
       console.error("Token verification error:", error);
       return null;

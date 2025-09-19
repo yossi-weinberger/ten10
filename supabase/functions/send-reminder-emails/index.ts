@@ -23,7 +23,7 @@ serve(async (req) => {
     const currentDate = new Date();
     const currentDay = currentDate.getDate();
     const currentDayOfWeek = currentDate.getDay(); // 0 = Sunday, 6 = Saturday
-    const reminderDays = [1, 5, 10, 15, 20]; // 7 added for testing
+    const reminderDays = [1, 19, 5, 10, 15, 20];
 
     let effectiveDay = currentDay;
 

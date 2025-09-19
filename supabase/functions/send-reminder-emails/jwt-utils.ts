@@ -27,9 +27,14 @@ export async function createUnsubscribeToken(
   expirationHours: number = 720 // 30 days
 ): Promise<string> {
   try {
+    const jwtSecret = Deno.env.get("JWT_SECRET");
+    if (!jwtSecret) {
+      throw new Error("JWT_SECRET environment variable is not set");
+    }
+    
     const key = await crypto.subtle.importKey(
       "raw",
-      new TextEncoder().encode(Deno.env.get("JWT_SECRET") ?? "fallback-secret"),
+      new TextEncoder().encode(jwtSecret),
       { name: "HMAC", hash: "SHA-256" },
       false,
       ["sign"]
