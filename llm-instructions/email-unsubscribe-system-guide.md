@@ -191,7 +191,8 @@ mailing_list_consent = false →
 
 ### 2. Unsubscribe Handling
 
-- `supabase/functions/unsubscribe/index.ts`
+- `src/pages/UnsubscribePage.tsx` - דף unsubscribe ב-React
+- `supabase/functions/verify-unsubscribe-token/index.ts` - אימות JWT מאובטח
 
 ### 3. Database Functions
 
@@ -294,6 +295,15 @@ supabase functions logs unsubscribe
 - **בעיה**: טקסט עברית מוצג כ-HTML entities
 - **פתרון**: תיקון Content-Type headers
 - **סטטוס**: פתור
+
+### 4. JWT Security Issues (תיקונים אבטחה - ינואר 2025)
+
+- **בעיה**: Fallback secret "fallback-secret" ואימות JWT חסר בצד הלקוח
+- **פתרון**:
+  - הסרת fallback secret מ-`jwt-utils.ts`
+  - יצירת פונקציה `verify-unsubscribe-token` לאימות מלא עם חתימה
+  - מעבר מ-decode פשוט לאימות מאובטח ב-`UnsubscribePage.tsx`
+- **סטטוס**: פתור - אבטחה מלאה מיושמת
 
 ## תכונות מתקדמות (מוטמעות)
 
