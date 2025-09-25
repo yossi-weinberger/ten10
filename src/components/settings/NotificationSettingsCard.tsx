@@ -23,7 +23,7 @@ interface NotificationSettings {
   notifications: boolean;
   recurringDonations: boolean;
   reminderEnabled: boolean;
-  reminderDayOfMonth: 1 | 10 | 15 | 20;
+  reminderDayOfMonth: 1 | 5 | 10 | 15 | 20 | 25;
 }
 
 interface NotificationSettingsCardProps {
@@ -50,7 +50,7 @@ export function NotificationSettingsCard({
     }
   }, [isDesktop]);
 
-  const handleDayChange = (day: 1 | 10 | 15 | 20) => {
+  const handleDayChange = (day: 1 | 5 | 10 | 15 | 20 | 25) => {
     updateSettings({
       reminderDayOfMonth: day,
     });
@@ -124,7 +124,7 @@ export function NotificationSettingsCard({
             {t("notifications.reminderDayLabel")}
           </Label>
           <div className="flex gap-2">
-            {([1, 10, 15, 20] as const).map((day) => (
+            {([1, 5, 10, 15, 20, 25] as const).map((day) => (
               <button
                 key={day}
                 onClick={() => handleDayChange(day)}
