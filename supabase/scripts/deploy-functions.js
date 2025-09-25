@@ -47,6 +47,7 @@ try {
   console.log("- AWS_SECRET_ACCESS_KEY");
   console.log("- AWS_REGION (default: eu-central-1)");
   console.log("- SES_FROM (default: reminder-noreply@ten10-app.com)");
+  console.log("- SES_FROM_NAME (optional: display name, e.g., 'תזכורת Ten10')");
 
   // Deploy send-reminder-emails function
   console.log("Deploying send-reminder-emails function...");
