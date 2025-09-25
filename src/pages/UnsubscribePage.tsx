@@ -34,7 +34,6 @@ export default function UnsubscribePage() {
       return;
     }
 
-    setUnsubscribeType(type as "reminder" | "all");
     handleUnsubscribe(token, type as "reminder" | "all");
   }, [search, t]);
 
