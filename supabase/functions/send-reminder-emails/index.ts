@@ -49,7 +49,11 @@ serve(async (req) => {
     const currentDate = new Date();
     const currentDay = currentDate.getDate();
     const currentDayOfWeek = currentDate.getDay(); // 0 = Sunday, 6 = Saturday
-    const reminderDays = [1, 19, 5, 10, 15, 20, 25];
+
+    // Reminder days configuration:
+    // 1st, 5th, 10th, 15th, 20th, 25th - monthly reminder schedule
+    // 19th - special day for testing (can be removed in production)
+    const reminderDays = [1, 5, 10, 15, 20, 25];
 
     let effectiveDay = currentDay;
 
@@ -130,11 +134,16 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    console.error("Error in send-reminder-emails function:", error);
+    // Log full error details server-side for debugging
+    console.error("Send reminder emails error:", {
+      message: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString(),
+    });
+
     return new Response(
       JSON.stringify({
-        error: error.message,
-        stack: error.stack,
+        error: "Internal server error",
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

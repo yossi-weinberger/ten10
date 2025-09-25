@@ -370,8 +370,11 @@ export class SimpleEmailService {
 
   private base64Encode(bytes: Uint8Array): string {
     // Encode Uint8Array to base64 using btoa on a binary string
+    // Convert bytes to Latin1 string for btoa compatibility
     let bin = "";
-    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    for (let i = 0; i < bytes.length; i++) {
+      bin += String.fromCharCode(bytes[i]);
+    }
     // btoa expects Latin1; our input is raw bytes we just constructed
     return btoa(bin);
   }

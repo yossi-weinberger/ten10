@@ -21,7 +21,6 @@ export default function UnsubscribePage() {
   );
   const [message, setMessage] = useState("");
   const [title, setTitle] = useState("");
-  const [, setUnsubscribeType] = useState<"reminder" | "all">("all");
 
   useEffect(() => {
     const searchParams = search as { token?: string; type?: string };
