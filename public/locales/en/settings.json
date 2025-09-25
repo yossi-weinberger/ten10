@@ -45,9 +45,11 @@
     "desktopNotificationsDescription": "Get reminders on your computer",
     "reminderDayLabel": "Reminder Day:",
     "day1": "1st of month",
+    "day5": "5th of month",
     "day10": "10th of month",
     "day15": "15th of month",
     "day20": "20th of month",
+    "day25": "25th of month",
     "autostartLabel": "Launch at Startup",
     "autostartDescription": "Recommended to get timely reminders, even if the app is closed."
   },
