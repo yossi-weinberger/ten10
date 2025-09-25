@@ -123,14 +123,14 @@ export function NotificationSettingsCard({
           <Label className="text-sm">
             {t("notifications.reminderDayLabel")}
           </Label>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
             {([1, 5, 10, 15, 20, 25] as const).map((day) => (
               <button
                 key={day}
                 onClick={() => handleDayChange(day)}
                 disabled={disabled || !notificationSettings.notifications}
                 className={`
-                  px-3 py-2 text-sm font-medium rounded-md border transition-colors
+                  px-2 py-2 text-xs sm:text-sm font-medium rounded-md border transition-colors
                   ${
                     notificationSettings.reminderDayOfMonth === day
                       ? "bg-primary text-primary-foreground border-primary"
@@ -143,7 +143,10 @@ export function NotificationSettingsCard({
                   }
                 `}
               >
-                {t(`notifications.day${day}`)}
+                <span className="hidden sm:inline">
+                  {t(`notifications.day${day}`)}
+                </span>
+                <span className="sm:hidden">{day}</span>
               </button>
             ))}
           </div>
