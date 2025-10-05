@@ -11,10 +11,29 @@
     "managed": "Managed in System",
     "accuracy": "Calculation Accuracy"
   },
+  "nav": {
+    "home": "Home",
+    "features": "Features",
+    "platforms": "Platforms",
+    "testimonials": "Testimonials",
+    "about": "About",
+    "faq": "FAQ",
+    "download": "Download"
+  },
   "carousel": {
     "dashboard": "Overview of your financial status",
     "transactions": "Manage and filter financial transactions",
-    "reports": "Detailed reports and charts"
+    "reports": "Detailed reports and charts",
+    "swipeHint": "Swipe to view more screenshots"
+  },
+  "quotes": {
+    "title": "From the Sources",
+    "main": "You shall surely tithe all the produce of your seed that comes forth from the field year by year",
+    "source": "Deuteronomy 14:22",
+    "chazal1": "Tithing brings blessing to the home",
+    "chazalSource1": "Babylonian Talmud, Taanit 9a",
+    "chazal2": "Test me now in this - regarding tithes",
+    "chazalSource2": "Malachi 3:10"
   },
   "about": {
     "title": "About Ten10",
@@ -78,6 +97,19 @@
         "Share with advisor"
       ],
       "button": "Start in Browser"
+    },
+    "mobile": {
+      "title": "Mobile Version",
+      "subtitle": "PWA - Install from Browser",
+      "note": "Not recommended as primary solution",
+      "features": [
+        "Install from browser",
+        "Partial offline work",
+        "Browser notifications",
+        "Quick access",
+        "Memory saving"
+      ],
+      "button": "Install as App"
     },
     "desktop": {
       "title": "Desktop Version",

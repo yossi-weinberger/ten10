@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
+import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,6 +19,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { Progress } from "@/components/ui/progress";
 import {
   Calculator,
   Download,
@@ -30,10 +32,247 @@ import {
   PieChart,
   FileText,
   Users,
+  Smartphone,
 } from "lucide-react";
 
 const LandingPage: React.FC = () => {
   const { t, i18n } = useTranslation("landing");
+  const [activeSection, setActiveSection] = useState("hero");
+  const [showNavigation, setShowNavigation] = useState(false);
+  const [carouselProgress, setCarouselProgress] = useState(0);
+  const [carouselApi, setCarouselApi] = useState<any>(null);
+
+  // Section refs for intersection observer
+  const sectionRefs = {
+    hero: useRef<HTMLElement>(null),
+    features: useRef<HTMLElement>(null),
+    platforms: useRef<HTMLElement>(null),
+    testimonials: useRef<HTMLElement>(null),
+    about: useRef<HTMLElement>(null),
+    faq: useRef<HTMLElement>(null),
+    download: useRef<HTMLElement>(null),
+  };
+
+  // Smooth scrolling function
+  const scrollToSection = (sectionId: string) => {
+    const element = sectionRefs[sectionId as keyof typeof sectionRefs]?.current;
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  };
+
+  // Intersection Observer for active section detection
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: "-20% 0px -80% 0px",
+      threshold: 0,
+    };
+
+    const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(
+      observerCallback,
+      observerOptions
+    );
+
+    Object.values(sectionRefs).forEach((ref) => {
+      if (ref.current) {
+        observer.observe(ref.current);
+      }
+    });
+
+    // Show navigation after scroll
+    const handleScroll = () => {
+      setShowNavigation(window.scrollY > 100);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  // Carousel progress tracking
+  useEffect(() => {
+    if (!carouselApi) return;
+
+    const updateProgress = () => {
+      const progress = Math.max(
+        0,
+        Math.min(100, carouselApi.scrollProgress() * 100)
+      );
+      setCarouselProgress(progress);
+    };
+
+    carouselApi.on("scroll", updateProgress);
+    updateProgress();
+
+    return () => {
+      carouselApi.off("scroll", updateProgress);
+    };
+  }, [carouselApi]);
+
+  // SEO and Meta tags
+  useEffect(() => {
+    const currentLang = i18n.language;
+    const isHebrew = currentLang === "he";
+
+    // Update document title
+    document.title = isHebrew
+      ? "Ten10 - ניהול מעשרות חכם | אפליקציה לחישוב מעשר אוטומטי"
+      : "Ten10 - Smart Tithe Management | Automatic Tithe Calculation App";
+
+    // Update meta description
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute(
+        "content",
+        isHebrew
+          ? "המערכת המתקדמת לניהול מעשרות. חישובים אוטומטיים, תזכורות חכמות, גרסת ווב ודסקטופ. מאושר הלכתית."
+          : "Advanced tithe management system. Automatic calculations, smart reminders, web and desktop versions. Halachically approved."
+      );
+    }
+
+    // Update meta keywords
+    const metaKeywords = document.querySelector('meta[name="keywords"]');
+    if (metaKeywords) {
+      metaKeywords.setAttribute(
+        "content",
+        isHebrew
+          ? "מעשר, מעשרות, צדקה, תרומות, הלכה, יהדות, חישוב מעשר, ניהול כספים יהודי"
+          : "tithe, tithes, charity, donations, halacha, judaism, tithe calculation, jewish finance management"
+      );
+    }
+
+    // Add Schema.org structured data
+    const existingSchema = document.querySelector(
+      'script[type="application/ld+json"]'
+    );
+    if (existingSchema) {
+      existingSchema.remove();
+    }
+
+    const schemaData = {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "Ten10",
+      description: isHebrew
+        ? "מערכת מתקדמת לניהול מעשרות עם חישובים אוטומטיים ותזכורות חכמות"
+        : "Advanced tithe management system with automatic calculations and smart reminders",
+      applicationCategory: "FinanceApplication",
+      operatingSystem: ["Windows", "macOS", "Linux", "Web Browser"],
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+      author: {
+        "@type": "Organization",
+        name: "Ten10 Development Team",
+      },
+      inLanguage: [currentLang],
+      isAccessibleForFree: true,
+      screenshot: "https://ten10-app.com/screenshots/dashboard.png",
+    };
+
+    const script = document.createElement("script");
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(schemaData);
+    document.head.appendChild(script);
+
+    return () => {
+      const schemaScript = document.querySelector(
+        'script[type="application/ld+json"]'
+      );
+      if (schemaScript) {
+        schemaScript.remove();
+      }
+    };
+  }, [i18n.language, t]);
+
+  // Google Analytics
+  useEffect(() => {
+    // Add Google Analytics script
+    const gaScript = document.createElement("script");
+    gaScript.async = true;
+    gaScript.src =
+      "https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID";
+    document.head.appendChild(gaScript);
+
+    // Add GA configuration
+    const gaConfigScript = document.createElement("script");
+    gaConfigScript.textContent = `
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'GA_MEASUREMENT_ID', {
+        page_title: 'Ten10 Landing Page',
+        page_location: window.location.href,
+        language: '${i18n.language}'
+      });
+    `;
+    document.head.appendChild(gaConfigScript);
+
+    // Track page view
+    if (typeof window !== "undefined" && (window as any).gtag) {
+      (window as any).gtag("event", "page_view", {
+        page_title: "Ten10 Landing Page",
+        page_location: window.location.href,
+        language: i18n.language,
+      });
+    }
+
+    return () => {
+      // Cleanup scripts
+      const scripts = document.querySelectorAll(
+        'script[src*="googletagmanager"]'
+      );
+      scripts.forEach((script) => script.remove());
+    };
+  }, [i18n.language]);
+
+  // Analytics tracking functions
+  const trackEvent = (eventName: string, parameters?: Record<string, any>) => {
+    if (typeof window !== "undefined" && (window as any).gtag) {
+      (window as any).gtag("event", eventName, {
+        language: i18n.language,
+        ...parameters,
+      });
+    }
+  };
+
+  const trackDownloadClick = (platform: string) => {
+    trackEvent("download_click", {
+      platform,
+      section: "hero",
+    });
+  };
+
+  const trackWebAppClick = () => {
+    trackEvent("web_app_click", {
+      section: "hero",
+    });
+  };
+
+  // Navigation items
+  const navigationItems = [
+    { id: "hero", labelKey: "nav.home", label: "בית" },
+    { id: "features", labelKey: "nav.features", label: "תכונות" },
+    { id: "platforms", labelKey: "nav.platforms", label: "גרסאות" },
+    { id: "testimonials", labelKey: "nav.testimonials", label: "המלצות" },
+    { id: "about", labelKey: "nav.about", label: "אודות" },
+    { id: "faq", labelKey: "nav.faq", label: "שאלות" },
+    { id: "download", labelKey: "nav.download", label: "הורדה" },
+  ];
 
   const features = [
     {
@@ -118,8 +357,34 @@ const LandingPage: React.FC = () => {
         />
       </div>
 
+      {/* Floating Navigation */}
+      {showNavigation && (
+        <nav className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-full px-6 py-3 shadow-lg border transition-all duration-300">
+          <div className="flex items-center gap-1">
+            {navigationItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => scrollToSection(item.id)}
+                className={`px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  activeSection === item.id
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                }`}
+                aria-label={`Navigate to ${item.label}`}
+              >
+                {t(item.labelKey, item.label)}
+              </button>
+            ))}
+          </div>
+        </nav>
+      )}
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 px-4">
+      <section
+        id="hero"
+        ref={sectionRefs.hero}
+        className="relative overflow-hidden py-20 px-4"
+      >
         {/* Background decoration */}
         <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 opacity-50"></div>
         <div className="absolute top-20 left-10 w-72 h-72 bg-blue-200 dark:bg-blue-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30 animate-pulse"></div>
@@ -143,20 +408,22 @@ const LandingPage: React.FC = () => {
               {t("hero.subtitle")}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button size="lg" className="text-lg px-8 py-3" asChild>
-                <a
-                  href="#download"
-                  className="inline-flex items-center"
-                  aria-label={t("hero.downloadButton")}
-                >
-                  <Download className="mr-2 h-5 w-5" />
-                  {t("hero.downloadButton")}
-                </a>
+              <Button
+                size="lg"
+                className="text-lg px-8 py-3"
+                onClick={() => {
+                  trackDownloadClick("hero");
+                  scrollToSection("download");
+                }}
+              >
+                <Download className="mr-2 h-5 w-5" />
+                {t("hero.downloadButton")}
               </Button>
               <Button
                 variant="outline"
                 size="lg"
                 className="text-lg px-8 py-3"
+                onClick={() => trackWebAppClick()}
                 asChild
               >
                 <Link
@@ -173,7 +440,11 @@ const LandingPage: React.FC = () => {
 
           {/* Screenshots Carousel */}
           <div className="relative mx-auto max-w-4xl">
-            <Carousel className="w-full" opts={{ align: "start", loop: true }}>
+            <Carousel
+              className="w-full"
+              opts={{ align: "start", loop: true }}
+              setApi={setCarouselApi}
+            >
               <CarouselContent>
                 <CarouselItem>
                   <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 border">
@@ -246,6 +517,14 @@ const LandingPage: React.FC = () => {
               <CarouselPrevious />
               <CarouselNext />
             </Carousel>
+
+            {/* Carousel Progress Bar */}
+            <div className="mt-6 max-w-xs mx-auto">
+              <Progress value={carouselProgress} className="h-2" />
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
+                {t("carousel.swipeHint", "החלק לצפייה בעוד צילומי מסך")}
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -271,7 +550,11 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-white dark:bg-gray-800">
+      <section
+        id="features"
+        ref={sectionRefs.features}
+        className="py-20 px-4 bg-white dark:bg-gray-800"
+      >
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -309,7 +592,11 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Platform Comparison */}
-      <section className="py-20 px-4 bg-gray-50 dark:bg-gray-900">
+      <section
+        id="platforms"
+        ref={sectionRefs.platforms}
+        className="py-20 px-4 bg-gray-50 dark:bg-gray-900"
+      >
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -317,7 +604,7 @@ const LandingPage: React.FC = () => {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Web Version */}
             <Card className="relative overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
@@ -345,6 +632,46 @@ const LandingPage: React.FC = () => {
                 <Button className="w-full mt-6" variant="outline">
                   <Globe className="mr-2 h-4 w-4" />
                   {t("platforms.web.button")}
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Mobile PWA Version */}
+            <Card className="relative overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-green-500 to-teal-600 text-white">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="h-6 w-6" />
+                  <CardTitle className="text-2xl">
+                    {t("platforms.mobile.title", "גרסת מובייל")}
+                  </CardTitle>
+                </div>
+                <CardDescription className="text-green-100">
+                  {t("platforms.mobile.subtitle", "PWA - התקנה מהדפדפן")}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                    {t("platforms.mobile.note", "לא מומלץ כפתרון ראשי")}
+                  </p>
+                </div>
+                <ul className="space-y-3">
+                  {t("platforms.mobile.features", { returnObjects: true }, [
+                    "התקנה מהדפדפן",
+                    "עבודה אופליין חלקית",
+                    "התראות בדפדפן",
+                    "גישה מהירה",
+                    "חיסכון בזיכרון",
+                  ]).map((item: string, index: number) => (
+                    <li key={index} className="flex items-center gap-2">
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <Button className="w-full mt-6" variant="outline">
+                  <Globe className="mr-2 h-4 w-4" />
+                  {t("platforms.mobile.button", "התקן כאפליקציה")}
                 </Button>
               </CardContent>
             </Card>
@@ -389,7 +716,11 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Testimonials */}
-      <section className="py-20 px-4 bg-white dark:bg-gray-800">
+      <section
+        id="testimonials"
+        ref={sectionRefs.testimonials}
+        className="py-20 px-4 bg-white dark:bg-gray-800"
+      >
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -427,8 +758,49 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* Torah Quotes Section */}
+      <section className="py-16 px-4 bg-gradient-to-r from-amber-50 to-orange-100 dark:from-amber-900 dark:to-orange-900">
+        <div className="container mx-auto max-w-4xl text-center">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-8">
+            {t("quotes.title", "מהמקורות")}
+          </h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg border-r-4 border-amber-500">
+            <blockquote className="text-lg md:text-xl text-gray-700 dark:text-gray-300 italic mb-4">
+              "
+              {t("quotes.main", "עשר תעשר את כל תבואת זרעך היוצא השדה שנה שנה")}
+              "
+            </blockquote>
+            <cite className="text-sm text-gray-500 dark:text-gray-400">
+              {t("quotes.source", "דברים יד, כב")}
+            </cite>
+          </div>
+          <div className="mt-6 grid md:grid-cols-2 gap-6">
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border-r-4 border-blue-500">
+              <p className="text-gray-700 dark:text-gray-300 italic mb-2">
+                "{t("quotes.chazal1", "המעשר מביא ברכה לבית")}"
+              </p>
+              <cite className="text-xs text-gray-500 dark:text-gray-400">
+                {t("quotes.chazalSource1", "תלמוד בבלי, תענית ט.")}
+              </cite>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border-r-4 border-green-500">
+              <p className="text-gray-700 dark:text-gray-300 italic mb-2">
+                "{t("quotes.chazal2", "נסני נא בזאת - בדבר המעשרות")}"
+              </p>
+              <cite className="text-xs text-gray-500 dark:text-gray-400">
+                {t("quotes.chazalSource2", "מלאכי ג, י")}
+              </cite>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* About & Endorsements Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900">
+      <section
+        id="about"
+        ref={sectionRefs.about}
+        className="py-20 px-4 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900"
+      >
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -521,7 +893,11 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 px-4 bg-gray-50 dark:bg-gray-900">
+      <section
+        id="faq"
+        ref={sectionRefs.faq}
+        className="py-20 px-4 bg-gray-50 dark:bg-gray-900"
+      >
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
@@ -573,7 +949,11 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Download Section */}
-      <section id="download" className="py-20 px-4 bg-white dark:bg-gray-800">
+      <section
+        id="download"
+        ref={sectionRefs.download}
+        className="py-20 px-4 bg-white dark:bg-gray-800"
+      >
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-8">
             {t("download.title")}
