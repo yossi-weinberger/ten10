@@ -89,27 +89,16 @@
     "web": {
       "title": "Web Version",
       "subtitle": "Access anywhere with cloud sync",
+      "pwaNote": "Can be installed as app",
       "features": [
         "Access from any browser",
         "Automatic cloud sync",
         "Email reminders",
         "Automatic updates",
-        "Share with advisor"
+        "Share with advisor",
+        "Install as PWA (optional)"
       ],
       "button": "Start in Browser"
-    },
-    "mobile": {
-      "title": "Mobile Version",
-      "subtitle": "PWA - Install from Browser",
-      "note": "Not recommended as primary solution",
-      "features": [
-        "Install from browser",
-        "Partial offline work",
-        "Browser notifications",
-        "Quick access",
-        "Memory saving"
-      ],
-      "button": "Install as App"
     },
     "desktop": {
       "title": "Desktop Version",

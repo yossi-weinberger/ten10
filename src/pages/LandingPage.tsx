@@ -32,7 +32,6 @@ import {
   PieChart,
   FileText,
   Users,
-  Smartphone,
 } from "lucide-react";
 
 const LandingPage: React.FC = () => {
@@ -604,7 +603,7 @@ const LandingPage: React.FC = () => {
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 gap-8">
             {/* Web Version */}
             <Card className="relative overflow-hidden">
               <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
@@ -615,7 +614,8 @@ const LandingPage: React.FC = () => {
                   </CardTitle>
                 </div>
                 <CardDescription className="text-blue-100">
-                  {t("platforms.web.subtitle")}
+                  {t("platforms.web.subtitle")} •{" "}
+                  {t("platforms.web.pwaNote", "ניתן להתקין כאפליקציה")}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-6">
@@ -632,46 +632,6 @@ const LandingPage: React.FC = () => {
                 <Button className="w-full mt-6" variant="outline">
                   <Globe className="mr-2 h-4 w-4" />
                   {t("platforms.web.button")}
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Mobile PWA Version */}
-            <Card className="relative overflow-hidden">
-              <CardHeader className="bg-gradient-to-r from-green-500 to-teal-600 text-white">
-                <div className="flex items-center gap-2">
-                  <Smartphone className="h-6 w-6" />
-                  <CardTitle className="text-2xl">
-                    {t("platforms.mobile.title", "גרסת מובייל")}
-                  </CardTitle>
-                </div>
-                <CardDescription className="text-green-100">
-                  {t("platforms.mobile.subtitle", "PWA - התקנה מהדפדפן")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                    {t("platforms.mobile.note", "לא מומלץ כפתרון ראשי")}
-                  </p>
-                </div>
-                <ul className="space-y-3">
-                  {t("platforms.mobile.features", { returnObjects: true }, [
-                    "התקנה מהדפדפן",
-                    "עבודה אופליין חלקית",
-                    "התראות בדפדפן",
-                    "גישה מהירה",
-                    "חיסכון בזיכרון",
-                  ]).map((item: string, index: number) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button className="w-full mt-6" variant="outline">
-                  <Globe className="mr-2 h-4 w-4" />
-                  {t("platforms.mobile.button", "התקן כאפליקציה")}
                 </Button>
               </CardContent>
             </Card>

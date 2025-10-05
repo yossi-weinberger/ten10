@@ -92,9 +92,9 @@
 
 ### 6. **Platform Comparison** (`#platforms`)
 
-- **3 גרסאות**: Web, Mobile PWA, Desktop
+- **2 גרסאות עיקריות**: Web, Desktop
 - הדגשת הגרסה המומלצת (Desktop)
-- אזהרה על PWA שזה לא מומלץ כפתרון ראשי
+- אזכור PWA כתכונה נוספת בגרסת הווב (לא כפלטפורמה נפרדת)
 
 ### 7. **About & Endorsements** (`#about`)
 
