@@ -9,7 +9,7 @@
   "stats": {
     "users": "Active Users",
     "managed": "Managed in System",
-    "accuracy": "Calculation Accuracy"
+    "donated": "Donated Through System"
   },
   "nav": {
     "home": "Home",
@@ -81,6 +81,14 @@
       "dataExport": {
         "title": "Data Export",
         "description": "Export data to Excel, PDF, or CSV files for reporting and documentation"
+      },
+      "pwaInstall": {
+        "title": "Mobile Installation",
+        "description": "Install the web version as a mobile app directly from your browser"
+      },
+      "chomesh": {
+        "title": "Chomesh Calculation",
+        "description": "Full support for Chomesh (20%) calculation for first-time or special income"
       }
     }
   },
@@ -95,8 +103,7 @@
         "Automatic cloud sync",
         "Email reminders",
         "Automatic updates",
-        "Share with advisor",
-        "Install as PWA (optional)"
+        "Share with advisor"
       ],
       "button": "Start in Browser"
     },

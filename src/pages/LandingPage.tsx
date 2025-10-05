@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
+import { useCountUp } from "@/hooks/useCountUp";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -21,6 +22,12 @@ import {
 } from "@/components/ui/carousel";
 import { Progress } from "@/components/ui/progress";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   Calculator,
   Download,
   Globe,
@@ -32,6 +39,7 @@ import {
   PieChart,
   FileText,
   Users,
+  Smartphone,
 } from "lucide-react";
 
 const LandingPage: React.FC = () => {
@@ -40,6 +48,11 @@ const LandingPage: React.FC = () => {
   const [showNavigation, setShowNavigation] = useState(false);
   const [carouselProgress, setCarouselProgress] = useState(0);
   const [carouselApi, setCarouselApi] = useState<any>(null);
+
+  // Animated counters for stats
+  const usersCount = useCountUp({ end: 10000, duration: 2500, delay: 500 });
+  const moneyCount = useCountUp({ end: 50, duration: 2500, delay: 700 }); // 50M
+  const donatedCount = useCountUp({ end: 25, duration: 2500, delay: 900 }); // 25M donated
 
   // Section refs for intersection observer
   const sectionRefs = {
@@ -304,6 +317,16 @@ const LandingPage: React.FC = () => {
       titleKey: "features.items.dataExport.title",
       descriptionKey: "features.items.dataExport.description",
     },
+    {
+      icon: <Smartphone className="h-8 w-8" />,
+      titleKey: "features.items.pwaInstall.title",
+      descriptionKey: "features.items.pwaInstall.description",
+    },
+    {
+      icon: <Star className="h-8 w-8" />,
+      titleKey: "features.items.chomesh.title",
+      descriptionKey: "features.items.chomesh.description",
+    },
   ];
 
   const testimonials = [
@@ -533,16 +556,31 @@ const LandingPage: React.FC = () => {
         <div className="container mx-auto max-w-4xl">
           <div className="grid md:grid-cols-3 gap-8 text-center">
             <div>
-              <div className="text-4xl font-bold mb-2">10,000+</div>
+              <div
+                ref={usersCount.elementRef}
+                className="text-4xl font-bold mb-2"
+              >
+                {usersCount.count.toLocaleString()}+
+              </div>
               <p className="text-blue-100">{t("stats.users")}</p>
             </div>
             <div>
-              <div className="text-4xl font-bold mb-2">₪50M+</div>
+              <div
+                ref={moneyCount.elementRef}
+                className="text-4xl font-bold mb-2"
+              >
+                ₪{moneyCount.count}M+
+              </div>
               <p className="text-blue-100">{t("stats.managed")}</p>
             </div>
             <div>
-              <div className="text-4xl font-bold mb-2">99.9%</div>
-              <p className="text-blue-100">{t("stats.accuracy")}</p>
+              <div
+                ref={donatedCount.elementRef}
+                className="text-4xl font-bold mb-2"
+              >
+                ₪{donatedCount.count}M+
+              </div>
+              <p className="text-blue-100">{t("stats.donated")}</p>
             </div>
           </div>
         </div>
@@ -564,7 +602,7 @@ const LandingPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <Card
                 key={index}
@@ -865,22 +903,20 @@ const LandingPage: React.FC = () => {
             </h2>
           </div>
 
-          <div className="space-y-6">
+          <Accordion type="single" collapsible className="w-full">
             {faqs.map((faq, index) => (
-              <Card key={index}>
-                <CardHeader>
-                  <CardTitle className="text-lg">
-                    {t(faq.questionKey)}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 dark:text-gray-300">
+              <AccordionItem key={index} value={`item-${index}`}>
+                <AccordionTrigger className="text-lg font-semibold text-right">
+                  {t(faq.questionKey)}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <p className="text-gray-600 dark:text-gray-300 text-right">
                     {t(faq.answerKey)}
                   </p>
-                </CardContent>
-              </Card>
+                </AccordionContent>
+              </AccordionItem>
             ))}
-          </div>
+          </Accordion>
         </div>
       </section>
 
@@ -896,11 +932,7 @@ const LandingPage: React.FC = () => {
               <Download className="mr-2 h-5 w-5" />
               {t("cta.desktopButton")}
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="text-lg px-8 py-3 border-white text-white hover:bg-white hover:text-blue-600"
-            >
+            <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
               <Globe className="mr-2 h-5 w-5" />
               {t("cta.webButton")}
             </Button>
@@ -967,7 +999,7 @@ const LandingPage: React.FC = () => {
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
               {t("download.orText")}
             </p>
-            <Button size="lg" variant="outline" asChild>
+            <Button size="lg" className="text-lg px-8 py-3" asChild>
               <Link to="/" className="inline-flex items-center">
                 <Globe className="mr-2 h-5 w-5" />
                 {t("download.webAppButton")}
