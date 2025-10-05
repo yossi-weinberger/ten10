@@ -170,7 +170,11 @@
     "subtitle": "בחר את הפלטפורמה המתאימה לך",
     "orText": "או התחל ישירות בדפדפן",
     "webAppButton": "פתח באפליקציית הווב",
-    "downloadButton": "הורד"
+    "downloadButton": "הורד",
+    "webCard": {
+      "title": "אפליקציית ווב",
+      "button": "פתח כעת"
+    }
   },
   "footer": {
     "description": "ניהול מעשרות חכם ופשוט לכל משפחה יהודית",

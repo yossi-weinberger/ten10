@@ -170,7 +170,11 @@
     "subtitle": "Choose the platform that suits you",
     "orText": "Or start directly in your browser",
     "webAppButton": "Open Web Application",
-    "downloadButton": "Download"
+    "downloadButton": "Download",
+    "webCard": {
+      "title": "Web Application",
+      "button": "Open Now"
+    }
   },
   "footer": {
     "description": "Smart and simple tithe management for every Jewish family",

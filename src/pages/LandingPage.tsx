@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LanguageToggle } from "@/components/ui/language-toggle";
+import { LazyImage } from "@/components/ui/lazy-image";
 import {
   Carousel,
   CarouselContent,
@@ -416,6 +417,20 @@ const LandingPage: React.FC = () => {
         ></div>
         <div className="container mx-auto max-w-6xl relative z-10">
           <div className="text-center mb-16">
+            {/* Logo */}
+            <div className="mb-8 animate-fade-in">
+              <LazyImage
+                src="/icon-512.png"
+                alt="Ten10 Logo"
+                className="w-24 h-24 mx-auto rounded-2xl shadow-lg hover:scale-110 transition-transform duration-300"
+                placeholder={
+                  <div className="w-24 h-24 mx-auto bg-blue-100 dark:bg-blue-900 rounded-2xl flex items-center justify-center animate-pulse">
+                    <Calculator className="h-12 w-12 text-blue-600" />
+                  </div>
+                }
+              />
+            </div>
+
             <Badge
               variant="secondary"
               className="mb-4 text-sm font-medium animate-fade-in"
@@ -932,9 +947,16 @@ const LandingPage: React.FC = () => {
               <Download className="mr-2 h-5 w-5" />
               {t("cta.desktopButton")}
             </Button>
-            <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
-              <Globe className="mr-2 h-5 w-5" />
-              {t("cta.webButton")}
+            <Button
+              size="lg"
+              variant="secondary"
+              className="text-lg px-8 py-3"
+              asChild
+            >
+              <Link to="/" className="inline-flex items-center">
+                <Globe className="mr-2 h-5 w-5" />
+                {t("cta.webButton")}
+              </Link>
             </Button>
           </div>
         </div>
@@ -954,7 +976,7 @@ const LandingPage: React.FC = () => {
             {t("download.subtitle")}
           </p>
 
-          <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
             <Card className="hover:shadow-lg transition-shadow">
               <CardContent className="pt-6 text-center">
                 <Monitor className="h-12 w-12 mx-auto mb-4 text-blue-600" />
@@ -993,18 +1015,24 @@ const LandingPage: React.FC = () => {
                 </Button>
               </CardContent>
             </Card>
-          </div>
 
-          <div className="mt-12">
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-              {t("download.orText")}
-            </p>
-            <Button size="lg" className="text-lg px-8 py-3" asChild>
-              <Link to="/" className="inline-flex items-center">
-                <Globe className="mr-2 h-5 w-5" />
-                {t("download.webAppButton")}
-              </Link>
-            </Button>
+            <Card className="hover:shadow-lg transition-shadow border-2 border-green-500">
+              <CardContent className="pt-6 text-center">
+                <Globe className="h-12 w-12 mx-auto mb-4 text-green-600" />
+                <h3 className="font-semibold mb-2">
+                  {t("download.webCard.title", "אפליקציית ווב")}
+                </h3>
+                <Button className="w-full" asChild>
+                  <Link
+                    to="/"
+                    className="inline-flex items-center justify-center"
+                  >
+                    <Globe className="mr-2 h-4 w-4" />
+                    {t("download.webCard.button", "פתח כעת")}
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
@@ -1014,7 +1042,19 @@ const LandingPage: React.FC = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-xl font-bold mb-4 text-blue-400">Ten10</h3>
+              <div className="flex items-center gap-3 mb-4">
+                <LazyImage
+                  src="/icon-192.png"
+                  alt="Ten10 Logo"
+                  className="w-8 h-8 rounded-lg"
+                  placeholder={
+                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                      <Calculator className="h-4 w-4 text-white" />
+                    </div>
+                  }
+                />
+                <h3 className="text-xl font-bold text-blue-400">Ten10</h3>
+              </div>
               <p className="text-gray-300">{t("footer.description")}</p>
             </div>
             <div>
