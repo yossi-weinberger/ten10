@@ -10,6 +10,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { LanguageToggle } from "@/components/ui/language-toggle";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import {
   Calculator,
   Download,
@@ -102,6 +110,14 @@ const LandingPage: React.FC = () => {
       className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800"
       dir={i18n.dir()}
     >
+      {/* Language Toggle - Fixed Position */}
+      <div className="fixed top-4 right-4 z-50">
+        <LanguageToggle
+          variant="ghost"
+          className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
+        />
+      </div>
+
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 px-4">
         {/* Background decoration */}
@@ -155,25 +171,81 @@ const LandingPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Hero Image/Demo */}
+          {/* Screenshots Carousel */}
           <div className="relative mx-auto max-w-4xl">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 border">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="ml-4 text-sm text-gray-500">
-                  Ten10 Dashboard
-                </span>
-              </div>
-              <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-lg p-8 text-center">
-                <Calculator className="h-16 w-16 mx-auto mb-4 text-blue-600" />
-                <h3 className="text-2xl font-bold mb-2">Ten10 Dashboard</h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  {t("hero.subtitle")}
-                </p>
-              </div>
-            </div>
+            <Carousel className="w-full" opts={{ align: "start", loop: true }}>
+              <CarouselContent>
+                <CarouselItem>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 border">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span className="ml-4 text-sm text-gray-500">
+                        Ten10 Dashboard
+                      </span>
+                    </div>
+                    <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center">
+                      <div>
+                        <Calculator className="h-16 w-16 mx-auto mb-4 text-blue-600" />
+                        <h3 className="text-2xl font-bold mb-2">Dashboard</h3>
+                        <p className="text-gray-600 dark:text-gray-300 text-sm">
+                          {t("carousel.dashboard")}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CarouselItem>
+
+                <CarouselItem>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 border">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span className="ml-4 text-sm text-gray-500">
+                        Ten10 Transactions
+                      </span>
+                    </div>
+                    <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center">
+                      <div>
+                        <FileText className="h-16 w-16 mx-auto mb-4 text-green-600" />
+                        <h3 className="text-2xl font-bold mb-2">
+                          Transactions
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 text-sm">
+                          {t("carousel.transactions")}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CarouselItem>
+
+                <CarouselItem>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 border">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span className="ml-4 text-sm text-gray-500">
+                        Ten10 Reports
+                      </span>
+                    </div>
+                    <div className="bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center">
+                      <div>
+                        <PieChart className="h-16 w-16 mx-auto mb-4 text-purple-600" />
+                        <h3 className="text-2xl font-bold mb-2">Reports</h3>
+                        <p className="text-gray-600 dark:text-gray-300 text-sm">
+                          {t("carousel.reports")}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CarouselItem>
+              </CarouselContent>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </div>
         </div>
       </section>
@@ -351,6 +423,99 @@ const LandingPage: React.FC = () => {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* About & Endorsements Section */}
+      <section className="py-20 px-4 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              {t("about.title", "אודות Ten10")}
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              {t(
+                "about.subtitle",
+                "פותח בשיתוף עם מכון תורת האדם לאדם ובהסכמת רבנים מובילים"
+              )}
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                {t("about.partnership.title", "שיתוף עם מכון תורת האדם לאדם")}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
+                {t(
+                  "about.partnership.description",
+                  "Ten10 פותח בשיתוף עם מכון תורת האדם לאדם, המוביל בתחום ההלכה הפרקטית. המכון ליווה את הפיתוח ואישר את דיוק החישובים ההלכתיים."
+                )}
+              </p>
+              <div className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg border">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                  <CheckCircle className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-white">
+                    {t("about.partnership.verified", "מאושר הלכתית")}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    {t("about.partnership.institute", "מכון תורת האדם לאדם")}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg">
+              <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+                {t("about.endorsements.title", "הסכמות רבנים")}
+              </h4>
+              <div className="space-y-6">
+                <div className="border-r-4 border-blue-500 pr-4">
+                  <p className="text-gray-600 dark:text-gray-300 italic mb-2">
+                    "
+                    {t(
+                      "about.endorsements.quote1",
+                      "מערכת מצוינת לניהול מעשרות בדיוק ובקלות. מומלץ בחום."
+                    )}
+                    "
+                  </p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {t("about.endorsements.rabbi1", "הרב [שם הרב]")}
+                  </p>
+                </div>
+
+                <div className="border-r-4 border-green-500 pr-4">
+                  <p className="text-gray-600 dark:text-gray-300 italic mb-2">
+                    "
+                    {t(
+                      "about.endorsements.quote2",
+                      "כלי חשוב ומועיל לכל בית יהודי. החישובים מדויקים והממשק נוח."
+                    )}
+                    "
+                  </p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {t("about.endorsements.rabbi2", "הרב [שם הרב]")}
+                  </p>
+                </div>
+
+                <div className="border-r-4 border-purple-500 pr-4">
+                  <p className="text-gray-600 dark:text-gray-300 italic mb-2">
+                    "
+                    {t(
+                      "about.endorsements.quote3",
+                      "פתרון מקצועי ואמין לניהול מעשרות. ממליץ לכל המתלמידים שלי."
+                    )}
+                    "
+                  </p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {t("about.endorsements.rabbi3", "הרב [שם הרב]")}
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>

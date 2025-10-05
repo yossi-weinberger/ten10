@@ -11,6 +11,30 @@
     "managed": "Managed in System",
     "accuracy": "Calculation Accuracy"
   },
+  "carousel": {
+    "dashboard": "Overview of your financial status",
+    "transactions": "Manage and filter financial transactions",
+    "reports": "Detailed reports and charts"
+  },
+  "about": {
+    "title": "About Ten10",
+    "subtitle": "Developed in partnership with Torah Adam L'Adam Institute and endorsed by leading rabbis",
+    "partnership": {
+      "title": "Partnership with Torah Adam L'Adam Institute",
+      "description": "Ten10 was developed in partnership with the Torah Adam L'Adam Institute, a leader in practical halacha. The institute guided the development and approved the accuracy of the halachic calculations.",
+      "verified": "Halachically Verified",
+      "institute": "Torah Adam L'Adam Institute"
+    },
+    "endorsements": {
+      "title": "Rabbinical Endorsements",
+      "quote1": "An excellent system for managing tithes with accuracy and ease. Highly recommended.",
+      "rabbi1": "Rabbi [Rabbi Name]",
+      "quote2": "An important and useful tool for every Jewish home. The calculations are accurate and the interface is convenient.",
+      "rabbi2": "Rabbi [Rabbi Name]",
+      "quote3": "A professional and reliable solution for tithe management. I recommend it to all my students.",
+      "rabbi3": "Rabbi [Rabbi Name]"
+    }
+  },
   "features": {
     "title": "Advanced Features",
     "subtitle": "Everything you need for accurate and simple tithe management",
