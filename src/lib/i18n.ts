@@ -25,6 +25,7 @@ const i18n = i18next as unknown as import("i18next").i18n;
       "settings",
       "auth",
       "about",
+      "landing",
       "halacha-common",
       "halacha-introduction",
       "halacha-faq",

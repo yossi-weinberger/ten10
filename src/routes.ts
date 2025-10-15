@@ -19,6 +19,7 @@ import UnsubscribePage from "./pages/UnsubscribePage";
 import { supabase } from "./lib/supabaseClient";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { RecurringTransactionsTable } from "./pages/RecurringTransactionsTable";
+import LandingPage from "./pages/LandingPage";
 
 const rootRoute = createRootRoute({
   component: App,
@@ -40,7 +41,7 @@ const rootRoute = createRootRoute({
     } = await supabase.auth.getSession();
 
     // Define public routes that don't require authentication
-    const publicRoutes = ["/login", "/signup", "/unsubscribe"];
+    const publicRoutes = ["/login", "/signup", "/unsubscribe", "/landing"];
 
     // Check if the user is trying to access a protected route on the web without a session
     if (!session && !publicRoutes.includes(location.pathname)) {
@@ -142,6 +143,12 @@ const unsubscribeRoute = createRoute({
   component: UnsubscribePage,
 });
 
+const landingRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/landing",
+  component: LandingPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   addTransactionRoute,
@@ -153,6 +160,7 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   signupRoute,
   unsubscribeRoute,
+  landingRoute,
   transactionsTableRoute.addChildren([
     transactionsTableIndexRoute,
     recurringTransactionsRoute,

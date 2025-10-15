@@ -1,0 +1,197 @@
+{
+  "hero": {
+    "badge": "Smart Tithe Management",
+    "title": "Ten10 - Simple and Accurate Tithe Management",
+    "subtitle": "The advanced system for managing income, expenses, and tithes. Works online and offline, with automatic calculations and smart reminders",
+    "downloadButton": "Free Download",
+    "tryButton": "Try in Browser"
+  },
+  "stats": {
+    "users": "Active Users",
+    "managed": "Managed in System",
+    "donated": "Donated Through System"
+  },
+  "nav": {
+    "home": "Home",
+    "features": "Features",
+    "platforms": "Platforms",
+    "testimonials": "Testimonials",
+    "about": "About",
+    "faq": "FAQ",
+    "download": "Download"
+  },
+  "carousel": {
+    "dashboard": "Overview of your financial status",
+    "transactions": "Manage and filter financial transactions",
+    "reports": "Detailed reports and charts",
+    "swipeHint": "Swipe to view more screenshots"
+  },
+  "quotes": {
+    "title": "From the Sources",
+    "main": "You shall surely tithe all the produce of your seed that comes forth from the field year by year",
+    "source": "Deuteronomy 14:22",
+    "chazal1": "Tithing brings blessing to the home",
+    "chazalSource1": "Babylonian Talmud, Taanit 9a",
+    "chazal2": "Test me now in this - regarding tithes",
+    "chazalSource2": "Malachi 3:10"
+  },
+  "about": {
+    "title": "About Ten10",
+    "subtitle": "Developed in partnership with Torah Adam L'Adam Institute and endorsed by leading rabbis",
+    "partnership": {
+      "title": "Partnership with Torah Adam L'Adam Institute",
+      "description": "Ten10 was developed in partnership with the Torah Adam L'Adam Institute, a leader in practical halacha. The institute guided the development and approved the accuracy of the halachic calculations.",
+      "verified": "Halachically Verified",
+      "institute": "Torah Adam L'Adam Institute"
+    },
+    "endorsements": {
+      "title": "Rabbinical Endorsements",
+      "quote1": "An excellent system for managing tithes with accuracy and ease. Highly recommended.",
+      "rabbi1": "Rabbi [Rabbi Name]",
+      "quote2": "An important and useful tool for every Jewish home. The calculations are accurate and the interface is convenient.",
+      "rabbi2": "Rabbi [Rabbi Name]",
+      "quote3": "A professional and reliable solution for tithe management. I recommend it to all my students.",
+      "rabbi3": "Rabbi [Rabbi Name]"
+    }
+  },
+  "features": {
+    "title": "Advanced Features",
+    "subtitle": "Everything you need for accurate and simple tithe management",
+    "items": {
+      "autoCalculation": {
+        "title": "Automatic Tithe Calculation",
+        "description": "The system automatically calculates your tithe balance based on income, expenses, and donations"
+      },
+      "accessAnywhere": {
+        "title": "Access Anywhere",
+        "description": "Full web version with cloud sync and desktop version for offline work"
+      },
+      "smartRecurring": {
+        "title": "Smart Recurring Transactions",
+        "description": "Set up recurring payments that execute automatically and update in the system"
+      },
+      "personalReminders": {
+        "title": "Personal Reminders",
+        "description": "Receive personalized monthly reminders about your tithe status"
+      },
+      "reportsCharts": {
+        "title": "Reports & Charts",
+        "description": "Detailed analysis of income and expenses with visual charts"
+      },
+      "dataExport": {
+        "title": "Data Export",
+        "description": "Export data to Excel, PDF, or CSV files for reporting and documentation"
+      },
+      "pwaInstall": {
+        "title": "Mobile Installation",
+        "description": "Install the web version as a mobile app directly from your browser"
+      },
+      "chomesh": {
+        "title": "Chomesh Calculation",
+        "description": "Full support for Chomesh (20%) calculation for first-time or special income"
+      }
+    }
+  },
+  "platforms": {
+    "title": "Choose the Right Version for You",
+    "web": {
+      "title": "Web Version",
+      "subtitle": "Access anywhere with cloud sync",
+      "pwaNote": "Can be installed as app",
+      "features": [
+        "Access from any browser",
+        "Automatic cloud sync",
+        "Email reminders",
+        "Automatic updates",
+        "Share with advisor"
+      ],
+      "button": "Start in Browser"
+    },
+    "desktop": {
+      "title": "Desktop Version",
+      "subtitle": "Offline work with maximum performance",
+      "badge": "Recommended",
+      "features": [
+        "Works without internet",
+        "Locally secured data",
+        "Fast performance",
+        "System notifications",
+        "Local backup"
+      ],
+      "button": "Download Now"
+    }
+  },
+  "testimonials": {
+    "title": "What Users Say",
+    "items": [
+      {
+        "name": "Rabbi Yosef Cohen",
+        "text": "This system changed my life. Now I know exactly how much I need to donate and have no more doubts"
+      },
+      {
+        "name": "Sarah Levy",
+        "text": "The interface is simple and convenient, and the monthly alerts help me stay updated"
+      },
+      {
+        "name": "Abraham Goldberg",
+        "text": "The desktop version is perfect for offline work. My data is secure and always accessible"
+      }
+    ]
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "items": [
+      {
+        "question": "Is the application free?",
+        "answer": "Yes, the application is completely free for personal use"
+      },
+      {
+        "question": "Is an internet connection required?",
+        "answer": "No, you can use the desktop version without internet connection. The web version requires connection"
+      },
+      {
+        "question": "How is my data protected?",
+        "answer": "Data is encrypted and protected. In the desktop version, it's stored locally on your computer"
+      },
+      {
+        "question": "Can I import existing data?",
+        "answer": "Yes, the system supports importing data from Excel and CSV files"
+      }
+    ]
+  },
+  "cta": {
+    "title": "Ready to Get Started?",
+    "subtitle": "Join thousands of users who already manage their tithes easily and accurately",
+    "desktopButton": "Download for Desktop",
+    "webButton": "Start in Browser"
+  },
+  "download": {
+    "title": "Download Ten10",
+    "subtitle": "Choose the platform that suits you",
+    "orText": "Or start directly in your browser",
+    "webAppButton": "Open Web Application",
+    "downloadButton": "Download",
+    "webCard": {
+      "title": "Web Application",
+      "button": "Open Now"
+    }
+  },
+  "footer": {
+    "description": "Smart and simple tithe management for every Jewish family",
+    "product": "Product",
+    "company": "Company",
+    "resources": "Resources",
+    "links": {
+      "features": "Features",
+      "download": "Download",
+      "support": "Support",
+      "about": "About",
+      "contact": "Contact",
+      "privacy": "Privacy",
+      "halacha": "Halacha",
+      "guides": "Guides",
+      "faq": "FAQ"
+    },
+    "copyright": "All rights reserved"
+  }
+}
