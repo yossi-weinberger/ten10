@@ -1,8 +1,18 @@
-import React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { useCountUp } from "@/hooks/useCountUp";
+import {
+  useScrollAnimation,
+  fadeInUp,
+  scaleIn,
+  staggerContainer,
+  staggerItem,
+  buttonTap,
+  buttonHover,
+} from "@/hooks/useScrollAnimation";
+import { FadeInWords, RevealText } from "@/components/ui/animated-text";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -49,6 +59,22 @@ const LandingPage: React.FC = () => {
   const [showNavigation, setShowNavigation] = useState(false);
   const [carouselProgress, setCarouselProgress] = useState(0);
   const [carouselApi, setCarouselApi] = useState<any>(null);
+
+  // Scroll animations
+  const { scrollY } = useScroll();
+  const heroY = useTransform(scrollY, [0, 500], [0, -100]);
+  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.8]);
+
+  // Animation refs
+  const heroRef = useScrollAnimation({ threshold: 0.2 });
+  const statsRef = useScrollAnimation({ threshold: 0.3 });
+  const featuresRef = useScrollAnimation({ threshold: 0.1 });
+  const testimonialsRef = useScrollAnimation({ threshold: 0.1 });
+  const quotesRef = useScrollAnimation({ threshold: 0.1 });
+  const aboutRef = useScrollAnimation({ threshold: 0.1 });
+  const faqRef = useScrollAnimation({ threshold: 0.1 });
+  const ctaRef = useScrollAnimation({ threshold: 0.1 });
+  const downloadRef = useScrollAnimation({ threshold: 0.1 });
 
   // Animated counters for stats
   const usersCount = useCountUp({ end: 10000, duration: 2500, delay: 500 });
@@ -391,12 +417,23 @@ const LandingPage: React.FC = () => {
 
       {/* Floating Navigation */}
       {showNavigation && (
-        <nav className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-full px-6 py-3 shadow-lg border transition-all duration-300">
+        <motion.nav
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -100, opacity: 0 }}
+          transition={{ type: "spring", damping: 20, stiffness: 300 }}
+          className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 glass-morphism dark:glass-morphism-dark rounded-full px-6 py-3 shadow-lg border"
+        >
           <div className="flex items-center gap-1">
-            {navigationItems.map((item) => (
-              <button
+            {navigationItems.map((item, index) => (
+              <motion.button
                 key={item.id}
                 onClick={() => scrollToSection(item.id)}
+                whileHover={buttonHover}
+                whileTap={buttonTap}
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
                 className={`px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                   activeSection === item.id
                     ? "bg-blue-600 text-white shadow-md"
@@ -405,248 +442,719 @@ const LandingPage: React.FC = () => {
                 aria-label={`Navigate to ${item.label}`}
               >
                 {t(item.labelKey, item.label)}
-              </button>
+              </motion.button>
             ))}
           </div>
-        </nav>
+        </motion.nav>
       )}
 
       {/* Hero Section */}
-      <section
+      <motion.section
         id="hero"
         ref={sectionRefs.hero}
-        className="relative overflow-hidden py-20 px-4"
+        style={{ y: heroY, opacity: heroOpacity }}
+        className="relative overflow-hidden py-20 px-4 parallax-container"
       >
-        {/* Background decoration */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 opacity-50"></div>
-        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-200 dark:bg-blue-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30 animate-pulse"></div>
-        <div
-          className="absolute bottom-20 right-10 w-72 h-72 bg-purple-200 dark:bg-purple-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30 animate-pulse"
-          style={{ animationDelay: "2s" }}
-        ></div>
-        <div className="container mx-auto max-w-6xl relative z-10">
+        {/* Enhanced Background decoration */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 opacity-50 animate-gradient"></div>
+
+        <motion.div
+          className="absolute top-20 left-10 w-72 h-72 bg-blue-200 dark:bg-blue-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30"
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 180, 360],
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        <motion.div
+          className="absolute bottom-20 right-10 w-72 h-72 bg-purple-200 dark:bg-purple-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            rotate: [360, 180, 0],
+            opacity: [0.6, 0.3, 0.6],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2,
+          }}
+        />
+
+        {/* Additional floating elements */}
+        <motion.div
+          className="absolute top-1/2 left-1/4 w-32 h-32 bg-green-200 dark:bg-green-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-2xl opacity-20"
+          animate={{
+            y: [-20, 20, -20],
+            x: [-10, 10, -10],
+            scale: [0.8, 1.1, 0.8],
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        <motion.div
+          className="container mx-auto max-w-6xl relative z-10"
+          ref={heroRef.ref}
+          initial="hidden"
+          animate={heroRef.isInView ? "visible" : "hidden"}
+          variants={staggerContainer}
+        >
           <div className="text-center mb-16">
             {/* Logo */}
-            <div className="mb-8 animate-fade-in">
-              <LazyImage
-                src="/icon-512.png"
-                alt="Ten10 Logo"
-                className="w-24 h-24 mx-auto rounded-2xl shadow-lg hover:scale-110 transition-transform duration-300"
-                placeholder={
-                  <div className="w-24 h-24 mx-auto bg-blue-100 dark:bg-blue-900 rounded-2xl flex items-center justify-center animate-pulse">
-                    <Calculator className="h-12 w-12 text-blue-600" />
-                  </div>
-                }
-              />
-            </div>
+            <motion.div className="mb-8" variants={scaleIn}>
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-block"
+              >
+                <LazyImage
+                  src="/icon-512.png"
+                  alt="Ten10 Logo"
+                  className="w-24 h-24 mx-auto rounded-2xl shadow-lg gpu-accelerated animate-pulse-glow"
+                  placeholder={
+                    <div className="w-24 h-24 mx-auto bg-blue-100 dark:bg-blue-900 rounded-2xl flex items-center justify-center animate-pulse">
+                      <Calculator className="h-12 w-12 text-blue-600" />
+                    </div>
+                  }
+                />
+              </motion.div>
+            </motion.div>
 
-            <Badge
-              variant="secondary"
-              className="mb-4 text-sm font-medium animate-fade-in"
+            <motion.div variants={fadeInUp}>
+              <Badge
+                variant="secondary"
+                className="mb-4 text-sm font-medium animate-shimmer"
+              >
+                {t("hero.badge")}
+              </Badge>
+            </motion.div>
+
+            <motion.h1
+              className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6"
+              variants={fadeInUp}
             >
-              {t("hero.badge")}
-            </Badge>
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-              <span className="text-blue-600">Ten10</span> -{" "}
-              {t("hero.title").replace("Ten10 - ", "")}
-            </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
-              {t("hero.subtitle")}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button
-                size="lg"
-                className="text-lg px-8 py-3"
-                onClick={() => {
-                  trackDownloadClick("hero");
-                  scrollToSection("download");
+              <motion.span
+                className="gradient-text"
+                animate={{
+                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
                 }}
               >
-                <Download className="mr-2 h-5 w-5" />
-                {t("hero.downloadButton")}
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="text-lg px-8 py-3"
-                onClick={() => trackWebAppClick()}
-                asChild
+                Ten10
+              </motion.span>{" "}
+              -{" "}
+              <FadeInWords delay={0.5}>
+                {t("hero.title").replace("Ten10 - ", "")}
+              </FadeInWords>
+            </motion.h1>
+
+            <motion.div variants={fadeInUp}>
+              <RevealText
+                className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto"
+                delay={0.8}
               >
-                <Link
-                  to="/"
-                  className="inline-flex items-center"
-                  aria-label={t("hero.tryButton")}
-                >
-                  <Globe className="mr-2 h-5 w-5" />
-                  {t("hero.tryButton")}
-                </Link>
-              </Button>
-            </div>
+                {t("hero.subtitle")}
+              </RevealText>
+            </motion.div>
+
+            <motion.div
+              className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              variants={staggerContainer}
+            >
+              <motion.div variants={staggerItem}>
+                <motion.div whileHover={buttonHover} whileTap={buttonTap}>
+                  <Button
+                    size="lg"
+                    className="text-lg px-8 py-3"
+                    onClick={() => {
+                      trackDownloadClick("hero");
+                      scrollToSection("download");
+                    }}
+                  >
+                    <Download className="mr-2 h-5 w-5" />
+                    {t("hero.downloadButton")}
+                  </Button>
+                </motion.div>
+              </motion.div>
+
+              <motion.div variants={staggerItem}>
+                <motion.div whileHover={buttonHover} whileTap={buttonTap}>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="text-lg px-8 py-3"
+                    onClick={() => trackWebAppClick()}
+                    asChild
+                  >
+                    <Link
+                      to="/"
+                      className="inline-flex items-center"
+                      aria-label={t("hero.tryButton")}
+                    >
+                      <Globe className="mr-2 h-5 w-5" />
+                      {t("hero.tryButton")}
+                    </Link>
+                  </Button>
+                </motion.div>
+              </motion.div>
+            </motion.div>
           </div>
 
           {/* Screenshots Carousel */}
-          <div className="relative mx-auto max-w-4xl">
-            <Carousel
-              className="w-full"
-              opts={{ align: "start", loop: true }}
-              setApi={setCarouselApi}
+          <motion.div
+            className="relative mx-auto max-w-4xl"
+            variants={fadeInUp}
+          >
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
             >
-              <CarouselContent>
-                <CarouselItem>
-                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 border">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span className="ml-4 text-sm text-gray-500">
-                        Ten10 Dashboard
-                      </span>
-                    </div>
-                    <div className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center">
-                      <div>
-                        <Calculator className="h-16 w-16 mx-auto mb-4 text-blue-600" />
-                        <h3 className="text-2xl font-bold mb-2">Dashboard</h3>
-                        <p className="text-gray-600 dark:text-gray-300 text-sm">
-                          {t("carousel.dashboard")}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CarouselItem>
+              <Carousel
+                className="w-full"
+                opts={{ align: "start", loop: true }}
+                setApi={setCarouselApi}
+              >
+                <CarouselContent>
+                  <CarouselItem>
+                    <motion.div
+                      className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 border hover-lift gpu-accelerated"
+                      whileHover={{ y: -5 }}
+                      transition={{
+                        type: "spring",
+                        damping: 20,
+                        stiffness: 300,
+                      }}
+                    >
+                      <motion.div
+                        className="flex items-center gap-2 mb-4"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <motion.div
+                          className="w-3 h-3 bg-red-500 rounded-full"
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                        <motion.div
+                          className="w-3 h-3 bg-yellow-500 rounded-full"
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            delay: 0.3,
+                          }}
+                        />
+                        <motion.div
+                          className="w-3 h-3 bg-green-500 rounded-full"
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            delay: 0.6,
+                          }}
+                        />
+                        <span className="ml-4 text-sm text-gray-500">
+                          Ten10 Dashboard
+                        </span>
+                      </motion.div>
+                      <motion.div
+                        className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center animate-gradient"
+                        whileHover={{ scale: 1.05 }}
+                        transition={{
+                          type: "spring",
+                          damping: 20,
+                          stiffness: 300,
+                        }}
+                      >
+                        <div>
+                          <motion.div
+                            animate={{
+                              rotate: [0, 360],
+                              scale: [1, 1.1, 1],
+                            }}
+                            transition={{
+                              rotate: {
+                                duration: 10,
+                                repeat: Infinity,
+                                ease: "linear",
+                              },
+                              scale: { duration: 2, repeat: Infinity },
+                            }}
+                          >
+                            <Calculator className="h-16 w-16 mx-auto mb-4 text-blue-600" />
+                          </motion.div>
+                          <motion.h3
+                            className="text-2xl font-bold mb-2"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                          >
+                            Dashboard
+                          </motion.h3>
+                          <motion.p
+                            className="text-gray-600 dark:text-gray-300 text-sm"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.7 }}
+                          >
+                            {t("carousel.dashboard")}
+                          </motion.p>
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  </CarouselItem>
 
-                <CarouselItem>
-                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 border">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span className="ml-4 text-sm text-gray-500">
-                        Ten10 Transactions
-                      </span>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center">
-                      <div>
-                        <FileText className="h-16 w-16 mx-auto mb-4 text-green-600" />
-                        <h3 className="text-2xl font-bold mb-2">
-                          Transactions
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 text-sm">
-                          {t("carousel.transactions")}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CarouselItem>
+                  <CarouselItem>
+                    <motion.div
+                      className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 border hover-lift gpu-accelerated"
+                      whileHover={{ y: -5 }}
+                      transition={{
+                        type: "spring",
+                        damping: 20,
+                        stiffness: 300,
+                      }}
+                    >
+                      <motion.div
+                        className="flex items-center gap-2 mb-4"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <motion.div
+                          className="w-3 h-3 bg-red-500 rounded-full"
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                        <motion.div
+                          className="w-3 h-3 bg-yellow-500 rounded-full"
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            delay: 0.3,
+                          }}
+                        />
+                        <motion.div
+                          className="w-3 h-3 bg-green-500 rounded-full"
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            delay: 0.6,
+                          }}
+                        />
+                        <span className="ml-4 text-sm text-gray-500">
+                          Ten10 Transactions
+                        </span>
+                      </motion.div>
+                      <motion.div
+                        className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center animate-gradient"
+                        whileHover={{ scale: 1.05 }}
+                        transition={{
+                          type: "spring",
+                          damping: 20,
+                          stiffness: 300,
+                        }}
+                      >
+                        <div>
+                          <motion.div
+                            animate={{
+                              y: [-5, 5, -5],
+                              rotate: [0, 5, -5, 0],
+                            }}
+                            transition={{
+                              duration: 3,
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                            }}
+                          >
+                            <FileText className="h-16 w-16 mx-auto mb-4 text-green-600" />
+                          </motion.div>
+                          <motion.h3
+                            className="text-2xl font-bold mb-2"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                          >
+                            Transactions
+                          </motion.h3>
+                          <motion.p
+                            className="text-gray-600 dark:text-gray-300 text-sm"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.7 }}
+                          >
+                            {t("carousel.transactions")}
+                          </motion.p>
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  </CarouselItem>
 
-                <CarouselItem>
-                  <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 border">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <span className="ml-4 text-sm text-gray-500">
-                        Ten10 Reports
-                      </span>
-                    </div>
-                    <div className="bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center">
-                      <div>
-                        <PieChart className="h-16 w-16 mx-auto mb-4 text-purple-600" />
-                        <h3 className="text-2xl font-bold mb-2">Reports</h3>
-                        <p className="text-gray-600 dark:text-gray-300 text-sm">
-                          {t("carousel.reports")}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CarouselItem>
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
+                  <CarouselItem>
+                    <motion.div
+                      className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 border hover-lift gpu-accelerated"
+                      whileHover={{ y: -5 }}
+                      transition={{
+                        type: "spring",
+                        damping: 20,
+                        stiffness: 300,
+                      }}
+                    >
+                      <motion.div
+                        className="flex items-center gap-2 mb-4"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <motion.div
+                          className="w-3 h-3 bg-red-500 rounded-full"
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                        <motion.div
+                          className="w-3 h-3 bg-yellow-500 rounded-full"
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            delay: 0.3,
+                          }}
+                        />
+                        <motion.div
+                          className="w-3 h-3 bg-green-500 rounded-full"
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            delay: 0.6,
+                          }}
+                        />
+                        <span className="ml-4 text-sm text-gray-500">
+                          Ten10 Reports
+                        </span>
+                      </motion.div>
+                      <motion.div
+                        className="bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center animate-gradient"
+                        whileHover={{ scale: 1.05 }}
+                        transition={{
+                          type: "spring",
+                          damping: 20,
+                          stiffness: 300,
+                        }}
+                      >
+                        <div>
+                          <motion.div
+                            animate={{
+                              rotate: [0, 360],
+                              scale: [1, 1.2, 1],
+                            }}
+                            transition={{
+                              rotate: {
+                                duration: 8,
+                                repeat: Infinity,
+                                ease: "linear",
+                              },
+                              scale: { duration: 2, repeat: Infinity },
+                            }}
+                          >
+                            <PieChart className="h-16 w-16 mx-auto mb-4 text-purple-600" />
+                          </motion.div>
+                          <motion.h3
+                            className="text-2xl font-bold mb-2"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                          >
+                            Reports
+                          </motion.h3>
+                          <motion.p
+                            className="text-gray-600 dark:text-gray-300 text-sm"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.7 }}
+                          >
+                            {t("carousel.reports")}
+                          </motion.p>
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  </CarouselItem>
+                </CarouselContent>
 
-            {/* Carousel Progress Bar */}
-            <div className="mt-6 max-w-xs mx-auto">
-              <Progress value={carouselProgress} className="h-2" />
-              <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
+                <CarouselPrevious className="hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors duration-200" />
+                <CarouselNext className="hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors duration-200" />
+              </Carousel>
+            </motion.div>
+
+            {/* Enhanced Carousel Progress Bar */}
+            <motion.div className="mt-6 max-w-xs mx-auto" variants={fadeInUp}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", damping: 20, stiffness: 300 }}
+              >
+                <Progress
+                  value={carouselProgress}
+                  className="h-2 animate-shimmer"
+                />
+              </motion.div>
+              <motion.p
+                className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2"
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
                 {t("carousel.swipeHint", "החלק לצפייה בעוד צילומי מסך")}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+              </motion.p>
+            </motion.div>
+          </motion.div>
+        </motion.div>
+      </motion.section>
 
       {/* Stats Section */}
-      <section className="py-16 px-4 bg-gradient-to-r from-blue-600 to-purple-700 text-white">
-        <div className="container mx-auto max-w-4xl">
-          <div className="grid md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div
+      <motion.section
+        className="py-16 px-4 bg-gradient-to-r from-blue-600 to-purple-700 text-white relative overflow-hidden"
+        ref={statsRef.ref}
+        initial="hidden"
+        animate={statsRef.isInView ? "visible" : "hidden"}
+        variants={staggerContainer}
+      >
+        {/* Animated background elements */}
+        <motion.div
+          className="absolute top-0 left-0 w-full h-full opacity-10"
+          animate={{
+            backgroundPosition: ["0% 0%", "100% 100%"],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            repeatType: "reverse",
+          }}
+          style={{
+            backgroundImage:
+              "radial-gradient(circle, white 1px, transparent 1px)",
+            backgroundSize: "50px 50px",
+          }}
+        />
+
+        <div className="container mx-auto max-w-4xl relative z-10">
+          <motion.div
+            className="grid md:grid-cols-3 gap-8 text-center"
+            variants={staggerContainer}
+          >
+            <motion.div variants={staggerItem}>
+              <motion.div
                 ref={usersCount.elementRef}
                 className="text-4xl font-bold mb-2"
+                whileHover={{ scale: 1.1 }}
+                animate={{
+                  textShadow: [
+                    "0 0 10px rgba(255,255,255,0.5)",
+                    "0 0 20px rgba(255,255,255,0.8)",
+                    "0 0 10px rgba(255,255,255,0.5)",
+                  ],
+                }}
+                transition={{
+                  textShadow: { duration: 2, repeat: Infinity },
+                  scale: { type: "spring", damping: 20, stiffness: 300 },
+                }}
               >
                 {usersCount.count.toLocaleString()}+
-              </div>
-              <p className="text-blue-100">{t("stats.users")}</p>
-            </div>
-            <div>
-              <div
+              </motion.div>
+              <motion.p className="text-blue-100" variants={fadeInUp}>
+                {t("stats.users")}
+              </motion.p>
+            </motion.div>
+
+            <motion.div variants={staggerItem}>
+              <motion.div
                 ref={moneyCount.elementRef}
                 className="text-4xl font-bold mb-2"
+                whileHover={{ scale: 1.1 }}
+                animate={{
+                  textShadow: [
+                    "0 0 10px rgba(255,255,255,0.5)",
+                    "0 0 20px rgba(255,255,255,0.8)",
+                    "0 0 10px rgba(255,255,255,0.5)",
+                  ],
+                }}
+                transition={{
+                  textShadow: { duration: 2, repeat: Infinity, delay: 0.5 },
+                  scale: { type: "spring", damping: 20, stiffness: 300 },
+                }}
               >
                 ₪{moneyCount.count}M+
-              </div>
-              <p className="text-blue-100">{t("stats.managed")}</p>
-            </div>
-            <div>
-              <div
+              </motion.div>
+              <motion.p className="text-blue-100" variants={fadeInUp}>
+                {t("stats.managed")}
+              </motion.p>
+            </motion.div>
+
+            <motion.div variants={staggerItem}>
+              <motion.div
                 ref={donatedCount.elementRef}
                 className="text-4xl font-bold mb-2"
+                whileHover={{ scale: 1.1 }}
+                animate={{
+                  textShadow: [
+                    "0 0 10px rgba(255,255,255,0.5)",
+                    "0 0 20px rgba(255,255,255,0.8)",
+                    "0 0 10px rgba(255,255,255,0.5)",
+                  ],
+                }}
+                transition={{
+                  textShadow: { duration: 2, repeat: Infinity, delay: 1 },
+                  scale: { type: "spring", damping: 20, stiffness: 300 },
+                }}
               >
                 ₪{donatedCount.count}M+
-              </div>
-              <p className="text-blue-100">{t("stats.donated")}</p>
-            </div>
-          </div>
+              </motion.div>
+              <motion.p className="text-blue-100" variants={fadeInUp}>
+                {t("stats.donated")}
+              </motion.p>
+            </motion.div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Features Section */}
       <section
         id="features"
         ref={sectionRefs.features}
-        className="py-20 px-4 bg-white dark:bg-gray-800"
+        className="py-20 px-4 bg-white dark:bg-gray-800 relative overflow-hidden"
       >
-        <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+        {/* Background decoration */}
+        <motion.div
+          className="absolute top-10 right-10 w-80 h-80 bg-blue-200 dark:bg-blue-800 rounded-full opacity-40 filter blur-2xl"
+          animate={{
+            scale: [1, 1.3, 1],
+            rotate: [0, 180, 360],
+          }}
+          transition={{
+            duration: 12,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+
+        {/* Additional background decoration */}
+        <motion.div
+          className="absolute bottom-10 left-10 w-60 h-60 bg-purple-200 dark:bg-purple-800 rounded-full opacity-30 filter blur-2xl"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            rotate: [360, 180, 0],
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 3,
+          }}
+        />
+
+        <div className="container mx-auto max-w-6xl relative z-10">
+          <div className="text-center mb-16" ref={featuresRef.ref}>
+            <motion.h2
+              className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4"
+              initial={{ opacity: 0, y: 30 }}
+              animate={
+                featuresRef.isInView
+                  ? { opacity: 1, y: 0 }
+                  : { opacity: 0, y: 30 }
+              }
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            >
               {t("features.title")}
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+            </motion.h2>
+            <motion.p
+              className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: 30 }}
+              animate={
+                featuresRef.isInView
+                  ? { opacity: 1, y: 0 }
+                  : { opacity: 0, y: 30 }
+              }
+              transition={{
+                delay: 0.1,
+                type: "spring",
+                damping: 20,
+                stiffness: 300,
+              }}
+            >
               {t("features.subtitle")}
-            </p>
+            </motion.p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Card
+              <motion.div
                 key={index}
-                className="hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
-                style={{ animationDelay: `${index * 100}ms` }}
+                initial={{ opacity: 0, y: 50 }}
+                animate={
+                  featuresRef.isInView
+                    ? { opacity: 1, y: 0 }
+                    : { opacity: 0, y: 50 }
+                }
+                transition={{
+                  delay: index * 0.1,
+                  type: "spring",
+                  damping: 20,
+                  stiffness: 300,
+                }}
+                whileHover={{ y: -8 }}
+                whileTap={{ scale: 0.98 }}
+                className="group"
               >
-                <CardHeader>
-                  <div className="text-blue-600 mb-2 transition-transform hover:scale-110">
-                    {feature.icon}
-                  </div>
-                  <CardTitle className="text-xl">
-                    {t(feature.titleKey)}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base">
-                    {t(feature.descriptionKey)}
-                  </CardDescription>
-                </CardContent>
-              </Card>
+                <Card className="h-full hover:shadow-xl transition-all duration-300 cursor-pointer border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 hover:from-blue-50 hover:to-purple-50 dark:hover:from-gray-700 dark:hover:to-gray-800">
+                  <CardHeader>
+                    <motion.div
+                      className="text-blue-600 mb-2"
+                      whileHover={{
+                        scale: 1.2,
+                        rotate: 10,
+                        color: "#8B5CF6",
+                      }}
+                      transition={{
+                        type: "spring",
+                        damping: 20,
+                        stiffness: 300,
+                      }}
+                    >
+                      {feature.icon}
+                    </motion.div>
+                    <CardTitle className="text-xl group-hover:text-blue-600 transition-colors duration-300">
+                      {t(feature.titleKey)}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CardDescription className="text-base group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors duration-300">
+                      {t(feature.descriptionKey)}
+                    </CardDescription>
+                  </CardContent>
+
+                  {/* Hover effect overlay */}
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    initial={{ scale: 0.8 }}
+                    whileHover={{ scale: 1 }}
+                    transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                  />
+                </Card>
+              </motion.div>
             ))}
           </div>
         </div>
@@ -691,10 +1199,12 @@ const LandingPage: React.FC = () => {
                     )
                   )}
                 </ul>
-                <Button className="w-full mt-6" variant="outline">
-                  <Globe className="mr-2 h-4 w-4" />
-                  {t("platforms.web.button")}
-                </Button>
+                <motion.div whileHover={buttonHover} whileTap={buttonTap}>
+                  <Button className="w-full mt-6" variant="outline">
+                    <Globe className="mr-2 h-4 w-4" />
+                    {t("platforms.web.button")}
+                  </Button>
+                </motion.div>
               </CardContent>
             </Card>
 
@@ -727,10 +1237,12 @@ const LandingPage: React.FC = () => {
                     )
                   )}
                 </ul>
-                <Button className="w-full mt-6">
-                  <Download className="mr-2 h-4 w-4" />
-                  {t("platforms.desktop.button")}
-                </Button>
+                <motion.div whileHover={buttonHover} whileTap={buttonTap}>
+                  <Button className="w-full mt-6">
+                    <Download className="mr-2 h-4 w-4" />
+                    {t("platforms.desktop.button")}
+                  </Button>
+                </motion.div>
               </CardContent>
             </Card>
           </div>
@@ -738,55 +1250,118 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Testimonials */}
-      <section
+      <motion.section
         id="testimonials"
         ref={sectionRefs.testimonials}
         className="py-20 px-4 bg-white dark:bg-gray-800"
+        initial="hidden"
+        animate={testimonialsRef.isInView ? "visible" : "hidden"}
+        variants={staggerContainer}
       >
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
+          <motion.div
+            className="text-center mb-16"
+            ref={testimonialsRef.ref}
+            variants={fadeInUp}
+          >
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
               {t("testimonials.title")}
             </h2>
-          </div>
+          </motion.div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6">
-                  <div className="flex mb-4">
-                    {[...Array(testimonial.rating)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className="h-5 w-5 fill-yellow-400 text-yellow-400"
-                      />
-                    ))}
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4 italic">
-                    "{t(testimonial.textKey)}"
-                  </p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                      <Users className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="font-semibold">{t(testimonial.nameKey)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: index * 0.1,
+                  type: "spring",
+                  damping: 20,
+                  stiffness: 300,
+                }}
+                whileHover={{ y: -8 }}
+                viewport={{ once: true }}
+              >
+                <Card className="hover:shadow-xl transition-all duration-300 hover:border-blue-200 dark:hover:border-blue-800 group">
+                  <CardContent className="pt-6">
+                    <motion.div
+                      className="flex mb-4"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: index * 0.1 }}
+                    >
+                      {[...Array(testimonial.rating)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, rotate: -180 }}
+                          whileInView={{ opacity: 1, rotate: 0 }}
+                          transition={{ delay: index * 0.1 + i * 0.1 }}
+                          whileHover={{ scale: 1.2, rotate: 10 }}
+                        >
+                          <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                    <motion.p
+                      className="text-gray-600 dark:text-gray-300 mb-4 italic group-hover:text-gray-800 dark:group-hover:text-gray-100 transition-colors duration-300"
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 + 0.2 }}
+                    >
+                      "{t(testimonial.textKey)}"
+                    </motion.p>
+                    <motion.div
+                      className="flex items-center gap-3"
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 + 0.3 }}
+                    >
+                      <motion.div
+                        className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors duration-300"
+                        whileHover={{ scale: 1.1, rotate: 360 }}
+                        transition={{
+                          type: "spring",
+                          damping: 20,
+                          stiffness: 300,
+                        }}
+                      >
+                        <Users className="h-5 w-5 text-blue-600" />
+                      </motion.div>
+                      <div>
+                        <p className="font-semibold group-hover:text-blue-600 transition-colors duration-300">
+                          {t(testimonial.nameKey)}
+                        </p>
+                      </div>
+                    </motion.div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Torah Quotes Section */}
-      <section className="py-16 px-4 bg-gradient-to-r from-amber-50 to-orange-100 dark:from-amber-900 dark:to-orange-900">
+      <motion.section
+        className="py-16 px-4 bg-gradient-to-r from-amber-50 to-orange-100 dark:from-amber-900 dark:to-orange-900"
+        ref={quotesRef.ref}
+        initial="hidden"
+        animate={quotesRef.isInView ? "visible" : "hidden"}
+        variants={staggerContainer}
+      >
         <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-8">
+          <motion.h2
+            className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-8"
+            variants={fadeInUp}
+          >
             {t("quotes.title", "מהמקורות")}
-          </h2>
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg border-r-4 border-amber-500">
+          </motion.h2>
+          <motion.div
+            className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg border-r-4 border-amber-500"
+            variants={scaleIn}
+          >
             <blockquote className="text-lg md:text-xl text-gray-700 dark:text-gray-300 italic mb-4">
               "
               {t("quotes.main", "עשר תעשר את כל תבואת זרעך היוצא השדה שנה שנה")}
@@ -795,49 +1370,74 @@ const LandingPage: React.FC = () => {
             <cite className="text-sm text-gray-500 dark:text-gray-400">
               {t("quotes.source", "דברים יד, כב")}
             </cite>
-          </div>
-          <div className="mt-6 grid md:grid-cols-2 gap-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border-r-4 border-blue-500">
+          </motion.div>
+          <motion.div
+            className="mt-6 grid md:grid-cols-2 gap-6"
+            variants={staggerContainer}
+          >
+            <motion.div
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border-r-4 border-blue-500"
+              variants={staggerItem}
+            >
               <p className="text-gray-700 dark:text-gray-300 italic mb-2">
                 "{t("quotes.chazal1", "המעשר מביא ברכה לבית")}"
               </p>
               <cite className="text-xs text-gray-500 dark:text-gray-400">
                 {t("quotes.chazalSource1", "תלמוד בבלי, תענית ט.")}
               </cite>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border-r-4 border-green-500">
+            </motion.div>
+            <motion.div
+              className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border-r-4 border-green-500"
+              variants={staggerItem}
+            >
               <p className="text-gray-700 dark:text-gray-300 italic mb-2">
                 "{t("quotes.chazal2", "נסני נא בזאת - בדבר המעשרות")}"
               </p>
               <cite className="text-xs text-gray-500 dark:text-gray-400">
                 {t("quotes.chazalSource2", "מלאכי ג, י")}
               </cite>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* About & Endorsements Section */}
-      <section
+      <motion.section
         id="about"
         ref={sectionRefs.about}
         className="py-20 px-4 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900"
+        initial="hidden"
+        animate={aboutRef.isInView ? "visible" : "hidden"}
+        variants={staggerContainer}
       >
         <div className="container mx-auto max-w-6xl">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <motion.div
+            className="text-center mb-16"
+            ref={aboutRef.ref}
+            variants={staggerContainer}
+          >
+            <motion.h2
+              className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4"
+              variants={fadeInUp}
+            >
               {t("about.title", "אודות Ten10")}
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+            </motion.h2>
+            <motion.p
+              className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
+              variants={fadeInUp}
+            >
               {t(
                 "about.subtitle",
                 "פותח בשיתוף עם מכון תורת האדם לאדם ובהסכמת רבנים מובילים"
               )}
-            </p>
-          </div>
+            </motion.p>
+          </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
-            <div>
+          <motion.div
+            className="grid md:grid-cols-2 gap-12 items-center mb-16"
+            variants={staggerContainer}
+          >
+            <motion.div variants={staggerItem}>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                 {t("about.partnership.title", "שיתוף עם מכון תורת האדם לאדם")}
               </h3>
@@ -860,9 +1460,12 @@ const LandingPage: React.FC = () => {
                   </p>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg">
+            <motion.div
+              className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg"
+              variants={staggerItem}
+            >
               <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-6 text-center">
                 {t("about.endorsements.title", "הסכמות רבנים")}
               </h4>
@@ -909,142 +1512,293 @@ const LandingPage: React.FC = () => {
                   </p>
                 </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* FAQ Section */}
-      <section
+      <motion.section
         id="faq"
         ref={sectionRefs.faq}
         className="py-20 px-4 bg-gray-50 dark:bg-gray-900"
+        initial="hidden"
+        animate={faqRef.isInView ? "visible" : "hidden"}
+        variants={staggerContainer}
       >
         <div className="container mx-auto max-w-4xl">
-          <div className="text-center mb-16">
+          <motion.div
+            className="text-center mb-16"
+            ref={faqRef.ref}
+            variants={fadeInUp}
+          >
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
               {t("faq.title")}
             </h2>
-          </div>
+          </motion.div>
 
-          <Accordion type="single" collapsible className="w-full">
-            {faqs.map((faq, index) => (
-              <AccordionItem key={index} value={`item-${index}`}>
-                <AccordionTrigger className="text-lg font-semibold text-right">
-                  {t(faq.questionKey)}
-                </AccordionTrigger>
-                <AccordionContent>
-                  <p className="text-gray-600 dark:text-gray-300 text-right">
-                    {t(faq.answerKey)}
-                  </p>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          <motion.div variants={fadeInUp}>
+            <Accordion type="single" collapsible className="w-full">
+              {faqs.map((faq, index) => (
+                <AccordionItem key={index} value={`item-${index}`}>
+                  <AccordionTrigger className="text-lg font-semibold text-right">
+                    {t(faq.questionKey)}
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <p className="text-gray-600 dark:text-gray-300 text-right">
+                      {t(faq.answerKey)}
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Final CTA */}
-      <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-700 text-white">
+      <motion.section
+        className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-700 text-white"
+        ref={ctaRef.ref}
+        initial="hidden"
+        animate={ctaRef.isInView ? "visible" : "hidden"}
+        variants={staggerContainer}
+      >
         <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <motion.h2
+            className="text-3xl md:text-4xl font-bold mb-4"
+            variants={fadeInUp}
+          >
             {t("cta.title")}
-          </h2>
-          <p className="text-xl mb-8 text-blue-100">{t("cta.subtitle")}</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="text-lg px-8 py-3">
-              <Download className="mr-2 h-5 w-5" />
-              {t("cta.desktopButton")}
-            </Button>
-            <Button
-              size="lg"
-              variant="secondary"
-              className="text-lg px-8 py-3"
-              asChild
-            >
-              <Link to="/" className="inline-flex items-center">
-                <Globe className="mr-2 h-5 w-5" />
-                {t("cta.webButton")}
-              </Link>
-            </Button>
-          </div>
+          </motion.h2>
+          <motion.p className="text-xl mb-8 text-blue-100" variants={fadeInUp}>
+            {t("cta.subtitle")}
+          </motion.p>
+          <motion.div
+            className="flex flex-col sm:flex-row gap-4 justify-center"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
+            <motion.div variants={staggerItem}>
+              <motion.div whileHover={buttonHover} whileTap={buttonTap}>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="text-lg px-8 py-3"
+                >
+                  <Download className="mr-2 h-5 w-5" />
+                  {t("cta.desktopButton")}
+                </Button>
+              </motion.div>
+            </motion.div>
+
+            <motion.div variants={staggerItem}>
+              <motion.div whileHover={buttonHover} whileTap={buttonTap}>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="text-lg px-8 py-3"
+                  asChild
+                >
+                  <Link to="/" className="inline-flex items-center">
+                    <Globe className="mr-2 h-5 w-5" />
+                    {t("cta.webButton")}
+                  </Link>
+                </Button>
+              </motion.div>
+            </motion.div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Download Section */}
-      <section
+      <motion.section
         id="download"
         ref={sectionRefs.download}
         className="py-20 px-4 bg-white dark:bg-gray-800"
+        initial="hidden"
+        animate={downloadRef.isInView ? "visible" : "hidden"}
+        variants={staggerContainer}
       >
         <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-8">
-            {t("download.title")}
-          </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-12">
-            {t("download.subtitle")}
-          </p>
+          <motion.div ref={downloadRef.ref}>
+            <motion.h2
+              className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-8"
+              variants={fadeInUp}
+            >
+              {t("download.title")}
+            </motion.h2>
+            <motion.p
+              className="text-xl text-gray-600 dark:text-gray-300 mb-12"
+              variants={fadeInUp}
+            >
+              {t("download.subtitle")}
+            </motion.p>
+          </motion.div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="pt-6 text-center">
-                <Monitor className="h-12 w-12 mx-auto mb-4 text-blue-600" />
-                <h3 className="font-semibold mb-2">Windows</h3>
-                <Button className="w-full" asChild>
-                  <a href="/downloads/Ten10-Windows.msi" download>
-                    <Download className="mr-2 h-4 w-4" />
-                    {t("download.downloadButton")}
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="pt-6 text-center">
-                <Monitor className="h-12 w-12 mx-auto mb-4 text-blue-600" />
-                <h3 className="font-semibold mb-2">macOS</h3>
-                <Button className="w-full" asChild>
-                  <a href="/downloads/Ten10-macOS.dmg" download>
-                    <Download className="mr-2 h-4 w-4" />
-                    {t("download.downloadButton")}
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="pt-6 text-center">
-                <Monitor className="h-12 w-12 mx-auto mb-4 text-blue-600" />
-                <h3 className="font-semibold mb-2">Linux</h3>
-                <Button className="w-full" asChild>
-                  <a href="/downloads/Ten10-Linux.AppImage" download>
-                    <Download className="mr-2 h-4 w-4" />
-                    {t("download.downloadButton")}
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="hover:shadow-lg transition-shadow border-2 border-green-500">
-              <CardContent className="pt-6 text-center">
-                <Globe className="h-12 w-12 mx-auto mb-4 text-green-600" />
-                <h3 className="font-semibold mb-2">
-                  {t("download.webCard.title", "אפליקציית ווב")}
-                </h3>
-                <Button className="w-full" asChild>
-                  <Link
-                    to="/"
-                    className="inline-flex items-center justify-center"
+            <motion.div
+              variants={staggerItem}
+              whileHover={{ y: -8 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            >
+              <Card className="hover:shadow-xl transition-all duration-300 group hover:border-blue-200 dark:hover:border-blue-800">
+                <CardContent className="pt-6 text-center">
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      rotate: [0, 5, -5, 0],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
                   >
-                    <Globe className="mr-2 h-4 w-4" />
-                    {t("download.webCard.button", "פתח כעת")}
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+                    <Monitor className="h-12 w-12 mx-auto mb-4 text-blue-600 group-hover:text-blue-700 transition-colors duration-300" />
+                  </motion.div>
+                  <h3 className="font-semibold mb-2 group-hover:text-blue-600 transition-colors duration-300">
+                    Windows
+                  </h3>
+                  <motion.div whileHover={buttonHover} whileTap={buttonTap}>
+                    <Button className="w-full" asChild>
+                      <a href="/downloads/Ten10-Windows.msi" download>
+                        <Download className="mr-2 h-4 w-4" />
+                        {t("download.downloadButton")}
+                      </a>
+                    </Button>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              variants={staggerItem}
+              whileHover={{ y: -8 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            >
+              <Card className="hover:shadow-xl transition-all duration-300 group hover:border-blue-200 dark:hover:border-blue-800">
+                <CardContent className="pt-6 text-center">
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      rotate: [0, -5, 5, 0],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 0.5,
+                    }}
+                  >
+                    <Monitor className="h-12 w-12 mx-auto mb-4 text-blue-600 group-hover:text-blue-700 transition-colors duration-300" />
+                  </motion.div>
+                  <h3 className="font-semibold mb-2 group-hover:text-blue-600 transition-colors duration-300">
+                    macOS
+                  </h3>
+                  <motion.div whileHover={buttonHover} whileTap={buttonTap}>
+                    <Button className="w-full" asChild>
+                      <a href="/downloads/Ten10-macOS.dmg" download>
+                        <Download className="mr-2 h-4 w-4" />
+                        {t("download.downloadButton")}
+                      </a>
+                    </Button>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              variants={staggerItem}
+              whileHover={{ y: -8 }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            >
+              <Card className="hover:shadow-xl transition-all duration-300 group hover:border-blue-200 dark:hover:border-blue-800">
+                <CardContent className="pt-6 text-center">
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      rotate: [0, 10, -10, 0],
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      delay: 1,
+                    }}
+                  >
+                    <Monitor className="h-12 w-12 mx-auto mb-4 text-blue-600 group-hover:text-blue-700 transition-colors duration-300" />
+                  </motion.div>
+                  <h3 className="font-semibold mb-2 group-hover:text-blue-600 transition-colors duration-300">
+                    Linux
+                  </h3>
+                  <motion.div whileHover={buttonHover} whileTap={buttonTap}>
+                    <Button className="w-full" asChild>
+                      <a href="/downloads/Ten10-Linux.AppImage" download>
+                        <Download className="mr-2 h-4 w-4" />
+                        {t("download.downloadButton")}
+                      </a>
+                    </Button>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{
+                delay: 3 * 0.1,
+                type: "spring",
+                damping: 20,
+                stiffness: 300,
+              }}
+              whileHover={{ y: -8 }}
+              viewport={{ once: true }}
+            >
+              <Card className="hover:shadow-xl transition-all duration-300 border-2 border-green-500 group hover:border-green-400 animate-pulse-glow">
+                <CardContent className="pt-6 text-center">
+                  <motion.div
+                    animate={{
+                      rotate: [0, 360],
+                      scale: [1, 1.2, 1],
+                    }}
+                    transition={{
+                      rotate: { duration: 4, repeat: Infinity, ease: "linear" },
+                      scale: {
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      },
+                    }}
+                  >
+                    <Globe className="h-12 w-12 mx-auto mb-4 text-green-600 group-hover:text-green-700 transition-colors duration-300" />
+                  </motion.div>
+                  <h3 className="font-semibold mb-2 group-hover:text-green-600 transition-colors duration-300">
+                    {t("download.webCard.title", "אפליקציית ווב")}
+                  </h3>
+                  <motion.div whileHover={buttonHover} whileTap={buttonTap}>
+                    <Button
+                      className="w-full bg-green-600 hover:bg-green-700"
+                      asChild
+                    >
+                      <Link
+                        to="/"
+                        className="inline-flex items-center justify-center"
+                      >
+                        <Globe className="mr-2 h-4 w-4" />
+                        {t("download.webCard.button", "פתח כעת")}
+                      </Link>
+                    </Button>
+                  </motion.div>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Footer */}
       <footer className="py-12 px-4 bg-gray-900 text-white">
