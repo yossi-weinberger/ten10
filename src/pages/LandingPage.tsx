@@ -1102,13 +1102,10 @@ const LandingPage: React.FC = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <motion.div
-                key={index}
+                key={`feature-${index}`}
                 initial={{ opacity: 0, y: 50 }}
-                animate={
-                  featuresRef.isInView
-                    ? { opacity: 1, y: 0 }
-                    : { opacity: 0, y: 50 }
-                }
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
                 transition={{
                   delay: index * 0.1,
                   type: "spring",
@@ -1119,15 +1116,16 @@ const LandingPage: React.FC = () => {
                 whileTap={{ scale: 0.98 }}
                 className="group"
               >
-                <Card className="h-full hover:shadow-xl transition-all duration-300 cursor-pointer border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 hover:from-blue-50 hover:to-purple-50 dark:hover:from-gray-700 dark:hover:to-gray-800">
-                  <CardHeader>
+                <Card
+                  className="relative isolate overflow-hidden h-full hover:shadow-xl transition-all duration-300 cursor-pointer
+               border-0 rounded-lg
+               bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900
+               hover:from-blue-50 hover:to-purple-50 dark:hover:from-gray-700 dark:hover:to-gray-800"
+                >
+                  <CardHeader className="relative z-10">
                     <motion.div
                       className="text-blue-600 mb-2"
-                      whileHover={{
-                        scale: 1.2,
-                        rotate: 10,
-                        color: "#8B5CF6",
-                      }}
+                      whileHover={{ scale: 1.2, rotate: 10, color: "#8B5CF6" }}
                       transition={{
                         type: "spring",
                         damping: 20,
@@ -1140,7 +1138,8 @@ const LandingPage: React.FC = () => {
                       {t(feature.titleKey)}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+
+                  <CardContent className="relative z-10">
                     <CardDescription className="text-base group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors duration-300">
                       {t(feature.descriptionKey)}
                     </CardDescription>
@@ -1148,8 +1147,11 @@ const LandingPage: React.FC = () => {
 
                   {/* Hover effect overlay */}
                   <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    initial={{ scale: 0.8 }}
+                    className="pointer-events-none absolute inset-0 z-0
+                 bg-gradient-to-r from-blue-500/10 to-purple-500/10
+                 rounded-lg opacity-0 group-hover:opacity-100
+                 transition-opacity duration-300"
+                    initial={{ scale: 0.9 }}
                     whileHover={{ scale: 1 }}
                     transition={{ type: "spring", damping: 20, stiffness: 300 }}
                   />
@@ -1250,24 +1252,26 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* Testimonials */}
-      <motion.section
+      <section
         id="testimonials"
         ref={sectionRefs.testimonials}
         className="py-20 px-4 bg-white dark:bg-gray-800"
-        initial="hidden"
-        animate={testimonialsRef.isInView ? "visible" : "hidden"}
-        variants={staggerContainer}
       >
         <div className="container mx-auto max-w-6xl">
-          <motion.div
-            className="text-center mb-16"
-            ref={testimonialsRef.ref}
-            variants={fadeInUp}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <div className="text-center mb-16" ref={testimonialsRef.ref}>
+            <motion.h2
+              className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4"
+              initial={{ opacity: 0, y: 30 }}
+              animate={
+                testimonialsRef.isInView
+                  ? { opacity: 1, y: 0 }
+                  : { opacity: 0, y: 30 }
+              }
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            >
               {t("testimonials.title")}
-            </h2>
-          </motion.div>
+            </motion.h2>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
@@ -1341,26 +1345,38 @@ const LandingPage: React.FC = () => {
             ))}
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* Torah Quotes Section */}
-      <motion.section
+      <section
         className="py-16 px-4 bg-gradient-to-r from-amber-50 to-orange-100 dark:from-amber-900 dark:to-orange-900"
         ref={quotesRef.ref}
-        initial="hidden"
-        animate={quotesRef.isInView ? "visible" : "hidden"}
-        variants={staggerContainer}
       >
         <div className="container mx-auto max-w-4xl text-center">
           <motion.h2
             className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-8"
-            variants={fadeInUp}
+            initial={{ opacity: 0, y: 30 }}
+            animate={
+              quotesRef.isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
+            }
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
           >
             {t("quotes.title", "מהמקורות")}
           </motion.h2>
           <motion.div
             className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg border-r-4 border-amber-500"
-            variants={scaleIn}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={
+              quotesRef.isInView
+                ? { opacity: 1, scale: 1 }
+                : { opacity: 0, scale: 0.9 }
+            }
+            transition={{
+              delay: 0.2,
+              type: "spring",
+              damping: 20,
+              stiffness: 300,
+            }}
           >
             <blockquote className="text-lg md:text-xl text-gray-700 dark:text-gray-300 italic mb-4">
               "
@@ -1371,13 +1387,21 @@ const LandingPage: React.FC = () => {
               {t("quotes.source", "דברים יד, כב")}
             </cite>
           </motion.div>
-          <motion.div
-            className="mt-6 grid md:grid-cols-2 gap-6"
-            variants={staggerContainer}
-          >
+          <div className="mt-6 grid md:grid-cols-2 gap-6">
             <motion.div
               className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border-r-4 border-blue-500"
-              variants={staggerItem}
+              initial={{ opacity: 0, x: -30 }}
+              animate={
+                quotesRef.isInView
+                  ? { opacity: 1, x: 0 }
+                  : { opacity: 0, x: -30 }
+              }
+              transition={{
+                delay: 0.4,
+                type: "spring",
+                damping: 20,
+                stiffness: 300,
+              }}
             >
               <p className="text-gray-700 dark:text-gray-300 italic mb-2">
                 "{t("quotes.chazal1", "המעשר מביא ברכה לבית")}"
@@ -1388,7 +1412,18 @@ const LandingPage: React.FC = () => {
             </motion.div>
             <motion.div
               className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border-r-4 border-green-500"
-              variants={staggerItem}
+              initial={{ opacity: 0, x: 30 }}
+              animate={
+                quotesRef.isInView
+                  ? { opacity: 1, x: 0 }
+                  : { opacity: 0, x: 30 }
+              }
+              transition={{
+                delay: 0.5,
+                type: "spring",
+                damping: 20,
+                stiffness: 300,
+              }}
             >
               <p className="text-gray-700 dark:text-gray-300 italic mb-2">
                 "{t("quotes.chazal2", "נסני נא בזאת - בדבר המעשרות")}"
@@ -1397,18 +1432,15 @@ const LandingPage: React.FC = () => {
                 {t("quotes.chazalSource2", "מלאכי ג, י")}
               </cite>
             </motion.div>
-          </motion.div>
+          </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* About & Endorsements Section */}
-      <motion.section
+      <section
         id="about"
         ref={sectionRefs.about}
         className="py-20 px-4 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900"
-        initial="hidden"
-        animate={aboutRef.isInView ? "visible" : "hidden"}
-        variants={staggerContainer}
       >
         <div className="container mx-auto max-w-6xl">
           <motion.div
@@ -1515,16 +1547,13 @@ const LandingPage: React.FC = () => {
             </motion.div>
           </motion.div>
         </div>
-      </motion.section>
+      </section>
 
       {/* FAQ Section */}
-      <motion.section
+      <section
         id="faq"
         ref={sectionRefs.faq}
         className="py-20 px-4 bg-gray-50 dark:bg-gray-900"
-        initial="hidden"
-        animate={faqRef.isInView ? "visible" : "hidden"}
-        variants={staggerContainer}
       >
         <div className="container mx-auto max-w-4xl">
           <motion.div
@@ -1554,7 +1583,7 @@ const LandingPage: React.FC = () => {
             </Accordion>
           </motion.div>
         </div>
-      </motion.section>
+      </section>
 
       {/* Final CTA */}
       <motion.section
@@ -1614,13 +1643,10 @@ const LandingPage: React.FC = () => {
       </motion.section>
 
       {/* Download Section */}
-      <motion.section
+      <section
         id="download"
         ref={sectionRefs.download}
         className="py-20 px-4 bg-white dark:bg-gray-800"
-        initial="hidden"
-        animate={downloadRef.isInView ? "visible" : "hidden"}
-        variants={staggerContainer}
       >
         <div className="container mx-auto max-w-4xl text-center">
           <motion.div ref={downloadRef.ref}>
@@ -1798,7 +1824,7 @@ const LandingPage: React.FC = () => {
             </motion.div>
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* Footer */}
       <footer className="py-12 px-4 bg-gray-900 text-white">
