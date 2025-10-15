@@ -214,11 +214,20 @@ const LandingPage: React.FC = () => {
 
   // Google Analytics
   useEffect(() => {
+    const gaId = import.meta.env.VITE_G_ANALYTICS_ID;
+
+    // Only load GA if we have an ID
+    if (!gaId) {
+      console.log("Google Analytics ID not found in environment variables");
+      return;
+    }
+
+    console.log("Loading Google Analytics with ID:", gaId);
+
     // Add Google Analytics script
     const gaScript = document.createElement("script");
     gaScript.async = true;
-    gaScript.src =
-      "https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID";
+    gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
     document.head.appendChild(gaScript);
 
     // Add GA configuration
@@ -227,7 +236,7 @@ const LandingPage: React.FC = () => {
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'GA_MEASUREMENT_ID', {
+      gtag('config', '${gaId}', {
         page_title: 'Ten10 Landing Page',
         page_location: window.location.href,
         language: '${i18n.language}'

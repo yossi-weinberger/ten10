@@ -9,3 +9,12 @@ declare module "i18next" {
     language: string;
   }
 }
+
+// Vite environment variables
+interface ImportMetaEnv {
+  readonly VITE_G_ANALYTICS_ID: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
