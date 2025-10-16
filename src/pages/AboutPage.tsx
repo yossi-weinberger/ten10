@@ -142,19 +142,35 @@ export function AboutPage() {
                   </p>
                 </div>
               </CardContent>
-              <div className="p-6 pt-0">
+              <div className="p-6 pt-0 space-y-3">
                 <Button
                   asChild
                   className="w-full bg-green-600 hover:bg-green-700"
                 >
                   <a
-                    href="https://www.torah-adam.org.il/donate"
+                    href="https://www.matara.pro/nedarimplus/online/?mosad=7007125&Comment=TEN10"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center"
                   >
                     <Gift className="mr-2 h-4 w-4" />
                     {t("institute.donateButton")}
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
+                >
+                  <a
+                    href="https://veahavta-kamocha.org/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center"
+                  >
+                    <Building2 className="mr-2 h-4 w-4" />
+                    {t("institute.visitWebsite")}
                     <ExternalLink className="ml-2 h-4 w-4" />
                   </a>
                 </Button>

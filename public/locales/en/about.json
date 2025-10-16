@@ -17,7 +17,8 @@
     "description": "The Torah Adam Institute is the leader in practical halacha. The institute guided the development of Ten10 and approved the accuracy of halachic calculations, ensuring the system meets all halachic requirements.",
     "support": "Support the Institute",
     "supportDescription": "The institute operates as a non-profit organization and relies on donations. Every donation helps continue the important work.",
-    "donateButton": "Donate to the Institute"
+    "donateButton": "Donate to the Institute",
+    "visitWebsite": "Visit Institute Website"
   },
   "team": {
     "title": "Development Team",
