@@ -1,19 +1,36 @@
 {
-  "analytics": {
-    "title": "Advanced Data Analytics",
-    "placeholder": "Advanced charts and analysis will be displayed here..."
-  },
-  "page": {
-    "title": "About Ten10",
-    "subtitle": "Information about the application and the team behind it"
-  },
+  "title": "About Ten10",
+  "subtitle": "Advanced system for managing tithes with automatic calculations and smart reminders",
   "appInfo": {
     "title": "About the Application",
-    "description1": "Ten10 is an application for managing income and donations, designed to help you track your income and manage your donations efficiently and conveniently.",
-    "description2": "The application allows you to manage your tithe, track regular donations, and receive reminders when you need to donate."
+    "badge": "Advanced System",
+    "description": "Ten10 is an advanced system for managing tithes with automatic calculations, smart reminders, and detailed reports. The system was developed in partnership with the Torah Adam Institute and is halachically approved.",
+    "feature1": "Accurate automatic calculations",
+    "feature2": "Personal smart reminders",
+    "feature3": "Detailed and visual reports",
+    "feature4": "Web and desktop versions",
+    "learnMore": "Learn more about the features"
   },
-  "thanks": {
-    "title": "Thanks",
-    "description": "Special thanks to all the contributors and users who help us improve the application and make it better."
+  "institute": {
+    "title": "Torah Adam Institute",
+    "badge": "Halachically Approved",
+    "description": "The Torah Adam Institute is the leader in practical halacha. The institute guided the development of Ten10 and approved the accuracy of halachic calculations, ensuring the system meets all halachic requirements.",
+    "support": "Support the Institute",
+    "supportDescription": "The institute operates as a non-profit organization and relies on donations. Every donation helps continue the important work.",
+    "donateButton": "Donate to the Institute"
+  },
+  "team": {
+    "title": "Development Team",
+    "badge": "Professional Development",
+    "description": "Ten10's development team consists of experienced developers and leading programmers in the technology field. The team works in close collaboration with the Torah Adam Institute to ensure complete halachic accuracy.",
+    "contactEmail": "Email",
+    "github": "GitHub",
+    "contactButton": "Contact Us"
+  },
+  "footer": {
+    "title": "Thank you for using Ten10",
+    "description": "We are proud to provide an advanced tool for managing tithes that helps the Jewish community fulfill mitzvot accurately and conveniently. Your feedback is very important to us!",
+    "backToLanding": "Back to Homepage",
+    "sendFeedback": "Send Feedback"
   }
 }
