@@ -8,6 +8,7 @@
   "bundle": {
     "active": true,
     "targets": ["nsis", "msi"],
+    "resources": ["../dist/**/*"],
     "windows": {
       "nsis": {
         "displayLanguageSelector": true,
