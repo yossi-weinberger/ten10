@@ -44,4 +44,11 @@ test-req.js
 # Test reports and results
 playwright-report/
 test-results/
-"src-tauri/gen/" 
+"src-tauri/gen/"
+
+# Android build artifacts (Bubblewrap)
+android-build/
+!android-build/README.md
+!android-build/.gitignore
+*.keystore
+*.jks 

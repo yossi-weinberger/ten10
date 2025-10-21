@@ -102,5 +102,25 @@
       "title": "תזכורת עדכון חודשית",
       "body": "עמדת ביעד המעשר החודשי. אל תשכח לעדכן את הנתונים האחרונים שלך!"
     }
+  },
+  "platform": {
+    "desktop_version": "גרסת דסקטופ",
+    "web_version": "גרסת ווב",
+    "android_app_version": "אפליקציית אנדרואיד",
+    "desktop_description": "גרסה לא מקוונת עם אחסון מקומי",
+    "web_description": "גרסת דפדפן עם סנכרון ענן",
+    "android_app_description": "אפליקציה מקורית לאנדרואיד",
+    "desktop_offline_available": "זמין במצב לא מקוון עם SQLite",
+    "desktop_local_storage": "כל הנתונים שלך מאוחסנים באופן מקומי",
+    "web_online_features": "גישה מכל דפדפן עם חשבון Supabase",
+    "download_mobile_app": "הורד אפליקציה למובייל",
+    "contact_us": "צור קשר",
+    "download_app": "הורד אפליקציה",
+    "twa_native_features": "נהנה מחוויית אפליקציה מקורית עם כל יכולות הווב",
+    "available_features": "תכונות זמינות",
+    "feature_notifications": "התראות מערכת",
+    "feature_home_screen": "אייקון במסך הבית",
+    "feature_full_screen": "מסך מלא ללא סרגל כתובות",
+    "feature_offline_support": "תמיכה במצב לא מקוון"
   }
 }
