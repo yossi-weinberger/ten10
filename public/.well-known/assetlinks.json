@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.ten10_app.twa",
+      "sha256_cert_fingerprints": [
+        "31:C6:07:DF:EE:3F:04:68:25:D5:3D:C0:25:01:56:00:5E:8B:B4:6F:FF:75:6E:B6:C6:26:A3:62:BA:AC:57:0E"
+      ]
+    }
+  }
+]

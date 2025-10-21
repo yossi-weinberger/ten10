@@ -5,6 +5,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import { router } from "./routes";
 import { ThemeProvider } from "./lib/theme";
 import { PlatformProvider } from "./contexts/PlatformContext";
+import { TWAProvider } from "./contexts/TWAContext";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { AuthProvider } from "./contexts/AuthContext";
 import "./index.css";
@@ -14,11 +15,13 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider defaultTheme="system" storageKey="Ten10-ui-theme">
       <PlatformProvider>
-        <AuthProvider>
-          <RouterProvider router={router} />
-          <Toaster position="top-center" />
-          <SpeedInsights />
-        </AuthProvider>
+        <TWAProvider>
+          <AuthProvider>
+            <RouterProvider router={router} />
+            <Toaster position="top-center" />
+            <SpeedInsights />
+          </AuthProvider>
+        </TWAProvider>
       </PlatformProvider>
     </ThemeProvider>
   </StrictMode>
