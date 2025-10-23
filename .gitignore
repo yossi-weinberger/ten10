@@ -47,8 +47,16 @@ test-results/
 "src-tauri/gen/"
 
 # Android build artifacts (Bubblewrap)
-android-build/
-!android-build/README.md
-!android-build/.gitignore
+android-build/app/
+android-build/gradle/
+android-build/gradlew
+android-build/gradlew.bat
+android-build/*.apk
+android-build/*.aab
+android-build/build/
+android-build/local.properties
+
+# CRITICAL: Never commit keystore files!
 *.keystore
-*.jks 
+*.jks
+android-build/android.keystore 
