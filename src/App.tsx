@@ -13,6 +13,7 @@ import {
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "./components/layout/Sidebar";
 import { usePlatform } from "./contexts/PlatformContext";
+import { useTWA } from "./contexts/TWAContext";
 import { setPlatform as setGlobalPlatform } from "./lib/platformManager";
 import { init_db } from "@/lib/data-layer/db_commands";
 import { useDonationStore } from "./lib/store";
@@ -24,6 +25,7 @@ function App() {
   const [isAppReady, setIsAppReady] = useState(false);
 
   const { platform } = usePlatform();
+  const { isTWA } = useTWA();
   const { i18n, t } = useTranslation();
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
 
@@ -131,7 +133,11 @@ function App() {
                 : "container py-6 px-4 md:px-6 md:pt-6 pt-20"
             }`}
           >
-            <div className={platform === "desktop" ? "is-desktop" : "is-web"}>
+            <div
+              className={`${platform === "desktop" ? "is-desktop" : "is-web"} ${
+                isTWA ? "is-twa" : ""
+              }`}
+            >
               <Outlet />
             </div>
           </main>

@@ -102,5 +102,25 @@
       "title": "Monthly Update Reminder",
       "body": "You've met your monthly tithe goal. Don't forget to update your latest data!"
     }
+  },
+  "platform": {
+    "desktop_version": "Desktop Version",
+    "web_version": "Web Version",
+    "android_app_version": "Android App",
+    "desktop_description": "Offline version with local storage",
+    "web_description": "Browser version with cloud sync",
+    "android_app_description": "Native Android application",
+    "desktop_offline_available": "Available offline with SQLite",
+    "desktop_local_storage": "All your data is stored locally",
+    "web_online_features": "Access from any browser with Supabase account",
+    "download_mobile_app": "Download Mobile App",
+    "contact_us": "Contact Us",
+    "download_app": "Download App",
+    "twa_native_features": "Enjoy a native app experience with all web capabilities",
+    "available_features": "Available Features",
+    "feature_notifications": "System notifications",
+    "feature_home_screen": "Home screen icon",
+    "feature_full_screen": "Full screen without address bar",
+    "feature_offline_support": "Offline support"
   }
 }
