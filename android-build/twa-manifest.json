@@ -17,7 +17,7 @@
   "maskableIconUrl": "https://ten10-app.com/icon-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
-    "path": "D:\\git repositories\\ten10\\ten10\\android-build\\android.keystore",
+    "path": "./android.keystore",
     "alias": "ten10-android-keystore"
   },
   "appVersionName": "2",
