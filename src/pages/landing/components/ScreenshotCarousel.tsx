@@ -342,10 +342,9 @@ export const ScreenshotCarousel: React.FC = () => {
           animate={{ opacity: [0.7, 1, 0.7] }}
           transition={{ duration: 2, repeat: Infinity }}
         >
-          {t("carousel.swipeHint", "החלק לצפייה בעוד צילומי מסך")}
+          {t("carousel.swipeHint")}
         </motion.p>
       </motion.div>
     </motion.div>
   );
 };
-

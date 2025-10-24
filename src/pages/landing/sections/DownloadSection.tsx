@@ -183,7 +183,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
                   <Globe className="h-12 w-12 mx-auto mb-4 text-green-600 group-hover:text-green-700 transition-colors duration-300" />
                 </motion.div>
                 <h3 className="font-semibold mb-2 group-hover:text-green-600 transition-colors duration-300">
-                  {t("download.webCard.title", "אפליקציית ווב")}
+                  {t("download.webCard.title")}
                 </h3>
                 <motion.div whileHover={buttonHover} whileTap={buttonTap}>
                   <Button
@@ -195,7 +195,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
                       className="inline-flex items-center justify-center"
                     >
                       <Globe className="mr-2 h-4 w-4" />
-                      {t("download.webCard.button", "פתח כעת")}
+                      {t("download.webCard.button")}
                     </Link>
                   </Button>
                 </motion.div>
