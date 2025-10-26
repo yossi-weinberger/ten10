@@ -4,7 +4,7 @@
   "appInfo": {
     "title": "About the Application",
     "badge": "Advanced System",
-    "description": "Ten10 is an advanced system for managing tithes with automatic calculations, smart reminders, and detailed reports. The system was developed in partnership with the Torah Adam Institute and is halachically approved.",
+    "description": "Ten10 is an advanced tithe management system that includes automatic calculations, smart reminders, and detailed reports. The system was developed in partnership with the Torah Adam Institute and is halachically approved. The project was born following the success of the Excel table series for tithe and chomesh calculations published by the institute over a long period, which gained widespread public popularity with over 3,500 orders in Israel. At the request of many, the institute decided to collaborate with an expert programmer to build a completely new system, offering an improved user experience, advanced functions, and additional diverse options for accurate and convenient tithe management.",
     "feature1": "Accurate automatic calculations",
     "feature2": "Personal smart reminders",
     "feature3": "Detailed and visual reports",

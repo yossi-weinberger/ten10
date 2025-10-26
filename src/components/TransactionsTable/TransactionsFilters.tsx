@@ -79,14 +79,15 @@ export function TransactionsFilters() {
   const [localRecurringStatuses, setLocalRecurringStatuses] = useState<
     string[]
   >(storeFilters.recurringStatuses);
-  const [localRecurringFrequencies, setLocalRecurringFrequencies] = useState<
-    string[]
-  >(storeFilters.recurringFrequencies);
+  // Commented out - frequency filter disabled until multiple frequencies are supported
+  // const [localRecurringFrequencies, setLocalRecurringFrequencies] = useState<
+  //   string[]
+  // >(storeFilters.recurringFrequencies);
 
   // Added state for dropdown visibility
   const [typesDropdownOpen, setTypesDropdownOpen] = useState(false);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
-  const [frequencyDropdownOpen, setFrequencyDropdownOpen] = useState(false);
+  // const [frequencyDropdownOpen, setFrequencyDropdownOpen] = useState(false); // Commented out - frequency filter disabled
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -125,7 +126,7 @@ export function TransactionsFilters() {
     // If not filtering by recurring, clear the status/frequency filters
     if (value !== "recurring") {
       setLocalRecurringStatuses([]);
-      setLocalRecurringFrequencies([]);
+      // setLocalRecurringFrequencies([]); // Commented out - frequency filter disabled
       newFilters.recurringStatuses = [];
       newFilters.recurringFrequencies = [];
     }
@@ -140,16 +141,17 @@ export function TransactionsFilters() {
     setStoreFilters({ recurringStatuses: newStatuses });
   };
 
-  const handleRecurringFrequencyChange = (
-    frequency: string,
-    checked: boolean
-  ) => {
-    const newFrequencies = checked
-      ? [...localRecurringFrequencies, frequency]
-      : localRecurringFrequencies.filter((f) => f !== frequency);
-    setLocalRecurringFrequencies(newFrequencies);
-    setStoreFilters({ recurringFrequencies: newFrequencies });
-  };
+  // Commented out - frequency filter disabled until multiple frequencies are supported
+  // const handleRecurringFrequencyChange = (
+  //   frequency: string,
+  //   checked: boolean
+  // ) => {
+  //   const newFrequencies = checked
+  //     ? [...localRecurringFrequencies, frequency]
+  //     : localRecurringFrequencies.filter((f) => f !== frequency);
+  //   setLocalRecurringFrequencies(newFrequencies);
+  //   setStoreFilters({ recurringFrequencies: newFrequencies });
+  // };
 
   const handleResetFilters = () => {
     setLocalSearch(initialTableTransactionFilters.search);
@@ -169,9 +171,9 @@ export function TransactionsFilters() {
     setLocalTypes(initialTableTransactionFilters.types);
     setLocalIsRecurring(initialTableTransactionFilters.isRecurring);
     setLocalRecurringStatuses(initialTableTransactionFilters.recurringStatuses);
-    setLocalRecurringFrequencies(
-      initialTableTransactionFilters.recurringFrequencies
-    );
+    // setLocalRecurringFrequencies( // Commented out - frequency filter disabled
+    //   initialTableTransactionFilters.recurringFrequencies
+    // );
     resetStoreFiltersState();
     if (platform !== "loading") {
       fetchTransactions(true, platform);
@@ -353,7 +355,8 @@ export function TransactionsFilters() {
                   </DropdownMenu>
                 </div>
 
-                {/* Recurring Frequency */}
+                {/* Recurring Frequency - commented out until multiple frequencies are supported */}
+                {/* 
                 <div className="flex-grow sm:flex-grow-0 sm:w-auto">
                   <Label className="mb-2 block text-sm font-medium">
                     {t("filters.recurringFrequency")}
@@ -401,6 +404,7 @@ export function TransactionsFilters() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
+                */}
               </>
             )}
 

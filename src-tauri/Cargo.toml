@@ -3,7 +3,7 @@ name = "Ten10"
 version = "0.2.9"
 description = "Ten10 - Income and Donation Management App"
 authors = ["Yossi Weinberger"]
-license = ""
+license = "AGPL-3.0"
 repository = ""
 edition = "2021"
 

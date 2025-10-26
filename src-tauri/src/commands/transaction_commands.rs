@@ -495,12 +495,27 @@ pub fn get_filtered_transactions_handler(
     sql_params_dynamic.push(Box::new(pagination.limit));
     sql_params_dynamic.push(Box::new((pagination.page - 1) * pagination.limit));
 
+    // Map frontend field names to proper table-qualified column names
+    let sort_field = match sorting.field.as_str() {
+        "date" => "t.date",
+        "amount" => "t.amount",
+        "description" => "t.description",
+        "currency" => "t.currency",
+        "type" => "t.type",
+        "category" => "t.category",
+        "recipient" => "t.recipient",
+        "is_chomesh" => "t.is_chomesh",
+        "created_at" => "t.created_at",
+        "updated_at" => "t.updated_at",
+        _ => "t.created_at", // Default fallback
+    };
+
     let query_string_for_data = format!(
         "{} {} {} ORDER BY {} {} LIMIT ?{} OFFSET ?{}",
         base_select,
         base_from,
         where_clause_str,
-        sorting.field,
+        sort_field,
         sorting.direction,
         current_param_idx,
         current_param_idx + 1

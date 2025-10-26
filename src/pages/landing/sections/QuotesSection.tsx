@@ -20,7 +20,7 @@ export const QuotesSection: React.FC = () => {
           }
           transition={{ type: "spring", damping: 20, stiffness: 300 }}
         >
-          {t("quotes.title", "מהמקורות")}
+          {t("quotes.title")}
         </motion.h2>
         <motion.div
           className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg border-r-4 border-amber-500"
@@ -38,10 +38,10 @@ export const QuotesSection: React.FC = () => {
           }}
         >
           <blockquote className="text-lg md:text-xl text-gray-700 dark:text-gray-300 italic mb-4">
-            "{t("quotes.main", "עשר תעשר את כל תבואת זרעך היוצא השדה שנה שנה")}"
+            "{t("quotes.main")}"
           </blockquote>
           <cite className="text-sm text-gray-500 dark:text-gray-400">
-            {t("quotes.source", "דברים יד, כב")}
+            {t("quotes.source")}
           </cite>
         </motion.div>
         <div className="mt-6 grid md:grid-cols-2 gap-6">
@@ -59,10 +59,10 @@ export const QuotesSection: React.FC = () => {
             }}
           >
             <p className="text-gray-700 dark:text-gray-300 italic mb-2">
-              "{t("quotes.chazal1", "המעשר מביא ברכה לבית")}"
+              "{t("quotes.chazal1")}"
             </p>
             <cite className="text-xs text-gray-500 dark:text-gray-400">
-              {t("quotes.chazalSource1", "תלמוד בבלי, תענית ט.")}
+              {t("quotes.chazalSource1")}
             </cite>
           </motion.div>
           <motion.div
@@ -79,10 +79,10 @@ export const QuotesSection: React.FC = () => {
             }}
           >
             <p className="text-gray-700 dark:text-gray-300 italic mb-2">
-              "{t("quotes.chazal2", "נסני נא בזאת - בדבר המעשרות")}"
+              "{t("quotes.chazal2")}"
             </p>
             <cite className="text-xs text-gray-500 dark:text-gray-400">
-              {t("quotes.chazalSource2", "מלאכי ג, י")}
+              {t("quotes.chazalSource2")}
             </cite>
           </motion.div>
         </div>
@@ -90,4 +90,3 @@ export const QuotesSection: React.FC = () => {
     </section>
   );
 };
-

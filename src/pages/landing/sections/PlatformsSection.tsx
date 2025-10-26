@@ -46,8 +46,7 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                 </CardTitle>
               </div>
               <CardDescription className="text-blue-100">
-                {t("platforms.web.subtitle")} •{" "}
-                {t("platforms.web.pwaNote", "ניתן להתקין כאפליקציה")}
+                {t("platforms.web.subtitle")} • {t("platforms.web.pwaNote")}
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
@@ -112,4 +111,3 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
     </section>
   );
 };
-
