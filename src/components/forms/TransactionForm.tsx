@@ -19,7 +19,7 @@ import { CURRENCIES } from "@/lib/currencies";
 import { Transaction } from "@/types/transaction";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
-import { useSearch } from "@tanstack/react-router";
+import { useTransactionFormInitialization } from "@/hooks/useTransactionFormInitialization";
 
 // Zod schema is now imported from "@/types/forms"
 
@@ -52,7 +52,8 @@ export function TransactionForm({
 }: TransactionFormProps) {
   const { t } = useTranslation("transactions");
   const { platform } = usePlatform();
-  const search = useSearch({ from: "/add-transaction" });
+  const { search, getInitialType } =
+    useTransactionFormInitialization(isEditMode);
 
   // Labels are handled where rendered
 
@@ -88,18 +89,7 @@ export function TransactionForm({
       amount: undefined,
       currency: defaultCurrency,
       description: "",
-      type:
-        typeof search.type === "string" &&
-        [
-          "income",
-          "expense",
-          "donation",
-          "exempt-income",
-          "recognized-expense",
-          "non_tithe_donation",
-        ].includes(search.type as TransactionType)
-          ? (search.type as TransactionType)
-          : "income", // Use URL param if valid, else default to "income"
+      type: getInitialType(), // Use URL param if valid, else default to "income"
       category: "",
       is_chomesh: false,
       recipient: "",
@@ -116,6 +106,8 @@ export function TransactionForm({
   // Update form when URL search params change
   useEffect(() => {
     if (
+      !isEditMode && // Only run when creating a new transaction
+      "type" in search &&
       search.type &&
       search.type !== form.getValues("type") &&
       [
@@ -129,7 +121,7 @@ export function TransactionForm({
     ) {
       form.setValue("type", search.type as TransactionType);
     }
-  }, [search.type, form]);
+  }, [search, form, isEditMode]);
 
   // Use useEffect to reset the form when initialData changes (for editing)
   React.useEffect(() => {
