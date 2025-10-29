@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import { Currency as TransactionCurrency } from "../types/transaction";
 import { ServerDonationData } from "./data-layer/stats.service";
 import { MonthlyDataPoint } from "./data-layer/chart.service";
+import { logger } from "./logger";
 
 export type { TransactionCurrency as Currency };
 
@@ -125,7 +126,7 @@ export const useDonationStore = create<DonationState>()(
         data: MonthlyDataPoint[],
         prepend: boolean
       ) => {
-        console.log(
+        logger.log(
           "[Store] setServerMonthlyChartData called. Prepend:",
           prepend,
           "New data length:",
@@ -134,7 +135,7 @@ export const useDonationStore = create<DonationState>()(
           JSON.parse(JSON.stringify(data))
         );
         set((state) => {
-          console.log(
+          logger.log(
             "[Store] Current serverMonthlyChartData length:",
             state.serverMonthlyChartData.length,
             "Current data:",
@@ -149,7 +150,7 @@ export const useDonationStore = create<DonationState>()(
             (d) => !existingLabels.has(d.month_label) || !prepend
           ); // if not prepending, we typically want to overwrite with new data anyway
 
-          console.log(
+          logger.log(
             "[Store] Unique new data to be added/set:",
             JSON.parse(JSON.stringify(uniqueNewData))
           );
@@ -161,11 +162,11 @@ export const useDonationStore = create<DonationState>()(
               (d) => !existingLabels.has(d.month_label)
             );
             if (trulyNewDataForPrepend.length !== uniqueNewData.length) {
-              console.warn(
+              logger.warn(
                 "[Store] Some data in prepend was already present and filtered out again."
               );
             }
-            console.log(
+            logger.log(
               "[Store] Prepending data. Current length:",
               state.serverMonthlyChartData.length,
               "Adding:",
@@ -179,7 +180,7 @@ export const useDonationStore = create<DonationState>()(
             };
           } else {
             // for initial load or refresh
-            console.log(
+            logger.log(
               "[Store] Setting new data (overwrite). Length:",
               data.length
             );
@@ -208,25 +209,25 @@ export const useDonationStore = create<DonationState>()(
         lastDbFetchTimestamp: state.lastDbFetchTimestamp,
       }),
       onRehydrateStorage: () => {
-        console.log("Zustand hydration process started/attempted.");
+        logger.log("Zustand hydration process started/attempted.");
         return (state, error) => {
           if (error) {
-            console.error(
+            logger.error(
               "Zustand: An error occurred during rehydration:",
               error
             );
           } else if (state) {
-            console.log("Zustand: Rehydration finished.");
+            logger.log("Zustand: Rehydration finished.");
 
             // Migration: Add reminder settings if they don't exist
             if (state.settings.reminderEnabled === undefined) {
-              console.log(
+              logger.log(
                 "Zustand: Adding missing reminderEnabled to existing settings"
               );
               state.settings.reminderEnabled = false;
             }
             if (state.settings.reminderDayOfMonth === undefined) {
-              console.log(
+              logger.log(
                 "Zustand: Adding missing reminderDayOfMonth to existing settings"
               );
               state.settings.reminderDayOfMonth = 10;
@@ -234,7 +235,7 @@ export const useDonationStore = create<DonationState>()(
 
             state.setHasHydrated(true);
           } else {
-            console.log(
+            logger.log(
               "Zustand: Rehydration completed, but no persisted state was found or state is undefined."
             );
             useDonationStore.setState({ _hasHydrated: true });

@@ -18,6 +18,7 @@ import { setPlatform as setGlobalPlatform } from "./lib/platformManager";
 import { init_db } from "@/lib/data-layer/db_commands";
 import { useDonationStore } from "./lib/store";
 import { checkAndSendDesktopReminder } from "./lib/data-layer/reminders";
+import { logger } from "@/lib/logger";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -29,8 +30,22 @@ function App() {
   const { i18n, t } = useTranslation();
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
 
+  // Get Zustand store state for language synchronization
+  const settings = useDonationStore((state) => state.settings);
+  const _hasHydrated = useDonationStore((state) => state._hasHydrated);
+
   // Hide sidebar on landing page
   const isLandingPage = currentPath === "/landing";
+
+  // Synchronize i18n with Zustand store language after hydration
+  useEffect(() => {
+    if (_hasHydrated && i18n.language !== settings.language) {
+      logger.log(
+        `[i18n-sync] Synchronizing language: i18n=${i18n.language}, Zustand=${settings.language}`
+      );
+      (i18n as any).changeLanguage(settings.language);
+    }
+  }, [_hasHydrated, settings.language, i18n]);
 
   useEffect(() => {
     document.documentElement.dir = i18n.dir();
@@ -45,23 +60,20 @@ function App() {
           .then(({ invoke }) => {
             invoke("init_db")
               .then(() => {
-                console.log("Database initialized successfully.");
+                logger.log("Database initialized successfully.");
                 // Now, execute the recurring transactions handler
                 return invoke("execute_due_recurring_transactions_handler");
               })
               .then((message) => {
-                console.log(
-                  "Recurring transactions handler executed:",
-                  message
-                );
+                logger.log("Recurring transactions handler executed:", message);
                 // Check for desktop reminders after recurring transactions
                 return checkAndSendDesktopReminder(t);
               })
               .then(() => {
-                console.log("Desktop reminder check complete.");
+                logger.log("Desktop reminder check complete.");
               })
               .catch((error) =>
-                console.error(
+                logger.error(
                   "Error during desktop initialization sequence:",
                   error
                 )
@@ -71,7 +83,7 @@ function App() {
               });
           })
           .catch((e) => {
-            console.error("Failed to load Tauri core API", e);
+            logger.error("Failed to load Tauri core API", e);
             setIsAppReady(true);
           });
       } else {

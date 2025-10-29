@@ -13,6 +13,7 @@ import {
   FaqTab,
   ContentTab, // Using the generic tab
 } from "./tabs";
+import { FormattedText } from "./FormattedText";
 
 const LoadingFallback = () => (
   <div className="flex gap-8">
@@ -215,8 +216,12 @@ function HalachaPageContent() {
     <div className="grid gap-6">
       {/* Page Header */}
       <div className="space-y-3">
-        <h1 className="text-2xl font-bold text-foreground">{t("pageTitle")}</h1>
-        <p className="text-muted-foreground text-lg">{t("pageDescription")}</p>
+        <FormattedText as="h1" className="text-2xl font-bold text-foreground">
+          {t("pageTitle")}
+        </FormattedText>
+        <FormattedText as="p" className="text-muted-foreground text-lg">
+          {t("pageDescription")}
+        </FormattedText>
       </div>
 
       {/* Main Content Layout */}
@@ -239,9 +244,10 @@ function HalachaPageContent() {
               )}
 
               {tabs.map((tab, index) => (
-                <button
+                <FormattedText
                   key={tab.value}
-                  ref={(el) => {
+                  as="button"
+                  ref={(el: HTMLButtonElement | null) => {
                     triggerRefs.current[index] = el;
                   }}
                   onClick={() => handleTabClick(tab.value)}
@@ -256,7 +262,7 @@ function HalachaPageContent() {
                   `}
                 >
                   {tab.label}
-                </button>
+                </FormattedText>
               ))}
             </div>
           </div>

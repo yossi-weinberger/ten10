@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Book } from "lucide-react";
+import { FormattedText } from "./FormattedText";
 
 interface HalachaTabLayoutProps {
   title: string;
@@ -21,11 +22,16 @@ export const HalachaTabLayout = ({
       <div className="mb-8 text-center">
         <div className="flex items-center justify-center gap-2 mb-3">
           <Book className="h-6 w-6 text-primary rtl:order-1" />
-          <h1 className="text-2xl font-bold rtl:order-2 text-foreground">
+          <FormattedText
+            as="h1"
+            className="text-2xl font-bold rtl:order-2 text-foreground"
+          >
             {title}
-          </h1>
+          </FormattedText>
         </div>
-        <p className="text-muted-foreground text-lg">{description}</p>
+        <FormattedText as="p" className="text-muted-foreground text-lg">
+          {description}
+        </FormattedText>
       </div>
 
       {/* Content */}

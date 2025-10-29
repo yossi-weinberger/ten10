@@ -6,7 +6,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { HalachaTabLayout } from "../HalachaTabLayout";
-import { formatText } from "../utils";
+import { FormattedText } from "../FormattedText";
 
 export const FaqTab = () => {
   const { t } = useTranslation("halacha-faq");
@@ -22,13 +22,15 @@ export const FaqTab = () => {
         ).map((item, index) => (
           <AccordionItem value={`item-${index}`} key={index}>
             <AccordionTrigger className="no-underline hover:no-underline text-base text-foreground text-right">
-              {item.question}
+              <FormattedText as="span">{item.question}</FormattedText>
             </AccordionTrigger>
             <AccordionContent className="ps-2">
-              <div
+              <FormattedText
+                as="div"
                 className="text-foreground leading-relaxed"
-                dangerouslySetInnerHTML={{ __html: formatText(item.answer) }}
-              />
+              >
+                {item.answer}
+              </FormattedText>
             </AccordionContent>
           </AccordionItem>
         ))}
