@@ -27,9 +27,14 @@ export const ContentTab = ({ namespace }: ContentTabProps) => {
   );
 
   // The 'sources' section is optional, so we handle it carefully.
+  // Note: When a translation key doesn't exist, i18next returns the key as a string.
+  // So checking typeof === "object" effectively validates the key exists and returned an object.
+  // This approach is consistent with the project's pattern of using getTypedTranslation with defaults.
   const sourcesData = t("sources", { returnObjects: true });
   const sources =
-    typeof sourcesData === "object" && sourcesData !== null
+    typeof sourcesData === "object" &&
+    sourcesData !== null &&
+    !Array.isArray(sourcesData)
       ? (sourcesData as { title: string; body: string })
       : null;
 

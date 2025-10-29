@@ -1,9 +1,4 @@
-import {
-  ReactNode,
-  ElementType,
-  forwardRef,
-  ComponentPropsWithRef,
-} from "react";
+import { ElementType, forwardRef, ComponentPropsWithRef } from "react";
 
 /**
  * Converts text with asterisks to formatted HTML
@@ -18,24 +13,26 @@ const formatText = (text: string) => {
 
 interface FormattedTextProps
   extends Omit<ComponentPropsWithRef<any>, "as" | "children"> {
-  children: string | ReactNode;
+  children: string;
   as?: ElementType;
   className?: string;
 }
 
 /**
- * Component that automatically formats text with asterisks to italic
+ * Component that automatically formats text with asterisks to bold/italic
  * Usage: <FormattedText as="h1" className="...">*text*</FormattedText>
+ *
+ * Security Note: Uses dangerouslySetInnerHTML with controlled translation content only.
+ * All content comes from translation JSON files under our control - no user input or external sources.
+ * The formatText function applies only simple, safe transformations (asterisks to em/strong tags).
  */
 export const FormattedText = forwardRef<any, FormattedTextProps>(
   ({ children, as: Component = "span", className = "", ...props }, ref) => {
-    const text = typeof children === "string" ? children : String(children);
-
     return (
       <Component
         ref={ref}
         className={className}
-        dangerouslySetInnerHTML={{ __html: formatText(text) }}
+        dangerouslySetInnerHTML={{ __html: formatText(children) }}
         {...props}
       />
     );
