@@ -1,0 +1,31 @@
+// ESLint Configuration Example
+// Add these rules to your existing .eslintrc.cjs to prevent direct console usage
+
+module.exports = {
+  // ... existing config ...
+  
+  rules: {
+    // ... existing rules ...
+    
+    // Prevent direct console usage (except console.error for backwards compatibility)
+    // This will warn developers to use the logger utility instead
+    'no-console': ['warn', { 
+      allow: [] // Don't allow any console.* - use logger instead
+    }],
+    
+    // Alternative: Allow console.error but warn on others
+    // 'no-console': ['warn', { allow: ['error'] }],
+  },
+  
+  // Optional: Configure for specific environments
+  overrides: [
+    {
+      // Allow console in test files if needed
+      files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts'],
+      rules: {
+        'no-console': 'off',
+      },
+    },
+  ],
+};
+
