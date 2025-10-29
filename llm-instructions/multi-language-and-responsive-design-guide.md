@@ -48,12 +48,14 @@ This document provides comprehensive instructions for adapting the Ten10 applica
 ### Critical: Language Synchronization Between i18n and Zustand
 
 **Problem:** The application uses two independent systems for managing language:
+
 1. **i18n** - Manages translations and detects browser language
 2. **Zustand Store** - Persists user settings including language preference
 
 Without proper synchronization, these can become out of sync, causing the UI to display in one language while settings show another.
 
 **Solution Implemented:**
+
 1. i18n reads from Zustand's localStorage on initialization (`getInitialLanguage()`)
 2. App.tsx synchronizes i18n with Zustand after hydration
 3. Language switchers always update both systems simultaneously
@@ -160,6 +162,7 @@ export default i18n as import("i18next").i18n;
 ```
 
 **Important Notes:**
+
 - The `getInitialLanguage()` function reads the language directly from Zustand's localStorage to ensure both systems start synchronized
 - The `lng` parameter in `init()` explicitly sets the initial language, preventing i18n from auto-detecting a different language
 - The `detection` configuration ensures proper language persistence and fallback behavior
@@ -256,7 +259,7 @@ This ensures both systems are always in sync when the user changes language.
 **f. Dynamic Directionality and Language Synchronization:**
 In `App.tsx` or a similar top-level component:
 
-```typescript
+````typescript
 // src/App.tsx
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
@@ -264,7 +267,7 @@ import { useDonationStore } from "./lib/store";
 
 function App() {
   const { i18n } = useTranslation();
-  
+
   // Get Zustand store state for language synchronization
   const settings = useDonationStore((state) => state.settings);
   const _hasHydrated = useDonationStore((state) => state._hasHydrated);
