@@ -2,6 +2,7 @@ import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import HttpApi from "i18next-http-backend";
+import { logger } from "./logger";
 
 // Read the language from Zustand store if available
 const getInitialLanguage = (): string => {
@@ -14,7 +15,7 @@ const getInitialLanguage = (): string => {
       }
     }
   } catch (error) {
-    console.error("Failed to read language from Zustand store:", error);
+    logger.error("Failed to read language from Zustand store:", error);
   }
   return "he"; // fallback to Hebrew
 };
