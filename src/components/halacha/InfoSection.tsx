@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { formatText } from "./utils";
+import { FormattedText } from "./FormattedText";
 
 interface InfoSectionProps {
   title: string;
@@ -27,7 +27,8 @@ export const InfoSection = ({
           : ""
       }`}
     >
-      <h3
+      <FormattedText
+        as="h3"
         className={`text-lg font-semibold mb-3 ${
           isHighlighted
             ? "text-blue-900 dark:text-blue-100"
@@ -37,8 +38,9 @@ export const InfoSection = ({
         }`}
       >
         {title}
-      </h3>
-      <div
+      </FormattedText>
+      <FormattedText
+        as="div"
         className={`leading-relaxed ${
           isHighlighted
             ? "text-blue-800 dark:text-blue-200"
@@ -46,8 +48,9 @@ export const InfoSection = ({
             ? "text-amber-800 dark:text-amber-200"
             : "text-foreground"
         }`}
-        dangerouslySetInnerHTML={{ __html: formatText(body) }}
-      />
+      >
+        {body}
+      </FormattedText>
     </section>
   );
 };

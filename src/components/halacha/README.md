@@ -7,7 +7,8 @@ This directory contains all components related to the Halacha page, implementing
 - `HalachaPageWithVerticalTabs.tsx` - Main page component with vertical navigation
 - `HalachaTabLayout.tsx` - Shared layout component for all tabs
 - `InfoSection.tsx` - Reusable section component with highlighting support
-- `utils.ts` - Shared utility functions (formatText, getTypedTranslation)
+- `FormattedText.tsx` - Text formatting component (converts _text_ to italic)
+- `utils.ts` - Shared utility functions (getTypedTranslation)
 - `tabs/` - Individual tab components
 
 ## Features

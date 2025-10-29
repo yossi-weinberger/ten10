@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { HalachaTabLayout } from "../HalachaTabLayout";
 import { InfoSection } from "../InfoSection";
-import { formatText, getTypedTranslation } from "../utils";
+import { FormattedText } from "../FormattedText";
+import { getTypedTranslation } from "../utils";
 
 interface ContentTabProps {
   namespace: string;
@@ -17,7 +18,7 @@ const defaultContentItem = {
 };
 
 export const ContentTab = ({ namespace }: ContentTabProps) => {
-  const { t, i18n } = useTranslation(namespace);
+  const { t } = useTranslation(namespace);
 
   const introduction = getTypedTranslation(
     t,
@@ -26,10 +27,11 @@ export const ContentTab = ({ namespace }: ContentTabProps) => {
   );
 
   // The 'sources' section is optional, so we handle it carefully.
-  const sourcesKeyExists = i18n.exists("sources", { ns: namespace });
-  const sources = sourcesKeyExists
-    ? (t("sources", { returnObjects: true }) as { title: string; body: string })
-    : null;
+  const sourcesData = t("sources", { returnObjects: true });
+  const sources =
+    typeof sourcesData === "object" && sourcesData !== null
+      ? (sourcesData as { title: string; body: string })
+      : null;
 
   const content = getTypedTranslation(t, "content", [defaultContentItem]);
 
@@ -46,28 +48,30 @@ export const ContentTab = ({ namespace }: ContentTabProps) => {
       {/* Introduction Section */}
       {introduction && (introduction.title ?? "").trim() !== "" && (
         <div className="mb-8 pb-6 border-b border-border">
-          <h2 className="text-xl font-semibold mb-3 text-foreground">
+          <FormattedText
+            as="h2"
+            className="text-xl font-semibold mb-3 text-foreground"
+          >
             {introduction.title}
-          </h2>
-          <div
-            className="text-foreground leading-relaxed"
-            dangerouslySetInnerHTML={{
-              __html: formatText(introduction.body),
-            }}
-          />
+          </FormattedText>
+          <FormattedText as="div" className="text-foreground leading-relaxed">
+            {introduction.body}
+          </FormattedText>
         </div>
       )}
 
       {/* Sources Section (optional) */}
       {sources && (sources.title ?? "").trim() !== "" && (
         <div className="mb-8 pb-6 border-b border-border">
-          <h2 className="text-xl font-semibold mb-3 text-foreground">
+          <FormattedText
+            as="h2"
+            className="text-xl font-semibold mb-3 text-foreground"
+          >
             {sources.title}
-          </h2>
-          <div
-            className="text-foreground leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: formatText(sources.body) }}
-          />
+          </FormattedText>
+          <FormattedText as="div" className="text-foreground leading-relaxed">
+            {sources.body}
+          </FormattedText>
         </div>
       )}
 

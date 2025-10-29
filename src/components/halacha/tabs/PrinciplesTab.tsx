@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { HalachaTabLayout } from "../HalachaTabLayout";
-import { formatText } from "../utils";
+import { FormattedText } from "../FormattedText";
 
 export const PrinciplesTab = () => {
   const { t, i18n } = useTranslation("halacha-principles");
@@ -21,13 +21,15 @@ export const PrinciplesTab = () => {
       {/* Introduction Section */}
       {introduction && (
         <div className="mb-8 pb-6 border-b border-border">
-          <h2 className="text-xl font-semibold mb-3">{introduction.title}</h2>
-          <div
+          <FormattedText as="h2" className="text-xl font-semibold mb-3">
+            {introduction.title}
+          </FormattedText>
+          <FormattedText
+            as="div"
             className="text-muted-foreground leading-relaxed"
-            dangerouslySetInnerHTML={{
-              __html: formatText(introduction.body),
-            }}
-          />
+          >
+            {introduction.body}
+          </FormattedText>
         </div>
       )}
 
@@ -58,9 +60,12 @@ export const PrinciplesTab = () => {
                 <span className="bg-primary text-primary-foreground rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold rtl:order-1">
                   {principle.number}
                 </span>
-                <span className="rtl:order-2">{principle.title}</span>
+                <FormattedText as="span" className="rtl:order-2">
+                  {principle.title}
+                </FormattedText>
               </h3>
-              <div
+              <FormattedText
+                as="div"
                 className={`leading-relaxed ${
                   principle.isHighlighted
                     ? "text-blue-800 dark:text-blue-200"
@@ -68,10 +73,9 @@ export const PrinciplesTab = () => {
                     ? "text-amber-800 dark:text-amber-200"
                     : "text-foreground"
                 }`}
-                dangerouslySetInnerHTML={{
-                  __html: formatText(principle.body),
-                }}
-              />
+              >
+                {principle.body}
+              </FormattedText>
             </section>
           ))}
       </div>
