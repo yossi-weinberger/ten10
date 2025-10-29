@@ -29,8 +29,22 @@ function App() {
   const { i18n, t } = useTranslation();
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
 
+  // Get Zustand store state for language synchronization
+  const settings = useDonationStore((state) => state.settings);
+  const _hasHydrated = useDonationStore((state) => state._hasHydrated);
+
   // Hide sidebar on landing page
   const isLandingPage = currentPath === "/landing";
+
+  // Synchronize i18n with Zustand store language after hydration
+  useEffect(() => {
+    if (_hasHydrated && i18n.language !== settings.language) {
+      console.log(
+        `[i18n-sync] Synchronizing language: i18n=${i18n.language}, Zustand=${settings.language}`
+      );
+      (i18n as any).changeLanguage(settings.language);
+    }
+  }, [_hasHydrated, settings.language, i18n]);
 
   useEffect(() => {
     document.documentElement.dir = i18n.dir();

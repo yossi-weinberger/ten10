@@ -3,6 +3,22 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import HttpApi from "i18next-http-backend";
 
+// Read the language from Zustand store if available
+const getInitialLanguage = (): string => {
+  try {
+    const storedData = localStorage.getItem("Ten10-donation-store");
+    if (storedData) {
+      const parsed = JSON.parse(storedData);
+      if (parsed?.state?.settings?.language) {
+        return parsed.state.settings.language;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to read language from Zustand store:", error);
+  }
+  return "he"; // fallback to Hebrew
+};
+
 // Using the default i18n instance from i18next, with a type-safe cast
 const i18n = i18next as unknown as import("i18next").i18n;
 
@@ -13,6 +29,7 @@ const i18n = i18next as unknown as import("i18next").i18n;
   .init({
     supportedLngs: ["en", "he"],
     fallbackLng: "he",
+    lng: getInitialLanguage(), // Set initial language from Zustand store
     debug: process.env.NODE_ENV === "development",
 
     // Define namespaces for your translation files
@@ -36,6 +53,16 @@ const i18n = i18next as unknown as import("i18next").i18n;
       "halacha-chomesh",
     ],
     defaultNS: "common",
+
+    // Language detection configuration
+    detection: {
+      // Order: check Zustand store via localStorage, then browser language, then HTML tag
+      order: ["localStorage", "navigator", "htmlTag"],
+      // Cache the language selection in localStorage
+      caches: ["localStorage"],
+      // Use the same key as i18next default to avoid conflicts
+      lookupLocalStorage: "i18nextLng",
+    },
 
     backend: {
       // Path where translation files are stored

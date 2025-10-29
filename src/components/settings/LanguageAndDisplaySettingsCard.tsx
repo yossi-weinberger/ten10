@@ -40,9 +40,12 @@ export function LanguageAndDisplaySettingsCard({
   const { t, i18n } = useTranslation("settings");
 
   const handleLanguageChange = (lang: "he" | "en") => {
-    (i18n as i18nType).changeLanguage(lang);
+    (i18n as any).changeLanguage(lang);
     updateSettings({ language: lang });
   };
+
+  // Use the actual i18n language instead of Zustand to ensure sync
+  const currentLanguage = (i18n.language || "he") as "he" | "en";
 
   // Sliding indicator logic (inspired by Ibelick's sliding tab bar)
   const toggleRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -86,7 +89,7 @@ export function LanguageAndDisplaySettingsCard({
         <div className="grid gap-2">
           <Label>{t("languageAndDisplay.languageLabel")}</Label>
           <Select
-            value={languageSettings.language}
+            value={currentLanguage}
             onValueChange={(value) =>
               handleLanguageChange(value as "he" | "en")
             }

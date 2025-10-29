@@ -45,6 +45,22 @@ This document provides comprehensive instructions for adapting the Ten10 applica
 
 ## II. Setup and Initialization
 
+### Critical: Language Synchronization Between i18n and Zustand
+
+**Problem:** The application uses two independent systems for managing language:
+1. **i18n** - Manages translations and detects browser language
+2. **Zustand Store** - Persists user settings including language preference
+
+Without proper synchronization, these can become out of sync, causing the UI to display in one language while settings show another.
+
+**Solution Implemented:**
+1. i18n reads from Zustand's localStorage on initialization (`getInitialLanguage()`)
+2. App.tsx synchronizes i18n with Zustand after hydration
+3. Language switchers always update both systems simultaneously
+4. Settings display the actual active language from i18n
+
+This ensures both systems are always synchronized and the displayed language matches user settings.
+
 ### 1. i18n Setup (`i18next`)
 
 **a. Installation:**
@@ -57,17 +73,39 @@ npm install i18next react-i18next i18next-browser-languagedetector i18next-http-
 
 ```typescript
 // src/lib/i18n.ts
-import i18n from "i18next";
+import i18next from "i18next";
 import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
-import Backend from "i18next-http-backend";
+import HttpApi from "i18next-http-backend";
 
-i18n
-  .use(Backend) // For loading translations from /public/locales
+// Read the language from Zustand store if available
+// This ensures i18n and Zustand are synchronized from the start
+const getInitialLanguage = (): string => {
+  try {
+    const storedData = localStorage.getItem("Ten10-donation-store");
+    if (storedData) {
+      const parsed = JSON.parse(storedData);
+      if (parsed?.state?.settings?.language) {
+        return parsed.state.settings.language;
+      }
+    }
+  } catch (error) {
+    console.error("Failed to read language from Zustand store:", error);
+  }
+  return "he"; // fallback to Hebrew
+};
+
+// Using the default i18n instance from i18next, with a type-safe cast
+const i18n = i18next as unknown as import("i18next").i18n;
+
+(i18n as any)
+  .use(HttpApi) // Load translations via http
   .use(LanguageDetector) // Detect user language
-  .use(initReactI18next) // Passes i18n down to react-i18next
+  .use(initReactI18next) // pass the i18n instance to react-i18next.
   .init({
-    fallbackLng: "he", // Default language if detection fails
+    supportedLngs: ["en", "he"],
+    fallbackLng: "he",
+    lng: getInitialLanguage(), // Set initial language from Zustand store
     debug: process.env.NODE_ENV === "development",
 
     // Define namespaces for organizing translations
@@ -76,37 +114,55 @@ i18n
       "navigation",
       "dashboard",
       "transactions",
-      "settings",
       "data-tables",
+      "settings",
+      "auth",
+      "about",
+      "landing",
       "halacha-common",
       "halacha-introduction",
       "halacha-faq",
       "halacha-tithes",
       "halacha-income",
       "halacha-expenses",
+      "halacha-principles",
+      "halacha-chomesh",
     ],
     defaultNS: "common",
 
-    interpolation: {
-      escapeValue: false, // React already safes from xss
-    },
+    // Language detection configuration
     detection: {
+      // Order: check Zustand store via localStorage, then browser language, then HTML tag
       order: ["localStorage", "navigator", "htmlTag"],
+      // Cache the language selection in localStorage
       caches: ["localStorage"],
+      // Use the same key as i18next default to avoid conflicts
+      lookupLocalStorage: "i18nextLng",
     },
+
     backend: {
-      loadPath: "/locales/{{lng}}/{{ns}}.json", // Support for namespaces
+      // Path where translation files are stored
+      loadPath: "/locales/{{lng}}/{{ns}}.json",
+    },
+
+    interpolation: {
+      escapeValue: false, // not needed for react as it escapes by default
     },
   });
 
 // Add direction support based on language
-i18n.dir = (lng?: string) => {
+(i18n as any).dir = (lng?: string) => {
   const language = lng || i18n.language;
   return language === "he" ? "rtl" : "ltr";
 };
 
-export default i18n;
+export default i18n as import("i18next").i18n;
 ```
+
+**Important Notes:**
+- The `getInitialLanguage()` function reads the language directly from Zustand's localStorage to ensure both systems start synchronized
+- The `lng` parameter in `init()` explicitly sets the initial language, preventing i18n from auto-detecting a different language
+- The `detection` configuration ensures proper language persistence and fallback behavior
 
 **c. Import in `main.tsx`:**
 
@@ -177,21 +233,57 @@ public/locales/
   ```
 
 **e. Language Switcher Component (Example):**
-Create a component to allow users to switch languages. This component would call `i18n.changeLanguage('en')` or `i18n.changeLanguage('he')`.
+Create a component to allow users to switch languages. **Important:** Always update both i18n and Zustand when changing language to keep them synchronized.
 
-**f. Dynamic Directionality:**
+```typescript
+// In any language switcher component (e.g., LanguageAndDisplaySettingsCard)
+import { useTranslation } from "react-i18next";
+import { useDonationStore } from "@/lib/store";
+
+const handleLanguageChange = (lang: "he" | "en") => {
+  // Update i18n
+  (i18n as any).changeLanguage(lang);
+  // Update Zustand store
+  updateSettings({ language: lang });
+};
+
+// Always display the actual active language from i18n, not from Zustand
+const currentLanguage = (i18n.language || "he") as "he" | "en";
+```
+
+This ensures both systems are always in sync when the user changes language.
+
+**f. Dynamic Directionality and Language Synchronization:**
 In `App.tsx` or a similar top-level component:
 
-````typescript
+```typescript
 // src/App.tsx
 import { useTranslation } from "react-i18next";
 import { useEffect } from "react";
+import { useDonationStore } from "./lib/store";
 
 function App() {
   const { i18n } = useTranslation();
+  
+  // Get Zustand store state for language synchronization
+  const settings = useDonationStore((state) => state.settings);
+  const _hasHydrated = useDonationStore((state) => state._hasHydrated);
 
+  // Synchronize i18n with Zustand store language after hydration
+  // This handles any race conditions or edge cases where they might become out of sync
+  useEffect(() => {
+    if (_hasHydrated && i18n.language !== settings.language) {
+      console.log(
+        `[i18n-sync] Synchronizing language: i18n=${i18n.language}, Zustand=${settings.language}`
+      );
+      (i18n as any).changeLanguage(settings.language);
+    }
+  }, [_hasHydrated, settings.language, i18n]);
+
+  // Update document directionality and language attribute
   useEffect(() => {
     document.documentElement.dir = i18n.dir();
+    document.documentElement.lang = i18n.language;
   }, [i18n, i18n.language]);
 
   // ... rest of App component
@@ -556,6 +648,9 @@ The following sections detail necessary changes for specific components and page
   - [ ] Can switch between Hebrew and English.
   - [ ] All UI text updates correctly.
   - [ ] `dir` attribute on `<html>` changes (Inspect with dev tools).
+  - [ ] **Critical:** Language in Settings page matches actual displayed language.
+  - [ ] **First visit test:** Clear localStorage, reload - should open in Hebrew by default and Settings shows Hebrew.
+  - [ ] **Persistence test:** Change to English, reload - should stay English and Settings shows English.
 - **RTL/LTR Layout:**
   - [ ] Sidebar active link indicator position.
   - [ ] Form field and label alignment.
