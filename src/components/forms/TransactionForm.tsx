@@ -142,7 +142,12 @@ export function TransactionForm({
     }
   }, [initialData, isEditMode, form]);
 
-  logger.log("Form errors:", form.formState.errors);
+  React.useEffect(() => {
+    const errors = form.formState.errors;
+    if (errors && Object.keys(errors).length > 0) {
+      logger.log("Form errors:", errors);
+    }
+  }, [form.formState.errors]);
 
   const selectedType = form.watch("type");
   const isExemptChecked = form.watch("isExempt");
