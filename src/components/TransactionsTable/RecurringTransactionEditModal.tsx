@@ -13,6 +13,7 @@ import { RecurringTransactionEditForm } from "@/components/forms/RecurringTransa
 import { RecurringEditFormValues, recurringEditSchema } from "@/lib/schemas";
 import { z } from "zod";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 interface RecurringTransactionEditModalProps {
   isOpen: boolean;
@@ -40,7 +41,7 @@ export function RecurringTransactionEditModal({
       onClose();
       toast.success(t("messages.recurringUpdateSuccess"));
     } catch (error) {
-      console.error("Failed to update recurring transaction:", error);
+      logger.error("Failed to update recurring transaction:", error);
       toast.error(t("messages.recurringUpdateError"));
     }
   };

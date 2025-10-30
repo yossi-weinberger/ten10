@@ -2,6 +2,7 @@ import { useDonationStore } from "@/lib/store";
 import { fetchServerTitheBalance } from "../analytics.service";
 import { showDesktopNotification } from "./notification.service";
 import { TFunction } from "i18next";
+import { logger } from "@/lib/logger";
 
 const LAST_REMINDER_DATE_KEY = "lastReminderDate";
 
@@ -41,15 +42,15 @@ function generateReminderContent(t: TFunction, titheBalance: number) {
  * @param t - The translation function from i18next.
  */
 export async function checkAndSendDesktopReminder(t: TFunction): Promise<void> {
-  console.log("Starting desktop reminder check...");
+  logger.log("Starting desktop reminder check...");
   try {
     const { settings } = useDonationStore.getState();
     const { reminderEnabled: enabled, reminderDayOfMonth: dayOfMonth } =
       settings;
 
-    console.log("Reminder settings:", { enabled, dayOfMonth });
+    logger.log("Reminder settings:", { enabled, dayOfMonth });
     if (!enabled) {
-      console.log("Reminders are disabled in settings. Exiting.");
+      logger.log("Reminders are disabled in settings. Exiting.");
       return;
     }
 
@@ -58,7 +59,7 @@ export async function checkAndSendDesktopReminder(t: TFunction): Promise<void> {
 
     // NOTE: This check is temporarily disabled for testing.
     if (currentDayOfMonth !== dayOfMonth) {
-      console.log(
+      logger.log(
         `Today is day ${currentDayOfMonth}, but reminder is set for day ${dayOfMonth}. Exiting.`
       );
       return;
@@ -67,34 +68,34 @@ export async function checkAndSendDesktopReminder(t: TFunction): Promise<void> {
     const lastReminderDate = localStorage.getItem(LAST_REMINDER_DATE_KEY);
     const todayStr = today.toISOString().split("T")[0];
 
-    console.log(
+    logger.log(
       "Last reminder sent on:",
       lastReminderDate,
       "| Today is:",
       todayStr
     );
     if (lastReminderDate === todayStr) {
-      console.log("Reminder already sent today. Exiting.");
+      logger.log("Reminder already sent today. Exiting.");
       return;
     }
 
-    console.log("Fetching tithe balance...");
+    logger.log("Fetching tithe balance...");
     const titheBalance = await fetchServerTitheBalance(null); // null for desktop user_id
     if (titheBalance === null) {
-      console.error("Could not fetch tithe balance for reminder. Exiting.");
+      logger.error("Could not fetch tithe balance for reminder. Exiting.");
       return;
     }
-    console.log("Tithe balance fetched:", titheBalance);
+    logger.log("Tithe balance fetched:", titheBalance);
 
     const { title, body } = generateReminderContent(t, titheBalance);
-    console.log("Generated notification content:", { title, body });
+    logger.log("Generated notification content:", { title, body });
 
-    console.log("Attempting to show desktop notification...");
+    logger.log("Attempting to show desktop notification...");
     await showDesktopNotification({ title, body });
-    console.log("Desktop notification process finished.");
+    logger.log("Desktop notification process finished.");
 
     localStorage.setItem(LAST_REMINDER_DATE_KEY, todayStr);
   } catch (error) {
-    console.error("Error in checkAndSendDesktopReminder:", error);
+    logger.error("Error in checkAndSendDesktopReminder:", error);
   }
 }

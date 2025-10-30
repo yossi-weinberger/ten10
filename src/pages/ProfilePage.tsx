@@ -9,6 +9,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { toast } from "react-hot-toast";
 import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
+import { logger } from "@/lib/logger";
 
 export function ProfilePage() {
   const { t, i18n } = useTranslation("auth");
@@ -42,7 +43,7 @@ export function ProfilePage() {
       setConfirmPassword("");
     } catch (error: any) {
       if (process.env.NODE_ENV === "development") {
-        console.error("Error updating password:", error);
+        logger.error("Error updating password:", error);
       }
       toast.error(t("profile.security.updateError"));
     } finally {

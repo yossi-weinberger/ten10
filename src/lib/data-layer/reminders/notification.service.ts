@@ -1,3 +1,5 @@
+import { logger } from "@/lib/logger";
+
 // Define the notification options type locally to avoid import issues
 interface NotificationOptions {
   title: string;
@@ -18,7 +20,7 @@ export async function showDesktopNotification(
   try {
     // @ts-expect-error -- Tauri-specific global
     if (!window.__TAURI_INTERNALS__) {
-      console.warn("Notification service called in non-Tauri environment");
+      logger.warn("Notification service called in non-Tauri environment");
       return;
     }
 
@@ -35,9 +37,9 @@ export async function showDesktopNotification(
     if (permissionGranted) {
       sendNotification(options);
     } else {
-      console.log("User denied notification permission.");
+      logger.log("User denied notification permission.");
     }
   } catch (error) {
-    console.error("Error showing desktop notification:", error);
+    logger.error("Error showing desktop notification:", error);
   }
 }

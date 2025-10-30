@@ -2,6 +2,7 @@
 import { supabase } from "@/lib/supabaseClient";
 // import { getCurrentPlatform } from "./platformService"; // No longer needed
 import { getPlatform } from "../platformManager";
+import { logger } from "@/lib/logger";
 
 export interface MonthlyDataPoint {
   month_label: string; // "YYYY-MM"
@@ -22,7 +23,7 @@ export async function fetchServerMonthlyChartData(
 ): Promise<ServerMonthlyDataResponse | null> {
   // Validate endDate
   if (!(endDate instanceof Date) || isNaN(endDate.getTime())) {
-    console.error(
+    logger.error(
       "ChartService: Invalid endDate received. Expected a valid Date object. Received:",
       endDate
     );
@@ -32,14 +33,14 @@ export async function fetchServerMonthlyChartData(
   const endDateStr = endDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const platform = getPlatform();
 
-  console.log(
+  logger.log(
     `ChartService: Fetching monthly chart data for ${numMonths} months ending ${endDateStr}, platform: ${platform}`
   );
 
   try {
     if (platform === "web") {
       if (!userId) {
-        console.warn(
+        logger.warn(
           "ChartService: User ID is required for web platform but not provided."
         );
         return null;
@@ -51,13 +52,13 @@ export async function fetchServerMonthlyChartData(
       });
 
       if (error) {
-        console.error(
+        logger.error(
           `ChartService: Error calling ${SUPABASE_RPC_FUNCTION_NAME} RPC:`,
           error
         );
         throw error;
       }
-      console.log("ChartService: Successfully fetched chart data (Web):", data);
+      logger.log("ChartService: Successfully fetched chart data (Web):", data);
       return data as ServerMonthlyDataResponse;
     } else if (platform === "desktop") {
       const { invoke } = await import("@tauri-apps/api/core");
@@ -65,7 +66,7 @@ export async function fetchServerMonthlyChartData(
         endDateStr: endDateStr,
         numMonths: numMonths,
       });
-      console.log(
+      logger.log(
         "ChartService: Successfully fetched chart data (Desktop):",
         data
       );
@@ -74,14 +75,14 @@ export async function fetchServerMonthlyChartData(
       // This case should ideally not be hit if MonthlyChart calls this function
       // only after platform is 'web' or 'desktop'.
       // The 'loading' case should be handled by the calling component.
-      console.warn(
+      logger.warn(
         "ChartService: fetchServerMonthlyChartData called with platform:",
         platform
       );
       return null;
     }
   } catch (errorCaught: any) {
-    console.error("ChartService: Exception fetching chart data:", errorCaught);
+    logger.error("ChartService: Exception fetching chart data:", errorCaught);
     throw new Error(
       `Failed to fetch chart data. Original error: ${
         errorCaught.message || errorCaught

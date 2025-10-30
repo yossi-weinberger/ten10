@@ -20,6 +20,7 @@ import { Transaction } from "@/types/transaction";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useTransactionFormInitialization } from "@/hooks/useTransactionFormInitialization";
+import { logger } from "@/lib/logger";
 
 // Zod schema is now imported from "@/types/forms"
 
@@ -141,7 +142,7 @@ export function TransactionForm({
     }
   }, [initialData, isEditMode, form]);
 
-  console.log("Form errors:", form.formState.errors);
+  logger.log("Form errors:", form.formState.errors);
 
   const selectedType = form.watch("type");
   const isExemptChecked = form.watch("isExempt");
@@ -149,11 +150,11 @@ export function TransactionForm({
 
   async function onSubmit(values: TransactionFormValues) {
     setIsSuccess(false);
-    console.log("Form values submitted:", values);
+    logger.log("Form values submitted:", values);
 
     if (isEditMode) {
       if (!initialData || !initialData.id) {
-        console.error("Cannot update: missing initial data or transaction ID.");
+        logger.error("Cannot update: missing initial data or transaction ID.");
         return;
       }
       // Logic for updating an existing transaction
@@ -176,10 +177,10 @@ export function TransactionForm({
             if (onSubmitSuccess) onSubmitSuccess();
           }, 1500);
         } catch (error) {
-          console.error("Error updating transaction:", error);
+          logger.error("Error updating transaction:", error);
         }
       } else {
-        console.log("No changes detected, skipping update.");
+        logger.log("No changes detected, skipping update.");
         if (onSubmitSuccess) onSubmitSuccess();
       }
     } else {
@@ -209,7 +210,7 @@ export function TransactionForm({
           if (onSubmitSuccess) onSubmitSuccess();
         }, 1500);
       } catch (error) {
-        console.error("Error creating transaction:", error);
+        logger.error("Error creating transaction:", error);
       }
     }
   }

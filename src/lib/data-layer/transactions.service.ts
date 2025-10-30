@@ -2,6 +2,7 @@ import { useDonationStore } from "../store";
 import { Transaction } from "@/types/transaction";
 import { getPlatform } from "../platformManager";
 import { supabase } from "@/lib/supabaseClient";
+import { logger } from "@/lib/logger";
 
 // --- New CRUD API for Transactions ---
 
@@ -14,7 +15,7 @@ export async function loadTransactions(
   userIdFromAuthContext?: string
 ): Promise<Transaction[]> {
   const currentPlatform = getPlatform();
-  console.log(
+  logger.log(
     "TransactionsService: Loading transactions. Platform:",
     currentPlatform
   );
@@ -22,12 +23,12 @@ export async function loadTransactions(
     try {
       const { invoke } = await import("@tauri-apps/api/core");
       const transactions = await invoke<Transaction[]>("get_transactions");
-      console.log(
+      logger.log(
         `TransactionsService: Tauri load successful: ${transactions.length} transactions.`
       );
       return transactions;
     } catch (error) {
-      console.error("Error invoking get_transactions:", error);
+      logger.error("Error invoking get_transactions:", error);
       throw error;
     }
   } else if (currentPlatform === "web") {
@@ -35,7 +36,7 @@ export async function loadTransactions(
       let userIdToQueryWith = userIdFromAuthContext;
 
       if (!userIdToQueryWith) {
-        console.warn(
+        logger.warn(
           "TransactionsService: UserID not provided from AuthContext. Falling back to supabase.auth.getUser()."
         );
         const {
@@ -43,14 +44,14 @@ export async function loadTransactions(
           error: supabaseUserError,
         } = await supabase.auth.getUser();
         if (supabaseUserError) {
-          console.error(
+          logger.error(
             "TransactionsService (Fallback): Error getting user from Supabase:",
             supabaseUserError
           );
           throw supabaseUserError;
         }
         if (!supabaseUser) {
-          console.error(
+          logger.error(
             "TransactionsService (Fallback): No user session found."
           );
           throw new Error(
@@ -66,21 +67,21 @@ export async function loadTransactions(
         .order("date", { ascending: false });
 
       if (error) {
-        console.error(
+        logger.error(
           "TransactionsService: Supabase select returned an error:",
           error
         );
         throw error;
       }
 
-      console.log(
+      logger.log(
         `TransactionsService: Supabase load successful: ${
           data?.length || 0
         } transactions.`
       );
       return (data as Transaction[]) || [];
     } catch (errorCaught: any) {
-      console.error(
+      logger.error(
         "TransactionsService: Error explicitly caught in loadTransactions (Supabase block):",
         errorCaught
       );
@@ -93,7 +94,7 @@ export async function loadTransactions(
       );
     }
   } else {
-    console.log(
+    logger.log(
       "TransactionsService: Platform not yet determined, returning empty transactions."
     );
     return [];
@@ -107,18 +108,18 @@ export async function loadTransactions(
  */
 export async function addTransaction(transaction: Transaction): Promise<void> {
   const currentPlatform = getPlatform();
-  console.log("Current platform in addTransaction:", currentPlatform);
+  logger.log("Current platform in addTransaction:", currentPlatform);
   if (currentPlatform === "desktop") {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
       await invoke("add_transaction", { transaction });
-      console.log(
+      logger.log(
         "Tauri invoke add_transaction successful for ID:",
         transaction.id
       );
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
     } catch (error) {
-      console.error("Error invoking add_transaction:", error);
+      logger.error("Error invoking add_transaction:", error);
       throw error;
     }
   } else if (currentPlatform === "web") {
@@ -156,11 +157,11 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
           "Failed to retrieve inserted transaction data from Supabase."
         );
 
-      console.log("Supabase insert successful. ID:", insertedData.id);
+      logger.log("Supabase insert successful. ID:", insertedData.id);
 
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
     } catch (error) {
-      console.error("Error adding transaction to Supabase:", error);
+      logger.error("Error adding transaction to Supabase:", error);
       throw error;
     }
   } else {
@@ -173,7 +174,7 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
  */
 export async function deleteTransaction(transactionId: string): Promise<void> {
   const currentPlatform = getPlatform();
-  console.log(
+  logger.log(
     `TransactionsService: Deleting transaction ID: ${transactionId}. Platform: ${currentPlatform}`
   );
 
@@ -181,12 +182,12 @@ export async function deleteTransaction(transactionId: string): Promise<void> {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
       await invoke("delete_transaction_handler", { transactionId });
-      console.log(
+      logger.log(
         `TransactionsService: Tauri delete successful for ID: ${transactionId}`
       );
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
     } catch (error) {
-      console.error(
+      logger.error(
         `TransactionsService: Error invoking delete_transaction_handler for ID ${transactionId}:`,
         error
       );
@@ -200,18 +201,18 @@ export async function deleteTransaction(transactionId: string): Promise<void> {
         .eq("id", transactionId);
 
       if (error) {
-        console.error(
+        logger.error(
           `TransactionsService: Error deleting transaction ID ${transactionId} from Supabase:`,
           error
         );
         throw error;
       }
-      console.log(
+      logger.log(
         `TransactionsService: Supabase delete successful for ID: ${transactionId}`
       );
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
     } catch (error) {
-      console.error(
+      logger.error(
         `TransactionsService: Error deleting transaction ID ${transactionId} from Supabase (catch block):`,
         error
       );
@@ -243,12 +244,12 @@ export async function updateTransaction(
   payload: TransactionUpdatePayload
 ): Promise<void> {
   const currentPlatform = getPlatform();
-  console.log(
+  logger.log(
     `TransactionsService: Updating transaction ${transactionId}. Platform: ${currentPlatform}`
   );
 
   if (Object.keys(payload).length === 0) {
-    console.warn(
+    logger.warn(
       `TransactionsService: Update for transaction ${transactionId} was called with an empty payload. Aborting.`
     );
     return;
@@ -270,7 +271,7 @@ export async function updateTransaction(
   if (payload.recipient !== undefined)
     sanitizedPayload.recipient = payload.recipient;
 
-  console.log(
+  logger.log(
     `TransactionsService: Cleaned payload for transaction ${transactionId}:`,
     sanitizedPayload
   );
@@ -282,12 +283,12 @@ export async function updateTransaction(
         id: transactionId,
         payload: sanitizedPayload,
       });
-      console.log(
+      logger.log(
         `TransactionsService: Tauri update successful for ID: ${transactionId}`
       );
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
     } catch (error) {
-      console.error(
+      logger.error(
         `TransactionsService: Error invoking update_transaction_handler for ID ${transactionId}:`,
         error
       );
@@ -302,24 +303,24 @@ export async function updateTransaction(
         .select();
 
       if (error) {
-        console.error(
+        logger.error(
           `TransactionsService: Error updating transaction ID ${transactionId} in Supabase:`,
           error
         );
         throw error;
       }
       if (!data || data.length === 0) {
-        console.warn(
+        logger.warn(
           `TransactionsService: Supabase update for ID ${transactionId} completed, but no data returned. This might be expected.`
         );
       }
-      console.log(
+      logger.log(
         `TransactionsService: Supabase update successful for transaction:`,
         data
       );
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
     } catch (error) {
-      console.error(
+      logger.error(
         `TransactionsService: Error updating transaction ID ${transactionId} in Supabase (catch block):`,
         error
       );

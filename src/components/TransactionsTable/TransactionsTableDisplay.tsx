@@ -9,6 +9,7 @@ import { ExportButton } from "./ExportButton";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -129,7 +130,7 @@ export function TransactionsTableDisplay() {
             })
           );
         } catch (err: any) {
-          console.error("Failed to delete transaction from component:", err);
+          logger.error("Failed to delete transaction from component:", err);
           toast.error(
             t("messages.deleteErrorWithDescription", {
               description: deletedTransactionDescription,
@@ -157,7 +158,7 @@ export function TransactionsTableDisplay() {
       setEditingRecTransaction(recData);
       setIsRecEditModalOpen(true);
     } catch (error) {
-      console.error("Failed to fetch recurring transaction details", error);
+      logger.error("Failed to fetch recurring transaction details", error);
       toast.error(t("messages.recurringError"));
     } finally {
       setIsFetchingRec(false);

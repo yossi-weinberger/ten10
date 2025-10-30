@@ -15,6 +15,7 @@ import { exportTransactionsToExcel } from "../utils/export-excel"; // Updated pa
 import { exportTransactionsToCSV } from "../utils/export-csv"; // Updated path
 import { supabase } from "../supabaseClient"; // Updated path
 import i18n from "../i18n"; // For current language
+import { logger } from "@/lib/logger";
 import type {
   RealtimeChannel,
   RealtimePostgresChangesPayload,
@@ -68,20 +69,20 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
 
     // Actions
     fetchTransactions: async (reset?: boolean, platform?: Platform) => {
-      console.log(
+      logger.log(
         `TableTransactionsStore: fetchTransactions called. Reset: ${reset}, Platform: ${platform}, Current loading: ${
           get().loading
         }`
       );
       if (get().loading && !reset) {
-        console.log(
+        logger.log(
           "TableTransactionsStore: fetchTransactions - already loading and not a reset, aborting."
         );
         return;
       }
 
       if (!platform || platform === "loading") {
-        console.warn(
+        logger.warn(
           "TableTransactionsStore: fetchTransactions called without a valid platform. Aborting.",
           platform
         );
@@ -124,7 +125,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
             platform,
           });
 
-        console.log(
+        logger.log(
           "TableTransactionsStore: Received from service - Data length:",
           data?.length,
           "Total count:",
@@ -136,7 +137,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           : [...currentTransactions, ...data];
         const hasMore = newTransactions.length < newTotalCount;
 
-        console.log(
+        logger.log(
           "TableTransactionsStore: New transactions length:",
           newTransactions.length,
           "Has more:",
@@ -154,7 +155,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           loading: false,
         });
       } catch (err: any) {
-        console.error("Failed to fetch table transactions:", err);
+        logger.error("Failed to fetch table transactions:", err);
         set({
           error: err.message || "Failed to fetch transactions",
           loading: false,
@@ -181,7 +182,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
     },
 
     setSorting: (newSortField) => {
-      console.log(
+      logger.log(
         `TableTransactionsStore: setSorting called with newSortField: ${String(
           newSortField
         )}`
@@ -219,7 +220,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
       const originalTransactions = get().transactions;
       const transactionToUpdate = originalTransactions.find((t) => t.id === id);
       if (!transactionToUpdate) {
-        console.error("Transaction to update not found in store:", id);
+        logger.error("Transaction to update not found in store:", id);
         set({ error: "Transaction to update not found." });
         return;
       }
@@ -234,11 +235,11 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         await TableTransactionsService.updateTransaction(id, updates, platform);
         // After successful update via dataService (which updates lastDbFetchTimestamp),
         // we rely on optimistic update for table smoothness. Other components (like StatsCards) will update via lastDbFetchTimestamp.
-        console.log(
+        logger.log(
           `TableTransactionsStore: Update for ${id} successful on server. Optimistic update applied to table.`
         );
       } catch (err: any) {
-        console.error("Failed to update transaction:", err);
+        logger.error("Failed to update transaction:", err);
         // Rollback optimistic update
         get().updateTransactionState(id, originalTransactionState);
         set({
@@ -274,9 +275,9 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
 
       try {
         await TableTransactionsService.deleteTransaction(id, platform);
-        console.log(`Transaction ${id} deleted successfully from server.`);
+        logger.log(`Transaction ${id} deleted successfully from server.`);
       } catch (err: any) {
-        console.error("Failed to delete transaction:", err);
+        logger.error("Failed to delete transaction:", err);
         set({
           transactions: originalTransactions,
           totalCount: originalTotalCount,
@@ -287,7 +288,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
     },
 
     exportTransactions: async (format, platform) => {
-      console.log(`TableTransactionsStore: Exporting to ${format}`);
+      logger.log(`TableTransactionsStore: Exporting to ${format}`);
       set({ exportLoading: true, exportError: null });
 
       try {
@@ -295,7 +296,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         const { transactions: transactionsToExport, totalCount } =
           await TableTransactionsService.getDataForExport(filters, platform);
 
-        console.log(
+        logger.log(
           `Exporting ${transactionsToExport.length} transactions with a total count of ${totalCount}.`
         );
 
@@ -330,7 +331,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           );
         }
       } catch (err: any) {
-        console.error("Failed to export transactions:", err);
+        logger.error("Failed to export transactions:", err);
         set({ exportError: err.message || "Failed to export transactions." });
       } finally {
         set({ exportLoading: false });
