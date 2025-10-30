@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useEffect, useState, useRef } from "react";
+import { logger } from "@/lib/logger";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { LanguageToggleFixed } from "./components/LanguageToggleFixed";
 import { FloatingNavigation } from "./components/FloatingNavigation";
@@ -163,11 +164,11 @@ const LandingPage: React.FC = () => {
 
     // Only load GA if we have an ID
     if (!gaId) {
-      console.log("Google Analytics ID not found in environment variables");
+      logger.log("Google Analytics ID not found in environment variables");
       return;
     }
 
-    console.log("Loading Google Analytics with ID:", gaId);
+    logger.log("Loading Google Analytics with ID:", gaId);
 
     // Add Google Analytics script
     const gaScript = document.createElement("script");
@@ -286,4 +287,3 @@ const LandingPage: React.FC = () => {
 };
 
 export default LandingPage;
-

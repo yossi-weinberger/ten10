@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { logger } from "@/lib/logger";
 import {
   Table,
   TableBody,
@@ -99,7 +100,7 @@ export function RecurringTransactionsTableDisplay() {
       toast.success(t("messages.recurringDeleteSuccess"));
       fetchRecurring(); // Refresh the table
     } catch (error) {
-      console.error("Failed to delete recurring transaction:", error);
+      logger.error("Failed to delete recurring transaction:", error);
       toast.error(t("messages.recurringDeleteError"));
     } finally {
       setIsDeleteDialogOpen(false);

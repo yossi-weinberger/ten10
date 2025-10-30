@@ -11,6 +11,7 @@ import {
 import { User } from "@/contexts/AuthContext";
 import { DateRangeObject } from "./useDateControls";
 import { Platform } from "@/contexts/PlatformContext";
+import { logger } from "@/lib/logger";
 
 export function useServerStats(
   activeDateRangeObject: DateRangeObject,
@@ -81,7 +82,7 @@ export function useServerStats(
 
   useEffect(() => {
     const effectiveUserId = platform === "web" ? user?.id || null : null;
-    console.log(
+    logger.log(
       `useServerStats useEffect triggered. Platform: ${platform}, UserID: ${effectiveUserId}, DateRange: ${activeDateRangeObject.startDate}-${activeDateRangeObject.endDate}, Timestamp: ${lastDbFetchTimestamp}`
     );
 
@@ -91,7 +92,7 @@ export function useServerStats(
           setIsLoadingServerIncome(true);
           setServerIncomeError(null);
           try {
-            // console.log(
+            // logger.log(
             //   `useServerStats: Fetching server income. User: ${effectiveUserId}, Range: ${activeDateRangeObject.startDate}-${activeDateRangeObject.endDate}, Platform: ${platform}`
             // );
             const incomeData: ServerIncomeData | null =
@@ -108,7 +109,7 @@ export function useServerStats(
               setServerChomeshAmount(null);
             }
           } catch (error) {
-            console.error(
+            logger.error(
               "useServerStats: Failed to fetch server total income:",
               error
             );
@@ -122,7 +123,7 @@ export function useServerStats(
         };
         loadTotalIncome();
       } else if (platform === "web" && !effectiveUserId) {
-        // console.warn(
+        // logger.warn(
         //   "useServerStats: Web platform detected but no user ID available. Skipping server income fetch."
         // );
         setServerTotalIncome(null);
@@ -136,7 +137,7 @@ export function useServerStats(
           setIsLoadingServerExpenses(true);
           setServerExpensesError(null);
           try {
-            // console.log(
+            // logger.log(
             //   `useServerStats: Fetching server expenses. User: ${effectiveUserId}, Range: ${activeDateRangeObject.startDate}-${activeDateRangeObject.endDate}, Platform: ${platform}`
             // );
             const expensesData: number | null = await fetchTotalExpensesInRange(
@@ -146,7 +147,7 @@ export function useServerStats(
             );
             setServerTotalExpenses(expensesData);
           } catch (error) {
-            console.error(
+            logger.error(
               "useServerStats: Failed to fetch server total expenses:",
               error
             );
@@ -159,7 +160,7 @@ export function useServerStats(
         };
         loadTotalExpenses();
       } else if (platform === "web" && !effectiveUserId) {
-        // console.warn(
+        // logger.warn(
         //   "useServerStats: Web platform detected but no user ID available. Skipping server expenses fetch."
         // );
         setServerTotalExpenses(null);
@@ -172,7 +173,7 @@ export function useServerStats(
           setIsLoadingServerDonations(true);
           setServerDonationsError(null);
           try {
-            // console.log(
+            // logger.log(
             //   `useServerStats: Fetching server donations. User: ${effectiveUserId}, Range: ${activeDateRangeObject.startDate}-${activeDateRangeObject.endDate}, Platform: ${platform}`
             // );
             const donationsData: ServerDonationData | null =
@@ -189,7 +190,7 @@ export function useServerStats(
               setServerTotalDonations(null);
             }
           } catch (error) {
-            console.error(
+            logger.error(
               "useServerStats: Failed to fetch server total donations:",
               error
             );
@@ -202,7 +203,7 @@ export function useServerStats(
         };
         loadTotalDonations();
       } else if (platform === "web" && !effectiveUserId) {
-        // console.warn(
+        // logger.warn(
         //   "useServerStats: Web platform detected but no user ID available. Skipping server donations fetch."
         // );
         setServerTotalDonations(null);
@@ -216,7 +217,7 @@ export function useServerStats(
         setIsLoadingServerTitheBalance(true);
         setServerTitheBalanceError(null);
         try {
-          // console.log(
+          // logger.log(
           //   `useServerStats: Fetching server overall tithe balance. User: ${effectiveUserId}, Platform: ${platform}`
           // );
           const balanceData: number | null = await fetchServerTitheBalance(
@@ -224,7 +225,7 @@ export function useServerStats(
           );
           setServerTitheBalance(balanceData);
         } catch (error) {
-          console.error(
+          logger.error(
             "useServerStats: Failed to fetch server overall tithe balance:",
             error
           );
@@ -237,7 +238,7 @@ export function useServerStats(
       };
       loadServerTitheBalance();
     } else if (platform === "web" && !effectiveUserId) {
-      // console.warn(
+      // logger.warn(
       //   "useServerStats: Web platform detected but no user ID available. Skipping server overall tithe balance fetch."
       // );
       setServerTitheBalance(null);

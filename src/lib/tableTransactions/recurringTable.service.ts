@@ -5,6 +5,7 @@ import {
   RecurringTableSortConfig,
   RecurringTableFilters,
 } from "./recurringTable.store";
+import { logger } from "@/lib/logger";
 
 export async function fetchAllRecurring(
   sorting: RecurringTableSortConfig,
@@ -16,7 +17,7 @@ export async function fetchAllRecurring(
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
-      console.error("User not found for fetching recurring transactions");
+      logger.error("User not found for fetching recurring transactions");
       return [];
     }
     const rpcParams = {
@@ -31,7 +32,7 @@ export async function fetchAllRecurring(
       rpcParams
     );
     if (error) {
-      console.error("Error fetching recurring transactions via RPC:", error);
+      logger.error("Error fetching recurring transactions via RPC:", error);
       throw error;
     }
     return data || [];
@@ -86,7 +87,7 @@ export async function updateRecurringTransaction(
       .single();
 
     if (error) {
-      console.error("Error updating recurring transaction via RPC:", error);
+      logger.error("Error updating recurring transaction via RPC:", error);
       throw error;
     }
     return data;
@@ -120,7 +121,7 @@ export async function deleteRecurringTransaction(id: string): Promise<void> {
     });
 
     if (error) {
-      console.error("Error deleting recurring transaction via RPC:", error);
+      logger.error("Error deleting recurring transaction via RPC:", error);
       throw error;
     }
   } else if (platform === "desktop") {

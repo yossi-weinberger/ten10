@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabaseClient"; // Using path alias from tsconf
 import { toast } from "react-hot-toast";
 import { useDonationStore } from "@/lib/store"; // Import Zustand store
 import i18n from "@/lib/i18n";
+import { logger } from "@/lib/logger";
 // import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store"; // This seems unused in the provided snippet, might be removable if not used elsewhere
 // Import table transactions store
 // import { loadTransactions, setDataServicePlatform } from "@/lib/dataService"; // loadTransactions will be removed from dataService, setDataServicePlatform is still used.
@@ -50,7 +51,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     userForLoad: SupabaseUser | null
   ) => {
     if (!userForLoad) {
-      console.error(
+      logger.error(
         "AuthContext: loadAndSetTransactionsInternal called with null user. Aborting."
       );
       useDonationStore.setState({
@@ -59,19 +60,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
     if (platform === "loading") {
-      console.warn(
+      logger.warn(
         "AuthContext: loadAndSetTransactionsInternal called while platform is loading. Aborting."
       );
       return;
     }
     // if (isDataLoading) { // This check would also be removed
-    //   console.log(
+    //   logger.log(
     //     "AuthContext: loadAndSetTransactionsInternal - prevented re-entry as isDataLoading is true"
     //   );
     //   return;
     // }
 
-    console.log(
+    logger.log(
       "AuthContext: Initiating data load sequence for user:",
       userForLoad.id
     );
@@ -83,11 +84,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       useDonationStore.setState({
         lastDbFetchTimestamp: Date.now(),
       });
-      console.log(
+      logger.log(
         "AuthContext: loadTransactions call completed and lastDbFetchTimestamp updated."
       );
     } catch (error) {
-      console.error("AuthContext: Error during data loading sequence:", error);
+      logger.error("AuthContext: Error during data loading sequence:", error);
       toast.error(t("common.dataLoadError", "Error loading data."));
     } finally {
       // setIsDataLoading(false); // REMOVE
@@ -97,14 +98,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Effect for initial session check and onAuthStateChange listener setup
   useEffect(() => {
-    console.log("AuthContext: Initializing auth state listener.");
+    logger.log("AuthContext: Initializing auth state listener.");
     setLoading(true);
 
     // Initial session check
     supabase.auth
       .getSession()
       .then(({ data: { session: initialSession } }) => {
-        console.log(
+        logger.log(
           "AuthContext: Initial session resolved.",
           initialSession ? "Session found." : "No session."
         );
@@ -114,14 +115,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setLoading(false);
       })
       .catch((error) => {
-        console.error("Error getting initial session:", error);
+        logger.error("Error getting initial session:", error);
         setLoading(false);
       });
 
     // Auth state change listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
       async (event, newAuthStateSession) => {
-        console.log(`AuthContext: Auth state changed. Event: ${event}`);
+        logger.log(`AuthContext: Auth state changed. Event: ${event}`);
 
         setSession(newAuthStateSession);
         const newCurrentUser = newAuthStateSession?.user ?? null;
@@ -133,7 +134,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     );
 
     return () => {
-      console.log("AuthContext: Unsubscribing auth listener.");
+      logger.log("AuthContext: Unsubscribing auth listener.");
       authListener?.subscription.unsubscribe();
       // Cleanup realtime subscription on component unmount as well - REMOVED
       // useTableTransactionsStore.getState().cleanupRealtimeSubscription();
@@ -144,14 +145,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     // const { setupRealtimeSubscription, cleanupRealtimeSubscription } = // REMOVED
     //   useTableTransactionsStore.getState(); // REMOVED
-    console.log(
+    logger.log(
       `AuthContext: Data loading effect (Realtime REMOVED). User: ${!!user}, Platform: ${platform}, Hydrated: ${hasHydrated}, Timestamp: ${lastDbFetchTimestampFromStore}, InitialForcedLoadDone: ${initialForcedLoadDone}`
     );
 
     if (platform === "loading") {
-      console.log(
-        "AuthContext: Platform is loading, aborting data load check."
-      );
+      logger.log("AuthContext: Platform is loading, aborting data load check.");
       return;
     }
 
@@ -163,7 +162,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (shouldForceFetchFromDb) {
         sessionStorage.removeItem("forceDbFetchOnLoad");
-        console.log(
+        logger.log(
           "AuthContext: 'forceDbFetchOnLoad' flag found (new login), initiating DB load."
         );
         loadAndSetTransactionsInternal(user);
@@ -175,12 +174,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         ) {
           const currentTransactions = useDonationStore.getState().transactions;
           if (currentTransactions.length === 0) {
-            console.log(
+            logger.log(
               "AuthContext: No timestamp from store hook YET OR it's genuinely null, AND no transactions. Attempting DB load as a precaution."
             );
             loadAndSetTransactionsInternal(user);
           } else {
-            console.log(
+            logger.log(
               "AuthContext: No timestamp from store hook YET OR it's genuinely null, but transactions exist. Assuming fresh from persist, will re-eval if timestamp updates."
             );
           }
@@ -190,12 +189,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Timestamp is available and is a number, proceed with staleness check
         const oneDayInMillis = 24 * 60 * 60 * 1000; // 1 day
         if (Date.now() - lastDbFetchTimestampFromStore > oneDayInMillis) {
-          console.log(
+          logger.log(
             "AuthContext: Data may be stale (older than 1 day based on store hook), initiating DB load."
           );
           loadAndSetTransactionsInternal(user);
         } else {
-          console.log(
+          logger.log(
             "AuthContext: Data in Zustand is considered fresh enough (based on store hook), skipping DB load."
           );
         }
@@ -204,7 +203,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // --- START: NEW TEMPORARY LOGIC TO FORCE LOAD (NOW MODIFIED) ---
       if (!initialForcedLoadDone) {
-        console.log(
+        logger.log(
           "AuthContext: Initial data load sequence (e.g., for settings or timestamp) - loadAndSetTransactionsInternal call REMOVED. Only setting initialForcedLoadDone."
         );
         // loadAndSetTransactionsInternal(user); // REMOVE THIS CALL
@@ -215,25 +214,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         useDonationStore.setState({ lastDbFetchTimestamp: Date.now() });
         setInitialForcedLoadDone(true);
       } else {
-        console.log(
+        logger.log(
           "AuthContext: Initial forced data load/setup already performed, skipping."
         );
       }
       // --- END: NEW TEMPORARY LOGIC TO FORCE LOAD ---
     } else if (user && !hasHydrated) {
-      console.log(
+      logger.log(
         "AuthContext: User exists but store not hydrated yet. Waiting for hydration."
       );
       // Do nothing, useEffect will re-run when hasHydrated becomes true
     } else if (!user && platform === "web") {
       // User logged out or no user on web, ensure cleanup
-      console.log("AuthContext: No user on web. (Realtime cleanup REMOVED)");
+      logger.log("AuthContext: No user on web. (Realtime cleanup REMOVED)");
       // cleanupRealtimeSubscription(); // REMOVED
     }
 
     // Setup realtime subscription if user is logged in on web - REMOVED
     // if (user && platform === "web") {
-    //   console.log(
+    //   logger.log(
     //     "AuthContext: Setting up realtime subscription for user:",
     //     user.id
     //   );
@@ -247,7 +246,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // return () => {
     //   if (platform === "web") {
     //     // Only cleanup if it might have been set up
-    //     console.log(
+    //     logger.log(
     //       "AuthContext: useEffect cleanup for realtime subscription."
     //     );
     //     cleanupRealtimeSubscription(); // REMOVED
@@ -265,13 +264,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signOut = async () => {
     setLoading(true);
     // Clear store immediately for faster UI feedback (optional, as onAuthStateChange will also clear)
-    // console.log("AuthContext: Clearing Zustand store immediately on signOut call.");
+    // logger.log("AuthContext: Clearing Zustand store immediately on signOut call.");
     // useDonationStore.setState({ transactions: [] });
 
     const { error } = await supabase.auth.signOut();
     // State update and store clearing will be handled by onAuthStateChange listener.
     if (error) {
-      console.error("Error signing out:", error);
+      logger.error("Error signing out:", error);
       toast.error(
         i18n.t("auth.signOut.error", "Sign out failed: ") + error.message
       );

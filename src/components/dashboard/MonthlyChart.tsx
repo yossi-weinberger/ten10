@@ -16,6 +16,7 @@ import {
   MonthlyChartDataPoint,
 } from "@/components/charts/area-chart-interactive";
 import { ChartConfig } from "@/components/ui/chart";
+import { logger } from "@/lib/logger";
 
 const NUM_MONTHS_TO_FETCH = 6;
 
@@ -78,7 +79,7 @@ export function MonthlyChart() {
   const loadData = useCallback(
     async (loadMore = false, isReset = false) => {
       if (!platformReady) {
-        console.log(
+        logger.log(
           "MonthlyChart: loadData called but platform is not ready. Aborting."
         );
         return;
@@ -105,7 +106,7 @@ export function MonthlyChart() {
         endDateForFetch = new Date();
       }
 
-      console.log(
+      logger.log(
         "MonthlyChart: Preparing to fetch data. endDateForFetch:",
         endDateForFetch,
         "LoadMore:",
@@ -173,7 +174,7 @@ export function MonthlyChart() {
       !isLoadingServerMonthlyChartData &&
       !initialLoadAttempted
     ) {
-      console.log(
+      logger.log(
         "[MonthlyChart] useEffect [platformReady, user, ...]: Initial data fetch conditions met. Platform:",
         platform,
         "User ID:",

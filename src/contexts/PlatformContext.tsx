@@ -5,6 +5,7 @@ import React, {
   useState,
   useEffect,
 } from "react";
+import { logger } from "@/lib/logger";
 import AppLoader from "../components/layout/AppLoader";
 
 // 1. Define possible platform states
@@ -44,7 +45,7 @@ export const PlatformProvider: React.FC<PlatformProviderProps> = ({
           await osPlugin.platform(); // Calling it to be sure
           setPlatform("desktop");
         } catch (e) {
-          console.error("Tauri environment detected, but OS plugin failed:", e);
+          logger.error("Tauri environment detected, but OS plugin failed:", e);
           // Fallback for safety
           setPlatform("web");
         }

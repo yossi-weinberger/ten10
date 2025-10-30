@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { logger } from "@/lib/logger";
 
 const SignupPage: React.FC = () => {
   const { platform } = usePlatform();
@@ -50,7 +51,7 @@ const SignupPage: React.FC = () => {
 
         if (updateError) {
           toast.error(t("signup.toasts.profileUpdateError"));
-          console.error("Error updating profile after signup:", updateError);
+          logger.error("Error updating profile after signup:", updateError);
         } else {
           toast.success(t("signup.toasts.signupSuccess"));
         }
@@ -66,7 +67,7 @@ const SignupPage: React.FC = () => {
         toast.error(t("signup.toasts.unexpectedError"));
       }
     } catch (error: any) {
-      console.error("Error signing up:", error);
+      logger.error("Error signing up:", error);
       toast.error(
         error.error_description ||
           error.message ||

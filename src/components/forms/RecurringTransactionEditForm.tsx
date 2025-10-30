@@ -2,6 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 import {
   Form,
   FormControl,
@@ -62,7 +63,7 @@ export function RecurringTransactionEditForm({
         onCancel(); // Close modal after success
       }, 1500);
     } catch (error) {
-      console.error("Error updating recurring transaction:", error);
+      logger.error("Error updating recurring transaction:", error);
     }
   };
 

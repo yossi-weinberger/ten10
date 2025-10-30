@@ -12,6 +12,7 @@ import {
   createRecurringTransaction,
   NewRecurringTransaction,
 } from "./recurringTransactions.service";
+import { logger } from "@/lib/logger";
 
 /**
  * Determines the final transaction type based on form values,
@@ -45,7 +46,7 @@ function determineFinalType(values: TransactionFormValues): TransactionType {
 export async function handleTransactionSubmit(
   values: TransactionFormValues
 ): Promise<void> {
-  console.log("handleTransactionSubmit received values:", values);
+  logger.log("handleTransactionSubmit received values:", values);
   const platform = getPlatform();
   const finalType = determineFinalType(values);
 

@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { formatCurrency } from "./currency";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import i18n from "@/lib/i18n";
+import { logger } from "@/lib/logger";
 
 // Import fonts directly using Vite's ?url feature for robust path handling
 import assistantFontUrl from "/fonts/Assistant-VariableFont_wght.ttf?url";
@@ -433,6 +434,6 @@ export async function exportTransactionsToPDF(
       : "end";
     downloadPdf(pdfBytes, `Ten10_Transactions_${fromDate}_to_${toDate}.pdf`);
   } catch (error) {
-    console.error("Error exporting transactions to PDF:", error);
+    logger.error("Error exporting transactions to PDF:", error);
   }
 }

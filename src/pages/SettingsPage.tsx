@@ -27,6 +27,7 @@ import { NotificationSettingsCard } from "@/components/settings/NotificationSett
 import { CalendarSettingsCard } from "@/components/settings/CalendarSettingsCard";
 import { ClearDataSection } from "@/components/settings/ClearDataSection";
 import { ImportExportDataSection } from "@/components/settings/ImportExportDataSection";
+import { logger } from "@/lib/logger";
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -50,7 +51,7 @@ export function SettingsPage() {
       await clearAllData();
       toast.success(tCommon("toast.settings.clearDataSuccess"));
     } catch (error) {
-      console.error("Failed to clear data:", error);
+      logger.error("Failed to clear data:", error);
       toast.error(tCommon("toast.settings.clearDataError"));
     } finally {
       setIsClearing(false);
@@ -128,7 +129,7 @@ export function SettingsPage() {
                   })
                   .eq("id", user.id);
               } catch (error) {
-                console.error(
+                logger.error(
                   "Failed to update reminder settings in Supabase:",
                   error
                 );

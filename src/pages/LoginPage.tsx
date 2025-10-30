@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
+import { logger } from "@/lib/logger";
 // Assuming you have UI components like Button, Input, Label from Shadcn/ui or similar
 // import { Button } from "@/components/ui/button";
 // import { Input } from "@/components/ui/input";
@@ -61,7 +62,7 @@ const LoginPage: React.FC = () => {
       toast.success(t("login.toasts.loginSuccess"));
       navigate({ to: "/" });
     } catch (error: any) {
-      console.error("Error logging in with password:", error);
+      logger.error("Error logging in with password:", error);
       toast.error(
         error.error_description || error.message || t("login.toasts.loginError")
       );
@@ -78,7 +79,7 @@ const LoginPage: React.FC = () => {
         ? "http://localhost:5173" // Ensure this matches your dev server and Google Console
         : window.location.origin; // For production, use the current origin
 
-      console.log(
+      logger.log(
         `[LoginPage] Using redirectTo for Google OAuth: ${redirectURL}`
       ); // Added log
 
@@ -92,7 +93,7 @@ const LoginPage: React.FC = () => {
       sessionStorage.setItem("forceDbFetchOnLoad", "true");
       // Redirect happens automatically via Supabase/Google callback
     } catch (error: any) {
-      console.error("Error logging in with Google:", error);
+      logger.error("Error logging in with Google:", error);
       toast.error(
         error.error_description ||
           error.message ||
@@ -119,7 +120,7 @@ const LoginPage: React.FC = () => {
       toast.success(t("login.toasts.magicLinkSent"));
       setEmailMagicLink(""); // Clear input after sending
     } catch (error: any) {
-      console.error("Error sending magic link:", error);
+      logger.error("Error sending magic link:", error);
       toast.error(
         error.error_description ||
           error.message ||

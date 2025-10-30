@@ -9,6 +9,9 @@ import {
   SheetContent,
   SheetTrigger,
   SheetClose,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
 } from "./components/ui/sheet";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "./components/layout/Sidebar";
@@ -126,6 +129,13 @@ function App() {
               side="right"
               className="p-0 flex flex-col w-40 max-w-[180px]"
             >
+              {/* Accessibility: Provide a DialogTitle for the Sheet to satisfy Radix requirements */}
+              <SheetHeader>
+                <SheetTitle className="sr-only">Mobile navigation</SheetTitle>
+                <SheetDescription className="sr-only">
+                  Main navigation panel for mobile view
+                </SheetDescription>
+              </SheetHeader>
               <div className="flex-1 overflow-y-auto pt-12">
                 <Sidebar expanded={true} inSheet={true} />
               </div>

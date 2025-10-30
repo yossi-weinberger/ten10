@@ -1,9 +1,10 @@
 import { type Platform } from "@/contexts/PlatformContext";
+import { logger } from "@/lib/logger";
 
 let currentPlatform: Platform = "loading";
 
 export function setPlatform(platform: Platform) {
-  console.log(`PlatformManager: Platform set to -> ${platform}`);
+  logger.log(`PlatformManager: Platform set to -> ${platform}`);
   currentPlatform = platform;
 }
 
