@@ -147,8 +147,9 @@ export function TransactionsTableDisplay() {
   }, [transactionToDelete, platform, deleteTransaction]);
 
   const handleEditInitiate = useCallback((transaction: Transaction) => {
+    // Defer opening modal to the next frame to allow DropdownMenu to close first
     setEditingTransaction(transaction);
-    setIsEditModalOpen(true);
+    requestAnimationFrame(() => setIsEditModalOpen(true));
   }, []);
 
   const handleEditRecurringInitiate = useCallback(async (recId: string) => {
@@ -156,7 +157,8 @@ export function TransactionsTableDisplay() {
     try {
       const recData = await getRecurringTransactionById(recId);
       setEditingRecTransaction(recData);
-      setIsRecEditModalOpen(true);
+      // Defer opening modal to the next frame to allow DropdownMenu to close first
+      requestAnimationFrame(() => setIsRecEditModalOpen(true));
     } catch (error) {
       logger.error("Failed to fetch recurring transaction details", error);
       toast.error(t("messages.recurringError"));
