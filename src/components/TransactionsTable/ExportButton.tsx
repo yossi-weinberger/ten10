@@ -14,6 +14,7 @@ import { Download, Loader2 } from "lucide-react"; // Added Loader2
 import { useShallow } from "zustand/react/shallow";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store"; // Updated path
 import { usePlatform } from "@/contexts/PlatformContext";
+import { logger } from "@/lib/logger";
 
 export function ExportButton() {
   const { t } = useTranslation("data-tables");
@@ -46,7 +47,7 @@ export function ExportButton() {
       // Toast notifications are handled by useEffect
     } catch (error) {
       // This catch is more for unexpected errors not handled by the store's try/catch
-      console.error(`Unexpected error during export to ${format}:`, error);
+      logger.error(`Unexpected error during export to ${format}:`, error);
       toast.error(t("export.unexpectedError"));
     }
   };

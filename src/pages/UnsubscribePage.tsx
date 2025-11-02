@@ -57,7 +57,7 @@ export default function UnsubscribePage() {
       });
 
       if (error) {
-        console.error("Error updating preferences:", error);
+        logger.error("Error updating preferences:", error);
         setStatus("error");
         setTitle(t("unsubscribe.error.updateFailed.title"));
         setMessage(t("unsubscribe.error.updateFailed.message"));
@@ -74,7 +74,7 @@ export default function UnsubscribePage() {
         setMessage(t("unsubscribe.success.all.message"));
       }
     } catch (error) {
-      console.error("Unsubscribe error:", error);
+      logger.error("Unsubscribe error:", error);
       setStatus("error");
       setTitle(t("unsubscribe.error.general.title"));
       setMessage(t("unsubscribe.error.general.message"));
@@ -94,13 +94,13 @@ export default function UnsubscribePage() {
       );
 
       if (error) {
-        console.error("Token verification error:", error);
+        logger.error("Token verification error:", error);
         return null;
       }
 
       return data?.payload || null;
     } catch (error) {
-      console.error("Token verification error:", error);
+      logger.error("Token verification error:", error);
       return null;
     }
   };

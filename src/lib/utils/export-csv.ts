@@ -1,5 +1,6 @@
 import type { Transaction } from "@/types/transaction";
 import i18n from "@/lib/i18n";
+import { logger } from "@/lib/logger";
 
 function escapeCsvCell(
   cellData: string | number | boolean | null | undefined
@@ -27,7 +28,7 @@ export function exportTransactionsToCSV(
   currentLanguage: string = "he"
 ) {
   if (!transactions || transactions.length === 0) {
-    console.warn("No transactions to export to CSV.");
+    logger.warn("No transactions to export to CSV.");
     // Optionally, show a user notification here
     return;
   }
@@ -154,7 +155,7 @@ export function exportTransactionsToCSV(
   } else {
     // Fallback for older browsers (e.g., IE)
     // This might not work as well for UTF-8 or large files
-    console.warn("CSV download method not fully supported in this browser.");
+    logger.warn("CSV download method not fully supported in this browser.");
     // (navigator as any).msSaveBlob(blob, filename); // If you need IE10+ support
   }
 }

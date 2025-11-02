@@ -8,6 +8,7 @@ import {
   deleteTransaction as deleteTransactionInDataService,
   TransactionUpdatePayload, // Assuming TransactionUpdatePayload is exported from dataService or a shared types file
 } from "../data-layer"; // Adjusted path to dataService
+import { logger } from "@/lib/logger";
 
 interface FetchTransactionsParams {
   offset: number;
@@ -66,7 +67,7 @@ export class TableTransactionsService {
   ): Promise<FetchTransactionsResponse> {
     const { offset, limit, filters, sorting, platform } = params;
 
-    console.log(
+    logger.log(
       "TableTransactionsService: Fetching transactions. Platform:",
       platform,
       "Params:",
@@ -110,7 +111,7 @@ export class TableTransactionsService {
               : null,
         };
 
-        console.log(
+        logger.log(
           "TableTransactionsService: Calling RPC 'get_user_transactions' with params:",
           JSON.stringify(rpcParams, null, 2)
         );
@@ -121,7 +122,7 @@ export class TableTransactionsService {
         );
 
         if (rpcError) {
-          console.error("Supabase RPC get_user_transactions error:", rpcError);
+          logger.error("Supabase RPC get_user_transactions error:", rpcError);
           throw rpcError;
         }
 
@@ -159,12 +160,12 @@ export class TableTransactionsService {
         const transactions: Transaction[] = responseData.transactions || [];
         const totalCount: number = responseData.total_count || 0;
 
-        console.log(
+        logger.log(
           `TableTransactionsService: Parsed transactions count: ${transactions.length}, Parsed total server count: ${totalCount}.`
         );
         return { data: transactions, totalCount };
       } catch (error) {
-        console.error(
+        logger.error(
           "Error in TableTransactionsService.fetchTransactions (Supabase):",
           error
         );
@@ -204,7 +205,7 @@ export class TableTransactionsService {
             direction: sorting.direction,
           },
         };
-        console.log(
+        logger.log(
           "TableTransactionsService: Invoking get_filtered_transactions_handler with payload:",
           JSON.stringify(payload)
         );
@@ -212,7 +213,7 @@ export class TableTransactionsService {
           "get_filtered_transactions_handler",
           { args: payload }
         );
-        console.log(
+        logger.log(
           "TableTransactionsService: Response from desktop (get_filtered_transactions_handler):",
           response
         );
@@ -221,14 +222,14 @@ export class TableTransactionsService {
           totalCount: Number(response.totalCount),
         };
       } catch (error) {
-        console.error(
+        logger.error(
           "Error in TableTransactionsService.fetchTransactions (Desktop):",
           error
         );
         throw error;
       }
     } else {
-      console.log(
+      logger.log(
         "TableTransactionsService: Platform not yet determined (should be web or desktop), returning empty transactions."
       );
       return { data: [], totalCount: 0 };
@@ -240,7 +241,7 @@ export class TableTransactionsService {
     updates: Partial<Transaction>,
     platform: Platform
   ): Promise<void> {
-    console.log(
+    logger.log(
       `TableTransactionsService: updateTransaction for ID ${id} - delegating to dataService. Platform awareness is in dataService.`
     );
     try {
@@ -248,11 +249,11 @@ export class TableTransactionsService {
         id,
         updates as TransactionUpdatePayload
       );
-      console.log(
+      logger.log(
         `TableTransactionsService: dataService.updateTransaction call for ID: ${id} presumed successful.`
       );
     } catch (error) {
-      console.error(
+      logger.error(
         `TableTransactionsService: Error calling dataService.updateTransaction for ID ${id}:`,
         error
       );
@@ -268,16 +269,16 @@ export class TableTransactionsService {
     id: string,
     platform: Platform
   ): Promise<void> {
-    console.log(
+    logger.log(
       `TableTransactionsService: deleteTransaction for ID ${id} - delegating to dataService. Platform awareness is in dataService.`
     );
     try {
       await deleteTransactionInDataService(id);
-      console.log(
+      logger.log(
         `TableTransactionsService: dataService.deleteTransaction call for ID: ${id} presumed successful.`
       );
     } catch (error) {
-      console.error(
+      logger.error(
         `TableTransactionsService: Error calling dataService.deleteTransaction for ID ${id}:`,
         error
       );
@@ -293,7 +294,7 @@ export class TableTransactionsService {
     filters: TableTransactionFilters,
     platform: Platform
   ): Promise<{ transactions: Transaction[]; totalCount: number }> {
-    console.log("Preparing data for export with filters:", filters);
+    logger.log("Preparing data for export with filters:", filters);
 
     // To get the total count and all transactions, we call the same
     // fetching logic as the main table, but with a very high limit to get all records.
@@ -307,7 +308,7 @@ export class TableTransactionsService {
       platform,
     });
 
-    console.log(
+    logger.log(
       `Got ${response.data.length} transactions for export with a total count of ${response.totalCount}`
     );
 

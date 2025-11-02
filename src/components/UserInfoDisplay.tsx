@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut, User } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { logger } from "@/lib/logger";
 
 export function UserInfoDisplay() {
   const { platform } = usePlatform();
@@ -24,7 +25,7 @@ export function UserInfoDisplay() {
       await signOut();
       navigate({ to: "/login", replace: true });
     } catch (e) {
-      console.error("Logout caught in UserInfoDisplay:", e);
+      logger.error("Logout caught in UserInfoDisplay:", e);
     }
   };
 
@@ -63,7 +64,7 @@ export function UserInfoDisplay() {
           setAvatarUrl(data?.avatar_url || null);
         }
       } catch (err: any) {
-        console.error("Error fetching profile:", err);
+        logger.error("Error fetching profile:", err);
         if (isMounted) {
           setError(err.message || t("profile.loadError"));
         }

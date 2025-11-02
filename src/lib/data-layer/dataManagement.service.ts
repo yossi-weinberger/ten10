@@ -8,6 +8,7 @@ import {
   addTransaction,
   clearAllData as clearAllDataFromDataService,
 } from "./index";
+import { logger } from "@/lib/logger";
 
 interface DataManagementOptions {
   setIsLoading: (loading: boolean) => void;
@@ -67,10 +68,10 @@ export const exportDataDesktop = async ({
       await writeTextFile(filePath, jsonData);
       toast.success("הנתונים יוצאו בהצלחה!");
     } else {
-      console.log("Desktop data export cancelled by user.");
+      logger.log("Desktop data export cancelled by user.");
     }
   } catch (error) {
-    console.error("Failed to export data (desktop):", error);
+    logger.error("Failed to export data (desktop):", error);
     toast.error("שגיאה בייצוא הנתונים (Desktop).");
   } finally {
     setIsLoading(false);
@@ -185,7 +186,7 @@ export const importDataDesktop = async ({
 
           await invoke("add_transaction", { transaction: transactionForRust });
         } catch (error) {
-          console.error("Error processing imported item:", item, error);
+          logger.error("Error processing imported item:", item, error);
         }
       }
 
@@ -196,14 +197,14 @@ export const importDataDesktop = async ({
       );
     } else {
       if (selectedPath !== null) {
-        console.warn(
+        logger.warn(
           "File selection returned an array or unexpected type:",
           selectedPath
         );
       }
     }
   } catch (error) {
-    console.error("Failed to import data (desktop):", error);
+    logger.error("Failed to import data (desktop):", error);
     toast.error("שגיאה בייבוא הנתונים.");
   } finally {
     setIsLoading(false);
@@ -212,18 +213,18 @@ export const importDataDesktop = async ({
 
 export async function clearAllData() {
   const currentPlatform = getPlatform();
-  console.log(
+  logger.log(
     "DataManagementService: Clearing all data. Platform:",
     currentPlatform
   );
   if (currentPlatform === "desktop") {
     try {
-      console.log("Invoking clear_all_data...");
+      logger.log("Invoking clear_all_data...");
       const { invoke } = await import("@tauri-apps/api/core");
       await invoke("clear_all_data");
-      console.log("SQLite data cleared successfully via invoke.");
+      logger.log("SQLite data cleared successfully via invoke.");
     } catch (error) {
-      console.error("Error invoking clear_all_data:", error);
+      logger.error("Error invoking clear_all_data:", error);
       throw error;
     }
   } else if (currentPlatform === "web") {
@@ -231,23 +232,23 @@ export async function clearAllData() {
       const { error } = await supabase.rpc("clear_all_user_data");
 
       if (error) {
-        console.error("Error calling clear_all_user_data RPC:", error);
+        logger.error("Error calling clear_all_user_data RPC:", error);
         throw error;
       }
 
-      console.log("Successfully cleared user data via RPC.");
+      logger.log("Successfully cleared user data via RPC.");
     } catch (error) {
-      console.error("Error clearing Supabase data:", error);
+      logger.error("Error clearing Supabase data:", error);
       throw error; // Re-throw the error to be caught by the calling function
     }
   }
 
-  console.log("Clearing Zustand store...");
+  logger.log("Clearing Zustand store...");
   // After clearing data, we need to signal that any cached data is now stale.
   // Setting the fetch timestamp to a new value will trigger data re-fetching
   // in components that depend on it.
   useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
-  console.log("Zustand store updated to reflect data changes.");
+  logger.log("Zustand store updated to reflect data changes.");
 }
 
 async function fetchAllTransactionsForExportWeb(): Promise<Transaction[]> {
@@ -257,7 +258,7 @@ async function fetchAllTransactionsForExportWeb(): Promise<Transaction[]> {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    console.error("Web Export: User not authenticated.");
+    logger.error("Web Export: User not authenticated.");
     throw new Error("User not authenticated for web export.");
   }
 
@@ -267,7 +268,7 @@ async function fetchAllTransactionsForExportWeb(): Promise<Transaction[]> {
     .order("date", { ascending: false });
 
   if (error) {
-    console.error("Web Export: Supabase select error:", error);
+    logger.error("Web Export: Supabase select error:", error);
     throw error;
   }
 
@@ -313,7 +314,7 @@ export const exportDataWeb = async ({
 
     toast.success("הנתונים יוצאו בהצלחה!");
   } catch (error) {
-    console.error("Failed to export data (web):", error);
+    logger.error("Failed to export data (web):", error);
     if (error instanceof Error) {
       toast.error("שגיאה בייצוא הנתונים: " + error.message);
     } else {
@@ -457,7 +458,7 @@ export const importDataWeb = async ({
                       .single();
 
                   if (definitionError) {
-                    console.error(
+                    logger.error(
                       "Error creating recurring definition for",
                       desktopSourceRecurringId,
                       definitionError
@@ -486,7 +487,7 @@ export const importDataWeb = async ({
               await addTransaction(transactionToInsert as Transaction);
               importCount++;
             } catch (singleAddError) {
-              console.error(
+              logger.error(
                 "Error importing single transaction (web):",
                 item.id,
                 singleAddError
@@ -498,7 +499,7 @@ export const importDataWeb = async ({
             `ייבוא הושלם! ${importCount} מתוך ${transactionsToImport.length} רשומות יובאו בהצלחה.`
           );
         } catch (importError) {
-          console.error(
+          logger.error(
             "Failed to import data (web) during processing:",
             importError
           );
@@ -522,7 +523,7 @@ export const importDataWeb = async ({
 
     input.click();
   } catch (error) {
-    console.error("Failed to initiate import data (web):", error);
+    logger.error("Failed to initiate import data (web):", error);
     toast.error("שגיאה בהתחלת תהליך הייבוא.");
     setIsLoading(false);
   }

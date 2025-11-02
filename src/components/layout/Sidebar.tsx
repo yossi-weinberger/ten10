@@ -47,16 +47,16 @@
 //       setProfileLoading(true);
 //       setProfileFullName(null);
 //       setProfileAvatarUrl(null);
-//       console.log("[Sidebar] Fetching profile for user ID:", session?.user?.id);
+//       logger.log("[Sidebar] Fetching profile for user ID:", session?.user?.id);
 
 //       async function fetchSidebarProfile() {
 //         if (!session || !session.user) {
-//           console.log("[Sidebar] No session or user, aborting fetch.");
+//           logger.log("[Sidebar] No session or user, aborting fetch.");
 //           if (isMounted) setProfileLoading(false);
 //           return;
 //         }
 //         try {
-//           console.log(
+//           logger.log(
 //             `[Sidebar] Attempting to fetch profile for ID: ${session.user.id}`
 //           );
 //           const { data, error } = await supabase
@@ -65,31 +65,31 @@
 //             .eq("id", session.user.id)
 //             .single();
 
-//           console.log("[Sidebar] Supabase response:", { data, error });
+//           logger.log("[Sidebar] Supabase response:", { data, error });
 
 //           if (error && error.code !== "PGRST116") {
-//             console.error("[Sidebar] Supabase error:", error);
+//             logger.error("[Sidebar] Supabase error:", error);
 //             throw error;
 //           }
 //           if (isMounted) {
 //             if (data) {
-//               console.log("[Sidebar] Profile data received:", data);
+//               logger.log("[Sidebar] Profile data received:", data);
 //               setProfileFullName(data.full_name);
 //               setProfileAvatarUrl(data.avatar_url);
 //             } else {
-//               console.log(
+//               logger.log(
 //                 "[Sidebar] No profile data received (data is null/undefined)."
 //               );
 //             }
 //           }
 //         } catch (err) {
-//           console.error(
+//           logger.error(
 //             "[Sidebar] Error in fetchSidebarProfile catch block:",
 //             err
 //           );
 //         } finally {
 //           if (isMounted) {
-//             console.log(
+//             logger.log(
 //               "[Sidebar] Fetch finished, setting profileLoading to false."
 //             );
 //             setProfileLoading(false);
@@ -363,16 +363,16 @@
 //       setProfileLoading(true);
 //       setProfileFullName(null);
 //       setProfileAvatarUrl(null);
-//       console.log("[Sidebar] Fetching profile for user ID:", session?.user?.id);
+//       logger.log("[Sidebar] Fetching profile for user ID:", session?.user?.id);
 
 //       async function fetchSidebarProfile() {
 //         if (!session || !session.user) {
-//           console.log("[Sidebar] No session or user, aborting fetch.");
+//           logger.log("[Sidebar] No session or user, aborting fetch.");
 //           if (isMounted) setProfileLoading(false);
 //           return;
 //         }
 //         try {
-//           console.log(
+//           logger.log(
 //             `[Sidebar] Attempting to fetch profile for ID: ${session.user.id}`
 //           );
 //           const { data, error } = await supabase
@@ -381,31 +381,31 @@
 //             .eq("id", session.user.id)
 //             .single();
 
-//           console.log("[Sidebar] Supabase response:", { data, error });
+//           logger.log("[Sidebar] Supabase response:", { data, error });
 
 //           if (error && error.code !== "PGRST116") {
-//             console.error("[Sidebar] Supabase error:", error);
+//             logger.error("[Sidebar] Supabase error:", error);
 //             throw error;
 //           }
 //           if (isMounted) {
 //             if (data) {
-//               console.log("[Sidebar] Profile data received:", data);
+//               logger.log("[Sidebar] Profile data received:", data);
 //               setProfileFullName(data.full_name);
 //               setProfileAvatarUrl(data.avatar_url);
 //             } else {
-//               console.log(
+//               logger.log(
 //                 "[Sidebar] No profile data received (data is null/undefined)."
 //               );
 //             }
 //           }
 //         } catch (err) {
-//           console.error(
+//           logger.error(
 //             "[Sidebar] Error in fetchSidebarProfile catch block:",
 //             err
 //           );
 //         } finally {
 //           if (isMounted) {
-//             console.log(
+//             logger.log(
 //               "[Sidebar] Fetch finished, setting profileLoading to false."
 //             );
 //             setProfileLoading(false);
@@ -761,7 +761,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
           }
         } catch (err) {
           if (process.env.NODE_ENV !== "production") {
-            console.error("[Sidebar] profile fetch error:", err);
+            logger.error("[Sidebar] profile fetch error:", err);
           }
         } finally {
           if (isMounted) setProfileLoading(false);
