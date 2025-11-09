@@ -1,6 +1,6 @@
 [package]
 name = "Ten10"
-version = "0.2.13"
+version = "0.2.14-test"
 description = "Ten10 - Income and Donation Management App"
 authors = ["Yossi Weinberger"]
 license = "AGPL-3.0"
