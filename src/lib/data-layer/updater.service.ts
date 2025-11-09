@@ -7,7 +7,7 @@
  * Note: Uses dynamic imports to avoid loading Tauri plugins in web environment.
  */
 
-import { invoke } from "@tauri-apps/api/core";
+// import { invoke } from "@tauri-apps/api/core"; // STATIC IMPORT REMOVED - using dynamic imports instead
 
 export interface AppVersion {
   current: string;
@@ -19,8 +19,6 @@ export interface UpdateInfo {
   version: string;
   date: string;
   body?: string;
-  download?: () => Promise<void>;
-  install?: () => Promise<void>;
 }
 
 /**
@@ -30,6 +28,12 @@ export interface UpdateInfo {
  */
 export async function getCurrentVersion(): Promise<string> {
   try {
+    // @ts-expect-error - __TAURI_INTERNALS__ is injected by Tauri
+    if (!window.__TAURI_INTERNALS__) {
+      return import.meta.env.VITE_APP_VERSION || "0.0.0";
+    }
+
+    const { invoke } = await import("@tauri-apps/api/core");
     const version = await invoke<string>("get_app_version");
     return version;
   } catch (error) {
@@ -67,21 +71,8 @@ export async function checkForUpdates(): Promise<UpdateInfo | null> {
 
       return {
         version: update.version,
-        date: update.date,
+        date: update.date || new Date().toISOString(),
         body: update.body,
-        download: async () => {
-          console.log("Downloading update...");
-          await update.downloadAndInstall((progress) => {
-            console.log(
-              `Download progress: ${progress.downloaded}/${progress.contentLength}`
-            );
-            // You can emit events here to update UI progress bar
-          });
-        },
-        install: async () => {
-          console.log("Installing update and relaunching...");
-          await relaunch();
-        },
       };
     }
 
@@ -101,14 +92,11 @@ export async function checkForUpdates(): Promise<UpdateInfo | null> {
  * Download and install an update
  *
  * This combines download and install steps, and restarts the app when done.
- * Shows progress during download.
+ * Shows progress in console logs.
  *
- * @param onProgress - Optional callback for download progress
  * @returns Promise<void>
  */
-export async function downloadAndInstallUpdate(
-  onProgress?: (downloaded: number, total: number) => void
-): Promise<void> {
+export async function downloadAndInstallUpdate(): Promise<void> {
   try {
     // Check if running on desktop
     // @ts-expect-error - __TAURI_INTERNALS__ is injected by Tauri
@@ -116,6 +104,7 @@ export async function downloadAndInstallUpdate(
       throw new Error("Updates are only available on desktop");
     }
 
+    const { check: checkUpdate } = await import("@tauri-apps/plugin-updater");
     const update = await checkUpdate();
 
     if (!update) {
@@ -125,13 +114,19 @@ export async function downloadAndInstallUpdate(
     console.log(`Downloading and installing update ${update.version}...`);
 
     await update.downloadAndInstall((progress) => {
-      const downloaded = progress.downloaded;
-      const total = progress.contentLength || 0;
-
-      console.log(`Download progress: ${downloaded}/${total} bytes`);
-
-      if (onProgress && total > 0) {
-        onProgress(downloaded, total);
+      // Handle different progress event types
+      if (progress.event === "Started") {
+        console.log(
+          `Download started, size: ${
+            progress.data.contentLength || "unknown"
+          } bytes`
+        );
+      } else if (progress.event === "Progress") {
+        const downloaded = progress.data.chunkLength;
+        console.log(`Download progress: ${downloaded} bytes received`);
+        // Note: Total size not available in Progress events, only in Started
+      } else if (progress.event === "Finished") {
+        console.log("Download finished");
       }
     });
 

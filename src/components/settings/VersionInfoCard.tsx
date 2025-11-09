@@ -36,14 +36,12 @@ type CheckStatus =
 
 export function VersionInfoCard() {
   const { t } = useTranslation("settings");
-  const { t: tCommon } = useTranslation("common");
   const { platform } = usePlatform();
 
   const [currentVersion, setCurrentVersion] = useState<string>("");
   const [checkStatus, setCheckStatus] = useState<CheckStatus>("idle");
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [isInstalling, setIsInstalling] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState<number>(0);
   const [error, setError] = useState<string>("");
 
   // Load version on mount
@@ -97,13 +95,9 @@ export function VersionInfoCard() {
 
     setIsInstalling(true);
     setError("");
-    setDownloadProgress(0);
 
     try {
-      await downloadAndInstallUpdate((downloaded, total) => {
-        const progress = Math.round((downloaded / total) * 100);
-        setDownloadProgress(progress);
-      });
+      await downloadAndInstallUpdate();
 
       // App will restart automatically after successful install
       toast.success(
@@ -199,24 +193,6 @@ export function VersionInfoCard() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-          </div>
-        )}
-
-        {/* Download Progress */}
-        {isInstalling && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span>
-                {t("versionInfo.downloading") || "Downloading update..."}
-              </span>
-              <span className="font-mono">{downloadProgress}%</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-              <div
-                className="h-full bg-blue-600 transition-all duration-300 dark:bg-blue-400"
-                style={{ width: `${downloadProgress}%` }}
-              />
-            </div>
           </div>
         )}
 
