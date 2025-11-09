@@ -1,13 +1,13 @@
 /**
  * Updater Service
- * 
+ *
  * Handles application version checking and updates for desktop platform.
  * Uses Tauri's updater plugin for secure, signed updates.
+ *
+ * Note: Uses dynamic imports to avoid loading Tauri plugins in web environment.
  */
 
-import { check as checkUpdate } from '@tauri-apps/plugin-updater';
-import { relaunch } from '@tauri-apps/plugin-process';
-import { invoke } from '@tauri-apps/api/core';
+import { invoke } from "@tauri-apps/api/core";
 
 export interface AppVersion {
   current: string;
@@ -25,26 +25,26 @@ export interface UpdateInfo {
 
 /**
  * Get the current application version
- * 
+ *
  * @returns Promise<string> - Current app version (e.g., "0.2.9")
  */
 export async function getCurrentVersion(): Promise<string> {
   try {
-    const version = await invoke<string>('get_app_version');
+    const version = await invoke<string>("get_app_version");
     return version;
   } catch (error) {
-    console.error('Failed to get app version:', error);
+    console.error("Failed to get app version:", error);
     // Fallback to package.json version
-    return import.meta.env.VITE_APP_VERSION || '0.0.0';
+    return import.meta.env.VITE_APP_VERSION || "0.0.0";
   }
 }
 
 /**
  * Check if an update is available
- * 
+ *
  * Desktop: Uses Tauri updater plugin to check GitHub releases
  * Web: Returns null (updates happen automatically via deployment)
- * 
+ *
  * @returns Promise<UpdateInfo | null> - Update information if available, null otherwise
  */
 export async function checkForUpdates(): Promise<UpdateInfo | null> {
@@ -52,48 +52,57 @@ export async function checkForUpdates(): Promise<UpdateInfo | null> {
     // Check if running on desktop (Tauri)
     // @ts-expect-error - __TAURI_INTERNALS__ is injected by Tauri
     if (!window.__TAURI_INTERNALS__) {
-      console.log('Not running on desktop, updates not applicable');
+      console.log("Not running on desktop, updates not applicable");
       return null;
     }
 
-    console.log('Checking for updates...');
+    console.log("Checking for updates...");
+
+    // Dynamic import to avoid loading in web environment
+    const { check: checkUpdate } = await import("@tauri-apps/plugin-updater");
     const update = await checkUpdate();
 
     if (update) {
       console.log(`Update available: ${update.version}`);
-      
+
       return {
         version: update.version,
         date: update.date,
         body: update.body,
         download: async () => {
-          console.log('Downloading update...');
+          console.log("Downloading update...");
           await update.downloadAndInstall((progress) => {
-            console.log(`Download progress: ${progress.downloaded}/${progress.contentLength}`);
+            console.log(
+              `Download progress: ${progress.downloaded}/${progress.contentLength}`
+            );
             // You can emit events here to update UI progress bar
           });
         },
         install: async () => {
-          console.log('Installing update and relaunching...');
+          console.log("Installing update and relaunching...");
           await relaunch();
-        }
+        },
       };
     }
 
-    console.log('App is up to date');
+    console.log("App is up to date");
     return null;
   } catch (error) {
-    console.error('Failed to check for updates:', error);
-    throw new Error(`Update check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error("Failed to check for updates:", error);
+    throw new Error(
+      `Update check failed: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 }
 
 /**
  * Download and install an update
- * 
+ *
  * This combines download and install steps, and restarts the app when done.
  * Shows progress during download.
- * 
+ *
  * @param onProgress - Optional callback for download progress
  * @returns Promise<void>
  */
@@ -104,71 +113,77 @@ export async function downloadAndInstallUpdate(
     // Check if running on desktop
     // @ts-expect-error - __TAURI_INTERNALS__ is injected by Tauri
     if (!window.__TAURI_INTERNALS__) {
-      throw new Error('Updates are only available on desktop');
+      throw new Error("Updates are only available on desktop");
     }
 
     const update = await checkUpdate();
-    
+
     if (!update) {
-      throw new Error('No update available');
+      throw new Error("No update available");
     }
 
     console.log(`Downloading and installing update ${update.version}...`);
-    
+
     await update.downloadAndInstall((progress) => {
       const downloaded = progress.downloaded;
       const total = progress.contentLength || 0;
-      
+
       console.log(`Download progress: ${downloaded}/${total} bytes`);
-      
+
       if (onProgress && total > 0) {
         onProgress(downloaded, total);
       }
     });
 
-    console.log('Update installed, relaunching app...');
+    console.log("Update installed, relaunching app...");
+
+    // Dynamic import for relaunch
+    const { relaunch } = await import("@tauri-apps/plugin-process");
     await relaunch();
   } catch (error) {
-    console.error('Failed to install update:', error);
-    throw new Error(`Update installation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error("Failed to install update:", error);
+    throw new Error(
+      `Update installation failed: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 }
 
 /**
  * Get app version info with update availability
- * 
+ *
  * @returns Promise<AppVersion> - Version information
  */
 export async function getVersionInfo(): Promise<AppVersion> {
   const current = await getCurrentVersion();
-  
+
   try {
     const updateInfo = await checkForUpdates();
-    
+
     if (updateInfo) {
       return {
         current,
         available: updateInfo.version,
-        updateAvailable: true
+        updateAvailable: true,
       };
     }
   } catch (error) {
-    console.error('Failed to check for updates:', error);
+    console.error("Failed to check for updates:", error);
   }
 
   return {
     current,
-    updateAvailable: false
+    updateAvailable: false,
   };
 }
 
 /**
  * Check if the app is running on desktop (Tauri)
- * 
+ *
  * @returns boolean - True if running on desktop
  */
 export function isDesktopPlatform(): boolean {
   // @ts-expect-error - __TAURI_INTERNALS__ is injected by Tauri
-  return typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__;
+  return typeof window !== "undefined" && !!window.__TAURI_INTERNALS__;
 }
-
