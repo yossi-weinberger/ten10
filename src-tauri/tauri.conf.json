@@ -29,7 +29,16 @@
   "productName": "Ten10",
   "version": "0.2.9",
   "identifier": "com.ten10.dev",
-  "plugins": {},
+  "plugins": {
+    "updater": {
+      "active": true,
+      "endpoints": [
+        "https://github.com/yossi-weinberger/ten10/releases/latest/download/latest.json"
+      ],
+      "dialog": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEU2MkFDRUQyMDg5N0IzRDMKUldUVHM1Y0kwczRxNXNFWGpCajM4d3c2blpkUE9jbXRNOURJeTNvcnRFMzZ6bmFOUTVVRWVaKzUK"
+    }
+  },
   "app": {
     "windows": [],
     "security": {
