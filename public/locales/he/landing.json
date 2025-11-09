@@ -171,6 +171,10 @@
     "orText": "או התחל ישירות בדפדפן",
     "webAppButton": "פתח באפליקציית הווב",
     "downloadButton": "הורד",
+    "loading": "טוען...",
+    "notAvailable": "לא זמין",
+    "error": "נכשל בטעינת קישורי ההורדה. אנא נסה שוב מאוחר יותר.",
+    "comingSoon": "גרסאות macOS ו-Linux בקרוב",
     "webCard": {
       "title": "אפליקציית ווב",
       "button": "פתח כעת"

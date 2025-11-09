@@ -78,5 +78,21 @@
     "warningTitle": "Warning!",
     "warningDescription": "This action will permanently delete all your data and cannot be undone.",
     "confirmButton": "Delete All Data"
+  },
+  "versionInfo": {
+    "title": "Version Information",
+    "description": "Check for updates and view version details",
+    "currentVersion": "Current Version",
+    "checking": "Checking for updates...",
+    "upToDate": "Your app is up to date!",
+    "updateAvailable": "Version {{version}} is available",
+    "checkButton": "Check for Updates",
+    "installButton": "Install Update",
+    "downloading": "Downloading update...",
+    "installing": "Installing...",
+    "checkError": "Failed to check for updates",
+    "installError": "Failed to install update",
+    "installSuccess": "Update installed! Restarting...",
+    "autoUpdateNote": "The app checks for updates automatically on startup. You can also check manually here."
   }
 }

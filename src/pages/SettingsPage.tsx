@@ -27,6 +27,7 @@ import { NotificationSettingsCard } from "@/components/settings/NotificationSett
 import { CalendarSettingsCard } from "@/components/settings/CalendarSettingsCard";
 import { ClearDataSection } from "@/components/settings/ClearDataSection";
 import { ImportExportDataSection } from "@/components/settings/ImportExportDataSection";
+import { VersionInfoCard } from "@/components/settings/VersionInfoCard";
 import { logger } from "@/lib/logger";
 
 export function SettingsPage() {
@@ -86,13 +87,22 @@ export function SettingsPage() {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <LanguageAndDisplaySettingsCard
-          theme={theme}
-          setTheme={setTheme}
-          languageSettings={{ language: settings.language }}
-          updateSettings={(newLangSettings) => updateSettings(newLangSettings)}
-        />
+        {/* Left Column: Language & Version */}
+        <div className="flex flex-col gap-6">
+          <LanguageAndDisplaySettingsCard
+            theme={theme}
+            setTheme={setTheme}
+            languageSettings={{ language: settings.language }}
+            updateSettings={(newLangSettings) =>
+              updateSettings(newLangSettings)
+            }
+          />
 
+          {/* Version Information (Desktop Only) */}
+          <VersionInfoCard />
+        </div>
+
+        {/* Right Column: Financial Settings */}
         <FinancialSettingsCard
           financialSettings={{
             defaultCurrency: settings.defaultCurrency as "ILS" | "USD" | "EUR",
