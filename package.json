@@ -1,7 +1,7 @@
 {
   "name": "ten10",
   "private": true,
-  "version": "0.2.9",
+  "version": "0.2.10",
   "type": "module",
   "license": "AGPL-3.0",
   "scripts": {
@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "tauri": "tauri",
-    "deploy-supabase": "node supabase/scripts/deploy-functions.js"
+    "deploy-supabase": "node supabase/scripts/deploy-functions.js",
+    "release": "node scripts/release.cjs"
   },
   "dependencies": {
     "@hebcal/core": "^5.10.1",

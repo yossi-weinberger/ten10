@@ -7,15 +7,26 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis", "msi"],
-    "resources": ["../dist/**/*"],
+    "targets": [
+      "nsis",
+      "msi"
+    ],
+    "resources": [
+      "../dist/**/*"
+    ],
     "windows": {
       "nsis": {
         "displayLanguageSelector": true,
-        "languages": ["Hebrew", "English"]
+        "languages": [
+          "Hebrew",
+          "English"
+        ]
       },
       "wix": {
-        "language": ["he-IL", "en-US"]
+        "language": [
+          "he-IL",
+          "en-US"
+        ]
       }
     },
     "icon": [
@@ -27,7 +38,7 @@
     ]
   },
   "productName": "Ten10",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "identifier": "com.ten10.dev",
   "plugins": {
     "updater": {
