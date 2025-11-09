@@ -116,4 +116,15 @@ pub async fn clear_all_data(db: State<'_, DbState>) -> Result<(), String> {
     tx.commit().map_err(|e| e.to_string())?;
     
     Ok(())
+}
+
+/**
+ * Get the current application version from Cargo.toml
+ * 
+ * This returns the version at compile time, which is defined in Cargo.toml.
+ * It's used by the frontend to display the current version in the UI.
+ */
+#[tauri::command]
+pub fn get_app_version() -> String {
+    env!("CARGO_PKG_VERSION").to_string()
 } 

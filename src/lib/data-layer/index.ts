@@ -53,3 +53,12 @@ export {
   getRecurringTransactions,
 } from "./recurringTransactions.service";
 export type { NewRecurringTransaction } from "./recurringTransactions.service";
+
+export {
+  getCurrentVersion,
+  checkForUpdates,
+  downloadAndInstallUpdate,
+  getVersionInfo,
+  isDesktopPlatform,
+} from "./updater.service";
+export type { AppVersion, UpdateInfo } from "./updater.service";

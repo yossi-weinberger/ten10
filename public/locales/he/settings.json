@@ -78,5 +78,21 @@
     "warningTitle": "אזהרה!",
     "warningDescription": "פעולה זו תמחק את כל הנתונים שלך באופן סופי ולא ניתן לבטל אותה.",
     "confirmButton": "מחק את כל הנתונים"
+  },
+  "versionInfo": {
+    "title": "מידע גרסה",
+    "description": "בדוק עדכונים והצג פרטי גרסה",
+    "currentVersion": "גרסה נוכחית",
+    "checking": "בודק עדכונים...",
+    "upToDate": "האפליקציה מעודכנת!",
+    "updateAvailable": "גרסה {{version}} זמינה להורדה",
+    "checkButton": "בדוק עדכונים",
+    "installButton": "התקן עדכון",
+    "downloading": "מוריד עדכון...",
+    "installing": "מתקין...",
+    "checkError": "נכשל בבדיקת עדכונים",
+    "installError": "נכשל בהתקנת עדכון",
+    "installSuccess": "עדכון הותקן! מפעיל מחדש...",
+    "autoUpdateNote": "האפליקציה בודקת עדכונים אוטומטית בהפעלה. ניתן גם לבדוק ידנית כאן."
   }
 }

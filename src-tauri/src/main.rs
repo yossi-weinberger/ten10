@@ -9,7 +9,7 @@ mod commands;
 mod models;
 
 use commands::chart_commands::get_desktop_monthly_financial_summary;
-use commands::db_commands::{clear_all_data, init_db};
+use commands::db_commands::{clear_all_data, get_app_version, init_db};
 use commands::donation_commands::{
     get_desktop_overall_tithe_balance, get_desktop_total_donations_in_range,
 };
@@ -41,11 +41,13 @@ fn main() {
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             None,
         ))
+        .plugin(tauri_plugin_updater::Builder::new().build())
         // commands
         .invoke_handler(tauri::generate_handler![
             init_db,
             add_transaction,
             clear_all_data,
+            get_app_version,
             get_desktop_total_income_in_range,
             get_desktop_total_expenses_in_range,
             get_desktop_total_donations_in_range,
