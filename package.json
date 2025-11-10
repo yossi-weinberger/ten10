@@ -1,7 +1,7 @@
 {
   "name": "ten10",
   "private": true,
-  "version": "0.2.16",
+  "version": "0.2.17",
   "type": "module",
   "license": "AGPL-3.0",
   "scripts": {
