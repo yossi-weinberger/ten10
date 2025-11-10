@@ -76,6 +76,21 @@ The application needs to handle various types of financial entries, each affecti
 - **Status (Web)**: Implemented. Web users can opt-in to receive monthly email reminders. The content is personalized based on their current tithe balance. This is handled by a Supabase Edge Function triggered by a daily cron job.
 - **Status (Desktop)**: Implemented. Desktop users can receive native system notifications. The logic is triggered on application startup and uses the same user settings as the web version. To ensure timely reminders, an "Autostart" option is provided in the settings, allowing the application to launch on system startup.
 
+### Desktop Updates & Distribution
+
+- **Requirement**: Desktop users (who are offline) need a way to receive new versions and updates.
+- **Solution**: Automated release system with GitHub Releases and auto-updater.
+- **Status**: ✅ Fully Implemented.
+  - **Auto-Update System**: Uses Tauri updater plugin to check GitHub Releases for new versions and install them automatically.
+  - **GitHub Actions**: Automated workflow that builds, signs, and publishes releases when a version tag is pushed.
+  - **Manual Check**: Users can manually check for updates via Settings > Version Info > "Check for Updates" button.
+  - **Landing Page**: Dynamic download links pull latest version from GitHub Releases API.
+  - **One-Command Release**: `npm run release 0.3.0` handles entire release process automatically.
+- **Implementation Details**:
+  - **Quick Start**: `SETUP_UPDATER_KEYS.md` - First-time setup
+  - **Complete Guide**: `desktop-release-system-guide.md` - Full system overview
+  - **Technical Details**: `release-management-guide.md` - Detailed troubleshooting and process
+
 ## Future Features (Low Priority)
 
 - **Advanced Reporting**: Annual summaries, period comparisons, custom expense categories.
