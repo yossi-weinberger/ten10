@@ -22,6 +22,10 @@
     "fs:default",
     "shell:default",
     "dialog:default",
-    "autostart:default"
+    "autostart:default",
+    "updater:default",
+    "updater:allow-check",
+    "updater:allow-download",
+    "updater:allow-install"
   ]
 }

@@ -8,6 +8,10 @@ export default defineConfig(() => {
   // This is a reliable way to detect if the build is running on Vercel.
   const isVercel = process.env.VERCEL === "1";
 
+  // Detect if this is a CI build (GitHub Actions or similar)
+  // CI builds that run 'npm run build' standalone need to exclude Tauri modules
+  const isCIBuild = process.env.CI === "true";
+
   return {
     base: "./",
     plugins: [
@@ -47,16 +51,19 @@ export default defineConfig(() => {
     // - A 'tauri build' for desktop NEEDS to bundle the '@tauri-apps/' modules to function.
     // - A 'vercel build' for the web WILL FAIL if it tries to resolve '@tauri-apps/' modules,
     //   as they don't exist on the Vercel build servers and are irrelevant for a web-only deployment.
+    // - A standalone 'npm run build' in CI (GitHub Actions) will also FAIL for the same reason.
     // THE SOLUTION:
-    // We reliably detect if the build is running on Vercel by checking `process.env.VERCEL`.
-    // - If it IS a Vercel build (`isVercel` is true), we mark all Tauri modules as 'external'.
-    //   This tells Vite to ignore them, preventing the web build from breaking.
-    // - If it is NOT a Vercel build (i.e., a local `tauri build`), we provide an empty 'external'
-    //   array, which allows Vite to correctly bundle all necessary Tauri modules for the desktop app.
+    // We detect the build context:
+    // - `process.env.VERCEL === "1"` → Vercel web build
+    // - `process.env.CI === "true"` → CI standalone build (GitHub Actions before tauri-action runs)
+    // - Neither flag set → Local development or Tauri build context
+    //
+    // If it's Vercel OR CI standalone build, we mark Tauri modules as 'external' (ignore them).
+    // Otherwise (local Tauri build), we allow Vite to bundle Tauri modules normally.
     build: {
       rollupOptions: {
-        // If on Vercel, exclude Tauri modules. Otherwise (local build), include them.
-        external: isVercel ? [/^@tauri-apps\//] : [],
+        // Exclude Tauri modules in web builds (Vercel) or standalone CI builds (GitHub Actions)
+        external: isVercel || isCIBuild ? [/^@tauri-apps\//] : [],
       },
     },
     resolve: {

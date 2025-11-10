@@ -130,11 +130,9 @@ export async function downloadAndInstallUpdate(): Promise<void> {
       }
     });
 
-    console.log("Update installed, relaunching app...");
-
-    // Dynamic import for relaunch
-    const { relaunch } = await import("@tauri-apps/plugin-process");
-    await relaunch();
+    console.log(
+      "Update installed successfully. App will restart automatically."
+    );
   } catch (error) {
     console.error("Failed to install update:", error);
     throw new Error(
