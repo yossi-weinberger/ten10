@@ -43,6 +43,7 @@ export function VersionInfoCard() {
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [isInstalling, setIsInstalling] = useState(false);
   const [error, setError] = useState<string>("");
+  const [isNetworkError, setIsNetworkError] = useState(false);
 
   // Load version on mount
   useEffect(() => {
@@ -62,6 +63,7 @@ export function VersionInfoCard() {
     setCheckStatus("checking");
     setError("");
     setUpdateInfo(null);
+    setIsNetworkError(false);
 
     try {
       const update = await checkForUpdates();
@@ -82,21 +84,21 @@ export function VersionInfoCard() {
 
       // Check if it's a network error
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      const isNetworkError =
+      const isNetwork =
         errorMessage.includes("fetch") ||
         errorMessage.includes("network") ||
         errorMessage.includes("Could not fetch");
 
-      if (isNetworkError) {
+      setIsNetworkError(isNetwork);
+
+      if (isNetwork) {
         setError(t("versionInfo.networkError"));
       } else {
         setError(errorMessage);
       }
 
       toast.error(
-        isNetworkError
-          ? t("versionInfo.networkError")
-          : t("versionInfo.checkError")
+        isNetwork ? t("versionInfo.networkError") : t("versionInfo.checkError")
       );
     }
   };
@@ -192,7 +194,7 @@ export function VersionInfoCard() {
                 <AlertDescription>
                   <div className="space-y-2">
                     <p>{error}</p>
-                    {error.includes(t("versionInfo.networkError")) && (
+                    {isNetworkError && (
                       <p className="text-xs">{t("versionInfo.offlineHelp")}</p>
                     )}
                   </div>
