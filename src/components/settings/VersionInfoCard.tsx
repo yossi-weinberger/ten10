@@ -70,12 +70,11 @@ export function VersionInfoCard() {
         setCheckStatus("update-available");
         setUpdateInfo(update);
         toast.success(
-          t("versionInfo.updateAvailable", { version: update.version }) ||
-            `Update available: ${update.version}`
+          t("versionInfo.updateAvailable", { version: update.version })
         );
       } else {
         setCheckStatus("up-to-date");
-        toast.success(t("versionInfo.upToDate") || "Your app is up to date!");
+        toast.success(t("versionInfo.upToDate"));
       }
     } catch (err) {
       console.error("Failed to check for updates:", err);
@@ -89,15 +88,15 @@ export function VersionInfoCard() {
         errorMessage.includes("Could not fetch");
 
       if (isNetworkError) {
-        setError(t("versionInfo.networkError") || "No internet connection");
+        setError(t("versionInfo.networkError"));
       } else {
         setError(errorMessage);
       }
 
       toast.error(
         isNetworkError
-          ? t("versionInfo.networkError") || "No internet connection"
-          : t("versionInfo.checkError") || "Failed to check for updates"
+          ? t("versionInfo.networkError")
+          : t("versionInfo.checkError")
       );
     }
   };
@@ -114,15 +113,13 @@ export function VersionInfoCard() {
       await downloadAndInstallUpdate();
 
       // App will restart automatically after successful install
-      toast.success(
-        t("versionInfo.installSuccess") || "Update installed! Restarting..."
-      );
+      toast.success(t("versionInfo.installSuccess"));
     } catch (err) {
       console.error("Failed to install update:", err);
       setIsInstalling(false);
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
       setError(errorMessage);
-      toast.error(t("versionInfo.installError") || "Failed to install update");
+      toast.error(t("versionInfo.installError"));
     }
   };
 
@@ -136,12 +133,9 @@ export function VersionInfoCard() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Info className="h-5 w-5" />
-              {t("versionInfo.title") || "Version Information"}
+              {t("versionInfo.title")}
             </CardTitle>
-            <CardDescription>
-              {t("versionInfo.description") ||
-                "Check for updates and view version details"}
-            </CardDescription>
+            <CardDescription>{t("versionInfo.description")}</CardDescription>
           </div>
           {checkStatus === "up-to-date" && (
             <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -153,7 +147,7 @@ export function VersionInfoCard() {
         {/* Current Version */}
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium">
-            {t("versionInfo.currentVersion") || "Current Version"}
+            {t("versionInfo.currentVersion")}
           </span>
           <Badge variant="outline" className="font-mono">
             v{currentVersion || "..."}
@@ -166,9 +160,7 @@ export function VersionInfoCard() {
             {checkStatus === "checking" && (
               <Alert>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <AlertDescription>
-                  {t("versionInfo.checking") || "Checking for updates..."}
-                </AlertDescription>
+                <AlertDescription>{t("versionInfo.checking")}</AlertDescription>
               </Alert>
             )}
 
@@ -176,7 +168,7 @@ export function VersionInfoCard() {
               <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
                 <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
                 <AlertDescription className="text-green-800 dark:text-green-200">
-                  {t("versionInfo.upToDate") || "Your app is up to date!"}
+                  {t("versionInfo.upToDate")}
                 </AlertDescription>
               </Alert>
             )}
@@ -188,7 +180,7 @@ export function VersionInfoCard() {
                   <p className="font-medium">
                     {t("versionInfo.updateAvailable", {
                       version: updateInfo.version,
-                    }) || `גרסה ${updateInfo.version} זמינה להורדה`}
+                    })}
                   </p>
                 </AlertDescription>
               </Alert>
@@ -200,13 +192,8 @@ export function VersionInfoCard() {
                 <AlertDescription>
                   <div className="space-y-2">
                     <p>{error}</p>
-                    {error.includes(
-                      t("versionInfo.networkError") || "No internet connection"
-                    ) && (
-                      <p className="text-xs">
-                        {t("versionInfo.offlineHelp") ||
-                          "לקבלת גרסה מעודכנת ללא חיבור לאינטרנט, אנא פנה אלינו במייל: support@ten10-app.com"}
-                      </p>
+                    {error.includes(t("versionInfo.networkError")) && (
+                      <p className="text-xs">{t("versionInfo.offlineHelp")}</p>
                     )}
                   </div>
                 </AlertDescription>
@@ -228,12 +215,12 @@ export function VersionInfoCard() {
                 {checkStatus === "checking" ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t("versionInfo.checking") || "Checking..."}
+                    {t("versionInfo.checking")}
                   </>
                 ) : (
                   <>
                     <RefreshCw className="mr-2 h-4 w-4" />
-                    {t("versionInfo.checkButton") || "Check for Updates"}
+                    {t("versionInfo.checkButton")}
                   </>
                 )}
               </Button>
@@ -247,12 +234,12 @@ export function VersionInfoCard() {
                   {isInstalling ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {t("versionInfo.installing") || "Installing..."}
+                      {t("versionInfo.installing")}
                     </>
                   ) : (
                     <>
                       <Download className="mr-2 h-4 w-4" />
-                      {t("versionInfo.installButton") || "Install Update"}
+                      {t("versionInfo.installButton")}
                     </>
                   )}
                 </Button>
@@ -261,8 +248,7 @@ export function VersionInfoCard() {
 
             {/* Auto-update Info - Desktop Only */}
             <p className="text-xs text-muted-foreground">
-              {t("versionInfo.autoUpdateNote") ||
-                "The app checks for updates automatically on startup. You can also check manually here."}
+              {t("versionInfo.autoUpdateNote")}
             </p>
           </>
         )}
@@ -270,8 +256,7 @@ export function VersionInfoCard() {
         {/* Web Version Info */}
         {isWeb && (
           <p className="text-xs text-muted-foreground">
-            {t("versionInfo.webVersionNote") ||
-              "גרסת הווב מתעדכנת אוטומטית. אין צורך בעדכונים ידניים."}
+            {t("versionInfo.webVersionNote")}
           </p>
         )}
       </CardContent>

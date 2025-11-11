@@ -47,6 +47,12 @@ export const CtaSection: React.FC = () => {
                 size="lg"
                 variant="secondary"
                 className="text-lg px-8 py-3"
+                onClick={() => {
+                  // Scroll to download section
+                  document
+                    .getElementById("download")
+                    ?.scrollIntoView({ behavior: "smooth" });
+                }}
               >
                 <Download className="mr-2 h-5 w-5" />
                 {t("cta.desktopButton")}
@@ -74,4 +80,3 @@ export const CtaSection: React.FC = () => {
     </motion.section>
   );
 };
-
