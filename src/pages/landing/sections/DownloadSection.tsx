@@ -95,7 +95,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
                   {loading ? (
                     <Button className="w-full" disabled>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {t("download.loading") || "Loading..."}
+                      {t("download.loading")}
                     </Button>
                   ) : downloads.windowsMsi || downloads.windowsExe ? (
                     <Button className="w-full" asChild>
@@ -114,7 +114,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
                   ) : (
                     <Button className="w-full" disabled>
                       <Download className="mr-2 h-4 w-4" />
-                      {t("download.notAvailable") || "Not Available"}
+                      {t("download.notAvailable")}
                     </Button>
                   )}
                 </motion.div>
@@ -177,7 +177,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
 
         {/* Coming Soon Note */}
         <p className="mt-8 text-sm text-muted-foreground">
-          {t("download.comingSoon") || "macOS and Linux versions coming soon"}
+          {t("download.comingSoon")}
         </p>
       </div>
     </section>

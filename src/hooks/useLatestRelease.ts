@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 export interface GitHubAsset {
   name: string;
@@ -31,16 +31,16 @@ interface UseLatestReleaseReturn {
   refetch: () => void;
 }
 
-const GITHUB_REPO_OWNER = 'yossi-weinberger';
-const GITHUB_REPO_NAME = 'ten10';
+const GITHUB_REPO_OWNER = "yossi-weinberger";
+const GITHUB_REPO_NAME = "ten10";
 const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_REPO_OWNER}/${GITHUB_REPO_NAME}/releases/latest`;
 
 /**
  * Hook to fetch the latest release from GitHub
- * 
+ *
  * Fetches release information including version, assets (installers), and metadata.
  * Caches the result to avoid excessive API calls.
- * 
+ *
  * @returns Release information and download links
  */
 export function useLatestRelease(): UseLatestReleaseReturn {
@@ -58,12 +58,14 @@ export function useLatestRelease(): UseLatestReleaseReturn {
       try {
         const response = await fetch(GITHUB_API_URL, {
           headers: {
-            'Accept': 'application/vnd.github+json',
+            Accept: "application/vnd.github+json",
           },
         });
 
         if (!response.ok) {
-          throw new Error(`GitHub API returned ${response.status}: ${response.statusText}`);
+          throw new Error(
+            `GitHub API returned ${response.status}: ${response.statusText}`
+          );
         }
 
         const data: GitHubRelease = await response.json();
@@ -75,28 +77,33 @@ export function useLatestRelease(): UseLatestReleaseReturn {
         for (const asset of data.assets) {
           const name = asset.name.toLowerCase();
 
+          // Skip signature files
+          if (name.endsWith(".sig")) {
+            continue;
+          }
+
           // Windows MSI
-          if (name.endsWith('.msi') || name.includes('.msi.')) {
+          if (name.endsWith(".msi") || name.includes(".msi.")) {
             parsedDownloads.windowsMsi = asset;
           }
           // Windows EXE (NSIS)
-          else if (name.endsWith('.exe') || name.includes('.exe.')) {
+          else if (name.endsWith(".exe") || name.includes(".exe.")) {
             parsedDownloads.windowsExe = asset;
           }
           // macOS DMG
-          else if (name.endsWith('.dmg') || name.includes('.dmg.')) {
+          else if (name.endsWith(".dmg") || name.includes(".dmg.")) {
             parsedDownloads.macOsDmg = asset;
           }
           // Linux AppImage
-          else if (name.endsWith('.appimage') || name.includes('.appimage.')) {
+          else if (name.endsWith(".appimage") || name.includes(".appimage.")) {
             parsedDownloads.linuxAppImage = asset;
           }
         }
 
         setDownloads(parsedDownloads);
       } catch (err) {
-        console.error('Failed to fetch latest release:', err);
-        setError(err instanceof Error ? err : new Error('Unknown error'));
+        console.error("Failed to fetch latest release:", err);
+        setError(err instanceof Error ? err : new Error("Unknown error"));
       } finally {
         setLoading(false);
       }
@@ -106,7 +113,7 @@ export function useLatestRelease(): UseLatestReleaseReturn {
   }, [refetchTrigger]);
 
   const refetch = () => {
-    setRefetchTrigger(prev => prev + 1);
+    setRefetchTrigger((prev) => prev + 1);
   };
 
   return {
@@ -120,12 +127,12 @@ export function useLatestRelease(): UseLatestReleaseReturn {
 
 /**
  * Format file size in human-readable format
- * 
+ *
  * @param bytes - Size in bytes
  * @returns Formatted string (e.g., "45.2 MB")
  */
 export function formatFileSize(bytes: number): string {
-  const units = ['B', 'KB', 'MB', 'GB'];
+  const units = ["B", "KB", "MB", "GB"];
   let size = bytes;
   let unitIndex = 0;
 
@@ -139,11 +146,10 @@ export function formatFileSize(bytes: number): string {
 
 /**
  * Get a clean version string from a tag name
- * 
+ *
  * @param tagName - Git tag (e.g., "v0.2.9" or "0.2.9")
  * @returns Clean version (e.g., "0.2.9")
  */
 export function getVersionFromTag(tagName: string): string {
-  return tagName.startsWith('v') ? tagName.substring(1) : tagName;
+  return tagName.startsWith("v") ? tagName.substring(1) : tagName;
 }
-
