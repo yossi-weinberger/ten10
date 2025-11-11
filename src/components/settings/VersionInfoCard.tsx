@@ -82,12 +82,17 @@ export function VersionInfoCard() {
       console.error("Failed to check for updates:", err);
       setCheckStatus("error");
 
-      // Check if it's a network error
+      // Check if it's a network error (robust detection)
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
       const isNetwork =
-        errorMessage.includes("fetch") ||
-        errorMessage.includes("network") ||
-        errorMessage.includes("Could not fetch");
+        err instanceof TypeError || // Network/fetch errors are typically TypeError
+        (typeof err === "object" &&
+          err !== null &&
+          "code" in err &&
+          ["ENOTFOUND", "ECONNREFUSED", "ECONNRESET", "ETIMEDOUT"].includes(
+            (err as any).code
+          )) ||
+        errorMessage.toLowerCase().includes("could not fetch");
 
       setIsNetworkError(isNetwork);
 
