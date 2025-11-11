@@ -46,14 +46,12 @@ export function VersionInfoCard() {
 
   // Load version on mount
   useEffect(() => {
-    if (platform === "desktop") {
-      getCurrentVersion()
-        .then(setCurrentVersion)
-        .catch((err) => {
-          console.error("Failed to get version:", err);
-          setCurrentVersion("Unknown");
-        });
-    }
+    getCurrentVersion()
+      .then(setCurrentVersion)
+      .catch((err) => {
+        console.error("Failed to get version:", err);
+        setCurrentVersion("Unknown");
+      });
   }, [platform]);
 
   const handleCheckForUpdates = async () => {
@@ -82,9 +80,25 @@ export function VersionInfoCard() {
     } catch (err) {
       console.error("Failed to check for updates:", err);
       setCheckStatus("error");
+
+      // Check if it's a network error
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      setError(errorMessage);
-      toast.error(t("versionInfo.checkError") || "Failed to check for updates");
+      const isNetworkError =
+        errorMessage.includes("fetch") ||
+        errorMessage.includes("network") ||
+        errorMessage.includes("Could not fetch");
+
+      if (isNetworkError) {
+        setError(t("versionInfo.networkError") || "No internet connection");
+      } else {
+        setError(errorMessage);
+      }
+
+      toast.error(
+        isNetworkError
+          ? t("versionInfo.networkError") || "No internet connection"
+          : t("versionInfo.checkError") || "Failed to check for updates"
+      );
     }
   };
 
@@ -112,10 +126,8 @@ export function VersionInfoCard() {
     }
   };
 
-  // Hide on web platform
-  if (platform !== "desktop") {
-    return null;
-  }
+  // On web, show version only (no update functionality)
+  const isWeb = platform === "web";
 
   return (
     <Card>
@@ -173,16 +185,11 @@ export function VersionInfoCard() {
               <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
                 <Download className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <AlertDescription className="text-blue-800 dark:text-blue-200">
-                  <div className="space-y-2">
-                    <p className="font-medium">
-                      {t("versionInfo.updateAvailable", {
-                        version: updateInfo.version,
-                      }) || `Update available: v${updateInfo.version}`}
-                    </p>
-                    {updateInfo.body && (
-                      <p className="text-xs opacity-80">{updateInfo.body}</p>
-                    )}
-                  </div>
+                  <p className="font-medium">
+                    {t("versionInfo.updateAvailable", {
+                      version: updateInfo.version,
+                    }) || `גרסה ${updateInfo.version} זמינה להורדה`}
+                  </p>
                 </AlertDescription>
               </Alert>
             )}
@@ -190,59 +197,83 @@ export function VersionInfoCard() {
             {checkStatus === "error" && error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>
+                  <div className="space-y-2">
+                    <p>{error}</p>
+                    {error.includes(
+                      t("versionInfo.networkError") || "No internet connection"
+                    ) && (
+                      <p className="text-xs">
+                        {t("versionInfo.offlineHelp") ||
+                          "לקבלת גרסה מעודכנת ללא חיבור לאינטרנט, אנא פנה אלינו במייל: support@ten10-app.com"}
+                      </p>
+                    )}
+                  </div>
+                </AlertDescription>
               </Alert>
             )}
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <Button
-            onClick={handleCheckForUpdates}
-            disabled={checkStatus === "checking" || isInstalling}
-            variant="outline"
-            className="flex-1"
-          >
-            {checkStatus === "checking" ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t("versionInfo.checking") || "Checking..."}
-              </>
-            ) : (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                {t("versionInfo.checkButton") || "Check for Updates"}
-              </>
-            )}
-          </Button>
+        {/* Action Buttons - Desktop Only */}
+        {!isWeb && (
+          <>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleCheckForUpdates}
+                disabled={checkStatus === "checking" || isInstalling}
+                variant="outline"
+                className="flex-1"
+              >
+                {checkStatus === "checking" ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t("versionInfo.checking") || "Checking..."}
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    {t("versionInfo.checkButton") || "Check for Updates"}
+                  </>
+                )}
+              </Button>
 
-          {checkStatus === "update-available" && updateInfo && (
-            <Button
-              onClick={handleInstallUpdate}
-              disabled={isInstalling}
-              className="flex-1"
-            >
-              {isInstalling ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t("versionInfo.installing") || "Installing..."}
-                </>
-              ) : (
-                <>
-                  <Download className="mr-2 h-4 w-4" />
-                  {t("versionInfo.installButton") || "Install Update"}
-                </>
+              {checkStatus === "update-available" && updateInfo && (
+                <Button
+                  onClick={handleInstallUpdate}
+                  disabled={isInstalling}
+                  className="flex-1"
+                >
+                  {isInstalling ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {t("versionInfo.installing") || "Installing..."}
+                    </>
+                  ) : (
+                    <>
+                      <Download className="mr-2 h-4 w-4" />
+                      {t("versionInfo.installButton") || "Install Update"}
+                    </>
+                  )}
+                </Button>
               )}
-            </Button>
-          )}
-        </div>
+            </div>
 
-        {/* Auto-update Info */}
-        <p className="text-xs text-muted-foreground">
-          {t("versionInfo.autoUpdateNote") ||
-            "The app checks for updates automatically on startup. You can also check manually here."}
-        </p>
+            {/* Auto-update Info - Desktop Only */}
+            <p className="text-xs text-muted-foreground">
+              {t("versionInfo.autoUpdateNote") ||
+                "The app checks for updates automatically on startup. You can also check manually here."}
+            </p>
+          </>
+        )}
+
+        {/* Web Version Info */}
+        {isWeb && (
+          <p className="text-xs text-muted-foreground">
+            {t("versionInfo.webVersionNote") ||
+              "גרסת הווב מתעדכנת אוטומטית. אין צורך בעדכונים ידניים."}
+          </p>
+        )}
       </CardContent>
     </Card>
   );
