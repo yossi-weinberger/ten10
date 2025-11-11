@@ -24,7 +24,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
   const { t } = useTranslation("landing");
   const downloadRef = useScrollAnimation({ threshold: 0.1 });
   const { release, downloads, loading, error } = useLatestRelease();
-  
+
   const version = release ? getVersionFromTag(release.tag_name) : null;
 
   return (
@@ -54,7 +54,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
           <div className="mb-8 p-4 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg flex items-center gap-3 max-w-2xl mx-auto">
             <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0" />
             <p className="text-sm text-red-800 dark:text-red-200">
-              {t("download.error") || "Failed to load download links. Please try again later."}
+              {t("download.error")}
             </p>
           </div>
         )}

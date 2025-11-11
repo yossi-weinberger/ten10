@@ -93,6 +93,9 @@
     "checkError": "Failed to check for updates",
     "installError": "Failed to install update",
     "installSuccess": "Update installed! Restarting...",
-    "autoUpdateNote": "The app checks for updates automatically on startup. You can also check manually here."
+    "autoUpdateNote": "The app checks for updates automatically on startup. You can also check manually here.",
+    "networkError": "No internet connection",
+    "offlineHelp": "To receive an updated version without internet, please contact us: support@ten10-app.com",
+    "webVersionNote": "Web version is always up to date. No manual updates needed."
   }
 }

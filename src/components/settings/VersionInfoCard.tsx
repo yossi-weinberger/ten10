@@ -43,17 +43,16 @@ export function VersionInfoCard() {
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [isInstalling, setIsInstalling] = useState(false);
   const [error, setError] = useState<string>("");
+  const [isNetworkError, setIsNetworkError] = useState(false);
 
   // Load version on mount
   useEffect(() => {
-    if (platform === "desktop") {
-      getCurrentVersion()
-        .then(setCurrentVersion)
-        .catch((err) => {
-          console.error("Failed to get version:", err);
-          setCurrentVersion("Unknown");
-        });
-    }
+    getCurrentVersion()
+      .then(setCurrentVersion)
+      .catch((err) => {
+        console.error("Failed to get version:", err);
+        setCurrentVersion("Unknown");
+      });
   }, [platform]);
 
   const handleCheckForUpdates = async () => {
@@ -64,6 +63,7 @@ export function VersionInfoCard() {
     setCheckStatus("checking");
     setError("");
     setUpdateInfo(null);
+    setIsNetworkError(false);
 
     try {
       const update = await checkForUpdates();
@@ -72,19 +72,39 @@ export function VersionInfoCard() {
         setCheckStatus("update-available");
         setUpdateInfo(update);
         toast.success(
-          t("versionInfo.updateAvailable", { version: update.version }) ||
-            `Update available: ${update.version}`
+          t("versionInfo.updateAvailable", { version: update.version })
         );
       } else {
         setCheckStatus("up-to-date");
-        toast.success(t("versionInfo.upToDate") || "Your app is up to date!");
+        toast.success(t("versionInfo.upToDate"));
       }
     } catch (err) {
       console.error("Failed to check for updates:", err);
       setCheckStatus("error");
+
+      // Check if it's a network error (robust detection)
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      setError(errorMessage);
-      toast.error(t("versionInfo.checkError") || "Failed to check for updates");
+      const isNetwork =
+        err instanceof TypeError || // Network/fetch errors are typically TypeError
+        (typeof err === "object" &&
+          err !== null &&
+          "code" in err &&
+          ["ENOTFOUND", "ECONNREFUSED", "ECONNRESET", "ETIMEDOUT"].includes(
+            (err as any).code
+          )) ||
+        errorMessage.toLowerCase().includes("could not fetch");
+
+      setIsNetworkError(isNetwork);
+
+      if (isNetwork) {
+        setError(t("versionInfo.networkError"));
+      } else {
+        setError(errorMessage);
+      }
+
+      toast.error(
+        isNetwork ? t("versionInfo.networkError") : t("versionInfo.checkError")
+      );
     }
   };
 
@@ -100,22 +120,18 @@ export function VersionInfoCard() {
       await downloadAndInstallUpdate();
 
       // App will restart automatically after successful install
-      toast.success(
-        t("versionInfo.installSuccess") || "Update installed! Restarting..."
-      );
+      toast.success(t("versionInfo.installSuccess"));
     } catch (err) {
       console.error("Failed to install update:", err);
       setIsInstalling(false);
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
       setError(errorMessage);
-      toast.error(t("versionInfo.installError") || "Failed to install update");
+      toast.error(t("versionInfo.installError"));
     }
   };
 
-  // Hide on web platform
-  if (platform !== "desktop") {
-    return null;
-  }
+  // On web, show version only (no update functionality)
+  const isWeb = platform === "web";
 
   return (
     <Card>
@@ -124,12 +140,9 @@ export function VersionInfoCard() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Info className="h-5 w-5" />
-              {t("versionInfo.title") || "Version Information"}
+              {t("versionInfo.title")}
             </CardTitle>
-            <CardDescription>
-              {t("versionInfo.description") ||
-                "Check for updates and view version details"}
-            </CardDescription>
+            <CardDescription>{t("versionInfo.description")}</CardDescription>
           </div>
           {checkStatus === "up-to-date" && (
             <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -141,7 +154,7 @@ export function VersionInfoCard() {
         {/* Current Version */}
         <div className="flex items-center justify-between">
           <span className="text-sm font-medium">
-            {t("versionInfo.currentVersion") || "Current Version"}
+            {t("versionInfo.currentVersion")}
           </span>
           <Badge variant="outline" className="font-mono">
             v{currentVersion || "..."}
@@ -154,9 +167,7 @@ export function VersionInfoCard() {
             {checkStatus === "checking" && (
               <Alert>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <AlertDescription>
-                  {t("versionInfo.checking") || "Checking for updates..."}
-                </AlertDescription>
+                <AlertDescription>{t("versionInfo.checking")}</AlertDescription>
               </Alert>
             )}
 
@@ -164,7 +175,7 @@ export function VersionInfoCard() {
               <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
                 <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
                 <AlertDescription className="text-green-800 dark:text-green-200">
-                  {t("versionInfo.upToDate") || "Your app is up to date!"}
+                  {t("versionInfo.upToDate")}
                 </AlertDescription>
               </Alert>
             )}
@@ -173,16 +184,11 @@ export function VersionInfoCard() {
               <Alert className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
                 <Download className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <AlertDescription className="text-blue-800 dark:text-blue-200">
-                  <div className="space-y-2">
-                    <p className="font-medium">
-                      {t("versionInfo.updateAvailable", {
-                        version: updateInfo.version,
-                      }) || `Update available: v${updateInfo.version}`}
-                    </p>
-                    {updateInfo.body && (
-                      <p className="text-xs opacity-80">{updateInfo.body}</p>
-                    )}
-                  </div>
+                  <p className="font-medium">
+                    {t("versionInfo.updateAvailable", {
+                      version: updateInfo.version,
+                    })}
+                  </p>
                 </AlertDescription>
               </Alert>
             )}
@@ -190,59 +196,76 @@ export function VersionInfoCard() {
             {checkStatus === "error" && error && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>
+                  <div className="space-y-2">
+                    <p>{error}</p>
+                    {isNetworkError && (
+                      <p className="text-xs">{t("versionInfo.offlineHelp")}</p>
+                    )}
+                  </div>
+                </AlertDescription>
               </Alert>
             )}
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-2">
-          <Button
-            onClick={handleCheckForUpdates}
-            disabled={checkStatus === "checking" || isInstalling}
-            variant="outline"
-            className="flex-1"
-          >
-            {checkStatus === "checking" ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {t("versionInfo.checking") || "Checking..."}
-              </>
-            ) : (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                {t("versionInfo.checkButton") || "Check for Updates"}
-              </>
-            )}
-          </Button>
+        {/* Action Buttons - Desktop Only */}
+        {!isWeb && (
+          <>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleCheckForUpdates}
+                disabled={checkStatus === "checking" || isInstalling}
+                variant="outline"
+                className="flex-1"
+              >
+                {checkStatus === "checking" ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    {t("versionInfo.checking")}
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    {t("versionInfo.checkButton")}
+                  </>
+                )}
+              </Button>
 
-          {checkStatus === "update-available" && updateInfo && (
-            <Button
-              onClick={handleInstallUpdate}
-              disabled={isInstalling}
-              className="flex-1"
-            >
-              {isInstalling ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {t("versionInfo.installing") || "Installing..."}
-                </>
-              ) : (
-                <>
-                  <Download className="mr-2 h-4 w-4" />
-                  {t("versionInfo.installButton") || "Install Update"}
-                </>
+              {checkStatus === "update-available" && updateInfo && (
+                <Button
+                  onClick={handleInstallUpdate}
+                  disabled={isInstalling}
+                  className="flex-1"
+                >
+                  {isInstalling ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {t("versionInfo.installing")}
+                    </>
+                  ) : (
+                    <>
+                      <Download className="mr-2 h-4 w-4" />
+                      {t("versionInfo.installButton")}
+                    </>
+                  )}
+                </Button>
               )}
-            </Button>
-          )}
-        </div>
+            </div>
 
-        {/* Auto-update Info */}
-        <p className="text-xs text-muted-foreground">
-          {t("versionInfo.autoUpdateNote") ||
-            "The app checks for updates automatically on startup. You can also check manually here."}
-        </p>
+            {/* Auto-update Info - Desktop Only */}
+            <p className="text-xs text-muted-foreground">
+              {t("versionInfo.autoUpdateNote")}
+            </p>
+          </>
+        )}
+
+        {/* Web Version Info */}
+        {isWeb && (
+          <p className="text-xs text-muted-foreground">
+            {t("versionInfo.webVersionNote")}
+          </p>
+        )}
       </CardContent>
     </Card>
   );
