@@ -18,10 +18,11 @@ import { Sidebar } from "./components/layout/Sidebar";
 import { usePlatform } from "./contexts/PlatformContext";
 import { useTWA } from "./contexts/TWAContext";
 import { setPlatform as setGlobalPlatform } from "./lib/platformManager";
-import { init_db } from "@/lib/data-layer/db_commands";
 import { useDonationStore } from "./lib/store";
 import { checkAndSendDesktopReminder } from "./lib/data-layer/reminders";
+import { checkForUpdates } from "./lib/data-layer/updater.service";
 import { logger } from "@/lib/logger";
+import toast from "react-hot-toast";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -74,6 +75,32 @@ function App() {
               })
               .then(() => {
                 logger.log("Desktop reminder check complete.");
+                // Check for updates silently in background (non-blocking)
+                checkForUpdates()
+                  .then((updateInfo) => {
+                    if (updateInfo) {
+                      logger.log(`Update available: ${updateInfo.version}`);
+                      // Notify user about available update
+                      toast.success(
+                        t("versionInfo.updateAvailable", {
+                          version: updateInfo.version,
+                          ns: "settings",
+                        }),
+                        {
+                          duration: 5000,
+                          icon: "🔔",
+                        }
+                      );
+                    } else {
+                      logger.log("App is up to date");
+                      // No notification if up to date - silent check
+                    }
+                  })
+                  .catch((error) => {
+                    logger.error("Failed to check for updates:", error);
+                    // Don't block app startup if update check fails
+                    // Don't show error toast on startup - user can check manually if needed
+                  });
               })
               .catch((error) =>
                 logger.error(
@@ -82,6 +109,7 @@ function App() {
                 )
               )
               .finally(() => {
+                // Ensure app is ready even if there was an error
                 setIsAppReady(true);
               });
           })
