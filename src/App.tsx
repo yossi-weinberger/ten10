@@ -75,8 +75,6 @@ function App() {
               })
               .then(() => {
                 logger.log("Desktop reminder check complete.");
-                // Mark app as ready - don't wait for update check
-                setIsAppReady(true);
                 // Check for updates silently in background (non-blocking)
                 checkForUpdates()
                   .then((updateInfo) => {
