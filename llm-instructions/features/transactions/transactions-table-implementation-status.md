@@ -354,7 +354,7 @@ WITH CHECK (auth.uid() = user_id);
 
 - **Technical Overview**: `transactions-table-technical-overview.md` - Detailed technical implementation
 - **Data Model**: `transaction-data-model-and-calculations.md` - Transaction data model and calculations
-- **Data Flow**: `data-flow-server-calculations-and-cleanup.md` - Server-side calculations and data flow
+- **Data Flow**: `../../backend/data-flow-server-calculations-and-cleanup.md` - Server-side calculations and data flow
 
 ---
 

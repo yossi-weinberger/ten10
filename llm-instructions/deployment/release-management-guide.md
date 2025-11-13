@@ -460,7 +460,7 @@ This prevents:
 
 - `setup-updater-keys.md` - Updater keys setup (detailed instructions)
 - `code-signing-guide.md` - Windows code signing (not yet implemented)
-- `README.md` - Project overview
+- `../../README.md` - Project overview
 
 ### Tools
 

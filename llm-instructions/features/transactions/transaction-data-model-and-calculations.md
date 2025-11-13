@@ -36,7 +36,7 @@ This document outlines the standard approach for handling financial transactions
 
 ### 2.2. Transactions Table Store (`useTableTransactionsStore`)
 
-- As detailed in the "Transactions Table Technical Overview" (`llm-instructions/transactions-table-technical-overview.md`), a dedicated store (`src/lib/tableTransactions.store.ts`) manages the state and business logic specifically for the main interactive transactions table.
+- As detailed in the "Transactions Table Technical Overview" (`transactions-table-technical-overview.md`), a dedicated store (`src/lib/tableTransactions.store.ts`) manages the state and business logic specifically for the main interactive transactions table.
 - **Key Responsibilities & State:**
   - `transactions: Transaction[]`: Holds the _currently displayed_ subset of transactions in the table (after filtering, sorting, and pagination).
   - `loading: boolean`: Indicates if data is being fetched for the table.
@@ -139,7 +139,7 @@ This document outlines the standard approach for handling financial transactions
 
 - The unified `Transaction` model is the base for all financial data.
 - The dynamic calculation for the _overall tithe balance_ (`calculateTotalRequiredDonation`) is defined and can be used with data from `useDonationStore`.
-- **A new, comprehensive interactive transactions table has been implemented as per `llm-instructions/transactions-table-technical-overview.md`. This includes:**
+- **A new, comprehensive interactive transactions table has been implemented as per `transactions-table-technical-overview.md`. This includes:**
   - **Dedicated Store:** `useTableTransactionsStore` (`src/lib/tableTransactions.store.ts`) for managing the table's specific state (filtered/sorted/paginated data, loading states, filters, etc.).
   - **Dedicated Service:** `src/lib/tableTransactions/tableTransactionService.ts` (`TableTransactionsService`) for handling data operations (fetch, update, delete, export) for the table, interacting with platform-specific backends (Supabase RPCs for web, Tauri commands for desktop).
   - **Core Table Components:**

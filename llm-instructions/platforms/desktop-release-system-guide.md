@@ -255,7 +255,7 @@ git push origin v0.3.0
 npx @tauri-apps/cli signer generate -w ~/.tauri/ten10.key
 ```
 
-**Setup Guide**: See `setup-updater-keys.md`
+**Setup Guide**: See `../deployment/setup-updater-keys.md`
 
 ### Code Signing Certificate (Optional)
 
@@ -263,7 +263,7 @@ npx @tauri-apps/cli signer generate -w ~/.tauri/ten10.key
 
 **Status**: Not yet configured (placeholder in workflow)
 
-**Guide**: See `code-signing-guide.md` (not yet implemented)
+**Guide**: See `../deployment/code-signing-guide.md` (not yet implemented)
 
 ---
 
