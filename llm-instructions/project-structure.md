@@ -41,7 +41,15 @@ This section details how the different parts of the project interact with each o
     - **Backend:** `Cargo.toml` (Rust dependencies, project settings), `tauri.conf.json` (Tauri application settings - permissions, window properties, icons, allowlist, etc.).
 
 6.  **LLM Instructions (`llm-instructions`)**:
-    - This directory contains Markdown documents providing development guidelines and context, such as data models (`transaction-data-model-and-calculations.md`), tech stack choices (`project-tech-stack-and-guidelines.md`), specific guides (`desktop-data-saving-guide.md`, `platform-context-api-guide.md`), and this structure map. These documents inform the implementation details in `src/` and `src-tauri/`.
+    - This directory contains Markdown documents providing development guidelines and context, organized by topic. Key documents include:
+      - **Project Overview**: `project/project-overview-and-requirements.md`, `project/project-tech-stack-and-guidelines.md`
+      - **Features**: `features/transactions/`, `features/email/`
+      - **Platforms**: `platforms/desktop-data-saving-guide.md`, `platforms/platform-context-api-guide.md`
+      - **Deployment**: `deployment/release-management-guide.md`, `deployment/setup-updater-keys.md`
+      - **UI/UX**: `ui/landing-page-complete-guide.md`, `ui/multi-language-and-responsive-design-guide.md`
+      - **Backend**: `backend/data-flow-server-calculations-and-cleanup.md`, `backend/supabase-integration-status.md`
+      - **Utilities**: `utilities/logger-utility-guide.md`, `utilities/migration-guide.md`
+    - See `project-structure.md` (this file) for the complete structure map.
 
 ```
 /
@@ -50,21 +58,47 @@ This section details how the different parts of the project interact with each o
 ├── .github/               # GitHub specific files (workflows, etc.)
 ├── dist/                  # Build output directory for the frontend
 ├── llm-instructions/      # Instructions and guidelines for LLM development
-│   ├── data-flow-server-calculations-and-cleanup.md
-│   ├── desktop-data-saving-guide.md
-│   ├── migration-guide.md
-│   ├── multi-language-and-responsive-design-guide.md
-│   ├── platform-context-api-guide.md
-│   ├── project-overview-and-requirements.md
-│   ├── project-structure.md  # This file
-│   ├── project-tech-stack-and-guidelines.md
-│   ├── recurring-transactions-implementation-guide.md
-│   ├── server-side-tithe-balance-calculation-guide.md
-│   ├── session_summary_monthly_chart_platform_issues.md
-│   ├── supabase-integration-status.md
-│   ├── tauri-v2-build-and-platform-detection-summary.md
-│   ├── transaction-data-model-and-calculations.md
-│   ├── transactions-table-technical-overview.md
+│   ├── project/           # Project overview and tech stack
+│   │   ├── project-overview-and-requirements.md
+│   │   └── project-tech-stack-and-guidelines.md
+│   ├── features/          # Feature-specific documentation
+│   │   ├── transactions/  # Transactions table and data model
+│   │   │   ├── transactions-table-technical-overview.md
+│   │   │   ├── transactions-table-implementation-status.md
+│   │   │   ├── transaction-data-model-and-calculations.md
+│   │   │   ├── recurring-transactions-how-it-works.md
+│   │   │   └── recurring-transactions-implementation-guide.md
+│   │   └── email/         # Email reminders system
+│   │       ├── email-reminders-feature-complete-guide.md
+│   │       ├── email-system-future-improvements.md
+│   │       └── email-unsubscribe-system-guide.md
+│   ├── platforms/         # Platform-specific guides
+│   │   ├── desktop-data-saving-guide.md
+│   │   ├── desktop-release-system-guide.md
+│   │   ├── platform-context-api-guide.md
+│   │   ├── tauri-v2-build-and-platform-detection-summary.md
+│   │   └── android-twa-implementation-guide.md
+│   ├── deployment/        # Release and deployment guides
+│   │   ├── release-management-guide.md
+│   │   ├── setup-updater-keys.md
+│   │   └── code-signing-guide.md
+│   ├── ui/                # UI/UX documentation
+│   │   ├── landing-page-complete-guide.md
+│   │   ├── FINAL_LANDING_PAGE_SUMMARY.md
+│   │   ├── ui-component-guidelines.md
+│   │   ├── multi-language-and-responsive-design-guide.md
+│   │   ├── translation-map.md
+│   │   └── halacha-page-revamp-plan.md
+│   ├── backend/           # Backend and data flow
+│   │   ├── data-flow-server-calculations-and-cleanup.md
+│   │   ├── server-side-tithe-balance-calculation-guide.md
+│   │   └── supabase-integration-status.md
+│   ├── utilities/         # Utility tools and migration guides
+│   │   ├── logger-utility-guide.md
+│   │   ├── migration-guide.md
+│   │   ├── GOOGLE_ANALYTICS_SETUP.md
+│   │   └── session_summary_monthly_chart_platform_issues.md
+│   └── project-structure.md  # This file
 ├── node_modules/          # Project dependencies
 ├── public/                # Static assets served directly
 │   └── fonts/             # Font files

@@ -111,7 +111,7 @@ Output files will be in `src-tauri/target/release/bundle/`.
 
 ### Unified Transaction Model
 
-All financial events (income, expenses, donations) are represented by a single `Transaction` data type, detailed in `llm-instructions/transaction-data-model-and-calculations.md`. This model includes fields like `id`, `user_id`, `date`, `amount`, `currency`, `description`, `type`, and type-specific attributes like `isChomesh` for income.
+All financial events (income, expenses, donations) are represented by a single `Transaction` data type, detailed in `llm-instructions/features/transactions/transaction-data-model-and-calculations.md`. This model includes fields like `id`, `user_id`, `date`, `amount`, `currency`, `description`, `type`, and type-specific attributes like `isChomesh` for income.
 
 ### Data Storage
 
@@ -140,13 +140,39 @@ The desktop application supports exporting all transaction data to a JSON file a
 
 For more detailed information on specific aspects of the project, refer to the documents in the `llm-instructions/` directory. These guides cover:
 
-- Platform-specific data saving (`desktop-data-saving-guide.md`)
-- Platform context API (`platform-context-api-guide.md`)
-- Transaction data model and tithe calculations (`transaction-data-model-and-calculations.md`)
-- Multi-language support and responsive design (`multi-language-and-responsive-design-guide.md`)
-- And more...
+- Platform-specific data saving (`platforms/desktop-data-saving-guide.md`)
+- Platform context API (`platforms/platform-context-api-guide.md`)
+- Transaction data model and tithe calculations (`features/transactions/transaction-data-model-and-calculations.md`)
+- Multi-language support and responsive design (`ui/multi-language-and-responsive-design-guide.md`)
+- And more... (see `llm-instructions/` directory structure)
 
 These documents should be consulted when making changes or adding new features to ensure consistency and adherence to project standards.
+
+## Releases and Updates
+
+### Desktop App Auto-Updates
+
+The desktop application supports automatic updates through GitHub Releases. Simply run:
+
+```bash
+npm run release 0.3.0
+```
+
+This will:
+
+- Update version in all files
+- Create git tag
+- Trigger GitHub Actions build
+- Publish release automatically
+
+**For users**: The app checks for updates on startup, or manually via Settings > Version Info.
+
+**Setup required** (one-time):
+
+- Generate signing keys: See `llm-instructions/deployment/setup-updater-keys.md`
+- Configure GitHub Secrets (4 required)
+- See `llm-instructions/deployment/release-management-guide.md` for complete guide
+- See `llm-instructions/platforms/desktop-release-system-guide.md` for detailed system documentation
 
 ## Automated Dependency Updates
 
