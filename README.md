@@ -148,6 +148,32 @@ For more detailed information on specific aspects of the project, refer to the d
 
 These documents should be consulted when making changes or adding new features to ensure consistency and adherence to project standards.
 
+## Releases and Updates
+
+### Desktop App Auto-Updates
+
+The desktop application supports automatic updates through GitHub Releases. Simply run:
+
+```bash
+npm run release 0.3.0
+```
+
+This will:
+
+- Update version in all files
+- Create git tag
+- Trigger GitHub Actions build
+- Publish release automatically
+
+**For users**: The app checks for updates on startup, or manually via Settings > Version Info.
+
+**Setup required** (one-time):
+
+- Generate signing keys: See `llm-instructions/setup-updater-keys.md`
+- Configure GitHub Secrets (4 required)
+- See `llm-instructions/release-management-guide.md` for complete guide
+- See `llm-instructions/desktop-release-system-guide.md` for detailed system documentation
+
 ## Automated Dependency Updates
 
 This repository uses [Dependabot](https://docs.github.com/en/code-security/dependabot) to keep npm packages and GitHub Actions workflows up to date.

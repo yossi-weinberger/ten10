@@ -91,7 +91,7 @@ Replace the placeholder public key:
 
 For production releases, purchase a Windows code signing certificate (~$200-400/year).
 
-See `docs/CODE_SIGNING_GUIDE.md` for detailed instructions.
+See `code-signing-guide.md` for detailed instructions.
 
 **Without certificate**: Users will see "Unknown publisher" warnings.
 **With certificate**: Clean installation experience.
@@ -167,23 +167,44 @@ git push origin v0.3.0
 
 ### Step 4: Verify Release
 
-After the workflow completes:
+After the workflow completes (wait 5-15 minutes):
 
-1. Go to: `https://github.com/yossi-weinberger/ten10/releases`
-2. Find your new release
-3. Verify it contains:
-   - Windows installer (`.msi` or `.exe`)
-   - Signature file (`.sig`)
-   - `latest.json` file
-   - Release notes (auto-generated)
+1. **Check GitHub Release**:
 
-### Step 5: Test Update
+   - Go to: `https://github.com/yossi-weinberger/ten10/releases`
+   - Find your new release
+   - Verify it contains:
+     - Windows installer (`.msi` or `.exe`)
+     - Signature file (`.sig`)
+     - `latest.json` file
+     - Release notes (auto-generated)
 
-1. Install the previous version on a test machine
-2. Launch the app - it should detect the update
-3. Or manually check: Settings > Version Info > Check for Updates
-4. Verify the update downloads and installs correctly
-5. Check that the app launches with the new version
+2. **Download and Install**:
+
+   - Download the `.msi` file
+   - Install it on a test machine
+   - Verify the app launches correctly
+
+3. **Check Settings Page**:
+
+   - Open Settings in the installed app
+   - Verify version number is correct
+   - Verify "Version Info" card appears below Language & Display
+   - Click "Check for Updates" (if newer version exists)
+
+4. **Test Update Flow** (if previous version exists):
+
+   - Install the previous version on a test machine
+   - Launch the app - it should detect the update automatically
+   - Or manually check: Settings > Version Info > Check for Updates
+   - Verify the update downloads and installs correctly
+   - Check that the app launches with the new version
+
+5. **Check Landing Page**:
+   - Visit: `https://ten10-app.com/landing`
+   - Scroll to download section
+   - Verify correct version is displayed
+   - Verify download link works
 
 ## File Structure
 
@@ -437,8 +458,8 @@ This prevents:
 
 ### Internal Guides
 
-- `SETUP_UPDATER_KEYS.md` - Updater keys setup
-- `docs/CODE_SIGNING_GUIDE.md` - Windows code signing
+- `setup-updater-keys.md` - Updater keys setup (detailed instructions)
+- `code-signing-guide.md` - Windows code signing (not yet implemented)
 - `README.md` - Project overview
 
 ### Tools
@@ -463,6 +484,27 @@ A: Increment MAJOR version, communicate clearly in release notes, consider data 
 
 **Q: Can we rollback a release?**
 A: Delete the GitHub Release and tag. Users who already updated will need to reinstall manually.
+
+## Setup Checklist for New Developers
+
+Before creating your first release, complete this checklist:
+
+- [ ] Generate signing keys with `npx @tauri-apps/cli signer generate -w $env:USERPROFILE\.tauri\ten10.key`
+- [ ] Save the password you entered
+- [ ] Save private key: `C:\Users\[YOU]\.tauri\ten10.key` (keep SECRET!)
+- [ ] Get public key: `Get-Content $env:USERPROFILE\.tauri\ten10.key.pub`
+- [ ] Add 4 secrets to GitHub: `TAURI_PRIVATE_KEY`, `TAURI_KEY_PASSWORD`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+- [ ] Update `src-tauri/tauri.conf.json` with public key (line 39)
+- [ ] Commit the updated `tauri.conf.json`: `git commit -m "chore: configure updater public key"`
+- [ ] Test release: `npm run release 0.2.14-test` (use test version)
+- [ ] Verify build succeeded in GitHub Actions
+- [ ] Download and install the `.msi` file
+- [ ] Verify app launches successfully
+- [ ] Check Settings page - "Version Info" card appears below Language & Display
+- [ ] Test "Check for Updates" button (if newer version exists)
+- [ ] Verify landing page shows correct download link
+
+**Note**: Use PowerShell commands on Windows. For Unix/Mac, use `~/.tauri/ten10.key` instead of `$env:USERPROFILE\.tauri\ten10.key`.
 
 ---
 

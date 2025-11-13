@@ -87,7 +87,7 @@ The application needs to handle various types of financial entries, each affecti
   - **Landing Page**: Dynamic download links pull latest version from GitHub Releases API.
   - **One-Command Release**: `npm run release 0.3.0` handles entire release process automatically.
 - **Implementation Details**:
-  - **Quick Start**: `SETUP_UPDATER_KEYS.md` - First-time setup
+  - **Quick Start**: `setup-updater-keys.md` - First-time setup
   - **Complete Guide**: `desktop-release-system-guide.md` - Full system overview
   - **Technical Details**: `release-management-guide.md` - Detailed troubleshooting and process
 

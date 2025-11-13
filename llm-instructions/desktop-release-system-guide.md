@@ -121,6 +121,69 @@ This single command does **everything**:
 4. ✅ Pushes to GitHub
 5. ✅ GitHub Actions builds automatically
 
+**Wait time**: 5-15 minutes for GitHub Actions to complete
+
+### What Happens Behind the Scenes
+
+When you run `npm run release 0.3.0`, the following process occurs:
+
+#### 1. Script Updates Version (Local)
+
+```
+├─ package.json → "version": "0.3.0"
+├─ src-tauri/Cargo.toml → version = "0.3.0"
+└─ src-tauri/tauri.conf.json → "version": "0.3.0"
+```
+
+#### 2. Git Operations (Local)
+
+- Commit: "chore: bump version to 0.3.0"
+- Tag: v0.3.0
+- Push to GitHub
+
+#### 3. GitHub Actions Workflow (CI/CD)
+
+The workflow is triggered by the tag `v*` and performs:
+
+1. **Checkout code**
+
+   - Clones repository
+   - Checks out the tagged version
+
+2. **Setup environment**
+
+   - Setup Node.js
+   - Setup Rust toolchain
+   - Install dependencies (`npm ci`)
+
+3. **Build frontend** (`npm run build`)
+
+   - Vite reads `VITE_SUPABASE_*` from GitHub Secrets
+   - Vite detects `CI=true` environment
+   - Excludes `@tauri-apps` modules (external)
+   - Builds `dist/` directory ✅
+
+4. **Build Tauri app** (via `tauri-action`)
+
+   - Runs `tauri build`
+   - Cargo downloads Rust dependencies
+   - Builds Rust backend
+   - Signs installers with `TAURI_PRIVATE_KEY`
+   - Creates `.msi` installers (Hebrew + English)
+   - Creates `.sig` signature files
+   - Generates `latest.json` ✅
+
+5. **Create GitHub Release**
+
+   - Auto-generates release notes
+   - Uploads installers
+   - Uploads signatures
+   - Uploads `latest.json` ✅
+
+6. **Update landing page** (automatic) 🎉
+   - Landing page fetches latest release from GitHub API
+   - Download section updates automatically
+
 ### Manual Process (If Needed)
 
 ```bash
@@ -192,7 +255,7 @@ git push origin v0.3.0
 npx @tauri-apps/cli signer generate -w ~/.tauri/ten10.key
 ```
 
-**Setup Guide**: See `SETUP_UPDATER_KEYS.md`
+**Setup Guide**: See `setup-updater-keys.md`
 
 ### Code Signing Certificate (Optional)
 
@@ -200,7 +263,7 @@ npx @tauri-apps/cli signer generate -w ~/.tauri/ten10.key
 
 **Status**: Not yet configured (placeholder in workflow)
 
-**Guide**: See `docs/CODE_SIGNING_GUIDE.md`
+**Guide**: See `code-signing-guide.md` (not yet implemented)
 
 ---
 
@@ -323,7 +386,30 @@ external: isVercel || isCIBuild ? [/^@tauri-apps\//] : [];
 2. `src-tauri/Cargo.toml`
 3. `src-tauri/tauri.conf.json`
 
-The `npm run release` script handles this automatically.
+**Always use `npm run release`** - it handles this automatically.
+
+### Required GitHub Secrets
+
+The following secrets must be configured in GitHub:
+
+- `TAURI_PRIVATE_KEY` ← For signing installers
+- `TAURI_KEY_PASSWORD` ← For decrypting the key
+- `VITE_SUPABASE_URL` ← For build process (even though desktop is offline!)
+- `VITE_SUPABASE_ANON_KEY` ← For build process
+
+**Why Supabase secrets for desktop?**
+Because `supabaseClient.ts` is imported during the build process, even though desktop doesn't use Supabase at runtime (it's offline with SQLite).
+
+### Required Permissions
+
+In `src-tauri/capabilities/migrated.json`:
+
+```json
+"updater:default",
+"updater:allow-check",
+"updater:allow-download",
+"updater:allow-install"
+```
 
 ### Build Context Detection
 
@@ -338,6 +424,14 @@ The system handles 3 build contexts:
 3. **Local** (no special flags):
    - `npm run build` → excludes Tauri (web-like)
    - `npm run tauri build` → includes Tauri (desktop)
+
+**Note**: The `vite.config.ts` automatically detects these environments:
+
+- `VERCEL=1` → Excludes Tauri modules
+- `CI=true` → Excludes Tauri modules
+- Otherwise → Includes Tauri modules (Tauri build)
+
+**Do not modify this without thorough testing!**
 
 ### Dynamic Imports Pattern
 
