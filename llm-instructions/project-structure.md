@@ -52,6 +52,7 @@ This section details how the different parts of the project interact with each o
 ├── llm-instructions/      # Instructions and guidelines for LLM development
 │   ├── data-flow-server-calculations-and-cleanup.md
 │   ├── desktop-data-saving-guide.md
+│   ├── logger-utility-guide.md
 │   ├── migration-guide.md
 │   ├── multi-language-and-responsive-design-guide.md
 │   ├── platform-context-api-guide.md
