@@ -1,0 +1,681 @@
+﻿<!DOCTYPE html>
+<html dir="rtl" lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ten10: ׳₪׳׳˜׳₪׳•׳¨׳׳× ׳ ׳™׳”׳•׳ ׳₪׳™׳ ׳ ׳¡׳™</title>
+    <style>
+        @page {
+            margin: 2.5cm;
+            size: A4;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Segoe UI", "Arial", "David", "Guttman Yad", "Calibri", sans-serif;
+            font-size: 12pt;
+            line-height: 1.85;
+            direction: rtl;
+            text-align: right;
+            margin: 0;
+            padding: 2.5cm;
+            color: #2c3e50;
+            background: linear-gradient(to bottom, #fafbfc 0%, #ffffff 100%);
+            background-attachment: fixed;
+        }
+        h1 {
+            font-size: 32pt;
+            font-weight: 700;
+            margin-top: 40pt;
+            margin-bottom: 20pt;
+            color: #1a237e;
+            page-break-after: avoid;
+            border-bottom: 4pt solid #3f51b5;
+            padding-bottom: 12pt;
+            padding-right: 0;
+            text-shadow: 1pt 1pt 2pt rgba(0,0,0,0.1);
+            letter-spacing: -0.5pt;
+            position: relative;
+        }
+        h1::after {
+            content: '';
+            display: block;
+            width: 80pt;
+            height: 4pt;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            margin-top: 8pt;
+            border-radius: 2pt;
+            box-shadow: 0 2pt 4pt rgba(103, 126, 234, 0.3);
+        }
+        h2 {
+            font-size: 22pt;
+            font-weight: 600;
+            margin-top: 32pt;
+            margin-bottom: 16pt;
+            color: #283593;
+            page-break-after: avoid;
+            border-right: 5pt solid #5c6bc0;
+            padding-right: 16pt;
+            padding-top: 8pt;
+            padding-bottom: 8pt;
+            background: linear-gradient(to left, rgba(92, 107, 192, 0.08) 0%, transparent 100%);
+            border-radius: 4pt 0 0 4pt;
+            position: relative;
+        }
+        h2::before {
+            content: '';
+            position: absolute;
+            right: -5pt;
+            top: 0;
+            bottom: 0;
+            width: 5pt;
+            background: linear-gradient(180deg, #5c6bc0 0%, #3f51b5 100%);
+            border-radius: 4pt 0 0 4pt;
+        }
+        h3 {
+            font-size: 18pt;
+            font-weight: 600;
+            margin-top: 24pt;
+            margin-bottom: 12pt;
+            color: #3949ab;
+            page-break-after: avoid;
+            padding-right: 12pt;
+            border-right: 3pt solid #7986cb;
+            background: linear-gradient(to left, rgba(121, 134, 203, 0.05) 0%, transparent 100%);
+        }
+        h4 {
+            font-size: 15pt;
+            font-weight: 600;
+            margin-top: 20pt;
+            margin-bottom: 10pt;
+            color: #5c6bc0;
+            page-break-after: avoid;
+            padding-right: 8pt;
+            border-right: 2pt solid #9fa8da;
+        }
+        p {
+            margin-bottom: 14pt;
+            text-align: justify;
+            text-indent: 0;
+            orphans: 3;
+            widows: 3;
+            color: #37474f;
+            line-height: 1.9;
+        }
+        ul, ol {
+            margin-right: 45pt;
+            margin-left: 0;
+            margin-top: 12pt;
+            margin-bottom: 16pt;
+            padding-right: 20pt;
+            padding-top: 8pt;
+            padding-bottom: 8pt;
+            background: linear-gradient(to left, rgba(103, 126, 234, 0.03) 0%, transparent 100%);
+            border-radius: 6pt;
+            border-right: 2pt solid rgba(103, 126, 234, 0.2);
+        }
+        li {
+            margin-bottom: 10pt;
+            line-height: 1.85;
+            padding-right: 8pt;
+            color: #455a64;
+            position: relative;
+        }
+        ul li::marker {
+            color: #667eea;
+            font-weight: bold;
+        }
+        ul li {
+            list-style-type: disc;
+        }
+        ol li {
+            list-style-type: decimal;
+        }
+        ol li::marker {
+            color: #667eea;
+            font-weight: bold;
+        }
+        code {
+            font-family: "Consolas", "Courier New", "Monaco", monospace;
+            font-size: 10.5pt;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+            padding: 4pt 8pt;
+            border-radius: 4pt;
+            border: 1pt solid #cbd5e0;
+            color: #2d3748;
+            box-shadow: 0 1pt 3pt rgba(0,0,0,0.1);
+            font-weight: 500;
+        }
+        pre {
+            font-family: "Consolas", "Courier New", "Monaco", monospace;
+            font-size: 10pt;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 18pt;
+            border-radius: 8pt;
+            border: 1pt solid #e2e8f0;
+            border-right: 4pt solid #667eea;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 20pt 0;
+            line-height: 1.6;
+            box-shadow: 0 2pt 8pt rgba(0,0,0,0.08);
+            color: #2d3748;
+        }
+        pre code {
+            background: transparent;
+            padding: 0;
+            border: none;
+            box-shadow: none;
+            color: inherit;
+        }
+        strong {
+            font-weight: 700;
+            color: #1a237e;
+            background: linear-gradient(135deg, rgba(103, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            padding: 1pt 4pt;
+            border-radius: 3pt;
+        }
+        a {
+            color: #667eea;
+            text-decoration: none;
+            border-bottom: 1pt solid rgba(103, 126, 234, 0.3);
+            transition: all 0.2s ease;
+            padding-bottom: 1pt;
+        }
+        a:hover {
+            color: #764ba2;
+            border-bottom-color: #764ba2;
+        }
+        sup {
+            font-size: 9pt;
+            vertical-align: super;
+            line-height: 0;
+            font-weight: 600;
+        }
+        sup a {
+            color: #667eea;
+            text-decoration: none;
+            background: linear-gradient(135deg, rgba(103, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+            padding: 2pt 4pt;
+            border-radius: 50%;
+            display: inline-block;
+            width: 16pt;
+            height: 16pt;
+            text-align: center;
+            line-height: 12pt;
+            border: 1pt solid rgba(103, 126, 234, 0.3);
+        }
+        sup a:hover {
+            background: linear-gradient(135deg, rgba(103, 126, 234, 0.25) 0%, rgba(118, 75, 162, 0.25) 100%);
+            border-color: #667eea;
+        }
+        hr {
+            border: none;
+            height: 3pt;
+            background: linear-gradient(90deg, transparent 0%, #667eea 20%, #764ba2 80%, transparent 100%);
+            margin: 40pt 0;
+            width: 100%;
+            border-radius: 2pt;
+            box-shadow: 0 2pt 4pt rgba(103, 126, 234, 0.2);
+        }
+        .footnotes {
+            page-break-before: always;
+            margin-top: 50pt;
+            padding: 24pt;
+            padding-top: 30pt;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-top: 4pt solid #667eea;
+            border-radius: 8pt 8pt 0 0;
+            box-shadow: 0 -4pt 12pt rgba(0,0,0,0.1);
+        }
+        .footnotes h2 {
+            margin-top: 0;
+            margin-bottom: 20pt;
+            color: #1a237e;
+            border: none;
+            padding: 0;
+            background: none;
+            font-size: 20pt;
+        }
+        .footnotes h2::before {
+            display: none;
+        }
+        .footnotes p {
+            margin-bottom: 12pt;
+            font-size: 11pt;
+            padding-right: 16pt;
+            border-right: 2pt solid rgba(103, 126, 234, 0.2);
+            background: rgba(255, 255, 255, 0.6);
+            padding: 10pt 16pt;
+            border-radius: 4pt;
+            margin-bottom: 10pt;
+        }
+        .footnotes p:hover {
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2pt 6pt rgba(0,0,0,0.05);
+        }
+        .table-of-contents {
+            page-break-after: avoid;
+            margin: 30pt 0;
+            padding: 24pt;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border: 2pt solid #667eea;
+            border-radius: 8pt;
+            box-shadow: 0 4pt 12pt rgba(103, 126, 234, 0.15);
+        }
+        .table-of-contents h2 {
+            margin-top: 0;
+            margin-bottom: 16pt;
+            color: #1a237e;
+            border: none;
+            padding: 0;
+            background: none;
+            font-size: 20pt;
+        }
+        .table-of-contents h2::before {
+            display: none;
+        }
+        .toc-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            background: rgba(255, 255, 255, 0.6);
+            padding: 16pt;
+            border-radius: 6pt;
+        }
+        .toc-list li {
+            margin-bottom: 8pt;
+            padding: 6pt 12pt;
+            border-radius: 4pt;
+            transition: all 0.2s ease;
+        }
+        .toc-list li:hover {
+            background: rgba(103, 126, 234, 0.1);
+            transform: translateX(-4pt);
+        }
+        .toc-list a {
+            color: #3949ab;
+            text-decoration: none;
+            font-weight: 500;
+            display: block;
+            border-bottom: none;
+            padding: 0;
+        }
+        .toc-list a:hover {
+            color: #667eea;
+            border-bottom: 2pt solid #667eea;
+        }
+        .toc-level-1 {
+            font-size: 13pt;
+            font-weight: 600;
+            color: #1a237e;
+            border-right: 3pt solid #667eea;
+            padding-right: 16pt !important;
+        }
+        .toc-level-2 {
+            font-size: 12pt;
+            font-weight: 500;
+            color: #283593;
+        }
+        .toc-level-3 {
+            font-size: 11.5pt;
+            font-weight: 400;
+            color: #3949ab;
+        }
+        .toc-level-4 {
+            font-size: 11pt;
+            font-weight: 400;
+            color: #5c6bc0;
+        }
+    </style>
+</head>
+<body>
+<h1 id='toc-h1-1'>Ten10: פלטפורמת ניהול פיננסי למעקב הכנסות, הוצאות ומעשרות</h1>
+<div class='table-of-contents'>
+<h2>&#1514;&#1493;&#1509;&#1503; &#1506;&#1504;&#1497;&#1497;&#1504;&#1497;&#1501;</h2>
+<ul class='toc-list'>  <li class='toc-level-2' style='padding-right: 20pt;'><a href='#toc-h2-1-1'>מנקודת מבט של מנהל מוצר</a></li>
+  <li class='toc-level-3' style='padding-right: 40pt;'><a href='#toc-h3-1-1-1'>מאפיינים מרכזיים (Features)</a></li>
+  <li class='toc-level-3' style='padding-right: 40pt;'><a href='#toc-h3-1-1-2'>פיצ'רים עתידיים (Roadmap)</a></li>
+  <li class='toc-level-4' style='padding-right: 60pt;'><a href='#toc-h4-1-1-2-1'>1. שאל את הרב – ייעוץ הלכתי משולב</a></li>
+  <li class='toc-level-4' style='padding-right: 60pt;'><a href='#toc-h4-1-1-2-2'>2. שילוב כלי AI – אוטומציה וסיוע חכם</a></li>
+  <li class='toc-level-4' style='padding-right: 60pt;'><a href='#toc-h4-1-1-2-3'>3. המרת מטבעות בזמן אמת</a></li>
+  <li class='toc-level-2' style='padding-right: 20pt;'><a href='#toc-h2-1-2'>מנקודת מבט של מפתח תוכנה</a></li>
+  <li class='toc-level-3' style='padding-right: 40pt;'><a href='#toc-h3-1-2-1'>תהליך הוספת עסקה – זרימת נתונים</a></li>
+  <li class='toc-level-3' style='padding-right: 40pt;'><a href='#toc-h3-1-2-2'>הוראות קבע (Recurring Transactions) – ארכיטקטורה ומימוש</a></li>
+  <li class='toc-level-3' style='padding-right: 40pt;'><a href='#toc-h3-1-2-3'>חישוב יתרת המעשר – לוגיקה עסקית</a></li>
+  <li class='toc-level-3' style='padding-right: 40pt;'><a href='#toc-h3-1-2-4'>מבט על פיתוח ותחזוקה</a></li>
+  <li class='toc-level-2' style='padding-right: 20pt;'><a href='#toc-h2-1-3'>מנקודת מבט של ארכיטקט תוכנה</a></li>
+  <li class='toc-level-3' style='padding-right: 40pt;'><a href='#toc-h3-1-3-1'>סט הטכנולוגיות</a></li>
+  <li class='toc-level-3' style='padding-right: 40pt;'><a href='#toc-h3-1-3-2'>סיכום הארכיטקטורה</a></li>
+  <li class='toc-level-2' style='padding-right: 20pt;'><a href='#toc-h2-1-4'>מקורות</a></li>
+  <li class='toc-level-3' style='padding-right: 40pt;'><a href='#toc-h3-1-4-1'>הערות שוליים</a></li>
+</ul>
+</div>
+<hr/>
+<h2 id='toc-h2-1-1'>מנקודת מבט של מנהל מוצר</h2>
+<p>Ten10 היא פלטפורמת קוד פתוח המסייעת במשימה המורכבת של ניהול פיננסי ביתי, עם דגש ייחודי על חישוב מעשר (10% מההכנסות המיועדים לצדקה)<sup><a href="#footnote-1">[1]</a></sup>. המערכת מיועדת לשתי קבוצות עיקריות של משתמשים:</p>
+<ul>
+  <li><strong>משתמשים מקוונים (Web)</strong> – אפליקציית ווב (React) המתארחת בענן, עם אחסון נתונים בענן Supabase (מסד נתוני Postgres) וניהול משתמשים באמצעות מנגנון ההזדהות של Supabase<sup><a href="#footnote-2">[2]</a></sup><sup><a href="#footnote-3">[3]</a></sup>.</li>
+  <li><strong>משתמשים לא מקוונים (Desktop)</strong> – אפליקציית דסקטופ (מבוססת Tauri) שניתן להפעילה ללא חיבור אינטרנט, עם אחסון הנתונים מקומית בקובץ SQLite. לגרסה זו אין צורך בהרשמה או כניסה לחשבון – הנתונים נשמרים מקומית בלבד<sup><a href="#footnote-4">[4]</a></sup>.</li>
+</ul>
+<p>חשוב להדגיש: כל משתמש עובד או בסביבת הענן או בסביבת הדסקטופ – כרגע אין סנכרון אוטומטי בזמן אמת ביניהן, אך קיים מנגנון <strong>סנכרון ידני</strong> באמצעות ייבוא וייצוא נתונים. המשתמש יכול לייצא את כל הנתונים מקובץ JSON מהדסקטופ ולייבא אותם לווב, ולהפך – מה שמאפשר מעבר בין הפלטפורמות ושמירה על רצף הנתונים. בכך Ten10 פותרת בעיה כפולה: היא מאפשרת גמישות למי שרוצה פתרון מודרני בענן עם גיבוי ונגישות מכל מקום, ובמקביל נותנת מענה לאוכלוסיות הזקוקות למערכת אופליין עקב העדפות פרטיות או היעדר חיבור רציף לאינטרנט. המוצר מספק למשתמשים תמונה ברורה ועדכנית של מצבם הכלכלי – הכנסות מול הוצאות – ובעיקר כמה מעשר הם נדרשים להפריש בכל רגע נתון, ובכך מפשט קבלת החלטות פיננסיות ועמידה במצוות מעשר בצורה מסודרת.</p>
+<h3 id='toc-h3-1-1-1'>מאפיינים מרכזיים (Features)</h3>
+<p>Ten10 מציעה מגוון פיצ'רים כדי לענות על צרכי המשתמשים:</p>
+<ul>
+  <li><strong>לוח מחוונים (Dashboard)</strong>: מסך מרכזי המציג מדדים חיוניים כמו סך ההכנסות, סך ההוצאות, סך התרומות (צדקה) ויתרת המעשר הנדרשת לתשלום<sup><a href="#footnote-1">[1]</a></sup><sup><a href="#footnote-6">[6]</a></sup>. כך המשתמש מקבל במבט מהיר תמונת מצב פיננסית, כולל כמה עליו עוד להפריש למעשר.</li>
+</ul>
+<ul>
+  <li><strong>ניהול עסקאות אחוד</strong>: המערכת מגדירה סוג מידע אחד Unified Transaction לכל האירועים הפיננסיים – הכנסה, הוצאה או תרומה – עם שדות דוגמת תאריך, סכום, מטבע, תיאור וסוג העסקה<sup><a href="#footnote-7">[7]</a></sup><sup><a href="#footnote-8">[8]</a></sup>. גישה מאוחדת זו מפשטת את הזנת הנתונים ומאפשרת חישוב אחיד של יתרת המעשר.</li>
+</ul>
+<ul>
+  <li><strong>חישוב דינמי של מעשרות</strong>: אין צורך בחישוב ידני – האפליקציה מחשבת באופן אוטומטי את יתרת המעשר הנדרשת על סמך רשימת העסקאות שהוזנו. למשל, הוספת הכנסה מגדילה את יתרת החוב למעשר (10% מההכנסה, או 20% במקרה של סימון "חומש"), בעוד שהזנת תרומה מקטינה את היתרה (כל שקל תרומה מקזז שקל מהחוב)<sup><a href="#footnote-7">[7]</a></sup><sup><a href="#footnote-9">[9]</a></sup>. החישוב מתעדכן מיידית בכל שינוי, ומוצג באופן ברור בלוח המחוונים.</li>
+</ul>
+<ul>
+  <li><strong>הזנת נתונים קלה וטבעית</strong>: הוספת הכנסות, הוצאות ותרומות מתבצעת באמצעות טפסים אינטואיטיביים בתוך האפליקציה<sup><a href="#footnote-1">[1]</a></sup><sup><a href="#footnote-6">[6]</a></sup>. המשתמש מזין פרטי עסקה (סכום, תאריך, קטגוריה, תיאור וכו'), והמערכת מטפלת בשמירה ובחישוב ברקע באופן שקוף.</li>
+</ul>
+<ul>
+  <li><strong>הוראות קבע (Recurring Transactions)</strong>: המערכת תומכת בהגדרת הוראות קבע לתנועות חוזרות, כגון צדקה חודשית, שכר דירה או הכנסה קבועה. המשתמש מגדיר תבנית (template) עם פרטי התנועה, תדירות (חודשית/שבועית/יומית/שנתית), יום בחודש לביצוע, תאריך התחלה ואפשרות לסיום. המערכת מייצרת אוטומטית תנועות חדשות על בסיס התבנית:</li>
+</ul>
+<ul>
+  <li><strong>בווב</strong>: CRON Job רץ בסופבייס כל לילה, בודק אילו הוראות קבע הגיע תורן, ומייצר תנועות חדשות בטבלת התנועות (רק אם הן עדיין לא קיימות, כדי למנוע כפילויות).</li>
+  <li><strong>בדסקטופ</strong>: תהליך שרת רץ בעת פתיחת האפליקציה, מחשב אילו תנועות היו אמורות להיות מיום הריצה האחרון ועד היום, ומוסיף אותן ל-SQLite. כך גם אם המחשב היה כבוי שבועיים, כשפותחים – ההוראות קבע "משלימות פערים".</li>
+</ul>
+<p>כל תנועה שנוצרה מהוראת קבע מקושרת לתבנית המקורית דרך <code>source_recurring_id</code>, מה שמאפשר מעקב אחר ביצועים ומניעת כפילויות. זהו פיצ'ר מורכב מבחינה ארכיטקטונית, המשלב תבניות (templates) עם תהליכי materialization אוטומטיים.</p>
+<ul>
+  <li><strong>כלים לניתוח נתונים</strong>: העסקאות שהוזנו מוצגות בטבלאות וגרפים, עם אפשרויות סינון ומיון מתקדמות. המשתמש יכול לחפש עסקה לפי מלל חופשי, לסנן לפי טווח תאריכים או סוג עסקה, ולמיין לפי עמודות (תאריך, סכום, סוג)<sup><a href="#footnote-6">[6]</a></sup><sup><a href="#footnote-10">[10]</a></sup>. בנוסף, קיימת יכולת לייצא את הנתונים המסוננים לקובצי CSV/Excel/PDF להמשך עיבוד או שיתוף<sup><a href="#footnote-10">[10]</a></sup>.</li>
+</ul>
+<ul>
+  <li><strong>ייבוא וייצוא נתונים וסנכרון ידני</strong>: שתי הפלטפורמות (ווב ודסקטופ) תומכות בייבוא וייצוא נתונים לקובץ JSON, מה שמאפשר <strong>סנכרון ידני</strong> בין הפלטפורמות. המשתמש יכול לייצא את כל העסקאות מהדסקטופ ולייבא אותן לווב, ולהפך – מה שמאפשר מעבר בין הפלטפורמות ושמירה על רצף הנתונים. בנוסף, המשתמש האופליין יכול לגבות את המידע האישי שלו או להעבירו ממחשב למחשב. הפיצ'ר זמין בשתי הפלטפורמות ומשתמש בפורמט JSON אחיד<sup><a href="#footnote-6">[6]</a></sup><sup><a href="#footnote-11">[11]</a></sup>.</li>
+</ul>
+<ul>
+  <li><strong>רב-לשוניות ועברית מלאה</strong>: הממשק תומך מתחילתו בשפות עברית (ברירת מחדל) וגם אנגלית, כולל תמיכה בכיווניות ימין-לשמאל עבור עברית<sup><a href="#footnote-13">[13]</a></sup><sup><a href="#footnote-14">[14]</a></sup>. המשתמש יכול להחליף שפה בהגדרות, וכל הטקסטים מתורגמים בהתאם (הטקסטים מנוהלים בקובצי תרגום נפרדים).</li>
+</ul>
+<ul>
+  <li><strong>מצב כהה/בהיר והתאמה חזותית</strong>: האפליקציה מציעה Theme כהה ובהיר להעדפת המשתמש, וממשק רספונסיבי שמתאים גם לנייד, גם לטאבלט וגם לשולחן עבודה<sup><a href="#footnote-13">[13]</a></sup><sup><a href="#footnote-15">[15]</a></sup>. העיצוב המודרני בנוי עם ספריית רכיבי UI מקצועית (מבוססת Radix UI) ותבניות עיצוב Tailwind CSS, מה שמבטיח ממשק חלק וברור. העיצוב פשוט ואינטואיטיבי, עם אנימציות עדינות (fade-ins, transitions על hover, מצבי טעינה) – לא "קרקס", אלא עדין ומקצועי. האנימציות מבוצעות באמצעות CSS transitions ו-Tailwind utilities, מה שמבטיח ביצועים טובים וחוויית משתמש חלקה.</li>
+</ul>
+<ul>
+  <li><strong>תמיכה במטבעות שונים</strong>: כבר כעת יש תמיכה במטבעות שקל חדש (₪), דולר ($) ו-אירו (€), כך שהמשתמש יכול לנהל עסקאות במטבע הרלוונטי עבורו<sup><a href="#footnote-13">[13]</a></sup>. שערי חליפין מוצגים למשתמש <strong>לתצוגה בלבד</strong> – אין המרת מטבעות אמיתית, והחישובים נשארים במטבע שבו הוזנה כל תנועה. זהו בחירה מודעת בגלל המורכבות בשמירת שערי חליפין לאורך זמן, במיוחד באפליקציה שעובדת גם אופליין. אם יהיה ביקוש משתמשים בעתיד, ניתן לפתח פיצ'ר המרת מטבעות מלא.</li>
+</ul>
+<ul>
+  <li><strong>מידע הלכתי ועדכוני מערכת</strong>: עבור משתמשים מהמגזר הדתי, קיימת עמוד מידע "הלכות מעשר" המציג הסבר על מצוות המעשר ודגשים הלכתיים<sup><a href="#footnote-16">[16]</a></sup>. חשוב להדגיש שכל מנגנון ההלכה והחישובים נבנה <strong>ביחד עם רבנים</strong> (למשל ממכון תורת האדם), כולל <strong>הגהה, בדיקה וכתיבת נוסחים הלכתיים</strong>, ויש גם <strong>הסכמות/המלצות רשמיות</strong> על המוצר. כמו כן, מסך "אודות" ו"הגדרות" זמינים, ובגרסת הווב יש גם עמוד פרופיל משתמש (לניהול חשבון)<sup><a href="#footnote-16">[16]</a></sup>. המערכת אף יודעת לשלוח תזכורות:</li>
+</ul>
+<ul>
+  <li><strong>בגירסת הווב</strong>: אימייל חודשי אוטומטי למשתמש (באמצעות AWS SES דרך Cloud Function של Supabase). המיילים נשלחים בימים קבועים בחודש (1, 5, 10, 15, 20, 25) לפי העדפת המשתמש, עם התחשבות בשבת (לא נשלחים בשבת). תוכן המייל מותאם אישית לפי יתרת המעשר:</li>
+</ul>
+<p>- <strong>יתרה חיובית</strong>: "נותר לך X ₪ לתרומה" – עם רקע צהוב ועידוד לתרום</p>
+<p>- <strong>יתרה שלילית</strong>: "מצוין! תרמת יותר מהנדרש ב-X ₪" – עם רקע ירוק</p>
+<p>- <strong>יתרה אפס</strong>: "אתה בדיוק ביעד!" – עם רקע ירוק</p>
+<p>המיילים כוללים כותרת בעברית, גוף מפורט עם עדכון יתרת המעשר, רשימת תזכורות (הכנסות, הוצאות, תרומות), קישור לאפליקציה, ואפשרות ביטול הרשמה. כל המיילים תומכים בעברית RTL מלאה עם עיצוב HTML מותאם<sup><a href="#footnote-17">[17]</a></sup>.</p>
+<ul>
+  <li><strong>בדסקטופ</strong>: התראה במחשב (Native Notification) בעת פתיחת האפליקציה, כשניתן גם להגדיר שהאפליקציה תופעל אוטומטית בעת עליית המחשב כדי לא להחמיץ את התזכורת<sup><a href="#footnote-18">[18]</a></sup>.</li>
+</ul>
+<ul>
+  <li><strong>עדכונים אוטומטיים (דסקטופ)</strong>: למרות אופיו הלא-מקוון, קל מאוד לשמור את גרסת הדסקטופ מעודכנת. Ten10 כולל מנגנון Auto-Update: האפליקציה בודקת בתקופות קבועות אם יצאה גרסה חדשה ב-GitHub, ומורידה ומתקינה אותה אוטומטית (באמצעות פלאגין העדכונים של Tauri)<sup><a href="#footnote-19">[19]</a></sup>. ישנה אף אפשרות יזומה בתפריט ההגדרות "בדוק עדכון", ומערכת CI אוטומטית יוצרת חבילות התקנה ומעלה אותן ל-GitHub Releases עם כל גרסת תוכנה חדשה. יכולת זו מבטיחה שגם משתמש אופליין נהנה משיפורים ותיקונים ללא מאמץ.</li>
+</ul>
+<ul>
+  <li><strong>תמיכה במובייל – PWA ו-TWA</strong>: ה-Web App של Ten10 בנוי כ-PWA (Progressive Web App) מלא עם manifest ו-service worker, מה שמאפשר התקנה על מכשירים ניידים. בנוסף, קיימת גם <strong>TWA (Trusted Web Activity)</strong> שנבנתה עם Bubblewrap לאנדרואיד – זה מאפשר לעטוף את ה-PWA כאפליקציה "כמעט-נייטיבית" לאנדרואיד, עם אייקון, Splash screen וכו'. הפרויקט TWA קיים ומוכן, אך עדיין לא שוחרר בפועל ל-Play Store. זהו חלק מגרסת הווב, ומשתמש באותו בסיס קוד.</li>
+</ul>
+<h3 id='toc-h3-1-1-2'>פיצ'רים עתידיים (Roadmap)</h3>
+<p>Ten10 היא פלטפורמה מתפתחת, והצוות שוקד על הרחבת היכולות בהתאם לצרכי המשתמשים. להלן פיצ'רים מתוכננים לעתיד:</p>
+<h4 id='toc-h4-1-1-2-1'>1. שאל את הרב – ייעוץ הלכתי משולב</h4>
+<p>פיצ'ר שיאפשר למשתמשים לשלוח שאלות הלכתיות ישירות מהאפליקציה לרבנים מוסמכים. המשתמש יוכל לשאול שאלות ספציפיות על מצבו הפיננסי (למשל: "האם הכנסה זו חייבת במעשר?" או "מה הדין עם החזר מס?") ולקבל תשובות מקצועיות. הפיצ'ר יכלול:</p>
+<ul>
+  <li>ממשק נוח לשליחת שאלות</li>
+  <li>חיבור לרבנים מוסמכים (למשל ממכון תורת האדם)</li>
+  <li>מעקב אחר שאלות ותשובות</li>
+  <li>אפשרות לשמור תשובות רלוונטיות לשאלות חוזרות</li>
+</ul>
+<h4 id='toc-h4-1-1-2-2'>2. שילוב כלי AI – אוטומציה וסיוע חכם</h4>
+<p>שילוב טכנולוגיות AI כדי להפוך את ניהול הכספים לחכם ונוח יותר:</p>
+<ul>
+  <li><strong>חילוץ טרנזקציות אוטומטי</strong>: העלאת תמונות של קבלות, חשבוניות או מסמכי PDF, והמערכת תזהה ותחלץ אוטומטית את פרטי העסקה (סכום, תאריך, ספק, קטגוריה) ותיצור תנועה חדשה. זה יחסוך זמן רב בהזנת נתונים ידנית.</li>
+</ul>
+<ul>
+  <li><strong>סידור אוטומטי לקטגוריות</strong>: AI שימיין אוטומטית תנועות לקטגוריות המתאימות על בסיס תיאור העסקה, ספק, או דפוסי הוצאה קודמים של המשתמש. המשתמש יוכל לאשר או לתקן את הסיווג.</li>
+</ul>
+<ul>
+  <li><strong>צ'אטבוט חכם</strong>: ממשק שיחה (chat) עם AI שיאפשר:</li>
+  <li>שאלות על מצב החשבון: "כמה הוצאתי החודש על מזון?" או "מה יתרת המעשר שלי?"</li>
+  <li>שאלות הלכתיות כלליות: "מה הדין עם מעשר מהכנסה פטורה?"</li>
+  <li>המלצות: "לפי ההוצאות שלך, כדאי לך לבדוק את הקטגוריה X"</li>
+  <li>ניתוח מגמות: "ההוצאות שלך על Y גדלו ב-20% החודש"</li>
+</ul>
+<h4 id='toc-h4-1-1-2-3'>3. המרת מטבעות בזמן אמת</h4>
+<p>פיצ'ר המרת מטבעות מלא עם שערי חליפין מעודכנים בזמן אמת. המשתמש יוכל:</p>
+<ul>
+  <li>להמיר סכומים בין מטבעות שונים (שקל, דולר, אירו)</li>
+  <li>לראות את יתרת המעשר במטבע מועדף, גם אם התנועות במטבעות שונים</li>
+  <li>לקבל עדכונים אוטומטיים על שערי חליפין</li>
+  <li>לשמור היסטוריית שערים לצורך דוחות רטרואקטיביים</li>
+</ul>
+<ul>
+  <li><strong>דוחות וניתוחים מתקדמים</strong>: גרפים אינטראקטיביים, מגמות לאורך זמן, השוואות תקופתיות, וניתוח התפלגות הוצאות לפי קטגוריות. דוחות שנתיים אוטומטיים שיכולים לשמש גם למס הכנסה.</li>
+</ul>
+<p>בסיכומו של דבר, מנקודת ראות של מנהל מוצר Ten10 מצטייר כפיתרון הוליסטי לניהול כספי הבית עבור הציבור הרחב ובפרט לציבור שומר מצוות: הוא משלב פשטות שימוש עם עומק פונקציונלי רלוונטי (מעשר), נותן מענה גם ללא אינטרנט, ומציג מקצועיות ועדכניות טכנולוגית – כל זאת בקוד פתוח שניתן להרחבה ושיפור מתמיד.</p>
+<h2 id='toc-h2-1-2'>מנקודת מבט של מפתח תוכנה</h2>
+<p>מבחינה טכנולוגית, Ten10 נבנה כיישום React מודרני בשפת TypeScript, עם דגש על ארכיטקטורה חוצה-פלטפורמות. כלומר, אותו בסיס קוד רץ הן כספא (Single Page Application) בווב, והן כאפליקציית Desktop באמצעות מעטפת Tauri (המשלבת מנוע Webview עם יכולות שפת Rust)<sup><a href="#footnote-20">[20]</a></sup>. הגישה הזו מאפשרת שיתוף מרבי של לוגיקה ורכיבים בין הגרסאות – רוב הקוד של הממשק, הניהול והחישובים זהה – ורק חלקי הקוד של שכבת הנתונים מותאמים לפלטפורמה (שמירה ב-Supabase לעומת SQLite)<sup><a href="#footnote-21">[21]</a></sup>. הודות לכך, חוויית המשתמש ועץ המסכים דומים מאוד בין ווב לדסקטופ, וההבדלים הטכניים מוסתרים מאחורי הקלעים.</p>
+<p>אחד המרכיבים המרכזיים במימוש הוא Store גלובלי המבוסס על Zustand (ספריית state management פשוטה ויעילה ל-React)<sup><a href="#footnote-22">[22]</a></sup>. במודל של Ten10, כל העסקאות הפיננסיות של המשתמש נטענות אל מבנה מערכי בעבודה (transactions: Transaction[]) שנשמר בזיכרון ב-Zustand. כל פעולה של המשתמש בממשק – הוספת עסקה, עריכה או מחיקה – מעודכנת תחילה ב-Store הפנימי, ומיד לאחר מכן מתPersistת לאחסון הקבוע (בסיס הנתונים) דרך שירותי נתונים ייעודיים<sup><a href="#footnote-23">[23]</a></sup>. גישה זו מאפשרת חוויית שימוש חלקה ומהירה: המשתמש רואה מייד את העדכון בממשק (כי המידע כבר בעץ הזיכרון), תוך שהשמירה לבסיס הנתונים מתרחשת ברקע באופן אסינכרוני.</p>
+<h3 id='toc-h3-1-2-1'>תהליך הוספת עסקה – זרימת נתונים</h3>
+<p>מה קורה כאשר משתמש מוסיף עסקה חדשה? התרשים הבא ממחיש את הזרימה, בגרסת הווב ובגרסת הדסקטופ במקביל:</p>
+<pre>תרשים: תהליך הוספת עסקה ב-Ten10
+המשתמש ממלא טופס ב-UI (React)
+↓
+ה-Store מעודכן מיד
+↓
+ב-Web: קריאת Insert ל-Supabase (Postgres)
+ב-Desktop: פקודת Rust לכתיבה ל-SQLite
+↓
+<p>עדכון תצוגת הדשבורד עם הנתונים החדשים</pre></p>
+<p>כמו שמוצג לעיל, בעת לחיצה על "שמירה" בטופס העסקה, רכיב הטופס יוצר אובייקט Transaction חדש ומעביר אותו לשכבת השירות. כאן מתרחש פיצול לוגי בהתאם לפלטפורמה:</p>
+<ul>
+  <li><strong>בגרסת הווב</strong> – הקוד קורא ל-API של Supabase כדי להכניס שורה חדשה לטבלת transactions בבסיס הנתונים בענן. הקריאה מתבצעת באמצעות SDK של Supabase בצד הלקוח, יחד עם מזהה המשתמש המחובר (כדי לשייך את העסקה למשתמש הנכון)<sup><a href="#footnote-24">[24]</a></sup><sup><a href="#footnote-25">[25]</a></sup>. מנגנון אבטחת Row Level Security בדטאבייס מבטיח שמשתמש יוכל לקרוא ולעדכן רק את הרשומות של עצמו<sup><a href="#footnote-26">[26]</a></sup>.</li>
+</ul>
+<ul>
+  <li><strong>בגרסת הדסקטופ</strong> – הקריאה היא לפונקציה בגב Rust (דרך מנגנון Tauri Invoke). למעשה מתבצעת פקודה add_transaction שנכתבה ב-Rust, אשר פותחת את מסד ה-SQLite המקומי וכותבת אליו את פרטי העסקה החדשה<sup><a href="#footnote-27">[27]</a></sup><sup><a href="#footnote-28">[28]</a></sup>.</li>
+</ul>
+<p>לאחר ההכנסה לבסיסי הנתונים, המערכת מעדכנת סימן זמן אחרון-טעינה כדי ליידע את האפליקציה שיש לרענן את רשימת העסקאות מהשרת/דטהבייס<sup><a href="#footnote-29">[29]</a></sup><sup><a href="#footnote-30">[30]</a></sup>. בפועל, כיום Ten10 משתמשת בגישה פשוטה של טעינה מחדש: אחרי כל שינוי (הוספה/עדכון/מחיקה), האפליקציה קוראת שוב את כל רשימת העסקאות מהמקור (Supabase או SQLite) ומעדכנת את ה-Store בהתאם. גישה זו מבטיחה סנכרון מלא בין המצב המקומי למצב בבסיס הנתונים<sup><a href="#footnote-23">[23]</a></sup>. בעתיד, ניתן לשפר זאת עם מנגנוני עדכון אינקרמנטליים או התראות בזמן-אמת (למשל יכולות live subscriptions של Supabase), אך בממדי הנתונים הנוכחיים הקריאה המחודשת אינה מכבידה ומהווה פתרון אמין.</p>
+<p>בנוסף לתהליך יצירת עסקה, ישנם תהליכים דומים למחיקת עסקה או עריכתה: גם בהם הלוגיקה בודקת את הפלטפורמה, ובווב שולחת בקשת DELETE/UPDATE ל-Supabase (על הטבלה הרלוונטית), ובדסקטופ מפעילה פונקציית Rust שמבצעת SQL מתאים (DELETE/UPDATE) על בסיס הנתונים המקומי<sup><a href="#footnote-31">[31]</a></sup><sup><a href="#footnote-32">[32]</a></sup>. לאחר כל שינוי כאמור, מתרענן ה-Store וה-UI מתעדכן אוטומטית.</p>
+<h3 id='toc-h3-1-2-2'>הוראות קבע (Recurring Transactions) – ארכיטקטורה ומימוש</h3>
+<p>הוראות קבע הן אחד הפיצ'רים המורכבים יותר מבחינה ארכיטקטונית, ומדגימות את הגמישות של המערכת. המערכת משתמשת במודל <strong>Template → Scheduler → Materialized Transactions</strong>:</p>
+<strong>מבנה הנתונים:</strong>
+<ul>
+  <li><strong>טבלת <code>recurring_transactions</code></strong>: מאחסנת את ההגדרות (templates) של הוראות הקבע, כולל תדירות, יום בחודש, סכום, סוג תנועה וכו'. הטבלה קיימת גם ב-Supabase (ווב) וגם ב-SQLite (דסקטופ), עם סכימה זהה.</li>
+  <li><strong>טבלת <code>transactions</code></strong>: מאחסנת את התנועות בפועל. כל תנועה שנוצרה מהוראת קבע מקושרת לתבנית המקורית דרך <code>source_recurring_id</code>, ונושא <code>occurrence_number</code> שמציין את מספר הביצוע (למשל 3 מתוך 12).</li>
+</ul>
+<strong>תהליך ה-materialization:</strong>
+<ul>
+  <li><strong>בווב</strong>: CRON Job (Scheduled Function) רץ בסופבייס כל לילה ומבצע:</li>
+</ul>
+<ol>
+  <li>שולף את כל הוראות הקבע הפעילות (<code>status = 'active'</code>) שהגיע תורן (<code>next_due_date <= CURRENT_DATE</code>)</li>
+  <li>בודק עבור כל תבנית אם כבר קיימת תנועה עם אותו <code>source_recurring_id</code> ותאריך, כדי למנוע כפילויות</li>
+  <li>מייצר תנועות חדשות בטבלת <code>transactions</code> עם כל הפרטים מהתבנית</li>
+  <li>מעדכן את התבנית: מגדיל <code>execution_count</code>, מחשב את <code>next_due_date</code> הבא (למשל +1 חודש), ומסמן <code>status = 'completed'</code> אם הגיע למספר הביצועים המקסימלי</li>
+</ul>
+<ul>
+  <li><strong>בדסקטופ</strong>: תהליך שרת רץ בעת פתיחת האפליקציה (בפונקציית Rust) ומבצע לוגיקה דומה:</li>
+  <li>"מסתכל אחורה" מה-<code>last_run</code> (או <code>start_date</code> אם זו הפעם הראשונה) עד היום</li>
+  <li>מחשב אילו תנועות היו אמורות להיות מיוצרות בתקופה הזו לפי התדירות</li>
+  <li>מייצר את התנועות החסרות ל-SQLite, תוך בדיקה שהן לא קיימות כבר</li>
+</ul>
+<strong>אתגרים טכניים:</strong>
+<ul>
+  <li><strong>אטומיות</strong>: הפונקציה ב-Supabase רצה בתוך טרנזקציה SQL, מה שמבטיח שאם ה-INSERT מצליח אבל ה-UPDATE נכשל, הכל מתבטל. זה מונע מצבים של תנועות ללא עדכון התבנית.</li>
+  <li><strong>חישוב תאריכים מורכב</strong>: מה קורה אם <code>day_of_month</code> הוא 31 והחודש הבא הוא פברואר? מנגנון ה-<code>INTERVAL</code> של PostgreSQL (ו-Rust date libraries) מתמודד עם זה אוטומטית.</li>
+  <li><strong>מניעת כפילויות</strong>: כל תנועה שנוצרה מהוראת קבע נבדקת לפני יצירה, כדי למנוע יצירת תנועות כפולות אם התהליך רץ פעמיים.</li>
+</ul>
+<p>זהו דוגמה מצוינת לארכיטקטורה מודולרית: הקומפוננטות ב-React אינן צריכות לדעת איך נוצרות התנועות – הן פשוט קוראות את <code>transactions[]</code> מה-Store, והתהליכים ברקע דואגים ליצור אותן.</p>
+<h3 id='toc-h3-1-2-3'>חישוב יתרת המעשר – לוגיקה עסקית</h3>
+<p>מעשר כספים הוא לב המערכת, ועל המפתח להבין כיצד מחושבת יתרת המעשר הנדרשת בכל עת. החישוב מבוסס על סכום כל העסקאות שהוזנו, לפי כללים עסקיים פשוטים:</p>
+<pre>תרשים: השפעת סוגי עסקאות על חישוב יתרת המעשר
+הכנסות רגילות:
+  - מוסיפות 10% מהסכום ליתרת המעשר
+  - או 20% אם מוגדר כחומש
+תרומות:
+  - מקטינות את היתרה בסכום מלא (100%)
+הוצאות מיוחדות המותרות מתרומות:
+  - מקטינות 100% מהסכום
+סוגי הכנסה פטורה והוצאה רגילה:
+<ul>
+  <li>אינם משנים את היתרה (0%)</pre></li>
+</ul>
+<p>כפי שמודגם לעיל ובדרישות המערכת, האפליקציה מבחינה בין מספר סוגי עסקאות מבחינת השפעתן על חוב המעשר<sup><a href="#footnote-9">[9]</a></sup>:</p>
+<ul>
+  <li><strong>הכנסה רגילה</strong> (לדוגמה: משכורת) – מגדילה את חוב המעשר ב-10% מסכום ההכנסה. המשתמש יכול גם לסמן שההכנסה תחושב לפי "חומש" (20%), ואז 20% מהסכום יתווסף במקום 10%<sup><a href="#footnote-33">[33]</a></sup>. ישנם סוגי הכנסות שסומנו פטורות ממעשר (כגון החזר הוצאות) שאינן משפיעות כלל, כלומר 0%.</li>
+</ul>
+<ul>
+  <li><strong>תרומה/צדקה</strong> – מפחיתה את חוב המעשר בסכום מלא השווה לתרומה (100%). כלומר, אם המשתמש תרם 100 ש"ח, יתרת המעשר שצריך לשלם קטנה ב-100 ש"ח<sup><a href="#footnote-33">[33]</a></sup>.</li>
+</ul>
+<ul>
+  <li><strong>הוצאה רגילה</strong> – אינה משפיעה (המשתמש אמנם הוציא כסף אך לא קשור למעשר, 0%).</li>
+</ul>
+<ul>
+  <li><strong>הוצאה מיוחדת המותרת ממעשר</strong> – אלו הוצאות על צורכי דת או רוח המותרות לתשלום מכספי מעשר (למשל עזרה ללימוד תורה, צדקה עקיפה). הוצאה כזו מפחיתה את חוב המעשר, שכן היא נחשבת כאילו שולמה מכספי המעשר<sup><a href="#footnote-34">[34]</a></sup>. סכום ההוצאה מקטין את היתרה (100% מהסכום).</li>
+</ul>
+<p>החישוב מבוצע גם בצד הלקוח (ב-JavaScript, באמצעות selector ממומואיז של Zustand) לטובת תגובתיות מיידית<sup><a href="#footnote-22">[22]</a></sup>, אך גם ממומש בצד השרת הן בענן והן בדסקטופ:</p>
+<ul>
+  <li><strong>בווב</strong> – בסיס הנתונים ב-Supabase כולל פונקציות SQL (Stored Procedures) שמחשבות את סכומי המעשר והסיכומים האחרים ישירות במסד<sup><a href="#footnote-21">[21]</a></sup>. למשל פונקציה calculate_user_tithe_balance(user_id) מחזירה את חוב המעשר הכולל למשתמש, תוך שהיא מיישמת את הלוגיקה שלעיל בשאילתת SQL. פונקציות נוספות מחשבות סך הכנסות, סך תרומות וכדומה.</li>
+</ul>
+<ul>
+  <li><strong>בדסקטופ</strong> – במודול ה-Rust קיימות פונקציות מקבילות (כמו get_desktop_overall_tithe_balance) שרצות על מסד ה-SQLite המקומי ומבצעות שאילתות SQL לחישוב אותם ערכים<sup><a href="#footnote-21">[21]</a></sup>.</li>
+</ul>
+<p>בעת טעינת המסך, האפליקציה פונה לשרת (או ל-Rust) לקבלת הערכים המחושבים ומציגה אותם למשתמש. כרגע המערכת אף מציגה במקביל את הערך המחושב בצד הלקוח לשם אימות, אך עם התבססות הלוגיקה בצד שרת, החישוב הלקוח מיועד בהמשך לשמש כגיבוי בלבד<sup><a href="#footnote-21">[21]</a></sup><sup><a href="#footnote-35">[35]</a></sup>. עבור המפתח, פירוש הדבר הוא ששמירת עקביות הלוגיקה קריטית: כל שינוי בהגדרות חישוב המעשר צריך להתעדכן הן בפונקציות השרת (SQL/Rust) והן בקוד הלקוח (JavaScript) עד לאיחוד המלא של מנגנון החישוב בצד אחד. המאמץ הזה שווה את ההשקעה מכיוון שחישוב בצד השרת מאפשר מהירות ודיוק עבור כמויות גדולות של נתונים, ומבטיח שכל משתמש יראה את אותם ערכים גם אם ייגש דרך מכשיר אחר (באותו חשבון ווב).</p>
+<h3 id='toc-h3-1-2-4'>מבט על פיתוח ותחזוקה</h3>
+<p>Ten10 בנוי עם סט כלים עדכני, מה שמקל על המפתח הן בהרחבת הפיצ'רים והן בתחזוקה השוטפת:</p>
+<ul>
+  <li><strong>פרונטנד ב-React 18</strong> עם בנייה באמצעות Vite – מה שמאפשר פיתוח מודולרי וטעינה מהירה<sup><a href="#footnote-36">[36]</a></sup>. הניווט הפנימי מתבצע עם TanStack Router לספא, במקום שימוש ב-React Router הקלאסי<sup><a href="#footnote-37">[37]</a></sup>, כדי ליהנות מיכולות ניתוב מודרניות.</li>
+</ul>
+<ul>
+  <li><strong>עיצוב הממשק</strong> משתמש בסטייל Tailwind CSS ובספריית רכיבים shadcn/ui הבנויה על Radix – כך שהמפתח כותב מינימום CSS ידני ונהנה מרכיבים נגישים ומעוצבים מראש<sup><a href="#footnote-38">[38]</a></sup>. למשל, טפסים, מודאלים, טבלאות וגרפים – רובן הורכבו מרכיבי ספרייה עם התאמות קלות, תוך שמירה על מראה אחיד.</li>
+</ul>
+<ul>
+  <li><strong>ניהול ה-state הגלובלי</strong> מתבסס כאמור על Zustand – ספרייה קלילה המאפשרת יצירת store מחוץ ל-React ולצרוך נתונים ממנו בקלות בתוך קומפוננטות<sup><a href="#footnote-22">[22]</a></sup>. מצב האפליקציה (רשימת העסקאות, ההעדפות, המצב המחושב וכו') מרוכז במקום אחד, מה שמקל על ניפוי שגיאות והוספת יכולות (לדוגמה, מימוש Undo/Redo עתידי אפשרי ע"י שמירת היסטוריית שינויים ב-store).</li>
+</ul>
+<ul>
+  <li><strong>לטיפול בטפסים ובאימות קלט המשתמש</strong>, נעשה שימוש ב-React Hook Form יחד עם Zod לבניית סכימת אימות<sup><a href="#footnote-39">[39]</a></sup>. משמעות הדבר היא שהמפתח מגדיר באופן דקלרטיבי אילו שדות טופס מצופים ואיזה מבנה נתונים תקין, והספריות הללו דואגות לוולידציה אוטומטית (כולל הודעות שגיאה בשפות השונות). זה הפחית משמעותית כתיבת קוד אימות ידני ושיפר את אמינות התוכנה – משתמש לא יכול לשמור עסקה עם שדות חסרים או ערכים בפורמט לא תקין.</li>
+</ul>
+<ul>
+  <li><strong>המערכת תומכת בריבוי שפות</strong> באמצעות i18next: כל הטקסטים מופרדים בקבצי JSON תחת public/locales עבור כל שפה<sup><a href="#footnote-15">[15]</a></sup>. הפתרון הזה מקל על המפתח להוסיף שפות (רק לתרגם את קובץ המחרוזות) ומוודא שכל הממשק מתעדכן אוטומטית בהתאם לשפה הנבחרת. בנוסף, היישום מזהה אוטומטית שפה RTL (עברית) ומחליף לכיוון ימין-שמאל באמצעות הגדרות CSS מתאימות.</li>
+</ul>
+<ul>
+  <li><strong>כתיבת הקוד ב-TypeScript</strong> יחד עם שימוש עקבי ב-types (מוקלד עבור אובייקט Transaction, עבור שירותי הנתונים וכו') מונעים הרבה שגיאות בזמן קומפילציה. הקפדה על טיפוסי נתונים, במיוחד במעברים בין JavaScript ל-Rust (בקריאות invoke של Tauri), נתנה ביטחון שאובייקט העסקה נשלח בשלמותו ומתקבל במבנה הצפוי גם בצד השני.</li>
+</ul>
+<ul>
+  <li><strong>לבסוף, המפתח נהנה מתשתית CI/CD</strong> מפותחת: פרויקט Ten10 משתמש ב-GitHub Actions אוטומטיים ובכלי Dependabot כדי לעדכן תלויות ספרייה באופן שוטף<sup><a href="#footnote-40">[40]</a></sup>. תהליך ההפצה כולל:</li>
+  <li><strong>הפצת ווב</strong>: כל push ל-main או tag מתאים מפעיל workflow שבונה את ה-frontend (Vite) ומפריס אוטומטית ל-Vercel או פלטפורמת hosting אחרת. ה-build כולל אופטימיזציות, minification ו-bundling אוטומטי.</li>
+  <li><strong>הפצת דסקטופ</strong>: כאשר נוצר tag בגרסה (למשל <code>v0.3.0</code>), GitHub Actions מריץ workflow שמבצע:</li>
+  <li>Build של ה-frontend (Vite)</li>
+  <li>Build של אפליקציית Tauri (Rust + bundling)</li>
+  <li>חתימה על installers עם Tauri signer (לאבטחה)</li>
+  <li>יצירת GitHub Release עם קובצי ההתקנה (<code>.msi</code> ל-Windows)</li>
+  <li>העלאת <code>latest.json</code> שמשמש את מנגנון העדכונים האוטומטיים</li>
+  <li><strong>תחזוקת תלויות</strong>: Dependabot בודק באופן שוטף עדכוני אבטחה ותיקוני באגים לספריות, ויוצר Pull Requests אוטומטיים. בנוסף, קיימים מדריכי פיתוח מפורטים בתיקיית llm-instructions – הכוללים הסברים על שמירת נתונים בדסקטופ, ארכיטקטורת context לפלטפורמות, תמיכה בריבוי שפות ועוד<sup><a href="#footnote-41">[41]</a></sup> – כך שגם מפתח חדש המצטרף לצוות יכול ללמוד את המערכת במהירות.</li>
+</ul>
+<p>לסיכום חלק זה, מנקודת מבט הפיתוח Ten10 מדגימה איך ניתן לבנות אפליקציה פיננסית מלאה עם כלי Web מודרניים: היא ממנפת BaaS (כמו Supabase) כדי לחסוך בפיתוח צד-שרת, משלבת יכולות אופליין דרך Tauri/Rust ללא כתיבת לוגיקה כפולה, ומשתמשת בפרקטיקות פיתוח טובות (הפרדת אחריות, אימות נתונים, state management יעיל). כל זאת מאפשרת לפיתוח להתמקד בפתרון הבעיה העסקית (ניהול מעשר) ולא בבניית תשתיות מאפס.</p>
+<h2 id='toc-h2-1-3'>מנקודת מבט של ארכיטקט תוכנה</h2>
+<p>ארכיטקטורת המערכת של Ten10 תוכננה לתת מענה למספר אתגרים: תמיכה בכמה פלטפורמות (Web ודסקטופ) עם בסיס קוד יחיד, יכולת עבודה אופליין מלא לצד שימוש בענן, ואבטחת נתונים אישיים במודל התואם אפליקציה פיננסית.</p>
+<pre>תרשים: ארכיטקטורת Ten10
+מימין - גרסת ה-Web:
+  אפליקציית React בדפדפן (PWA + TWA)
+  ↓
+  שירות Supabase (API, אימות, Postgres בענן)
+  ↓
+  AWS SES (שליחת מיילים)
+משמאל - גרסת הדסקטופ:
+  אפליקציית React ארוזה ב-Tauri (רצה מקומית)
+  ↓
+  שכבת Rust
+  ↓
+  מסד נתונים SQLite מקומי
+<p>הערה: קיים סנכרון ידני בין הפלטפורמות באמצעות ייבוא/ייצוא JSON.</pre></p>
+<p>חלוקת האחריות במערכת ברורה: צד הלקוח (Front-End) מטפל בכל מה שהמשתמש רואה ועושה, וצד השרת/מסד (Back-End) אחראי לאחסון הנתונים ולחישובים המרכזיים. גרסת ה-Web מתבססת על סביבת שרת מוכנה (Supabase) במקום לפתח שרת ייעודי מאפס. Supabase מספקת מסד נתונים Postgres מנוהל עם API חשוף, וכן שירותי משתמשים (הרשמה, אימות OAuth וכו') – דבר שצמצם משמעותית את זמן הפיתוח ואפשר לארכיטקט להתמקד בלוגיקת האפליקציה<sup><a href="#footnote-2">[2]</a></sup>. הנתונים ב-Supabase מוגנים על-ידי מדיניות Row-Level Security, כך שגם אם כל התקשורת היא ישירות מהמובייל/דפדפן לדאטאבייס, אין סכנה שמשתמש יראה נתונים של אחר (המסד בודק כל שאילתה לפי מזהה משתמש ומחזיר רק את הרשומות שלו)<sup><a href="#footnote-26">[26]</a></sup>. זה פתרון אלגנטי לאבטחה מבלי להקים שרת מתווך.</p>
+<p>במקביל, גרסת הדסקטופ משתמשת במסד SQLite מקומי (קובץ Ten10.db) המאוחסן אצל המשתמש<sup><a href="#footnote-26">[26]</a></sup>. בחירה ב-SQLite מאפשרת שימוש ביכולות רלציוניות (טבלאות, שאילתות SQL מורכבות) גם ללא שרת, ומספקת מהירות גבוהה עבור נפחי נתונים קטנים-בינוניים. שכבת ה-Rust של Tauri פועלת כמעין "שרת מקומי" שמאזין לקריאות מה-front-end ומבצע את הפעולות על ה-SQLite (קריאות SELECT/INSERT/UPDATE וכד')<sup><a href="#footnote-21">[21]</a></sup>. החלטה ארכיטקטונית זו – לנצל את Rust עבור הגישה לדיסק – תורמת לביצועים ולאבטחה: Rust היא שפה קומפילטיבית ובטוחה (memory-safe), מה שמבטיח גישה יעילה למסד הנתונים המקומי ללא חשש לדליפות זיכרון או קריסות בלתי צפויות. בנוסף, כל הקוד הרגיש (קריאה/כתיבה למערכת הקבצים) מוגבל לצד ה-Rust, וה-UI (JavaScript) אינו יכול לגשת ישירות לדיסק, מה שמונע מניפולציה לא מורשית של הקבצים.</p>
+<p>הארכיטקטורה מדגישה מודולריות: חלקי המערכת מחולקים בצורה לוגית כך שניתן להחליפם או לשנותם בלי להשפיע זה על זה. למשל, כל פעולות ה-CRUD על עסקאות מבודדות בשכבת data-layer עם פונקציות שירות אחידות (addTransaction, loadTransactions וכו'), שבתוכן מתבצע ההיגיון אם לפנות ל-Supabase או ל-SQLite<sup><a href="#footnote-27">[27]</a></sup><sup><a href="#footnote-42">[42]</a></sup>. לכן, הקומפוננטות ב-React אינן "יודעות" היכן הנתונים נשמרים בפועל – הן קוראות לפונקציות שירות, ומקבלות/שולחות אובייקטי Transaction. אם בעתיד יוחלט להוסיף סנכרון או לשנות אחסון (נניח, להשתמש בIndexedDB בדפדפן או בענן אחר), ניתן לעשות זאת בשכבה הזו מבלי לשנות את כלל הממשק. דוגמה נוספת: רכיב זיהוי הפלטפורמה (Platform Context) נטען פעם אחת בעת עליית האפליקציה, ומאפשר לכל שאר הקוד פשוט לבדוק אם platform === "web" או "desktop" כדי להחליט על UI שונה או לוגיקה שונה במידת הצורך<sup><a href="#footnote-43">[43]</a></sup>. כך למשל מסך פרופיל המשתמש נטען רק בווב (כי בדסקטופ אין משתמש רשום), או כפתורי גיבוי הנתונים מופיעים רק בדסקטופ<sup><a href="#footnote-16">[16]</a></sup>. ההחלטות הללו מתקבלות באופן ריכוזי דרך הקונטקסט, ולא מפוזרות כבדיקות בכמה מקומות – מה ששומר על קוד נקי וברור.</p>
+<h3 id='toc-h3-1-3-1'>סט הטכנולוגיות</h3>
+<p>סט הטכנולוגיות שבחרנו עבור Ten10 נועד לתמוך בדרישות אלו של גמישות ושיתוף קוד. להלן רכיבי ה-Stack המרכזיים בארכיטקטורה<sup><a href="#footnote-36">[36]</a></sup>:</p>
+<ul>
+  <li><strong>שפת תכנות עיקרית</strong>: TypeScript (גם לפרונטנד וגם להרצת לוגיקה משותפת). בנוסף, שפת Rust משמשת למודול הדסקטופ. הבחירה ב-TypeScript מבטיחה טיפוסיות חזקה בצד הלקוח, והבחירה ב-Rust לדסקטופ מבטיחה ביצועים ובטיחות זיכרון בצד השרת המקומי.</li>
+</ul>
+<ul>
+  <li><strong>Front-End</strong>: ספריית React (גרסה 18) המשולבת עם בנדלר Vite. React מעניקה את כל היתרונות של ספריית UI פופולרית – קומפוננטות, וירטואל DOM, אקו-סיסטם גדול – ו-Vite מספקת פיתוח מהיר (HMR) ובנייה יעילה לפרודקשן.</li>
+</ul>
+<ul>
+  <li><strong>Back-End לענן</strong>: שירות Supabase (הכולל PostgreSQL + Auth + פונקציות Serverless) במקום לפתח שרת Node.js בעצמנו. החלטה זו תאמה את משאבי הצוות ורצון ה-product לספק פתרון מהיר עם הרשמה והתחברות נוחות, ללא התעסקות בניהול שרתים. Supabase מטפל גם בשליחת מיילים (לצורך אימות משתמשים ותזכורות) דרך הפונקציות שלו, ובכך משלים את כל צורכי הצד-שרת של המערכת<sup><a href="#footnote-17">[17]</a></sup>.</li>
+</ul>
+<ul>
+  <li><strong>Desktop Container</strong>: סביבת Tauri 2.0 – מסגרת המאפשרת לארוז אפליקציית ווב כיישום דסקטופ עצמאי. הבחירה ב-Tauri (על פני Electron לדוגמה) נבעה מכמה סיבות ארכיטקטוניות: Tauri כתוב ב-Rust ולכן מניב אפליקציות קלות ובטוחות יותר, הוא מאפשר ניצול ישיר של APIים של מערכת ההפעלה (כגון התראות, מנהל חלונות) בקלות, והוא משתלב היטב עם חבילות Node.js קיימות. בפועל, אפליקציית ה-Ten10 Desktop היא בינארי קטן יחסית, עם טביעת רגל זיכרון קטנה, שמקשר בין ממשק ה-React לבין מסד SQLite וכל שירותי OS נחוצים (כמו כתיבה/קריאה לקבצים, או בדיקת עדכונים).</li>
+</ul>
+<ul>
+  <li><strong>מסדי נתונים</strong>: PostgreSQL בענן (דרך Supabase) המשמש את כלל המשתמשים המקוונים – עם טבלאות transactions, users וכו'. מולו, SQLite מקומי לכל התקנת דסקטופ – לשימוש המשתמש הבודד. באופן אידאלי, סכימת בסיס הנתונים (DB schema) זהה בין שניהם<sup><a href="#footnote-44">[44]</a></sup>, מה שמקל על תחזוקת הקוד. לדוגמה, טבלת transactions קיימת בשניהם עם אותן עמודות, והלוגיקה יודעת לפנות לאותה טבלה בין אם זה קריאת SQL מקומית או באמצעות API בענן.</li>
+</ul>
+<ul>
+  <li><strong>ניהול ושיתוף קוד</strong>: הפרויקט מחולק כך שהקוד הייעודי ל-Web יושב תחת ספריית src/ (כל רכיבי ה-React, לוגיקת ה-Store וכו'), והקוד הייעודי לדסקטופ יושב תחת src-tauri/ (קוד Rust, קובץ הקונפיגורציה של Tauri, וסקריפטים כמו auto-updater)<sup><a href="#footnote-45">[45]</a></sup><sup><a href="#footnote-46">[46]</a></sup>. מכיוון שהפרונטנד משותף ברובו, הוא תוכנן לעבוד offline כשאפשר: לדוגמה, מסך ההתחברות (login) פשוט לא יוצג בדסקטופ, אך שאר המסכים (הגדרות, טפסי עסקאות, דוחות) עובדים בדסקטופ בדיוק כמו בווב, תוך קריאה לפונקציות Rust במקום ל-API מרוחק. החלוקה הזו איפשרה Reuse מקסימלי – קרוב ל-90% מהקוד המשויך לפיצ'רים עסקיים הוא משותף. רק שכבת הגישה לנתונים וההרשאות הוחלפה בהתאם, וכן רכיבים יחודיים (כמו כפתור "בדוק עדכונים" שיש רק בדסקטופ).</li>
+</ul>
+<p>כארכיטקט, מעניין לציין כמה החלטות תכנון שנעשו כדי לתמוך בהתפתחות עתידית:</p>
+<ul>
+  <li>ראשית, מודל הנתונים המאוחד (Transaction אחד לכל סוג) יאפשר להרחיב את סוגי התנועות או להוסיף קטגוריות ללא שבירת המבנה הקיים<sup><a href="#footnote-7">[7]</a></sup>.</li>
+</ul>
+<ul>
+  <li>שנית, הבחירה לבצע חישובים כבדים במסד הנתונים (למשל סכומי יתרות לפי טווחי תאריכים) נועדה להבטיח ש-Ten10 יוכל לטפל בנפחי מידע גדולים יותר בעתיד ללא בעיות ביצועים – שאילתת SQL היא אופטימלית לזה, ורק התוצאה מגיעה ללקוח<sup><a href="#footnote-21">[21]</a></sup>. במקביל, תכנון זה מאפשר בקלות להוסיף דוחות תקופתיים ומסכי ניתוח, על בסיס פונקציות SQL או View-ים נוספים במסד.</li>
+</ul>
+<ul>
+  <li>שלישית, נושא העדכונים האוטומטיים בדסקטופ תוכנן כבר מהתחלה כדי למנוע פיצול גרסאות – המערכת בודקת ב-runtime אם יש עדכון, ומידעת את המשתמש או מורידה ברקע<sup><a href="#footnote-19">[19]</a></sup>. כך אפשר לתקן באגים או להוסיף פיצ'ר ומיד כל המשתמשים (אפילו אופליין) מקבלים את הגרסה החדשה.</li>
+</ul>
+<ul>
+  <li>לבסוף, תמיכה במובייל כבר קיימת: ה-Web App של Ten10 בנוי כ-PWA (Progressive Web App) מלא, וקיימת גם TWA (Trusted Web Activity) לאנדרואיד שנבנתה עם Bubblewrap. המשמעות היא שארכיטקטורת ה-frontend מופרדת מספיק מהפלטפורמה כדי לאפשר גם אפליקציה בטלפון חכם, עם אותם רכיבים. ה-TWA עדיין לא שוחרר ל-Play Store, אך הקוד קיים ומוכן.</li>
+</ul>
+<h3 id='toc-h3-1-3-2'>סיכום הארכיטקטורה</h3>
+<p>Ten10 מדגים עיצוב נקי שבו Client ו-Server (או מקבילו המקומי) עובדים בתיאום: ה-Client אחראי לחוויית משתמש וללוגיקה מיידית (ולידציה, הצגה, אינטראקציה), בעוד ה-Server (או Rust) מטפל בנתונים ובחישובים כבדים. הסנכרון בין המצב המקומי למצב השמורה בשרת מתבצע באופן יזום ושולט (fetch בעת הצורך)<sup><a href="#footnote-23">[23]</a></sup>, ואין "מצבים תלויים" שקשה לתחקות אחריהם. ארכיטקטורה זו גם מאפשרת Scalability – ניתן להריץ מספר מופעי שרת (Supabase) אם יהיו אלפי משתמשים, ללא שינוי בצד הלקוח, כי כל הלוגיקה שם מבוססת על קריאות API סטנדרטיות. הבדלה הברורה בין שכבות, שימוש בכלי פיתוח חזקים, ותיעוד מפורט הנלווה לקוד, כל אלו הופכים את Ten10 למערכת שעל אף מורכבות הדרישות (חישובים פיננסיים, תמיכה באופליין, ריבוי שפות) – היא ברורה, מתוחזקת היטב, ומוכנה להרחבה. העובדה שזהו פרויקט קוד פתוח מאפשרת לארכיטקטים ומפתחים נוספים להתעמק בקוד, ללמוד או לתרום, ולסייע בהפיכת Ten10 לכלי מוביל בנישה של ניהול מעשר וניהול פיננסי ביתי.</p>
+<h2 id='toc-h2-1-4'>מקורות</h2>
+<p>המידע והתיאורים נלקחו במלואם ממאגר הקוד הפתוח של הפרויקט (ריפוזיטורי GitHub) ומהתיעוד הפנימי שבו, כולל ה-README הרשמי של Ten10 ופירוט הדרישות והארכיטקטורה בקבצי התיעוד המצורפים<sup><a href="#footnote-1">[1]</a></sup><sup><a href="#footnote-7">[7]</a></sup> ועוד. כל האסמכתאות מסומנות בגוף הטקסט.</p>
+<hr/>
+<h3 id='toc-h3-1-4-1'>הערות שוליים</h3>
+<sup><a href="#footnote-1">[1]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-2">[2]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-3">[3]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-4">[4]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-5">[5]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-6">[6]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-7">[7]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/llm-instructions/project-overview-and-requirements.md">project-overview-and-requirements.md</a>
+<sup><a href="#footnote-8">[8]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-9">[9]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/llm-instructions/project-overview-and-requirements.md">project-overview-and-requirements.md</a>
+<sup><a href="#footnote-10">[10]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/llm-instructions/project-overview-and-requirements.md">project-overview-and-requirements.md</a>
+<sup><a href="#footnote-11">[11]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/llm-instructions/project-overview-and-requirements.md">project-overview-and-requirements.md</a>
+<sup><a href="#footnote-12">[12]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-13">[13]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-14">[14]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/llm-instructions/project-overview-and-requirements.md">project-overview-and-requirements.md</a>
+<sup><a href="#footnote-15">[15]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-16">[16]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/llm-instructions/project-overview-and-requirements.md">project-overview-and-requirements.md</a>
+<sup><a href="#footnote-17">[17]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/llm-instructions/project-overview-and-requirements.md">project-overview-and-requirements.md</a>
+<sup><a href="#footnote-18">[18]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/llm-instructions/project-overview-and-requirements.md">project-overview-and-requirements.md</a>
+<sup><a href="#footnote-19">[19]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/llm-instructions/project-overview-and-requirements.md">project-overview-and-requirements.md</a>
+<sup><a href="#footnote-20">[20]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-21">[21]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/llm-instructions/project-overview-and-requirements.md">project-overview-and-requirements.md</a>
+<sup><a href="#footnote-22">[22]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-23">[23]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-24">[24]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/src/lib/data-layer/transactions.service.ts">transactions.service.ts</a>
+<sup><a href="#footnote-25">[25]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/src/lib/data-layer/transactions.service.ts">transactions.service.ts</a>
+<sup><a href="#footnote-26">[26]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-27">[27]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/src/lib/data-layer/transactions.service.ts">transactions.service.ts</a>
+<sup><a href="#footnote-28">[28]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/src/lib/data-layer/transactions.service.ts">transactions.service.ts</a>
+<sup><a href="#footnote-29">[29]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/src/lib/data-layer/transactions.service.ts">transactions.service.ts</a>
+<sup><a href="#footnote-30">[30]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/src/lib/data-layer/transactions.service.ts">transactions.service.ts</a>
+<sup><a href="#footnote-31">[31]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/src/lib/data-layer/transactions.service.ts">transactions.service.ts</a>
+<sup><a href="#footnote-32">[32]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/src/lib/data-layer/transactions.service.ts">transactions.service.ts</a>
+<sup><a href="#footnote-33">[33]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/llm-instructions/project-overview-and-requirements.md">project-overview-and-requirements.md</a>
+<sup><a href="#footnote-34">[34]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/llm-instructions/project-overview-and-requirements.md">project-overview-and-requirements.md</a>
+<sup><a href="#footnote-35">[35]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/llm-instructions/project-overview-and-requirements.md">project-overview-and-requirements.md</a>
+<sup><a href="#footnote-36">[36]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-37">[37]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-38">[38]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-39">[39]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-40">[40]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-41">[41]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-42">[42]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/src/lib/data-layer/transactions.service.ts">transactions.service.ts</a>
+<sup><a href="#footnote-43">[43]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-44">[44]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/llm-instructions/project-overview-and-requirements.md">project-overview-and-requirements.md</a>
+<sup><a href="#footnote-45">[45]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a>
+<sup><a href="#footnote-46">[46]</a></sup>: <a href="https://github.com/yossi-weinberger/ten10/blob/c9a53c974e43952c1423394e2046711acd3ec2ea/README.md">README.md</a></body>
+</html>
