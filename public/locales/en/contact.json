@@ -1,0 +1,51 @@
+{
+  "fabTooltip": "Contact Us",
+  "modal": {
+    "title": "Contact Us",
+    "description": "Choose who you want to contact. We'll get back to you soon.",
+    "tabs": {
+      "rabbi": "Contact Rabbi",
+      "dev": "Contact Dev Team"
+    }
+  },
+  "desktop": {
+    "title": "Contact Us",
+    "description": "Copy the relevant email address and information, then send it using your preferred email client.",
+    "rabbiInstruction": "For halachic questions, contact the rabbi directly.",
+    "devInstruction": "For bug reports or feature requests, contact the dev team.",
+    "includeInfo": "To help us assist you faster, please include the following information in your message:",
+    "copyInfoButton": "Copy Technical Info",
+    "copySuccess": {
+      "email": "Email address copied!",
+      "info": "Technical info copied!"
+    }
+  },
+  "forms": {
+    "subject": {
+      "label": "Subject",
+      "placeholder": "Enter the subject of your message",
+      "error": "Subject must be at least 5 characters."
+    },
+    "body": {
+      "label": "Message",
+      "placeholderRabbi": "Describe your question for the rabbi...",
+      "placeholderDev": "Describe the bug, feature request, or feedback...",
+      "error": "Message must be at least 20 characters."
+    },
+    "severity": {
+      "label": "Severity",
+      "placeholder": "Select severity",
+      "low": "Low",
+      "med": "Medium",
+      "high": "High",
+      "error": "Please select a severity level."
+    },
+    "submit": "Send Message",
+    "submitting": "Sending...",
+    "successToast": "Your message has been sent successfully!",
+    "errorToast": "Failed to send message. Please try again.",
+    "captcha": {
+      "error": "Please complete the CAPTCHA verification."
+    }
+  }
+}
