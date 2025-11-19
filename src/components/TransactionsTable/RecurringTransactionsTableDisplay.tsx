@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { deleteRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
-import { MoreHorizontal, Repeat, Infinity } from "lucide-react";
+import { MoreHorizontal, Repeat, Infinity, InfoIcon } from "lucide-react";
 import { RecurringTransaction, TransactionType } from "@/types/transaction";
 import { recurringStatusBadgeColors } from "@/types/recurringTransactionLabels";
 import { typeBadgeColors } from "@/types/transactionLabels";
@@ -68,9 +68,11 @@ import {
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
 import { DeleteConfirmationDialog } from "../ui/DeleteConfirmationDialog";
 import { formatCurrency } from "@/lib/utils/currency";
+import { usePlatform } from "@/contexts/PlatformContext";
 
 export function RecurringTransactionsTableDisplay() {
   const { t, i18n } = useTranslation("data-tables");
+  const { platform } = usePlatform();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
     useState<RecurringTransaction | null>(null);
@@ -153,6 +155,21 @@ export function RecurringTransactionsTableDisplay() {
   return (
     <>
       <RecurringTransactionsFilters />
+
+      <div className="mt-4 bg-blue-50 text-blue-900 border border-blue-200 dark:bg-blue-950/30 dark:text-blue-100 dark:border-blue-800 rounded-lg p-4 flex items-start gap-3">
+        <InfoIcon className="h-5 w-5 mt-0.5 shrink-0" />
+        <div>
+          <h4 className="font-semibold text-sm">
+            {t("recurringTable.howItWorks.title")}
+          </h4>
+          <p className="text-sm mt-1 opacity-90">
+            {platform === "desktop"
+              ? t("recurringTable.howItWorks.descriptionDesktop")
+              : t("recurringTable.howItWorks.descriptionWeb")}
+          </p>
+        </div>
+      </div>
+
       <Card className="mt-4">
         <CardHeader>
           <CardTitle>{t("recurringTable.title")}</CardTitle>
