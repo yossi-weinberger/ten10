@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
-import { invoke } from "@tauri-apps/api/core";
+import { Platform } from "@/components/features/settings/platform-section";
+import { getErrorMessage } from "@/lib/utils";
 import i18n from "../i18n";
 import { getPlatform } from "../platformManager";
 
@@ -22,7 +23,7 @@ const submitContactForm = async (formData: ContactFormData) => {
 
   if (platform === "desktop") {
     try {
-      const info: { appVersion: string } = await invoke("get_platform_info");
+      const info: { appVersion: string } = await getDesktopClientInfo();
       app_version = info.appVersion;
     } catch (error) {
       console.error("Error getting desktop app version:", error);
@@ -101,6 +102,21 @@ const submitContactForm = async (formData: ContactFormData) => {
 
   return { success: true, ticketId };
 };
+
+/**
+ * Submits the contact form data to the Supabase database.
+ * @returns A promise that resolves when the submission is complete.
+ */
+export async function getDesktopClientInfo(): Promise<Platform> {
+  // Use a dynamic import for the Tauri API so it's not included in the web bundle.
+  const { invoke } = await import("@tauri-apps/api/core");
+  const platformInfo = await invoke<Platform>("get_platform_info");
+  return platformInfo;
+}
+
+/**
+ * Verifies a CAPTCHA token using a Supabase Edge Function.
+ */
 
 export const contactService = {
   submitContactForm,

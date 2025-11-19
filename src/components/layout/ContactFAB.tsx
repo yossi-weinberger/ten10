@@ -13,7 +13,7 @@ import { ContactModal } from "@/components/features/contact";
 // import { getVersion } from '@tauri-apps/api/app'
 // import { platform as getOsPlatform } from '@tauri-apps/api/os'
 import i18n from "@/lib/i18n";
-import { invoke } from "@tauri-apps/api/core";
+import { getDesktopClientInfo } from "@/lib/data-layer/contact.service";
 import {
   Dialog,
   DialogContent,
@@ -41,16 +41,15 @@ const ContactFAB = () => {
   const prepareDesktopInfo = async () => {
     if (platform === "desktop" && isDesktopChoiceOpen) {
       try {
-        const { appVersion, osPlatform } = await invoke<{
-          appVersion: string;
-          osPlatform: string;
-        }>("get_platform_info");
+        const clientInfo = await getDesktopClientInfo();
 
-        const body = `\n\n---\nApp Version: ${appVersion}\nOS: ${osPlatform}\nLanguage: ${
+        const { os, osVersion, arch, appVersion } = clientInfo;
+
+        const body = `\n\n---\nApp Version: ${appVersion}\nOS: ${os}\nLanguage: ${
           i18n.language
         }\nDate: ${new Date().toISOString()}`;
 
-        setDesktopInfo({ body, appVersion, osPlatform });
+        setDesktopInfo({ body, appVersion, osPlatform: os });
       } catch (error) {
         console.error("Failed to get platform info:", error);
       }
