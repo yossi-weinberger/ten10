@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { logger } from "@/lib/logger";
+import { useTranslation } from "react-i18next";
 import {
   Form,
   FormControl,
@@ -23,7 +23,10 @@ import { recurringStatusLabels } from "@/types/recurringTransactionLabels";
 import { RecurringTransaction } from "@/types/transaction";
 import { CURRENCIES, CurrencyObject } from "@/lib/currencies";
 import { FormActionButtons } from "./transaction-form-parts/FormActionButtons";
-import { RecurringEditFormValues, recurringEditSchema } from "@/lib/schemas";
+import {
+  RecurringEditFormValues,
+  createRecurringEditSchema,
+} from "@/lib/schemas";
 
 interface RecurringTransactionEditFormProps {
   initialData: RecurringTransaction;
@@ -36,10 +39,13 @@ export function RecurringTransactionEditForm({
   onSubmit,
   onCancel,
 }: RecurringTransactionEditFormProps) {
+  const { t } = useTranslation("transactions");
   const [isSuccess, setIsSuccess] = React.useState(false);
 
+  const recurringSchema = useMemo(() => createRecurringEditSchema(t), [t]);
+
   const form = useForm<RecurringEditFormValues>({
-    resolver: zodResolver(recurringEditSchema),
+    resolver: zodResolver(recurringSchema),
     mode: "onChange",
     defaultValues: {
       amount: initialData.amount,
