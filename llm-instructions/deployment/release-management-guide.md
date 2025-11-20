@@ -100,7 +100,7 @@ See `code-signing-guide.md` for detailed instructions.
 
 ### Step 1: Update Version Numbers
 
-Version numbers must be synchronized in **three files**:
+Version numbers must be synchronized in **four files**:
 
 1. **package.json**:
 
@@ -110,21 +110,35 @@ Version numbers must be synchronized in **three files**:
    }
    ```
 
-2. **src-tauri/Cargo.toml**:
+2. **package-lock.json** (updated automatically by `npm install --package-lock-only`):
+
+   ```json
+   {
+     "version": "0.3.0",
+     "lockfileVersion": 3,
+     "packages": {
+       "": {
+         "version": "0.3.0"
+       }
+     }
+   }
+   ```
+
+3. **src-tauri/Cargo.toml**:
 
    ```toml
    [package]
    version = "0.3.0"
    ```
 
-3. **src-tauri/tauri.conf.json**:
+4. **src-tauri/tauri.conf.json**:
    ```json
    {
      "version": "0.3.0"
    }
    ```
 
-**Tip**: Use a script or check all three files before committing.
+**Tip**: The release script (`npm run release`) automatically updates all four files. If updating manually, run `npm install --package-lock-only` after updating `package.json` to sync `package-lock.json`.
 
 ### Step 2: Commit and Tag
 
@@ -298,6 +312,12 @@ tauri-plugin-updater (v2.0.0) : @tauri-apps/plugin-updater (v2.9.0)
 - **Cause**: Rust crate versions don't match npm package versions
 - **Fix**: Update versions in `Cargo.toml` to match `package.json`
 - Run `npm install` after updating dependencies
+
+**Problem**: `package-lock.json` version doesn't match `package.json`
+
+- **Cause**: `package-lock.json` is not updated when version changes
+- **Fix**: Run `npm install --package-lock-only` after updating `package.json`
+- **Note**: The release script (`npm run release`) handles this automatically
 
 ### Environment Variable Errors
 

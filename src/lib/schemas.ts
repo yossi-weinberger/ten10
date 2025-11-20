@@ -1,5 +1,12 @@
 import { z } from "zod";
 import { transactionTypes } from "../types/transaction";
+import { TFunction } from "i18next";
+
+// =======================================================================
+// VALIDATION CONSTANTS
+// =======================================================================
+const MIN_SUBJECT_LENGTH = 5;
+const MIN_BODY_LENGTH = 20;
 
 // =======================================================================
 // REUSABLE FIELD SCHEMAS
@@ -179,3 +186,37 @@ export const recurringEditSchema = z.object({
 });
 
 export type RecurringEditFormValues = z.infer<typeof recurringEditSchema>;
+
+// =======================================================================
+// CONTACT FORM SCHEMAS
+// =======================================================================
+
+export type ContactRabbiFormValues = {
+  subject: string;
+  body: string;
+  captchaToken: string;
+};
+
+export type ContactDevFormValues = ContactRabbiFormValues & {
+  severity: "low" | "med" | "high";
+};
+
+export const createContactRabbiFormSchema = (t: TFunction) =>
+  z.object({
+    subject: z.string().min(MIN_SUBJECT_LENGTH, {
+      message: t("contact:forms.subject.error"),
+    }),
+    body: z.string().min(MIN_BODY_LENGTH, {
+      message: t("contact:forms.body.error"),
+    }),
+    captchaToken: z
+      .string()
+      .min(1, { message: t("contact:forms.captcha.error") }),
+  });
+
+export const createContactDevFormSchema = (t: TFunction) =>
+  createContactRabbiFormSchema(t).extend({
+    severity: z.enum(["low", "med", "high"], {
+      required_error: t("contact:forms.severity.error"),
+    }),
+  });

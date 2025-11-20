@@ -23,6 +23,7 @@ import { checkAndSendDesktopReminder } from "./lib/data-layer/reminders";
 import { checkForUpdates } from "./lib/data-layer/updater.service";
 import { logger } from "@/lib/logger";
 import toast from "react-hot-toast";
+import ContactFAB from "./components/layout/ContactFAB";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -194,6 +195,7 @@ function App() {
         </div>
         <Toaster richColors />
       </div>
+      <ContactFAB />
     </TooltipProvider>
   );
 }

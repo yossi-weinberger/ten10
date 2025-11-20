@@ -3,7 +3,8 @@
 use env_logger;
 use rusqlite::Connection;
 use std::sync::Mutex;
-use tauri::{WebviewUrl, WebviewWindowBuilder, Manager};
+use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
+use tauri_plugin_clipboard_manager;
 
 mod commands;
 mod models;
@@ -24,6 +25,7 @@ use commands::transaction_commands::{
     add_transaction, delete_transaction_handler, export_transactions_handler,
     get_filtered_transactions_handler, update_transaction_handler,
 };
+use commands::platform_commands::{get_platform_info, copy_to_clipboard};
 
 pub struct DbState(Mutex<Connection>);
 
@@ -42,6 +44,7 @@ fn main() {
             None,
         ))
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_clipboard_manager::init())
         // commands
         .invoke_handler(tauri::generate_handler![
             init_db,
@@ -63,6 +66,8 @@ fn main() {
             update_recurring_transaction_handler,
             get_recurring_transaction_by_id_handler,
             delete_recurring_transaction_handler,
+            get_platform_info,
+            copy_to_clipboard,
         ])
         // create main window with cache-busting index.html?v=<version>
         .setup(|app| {

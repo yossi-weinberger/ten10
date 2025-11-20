@@ -24,7 +24,8 @@ export default defineConfig(() => {
     },
     plugins: [
       react(),
-      VitePWA({
+      // Only enable PWA plugin if NOT a Tauri build to avoid caching issues in desktop app
+      !isTauriBuild && VitePWA({
         registerType: "autoUpdate",
         manifest: {
           name: "Ten10",
@@ -50,7 +51,7 @@ export default defineConfig(() => {
           maximumFileSizeToCacheInBytes: 5000000, // 5MB
         },
       }),
-    ],
+    ].filter(Boolean),
     optimizeDeps: {
       exclude: ["lucide-react"],
     },

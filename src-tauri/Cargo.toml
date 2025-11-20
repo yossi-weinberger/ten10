@@ -1,6 +1,6 @@
 [package]
 name = "Ten10"
-version = "0.2.20"
+version = "0.2.28"
 description = "Ten10 - Income and Donation Management App"
 authors = ["Yossi Weinberger"]
 license = "AGPL-3.0"
@@ -29,6 +29,7 @@ tauri-plugin-os = "2.3.1"
 tauri-plugin-notification = "2.3.1"
 tauri-plugin-autostart = "2.5.0"
 tauri-plugin-updater = "2.9.0"
+tauri-plugin-clipboard-manager = "2.1.0" 
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

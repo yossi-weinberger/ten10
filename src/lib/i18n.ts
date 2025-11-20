@@ -3,6 +3,8 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import HttpApi from "i18next-http-backend";
 import { logger } from "./logger";
+import contact from "../../public/locales/en/contact.json";
+import contact_he from "../../public/locales/he/contact.json";
 
 // Read the language from Zustand store if available
 const getInitialLanguage = (): string => {
@@ -52,6 +54,7 @@ const i18n = i18next as unknown as import("i18next").i18n;
       "halacha-expenses",
       "halacha-principles",
       "halacha-chomesh",
+      "contact",
     ],
     defaultNS: "common",
 
