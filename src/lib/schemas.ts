@@ -23,7 +23,7 @@ const createAmountSchema = (t: TFunction) =>
 
 const createCurrencySchema = (t: TFunction) =>
   z.enum(["ILS", "USD", "EUR"], {
-    error: t("transactions:transactionForm.validation.currency.required"),
+    message: t("transactions:transactionForm.validation.currency.required"),
   });
 
 const createDayOfMonthSchema = (t: TFunction) =>
@@ -97,7 +97,7 @@ export const createTransactionFormSchema = (t: TFunction) =>
         .optional()
         .nullable(),
       type: z.enum(transactionTypes, {
-        error: t("transactions:transactionForm.validation.type.required"),
+        message: t("transactions:transactionForm.validation.type.required"),
       }),
       category: z
         .string()
@@ -126,7 +126,7 @@ export const createTransactionFormSchema = (t: TFunction) =>
       is_recurring: z.boolean().optional(),
       frequency: z
         .enum(["monthly", "weekly", "yearly", "daily"], {
-          error: t(
+          message: t(
             "transactions:transactionForm.validation.recurring.frequencyRequired"
           ),
         })
@@ -281,6 +281,6 @@ export const createContactRabbiFormSchema = (t: TFunction) =>
 export const createContactDevFormSchema = (t: TFunction) =>
   createContactRabbiFormSchema(t).extend({
     severity: z.enum(["low", "med", "high"], {
-      error: t("contact:forms.severity.error"),
+      message: t("contact:forms.severity.error"),
     }),
   });
