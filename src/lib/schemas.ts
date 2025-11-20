@@ -15,7 +15,7 @@ const MIN_BODY_LENGTH = 20;
 const createAmountSchema = (t: TFunction) =>
   z.coerce
     .number({
-      error: t("transactions:transactionForm.validation.amount.number"),
+      message: t("transactions:transactionForm.validation.amount.number"),
     })
     .positive({
       message: t("transactions:transactionForm.validation.amount.positive"),
@@ -31,7 +31,7 @@ const createDayOfMonthSchema = (t: TFunction) =>
     (val) => (val === "" || val === null ? undefined : val),
     z.coerce
       .number({
-        error: t(
+        message: t(
           "transactions:transactionForm.validation.recurring.dayOfMonth.number"
         ),
       })
@@ -58,7 +58,7 @@ const createTotalOccurrencesSchema = (t: TFunction) =>
     (val) => (val === "" || val === null ? undefined : val),
     z.coerce
       .number({
-        error: t(
+        message: t(
           "transactions:transactionForm.validation.recurring.totalOccurrences.number"
         ),
       })
