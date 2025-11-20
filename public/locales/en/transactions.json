@@ -117,6 +117,53 @@
       "invalidAmount": "Invalid amount",
       "invalidDate": "Invalid date",
       "requiredField": "Required field"
+    },
+    "validation": {
+      "amount": {
+        "number": "Amount must be a number",
+        "positive": "Amount must be greater than zero"
+      },
+      "currency": {
+        "required": "Currency must be selected"
+      },
+      "date": {
+        "invalid": "Invalid date"
+      },
+      "description": {
+        "maxLength": "Description can contain up to 100 characters"
+      },
+      "type": {
+        "required": "Transaction type must be selected"
+      },
+      "category": {
+        "maxLength": "Category can contain up to 50 characters"
+      },
+      "recipient": {
+        "maxLength": "Recipient name can contain up to 50 characters",
+        "requiredForDonation": "Recipient name is required for donations"
+      },
+      "chomesh": {
+        "notForExempt": "Chomesh cannot be selected for exempt income",
+        "onlyForIncome": "Chomesh is relevant only for income"
+      },
+      "recurring": {
+        "frequencyRequired": "Frequency must be selected",
+        "dayOfMonth": {
+          "number": "Day of month must be a number",
+          "integer": "Day of month must be an integer",
+          "range": "Day of month must be between 1 and 31",
+          "requiredForMonthly": "Day of month must be specified for monthly recurring transactions",
+          "onlyForRecurring": "Day of month cannot be set for non-recurring transactions"
+        },
+        "totalOccurrences": {
+          "number": "Total occurrences must be a number",
+          "integer": "Total occurrences must be an integer",
+          "positive": "Total occurrences must be positive"
+        },
+        "frequency": {
+          "required": "Frequency must be selected for recurring transactions"
+        }
+      }
     }
   }
 }

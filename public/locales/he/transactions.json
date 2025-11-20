@@ -117,6 +117,53 @@
       "invalidAmount": "סכום לא חוקי",
       "invalidDate": "תאריך לא חוקי",
       "requiredField": "שדה חובה"
+    },
+    "validation": {
+      "amount": {
+        "number": "הסכום חייב להיות מספר",
+        "positive": "הסכום חייב להיות גדול מאפס"
+      },
+      "currency": {
+        "required": "יש לבחור מטבע"
+      },
+      "date": {
+        "invalid": "תאריך לא תקין"
+      },
+      "description": {
+        "maxLength": "התיאור יכול להכיל עד 100 תווים"
+      },
+      "type": {
+        "required": "יש לבחור סוג טרנזקציה"
+      },
+      "category": {
+        "maxLength": "הקטגוריה יכולה להכיל עד 50 תווים"
+      },
+      "recipient": {
+        "maxLength": "שם המקבל יכול להכיל עד 50 תווים",
+        "requiredForDonation": "שם המקבל הוא שדה חובה עבור תרומות"
+      },
+      "chomesh": {
+        "notForExempt": "לא ניתן לסמן חומש עבור הכנסה פטורה",
+        "onlyForIncome": "חומש רלוונטי רק להכנסות"
+      },
+      "recurring": {
+        "frequencyRequired": "יש לבחור תדירות",
+        "dayOfMonth": {
+          "number": "יום בחודש חייב להיות מספר",
+          "integer": "יום בחודש חייב להיות מספר שלם",
+          "range": "היום בחודש חייב להיות בין 1 ל-31",
+          "requiredForMonthly": "יש לציין יום בחודש עבור הוראת קבע חודשית",
+          "onlyForRecurring": "לא ניתן לקבוע יום בחודש עבור תנועה שאינה הוראת קבע"
+        },
+        "totalOccurrences": {
+          "number": "מספר חזרות חייב להיות מספר",
+          "integer": "מספר חזרות חייב להיות שלם",
+          "positive": "מספר חזרות חייב להיות חיובי"
+        },
+        "frequency": {
+          "required": "יש לבחור תדירות עבור הוראת קבע"
+        }
+      }
     }
   }
 }
