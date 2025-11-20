@@ -25,6 +25,8 @@ export function TransactionCheckboxes({
   isExemptChecked,
 }: TransactionCheckboxesProps) {
   const { t } = useTranslation("transactions");
+  const isChomeshChecked = form.watch("is_chomesh");
+
   return (
     <TooltipProvider>
       <div className="flex flex-row flex-wrap gap-4 mt-2 w-full">
@@ -59,7 +61,11 @@ export function TransactionCheckboxes({
                 render={({ field }) => (
                   <Checkbox
                     checked={field.value}
-                    onCheckedChange={field.onChange}
+                    onCheckedChange={(checked) => {
+                      if (isChomeshChecked) return;
+                      field.onChange(checked);
+                    }}
+                    disabled={!!isChomeshChecked}
                     className="size-6 rounded border mt-auto"
                   />
                 )}
