@@ -72,7 +72,7 @@ export const ContactForm = ({ channel, onClose }: ContactFormProps) => {
   const handleSubmit = async (values: ContactFormValues) => {
     try {
       const result = await contactService.submitContactForm({
-        channel: channel,
+        channel,
         subject: values.subject,
         body: values.body,
         captchaToken: values.captchaToken,

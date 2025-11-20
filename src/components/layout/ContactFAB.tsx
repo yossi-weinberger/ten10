@@ -12,7 +12,6 @@ import { ContactModal } from "@/components/features/contact";
 // Tauri APIs will be called via a command, not imported directly
 // import { getVersion } from '@tauri-apps/api/app'
 // import { platform as getOsPlatform } from '@tauri-apps/api/os'
-import i18n from "@/lib/i18n";
 import { getDesktopClientInfo } from "@/lib/data-layer/contact.service";
 import {
   Dialog,
@@ -39,29 +38,35 @@ const ContactFAB = () => {
   });
 
   const prepareDesktopInfo = async () => {
-    if (platform === "desktop" && isDesktopChoiceOpen) {
-      try {
-        const clientInfo = await getDesktopClientInfo();
+    if (platform !== "desktop" || !isDesktopChoiceOpen) {
+      return;
+    }
 
-        const { os, osVersion, arch, appVersion } = clientInfo;
+    try {
+      const clientInfo = await getDesktopClientInfo();
 
-        const body = `\n\n---\nApp Version: ${appVersion}\nOS: ${os}\nLanguage: ${
-          i18n.language
-        }\nDate: ${new Date().toISOString()}`;
+      const { os, osVersion, arch, appVersion } = clientInfo;
 
-        setDesktopInfo({ body, appVersion, osPlatform: os });
-      } catch (error) {
-        console.error("Failed to get platform info:", error);
-      }
+      const body = `\n\n---\nApp Version: ${appVersion}\nOS: ${os}\nOS Version: ${osVersion}\nArchitecture: ${arch}\nLanguage: ${
+        i18n.language
+      }\nDate: ${new Date().toISOString()}`;
+
+      setDesktopInfo({ body, appVersion, osPlatform: os });
+    } catch (error) {
+      console.error("Failed to get platform info:", error);
     }
   };
 
   useEffect(() => {
-    prepareDesktopInfo();
+    // Only run when dialog is open and platform is desktop
+    if (platform === "desktop" && isDesktopChoiceOpen) {
+      prepareDesktopInfo();
+    }
   }, [isDesktopChoiceOpen, platform]);
 
   const copyToClipboard = async (text: string, type: string) => {
     try {
+      const { invoke } = await import("@tauri-apps/api/core");
       await invoke("copy_to_clipboard", { text });
       toast.success(t(`contact:desktop.copySuccess.${type}`));
     } catch (error) {
@@ -71,6 +76,9 @@ const ContactFAB = () => {
   };
 
   const handleClick = () => {
+    if (platform === "loading") {
+      return; // Early return if platform is still loading
+    }
     if (platform === "web") {
       setIsModalOpen(true);
     } else if (platform === "desktop") {

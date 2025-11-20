@@ -2,7 +2,10 @@
 // Its only job is to format and send an email notification using a raw, signed fetch request.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  createClient,
+  type SupabaseClient,
+} from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
 
@@ -26,7 +29,7 @@ interface ContactMessage {
 }
 
 async function sendEmailNotification(
-  supabaseAdminClient: any,
+  supabaseAdminClient: SupabaseClient,
   insertedRecord: ContactMessage
 ) {
   const emailService = new SimpleEmailService();

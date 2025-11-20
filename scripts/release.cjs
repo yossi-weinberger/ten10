@@ -47,6 +47,22 @@ try {
   );
   console.log("   ✅ package.json updated\n");
 
+  // 1.5. Update package-lock.json
+  console.log("📝 Updating package-lock.json...");
+  try {
+    // Use npm install --package-lock-only to update lock file without installing
+    execSync("npm install --package-lock-only", {
+      stdio: "inherit",
+      cwd: path.join(__dirname, ".."),
+    });
+    console.log("   ✅ package-lock.json updated\n");
+  } catch (error) {
+    console.log(
+      "   ⚠️  Warning: Failed to update package-lock.json automatically"
+    );
+    console.log("   💡 You may need to run 'npm install' manually\n");
+  }
+
   // 2. Update Cargo.toml
   console.log("📝 Updating Cargo.toml...");
   const cargoTomlPath = path.join(__dirname, "../src-tauri/Cargo.toml");
@@ -71,6 +87,7 @@ try {
   const status = execSync("git status --porcelain", { encoding: "utf8" });
   if (
     !status.includes("package.json") &&
+    !status.includes("package-lock.json") &&
     !status.includes("Cargo.toml") &&
     !status.includes("tauri.conf.json")
   ) {
@@ -82,7 +99,7 @@ try {
   // 5. Git add
   console.log("📦 Staging changes...");
   execSync(
-    "git add package.json src-tauri/Cargo.toml src-tauri/tauri.conf.json",
+    "git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/tauri.conf.json",
     { stdio: "inherit" }
   );
   console.log("   ✅ Files staged\n");

@@ -1,8 +1,15 @@
 import { supabase } from "@/lib/supabaseClient";
-import { Platform } from "@/components/features/settings/platform-section";
 import { getErrorMessage } from "@/lib/utils";
 import i18n from "../i18n";
 import { getPlatform } from "../platformManager";
+
+// Platform info returned from Tauri backend
+export interface DesktopPlatformInfo {
+  appVersion: string;
+  os: string;
+  osVersion: string;
+  arch: string;
+}
 
 export interface ContactFormData {
   channel: "halacha" | "dev";
@@ -30,11 +37,8 @@ const submitContactForm = async (formData: ContactFormData) => {
     }
   }
 
-  // Add User Agent to the form data
-  const augmentedFormData = {
-    ...formData,
-    // userAgent: navigator.userAgent, // Temporarily removed
-  };
+  // Note: userAgent is sent directly to the database in insertPayload (line 73)
+  // It was removed from augmentedFormData as it's not needed in the form submission flow
 
   // Step 1: Verify CAPTCHA using a standard fetch call
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -104,13 +108,14 @@ const submitContactForm = async (formData: ContactFormData) => {
 };
 
 /**
- * Submits the contact form data to the Supabase database.
- * @returns A promise that resolves when the submission is complete.
+ * Gets desktop platform information (app version, OS, architecture).
+ * Only works when running in Tauri desktop environment.
+ * @returns A promise that resolves with platform information.
  */
-export async function getDesktopClientInfo(): Promise<Platform> {
+export async function getDesktopClientInfo(): Promise<DesktopPlatformInfo> {
   // Use a dynamic import for the Tauri API so it's not included in the web bundle.
   const { invoke } = await import("@tauri-apps/api/core");
-  const platformInfo = await invoke<Platform>("get_platform_info");
+  const platformInfo = await invoke<DesktopPlatformInfo>("get_platform_info");
   return platformInfo;
 }
 

@@ -118,8 +118,6 @@ export class SimpleEmailService {
     return new TextEncoder().encode(mime);
   }
 
-  // SigV4 and other helper methods (getAmzDate, sha256Hex, etc.) are copied here
-  // ...
   private getAmzDate(): string {
     return new Date().toISOString().replace(/[:\-]|\.\d{3}/g, "");
   }
