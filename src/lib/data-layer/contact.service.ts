@@ -37,7 +37,7 @@ const submitContactForm = async (formData: ContactFormData) => {
     }
   }
 
-  // Note: userAgent is sent directly to the database in insertPayload (line 73)
+  // Note: userAgent is sent directly to the database in insertPayload (line 77)
   // It was removed from augmentedFormData as it's not needed in the form submission flow
 
   // Step 1: Verify CAPTCHA using a standard fetch call

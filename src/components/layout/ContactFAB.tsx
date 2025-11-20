@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useTranslation } from "react-i18next";
 import { usePlatform } from "@/contexts/PlatformContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ContactModal } from "@/components/features/contact";
 // Tauri APIs will be called via a command, not imported directly
 // import { getVersion } from '@tauri-apps/api/app'
@@ -37,7 +37,7 @@ const ContactFAB = () => {
     osPlatform: "",
   });
 
-  const prepareDesktopInfo = async () => {
+  const prepareDesktopInfo = useCallback(async () => {
     if (platform !== "desktop" || !isDesktopChoiceOpen) {
       return;
     }
@@ -55,14 +55,14 @@ const ContactFAB = () => {
     } catch (error) {
       console.error("Failed to get platform info:", error);
     }
-  };
+  }, [platform, isDesktopChoiceOpen, i18n.language]);
 
   useEffect(() => {
     // Only run when dialog is open and platform is desktop
     if (platform === "desktop" && isDesktopChoiceOpen) {
       prepareDesktopInfo();
     }
-  }, [isDesktopChoiceOpen, platform]);
+  }, [isDesktopChoiceOpen, platform, prepareDesktopInfo]);
 
   const copyToClipboard = async (text: string, type: string) => {
     try {

@@ -12,6 +12,19 @@ pub struct PlatformInfo {
     arch: String,
 }
 
+/// Returns platform information including app version, OS, OS version, and architecture.
+///
+/// # Returns
+///
+/// A `PlatformInfo` struct containing:
+/// - `appVersion`: The application version from Cargo.toml
+/// - `os`: The operating system platform (e.g., "windows", "macos", "linux")
+/// - `osVersion`: The OS version string
+/// - `arch`: The system architecture (e.g., "x86_64", "aarch64")
+///
+/// # Errors
+///
+/// Returns an error string if platform information cannot be retrieved.
 #[tauri::command]
 pub async fn get_platform_info(app: tauri::AppHandle) -> Result<PlatformInfo, String> {
     let app_version = app.package_info().version.to_string();
