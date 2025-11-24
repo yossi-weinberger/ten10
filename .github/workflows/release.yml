@@ -52,7 +52,7 @@ jobs:
       #     certutil -decode cert.txt certificate.pfx
 
       - name: Build Tauri app
-        uses: tauri-apps/tauri-action@v0.5
+        uses: tauri-apps/tauri-action@v0.6
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
