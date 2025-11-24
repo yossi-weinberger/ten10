@@ -89,6 +89,10 @@
       "chomesh": {
         "title": "Chomesh Calculation",
         "description": "Full support for Chomesh (20%) calculation for first-time or special income"
+      },
+      "askRabbi": {
+        "title": "Ask the Rabbi",
+        "description": "Get answers to your tithe questions from certified rabbis"
       }
     }
   },

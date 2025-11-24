@@ -7,6 +7,7 @@ import {
   FileText,
   Smartphone,
   Star,
+  MessageCircleQuestion,
 } from "lucide-react";
 
 export interface Feature {
@@ -55,5 +56,10 @@ export const features: Feature[] = [
     icon: Star,
     titleKey: "features.items.chomesh.title",
     descriptionKey: "features.items.chomesh.description",
+  },
+  {
+    icon: MessageCircleQuestion,
+    titleKey: "features.items.askRabbi.title",
+    descriptionKey: "features.items.askRabbi.description",
   },
 ];
