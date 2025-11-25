@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Turnstile from "react-turnstile";
 import { toast } from "sonner";
 import { useMemo } from "react";
-import { z } from "zod";
 
 import {
   createContactDevFormSchema,
@@ -32,6 +31,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { FileUpload } from "@/components/ui/file-upload";
 
 type ContactFormValues = ContactRabbiFormValues | ContactDevFormValues;
 
@@ -60,6 +60,7 @@ export const ContactForm = ({ channel, onClose }: ContactFormProps) => {
       subject: "",
       body: "",
       captchaToken: "",
+      attachments: [],
       ...(isDevChannel && { severity: "low" }),
     },
   });
@@ -72,10 +73,11 @@ export const ContactForm = ({ channel, onClose }: ContactFormProps) => {
   const handleSubmit = async (values: ContactFormValues) => {
     try {
       const result = await contactService.submitContactForm({
-        channel,
+        channel: channel === "rabbi" ? "halacha" : "dev",
         subject: values.subject,
         body: values.body,
         captchaToken: values.captchaToken,
+        attachments: values.attachments,
         ...(isDevChannel && {
           severity: (values as ContactDevFormValues).severity,
         }),
@@ -181,6 +183,27 @@ export const ContactForm = ({ channel, onClose }: ContactFormProps) => {
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="attachments"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="text-start">
+                {t("forms.attachments.label", "Attachments")}
+              </FormLabel>
+              <FormControl>
+                <FileUpload
+                  value={field.value || []}
+                  onChange={field.onChange}
+                  maxFiles={3}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="captchaToken"

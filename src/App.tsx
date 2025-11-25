@@ -17,6 +17,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "./components/layout/Sidebar";
 import { usePlatform } from "./contexts/PlatformContext";
 import { useTWA } from "./contexts/TWAContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { setPlatform as setGlobalPlatform } from "./lib/platformManager";
 import { useDonationStore } from "./lib/store";
 import { checkAndSendDesktopReminder } from "./lib/data-layer/reminders";
@@ -32,6 +33,7 @@ function App() {
 
   const { platform } = usePlatform();
   const { isTWA } = useTWA();
+  const { user } = useAuth();
   const { i18n, t } = useTranslation();
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
 
@@ -195,7 +197,7 @@ function App() {
         </div>
         <Toaster richColors />
       </div>
-      <ContactFAB />
+      {user && <ContactFAB />}
     </TooltipProvider>
   );
 }

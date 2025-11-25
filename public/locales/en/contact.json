@@ -46,6 +46,13 @@
     "errorToast": "Failed to send message. Please try again.",
     "captcha": {
       "error": "Please complete the CAPTCHA verification."
+    },
+    "attachments": {
+      "label": "Attachments",
+      "dropActive": "Drop the files here...",
+      "dropInactive": "Drag & drop files here, or click to select",
+      "limits": "(Max {{maxFiles}} files, up to {{maxSizeMB}}MB each)",
+      "removeFile": "Remove file"
     }
   }
 }

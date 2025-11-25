@@ -1,5 +1,4 @@
 import { supabase } from "@/lib/supabaseClient";
-import { getErrorMessage } from "@/lib/utils";
 import i18n from "../i18n";
 import { getPlatform } from "../platformManager";
 
@@ -16,13 +15,44 @@ export interface ContactFormData {
   subject: string;
   body: string;
   severity?: "low" | "med" | "high";
-  attachments?: { path: string; name: string }[];
+  attachments?: File[]; // Updated to accept File objects
   captchaToken: string;
   userName?: string;
   userEmail?: string;
 }
 
-// No longer need ContactFullPayload as the Edge Function will handle metadata
+// Upload a single file to Supabase Storage
+const uploadFile = async (
+  file: File
+): Promise<{ path: string; name: string } | null> => {
+  // Supabase Storage requires ASCII-only filenames
+  // We'll create a safe filename and preserve the original name in metadata
+  const originalName = file.name;
+  const fileExtension = originalName.substring(
+    originalName.lastIndexOf(".") || 0
+  );
+
+  // Create a completely safe ASCII filename: timestamp + random string + extension
+  // Use only alphanumeric characters, hyphens, and underscores
+  const randomString = Math.random().toString(36).substring(2, 10); // 8 chars
+  const timestamp = Date.now();
+
+  // Ensure extension is ASCII-safe (remove any non-ASCII chars)
+  const safeExtension = fileExtension.replace(/[^a-zA-Z0-9._-]/g, "") || ".bin";
+
+  const safeFileName = `${timestamp}-${randomString}${safeExtension}`;
+
+  const { data, error } = await supabase.storage
+    .from("contact-attachments")
+    .upload(safeFileName, file);
+
+  if (error) {
+    console.error(`Error uploading file ${file.name}:`, error);
+    return null;
+  }
+
+  return { path: data.path, name: originalName }; // Return original name for display/email
+};
 
 const submitContactForm = async (formData: ContactFormData) => {
   const platform = getPlatform();
@@ -65,8 +95,21 @@ const submitContactForm = async (formData: ContactFormData) => {
     };
   }
 
-  // Step 2: Insert data directly into the table
-  const { captchaToken, userName, userEmail, ...restOfFormData } = formData;
+  // Step 2: Upload files if present
+  let uploadedAttachments: { path: string; name: string }[] = [];
+  if (formData.attachments && formData.attachments.length > 0) {
+    const uploadPromises = formData.attachments.map((file) => uploadFile(file));
+    const results = await Promise.all(uploadPromises);
+
+    // Filter out any failed uploads
+    uploadedAttachments = results.filter(
+      (res): res is { path: string; name: string } => res !== null
+    );
+  }
+
+  // Step 3: Insert data directly into the table
+  const { captchaToken, userName, userEmail, attachments, ...restOfFormData } =
+    formData;
 
   const insertPayload = {
     ...restOfFormData,
@@ -78,6 +121,7 @@ const submitContactForm = async (formData: ContactFormData) => {
     // Map to snake_case for the database
     user_name: userName,
     user_email: userEmail,
+    attachments: uploadedAttachments.length > 0 ? uploadedAttachments : null,
   };
 
   const {

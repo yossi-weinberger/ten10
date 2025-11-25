@@ -259,6 +259,7 @@ export type ContactRabbiFormValues = {
   subject: string;
   body: string;
   captchaToken: string;
+  attachments?: File[];
 };
 
 export type ContactDevFormValues = ContactRabbiFormValues & {
@@ -276,6 +277,7 @@ export const createContactRabbiFormSchema = (t: TFunction) =>
     captchaToken: z
       .string()
       .min(1, { message: t("contact:forms.captcha.error") }),
+    attachments: z.array(z.instanceof(File)).optional(),
   });
 
 export const createContactDevFormSchema = (t: TFunction) =>
