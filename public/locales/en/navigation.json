@@ -8,7 +8,8 @@
     "halacha": "Laws",
     "settings": "Settings",
     "about": "About",
-    "profile": "Profile"
+    "profile": "Profile",
+    "logout": "Logout"
   },
   "user": {
     "loading": "Loading...",

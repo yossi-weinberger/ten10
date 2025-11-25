@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
@@ -18,7 +18,7 @@ export function UserInfoDisplay() {
   const [profileLoading, setProfileLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation("auth");
+  const { t, i18n } = useTranslation();
 
   const handleLogout = async () => {
     try {
@@ -66,7 +66,7 @@ export function UserInfoDisplay() {
       } catch (err: any) {
         logger.error("Error fetching profile:", err);
         if (isMounted) {
-          setError(err.message || t("profile.loadError"));
+          setError(err.message || t("auth:profile.loadError"));
         }
       } finally {
         if (isMounted) {
@@ -91,9 +91,7 @@ export function UserInfoDisplay() {
   return (
     <Card className="mb-6" dir={i18n.dir()}>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>
-          {t("profile.userInfo.title", "Current User Details")}
-        </CardTitle>
+        <CardTitle>{t("auth:profile.userInfo.title")}</CardTitle>
         {session?.user && (
           <Button
             variant="ghost"
@@ -104,11 +102,9 @@ export function UserInfoDisplay() {
           >
             <LogOut className="h-5 w-5" />
             <span>
-              {isLoading && !authLoading
-                ? t("common.loading", "Loading...")
-                : authLoading
-                ? t("common.loading", "Loading...")
-                : t("navigation.logout", "Logout")}
+              {isLoading
+                ? t("common:labels.loading")
+                : t("navigation:menu.logout")}
             </span>
           </Button>
         )}
@@ -131,7 +127,7 @@ export function UserInfoDisplay() {
           <div className="space-y-1">
             <div>
               <span className="font-semibold">
-                {t("profile.userInfo.fullName", "Full name")}:{" "}
+                {t("auth:profile.userInfo.fullName")}:{" "}
               </span>
               {isLoading ? (
                 <Skeleton className="h-4 w-[150px] inline-block" />
@@ -139,21 +135,20 @@ export function UserInfoDisplay() {
                 <span className="text-destructive">{error}</span>
               ) : (
                 <span>
-                  {fullName ??
-                    t("profile.userInfo.notAvailable", "Not available")}
+                  {fullName ?? t("auth:profile.userInfo.notAvailable")}
                 </span>
               )}
             </div>
             <div>
               <span className="font-semibold">
-                {t("profile.userInfo.email", "Email")}:{" "}
+                {t("auth:profile.userInfo.email")}:{" "}
               </span>
               {isLoading ? (
                 <Skeleton className="h-4 w-[200px] inline-block" />
               ) : (
                 <span>
-                  {session?.user?.email ||
-                    t("profile.userInfo.notAvailable", "Not available")}
+                  {session?.user?.email ??
+                    t("auth:profile.userInfo.notAvailable")}
                 </span>
               )}
             </div>
