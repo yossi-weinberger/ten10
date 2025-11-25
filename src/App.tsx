@@ -197,7 +197,7 @@ function App() {
         </div>
         <Toaster richColors />
       </div>
-      {user && <ContactFAB />}
+      {(user || platform === "desktop") && <ContactFAB />}
     </TooltipProvider>
   );
 }

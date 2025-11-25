@@ -1,9 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Turnstile from "react-turnstile";
-import { toast } from "sonner";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 
 import {
   createContactDevFormSchema,
@@ -11,8 +9,6 @@ import {
   ContactDevFormValues,
   ContactRabbiFormValues,
 } from "@/lib/schemas";
-import { contactService } from "@/lib/data-layer/contact.service";
-import { useAuth } from "@/contexts/AuthContext";
 import {
   Form,
   FormControl,
@@ -28,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { FileUpload } from "@/components/ui/file-upload";
@@ -37,12 +32,16 @@ type ContactFormValues = ContactRabbiFormValues | ContactDevFormValues;
 
 interface ContactFormProps {
   channel: "rabbi" | "dev";
-  onClose: () => void;
+  captchaToken: string;
+  onSubmit: (values: ContactFormValues) => Promise<void>;
 }
 
-export const ContactForm = ({ channel, onClose }: ContactFormProps) => {
+export const ContactForm = ({
+  channel,
+  captchaToken,
+  onSubmit,
+}: ContactFormProps) => {
   const { t, i18n } = useTranslation("contact");
-  const { user } = useAuth();
 
   const isDevChannel = channel === "dev";
 
@@ -65,45 +64,18 @@ export const ContactForm = ({ channel, onClose }: ContactFormProps) => {
     },
   });
 
-  const {
-    formState: { isSubmitting },
-  } = form;
-  const captchaToken = form.watch("captchaToken");
-
-  const handleSubmit = async (values: ContactFormValues) => {
-    try {
-      const result = await contactService.submitContactForm({
-        channel: channel === "rabbi" ? "halacha" : "dev",
-        subject: values.subject,
-        body: values.body,
-        captchaToken: values.captchaToken,
-        attachments: values.attachments,
-        ...(isDevChannel && {
-          severity: (values as ContactDevFormValues).severity,
-        }),
-        userName: user?.user_metadata.full_name,
-        userEmail: user?.email,
-      });
-
-      if (result.success) {
-        toast.success(
-          `${t("forms.successToast")} Ticket ID: ${result.ticketId}`
-        );
-        onClose();
-      } else {
-        throw new Error(result.error || "Submission failed");
-      }
-    } catch (err) {
-      toast.error(t("forms.errorToast"));
-    }
-  };
+  // Update form when captchaToken changes from parent
+  useEffect(() => {
+    form.setValue("captchaToken", captchaToken);
+  }, [captchaToken, form]);
 
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(handleSubmit)}
+        onSubmit={form.handleSubmit(onSubmit)}
         className="space-y-4"
         dir={i18n.dir()}
+        id={`contact-form-${channel}`}
       >
         <FormField
           control={form.control}
@@ -204,27 +176,19 @@ export const ContactForm = ({ channel, onClose }: ContactFormProps) => {
           )}
         />
 
+        {/* Hidden field to store captchaToken for validation */}
         <FormField
           control={form.control}
           name="captchaToken"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="hidden">
               <FormControl>
-                <Turnstile
-                  sitekey={import.meta.env.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY}
-                  onVerify={(token) => field.onChange(token)}
-                  onExpire={() => field.onChange("")}
-                />
+                <input type="hidden" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <div className="flex justify-end">
-          <Button type="submit" disabled={isSubmitting || !captchaToken}>
-            {isSubmitting ? t("forms.submitting") : t("forms.submit")}
-          </Button>
-        </div>
       </form>
     </Form>
   );
