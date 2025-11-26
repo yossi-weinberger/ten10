@@ -13,10 +13,10 @@
       "updateError": "שגיאה בעדכון ההגדרות"
     },
     "transaction": {
-      "addSuccess": "העסקה נוספה בהצלחה",
-      "updateSuccess": "העסקה עודכנה בהצלחה",
-      "deleteSuccess": "העסקה נמחקה בהצלחה",
-      "error": "אירעה שגיאה בעיבוד העסקה"
+      "addSuccess": "התנועה נוספה בהצלחה",
+      "updateSuccess": "התנועה עודכנה בהצלחה",
+      "deleteSuccess": "התנועה נמחקה בהצלחה",
+      "error": "אירעה שגיאה בעיבוד התנועה"
     }
   },
   "actions": {
@@ -112,7 +112,6 @@
     "android_app_description": "אפליקציה מקורית לאנדרואיד",
     "desktop_offline_available": "זמין במצב לא מקוון עם SQLite",
     "desktop_local_storage": "כל הנתונים שלך מאוחסנים באופן מקומי",
-    "web_online_features": "גישה מכל דפדפן עם חשבון Supabase",
     "download_mobile_app": "הורד אפליקציה למובייל",
     "contact_us": "צור קשר",
     "download_app": "הורד אפליקציה",

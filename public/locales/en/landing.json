@@ -1,10 +1,10 @@
 {
   "hero": {
-    "badge": "Smart Tithe Management",
-    "title": "Ten10 - Simple and Accurate Tithe Management",
-    "subtitle": "The advanced system for managing income, expenses, and tithes. Works online and offline, with automatic calculations and smart reminders",
-    "downloadButton": "Free Download",
-    "tryButton": "Try in Browser"
+    "badge": "Smart Tithe and Financial Budget Management",
+    "title": "Ten10 - Simple and Accurate Tithe and Financial Budget Management",
+    "subtitle": "The advanced system for managing donations, income, and expenses. Works on computer, website, and phone – with or without internet.",
+    "downloadButton": "Free Download for Computer",
+    "tryButton": "Try on Website"
   },
   "stats": {
     "users": "Active Users",
@@ -56,7 +56,7 @@
   },
   "features": {
     "title": "Advanced Features",
-    "subtitle": "Everything you need for accurate and simple tithe management",
+    "subtitle": "Everything you need for accurate and simple management of donations, tithes, and expenses",
     "items": {
       "autoCalculation": {
         "title": "Automatic Tithe Calculation",
@@ -64,7 +64,7 @@
       },
       "accessAnywhere": {
         "title": "Access Anywhere",
-        "description": "Full web version with cloud sync and desktop version for offline work"
+        "description": "Full website version with cloud sync and computer software for offline work (without internet connection)"
       },
       "smartRecurring": {
         "title": "Smart Recurring Transactions",
@@ -75,8 +75,8 @@
         "description": "Receive personalized monthly reminders about your tithe status"
       },
       "reportsCharts": {
-        "title": "Reports & Charts",
-        "description": "Detailed analysis of income and expenses with visual charts"
+        "title": "Print Reports",
+        "description": "Detailed analysis of income and expenses with detailed reports"
       },
       "dataExport": {
         "title": "Data Export",
@@ -84,7 +84,7 @@
       },
       "pwaInstall": {
         "title": "Mobile Installation",
-        "description": "Install the web version as a mobile app directly from your browser"
+        "description": "Install the website version as a mobile app directly from your browser or app store"
       },
       "chomesh": {
         "title": "Chomesh Calculation",
@@ -99,7 +99,7 @@
   "platforms": {
     "title": "Choose the Right Version for You",
     "web": {
-      "title": "Web Version",
+      "title": "Website Version",
       "subtitle": "Access anywhere with cloud sync",
       "pwaNote": "Can be installed as app",
       "features": [
@@ -112,7 +112,7 @@
       "button": "Start in Browser"
     },
     "desktop": {
-      "title": "Desktop Version",
+      "title": "Computer Software",
       "subtitle": "Offline work with maximum performance",
       "badge": "Recommended",
       "features": [
@@ -138,7 +138,7 @@
       },
       {
         "name": "Abraham Goldberg",
-        "text": "The desktop version is perfect for offline work. My data is secure and always accessible"
+        "text": "The computer software is perfect for offline work (without internet connection). My data is secure and always accessible"
       }
     ]
   },
@@ -151,36 +151,36 @@
       },
       {
         "question": "Is an internet connection required?",
-        "answer": "No, you can use the desktop version without internet connection. The web version requires connection"
+        "answer": "No, you can use the computer software without internet connection. The website version requires connection"
       },
       {
         "question": "How is my data protected?",
-        "answer": "Data is encrypted and protected. In the desktop version, it's stored locally on your computer"
+        "answer": "Data is encrypted and protected. In the computer software, it's stored locally on your computer"
       },
       {
         "question": "Can I import existing data?",
-        "answer": "Yes, the system supports importing data from Excel and CSV files"
+        "answer": "Yes, the system supports exporting and importing data from the website to the software and vice versa"
       }
     ]
   },
   "cta": {
     "title": "Ready to Get Started?",
     "subtitle": "Join thousands of users who already manage their tithes easily and accurately",
-    "desktopButton": "Download for Desktop",
-    "webButton": "Start in Browser"
+    "desktopButton": "Download Computer Software",
+    "webButton": "Go to Website"
   },
   "download": {
     "title": "Download Ten10",
     "subtitle": "Choose the platform that suits you",
     "orText": "Or start directly in your browser",
-    "webAppButton": "Open Web Application",
+    "webAppButton": "Open Website",
     "downloadButton": "Download",
     "loading": "Loading...",
     "notAvailable": "Not Available",
     "error": "Failed to load download links. Please try again later.",
     "comingSoon": "macOS and Linux versions coming soon",
     "webCard": {
-      "title": "Web Application",
+      "title": "Website Version",
       "button": "Open Now"
     }
   },

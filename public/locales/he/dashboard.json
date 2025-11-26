@@ -1,7 +1,7 @@
 {
   "homePage": {
     "title": "ברוכים הבאים ל-Ten10",
-    "subtitle": "נהל את ההכנסות והתרומות שלך בקלות ובפשטות"
+    "subtitle": "נהל את התרומות, ההכנסות והוצאות שלך בקלות ובפשטות"
   },
   "dateRange": {
     "month": "מתחילת החודש",
@@ -33,7 +33,7 @@
       "addDonation": "הוסף תרומה"
     },
     "overallRequired": {
-      "title": "יתרה לתרומת מעשר",
+      "title": "יתרה למעשרות",
       "currentMonth": "החודש",
       "lastMonth": "חודש קודם",
       "change": "שינוי",
@@ -50,11 +50,11 @@
   },
   "monthlyChart": {
     "title": "סיכום חודשי",
-    "description": "מעקב אחר הכנסות, הוצאות ותרומות",
+    "description": "מעקב אחר התרומות, הכנסות וההוצאות",
     "income": "הכנסות",
     "expenses": "הוצאות",
     "donations": "תרומות",
-    "overallRequired": "יתרה לתרומת מעשר",
+    "overallRequired": "יתרה למעשרות",
     "magic": "קסם",
     "month": "חודש",
     "amount": "סכום",
