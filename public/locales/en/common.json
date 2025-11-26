@@ -104,11 +104,11 @@
     }
   },
   "platform": {
-    "desktop_version": "Desktop Version",
-    "web_version": "Web Version",
+    "desktop_version": "Desktop Application",
+    "web_version": "Website Version",
     "android_app_version": "Android App",
     "desktop_description": "Offline version with local storage",
-    "web_description": "Browser version with cloud sync",
+    "web_description": "Website version with cloud sync",
     "android_app_description": "Native Android application",
     "desktop_offline_available": "Available offline with SQLite",
     "desktop_local_storage": "All your data is stored locally",
@@ -116,7 +116,7 @@
     "download_mobile_app": "Download Mobile App",
     "contact_us": "Contact Us",
     "download_app": "Download App",
-    "twa_native_features": "Enjoy a native app experience with all web capabilities",
+    "twa_native_features": "Enjoy a native app experience with all website capabilities",
     "available_features": "Available Features",
     "feature_notifications": "System notifications",
     "feature_home_screen": "Home screen icon",
