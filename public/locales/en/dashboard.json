@@ -6,7 +6,11 @@
   "dateRange": {
     "month": "From start of month",
     "year": "From start of year",
-    "all": "All time"
+    "all": "All time",
+    "custom": "Custom range"
+  },
+  "datePicker": {
+    "selectDateRange": "Select date range"
   },
   "statsCards": {
     "income": {

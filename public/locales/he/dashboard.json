@@ -6,7 +6,11 @@
   "dateRange": {
     "month": "מתחילת החודש",
     "year": "מתחילת השנה",
-    "all": "מאז ומתמיד"
+    "all": "מאז ומתמיד",
+    "custom": "טווח מותאם"
+  },
+  "datePicker": {
+    "selectDateRange": "בחר טווח תאריכים"
   },
   "statsCards": {
     "income": {
