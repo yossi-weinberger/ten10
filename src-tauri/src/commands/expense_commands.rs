@@ -2,6 +2,7 @@ use rusqlite::{params, Connection};
 use tauri::State;
 
 use crate::DbState;
+use crate::transaction_types::expense_types_condition;
 
 #[tauri::command]
 pub async fn get_desktop_total_expenses_in_range(
@@ -10,15 +11,17 @@ pub async fn get_desktop_total_expenses_in_range(
     end_date: String,
 ) -> Result<f64, String> {
     // SQL query directly embedded
-    let query_sql = "
-        SELECT
+    let query_sql = format!(
+        "SELECT
             COALESCE(SUM(amount), 0)
         FROM
             transactions
         WHERE
-            (type = 'expense' OR type = 'recognized-expense') AND
-            strftime('%Y-%m-%dT%H:%M:%S.%fZ', date) BETWEEN ?1 AND ?2;
-    ";
+            {} AND
+            date >= ?1 AND
+            date <= ?2;",
+        expense_types_condition()
+    );
 
     println!(
         "Desktop Query (expense_commands.rs): Fetching expenses between {} and {}",
@@ -28,7 +31,7 @@ pub async fn get_desktop_total_expenses_in_range(
     let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
     let conn: &Connection = &*conn_guard;
 
-    match conn.query_row::<f64, _, _>(&query_sql, params![start_date, end_date], |row| row.get(0)) {
+    match conn.query_row::<f64, _, _>(query_sql.as_str(), params![start_date, end_date], |row| row.get(0)) {
         Ok(total_expenses) => {
             println!(
                 "Desktop Query Result (expense_commands.rs): total_expenses = {}",

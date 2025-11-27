@@ -8,6 +8,7 @@ use tauri_plugin_clipboard_manager;
 
 mod commands;
 mod models;
+mod transaction_types;
 
 use commands::chart_commands::get_desktop_monthly_financial_summary;
 use commands::db_commands::{clear_all_data, get_app_version, init_db};
