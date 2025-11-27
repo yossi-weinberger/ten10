@@ -78,9 +78,9 @@ pub fn get_desktop_monthly_financial_summary(
         let mut stmt = conn
             .prepare(
                 "SELECT 
-                    COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as income, 
-                    COALESCE(SUM(CASE WHEN type = 'donation' THEN amount ELSE 0 END), 0) as donations, 
-                    COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as expenses 
+                    COALESCE(SUM(CASE WHEN type = 'income' OR type = 'exempt-income' THEN amount ELSE 0 END), 0) as income, 
+                    COALESCE(SUM(CASE WHEN type = 'donation' OR type = 'non_tithe_donation' THEN amount ELSE 0 END), 0) as donations, 
+                    COALESCE(SUM(CASE WHEN type = 'expense' OR type = 'recognized-expense' THEN amount ELSE 0 END), 0) as expenses 
                  FROM transactions 
                  WHERE date >= ?1 AND date <= ?2",
             )
