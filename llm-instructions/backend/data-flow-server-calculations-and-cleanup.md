@@ -19,6 +19,7 @@
   - **פקודת Rust:** `get_desktop_total_income_in_range(db_state: State<'_, DbState>, start_date: String, end_date: String)`
   - **מיקום:** `src-tauri/src/commands/income_commands.rs`
   - **תיאור:** מבצעת שאילתת SQL מוטמעת על מסד הנתונים המקומי (SQLite) כדי לחשב סך הכנסות וחומש בטווח תאריכים.
+  - **תיקון Compilation:** התיקון ב-`query_row` - צריך להעביר `&str` במקום `String` (`&sql` במקום `sql`).
 - **שירות נתונים (`src/lib/data-layer/stats.service.ts`):**
   - **פונקציה ראשית:** `fetchTotalIncomeInRange(userId: string | null, startDate: string, endDate: string): Promise<ServerIncomeData | null>`
   - **פונקציות עזר:**
@@ -44,6 +45,8 @@
   - **פקודת Rust:** `get_desktop_total_expenses_in_range(db_state: State<'_, DbState>, start_date: String, end_date: String)`
   - **מיקום:** `src-tauri/src/commands/expense_commands.rs`
   - **תיאור:** מבצעת שאילתת SQL מוטמעת על SQLite לסכימת הוצאות (`expense`, `recognized-expense`) בטווח תאריכים.
+  - **תיקון Date Formatting:** השאילתות משתמשות ב-`date >= ?1 AND date <= ?2` במקום `strftime` כדי להשוות תאריכים בפורמט `YYYY-MM-DD`, מה שמתקן בעיות סינון עבור טווח "מאז ומתמיד".
+  - **סוגי תנועות:** משתמש ב-`EXPENSE_TYPES` מ-`src-tauri/src/transaction_types.rs` ל-consistency.
 - **שירות נתונים (`src/lib/data-layer/stats.service.ts`):**
   - **פונקציה ראשית:** `fetchTotalExpensesInRange(userId: string | null, startDate: string, endDate: string): Promise<number | null>`
   - **פונקציות עזר:**
@@ -65,6 +68,7 @@
   - **פקודת Rust:** `get_desktop_total_donations_in_range(db_state: State<'_, DbState>, start_date: String, end_date: String) -> Result<DesktopDonationData, String>`
   - **מיקום:** `src-tauri/src/commands/donation_commands.rs`
   - **תיאור:** מבצעת שאילתת SQL מוטמעת על SQLite ומחזירה אובייקט `DesktopDonationData { total_donations_amount: f64, non_tithe_donation_amount: f64 }` המכיל את סך כל התרומות ואת סך התרומות שאינן ממעשר בטווח תאריכים.
+  - **תיקון Date Formatting:** השאילתות משתמשות ב-`date >= ?1 AND date <= ?2` במקום `strftime` כדי להשוות תאריכים בפורמט `YYYY-MM-DD`, מה שמתקן בעיות סינון עבור טווח "מאז ומתמיד".
 - **שירות נתונים (`src/lib/data-layer/stats.service.ts`):**
   - **ממשק נתונים:** `ServerDonationData { total_donations_amount: number; non_tithe_donation_amount: number; }`
   - **פונקציה ראשית:** `fetchTotalDonationsInRange(userId: string | null, startDate: string, endDate: string): Promise<ServerDonationData | null>`
@@ -135,6 +139,48 @@
   - `sql_queries/sqlite/expenses/select_total_expenses.sql` (השאילתה הוטמעה ישירות בקוד ה-Rust).
   - `src/lib/dataService.ts` (הקובץ המקורי פוצל למספר שירותים תחת התיקייה `src/lib/data-layer`. קובץ הכניסה הראשי הוא `src/lib/data-layer/index.ts`).
   - `src/components/dashboard/TransactionsTable.tsx` (הקומפוננטה לא הייתה בשימוש והוסרה).
+
+## חלק 3: שיפורים ותיקונים אחרונים
+
+### 1. תיקון Date Formatting ב-Rust Commands
+
+- **בעיה:** שאילתות SQL ב-`expense_commands.rs` ו-`donation_commands.rs` השתמשו ב-`strftime('%Y-%m-%dT%H:%M:%S.%fZ', date) BETWEEN ?1 AND ?2` בעוד שהתאריכים מאוחסנים בפורמט `YYYY-MM-DD` והפרמטרים גם בפורמט `YYYY-MM-DD`.
+- **תיקון:** שונה לכל השאילתות להשתמש ב-`date >= ?1 AND date <= ?2`, בהתאם ל-`income_commands.rs` ו-`chart_commands.rs`.
+- **השפעה:** תוקן סינון לא נכון עבור טווח "מאז ומתמיד" (All time) בדסקטופ.
+
+### 2. הוספת תמיכה בטווח תאריכים מותאם אישית
+
+- **Hook:** `src/hooks/useDateControls.ts`
+  - נוסף `"custom"` ל-`DateRangeSelectionType`
+  - נוסף state `customDateRange` ו-`setCustomDateRange` לניהול טווח מותאם אישית
+  - עודכן `activeDateRangeObject` ב-`useMemo` לטפל ב-case `"custom"`
+- **UI:** `src/components/dashboard/StatsCards.tsx`
+  - נוסף `DatePickerWithRange` עם כפתור מותאם אישית
+  - הכפתור מציג את הטווח הנבחר או "טווח מותאם" אם לא נבחר
+  - במסכים צרים, הטקסט מוסתר ורק האייקון של הלוח שנה מוצג
+- **Translations:** נוסף `dateRange.custom` ו-`datePicker.selectDateRange` בקבצי `dashboard.json` (עברית ואנגלית)
+
+### 3. שיפור DatePickerWithRange Component
+
+- **Localization:**
+  - שמות חודשים ב-dropdowns עוברים localization לפי `i18n.language`
+  - נוספו `formatMonthDropdown` ו-`formatYearDropdown` ל-formatters
+  - חודשים מציגים מספר חודש + שם (לדוגמה: "1. January 2024" או "1. טבת 5785")
+- **Range Selection Behavior:**
+  - תוקן כך שלחיצה ראשונה בוחרת `from`, לחיצה שנייה בוחרת `to` וסוגרת
+  - לאחר בחירת טווח מלא, פתיחה מחדש מאתחלת את הבחירה ויזואלית
+  - נוסף `isSameDay` helper לזיהוי נכון של טווחים לא שלמים
+- **Responsive Design:**
+  - הכפתור ב-`StatsCards` משתמש ב-`hidden md:inline` על הטקסט כדי להציג רק אייקון במסכים צרים
+
+### 4. Centralization של Transaction Types (Rust)
+
+- **קובץ חדש:** `src-tauri/src/transaction_types.rs`
+- **תכולה:** הגדרות מרוכזות של קבוצות סוגי תנועות:
+  - `INCOME_TYPES`, `DONATION_TYPES`, `EXPENSE_TYPES`
+  - Helper functions ליצירת SQL conditions
+- **שימוש:** כל ה-Rust commands משתמשים בהגדרות אלו במקום להגדיר אותן inline
+- **יתרון:** מניעת טעויות כמו שכחה של `recognized-expense` בחישובים
 
 ## הערה כללית
 

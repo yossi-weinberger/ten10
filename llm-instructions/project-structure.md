@@ -221,8 +221,8 @@ This section details how the different parts of the project interact with each o
 │   │   └── PlatformContext.tsx
 │   ├── hooks/
 │   │   ├── useAnimatedCounter.ts
-│   │   ├── useDateControls.ts
-│   │   └── useServerStats.ts
+│   │   ├── useDateControls.ts      # Manages date range selection (month/year/all/custom) for dashboard stats
+│   │   └── useServerStats.ts       # Fetches server-calculated statistics (income, expenses, donations, tithe balance)
 │   ├── lib/
 │   │   ├── currencies.ts
 │   │   ├── data-layer/
@@ -320,6 +320,7 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── mod.rs
 │   │   │   ├── recurring_transaction_commands.rs
 │   │   │   └── transaction_commands.rs
+│   │   ├── transaction_types.rs
 │   │   ├── main.rs
 │   │   └── models.rs
 │   ├── tauri.conf.json

@@ -153,6 +153,29 @@ This document outlines the standard approach for handling financial transactions
     - `src/components/TransactionsTable/TransactionsTableFooter.tsx`: "Load More" functionality and data count display.
 - This new table system fetches and manages its data independently of the older, simpler `AllTransactionsDataTable.tsx` or the general `useDonationStore`'s `transactions` array when it comes to displaying the main list of transactions.
 
+## 10. Centralized Transaction Type Definitions (Rust)
+
+- **File:** `src-tauri/src/transaction_types.rs`
+- **Purpose:** Centralizes the definition of transaction type groupings for use in Rust SQL queries, ensuring consistency across all backend commands.
+- **Contents:**
+  - **Constants:**
+    - `INCOME_TYPES: &[&str]` - Array of income-related types: `["income"]`
+    - `DONATION_TYPES: &[&str]` - Array of donation-related types: `["donation", "non_tithe_donation"]`
+    - `EXPENSE_TYPES: &[&str]` - Array of expense-related types: `["expense", "recognized-expense"]`
+  - **Helper Functions:**
+    - `income_types_condition()` - Returns SQL condition string for income types
+    - `donation_types_condition()` - Returns SQL condition string for donation types
+    - `expense_types_condition()` - Returns SQL condition string for expense types
+    - `income_types_case_condition()` - Returns SQL CASE WHEN condition for income types
+    - `donation_types_case_condition()` - Returns SQL CASE WHEN condition for donation types
+    - `expense_types_case_condition()` - Returns SQL CASE WHEN condition for expense types
+- **Usage:** All Rust commands (`chart_commands.rs`, `expense_commands.rs`, `income_commands.rs`, `donation_commands.rs`) should import and use these definitions instead of hardcoding transaction type conditions in SQL queries.
+- **Benefits:**
+  - **Consistency:** Ensures all queries use the same type definitions
+  - **Maintainability:** Changes to type groupings only need to be made in one place
+  - **Error Prevention:** Reduces risk of missing transaction types in calculations (e.g., `recognized-expense` was previously missing from chart calculations)
+- **Note:** This centralization is currently only for Rust code. TypeScript definitions remain in `src/types/transaction.ts`, and Supabase SQL functions have inline documentation referencing these types. A fully unified solution across all three (Rust, Supabase, TypeScript) would require build scripts or code generation, which is beyond the current project scope.
+
 ## 9. Modifying the Transaction Model (Adding a New Field)
 
 To add a new field (e.g., `notes`) to the `Transaction` model, you typically need to modify the following areas:
