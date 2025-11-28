@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { Download, Globe, Calculator } from "lucide-react";
 import { ScreenshotCarousel } from "../components/ScreenshotCarousel";
+import { cn } from "@/lib/utils";
 
 interface HeroSectionProps {
   sectionRef: React.RefObject<HTMLElement>;
@@ -165,7 +166,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <motion.div whileHover={buttonHover} whileTap={buttonTap}>
                 <Button
                   size="lg"
-                  className="text-lg px-8 py-3 shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:shadow-[0_0_30px_rgba(234,179,8,0.5)] transition-shadow duration-300 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 border-none"
+                  className={cn(
+                    "text-lg px-8 py-3 border-none",
+                    "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600",
+                    "shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:shadow-[0_0_30px_rgba(234,179,8,0.5)]",
+                    "transition-shadow duration-300"
+                  )}
                   onClick={() => {
                     onDownloadClick("hero");
                     document

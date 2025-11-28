@@ -87,7 +87,9 @@ export const FileUpload = ({
             >
               <div className="flex items-center gap-2 truncate">
                 <FileIcon className="h-4 w-4 text-primary shrink-0" />
-                <span className="truncate max-w-[200px]">{file.name}</span>
+                <span className="truncate max-w-[200px] sm:max-w-xs md:max-w-sm">
+                  {file.name}
+                </span>
                 <span className="text-xs text-muted-foreground">
                   ({(file.size / 1024).toFixed(1)} KB)
                 </span>

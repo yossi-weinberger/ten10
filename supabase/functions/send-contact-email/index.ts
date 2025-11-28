@@ -64,7 +64,7 @@ async function sendEmailNotification(
     );
     attachmentLinks = `
       <div style="margin-top: 20px; padding: 15px; background-color: #ebf8ff; border: 2px solid #4299e1; border-radius: 8px;">
-        <h3 style="margin-top: 0; color: #2c5282;">📎 קבצים מצורפים / Attachments:</h3>
+        <h3 style="margin-top: 0; color: #2c5282;">קבצים מצורפים / Attachments:</h3>
         <ul style="margin-bottom: 0; padding-right: 20px;">
           ${signedUrls.join("")}
         </ul>

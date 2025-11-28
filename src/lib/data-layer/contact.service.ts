@@ -28,8 +28,9 @@ const uploadFile = async (
   // Supabase Storage requires ASCII-only filenames
   // We'll create a safe filename and preserve the original name in metadata
   const originalName = file.name;
+  const lastDotIndex = originalName.lastIndexOf(".");
   const fileExtension = originalName.substring(
-    originalName.lastIndexOf(".") || 0
+    lastDotIndex !== -1 ? lastDotIndex : originalName.length
   );
 
   // Create a completely safe ASCII filename: timestamp + random string + extension

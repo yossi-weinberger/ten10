@@ -65,9 +65,10 @@ export const ContactForm = ({
   });
 
   // Update form when captchaToken changes from parent
+  const { setValue } = form;
   useEffect(() => {
-    form.setValue("captchaToken", captchaToken);
-  }, [captchaToken, form]);
+    setValue("captchaToken", captchaToken);
+  }, [captchaToken, setValue]);
 
   return (
     <Form {...form}>
