@@ -590,7 +590,7 @@ The following sections detail necessary changes for specific components and page
   - **Default Text:** Uses translation key `t("datePicker.selectDateRange")` instead of hardcoded Hebrew text
 - **Range Selection Behavior:**
   - **Mode:** Uses `mode="range"` from `react-day-picker`
-  - **Selection Logic:** 
+  - **Selection Logic:**
     - First click sets the `from` date
     - Second click sets the `to` date and closes the popover
     - After a complete range is selected, opening the popover again resets the selection visually, allowing a fresh range selection

@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import { useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload, X, File as FileIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -85,12 +85,12 @@ export const FileUpload = ({
               key={`${file.name}-${index}`}
               className="flex items-center justify-between p-2 rounded-md bg-secondary/50 text-sm"
             >
-              <div className="flex items-center gap-2 truncate">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
                 <FileIcon className="h-4 w-4 text-primary shrink-0" />
-                <span className="truncate max-w-[200px] sm:max-w-xs md:max-w-sm">
+                <span className="truncate max-w-[120px] sm:max-w-[150px] md:max-w-[180px]">
                   {file.name}
                 </span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-muted-foreground shrink-0">
                   ({(file.size / 1024).toFixed(1)} KB)
                 </span>
               </div>

@@ -1,3 +1,4 @@
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import { motion } from "framer-motion";
@@ -12,7 +13,6 @@ import { HelpCircle } from "lucide-react";
 import type { TransactionFormValues } from "@/lib/schemas";
 import { TransactionType } from "@/types/transaction";
 import { cn } from "@/lib/utils";
-import { SparkleBurst } from "@/components/ui/sparkle-burst";
 
 interface TransactionCheckboxesProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -27,6 +27,10 @@ export function TransactionCheckboxes({
 }: TransactionCheckboxesProps) {
   const { t } = useTranslation("transactions");
   const isChomeshChecked = form.watch("is_chomesh");
+  // Track if shine animation should trigger (only once per hover/click)
+  const [shineKey, setShineKey] = React.useState(0);
+  // Track hover state for golden button
+  const [isHovered, setIsHovered] = React.useState(false);
 
   const renderToggleButton = (
     name: keyof TransactionFormValues,
@@ -52,10 +56,26 @@ export function TransactionCheckboxes({
               <motion.div
                 onClick={() => {
                   if (isDisabled) return;
+                  // Trigger shine animation on click (for golden button)
+                  if (isGolden) {
+                    setShineKey((prev) => prev + 1);
+                  }
                   if (onToggleOverride) {
                     onToggleOverride(isChecked, field.onChange);
                   } else {
                     field.onChange(!isChecked);
+                  }
+                }}
+                onMouseEnter={() => {
+                  // Trigger shine animation on hover (for golden button)
+                  if (isGolden && !isDisabled) {
+                    setShineKey((prev) => prev + 1);
+                    setIsHovered(true);
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (isGolden && !isDisabled) {
+                    setIsHovered(false);
                   }
                 }}
                 initial={false}
@@ -109,45 +129,42 @@ export function TransactionCheckboxes({
                   // Colors handled via className for theme support
                   isChecked
                     ? isGolden
-                      ? "bg-[conic-gradient(from_45deg_at_50%_50%,#FFD700_0%,#FDB931_25%,#FFFACD_50%,#FDB931_75%,#FFD700_100%)] text-yellow-950 border-yellow-600 bg-[length:200%_200%] animate-gradient-xy" // Metallic Golden state
+                      ? "bg-golden-static text-yellow-950 border-yellow-700" // Static golden gradient (no animation) - darker metallic
                       : "bg-primary text-primary-foreground border-primary"
+                    : isGolden && !isDisabled && isHovered
+                    ? "bg-golden-hover text-yellow-900 border-yellow-600" // Golden hover state for better shine visibility
                     : "bg-card text-card-foreground border-border",
                   isDisabled &&
                     "cursor-not-allowed bg-muted text-muted-foreground border-border"
                 )}
+                style={{ overflow: "visible" }}
               >
-                {/* Clipping Container for Background Effects Only */}
-                <div className="absolute inset-0 overflow-hidden rounded-xl pointer-events-none">
-                  {/* Metallic Shine Effect on Hover (CSS-based) */}
-                  {!isDisabled && (
-                    <div className="absolute inset-0 -translate-x-[150%] -translate-y-[150%] group-hover:animate-shine z-10 pointer-events-none">
-                      <div className="w-[200%] h-[200%] bg-gradient-to-br from-transparent via-white/30 to-transparent -rotate-45 blur-sm" />
-                    </div>
-                  )}
-
-                  {/* Shine Effect Container - kept for golden state looping shine */}
-                  {isChecked && isGolden && (
-                    <div className="absolute inset-0 pointer-events-none z-0">
-                      <motion.div
-                        initial={{ x: "-100%", opacity: 0 }}
-                        animate={{ x: "100%", opacity: 0.3 }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          repeatDelay: 3,
-                          ease: "easeInOut",
-                        }}
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent -skew-x-12"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Sparkle Animation (Unclipped, Single Burst) - OUTSIDE overflow-hidden */}
-                {isGolden && <SparkleBurst active={isChecked} />}
+                {/* Shine Effect - runs once on hover or click */}
+                {!isDisabled && (
+                  <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden rounded-xl">
+                    <motion.div
+                      key={shineKey}
+                      initial={{ x: "-100%", opacity: 0 }}
+                      animate={{ x: "100%", opacity: [0, 0.4, 0] }}
+                      transition={{
+                        duration: 0.6,
+                        ease: "easeOut",
+                      }}
+                      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent"
+                      style={{
+                        width: "50%",
+                        height: "100%",
+                        transform: "skewX(-20deg)",
+                      }}
+                    />
+                  </div>
+                )}
 
                 {/* Tooltip Icon - Top Corner */}
-                <div className="absolute top-1.5 left-2 z-20">
+                <div
+                  className="absolute top-1.5 left-2 z-20"
+                  style={{ overflow: "visible" }}
+                >
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -170,7 +187,7 @@ export function TransactionCheckboxes({
                         <HelpCircle className="h-3.5 w-3.5" />
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent side="top">
+                    <TooltipContent side="top" className="z-[9999]">
                       <p className="max-w-xs text-sm">{t(tooltipKey)}</p>
                     </TooltipContent>
                   </Tooltip>

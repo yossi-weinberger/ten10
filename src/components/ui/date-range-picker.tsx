@@ -36,6 +36,10 @@ export function DatePickerWithRange({
   const [localRange, setLocalRange] = React.useState<DateRange | undefined>(
     date
   );
+  // Separate month state controls which month is displayed in the calendar view,
+  // independent of the selected date range. This allows users to navigate months
+  // without affecting their selection, and ensures the calendar opens to the
+  // correct month when a range is already selected.
   const [month, setMonth] = React.useState<Date | undefined>(date?.from);
   const [open, setOpen] = React.useState(false);
 

@@ -47,7 +47,7 @@ const ContactFAB = () => {
 
       const { os, osVersion, arch, appVersion } = clientInfo;
 
-      const body = `\n\n---\nApp Version: ${appVersion}\nOS: ${os}\nOS Version: ${osVersion}\nArchitecture: ${arch}\nLanguage: ${
+      const body = `\n\nApp Version: ${appVersion}\nOS: ${os}\nOS Version: ${osVersion}\nArchitecture: ${arch}\nLanguage: ${
         i18n.language
       }\nDate: ${new Date().toISOString()}`;
 

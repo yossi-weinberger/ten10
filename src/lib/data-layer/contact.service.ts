@@ -25,8 +25,9 @@ export interface ContactFormData {
 const uploadFile = async (
   file: File
 ): Promise<{ path: string; name: string } | null> => {
-  // Supabase Storage requires ASCII-only filenames
-  // We'll create a safe filename and preserve the original name in metadata
+  // Supabase Storage requires ASCII-only filenames (e.g., filenames with Hebrew letters,
+  // emoji, or other special Unicode characters will fail). We'll create a safe filename
+  // and preserve the original name in metadata.
   const originalName = file.name;
   const lastDotIndex = originalName.lastIndexOf(".");
   const fileExtension = originalName.substring(
