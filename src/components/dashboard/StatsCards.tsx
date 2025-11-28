@@ -251,18 +251,20 @@ export function StatsCards({
             <Button
               variant={dateRangeSelection === "custom" ? "default" : "outline"}
               size="sm"
-              className={
+              className={`whitespace-nowrap flex-shrink-0 ${
                 dateRangeSelection !== "custom"
                   ? "bg-transparent text-foreground hover:bg-muted/50"
                   : ""
-              }
+              }`}
             >
-              <CalendarIcon className="h-4 w-4 ml-2" />
-              {customDateRange?.from && customDateRange?.to
-                ? `${formatDate(customDateRange.from)} - ${formatDate(
-                    customDateRange.to
-                  )}`
-                : dateRangeLabels.custom}
+              <CalendarIcon className="h-4 w-4 md:ml-2" />
+              <span className="hidden md:inline">
+                {customDateRange?.from && customDateRange?.to
+                  ? `${formatDate(customDateRange.from)} - ${formatDate(
+                      customDateRange.to
+                    )}`
+                  : dateRangeLabels.custom}
+              </span>
             </Button>
           }
           className="w-auto"
