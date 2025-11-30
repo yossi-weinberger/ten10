@@ -40,7 +40,21 @@ const uploadFile = async (
   const timestamp = Date.now();
 
   // Ensure extension is ASCII-safe (remove any non-ASCII chars)
-  const safeExtension = fileExtension.replace(/[^a-zA-Z0-9._-]/g, "") || ".bin";
+  let safeExtension = fileExtension.replace(/[^a-zA-Z0-9._-]/g, "");
+
+  // Check if the file has a valid extension after sanitization
+  if (!safeExtension || safeExtension === originalName) {
+    // No extension found or the entire filename was the extension
+    console.warn(
+      `File "${originalName}" has no valid extension. Falling back to ".bin".`
+    );
+    safeExtension = ".bin";
+  } else if (safeExtension !== fileExtension) {
+    // Extension was modified (contained non-ASCII characters)
+    console.warn(
+      `File "${originalName}" extension "${fileExtension}" contained non-ASCII characters. Using sanitized extension "${safeExtension}".`
+    );
+  }
 
   const safeFileName = `${timestamp}-${randomString}${safeExtension}`;
 

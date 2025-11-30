@@ -19,7 +19,7 @@ export function UserInfoDisplay() {
   const [profileLoading, setProfileLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation("auth");
 
   const handleLogout = async () => {
     try {
@@ -86,7 +86,7 @@ export function UserInfoDisplay() {
       } catch (err: any) {
         logger.error("Error fetching profile:", err);
         if (isMounted) {
-          setError(err.message || t("auth:profile.loadError"));
+          setError(err.message || t("profile.loadError"));
         }
       } finally {
         if (isMounted) {
@@ -111,7 +111,7 @@ export function UserInfoDisplay() {
   return (
     <Card className="mb-6" dir={i18n.dir()}>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>{t("auth:profile.userInfo.title")}</CardTitle>
+        <CardTitle>{t("profile.userInfo.title")}</CardTitle>
         {session?.user && (
           <Button
             variant="outline"
@@ -151,28 +151,25 @@ export function UserInfoDisplay() {
           <div className="space-y-1">
             <div>
               <span className="font-semibold">
-                {t("auth:profile.userInfo.fullName")}:{" "}
+                {t("profile.userInfo.fullName")}:{" "}
               </span>
               {isLoading ? (
                 <Skeleton className="h-4 w-[150px] inline-block" />
               ) : error && !fullName ? (
                 <span className="text-destructive">{error}</span>
               ) : (
-                <span>
-                  {fullName ?? t("auth:profile.userInfo.notAvailable")}
-                </span>
+                <span>{fullName ?? t("profile.userInfo.notAvailable")}</span>
               )}
             </div>
             <div>
               <span className="font-semibold">
-                {t("auth:profile.userInfo.email")}:{" "}
+                {t("profile.userInfo.email")}:{" "}
               </span>
               {isLoading ? (
                 <Skeleton className="h-4 w-[200px] inline-block" />
               ) : (
                 <span>
-                  {session?.user?.email ??
-                    t("auth:profile.userInfo.notAvailable")}
+                  {session?.user?.email ?? t("profile.userInfo.notAvailable")}
                 </span>
               )}
             </div>

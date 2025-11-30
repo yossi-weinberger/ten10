@@ -279,7 +279,7 @@ export function StatsCards({
         >
           <StatCard
             title={t("statsCards.overallRequired.title")}
-            value={serverTitheBalance ?? null}
+            value={serverTitheBalance}
             isLoading={isLoadingServerTitheBalance}
             error={serverTitheBalanceError}
             icon={Scale}
