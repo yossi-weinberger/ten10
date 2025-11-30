@@ -18,7 +18,7 @@ export const CtaSection: React.FC = () => {
 
   return (
     <motion.section
-      className="py-20 px-4 bg-gradient-to-r from-blue-600 to-purple-700 text-white"
+      className="py-20 px-4 bg-gradient-to-r from-blue-600 to-teal-600 text-white"
       ref={ctaRef.ref}
       initial="hidden"
       animate={ctaRef.isInView ? "visible" : "hidden"}

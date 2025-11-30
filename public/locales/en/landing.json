@@ -7,9 +7,8 @@
     "tryButton": "Try on Website"
   },
   "stats": {
-    "users": "Active Users",
-    "managed": "Managed in System",
-    "donated": "Donated Through System"
+    "downloads": "Desktop Downloads",
+    "websiteUsers": "Website Users"
   },
   "nav": {
     "home": "Home",
@@ -185,21 +184,9 @@
     }
   },
   "footer": {
-    "description": "Smart and simple tithe management for every Jewish family",
-    "product": "Product",
-    "company": "Company",
-    "resources": "Resources",
-    "links": {
-      "features": "Features",
-      "download": "Download",
-      "support": "Support",
-      "about": "About",
-      "contact": "Contact",
-      "privacy": "Privacy",
-      "halacha": "Halacha",
-      "guides": "Guides",
-      "faq": "FAQ"
-    },
-    "copyright": "All rights reserved"
+    "copyright": "All rights reserved",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "accessibility": "Accessibility"
   }
 }

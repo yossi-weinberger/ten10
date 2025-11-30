@@ -94,7 +94,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ sectionRef }) => {
                 </p>
               </div>
 
-              <div className="border-r-4 border-purple-500 pr-4">
+              <div className="border-r-4 border-teal-500 pr-4">
                 <p className="text-gray-600 dark:text-gray-300 italic mb-2">
                   "{t("about.endorsements.quote3")}"
                 </p>

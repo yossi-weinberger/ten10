@@ -13,13 +13,16 @@ export const StatsSection: React.FC = () => {
   const statsRef = useScrollAnimation({ threshold: 0.3 });
 
   // Animated counters for stats
-  const usersCount = useCountUp({ end: 10000, duration: 2500, delay: 500 });
-  const moneyCount = useCountUp({ end: 50, duration: 2500, delay: 700 }); // 50M
-  const donatedCount = useCountUp({ end: 25, duration: 2500, delay: 900 }); // 25M donated
+  const downloadsCount = useCountUp({ end: 1850, duration: 2500, delay: 500 });
+  const websiteUsersCount = useCountUp({
+    end: 2450,
+    duration: 2500,
+    delay: 700,
+  });
 
   return (
     <motion.section
-      className="py-16 px-4 bg-gradient-to-r from-blue-600 to-purple-700 text-white relative overflow-hidden"
+      className="py-16 px-4 bg-gradient-to-r from-blue-600 to-teal-600 text-white relative overflow-hidden"
       ref={statsRef.ref}
       initial="hidden"
       animate={statsRef.isInView ? "visible" : "hidden"}
@@ -45,12 +48,12 @@ export const StatsSection: React.FC = () => {
 
       <div className="container mx-auto max-w-4xl relative z-10">
         <motion.div
-          className="grid md:grid-cols-3 gap-8 text-center"
+          className="grid md:grid-cols-2 gap-8 text-center"
           variants={staggerContainer}
         >
           <motion.div variants={staggerItem}>
             <motion.div
-              ref={usersCount.elementRef}
+              ref={downloadsCount.elementRef}
               className="text-4xl font-bold mb-2"
               whileHover={{ scale: 1.1 }}
               animate={{
@@ -65,16 +68,16 @@ export const StatsSection: React.FC = () => {
                 scale: { type: "spring", damping: 20, stiffness: 300 },
               }}
             >
-              {usersCount.count.toLocaleString()}+
+              {downloadsCount.count.toLocaleString()}+
             </motion.div>
             <motion.p className="text-blue-100" variants={fadeInUp}>
-              {t("stats.users")}
+              {t("stats.downloads")}
             </motion.p>
           </motion.div>
 
           <motion.div variants={staggerItem}>
             <motion.div
-              ref={moneyCount.elementRef}
+              ref={websiteUsersCount.elementRef}
               className="text-4xl font-bold mb-2"
               whileHover={{ scale: 1.1 }}
               animate={{
@@ -89,34 +92,10 @@ export const StatsSection: React.FC = () => {
                 scale: { type: "spring", damping: 20, stiffness: 300 },
               }}
             >
-              ₪{moneyCount.count}M+
+              {websiteUsersCount.count.toLocaleString()}+
             </motion.div>
             <motion.p className="text-blue-100" variants={fadeInUp}>
-              {t("stats.managed")}
-            </motion.p>
-          </motion.div>
-
-          <motion.div variants={staggerItem}>
-            <motion.div
-              ref={donatedCount.elementRef}
-              className="text-4xl font-bold mb-2"
-              whileHover={{ scale: 1.1 }}
-              animate={{
-                textShadow: [
-                  "0 0 10px rgba(255,255,255,0.5)",
-                  "0 0 20px rgba(255,255,255,0.8)",
-                  "0 0 10px rgba(255,255,255,0.5)",
-                ],
-              }}
-              transition={{
-                textShadow: { duration: 2, repeat: Infinity, delay: 1 },
-                scale: { type: "spring", damping: 20, stiffness: 300 },
-              }}
-            >
-              ₪{donatedCount.count}M+
-            </motion.div>
-            <motion.p className="text-blue-100" variants={fadeInUp}>
-              {t("stats.donated")}
+              {t("stats.websiteUsers")}
             </motion.p>
           </motion.div>
         </motion.div>
@@ -124,4 +103,3 @@ export const StatsSection: React.FC = () => {
     </motion.section>
   );
 };
-

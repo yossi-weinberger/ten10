@@ -7,9 +7,8 @@
     "tryButton": "נסה באתר"
   },
   "stats": {
-    "users": "משתמשים פעילים",
-    "managed": "מנוהל במערכת",
-    "donated": "נתרם דרך המערכת"
+    "downloads": "הורדות לתוכנה למחשב",
+    "websiteUsers": "משתמשים באתר"
   },
   "nav": {
     "home": "בית",
@@ -185,21 +184,9 @@
     }
   },
   "footer": {
-    "description": "ניהול מעשרות חכם ופשוט לכל משפחה יהודית",
-    "product": "מוצר",
-    "company": "חברה",
-    "resources": "משאבים",
-    "links": {
-      "features": "תכונות",
-      "download": "הורדה",
-      "support": "תמיכה",
-      "about": "אודות",
-      "contact": "צור קשר",
-      "privacy": "פרטיות",
-      "halacha": "הלכות",
-      "guides": "מדריכים",
-      "faq": "שאלות נפוצות"
-    },
-    "copyright": "כל הזכויות שמורות"
+    "copyright": "כל הזכויות שמורות",
+    "privacy": "מדיניות פרטיות",
+    "terms": "תנאי שימוש",
+    "accessibility": "נגישות"
   }
 }
