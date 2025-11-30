@@ -11,8 +11,6 @@ import {
   Wallet,
   CreditCard,
   HandCoins,
-  TrendingUp,
-  TrendingDown,
   Scale,
   Calendar as CalendarIcon,
 } from "lucide-react";
@@ -344,9 +342,6 @@ export function StatsCards({
           icon={Wallet}
           colorScheme="green"
           subtitleContent={incomeSubtitle}
-          footerContent={
-            <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
-          }
           onAddClick={handleIncomeAdd}
           showAddButton={true}
           addButtonTooltip={t("statsCards.income.addIncome")}
@@ -360,9 +355,6 @@ export function StatsCards({
           error={serverExpensesError}
           icon={CreditCard}
           colorScheme="red"
-          footerContent={
-            <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
-          }
           onAddClick={handleExpensesAdd}
           showAddButton={true}
           addButtonTooltip={t("statsCards.expenses.addExpense")}

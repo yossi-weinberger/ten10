@@ -215,6 +215,12 @@ export function TransactionCheckboxes({
     />
   );
 
+  React.useEffect(() => {
+    if (!isChomeshChecked) {
+      setIsHovered(false);
+    }
+  }, [isChomeshChecked]);
+
   return (
     <div className="flex flex-row flex-wrap gap-3 mt-2 w-full justify-center">
       {selectedType === "income" && (
