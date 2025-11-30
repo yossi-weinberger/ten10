@@ -1,0 +1,42 @@
+{
+  "title": "Accessibility",
+  "subtitle": "Ten10 is committed to providing an accessible user experience for all users",
+  "visual": {
+    "title": "Visual Support",
+    "description": "The application supports users with visual difficulties:",
+    "item1": "High color contrast in dark and light modes",
+    "item2": "Readable fonts and adjustable sizes",
+    "item3": "Clear labels for all input fields and buttons",
+    "item4": "Logical and hierarchical content structure"
+  },
+  "keyboard": {
+    "title": "Keyboard Navigation",
+    "description": "All functions can be operated using a keyboard:",
+    "item1": "Navigate between fields with Tab and Shift+Tab",
+    "item2": "Activate buttons with Enter or Spacebar",
+    "item3": "Close windows and modals with Esc",
+    "item4": "Additional shortcuts for common fields"
+  },
+  "screenReaders": {
+    "title": "Screen Readers",
+    "description": "The application is compatible with screen readers:",
+    "item1": "Appropriate ARIA labels for all interactive elements",
+    "item2": "Clear and informative status messages",
+    "item3": "Logical and consistent navigation between elements"
+  },
+  "navigation": {
+    "title": "Navigation and RTL",
+    "description": "The application supports full Hebrew support with RTL (right-to-left) layout, and English support with LTR (left-to-right) layout. Navigation automatically adapts to text direction."
+  },
+  "standards": {
+    "title": "Accessibility Standards",
+    "description": "We strive to meet international accessibility standards:",
+    "item1": "WCAG 2.1 Level AA - Web Content Accessibility Guidelines",
+    "item2": "Support for various devices (computer, tablet, phone)",
+    "item3": "Support for leading browsers"
+  },
+  "feedback": {
+    "title": "Feedback",
+    "description": "If you encounter an accessibility issue or have suggestions for improvement, please contact us:"
+  }
+}

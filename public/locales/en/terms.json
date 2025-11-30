@@ -1,0 +1,40 @@
+{
+  "title": "Terms of Service",
+  "lastUpdated": "Last updated: January 2025",
+  "acceptance": {
+    "title": "Acceptance of Terms",
+    "description": "By using Ten10, you agree to the following terms of service. If you do not agree, please do not use the service."
+  },
+  "service": {
+    "title": "Service Description",
+    "description": "Ten10 is a tithe management and financial budget system. The service includes:",
+    "item1": "Automatic tithe and chomesh calculations",
+    "item2": "Management of income, expenses, and donations",
+    "item3": "Reports and charts"
+  },
+  "disclaimer": {
+    "title": "Disclaimer",
+    "description": "Ten10 provides a tool for managing tithes and handling financial data. However:",
+    "note": "The system is halachically approved by the Torah Adam L'Adam Institute, but final halachic decisions are the user's responsibility. It is recommended to consult with a qualified rabbi for specific halachic questions."
+  },
+  "userResponsibilities": {
+    "title": "User Responsibilities",
+    "description": "By using the service, you agree:",
+    "item1": "To provide accurate and reliable information",
+    "item2": "To maintain the confidentiality of your account details",
+    "item3": "Not to use the service for illegal purposes",
+    "item4": "To be responsible for all actions performed in your account"
+  },
+  "limitations": {
+    "title": "Limitation of Liability",
+    "description": "Ten10 is not responsible for any direct, indirect, or consequential damages arising from the use or non-use of the service. The service is provided 'as is' without any warranty."
+  },
+  "changes": {
+    "title": "Changes to Terms",
+    "description": "We reserve the right to update these terms of service at any time. Material changes will be published here, and continued use of the service constitutes acceptance of the updated terms."
+  },
+  "contact": {
+    "title": "Contact",
+    "description": "For questions or clarifications regarding the terms of service, please contact us:"
+  }
+}
