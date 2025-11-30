@@ -34,7 +34,7 @@ serve(async (req) => {
   // Extract token from "Bearer TOKEN" format
   const token = authorization.replace("Bearer ", "");
 
-  // Allow either ANON_KEY (for manual testing) or SERVICE_ROLE_KEY (for cron job)
+  // Allow either ANON_KEY (for manual testing) or SERVICE_ROLE_KEY (for cron job).
   if (token !== validAnonKey && token !== validServiceKey) {
     return new Response(JSON.stringify({ error: "Invalid token" }), {
       status: 403,
