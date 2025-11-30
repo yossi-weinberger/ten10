@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { LazyImage } from "@/components/ui/lazy-image";
 import { Download, Globe, Calculator } from "lucide-react";
 import { ScreenshotCarousel } from "../components/ScreenshotCarousel";
+import { cn } from "@/lib/utils";
 
 interface HeroSectionProps {
   sectionRef: React.RefObject<HTMLElement>;
@@ -41,8 +42,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       style={{ y: heroY, opacity: heroOpacity }}
       className="relative overflow-hidden py-20 px-4 parallax-container"
     >
-      {/* Enhanced Background decoration */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 opacity-50 animate-gradient"></div>
+      {/* Enhanced Background decoration - Restored Floating Blobs */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 opacity-50 animate-gradient"></div>
 
       <motion.div
         className="absolute top-20 left-10 w-72 h-72 bg-blue-200 dark:bg-blue-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30"
@@ -59,7 +60,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       />
 
       <motion.div
-        className="absolute bottom-20 right-10 w-72 h-72 bg-purple-200 dark:bg-purple-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30"
+        className="absolute bottom-20 right-10 w-72 h-72 bg-teal-200 dark:bg-teal-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30"
         animate={{
           scale: [1.2, 1, 1.2],
           rotate: [360, 180, 0],
@@ -73,7 +74,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         }}
       />
 
-      {/* Additional floating elements */}
+      {/* Additional floating elements for more "wow" */}
       <motion.div
         className="absolute top-1/2 left-1/4 w-32 h-32 bg-green-200 dark:bg-green-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-2xl opacity-20"
         animate={{
@@ -119,7 +120,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           <motion.div variants={fadeInUp}>
             <Badge
               variant="secondary"
-              className="mb-4 text-sm font-medium animate-shimmer"
+              className="mb-4 text-sm font-medium bg-blue-100/50 dark:bg-blue-900/30 backdrop-blur-md border-blue-200 dark:border-blue-700"
             >
               {t("hero.badge")}
             </Badge>
@@ -130,7 +131,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             variants={fadeInUp}
           >
             <motion.span
-              className="gradient-text"
+              className="gradient-text bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-teal-600 dark:from-blue-400 dark:to-teal-400"
               animate={{
                 backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
               }}
@@ -165,10 +166,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <motion.div whileHover={buttonHover} whileTap={buttonTap}>
                 <Button
                   size="lg"
-                  className="text-lg px-8 py-3"
+                  className={cn(
+                    "text-lg px-8 py-3 border-none",
+                    "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600",
+                    "shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:shadow-[0_0_30px_rgba(234,179,8,0.5)]",
+                    "transition-shadow duration-300"
+                  )}
                   onClick={() => {
                     onDownloadClick("hero");
-                    // Scroll to download section
                     document
                       .getElementById("download")
                       ?.scrollIntoView({ behavior: "smooth" });
@@ -185,7 +190,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 <Button
                   variant="outline"
                   size="lg"
-                  className="text-lg px-8 py-3"
+                  className="text-lg px-8 py-3 backdrop-blur-sm bg-white/50 dark:bg-black/20 border-gray-200 dark:border-gray-700 hover:bg-white/80 dark:hover:bg-black/40"
                   onClick={onWebAppClick}
                   asChild
                 >

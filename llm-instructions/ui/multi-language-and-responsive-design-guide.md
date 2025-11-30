@@ -404,7 +404,7 @@ t("pagination.showing", { current: 5, total: 100 })
 
 - **`common`**: UI elements, buttons, toasts, general actions
 - **`navigation`**: Menu items, app name, routing-related texts
-- **`dashboard`**: Home page, stats, charts, date ranges
+- **`dashboard`**: Home page, stats, charts, date ranges (including custom date range picker)
 - **`transactions`**: Transaction forms, types, validation
 - **`settings`**: Settings page and all its cards
 - **`data-tables`**: Tables, filters, columns, actions, pagination
@@ -523,6 +523,10 @@ The following sections detail necessary changes for specific components and page
   - `containerClass = orientation === "horizontal" ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4" : "grid gap-4";` This is excellent for responsiveness.
   - Ensure text within cards doesn't overflow on small screens. `text-2xl font-bold` might need to be smaller on mobile (e.g., `text-xl sm:text-2xl`).
   - `p className="text-xs text-muted-foreground mt-1"`: Font size `xs` is good for subtext.
+  - **Custom Date Range Button:** The custom date range button (`DatePickerWithRange`) uses responsive classes:
+    - `whitespace-nowrap flex-shrink-0` to prevent line wrapping
+    - `hidden md:inline` on the text span to show only the calendar icon on small screens
+    - The calendar icon always shows, ensuring the button remains functional on all screen sizes
 - **Theming/Dark Mode:**
   - Gradient backgrounds: `from-green-50 to-green-100 dark:from-green-950 dark:to-green-900`. These are specific Tailwind palette colors.
     - **Ideal:** Define these gradients semantically in `index.css` if they are reused or part of the core theme.
@@ -573,6 +577,37 @@ The following sections detail necessary changes for specific components and page
   - Filter controls (`DatePickerWithRange`, `Select`): Ensure they are usable on small screens (e.g., `SelectTrigger className="w-[180px]"` might be too wide for very small mobile). Consider `w-full sm:w-[180px]`.
 - **Theming/Dark Mode:**
   - Relies heavily on `shadcn/ui` components (`Card`, `DataTable`, `Select`, `DatePickerWithRange`), which should be theme-aware. No obvious hardcoded styles. This is good.
+
+### 4.1. `src/components/ui/date-range-picker.tsx` (DatePickerWithRange Component)
+
+- **Localization:**
+  - **Month Names:** The component uses `formatMonthDropdown` and `formatYearDropdown` formatters to display localized month names in dropdowns:
+    - For Hebrew calendar: Shows Hebrew month names with month number (e.g., "1. טבת")
+    - For Gregorian calendar: Uses `date-fns` with `he` or `enUS` locale based on `i18n.language`
+    - Month dropdown format: `${monthNumber}. ${monthName}` (e.g., "1. January 2024" or "1. טבת 5785")
+  - **Date Formatting:** Uses `formatDate` helper that respects both calendar type (Hebrew/Gregorian) and language settings
+  - **Weekday Names:** Uses `formatWeekday` that respects calendar type and language
+  - **Default Text:** Uses translation key `t("datePicker.selectDateRange")` instead of hardcoded Hebrew text
+- **Range Selection Behavior:**
+  - **Mode:** Uses `mode="range"` from `react-day-picker`
+  - **Selection Logic:**
+    - First click sets the `from` date
+    - Second click sets the `to` date and closes the popover
+    - After a complete range is selected, opening the popover again resets the selection visually, allowing a fresh range selection
+    - Uses `shouldResetOnNextClickRef` to track when to reset selection
+    - Handles edge case where `react-day-picker` returns `{ from: date, to: date }` on first click by treating it as an incomplete range
+  - **Helper Function:** `isSameDay` checks if two dates are the same day to properly identify incomplete ranges
+- **RTL/LTR:**
+  - Calendar component receives `locale={i18n.language === "he" ? he : enUS}` prop
+  - All formatters (`formatCaption`, `formatMonthDropdown`, `formatYearDropdown`, `formatWeekday`) use the appropriate locale
+  - Popover alignment and navigation buttons are handled by the Calendar component's RTL support
+- **Responsiveness:**
+  - The component itself is responsive via its container classes
+  - When used in `StatsCards.tsx`, the trigger button has responsive text hiding (see StatsCards section above)
+- **Props:**
+  - `triggerButton?: React.ReactNode` - Allows custom button rendering (used in StatsCards)
+  - `date: DateRange | undefined` - The selected date range
+  - `onDateChange: (date: DateRange | undefined) => void` - Callback when range changes
 
 ### 5. Forms (e.g., `src/components/forms/TransactionForm.tsx` - Assuming this exists or will be created)
 

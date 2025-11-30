@@ -3,6 +3,7 @@ use serde::Serialize;
 use tauri::State;
 
 use crate::DbState;
+use crate::transaction_types::{donation_types_case_condition, donation_types_condition};
 
 // New struct for returning detailed donation data
 #[derive(Serialize, Debug)]
@@ -17,16 +18,19 @@ pub async fn get_desktop_total_donations_in_range(
     start_date: String,
     end_date: String,
 ) -> Result<DesktopDonationData, String> {
-    let query_sql = "
-        SELECT
-            COALESCE(SUM(CASE WHEN type = 'donation' OR type = 'non_tithe_donation' THEN amount ELSE 0 END), 0) AS total_donations_amount,
+    let query_sql = format!(
+        "SELECT
+            COALESCE(SUM({}), 0) AS total_donations_amount,
             COALESCE(SUM(CASE WHEN type = 'non_tithe_donation' THEN amount ELSE 0 END), 0) AS non_tithe_donation_amount
         FROM
             transactions
         WHERE
-            (type = 'donation' OR type = 'non_tithe_donation') AND
-            strftime('%Y-%m-%dT%H:%M:%S.%fZ', date) BETWEEN ?1 AND ?2;
-    ";
+            {} AND
+            date >= ?1 AND
+            date <= ?2;",
+        donation_types_case_condition(),
+        donation_types_condition()
+    );
 
     println!(
         "Desktop Query (donation_commands.rs): Fetching detailed donations between {} and {}",
@@ -36,7 +40,7 @@ pub async fn get_desktop_total_donations_in_range(
     let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
     let conn: &Connection = &*conn_guard;
 
-    match conn.query_row(&query_sql, params![start_date, end_date], |row| {
+    match conn.query_row(query_sql.as_str(), params![start_date, end_date], |row| {
         Ok(DesktopDonationData {
             total_donations_amount: row.get(0)?,
             non_tithe_donation_amount: row.get(1)?,

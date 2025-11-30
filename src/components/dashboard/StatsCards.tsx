@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -7,23 +6,26 @@ import {
   DateRangeSelectionType,
 } from "@/hooks/useDateControls";
 import { useServerStats } from "@/hooks/useServerStats";
+import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import {
   Wallet,
   CreditCard,
   HandCoins,
-  CircleDollarSign,
-  TrendingUp,
-  TrendingDown,
   Scale,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 import { StatCard } from "./StatCards/StatCard";
-import { Progress } from "@/components/ui/progress";
 import { motion } from "framer-motion";
 import CountUp from "react-countup";
 import { formatCurrency } from "@/lib/utils/currency";
 import { useDonationStore } from "@/lib/store";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
+import { format } from "date-fns";
+import { he, enUS } from "date-fns/locale";
+import { formatHebrewDate } from "@/lib/utils/hebrew-date";
+import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
+import { useEffect, useMemo, useState } from "react";
 
 export function StatsCards({
   orientation = "horizontal",
@@ -68,7 +70,20 @@ export function StatsCards({
     setDateRangeSelection,
     activeDateRangeObject,
     dateRangeLabels,
+    customDateRange,
+    setCustomDateRange,
   } = useDateControls();
+
+  const settings = useDonationStore((state) => state.settings);
+
+  const formatDate = (date: Date) => {
+    if (settings.calendarType === "hebrew") {
+      return formatHebrewDate(date);
+    }
+    // Use i18n language for locale selection
+    const currentLocale = i18n.language === "he" ? he : enUS;
+    return format(date, "dd/MM/yyyy", { locale: currentLocale });
+  };
 
   const {
     serverTotalIncome,
@@ -86,24 +101,65 @@ export function StatsCards({
     serverTitheBalanceError,
   } = useServerStats(activeDateRangeObject, user, platform);
 
+  const [lastChomeshValue, setLastChomeshValue] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (typeof serverChomeshAmount === "number") {
+      setLastChomeshValue(serverChomeshAmount);
+    }
+  }, [serverChomeshAmount]);
+
+  const effectiveChomeshValue =
+    typeof serverChomeshAmount === "number"
+      ? serverChomeshAmount
+      : lastChomeshValue;
+
   // Income Card Subtitle Logic
-  const incomeSubtitle =
-    !isLoadingServerIncome &&
-    !serverIncomeError &&
-    typeof serverChomeshAmount === "number" &&
-    serverChomeshAmount > 0 ? (
+  const {
+    displayValue: chomeshDisplayValue,
+    startAnimateValue: chomeshStartValue,
+  } = useAnimatedCounter({
+    serverValue: effectiveChomeshValue ?? undefined,
+    isLoading: isLoadingServerIncome,
+  });
+
+  // Memoize the formatting function to prevent re-creation
+  const formatChomeshCurrency = useMemo(
+    () => (value: number) =>
+      formatCurrency(value, defaultCurrency, i18n.language),
+    [defaultCurrency, i18n.language]
+  );
+
+  const incomeSubtitle = useMemo(() => {
+    if (
+      serverIncomeError ||
+      typeof effectiveChomeshValue !== "number" ||
+      effectiveChomeshValue <= 0
+    ) {
+      return null;
+    }
+
+    return (
       <span className="block text-xs text-muted-foreground" dir={i18n.dir()}>
         <CountUp
-          end={serverChomeshAmount}
+          start={chomeshStartValue}
+          end={chomeshDisplayValue}
           duration={0.75}
           decimals={2}
-          formattingFn={(value) =>
-            formatCurrency(value, defaultCurrency, i18n.language)
-          }
+          formattingFn={formatChomeshCurrency}
         />{" "}
         {t("statsCards.income.withChomesh")}
       </span>
-    ) : null;
+    );
+  }, [
+    serverIncomeError,
+    effectiveChomeshValue,
+    chomeshStartValue,
+    chomeshDisplayValue,
+    formatChomeshCurrency,
+    i18n.dir,
+    t,
+  ]);
 
   // Donations Card Subtitle Logic
   const serverTotalDonationsAmount =
@@ -205,9 +261,10 @@ export function StatsCards({
 
   return (
     <div className={rootContainerClass}>
-      <div className="flex justify-end gap-2">
-        {(Object.keys(dateRangeLabels) as DateRangeSelectionType[]).map(
-          (rangeKey) => (
+      <div className="flex justify-end gap-2 items-center flex-wrap">
+        {(Object.keys(dateRangeLabels) as DateRangeSelectionType[])
+          .filter((rangeKey) => rangeKey !== "custom")
+          .map((rangeKey) => (
             <Button
               key={rangeKey}
               variant={dateRangeSelection === rangeKey ? "default" : "outline"}
@@ -221,8 +278,38 @@ export function StatsCards({
             >
               {dateRangeLabels[rangeKey]}
             </Button>
-          )
-        )}
+          ))}
+        <DatePickerWithRange
+          date={customDateRange}
+          onDateChange={(range) => {
+            setCustomDateRange(range);
+            // Automatically switch to custom mode when a range is selected
+            if (range?.from && range?.to) {
+              setDateRangeSelection("custom");
+            }
+          }}
+          triggerButton={
+            <Button
+              variant={dateRangeSelection === "custom" ? "default" : "outline"}
+              size="sm"
+              className={`whitespace-nowrap flex-shrink-0 ${
+                dateRangeSelection !== "custom"
+                  ? "bg-transparent text-foreground hover:bg-muted/50"
+                  : ""
+              }`}
+            >
+              <CalendarIcon className="h-4 w-4 md:ml-2" />
+              <span className="hidden md:inline">
+                {customDateRange?.from && customDateRange?.to
+                  ? `${formatDate(customDateRange.from)} - ${formatDate(
+                      customDateRange.to
+                    )}`
+                  : dateRangeLabels.custom}
+              </span>
+            </Button>
+          }
+          className="w-auto"
+        />
       </div>
 
       <div className={containerClass}>
@@ -233,7 +320,7 @@ export function StatsCards({
         >
           <StatCard
             title={t("statsCards.overallRequired.title")}
-            value={serverTitheBalance}
+            value={serverTitheBalance ?? null}
             isLoading={isLoadingServerTitheBalance}
             error={serverTitheBalanceError}
             icon={Scale}
@@ -249,15 +336,12 @@ export function StatsCards({
           title={`${t("statsCards.income.title")} (${
             activeDateRangeObject.label ?? ""
           })`}
-          value={serverTotalIncome}
+          value={serverTotalIncome ?? null}
           isLoading={isLoadingServerIncome}
           error={serverIncomeError}
           icon={Wallet}
           colorScheme="green"
           subtitleContent={incomeSubtitle}
-          footerContent={
-            <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
-          }
           onAddClick={handleIncomeAdd}
           showAddButton={true}
           addButtonTooltip={t("statsCards.income.addIncome")}
@@ -266,14 +350,11 @@ export function StatsCards({
           title={`${t("statsCards.expenses.title")} (${
             activeDateRangeObject.label ?? ""
           })`}
-          value={serverTotalExpenses}
+          value={serverTotalExpenses ?? null}
           isLoading={isLoadingServerExpenses}
           error={serverExpensesError}
           icon={CreditCard}
           colorScheme="red"
-          footerContent={
-            <TrendingDown className="h-4 w-4 text-red-600 dark:text-red-400" />
-          }
           onAddClick={handleExpensesAdd}
           showAddButton={true}
           addButtonTooltip={t("statsCards.expenses.addExpense")}

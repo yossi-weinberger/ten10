@@ -1,0 +1,55 @@
+{
+  "title": "Privacy Policy",
+  "lastUpdated": "Last updated: January 2025",
+  "dataCollection": {
+    "title": "Data Collection",
+    "description": "Ten10 collects and uses the following information:",
+    "item1": "Account details: Email address, full name (optional), profile picture (optional)",
+    "item2": "Financial data: Income, expenses, donations, and any other data you record in the system",
+    "item3": "Usage settings: Language preferences, currency, reminders, and other settings",
+    "item4": "Usage data: Application activity for service improvement purposes",
+    "item5": "Contact content: Messages you send through the contact form"
+  },
+  "dataStorage": {
+    "title": "Data Storage",
+    "description": "Your data is stored securely:",
+    "web": {
+      "title": "Website Version",
+      "description": "Data is stored on Supabase, a secure cloud service. All data is encrypted and protected using Row Level Security (RLS). Your data is only accessible to you."
+    },
+    "desktop": {
+      "title": "Desktop Application",
+      "description": "Data is stored locally on your computer in a SQLite file. Data is never sent to external servers. Only you can access your data."
+    }
+  },
+  "dataUsage": {
+    "title": "Data Usage",
+    "description": "We use your data for the following purposes:",
+    "item1": "Providing system services: Tithe calculations, budget management, and reports",
+    "item2": "Service improvement: Understanding user needs and improving functionality",
+    "item3": "Reminders: Sending monthly reminders (only if you have opted in)",
+    "item4": "Technical support: Helping resolve issues and questions"
+  },
+  "communications": {
+    "title": "Communications",
+    "description": "If you have chosen to receive email reminders, we will send you monthly messages about your tithe status. You can unsubscribe at any time.",
+    "unsubscribe": "To unsubscribe, click the link in any reminder email, or contact us at: contact@ten10-app.com"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "description": "We use Google Analytics to track usage on the landing page. This helps us understand how users interact with the site and improve the experience.",
+    "note": "Google Analytics uses cookies and tracks activity. You can configure your browser to block tracking cookies if you wish."
+  },
+  "userRights": {
+    "title": "User Rights",
+    "description": "You have the following rights regarding your data:",
+    "item1": "Access: You can view all your data at any time through the application",
+    "item2": "Edit: You can edit or delete any of your data",
+    "item3": "Export: You can export your data to various formats (CSV, Excel, PDF)",
+    "item4": "Deletion: You can delete your account and all associated data at any time"
+  },
+  "contact": {
+    "title": "Contact",
+    "description": "If you have questions or concerns about the privacy policy, please contact us:"
+  }
+}

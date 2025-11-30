@@ -5,6 +5,9 @@ use tauri::State;
 // use log::{info, error, warn}; // No longer using log crate macros
 
 use crate::DbState; // Assuming DbState is defined in main.rs or lib.rs
+use crate::transaction_types::{
+    expense_types_case_condition, income_types_case_condition, donation_types_case_condition,
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DesktopMonthlyDataPoint {
@@ -75,15 +78,19 @@ pub fn get_desktop_monthly_financial_summary(
             month_label_str, month_start_str, month_end_str
         );
 
-        let mut stmt = conn
-            .prepare(
-                "SELECT 
-                    COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as income, 
-                    COALESCE(SUM(CASE WHEN type = 'donation' THEN amount ELSE 0 END), 0) as donations, 
-                    COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as expenses 
-                 FROM transactions 
-                 WHERE date >= ?1 AND date <= ?2",
-            )
+        let sql_query = format!(
+            "SELECT 
+                COALESCE(SUM({}), 0) as income, 
+                COALESCE(SUM({}), 0) as donations, 
+                COALESCE(SUM({}), 0) as expenses 
+             FROM transactions 
+             WHERE date >= ?1 AND date <= ?2",
+            income_types_case_condition(),
+            donation_types_case_condition(),
+            expense_types_case_condition()
+        );
+
+        let mut stmt = conn.prepare(&sql_query)
             .map_err(|e| {
                 eprintln!("[Rust Chart] Error preparing SQL statement for month {}: {}", month_label_str, e);
                 e.to_string()

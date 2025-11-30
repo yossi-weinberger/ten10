@@ -59,14 +59,16 @@ async function sendEmailNotification(
           console.error(`Error creating signed URL for ${att.path}:`, error);
           return `<li>${att.name} (Error generating link)</li>`;
         }
-        return `<li><a href="${data.signedUrl}">${att.name}</a></li>`;
+        return `<li><a href="${data.signedUrl}" style="font-weight: bold; font-size: 1.1em; color: #2b6cb0;">${att.name}</a></li>`;
       })
     );
     attachmentLinks = `
-      <h3>Attachments:</h3>
-      <ul>
-        ${signedUrls.join("")}
-      </ul>
+      <div style="margin-top: 20px; padding: 15px; background-color: #ebf8ff; border: 2px solid #4299e1; border-radius: 8px;">
+        <h3 style="margin-top: 0; color: #2c5282;">קבצים מצורפים / Attachments:</h3>
+        <ul style="margin-bottom: 0; padding-right: 20px;">
+          ${signedUrls.join("")}
+        </ul>
+      </div>
     `;
   }
 
@@ -126,6 +128,11 @@ async function sendEmailNotification(
           <hr>
           <h3>הודעה:</h3>
           <div class="message-box">${insertedRecord.body}</div>
+          ${
+            attachmentLinks
+              ? `<div class="attachments">${attachmentLinks}</div>`
+              : ""
+          }
           <div class="metadata">
             <h3>מידע טכני:</h3>
             <ul>
@@ -149,11 +156,6 @@ async function sendEmailNotification(
               }</li>
             </ul>
           </div>
-          ${
-            attachmentLinks
-              ? `<div class="attachments">${attachmentLinks}</div>`
-              : ""
-          }
         </div>
       </body>
       </html>
@@ -207,6 +209,11 @@ async function sendEmailNotification(
           <hr>
           <h3>Message:</h3>
           <div class="message-box">${insertedRecord.body}</div>
+          ${
+            attachmentLinks
+              ? `<div class="attachments">${attachmentLinks}</div>`
+              : ""
+          }
           <div class="metadata">
             <h3>Metadata:</h3>
             <ul>
@@ -228,11 +235,6 @@ async function sendEmailNotification(
               }</li>
             </ul>
           </div>
-          ${
-            attachmentLinks
-              ? `<div class="attachments">${attachmentLinks}</div>`
-              : ""
-          }
         </div>
       </body>
       </html>

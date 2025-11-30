@@ -98,7 +98,7 @@ export const ScreenshotCarousel: React.FC = () => {
                   </span>
                 </motion.div>
                 <motion.div
-                  className="bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900 dark:to-purple-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center animate-gradient"
+                  className="bg-gradient-to-br from-blue-100 to-teal-100 dark:from-blue-900 dark:to-teal-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center animate-gradient"
                   whileHover={{ scale: 1.05 }}
                   transition={{
                     type: "spring",
@@ -277,7 +277,7 @@ export const ScreenshotCarousel: React.FC = () => {
                   </span>
                 </motion.div>
                 <motion.div
-                  className="bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center animate-gradient"
+                  className="bg-gradient-to-br from-teal-100 to-pink-100 dark:from-teal-900 dark:to-pink-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center animate-gradient"
                   whileHover={{ scale: 1.05 }}
                   transition={{
                     type: "spring",
@@ -300,7 +300,7 @@ export const ScreenshotCarousel: React.FC = () => {
                         scale: { duration: 2, repeat: Infinity },
                       }}
                     >
-                      <PieChart className="h-16 w-16 mx-auto mb-4 text-purple-600" />
+                      <PieChart className="h-16 w-16 mx-auto mb-4 text-teal-600" />
                     </motion.div>
                     <motion.h3
                       className="text-2xl font-bold mb-2"

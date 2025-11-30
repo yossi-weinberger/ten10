@@ -8,7 +8,8 @@
     "halacha": "הלכות",
     "settings": "הגדרות",
     "about": "אודות",
-    "profile": "פרופיל"
+    "profile": "פרופיל",
+    "logout": "התנתק"
   },
   "user": {
     "loading": "טוען...",

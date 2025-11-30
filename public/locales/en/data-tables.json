@@ -162,7 +162,7 @@
     "howItWorks": {
       "title": "How it works",
       "descriptionWeb": "Recurring transactions run automatically once a day (at night). Each execution creates a new transaction in the Transactions table and updates the next due date.",
-      "descriptionDesktop": "Recurring transactions run automatically every time the app is opened. Each execution creates a new transaction in the Transactions table and updates the next due date."
+      "descriptionDesktop": "Each time the application is opened, the system automatically checks all entries in the Recurring Transactions table and adds any missing transactions, including past-due ones."
     },
     "noData": "No recurring transactions found.",
     "executionTooltip": "{{executed}} payments completed out of {{total}}.",

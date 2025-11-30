@@ -1,12 +1,16 @@
 {
   "homePage": {
     "title": "Welcome to Ten10",
-    "subtitle": "Manage your income and donations easily and simply"
+    "subtitle": "Manage your donations, income, and expenses easily and simply"
   },
   "dateRange": {
     "month": "From start of month",
     "year": "From start of year",
-    "all": "All time"
+    "all": "All time",
+    "custom": "Custom range"
+  },
+  "datePicker": {
+    "selectDateRange": "Select date range"
   },
   "statsCards": {
     "income": {
@@ -50,7 +54,7 @@
   },
   "monthlyChart": {
     "title": "Monthly Summary",
-    "description": "Track income, expenses and donations",
+    "description": "Track donations, income, and expenses",
     "income": "Income",
     "expenses": "Expenses",
     "donations": "Donations",

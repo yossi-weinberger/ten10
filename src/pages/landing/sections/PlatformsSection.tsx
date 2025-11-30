@@ -38,7 +38,7 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
         <div className="grid md:grid-cols-2 gap-8">
           {/* Web Version */}
           <Card className="relative overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+            <CardHeader className="bg-gradient-to-r from-blue-500 to-teal-600 text-white">
               <div className="flex items-center gap-2">
                 <Globe className="h-6 w-6" />
                 <CardTitle className="text-2xl">
@@ -61,9 +61,11 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                 )}
               </ul>
               <motion.div whileHover={buttonHover} whileTap={buttonTap}>
-                <Button className="w-full mt-6" variant="outline">
-                  <Globe className="mr-2 h-4 w-4" />
-                  {t("platforms.web.button")}
+                <Button className="w-full mt-6" variant="outline" asChild>
+                  <Link to="/" className="inline-flex items-center">
+                    <Globe className="mr-2 h-4 w-4" />
+                    {t("platforms.web.button")}
+                  </Link>
                 </Button>
               </motion.div>
             </CardContent>
@@ -99,7 +101,14 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                 )}
               </ul>
               <motion.div whileHover={buttonHover} whileTap={buttonTap}>
-                <Button className="w-full mt-6">
+                <Button
+                  className="w-full mt-6"
+                  onClick={() => {
+                    document
+                      .getElementById("download")
+                      ?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
                   <Download className="mr-2 h-4 w-4" />
                   {t("platforms.desktop.button")}
                 </Button>

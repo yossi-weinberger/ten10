@@ -3,6 +3,7 @@ use serde::Serialize;
 use tauri::State; // Import Serialize
                   // We might need to import Connection from rusqlite if it's not exposed via DbState directly in a usable way here.
                   // For now, assuming DbState and its usage pattern allows access as in main.rs
+use crate::transaction_types::income_types_condition;
 
 // Define a struct to hold the aggregation result
 #[derive(Debug, Serialize)]
@@ -25,23 +26,24 @@ pub fn get_desktop_total_income_in_range(
     // Updated SQL query from sql_queries/sqlite/income/select_total_income.sql
     // Reflects the change to select both total_income and chomesh_amount
     // AND uses is_chomesh for SQLite.
-    let sql = "
-        SELECT
+    let sql = format!(
+        "SELECT
             COALESCE(SUM(amount), 0) AS total_income,
             COALESCE(SUM(CASE WHEN is_chomesh THEN amount ELSE 0 END), 0) AS chomesh_amount
         FROM transactions
         WHERE
-            (type = 'income' OR type = 'exempt-income') AND
+            {} AND
             date >= ?1 AND
-            date <= ?2;
-    ";
+            date <= ?2;",
+        income_types_condition()
+    );
 
     println!(
         "Desktop Query (income_commands.rs): Fetching income and chomesh between {} and {}",
         start_date, end_date
     );
 
-    match conn_guard.query_row(sql, rusqlite::params![start_date, end_date], |row| {
+    match conn_guard.query_row(&sql, rusqlite::params![start_date, end_date], |row| {
         Ok(IncomeAggregationResult {
             total_income: row.get::<usize, f64>(0)?,
             chomesh_amount: row.get::<usize, f64>(1)?,

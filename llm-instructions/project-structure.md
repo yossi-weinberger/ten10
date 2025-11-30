@@ -43,7 +43,7 @@ This section details how the different parts of the project interact with each o
 6.  **LLM Instructions (`llm-instructions`)**:
     - This directory contains Markdown documents providing development guidelines and context, organized by topic. Key documents include:
       - **Project Overview**: `project/project-overview-and-requirements.md`, `project/project-tech-stack-and-guidelines.md`
-      - **Features**: `features/transactions/`, `features/email/`
+      - **Features**: `features/transactions/`, `features/email/`, `features/contact-us-feature.md`
       - **Platforms**: `platforms/desktop-data-saving-guide.md`, `platforms/platform-context-api-guide.md`
       - **Deployment**: `deployment/release-management-guide.md`, `deployment/setup-updater-keys.md`
       - **UI/UX**: `ui/landing-page-complete-guide.md`, `ui/multi-language-and-responsive-design-guide.md`
@@ -101,7 +101,25 @@ This section details how the different parts of the project interact with each o
 │   └── project-structure.md  # This file
 ├── node_modules/          # Project dependencies
 ├── public/                # Static assets served directly
-│   └── fonts/             # Font files
+│   ├── fonts/             # Font files
+│   └── locales/           # i18n translation files
+│       ├── he/            # Hebrew translations
+│       │   ├── contact.json
+│       │   └── ...
+│       └── en/            # English translations
+│           ├── contact.json
+│           └── ...
+├── supabase/              # Supabase configuration and Edge Functions
+│   ├── functions/
+│   │   ├── _shared/
+│   │   │   ├── cors.ts
+│   │   │   └── simple-email-service.ts
+│   │   ├── verify-captcha/
+│   │   │   └── index.ts
+│   │   └── send-contact-email/
+│   │       └── index.ts
+│   └── scripts/
+│       └── deploy-functions.js
 ├── src/                   # Frontend source code (React + TypeScript)
 │   ├── components/        # Reusable UI components
 │   │   ├── charts/
@@ -168,6 +186,7 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── dialog.tsx
 │   │   │   ├── drawer.tsx
 │   │   │   ├── dropdown-menu.tsx
+│   │   │   ├── file-upload.tsx
 │   │   │   ├── form.tsx
 │   │   │   ├── hover-card.tsx
 │   │   │   ├── input-otp.tsx
@@ -202,14 +221,15 @@ This section details how the different parts of the project interact with each o
 │   │   └── PlatformContext.tsx
 │   ├── hooks/
 │   │   ├── useAnimatedCounter.ts
-│   │   ├── useDateControls.ts
-│   │   └── useServerStats.ts
+│   │   ├── useDateControls.ts      # Manages date range selection (month/year/all/custom) for dashboard stats
+│   │   └── useServerStats.ts       # Fetches server-calculated statistics (income, expenses, donations, tithe balance)
 │   ├── lib/
 │   │   ├── currencies.ts
 │   │   ├── data-layer/
 │   │   │   ├── analytics.service.ts
 │   │   │   ├── autostart.service.ts
 │   │   │   ├── chart.service.ts
+│   │   │   ├── contact.service.ts
 │   │   │   ├── dataManagement.service.ts
 │   │   │   ├── index.ts
 │   │   │   ├── notification.service.ts
@@ -300,6 +320,7 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── mod.rs
 │   │   │   ├── recurring_transaction_commands.rs
 │   │   │   └── transaction_commands.rs
+│   │   ├── transaction_types.rs
 │   │   ├── main.rs
 │   │   └── models.rs
 │   ├── tauri.conf.json

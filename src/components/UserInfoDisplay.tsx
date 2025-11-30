@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
@@ -15,6 +15,7 @@ export function UserInfoDisplay() {
   const { session, loading: authLoading, signOut } = useAuth();
   const [fullName, setFullName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [avatarError, setAvatarError] = useState<boolean>(false);
   const [profileLoading, setProfileLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -61,7 +62,26 @@ export function UserInfoDisplay() {
 
         if (isMounted) {
           setFullName(data?.full_name || null);
-          setAvatarUrl(data?.avatar_url || null);
+          setAvatarError(false); // Reset error state
+
+          // Handle avatar_url - could be a full URL or a Storage path
+          if (data?.avatar_url) {
+            // If it's already a full URL (starts with http/https), use it directly
+            if (
+              data.avatar_url.startsWith("http://") ||
+              data.avatar_url.startsWith("https://")
+            ) {
+              setAvatarUrl(data.avatar_url);
+            } else {
+              // Otherwise, it's a Storage path - get public URL from 'avatars' bucket
+              const { data: urlData } = supabase.storage
+                .from("avatars")
+                .getPublicUrl(data.avatar_url);
+              setAvatarUrl(urlData.publicUrl);
+            }
+          } else {
+            setAvatarUrl(null);
+          }
         }
       } catch (err: any) {
         logger.error("Error fetching profile:", err);
@@ -91,25 +111,19 @@ export function UserInfoDisplay() {
   return (
     <Card className="mb-6" dir={i18n.dir()}>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>
-          {t("profile.userInfo.title", "Current User Details")}
-        </CardTitle>
+        <CardTitle>{t("profile.userInfo.title")}</CardTitle>
         {session?.user && (
           <Button
-            variant="ghost"
-            size="lg"
-            className="text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-400/20 hover:text-red-700 dark:hover:text-red-300 focus-visible:ring-red-500 dark:focus-visible:ring-red-400 flex items-center gap-2 p-2 h-auto"
+            variant="outline"
+            size="sm"
+            className="text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-400/20 hover:text-red-700 dark:hover:text-red-300 border-red-300 dark:border-red-600"
             onClick={handleLogout}
             disabled={isLoading}
           >
-            <LogOut className="h-5 w-5" />
-            <span>
-              {isLoading && !authLoading
-                ? t("common.loading", "Loading...")
-                : authLoading
-                ? t("common.loading", "Loading...")
-                : t("navigation.logout", "Logout")}
-            </span>
+            <LogOut className="h-4 w-4 mr-2" />
+            {isLoading
+              ? t("common:labels.loading")
+              : t("navigation:menu.logout")}
           </Button>
         )}
       </CardHeader>
@@ -117,11 +131,17 @@ export function UserInfoDisplay() {
         <div className="flex items-center gap-4">
           {isLoading ? (
             <Skeleton className="h-16 w-16 rounded-full" />
-          ) : avatarUrl ? (
+          ) : avatarUrl && !avatarError ? (
             <img
               src={avatarUrl}
               alt={fullName || "User avatar"}
-              className="h-16 w-16 rounded-full object-cover"
+              className="h-16 w-16 rounded-full object-cover border border-border"
+              onError={() => {
+                setAvatarError(true);
+              }}
+              onLoad={() => {
+                setAvatarError(false);
+              }}
             />
           ) : (
             <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
@@ -131,29 +151,25 @@ export function UserInfoDisplay() {
           <div className="space-y-1">
             <div>
               <span className="font-semibold">
-                {t("profile.userInfo.fullName", "Full name")}:{" "}
+                {t("profile.userInfo.fullName")}:{" "}
               </span>
               {isLoading ? (
                 <Skeleton className="h-4 w-[150px] inline-block" />
               ) : error && !fullName ? (
                 <span className="text-destructive">{error}</span>
               ) : (
-                <span>
-                  {fullName ??
-                    t("profile.userInfo.notAvailable", "Not available")}
-                </span>
+                <span>{fullName ?? t("profile.userInfo.notAvailable")}</span>
               )}
             </div>
             <div>
               <span className="font-semibold">
-                {t("profile.userInfo.email", "Email")}:{" "}
+                {t("profile.userInfo.email")}:{" "}
               </span>
               {isLoading ? (
                 <Skeleton className="h-4 w-[200px] inline-block" />
               ) : (
                 <span>
-                  {session?.user?.email ||
-                    t("profile.userInfo.notAvailable", "Not available")}
+                  {session?.user?.email ?? t("profile.userInfo.notAvailable")}
                 </span>
               )}
             </div>

@@ -1,6 +1,6 @@
 {
   "title": "About Ten10",
-  "subtitle": "Advanced system for managing tithes with automatic calculations and smart reminders",
+  "subtitle": "Advanced system for managing tithes and simple, accurate financial budget management",
   "appInfo": {
     "title": "About the Application",
     "badge": "Advanced System",
@@ -8,7 +8,7 @@
     "feature1": "Accurate automatic calculations",
     "feature2": "Personal smart reminders",
     "feature3": "Detailed and visual reports",
-    "feature4": "Web and desktop versions",
+    "feature4": "Website and desktop application",
     "learnMore": "Learn more about the features"
   },
   "institute": {
@@ -30,7 +30,7 @@
   },
   "footer": {
     "title": "Thank you for using Ten10",
-    "description": "We are proud to provide an advanced tool for managing tithes that helps the Jewish community fulfill mitzvot accurately and conveniently. Your feedback is very important to us!",
+    "description": "We are proud to provide an advanced tool for managing tithes and simple, accurate financial budget management that helps give tithes and chomesh accurately and conveniently. Your feedback is very important to us!",
     "backToLanding": "Back to Homepage",
     "sendFeedback": "Send Feedback"
   }
