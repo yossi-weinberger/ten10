@@ -25,6 +25,7 @@ export function useAnimatedCounter({
   useEffect(() => {
     // This captures the value that CountUp is currently displaying or has finished animating to.
     const valueCurrentlyShown = displayValue;
+    const newServerValue = serverValue ?? 0;
 
     if (isLoading) {
       // While loading, we want CountUp to hold its current value.
@@ -33,9 +34,15 @@ export function useAnimatedCounter({
       setStartAnimateValue(valueCurrentlyShown);
     } else {
       // Not loading. New serverValue might be available.
-      // We want to animate from the 'valueCurrentlyShown' to the new 'serverValue'.
-      setStartAnimateValue(valueCurrentlyShown);
-      setDisplayValue(serverValue ?? 0);
+      // Only update if the value actually changed to avoid unnecessary animations
+      // Use small tolerance for floating point comparison
+      const tolerance = 0.01;
+      if (Math.abs(valueCurrentlyShown - newServerValue) > tolerance) {
+        // Value actually changed - animate from current to new value
+        setStartAnimateValue(valueCurrentlyShown);
+        setDisplayValue(newServerValue);
+      }
+      // If value hasn't changed (within tolerance), don't update anything (no animation)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [serverValue, isLoading]); // displayValue is intentionally omitted from deps here.

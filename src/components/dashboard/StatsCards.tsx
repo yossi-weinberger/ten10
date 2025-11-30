@@ -26,6 +26,8 @@ import { useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { he, enUS } from "date-fns/locale";
 import { formatHebrewDate } from "@/lib/utils/hebrew-date";
+import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
+import { useEffect, useMemo, useState } from "react";
 
 export function StatsCards({
   orientation = "horizontal",
@@ -101,24 +103,65 @@ export function StatsCards({
     serverTitheBalanceError,
   } = useServerStats(activeDateRangeObject, user, platform);
 
+  const [lastChomeshValue, setLastChomeshValue] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (typeof serverChomeshAmount === "number") {
+      setLastChomeshValue(serverChomeshAmount);
+    }
+  }, [serverChomeshAmount]);
+
+  const effectiveChomeshValue =
+    typeof serverChomeshAmount === "number"
+      ? serverChomeshAmount
+      : lastChomeshValue;
+
   // Income Card Subtitle Logic
-  const incomeSubtitle =
-    !isLoadingServerIncome &&
-    !serverIncomeError &&
-    typeof serverChomeshAmount === "number" &&
-    serverChomeshAmount > 0 ? (
+  const {
+    displayValue: chomeshDisplayValue,
+    startAnimateValue: chomeshStartValue,
+  } = useAnimatedCounter({
+    serverValue: effectiveChomeshValue ?? undefined,
+    isLoading: isLoadingServerIncome,
+  });
+
+  // Memoize the formatting function to prevent re-creation
+  const formatChomeshCurrency = useMemo(
+    () => (value: number) =>
+      formatCurrency(value, defaultCurrency, i18n.language),
+    [defaultCurrency, i18n.language]
+  );
+
+  const incomeSubtitle = useMemo(() => {
+    if (
+      serverIncomeError ||
+      typeof effectiveChomeshValue !== "number" ||
+      effectiveChomeshValue <= 0
+    ) {
+      return null;
+    }
+
+    return (
       <span className="block text-xs text-muted-foreground" dir={i18n.dir()}>
         <CountUp
-          end={serverChomeshAmount}
+          start={chomeshStartValue}
+          end={chomeshDisplayValue}
           duration={0.75}
           decimals={2}
-          formattingFn={(value) =>
-            formatCurrency(value, defaultCurrency, i18n.language)
-          }
+          formattingFn={formatChomeshCurrency}
         />{" "}
         {t("statsCards.income.withChomesh")}
       </span>
-    ) : null;
+    );
+  }, [
+    serverIncomeError,
+    effectiveChomeshValue,
+    chomeshStartValue,
+    chomeshDisplayValue,
+    formatChomeshCurrency,
+    i18n.dir,
+    t,
+  ]);
 
   // Donations Card Subtitle Logic
   const serverTotalDonationsAmount =
@@ -279,7 +322,7 @@ export function StatsCards({
         >
           <StatCard
             title={t("statsCards.overallRequired.title")}
-            value={serverTitheBalance}
+            value={serverTitheBalance ?? null}
             isLoading={isLoadingServerTitheBalance}
             error={serverTitheBalanceError}
             icon={Scale}
