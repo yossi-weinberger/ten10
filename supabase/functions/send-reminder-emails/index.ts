@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { UserService } from "./user-service.ts";
 import { SimpleEmailService } from "./simple-email-service.ts";
 
+// Deployment trigger note: editing this file forces the GitHub workflow to redeploy the function.
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
