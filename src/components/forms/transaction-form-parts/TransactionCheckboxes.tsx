@@ -13,6 +13,7 @@ import { HelpCircle } from "lucide-react";
 import type { TransactionFormValues } from "@/lib/schemas";
 import { TransactionType } from "@/types/transaction";
 import { cn } from "@/lib/utils";
+import { GoldenBubbles } from "@/components/ui/golden-bubbles";
 
 interface TransactionCheckboxesProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -31,6 +32,8 @@ export function TransactionCheckboxes({
   const [shineKey, setShineKey] = React.useState(0);
   // Track hover state for golden button
   const [isHovered, setIsHovered] = React.useState(false);
+  // Track if bubbles animation should trigger (only on click)
+  const [bubblesKey, setBubblesKey] = React.useState(0);
 
   const renderToggleButton = (
     name: keyof TransactionFormValues,
@@ -54,11 +57,13 @@ export function TransactionCheckboxes({
           <FormItem className="flex-1 min-w-[100px] max-w-[160px]">
             <FormControl>
               <motion.div
+                key={isGolden && isChecked ? `golden-${bubblesKey}` : undefined}
                 onClick={() => {
                   if (isDisabled) return;
-                  // Trigger shine animation on click (for golden button)
+                  // Trigger shine and bubbles animations on click (for golden button)
                   if (isGolden) {
                     setShineKey((prev) => prev + 1);
+                    setBubblesKey((prev) => prev + 1);
                   }
                   if (onToggleOverride) {
                     onToggleOverride(isChecked, field.onChange);
@@ -125,11 +130,11 @@ export function TransactionCheckboxes({
                   mass: 1,
                 }}
                 className={cn(
-                  "relative flex flex-col items-center justify-center rounded-xl p-2 border cursor-pointer select-none h-24 group",
+                  "relative flex flex-col items-center justify-center rounded-xl p-2 border cursor-pointer select-none h-16 group",
                   // Colors handled via className for theme support
                   isChecked
                     ? isGolden
-                      ? "bg-golden-static text-yellow-950 border-yellow-700" // Static golden gradient (no animation) - darker metallic
+                      ? "bg-golden-static text-yellow-950 border-yellow-700" // Static golden gradient
                       : "bg-primary text-primary-foreground border-primary"
                     : isGolden && !isDisabled && isHovered
                     ? "bg-golden-hover text-yellow-900 border-yellow-600" // Golden hover state for better shine visibility
@@ -158,6 +163,11 @@ export function TransactionCheckboxes({
                       }}
                     />
                   </div>
+                )}
+
+                {/* Golden Bubbles Animation - only on click */}
+                {isGolden && isChecked && (
+                  <GoldenBubbles key={bubblesKey} active={true} />
                 )}
 
                 {/* Tooltip Icon - Top Corner */}
