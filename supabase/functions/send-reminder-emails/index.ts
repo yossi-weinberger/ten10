@@ -47,7 +47,7 @@ serve(async (req) => {
     const userService = new UserService();
     const emailService = new SimpleEmailService();
 
-    // Get current date and check if it's a reminder day
+    // Get current date and check if it's a reminder day.
     const currentDate = new Date();
     const currentDay = currentDate.getDate();
     const currentDayOfWeek = currentDate.getDay(); // 0 = Sunday, 6 = Saturday
