@@ -218,6 +218,7 @@ html {
   :root,
   .light,
   [data-theme="ten10-emerald-light"] {
+    color-scheme: light;
     /* Neutrals */
     --background: 0.99 0.01 95;
     --foreground: 0.2 0.02 95;
@@ -331,6 +332,7 @@ html {
 
   .dark,
   [data-theme="ten10-emerald-dark"] {
+    color-scheme: dark;
     /* Neutrals – Dark, slightly warm */
     --background: 0.15 0.02 95;
     --foreground: 0.96 0.01 95;
