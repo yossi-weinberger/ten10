@@ -70,7 +70,7 @@
   background-size: 10% 10%, 20% 20%, 15% 15%, 20% 20%, 18% 18%, 10% 10%, 15% 15%,
     10% 10%, 18% 18%;
   background-position: 50% 120%;
-  animation: goldenTopBubbles 1.2s ease;
+  animation: goldenTopBubbles 1.2s ease forwards;
 }
 
 .golden-bubbles-effect::after {
@@ -84,5 +84,5 @@
     radial-gradient(circle, #ffd700 20%, transparent 20%);
   background-size: 15% 15%, 20% 20%, 18% 18%, 20% 20%, 15% 15%, 20% 20%, 18% 18%;
   background-position: 50% 0%;
-  animation: goldenBottomBubbles 1.2s ease;
+  animation: goldenBottomBubbles 1.2s ease forwards;
 }

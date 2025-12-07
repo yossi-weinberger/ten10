@@ -145,7 +145,7 @@ export function TransactionCheckboxes({
                 style={{ overflow: "visible" }}
               >
                 {/* Shine Effect - runs once on hover or click */}
-                {!isDisabled && (
+                {!isDisabled && isGolden && (
                   <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden rounded-xl">
                     <motion.div
                       key={shineKey}
