@@ -404,8 +404,12 @@ body {
 
 /* Prevent multiple scrollbars */
 html,
-body {
-  overflow-x: hidden;
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 input[type="number"]::-webkit-inner-spin-button,

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Outlet, useRouterState } from "@tanstack/react-router";
 import { Button } from "./components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
@@ -8,7 +8,6 @@ import {
   Sheet,
   SheetContent,
   SheetTrigger,
-  SheetClose,
   SheetHeader,
   SheetTitle,
   SheetDescription,
@@ -138,10 +137,10 @@ function App() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-background flex">
+      <div className="h-full w-full overflow-hidden bg-background flex">
         {!isLandingPage && (
           <div
-            className="hidden md:block w-[4rem] hover:w-48 transition-all duration-300 bg-card overflow-hidden h-screen shadow-lg"
+            className="hidden md:block w-[4rem] hover:w-48 transition-all duration-300 bg-card overflow-hidden h-full shadow-lg"
             onMouseEnter={() => setIsSidebarExpanded(true)}
             onMouseLeave={() => setIsSidebarExpanded(false)}
           >
@@ -179,7 +178,7 @@ function App() {
         )}
 
         <div
-          className={`flex-1 h-screen overflow-y-auto flex flex-col ${
+          className={`flex-1 h-full overflow-y-auto flex flex-col ${
             isLandingPage ? "w-full" : ""
           }`}
         >
