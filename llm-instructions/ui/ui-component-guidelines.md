@@ -10,6 +10,9 @@ This document provides comprehensive guidelines for creating floating UI compone
 4. [RTL/LTR Considerations](#4-rtlltr-considerations)
 5. [Testing and Debugging](#5-testing-and-debugging)
 6. [Project-Specific Examples](#6-project-specific-examples)
+7. [Best Practices Summary](#7-best-practices-summary)
+8. [Migration Guide](#8-migration-guide)
+9. [Internationalization (i18n) and Theming Guidelines](#9-internationalization-i18n-and-theming-guidelines)
 
 ---
 
@@ -486,7 +489,84 @@ function App() {
 
 ---
 
+## 9. Internationalization (i18n) and Theming Guidelines
+
+_(Added January 2025)_
+
+### 9.1 Internationalization (i18n)
+
+**The Golden Rule:** No hardcoded strings in the codebase. All user-visible text must be retrieved via the `useTranslation` hook.
+
+#### Implementation Pattern
+
+```tsx
+import { useTranslation } from "react-i18next";
+
+export function MyComponent() {
+  // 1. Hook usage
+  const { t, i18n } = useTranslation("namespace"); // Specify namespace (e.g., 'common', 'auth')
+
+  return (
+    <div dir={i18n.dir()}>
+      {" "}
+      {/* 2. Direction awareness */}
+      <h1>{t("key.path")}</h1> {/* 3. Translation key */}
+      <p>
+        {t("key.with.params", { value: 100 })} {/* 4. Interpolation */}
+      </p>
+    </div>
+  );
+}
+```
+
+#### Namespaces
+
+Use appropriate namespaces to organize translations:
+
+- `common`: General UI terms (Save, Cancel, Loading)
+- `auth`: Login, Signup, Profile
+- `dashboard`: Charts, stats, home page
+- `transactions`: Forms, inputs, validation
+- `settings`: Configuration pages
+
+### 9.2 Theming and Dark Mode
+
+**The Golden Rule:** Never use hardcoded hex colors (e.g., `#FFFFFF`, `#000000`). Always use semantic Tailwind classes or CSS variables.
+
+#### Color Usage
+
+- **Backgrounds:** `bg-background`, `bg-card`, `bg-muted`
+- **Text:** `text-foreground`, `text-muted-foreground`, `text-primary`
+- **Borders:** `border-border`, `border-input`
+- **Primary Actions:** `bg-primary`, `text-primary-foreground`
+
+#### Component Example
+
+```tsx
+// ✅ Correct
+<div className="bg-card text-card-foreground border border-border rounded-lg p-4">
+  <h2 className="text-xl font-bold">Card Title</h2>
+</div>
+
+// ❌ Incorrect
+<div className="bg-white text-black border border-gray-200 rounded-lg p-4">
+  <h2 className="text-xl font-bold">Card Title</h2>
+</div>
+```
+
+### 9.3 Responsiveness
+
+**The Golden Rule:** Design Mobile-First. Start with base styles for mobile, then add breakpoints (`md:`, `lg:`) for larger screens.
+
+#### Layout Patterns
+
+- **Grid:** `grid-cols-1 md:grid-cols-2 lg:grid-cols-3`
+- **Flex:** `flex-col md:flex-row`
+- **Visibility:** `hidden md:block` (Hide on mobile, show on desktop)
+
+---
+
 **Last Updated:** [Current Date]
 **Status:** Active
 **Maintained By:** Development Team
-**Related Files:** `App.tsx`, `tooltip.tsx`, `i18n.ts`
+**Related Files:** `App.tsx`, `tooltip.tsx`, `i18n.ts`, `index.css`

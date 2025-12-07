@@ -4,6 +4,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 
+  Global CSS Variables Configuration
+  ----------------------------------
+  This file defines the core color palette and animation utilities for the entire application.
+  It uses CSS custom properties (variables) that are mapped to Tailwind CSS utility classes.
+  
+  Key Concepts:
+  - OKLCH Color Space: We use OKLCH for perceptual uniformity. Format: `lightness chroma hue`
+  - Theming: Supports both 'light' and 'dark' modes via CSS classes and data attributes.
+  - Animation: Custom keyframes for complex UI interactions (float, pulse, shimmer).
+*/
+
 /* Custom animations for enhanced landing page */
 @keyframes float {
   0%,

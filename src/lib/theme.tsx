@@ -47,20 +47,12 @@ export function ThemeProvider({
       activeTheme = systemTheme;
     }
 
-    console.log("[ThemeProvider] Switching theme:", { theme, activeTheme });
-
     root.classList.add(activeTheme);
     if (activeTheme === "light") {
       root.setAttribute("data-theme", "ten10-emerald-light");
     } else if (activeTheme === "dark") {
       root.setAttribute("data-theme", "ten10-emerald-dark");
     }
-
-    console.log("[ThemeProvider] Root classes:", root.classList.value);
-    console.log(
-      "[ThemeProvider] Root data-theme:",
-      root.getAttribute("data-theme")
-    );
   }, [theme]);
 
   const value = {

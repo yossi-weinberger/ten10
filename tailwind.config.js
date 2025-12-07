@@ -1,5 +1,21 @@
 /** @type {import('tailwindcss').Config} */
 
+/*
+  Tailwind CSS Configuration
+  --------------------------
+  This configuration extends the default Tailwind theme to match the project's design system.
+  
+  Key Extensions:
+  - Colors: Maps CSS variables (defined in index.css) to Tailwind color utilities (e.g., `bg-primary`, `text-muted`).
+  - Animations: Adds custom keyframes like 'accordion-down', 'float', and 'shimmer'.
+  - Fonts: Sets 'Assistant' as the primary sans-serif font.
+  - Container: Centralizes the main content container with responsive padding.
+  
+  Plugins:
+  - @tailwindcss/forms: Resets form element styles for better cross-browser consistency.
+  - tailwindcss-animate: Adds utility classes for standard animations.
+*/
+
 export default {
   darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
