@@ -12,7 +12,7 @@ import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 import { logger } from "@/lib/logger";
 
 export function ProfilePage() {
-  const { t, i18n } = useTranslation("auth");
+  const { t, i18n } = useTranslation(["auth", "common"]);
   const { user } = useAuth(); // Get user from AuthContext
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");

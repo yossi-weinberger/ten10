@@ -245,7 +245,7 @@ export function RecurringTransactionsTableDisplay() {
                       </TableCell>
                       <TableCell className="text-center">
                         {new Date(rec.next_due_date).toLocaleDateString(
-                          "he-IL"
+                          i18n.language
                         )}
                       </TableCell>
                       <TableCell className="text-center">

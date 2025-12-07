@@ -5,7 +5,7 @@ import { useDonationStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { formatCurrency } from "@/lib/utils";
 import { format, parse, subMonths } from "date-fns";
-import { he } from "date-fns/locale";
+import { he, enUS } from "date-fns/locale";
 import { fetchServerMonthlyChartData } from "@/lib/data-layer/chart.service";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -216,14 +216,14 @@ export function MonthlyChart() {
             parse(item.month_label, "yyyy-MM", new Date()),
             "MMM yyyy",
             {
-              locale: he,
+              locale: i18n.language === "he" ? he : enUS,
             }
           ),
           income: item.income,
           donations: item.donations,
           expenses: item.expenses,
         }));
-    }, [serverMonthlyChartData]);
+    }, [serverMonthlyChartData, i18n.language]);
 
   if (
     !platformReady ||
@@ -232,12 +232,15 @@ export function MonthlyChart() {
       serverMonthlyChartData.length === 0)
   ) {
     return (
-      <Card dir="rtl" className="bg-gradient-to-br from-background to-muted/20">
+      <Card
+        dir={i18n.dir()}
+        className="bg-gradient-to-br from-background to-muted/20"
+      >
         <CardHeader>
-          <CardTitle>סיכום חודשי</CardTitle>
+          <CardTitle>{t("monthlyChart.title")}</CardTitle>
         </CardHeader>
         <CardContent className="h-[450px] flex items-center justify-center">
-          <p>טוען נתונים...</p>
+          <p>{t("monthlyChart.loading")}</p>
         </CardContent>
       </Card>
     );
@@ -245,13 +248,16 @@ export function MonthlyChart() {
 
   if (serverMonthlyChartDataError && serverMonthlyChartData.length === 0) {
     return (
-      <Card dir="rtl" className="bg-gradient-to-br from-background to-muted/20">
+      <Card
+        dir={i18n.dir()}
+        className="bg-gradient-to-br from-background to-muted/20"
+      >
         <CardHeader>
-          <CardTitle>סיכום חודשי</CardTitle>
+          <CardTitle>{t("monthlyChart.title")}</CardTitle>
         </CardHeader>
         <CardContent className="h-[450px] flex items-center justify-center">
           <p className="text-red-500">
-            שגיאה בטעינת נתונים: {serverMonthlyChartDataError}
+            {t("monthlyChart.error")}: {serverMonthlyChartDataError}
           </p>
         </CardContent>
       </Card>
@@ -264,19 +270,25 @@ export function MonthlyChart() {
     !isLoadingServerMonthlyChartData
   ) {
     return (
-      <Card dir="rtl" className="bg-gradient-to-br from-background to-muted/20">
+      <Card
+        dir={i18n.dir()}
+        className="bg-gradient-to-br from-background to-muted/20"
+      >
         <CardHeader>
-          <CardTitle>סיכום חודשי</CardTitle>
+          <CardTitle>{t("monthlyChart.title")}</CardTitle>
         </CardHeader>
         <CardContent className="h-[450px] flex items-center justify-center">
-          <p>לא נמצאו נתונים להצגה.</p>
+          <p>{t("monthlyChart.noData")}</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card dir="rtl" className="bg-gradient-to-br from-background to-muted/20">
+    <Card
+      dir={i18n.dir()}
+      className="bg-gradient-to-br from-background to-muted/20"
+    >
       <CardHeader>
         <CardTitle>{t("monthlyChart.title")}</CardTitle>
       </CardHeader>
@@ -303,16 +315,16 @@ export function MonthlyChart() {
                 variant="outline"
                 onClick={handleResetChart}
                 disabled={isLoadingServerMonthlyChartData}
-                title="איפוס תרשים"
+                title={t("monthlyChart.reset")}
               >
                 <RotateCcw className="h-4 w-4" />
-                <span className="sr-only">איפוס תרשים</span>
+                <span className="sr-only">{t("monthlyChart.reset")}</span>
               </Button>
             </div>
           </>
         ) : (
           <div className="h-[400px] flex items-center justify-center">
-            <p>לא נמצאו נתונים להצגה.</p>
+            <p>{t("monthlyChart.noData")}</p>
           </div>
         )}
       </CardContent>

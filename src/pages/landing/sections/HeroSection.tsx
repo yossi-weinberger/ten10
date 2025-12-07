@@ -143,10 +143,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             >
               Ten10
             </motion.span>{" "}
-            -{" "}
-            <FadeInWords delay={0.5}>
-              {t("hero.title").replace("Ten10 - ", "")}
-            </FadeInWords>
+            - <FadeInWords delay={0.5}>{t("hero.tagline")}</FadeInWords>
           </motion.h1>
 
           <motion.div variants={fadeInUp}>
