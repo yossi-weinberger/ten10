@@ -52,6 +52,10 @@
       "change": "Change"
     }
   },
+  "analytics": {
+    "title": "Advanced Analytics",
+    "description": "Advanced charts and analysis will be shown here..."
+  },
   "monthlyChart": {
     "title": "Monthly Summary",
     "description": "Track donations, income, and expenses",

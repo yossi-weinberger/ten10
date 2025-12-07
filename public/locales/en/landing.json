@@ -1,7 +1,13 @@
 {
+  "meta": {
+    "title": "Ten10 - Smart Tithe Management | Automatic Tithe Calculation App",
+    "description": "Advanced tithe management system. Automatic calculations, smart reminders, web and desktop versions. Halachically approved.",
+    "keywords": "tithe, tithes, charity, donations, halacha, judaism, tithe calculation, jewish finance management"
+  },
   "hero": {
     "badge": "Smart Tithe and Financial Budget Management",
-    "title": "Ten10 - Simple and Accurate Tithe and Financial Budget Management",
+    "appName": "Ten10",
+    "tagline": "Simple and Accurate Tithe and Financial Budget Management",
     "subtitle": "The advanced system for managing donations, income, and expenses. Works on computer, website, and phone – with or without internet.",
     "downloadButton": "Free Download for Computer",
     "tryButton": "Try on Website"
