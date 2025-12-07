@@ -25,6 +25,7 @@ import { checkForUpdates } from "./lib/data-layer/updater.service";
 import { logger } from "@/lib/logger";
 import toast from "react-hot-toast";
 import ContactFAB from "./components/layout/ContactFAB";
+import { Footer } from "@/pages/landing/sections/Footer";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -43,6 +44,9 @@ function App() {
 
   // Hide sidebar on landing page
   const isLandingPage = currentPath === "/landing";
+
+  // Show footer on all pages except login and signup
+  const shouldShowFooter = !["/login", "/signup"].includes(currentPath);
 
   // Synchronize i18n with Zustand store language after hydration
   useEffect(() => {
@@ -175,12 +179,12 @@ function App() {
         )}
 
         <div
-          className={`flex-1 h-screen overflow-y-auto ${
+          className={`flex-1 h-screen overflow-y-auto flex flex-col ${
             isLandingPage ? "w-full" : ""
           }`}
         >
           <main
-            className={`${
+            className={`flex-1 ${
               isLandingPage
                 ? "p-0"
                 : "container py-6 px-4 md:px-6 md:pt-6 pt-20"
@@ -194,6 +198,7 @@ function App() {
               <Outlet />
             </div>
           </main>
+          {shouldShowFooter && <Footer />}
         </div>
         <Toaster richColors />
       </div>

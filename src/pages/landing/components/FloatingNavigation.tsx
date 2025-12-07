@@ -24,9 +24,9 @@ export const FloatingNavigation: React.FC<FloatingNavigationProps> = ({
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: -100, opacity: 0 }}
       transition={{ type: "spring", damping: 20, stiffness: 300 }}
-      className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 glass-morphism dark:glass-morphism-dark rounded-full px-6 py-3 shadow-lg border"
+      className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 glass-morphism dark:glass-morphism-dark rounded-full px-6 py-3 shadow-lg border max-w-[90vw] overflow-x-auto no-scrollbar"
     >
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 min-w-max">
         {navigationItems.map((item, index) => (
           <motion.button
             key={item.id}
@@ -50,4 +50,3 @@ export const FloatingNavigation: React.FC<FloatingNavigationProps> = ({
     </motion.nav>
   );
 };
-

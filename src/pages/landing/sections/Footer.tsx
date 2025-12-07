@@ -8,35 +8,43 @@ export const Footer: React.FC = () => {
   const { t } = useTranslation("landing");
 
   return (
-    <footer className="py-6 px-4 bg-gray-900 text-white">
+    <footer className="py-3 px-4 bg-muted text-muted-foreground border-t border-border">
       <div className="container mx-auto max-w-6xl">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-400">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-sm">
           <div className="flex items-center gap-3">
             <LazyImage
               src="/icon-192.png"
               alt="Ten10 Logo"
               className="w-6 h-6 rounded-lg"
               placeholder={
-                <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Calculator className="h-3 w-3 text-white" />
+                <div className="w-6 h-6 bg-primary/20 rounded-lg flex items-center justify-center">
+                  <Calculator className="h-3 w-3 text-primary" />
                 </div>
               }
             />
-            <p>&copy; 2025 Ten10. {t("footer.copyright")}.</p>
+            <p className="text-muted-foreground">
+              &copy; 2025 Ten10. {t("footer.copyright")}.
+            </p>
           </div>
 
           <div className="flex items-center gap-4">
-            <Link to="/privacy" className="hover:text-white transition-colors">
+            <Link
+              to="/privacy"
+              className="hover:text-foreground transition-colors"
+            >
               {t("footer.privacy")}
             </Link>
-            <span className="text-gray-600">|</span>
-            <Link to="/terms" className="hover:text-white transition-colors">
+            <span className="text-muted-foreground/50">|</span>
+            <Link
+              to="/terms"
+              className="hover:text-foreground transition-colors"
+            >
               {t("footer.terms")}
             </Link>
-            <span className="text-gray-600">|</span>
+            <span className="text-muted-foreground/50">|</span>
             <Link
               to="/accessibility"
-              className="flex items-center gap-1 hover:text-white transition-colors"
+              className="flex items-center gap-1 hover:text-foreground transition-colors"
               aria-label={t("footer.accessibility")}
             >
               <Accessibility className="h-4 w-4" />

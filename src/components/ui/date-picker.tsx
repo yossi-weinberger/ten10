@@ -1,7 +1,10 @@
 import * as React from "react";
 import { format, parse } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
-import { he } from "date-fns/locale";
+import { he, enUS } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
+import { useDonationStore } from "@/lib/store";
+import { HDate } from "@hebcal/core";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -12,6 +15,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "./input";
+import { formatHebrewDate } from "@/lib/utils/hebrew-date";
 
 export function DatePicker({
   date,
@@ -23,6 +27,17 @@ export function DatePicker({
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>("");
   const [month, setMonth] = React.useState<Date | undefined>(date);
+  const { i18n } = useTranslation();
+  const settings = useDonationStore((state) => state.settings);
+
+  const formatDate = (date: Date) => {
+    if (settings.calendarType === "hebrew") {
+      return formatHebrewDate(date);
+    }
+    // Use i18n language for locale selection
+    const currentLocale = i18n.language === "he" ? he : enUS;
+    return format(date, "dd/MM/yyyy", { locale: currentLocale });
+  };
 
   React.useEffect(() => {
     if (date && isValidDate(date)) {
@@ -58,6 +73,59 @@ export function DatePicker({
       setInputValue("");
     }
     setOpen(false);
+  };
+
+  const formatCaption = (date: Date) => {
+    if (settings.calendarType === "hebrew") {
+      const hDate = new HDate(date);
+      // Include month number with month name for Hebrew calendar
+      const monthNumber = hDate.getMonth() + 1; // HDate months are 0-based
+      return `${monthNumber}. ${hDate.getMonthName()} ${hDate.getFullYear()}`;
+    }
+    // Use i18n language for locale selection
+    const currentLocale = i18n.language === "he" ? he : enUS;
+    // Format: "MonthName MonthNumber Year" (e.g., "January 1 2024" or "ינואר 1 2024")
+    const monthName = format(date, "LLLL", { locale: currentLocale });
+    const monthNumber = date.getMonth() + 1; // JavaScript months are 0-based
+    const year = date.getFullYear();
+    return `${monthName} ${monthNumber} ${year}`;
+  };
+
+  const formatWeekday = (date: Date) => {
+    if (settings.calendarType === "hebrew") {
+      const days = ["א", "ב", "ג", "ד", "ה", "ו", "ש"];
+      return days[date.getDay()];
+    }
+    // Use i18n language for locale selection
+    const currentLocale = i18n.language === "he" ? he : enUS;
+    return format(date, "EEEEEE", { locale: currentLocale });
+  };
+
+  const formatDay = (date: Date) => {
+    if (settings.calendarType === "hebrew") {
+      const hDate = new HDate(date);
+      return String(hDate.getDate());
+    }
+    return format(date, "d");
+  };
+
+  // Format month name for dropdown (used when captionLayout="dropdown")
+  const formatMonthDropdown = (date: Date) => {
+    if (settings.calendarType === "hebrew") {
+      const hDate = new HDate(date);
+      const monthNumber = hDate.getMonth() + 1;
+      return `${monthNumber}. ${hDate.getMonthName()}`;
+    }
+    // Use i18n language for locale selection
+    const currentLocale = i18n.language === "he" ? he : enUS;
+    const monthName = format(date, "LLLL", { locale: currentLocale });
+    const monthNumber = date.getMonth() + 1;
+    return `${monthName} ${monthNumber}`;
+  };
+
+  // Format year for dropdown
+  const formatYearDropdown = (date: Date) => {
+    return date.getFullYear().toString();
   };
 
   return (
@@ -100,8 +168,26 @@ export function DatePicker({
             captionLayout="dropdown"
             fromYear={1960}
             toYear={new Date().getFullYear() + 5}
-            dir="rtl"
-            locale={he}
+            dir={i18n.dir()}
+            locale={i18n.language === "he" ? he : enUS}
+            formatters={{
+              formatCaption,
+              formatDay,
+              formatWeekdayName: formatWeekday,
+              formatMonthDropdown,
+              formatYearDropdown,
+            }}
+            classNames={{
+              caption: "text-right font-bold",
+              nav_button_previous: "!right-auto !left-1",
+              nav_button_next: "!left-auto !right-1",
+              head_cell: "text-right font-normal text-muted-foreground",
+              cell: "text-right [&:has([aria-selected])]:bg-primary [&:has([aria-selected].day-range-end)]:rounded-l-md [&:has([aria-selected].day-range-start)]:rounded-r-md first:[&:has([aria-selected])]:rounded-r-md last:[&:has([aria-selected])]:rounded-l-md",
+              day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
+              day_selected:
+                "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+              day_today: "bg-accent text-accent-foreground",
+            }}
           />
         </PopoverContent>
       </Popover>
