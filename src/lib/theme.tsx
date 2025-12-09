@@ -34,7 +34,6 @@ export function ThemeProvider({
     const root = window.document.documentElement;
 
     root.classList.remove("light", "dark");
-    root.removeAttribute("data-theme");
 
     let activeTheme = theme;
 

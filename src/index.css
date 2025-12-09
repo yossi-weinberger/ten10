@@ -230,6 +230,11 @@ html {
   :root,
   .light,
   [data-theme="ten10-emerald-light"] {
+    /* 
+      The color-scheme property tells the browser which color theme is active.
+      This affects the appearance of built-in browser UI elements and form controls
+      (such as scrollbars, input fields, and buttons), ensuring they match the light theme.
+    */
     color-scheme: light;
     /* Neutrals */
     --background: 0.99 0.01 95;
