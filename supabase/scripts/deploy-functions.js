@@ -58,6 +58,15 @@ try {
     }
   );
 
+  // Deploy send-new-user-email function (profiles INSERT)
+  console.log("Deploying send-new-user-email function...");
+  execSync(
+    `npx supabase@latest functions deploy send-new-user-email --project-ref ${projectRef}`,
+    {
+      stdio: "inherit",
+    }
+  );
+
   // Deploy verify-unsubscribe-token function
   console.log("Deploying verify-unsubscribe-token function...");
   execSync(

@@ -45,6 +45,15 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - Transaction data fetched via `dataService` is loaded into the Zustand store (`useDonationStore`), triggered by authentication events and data freshness checks managed in `AuthContext`.
   - **Optimized Data Fetching:** Implemented conditional data loading from the database to avoid fetching on every page refresh. Data is fetched upon user login (via a `forceDbFetchOnLoad` flag in `sessionStorage`), or if existing data in Zustand is stale (e.g., older than 1 day, based on `lastDbFetchTimestamp` in Zustand). `AuthContext` manages this, including Zustand store rehydration (`_hasHydrated`). `LoginPage.tsx` and `SignupPage.tsx` set the `forceDbFetchOnLoad` flag.
 
+### Email Notifications - New Users Summary (Daily)
+
+- **Edge Function:** `send-new-user-email` now sends a daily summary (table + text) של משתמשים חדשים בלבד (מסונן לפי `auth.users.created_at`).
+- **מקור נתונים:** משתמש ב־Auth Admin API (`auth.admin.listUsers`) עם חלון זמן ברירת מחדל 24h; מושך פרופילים תואמים (`profiles`) לקבלת `full_name`, `avatar_url`, `mailing_list_consent`, `reminder_enabled/day`.
+- **פורמט מייל:** טבלת Avatar/Name/Email/User ID + Date (DD/MM/YYYY) + Time (HH:MM) + Mailing consent; text body כולל אותה אינפורמציה בקיצור. אם אין משתמשים חדשים – מחזיר 200 עם `sent:false` ללא שליחה.
+- **שולח/SES:** נשען על `SES_FROM=users-update@ten10-app.com` (מאומת ב-SES) ו־`AWS_ACCESS_KEY_ID/SECRET/REGION`.
+- **אבטחה:** הפונקציה משתמשת ב־Service Role Key; ה־cron חייב להשתמש ב־Bearer של Service Role, לא anon.
+- **Cron:** pg_cron יומי ב־`0 19 * * *` (21:00 ישראל) דרך `net.http_post` ל־`/functions/v1/send-new-user-email` עם Authorization Service Role.
+
 ### Database (Transactions - Web Version)
 
 - **Project Identified:** Confirmed Supabase project `Ten10` (ID: `flpzqbvbymoluoeeeofg`).
