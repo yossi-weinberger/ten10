@@ -35,17 +35,23 @@ export function ThemeProvider({
 
     root.classList.remove("light", "dark");
 
+    let activeTheme = theme;
+
     if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
         .matches
         ? "dark"
         : "light";
 
-      root.classList.add(systemTheme);
-      return;
+      activeTheme = systemTheme;
     }
 
-    root.classList.add(theme);
+    root.classList.add(activeTheme);
+    if (activeTheme === "light") {
+      root.setAttribute("data-theme", "ten10-emerald-light");
+    } else if (activeTheme === "dark") {
+      root.setAttribute("data-theme", "ten10-emerald-dark");
+    }
   }, [theme]);
 
   const value = {

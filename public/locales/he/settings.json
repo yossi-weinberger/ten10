@@ -56,13 +56,17 @@
   "calendar": {
     "cardTitle": "לוח שנה",
     "cardDescription": "הגדרות תאריכים ולוח שנה",
-    "hebrewCalendarLabel": "לוח עברי",
+    "hebrewCalendarLabel": "לוח שנה",
     "hebrewCalendarDescription": "הצג תאריכים בלוח העברי",
-    "weekStartLabel": "תחילת שבוע",
-    "weekStartPlaceholder": "בחר יום",
-    "sunday": "ראשון",
-    "monday": "שני",
-    "saturday": "שבת"
+    "weekStartLabel": "תחילת שנת מעשר",
+    "weekStartPlaceholder": "בחר חודש",
+    "options": {
+      "gregorian": "לוח גרגוריאני",
+      "hebrew": "לוח עברי",
+      "tishrei": "תשרי",
+      "nisan": "ניסן",
+      "january": "ינואר"
+    }
   },
   "importExport": {
     "exportTitle": "ייצוא נתונים",

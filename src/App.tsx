@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Outlet, useRouterState } from "@tanstack/react-router";
 import { Button } from "./components/ui/button";
 import { Toaster } from "@/components/ui/sonner";
@@ -8,7 +8,6 @@ import {
   Sheet,
   SheetContent,
   SheetTrigger,
-  SheetClose,
   SheetHeader,
   SheetTitle,
   SheetDescription,
@@ -25,6 +24,7 @@ import { checkForUpdates } from "./lib/data-layer/updater.service";
 import { logger } from "@/lib/logger";
 import toast from "react-hot-toast";
 import ContactFAB from "./components/layout/ContactFAB";
+import { Footer } from "@/pages/landing/sections/Footer";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -43,6 +43,9 @@ function App() {
 
   // Hide sidebar on landing page
   const isLandingPage = currentPath === "/landing";
+
+  // Show footer on all pages except login and signup
+  const shouldShowFooter = !["/login", "/signup"].includes(currentPath);
 
   // Synchronize i18n with Zustand store language after hydration
   useEffect(() => {
@@ -134,10 +137,10 @@ function App() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-background flex">
+      <div className="h-full w-full overflow-hidden bg-background flex">
         {!isLandingPage && (
           <div
-            className="hidden md:block w-[4rem] hover:w-48 transition-all duration-300 bg-card overflow-hidden h-screen shadow-lg"
+            className="hidden md:block w-[4rem] hover:w-48 transition-all duration-300 bg-card overflow-hidden h-full shadow-lg"
             onMouseEnter={() => setIsSidebarExpanded(true)}
             onMouseLeave={() => setIsSidebarExpanded(false)}
           >
@@ -175,12 +178,12 @@ function App() {
         )}
 
         <div
-          className={`flex-1 h-screen overflow-y-auto ${
+          className={`flex-1 h-full overflow-y-auto flex flex-col ${
             isLandingPage ? "w-full" : ""
           }`}
         >
           <main
-            className={`${
+            className={`flex-1 ${
               isLandingPage
                 ? "p-0"
                 : "container py-6 px-4 md:px-6 md:pt-6 pt-20"
@@ -194,6 +197,7 @@ function App() {
               <Outlet />
             </div>
           </main>
+          {shouldShowFooter && <Footer />}
         </div>
         <Toaster richColors />
       </div>

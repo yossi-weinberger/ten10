@@ -19,7 +19,7 @@ export function UserInfoDisplay() {
   const [profileLoading, setProfileLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation("auth");
+  const { t, i18n } = useTranslation(["auth", "common", "navigation"]);
 
   const handleLogout = async () => {
     try {

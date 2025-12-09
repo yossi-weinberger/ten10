@@ -14,7 +14,6 @@ import { AboutSection } from "./sections/AboutSection";
 import { FaqSection } from "./sections/FaqSection";
 import { CtaSection } from "./sections/CtaSection";
 import { DownloadSection } from "./sections/DownloadSection";
-import { Footer } from "./sections/Footer";
 
 const LandingPage: React.FC = () => {
   const { t, i18n } = useTranslation("landing");
@@ -83,33 +82,20 @@ const LandingPage: React.FC = () => {
   // SEO and Meta tags
   useEffect(() => {
     const currentLang = i18n.language;
-    const isHebrew = currentLang === "he";
 
     // Update document title
-    document.title = isHebrew
-      ? "Ten10 - ניהול מעשרות חכם | אפליקציה לחישוב מעשר אוטומטי"
-      : "Ten10 - Smart Tithe Management | Automatic Tithe Calculation App";
+    document.title = t("meta.title");
 
     // Update meta description
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
-      metaDescription.setAttribute(
-        "content",
-        isHebrew
-          ? "המערכת המתקדמת לניהול מעשרות. חישובים אוטומטיים, תזכורות חכמות, גרסת ווב ודסקטופ. מאושר הלכתית."
-          : "Advanced tithe management system. Automatic calculations, smart reminders, web and desktop versions. Halachically approved."
-      );
+      metaDescription.setAttribute("content", t("meta.description"));
     }
 
     // Update meta keywords
     const metaKeywords = document.querySelector('meta[name="keywords"]');
     if (metaKeywords) {
-      metaKeywords.setAttribute(
-        "content",
-        isHebrew
-          ? "מעשר, מעשרות, צדקה, תרומות, הלכה, יהדות, חישוב מעשר, ניהול כספים יהודי"
-          : "tithe, tithes, charity, donations, halacha, judaism, tithe calculation, jewish finance management"
-      );
+      metaKeywords.setAttribute("content", t("meta.keywords"));
     }
 
     // Add Schema.org structured data
@@ -124,9 +110,7 @@ const LandingPage: React.FC = () => {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       name: "Ten10",
-      description: isHebrew
-        ? "מערכת מתקדמת לניהול מעשרות עם חישובים אוטומטיים ותזכורות חכמות"
-        : "Advanced tithe management system with automatic calculations and smart reminders",
+      description: t("meta.description"),
       applicationCategory: "FinanceApplication",
       operatingSystem: ["Windows", "macOS", "Linux", "Web Browser"],
       offers: {
@@ -279,9 +263,6 @@ const LandingPage: React.FC = () => {
 
       {/* Download Section */}
       <DownloadSection sectionRef={sectionRefs.download} />
-
-      {/* Footer */}
-      <Footer />
     </div>
   );
 };

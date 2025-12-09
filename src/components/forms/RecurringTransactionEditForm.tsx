@@ -39,7 +39,7 @@ export function RecurringTransactionEditForm({
   onSubmit,
   onCancel,
 }: RecurringTransactionEditFormProps) {
-  const { t } = useTranslation("transactions");
+  const { t, i18n } = useTranslation("transactions");
   const [isSuccess, setIsSuccess] = React.useState(false);
 
   const recurringSchema = useMemo(() => createRecurringEditSchema(t), [t]);
@@ -86,7 +86,7 @@ export function RecurringTransactionEditForm({
             name="description"
             render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>תיאור</FormLabel>
+                <FormLabel>{t("transactionForm.description.label")}</FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
@@ -104,7 +104,7 @@ export function RecurringTransactionEditForm({
               name="amount"
               render={({ field }) => (
                 <FormItem className="col-span-2">
-                  <FormLabel>סכום</FormLabel>
+                  <FormLabel>{t("transactionForm.amount.label")}</FormLabel>
                   <FormControl>
                     <Input type="number" step="0.01" {...field} />
                   </FormControl>
@@ -119,11 +119,11 @@ export function RecurringTransactionEditForm({
               name="currency"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>מטבע</FormLabel>
+                  <FormLabel>{t("transactionForm.currency.label")}</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
-                    dir="rtl"
+                    dir={i18n.dir()}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -152,11 +152,13 @@ export function RecurringTransactionEditForm({
             name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>סטטוס</FormLabel>
+                <FormLabel>
+                  {t("transactionForm.recurringTransaction.status.label")}
+                </FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
-                  dir="rtl"
+                  dir={i18n.dir()}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -186,7 +188,9 @@ export function RecurringTransactionEditForm({
             name="total_occurrences"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>מספר חזרות (ריק ללא הגבלה)</FormLabel>
+                <FormLabel>
+                  {t("transactionForm.recurringTransaction.totalCount")}
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -212,7 +216,9 @@ export function RecurringTransactionEditForm({
               name="day_of_month"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>יום חיוב בחודש</FormLabel>
+                  <FormLabel>
+                    {t("transactionForm.recurringTransaction.dayOfMonth")}
+                  </FormLabel>
                   <FormControl>
                     <Input
                       type="number"

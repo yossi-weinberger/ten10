@@ -10,7 +10,7 @@ import {
   buttonTap,
   buttonHover,
 } from "@/hooks/useScrollAnimation";
-import { FadeInWords, RevealText } from "@/components/ui/animated-text";
+import { FadeInWords } from "@/components/ui/animated-text";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LazyImage } from "@/components/ui/lazy-image";
@@ -43,10 +43,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       className="relative overflow-hidden py-20 px-4 parallax-container"
     >
       {/* Enhanced Background decoration - Restored Floating Blobs */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 opacity-50 animate-gradient"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-emerald-900 opacity-50 animate-gradient"></div>
 
       <motion.div
-        className="absolute top-20 left-10 w-72 h-72 bg-blue-200 dark:bg-blue-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30"
+        className="absolute top-20 left-10 w-72 h-72 bg-emerald-200 dark:bg-emerald-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30"
         animate={{
           scale: [1, 1.2, 1],
           rotate: [0, 180, 360],
@@ -60,7 +60,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       />
 
       <motion.div
-        className="absolute bottom-20 right-10 w-72 h-72 bg-teal-200 dark:bg-teal-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30"
+        className="absolute bottom-20 right-10 w-72 h-72 bg-cyan-200 dark:bg-cyan-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30"
         animate={{
           scale: [1.2, 1, 1.2],
           rotate: [360, 180, 0],
@@ -76,7 +76,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
       {/* Additional floating elements for more "wow" */}
       <motion.div
-        className="absolute top-1/2 left-1/4 w-32 h-32 bg-green-200 dark:bg-green-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-2xl opacity-20"
+        className="absolute top-1/2 left-1/4 w-32 h-32 bg-teal-200 dark:bg-teal-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-2xl opacity-20"
         animate={{
           y: [-20, 20, -20],
           x: [-10, 10, -10],
@@ -109,8 +109,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 alt="Ten10 Logo"
                 className="w-24 h-24 mx-auto rounded-2xl shadow-lg gpu-accelerated animate-pulse-glow"
                 placeholder={
-                  <div className="w-24 h-24 mx-auto bg-blue-100 dark:bg-blue-900 rounded-2xl flex items-center justify-center animate-pulse">
-                    <Calculator className="h-12 w-12 text-blue-600" />
+                  <div className="w-24 h-24 mx-auto bg-emerald-100 dark:bg-emerald-900 rounded-2xl flex items-center justify-center animate-pulse">
+                    <Calculator className="h-12 w-12 text-emerald-600" />
                   </div>
                 }
               />
@@ -120,7 +120,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           <motion.div variants={fadeInUp}>
             <Badge
               variant="secondary"
-              className="mb-4 text-sm font-medium bg-blue-100/50 dark:bg-blue-900/30 backdrop-blur-md border-blue-200 dark:border-blue-700"
+              className="mb-4 text-sm font-medium bg-emerald-100/50 dark:bg-emerald-900/30 backdrop-blur-md border-emerald-200 dark:border-emerald-700"
             >
               {t("hero.badge")}
             </Badge>
@@ -131,31 +131,28 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             variants={fadeInUp}
           >
             <motion.span
-              className="gradient-text bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-teal-600 dark:from-blue-400 dark:to-teal-400"
+              className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 dark:from-emerald-400 dark:via-teal-300 dark:to-cyan-400"
               animate={{
                 backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
               }}
               transition={{
-                duration: 3,
+                duration: 8,
                 repeat: Infinity,
                 ease: "easeInOut",
               }}
             >
               Ten10
             </motion.span>{" "}
-            -{" "}
-            <FadeInWords delay={0.5}>
-              {t("hero.title").replace("Ten10 - ", "")}
-            </FadeInWords>
+            <FadeInWords delay={0.5}>{t("hero.tagline")}</FadeInWords>
           </motion.h1>
 
           <motion.div variants={fadeInUp}>
-            <RevealText
+            <FadeInWords
               className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto"
               delay={0.8}
             >
               {t("hero.subtitle")}
-            </RevealText>
+            </FadeInWords>
           </motion.div>
 
           <motion.div
@@ -168,8 +165,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                   size="lg"
                   className={cn(
                     "text-lg px-8 py-3 border-none",
-                    "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600",
-                    "shadow-[0_0_20px_rgba(234,179,8,0.3)] hover:shadow-[0_0_30px_rgba(234,179,8,0.5)]",
+                    "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500",
+                    "shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]",
                     "transition-shadow duration-300"
                   )}
                   onClick={() => {

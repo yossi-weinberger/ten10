@@ -1,4 +1,5 @@
-import React from 'react';
+import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   ColumnDef,
   flexRender,
@@ -9,7 +10,7 @@ import {
   SortingState,
   getFilteredRowModel,
   ColumnFiltersState,
-} from '@tanstack/react-table';
+} from "@tanstack/react-table";
 
 import {
   Table,
@@ -18,31 +19,35 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { FileSpreadsheet, FileText, FileJson } from 'lucide-react';
-import { exportToExcel, exportToPDF } from '@/lib/utils';
-import { useDonationStore } from '@/lib/store';
-import { useShallow } from 'zustand/react/shallow';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { FileSpreadsheet, FileText, FileJson } from "lucide-react";
+import { exportToExcel, exportToPDF } from "@/lib/utils";
+import { useDonationStore } from "@/lib/store";
+import { useShallow } from "zustand/react/shallow";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  type?: 'income' | 'donation' | 'all';
+  type?: "income" | "donation" | "all";
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  type = 'all',
+  type = "all",
 }: DataTableProps<TData, TValue>) {
+  const { t } = useTranslation("data-tables");
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = React.useState('');
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
+  const [globalFilter, setGlobalFilter] = React.useState("");
   const { settings, incomes, donations } = useDonationStore(
-    useShallow((state: DonationStoreState) => ({
+    useShallow((state: any) => ({
+      // Assuming DonationStoreState is handled by Zustand type
       settings: state.settings,
       incomes: state.incomes,
       donations: state.donations,
@@ -65,16 +70,16 @@ export function DataTable<TData, TValue>({
     },
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const searchableText = row.original.searchableText as string;
+      const searchableText = (row.original as any).searchableText as string;
       if (!searchableText) return false;
       return searchableText.toLowerCase().includes(filterValue.toLowerCase());
     },
   });
 
   const handleExportExcel = () => {
-    if (type === 'income') {
+    if (type === "income") {
       exportToExcel(incomes, [], settings.defaultCurrency);
-    } else if (type === 'donation') {
+    } else if (type === "donation") {
       exportToExcel([], donations, settings.defaultCurrency);
     } else {
       exportToExcel(incomes, donations, settings.defaultCurrency);
@@ -82,9 +87,9 @@ export function DataTable<TData, TValue>({
   };
 
   const handleExportPDF = () => {
-    if (type === 'income') {
+    if (type === "income") {
       exportToPDF(incomes, [], settings.defaultCurrency);
-    } else if (type === 'donation') {
+    } else if (type === "donation") {
       exportToPDF([], donations, settings.defaultCurrency);
     } else {
       exportToPDF(incomes, donations, settings.defaultCurrency);
@@ -92,12 +97,16 @@ export function DataTable<TData, TValue>({
   };
 
   const handleExportCSV = () => {
-    const csvContent = "data:text/csv;charset=utf-8," + 
-      data.map(row => Object.values(row as any).join(",")).join("\n");
+    const csvContent =
+      "data:text/csv;charset=utf-8," +
+      data.map((row) => Object.values(row as any).join(",")).join("\n");
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `export-${type}-${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute(
+      "download",
+      `export-${type}-${new Date().toISOString().split("T")[0]}.csv`
+    );
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -107,7 +116,7 @@ export function DataTable<TData, TValue>({
     <div>
       <div className="flex items-center justify-between py-4">
         <Input
-          placeholder="חיפוש..."
+          placeholder={t("header.searchPlaceholder")}
           value={globalFilter}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="max-w-sm"
@@ -156,15 +165,21 @@ export function DataTable<TData, TValue>({
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  אין נתונים להצגה
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  {t("messages.noData")}
                 </TableCell>
               </TableRow>
             )}
@@ -178,7 +193,7 @@ export function DataTable<TData, TValue>({
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-          הקודם
+          {t("pagination.previous")}
         </Button>
         <Button
           variant="outline"
@@ -186,7 +201,7 @@ export function DataTable<TData, TValue>({
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
-          הבא
+          {t("pagination.next")}
         </Button>
       </div>
     </div>

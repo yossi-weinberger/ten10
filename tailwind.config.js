@@ -1,5 +1,21 @@
 /** @type {import('tailwindcss').Config} */
 
+/*
+  Tailwind CSS Configuration
+  --------------------------
+  This configuration extends the default Tailwind theme to match the project's design system.
+  
+  Key Extensions:
+  - Colors: Maps CSS variables (defined in index.css) to Tailwind color utilities (e.g., `bg-primary`, `text-muted`).
+  - Animations: Adds custom keyframes like 'accordion-down', 'float', and 'shimmer'.
+  - Fonts: Sets 'Assistant' as the primary sans-serif font.
+  - Container: Centralizes the main content container with responsive padding.
+  
+  Plugins:
+  - @tailwindcss/forms: Resets form element styles for better cross-browser consistency.
+  - tailwindcss-animate: Adds utility classes for standard animations.
+*/
+
 export default {
   darkMode: ["class"],
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
@@ -13,38 +29,50 @@ export default {
     },
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: "oklch(var(--border) / <alpha-value>)",
+        input: "oklch(var(--input) / <alpha-value>)",
+        ring: "oklch(var(--ring) / <alpha-value>)",
+        background: "oklch(var(--background) / <alpha-value>)",
+        foreground: "oklch(var(--foreground) / <alpha-value>)",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "oklch(var(--primary) / <alpha-value>)",
+          foreground: "oklch(var(--primary-foreground) / <alpha-value>)",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "oklch(var(--secondary) / <alpha-value>)",
+          foreground: "oklch(var(--secondary-foreground) / <alpha-value>)",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "oklch(var(--destructive) / <alpha-value>)",
+          foreground: "oklch(var(--destructive-foreground) / <alpha-value>)",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "oklch(var(--muted) / <alpha-value>)",
+          foreground: "oklch(var(--muted-foreground) / <alpha-value>)",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "oklch(var(--accent) / <alpha-value>)",
+          foreground: "oklch(var(--accent-foreground) / <alpha-value>)",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "oklch(var(--popover) / <alpha-value>)",
+          foreground: "oklch(var(--popover-foreground) / <alpha-value>)",
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "oklch(var(--card) / <alpha-value>)",
+          foreground: "oklch(var(--card-foreground) / <alpha-value>)",
+        },
+        success: {
+          DEFAULT: "oklch(var(--success) / <alpha-value>)",
+          foreground: "oklch(var(--success-foreground) / <alpha-value>)",
+        },
+        warning: {
+          DEFAULT: "oklch(var(--warning) / <alpha-value>)",
+          foreground: "oklch(var(--warning-foreground) / <alpha-value>)",
+        },
+        info: {
+          DEFAULT: "oklch(var(--info) / <alpha-value>)",
+          foreground: "oklch(var(--info-foreground) / <alpha-value>)",
         },
       },
       fontFamily: {

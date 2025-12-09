@@ -56,13 +56,17 @@
   "calendar": {
     "cardTitle": "Calendar",
     "cardDescription": "Date and calendar settings",
-    "hebrewCalendarLabel": "Hebrew Calendar",
+    "hebrewCalendarLabel": "Calendar Type",
     "hebrewCalendarDescription": "Display dates in Hebrew calendar",
-    "weekStartLabel": "Week Start",
-    "weekStartPlaceholder": "Select day",
-    "sunday": "Sunday",
-    "monday": "Monday",
-    "saturday": "Saturday"
+    "weekStartLabel": "Maaser Year Start",
+    "weekStartPlaceholder": "Select month",
+    "options": {
+      "gregorian": "Gregorian Calendar",
+      "hebrew": "Hebrew Calendar",
+      "tishrei": "Tishrei",
+      "nisan": "Nisan",
+      "january": "January"
+    }
   },
   "importExport": {
     "exportTitle": "Export Data",

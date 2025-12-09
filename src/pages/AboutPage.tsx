@@ -148,7 +148,7 @@ export function AboutPage() {
                   className="w-full bg-green-600 hover:bg-green-700"
                 >
                   <a
-                    href="https://www.matara.pro/nedarimplus/online/?mosad=7007125&Comment=TEN10"
+                    href="https://www.matara.pro/nedarimplus/online/?mosad=7007125&Avour=%D7%A2%D7%91%D7%95%D7%A8%20Ten10"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center"

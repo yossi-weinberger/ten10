@@ -322,18 +322,18 @@ declare module "i18next" {
 }
 ```
 
-````
-
 ## II.2. Practical Implementation Steps
 
 ### Step-by-Step Translation Process
 
 **1. Component Analysis:**
+
 - Identify all hardcoded strings in the component
 - Determine which namespace(s) the component should use
 - Look for usage of label constants (e.g., `transactionTypeLabels`, `recurringStatusLabels`)
 
 **2. Component Updates:**
+
 ```typescript
 // Add translation hook
 import { useTranslation } from "react-i18next";
@@ -352,6 +352,7 @@ transactionTypeLabels[type] → t(`types.${type}`, type)
 ```
 
 **3. Translation File Updates:**
+
 ```json
 // Add new keys to appropriate namespace files
 {
@@ -365,6 +366,7 @@ transactionTypeLabels[type] → t(`types.${type}`, type)
 ```
 
 **4. Clean Up:**
+
 - Remove hardcoded constant objects that were replaced
 - Remove unused imports
 - Remove Hebrew fallback strings from `t()` calls: `t("key", "fallback")` → `t("key")`
@@ -372,6 +374,7 @@ transactionTypeLabels[type] → t(`types.${type}`, type)
 ### Common Patterns
 
 **Dynamic Type/Status Labels:**
+
 ```typescript
 // Old approach
 import { transactionTypeLabels } from "@/types/transactionLabels";
@@ -383,6 +386,7 @@ const label = t(`types.${transaction.type}`, transaction.type);
 ```
 
 **Toast Messages:**
+
 ```typescript
 // Common namespace for shared toasts
 const { t } = useTranslation("common");
@@ -394,9 +398,10 @@ toast.success(t("messages.recurringDeleteSuccess"));
 ```
 
 **Interpolation:**
+
 ```typescript
 // With variables
-t("pagination.showing", { current: 5, total: 100 })
+t("pagination.showing", { current: 5, total: 100 });
 // JSON: "showing": "מציג {{current}} מתוך {{total}} תנועות"
 ```
 
@@ -645,6 +650,8 @@ The following sections detail necessary changes for specific components and page
   const formattedDate = format(new Date(yourDate), "PPpp", {
     locale: currentLocale,
   }); // PPpp is an example format
+  ```
+
 ````
 
 - **Currency:** `formatCurrency` utility.
@@ -676,7 +683,7 @@ The following sections detail necessary changes for specific components and page
   // const { i18n } = useTranslation();
   // const userLocale = i18n.language === 'en' ? 'en-US' : 'he-IL';
   // formatCurrency(transaction.amount, transaction.currency, userLocale)
-  ```
+````
 
 - **Numbers:** `Intl.NumberFormat` can also be used for general number formatting if specific locale conventions are needed.
 
@@ -720,5 +727,43 @@ The following sections detail necessary changes for specific components and page
 - **Tailwind CSS Dark Mode:** [https://tailwindcss.com/docs/dark-mode](https://tailwindcss.com/docs/dark-mode)
 - **Tailwind CSS Logical Properties:** Search for "logical" in Tailwind docs (e.g., "Space Between" has `space-x-*` and refers to logical properties for RTL).
 - **shadcn/ui Documentation:** Check for notes on theming, dark mode, and RTL.
+
+## VII. Recent Updates & Implementation Details (January 2025)
+
+### 1. Error Message Mapping
+
+To provide localized error messages for Supabase authentication errors, we implemented a mapping function in `LoginPage.tsx`. This intercepts English error messages from the backend and returns the corresponding translated string key.
+
+```typescript
+const getAuthErrorMessage = (error: any) => {
+  const message = error.error_description || error.message || "";
+  if (message.includes("Invalid login credentials")) {
+    return t("login.errors.invalidCredentials");
+  }
+  if (message.includes("Email not confirmed")) {
+    return t("login.errors.emailNotConfirmed");
+  }
+  return message || t("login.toasts.loginError");
+};
+```
+
+### 2. Localized Date Picker
+
+We enhanced `src/components/ui/date-picker.tsx` to fully support localization, including Hebrew calendar integration.
+
+- **Format:** Displays dates as `DD/MM/YYYY`.
+- **Dropdowns:** Month and year selection dropdowns are localized.
+- **Hebrew Calendar:** When the app is set to Hebrew calendar mode, the date picker displays Hebrew months and days.
+
+```typescript
+// Example usage in DatePicker
+const formatCaption = (date: Date) => {
+  if (settings.calendarType === "hebrew") {
+    const hDate = new HDate(date);
+    return `${hDate.getMonthName()} ${hDate.getFullYear()}`;
+  }
+  // ... Gregorian fallback
+};
+```
 
 This guide provides a roadmap. Each step will require careful implementation and testing.

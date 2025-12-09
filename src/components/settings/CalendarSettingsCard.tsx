@@ -88,8 +88,12 @@ export function CalendarSettingsCard({
                   />
                 </SelectTrigger>
                 <SelectContent position="item-aligned">
-                  <SelectItem value="gregorian">לוח גרגוריאני</SelectItem>
-                  <SelectItem value="hebrew">לוח עברי</SelectItem>
+                  <SelectItem value="gregorian">
+                    {t("calendar.options.gregorian")}
+                  </SelectItem>
+                  <SelectItem value="hebrew">
+                    {t("calendar.options.hebrew")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -115,9 +119,15 @@ export function CalendarSettingsCard({
                   />
                 </SelectTrigger>
                 <SelectContent position="item-aligned">
-                  <SelectItem value="tishrei">תשרי</SelectItem>
-                  <SelectItem value="nisan">ניסן</SelectItem>
-                  <SelectItem value="january">ינואר</SelectItem>
+                  <SelectItem value="tishrei">
+                    {t("calendar.options.tishrei")}
+                  </SelectItem>
+                  <SelectItem value="nisan">
+                    {t("calendar.options.nisan")}
+                  </SelectItem>
+                  <SelectItem value="january">
+                    {t("calendar.options.january")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

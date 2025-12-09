@@ -1,18 +1,23 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "@tanstack/react-router"; // Import Link for navigation
+import { useNavigate, Link } from "@tanstack/react-router";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
 import { logger } from "@/lib/logger";
-// Assuming you have UI components like Button, Input, Label from Shadcn/ui or similar
-// import { Button } from "@/components/ui/button";
-// import { Input } from "@/components/ui/input";
-// import { Label } from "@/components/ui/label";
-// import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
-// Placeholder for Google Icon - replace with actual icon component if available
 const GoogleIcon = () => (
   <svg viewBox="0 0 48 48" width="24" height="24">
     <path
@@ -41,6 +46,17 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation("auth");
 
+  const getAuthErrorMessage = (error: any) => {
+    const message = error.error_description || error.message || "";
+    if (message.includes("Invalid login credentials")) {
+      return t("login.errors.invalidCredentials");
+    }
+    if (message.includes("Email not confirmed")) {
+      return t("login.errors.emailNotConfirmed");
+    }
+    return message || t("login.toasts.loginError");
+  };
+
   const [emailPassword, setEmailPassword] = useState("");
   const [password, setPassword] = useState("");
   const [emailMagicLink, setEmailMagicLink] = useState("");
@@ -63,9 +79,7 @@ const LoginPage: React.FC = () => {
       navigate({ to: "/" });
     } catch (error: any) {
       logger.error("Error logging in with password:", error);
-      toast.error(
-        error.error_description || error.message || t("login.toasts.loginError")
-      );
+      toast.error(getAuthErrorMessage(error));
     } finally {
       setLoadingPassword(false);
     }
@@ -76,12 +90,12 @@ const LoginPage: React.FC = () => {
     try {
       const isDevelopment = process.env.NODE_ENV === "development";
       const redirectURL = isDevelopment
-        ? "http://localhost:5173" // Ensure this matches your dev server and Google Console
-        : window.location.origin; // For production, use the current origin
+        ? "http://localhost:5173"
+        : window.location.origin;
 
       logger.log(
         `[LoginPage] Using redirectTo for Google OAuth: ${redirectURL}`
-      ); // Added log
+      );
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -91,7 +105,6 @@ const LoginPage: React.FC = () => {
       });
       if (error) throw error;
       sessionStorage.setItem("forceDbFetchOnLoad", "true");
-      // Redirect happens automatically via Supabase/Google callback
     } catch (error: any) {
       logger.error("Error logging in with Google:", error);
       toast.error(
@@ -99,9 +112,8 @@ const LoginPage: React.FC = () => {
           error.message ||
           t("login.toasts.googleError")
       );
-      setLoadingGoogle(false); // Only stop loading on error, success redirects
+      setLoadingGoogle(false);
     }
-    // No finally setLoadingGoogle(false) here, as successful login redirects away
   };
 
   const handleLoginMagicLink = async (event: React.FormEvent) => {
@@ -110,15 +122,11 @@ const LoginPage: React.FC = () => {
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email: emailMagicLink,
-        options: {
-          // Optional: Specify where the user should be redirected after clicking the link
-          // emailRedirectTo: window.location.origin + '/welcome',
-          // shouldCreateUser: false, // Set to true if you want magic link to work for sign up too
-        },
+        options: {},
       });
       if (error) throw error;
       toast.success(t("login.toasts.magicLinkSent"));
-      setEmailMagicLink(""); // Clear input after sending
+      setEmailMagicLink("");
     } catch (error: any) {
       logger.error("Error sending magic link:", error);
       toast.error(
@@ -131,159 +139,150 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  // --- Platform Checks (Remain the same) ---
   if (platform === "desktop") {
     return (
-      <div className="p-4">
-        <h1 className="text-xl font-semibold">{t("login.title")}</h1>
-        <p className="mt-2 text-gray-600">{t("login.onlyWebAvailable")}</p>
+      <div className="p-4 flex flex-col items-center justify-center min-h-screen bg-background">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>{t("login.title")}</CardTitle>
+            <CardDescription>{t("login.onlyWebAvailable")}</CardDescription>
+          </CardHeader>
+        </Card>
       </div>
     );
   }
   if (platform === "loading") {
-    return <div>{t("platformLoading")}</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        {t("platformLoading")}
+      </div>
+    );
   }
-  // --- End Platform Checks ---
 
-  // Combined loading state for disabling elements
   const isAnyLoading =
     loadingPassword || loadingGoogle || loadingMagicLink || authLoading;
 
   return (
     <div
-      className="flex justify-center items-center min-h-screen bg-gray-100"
+      className="flex justify-center items-center min-h-screen bg-background p-4"
       dir={i18n.dir()}
     >
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center">{t("login.title")}</h1>
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">
+            {t("login.title")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Sign in with Google Button */}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleLoginGoogle}
+            disabled={isAnyLoading}
+            className="w-full flex items-center gap-2"
+          >
+            <GoogleIcon />
+            {loadingGoogle
+              ? t("login.googleSignInLoading")
+              : t("login.googleSignIn")}
+          </Button>
 
-        {/* Sign in with Google Button */}
-        <button // Replace with your Button component if available
-          type="button"
-          onClick={handleLoginGoogle}
-          disabled={isAnyLoading}
-          className="w-full flex justify-center items-center gap-2 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-        >
-          <GoogleIcon />
-          {loadingGoogle
-            ? t("login.googleSignInLoading")
-            : t("login.googleSignIn")}
-        </button>
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">
+                {t("login.dividerText")}
+              </span>
+            </div>
+          </div>
 
-        {/* Divider */}
-        <div className="relative my-4">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">
-              {t("login.dividerText")}
-            </span>
-          </div>
-        </div>
-
-        {/* Email/Password Form */}
-        <form onSubmit={handleLoginPassword} className="space-y-4">
-          <div>
-            <label
-              htmlFor="email-password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              {t("login.emailLabel")}
-            </label>
-            <input // Replace with Input component
-              id="email-password"
-              name="email-password"
-              type="email"
-              autoComplete="email"
-              required
-              value={emailPassword}
-              onChange={(e) => setEmailPassword(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder={t("login.emailPlaceholder")}
-              disabled={isAnyLoading}
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              {t("login.passwordLabel")}
-            </label>
-            <input // Replace with Input component
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder={t("login.passwordPlaceholder")}
-              disabled={isAnyLoading}
-            />
-          </div>
-          <div>
-            <button // Replace with Button component
-              type="submit"
-              disabled={isAnyLoading}
-              className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
+          {/* Email/Password Form */}
+          <form onSubmit={handleLoginPassword} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email-password">{t("login.emailLabel")}</Label>
+              <Input
+                id="email-password"
+                name="email-password"
+                type="email"
+                autoComplete="email"
+                required
+                value={emailPassword}
+                onChange={(e) => setEmailPassword(e.target.value)}
+                placeholder={t("login.emailPlaceholder")}
+                disabled={isAnyLoading}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">{t("login.passwordLabel")}</Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={t("login.passwordPlaceholder")}
+                disabled={isAnyLoading}
+              />
+            </div>
+            <Button type="submit" disabled={isAnyLoading} className="w-full">
               {loadingPassword
                 ? t("login.signInButtonLoading")
                 : t("login.signInButton")}
-            </button>
-          </div>
-        </form>
+            </Button>
+          </form>
 
-        {/* Magic Link Form */}
-        <form
-          onSubmit={handleLoginMagicLink}
-          className="space-y-4 pt-4 border-t border-gray-200"
-        >
-          <label
-            htmlFor="email-magiclink"
-            className="block text-sm font-medium text-gray-700"
-          >
-            {t("login.magicLinkLabel")}
-          </label>
-          <div className="flex gap-2">
-            <input // Replace with Input component
-              id="email-magiclink"
-              name="email-magiclink"
-              type="email"
-              autoComplete="email"
-              required
-              value={emailMagicLink}
-              onChange={(e) => setEmailMagicLink(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder={t("login.magicLinkPlaceholder")}
-              disabled={isAnyLoading}
-            />
-            <button // Replace with Button component
-              type="submit"
-              disabled={isAnyLoading}
-              className="flex-shrink-0 inline-flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50"
+          {/* Magic Link Form */}
+          <div className="pt-4 border-t">
+            <form onSubmit={handleLoginMagicLink} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email-magiclink">
+                  {t("login.magicLinkLabel")}
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="email-magiclink"
+                    name="email-magiclink"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    value={emailMagicLink}
+                    onChange={(e) => setEmailMagicLink(e.target.value)}
+                    placeholder={t("login.magicLinkPlaceholder")}
+                    disabled={isAnyLoading}
+                  />
+                  <Button
+                    type="submit"
+                    variant="secondary"
+                    disabled={isAnyLoading}
+                    className="shrink-0"
+                  >
+                    {loadingMagicLink
+                      ? t("login.sendLinkButtonLoading")
+                      : t("login.sendLinkButton")}
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          {/* Link to Signup page */}
+          <div className="text-center text-sm text-muted-foreground">
+            {t("login.noAccount")}{" "}
+            <Link
+              to="/signup"
+              className="font-medium text-primary hover:text-primary/80 hover:underline"
             >
-              {loadingMagicLink
-                ? t("login.sendLinkButtonLoading")
-                : t("login.sendLinkButton")}
-            </button>
+              {t("login.signUpLink")}
+            </Link>
           </div>
-        </form>
-
-        {/* Link to Signup page */}
-        <p className="text-center text-sm text-gray-600">
-          {t("login.noAccount")}{" "}
-          <Link // Use Link component from router
-            to="/signup"
-            className="font-medium text-indigo-600 hover:text-indigo-500"
-          >
-            {t("login.signUpLink")}
-          </Link>
-        </p>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

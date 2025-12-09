@@ -1,12 +1,15 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 export function AnalyticsPage() {
+  const { t } = useTranslation("dashboard");
+
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4 text-foreground">
-        ניתוח נתונים מתקדם
+        {t("analytics.title")}
       </h2>
-      <p>כאן יוצגו גרפים וניתוחים מתקדמים...</p>
+      <p>{t("analytics.description")}</p>
       {/* TODO: Add charts and data analysis components */}
     </div>
   );
