@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDonationStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
-import { formatCurrency } from "@/lib/utils";
 import { format, parse, subMonths } from "date-fns";
 import { he, enUS } from "date-fns/locale";
 import { fetchServerMonthlyChartData } from "@/lib/data-layer/chart.service";
@@ -25,6 +24,7 @@ export function MonthlyChart() {
   const { user } = useAuth();
   const userId = user?.id;
   const { platform } = usePlatform();
+  const dateLocale = i18n.language === "he" ? he : enUS;
 
   const monthlyChartConfig: ChartConfig = {
     income: {
@@ -216,14 +216,14 @@ export function MonthlyChart() {
             parse(item.month_label, "yyyy-MM", new Date()),
             "MMM yyyy",
             {
-              locale: i18n.language === "he" ? he : enUS,
+              locale: dateLocale,
             }
           ),
           income: item.income,
           donations: item.donations,
           expenses: item.expenses,
         }));
-    }, [serverMonthlyChartData, i18n.language]);
+    }, [serverMonthlyChartData, i18n.language, dateLocale]);
 
   if (
     !platformReady ||

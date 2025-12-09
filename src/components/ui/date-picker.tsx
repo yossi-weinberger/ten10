@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 import { useDonationStore } from "@/lib/store";
 import { HDate } from "@hebcal/core";
 
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -15,7 +14,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Input } from "./input";
-import { formatHebrewDate } from "@/lib/utils/hebrew-date";
 
 export function DatePicker({
   date,
@@ -29,15 +27,6 @@ export function DatePicker({
   const [month, setMonth] = React.useState<Date | undefined>(date);
   const { i18n } = useTranslation();
   const settings = useDonationStore((state) => state.settings);
-
-  const formatDate = (date: Date) => {
-    if (settings.calendarType === "hebrew") {
-      return formatHebrewDate(date);
-    }
-    // Use i18n language for locale selection
-    const currentLocale = i18n.language === "he" ? he : enUS;
-    return format(date, "dd/MM/yyyy", { locale: currentLocale });
-  };
 
   React.useEffect(() => {
     if (date && isValidDate(date)) {
@@ -79,7 +68,7 @@ export function DatePicker({
     if (settings.calendarType === "hebrew") {
       const hDate = new HDate(date);
       // Include month number with month name for Hebrew calendar
-      const monthNumber = hDate.getMonth() + 1; // HDate months are 0-based
+      const monthNumber = hDate.getMonth(); // HDate months are 1-based (Nisan = 1)
       return `${monthNumber}. ${hDate.getMonthName()} ${hDate.getFullYear()}`;
     }
     // Use i18n language for locale selection
@@ -113,7 +102,7 @@ export function DatePicker({
   const formatMonthDropdown = (date: Date) => {
     if (settings.calendarType === "hebrew") {
       const hDate = new HDate(date);
-      const monthNumber = hDate.getMonth() + 1;
+      const monthNumber = hDate.getMonth();
       return `${monthNumber}. ${hDate.getMonthName()}`;
     }
     // Use i18n language for locale selection
