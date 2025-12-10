@@ -7,11 +7,13 @@ export class SimpleEmailService {
   private awsRegion: string;
   private fromEmail: string;
 
-  constructor() {
+  constructor(fromOverride?: string) {
     this.awsAccessKeyId = Deno.env.get("AWS_ACCESS_KEY_ID") ?? "";
     this.awsSecretAccessKey = Deno.env.get("AWS_SECRET_ACCESS_KEY") ?? "";
     this.awsRegion = Deno.env.get("AWS_REGION") ?? "eu-central-1";
-    this.fromEmail = "contact-form@ten10-app.com"; // Using the new sender
+    // Allow overriding the sender via constructor, then SES_FROM; default remains the contact form address
+    this.fromEmail =
+      fromOverride ?? Deno.env.get("SES_FROM") ?? "contact-form@ten10-app.com";
 
     if (!this.awsAccessKeyId || !this.awsSecretAccessKey) {
       throw new Error("Missing AWS credentials.");

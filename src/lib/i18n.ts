@@ -55,6 +55,7 @@ const i18n = i18next as unknown as import("i18next").i18n;
       "halacha-principles",
       "halacha-chomesh",
       "contact",
+      "admin",
     ],
     defaultNS: "common",
 

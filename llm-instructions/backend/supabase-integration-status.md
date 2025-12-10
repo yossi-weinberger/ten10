@@ -45,6 +45,15 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - Transaction data fetched via `dataService` is loaded into the Zustand store (`useDonationStore`), triggered by authentication events and data freshness checks managed in `AuthContext`.
   - **Optimized Data Fetching:** Implemented conditional data loading from the database to avoid fetching on every page refresh. Data is fetched upon user login (via a `forceDbFetchOnLoad` flag in `sessionStorage`), or if existing data in Zustand is stale (e.g., older than 1 day, based on `lastDbFetchTimestamp` in Zustand). `AuthContext` manages this, including Zustand store rehydration (`_hasHydrated`). `LoginPage.tsx` and `SignupPage.tsx` set the `forceDbFetchOnLoad` flag.
 
+### Email Notifications - New Users Summary (Daily)
+
+- **Edge Function:** `send-new-user-email` sends a daily summary (table + text) of new users only (filtered by `auth.users.created_at`).
+- **Data Source:** Uses Auth Admin API (`auth.admin.listUsers`) with a default 24h window; fetches matching `profiles` for `full_name`, `avatar_url`, `mailing_list_consent`, `reminder_enabled/day`.
+- **Email Format:** Table includes Avatar/Name/Email/User ID + Date (DD/MM/YYYY) + Time (HH:MM) + Mailing consent; text body mirrors the same info. If no new users are found, returns 200 with `sent:false` and does not send an email.
+- **Sender/SES:** Uses `SES_FROM_USERS=users-update@ten10-app.com` (SES verified) when set; otherwise falls back to `SES_FROM` (`contact-form@ten10-app.com` default). Requires `AWS_ACCESS_KEY_ID/SECRET/REGION`.
+- **Security:** Function uses Service Role Key; the cron job must use a Service Role Bearer, not anon.
+- **Cron:** Daily pg_cron at `0 19 * * *` (21:00 Israel) via `net.http_post` to `/functions/v1/send-new-user-email` with Service Role authorization.
+
 ### Database (Transactions - Web Version)
 
 - **Project Identified:** Confirmed Supabase project `Ten10` (ID: `flpzqbvbymoluoeeeofg`).
@@ -95,6 +104,42 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 - **`transactionService.ts` Completeness:** Confirm that all methods in `transactionService.ts` for the web platform correctly map to and handle responses from their respective Supabase RPCs, including error handling.
 - **Data Synchronization/Migration:** Define a strategy for potential data sync or migration between Desktop (SQLite) and Web (Supabase) if needed in the future.
 - **Naming Convention Alignment:** Alignment to `snake_case` for the `Transaction` TypeScript type and the Supabase database schema has been completed, enhancing consistency.
+
+### Admin Dashboard (Web Only)
+
+- **Admin Access Control:**
+  - Created `admin_emails` table with RLS for email-based whitelist access control.
+  - Admin email: `ayw100@gmail.com` configured as initial admin.
+  - All admin operations secured at database level - cannot be bypassed from frontend.
+- **Admin RPC Functions:**
+  - `get_admin_dashboard_stats()` - Returns comprehensive statistics (users, finance, downloads, engagement, system).
+  - `get_admin_monthly_trends(p_start_date, p_end_date)` - Returns monthly trends with date range filtering, excludes empty months.
+  - `get_earliest_system_date()` - Returns the earliest date in the system (transactions or users) for dynamic "all time" ranges.
+  - All functions include admin email whitelist verification using `SECURITY DEFINER`.
+- **Frontend Implementation:**
+  - Route: `/admin` (web-only, protected by `beforeLoad` check).
+  - Page: `src/pages/AdminDashboardPage.tsx` with tabs-based navigation.
+  - Components: `src/components/admin/` directory containing:
+    - `AdminUsersSection.tsx` - User statistics with StatCard components.
+    - `AdminFinanceSection.tsx` - Financial overview with currency breakdown.
+    - `AdminEngagementSection.tsx` - Engagement and system metrics.
+    - `AdminDownloadsSection.tsx` - Desktop download tracking (placeholder).
+    - `AdminTrendsChart.tsx` - Interactive charts with date range controls.
+  - Service: `src/lib/data-layer/admin.service.ts` for all admin-related API calls.
+  - Translations: `public/locales/{he,en}/admin.json` namespace.
+- **Features:**
+  - Tab-based interface: Users, Finance, Trends, Downloads.
+  - Date range filtering (month, year, all time, custom) using `useDateControls` hook.
+  - Interactive charts using shadcn/ui Charts (recharts).
+  - Full i18n support with RTL/LTR.
+  - Responsive design for all screen sizes.
+  - Dark mode support.
+  - Platform detection - redirects desktop users to home.
+- **Security:**
+  - Double protection: `beforeLoad` route guard + component-level platform check.
+  - All data fetched via RPC functions with admin whitelist verification.
+  - No sensitive information exposed in frontend code.
+  - Cannot be accessed via F12 console or network inspection.
 
 ### General
 

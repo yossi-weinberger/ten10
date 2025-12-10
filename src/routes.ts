@@ -23,6 +23,7 @@ import LandingPage from "./pages/LandingPage";
 import { PrivacyPage } from "./pages/PrivacyPage";
 import { TermsPage } from "./pages/TermsPage";
 import { AccessibilityPage } from "./pages/AccessibilityPage";
+import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 
 const rootRoute = createRootRoute({
   component: App,
@@ -178,6 +179,37 @@ const accessibilityRoute = createRoute({
   component: AccessibilityPage,
 });
 
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/admin",
+  component: AdminDashboardPage,
+  beforeLoad: async () => {
+    // Check if on desktop - admin panel is web-only
+    // @ts-expect-error -- this is a Tauri-specific global
+    const isDesktop = !!window.__TAURI_INTERNALS__;
+
+    if (isDesktop) {
+      throw redirect({
+        to: "/",
+        replace: true,
+      });
+    }
+
+    // Additional check: Try to fetch admin stats
+    // If user is not admin, the RPC will throw an error
+    try {
+      const { error } = await supabase.rpc("get_admin_dashboard_stats");
+      if (error) throw error;
+    } catch (error) {
+      // Redirect to home if not admin
+      throw redirect({
+        to: "/",
+        replace: true,
+      });
+    }
+  },
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   addTransactionRoute,
@@ -193,6 +225,7 @@ const routeTree = rootRoute.addChildren([
   privacyRoute,
   termsRoute,
   accessibilityRoute,
+  adminRoute,
   transactionsTableRoute.addChildren([
     transactionsTableIndexRoute,
     recurringTransactionsRoute,
