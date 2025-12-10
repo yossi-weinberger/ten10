@@ -47,12 +47,12 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 
 ### Email Notifications - New Users Summary (Daily)
 
-- **Edge Function:** `send-new-user-email` now sends a daily summary (table + text) של משתמשים חדשים בלבד (מסונן לפי `auth.users.created_at`).
-- **מקור נתונים:** משתמש ב־Auth Admin API (`auth.admin.listUsers`) עם חלון זמן ברירת מחדל 24h; מושך פרופילים תואמים (`profiles`) לקבלת `full_name`, `avatar_url`, `mailing_list_consent`, `reminder_enabled/day`.
-- **פורמט מייל:** טבלת Avatar/Name/Email/User ID + Date (DD/MM/YYYY) + Time (HH:MM) + Mailing consent; text body כולל אותה אינפורמציה בקיצור. אם אין משתמשים חדשים – מחזיר 200 עם `sent:false` ללא שליחה.
-- **שולח/SES:** נשען על `SES_FROM=users-update@ten10-app.com` (מאומת ב-SES) ו־`AWS_ACCESS_KEY_ID/SECRET/REGION`.
-- **אבטחה:** הפונקציה משתמשת ב־Service Role Key; ה־cron חייב להשתמש ב־Bearer של Service Role, לא anon.
-- **Cron:** pg_cron יומי ב־`0 19 * * *` (21:00 ישראל) דרך `net.http_post` ל־`/functions/v1/send-new-user-email` עם Authorization Service Role.
+- **Edge Function:** `send-new-user-email` sends a daily summary (table + text) of new users only (filtered by `auth.users.created_at`).
+- **Data Source:** Uses Auth Admin API (`auth.admin.listUsers`) with a default 24h window; fetches matching `profiles` for `full_name`, `avatar_url`, `mailing_list_consent`, `reminder_enabled/day`.
+- **Email Format:** Table includes Avatar/Name/Email/User ID + Date (DD/MM/YYYY) + Time (HH:MM) + Mailing consent; text body mirrors the same info. If no new users are found, returns 200 with `sent:false` and does not send an email.
+- **Sender/SES:** Uses `SES_FROM_USERS=users-update@ten10-app.com` (SES verified) when set; otherwise falls back to `SES_FROM` (`contact-form@ten10-app.com` default). Requires `AWS_ACCESS_KEY_ID/SECRET/REGION`.
+- **Security:** Function uses Service Role Key; the cron job must use a Service Role Bearer, not anon.
+- **Cron:** Daily pg_cron at `0 19 * * *` (21:00 Israel) via `net.http_post` to `/functions/v1/send-new-user-email` with Service Role authorization.
 
 ### Database (Transactions - Web Version)
 
