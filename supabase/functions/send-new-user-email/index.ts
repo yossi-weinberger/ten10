@@ -321,7 +321,8 @@ serve(async (req) => {
   }
 
   try {
-    const emailService = new SimpleEmailService();
+    const fromOverride = Deno.env.get("SES_FROM_USERS");
+    const emailService = new SimpleEmailService(fromOverride ?? undefined);
     await emailService.sendRawEmail({
       to: toEmail,
       subject: `[Ten10] New users summary (${rows.length})`,
