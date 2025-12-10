@@ -105,6 +105,42 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 - **Data Synchronization/Migration:** Define a strategy for potential data sync or migration between Desktop (SQLite) and Web (Supabase) if needed in the future.
 - **Naming Convention Alignment:** Alignment to `snake_case` for the `Transaction` TypeScript type and the Supabase database schema has been completed, enhancing consistency.
 
+### Admin Dashboard (Web Only)
+
+- **Admin Access Control:**
+  - Created `admin_emails` table with RLS for email-based whitelist access control.
+  - Admin email: `ayw100@gmail.com` configured as initial admin.
+  - All admin operations secured at database level - cannot be bypassed from frontend.
+- **Admin RPC Functions:**
+  - `get_admin_dashboard_stats()` - Returns comprehensive statistics (users, finance, downloads, engagement, system).
+  - `get_admin_monthly_trends(p_start_date, p_end_date)` - Returns monthly trends with date range filtering, excludes empty months.
+  - `get_earliest_system_date()` - Returns the earliest date in the system (transactions or users) for dynamic "all time" ranges.
+  - All functions include admin email whitelist verification using `SECURITY DEFINER`.
+- **Frontend Implementation:**
+  - Route: `/admin` (web-only, protected by `beforeLoad` check).
+  - Page: `src/pages/AdminDashboardPage.tsx` with tabs-based navigation.
+  - Components: `src/components/admin/` directory containing:
+    - `AdminUsersSection.tsx` - User statistics with StatCard components.
+    - `AdminFinanceSection.tsx` - Financial overview with currency breakdown.
+    - `AdminEngagementSection.tsx` - Engagement and system metrics.
+    - `AdminDownloadsSection.tsx` - Desktop download tracking (placeholder).
+    - `AdminTrendsChart.tsx` - Interactive charts with date range controls.
+  - Service: `src/lib/data-layer/admin.service.ts` for all admin-related API calls.
+  - Translations: `public/locales/{he,en}/admin.json` namespace.
+- **Features:**
+  - Tab-based interface: Users, Finance, Trends, Downloads.
+  - Date range filtering (month, year, all time, custom) using `useDateControls` hook.
+  - Interactive charts using shadcn/ui Charts (recharts).
+  - Full i18n support with RTL/LTR.
+  - Responsive design for all screen sizes.
+  - Dark mode support.
+  - Platform detection - redirects desktop users to home.
+- **Security:**
+  - Double protection: `beforeLoad` route guard + component-level platform check.
+  - All data fetched via RPC functions with admin whitelist verification.
+  - No sensitive information exposed in frontend code.
+  - Cannot be accessed via F12 console or network inspection.
+
 ### General
 
 - **Testing:** Thoroughly test all CRUD operations and RLS rules on the web platform.

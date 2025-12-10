@@ -163,6 +163,12 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── TransactionsTableDisplay.tsx
 │   │   │   ├── TransactionsTableFooter.tsx
 │   │   │   └── TransactionsTableHeader.tsx
+│   │   ├── admin/         # Admin dashboard components (web-only)
+│   │   │   ├── AdminUsersSection.tsx
+│   │   │   ├── AdminFinanceSection.tsx
+│   │   │   ├── AdminEngagementSection.tsx
+│   │   │   ├── AdminDownloadsSection.tsx
+│   │   │   └── AdminTrendsChart.tsx
 │   │   ├── ui/            # shadcn/ui components and other generic UI elements
 │   │   │   ├── accordion.tsx
 │   │   │   ├── alert-dialog.tsx
@@ -226,6 +232,7 @@ This section details how the different parts of the project interact with each o
 │   ├── lib/
 │   │   ├── currencies.ts
 │   │   ├── data-layer/
+│   │   │   ├── admin.service.ts
 │   │   │   ├── analytics.service.ts
 │   │   │   ├── autostart.service.ts
 │   │   │   ├── chart.service.ts
@@ -261,6 +268,7 @@ This section details how the different parts of the project interact with each o
 │   ├── pages/
 │   │   ├── AboutPage.tsx
 │   │   ├── AddTransactionPage.tsx
+│   │   ├── AdminDashboardPage.tsx  # Admin dashboard (web-only)
 │   │   ├── AnalyticsPage.tsx
 │   │   ├── HalachaPage.tsx
 │   │   ├── HomePage.tsx
