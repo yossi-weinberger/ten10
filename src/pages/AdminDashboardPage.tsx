@@ -15,6 +15,7 @@ import { usePlatform } from "@/contexts/PlatformContext";
 import {
   fetchAdminDashboardStats,
   fetchAdminMonthlyTrends,
+  fetchEarliestSystemDate,
   AdminDashboardStats,
   MonthlyTrend,
 } from "@/lib/data-layer/admin.service";
@@ -30,7 +31,7 @@ export function AdminDashboardPage() {
   const navigate = useNavigate();
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
   const [trends, setTrends] = useState<MonthlyTrend[] | null>(null);
-  const [earliestDate] = useState<string>("2008-12-05"); // Earliest date in system
+  const [earliestDate, setEarliestDate] = useState<string>("2008-01-01");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -52,9 +53,10 @@ export function AdminDashboardPage() {
       setError(null);
 
       try {
-        const [statsData, trendsData] = await Promise.all([
+        const [statsData, trendsData, earliestDateData] = await Promise.all([
           fetchAdminDashboardStats(),
           fetchAdminMonthlyTrends(), // Will use default 12 months
+          fetchEarliestSystemDate(),
         ]);
 
         if (!statsData) {
@@ -63,6 +65,7 @@ export function AdminDashboardPage() {
 
         setStats(statsData);
         setTrends(trendsData);
+        setEarliestDate(earliestDateData);
       } catch (err) {
         setError(err instanceof Error ? err.message : t("errors.loadFailed"));
       } finally {
@@ -118,13 +121,8 @@ export function AdminDashboardPage() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="overview" className="w-full">
+      <Tabs defaultValue="users" className="w-full">
         <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:w-auto lg:inline-flex">
-          <TabsTrigger value="overview" className="gap-2">
-            <Activity className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("tabs.overview")}</span>
-            <span className="sm:hidden">{t("tabs.overviewShort")}</span>
-          </TabsTrigger>
           <TabsTrigger value="users" className="gap-2">
             <Users className="h-4 w-4" />
             <span className="hidden sm:inline">{t("tabs.users")}</span>
@@ -140,14 +138,12 @@ export function AdminDashboardPage() {
             <span className="hidden sm:inline">{t("tabs.trends")}</span>
             <span className="sm:hidden">{t("tabs.trendsShort")}</span>
           </TabsTrigger>
+          <TabsTrigger value="downloads" className="gap-2">
+            <Activity className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("tabs.downloads")}</span>
+            <span className="sm:hidden">{t("tabs.downloadsShort")}</span>
+          </TabsTrigger>
         </TabsList>
-
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          <AdminUsersSection stats={stats.users} />
-          <AdminFinanceSection finance={stats.finance} />
-          <AdminDownloadsSection downloads={stats.downloads} />
-        </TabsContent>
 
         {/* Users Tab */}
         <TabsContent value="users" className="space-y-6">
@@ -176,6 +172,11 @@ export function AdminDashboardPage() {
               <AlertDescription>{t("trends.noData")}</AlertDescription>
             </Alert>
           )}
+        </TabsContent>
+
+        {/* Downloads Tab */}
+        <TabsContent value="downloads" className="space-y-6">
+          <AdminDownloadsSection downloads={stats.downloads} />
         </TabsContent>
       </Tabs>
     </div>

@@ -80,7 +80,7 @@ export function AdminUsersSection({ stats }: AdminUsersSectionProps) {
                 i18n.dir() === "rtl" ? "text-right" : "text-left"
               } h-12`}
             >
-              <span className={`text-3xl font-bold ${styles.text}`}>
+              <span className={`text-4xl sm:text-5xl font-bold ${styles.text}`}>
                 {value.toLocaleString()}
               </span>
             </div>

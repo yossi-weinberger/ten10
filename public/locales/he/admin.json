@@ -2,14 +2,14 @@
   "title": "פאנל ניהול",
   "subtitle": "סטטיסטיקות ומידע מקיף על המערכת",
   "tabs": {
-    "overview": "סקירה כללית",
-    "overviewShort": "סקירה",
     "users": "משתמשים",
     "usersShort": "משתמשים",
     "finance": "כספים",
     "financeShort": "כספים",
     "trends": "מגמות",
-    "trendsShort": "מגמות"
+    "trendsShort": "מגמות",
+    "downloads": "הורדות",
+    "downloadsShort": "הורדות"
   },
   "users": {
     "title": "סטטיסטיקות משתמשים",

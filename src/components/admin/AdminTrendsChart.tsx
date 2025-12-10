@@ -85,7 +85,7 @@ export function AdminTrendsChart({
   const userGrowthConfig = {
     new_users: {
       label: t("trends.newUsers"),
-      color: "hsl(var(--chart-1))",
+      color: "hsl(262, 83%, 58%)", // purple-500 - vibrant purple
     },
   };
 
@@ -175,7 +175,7 @@ export function AdminTrendsChart({
             config={userGrowthConfig}
             className="h-[300px] w-full"
           >
-            <LineChart data={trends}>
+            <AreaChart data={trends}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
                 dataKey="month"
@@ -191,25 +191,15 @@ export function AdminTrendsChart({
                 className="text-muted-foreground"
               />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Line
+              <Area
                 type="monotone"
                 dataKey="new_users"
                 stroke="var(--color-new_users)"
-                strokeWidth={3}
-                dot={{
-                  fill: "hsl(var(--background))",
-                  stroke: "var(--color-new_users)",
-                  strokeWidth: 2,
-                  r: 5,
-                }}
-                activeDot={{
-                  r: 7,
-                  fill: "var(--color-new_users)",
-                  stroke: "hsl(var(--background))",
-                  strokeWidth: 2,
-                }}
+                fill="var(--color-new_users)"
+                fillOpacity={0.6}
+                strokeWidth={2}
               />
-            </LineChart>
+            </AreaChart>
           </ChartContainer>
         </CardContent>
       </Card>

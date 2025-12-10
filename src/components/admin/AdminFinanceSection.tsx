@@ -55,11 +55,13 @@ export function AdminFinanceSection({ finance }: AdminFinanceSectionProps) {
 
       {/* Total Managed - Highlighted Card */}
       <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200 dark:border-green-800">
-        <CardHeader>
-          <CardTitle className="text-lg">{t("finance.totalManaged")}</CardTitle>
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl sm:text-2xl">
+            {t("finance.totalManaged")}
+          </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-3xl sm:text-4xl font-bold text-green-700 dark:text-green-400">
+        <CardContent className="text-center">
+          <div className="text-4xl sm:text-5xl md:text-6xl font-bold text-green-700 dark:text-green-400">
             {formatCurrency(totalManaged)}
           </div>
         </CardContent>
@@ -114,7 +116,7 @@ export function AdminFinanceSection({ finance }: AdminFinanceSectionProps) {
           error={null}
           icon={Heart}
           titleIcon={Heart}
-          colorScheme="blue"
+          colorScheme="yellow"
           subtitleContent={
             finance.total_non_tithe_donation > 0 ? (
               <span className="text-xs text-muted-foreground">

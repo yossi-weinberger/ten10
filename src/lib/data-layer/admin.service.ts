@@ -139,3 +139,26 @@ export async function checkIsAdmin(): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Get the earliest date in the system (transactions or users)
+ * Requires admin privileges (email whitelist)
+ */
+export async function fetchEarliestSystemDate(): Promise<string> {
+  try {
+    logger.log("AdminService: Fetching earliest system date");
+
+    const { data, error } = await supabase.rpc("get_earliest_system_date");
+
+    if (error) {
+      logger.error("AdminService: Error fetching earliest date:", error);
+      throw error;
+    }
+
+    logger.log("AdminService: Earliest date fetched successfully", data);
+    return (data as any).earliest_date || "2008-01-01";
+  } catch (error) {
+    logger.error("AdminService: Failed to fetch earliest date:", error);
+    return "2008-01-01"; // Fallback
+  }
+}

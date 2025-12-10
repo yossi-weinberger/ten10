@@ -2,14 +2,14 @@
   "title": "Admin Dashboard",
   "subtitle": "Comprehensive statistics and system information",
   "tabs": {
-    "overview": "Overview",
-    "overviewShort": "Overview",
     "users": "Users",
     "usersShort": "Users",
     "finance": "Finance",
     "financeShort": "Finance",
     "trends": "Trends",
-    "trendsShort": "Trends"
+    "trendsShort": "Trends",
+    "downloads": "Downloads",
+    "downloadsShort": "Downloads"
   },
   "users": {
     "title": "User Statistics",

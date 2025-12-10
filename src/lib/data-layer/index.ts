@@ -67,6 +67,7 @@ export {
   fetchAdminDashboardStats,
   fetchAdminMonthlyTrends,
   checkIsAdmin,
+  fetchEarliestSystemDate,
 } from "./admin.service";
 export type {
   AdminDashboardStats,
