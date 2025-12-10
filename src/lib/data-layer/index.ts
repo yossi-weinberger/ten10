@@ -62,3 +62,18 @@ export {
   isDesktopPlatform,
 } from "./updater.service";
 export type { AppVersion, UpdateInfo } from "./updater.service";
+
+export {
+  fetchAdminDashboardStats,
+  fetchAdminMonthlyTrends,
+  checkIsAdmin,
+} from "./admin.service";
+export type {
+  AdminDashboardStats,
+  AdminUserStats,
+  AdminFinanceStats,
+  AdminDownloadStats,
+  AdminEngagementStats,
+  AdminSystemStats,
+  MonthlyTrend,
+} from "./admin.service";

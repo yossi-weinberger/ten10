@@ -1,0 +1,76 @@
+{
+  "title": "פאנל ניהול",
+  "subtitle": "סטטיסטיקות ומידע מקיף על המערכת",
+  "tabs": {
+    "overview": "סקירה כללית",
+    "overviewShort": "סקירה",
+    "users": "משתמשים",
+    "usersShort": "משתמשים",
+    "finance": "כספים",
+    "financeShort": "כספים",
+    "trends": "מגמות",
+    "trendsShort": "מגמות"
+  },
+  "users": {
+    "title": "סטטיסטיקות משתמשים",
+    "total": "סך כל המשתמשים",
+    "active30d": "פעילים (30 יום)",
+    "new30d": "חדשים (30 יום)",
+    "new7d": "חדשים (7 ימים)",
+    "activePercentage": "{{percentage}}% מהמשתמשים"
+  },
+  "finance": {
+    "title": "סטטיסטיקות כספיות",
+    "totalManaged": "סך כל הכסף המנוהל במערכת",
+    "totalIncome": "סך כל ההכנסות",
+    "totalExpenses": "סך כל ההוצאות",
+    "totalDonations": "סך כל התרומות",
+    "recognizedExpenses": "הוצאות מוכרות",
+    "exemptIncome": "הכנסות פטורות",
+    "nonTitheDonation": "תרומות לא ממעשר",
+    "byCurrency": "פירוט לפי מטבע",
+    "income": "הכנסות",
+    "expenses": "הוצאות",
+    "donations": "תרומות",
+    "total": "סה\"כ"
+  },
+  "downloads": {
+    "title": "הורדות תוכנת Desktop",
+    "total": "סך כל ההורדות",
+    "last30d": "הורדות (30 יום)",
+    "byPlatform": "פירוט לפי פלטפורמה",
+    "noData": "אין נתוני הורדות זמינים",
+    "note": "כרגע אין מעקב אחר הורדות. ניתן להוסיף tracking ב-Landing Page בעתיד כדי לאסוף נתונים אלו.",
+    "platforms": {
+      "windows": "Windows",
+      "mac": "Mac",
+      "linux": "Linux"
+    }
+  },
+  "engagement": {
+    "title": "מדדי מעורבות",
+    "avgTransactions": "ממוצע טרנזקציות למשתמש",
+    "totalTransactions": "סך כל הטרנזקציות",
+    "usersWithTransactions": "משתמשים עם טרנזקציות"
+  },
+  "system": {
+    "title": "מידע מערכת",
+    "totalRecurring": "סך טרנזקציות חוזרות",
+    "activeRecurring": "טרנזקציות חוזרות פעילות"
+  },
+  "trends": {
+    "title": "מגמות לאורך זמן",
+    "userGrowth": "גידול במשתמשים",
+    "financialTrends": "מגמות כספיות",
+    "activityTrends": "פעילות טרנזקציות ומשתמשים",
+    "newUsers": "משתמשים חדשים",
+    "transactionCount": "מספר טרנזקציות",
+    "activeUsers": "משתמשים פעילים",
+    "noData": "אין נתוני מגמות זמינים"
+  },
+  "errors": {
+    "loadFailed": "שגיאה בטעינת נתוני הניהול",
+    "accessDenied": "אין לך הרשאות גישה לדף זה"
+  },
+  "loading": "טוען נתונים..."
+}

@@ -1,0 +1,76 @@
+{
+  "title": "Admin Dashboard",
+  "subtitle": "Comprehensive statistics and system information",
+  "tabs": {
+    "overview": "Overview",
+    "overviewShort": "Overview",
+    "users": "Users",
+    "usersShort": "Users",
+    "finance": "Finance",
+    "financeShort": "Finance",
+    "trends": "Trends",
+    "trendsShort": "Trends"
+  },
+  "users": {
+    "title": "User Statistics",
+    "total": "Total Users",
+    "active30d": "Active (30 days)",
+    "new30d": "New (30 days)",
+    "new7d": "New (7 days)",
+    "activePercentage": "{{percentage}}% of users"
+  },
+  "finance": {
+    "title": "Financial Statistics",
+    "totalManaged": "Total Money Managed in System",
+    "totalIncome": "Total Income",
+    "totalExpenses": "Total Expenses",
+    "totalDonations": "Total Donations",
+    "recognizedExpenses": "Recognized Expenses",
+    "exemptIncome": "Exempt Income",
+    "nonTitheDonation": "Non-Tithe Donations",
+    "byCurrency": "Breakdown by Currency",
+    "income": "Income",
+    "expenses": "Expenses",
+    "donations": "Donations",
+    "total": "Total"
+  },
+  "downloads": {
+    "title": "Desktop Software Downloads",
+    "total": "Total Downloads",
+    "last30d": "Downloads (30 days)",
+    "byPlatform": "Breakdown by Platform",
+    "noData": "No download data available",
+    "note": "Currently there is no download tracking. You can add tracking to the Landing Page in the future to collect this data.",
+    "platforms": {
+      "windows": "Windows",
+      "mac": "Mac",
+      "linux": "Linux"
+    }
+  },
+  "engagement": {
+    "title": "Engagement Metrics",
+    "avgTransactions": "Average Transactions per User",
+    "totalTransactions": "Total Transactions",
+    "usersWithTransactions": "Users with Transactions"
+  },
+  "system": {
+    "title": "System Information",
+    "totalRecurring": "Total Recurring Transactions",
+    "activeRecurring": "Active Recurring Transactions"
+  },
+  "trends": {
+    "title": "Trends Over Time",
+    "userGrowth": "User Growth",
+    "financialTrends": "Financial Trends",
+    "activityTrends": "Transaction and User Activity",
+    "newUsers": "New Users",
+    "transactionCount": "Transaction Count",
+    "activeUsers": "Active Users",
+    "noData": "No trend data available"
+  },
+  "errors": {
+    "loadFailed": "Failed to load admin data",
+    "accessDenied": "You don't have permission to access this page"
+  },
+  "loading": "Loading data..."
+}
