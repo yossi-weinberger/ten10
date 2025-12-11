@@ -666,8 +666,8 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
     height: 0,
   });
 
-  const expandedWidth = inSheet ? "w-32" : "w-52";
-  const collapsedWidth = "w-16";
+  const expandedWidth = inSheet ? "w-40" : "w-40";
+  const collapsedWidth = "w-14";
 
   // --- Slider measurement (active item background) ---
   useLayoutEffect(() => {
