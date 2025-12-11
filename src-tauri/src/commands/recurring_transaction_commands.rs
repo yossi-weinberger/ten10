@@ -19,6 +19,10 @@ pub struct TableSortingPayload {
 pub struct TableFiltersPayload {
     pub search: Option<String>,
     pub statuses: Option<Vec<String>>,
+    pub types: Option<Vec<String>>,
+    pub date_from: Option<String>,
+    pub date_to: Option<String>,
+    pub frequencies: Option<Vec<String>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -224,7 +228,7 @@ pub fn get_recurring_transactions_handler(
     let filters = args.filters;
 
     let sort_field = match sorting.field.as_str() {
-        "description" | "amount" | "next_due_date" | "status" | "type" => sorting.field,
+        "description" | "amount" | "next_due_date" | "status" | "type" | "frequency" => sorting.field,
         _ => "next_due_date".to_string(),
     };
     let sort_direction = if sorting.direction.to_lowercase() == "desc" { "DESC" } else { "ASC" };
@@ -233,8 +237,13 @@ pub fn get_recurring_transactions_handler(
     let mut params: Vec<Box<dyn ToSql>> = Vec::new();
 
     if let Some(search_term) = filters.search {
-        where_clauses.push("description LIKE ?".to_string());
-        params.push(Box::new(format!("%{}%", search_term)));
+        let trimmed = search_term.trim();
+        if !trimmed.is_empty() {
+            where_clauses.push("(description LIKE ? OR recipient LIKE ?)".to_string());
+            let like_val = format!("%{}%", trimmed);
+            params.push(Box::new(like_val.clone()));
+            params.push(Box::new(like_val));
+        }
     }
 
     if let Some(statuses) = filters.statuses {
@@ -243,6 +252,40 @@ pub fn get_recurring_transactions_handler(
             where_clauses.push(format!("status IN ({})", placeholders));
             for status in statuses {
                 params.push(Box::new(status));
+            }
+        }
+    }
+
+    if let Some(types) = filters.types {
+        if !types.is_empty() {
+            let placeholders = types.iter().map(|_| "?").collect::<Vec<_>>().join(", ");
+            where_clauses.push(format!("type IN ({})", placeholders));
+            for t in types {
+                params.push(Box::new(t));
+            }
+        }
+    }
+
+    if let Some(date_from) = filters.date_from {
+        if !date_from.is_empty() {
+            where_clauses.push("next_due_date >= ?".to_string());
+            params.push(Box::new(date_from));
+        }
+    }
+
+    if let Some(date_to) = filters.date_to {
+        if !date_to.is_empty() {
+            where_clauses.push("next_due_date <= ?".to_string());
+            params.push(Box::new(date_to));
+        }
+    }
+
+    if let Some(frequencies) = filters.frequencies {
+        if !frequencies.is_empty() {
+            let placeholders = frequencies.iter().map(|_| "?").collect::<Vec<_>>().join(", ");
+            where_clauses.push(format!("frequency IN ({})", placeholders));
+            for f in frequencies {
+                params.push(Box::new(f));
             }
         }
     }

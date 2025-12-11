@@ -26,6 +26,9 @@ export async function fetchAllRecurring(
       p_sort_direction: sorting.direction,
       p_search_text: filters.search || null,
       p_statuses: filters.statuses.length > 0 ? filters.statuses : null,
+      p_types: filters.types.length > 0 ? filters.types : null,
+      p_frequencies:
+        filters.frequencies.length > 0 ? filters.frequencies : null,
     };
     const { data, error } = await supabase.rpc(
       "get_user_recurring_transactions",
@@ -46,6 +49,9 @@ export async function fetchAllRecurring(
       filters: {
         search: filters.search || null,
         statuses: filters.statuses.length > 0 ? filters.statuses : null,
+        types: filters.types.length > 0 ? filters.types : null,
+        frequencies:
+          filters.frequencies.length > 0 ? filters.frequencies : null,
       },
     };
     return await invoke("get_recurring_transactions_handler", {
@@ -90,7 +96,7 @@ export async function updateRecurringTransaction(
       logger.error("Error updating recurring transaction via RPC:", error);
       throw error;
     }
-    return data;
+    return data as RecurringTransaction;
   } else if (platform === "desktop") {
     const { invoke } = await import("@tauri-apps/api/core");
     const updatedTransaction = await invoke(
