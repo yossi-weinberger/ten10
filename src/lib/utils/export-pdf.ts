@@ -1,6 +1,6 @@
-import { PDFDocument, rgb, PDFFont } from "pdf-lib";
+import { PDFDocument, rgb, PDFFont, PDFPage, RGB } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
-import { Transaction } from "@/types/transaction";
+import { Transaction, TransactionForTable } from "@/types/transaction";
 import { format } from "date-fns";
 import { formatCurrency } from "./currency";
 import { typeBadgeColors } from "@/types/transactionLabels";
@@ -8,12 +8,119 @@ import i18n from "@/lib/i18n";
 import { logger } from "@/lib/logger";
 
 // Import fonts directly using Vite's ?url feature for robust path handling
-import assistantFontUrl from "/fonts/Assistant-VariableFont_wght.ttf?url";
+import regularFontUrl from "/fonts/Rubik-Regular.ttf?url";
+import mediumFontUrl from "/fonts/Rubik-Medium.ttf?url";
+
+// Types for RTL text drawing
+type TextSegment = {
+  text: string;
+  isNumber: boolean;
+};
+
+/**
+ * Splits text into segments of Hebrew/text and numbers
+ * Numbers include: digits, dates (with /), times (with :), decimals
+ */
+function splitTextSegments(text: string): TextSegment[] {
+  const segments: TextSegment[] = [];
+  // Match number sequences including dates, times, and decimal numbers
+  const regex = /(\d+(?:[\/:\.\-]\d+)*)/g;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = regex.exec(text)) !== null) {
+    // Add text before the number
+    if (match.index > lastIndex) {
+      segments.push({
+        text: text.substring(lastIndex, match.index),
+        isNumber: false,
+      });
+    }
+    // Add the number sequence
+    segments.push({ text: match[0], isNumber: true });
+    lastIndex = regex.lastIndex;
+  }
+  // Add remaining text
+  if (lastIndex < text.length) {
+    segments.push({ text: text.substring(lastIndex), isNumber: false });
+  }
+
+  return segments;
+}
+
+/**
+ * Draws RTL text with proper handling of embedded numbers
+ * Numbers are drawn separately to prevent reversal
+ * @param page - PDF page to draw on
+ * @param text - Text to draw
+ * @param rightX - Right edge X position (text will extend left from here)
+ * @param y - Y position
+ * @param font - Font to use
+ * @param size - Font size
+ * @param color - Text color
+ */
+function drawRtlText(
+  page: PDFPage,
+  text: string,
+  rightX: number,
+  y: number,
+  font: PDFFont,
+  size: number,
+  color: RGB
+): void {
+  const segments = splitTextSegments(text);
+
+  // For RTL: reverse segment order so first logical segment appears at right
+  const reversedSegments = [...segments].reverse();
+
+  // Calculate total width first
+  let totalWidth = 0;
+  const segmentWidths: number[] = [];
+  for (const seg of reversedSegments) {
+    const width = font.widthOfTextAtSize(seg.text, size);
+    segmentWidths.push(width);
+    totalWidth += width;
+  }
+
+  // Start drawing from left edge (rightX - totalWidth)
+  // Draw reversed segments left-to-right, so they appear in correct RTL visual order
+  let currentX = rightX - totalWidth;
+
+  for (let i = 0; i < reversedSegments.length; i++) {
+    page.drawText(reversedSegments[i].text, {
+      x: currentX,
+      y: y,
+      font: font,
+      size: size,
+      color: color,
+    });
+    currentX += segmentWidths[i];
+  }
+}
+
+// Brand colors and layout constants
+const COLORS = {
+  primary: rgb(0.04, 0.44, 0.33), // Deep Emerald
+  primaryLight: rgb(0.93, 0.98, 0.94), // Light Mint for zebra
+  text: rgb(0, 0, 0), // Pure black for contrast
+  textSecondary: rgb(0, 0, 0), // Pure black for better visibility
+  border: rgb(0.7, 0.7, 0.7), // Darker border
+  white: rgb(1, 1, 1),
+};
+
+const LAYOUT = {
+  margin: 20,
+  rowHeight: 28,
+  headerHeight: 24,
+  fontSize: {
+    header: 9,
+    cell: 8,
+    title: 20,
+    meta: 9,
+  },
+};
 
 // Helper to convert Tailwind-like CSS color strings to pdf-lib's RGB format
-// Note: This is a simplified parser and won't handle all CSS color formats.
-// It expects something like "bg-green-100 text-green-800 border-green-300"
-// and extracts the text color.
 function parseTailwindColor(colorString: string): {
   textColor: any;
   bgColor: any;
@@ -44,14 +151,16 @@ function parseTailwindColor(colorString: string): {
     : null;
 
   return {
-    textColor: textColorKey ? colorMap[textColorKey] : rgb(0, 0, 0),
-    bgColor: bgColorKey ? colorMap[bgColorKey] : rgb(1, 1, 1),
+    textColor: textColorKey ? colorMap[textColorKey] : COLORS.text,
+    bgColor: bgColorKey ? colorMap[bgColorKey] : COLORS.white,
   };
 }
 
 // Helper function to download the PDF
 function downloadPdf(bytes: Uint8Array, filename: string) {
-  const blob = new Blob([bytes], { type: "application/pdf" });
+  const blob = new Blob([bytes as unknown as BlobPart], {
+    type: "application/pdf",
+  });
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = filename;
@@ -59,6 +168,55 @@ function downloadPdf(bytes: Uint8Array, filename: string) {
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(link.href);
+}
+
+// Helper to manually draw a "Ballot Box with Check" using basic vectors
+// This replaces unicode characters which are failing to render properly.
+function drawSafeVectorCheckbox(
+  page: any,
+  x: number,
+  y: number,
+  size: number,
+  color: any
+) {
+  // Use a slightly smaller box than the full cell height
+  // Ignore size param to keep it fixed logic or use it if scaling needed
+  // Using size for consistent scaling logic
+  const boxSize = size * 0.8;
+
+  // Center the box at (x, y)
+  const boxX = x - boxSize / 2;
+  const boxY = y - boxSize / 2;
+
+  // 1. Draw the Box (Outline)
+  page.drawRectangle({
+    x: boxX,
+    y: boxY,
+    width: boxSize,
+    height: boxSize,
+    borderColor: color,
+    borderWidth: 1,
+    color: undefined, // Transparent fill
+  });
+
+  // 2. Draw the Checkmark (V)
+  // Coordinates relative to the box bottom-left corner (boxX, boxY)
+
+  // Line 1: Short stroke (downwards)
+  page.drawLine({
+    start: { x: boxX + boxSize * 0.2, y: boxY + boxSize * 0.5 },
+    end: { x: boxX + boxSize * 0.4, y: boxY + boxSize * 0.2 },
+    thickness: 1.5,
+    color: color,
+  });
+
+  // Line 2: Long stroke (upwards)
+  page.drawLine({
+    start: { x: boxX + boxSize * 0.4, y: boxY + boxSize * 0.2 },
+    end: { x: boxX + boxSize * 0.8, y: boxY + boxSize * 0.8 },
+    thickness: 1.5,
+    color: color,
+  });
 }
 
 export async function exportTransactionsToPDF(
@@ -76,71 +234,101 @@ export async function exportTransactionsToPDF(
     const pdfDoc = await PDFDocument.create();
     pdfDoc.registerFontkit(fontkit);
 
-    const fontBytes = await fetch(assistantFontUrl).then((res) =>
+    // Set Metadata
+    pdfDoc.setTitle(
+      `Ten10 Transactions Report - ${format(new Date(), "yyyy-MM-dd")}`
+    );
+    pdfDoc.setAuthor("Ten10 App");
+    pdfDoc.setCreator("Ten10 Export Service");
+    pdfDoc.setProducer("Ten10");
+    pdfDoc.setCreationDate(new Date());
+
+    const regularFontBytes = await fetch(regularFontUrl).then((res) =>
       res.arrayBuffer()
     );
-    const customFont = await pdfDoc.embedFont(fontBytes);
-    const boldFont = customFont;
+    const mediumFontBytes = await fetch(mediumFontUrl).then((res) =>
+      res.arrayBuffer()
+    );
+
+    const regularFont = await pdfDoc.embedFont(regularFontBytes);
+    const boldFont = await pdfDoc.embedFont(mediumFontBytes);
+
+    // Load Logo
+    let logoImage;
+    try {
+      const logoBytes = await fetch("/icon-192.png").then((res) =>
+        res.arrayBuffer()
+      );
+      logoImage = await pdfDoc.embedPng(logoBytes);
+    } catch (e) {
+      logger.error("Failed to load logo for PDF", e);
+    }
 
     let page = pdfDoc.addPage();
     const { width, height } = page.getSize();
-    const margin = 15;
+    const margin = LAYOUT.margin;
     const contentWidth = width - 2 * margin;
-    const textColor = rgb(0, 0, 0); // Pure black for max readability
-
-    // Helper function for direction-aware text alignment
     const isRtl = currentLanguage === "he";
-    const drawDirectionalText = (
-      text: string,
-      options: {
-        x: number;
-        y: number;
-        font: PDFFont;
-        size: number;
-        color?: any;
-      }
-    ) => {
-      if (isRtl) {
-        const textWidth = options.font.widthOfTextAtSize(text, options.size);
-        page.drawText(text, {
-          ...options,
-          x: options.x - textWidth,
-        });
-      } else {
-        page.drawText(text, options);
-      }
-    };
 
     let y = height - margin - 10;
 
     // --- 1. Header ---
     const titleX = isRtl ? width - margin : margin;
-    // Logo position: left in Hebrew (RTL), right in English (LTR)
-    const logoX = isRtl ? margin : width - margin - 60;
-    page.drawRectangle({
-      x: logoX,
-      y: y - 40,
-      width: 60,
-      height: 60,
-      color: rgb(0.92, 0.92, 0.92),
-    });
-    page.drawText(i18n.t("export.pdf.logo", { lng: currentLanguage }), {
-      x: logoX + 22,
-      y: y - 15,
-      font: customFont,
-      size: 10,
-      color: rgb(0.6, 0.6, 0.6),
-    });
 
-    drawDirectionalText(i18n.t("export.pdf.title", { lng: currentLanguage }), {
-      x: titleX,
-      y,
-      font: boldFont,
-      size: 24,
-      color: rgb(0.1, 0.3, 0.6),
-    });
-    y -= 28;
+    // Logo / Brand Mark
+    const logoSize = 40;
+    const logoX = isRtl ? margin : width - margin - logoSize;
 
+    if (logoImage) {
+      page.drawImage(logoImage, {
+        x: logoX,
+        y: y - logoSize + 10,
+        width: logoSize,
+        height: logoSize,
+      });
+    } else {
+      // Fallback if logo fails to load
+      page.drawRectangle({
+        x: logoX,
+        y: y - logoSize + 10,
+        width: logoSize,
+        height: logoSize,
+        color: COLORS.primary,
+        opacity: 0.1,
+      });
+      page.drawText("Ten10", {
+        x: logoX + 5,
+        y: y - logoSize / 2 + 8,
+        font: boldFont,
+        size: 10,
+        color: COLORS.primary,
+      });
+    }
+
+    // Report Title
+    const titleText = i18n.t("export.pdf.title", { lng: currentLanguage });
+    if (isRtl) {
+      drawRtlText(
+        page,
+        titleText,
+        titleX,
+        y,
+        boldFont,
+        LAYOUT.fontSize.title,
+        COLORS.primary
+      );
+    } else {
+      page.drawText(titleText, {
+        x: titleX,
+        y: y,
+        font: boldFont,
+        size: LAYOUT.fontSize.title,
+        color: COLORS.primary,
+      });
+    }
+    y -= 30;
+
+    // Meta Info
     const dateRange = filters.dateRange;
     let dateRangeText = i18n.t("export.pdf.allDates", { lng: currentLanguage });
     if (dateRange.from && dateRange.to) {
@@ -150,45 +338,64 @@ export async function exportTransactionsToPDF(
         lng: currentLanguage,
       });
     }
-    drawDirectionalText(dateRangeText, {
-      x: titleX,
-      y,
-      font: customFont,
-      size: 9,
-      color: textColor,
-    });
-    y -= 14;
 
     const creationDateText = i18n.t("export.pdf.createdOn", {
       date: format(new Date(), "dd/MM/yyyy HH:mm"),
       lng: currentLanguage,
     });
-    drawDirectionalText(creationDateText, {
-      x: titleX,
-      y,
-      font: customFont,
-      size: 9,
-      color: textColor,
-    });
-    y -= 14;
+
+    const metaText = `${dateRangeText} | ${creationDateText}`;
+    if (isRtl) {
+      drawRtlText(
+        page,
+        metaText,
+        titleX,
+        y,
+        regularFont,
+        LAYOUT.fontSize.meta,
+        COLORS.textSecondary
+      );
+    } else {
+      page.drawText(metaText, {
+        x: titleX,
+        y: y,
+        font: regularFont,
+        size: LAYOUT.fontSize.meta,
+        color: COLORS.textSecondary,
+      });
+    }
+    y -= 15;
 
     const countText = i18n.t("export.pdf.showing", {
       current: transactions.length,
       total: totalCount,
       lng: currentLanguage,
     });
-    drawDirectionalText(countText, {
-      x: titleX,
-      y,
-      font: boldFont,
-      size: 9,
-      color: textColor,
-    });
-    y -= 25;
+    if (isRtl) {
+      drawRtlText(
+        page,
+        countText,
+        titleX,
+        y,
+        boldFont,
+        LAYOUT.fontSize.meta,
+        COLORS.text
+      );
+    } else {
+      page.drawText(countText, {
+        x: titleX,
+        y: y,
+        font: boldFont,
+        size: LAYOUT.fontSize.meta,
+        color: COLORS.text,
+      });
+    }
+    y -= 20;
 
-    // --- 2. Table ---
+    // --- 2. Table Setup ---
     let tableTop = y;
-    // New column order: Date, Type, Amount, Description, Category, Recipient, Chomesh, Recurring
+
+    // Columns
     const tableHeaders = [
       i18n.t("export.pdf.columns.date", { lng: currentLanguage }),
       i18n.t("export.pdf.columns.type", { lng: currentLanguage }),
@@ -199,211 +406,246 @@ export async function exportTransactionsToPDF(
       i18n.t("export.pdf.columns.chomesh", { lng: currentLanguage }),
       i18n.t("export.pdf.columns.recurring", { lng: currentLanguage }),
     ];
-    const columnWidths = [55, 75, 60, 120, 70, 70, 40, 70];
-    const tableHeaderHeight = 25;
-    const tableRowHeight = 40;
+
+    const columnWidths = [
+      50, // Date
+      70, // Type
+      55, // Amount
+      135, // Details
+      65, // Category
+      65, // Recipient
+      35, // Chomesh
+      80, // Recurring
+    ];
 
     const drawTableHeader = (yPos: number) => {
+      // Header Background
       page.drawRectangle({
         x: margin,
-        y: yPos - tableHeaderHeight,
+        y: yPos - LAYOUT.headerHeight,
         width: contentWidth,
-        height: tableHeaderHeight,
-        color: rgb(0.15, 0.15, 0.15),
+        height: LAYOUT.headerHeight,
+        color: COLORS.primary,
       });
 
       if (isRtl) {
-        // RTL: Start from right and go left
+        // RTL: Start from right
         let currentX = width - margin;
         tableHeaders.forEach((header, i) => {
-          const textWidth = boldFont.widthOfTextAtSize(header, 10);
+          const colW = columnWidths[i];
+          const textWidth = boldFont.widthOfTextAtSize(
+            header,
+            LAYOUT.fontSize.header
+          );
           page.drawText(header, {
-            x: currentX - columnWidths[i] + (columnWidths[i] - textWidth) / 2,
-            y: yPos - tableHeaderHeight + 8,
+            x: currentX - colW + (colW - textWidth) / 2, // Center in column
+            y: yPos - LAYOUT.headerHeight + 8,
             font: boldFont,
-            size: 10,
-            color: rgb(1, 1, 1),
+            size: LAYOUT.fontSize.header,
+            color: COLORS.white,
           });
-          currentX -= columnWidths[i];
+          currentX -= colW;
         });
       } else {
-        // LTR: Start from left and go right
+        // LTR: Start from left
         let currentX = margin;
         tableHeaders.forEach((header, i) => {
-          const textWidth = boldFont.widthOfTextAtSize(header, 10);
+          const colW = columnWidths[i];
+          const textWidth = boldFont.widthOfTextAtSize(
+            header,
+            LAYOUT.fontSize.header
+          );
           page.drawText(header, {
-            x: currentX + (columnWidths[i] - textWidth) / 2,
-            y: yPos - tableHeaderHeight + 8,
+            x: currentX + (colW - textWidth) / 2, // Center in column
+            y: yPos - LAYOUT.headerHeight + 8,
             font: boldFont,
-            size: 10,
-            color: rgb(1, 1, 1),
+            size: LAYOUT.fontSize.header,
+            color: COLORS.white,
           });
-          currentX += columnWidths[i];
+          currentX += colW;
         });
       }
     };
 
     drawTableHeader(tableTop);
-    y = tableTop - tableHeaderHeight;
+    y = tableTop - LAYOUT.headerHeight;
 
+    // --- 3. Table Rows ---
     for (const t of transactions) {
-      if (y < margin + tableRowHeight) {
+      if (y < margin + LAYOUT.rowHeight) {
         page = pdfDoc.addPage();
         y = height - margin;
         tableTop = y;
         drawTableHeader(tableTop);
-        y = tableTop - tableHeaderHeight;
+        y = tableTop - LAYOUT.headerHeight;
       }
 
-      const rowY = y - tableRowHeight;
-      if (transactions.indexOf(t) % 2 !== 0) {
+      const rowY = y - LAYOUT.rowHeight;
+      const isEven = transactions.indexOf(t) % 2 === 0;
+
+      if (!isEven) {
         page.drawRectangle({
           x: margin,
           y: rowY,
           width: contentWidth,
-          height: tableRowHeight,
-          color: rgb(0.97, 0.98, 0.99),
+          height: LAYOUT.rowHeight,
+          color: COLORS.primaryLight,
+          opacity: 0.5,
         });
       }
 
       page.drawLine({
         start: { x: margin, y: rowY },
         end: { x: width - margin, y: rowY },
-        thickness: 0.5,
-        color: rgb(0.9, 0.9, 0.9),
+        thickness: 0.8, // Slightly thicker border
+        color: COLORS.border,
       });
 
-      const freqMap: { [key: string]: string } = {
-        daily: i18n.t("export.pdf.frequencies.daily", { lng: currentLanguage }),
-        weekly: i18n.t("export.pdf.frequencies.weekly", {
-          lng: currentLanguage,
-        }),
-        monthly: i18n.t("export.pdf.frequencies.monthly", {
-          lng: currentLanguage,
-        }),
-        yearly: i18n.t("export.pdf.frequencies.yearly", {
-          lng: currentLanguage,
-        }),
-      };
+      // Prepare Recurring Data (Detailed)
+      let recurringStatusText = "";
+      const txWithRec = t as TransactionForTable;
+      const recFreq =
+        txWithRec.recurring_info?.frequency || t.recurring_frequency;
+      const recOccurrence =
+        txWithRec.recurring_info?.execution_count || t.occurrence_number;
+      const recTotal =
+        txWithRec.recurring_info?.total_occurrences || t.total_occurrences;
 
-      // Description field - only contains the notes/description, no additions
-      let detailsText = t.description || "-";
-      let recurringStatusText = "-";
-
-      // Handle recurring status in separate column
-      if (t.source_recurring_id || t.recurring_frequency) {
-        const freqText = t.recurring_frequency
-          ? freqMap[t.recurring_frequency] || t.recurring_frequency
-          : "-";
-
-        if (t.occurrence_number && t.total_occurrences) {
-          recurringStatusText = `${freqText} (${t.occurrence_number}/${t.total_occurrences})`;
-        } else if (t.occurrence_number) {
-          recurringStatusText = `${freqText} (${t.occurrence_number}/∞)`;
+      if (recOccurrence) {
+        if (recTotal) {
+          recurringStatusText = `(${recOccurrence}/${recTotal})`;
         } else {
-          recurringStatusText = freqText;
+          // Infinity / No end date
+          recurringStatusText = `(${recOccurrence}/∞)`;
         }
+      } else if (recFreq) {
+        // Fallback if only frequency is known but no counts (should be rare for active recurring)
+        // Keep empty to avoid clutter if not strictly necessary, or show symbol
+        recurringStatusText = "";
       }
 
-      const chomeshText =
-        t.type === "income"
-          ? t.is_chomesh
-            ? i18n.t("export.pdf.yes", { lng: currentLanguage })
-            : i18n.t("export.pdf.no", { lng: currentLanguage })
-          : "-";
+      const isChomesh = t.type === "income" && t.is_chomesh === true;
 
-      // Match the new column order: Date, Type, Amount, Description, Category, Recipient, Chomesh, Recurring
       const rowData = [
         format(new Date(t.date), "dd/MM/yy"),
         i18n.t(`export.transactionTypes.${t.type}`, { lng: currentLanguage }) ||
           t.type,
         formatCurrency(t.amount, t.currency, currentLanguage),
-        detailsText,
+        t.description || "-",
         t.category || "-",
         t.recipient || "-",
-        chomeshText,
+        isChomesh ? "YES" : "", // Placeholder for drawing function
         recurringStatusText,
       ];
 
       let cellX = isRtl ? width - margin : margin;
+
       rowData.forEach((cellText, i) => {
         const colWidth = columnWidths[i];
+        const fontSize = LAYOUT.fontSize.cell;
+        const cellCenterY = rowY + LAYOUT.rowHeight / 2 - fontSize / 2 + 1;
 
-        // Special handling for the 'type' column with color badges
-        // Type column is now always at index 1 (second column)
         if (i === 1) {
+          // TYPE
           const { textColor: badgeTextColor, bgColor: badgeBgColor } =
             parseTailwindColor(typeBadgeColors[t.type] || "");
-          const textWidth = customFont.widthOfTextAtSize(cellText, 9);
-          const badgeVPadding = 4;
-          const badgeHPadding = 8;
-          const badgeWidth = textWidth + badgeHPadding * 2;
-          const badgeHeight = customFont.heightAtSize(9) + badgeVPadding * 2;
+
+          const textWidth = boldFont.widthOfTextAtSize(cellText, fontSize - 1);
+          const badgeWidth = textWidth + 12;
+          const badgeHeight = fontSize + 6;
 
           const badgeX = isRtl
             ? cellX - colWidth + (colWidth - badgeWidth) / 2
             : cellX + (colWidth - badgeWidth) / 2;
-          const badgeY = rowY + (tableRowHeight - badgeHeight) / 2;
 
-          const rectOptions = {
+          const badgeY = rowY + (LAYOUT.rowHeight - badgeHeight) / 2;
+
+          page.drawRectangle({
             x: badgeX,
             y: badgeY,
             width: badgeWidth,
             height: badgeHeight,
             color: badgeBgColor,
-          };
-          page.drawRectangle(rectOptions);
-
-          const textX = badgeX + badgeHPadding;
-          const textY = badgeY + badgeVPadding;
+          });
 
           page.drawText(cellText, {
-            x: textX,
-            y: textY,
-            font: customFont,
-            size: 9,
+            x: badgeX + 6,
+            y: badgeY + 3,
+            font: boldFont,
+            size: fontSize - 1,
             color: badgeTextColor,
           });
+        } else if (i === 6) {
+          // CHOMESH
+          const iconCenterX = isRtl
+            ? cellX - colWidth + colWidth / 2
+            : cellX + colWidth / 2;
+          const iconCenterY = rowY + LAYOUT.rowHeight / 2;
+
+          if (t.type === "income" && isChomesh) {
+            // DRAW VECTOR CHECKBOX (SAFE)
+            drawSafeVectorCheckbox(
+              page,
+              iconCenterX,
+              iconCenterY,
+              12,
+              COLORS.primary
+            );
+          } else if (t.type === "income") {
+            const textWidth = regularFont.widthOfTextAtSize("-", fontSize);
+            page.drawText("-", {
+              x: iconCenterX - textWidth / 2,
+              y: cellCenterY,
+              font: regularFont,
+              size: fontSize,
+              color: COLORS.textSecondary,
+            });
+          } else {
+            const textWidth = regularFont.widthOfTextAtSize("-", fontSize);
+            page.drawText("-", {
+              x: iconCenterX - textWidth / 2,
+              y: cellCenterY,
+              font: regularFont,
+              size: fontSize,
+              color: COLORS.textSecondary,
+            });
+          }
         } else {
-          // Default text drawing for other columns
-          const lines = [];
-          const words = cellText.split(" ");
-          let currentLine = "";
-          for (const word of words) {
-            const testLine =
-              currentLine.length > 0 ? `${currentLine} ${word}` : word;
-            if (customFont.widthOfTextAtSize(testLine, 9) > colWidth - 8) {
-              lines.push(currentLine);
-              currentLine = word;
-            } else {
-              currentLine = testLine;
+          // STANDARD TEXT - CENTER ALIGNED ALWAYS
+          let textToDraw = cellText;
+          // Truncation check
+          if (
+            regularFont.widthOfTextAtSize(textToDraw, fontSize) >
+            colWidth - 4
+          ) {
+            const avgCharWidth = regularFont.widthOfTextAtSize("a", fontSize);
+            const maxChars = Math.floor((colWidth - 4) / avgCharWidth) - 2;
+            if (maxChars > 0 && textToDraw.length > maxChars) {
+              textToDraw = textToDraw.substring(0, maxChars) + "..";
             }
           }
-          lines.push(currentLine);
+          const finalWidth = regularFont.widthOfTextAtSize(
+            textToDraw,
+            fontSize
+          );
 
-          let lineY =
-            rowY +
-            tableRowHeight -
-            (tableRowHeight - lines.length * 11) / 2 -
-            8;
-          for (const line of lines) {
-            const textWidth = customFont.widthOfTextAtSize(line, 9);
-            page.drawText(line, {
-              x: isRtl
-                ? cellX - colWidth + (colWidth - textWidth) / 2
-                : cellX + (colWidth - textWidth) / 2,
-              y: lineY,
-              font: customFont,
-              size: 9,
-              color: textColor,
-            });
-            lineY -= 11;
-          }
+          const finalCenterX = isRtl
+            ? cellX - colWidth + (colWidth - finalWidth) / 2
+            : cellX + (colWidth - finalWidth) / 2;
+
+          page.drawText(textToDraw, {
+            x: finalCenterX,
+            y: cellCenterY,
+            font: regularFont,
+            size: fontSize,
+            color: COLORS.text,
+          });
         }
+
         cellX = isRtl ? cellX - colWidth : cellX + colWidth;
       });
 
-      y -= tableRowHeight;
+      y -= LAYOUT.rowHeight;
     }
 
     // --- 4. Footer ---
@@ -415,14 +657,27 @@ export async function exportTransactionsToPDF(
         total: pages.length,
         lng: currentLanguage,
       });
-      const textWidth = customFont.widthOfTextAtSize(pageText, 8);
-      p.drawText(pageText, {
-        x: width / 2 - textWidth / 2,
-        y: margin / 2,
-        font: customFont,
-        size: 8,
-        color: rgb(0.5, 0.5, 0.5),
-      });
+      const textWidth = regularFont.widthOfTextAtSize(pageText, 8);
+      if (isRtl) {
+        // For centered RTL text, rightX is center + half width
+        drawRtlText(
+          p,
+          pageText,
+          width / 2 + textWidth / 2,
+          margin / 2,
+          regularFont,
+          8,
+          COLORS.textSecondary
+        );
+      } else {
+        p.drawText(pageText, {
+          x: width / 2 - textWidth / 2,
+          y: margin / 2,
+          font: regularFont,
+          size: 8,
+          color: COLORS.textSecondary,
+        });
+      }
     }
 
     const pdfBytes = await pdfDoc.save();
