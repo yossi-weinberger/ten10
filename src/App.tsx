@@ -140,7 +140,7 @@ function App() {
       <div className="h-full w-full overflow-hidden bg-background flex">
         {!isLandingPage && (
           <div
-            className="hidden md:block w-[4rem] hover:w-48 transition-all duration-300 bg-card overflow-hidden h-full shadow-lg"
+            className="hidden md:block w-[4rem] hover:w-40 transition-all duration-300 bg-card overflow-hidden h-full shadow-lg"
             onMouseEnter={() => setIsSidebarExpanded(true)}
             onMouseLeave={() => setIsSidebarExpanded(false)}
           >
@@ -161,7 +161,7 @@ function App() {
             </SheetTrigger>
             <SheetContent
               side="right"
-              className="p-0 flex flex-col w-40 max-w-[180px]"
+              className="p-0 flex flex-col w-40 max-w-[9rem]"
             >
               {/* Accessibility: Provide a DialogTitle for the Sheet to satisfy Radix requirements */}
               <SheetHeader>

@@ -10,6 +10,8 @@ export interface RecurringTableSortConfig {
 export interface RecurringTableFilters {
   search: string;
   statuses: string[];
+  types: string[];
+  frequencies: string[];
 }
 
 export interface RecurringTableState {
@@ -32,6 +34,8 @@ const initialSortConfig: RecurringTableSortConfig = {
 const initialFilters: RecurringTableFilters = {
   search: "",
   statuses: [],
+  types: [],
+  frequencies: [],
 };
 
 export const useRecurringTableStore = create<RecurringTableState>()(

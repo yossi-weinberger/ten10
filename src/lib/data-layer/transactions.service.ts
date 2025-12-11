@@ -195,14 +195,23 @@ export async function deleteTransaction(transactionId: string): Promise<void> {
     }
   } else if (currentPlatform === "web") {
     try {
-      const { error } = await supabase
-        .from("transactions")
-        .delete()
-        .eq("id", transactionId);
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        throw new Error("User not authenticated for Supabase operation.");
+      }
+
+      const { error } = await supabase.rpc("delete_user_transaction", {
+        p_transaction_id: transactionId,
+        p_user_id: user.id,
+      });
 
       if (error) {
         logger.error(
-          `TransactionsService: Error deleting transaction ID ${transactionId} from Supabase:`,
+          `TransactionsService: Error deleting transaction ID ${transactionId} from Supabase (RPC):`,
           error
         );
         throw error;
@@ -296,24 +305,29 @@ export async function updateTransaction(
     }
   } else if (currentPlatform === "web") {
     try {
-      const { data, error } = await supabase
-        .from("transactions")
-        .update(sanitizedPayload)
-        .eq("id", transactionId)
-        .select();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError || !user) {
+        throw new Error("User not authenticated for Supabase operation.");
+      }
+
+      const { data, error } = await supabase.rpc("update_user_transaction", {
+        p_transaction_id: transactionId,
+        p_user_id: user.id,
+        p_updates: sanitizedPayload,
+      });
 
       if (error) {
         logger.error(
-          `TransactionsService: Error updating transaction ID ${transactionId} in Supabase:`,
+          `TransactionsService: Error updating transaction ID ${transactionId} in Supabase (RPC):`,
           error
         );
         throw error;
       }
-      if (!data || data.length === 0) {
-        logger.warn(
-          `TransactionsService: Supabase update for ID ${transactionId} completed, but no data returned. This might be expected.`
-        );
-      }
+
       logger.log(
         `TransactionsService: Supabase update successful for transaction:`,
         data

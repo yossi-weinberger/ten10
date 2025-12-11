@@ -123,44 +123,45 @@ const submitContactForm = async (formData: ContactFormData) => {
     );
   }
 
-  // Step 3: Insert data directly into the table
-  const { captchaToken, userName, userEmail, attachments, ...restOfFormData } =
-    formData;
-
-  const insertPayload = {
-    ...restOfFormData,
-    client_platform: platform,
-    app_version,
-    locale: i18n.language,
-    verified_captcha: true,
-    user_agent: navigator.userAgent,
-    // Map to snake_case for the database
-    user_name: userName,
-    user_email: userEmail,
-    attachments: uploadedAttachments.length > 0 ? uploadedAttachments : null,
-  };
-
+  // Step 3: Call RPC function
   const {
     data: { user },
     error: userError,
   } = await supabase.auth.getUser();
+
   if (userError || !user) {
     console.error("User not authenticated:", userError);
     return { success: false, error: "User not authenticated." };
   }
 
-  const { data, error: insertError } = await supabase
-    .from("contact_messages")
-    .insert(insertPayload)
-    .select()
-    .single();
+  // Map fields to RPC parameters
+  const rpcParams = {
+    p_channel: formData.channel,
+    p_subject: formData.subject,
+    p_body: formData.body,
+    p_severity: formData.severity || "low",
+    p_attachments: uploadedAttachments.length > 0 ? uploadedAttachments : null,
+    p_client_platform: platform,
+    p_app_version: app_version || null,
+    p_locale: i18n.language,
+    p_ip: null, // IP handled by Edge Function or not critical here
+    p_user_name: formData.userName || null,
+    p_user_email: formData.userEmail || null,
+    p_session_id: null,
+    p_user_agent: navigator.userAgent,
+  };
+
+  const { data: messageId, error: insertError } = await supabase.rpc(
+    "handle_contact_form",
+    rpcParams
+  );
 
   if (insertError) {
-    console.error("Error submitting contact form:", insertError.message);
+    console.error("Error submitting contact form (RPC):", insertError.message);
     return { success: false, error: insertError.message };
   }
 
-  const ticketId = `TEN-${new Date(data.created_at).getFullYear()}-${data.id
+  const ticketId = `TEN-${new Date().getFullYear()}-${messageId
     .substring(0, 5)
     .toUpperCase()}`;
 
