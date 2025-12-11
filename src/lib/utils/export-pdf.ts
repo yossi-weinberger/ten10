@@ -158,7 +158,7 @@ function parseTailwindColor(colorString: string): {
 
 // Helper function to download the PDF
 function downloadPdf(bytes: Uint8Array, filename: string) {
-  const blob = new Blob([bytes as unknown as BlobPart], {
+  const blob = new Blob([bytes], {
     type: "application/pdf",
   });
   const link = document.createElement("a");
@@ -173,11 +173,11 @@ function downloadPdf(bytes: Uint8Array, filename: string) {
 // Helper to manually draw a "Ballot Box with Check" using basic vectors
 // This replaces unicode characters which are failing to render properly.
 function drawSafeVectorCheckbox(
-  page: any,
+  page: PDFPage,
   x: number,
   y: number,
   size: number,
-  color: any
+  color: RGB
 ) {
   // Use a slightly smaller box than the full cell height
   // Ignore size param to keep it fixed logic or use it if scaling needed
