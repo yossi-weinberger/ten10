@@ -9,6 +9,7 @@ import {
   clearAllData as clearAllDataFromDataService,
 } from "./index";
 import { logger } from "@/lib/logger";
+import i18n from "../i18n";
 
 interface DataManagementOptions {
   setIsLoading: (loading: boolean) => void;
@@ -43,7 +44,7 @@ export const exportDataDesktop = async ({
     const transactions = await fetchAllTransactionsForExportDesktop();
 
     if (!transactions || transactions.length === 0) {
-      toast.error("אין נתונים לייצא.");
+      toast.error(i18n.t("settings:messages.noDataToExport"));
       setIsLoading(false);
       return;
     }
@@ -54,7 +55,7 @@ export const exportDataDesktop = async ({
     }.json`;
 
     const filePath = await save({
-      title: "שמור גיבוי נתונים (Desktop)",
+      title: i18n.t("settings:importExport.exportTitle") + " (Desktop)",
       defaultPath: suggestedFilename,
       filters: [
         {
@@ -66,13 +67,13 @@ export const exportDataDesktop = async ({
 
     if (filePath) {
       await writeTextFile(filePath, jsonData);
-      toast.success("הנתונים יוצאו בהצלחה!");
+      toast.success(i18n.t("settings:messages.exportSuccess"));
     } else {
       logger.log("Desktop data export cancelled by user.");
     }
   } catch (error) {
     logger.error("Failed to export data (desktop):", error);
-    toast.error("שגיאה בייצוא הנתונים (Desktop).");
+    toast.error(i18n.t("settings:messages.exportError"));
   } finally {
     setIsLoading(false);
   }
@@ -89,7 +90,7 @@ export const importDataDesktop = async ({
     const { readTextFile } = await import("@tauri-apps/plugin-fs");
 
     const selectedPath = await open({
-      title: "בחר קובץ גיבוי לייבוא",
+      title: i18n.t("settings:messages.selectFileTitle"),
       multiple: false,
       filters: [
         {
@@ -106,7 +107,7 @@ export const importDataDesktop = async ({
       try {
         transactionsToImport = JSON.parse(fileContents) as Transaction[];
       } catch (e) {
-        toast.error("קובץ לא תקין או שאינו בפורמט JSON.");
+        toast.error(i18n.t("settings:messages.invalidJson"));
         setIsLoading(false);
         return;
       }
@@ -117,25 +118,23 @@ export const importDataDesktop = async ({
           (t) => typeof t.id === "undefined" || typeof t.amount === "undefined"
         )
       ) {
-        toast.error("מבנה הנתונים בקובץ אינו תקין או חסרים שדות הכרחיים.");
+        toast.error(i18n.t("settings:messages.invalidStructure"));
         setIsLoading(false);
         return;
       }
 
       if (transactionsToImport.length === 0) {
-        toast("הקובץ שנבחר אינו מכיל נתונים לייבוא.");
+        toast(i18n.t("settings:messages.emptyFile"));
         setIsLoading(false);
         return;
       }
 
       const confirmed = window.confirm(
-        "האם אתה בטוח שברצונך לייבא את הנתונים מקובץ זה? " +
-          "פעולה זו תמחק את כל הנתונים הנוכחיים שלך ותחליף אותם בנתונים מהקובץ. " +
-          "מומלץ לגבות את הנתונים הנוכחיים תחילה."
+        i18n.t("settings:messages.importConfirm")
       );
 
       if (!confirmed) {
-        toast.error("ייבוא הנתונים בוטל.");
+        toast.error(i18n.t("settings:messages.importCancelled"));
         setIsLoading(false);
         return;
       }
@@ -193,7 +192,9 @@ export const importDataDesktop = async ({
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
 
       toast.success(
-        `ייבוא הושלם! ${transactionsToImport.length} רשומות יובאו בהצלחה.`
+        i18n.t("settings:messages.importSuccessWithCount", {
+          count: transactionsToImport.length,
+        })
       );
     } else {
       if (selectedPath !== null) {
@@ -205,7 +206,7 @@ export const importDataDesktop = async ({
     }
   } catch (error) {
     logger.error("Failed to import data (desktop):", error);
-    toast.error("שגיאה בייבוא הנתונים.");
+    toast.error(i18n.t("settings:messages.importError"));
   } finally {
     setIsLoading(false);
   }
@@ -292,7 +293,7 @@ export const exportDataWeb = async ({
     const transactions = await fetchAllTransactionsForExportWeb();
 
     if (!transactions || transactions.length === 0) {
-      toast.error("אין נתונים לייצא.");
+      toast.error(i18n.t("settings:messages.noDataToExport"));
       setIsLoading(false);
       return;
     }
@@ -312,13 +313,15 @@ export const exportDataWeb = async ({
 
     URL.revokeObjectURL(link.href);
 
-    toast.success("הנתונים יוצאו בהצלחה!");
+    toast.success(i18n.t("settings:messages.exportSuccess"));
   } catch (error) {
     logger.error("Failed to export data (web):", error);
     if (error instanceof Error) {
-      toast.error("שגיאה בייצוא הנתונים: " + error.message);
+      toast.error(
+        i18n.t("settings:messages.exportError") + ": " + error.message
+      );
     } else {
-      toast.error("שגיאה לא ידועה בייצוא הנתונים.");
+      toast.error(i18n.t("settings:messages.exportError"));
     }
   } finally {
     setIsLoading(false);
@@ -337,7 +340,7 @@ export const importDataWeb = async ({
     input.onchange = async (event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) {
-        toast.error("לא נבחר קובץ.");
+        toast.error(i18n.t("settings:messages.noFileSelected"));
         setIsLoading(false);
         return;
       }
@@ -351,7 +354,7 @@ export const importDataWeb = async ({
           try {
             transactionsToImport = JSON.parse(fileContents) as Transaction[];
           } catch (parseError) {
-            toast.error("קובץ לא תקין או שאינו בפורמט JSON.");
+            toast.error(i18n.t("settings:messages.invalidJson"));
             setIsLoading(false);
             return;
           }
@@ -366,25 +369,23 @@ export const importDataWeb = async ({
                 typeof t.type === "undefined"
             )
           ) {
-            toast.error("מבנה הנתונים בקובץ אינו תקין או חסרים שדות הכרחיים.");
+            toast.error(i18n.t("settings:messages.invalidStructure"));
             setIsLoading(false);
             return;
           }
 
           if (transactionsToImport.length === 0) {
-            toast("הקובץ שנבחר אינו מכיל נתונים לייבוא.");
+            toast(i18n.t("settings:messages.emptyFile"));
             setIsLoading(false);
             return;
           }
 
           const confirmed = window.confirm(
-            "האם אתה בטוח שברצונך לייבא את הנתונים מקובץ זה? " +
-              "פעולה זו תמחק את כל הנתונים הנוכחיים שלך (בשרת) ותחליף אותם בנתונים מהקובץ. " +
-              "מומלץ לגבות את הנתונים הנוכחיים תחילה אם יש כאלה בשרת."
+            i18n.t("settings:messages.importConfirmWeb")
           );
 
           if (!confirmed) {
-            toast.error("ייבוא הנתונים בוטל.");
+            toast.error(i18n.t("settings:messages.importCancelled"));
             setIsLoading(false);
             return;
           }
@@ -496,7 +497,10 @@ export const importDataWeb = async ({
           }
 
           toast.success(
-            `ייבוא הושלם! ${importCount} מתוך ${transactionsToImport.length} רשומות יובאו בהצלחה.`
+            i18n.t("settings:messages.importSuccessWithCountWeb", {
+              count: importCount,
+              total: transactionsToImport.length,
+            })
           );
         } catch (importError) {
           logger.error(
@@ -504,9 +508,13 @@ export const importDataWeb = async ({
             importError
           );
           if (importError instanceof Error) {
-            toast.error("שגיאה בייבוא הנתונים: " + importError.message);
+            toast.error(
+              i18n.t("settings:messages.importError") +
+                ": " +
+                importError.message
+            );
           } else {
-            toast.error("שגיאה לא ידועה במהלך ייבוא הנתונים.");
+            toast.error(i18n.t("settings:messages.unknownImportError"));
           }
         } finally {
           setIsLoading(false);
@@ -514,7 +522,7 @@ export const importDataWeb = async ({
       };
 
       reader.onerror = () => {
-        toast.error("שגיאה בקריאת הקובץ.");
+        toast.error(i18n.t("settings:messages.fileReadError"));
         setIsLoading(false);
       };
 
@@ -524,7 +532,7 @@ export const importDataWeb = async ({
     input.click();
   } catch (error) {
     logger.error("Failed to initiate import data (web):", error);
-    toast.error("שגיאה בהתחלת תהליך הייבוא.");
+    toast.error(i18n.t("settings:messages.importInitError"));
     setIsLoading(false);
   }
 };

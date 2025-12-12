@@ -1,4 +1,5 @@
 import { HDate, HebrewCalendar, Location, Event } from "@hebcal/core";
+import i18n from "../i18n";
 
 // מיקום ברירת מחדל - ירושלים
 const defaultLocation = new Location(31.7767, 35.2345, true, "Asia/Jerusalem");
@@ -68,7 +69,7 @@ export function convertToGregorianDate(
   day: number
 ): Date {
   const monthNum = HDate.monthFromName(month); // Use static HDate.monthFromName
-  if (monthNum === -1) throw new Error("חודש לא תקין");
+  if (monthNum === -1) throw new Error(i18n.t("common:errors.invalidMonth"));
   // Note: HDate constructor month is 1-based (1=Nisan, 7=Tishrei)
   // HDate.monthFromName might return a different scheme or handle Adar/Adar II, needs verification.
   // For now, assuming monthNum from HDate.monthFromName is compatible.

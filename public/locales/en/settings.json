@@ -101,5 +101,24 @@
     "networkError": "No internet connection",
     "offlineHelp": "To receive an updated version without internet, please contact us: support@ten10-app.com",
     "webVersionNote": "Web version is always up to date. No manual updates needed."
+  },
+  "messages": {
+    "noDataToExport": "No data to export.",
+    "exportSuccess": "Data exported successfully!",
+    "exportError": "Error exporting data (Desktop).",
+    "selectFileTitle": "Select backup file to import",
+    "invalidJson": "Invalid file or not in JSON format.",
+    "invalidStructure": "Data structure in file is invalid or missing required fields.",
+    "emptyFile": "Selected file contains no data to import.",
+    "importConfirm": "Are you sure you want to import data from this file? This action will overwrite your current data with the data from the file. It is recommended to back up your current data first.",
+    "importCancelled": "Data import cancelled.",
+    "importSuccessWithCount": "Import complete! {{count}} records imported successfully.",
+    "importError": "Error importing data.",
+    "fileReadError": "Error reading file.",
+    "noFileSelected": "No file selected.",
+    "importConfirmWeb": "Are you sure you want to import data from this file? This action will overwrite your current server data with the data from the file. It is recommended to back up your current data first.",
+    "importSuccessWithCountWeb": "Import complete! {{count}} of {{total}} records imported successfully.",
+    "unknownImportError": "Unknown error during data import.",
+    "importInitError": "Error initiating import process."
   }
 }
