@@ -1,4 +1,7 @@
 {
+  "errors": {
+    "invalidMonth": "חודש לא תקין"
+  },
   "toast": {
     "settings": {
       "saveSuccess": "ההגדרות נשמרו בהצלחה",

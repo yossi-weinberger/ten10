@@ -12,11 +12,11 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Card,
-  CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { AuthLayout } from "@/components/layout/AuthLayout";
 
 const SignupPage: React.FC = () => {
   const { platform } = usePlatform();
@@ -113,46 +113,40 @@ const SignupPage: React.FC = () => {
   const isAnyLoading = loading || authLoading;
 
   return (
-    <div
-      className="flex justify-center items-center min-h-screen bg-background p-4"
-      dir={i18n.dir()}
-    >
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">
-            {t("signup.title")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSignup} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="full-name">{t("signup.fullNameLabel")}</Label>
-              <Input
-                id="full-name"
-                name="full-name"
-                type="text"
-                autoComplete="name"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder={t("signup.fullNamePlaceholder")}
-                disabled={isAnyLoading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">{t("signup.emailLabel")}</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={t("signup.emailPlaceholder")}
-                disabled={isAnyLoading}
-              />
-            </div>
+    <AuthLayout title={t("signup.title")} subtitle={t("signup.subtitle")}>
+      <div>
+        <form onSubmit={handleSignup} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="full-name">{t("signup.fullNameLabel")}</Label>
+            <Input
+              id="full-name"
+              name="full-name"
+              type="text"
+              autoComplete="name"
+              required
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              placeholder={t("signup.fullNamePlaceholder")}
+              disabled={isAnyLoading}
+              className="h-11 bg-muted/30"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">{t("signup.emailLabel")}</Label>
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t("signup.emailPlaceholder")}
+              disabled={isAnyLoading}
+              className="h-11 bg-muted/30"
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="password">{t("signup.passwordLabel")}</Label>
               <Input
@@ -165,6 +159,7 @@ const SignupPage: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t("signup.passwordPlaceholder")}
                 disabled={isAnyLoading}
+                className="h-11 bg-muted/30"
               />
             </div>
             <div className="space-y-2">
@@ -181,43 +176,50 @@ const SignupPage: React.FC = () => {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder={t("signup.confirmPasswordPlaceholder")}
                 disabled={isAnyLoading}
+                className="h-11 bg-muted/30"
               />
             </div>
-            <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <Checkbox
-                id="mailing-list-consent"
-                checked={mailingListConsent}
-                onCheckedChange={(checked) =>
-                  setMailingListConsent(checked as boolean)
-                }
-                disabled={isAnyLoading}
-              />
-              <Label
-                htmlFor="mailing-list-consent"
-                className="text-sm font-normal cursor-pointer"
-              >
-                {t("signup.mailingListLabel")}
-              </Label>
-            </div>
-            <Button type="submit" disabled={isAnyLoading} className="w-full">
-              {isAnyLoading
-                ? t("signup.signUpButtonLoading")
-                : t("signup.signUpButton")}
-            </Button>
+          </div>
 
-            <div className="text-center text-sm text-muted-foreground">
-              {t("signup.hasAccount")}{" "}
-              <Link
-                to="/login"
-                className="font-medium text-primary hover:text-primary/80 hover:underline"
-              >
-                {t("signup.signInLink")}
-              </Link>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+          <div className="flex items-center space-x-2 rtl:space-x-reverse py-2">
+            <Checkbox
+              id="mailing-list-consent"
+              checked={mailingListConsent}
+              onCheckedChange={(checked) =>
+                setMailingListConsent(checked as boolean)
+              }
+              disabled={isAnyLoading}
+            />
+            <Label
+              htmlFor="mailing-list-consent"
+              className="text-sm font-normal cursor-pointer text-muted-foreground"
+            >
+              {t("signup.mailingListLabel")}
+            </Label>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isAnyLoading}
+            className="w-full h-11 text-base mt-2"
+          >
+            {isAnyLoading
+              ? t("signup.signUpButtonLoading")
+              : t("signup.signUpButton")}
+          </Button>
+
+          <div className="text-center text-sm text-muted-foreground mt-6">
+            {t("signup.hasAccount")}{" "}
+            <Link
+              to="/login"
+              className="font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+            >
+              {t("signup.signInLink")}
+            </Link>
+          </div>
+        </form>
+      </div>
+    </AuthLayout>
   );
 };
 

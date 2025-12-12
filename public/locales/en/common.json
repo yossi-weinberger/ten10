@@ -1,4 +1,7 @@
 {
+  "errors": {
+    "invalidMonth": "Invalid month"
+  },
   "toast": {
     "settings": {
       "saveSuccess": "Settings saved successfully",

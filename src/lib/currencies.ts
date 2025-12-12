@@ -1,7 +1,7 @@
 export const CURRENCIES = [
-  { code: "ILS", symbol: "₪", name: "שקל" },
-  { code: "USD", symbol: "$", name: "דולר" },
-  { code: "EUR", symbol: "€", name: "אירו" },
+  { code: "ILS", symbol: "₪", name: "currencyNameILS" },
+  { code: "USD", symbol: "$", name: "currencyNameUSD" },
+  { code: "EUR", symbol: "€", name: "currencyNameEUR" },
 ] as const;
 
 export type CurrencyObject = (typeof CURRENCIES)[number];

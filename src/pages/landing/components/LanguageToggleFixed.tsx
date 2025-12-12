@@ -1,13 +1,6 @@
-import { LanguageToggle } from "@/components/ui/language-toggle";
+import React from "react";
+import { PageControls } from "@/components/layout/PageControls";
 
 export const LanguageToggleFixed: React.FC = () => {
-  return (
-    <div className="fixed top-4 right-4 z-50">
-      <LanguageToggle
-        variant="ghost"
-        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm"
-      />
-    </div>
-  );
+  return <PageControls className="fixed top-4 right-4" showHome={false} />;
 };
-
