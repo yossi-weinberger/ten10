@@ -41,8 +41,10 @@ function App() {
   const settings = useDonationStore((state) => state.settings);
   const _hasHydrated = useDonationStore((state) => state._hasHydrated);
 
-  // Hide sidebar on landing page
-  const isLandingPage = currentPath === "/landing";
+  // Define pages that take full screen without sidebar/padding
+  const isFullScreenPage = ["/landing", "/login", "/signup"].includes(
+    currentPath
+  );
 
   // Show footer on all pages except login and signup
   const shouldShowFooter = !["/login", "/signup"].includes(currentPath);
@@ -138,7 +140,7 @@ function App() {
   return (
     <TooltipProvider>
       <div className="h-full w-full overflow-hidden bg-background flex">
-        {!isLandingPage && (
+        {!isFullScreenPage && (
           <div
             className="hidden md:block w-[4rem] hover:w-40 transition-all duration-300 bg-card overflow-hidden h-full shadow-lg"
             onMouseEnter={() => setIsSidebarExpanded(true)}
@@ -148,7 +150,7 @@ function App() {
           </div>
         )}
 
-        {!isLandingPage && (
+        {!isFullScreenPage && (
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button
@@ -179,12 +181,12 @@ function App() {
 
         <div
           className={`flex-1 h-full overflow-y-auto flex flex-col ${
-            isLandingPage ? "w-full" : ""
+            isFullScreenPage ? "w-full" : ""
           }`}
         >
           <main
             className={`flex-1 ${
-              isLandingPage
+              isFullScreenPage
                 ? "p-0"
                 : "container py-6 px-4 md:px-6 md:pt-6 pt-20"
             }`}
