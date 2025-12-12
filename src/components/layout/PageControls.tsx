@@ -26,14 +26,16 @@ export const PageControls: React.FC<PageControlsProps> = ({
     updateSettings({ theme: newTheme });
   };
 
-  // Reverting to the simpler original design requested by the user
-  // bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm
-  const baseClass =
-    "bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-sm transition-colors";
+  // Base styling with increased shadow for better visibility
+  const baseClass = cn(
+    "bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-md transition-all hover:shadow-lg", // Increased shadow from sm to md, and lg on hover
+    "border-0",
+    "dark:hover:bg-accent dark:hover:text-accent-foreground"
+  );
 
   const iconButtonClass = cn(
     baseClass,
-    "rounded-full w-10 h-10 flex items-center justify-center border-0"
+    "rounded-full w-10 h-10 flex items-center justify-center"
   );
 
   return (
@@ -59,7 +61,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
 
       <LanguageToggle
         variant="ghost"
-        className={cn(baseClass, "rounded-full h-10 px-4 border-0")}
+        className={cn(baseClass, "rounded-full h-10 px-4")}
       />
     </div>
   );
