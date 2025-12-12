@@ -11,12 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Card,
-  CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { AuthLayout } from "@/components/layout/AuthLayout";
 
 const GoogleIcon = () => (
   <svg viewBox="0 0 48 48" width="24" height="24">
@@ -163,127 +162,130 @@ const LoginPage: React.FC = () => {
     loadingPassword || loadingGoogle || loadingMagicLink || authLoading;
 
   return (
-    <div
-      className="flex justify-center items-center min-h-screen bg-background p-4"
-      dir={i18n.dir()}
-    >
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">
-            {t("login.title")}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Sign in with Google Button */}
+    <AuthLayout title={t("login.title")} subtitle={t("login.subtitle")}>
+      <div className="space-y-6">
+        {/* Email/Password Form */}
+        <form onSubmit={handleLoginPassword} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email-password">{t("login.emailLabel")}</Label>
+            <Input
+              id="email-password"
+              name="email-password"
+              type="email"
+              autoComplete="email"
+              required
+              value={emailPassword}
+              onChange={(e) => setEmailPassword(e.target.value)}
+              placeholder={t("login.emailPlaceholder")}
+              disabled={isAnyLoading}
+              className="h-11 bg-muted/30"
+            />
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <Label htmlFor="password">{t("login.passwordLabel")}</Label>
+            </div>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={t("login.passwordPlaceholder")}
+              disabled={isAnyLoading}
+              className="h-11 bg-muted/30"
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              {/* Placeholder for potential future 'Remember me' */}
+            </div>
+          </div>
+
           <Button
-            type="button"
-            variant="outline"
-            onClick={handleLoginGoogle}
+            type="submit"
             disabled={isAnyLoading}
-            className="w-full flex items-center gap-2"
+            className="w-full h-11 text-base"
           >
-            <GoogleIcon />
+            {loadingPassword
+              ? t("login.signInButtonLoading")
+              : t("login.signInButton")}
+          </Button>
+        </form>
+
+        {/* Sign in with Google Button */}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleLoginGoogle}
+          disabled={isAnyLoading}
+          className="w-full h-11 flex items-center justify-center gap-2 bg-background hover:bg-muted/50"
+        >
+          <GoogleIcon />
+          <span>
             {loadingGoogle
               ? t("login.googleSignInLoading")
               : t("login.googleSignIn")}
-          </Button>
+          </span>
+        </Button>
 
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">
-                {t("login.dividerText")}
-              </span>
-            </div>
+        {/* Divider */}
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
           </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card px-2 text-muted-foreground">
+              {t("login.dividerText")}
+            </span>
+          </div>
+        </div>
 
-          {/* Email/Password Form */}
-          <form onSubmit={handleLoginPassword} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email-password">{t("login.emailLabel")}</Label>
+        {/* Magic Link Form */}
+        <form onSubmit={handleLoginMagicLink} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email-magiclink">{t("login.magicLinkLabel")}</Label>
+            <div className="flex gap-2">
               <Input
-                id="email-password"
-                name="email-password"
+                id="email-magiclink"
+                name="email-magiclink"
                 type="email"
                 autoComplete="email"
                 required
-                value={emailPassword}
-                onChange={(e) => setEmailPassword(e.target.value)}
-                placeholder={t("login.emailPlaceholder")}
+                value={emailMagicLink}
+                onChange={(e) => setEmailMagicLink(e.target.value)}
+                placeholder={t("login.magicLinkPlaceholder")}
                 disabled={isAnyLoading}
+                className="h-11 bg-muted/30"
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">{t("login.passwordLabel")}</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t("login.passwordPlaceholder")}
+              <Button
+                type="submit"
+                variant="secondary"
                 disabled={isAnyLoading}
-              />
+                className="shrink-0 h-11"
+              >
+                {loadingMagicLink
+                  ? t("login.sendLinkButtonLoading")
+                  : t("login.sendLinkButton")}
+              </Button>
             </div>
-            <Button type="submit" disabled={isAnyLoading} className="w-full">
-              {loadingPassword
-                ? t("login.signInButtonLoading")
-                : t("login.signInButton")}
-            </Button>
-          </form>
-
-          {/* Magic Link Form */}
-          <div className="pt-4 border-t">
-            <form onSubmit={handleLoginMagicLink} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email-magiclink">
-                  {t("login.magicLinkLabel")}
-                </Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="email-magiclink"
-                    name="email-magiclink"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    value={emailMagicLink}
-                    onChange={(e) => setEmailMagicLink(e.target.value)}
-                    placeholder={t("login.magicLinkPlaceholder")}
-                    disabled={isAnyLoading}
-                  />
-                  <Button
-                    type="submit"
-                    variant="secondary"
-                    disabled={isAnyLoading}
-                    className="shrink-0"
-                  >
-                    {loadingMagicLink
-                      ? t("login.sendLinkButtonLoading")
-                      : t("login.sendLinkButton")}
-                  </Button>
-                </div>
-              </div>
-            </form>
           </div>
+        </form>
 
-          {/* Link to Signup page */}
-          <div className="text-center text-sm text-muted-foreground">
-            {t("login.noAccount")}{" "}
-            <Link
-              to="/signup"
-              className="font-medium text-primary hover:text-primary/80 hover:underline"
-            >
-              {t("login.signUpLink")}
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        {/* Link to Signup page */}
+        <div className="text-center text-sm text-muted-foreground mt-8">
+          {t("login.noAccount")}{" "}
+          <Link
+            to="/signup"
+            className="font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+          >
+            {t("login.signUpLink")}
+          </Link>
+        </div>
+      </div>
+    </AuthLayout>
   );
 };
 
