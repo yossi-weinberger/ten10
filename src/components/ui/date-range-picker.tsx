@@ -217,22 +217,18 @@ export function DatePickerWithRange({
               id="date"
               variant={"outline"}
               className={cn(
-                "w-[300px] justify-start text-right font-normal",
+                "w-full sm:w-[300px] min-w-0 justify-start text-right font-normal overflow-hidden",
                 !date && "text-muted-foreground"
               )}
             >
-              <CalendarIcon className="ml-2 h-4 w-4" />
-              {date?.from ? (
-                date.to ? (
-                  <>
-                    {formatDate(date.from)} - {formatDate(date.to)}
-                  </>
-                ) : (
-                  formatDate(date.from)
-                )
-              ) : (
-                <span>{t("datePicker.selectDateRange")}</span>
-              )}
+              <CalendarIcon className="ml-2 h-4 w-4 shrink-0" />
+              <span className="flex-1 min-w-0 truncate text-right">
+                {date?.from
+                  ? date.to
+                    ? `${formatDate(date.from)} - ${formatDate(date.to)}`
+                    : formatDate(date.from)
+                  : t("datePicker.selectDateRange")}
+              </span>
             </Button>
           )}
         </PopoverTrigger>
