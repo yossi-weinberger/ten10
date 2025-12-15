@@ -236,7 +236,7 @@ export function MonthlyChart() {
         dir={i18n.dir()}
         className="bg-gradient-to-br from-background to-muted/20"
       >
-        <CardHeader>
+        <CardHeader className="p-4 sm:p-6">
           <CardTitle>{t("monthlyChart.title")}</CardTitle>
         </CardHeader>
         <CardContent className="h-[450px] flex items-center justify-center">
@@ -252,7 +252,7 @@ export function MonthlyChart() {
         dir={i18n.dir()}
         className="bg-gradient-to-br from-background to-muted/20"
       >
-        <CardHeader>
+        <CardHeader className="p-4 sm:p-6">
           <CardTitle>{t("monthlyChart.title")}</CardTitle>
         </CardHeader>
         <CardContent className="h-[450px] flex items-center justify-center">
@@ -274,7 +274,7 @@ export function MonthlyChart() {
         dir={i18n.dir()}
         className="bg-gradient-to-br from-background to-muted/20"
       >
-        <CardHeader>
+        <CardHeader className="p-4 sm:p-6">
           <CardTitle>{t("monthlyChart.title")}</CardTitle>
         </CardHeader>
         <CardContent className="h-[450px] flex items-center justify-center">
@@ -289,15 +289,17 @@ export function MonthlyChart() {
       dir={i18n.dir()}
       className="bg-gradient-to-br from-background to-muted/20"
     >
-      <CardHeader>
+      <CardHeader className="p-4 sm:p-6">
         <CardTitle>{t("monthlyChart.title")}</CardTitle>
       </CardHeader>
-      <CardContent className="">
+      <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
         {formattedChartDataForAreaChart.length > 0 ? (
           <>
             <AreaChartInteractive
               chartData={formattedChartDataForAreaChart}
               chartConfig={monthlyChartConfig}
+              withCard={false}
+              className="min-h-[320px] h-[55vh] md:h-[450px] w-full"
             />
             <div className="flex justify-center items-center gap-4 mt-4">
               {canLoadMoreChartData && (
