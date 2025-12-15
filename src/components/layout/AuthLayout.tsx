@@ -20,7 +20,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 
   return (
     <div
-      className="min-h-screen w-full flex items-center justify-center p-4 sm:p-8 relative bg-muted/30"
+      className="min-h-screen w-full flex items-start sm:items-center justify-center p-4 sm:p-8 relative bg-muted/30"
       dir={i18n.dir()}
     >
       {/* Navigation & Controls */}
@@ -33,9 +33,9 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
       </div>
 
-      <div className="w-full max-w-[1400px] h-[85vh] min-h-[600px] bg-card rounded-[32px] shadow-2xl overflow-hidden grid lg:grid-cols-2 relative z-10">
+      <div className="w-full max-w-[1400px] bg-card rounded-[32px] shadow-2xl overflow-hidden grid lg:grid-cols-2 relative z-10 lg:h-[85vh] lg:min-h-[600px]">
         {/* Form Side */}
-        <div className="relative flex flex-col justify-center h-full overflow-y-auto p-8 md:p-16 lg:p-24 order-1">
+        <div className="relative flex flex-col justify-center p-8 md:p-16 lg:p-24 order-1 lg:h-full">
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8 shrink-0">
             <img
