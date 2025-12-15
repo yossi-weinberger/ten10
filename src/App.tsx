@@ -156,7 +156,7 @@ function App() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden fixed top-4 right-4 z-50"
+                className="md:hidden fixed top-4 right-4 z-50 rounded-full border border-border bg-card text-card-foreground shadow-md hover:bg-accent hover:text-accent-foreground"
               >
                 <Menu className="h-6 w-6" />
               </Button>
