@@ -1,4 +1,3 @@
-import React from "react";
 import { useTranslation } from "react-i18next";
 import {
   Card,
@@ -35,7 +34,7 @@ export function FinancialSettingsCard({
   disableAutoCalcChomesh = false,
   disableMinMaaserPercentage = false,
 }: FinancialSettingsCardProps) {
-  const { t, i18n } = useTranslation("settings");
+  const { t } = useTranslation("settings");
 
   return (
     <Card>
@@ -47,7 +46,7 @@ export function FinancialSettingsCard({
         <CardDescription>{t("financial.cardDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 items-start">
           <div className="grid gap-2 p-2">
             <Label>{t("financial.defaultCurrencyLabel")}</Label>
             <div className="flex items-center gap-4 ">
@@ -95,7 +94,7 @@ export function FinancialSettingsCard({
               </Button>
             </div>
           </div>
-          <Alert variant="destructive" className="mt-2 md:mt-0">
+          <Alert variant="destructive" className="mt-2 xl:mt-0">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>{t("financial.currencyWarning.title")}</AlertTitle>
             <AlertDescription>
