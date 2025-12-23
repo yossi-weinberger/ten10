@@ -28,7 +28,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 
       {/* Page Background Image (Mobile Only) */}
       <div className="absolute inset-0 z-0 lg:hidden">
-        <div className="absolute inset-0 bg-[url('/background.png')] bg-cover bg-right" />
+        <div className="absolute inset-0 bg-[url('/background.webp')] bg-cover bg-right" />
         {/* Dark overlay to ensure the card stands out */}
         <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
       </div>
@@ -62,7 +62,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="hidden lg:flex flex-col justify-center p-12 relative bg-black text-white order-2">
           {/* Background Image */}
           <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black z-0">
-            <div className="absolute inset-0 bg-[url('/background.png')] bg-cover bg-center bg-no-repeat" />
+            <div className="absolute inset-0 bg-[url('/background.webp')] bg-cover bg-center bg-no-repeat" />
           </div>
 
           {/* Logo - Centered at the top relative to the image section */}
