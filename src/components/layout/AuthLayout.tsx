@@ -39,9 +39,9 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8 shrink-0">
             <img
-              src="/icon-512.png"
+              src="/logo/logo.svg"
               alt="Ten10 Logo"
-              className="h-16 w-16 object-contain"
+              className="h-16 w-auto object-contain"
             />
           </div>
 
@@ -68,9 +68,9 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           {/* Logo - Centered at the top relative to the image section */}
           <div className="absolute top-16 left-0 right-0 flex justify-center z-20">
             <img
-              src="/icon-512.png"
+              src="/logo/versions/white-wide.svg"
               alt="Ten10 Logo"
-              className="h-24 w-24 object-contain"
+              className="h-14 w-auto object-contain"
             />
           </div>
 

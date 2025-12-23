@@ -253,13 +253,13 @@ html {
     --input: 0.92 0.01 95;
 
     /* Brand */
-    --primary: 0.64 0.15 155; /* Emerald */
+    --primary: 0.4686 0.0751 198.61; /* Logo teal (was: 0.64 0.15 155) */
     --primary-foreground: 0.99 0.01 95;
 
     --secondary: 0.9 0.04 155; /* Soft Green */
     --secondary-foreground: 0.3 0.04 155;
 
-    --accent: 0.78 0.11 85; /* Soft Gold */
+    --accent: 0.8267 0.168963 90.4589; /* Logo gold (was: 0.78 0.11 85) */
     --accent-foreground: 0.28 0.04 85;
 
     --destructive: 0.57 0.2 23; /* Red */
@@ -274,7 +274,7 @@ html {
     --info: 0.64 0.14 220; /* Blue Info */
     --info-foreground: 0.99 0.01 95;
 
-    --ring: 0.64 0.15 155; /* Matches primary */
+    --ring: 0.4686 0.0751 198.61; /* Matches primary (was: 0.64 0.15 155) */
 
     --radius: 0.5rem;
 
@@ -284,8 +284,8 @@ html {
     --chart-red: 0 72.2% 50.6%;
 
     /* Golden Gradients */
-    --gold-dark: #daa520;
-    --gold-light: #ffd700;
+    --gold-dark: #daa520; /* Legacy gold (consider aligning to logo gold) */
+    --gold-light: #ffd700; /* Legacy gold (consider aligning to logo gold) */
   }
 
   /* Landing page animations */
@@ -371,13 +371,13 @@ html {
     --input: 0.3 0.02 95;
 
     /* Brand */
-    --primary: 0.7 0.15 155; /* Emerald (brighter for dark mode) */
-    --primary-foreground: 0.12 0.02 155;
+    --primary: 0.72 0.0751 198.61; /* Logo teal (brighter for dark mode) (was: 0.7 0.15 155) */
+    --primary-foreground: 0.12 0.02 198.61; /* (was: 0.12 0.02 155) */
 
     --secondary: 0.28 0.05 155; /* Dark Green */
     --secondary-foreground: 0.9 0.02 155;
 
-    --accent: 0.78 0.11 85; /* Soft Gold */
+    --accent: 0.8267 0.168963 90.4589; /* Logo gold (was: 0.78 0.11 85) */
     --accent-foreground: 0.2 0.04 85;
 
     --destructive: 0.62 0.21 23;
@@ -392,7 +392,7 @@ html {
     --info: 0.7 0.15 220;
     --info-foreground: 0.1 0.02 220;
 
-    --ring: 0.7 0.15 155; /* Matches primary */
+    --ring: 0.72 0.0751 198.61; /* Matches primary (was: 0.7 0.15 155) */
 
     /* Chart colors for dark mode (kept as HSL) */
     --chart-green: 142.1 70.6% 35.3%;
@@ -400,8 +400,8 @@ html {
     --chart-red: 0 72.2% 40.6%;
 
     /* Golden Gradients */
-    --gold-dark: #daa520;
-    --gold-light: #ffd700;
+    --gold-dark: #daa520; /* Legacy gold (consider aligning to logo gold) */
+    --gold-light: #ffd700; /* Legacy gold (consider aligning to logo gold) */
   }
 }
 

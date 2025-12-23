@@ -621,7 +621,6 @@
 import { useState, useLayoutEffect, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Calculator,
   Home,
   PlusCircle,
   Settings,
@@ -638,6 +637,7 @@ import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { Skeleton } from "@/components/ui/skeleton";
+import { logger } from "@/lib/logger";
 
 interface SidebarProps {
   expanded?: boolean;
@@ -760,7 +760,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
             setProfileAvatarUrl(data.avatar_url);
           }
         } catch (err) {
-          if (process.env.NODE_ENV !== "production") {
+          if (import.meta.env.DEV) {
             logger.error("[Sidebar] profile fetch error:", err);
           }
         } finally {
@@ -829,18 +829,57 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
       )}
       dir={i18n.dir()}
     >
-      <Link to="/" className="flex items-center gap-2 px-4 mb-6">
-        <Calculator className="h-6 w-6 text-primary flex-shrink-0" />
-        <h1
-          className={cn(
-            "text-lg font-bold dark:text-slate-100 whitespace-nowrap min-w-0",
-            "transition-all duration-200",
-            !expanded && "w-0 overflow-hidden",
-            !expanded ? "opacity-0" : "opacity-100"
-          )}
-        >
-          {t("appName")}
-        </h1>
+      <Link
+        to="/"
+        aria-label={t("appName")}
+        className={cn(
+          "flex items-center mb-6",
+          expanded ? "px-4" : "px-2",
+          expanded ? "justify-start" : "justify-center"
+        )}
+      >
+        <span className="sr-only">{t("appName")}</span>
+
+        {/* Expanded: wide logo. Collapsed: square logo. */}
+        {expanded ? (
+          <>
+            {/* Light */}
+            <img
+              src="/logo/logo-wide.svg"
+              alt="Ten10"
+              loading="eager"
+              decoding="async"
+              className="block dark:hidden h-7 w-auto object-contain"
+            />
+            {/* Dark */}
+            <img
+              src="/logo/versions/white-wide.svg"
+              alt="Ten10"
+              loading="eager"
+              decoding="async"
+              className="hidden dark:block h-7 w-auto object-contain"
+            />
+          </>
+        ) : (
+          <>
+            {/* Light */}
+            <img
+              src="/logo/logo.svg"
+              alt="Ten10"
+              loading="eager"
+              decoding="async"
+              className="block dark:hidden h-9 w-9 object-contain"
+            />
+            {/* Dark (file name is 'whith.svg' in repo) */}
+            <img
+              src="/logo/versions/whith.svg"
+              alt="Ten10"
+              loading="eager"
+              decoding="async"
+              className="hidden dark:block h-9 w-9 object-contain"
+            />
+          </>
+        )}
       </Link>
 
       {/* Parent wrapper (non-scroll) */}
