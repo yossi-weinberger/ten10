@@ -1,10 +1,10 @@
 /**
  * Centralized Logger Utility
- * 
+ *
  * Provides a consistent logging interface that automatically
  * disables in production builds while maintaining full functionality
  * in development.
- * 
+ *
  * Usage:
  *   import { logger } from '@/lib/logger';
  *   logger.log('Message');
@@ -12,7 +12,8 @@
  *   logger.warn('Warning message');
  */
 
-const isDevelopment = process.env.NODE_ENV === "development";
+// Vite environment flag (safe for frontend builds)
+const isDevelopment = import.meta.env.DEV;
 
 /**
  * Logger class that wraps console methods
@@ -113,4 +114,3 @@ export const logger = new Logger();
 
 // For backwards compatibility and easy migration
 export default logger;
-

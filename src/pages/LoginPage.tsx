@@ -87,7 +87,7 @@ const LoginPage: React.FC = () => {
   const handleLoginGoogle = async () => {
     setLoadingGoogle(true);
     try {
-      const isDevelopment = process.env.NODE_ENV === "development";
+      const isDevelopment = import.meta.env.DEV;
       const redirectURL = isDevelopment
         ? "http://localhost:5173"
         : window.location.origin;
