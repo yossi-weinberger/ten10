@@ -12,9 +12,7 @@ import {
 } from "@/hooks/useScrollAnimation";
 import { FadeInWords } from "@/components/ui/animated-text";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { LazyImage } from "@/components/ui/lazy-image";
-import { Download, Globe, Calculator } from "lucide-react";
+import { Download, Globe } from "lucide-react";
 import { ScreenshotCarousel } from "../components/ScreenshotCarousel";
 import { cn } from "@/lib/utils";
 
@@ -93,7 +91,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         className="container mx-auto max-w-6xl relative z-10"
         ref={heroRef.ref}
         initial="hidden"
-        animate={heroRef.isInView ? "visible" : "hidden"}
+        animate="visible"
         variants={staggerContainer}
       >
         <div className="text-center mb-16">
@@ -104,56 +102,31 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               whileTap={{ scale: 0.95 }}
               className="inline-block"
             >
-              <LazyImage
-                src="/icon-512.png"
-                alt="Ten10 Logo"
-                className="w-24 h-24 mx-auto rounded-2xl shadow-lg gpu-accelerated animate-pulse-glow"
-                placeholder={
-                  <div className="w-24 h-24 mx-auto bg-emerald-100 dark:bg-emerald-900 rounded-2xl flex items-center justify-center animate-pulse">
-                    <Calculator className="h-12 w-12 text-emerald-600" />
-                  </div>
-                }
-              />
+              <div className="inline-flex items-center justify-center p-3 sm:p-4 rounded-2xl bg-card/70 backdrop-blur-md border border-border/50 shadow-lg gpu-accelerated animate-pulse-glow">
+                <img
+                  src="/logo/logo-wide.svg"
+                  alt="Ten10 Logo"
+                  loading="eager"
+                  decoding="async"
+                  className="h-16 sm:h-20 w-auto object-contain"
+                />
+              </div>
             </motion.div>
           </motion.div>
 
-          <motion.div variants={fadeInUp}>
-            <Badge
-              variant="secondary"
-              className="mb-4 text-sm font-medium bg-emerald-100/50 dark:bg-emerald-900/30 backdrop-blur-md border-emerald-200 dark:border-emerald-700"
-            >
-              {t("hero.badge")}
-            </Badge>
-          </motion.div>
-
           <motion.h1
-            className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6"
+            className="text-4xl md:text-6xl font-bold text-primary mb-6"
             variants={fadeInUp}
           >
-            <motion.span
-              className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-600 dark:from-emerald-400 dark:via-teal-300 dark:to-cyan-400"
-              animate={{
-                backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-              }}
-              transition={{
-                duration: 8,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            >
-              Ten10
-            </motion.span>{" "}
-            <FadeInWords delay={0.5}>{t("hero.tagline")}</FadeInWords>
+            <FadeInWords delay={0.3}>{t("hero.tagline")}</FadeInWords>
           </motion.h1>
 
-          <motion.div variants={fadeInUp}>
-            <FadeInWords
-              className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto"
-              delay={0.8}
-            >
-              {t("hero.subtitle")}
-            </FadeInWords>
-          </motion.div>
+          <motion.p
+            className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto"
+            variants={fadeInUp}
+          >
+            <FadeInWords delay={0.6}>{t("hero.subtitle")}</FadeInWords>
+          </motion.p>
 
           <motion.div
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"

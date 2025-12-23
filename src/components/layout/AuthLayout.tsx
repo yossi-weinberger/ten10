@@ -68,7 +68,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           {/* Logo - Centered at the top relative to the image section */}
           <div className="absolute top-16 left-0 right-0 flex justify-center z-20">
             <img
-              src="/logo/versions/white-wide.svg"
+              src="/logo/logo-wide.svg"
               alt="Ten10 Logo"
               className="h-14 w-auto object-contain"
             />

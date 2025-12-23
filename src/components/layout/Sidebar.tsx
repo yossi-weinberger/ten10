@@ -832,7 +832,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
       <Link
         to="/"
         aria-label={t("appName")}
-        className={cn(
+          className={cn(
           "flex items-center mb-6",
           expanded ? "px-4" : "px-2",
           expanded ? "justify-start" : "justify-center"
@@ -853,7 +853,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
             />
             {/* Dark */}
             <img
-              src="/logo/versions/white-wide.svg"
+              src="/logo/logo-wide.svg"
               alt="Ten10"
               loading="eager"
               decoding="async"
@@ -872,7 +872,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
             />
             {/* Dark (file name is 'whith.svg' in repo) */}
             <img
-              src="/logo/versions/whith.svg"
+              src="/logo/logo.svg"
               alt="Ten10"
               loading="eager"
               decoding="async"
