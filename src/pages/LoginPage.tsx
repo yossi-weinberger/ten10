@@ -9,6 +9,7 @@ import { logger } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import {
   Card,
   CardHeader,
@@ -164,6 +165,24 @@ const LoginPage: React.FC = () => {
   return (
     <AuthLayout title={t("login.title")} subtitle={t("login.subtitle")}>
       <div className="space-y-6">
+        {/* Sign in with Google Button */}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleLoginGoogle}
+          disabled={isAnyLoading}
+          className="w-full h-11 flex items-center justify-center gap-2 bg-background hover:bg-muted/50"
+        >
+          <GoogleIcon />
+          <span>
+            {loadingGoogle
+              ? t("login.googleSignInLoading")
+              : t("login.googleSignIn")}
+          </span>
+        </Button>
+
+        <Separator className="opacity-60" />
+
         {/* Email/Password Form */}
         <form onSubmit={handleLoginPassword} className="space-y-4">
           <div className="space-y-2">
@@ -215,33 +234,7 @@ const LoginPage: React.FC = () => {
           </Button>
         </form>
 
-        {/* Sign in with Google Button */}
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleLoginGoogle}
-          disabled={isAnyLoading}
-          className="w-full h-11 flex items-center justify-center gap-2 bg-background hover:bg-muted/50"
-        >
-          <GoogleIcon />
-          <span>
-            {loadingGoogle
-              ? t("login.googleSignInLoading")
-              : t("login.googleSignIn")}
-          </span>
-        </Button>
-
-        {/* Divider */}
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">
-              {t("login.dividerText")}
-            </span>
-          </div>
-        </div>
+        <Separator className="opacity-60" />
 
         {/* Magic Link Form */}
         <form onSubmit={handleLoginMagicLink} className="space-y-4">
