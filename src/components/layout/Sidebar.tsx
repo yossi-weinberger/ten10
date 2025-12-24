@@ -251,7 +251,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
               decoding="async"
               className="block dark:hidden h-9 w-9 object-contain"
             />
-            {/* Dark (file name is 'whith.svg' in repo) */}
+            {/* Dark */}
             <img
               src="/logo/logo.svg"
               alt="Ten10"
