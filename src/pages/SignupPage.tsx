@@ -155,7 +155,7 @@ const SignupPage: React.FC = () => {
           variant="outline"
           onClick={handleSignupGoogle}
           disabled={isAnyLoading}
-          className="w-full h-11 flex items-center justify-center gap-2 bg-background hover:bg-muted/50"
+          className="w-full h-11 flex items-center justify-center gap-2 bg-background hover:bg-muted/50 hover:text-foreground"
         >
           <GoogleIcon />
           <span>
