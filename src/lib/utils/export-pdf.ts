@@ -100,8 +100,13 @@ function drawRtlText(
 
 // Brand colors and layout constants
 const COLORS = {
-  primary: rgb(0.04, 0.44, 0.33), // Deep Emerald
-  primaryLight: rgb(0.93, 0.98, 0.94), // Light Mint for zebra
+  // Brand: aligned to the app logo colors (see src/index.css)
+  // Primary (logo teal): oklch(0.4686 0.0751 198.61)
+  primary: rgb(0.07, 0.4, 0.42),
+  // Accent (logo gold): oklch(0.8267 0.168963 90.4589)
+  accent: rgb(0.94, 0.75, 0),
+  // Light zebra background (kept neutral for readability)
+  primaryLight: rgb(0.93, 0.98, 0.94),
   text: rgb(0, 0, 0), // Pure black for contrast
   textSecondary: rgb(0, 0, 0), // Pure black for better visibility
   border: rgb(0.7, 0.7, 0.7), // Darker border
@@ -253,15 +258,27 @@ export async function exportTransactionsToPDF(
     const regularFont = await pdfDoc.embedFont(regularFontBytes);
     const boldFont = await pdfDoc.embedFont(mediumFontBytes);
 
-    // Load Logo
+    // Load Logo (prefer wide logo for header)
     let logoImage;
+    let logoAspectRatio = 1; // width / height
     try {
-      const logoBytes = await fetch("/icon-192.png").then((res) =>
+      // Prefer wide header logo
+      const wideLogoBytes = await fetch("/logo/logo-wide.png").then((res) =>
         res.arrayBuffer()
       );
-      logoImage = await pdfDoc.embedPng(logoBytes);
+      logoImage = await pdfDoc.embedPng(wideLogoBytes);
+      logoAspectRatio = logoImage.width / logoImage.height;
     } catch (e) {
-      logger.error("Failed to load logo for PDF", e);
+      try {
+        // Fallback to app icon (square)
+        const logoBytes = await fetch("/icon-192.png").then((res) =>
+          res.arrayBuffer()
+        );
+        logoImage = await pdfDoc.embedPng(logoBytes);
+        logoAspectRatio = logoImage.width / logoImage.height;
+      } catch (fallbackError) {
+        logger.error("Failed to load logo for PDF", fallbackError);
+      }
     }
 
     let page = pdfDoc.addPage();
@@ -276,29 +293,30 @@ export async function exportTransactionsToPDF(
     const titleX = isRtl ? width - margin : margin;
 
     // Logo / Brand Mark
-    const logoSize = 40;
-    const logoX = isRtl ? margin : width - margin - logoSize;
+    const logoHeight = 22;
+    const logoWidth = Math.min(120, Math.max(60, logoHeight * logoAspectRatio));
+    const logoX = isRtl ? margin : width - margin - logoWidth;
 
     if (logoImage) {
       page.drawImage(logoImage, {
         x: logoX,
-        y: y - logoSize + 10,
-        width: logoSize,
-        height: logoSize,
+        y: y - logoHeight + 10,
+        width: logoWidth,
+        height: logoHeight,
       });
     } else {
       // Fallback if logo fails to load
       page.drawRectangle({
         x: logoX,
-        y: y - logoSize + 10,
-        width: logoSize,
-        height: logoSize,
+        y: y - logoHeight + 10,
+        width: logoWidth,
+        height: logoHeight,
         color: COLORS.primary,
         opacity: 0.1,
       });
       page.drawText("Ten10", {
-        x: logoX + 5,
-        y: y - logoSize / 2 + 8,
+        x: logoX + 6,
+        y: y - logoHeight / 2 + 6,
         font: boldFont,
         size: 10,
         color: COLORS.primary,

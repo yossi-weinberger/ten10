@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { GoogleIcon } from "@/components/icons/GoogleIcon";
 import {
   Card,
   CardHeader,
@@ -22,7 +24,7 @@ const SignupPage: React.FC = () => {
   const { platform } = usePlatform();
   const { loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation("auth");
+  const { t } = useTranslation("auth");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,6 +32,38 @@ const SignupPage: React.FC = () => {
   const [fullName, setFullName] = useState("");
   const [mailingListConsent, setMailingListConsent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
+
+  const handleSignupGoogle = async () => {
+    setLoadingGoogle(true);
+    try {
+      const isDevelopment = import.meta.env.DEV;
+      const redirectURL = isDevelopment
+        ? "http://localhost:5173"
+        : window.location.origin;
+
+      logger.log(
+        `[SignupPage] Using redirectTo for Google OAuth: ${redirectURL}`
+      );
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: redirectURL,
+        },
+      });
+      if (error) throw error;
+      sessionStorage.setItem("forceDbFetchOnLoad", "true");
+    } catch (error: any) {
+      logger.error("Error signing up with Google:", error);
+      toast.error(
+        error.error_description ||
+          error.message ||
+          t("login.toasts.googleError")
+      );
+      setLoadingGoogle(false);
+    }
+  };
 
   const handleSignup = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -110,11 +144,29 @@ const SignupPage: React.FC = () => {
     );
   }
 
-  const isAnyLoading = loading || authLoading;
+  const isAnyLoading = loading || loadingGoogle || authLoading;
 
   return (
     <AuthLayout title={t("signup.title")} subtitle={t("signup.subtitle")}>
-      <div>
+      <div className="space-y-6">
+        {/* Sign up with Google */}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleSignupGoogle}
+          disabled={isAnyLoading}
+          className="w-full h-11 flex items-center justify-center gap-2 bg-background hover:bg-muted/50 hover:text-foreground"
+        >
+          <GoogleIcon />
+          <span>
+            {loadingGoogle
+              ? t("login.googleSignInLoading")
+              : t("login.googleSignIn")}
+          </span>
+        </Button>
+
+        <Separator className="opacity-60" />
+
         <form onSubmit={handleSignup} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="full-name">{t("signup.fullNameLabel")}</Label>

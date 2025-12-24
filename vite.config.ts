@@ -25,32 +25,33 @@ export default defineConfig(() => {
     plugins: [
       react(),
       // Only enable PWA plugin if NOT a Tauri build to avoid caching issues in desktop app
-      !isTauriBuild && VitePWA({
-        registerType: "autoUpdate",
-        manifest: {
-          name: "Ten10",
-          short_name: "Ten10",
-          start_url: "/",
-          display: "standalone",
-          background_color: "#ffffff",
-          theme_color: "#2563eb",
-          icons: [
-            {
-              src: "/icon-192.png",
-              sizes: "192x192",
-              type: "image/png",
-            },
-            {
-              src: "/icon-512.png",
-              sizes: "512x512",
-              type: "image/png",
-            },
-          ],
-        },
-        workbox: {
-          maximumFileSizeToCacheInBytes: 5000000, // 5MB
-        },
-      }),
+      !isTauriBuild &&
+        VitePWA({
+          registerType: "autoUpdate",
+          manifest: {
+            name: "Ten10",
+            short_name: "Ten10",
+            start_url: "/",
+            display: "standalone",
+            background_color: "#ffffff",
+            theme_color: "#11676a",
+            icons: [
+              {
+                src: "/icon-192.png",
+                sizes: "192x192",
+                type: "image/png",
+              },
+              {
+                src: "/icon-512.png",
+                sizes: "512x512",
+                type: "image/png",
+              },
+            ],
+          },
+          workbox: {
+            maximumFileSizeToCacheInBytes: 5000000, // 5MB
+          },
+        }),
     ].filter(Boolean),
     optimizeDeps: {
       exclude: ["lucide-react"],

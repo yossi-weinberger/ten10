@@ -16,7 +16,6 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   imageSideContent,
 }) => {
   const { t, i18n } = useTranslation("auth");
-  const isRtl = i18n.dir() === "rtl";
 
   return (
     <div
@@ -28,7 +27,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 
       {/* Page Background Image (Mobile Only) */}
       <div className="absolute inset-0 z-0 lg:hidden">
-        <div className="absolute inset-0 bg-[url('/background.png')] bg-cover bg-right" />
+        <div className="absolute inset-0 bg-[url('/background.webp')] bg-cover bg-right" />
         {/* Dark overlay to ensure the card stands out */}
         <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
       </div>
@@ -38,11 +37,13 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="relative flex flex-col justify-center p-8 md:p-16 lg:p-24 order-1 lg:h-full">
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8 shrink-0">
-            <img
-              src="/icon-512.png"
-              alt="Ten10 Logo"
-              className="h-16 w-16 object-contain"
-            />
+            <div className="rounded-2xl bg-white/90 dark:bg-black/40 backdrop-blur-md shadow-lg p-3 border border-black/5 dark:border-white/10">
+              <img
+                src="/logo/logo.svg"
+                alt="Ten10 Logo"
+                className="h-14 w-auto object-contain"
+              />
+            </div>
           </div>
 
           <div className="w-full max-w-md mx-auto space-y-8">
@@ -62,16 +63,18 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="hidden lg:flex flex-col justify-center p-12 relative bg-black text-white order-2">
           {/* Background Image */}
           <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black z-0">
-            <div className="absolute inset-0 bg-[url('/background.png')] bg-cover bg-center bg-no-repeat" />
+            <div className="absolute inset-0 bg-[url('/background.webp')] bg-cover bg-center bg-no-repeat" />
           </div>
 
           {/* Logo - Centered at the top relative to the image section */}
           <div className="absolute top-16 left-0 right-0 flex justify-center z-20">
-            <img
-              src="/icon-512.png"
-              alt="Ten10 Logo"
-              className="h-24 w-24 object-contain"
-            />
+            <div className="rounded-2xl bg-white/90 dark:bg-black/70 backdrop-blur-md shadow-lg p-3 border border-black/5 dark:border-white/10">
+              <img
+                src="/logo/logo-wide.svg"
+                alt="Ten10 Logo"
+                className="h-14 w-auto object-contain"
+              />
+            </div>
           </div>
 
           {/* Content Overlay */}

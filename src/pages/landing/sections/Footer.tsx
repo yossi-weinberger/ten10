@@ -13,9 +13,9 @@ export const Footer: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-sm">
           <div className="flex items-center gap-3">
             <LazyImage
-              src="/icon-192.png"
+              src="/logo/logo-wide.svg"
               alt="Ten10 Logo"
-              className="w-6 h-6 rounded-lg"
+              className="h-6 w-auto"
               placeholder={
                 <div className="w-6 h-6 bg-primary/20 rounded-lg flex items-center justify-center">
                   <Calculator className="h-3 w-3 text-primary" />

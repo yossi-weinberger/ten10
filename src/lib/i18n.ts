@@ -33,7 +33,7 @@ const i18n = i18next as unknown as import("i18next").i18n;
     supportedLngs: ["en", "he"],
     fallbackLng: "he",
     lng: getInitialLanguage(), // Set initial language from Zustand store
-    debug: process.env.NODE_ENV === "development",
+    debug: import.meta.env.DEV,
 
     // Define namespaces for your translation files
     ns: [
