@@ -214,7 +214,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         to="/"
         aria-label={t("appName")}
         className={cn(
-          "flex items-center mb-6",
+          "flex w-full items-center mb-6",
           expanded ? "px-4" : "px-2",
           expanded ? "justify-start" : "justify-center"
         )}
