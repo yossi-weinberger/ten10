@@ -16,7 +16,6 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   imageSideContent,
 }) => {
   const { t, i18n } = useTranslation("auth");
-  const isRtl = i18n.dir() === "rtl";
 
   return (
     <div
@@ -38,11 +37,13 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="relative flex flex-col justify-center p-8 md:p-16 lg:p-24 order-1 lg:h-full">
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mb-8 shrink-0">
-            <img
-              src="/logo/logo.svg"
-              alt="Ten10 Logo"
-              className="h-16 w-auto object-contain"
-            />
+            <div className="rounded-2xl bg-white/90 dark:bg-black/40 backdrop-blur-md shadow-lg p-3 border border-black/5 dark:border-white/10">
+              <img
+                src="/logo/logo.svg"
+                alt="Ten10 Logo"
+                className="h-14 w-auto object-contain"
+              />
+            </div>
           </div>
 
           <div className="w-full max-w-md mx-auto space-y-8">
@@ -67,11 +68,13 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 
           {/* Logo - Centered at the top relative to the image section */}
           <div className="absolute top-16 left-0 right-0 flex justify-center z-20">
-            <img
-              src="/logo/logo-wide.svg"
-              alt="Ten10 Logo"
-              className="h-14 w-auto object-contain"
-            />
+            <div className="rounded-2xl bg-white/90 dark:bg-black/70 backdrop-blur-md shadow-lg p-3 border border-black/5 dark:border-white/10">
+              <img
+                src="/logo/logo-wide.svg"
+                alt="Ten10 Logo"
+                className="h-14 w-auto object-contain"
+              />
+            </div>
           </div>
 
           {/* Content Overlay */}
