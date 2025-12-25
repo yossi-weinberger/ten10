@@ -216,11 +216,12 @@ CREATE TABLE contact_messages (
 - **Process**:
   1. Receives webhook payload with inserted record
   2. Generates signed URLs for attachments (7-day validity)
-  3. Formats HTML email with localized template (Hebrew/RTL for Rabbi, English/LTR for Dev)
-  4. Sends email via AWS SES using `SimpleEmailService` class
-  5. Includes Reply-To header with user's email
-  6. For Rabbi channel: sends to `torat.maaser@gmail.com` with CC to `halacha@ten10-app.com`
-  7. For Dev channel: sends to `dev@ten10-app.com`
+  3. Formats HTML email using the shared **Email Design System** (`_shared/email-design.ts`)
+  4. Supports localized templates (Hebrew/RTL for Rabbi, English/LTR for Dev) with explicit styling for correct rendering
+  5. Sends email via AWS SES using `SimpleEmailService` class
+  6. Includes Reply-To header with user's email
+  7. For Rabbi channel: sends to `torat.maaser@gmail.com` with CC to `halacha@ten10-app.com`
+  8. For Dev channel: sends to `dev@ten10-app.com`
 - **Email Sender**: `contact-form@ten10-app.com` (configured in AWS SES)
 
 ---
