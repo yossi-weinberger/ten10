@@ -10,6 +10,7 @@ import {
 } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
+import { EMAIL_THEME, getEmailHeader } from "../_shared/email-design.ts";
 
 type ProfileRecord = {
   id: string;
@@ -110,30 +111,31 @@ const buildEmailBodies = (args: { rows: SummaryRow[]; hours: number }) => {
       const avatarCell = r.avatar_url
         ? `<img src="${escapeHtml(
             r.avatar_url
-          )}" alt="avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid #e5e7eb;" />`
-        : `<div style="width:36px;height:36px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:12px;">N/A</div>`;
+          )}" alt="avatar" class="avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid #e5e7eb;" />`
+        : `<div class="avatar-placeholder" style="width:36px;height:36px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:12px;">N/A</div>`;
+
+      const consentBadge =
+        r.mailing_list_consent === true
+          ? `<span class="badge badge-yes" style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background-color:#dcfce7;color:#166534;">Yes</span>`
+          : r.mailing_list_consent === false
+          ? `<span class="badge badge-no" style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background-color:#fee2e2;color:#991b1b;">No</span>`
+          : `<span class="badge" style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background-color:#f3f4f6;color:#6b7280;">Unknown</span>`;
 
       return `
       <tr>
-        <td style="padding:8px;border-bottom:1px solid #e5e7eb;">${avatarCell}</td>
-        <td style="padding:8px;border-bottom:1px solid #e5e7eb;">${escapeHtml(
-          r.full_name ?? "Not provided"
-        )}</td>
-        <td style="padding:8px;border-bottom:1px solid #e5e7eb;">${escapeHtml(
-          r.email ?? "unknown"
-        )}</td>
-        <td style="padding:8px;border-bottom:1px solid #e5e7eb;">${escapeHtml(
-          r.id
-        )}</td>
-        <td style="padding:8px;border-bottom:1px solid #e5e7eb;">${escapeHtml(
+        <td>${avatarCell}</td>
+        <td><strong>${escapeHtml(r.full_name ?? "Not provided")}</strong></td>
+        <td>${escapeHtml(r.email ?? "unknown")}</td>
+        <td style="font-family: monospace; color: #6b7280;">${escapeHtml(
+          r.id.substring(0, 8)
+        )}...</td>
+        <td>${escapeHtml(
           formatDateParts(r.auth_created_at ?? r.updated_at ?? null).date
         )}</td>
-        <td style="padding:8px;border-bottom:1px solid #e5e7eb;">${escapeHtml(
+        <td>${escapeHtml(
           formatDateParts(r.auth_created_at ?? r.updated_at ?? null).time
         )}</td>
-        <td style="padding:8px;border-bottom:1px solid #e5e7eb;">${escapeHtml(
-          formatBoolean(r.mailing_list_consent)
-        )}</td>
+        <td>${consentBadge}</td>
       </tr>`;
     })
     .join("");
@@ -144,27 +146,80 @@ const buildEmailBodies = (args: { rows: SummaryRow[]; hours: number }) => {
       <meta charset="UTF-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <title>New users summary</title>
+      <style>
+        body { font-family: ${EMAIL_THEME.fonts.main}; background-color: ${
+    EMAIL_THEME.colors.background
+  }; margin: 0; padding: 0; }
+        .container { max-width: 800px; margin: 40px auto; background: ${
+          EMAIL_THEME.colors.cardBackground
+        }; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); overflow: hidden; border-top: 6px solid ${
+    EMAIL_THEME.colors.primary
+  }; }
+        /* Header styles are inline */
+        .content { padding: 32px; }
+        .summary-box { background-color: ${
+          EMAIL_THEME.colors.success.bg
+        }; border: 1px solid ${
+    EMAIL_THEME.colors.success.border
+  }; border-radius: 8px; padding: 16px; margin-bottom: 24px; color: ${
+    EMAIL_THEME.colors.success.text
+  }; font-weight: 500; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; border-bottom: 2px solid ${
+          EMAIL_THEME.colors.border
+        }; color: ${
+    EMAIL_THEME.colors.textSecondary
+  }; font-weight: 600; font-size: 14px; }
+        td { padding: 12px; border-bottom: 1px solid ${
+          EMAIL_THEME.colors.background
+        }; color: ${
+    EMAIL_THEME.colors.textMain
+  }; font-size: 14px; vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid ${
+          EMAIL_THEME.colors.border
+        }; }
+        .avatar-placeholder { width: 36px; height: 36px; border-radius: 50%; background: ${
+          EMAIL_THEME.colors.border
+        }; display: flex; align-items: center; justify-content: center; color: ${
+    EMAIL_THEME.colors.textLight
+  }; font-size: 12px; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .badge-yes { background-color: ${
+          EMAIL_THEME.colors.success.bg
+        }; color: ${EMAIL_THEME.colors.success.text}; }
+        .badge-no { background-color: ${EMAIL_THEME.colors.error.bg}; color: ${
+    EMAIL_THEME.colors.error.text
+  }; }
+      </style>
     </head>
-    <body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f8fafc;">
-      <div style="max-width:720px;margin:0 auto;background:#ffffff;padding:28px;">
-        <h2 style="margin:0 0 16px 0;color:#111827;">New users summary</h2>
-        <p style="margin:0 0 16px 0;color:#374151;">${windowLabel}. Total: ${rows.length}.</p>
-        <table style="width:100%;border-collapse:collapse;">
-          <thead>
-            <tr>
-              <th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb;">Avatar</th>
-              <th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb;">Full name</th>
-              <th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb;">Email</th>
-              <th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb;">User ID</th>
-              <th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb;">Date</th>
-              <th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb;">Time</th>
-              <th style="text-align:left;padding:8px;border-bottom:2px solid #e5e7eb;">Mailing consent</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
+    <body>
+      <div class="container">
+        ${getEmailHeader("en")}
+        <div class="content">
+          <h2 style="margin: 0 0 16px 0; color: #111827; font-size: 24px;">New Users Summary</h2>
+          <div class="summary-box">
+            ${windowLabel}. Total: ${rows.length} new users found.
+          </div>
+          <div style="overflow-x: auto;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Avatar</th>
+                  <th>Full Name</th>
+                  <th>Email</th>
+                  <th>User ID</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Consent</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </body>
   </html>`;

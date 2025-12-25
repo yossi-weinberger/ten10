@@ -3,6 +3,8 @@
  * Separated from main function for better maintainability
  */
 
+import { EMAIL_THEME, getEmailHeader } from "../_shared/email-design.ts";
+
 export interface EmailTemplateData {
   titheBalance: number;
   isPositive: boolean;
@@ -18,12 +20,16 @@ export function generateReminderEmailHTML(data: EmailTemplateData): string {
   const { titheBalance, isPositive, isNegative } = data;
 
   const backgroundColor = isPositive
-    ? "#fef3c7" // Yellow for positive balance
+    ? EMAIL_THEME.colors.warning.bg // Yellow for positive balance
     : isNegative
-    ? "#d1fae5" // Green for negative balance (excellent - overpaid!)
-    : "#d1fae5"; // Green for exact balance
+    ? EMAIL_THEME.colors.success.bg // Green for negative balance (excellent - overpaid!)
+    : EMAIL_THEME.colors.success.bg; // Green for exact balance
 
-  const textColor = isPositive ? "#92400e" : isNegative ? "#065f46" : "#065f46";
+  const textColor = isPositive
+    ? EMAIL_THEME.colors.warning.text
+    : isNegative
+    ? EMAIL_THEME.colors.success.text
+    : EMAIL_THEME.colors.success.text;
 
   const statusText = isPositive
     ? `נותר לך ${Math.abs(titheBalance).toFixed(2)} ₪ לתרומה`
@@ -39,115 +45,130 @@ export function generateReminderEmailHTML(data: EmailTemplateData): string {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>תזכורת מעשר - Ten10</title>
     </head>
-    <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f8fafc; direction: rtl;">
-      <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 40px 20px; direction: rtl;">
+    <body style="margin: 0; padding: 0; font-family: ${
+      EMAIL_THEME.fonts.main
+    }; background-color: ${
+    EMAIL_THEME.colors.background
+  }; direction: rtl; text-align: right;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); margin-top: 40px; margin-bottom: 40px; direction: rtl; text-align: right; border-top: 6px solid ${
+        EMAIL_THEME.colors.primary
+      };">
         
-        <!-- Header -->
-        <div style="text-align: center; margin-bottom: 30px; direction: rtl;">
-          <h1 style="color: #2563eb; margin: 0; font-size: 28px;">Ten10</h1>
-          <p style="color: #6b7280; margin: 5px 0 0 0; font-size: 16px;">ניהול מעשרות חכם</p>
-          <p style="color: #9ca3af; margin: 5px 0 0 0; font-size: 12px;">עדכון: ${new Date().toLocaleDateString(
-            "he-IL"
-          )}</p>
-        </div>
+        ${getEmailHeader("he")}
 
-        <!-- Greeting -->
-        <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 24px; text-align: right;">שלום!</h2>
-        
-        <p style="color: #374151; font-size: 16px; line-height: 1.6; margin: 0 0 25px 0; text-align: right;">
-          זוהי התזכורת החודשית שלך לעדכון המעשרות.
-        </p>
-        
-        <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: right;">
-          <h3 style="color: #1f2937; margin: 0 0 15px 0; font-size: 18px;">💡 זכור לעדכן:</h3>
-          <ul style="color: #374151; font-size: 15px; line-height: 1.8; margin: 0; padding-right: 20px;">
-            <li>הכנסות ומשכורות חדשות</li>
-            <li>הוצאות נוספות</li>
-            <li>תרומות שביצעת</li>
-          </ul>
-        </div>
-        
-        <!-- Balance Card -->
-        <div style="background-color: ${backgroundColor}; 
-                    padding: 25px; 
-                    border-radius: 12px; 
-                    margin: 25px 0;
-                    border-left: 4px solid ${textColor};
-                    text-align: right;">
-          <h3 style="margin: 0; color: ${textColor}; font-size: 20px; font-weight: 600;">
-            ${statusText}
-          </h3>
-        </div>
-        
-        <!-- Call to Action -->
-        <div style="text-align: center; margin: 30px 0; direction: rtl;">
-          <p style="color: #374151; font-size: 16px; margin: 0 0 20px 0; text-align: right;">
-            כדי לעדכון את המעשרות שלך, היכנס לאפליקציה:
+        <!-- Content -->
+        <div style="padding: 40px 30px; background-color: #ffffff; direction: rtl; text-align: right;">
+          <!-- Greeting -->
+          <h2 style="color: ${
+            EMAIL_THEME.colors.textMain
+          }; margin: 0 0 20px 0; font-size: 24px; text-align: right; font-weight: 700;">שלום!</h2>
+          
+          <p style="color: ${
+            EMAIL_THEME.colors.textSecondary
+          }; font-size: 16px; line-height: 1.6; margin: 0 0 25px 0; text-align: right;">
+            זוהי התזכורת החודשית שלך לעדכון המעשרות.
           </p>
-          <a href="https://ten10-app.com" 
-             style="background-color: #2563eb; 
-                    color: white; 
-                    padding: 15px 30px; 
-                    text-decoration: none; 
-                    border-radius: 8px; 
-                    display: inline-block;
-                    font-weight: 600;
-                    font-size: 16px;
-                    transition: background-color 0.2s;">
-            פתח את Ten10
-          </a>
+          
+          <div style="background-color: ${
+            EMAIL_THEME.colors.success.bg
+          }; border: 1px solid ${
+    EMAIL_THEME.colors.success.border
+  }; padding: 20px; border-radius: 12px; margin: 25px 0; text-align: right;">
+            <h3 style="color: ${
+              EMAIL_THEME.colors.success.text
+            }; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">💡 זכור לעדכן:</h3>
+            <ul style="color: ${
+              EMAIL_THEME.colors.success.text
+            }; font-size: 15px; line-height: 1.8; margin: 0; padding-right: 20px;">
+              <li>הכנסות ומשכורות חדשות</li>
+              <li>הוצאות נוספות</li>
+              <li>תרומות שביצעת</li>
+            </ul>
+          </div>
+          
+          <!-- Balance Card -->
+          <div style="background-color: ${backgroundColor}; 
+                      padding: 25px; 
+                      border-radius: 12px; 
+                      margin: 25px 0;
+                      border-right: 4px solid ${textColor};
+                      text-align: right;">
+            <h3 style="margin: 0; color: ${textColor}; font-size: 20px; font-weight: 600;">
+              ${statusText}
+            </h3>
+          </div>
+          
+          <!-- Call to Action -->
+          <div style="text-align: center; margin: 40px 0 20px 0; direction: rtl;">
+            <p style="color: ${
+              EMAIL_THEME.colors.textSecondary
+            }; font-size: 16px; margin: 0 0 20px 0; text-align: right;">
+              כדי לעדכן את המעשרות שלך, היכנס לאפליקציה:
+            </p>
+            <a href="https://ten10-app.com" 
+               style="background-color: ${EMAIL_THEME.colors.primary}; 
+                      color: white; 
+                      padding: 14px 32px; 
+                      text-decoration: none; 
+                      border-radius: 8px; 
+                      display: inline-block;
+                      font-weight: 600;
+                      font-size: 16px;
+                      box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.2);
+                      transition: background-color 0.2s;">
+              פתח את Ten10
+            </a>
+          </div>
         </div>
         
         <!-- Footer -->
-        <hr style="margin: 40px 0 20px 0; border: none; border-top: 1px solid #e5e7eb;">
-        
-        <!-- Unsubscribe Buttons -->
-        ${
-          data.unsubscribeUrls
-            ? `
-        <div style="text-align: center; margin: 0 0 30px 0;">
-          <div style="margin: 0 0 15px 0;">
-            <a href="${data.unsubscribeUrls.reminderUrl}" 
-               style="background-color: #f59e0b; 
-                      color: white; 
-                      padding: 10px 20px; 
-                      text-decoration: none; 
-                      border-radius: 6px; 
-                      display: inline-block;
-                      font-weight: 500;
-                      font-size: 14px;
-                      margin: 0 5px;">
-              הפסקת תזכורות חודשיות
-            </a>
+        <div style="background-color: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid ${
+          EMAIL_THEME.colors.border
+        }; direction: rtl;">
+          
+          <!-- Unsubscribe Buttons -->
+          ${
+            data.unsubscribeUrls
+              ? `
+          <div style="margin-bottom: 25px;">
+            <div style="margin-bottom: 12px;">
+              <a href="${data.unsubscribeUrls.reminderUrl}" 
+                 style="color: ${EMAIL_THEME.colors.warning.text}; 
+                        text-decoration: none; 
+                        font-weight: 500;
+                        font-size: 14px;
+                        border-bottom: 1px dotted ${EMAIL_THEME.colors.warning.text};">
+                הפסקת תזכורות חודשיות
+              </a>
+            </div>
+            <div>
+              <a href="${data.unsubscribeUrls.allUrl}" 
+                 style="color: ${EMAIL_THEME.colors.textLight}; 
+                        text-decoration: none; 
+                        font-weight: 400;
+                        font-size: 12px;
+                        border-bottom: 1px dotted ${EMAIL_THEME.colors.textLight};">
+                ביטול הרשמה מכל המיילים
+              </a>
+            </div>
           </div>
-          <div style="margin: 0;">
-            <a href="${data.unsubscribeUrls.allUrl}" 
-               style="background-color: #6b7280; 
-                      color: white; 
-                      padding: 8px 16px; 
-                      text-decoration: none; 
-                      border-radius: 6px; 
-                      display: inline-block;
-                      font-weight: 400;
-                      font-size: 12px;">
-              ביטול הרשמה מכל המיילים
-            </a>
-          </div>
-        </div>
-        `
-            : ""
-        }
+          `
+              : ""
+          }
         
-        <div style="text-align: center; direction: rtl;">
-          <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px 0; text-align: right;">
+          <p style="color: ${
+            EMAIL_THEME.colors.textLight
+          }; font-size: 14px; margin: 0 0 10px 0;">
             ${
               data.unsubscribeUrls
                 ? "תוכל גם להגיע לדף ההגדרות באפליקציה לעדכון העדפות המייל שלך."
                 : "אם אינך רוצה לקבל תזכורות אלו, תוכל לבטל אותן בהגדרות האפליקציה."
             }
           </p>
-          <p style="color: #9ca3af; font-size: 12px; margin: 0; text-align: right;">
-            © 2025 Ten10. כל הזכויות שמורות.
+          <p style="color: ${
+            EMAIL_THEME.colors.textLight
+          }; font-size: 12px; margin: 0;">
+            © ${new Date().getFullYear()} Ten10. כל הזכויות שמורות.
           </p>
         </div>
         
