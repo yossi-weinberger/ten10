@@ -52,7 +52,7 @@ export const AnimatedLogo = () => {
           d="M-24.77461,-150.74271h10.8c3.33333,0 5,1.66667 5,5v55.9c0,3.33333 -1.66667,5 -5,5h-10.8c-3.33333,0 -5,-1.66667 -5,-5v-55.9c0,-3.33333 1.66667,-5 5,-5zM-51.97461,-159.84271h68c3.33333,0 5,1.66667 5,5v8.4c0,3.33333 -1.66667,5 -5,5h-68c-3.33333,0 -5,-1.66667 -5,-5v-8.4c0,-3.33333 1.66667,-5 5,-5z"
           fill="#11676a"
           stroke="#11676a"
-          strokeWidth="3" // Increased stroke width
+          strokeWidth="3"
           variants={pathVariants}
           initial="visible"
           animate={isHovered ? "hover" : "visible"}
