@@ -83,16 +83,7 @@ export const ScreenshotCarousel: React.FC = () => {
                   >
                     {t(item.titleKey)}
                   </motion.h3>
-                  {/* If there is a description in translation, we can add it here. 
-                      Currently the key used for title seems to be the description in the JSON.
-                      Let's check the JSON content.
-                      "carousel": {
-                        "dashboard": "תצוגה כללית של המצב הפיננסי",
-                        ...
-                      }
-                      So the titleKey actually points to a description string.
-                      The user said "move the description above". 
-                  */}
+                  {/* Description text comes from the translation key used for the title. */}
                 </div>
 
                 {/* Image Container */}
