@@ -22,6 +22,7 @@ import { useDonationStore } from "./lib/store";
 import { checkAndSendDesktopReminder } from "./lib/data-layer/reminders";
 import { checkForUpdates } from "./lib/data-layer/updater.service";
 import { logger } from "@/lib/logger";
+import { cn } from "@/lib/utils/index";
 import toast from "react-hot-toast";
 import ContactFAB from "./components/layout/ContactFAB";
 import { Footer } from "@/pages/landing/sections/Footer";
@@ -147,7 +148,7 @@ function App() {
       <div className="h-full w-full overflow-hidden bg-background flex">
         {!isFullScreenPage && (
           <div
-            className="hidden md:block w-[4rem] hover:w-40 transition-all duration-300 bg-card overflow-hidden h-full shadow-lg"
+            className="hidden md:block w-[4rem] hover:w-44 transition-all duration-300 bg-card overflow-hidden h-full shadow-lg"
             onMouseEnter={() => setIsSidebarExpanded(true)}
             onMouseLeave={() => setIsSidebarExpanded(false)}
           >
@@ -161,14 +162,17 @@ function App() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden fixed top-4 right-4 z-50 rounded-full border border-border bg-card text-card-foreground shadow-md hover:bg-accent hover:text-accent-foreground"
+                className={cn(
+                  "md:hidden fixed top-4 z-50 rounded-full border border-border bg-card text-card-foreground shadow-md hover:bg-accent hover:text-accent-foreground",
+                  i18n.dir() === "rtl" ? "right-4" : "left-4"
+                )}
               >
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
             <SheetContent
-              side="right"
-              className="p-0 flex flex-col w-40 max-w-[9rem]"
+              side={i18n.dir() === "rtl" ? "right" : "left"}
+              className="p-0 flex flex-col w-44 overflow-x-hidden"
             >
               {/* Accessibility: Provide a DialogTitle for the Sheet to satisfy Radix requirements */}
               <SheetHeader>
@@ -177,7 +181,7 @@ function App() {
                   Main navigation panel for mobile view
                 </SheetDescription>
               </SheetHeader>
-              <div className="flex-1 overflow-y-auto pt-12">
+              <div className="flex-1 overflow-y-auto overflow-x-hidden pt-12 pb-4">
                 <Sidebar expanded={true} inSheet={true} />
               </div>
             </SheetContent>
