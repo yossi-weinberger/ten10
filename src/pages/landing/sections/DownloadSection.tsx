@@ -47,7 +47,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
           >
             <span className="block">{t("cta.subtitle")}</span>
             <span className="block mt-2 text-base text-gray-500 dark:text-gray-400">
-              {t("download.subtitle")}
+            {t("download.subtitle")}
             </span>
           </motion.p>
         </motion.div>

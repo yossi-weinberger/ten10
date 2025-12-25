@@ -68,8 +68,8 @@
     },
     "items": {
       "autoCalculation": {
-        "title": "Automatic Tithe Calculation",
-        "description": "The system automatically calculates your tithe balance based on income, expenses, and donations"
+        "title": "Automatic maaser & chomesh calculation",
+        "description": "Automatically calculates your maaser balance, with full support for chomesh (20%) — based on income, expenses, and donations"
       },
       "accessAnywhere": {
         "title": "Access Anywhere",
@@ -95,13 +95,25 @@
         "title": "Mobile Installation",
         "description": "Install the website version as a mobile app directly from your browser or app store"
       },
-      "chomesh": {
-        "title": "Chomesh Calculation",
-        "description": "Full support for Chomesh (20%) calculation for first-time or special income"
-      },
       "askRabbi": {
         "title": "Ask the Rabbi",
         "description": "Get answers to your tithe questions from certified rabbis"
+      },
+      "householdBudget": {
+        "title": "Household budget tracking",
+        "description": "Track income and expenses in one place, with a clear picture of your family's budget"
+      },
+      "dashboardInsights": {
+        "title": "Dashboard & period insights",
+        "description": "A convenient dashboard to review transactions and summaries by week, month, or year"
+      },
+      "strictSecurity": {
+        "title": "Strict security & privacy",
+        "description": "Strong protection for your data and privacy — designed with security in mind from day one"
+      },
+      "halachaLibrary": {
+        "title": "Comprehensive halacha library",
+        "description": "A clear, organized knowledge base for maaser topics, written and reviewed by expert rabbis"
       }
     }
   },

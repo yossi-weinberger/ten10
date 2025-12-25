@@ -6,8 +6,11 @@ import {
   PieChart,
   FileText,
   Smartphone,
-  Star,
   MessageCircleQuestion,
+  Wallet,
+  LayoutDashboard,
+  ShieldCheck,
+  Library,
 } from "lucide-react";
 
 export type PlatformAvailability = "web" | "desktop";
@@ -29,39 +32,25 @@ export const features: Feature[] = [
     imageSrc: "/features/auto-calc.png",
   },
   {
+    icon: Wallet,
+    titleKey: "features.items.householdBudget.title",
+    descriptionKey: "features.items.householdBudget.description",
+    availability: ["web", "desktop"],
+    imageSrc: "/features/budget.png",
+  },
+  {
+    icon: ShieldCheck,
+    titleKey: "features.items.strictSecurity.title",
+    descriptionKey: "features.items.strictSecurity.description",
+    availability: ["web", "desktop"],
+    imageSrc: "/features/security.png",
+  },
+  {
     icon: Globe,
     titleKey: "features.items.accessAnywhere.title",
     descriptionKey: "features.items.accessAnywhere.description",
     availability: ["web"],
     imageSrc: "/features/access.png",
-  },
-  {
-    icon: Calendar,
-    titleKey: "features.items.smartRecurring.title",
-    descriptionKey: "features.items.smartRecurring.description",
-    availability: ["web", "desktop"],
-    imageSrc: "/features/recurring.png",
-  },
-  {
-    icon: Mail,
-    titleKey: "features.items.personalReminders.title",
-    descriptionKey: "features.items.personalReminders.description",
-    availability: ["web"], // Email reminders usually web/cloud
-    imageSrc: "/features/reminders.png",
-  },
-  {
-    icon: PieChart,
-    titleKey: "features.items.reportsCharts.title",
-    descriptionKey: "features.items.reportsCharts.description",
-    availability: ["web", "desktop"],
-    imageSrc: "/features/reports.png",
-  },
-  {
-    icon: FileText,
-    titleKey: "features.items.dataExport.title",
-    descriptionKey: "features.items.dataExport.description",
-    availability: ["web", "desktop"],
-    imageSrc: "/features/export.png",
   },
   {
     icon: Smartphone,
@@ -71,11 +60,46 @@ export const features: Feature[] = [
     imageSrc: "/features/pwa.png",
   },
   {
-    icon: Star,
-    titleKey: "features.items.chomesh.title",
-    descriptionKey: "features.items.chomesh.description",
+    icon: LayoutDashboard,
+    titleKey: "features.items.dashboardInsights.title",
+    descriptionKey: "features.items.dashboardInsights.description",
     availability: ["web", "desktop"],
-    imageSrc: "/features/chomesh.png",
+    imageSrc: "/features/dashboard.png",
+  },
+  {
+    icon: Calendar,
+    titleKey: "features.items.smartRecurring.title",
+    descriptionKey: "features.items.smartRecurring.description",
+    availability: ["web", "desktop"],
+    imageSrc: "/features/recurring.png",
+  },
+  {
+    icon: PieChart,
+    titleKey: "features.items.reportsCharts.title",
+    descriptionKey: "features.items.reportsCharts.description",
+    availability: ["web", "desktop"],
+    imageSrc: "/features/reports.png",
+  },
+  {
+    icon: Mail,
+    titleKey: "features.items.personalReminders.title",
+    descriptionKey: "features.items.personalReminders.description",
+    availability: ["web"], // Email reminders usually web/cloud
+    imageSrc: "/features/reminders.png",
+  },
+  {
+    icon: FileText,
+    titleKey: "features.items.dataExport.title",
+    descriptionKey: "features.items.dataExport.description",
+    availability: ["web", "desktop"],
+    imageSrc: "/features/export.png",
+  },
+  {
+    icon: Library,
+    titleKey: "features.items.halachaLibrary.title",
+    descriptionKey: "features.items.halachaLibrary.description",
+    availability: ["web", "desktop"],
+    imageSrc: "/features/halacha.png",
   },
   {
     icon: MessageCircleQuestion,
