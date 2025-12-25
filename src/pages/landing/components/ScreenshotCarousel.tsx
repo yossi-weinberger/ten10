@@ -9,7 +9,6 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Progress } from "@/components/ui/progress";
-import { Calculator, FileText, PieChart } from "lucide-react";
 
 export const ScreenshotCarousel: React.FC = () => {
   const { t } = useTranslation("landing");
@@ -36,314 +35,111 @@ export const ScreenshotCarousel: React.FC = () => {
     };
   }, [carouselApi]);
 
+  const screenshots = [
+    {
+      key: "dashboard",
+      titleKey: "carousel.dashboard",
+      // User will upload images later. Placeholder for now.
+      src: "/screenshots/dashboard-placeholder.png",
+      alt: "Ten10 Dashboard",
+    },
+    {
+      key: "transactions",
+      titleKey: "carousel.transactions",
+      src: "/screenshots/transactions-placeholder.png",
+      alt: "Ten10 Transactions",
+    },
+    {
+      key: "reports",
+      titleKey: "carousel.reports",
+      src: "/screenshots/reports-placeholder.png",
+      alt: "Ten10 Reports",
+    },
+  ];
+
   return (
     <motion.div
-      className="relative mx-auto max-w-4xl"
+      className="relative mx-auto max-w-5xl"
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", damping: 20, stiffness: 300 }}
     >
-      <motion.div
-        whileHover={{ scale: 1.02 }}
-        transition={{ type: "spring", damping: 20, stiffness: 300 }}
+      <Carousel
+        className="w-full"
+        opts={{ align: "center", loop: true }}
+        setApi={setCarouselApi}
       >
-        <Carousel
-          className="w-full"
-          opts={{ align: "start", loop: true }}
-          setApi={setCarouselApi}
-        >
-          <CarouselContent>
-            {/* Dashboard Screenshot */}
-            <CarouselItem>
-              <motion.div
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 border hover-lift gpu-accelerated"
-                whileHover={{ y: -5 }}
-                transition={{
-                  type: "spring",
-                  damping: 20,
-                  stiffness: 300,
-                }}
-              >
+        <CarouselContent>
+          {screenshots.map((item, index) => (
+            <CarouselItem key={item.key}>
+              <div className="flex flex-col gap-6 p-4">
+                {/* Text Content - Moved above image */}
+                <div className="text-center space-y-2">
+                  <motion.h3
+                    className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    {t(item.titleKey)}
+                  </motion.h3>
+                  {/* If there is a description in translation, we can add it here. 
+                      Currently the key used for title seems to be the description in the JSON.
+                      Let's check the JSON content.
+                      "carousel": {
+                        "dashboard": "תצוגה כללית של המצב הפיננסי",
+                        ...
+                      }
+                      So the titleKey actually points to a description string.
+                      The user said "move the description above". 
+                  */}
+                </div>
+
+                {/* Image Container */}
                 <motion.div
-                  className="flex items-center gap-2 mb-4"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
+                  className="relative rounded-xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 aspect-video group"
+                  whileHover={{ y: -5 }}
+                  transition={{ type: "spring", damping: 20, stiffness: 300 }}
                 >
-                  <motion.div
-                    className="w-3 h-3 bg-red-500 rounded-full"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                  <motion.div
-                    className="w-3 h-3 bg-yellow-500 rounded-full"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      delay: 0.3,
-                    }}
-                  />
-                  <motion.div
-                    className="w-3 h-3 bg-green-500 rounded-full"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      delay: 0.6,
-                    }}
-                  />
-                  <span className="ml-4 text-sm text-gray-500">
-                    Ten10 Dashboard
-                  </span>
-                </motion.div>
-                <motion.div
-                  className="bg-gradient-to-br from-blue-100 to-teal-100 dark:from-blue-900 dark:to-teal-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center animate-gradient"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{
-                    type: "spring",
-                    damping: 20,
-                    stiffness: 300,
-                  }}
-                >
-                  <div>
-                    <motion.div
-                      animate={{
-                        rotate: [0, 360],
-                        scale: [1, 1.1, 1],
-                      }}
-                      transition={{
-                        rotate: {
-                          duration: 10,
-                          repeat: Infinity,
-                          ease: "linear",
-                        },
-                        scale: { duration: 2, repeat: Infinity },
-                      }}
-                    >
-                      <Calculator className="h-16 w-16 mx-auto mb-4 text-blue-600" />
-                    </motion.div>
-                    <motion.h3
-                      className="text-2xl font-bold mb-2"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5 }}
-                    >
-                      Dashboard
-                    </motion.h3>
-                    <motion.p
-                      className="text-gray-600 dark:text-gray-300 text-sm"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.7 }}
-                    >
-                      {t("carousel.dashboard")}
-                    </motion.p>
+                  {/* Placeholder Background if image is missing */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center">
+                    <span className="text-gray-400 dark:text-gray-600 font-medium">
+                      Image: {item.alt}
+                    </span>
                   </div>
+
+                  {/* Actual Image Tag - User will replace src */}
+                  <img
+                    src={item.src}
+                    alt={item.alt}
+                    className="relative w-full h-full object-cover object-top opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                    onError={(e) => {
+                      // Keep opacity 0 if failed to load so placeholder shows
+                      (e.target as HTMLImageElement).style.opacity = "0";
+                    }}
+                    onLoad={(e) => {
+                      (e.target as HTMLImageElement).style.opacity = "1";
+                    }}
+                  />
+
+                  {/* Overlay for depth */}
+                  <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-xl pointer-events-none" />
                 </motion.div>
-              </motion.div>
+              </div>
             </CarouselItem>
+          ))}
+        </CarouselContent>
 
-            {/* Transactions Screenshot */}
-            <CarouselItem>
-              <motion.div
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 border hover-lift gpu-accelerated"
-                whileHover={{ y: -5 }}
-                transition={{
-                  type: "spring",
-                  damping: 20,
-                  stiffness: 300,
-                }}
-              >
-                <motion.div
-                  className="flex items-center gap-2 mb-4"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <motion.div
-                    className="w-3 h-3 bg-red-500 rounded-full"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                  <motion.div
-                    className="w-3 h-3 bg-yellow-500 rounded-full"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      delay: 0.3,
-                    }}
-                  />
-                  <motion.div
-                    className="w-3 h-3 bg-green-500 rounded-full"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      delay: 0.6,
-                    }}
-                  />
-                  <span className="ml-4 text-sm text-gray-500">
-                    Ten10 Transactions
-                  </span>
-                </motion.div>
-                <motion.div
-                  className="bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center animate-gradient"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{
-                    type: "spring",
-                    damping: 20,
-                    stiffness: 300,
-                  }}
-                >
-                  <div>
-                    <motion.div
-                      animate={{
-                        y: [-5, 5, -5],
-                        rotate: [0, 5, -5, 0],
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                      }}
-                    >
-                      <FileText className="h-16 w-16 mx-auto mb-4 text-green-600" />
-                    </motion.div>
-                    <motion.h3
-                      className="text-2xl font-bold mb-2"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5 }}
-                    >
-                      Transactions
-                    </motion.h3>
-                    <motion.p
-                      className="text-gray-600 dark:text-gray-300 text-sm"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.7 }}
-                    >
-                      {t("carousel.transactions")}
-                    </motion.p>
-                  </div>
-                </motion.div>
-              </motion.div>
-            </CarouselItem>
+        <CarouselPrevious className="-left-4 md:-left-12 h-12 w-12 border-none bg-white/80 dark:bg-gray-800/80 backdrop-blur shadow-lg hover:bg-white dark:hover:bg-gray-800" />
+        <CarouselNext className="-right-4 md:-right-12 h-12 w-12 border-none bg-white/80 dark:bg-gray-800/80 backdrop-blur shadow-lg hover:bg-white dark:hover:bg-gray-800" />
+      </Carousel>
 
-            {/* Reports Screenshot */}
-            <CarouselItem>
-              <motion.div
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 border hover-lift gpu-accelerated"
-                whileHover={{ y: -5 }}
-                transition={{
-                  type: "spring",
-                  damping: 20,
-                  stiffness: 300,
-                }}
-              >
-                <motion.div
-                  className="flex items-center gap-2 mb-4"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  <motion.div
-                    className="w-3 h-3 bg-red-500 rounded-full"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                  <motion.div
-                    className="w-3 h-3 bg-yellow-500 rounded-full"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      delay: 0.3,
-                    }}
-                  />
-                  <motion.div
-                    className="w-3 h-3 bg-green-500 rounded-full"
-                    animate={{ scale: [1, 1.2, 1] }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      delay: 0.6,
-                    }}
-                  />
-                  <span className="ml-4 text-sm text-gray-500">
-                    Ten10 Reports
-                  </span>
-                </motion.div>
-                <motion.div
-                  className="bg-gradient-to-br from-teal-100 to-pink-100 dark:from-teal-900 dark:to-pink-900 rounded-lg p-8 text-center aspect-video flex items-center justify-center animate-gradient"
-                  whileHover={{ scale: 1.05 }}
-                  transition={{
-                    type: "spring",
-                    damping: 20,
-                    stiffness: 300,
-                  }}
-                >
-                  <div>
-                    <motion.div
-                      animate={{
-                        rotate: [0, 360],
-                        scale: [1, 1.2, 1],
-                      }}
-                      transition={{
-                        rotate: {
-                          duration: 8,
-                          repeat: Infinity,
-                          ease: "linear",
-                        },
-                        scale: { duration: 2, repeat: Infinity },
-                      }}
-                    >
-                      <PieChart className="h-16 w-16 mx-auto mb-4 text-teal-600" />
-                    </motion.div>
-                    <motion.h3
-                      className="text-2xl font-bold mb-2"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.5 }}
-                    >
-                      Reports
-                    </motion.h3>
-                    <motion.p
-                      className="text-gray-600 dark:text-gray-300 text-sm"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.7 }}
-                    >
-                      {t("carousel.reports")}
-                    </motion.p>
-                  </div>
-                </motion.div>
-              </motion.div>
-            </CarouselItem>
-          </CarouselContent>
-
-          <CarouselPrevious className="hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors duration-200" />
-          <CarouselNext className="hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors duration-200" />
-        </Carousel>
-      </motion.div>
-
-      {/* Enhanced Carousel Progress Bar */}
-      <motion.div className="mt-6 max-w-xs mx-auto">
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          transition={{ type: "spring", damping: 20, stiffness: 300 }}
-        >
-          <Progress value={carouselProgress} className="h-2 animate-shimmer" />
-        </motion.div>
-        <motion.p
-          className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2"
-          animate={{ opacity: [0.7, 1, 0.7] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
+      {/* Progress Bar */}
+      <motion.div className="mt-8 max-w-xs mx-auto">
+        <Progress value={carouselProgress} className="h-1.5" />
+        <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">
           {t("carousel.swipeHint")}
-        </motion.p>
+        </p>
       </motion.div>
     </motion.div>
   );

@@ -9,8 +9,10 @@ import {
   buttonHover,
   buttonTap,
 } from "@/hooks/useScrollAnimation";
-import { Button } from "@/components/ui/button";
-import { Download, Globe } from "lucide-react";
+import {
+  LandingPrimaryButton,
+  LandingGoldButton,
+} from "../components/LandingButtons";
 
 export const CtaSection: React.FC = () => {
   const { t } = useTranslation("landing");
@@ -43,10 +45,7 @@ export const CtaSection: React.FC = () => {
         >
           <motion.div variants={staggerItem}>
             <motion.div whileHover={buttonHover} whileTap={buttonTap}>
-              <Button
-                size="lg"
-                variant="secondary"
-                className="text-lg px-8 py-3"
+              <LandingPrimaryButton
                 onClick={() => {
                   // Scroll to download section
                   document
@@ -54,25 +53,18 @@ export const CtaSection: React.FC = () => {
                     ?.scrollIntoView({ behavior: "smooth" });
                 }}
               >
-                <Download className="mr-2 h-5 w-5" />
                 {t("cta.desktopButton")}
-              </Button>
+              </LandingPrimaryButton>
             </motion.div>
           </motion.div>
 
           <motion.div variants={staggerItem}>
             <motion.div whileHover={buttonHover} whileTap={buttonTap}>
-              <Button
-                size="lg"
-                variant="secondary"
-                className="text-lg px-8 py-3"
-                asChild
-              >
+              <LandingGoldButton asChild>
                 <Link to="/" className="inline-flex items-center">
-                  <Globe className="mr-2 h-5 w-5" />
                   {t("cta.webButton")}
                 </Link>
-              </Button>
+              </LandingGoldButton>
             </motion.div>
           </motion.div>
         </motion.div>

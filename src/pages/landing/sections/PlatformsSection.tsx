@@ -10,8 +10,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Globe, Monitor, Download } from "lucide-react";
+import {
+  CheckCircle,
+  Globe,
+  Monitor,
+  Download,
+  Smartphone,
+} from "lucide-react";
 
 interface PlatformsSectionProps {
   sectionRef: React.RefObject<HTMLElement>;
@@ -35,35 +40,50 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
           </h2>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-8 items-stretch">
           {/* Web Version */}
-          <Card className="relative overflow-hidden">
+          <Card className="relative overflow-hidden flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
             <CardHeader className="bg-gradient-to-r from-blue-500 to-teal-600 text-white">
-              <div className="flex items-center gap-2">
-                <Globe className="h-6 w-6" />
-                <CardTitle className="text-2xl">
-                  {t("platforms.web.title")}
-                </CardTitle>
+              <div className="flex items-center gap-3">
+                <Globe className="h-8 w-8" />
+                <div>
+                  <CardTitle className="text-2xl">
+                    {t("platforms.web.title")}
+                  </CardTitle>
+                  <CardDescription className="text-blue-100 mt-1">
+                    {t("platforms.web.subtitle")}
+                  </CardDescription>
+                </div>
               </div>
-              <CardDescription className="text-blue-100">
-                {t("platforms.web.subtitle")} • {t("platforms.web.pwaNote")}
-              </CardDescription>
             </CardHeader>
-            <CardContent className="pt-6">
-              <ul className="space-y-3">
+            <CardContent className="pt-8 flex-grow flex flex-col">
+              <ul className="space-y-4 mb-8 flex-grow">
                 {t("platforms.web.features", { returnObjects: true }).map(
                   (item: string, index: number) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>{item}</span>
+                    <li key={index} className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">
+                        {item}
+                      </span>
                     </li>
                   )
                 )}
               </ul>
-              <motion.div whileHover={buttonHover} whileTap={buttonTap}>
-                <Button className="w-full mt-6" variant="outline" asChild>
-                  <Link to="/" className="inline-flex items-center">
-                    <Globe className="mr-2 h-4 w-4" />
+              <motion.div
+                whileHover={buttonHover}
+                whileTap={buttonTap}
+                className="mt-auto"
+              >
+                <Button
+                  className="w-full text-lg py-6"
+                  variant="outline"
+                  asChild
+                >
+                  <Link
+                    to="/"
+                    className="inline-flex items-center justify-center gap-2"
+                  >
+                    <Globe className="h-5 w-5" />
                     {t("platforms.web.button")}
                   </Link>
                 </Button>
@@ -72,44 +92,49 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
           </Card>
 
           {/* Desktop Version */}
-          <Card className="relative overflow-hidden border-2 border-blue-500">
-            <div className="absolute top-4 right-4">
-              <Badge className="bg-blue-500">
-                {t("platforms.desktop.badge")}
-              </Badge>
-            </div>
-            <CardHeader className="bg-gradient-to-r from-green-500 to-blue-600 text-white">
-              <div className="flex items-center gap-2">
-                <Monitor className="h-6 w-6" />
-                <CardTitle className="text-2xl">
-                  {t("platforms.desktop.title")}
-                </CardTitle>
+          <Card className="relative overflow-hidden border-2 border-blue-500 flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
+            {/* Removed "Recommended" Badge as requested */}
+
+            <CardHeader className="bg-gradient-to-r from-emerald-500 to-green-600 text-white">
+              <div className="flex items-center gap-3">
+                <Monitor className="h-8 w-8" />
+                <div>
+                  <CardTitle className="text-2xl">
+                    {t("platforms.desktop.title")}
+                  </CardTitle>
+                  <CardDescription className="text-green-100 mt-1">
+                    {t("platforms.desktop.subtitle")}
+                  </CardDescription>
+                </div>
               </div>
-              <CardDescription className="text-green-100">
-                {t("platforms.desktop.subtitle")}
-              </CardDescription>
             </CardHeader>
-            <CardContent className="pt-6">
-              <ul className="space-y-3">
+            <CardContent className="pt-8 flex-grow flex flex-col">
+              <ul className="space-y-4 mb-8 flex-grow mt-6">
                 {t("platforms.desktop.features", { returnObjects: true }).map(
                   (item: string, index: number) => (
-                    <li key={index} className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5 text-green-500" />
-                      <span>{item}</span>
+                    <li key={index} className="flex items-start gap-3">
+                      <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-gray-700 dark:text-gray-300">
+                        {item}
+                      </span>
                     </li>
                   )
                 )}
               </ul>
-              <motion.div whileHover={buttonHover} whileTap={buttonTap}>
+              <motion.div
+                whileHover={buttonHover}
+                whileTap={buttonTap}
+                className="mt-auto"
+              >
                 <Button
-                  className="w-full mt-6"
+                  className="w-full text-lg py-6 bg-emerald-600 hover:bg-emerald-700 text-white"
                   onClick={() => {
                     document
                       .getElementById("download")
                       ?.scrollIntoView({ behavior: "smooth" });
                   }}
                 >
-                  <Download className="mr-2 h-4 w-4" />
+                  <Download className="mr-2 h-5 w-5" />
                   {t("platforms.desktop.button")}
                 </Button>
               </motion.div>

@@ -8,12 +8,13 @@ export const QuotesSection: React.FC = () => {
 
   return (
     <section
-      className="py-16 px-4 bg-gradient-to-r from-amber-50 to-orange-100 dark:from-amber-900 dark:to-orange-900"
+      // Changed background to lighter brand colors (Emerald/Teal tint)
+      className="py-16 px-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950"
       ref={quotesRef.ref}
     >
       <div className="container mx-auto max-w-4xl text-center">
         <motion.h2
-          className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-8"
+          className="text-2xl md:text-3xl font-bold text-emerald-900 dark:text-emerald-100 mb-8"
           initial={{ opacity: 0, y: 30 }}
           animate={
             quotesRef.isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
@@ -23,7 +24,7 @@ export const QuotesSection: React.FC = () => {
           {t("quotes.title")}
         </motion.h2>
         <motion.div
-          className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg border-r-4 border-amber-500"
+          className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg border-r-4 border-emerald-500"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={
             quotesRef.isInView
@@ -46,7 +47,7 @@ export const QuotesSection: React.FC = () => {
         </motion.div>
         <div className="mt-6 grid md:grid-cols-2 gap-6">
           <motion.div
-            className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border-r-4 border-blue-500"
+            className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border-r-4 border-teal-500"
             initial={{ opacity: 0, x: -30 }}
             animate={
               quotesRef.isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -30 }
@@ -66,7 +67,7 @@ export const QuotesSection: React.FC = () => {
             </cite>
           </motion.div>
           <motion.div
-            className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border-r-4 border-green-500"
+            className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow border-r-4 border-cyan-500"
             initial={{ opacity: 0, x: 30 }}
             animate={
               quotesRef.isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: 30 }

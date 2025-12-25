@@ -49,6 +49,11 @@ function App() {
   // Show footer on all pages except login and signup
   const shouldShowFooter = !["/login", "/signup"].includes(currentPath);
 
+  // Hide floating contact button on auth + landing pages
+  const shouldShowContactFab =
+    (user || platform === "desktop") &&
+    !["/login", "/signup", "/landing"].includes(currentPath);
+
   // Synchronize i18n with Zustand store language after hydration
   useEffect(() => {
     if (_hasHydrated && i18n.language !== settings.language) {
@@ -203,7 +208,7 @@ function App() {
         </div>
         <Toaster richColors />
       </div>
-      {(user || platform === "desktop") && <ContactFAB />}
+      {shouldShowContactFab && <ContactFAB />}
     </TooltipProvider>
   );
 }

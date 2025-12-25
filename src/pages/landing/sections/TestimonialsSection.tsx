@@ -37,10 +37,12 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
           </motion.h2>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        {/* Added items-stretch to grid to ensure equal height */}
+        <div className="grid md:grid-cols-3 gap-8 items-stretch">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={index}
+              className="h-full" // Ensure motion div takes full height
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{
@@ -52,8 +54,8 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
               whileHover={{ y: -8 }}
               viewport={{ once: true }}
             >
-              <Card className="hover:shadow-xl transition-all duration-300 hover:border-blue-200 dark:hover:border-blue-800 group">
-                <CardContent className="pt-6">
+              <Card className="h-full hover:shadow-xl transition-all duration-300 hover:border-blue-200 dark:hover:border-blue-800 group flex flex-col">
+                <CardContent className="pt-6 flex flex-col flex-grow">
                   <motion.div
                     className="flex mb-4"
                     initial={{ opacity: 0, scale: 0.8 }}
@@ -72,16 +74,19 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
                       </motion.div>
                     ))}
                   </motion.div>
+
+                  {/* flex-grow pushes the user info to the bottom */}
                   <motion.p
-                    className="text-gray-600 dark:text-gray-300 mb-4 italic group-hover:text-gray-800 dark:group-hover:text-gray-100 transition-colors duration-300"
+                    className="text-gray-600 dark:text-gray-300 mb-6 italic group-hover:text-gray-800 dark:group-hover:text-gray-100 transition-colors duration-300 flex-grow"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 + 0.2 }}
                   >
                     "{t(testimonial.textKey)}"
                   </motion.p>
+
                   <motion.div
-                    className="flex items-center gap-3"
+                    className="flex items-center gap-3 mt-auto"
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 + 0.3 }}

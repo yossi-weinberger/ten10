@@ -12,7 +12,6 @@ import { TestimonialsSection } from "./sections/TestimonialsSection";
 import { QuotesSection } from "./sections/QuotesSection";
 import { AboutSection } from "./sections/AboutSection";
 import { FaqSection } from "./sections/FaqSection";
-import { CtaSection } from "./sections/CtaSection";
 import { DownloadSection } from "./sections/DownloadSection";
 
 const LandingPage: React.FC = () => {
@@ -257,9 +256,6 @@ const LandingPage: React.FC = () => {
 
       {/* FAQ Section */}
       <FaqSection sectionRef={sectionRefs.faq} />
-
-      {/* Final CTA */}
-      <CtaSection />
 
       {/* Download Section */}
       <DownloadSection sectionRef={sectionRefs.download} />
