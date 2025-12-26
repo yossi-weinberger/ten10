@@ -200,10 +200,10 @@ aws iam create-access-key --user-name ten10-ses-sender
 # Required secrets
 supabase secrets set \
   AWS_REGION=eu-central-1 \
-  AWS_ACCESS_KEY_ID=AKIA... \
-  AWS_SECRET_ACCESS_KEY=... \
+  AWS_ACCESS_KEY_ID=YOUR_AWS_ACCESS_KEY_ID \
+  AWS_SECRET_ACCESS_KEY=YOUR_AWS_SECRET_ACCESS_KEY \
   SES_FROM=reminder-noreply@ten10-app.com \
-  SUPABASE_SERVICE_ROLE_KEY=eyJ...
+  SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
 ```
 
 ### Amazon SES Configuration
@@ -255,6 +255,7 @@ supabase/functions/
 All email functions now use a shared design system defined in `supabase/functions/_shared/email-design.ts`. This ensures consistency across all transactional emails.
 
 **Key features of the shared design:**
+
 - **Centralized Theme**: Colors, fonts, and logo URL are defined in one place.
 - **Consistent Header**: A `getEmailHeader()` function generates the same branded header for all emails.
 - **RTL Support**: Explicit styles for Right-to-Left languages (Hebrew).
@@ -507,6 +508,13 @@ curl -X POST "https://flpzqbvbymoluoeeeofg.supabase.co/functions/v1/send-reminde
 **GitHub Actions**: Automatically deploys when `supabase/functions/**` files change
 **Vercel**: Handles frontend deployment separately
 **No Manual Steps**: Everything happens automatically on `git push origin main`
+
+### Sender Address Notes (SES)
+
+- Reminder emails intentionally use the global `SES_FROM` (default: `reminder-noreply@ten10-app.com`).
+- Other email types should use dedicated senders to avoid accidental changes:
+  - `SES_FROM_CONTACT` for contact form notifications (default: `contact-form@ten10-app.com`)
+  - `SES_FROM_USERS` for the daily new-users summary (default: `users-update@ten10-app.com`)
 
 ### Cron Job Setup
 

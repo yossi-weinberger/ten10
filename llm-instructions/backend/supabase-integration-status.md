@@ -50,7 +50,7 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 - **Edge Function:** `send-new-user-email` sends a daily summary (table + text) of new users only (filtered by `auth.users.created_at`).
 - **Data Source:** Uses Auth Admin API (`auth.admin.listUsers`) with a default 24h window; fetches matching `profiles` for `full_name`, `avatar_url`, `mailing_list_consent`, `reminder_enabled/day`.
 - **Email Format:** Table includes Avatar/Name/Email/User ID + Date (DD/MM/YYYY) + Time (HH:MM) + Mailing consent; text body mirrors the same info. If no new users are found, returns 200 with `sent:false` and does not send an email.
-- **Sender/SES:** Uses `SES_FROM_USERS=users-update@ten10-app.com` (SES verified) when set; otherwise falls back to `SES_FROM` (`contact-form@ten10-app.com` default). Requires `AWS_ACCESS_KEY_ID/SECRET/REGION`.
+- **Sender/SES:** Uses `SES_FROM_USERS` (recommended) and falls back to `users-update@ten10-app.com` by default (SES verified). This sender is intentionally isolated from the global `SES_FROM` used by reminder emails. Requires `AWS_ACCESS_KEY_ID/SECRET/REGION`.
 - **Security:** Function uses Service Role Key; the cron job must use a Service Role Bearer, not anon.
 - **Cron:** Daily pg_cron at `0 19 * * *` (21:00 Israel) via `net.http_post` to `/functions/v1/send-new-user-email` with Service Role authorization.
 

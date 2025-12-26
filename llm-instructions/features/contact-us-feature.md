@@ -223,6 +223,8 @@ CREATE TABLE contact_messages (
   7. For Rabbi channel: sends to `torat.maaser@gmail.com` with CC to `halacha@ten10-app.com`
   8. For Dev channel: sends to `dev@ten10-app.com`
 - **Email Sender**: `contact-form@ten10-app.com` (configured in AWS SES)
+  - **Important**: `send-contact-email` uses `SES_FROM_CONTACT` (recommended) and falls back to `contact-form@ten10-app.com`.
+  - Do not rely on the global `SES_FROM` for contact emails, because `SES_FROM` is used by reminder emails and can unintentionally change the "From" address for contact notifications.
 
 ---
 
