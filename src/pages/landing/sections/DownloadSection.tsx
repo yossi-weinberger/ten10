@@ -39,13 +39,16 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
             className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-8"
             variants={fadeInUp}
           >
-            {t("download.title")}
+            {t("cta.title")}
           </motion.h2>
           <motion.p
             className="text-xl text-gray-600 dark:text-gray-300 mb-12"
             variants={fadeInUp}
           >
+            <span className="block">{t("cta.subtitle")}</span>
+            <span className="block mt-2 text-base text-gray-500 dark:text-gray-400">
             {t("download.subtitle")}
+            </span>
           </motion.p>
         </motion.div>
 
@@ -69,15 +72,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
             <Card className="hover:shadow-xl transition-all duration-300 group hover:border-blue-200 dark:hover:border-blue-800 h-full">
               <CardContent className="pt-6 text-center">
                 <motion.div
-                  animate={{
-                    scale: [1, 1.1, 1],
-                    rotate: [0, 5, -5, 0],
-                  }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  }}
+                // Removed rotation animation, kept simple scale on hover if desired, or static
                 >
                   <Monitor className="h-12 w-12 mx-auto mb-4 text-blue-600 group-hover:text-blue-700 transition-colors duration-300" />
                 </motion.div>
@@ -138,18 +133,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
             <Card className="hover:shadow-xl transition-all duration-300 border-2 border-green-500 group hover:border-green-400 animate-pulse-glow h-full">
               <CardContent className="pt-6 text-center">
                 <motion.div
-                  animate={{
-                    rotate: [0, 360],
-                    scale: [1, 1.2, 1],
-                  }}
-                  transition={{
-                    rotate: { duration: 4, repeat: Infinity, ease: "linear" },
-                    scale: {
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    },
-                  }}
+                // Removed rotation animation
                 >
                   <Globe className="h-12 w-12 mx-auto mb-4 text-green-600 group-hover:text-green-700 transition-colors duration-300" />
                 </motion.div>

@@ -8,6 +8,7 @@ import {
 } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
+import { EMAIL_THEME, getEmailHeader } from "../_shared/email-design.ts";
 
 interface ContactMessage {
   id: string;
@@ -94,66 +95,105 @@ async function sendEmailNotification(
       <head>
         <meta charset="UTF-8">
         <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; direction: rtl; text-align: right; }
-          .header { background-color: #4a5568; color: white; padding: 20px; border-radius: 5px 5px 0 0; text-align: right; }
-          .content { background-color: #f7fafc; padding: 20px; border: 1px solid #e2e8f0; text-align: right; }
-          .content p { text-align: right; }
-          .content h3 { text-align: right; }
-          .message-box { background-color: white; padding: 15px; border-right: 4px solid #4299e1; margin: 15px 0; white-space: pre-wrap; text-align: right; direction: rtl; }
-          .metadata { background-color: #edf2f7; padding: 15px; margin-top: 15px; border-radius: 5px; text-align: right; }
-          .metadata h3 { text-align: right; }
-          .metadata ul { list-style: none; padding: 0; text-align: right; }
-          .metadata li { padding: 5px 0; border-bottom: 1px solid #cbd5e0; text-align: right; }
+          body { font-family: ${
+            EMAIL_THEME.fonts.main
+          }; line-height: 1.6; color: ${
+      EMAIL_THEME.colors.textMain
+    }; max-width: 600px; margin: 0 auto; padding: 0; direction: rtl; text-align: right; background-color: ${
+      EMAIL_THEME.colors.background
+    }; }
+          .container { background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin: 40px auto; border-top: 6px solid ${
+            EMAIL_THEME.colors.primary
+          }; direction: rtl; text-align: right; }
+          /* Header styles are inline in getEmailHeader */
+          .content { padding: 40px 30px; direction: rtl; text-align: right; }
+          .title { color: #111827; font-size: 24px; font-weight: 700; margin-top: 0; margin-bottom: 24px; text-align: right; }
+          .info-grid { display: grid; grid-template-columns: auto 1fr; gap: 12px; margin-bottom: 24px; direction: rtl; }
+          .label { font-weight: 600; color: ${
+            EMAIL_THEME.colors.textSecondary
+          }; text-align: right; }
+          .value { color: #1f2937; text-align: right; }
+          .message-box { background-color: #f3f4f6; padding: 20px; border-radius: 12px; border-right: 4px solid ${
+            EMAIL_THEME.colors.primary
+          }; margin: 24px 0; white-space: pre-wrap; font-size: 16px; color: #1f2937; direction: rtl; text-align: right; }
+          .metadata { background-color: #f9fafb; padding: 24px; border-top: 1px solid ${
+            EMAIL_THEME.colors.border
+          }; font-size: 14px; color: ${EMAIL_THEME.colors.textLight}; }
+          .metadata h3 { margin-top: 0; color: ${
+            EMAIL_THEME.colors.textMain
+          }; font-size: 16px; }
+          .metadata ul { list-style: none; padding: 0; margin: 0; }
+          .metadata li { padding: 6px 0; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; }
           .metadata li:last-child { border-bottom: none; }
-          .metadata li strong { text-align: right; }
-          .attachments { margin-top: 20px; text-align: right; }
-          .attachments h3 { text-align: right; }
-          .attachments ul { list-style: none; padding: 0; text-align: right; }
-          .attachments li { padding: 5px 0; text-align: right; }
-          .attachments a { color: #4299e1; text-decoration: none; }
+          .attachments { margin-top: 24px; background-color: #ecfeff; border: 1px solid #cffafe; border-radius: 8px; padding: 16px; }
+          .attachments h3 { margin: 0 0 12px 0; color: #0e7490; font-size: 16px; }
+          .attachments ul { list-style: none; padding: 0; margin: 0; }
+          .attachments li { padding: 4px 0; }
+          .attachments a { color: #0891b2; text-decoration: none; font-weight: 600; }
           .attachments a:hover { text-decoration: underline; }
+          .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+          .tag-high { background-color: #fee2e2; color: #991b1b; }
+          .tag-med { background-color: #fef3c7; color: #92400e; }
+          .tag-low { background-color: #d1fae5; color: #065f46; }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h2 style="margin: 0;">פנייה חדשה לרב</h2>
-        </div>
-        <div class="content">
-          <p><strong>מאת:</strong> ${insertedRecord.user_name || "אנונימי"} (${
+        <div class="container">
+          ${getEmailHeader("he")}
+          <div class="content">
+            <h2 class="title">פנייה חדשה לרב</h2>
+            
+            <div class="info-grid">
+              <span class="label">מאת:</span>
+              <span class="value">${insertedRecord.user_name || "אנונימי"} (${
       insertedRecord.user_email || "לא צוין"
-    })</p>
-          <p><strong>מספר כרטיס:</strong> ${ticketNumber}</p>
-          <p><strong>נושא:</strong> ${insertedRecord.subject}</p>
-          ${severityText ? `<p><strong>${severityText}</strong></p>` : ""}
-          <hr>
-          <h3>הודעה:</h3>
-          <div class="message-box">${insertedRecord.body}</div>
-          ${
-            attachmentLinks
-              ? `<div class="attachments">${attachmentLinks}</div>`
-              : ""
-          }
+    })</span>
+              
+              <span class="label">מספר כרטיס:</span>
+              <span class="value">${ticketNumber}</span>
+              
+              <span class="label">נושא:</span>
+              <span class="value"><strong>${
+                insertedRecord.subject
+              }</strong></span>
+              
+              ${
+                severityText
+                  ? `<span class="label">חומרה:</span><span class="value">${severityText}</span>`
+                  : ""
+              }
+            </div>
+
+            <div class="message-box">${insertedRecord.body}</div>
+            
+            ${
+              attachmentLinks
+                ? `<div class="attachments"><h3>קבצים מצורפים:</h3><ul>${attachmentLinks}</ul></div>`
+                : ""
+            }
+          </div>
+          
           <div class="metadata">
             <h3>מידע טכני:</h3>
             <ul>
-              <li><strong>פלטפורמה:</strong> ${
+              <li><span>פלטפורמה</span> <strong>${
                 insertedRecord.client_platform
-              }</li>
-              <li><strong>גרסת אפליקציה:</strong> ${
+              }</strong></li>
+              <li><span>גרסת אפליקציה</span> <strong>${
                 insertedRecord.app_version || "לא זמין"
-              }</li>
-              <li><strong>שפה:</strong> ${
+              }</strong></li>
+              <li><span>שפה</span> <strong>${
                 insertedRecord.locale || "לא זמין"
-              }</li>
-              <li><strong>מזהה משתמש:</strong> ${
+              }</strong></li>
+              <li><span>מזהה משתמש</span> <strong>${
                 insertedRecord.user_id || "אנונימי"
-              }</li>
-              <li><strong>כתובת IP:</strong> ${
+              }</strong></li>
+              <li><span>IP</span> <strong>${
                 insertedRecord.ip || "לא זמין"
-              }</li>
-              <li><strong>User Agent:</strong> ${
+              }</strong></li>
+              <li><span>User Agent</span> <span style="max-width: 200px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${
                 insertedRecord.user_agent || "לא זמין"
-              }</li>
+              }</span></li>
             </ul>
           </div>
         </div>
@@ -168,10 +208,10 @@ async function sendEmailNotification(
       med: "Medium",
       high: "High",
     };
-    const severityText = insertedRecord.severity
-      ? `<p><strong>Severity:</strong> ${
+    const severityBadge = insertedRecord.severity
+      ? `<span class="tag tag-${insertedRecord.severity}">${
           severityLabels[insertedRecord.severity] || insertedRecord.severity
-        }</p>`
+        }</span>`
       : "";
 
     htmlBody = `
@@ -180,59 +220,106 @@ async function sendEmailNotification(
       <head>
         <meta charset="UTF-8">
         <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background-color: #2d3748; color: white; padding: 20px; border-radius: 5px 5px 0 0; }
-          .content { background-color: #f7fafc; padding: 20px; border: 1px solid #e2e8f0; }
-          .message-box { background-color: white; padding: 15px; border-left: 4px solid #4299e1; margin: 15px 0; white-space: pre-wrap; }
-          .metadata { background-color: #edf2f7; padding: 15px; margin-top: 15px; border-radius: 5px; }
-          .metadata ul { list-style: none; padding: 0; }
-          .metadata li { padding: 5px 0; border-bottom: 1px solid #cbd5e0; }
+          body { font-family: ${
+            EMAIL_THEME.fonts.main
+          }; line-height: 1.6; color: ${
+      EMAIL_THEME.colors.textMain
+    }; max-width: 600px; margin: 0 auto; padding: 0; background-color: ${
+      EMAIL_THEME.colors.background
+    }; }
+          .container { background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin: 40px auto; border-top: 6px solid ${
+            EMAIL_THEME.colors.primary
+          }; }
+          /* Header styles are inline */
+          .content { padding: 40px 30px; }
+          .title { color: #111827; font-size: 24px; font-weight: 700; margin-top: 0; margin-bottom: 24px; }
+          .info-item { margin-bottom: 12px; }
+          .label { font-weight: 600; color: ${
+            EMAIL_THEME.colors.textSecondary
+          }; min-width: 100px; display: inline-block; }
+          .value { color: #1f2937; }
+          .message-box { background-color: #f3f4f6; padding: 20px; border-radius: 12px; border-left: 4px solid ${
+            EMAIL_THEME.colors.primary
+          }; margin: 24px 0; white-space: pre-wrap; font-size: 16px; color: #1f2937; }
+          .metadata { background-color: #f9fafb; padding: 24px; border-top: 1px solid ${
+            EMAIL_THEME.colors.border
+          }; font-size: 14px; color: ${EMAIL_THEME.colors.textLight}; }
+          .metadata h3 { margin-top: 0; color: ${
+            EMAIL_THEME.colors.textMain
+          }; font-size: 16px; }
+          .metadata ul { list-style: none; padding: 0; margin: 0; }
+          .metadata li { padding: 6px 0; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; }
           .metadata li:last-child { border-bottom: none; }
-          .attachments { margin-top: 20px; }
-          .attachments ul { list-style: none; padding: 0; }
-          .attachments li { padding: 5px 0; }
-          .attachments a { color: #4299e1; text-decoration: none; }
+          .attachments { margin-top: 24px; background-color: #ecfeff; border: 1px solid #cffafe; border-radius: 8px; padding: 16px; }
+          .attachments h3 { margin: 0 0 12px 0; color: #0e7490; font-size: 16px; }
+          .attachments ul { list-style: none; padding: 0; margin: 0; }
+          .attachments li { padding: 4px 0; }
+          .attachments a { color: #0891b2; text-decoration: none; font-weight: 600; }
           .attachments a:hover { text-decoration: underline; }
+          .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+          .tag-high { background-color: #fee2e2; color: #991b1b; }
+          .tag-med { background-color: #fef3c7; color: #92400e; }
+          .tag-low { background-color: #d1fae5; color: #065f46; }
         </style>
       </head>
       <body>
-        <div class="header">
-          <h2 style="margin: 0;">New Contact Message - Dev Team</h2>
-        </div>
-        <div class="content">
-          <p><strong>From:</strong> ${
-            insertedRecord.user_name || "Anonymous"
-          } (${insertedRecord.user_email || "No email provided"})</p>
-          <p><strong>Ticket ID:</strong> ${ticketNumber}</p>
-          <p><strong>Subject:</strong> ${insertedRecord.subject}</p>
-          ${severityText}
-          <hr>
-          <h3>Message:</h3>
-          <div class="message-box">${insertedRecord.body}</div>
-          ${
-            attachmentLinks
-              ? `<div class="attachments">${attachmentLinks}</div>`
-              : ""
-          }
+        <div class="container">
+          ${getEmailHeader("en")}
+          <div class="content">
+            <h2 class="title">New Contact Message</h2>
+            
+            <div class="info-item">
+              <span class="label">From:</span>
+              <span class="value">${insertedRecord.user_name || "Anonymous"} (${
+      insertedRecord.user_email || "No email"
+    })</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Ticket ID:</span>
+              <span class="value">${ticketNumber}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">Subject:</span>
+              <span class="value"><strong>${
+                insertedRecord.subject
+              }</strong></span>
+            </div>
+            ${
+              insertedRecord.severity
+                ? `<div class="info-item"><span class="label">Severity:</span>${severityBadge}</div>`
+                : ""
+            }
+
+            <div class="message-box">${insertedRecord.body}</div>
+            
+            ${
+              attachmentLinks
+                ? `<div class="attachments"><h3>Attachments:</h3><ul>${attachmentLinks}</ul></div>`
+                : ""
+            }
+          </div>
+          
           <div class="metadata">
-            <h3>Metadata:</h3>
+            <h3>Technical Metadata:</h3>
             <ul>
-              <li><strong>Platform:</strong> ${
+              <li><strong>Platform</strong> <span>${
                 insertedRecord.client_platform
-              }</li>
-              <li><strong>App Version:</strong> ${
+              }</span></li>
+              <li><strong>App Version</strong> <span>${
                 insertedRecord.app_version || "N/A"
-              }</li>
-              <li><strong>Locale:</strong> ${
+              }</span></li>
+              <li><strong>Locale</strong> <span>${
                 insertedRecord.locale || "N/A"
-              }</li>
-              <li><strong>User ID:</strong> ${
+              }</span></li>
+              <li><strong>User ID</strong> <span>${
                 insertedRecord.user_id || "Anonymous"
-              }</li>
-              <li><strong>IP:</strong> ${insertedRecord.ip || "N/A"}</li>
-              <li><strong>User Agent:</strong> ${
+              }</span></li>
+              <li><strong>IP</strong> <span>${
+                insertedRecord.ip || "N/A"
+              }</span></li>
+              <li><strong>User Agent</strong> <span style="max-width: 200px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${
                 insertedRecord.user_agent || "N/A"
-              }</li>
+              }</span></li>
             </ul>
           </div>
         </div>

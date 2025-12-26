@@ -62,10 +62,14 @@
   "features": {
     "title": "Advanced Features",
     "subtitle": "Everything you need for accurate and simple management of donations, tithes, and expenses",
+    "legend": {
+      "web": "Available on website",
+      "desktop": "Available in desktop app"
+    },
     "items": {
       "autoCalculation": {
-        "title": "Automatic Tithe Calculation",
-        "description": "The system automatically calculates your tithe balance based on income, expenses, and donations"
+        "title": "Automatic maaser & chomesh calculation",
+        "description": "Automatically calculates your maaser balance, with full support for chomesh (20%) — based on income, expenses, and donations"
       },
       "accessAnywhere": {
         "title": "Access Anywhere",
@@ -91,13 +95,25 @@
         "title": "Mobile Installation",
         "description": "Install the website version as a mobile app directly from your browser or app store"
       },
-      "chomesh": {
-        "title": "Chomesh Calculation",
-        "description": "Full support for Chomesh (20%) calculation for first-time or special income"
-      },
       "askRabbi": {
         "title": "Ask the Rabbi",
         "description": "Get answers to your tithe questions from certified rabbis"
+      },
+      "householdBudget": {
+        "title": "Household budget tracking",
+        "description": "Track income and expenses in one place, with a clear picture of your family's budget"
+      },
+      "dashboardInsights": {
+        "title": "Dashboard & period insights",
+        "description": "A convenient dashboard to review transactions and summaries by week, month, or year"
+      },
+      "strictSecurity": {
+        "title": "Strict security & privacy",
+        "description": "Strong protection for your data and privacy — designed with security in mind from day one"
+      },
+      "halachaLibrary": {
+        "title": "Comprehensive halacha library",
+        "description": "A clear, organized knowledge base for maaser topics, written and reviewed by expert rabbis"
       }
     }
   },
@@ -112,7 +128,9 @@
         "Automatic cloud sync",
         "Email reminders",
         "Automatic updates",
-        "Share with advisor"
+        "Send questions to rabbi easily",
+        "Data saved in secure database",
+        "Can be installed as an app"
       ],
       "button": "Start in Browser"
     },
@@ -122,10 +140,9 @@
       "badge": "Recommended",
       "features": [
         "Works without internet",
-        "Locally secured data",
+        "All data is saved on the computer itself",
         "Fast performance",
-        "System notifications",
-        "Local backup"
+        "System notifications"
       ],
       "button": "Download Now"
     }
@@ -149,22 +166,28 @@
   },
   "faq": {
     "title": "Frequently Asked Questions",
+    "subtitle": "We've compiled the answers to questions that usually come up",
+    "moreQuestions": "Have more questions?",
     "items": [
       {
+        "question": "How is my data protected?",
+        "answer": "Data security is our top priority. In the computer version, all data is saved in a local SQLite file on your personal computer only - without internet connection or sharing with external parties. In the website version, data is encrypted and saved in secure PostgreSQL with Row Level Security (RLS)."
+      },
+      {
         "question": "Is the application free?",
-        "answer": "Yes, the application is completely free for personal use"
+        "answer": "Yes, the application is completely free for personal use. Our goal is to help the masses and assist in fulfilling the mitzvah of tithing."
       },
       {
         "question": "Is an internet connection required?",
-        "answer": "No, you can use the computer software without internet connection. The website version requires connection"
-      },
-      {
-        "question": "How is my data protected?",
-        "answer": "Data is encrypted and protected. In the computer software, it's stored locally on your computer"
+        "answer": "It depends on the version you choose. In the computer software (Windows) there is no need for internet connection at all - all data is saved on your computer. The website version requires internet connection to enable sync and access from anywhere."
       },
       {
         "question": "Can I import existing data?",
-        "answer": "Yes, the system supports exporting and importing data from the website to the software and vice versa"
+        "answer": "Yes! The system supports data export and import. You can export your data to a JSON file and import them between the computer software and website versions, so you can switch between them easily."
+      },
+      {
+        "question": "Can I use the system on mobile too?",
+        "answer": "Yes, the website version is adapted for use on smartphones. In addition, it can be installed as a web app (PWA) to provide a convenient and fast user experience like a regular application."
       }
     ]
   },

@@ -47,7 +47,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
     height: 0,
   });
 
-  const expandedWidth = inSheet ? "w-40" : "w-40";
+  const expandedWidth = inSheet ? "w-44" : "w-44";
   const collapsedWidth = "w-14";
 
   // --- Slider measurement (active item background) ---
@@ -175,7 +175,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
       <Button
         variant="ghost"
         className={cn(
-          "w-full h-12 z-10",
+          "w-full h-12 z-10 overflow-hidden max-w-full",
           "transition-colors duration-200",
           expanded ? "justify-start px-4 gap-3" : "justify-center px-0",
           isActive
@@ -185,13 +185,17 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         )}
         asChild
       >
-        <Link to={to} data-active={isActive}>
+        <Link
+          to={to}
+          data-active={isActive}
+          className="flex items-center w-full min-w-0 max-w-full overflow-hidden"
+        >
           <Icon className="h-6 w-6 min-w-[24px] flex-shrink-0" />
           <span
             className={cn(
-              "transition-all duration-200 whitespace-nowrap min-w-0",
+              "transition-all duration-200 min-w-0 truncate",
               !expanded && "w-0 overflow-hidden",
-              !expanded ? "opacity-0" : "opacity-100"
+              !expanded ? "opacity-0" : "opacity-100 flex-1"
             )}
           >
             {children}
@@ -204,7 +208,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
   return (
     <div
       className={cn(
-        "flex flex-col transition-all duration-200",
+        "flex flex-col transition-all duration-200 overflow-hidden",
         inSheet ? "h-full" : "h-screen overflow-hidden py-4",
         expanded ? expandedWidth : collapsedWidth
       )}
@@ -214,10 +218,10 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         to="/"
         aria-label={t("appName")}
         className={cn(
-          "flex w-full items-center mb-6",
-          expanded ? "px-4" : "px-2",
-          expanded ? "justify-start" : "justify-center"
+          "flex w-full items-center mb-6 overflow-x-hidden shrink-0",
+          expanded ? "px-4 justify-start" : "px-0 justify-center"
         )}
+        style={{ height: "36px" }}
       >
         <span className="sr-only">{t("appName")}</span>
 
@@ -267,7 +271,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
       <div
         ref={listRef}
         className={cn(
-          "relative flex-1 p-1", // not scrollable
+          "relative flex-1 p-1 overflow-x-hidden", // not scrollable
           "flex flex-col min-h-0 gap-1"
         )}
       >
@@ -297,9 +301,9 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         {/* Scrollable NAV area */}
         <div
           ref={scrollRef}
-          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden min-w-0"
         >
-          <nav className="flex flex-col gap-1">
+          <nav className="flex flex-col gap-1 min-w-0">
             <NavLink to="/" icon={Home}>
               {t("menu.home")}
             </NavLink>
@@ -325,7 +329,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         </div>
 
         {/* Divider spans the padded width */}
-        <div className="my-2 h-px bg-border/20 -mx-1" />
+        <div className="my-2 h-px bg-border/20" />
 
         {/* Bottom-pinned Profile card (NOT inside the scroller) */}
         {platform === "web" && session?.user && (
@@ -334,7 +338,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
             data-active={currentPath.startsWith("/profile")}
             aria-label={t("menu.profile")}
             className={cn(
-              "flex items-center p-2 rounded-md transition-colors relative z-10",
+              "flex items-center p-2 rounded-md transition-colors relative z-10 min-w-0 overflow-hidden",
               "hover:bg-muted/50",
               expanded ? "gap-3" : "flex-col gap-1 justify-center text-center"
             )}

@@ -26,6 +26,7 @@
     "currencyWarning": {
       "title": "Important Note on Currency Change",
       "description": "Changing the default currency only changes how currencies are displayed. It does not convert existing transactions. For accuracy, enter transactions in the same currency."
+    },
     "currencyNameILS": "Shekel",
     "currencyNameUSD": "Dollar",
     "currencyNameEUR": "Euro",

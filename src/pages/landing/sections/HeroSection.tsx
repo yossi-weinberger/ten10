@@ -14,6 +14,7 @@ import { FadeInWords } from "@/components/ui/animated-text";
 import { Button } from "@/components/ui/button";
 import { Download, Globe } from "lucide-react";
 import { ScreenshotCarousel } from "../components/ScreenshotCarousel";
+import { AnimatedLogo } from "../components/AnimatedLogo";
 import { cn } from "@/lib/utils";
 
 interface HeroSectionProps {
@@ -97,21 +98,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         <div className="text-center mb-16">
           {/* Logo */}
           <motion.div className="mb-8" variants={scaleIn}>
-            <motion.div
-              whileHover={{ scale: 1.1, rotate: 5 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-block"
-            >
-              <div className="inline-flex items-center justify-center p-3 sm:p-4 rounded-2xl bg-card/70 backdrop-blur-md border border-border/50 shadow-lg gpu-accelerated animate-pulse-glow">
-                <img
-                  src="/logo/logo-wide.svg"
-                  alt="Ten10 Logo"
-                  loading="eager"
-                  decoding="async"
-                  className="h-16 sm:h-20 w-auto object-contain"
-                />
-              </div>
-            </motion.div>
+            <AnimatedLogo />
           </motion.div>
 
           <motion.h1
@@ -137,7 +124,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 <Button
                   size="lg"
                   className={cn(
-                    "text-lg px-8 py-3 border-none",
+                    "text-lg px-8 py-3 border-none min-w-[200px]",
                     "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500",
                     "shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]",
                     "transition-shadow duration-300"
@@ -158,15 +145,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <motion.div variants={staggerItem}>
               <motion.div whileHover={buttonHover} whileTap={buttonTap}>
                 <Button
-                  variant="outline"
                   size="lg"
-                  className="text-lg px-8 py-3 backdrop-blur-sm bg-white/50 dark:bg-black/20 border-gray-200 dark:border-gray-700 hover:bg-white/80 dark:hover:bg-black/40"
+                  className={cn(
+                    "text-lg px-8 py-3 border-none min-w-[200px]",
+                    "bg-gradient-to-r from-[hsl(220,64%,50%)] to-[hsl(220,64%,45%)] hover:from-[hsl(220,70%,55%)] hover:to-[hsl(220,70%,50%)]",
+                    "shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)]",
+                    "transition-shadow duration-300"
+                  )}
                   onClick={onWebAppClick}
                   asChild
                 >
                   <Link
                     to="/"
-                    className="inline-flex items-center"
+                    className="inline-flex items-center justify-center"
                     aria-label={t("hero.tryButton")}
                   >
                     <Globe className="mr-2 h-5 w-5" />

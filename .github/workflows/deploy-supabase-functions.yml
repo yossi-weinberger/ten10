@@ -26,6 +26,6 @@ jobs:
 
       - name: Deploy Functions
         run: |
-          supabase functions deploy send-reminder-emails --project-ref flpzqbvbymoluoeeeofg
+          supabase functions deploy send-reminder-emails send-contact-email send-new-user-email verify-captcha verify-unsubscribe-token --project-ref flpzqbvbymoluoeeeofg
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

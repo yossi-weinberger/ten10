@@ -58,10 +58,28 @@ try {
     }
   );
 
+  // Deploy send-contact-email function
+  console.log("Deploying send-contact-email function...");
+  execSync(
+    `npx supabase@latest functions deploy send-contact-email --project-ref ${projectRef}`,
+    {
+      stdio: "inherit",
+    }
+  );
+
   // Deploy send-new-user-email function (profiles INSERT)
   console.log("Deploying send-new-user-email function...");
   execSync(
     `npx supabase@latest functions deploy send-new-user-email --project-ref ${projectRef}`,
+    {
+      stdio: "inherit",
+    }
+  );
+
+  // Deploy verify-captcha function
+  console.log("Deploying verify-captcha function...");
+  execSync(
+    `npx supabase@latest functions deploy verify-captcha --project-ref ${projectRef}`,
     {
       stdio: "inherit",
     }
