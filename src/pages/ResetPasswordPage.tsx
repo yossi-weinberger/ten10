@@ -136,6 +136,20 @@ const ResetPasswordPage: React.FC = () => {
     );
   }
 
+  // While we are still verifying/exchanging the recovery link, do not render an interactive form.
+  if (hasSession === null) {
+    return (
+      <AuthLayout
+        title={t("resetPassword.title")}
+        subtitle={t("resetPassword.subtitle")}
+      >
+        <div className="text-sm text-muted-foreground">
+          {t("resetPassword.checkingLink")}
+        </div>
+      </AuthLayout>
+    );
+  }
+
   if (hasSession === false) {
     return (
       <AuthLayout
