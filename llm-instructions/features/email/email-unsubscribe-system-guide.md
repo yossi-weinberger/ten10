@@ -208,7 +208,7 @@ mailing_list_consent = false →
 ### Supabase Secrets
 
 ```bash
-JWT_SECRET="M4G3el9m139YzCuNb7TqD0VoQ3KlK21XOt63ekWWmG4="
+JWT_SECRET="YOUR_JWT_SECRET_BASE64"
 AWS_ACCESS_KEY_ID="..."
 AWS_SECRET_ACCESS_KEY="..."
 AWS_REGION="eu-central-1"

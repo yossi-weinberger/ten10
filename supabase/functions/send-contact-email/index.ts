@@ -33,7 +33,11 @@ async function sendEmailNotification(
   supabaseAdminClient: SupabaseClient,
   insertedRecord: ContactMessage
 ) {
-  const emailService = new SimpleEmailService();
+  // Use a dedicated sender for contact emails so it won't be affected by the global SES_FROM
+  // (which may be set for reminder emails).
+  const contactFrom =
+    Deno.env.get("SES_FROM_CONTACT") ?? "contact-form@ten10-app.com";
+  const emailService = new SimpleEmailService(contactFrom);
 
   const toEmail =
     insertedRecord.channel === "halacha"
@@ -140,7 +144,7 @@ async function sendEmailNotification(
       <body>
         <div class="container">
           ${getEmailHeader("he")}
-          <div class="content">
+        <div class="content">
             <h2 class="title">פנייה חדשה לרב</h2>
             
             <div class="info-grid">
@@ -164,13 +168,13 @@ async function sendEmailNotification(
               }
             </div>
 
-            <div class="message-box">${insertedRecord.body}</div>
+          <div class="message-box">${insertedRecord.body}</div>
             
-            ${
-              attachmentLinks
-                ? `<div class="attachments"><h3>קבצים מצורפים:</h3><ul>${attachmentLinks}</ul></div>`
-                : ""
-            }
+          ${
+            attachmentLinks
+              ? `<div class="attachments"><h3>קבצים מצורפים:</h3><ul>${attachmentLinks}</ul></div>`
+              : ""
+          }
           </div>
           
           <div class="metadata">
@@ -283,20 +287,20 @@ async function sendEmailNotification(
               <span class="value"><strong>${
                 insertedRecord.subject
               }</strong></span>
-            </div>
+        </div>
             ${
               insertedRecord.severity
                 ? `<div class="info-item"><span class="label">Severity:</span>${severityBadge}</div>`
                 : ""
             }
 
-            <div class="message-box">${insertedRecord.body}</div>
+          <div class="message-box">${insertedRecord.body}</div>
             
-            ${
-              attachmentLinks
-                ? `<div class="attachments"><h3>Attachments:</h3><ul>${attachmentLinks}</ul></div>`
-                : ""
-            }
+          ${
+            attachmentLinks
+              ? `<div class="attachments"><h3>Attachments:</h3><ul>${attachmentLinks}</ul></div>`
+              : ""
+          }
           </div>
           
           <div class="metadata">

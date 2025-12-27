@@ -2,7 +2,9 @@
 
 ## סקירה כללית
 
-דף נחיתה מתקדם וברמה מקצועית עבור **Ten10** - מערכת ניהול המעשרות החכמה. הדף כולל את כל התכונות המודרניות הנדרשות לדף נחיתה מוצלח עם תמיכה מלאה בעברית ואנגלית.
+דף נחיתה מתקדם עבור **Ten10** - מערכת ניהול המעשרות החכמה. הדף תומך בעברית/אנגלית (RTL/LTR), אנימציות, קרוסלת צילומי מסך, ניווט צף, SEO דינמי ומעקב אנליטיקס.
+
+**הערה על מבנה הקוד בפועל:** הקובץ `src/pages/LandingPage.tsx` הוא _רק_ `re-export` ל־`src/pages/landing/index.tsx` (שם נמצא המימוש של הדף). הראוטינג מוגדר ב־`src/routes.ts` על הנתיב `/landing`.
 
 ## ✨ תכונות עיקריות
 
@@ -19,6 +21,8 @@
 - **Intersection Observer**: זיהוי אוטומטי של הסקשן הפעיל
 - **ניווט צף**: תפריט ניווט שמופיע בגלילה עם הדגשת הסקשן הנוכחי
 - **כפתור החלפת שפה**: מיקום קבוע בפינה העליונה
+
+הערה טכנית: בפועל הניווט הצף נשלט ע"י `showNavigation` שמופעל לפי `window.scrollY`. מאחר שבאפליקציה הגלילה מתבצעת לרוב בתוך קונטיינר פנימי (`overflow-y-auto`), ייתכן שתידרש התאמה אם הניווט הצף לא מופיע כפי שמצופה.
 
 ### 🎠 קרוסלה מתקדמת
 
@@ -78,42 +82,42 @@
 
 ### 3. Stats Section
 
-- 3 סטטיסטיקות מרשימות
+- 2 סטטיסטיקות (מונה אנימטיבי): הורדות דסקטופ + משתמשי אתר
 - עיצוב gradient אטרקטיבי
 
 ### 4. Features Section (`#features`)
 
-- 6 תכונות מרכזיות
+- 12 תכונות (Grid בסגנון Bento + אינדיקציה לזמינות Web/Desktop)
 - אנימציות hover מתקדמות
 - אייקונים אינטראקטיביים
 
-### 5. Torah Quotes Section
-
-- פסוק מרכזי מהתורה
-- 2 מאמרי חז"ל
-- עיצוב מיוחד עם borders צבעוניים
-
-### 6. Platform Comparison (`#platforms`)
+### 5. Platform Comparison (`#platforms`)
 
 - **2 גרסאות עיקריות**: Web, Desktop
 - הדגשת הגרסה המומלצת (Desktop)
 - אזכור PWA כתכונה נוספת בגרסת הווב (לא כפלטפורמה נפרדת)
 
-### 7. About & Endorsements (`#about`)
-
-- שיתוף עם מכון תורת האדם לאדם
-- 3 הסכמות רבנים (מוכן לעדכון)
-- אישור הלכתי מודגש
-
-### 8. Testimonials (`#testimonials`)
+### 6. Testimonials (`#testimonials`)
 
 - 3 המלצות משתמשים
 - דירוג כוכבים
 - עיצוב אמין
 
+### 7. Torah Quotes Section
+
+- פסוק מרכזי מהתורה
+- 2 מאמרי חז"ל
+- עיצוב מיוחד עם borders צבעוניים
+
+### 8. About & Endorsements (`#about`)
+
+- שיתוף עם מכון תורת האדם לאדם
+- 3 הסכמות רבנים (מוכן לעדכון)
+- אישור הלכתי מודגש
+
 ### 9. FAQ Section (`#faq`)
 
-- 4 שאלות נפוצות
+- 5 שאלות נפוצות
 - תשובות מפורטות
 - עיצוב נקי
 
@@ -129,6 +133,8 @@
 - מידע על החברה
 - זכויות יוצרים
 
+הערה: ה־Footer ממומש בקובץ `src/pages/landing/sections/Footer.tsx` אבל הוא מוצג ע"י `src/App.tsx` (כלומר הוא “גלובלי” ומופיע בכל הדפים הרלוונטיים, כולל `/landing`).
+
 ## 🛠️ קבצים שנוצרו/עודכנו
 
 ### קבצים חדשים:
@@ -138,11 +144,13 @@
 
 ### קבצים שעודכנו:
 
-- `src/pages/LandingPage.tsx` - הדף הראשי
+- `src/pages/LandingPage.tsx` - entrypoint (re-export) לדף הנחיתה
+- `src/pages/landing/index.tsx` - המימוש בפועל של דף הנחיתה
 - `src/App.tsx` - הסתרת סיידבר בדף הנחיתה
+- `src/routes.ts` - ראוט `/landing`
 - `public/locales/he/landing.json` - תרגומים עברית מורחבים
 - `public/locales/en/landing.json` - תרגומים אנגלית מורחבים
-- `index.html` - meta tags מלאים לSEO
+- `index.html` - meta tags בסיסיים (כולל Open Graph / Twitter / PWA)
 - `src/index.css` - smooth scrolling גלובלי
 
 ## 🎯 הוראות שימוש
@@ -157,7 +165,7 @@ https://your-domain.com/landing
 
 - כפתור קבוע בפינה העליונה
 - מעבר מיידי בין עברית לאנגלית
-- שמירת העדפה בזיכרון הדפדפן
+- השפה מנוהלת ע"י i18n; באפליקציה יש גם סנכרון מול `settings.language` לאחר hydration (כדי שהשינוי יישמר ולא “יוחזר”, חשוב לעדכן גם את ההגדרה)
 
 ### ניווט:
 
@@ -175,7 +183,7 @@ https://your-domain.com/landing
 
 ### Google Analytics:
 
-1. החלף `GA_MEASUREMENT_ID` בקוד עם המזהה האמיתי
+1. הגדר משתנה סביבה `VITE_G_ANALYTICS_ID` עם המזהה האמיתי (למשל `G-XXXXXXXXXX`)
 2. הגדר goals ב-GA לmeasure conversions
 3. הפעל Enhanced Ecommerce אם רלוונטי
 
@@ -285,7 +293,7 @@ function MyComponent() {
 ### החלפת שפה:
 
 - כפתור קבוע בפינה העליונה
-- שמירת העדפה ב-localStorage
+- השפה נשמרת דרך הגדרות האפליקציה (Zustand `settings.language`) וה־i18n מסונכרן אליה לאחר hydration
 - מעבר מיידי בין שפות
 
 ## 🎨 עיצוב ו-UX
@@ -334,9 +342,15 @@ src/pages/landing/
 │   └── Footer.tsx              # כותרת תחתונה
 ├── components/
 │   ├── ScreenshotCarousel.tsx  # קרוסלת צילומי מסך
-│   └── Navigation.tsx          # ניווט
+│   ├── FloatingNavigation.tsx  # ניווט צף
+│   ├── LanguageToggleFixed.tsx # החלפת שפה/Theme (דרך PageControls)
+│   ├── AnimatedLogo.tsx        # לוגו מונפש
+│   └── LandingButtons.tsx      # כפתורים/CTA (אם בשימוש)
 └── constants/
-    └── navigationItems.ts      # פריטי ניווט
+    ├── navigationItems.ts      # פריטי ניווט
+    ├── features.ts             # רשימת תכונות (כולל imageSrc infrastructure)
+    ├── faqs.ts                 # (אם בשימוש)
+    └── testimonials.ts         # (אם בשימוש)
 ```
 
 ### הוראות פיתוח:
@@ -372,14 +386,14 @@ src/pages/landing/
 ### Environment Variables:
 
 ```bash
-VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
-VITE_SUPABASE_URL=https://xxx.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJ...
+VITE_G_ANALYTICS_ID=G-XXXXXXXXXX
+VITE_SUPABASE_URL=https://YOUR_PROJECT_REF.supabase.co
+VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
 ```
 
 ---
 
-**סטטוס:** ✅ **מוכן לפרסום**  
+**סטטוס:** ✅ **ממומש בקוד** (כולל קרוסלה, SEO דינמי, GA אופציונלי, תרגומים)  
 **גרסה:** 2.0 - Enhanced  
 **תאריך עדכון:** ינואר 2025  
 **מפתח:** AI Assistant + User Collaboration

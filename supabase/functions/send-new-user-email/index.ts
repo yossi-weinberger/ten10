@@ -376,8 +376,11 @@ serve(async (req) => {
   }
 
   try {
-    const fromOverride = Deno.env.get("SES_FROM_USERS");
-    const emailService = new SimpleEmailService(fromOverride ?? undefined);
+    // Use a dedicated sender for the new-users summary email so it won't be affected by the global SES_FROM
+    // (which may be set for reminder emails).
+    const fromUsers =
+      Deno.env.get("SES_FROM_USERS") ?? "users-update@ten10-app.com";
+    const emailService = new SimpleEmailService(fromUsers);
     await emailService.sendRawEmail({
       to: toEmail,
       subject: `[Ten10] New users summary (${rows.length})`,

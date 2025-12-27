@@ -182,6 +182,12 @@ const LoginPage: React.FC = () => {
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <Label htmlFor="password">{t("login.passwordLabel")}</Label>
+              <Link
+                to="/forgot-password"
+                className="text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+              >
+                {t("login.forgotPassword")}
+              </Link>
             </div>
             <Input
               id="password"

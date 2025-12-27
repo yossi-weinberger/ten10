@@ -43,17 +43,32 @@ function App() {
   const _hasHydrated = useDonationStore((state) => state._hasHydrated);
 
   // Define pages that take full screen without sidebar/padding
-  const isFullScreenPage = ["/landing", "/login", "/signup"].includes(
-    currentPath
-  );
+  const isFullScreenPage = [
+    "/landing",
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+  ].includes(currentPath);
 
   // Show footer on all pages except login and signup
-  const shouldShowFooter = !["/login", "/signup"].includes(currentPath);
+  const shouldShowFooter = ![
+    "/login",
+    "/signup",
+    "/forgot-password",
+    "/reset-password",
+  ].includes(currentPath);
 
   // Hide floating contact button on auth + landing pages
   const shouldShowContactFab =
     (user || platform === "desktop") &&
-    !["/login", "/signup", "/landing"].includes(currentPath);
+    ![
+      "/login",
+      "/signup",
+      "/forgot-password",
+      "/reset-password",
+      "/landing",
+    ].includes(currentPath);
 
   // Synchronize i18n with Zustand store language after hydration
   useEffect(() => {
