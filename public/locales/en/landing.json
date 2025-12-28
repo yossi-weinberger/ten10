@@ -46,10 +46,15 @@
   "carousel": {
     "eyebrow": "Inside Look",
     "title": "See It In Action",
-    "dashboard": "Overview of your financial status",
-    "transactions": "Manage and filter financial transactions",
-    "reports": "Detailed reports and charts",
-    "swipeHint": "Swipe to view more screenshots"
+    "swipeHint": "Swipe to view more screenshots",
+    "items": {
+      "dashboard": "Clear overview of your financial status",
+      "addTransaction": "Quickly and easily add new transactions",
+      "transactionsList": "Historical tracking of all transactions and calculations",
+      "recurring": "Manage standing orders and recurring payments",
+      "printReport": "Generate organized printable reports",
+      "halacha": "Comprehensive halacha library with common Q&A"
+    }
   },
   "quotes": {
     "title": "From the Sources",

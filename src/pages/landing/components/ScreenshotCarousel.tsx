@@ -38,22 +38,39 @@ export const ScreenshotCarousel: React.FC = () => {
   const screenshots = [
     {
       key: "dashboard",
-      titleKey: "carousel.dashboard",
-      // User will upload images later. Placeholder for now.
-      src: "/screenshots/dashboard-placeholder.png",
+      titleKey: "carousel.items.dashboard",
+      src: "/screenshots/dashboard.webp",
       alt: "Ten10 Dashboard",
     },
     {
-      key: "transactions",
-      titleKey: "carousel.transactions",
-      src: "/screenshots/transactions-placeholder.png",
-      alt: "Ten10 Transactions",
+      key: "add-transaction",
+      titleKey: "carousel.items.addTransaction",
+      src: "/screenshots/add-transaction.webp",
+      alt: "Add Transaction Screen",
     },
     {
-      key: "reports",
-      titleKey: "carousel.reports",
-      src: "/screenshots/reports-placeholder.png",
-      alt: "Ten10 Reports",
+      key: "transactions-list",
+      titleKey: "carousel.items.transactionsList",
+      src: "/screenshots/transactions-list.webp",
+      alt: "Transactions List",
+    },
+    {
+      key: "recurring",
+      titleKey: "carousel.items.recurring",
+      src: "/screenshots/recurring.webp",
+      alt: "Recurring Transactions",
+    },
+    {
+      key: "print-report",
+      titleKey: "carousel.items.printReport",
+      src: "/screenshots/print-report.webp",
+      alt: "Printable Report",
+    },
+    {
+      key: "halacha",
+      titleKey: "carousel.items.halacha",
+      src: "/screenshots/halacha.webp",
+      alt: "Halacha Library",
     },
   ];
 
