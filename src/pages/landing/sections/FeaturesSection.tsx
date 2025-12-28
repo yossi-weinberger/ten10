@@ -104,19 +104,19 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({
                 // Intentionally use the `header` slot as a visual/media area because BentoGridItem has no dedicated image prop; this lets us render a square image with a fallback icon while keeping the default content layout.
                 header={
                   <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 group">
-                    {/* Image infrastructure */}
+                    {/* Fallback Icon if image fails/missing - placed behind image */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <feature.icon className="w-12 h-12 text-neutral-500/20 dark:text-neutral-300/20" />
+                    </div>
+                    {/* Image infrastructure - placed on top */}
                     <img
                       src={feature.imageSrc}
                       alt={t(feature.titleKey)}
-                      className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500"
+                      className="relative z-10 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = "none";
                       }}
                     />
-                    {/* Fallback Icon if image fails/missing */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <feature.icon className="w-12 h-12 text-neutral-500/20 dark:text-neutral-300/20" />
-                    </div>
                   </div>
                 }
                 // Icon slot displays platform availability indicators
