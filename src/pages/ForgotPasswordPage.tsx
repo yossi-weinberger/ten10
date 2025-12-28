@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import toast from "react-hot-toast";
 import { useTranslation } from "react-i18next";
@@ -10,12 +10,6 @@ import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 
 const ForgotPasswordPage: React.FC = () => {
   const { platform } = usePlatform();
@@ -24,6 +18,13 @@ const ForgotPasswordPage: React.FC = () => {
 
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Password reset is a web-only flow in this app. Desktop users should never land here.
+    if (platform === "desktop") {
+      navigate({ to: "/" });
+    }
+  }, [platform, navigate]);
 
   const handleSendResetEmail = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -51,16 +52,7 @@ const ForgotPasswordPage: React.FC = () => {
   };
 
   if (platform === "desktop") {
-    return (
-      <div className="p-4 flex flex-col items-center justify-center min-h-screen bg-background">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>{t("forgotPassword.title")}</CardTitle>
-            <CardDescription>{t("login.onlyWebAvailable")}</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
+    return null;
   }
 
   if (platform === "loading") {

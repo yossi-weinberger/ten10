@@ -10,12 +10,6 @@ import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 
 const ResetPasswordPage: React.FC = () => {
   const { platform } = usePlatform();
@@ -31,6 +25,13 @@ const ResetPasswordPage: React.FC = () => {
     () => password.length > 0 && password === confirmPassword,
     [password, confirmPassword]
   );
+
+  useEffect(() => {
+    // Password reset is a web-only flow in this app. Desktop users should never land here.
+    if (platform === "desktop") {
+      navigate({ to: "/" });
+    }
+  }, [platform, navigate]);
 
   useEffect(() => {
     let isMounted = true;
@@ -116,16 +117,7 @@ const ResetPasswordPage: React.FC = () => {
   };
 
   if (platform === "desktop") {
-    return (
-      <div className="p-4 flex flex-col items-center justify-center min-h-screen bg-background">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>{t("resetPassword.title")}</CardTitle>
-            <CardDescription>{t("login.onlyWebAvailable")}</CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
-    );
+    return null;
   }
 
   if (platform === "loading") {
