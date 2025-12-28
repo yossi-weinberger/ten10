@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/accordion";
 import { faqs } from "../constants/faqs";
 
-const MotionAccordionItem = motion(AccordionItem);
+const MotionAccordionItem = motion.create(AccordionItem);
 
 interface FaqSectionProps {
   sectionRef: React.RefObject<HTMLElement>;

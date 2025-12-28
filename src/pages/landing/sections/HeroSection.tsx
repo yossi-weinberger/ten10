@@ -13,7 +13,6 @@ import {
 import { FadeInWords } from "@/components/ui/animated-text";
 import { Button } from "@/components/ui/button";
 import { Download, Globe } from "lucide-react";
-import { ScreenshotCarousel } from "../components/ScreenshotCarousel";
 import { AnimatedLogo } from "../components/AnimatedLogo";
 import { cn } from "@/lib/utils";
 
@@ -101,19 +100,21 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             <AnimatedLogo />
           </motion.div>
 
-          <motion.h1
+          <motion.div
             className="text-4xl md:text-6xl font-bold text-primary mb-6"
             variants={fadeInUp}
+            role="heading"
+            aria-level={1}
           >
             <FadeInWords delay={0.3}>{t("hero.tagline")}</FadeInWords>
-          </motion.h1>
+          </motion.div>
 
-          <motion.p
+          <motion.div
             className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto"
             variants={fadeInUp}
           >
             <FadeInWords delay={0.6}>{t("hero.subtitle")}</FadeInWords>
-          </motion.p>
+          </motion.div>
 
           <motion.div
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
