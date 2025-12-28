@@ -119,11 +119,11 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <feature.icon className="w-12 h-12 text-neutral-500/20 dark:text-neutral-300/20" />
                     </div>
-                    {/* Image infrastructure - placed on top */}
+                    {/* Image infrastructure - placed on top with absolute positioning to overlay fallback icon */}
                     <img
                       src={feature.imageSrc}
                       alt={t(feature.titleKey)}
-                      className="relative z-10 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="absolute inset-0 z-10 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = "none";
                       }}

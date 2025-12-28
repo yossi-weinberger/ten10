@@ -22,10 +22,10 @@ const LandingPage: React.FC = () => {
   const [showNavigation, setShowNavigation] = useState(false);
 
   // Section refs for intersection observer
+  // Note: Only sections that appear in navigationItems should be tracked here
   const sectionRefs = {
     hero: useRef<HTMLElement>(null),
     features: useRef<HTMLElement>(null),
-    screenshots: useRef<HTMLElement>(null),
     platforms: useRef<HTMLElement>(null),
     testimonials: useRef<HTMLElement>(null),
     about: useRef<HTMLElement>(null),
@@ -248,12 +248,8 @@ const LandingPage: React.FC = () => {
       {/* Features Section */}
       <FeaturesSection sectionRef={sectionRefs.features} />
 
-      {/* Screenshots Section */}
-      <section
-        ref={sectionRefs.screenshots}
-        id="screenshots"
-        className="py-20 bg-white dark:bg-black"
-      >
+      {/* Screenshots Section - Not tracked by intersection observer, so "Features" stays active until "Platforms" */}
+      <section id="screenshots" className="py-20 bg-white dark:bg-black">
         <ScreenshotCarousel />
       </section>
 

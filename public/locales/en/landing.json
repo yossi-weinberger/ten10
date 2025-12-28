@@ -13,22 +13,24 @@
     "tryButton": "Try on Website"
   },
   "problem": {
-    "title": "Why Is It So Complicated?",
-    "subtitle": "Many of us struggle with ongoing tithe management",
+    "badge": "The Challenges We All Know",
+    "title": "Managing Maaser Doesn't Have to Be Complicated",
+    "subtitle": "Between the calculations, halachic questions, and daily tracking – it's easy to get lost. You're not alone.",
     "items": {
       "excel": {
-        "title": "Complex Calculations & Mistakes",
-        "desc": "Calculating maaser and chomesh requires precision - deducting recognized expenses, considering net vs gross, and tracking balances. It's very easy to miss details and make mistakes manually."
+        "title": "Calculations That Pile Up",
+        "desc": "Maaser isn't just 10% of your paycheck. There are deductions, eligible expenses, gross vs net, and last month's balance. Without a system – mistakes happen."
       },
       "confusion": {
-        "title": "Daily Halachic Questions",
-        "desc": "Is this gift taxable? Are car expenses deductible? Without close guidance, halachic doubts can lead to underpayment or overpayment."
+        "title": "Questions That Keep Coming",
+        "desc": "A gift you received, a one-time bonus, expense reimbursements from work – does it count? Every case feels a bit different."
       },
       "forgot": {
-        "title": "Tracking & Order",
-        "desc": "Cash donations, standing orders, one-time income... When information is scattered, it's hard to get a true picture of your tithe balance."
+        "title": "Information That's Scattered",
+        "desc": "A credit card expense, a cash donation, a forgotten standing order – when everything's in your head and on sticky notes, it's hard to know where you stand."
       }
-    }
+    },
+    "transition": "It's time to put it all in one place."
   },
   "stats": {
     "downloads": "Desktop Downloads",
