@@ -4,8 +4,10 @@ import { logger } from "@/lib/logger";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { LanguageToggleFixed } from "./components/LanguageToggleFixed";
 import { FloatingNavigation } from "./components/FloatingNavigation";
+import { ScreenshotCarousel } from "./components/ScreenshotCarousel";
 import { HeroSection } from "./sections/HeroSection";
 import { StatsSection } from "./sections/StatsSection";
+import { ProblemSection } from "./sections/ProblemSection";
 import { FeaturesSection } from "./sections/FeaturesSection";
 import { PlatformsSection } from "./sections/PlatformsSection";
 import { TestimonialsSection } from "./sections/TestimonialsSection";
@@ -20,6 +22,7 @@ const LandingPage: React.FC = () => {
   const [showNavigation, setShowNavigation] = useState(false);
 
   // Section refs for intersection observer
+  // Note: Only sections that appear in navigationItems should be tracked here
   const sectionRefs = {
     hero: useRef<HTMLElement>(null),
     features: useRef<HTMLElement>(null),
@@ -239,8 +242,16 @@ const LandingPage: React.FC = () => {
       {/* Stats Section */}
       <StatsSection />
 
+      {/* Problem Section - The "WHY" */}
+      <ProblemSection />
+
       {/* Features Section */}
       <FeaturesSection sectionRef={sectionRefs.features} />
+
+      {/* Screenshots Section - Not tracked by intersection observer, so "Features" stays active until "Platforms" */}
+      <section id="screenshots" className="py-20 bg-white dark:bg-black">
+        <ScreenshotCarousel />
+      </section>
 
       {/* Platform Comparison */}
       <PlatformsSection sectionRef={sectionRefs.platforms} />

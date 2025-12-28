@@ -41,10 +41,15 @@ dist-ssr
 !.env.example
 test-req.js
 
+# Supabase CLI temp artifacts
+supabase/.temp/
+
 # Test reports and results
 playwright-report/
 test-results/
-"src-tauri/gen/"
+
+# Tauri generated artifacts (auto-generated schemas / permissions)
+/src-tauri/gen/
 
 # Android build artifacts (Bubblewrap)
 android-build/app/

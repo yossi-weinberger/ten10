@@ -15,6 +15,8 @@ import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { TransactionsTable } from "./pages/TransactionsTable";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import UnsubscribePage from "./pages/UnsubscribePage";
 import { supabase } from "./lib/supabaseClient";
 import { NotFoundPage } from "./pages/NotFoundPage";
@@ -48,6 +50,8 @@ const rootRoute = createRootRoute({
     const publicRoutes = [
       "/login",
       "/signup",
+      "/forgot-password",
+      "/reset-password",
       "/unsubscribe",
       "/landing",
       "/privacy",
@@ -149,6 +153,18 @@ const signupRoute = createRoute({
   component: SignupPage,
 });
 
+const forgotPasswordRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/forgot-password",
+  component: ForgotPasswordPage,
+});
+
+const resetPasswordRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/reset-password",
+  component: ResetPasswordPage,
+});
+
 const unsubscribeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/unsubscribe",
@@ -220,6 +236,8 @@ const routeTree = rootRoute.addChildren([
   analyticsRoute,
   loginRoute,
   signupRoute,
+  forgotPasswordRoute,
+  resetPasswordRoute,
   unsubscribeRoute,
   landingRoute,
   privacyRoute,

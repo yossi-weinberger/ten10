@@ -41,6 +41,17 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({
 
       <div className="container mx-auto max-w-6xl relative z-10">
         <div className="text-center mb-12" ref={featuresRef.ref}>
+          <motion.span
+            className="text-blue-600 dark:text-blue-400 font-semibold tracking-wider uppercase text-sm mb-2 block"
+            initial={{ opacity: 0, y: 10 }}
+            animate={
+              featuresRef.isInView
+                ? { opacity: 1, y: 0 }
+                : { opacity: 0, y: 10 }
+            }
+          >
+            {t("features.eyebrow")}
+          </motion.span>
           <motion.h2
             className="text-4xl md:text-5xl font-bold text-neutral-800 dark:text-white mb-6"
             initial={{ opacity: 0, y: 30 }}
@@ -93,53 +104,65 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({
           </div>
         </motion.div>
 
-        {/* Grid - Forced to 3 columns, square items */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        {/* Grid - 2 cols on mobile, 4 on large screens */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-7xl mx-auto">
           <TooltipProvider>
             {features.map((feature, i) => (
-              <BentoGridItem
+              <motion.div
                 key={i}
-                title={t(feature.titleKey)}
-                description={t(feature.descriptionKey)}
-                // Intentionally use the `header` slot as a visual/media area because BentoGridItem has no dedicated image prop; this lets us render a square image with a fallback icon while keeping the default content layout.
-                header={
-                  <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-neutral-200 to-neutral-100 dark:from-neutral-900 dark:to-neutral-800 group">
-                    {/* Image infrastructure */}
-                    <img
-                      src={feature.imageSrc}
-                      alt={t(feature.titleKey)}
-                      className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                    {/* Fallback Icon if image fails/missing */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <feature.icon className="w-12 h-12 text-neutral-500/20 dark:text-neutral-300/20" />
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{
+                  delay: i * 0.05,
+                  type: "spring",
+                  damping: 25,
+                  stiffness: 200,
+                }}
+              >
+                <BentoGridItem
+                  title={t(feature.titleKey)}
+                  description={t(feature.descriptionKey)}
+                  // Intentionally use the `header` slot as a visual/media area because BentoGridItem has no dedicated image prop; this lets us render a square image with a fallback icon while keeping the default content layout.
+                  header={
+                    <div className="relative w-full aspect-square overflow-hidden bg-neutral-100 dark:bg-neutral-900 group rounded-t-xl">
+                      {/* Fallback Icon if image fails/missing - placed behind image */}
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <feature.icon className="w-12 h-12 text-neutral-500/20 dark:text-neutral-300/20" />
+                      </div>
+                      {/* Image infrastructure - placed on top with absolute positioning to overlay fallback icon */}
+                      <img
+                        src={feature.imageSrc}
+                        alt={t(feature.titleKey)}
+                        className="absolute inset-0 z-10 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
                     </div>
-                  </div>
-                }
-                // Icon slot displays platform availability indicators
-                icon={
-                  <div className="flex gap-2">
-                    {feature.availability.map((type) => (
-                      <Tooltip key={type}>
-                        <TooltipTrigger>
-                          <PlatformIcon type={type} />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>
-                            {type === "web"
-                              ? t("features.legend.web")
-                              : t("features.legend.desktop")}
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    ))}
-                  </div>
-                }
-                className="h-full min-h-[300px]" // Ensure height
-              />
+                  }
+                  // Icon slot displays platform availability indicators
+                  icon={
+                    <div className="flex gap-2">
+                      {feature.availability.map((type) => (
+                        <Tooltip key={type}>
+                          <TooltipTrigger>
+                            <PlatformIcon type={type} />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>
+                              {type === "web"
+                                ? t("features.legend.web")
+                                : t("features.legend.desktop")}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ))}
+                    </div>
+                  }
+                  className="h-full min-h-[300px]" // Ensure height
+                />
+              </motion.div>
             ))}
           </TooltipProvider>
         </div>

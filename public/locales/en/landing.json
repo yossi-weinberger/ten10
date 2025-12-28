@@ -12,6 +12,26 @@
     "downloadButton": "Free Download for Computer",
     "tryButton": "Try on Website"
   },
+  "problem": {
+    "badge": "The Challenges We All Know",
+    "title": "Managing Maaser Doesn't Have to Be Complicated",
+    "subtitle": "Between the calculations, halachic questions, and daily tracking – it's easy to get lost. You're not alone.",
+    "items": {
+      "excel": {
+        "title": "Calculations That Pile Up",
+        "desc": "Maaser isn't just 10% of your paycheck. There are deductions, eligible expenses, gross vs net, and last month's balance. Without a system – mistakes happen."
+      },
+      "confusion": {
+        "title": "Questions That Keep Coming",
+        "desc": "A gift you received, a one-time bonus, expense reimbursements from work – does it count? Every case feels a bit different."
+      },
+      "forgot": {
+        "title": "Information That's Scattered",
+        "desc": "A credit card expense, a cash donation, a forgotten standing order – when everything's in your head and on sticky notes, it's hard to know where you stand."
+      }
+    },
+    "transition": "It's time to put it all in one place."
+  },
   "stats": {
     "downloads": "Desktop Downloads",
     "websiteUsers": "Website Users"
@@ -26,10 +46,17 @@
     "download": "Download"
   },
   "carousel": {
-    "dashboard": "Overview of your financial status",
-    "transactions": "Manage and filter financial transactions",
-    "reports": "Detailed reports and charts",
-    "swipeHint": "Swipe to view more screenshots"
+    "eyebrow": "Inside Look",
+    "title": "See It In Action",
+    "swipeHint": "Swipe to view more screenshots",
+    "items": {
+      "dashboard": "Clear overview of your financial status",
+      "addTransaction": "Quickly and easily add new transactions",
+      "transactionsList": "Historical tracking of all transactions and calculations",
+      "recurring": "Manage standing orders and recurring payments",
+      "printReport": "Generate organized printable reports",
+      "halacha": "Comprehensive halacha library with common Q&A"
+    }
   },
   "quotes": {
     "title": "From the Sources",
@@ -47,7 +74,8 @@
       "title": "Partnership with Torah Adam L'Adam Institute",
       "description": "Ten10 was developed in partnership with the Torah Adam L'Adam Institute – one of the leading institutes in the field of practical halacha. The institute guided the entire development process and approved the accuracy of all halachic calculations in the system. Over a long period, the institute published various versions of Excel tables for tithe and chomesh calculations, which gained great public popularity with over 3,500 orders in Israel. Following the high demand and numerous requests, the institute decided to collaborate with an expert programmer to create a completely new system – modern, convenient, and advanced – that incorporates all the advantages of previous versions, alongside upgrades and new functions that will provide a fast, accurate, and pleasant user experience.",
       "verified": "Halachically Verified",
-      "institute": "Torah Adam L'Adam Institute"
+      "institute": "Torah Adam L'Adam Institute",
+      "visitWebsite": "Visit Institute Website"
     },
     "endorsements": {
       "title": "Rabbinical Endorsements",
@@ -60,8 +88,9 @@
     }
   },
   "features": {
-    "title": "Advanced Features",
-    "subtitle": "Everything you need for accurate and simple management of donations, tithes, and expenses",
+    "eyebrow": "System Features",
+    "title": "The Solution: Ten10",
+    "subtitle": "One smart system for managing donations, income, and expenses. Works exactly how you need it – on computer, website, or phone, with or without internet.",
     "legend": {
       "web": "Available on website",
       "desktop": "Available in desktop app"

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/accordion";
 import { faqs } from "../constants/faqs";
 
-const MotionAccordionItem = motion(AccordionItem);
+const MotionAccordionItem = motion.create(AccordionItem);
 
 interface FaqSectionProps {
   sectionRef: React.RefObject<HTMLElement>;
@@ -51,7 +51,7 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ sectionRef }) => {
                 transition={{ delay: index * 0.05 }}
                 viewport={{ once: true }}
               >
-                <AccordionTrigger className="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors text-lg font-semibold text-right data-[state=open]:text-primary">
+                <AccordionTrigger className="px-6 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-lg font-semibold text-gray-900 dark:text-white text-right data-[state=open]:text-primary">
                   {t(faq.questionKey)}
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-6 pt-2">
