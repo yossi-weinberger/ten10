@@ -168,9 +168,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             </motion.div>
           </motion.div>
         </div>
-
-        {/* Screenshots Carousel */}
-        <ScreenshotCarousel />
       </motion.div>
     </motion.section>
   );

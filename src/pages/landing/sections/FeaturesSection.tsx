@@ -41,6 +41,17 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({
 
       <div className="container mx-auto max-w-6xl relative z-10">
         <div className="text-center mb-12" ref={featuresRef.ref}>
+          <motion.span
+            className="text-blue-600 dark:text-blue-400 font-semibold tracking-wider uppercase text-sm mb-2 block"
+            initial={{ opacity: 0, y: 10 }}
+            animate={
+              featuresRef.isInView
+                ? { opacity: 1, y: 0 }
+                : { opacity: 0, y: 10 }
+            }
+          >
+            {t("features.eyebrow")}
+          </motion.span>
           <motion.h2
             className="text-4xl md:text-5xl font-bold text-neutral-800 dark:text-white mb-6"
             initial={{ opacity: 0, y: 30 }}
@@ -93,8 +104,8 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({
           </div>
         </motion.div>
 
-        {/* Grid - 4 columns on large screens */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+        {/* Grid - 2 cols on mobile, 4 on large screens */}
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-7xl mx-auto">
           <TooltipProvider>
             {features.map((feature, i) => (
               <BentoGridItem

@@ -12,6 +12,24 @@
     "downloadButton": "Free Download for Computer",
     "tryButton": "Try on Website"
   },
+  "problem": {
+    "title": "Why Is It So Complicated?",
+    "subtitle": "Many of us struggle with ongoing tithe management",
+    "items": {
+      "excel": {
+        "title": "Complex Calculations & Mistakes",
+        "desc": "Calculating maaser and chomesh requires precision - deducting recognized expenses, considering net vs gross, and tracking balances. It's very easy to miss details and make mistakes manually."
+      },
+      "confusion": {
+        "title": "Daily Halachic Questions",
+        "desc": "Is this gift taxable? Are car expenses deductible? Without close guidance, halachic doubts can lead to underpayment or overpayment."
+      },
+      "forgot": {
+        "title": "Tracking & Order",
+        "desc": "Cash donations, standing orders, one-time income... When information is scattered, it's hard to get a true picture of your tithe balance."
+      }
+    }
+  },
   "stats": {
     "downloads": "Desktop Downloads",
     "websiteUsers": "Website Users"
@@ -26,6 +44,8 @@
     "download": "Download"
   },
   "carousel": {
+    "eyebrow": "Inside Look",
+    "title": "See It In Action",
     "dashboard": "Overview of your financial status",
     "transactions": "Manage and filter financial transactions",
     "reports": "Detailed reports and charts",
@@ -60,8 +80,9 @@
     }
   },
   "features": {
-    "title": "Advanced Features",
-    "subtitle": "Everything you need for accurate and simple management of donations, tithes, and expenses",
+    "eyebrow": "System Features",
+    "title": "The Solution: Ten10",
+    "subtitle": "One smart system for managing donations, income, and expenses. Works exactly how you need it – on computer, website, or phone, with or without internet.",
     "legend": {
       "web": "Available on website",
       "desktop": "Available in desktop app"
