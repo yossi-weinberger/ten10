@@ -6,7 +6,7 @@ import {
   staggerContainer,
   staggerItem,
 } from "@/hooks/useScrollAnimation";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, ExternalLink } from "lucide-react";
 
 interface AboutSectionProps {
   sectionRef: React.RefObject<HTMLElement>;
@@ -53,18 +53,29 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ sectionRef }) => {
             <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed flex-grow">
               {t("about.partnership.description")}
             </p>
-            <div className="flex items-center gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg border">
-              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-blue-600" />
+            <div className="flex items-center justify-between gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg border">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
+                  <CheckCircle className="h-6 w-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-white">
+                    {t("about.partnership.verified")}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    {t("about.partnership.institute")}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-semibold text-gray-900 dark:text-white">
-                  {t("about.partnership.verified")}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  {t("about.partnership.institute")}
-                </p>
-              </div>
+              <a
+                href="https://veahavta-kamocha.org/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors flex-shrink-0"
+              >
+                {t("about.partnership.visitWebsite")}
+                <ExternalLink className="h-4 w-4" />
+              </a>
             </div>
           </motion.div>
 
