@@ -19,7 +19,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 
   return (
     <div
-      className="min-h-screen w-full flex items-start sm:items-center justify-center p-4 sm:p-8 relative bg-muted/30"
+      className="min-h-screen w-full flex items-center justify-center py-4 px-4 sm:p-8 relative bg-muted/30 overflow-y-auto"
       dir={i18n.dir()}
     >
       {/* Navigation & Controls */}
@@ -32,11 +32,11 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
       </div>
 
-      <div className="w-full max-w-[1400px] bg-card rounded-[32px] shadow-2xl overflow-hidden grid lg:grid-cols-2 relative z-10 lg:h-[85vh] lg:min-h-[600px]">
+      <div className="w-full max-w-[1400px] bg-card rounded-[32px] shadow-2xl grid lg:grid-cols-2 relative z-10 my-auto lg:max-h-[85vh] lg:min-h-[600px] overflow-hidden">
         {/* Form Side */}
-        <div className="relative flex flex-col justify-center p-8 md:p-16 lg:p-24 order-1 lg:h-full">
+        <div className="relative flex flex-col justify-start lg:justify-center p-8 md:p-12 lg:p-16 order-1 overflow-y-auto">
           {/* Mobile Logo */}
-          <div className="lg:hidden flex justify-center mt-12 mb-8 shrink-0">
+          <div className="lg:hidden flex justify-center mt-8 mb-6 shrink-0">
             <div className="rounded-2xl bg-white/90 dark:bg-black/40 backdrop-blur-md shadow-lg p-3 border border-black/5 dark:border-white/10">
               <img
                 src="/logo/logo.svg"
@@ -46,7 +46,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
             </div>
           </div>
 
-          <div className="w-full max-w-md mx-auto space-y-8">
+          <div className="w-full max-w-md mx-auto space-y-6 pb-8">
             <div className="space-y-2 text-center lg:text-start">
               {title && (
                 <h2 className="text-3xl font-bold tracking-tight">{title}</h2>
