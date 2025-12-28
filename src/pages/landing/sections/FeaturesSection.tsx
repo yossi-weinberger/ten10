@@ -93,8 +93,8 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({
           </div>
         </motion.div>
 
-        {/* Grid - Forced to 3 columns, square items */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        {/* Grid - 4 columns on large screens */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           <TooltipProvider>
             {features.map((feature, i) => (
               <BentoGridItem
