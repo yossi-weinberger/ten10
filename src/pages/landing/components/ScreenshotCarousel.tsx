@@ -24,7 +24,6 @@ type ScreenshotItem = {
   key: string;
   titleKey: string;
   src: string;
-  fallbackSrc?: string;
   alt: string;
 };
 
@@ -34,7 +33,7 @@ type LightboxImage = {
 };
 
 // Screenshots data - can be moved to a separate file if needed
-const SCREENSHOTS: Omit<ScreenshotItem, "fallbackSrc">[] = [
+const SCREENSHOTS: ScreenshotItem[] = [
   {
     key: "dashboard",
     titleKey: "carousel.items.dashboard",
@@ -82,20 +81,11 @@ const CACHED_IMAGE_CHECK_DELAY = 100;
 
 const ScreenshotImage: React.FC<{
   src: string;
-  fallbackSrc?: string;
   alt: string;
-}> = ({ src, fallbackSrc, alt }) => {
+}> = ({ src, alt }) => {
   const imgRef = useRef<HTMLImageElement | null>(null);
-  const [currentSrc, setCurrentSrc] = useState(src);
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
-
-  // Reset when the desired src changes
-  useEffect(() => {
-    setCurrentSrc(src);
-    setIsLoaded(false);
-    setHasError(false);
-  }, [src]);
 
   // Handle cached/instant loads reliably
   useEffect(() => {
@@ -113,7 +103,7 @@ const ScreenshotImage: React.FC<{
     // Delay check to catch images that load between initial check and timeout
     const timeoutId = setTimeout(checkLoaded, CACHED_IMAGE_CHECK_DELAY);
     return () => clearTimeout(timeoutId);
-  }, [currentSrc]);
+  }, [src]);
 
   const handleLoad = useCallback(() => {
     setIsLoaded(true);
@@ -121,14 +111,9 @@ const ScreenshotImage: React.FC<{
   }, []);
 
   const handleError = useCallback(() => {
-    if (fallbackSrc && currentSrc !== fallbackSrc) {
-      setCurrentSrc(fallbackSrc);
-      setIsLoaded(false);
-      return;
-    }
     setHasError(true);
     setIsLoaded(false);
-  }, [fallbackSrc, currentSrc]);
+  }, []);
 
   const placeholderClasses =
     "absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center z-10";
@@ -145,7 +130,7 @@ const ScreenshotImage: React.FC<{
 
       <img
         ref={imgRef}
-        src={currentSrc}
+        src={src}
         alt={alt}
         className="relative w-full h-full object-contain transition-opacity duration-500"
         style={{ opacity: isLoaded ? 1 : 0 }}
@@ -311,7 +296,7 @@ export const ScreenshotCarousel: React.FC = () => {
       {/* Lightbox Dialog */}
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
         <DialogContent
-          className="p-2 dark:bg-black/95 bg-white/95 border-none grid place-items-center [&>button]:hidden"
+          className="p-2 dark:bg-black/95 bg-white/95 border-none grid place-items-center [&>button:not([data-custom-close])]:hidden"
           style={{
             maxWidth: LIGHTBOX_CONTAINER_SIZE,
             maxHeight: LIGHTBOX_CONTAINER_HEIGHT,
@@ -330,6 +315,7 @@ export const ScreenshotCarousel: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="icon"
+                  data-custom-close
                   className="absolute right-4 top-4 z-50 h-10 w-10 rounded-full bg-white/90 dark:bg-gray-800/90 text-gray-900 dark:text-white shadow-lg hover:bg-white dark:hover:bg-gray-800 hover:scale-110 transition-all"
                   aria-label={t("carousel.closeLightbox")}
                 >
