@@ -49,6 +49,8 @@
     "eyebrow": "Inside Look",
     "title": "See It In Action",
     "swipeHint": "Swipe to view more screenshots",
+    "closeLightbox": "Close",
+    "lightboxDescription": "View screenshot in full size",
     "items": {
       "dashboard": "Clear overview of your financial status",
       "addTransaction": "Quickly and easily add new transactions",
