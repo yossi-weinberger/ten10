@@ -71,6 +71,15 @@ const SCREENSHOTS: Omit<ScreenshotItem, "fallbackSrc">[] = [
 const CAROUSEL_BUTTON_CLASSES =
   "h-12 w-12 border-none bg-white/80 dark:bg-gray-800/80 backdrop-blur shadow-lg hover:bg-white dark:hover:bg-gray-800";
 
+// Lightbox sizing constants
+const LIGHTBOX_CONTAINER_SIZE = "95vw";
+const LIGHTBOX_CONTAINER_HEIGHT = "95vh";
+const LIGHTBOX_IMAGE_SIZE = "90vw";
+const LIGHTBOX_IMAGE_HEIGHT = "90vh";
+
+// Delay for checking cached image load state (ms)
+const CACHED_IMAGE_CHECK_DELAY = 100;
+
 const ScreenshotImage: React.FC<{
   src: string;
   fallbackSrc?: string;
@@ -101,7 +110,8 @@ const ScreenshotImage: React.FC<{
     };
 
     checkLoaded();
-    const timeoutId = setTimeout(checkLoaded, 100);
+    // Delay check to catch images that load between initial check and timeout
+    const timeoutId = setTimeout(checkLoaded, CACHED_IMAGE_CHECK_DELAY);
     return () => clearTimeout(timeoutId);
   }, [currentSrc]);
 
@@ -301,7 +311,13 @@ export const ScreenshotCarousel: React.FC = () => {
       {/* Lightbox Dialog */}
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
         <DialogContent
-          className="!max-w-[95vw] !max-h-[95vh] w-[95vw] h-[95vh] p-2 dark:bg-black/95 bg-white/95 border-none grid place-items-center [&>button]:hidden"
+          className="p-2 dark:bg-black/95 bg-white/95 border-none grid place-items-center [&>button]:hidden"
+          style={{
+            maxWidth: LIGHTBOX_CONTAINER_SIZE,
+            maxHeight: LIGHTBOX_CONTAINER_HEIGHT,
+            width: LIGHTBOX_CONTAINER_SIZE,
+            height: LIGHTBOX_CONTAINER_HEIGHT,
+          }}
           dir={i18n.dir()}
         >
           {lightboxImage && (
@@ -324,8 +340,10 @@ export const ScreenshotCarousel: React.FC = () => {
                 <img
                   src={lightboxImage.src}
                   alt={lightboxImage.alt}
-                  className="max-w-[90vw] max-h-[90vh] w-auto h-auto object-contain rounded-lg"
+                  className="w-auto h-auto object-contain rounded-lg"
                   style={{
+                    maxWidth: LIGHTBOX_IMAGE_SIZE,
+                    maxHeight: LIGHTBOX_IMAGE_HEIGHT,
                     boxShadow:
                       "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
                   }}
