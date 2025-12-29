@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Carousel,
   CarouselContent,
@@ -14,6 +14,7 @@ import {
   Dialog,
   DialogContent,
   DialogTitle,
+  DialogDescription,
   DialogClose,
 } from "@/components/ui/dialog";
 import { ZoomIn, X } from "lucide-react";
@@ -163,9 +164,6 @@ export const ScreenshotCarousel: React.FC = () => {
     null
   );
 
-  // Memoize screenshots array
-  const screenshots = useMemo(() => SCREENSHOTS, []);
-
   // Handle opening lightbox
   const openLightbox = useCallback((item: ScreenshotItem) => {
     setLightboxImage({ src: item.src, alt: item.alt });
@@ -233,7 +231,7 @@ export const ScreenshotCarousel: React.FC = () => {
         >
           {/* Keep Embla mechanics LTR even when page is RTL */}
           <CarouselContent style={{ direction: "ltr" }}>
-            {screenshots.map((item) => (
+            {SCREENSHOTS.map((item) => (
               <CarouselItem key={item.key}>
                 <div className="flex flex-col gap-4 p-2" dir={i18n.dir()}>
                   {/* Text Content - Moved above image */}
@@ -309,12 +307,15 @@ export const ScreenshotCarousel: React.FC = () => {
           {lightboxImage && (
             <>
               <DialogTitle className="sr-only">{lightboxImage.alt}</DialogTitle>
+              <DialogDescription className="sr-only">
+                {t("carousel.lightboxDescription")}
+              </DialogDescription>
               <DialogClose asChild>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="absolute right-4 top-4 z-50 h-10 w-10 rounded-full bg-white/90 dark:bg-gray-800/90 text-gray-900 dark:text-white shadow-lg hover:bg-white dark:hover:bg-gray-800 hover:scale-110 transition-all"
-                  aria-label={t("carousel.closeLightbox", "Close")}
+                  aria-label={t("carousel.closeLightbox")}
                 >
                   <X className="h-5 w-5" />
                 </Button>
