@@ -216,6 +216,9 @@ export function TransactionForm({
         let formValue = values[formKey];
         const initialValue = initialData[key];
 
+        const normalizeEmptyAndUndefinedToNull = (value: unknown) =>
+          value === "" || value === undefined ? null : value;
+
         // Sanitize dependent fields based on the new final type
         // This fixes the issue where changing type from 'income' (with chomesh) to 'expense'
         // would fail validation because is_chomesh remained true.
@@ -243,8 +246,7 @@ export function TransactionForm({
         }
 
         // Normalize values for comparison (handle null, undefined, empty string)
-        const normalizedFormValue =
-          formValue === "" || formValue === undefined ? null : formValue;
+        const normalizedFormValue = normalizeEmptyAndUndefinedToNull(formValue);
         const normalizedInitialValue =
           initialValue === "" || initialValue === undefined
             ? null
@@ -257,8 +259,8 @@ export function TransactionForm({
           // 1. We know the key exists in both TransactionFormValues and Transaction
           // 2. We're normalizing undefined/empty string to null to match Transaction's types
           // 3. The transactionFields array only contains valid Transaction keys
-          const normalizedValue = (
-            formValue === "" || formValue === undefined ? null : formValue
+          const normalizedValue = normalizeEmptyAndUndefinedToNull(
+            formValue
           ) as Transaction[typeof key];
           assignToPayload(key, normalizedValue);
         }

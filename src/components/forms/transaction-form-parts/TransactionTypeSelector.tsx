@@ -1,4 +1,4 @@
-import React from "react";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -63,9 +63,7 @@ export function TransactionTypeSelector({
   const { t } = useTranslation("transactions");
 
   // Remember last per-type checkbox choices so switching tabs doesn't lose them.
-  const lastFlagsRef = React.useRef<
-    Record<BaseType, Record<PerTypeFlag, boolean>>
-  >({
+  const lastFlagsRef = useRef<Record<BaseType, Record<PerTypeFlag, boolean>>>({
     income: {
       is_chomesh: false,
       isExempt: false,
