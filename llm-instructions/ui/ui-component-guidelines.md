@@ -13,6 +13,7 @@ This document provides comprehensive guidelines for creating floating UI compone
 7. [Best Practices Summary](#7-best-practices-summary)
 8. [Migration Guide](#8-migration-guide)
 9. [Internationalization (i18n) and Theming Guidelines](#9-internationalization-i18n-and-theming-guidelines)
+10. [Layout and Navigation Components](#10-layout-and-navigation-components)
 
 ---
 
@@ -158,6 +159,7 @@ import { useTranslation } from "react-i18next";
 import {
   Tooltip,
   TooltipContent,
+  TooltipTrigger,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -410,18 +412,28 @@ function DebugTooltip() {
 
 ```tsx
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 function App() {
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-background flex">
-        {/* Sidebar */}
-        <div className="hidden md:block w-[4rem] hover:w-48">
+      <div className="h-full w-full overflow-hidden bg-background flex">
+        {/* Sidebar - Controlled by State, NOT CSS :hover */}
+        <div
+          className={cn(
+            "hidden md:block transition-all duration-300 bg-card overflow-hidden h-full shadow-lg",
+            isSidebarExpanded ? "w-44" : "w-16"
+          )}
+          onMouseEnter={() => setIsSidebarExpanded(true)}
+          onMouseLeave={() => setIsSidebarExpanded(false)}
+        >
           <Sidebar expanded={isSidebarExpanded} />
         </div>
 
         {/* Main content */}
-        <div className="flex-1 h-screen overflow-y-auto">
+        <div className="flex-1 h-full overflow-y-auto flex flex-col">
           <main className="container py-6 px-4 md:px-6 md:pt-6 pt-20">
             <Outlet />
           </main>
@@ -566,7 +578,35 @@ Use appropriate namespaces to organize translations:
 
 ---
 
-**Last Updated:** [Current Date]
+## 10. Layout and Navigation Components
+
+_(Added February 2025)_
+
+### 10.1 Sidebar Layout & Animations
+
+The main `Sidebar` component requires careful synchronization between the parent container (in `App.tsx`) and the internal content animations (in `Sidebar.tsx`) to prevent layout jumps ("jank") and text cutoff issues.
+
+**Key Principles:**
+
+1.  **State-Driven Width:** Never use CSS `:hover` to change the sidebar width. Always use a React state (`isSidebarExpanded`) in `App.tsx` that is passed down to `Sidebar`. This ensures that both the parent wrapper and the internal content animate at the exact same time.
+2.  **Synchronized Transitions:** All transitions (width, opacity, transform) must use the same duration (e.g., `duration-300`).
+3.  **No Dynamic Alignment:** To prevent icon jumping, navigation buttons should **always** be `justify-start` with fixed padding (e.g., `px-4`). Do not switch between `justify-center` (collapsed) and `justify-start` (expanded). The content should be perfectly centered in the collapsed state simply by virtue of the padding and container width.
+4.  **Text Fading:** Text labels must fade out (`opacity-0`) and collapse (`w-0`) **before** the sidebar finishes closing, or fade in **after** it starts opening, to prevent the text from being "cut off" by the shrinking container.
+
+### 10.2 Profile & Platform Indicator Alignment
+
+To maintain a "Pixel Perfect" vertical alignment line for all icons (Menu, Profile, Platform):
+
+*   **Grid/Flex System:** All sidebar items (menu buttons, profile link, platform indicator) must align their icons to the same vertical axis.
+*   **Fixed Icon Containers:** For elements that don't have standard button padding (like the `PlatformIndicator`), wrap the icon in a `div` with fixed dimensions (e.g., `w-6 h-6`) and `flex center`. This mimics the geometry of a standard icon within a button, ensuring alignment without complex margin calculations.
+*   **Consistent Sizing:**
+    *   Menu Icons: `h-6 w-6`
+    *   Profile Picture: `h-8 w-8` (slightly larger, but centered within the same effective column)
+    *   Platform Icons: `h-5 w-5` (inside a `w-6 h-6` wrapper)
+
+---
+
+**Last Updated:** February 2025
 **Status:** Active
 **Maintained By:** Development Team
-**Related Files:** `App.tsx`, `tooltip.tsx`, `i18n.ts`, `index.css`
+**Related Files:** `App.tsx`, `Sidebar.tsx`, `PlatformIndicator.tsx`, `tooltip.tsx`, `i18n.ts`, `index.css`
