@@ -597,12 +597,12 @@ The main `Sidebar` component requires careful synchronization between the parent
 
 To maintain a "Pixel Perfect" vertical alignment line for all icons (Menu, Profile, Platform):
 
-*   **Grid/Flex System:** All sidebar items (menu buttons, profile link, platform indicator) must align their icons to the same vertical axis.
-*   **Fixed Icon Containers:** For elements that don't have standard button padding (like the `PlatformIndicator`), wrap the icon in a `div` with fixed dimensions (e.g., `w-6 h-6`) and `flex center`. This mimics the geometry of a standard icon within a button, ensuring alignment without complex margin calculations.
-*   **Consistent Sizing:**
-    *   Menu Icons: `h-6 w-6`
-    *   Profile Picture: `h-8 w-8` (slightly larger, but centered within the same effective column)
-    *   Platform Icons: `h-5 w-5` (inside a `w-6 h-6` wrapper)
+- **Grid/Flex System:** All sidebar items (menu buttons, profile link, platform indicator) must align their icons to the same vertical axis.
+- **Fixed Icon Containers:** For elements that don't have standard button padding (like the `PlatformIndicator`), wrap the icon in a `div` with fixed dimensions (e.g., `w-6 h-6`) and `flex center`. This mimics the geometry of a standard icon within a button, ensuring alignment without complex margin calculations.
+- **Consistent Sizing:**
+  - Menu Icons: `h-6 w-6`
+  - Profile Picture: `h-8 w-8` (slightly larger, but centered within the same effective column)
+  - Platform Icons: `h-5 w-5` (inside a `w-6 h-6` wrapper)
 
 ---
 
