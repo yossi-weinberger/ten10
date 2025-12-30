@@ -269,7 +269,7 @@ export function TransactionsTableDisplay() {
                   <>
                     {Array.from({ length: 20 }).map((_, rowIndex) => (
                       <TableRow key={`skeleton-row-${rowIndex}`}>
-                        {Array.from({ length: sortableColumns.length + 2 }).map(
+                        {Array.from({ length: sortableColumns.length + 3 }).map(
                           (_, cellIndex) => (
                             <TableCell
                               key={`skeleton-cell-${rowIndex}-${cellIndex}`}
