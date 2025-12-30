@@ -242,7 +242,9 @@ export function TransactionForm({
           // 1. We know the key exists in both TransactionFormValues and Transaction
           // 2. We're normalizing undefined/empty string to null to match Transaction's types
           // 3. The transactionFields array only contains valid Transaction keys
-          const normalizedValue = (formValue === "" ? null : formValue) as Transaction[typeof key];
+          const normalizedValue = (
+            formValue === "" ? null : formValue
+          ) as Transaction[typeof key];
           assignToPayload(key, normalizedValue);
         }
       });

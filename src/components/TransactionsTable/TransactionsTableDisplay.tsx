@@ -172,11 +172,9 @@ export function TransactionsTableDisplay() {
 
   // Helper function to get month key from date string (YYYY-MM format)
   const getMonthKey = useCallback((dateString: string): string => {
-    const date = new Date(dateString);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
-      2,
-      "0"
-    )}`;
+    // Parse directly from string to avoid timezone issues with Date object
+    // Expects YYYY-MM-DD format which is standard in this app
+    return dateString.substring(0, 7);
   }, []);
 
   // Helper function to format month label
