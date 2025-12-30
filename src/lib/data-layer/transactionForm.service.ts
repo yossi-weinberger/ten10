@@ -20,7 +20,9 @@ import { logger } from "@/lib/logger";
  * @param values - The data from the transaction form.
  * @returns The specific TransactionType.
  */
-function determineFinalType(values: TransactionFormValues): TransactionType {
+export function determineFinalType(
+  values: TransactionFormValues
+): TransactionType {
   const { type, isExempt, isRecognized, isFromPersonalFunds } = values;
 
   if (type === "income" && isExempt) {

@@ -3,7 +3,10 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDonationStore } from "@/lib/store";
-import { handleTransactionSubmit } from "@/lib/data-layer/transactionForm.service";
+import {
+  handleTransactionSubmit,
+  determineFinalType,
+} from "@/lib/data-layer/transactionForm.service";
 import {
   TransactionFormValues,
   createTransactionFormSchema,
@@ -169,15 +172,59 @@ export function TransactionForm({
       }
       // Logic for updating an existing transaction
       const updatePayload: Partial<Transaction> = {};
-      (Object.keys(values) as Array<keyof TransactionFormValues>).forEach(
-        (key) => {
-          if (values[key] !== initialData[key as keyof Transaction]) {
-            const value = values[key];
-            updatePayload[key as keyof Transaction] =
-              value === "" ? null : (value as any);
+
+      // Calculate the final type from form values (including checkboxes)
+      const newFinalType = determineFinalType(values);
+      const oldFinalType = initialData.type;
+
+      // Check if the type changed (considering checkboxes)
+      if (newFinalType !== oldFinalType) {
+        updatePayload.type = newFinalType;
+      }
+
+      // Compare other fields that exist in Transaction
+      // List of fields that should be compared and can be updated
+      const transactionFields: Array<keyof Transaction> = [
+        "date",
+        "amount",
+        "currency",
+        "description",
+        "category",
+        "is_chomesh",
+        "recipient",
+      ];
+
+      transactionFields.forEach((key) => {
+        const formKey = key as keyof TransactionFormValues;
+        const formValue = values[formKey];
+        const initialValue = initialData[key];
+
+        // Special handling for date field (always string in form, string in DB)
+        if (key === "date") {
+          // Date is always a string in format "YYYY-MM-DD"
+          const formDateStr = formValue as string;
+          const initialDateStr = initialValue as string;
+          if (formDateStr !== initialDateStr) {
+            updatePayload[key] = formDateStr as any;
           }
+          return;
         }
-      );
+
+        // Normalize values for comparison (handle null, undefined, empty string)
+        const normalizedFormValue =
+          formValue === "" || formValue === undefined ? null : formValue;
+        const normalizedInitialValue =
+          initialValue === "" || initialValue === undefined
+            ? null
+            : initialValue;
+
+        // Compare normalized values
+        if (normalizedFormValue !== normalizedInitialValue) {
+          // Convert empty string to null for database consistency
+          updatePayload[key] = formValue === "" ? null : (formValue as any);
+        }
+      });
+
       if (Object.keys(updatePayload).length > 0) {
         try {
           await updateTransaction(initialData.id, updatePayload, platform);
