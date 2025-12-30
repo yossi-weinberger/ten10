@@ -159,7 +159,10 @@ export function TransactionTypeSelector({
             }
           }
 
-          void form.trigger(["type", ...ALL_FLAGS]);
+          // Clear any stale errors from flags we just reset/hidden,
+          // then validate only what is relevant to the selected type.
+          form.clearErrors(ALL_FLAGS);
+          void form.trigger(["type", ...FLAGS_BY_TYPE[nextBase]]);
         }}
         className="w-full"
       >
