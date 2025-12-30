@@ -203,6 +203,14 @@ export function TransactionForm({
         "recipient",
       ];
 
+      // Helper function to safely assign values to updatePayload
+      const assignToPayload = <K extends keyof Transaction>(
+        key: K,
+        value: Transaction[K]
+      ): void => {
+        updatePayload[key] = value;
+      };
+
       transactionFields.forEach((key) => {
         const formKey = key as keyof TransactionFormValues;
         const formValue = values[formKey];
@@ -211,10 +219,10 @@ export function TransactionForm({
         // Special handling for date field (always string in form, string in DB)
         if (key === "date") {
           // Date is always a string in format "YYYY-MM-DD"
-          const formDateStr = formValue as string;
-          const initialDateStr = initialValue as string;
+          const formDateStr = formValue as Transaction["date"];
+          const initialDateStr = initialValue as Transaction["date"];
           if (formDateStr !== initialDateStr) {
-            updatePayload[key] = formDateStr as any;
+            assignToPayload("date", formDateStr);
           }
           return;
         }
@@ -230,7 +238,12 @@ export function TransactionForm({
         // Compare normalized values
         if (normalizedFormValue !== normalizedInitialValue) {
           // Convert empty string to null for database consistency
-          updatePayload[key] = formValue === "" ? null : (formValue as any);
+          // Type assertion is safe here because:
+          // 1. We know the key exists in both TransactionFormValues and Transaction
+          // 2. We're normalizing undefined/empty string to null to match Transaction's types
+          // 3. The transactionFields array only contains valid Transaction keys
+          const normalizedValue = (formValue === "" ? null : formValue) as Transaction[typeof key];
+          assignToPayload(key, normalizedValue);
         }
       });
 
