@@ -121,6 +121,10 @@ export function TransactionTypeSelector({
           );
 
           if (!nextBase) return;
+          // If the user clicked the already-selected tab, do nothing.
+          // Otherwise we'd reset/restore flags from lastFlagsRef and potentially overwrite
+          // the user's current in-form state with stale defaults.
+          if (prevBase === nextBase) return;
 
           // Save current per-type flags before leaving the previous type.
           if (prevBase && prevBase !== nextBase) {
