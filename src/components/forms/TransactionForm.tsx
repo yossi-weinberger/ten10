@@ -183,7 +183,11 @@ export function TransactionForm({
       }
 
       // Compare other fields that exist in Transaction
-      // List of fields that should be compared and can be updated
+      // List of user-editable fields that can be updated.
+      // Excluded fields:
+      // - id, user_id, created_at, updated_at: System fields, not user-editable
+      // - type: Handled separately above using determineFinalType (includes checkbox logic)
+      // - source_recurring_id, execution_count, recurring_*: Recurring transaction metadata, not editable here
       const transactionFields: Array<keyof Transaction> = [
         "date",
         "amount",

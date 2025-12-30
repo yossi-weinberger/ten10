@@ -52,6 +52,9 @@ export function TransactionsTableDisplay() {
     { label: t("columns.recipient"), field: "recipient" },
   ];
 
+  // Total number of columns: sortable columns + chomesh + recurring + actions
+  const TOTAL_TABLE_COLUMNS = sortableColumns.length + 3;
+
   const {
     transactions,
     loading,
@@ -269,7 +272,7 @@ export function TransactionsTableDisplay() {
                   <>
                     {Array.from({ length: 20 }).map((_, rowIndex) => (
                       <TableRow key={`skeleton-row-${rowIndex}`}>
-                        {Array.from({ length: sortableColumns.length + 3 }).map(
+                        {Array.from({ length: TOTAL_TABLE_COLUMNS }).map(
                           (_, cellIndex) => (
                             <TableCell
                               key={`skeleton-cell-${rowIndex}-${cellIndex}`}
@@ -286,7 +289,7 @@ export function TransactionsTableDisplay() {
                 {!loading && !error && transactions.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={sortableColumns.length + 3}
+                      colSpan={TOTAL_TABLE_COLUMNS}
                       className="h-24 text-center"
                     >
                       {t("messages.noData")}
@@ -301,7 +304,7 @@ export function TransactionsTableDisplay() {
                         className="border-t-2 border-border hover:bg-transparent"
                       >
                         <TableCell
-                          colSpan={sortableColumns.length + 3}
+                          colSpan={TOTAL_TABLE_COLUMNS}
                           className="py-1 px-4 relative"
                         >
                           <span className="absolute rtl:right-4 ltr:left-4 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground bg-background px-2">
