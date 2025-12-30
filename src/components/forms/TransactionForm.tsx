@@ -213,8 +213,26 @@ export function TransactionForm({
 
       transactionFields.forEach((key) => {
         const formKey = key as keyof TransactionFormValues;
-        const formValue = values[formKey];
+        let formValue = values[formKey];
         const initialValue = initialData[key];
+
+        const normalizeEmptyAndUndefinedToNull = (value: unknown) =>
+          value === "" || value === undefined ? null : value;
+
+        // Sanitize dependent fields based on the new final type
+        // This fixes the issue where changing type from 'income' (with chomesh) to 'expense'
+        // would fail validation because is_chomesh remained true.
+        if (key === "is_chomesh" && newFinalType !== "income") {
+          formValue = null;
+        }
+        // Optional: clear recipient if not a donation type
+        if (
+          key === "recipient" &&
+          newFinalType !== "donation" &&
+          newFinalType !== "non_tithe_donation"
+        ) {
+          formValue = null;
+        }
 
         // Special handling for date field (always string in form, string in DB)
         if (key === "date") {
@@ -228,8 +246,7 @@ export function TransactionForm({
         }
 
         // Normalize values for comparison (handle null, undefined, empty string)
-        const normalizedFormValue =
-          formValue === "" || formValue === undefined ? null : formValue;
+        const normalizedFormValue = normalizeEmptyAndUndefinedToNull(formValue);
         const normalizedInitialValue =
           initialValue === "" || initialValue === undefined
             ? null
@@ -237,13 +254,13 @@ export function TransactionForm({
 
         // Compare normalized values
         if (normalizedFormValue !== normalizedInitialValue) {
-          // Convert empty string to null for database consistency
+          // Convert empty string/undefined to null for database consistency
           // Type assertion is safe here because:
           // 1. We know the key exists in both TransactionFormValues and Transaction
           // 2. We're normalizing undefined/empty string to null to match Transaction's types
           // 3. The transactionFields array only contains valid Transaction keys
-          const normalizedValue = (
-            formValue === "" ? null : formValue
+          const normalizedValue = normalizeEmptyAndUndefinedToNull(
+            formValue
           ) as Transaction[typeof key];
           assignToPayload(key, normalizedValue);
         }

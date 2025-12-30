@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,6 +14,35 @@ const userFacingTransactionTypes: TransactionType[] = [
   "donation",
 ];
 type ButtonStyleType = "income" | "expense" | "donation";
+
+type BaseType = ButtonStyleType;
+type PerTypeFlag =
+  | "is_chomesh"
+  | "isExempt"
+  | "isRecognized"
+  | "isFromPersonalFunds";
+
+const ALL_FLAGS: PerTypeFlag[] = [
+  "is_chomesh",
+  "isExempt",
+  "isRecognized",
+  "isFromPersonalFunds",
+];
+
+const FLAGS_BY_TYPE: Record<BaseType, PerTypeFlag[]> = {
+  income: ["is_chomesh", "isExempt"],
+  expense: ["isRecognized"],
+  donation: ["isFromPersonalFunds"],
+};
+
+function toBaseType(type: TransactionType): BaseType | null {
+  if (type === "income" || type === "expense" || type === "donation")
+    return type;
+  if (type === "exempt-income") return "income";
+  if (type === "recognized-expense") return "expense";
+  if (type === "non_tithe_donation") return "donation";
+  return null;
+}
 
 // Only the slider changes color; the triggers themselves remain transparent
 const indicatorColors: Record<ButtonStyleType, string> = {
@@ -31,6 +61,28 @@ export function TransactionTypeSelector({
   selectedType,
 }: TransactionTypeSelectorProps) {
   const { t } = useTranslation("transactions");
+
+  // Remember last per-type checkbox choices so switching tabs doesn't lose them.
+  const lastFlagsRef = useRef<Record<BaseType, Record<PerTypeFlag, boolean>>>({
+    income: {
+      is_chomesh: false,
+      isExempt: false,
+      isRecognized: false,
+      isFromPersonalFunds: false,
+    },
+    expense: {
+      is_chomesh: false,
+      isExempt: false,
+      isRecognized: false,
+      isFromPersonalFunds: false,
+    },
+    donation: {
+      is_chomesh: false,
+      isExempt: false,
+      isRecognized: false,
+      isFromPersonalFunds: false,
+    },
+  });
 
   const transactionTypeLabels: Record<TransactionType, string> = {
     income: t("transactionForm.transactionType.income"),
@@ -60,11 +112,60 @@ export function TransactionTypeSelector({
 
       <Tabs
         value={selectedType}
-        onValueChange={(value) =>
-          form.setValue("type", value as TransactionType, {
-            shouldValidate: true,
-          })
-        }
+        onValueChange={(value) => {
+          const nextBase = toBaseType(value as TransactionType);
+          const prevBase = toBaseType(
+            form.getValues("type") as TransactionType
+          );
+
+          if (!nextBase) return;
+          // If the user clicked the already-selected tab, do nothing.
+          // Otherwise we'd reset/restore flags from lastFlagsRef and potentially overwrite
+          // the user's current in-form state with stale defaults.
+          if (prevBase === nextBase) return;
+
+          // Save current per-type flags before leaving the previous type.
+          if (prevBase && prevBase !== nextBase) {
+            for (const flag of FLAGS_BY_TYPE[prevBase]) {
+              lastFlagsRef.current[prevBase][flag] = !!form.getValues(flag);
+            }
+          }
+
+          // IMPORTANT:
+          // Validation runs before submit. When the user changes type (e.g., income -> expense),
+          // we must proactively reset incompatible fields BEFORE triggering validation,
+          // otherwise Zod will block the form with errors like "Chomesh is only for income".
+          form.setValue("type", nextBase, { shouldValidate: false });
+
+          // Reset all flags that are NOT relevant to the next type
+          const relevantFlags = new Set(FLAGS_BY_TYPE[nextBase]);
+          for (const flag of ALL_FLAGS) {
+            if (!relevantFlags.has(flag)) {
+              form.setValue(flag, false, { shouldValidate: false });
+            }
+          }
+
+          // Restore last flags relevant to the next type
+          for (const flag of FLAGS_BY_TYPE[nextBase]) {
+            form.setValue(flag, !!lastFlagsRef.current[nextBase][flag], {
+              shouldValidate: false,
+            });
+          }
+
+          // Enforce income-only constraint: can't have both Exempt + Chomesh
+          if (nextBase === "income") {
+            const isExempt = !!form.getValues("isExempt");
+            const isChomesh = !!form.getValues("is_chomesh");
+            if (isExempt && isChomesh) {
+              form.setValue("is_chomesh", false, { shouldValidate: false });
+            }
+          }
+
+          // Clear any stale errors from flags we just reset/hidden,
+          // then validate only what is relevant to the selected type.
+          form.clearErrors(ALL_FLAGS);
+          void form.trigger(["type", ...FLAGS_BY_TYPE[nextBase]]);
+        }}
         className="w-full"
       >
         <TabsList
