@@ -160,7 +160,6 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-  TooltipTrigger,
 } from "@/components/ui/tooltip";
 
 function BasicTooltipExample() {
