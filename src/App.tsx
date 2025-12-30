@@ -163,7 +163,10 @@ function App() {
       <div className="h-full w-full overflow-hidden bg-background flex">
         {!isFullScreenPage && (
           <div
-            className="hidden md:block w-[4rem] hover:w-44 transition-all duration-300 bg-card overflow-hidden h-full shadow-lg"
+            className={cn(
+              "hidden md:block transition-all duration-300 bg-card overflow-hidden h-full shadow-lg",
+              isSidebarExpanded ? "w-44" : "w-16"
+            )}
             onMouseEnter={() => setIsSidebarExpanded(true)}
             onMouseLeave={() => setIsSidebarExpanded(false)}
           >
