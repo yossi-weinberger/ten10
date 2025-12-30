@@ -28,10 +28,7 @@ export const TransactionsTableFooter: React.FC<
           </Button>
         </div>
       )}
-      <div
-        className="flex justify-center items-center mt-6 space-x-4"
-        dir="rtl"
-      >
+      <div className="flex justify-center items-center mt-6 gap-6" dir="rtl">
         {!loading && pagination.hasMore && (
           <Button onClick={handleLoadMore}>{t("pagination.loadMore")}</Button>
         )}
