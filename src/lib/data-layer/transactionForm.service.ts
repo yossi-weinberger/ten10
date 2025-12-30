@@ -15,8 +15,24 @@ import {
 import { logger } from "@/lib/logger";
 
 /**
+ * Normalizes a transaction type to its base type.
+ * Converts derived types (exempt-income, recognized-expense, non_tithe_donation)
+ * back to their base types (income, expense, donation).
+ * @param type - The transaction type to normalize.
+ * @returns The base transaction type.
+ */
+export function normalizeToBaseType(type: TransactionType): TransactionType {
+  if (type === "exempt-income") return "income";
+  if (type === "recognized-expense") return "expense";
+  if (type === "non_tithe_donation") return "donation";
+  return type;
+}
+
+/**
  * Determines the final transaction type based on form values,
  * especially the state of specific checkboxes.
+ * This function handles both creating new transactions and editing existing ones,
+ * including cases where the transaction already has a derived type.
  * @param values - The data from the transaction form.
  * @returns The specific TransactionType.
  */
@@ -25,18 +41,22 @@ export function determineFinalType(
 ): TransactionType {
   const { type, isExempt, isRecognized, isFromPersonalFunds } = values;
 
-  if (type === "income" && isExempt) {
+  // Normalize the type to base type first (handles editing existing derived types)
+  const baseType = normalizeToBaseType(type);
+
+  // Apply checkbox logic based on base type
+  if (baseType === "income" && isExempt) {
     return "exempt-income";
   }
-  if (type === "expense" && isRecognized) {
+  if (baseType === "expense" && isRecognized) {
     return "recognized-expense";
   }
-  if (type === "donation" && isFromPersonalFunds) {
+  if (baseType === "donation" && isFromPersonalFunds) {
     return "non_tithe_donation";
   }
 
   // If none of the special conditions are met, return the base type.
-  return type;
+  return baseType;
 }
 
 /**

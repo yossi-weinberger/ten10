@@ -6,6 +6,7 @@ import { useDonationStore } from "@/lib/store";
 import {
   handleTransactionSubmit,
   determineFinalType,
+  normalizeToBaseType,
 } from "@/lib/data-layer/transactionForm.service";
 import {
   TransactionFormValues,
@@ -135,8 +136,12 @@ export function TransactionForm({
   // Use useEffect to reset the form when initialData changes (for editing)
   React.useEffect(() => {
     if (isEditMode && initialData) {
+      // Normalize the type to base type for the form (TypeSelector only shows base types)
+      const baseType = normalizeToBaseType(initialData.type);
+
       const defaultVals: Partial<TransactionFormValues> = {
         ...initialData,
+        type: baseType, // Use normalized base type instead of derived type
         date: initialData.date
           ? new Date(initialData.date).toISOString().split("T")[0]
           : "",

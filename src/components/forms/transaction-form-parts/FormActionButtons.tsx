@@ -18,7 +18,7 @@ export function FormActionButtons({
 }: FormActionButtonsProps) {
   const { t } = useTranslation("transactions");
   return (
-    <div className="flex justify-end items-center space-x-2">
+    <div className="flex justify-end items-center gap-4">
       {/* Success Icon Animation */}
       {isSuccess && (
         <CheckCircle className="h-5 w-5 text-green-500 animate-pulse" />
