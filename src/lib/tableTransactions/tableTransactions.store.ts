@@ -292,7 +292,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
       set({ exportLoading: true, exportError: null });
 
       try {
-        const { filters } = get();
+        const { filters, sorting } = get();
         const { transactions: transactionsToExport, totalCount } =
           await TableTransactionsService.getDataForExport(filters, platform);
 
@@ -315,7 +315,8 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
             transactionsToExport,
             exportFilters,
             totalCount,
-            i18n.language
+            i18n.language,
+            sorting
           );
         } else if (format === "excel") {
           await exportTransactionsToExcel(

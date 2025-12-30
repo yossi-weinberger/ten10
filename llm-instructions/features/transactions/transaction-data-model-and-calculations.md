@@ -25,6 +25,11 @@ This document outlines the standard approach for handling financial transactions
   - `'non_tithe_donation'`: Represents a donation made from personal, non-tithe funds. It does not reduce the required tithe amount. However, it _is_ included in the total sum of donations for reporting purposes and can be displayed separately.
 - **Specific Fields**: Fields relevant only to certain types (e.g., `is_chomesh`, `recipient`) are defined in the interface but only populated when relevant.
   **UI Handling**: In the `TransactionForm`, subtypes like `exempt-income` and `recognized-expense` are handled via conditional checkboxes presented under the main `income` or `expense` type selections, simplifying the initial choice for the user while allowing for the necessary detail.
+  
+  **Type Calculation Logic**: The `determineFinalType()` function (exported from `src/lib/data-layer/transactionForm.service.ts`) is used to calculate the final transaction type based on form values and checkbox states. This function is critical for both creating and editing transactions:
+  - When creating: Converts form values (base type + checkboxes) to the final transaction type before saving.
+  - When editing: Compares the calculated final type with the existing transaction type to detect type changes (e.g., when a user checks/unchecks "Recognized Expense" checkbox, changing from `expense` to `recognized-expense` or vice versa).
+  - The function ensures that type changes based on checkboxes are properly detected and included in the update payload, which is essential for correct tithe balance recalculation.
 
 ## 2. State Management (Zustand)
 
@@ -118,10 +123,24 @@ This document outlines the standard approach for handling financial transactions
 - **Display**: `TransactionsTableDisplay` and its sub-components (`TransactionRow`, `TransactionsTableFooter`) subscribe to `useTableTransactionsStore` and re-render when its state (e.g., `transactions`, `loading`, `pagination.hasMore`) changes.
 - **Update/Delete**:
   - User interaction in `TransactionRow` (e.g., clicking "Edit" or "Delete") triggers handlers in `TransactionsTableDisplay`.
-  - For "Edit", `TransactionEditModal` is opened. Upon submission, its `onSubmit` function calls the `updateTransaction` action in `useTableTransactionsStore`.
+  - For "Edit", `TransactionEditModal` is opened. Upon submission, its `onSubmit` function:
+    - **Type Calculation**: Uses `determineFinalType()` function (exported from `src/lib/data-layer/transactionForm.service.ts`) to calculate the final transaction type based on form values and checkbox states:
+      - `income` + `isExempt` checkbox → `exempt-income`
+      - `expense` + `isRecognized` checkbox → `recognized-expense`
+      - `donation` + `isFromPersonalFunds` checkbox → `non_tithe_donation`
+      - Otherwise, uses the base `type` value
+    - **Update Payload Construction**: Builds an `updatePayload` containing only changed fields:
+      - Compares the calculated final type with the existing transaction type. If different, includes `type` in the update payload.
+      - Compares only user-editable fields that exist in the `Transaction` interface: `date`, `amount`, `currency`, `description`, `category`, `is_chomesh`, `recipient`
+      - Excludes system fields (`id`, `user_id`, `created_at`, `updated_at`), recurring metadata fields, and form-only fields (`isExempt`, `isRecognized`, `isFromPersonalFunds`, `is_recurring`, etc.)
+      - Normalizes values for comparison: treats empty strings and `undefined` as `null` to ensure accurate change detection
+      - Special handling for `date` field: direct string comparison (always string in format "YYYY-MM-DD")
+    - Calls the `updateTransaction` action in `useTableTransactionsStore`, passing the transaction ID, the `updatePayload`, and the current platform.
   - For "Delete", after confirmation, `handleDeleteConfirm` calls the `deleteTransaction` action in `useTableTransactionsStore`.
   - These store actions then call the respective methods in `src/lib/tableTransactions/tableTransactionService.ts` (`updateTransaction`, `deleteTransaction`), which interact with the backend.
-  - Upon successful backend operation, the store updates its local `transactions` array (e.g., modifies the item or removes it) to reflect the change immediately in the UI.
+  - Upon successful backend operation:
+    - The store updates its local `transactions` array (e.g., modifies the item or removes it) to reflect the change immediately in the UI (optimistic update).
+    - The `lastDbFetchTimestamp` is updated, which triggers the `useServerStats` hook to recalculate the tithe balance automatically.
 - **Export**:
   - User selects an export format in `ExportButton.tsx`.
   - The `exportTransactions` action in `useTableTransactionsStore` is called.
@@ -204,5 +223,6 @@ To add a new field (e.g., `notes`) to the `Transaction` model, you typically nee
       - Add input fields to forms (`src/components/TransactionForm.tsx` or similar) using `react-hook-form` and `shadcn/ui`.
       - Update display components like tables (`src/components/AllTransactionsDataTable.tsx`) or detail views to show the new field if needed.
     - **State Management (Zustand):** Usually requires no change if the store holds `Transaction[]`, as the type definition update is sufficient.
+    - **Edit Form Logic:** If the new field is user-editable, add it to the `transactionFields` array in `TransactionForm.tsx` (in the `onSubmit` function's edit mode section) so it's included in update payload comparisons. Ensure proper null/undefined/empty string normalization for accurate change detection.
 
 **Remember to test thoroughly across both Desktop and Web versions after adding a field.**

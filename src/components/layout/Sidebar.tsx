@@ -48,7 +48,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
   });
 
   const expandedWidth = inSheet ? "w-44" : "w-44";
-  const collapsedWidth = "w-14";
+  const collapsedWidth = "w-16";
 
   // --- Slider measurement (active item background) ---
   useLayoutEffect(() => {
@@ -170,14 +170,15 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
   }) => {
     const isActive =
       to === "/" ? currentPath === to : currentPath.startsWith(to);
+    const isRtl = i18n.dir() === "rtl";
 
     return (
       <Button
         variant="ghost"
         className={cn(
           "w-full h-12 z-10 overflow-hidden max-w-full",
-          "transition-colors duration-200",
-          expanded ? "justify-start px-4 gap-3" : "justify-center px-0",
+          "transition-all duration-300",
+          "justify-start px-4",
           isActive
             ? "text-secondary-foreground hover:bg-transparent"
             : "text-foreground",
@@ -193,9 +194,11 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
           <Icon className="h-6 w-6 min-w-[24px] flex-shrink-0" />
           <span
             className={cn(
-              "transition-all duration-200 min-w-0 truncate",
-              !expanded && "w-0 overflow-hidden",
-              !expanded ? "opacity-0" : "opacity-100 flex-1"
+              "whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out min-w-0",
+              expanded
+                ? "max-w-[200px] opacity-100 flex-1"
+                : "max-w-0 opacity-0 flex-none",
+              expanded ? (isRtl ? "mr-4" : "ml-4") : "mx-0"
             )}
           >
             {children}
@@ -208,7 +211,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
   return (
     <div
       className={cn(
-        "flex flex-col transition-all duration-200 overflow-hidden",
+        "flex flex-col transition-all duration-300 overflow-hidden",
         inSheet ? "h-full" : "h-screen overflow-hidden py-4",
         expanded ? expandedWidth : collapsedWidth
       )}
@@ -218,36 +221,21 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         to="/"
         aria-label={t("appName")}
         className={cn(
-          "flex w-full items-center mb-6 overflow-x-hidden shrink-0",
-          expanded ? "px-4 justify-start" : "px-0 justify-center"
+          "flex items-center mb-6 overflow-hidden shrink-0 transition-all duration-300",
+          expanded ? "px-4 justify-start" : "px-0 justify-center w-full"
         )}
         style={{ height: "36px" }}
       >
         <span className="sr-only">{t("appName")}</span>
 
-        {/* Expanded: wide logo. Collapsed: square logo. */}
-        {expanded ? (
-          <>
-            {/* Light */}
-            <img
-              src="/logo/logo-wide.svg"
-              alt="Ten10"
-              loading="eager"
-              decoding="async"
-              className="block dark:hidden h-7 w-auto object-contain"
-            />
-            {/* Dark */}
-            <img
-              src="/logo/logo-wide.svg"
-              alt="Ten10"
-              loading="eager"
-              decoding="async"
-              className="hidden dark:block h-7 w-auto object-contain"
-            />
-          </>
-        ) : (
-          <>
-            {/* Light */}
+        <div className="relative w-full h-full flex items-center">
+          {/* Square Logo (Collapsed) */}
+          <div
+            className={cn(
+              "absolute inset-0 flex items-center justify-center transition-opacity duration-300",
+              expanded ? "opacity-0 pointer-events-none" : "opacity-100"
+            )}
+          >
             <img
               src="/logo/logo.svg"
               alt="Ten10"
@@ -255,7 +243,6 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
               decoding="async"
               className="block dark:hidden h-9 w-9 object-contain"
             />
-            {/* Dark */}
             <img
               src="/logo/logo.svg"
               alt="Ten10"
@@ -263,8 +250,31 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
               decoding="async"
               className="hidden dark:block h-9 w-9 object-contain"
             />
-          </>
-        )}
+          </div>
+
+          {/* Wide Logo (Expanded) */}
+          <div
+            className={cn(
+              "absolute inset-0 flex items-center justify-start transition-opacity duration-300",
+              expanded ? "opacity-100" : "opacity-0 pointer-events-none"
+            )}
+          >
+            <img
+              src="/logo/logo-wide.svg"
+              alt="Ten10"
+              loading="eager"
+              decoding="async"
+              className="block dark:hidden h-7 w-auto object-contain"
+            />
+            <img
+              src="/logo/logo-wide.svg"
+              alt="Ten10"
+              loading="eager"
+              decoding="async"
+              className="hidden dark:block h-7 w-auto object-contain"
+            />
+          </div>
+        </div>
       </Link>
 
       {/* Parent wrapper (non-scroll) */}
@@ -338,66 +348,90 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
             data-active={currentPath.startsWith("/profile")}
             aria-label={t("menu.profile")}
             className={cn(
-              "flex items-center p-2 rounded-md transition-colors relative z-10 min-w-0 overflow-hidden",
-              "hover:bg-muted/50",
-              expanded ? "gap-3" : "flex-col gap-1 justify-center text-center"
+              "flex items-center rounded-md transition-all duration-300 relative z-10 min-w-0 overflow-hidden",
+              "hover:bg-muted/50 justify-start px-3 h-14"
             )}
           >
             {authLoading || profileLoading ? (
               <>
-                <Skeleton
+                <Skeleton className="rounded-full flex-shrink-0 h-8 w-8" />
+                <div
                   className={cn(
-                    "rounded-full flex-shrink-0",
-                    expanded ? "h-10 w-10" : "h-9 w-9"
+                    "flex flex-col gap-1 min-w-0 overflow-hidden transition-all duration-300 ease-in-out",
+                    expanded
+                      ? "opacity-100 max-w-[200px] flex-1"
+                      : "opacity-0 max-w-0 flex-none",
+                    expanded ? (i18n.dir() === "rtl" ? "mr-4" : "ml-4") : "mx-0"
                   )}
+                >
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              </>
+            ) : profileAvatarUrl ? (
+              <>
+                <img
+                  src={profileAvatarUrl}
+                  alt={profileFullName || "User Avatar"}
+                  loading="lazy"
+                  decoding="async"
+                  className="rounded-full object-cover flex-shrink-0 h-8 w-8"
                 />
-                {expanded && (
-                  <div className="flex flex-col gap-1 w-full">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-3 w-full" />
+                {!authLoading && !profileLoading && (
+                  <div
+                    className={cn(
+                      "flex flex-col text-sm transition-all duration-300 ease-in-out text-foreground min-w-0 overflow-hidden",
+                      expanded
+                        ? "opacity-100 max-w-[200px] flex-1"
+                        : "opacity-0 max-w-0 flex-none",
+                      expanded
+                        ? i18n.dir() === "rtl"
+                          ? "mr-4"
+                          : "ml-4"
+                        : "mx-0"
+                    )}
+                  >
+                    {profileFullName && (
+                      <span className="font-semibold truncate">
+                        {profileFullName}
+                      </span>
+                    )}
                   </div>
                 )}
               </>
-            ) : profileAvatarUrl ? (
-              <img
-                src={profileAvatarUrl}
-                alt={profileFullName || "User Avatar"}
-                loading="lazy"
-                decoding="async"
-                className={cn(
-                  "rounded-full object-cover flex-shrink-0",
-                  expanded ? "h-10 w-10" : "h-9 w-9"
-                )}
-              />
             ) : (
-              <div
-                className={cn(
-                  "rounded-full bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0",
-                  expanded ? "h-10 w-10" : "h-9 w-9"
+              <>
+                <div className="rounded-full bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0 h-8 w-8">
+                  <User className="h-5 w-5" />
+                </div>
+                {!authLoading && !profileLoading && (
+                  <div
+                    className={cn(
+                      "flex flex-col text-sm transition-all duration-300 ease-in-out text-foreground min-w-0 overflow-hidden",
+                      expanded
+                        ? "opacity-100 max-w-[200px] flex-1"
+                        : "opacity-0 max-w-0 flex-none",
+                      expanded
+                        ? i18n.dir() === "rtl"
+                          ? "mr-4"
+                          : "ml-4"
+                        : "mx-0"
+                    )}
+                  >
+                    {profileFullName && (
+                      <span className="font-semibold truncate">
+                        {profileFullName}
+                      </span>
+                    )}
+                  </div>
                 )}
-              >
-                <User className="h-6 w-6" />
-              </div>
-            )}
-
-            {!authLoading && !profileLoading && (
-              <div
-                className={cn(
-                  "flex flex-col text-sm transition-all duration-200 text-foreground",
-                  expanded ? "items-start" : "hidden"
-                )}
-              >
-                {profileFullName && (
-                  <span className="font-semibold">{profileFullName}</span>
-                )}
-              </div>
+              </>
             )}
           </Link>
         )}
       </div>
 
       {/* Bottom area (separate): platform indicator & border */}
-      <div className="mt-auto pt-4 border-t border-border/20 px-2">
+      <div className="mt-auto pt-4 border-t border-border/20 px-1">
         <PlatformIndicator expanded={expanded} />
       </div>
     </div>

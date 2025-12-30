@@ -233,7 +233,8 @@ export async function exportTransactionsToPDF(
     };
   },
   totalCount: number,
-  currentLanguage: string = "he"
+  currentLanguage: string = "he",
+  sorting?: { field: string; direction: "asc" | "desc" }
 ) {
   try {
     const pdfDoc = await PDFDocument.create();
@@ -488,8 +489,105 @@ export async function exportTransactionsToPDF(
     drawTableHeader(tableTop);
     y = tableTop - LAYOUT.headerHeight;
 
+    // Helper function to get month key from date string (YYYY-MM format)
+    const getMonthKey = (dateString: string): string => {
+      // Parse directly from string to avoid timezone issues with Date object
+      // Expects YYYY-MM-DD format which is standard in this app
+      return dateString.substring(0, 7);
+    };
+
+    // Helper function to format month label
+    const formatMonthLabel = (monthKey: string): string => {
+      const [year, month] = monthKey.split("-");
+      const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+      return date.toLocaleDateString(currentLanguage, {
+        year: "numeric",
+        month: "long",
+      });
+    };
+
     // --- 3. Table Rows ---
+    let previousMonthKey: string | null = null;
     for (const t of transactions) {
+      // Check if we need to add a month separator
+      const shouldAddSeparator =
+        sorting?.field === "date" && previousMonthKey !== null;
+      const currentMonthKey = getMonthKey(t.date);
+      const monthChanged = previousMonthKey !== currentMonthKey;
+
+      if (shouldAddSeparator && monthChanged) {
+        // Check if we need a new page for the separator
+        if (y < margin + LAYOUT.rowHeight * 2) {
+          page = pdfDoc.addPage();
+          y = height - margin;
+          tableTop = y;
+          drawTableHeader(tableTop);
+          y = tableTop - LAYOUT.headerHeight;
+        }
+
+        // Draw month separator - just a thicker line with small month label
+        const separatorY = y - LAYOUT.rowHeight * 0.5;
+
+        // Thicker border line for separator
+        page.drawLine({
+          start: { x: margin, y: separatorY },
+          end: { x: width - margin, y: separatorY },
+          thickness: 1.5,
+          color: COLORS.border,
+        });
+
+        // Small month label on the side with background
+        const monthLabel = formatMonthLabel(currentMonthKey);
+        const labelFontSize = LAYOUT.fontSize.cell - 1;
+        const labelPadding = 4;
+        const labelY = separatorY - labelFontSize / 2 - 1;
+
+        let labelX: number;
+        let labelWidth: number;
+
+        if (isRtl) {
+          // RTL: label on the right side
+          labelWidth = boldFont.widthOfTextAtSize(monthLabel, labelFontSize);
+          labelX = width - margin - labelWidth - labelPadding * 2;
+        } else {
+          // LTR: label on the left side
+          labelWidth = boldFont.widthOfTextAtSize(monthLabel, labelFontSize);
+          labelX = margin + labelPadding;
+        }
+
+        // Background rectangle for label
+        page.drawRectangle({
+          x: labelX,
+          y: labelY - labelPadding / 2,
+          width: labelWidth + labelPadding * 2,
+          height: labelFontSize + labelPadding,
+          color: COLORS.white,
+        });
+
+        // Month label text
+        if (isRtl) {
+          // RTL: rightX is the right edge of the text
+          drawRtlText(
+            page,
+            monthLabel,
+            labelX + labelWidth + labelPadding * 2,
+            labelY,
+            boldFont,
+            labelFontSize,
+            COLORS.textSecondary
+          );
+        } else {
+          page.drawText(monthLabel, {
+            x: labelX + labelPadding,
+            y: labelY,
+            font: boldFont,
+            size: labelFontSize,
+            color: COLORS.textSecondary,
+          });
+        }
+
+        y = separatorY - LAYOUT.rowHeight * 0.5;
+      }
       if (y < margin + LAYOUT.rowHeight) {
         page = pdfDoc.addPage();
         y = height - margin;
@@ -664,6 +762,7 @@ export async function exportTransactionsToPDF(
       });
 
       y -= LAYOUT.rowHeight;
+      previousMonthKey = currentMonthKey;
     }
 
     // --- 4. Footer ---

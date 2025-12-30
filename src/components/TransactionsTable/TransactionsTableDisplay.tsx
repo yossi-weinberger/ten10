@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
@@ -51,6 +51,9 @@ export function TransactionsTableDisplay() {
     { label: t("columns.category"), field: "category" },
     { label: t("columns.recipient"), field: "recipient" },
   ];
+
+  // Total number of columns: sortable columns + chomesh + recurring + actions
+  const TOTAL_TABLE_COLUMNS = sortableColumns.length + 3;
 
   const {
     transactions,
@@ -167,6 +170,66 @@ export function TransactionsTableDisplay() {
     }
   }, []);
 
+  // Helper function to get month key from date string (YYYY-MM format)
+  const getMonthKey = useCallback((dateString: string): string => {
+    // Parse directly from string to avoid timezone issues with Date object
+    // Expects YYYY-MM-DD format which is standard in this app
+    return dateString.substring(0, 7);
+  }, []);
+
+  // Helper function to format month label
+  const formatMonthLabel = useCallback(
+    (monthKey: string): string => {
+      const [year, month] = monthKey.split("-");
+      const date = new Date(parseInt(year), parseInt(month) - 1, 1);
+      return date.toLocaleDateString(i18n.language, {
+        year: "numeric",
+        month: "long",
+      });
+    },
+    [i18n.language]
+  );
+
+  // Create array of transactions with month separators when sorting by date
+  const transactionsWithSeparators = useMemo(() => {
+    // Only add separators when sorting by date
+    if (sorting.field !== "date") {
+      return transactions.map((transaction) => ({
+        type: "transaction" as const,
+        transaction,
+      }));
+    }
+
+    const result: Array<
+      | { type: "transaction"; transaction: TransactionForTable }
+      | { type: "separator"; monthKey: string; monthLabel: string }
+    > = [];
+
+    let previousMonthKey: string | null = null;
+
+    transactions.forEach((transaction) => {
+      const currentMonthKey = getMonthKey(transaction.date);
+
+      // Add separator if month changed (not for first transaction)
+      if (previousMonthKey !== null && previousMonthKey !== currentMonthKey) {
+        result.push({
+          type: "separator",
+          monthKey: currentMonthKey,
+          monthLabel: formatMonthLabel(currentMonthKey),
+        });
+      }
+
+      result.push({
+        type: "transaction",
+        transaction: transaction as TransactionForTable,
+      });
+
+      previousMonthKey = currentMonthKey;
+    });
+
+    return result;
+  }, [transactions, sorting.field, getMonthKey, formatMonthLabel]);
+
   // The initial platform loading check (spinner/message) should be handled by the parent page component (src/pages/TransactionsTable.tsx)
   // If platform is loading, this component might not even be rendered, or rendered with a specific loading state passed via props.
   // For now, assuming this component is rendered when platform is determined.
@@ -207,7 +270,7 @@ export function TransactionsTableDisplay() {
                   <>
                     {Array.from({ length: 20 }).map((_, rowIndex) => (
                       <TableRow key={`skeleton-row-${rowIndex}`}>
-                        {Array.from({ length: sortableColumns.length + 2 }).map(
+                        {Array.from({ length: TOTAL_TABLE_COLUMNS }).map(
                           (_, cellIndex) => (
                             <TableCell
                               key={`skeleton-cell-${rowIndex}-${cellIndex}`}
@@ -224,23 +287,42 @@ export function TransactionsTableDisplay() {
                 {!loading && !error && transactions.length === 0 && (
                   <TableRow>
                     <TableCell
-                      colSpan={sortableColumns.length + 2}
+                      colSpan={TOTAL_TABLE_COLUMNS}
                       className="h-24 text-center"
                     >
                       {t("messages.noData")}
                     </TableCell>
                   </TableRow>
                 )}
-                {transactions.map((transaction) => (
-                  <TransactionRow
-                    key={transaction.id}
-                    transaction={transaction as TransactionForTable}
-                    onEdit={handleEditInitiate}
-                    onDelete={handleDeleteInitiate}
-                    onEditRecurring={handleEditRecurringInitiate}
-                    isFetchingRec={isFetchingRec}
-                  />
-                ))}
+                {transactionsWithSeparators.map((item) => {
+                  if (item.type === "separator") {
+                    return (
+                      <TableRow
+                        key={`month-separator-${item.monthKey}`}
+                        className="border-t-2 border-border hover:bg-transparent"
+                      >
+                        <TableCell
+                          colSpan={TOTAL_TABLE_COLUMNS}
+                          className="py-1 px-4 relative"
+                        >
+                          <span className="absolute rtl:right-4 ltr:left-4 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground bg-background px-2">
+                            {item.monthLabel}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
+                  return (
+                    <TransactionRow
+                      key={item.transaction.id}
+                      transaction={item.transaction as TransactionForTable}
+                      onEdit={handleEditInitiate}
+                      onDelete={handleDeleteInitiate}
+                      onEditRecurring={handleEditRecurringInitiate}
+                      isFetchingRec={isFetchingRec}
+                    />
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

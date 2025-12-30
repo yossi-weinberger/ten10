@@ -24,9 +24,15 @@ This is the core table component, managing most of the logic related to data dis
   - **Initial Fetch:** Performs an initial data fetch using the `fetchTransactions` action from the global `useTableTransactionsStore`. This fetch occurs when the component loads and the platform is identified (`platform !== "loading"`).
   - **Re-fetch:** Data is also re-fetched when sort settings (`sorting` from the store) change, or when defined filters in the store change. This logic is implemented using `useEffect` listening to these changes.
 - **Handling Loading and Error States:**
-  - **Loading Skeletons:** Displays a loading animation using the `Skeleton` component when data is loading (`loading === true`) and there are no transactions to display yet (`transactions.length === 0`).
+  - **Loading Skeletons:** Displays a loading animation using the `Skeleton` component when data is loading (`loading === true`) and there are no transactions to display yet (`transactions.length === 0`). The skeleton uses `TOTAL_TABLE_COLUMNS` constant (calculated as `sortableColumns.length + 3`) to ensure proper column alignment with the actual table structure (6 sortable columns + chomesh + recurring + actions = 9 columns total).
   - **Error Message:** Displays an error message to the user (error taken from the `error` field in the store) if `fetchTransactions` fails.
   - **No Data:** Displays a "No transactions found" message if loading finishes without errors but no transactions matching the criteria are found.
+- **Month Separators:**
+  - When sorting by date (`sorting.field === "date"`), the component automatically adds visual separators between different months to improve readability.
+  - The `transactionsWithSeparators` memoized array contains either transaction items or separator items (with month label).
+  - Separators are displayed as a subtle thicker border line (`border-t-2`) with a small month label positioned on the side (left for LTR, right for RTL).
+  - Month separators only appear when there's a month change between consecutive transactions, not before the first transaction.
+  - The month label is formatted using the current language locale (e.g., "ינואר 2024" in Hebrew, "January 2024" in English).
 - **Loading More Data (Pagination - "Load More"):**
   - When the user reaches the end of the displayed list and more data is available to load (according to `pagination.hasMore` from the store), clicking the "Load More" button (in `TransactionsTableFooter`) triggers the `setLoadMorePagination` action from the store (to update the current page number). It then calls `fetchTransactions(false, platform)` to fetch the next page of data without resetting already loaded data.
 - **Sorting:**
@@ -35,6 +41,8 @@ This is the core table component, managing most of the logic related to data dis
 - **Transaction Row Actions:**
   - **Edit:** Clicking the "Edit" button on a specific transaction row triggers the `handleEditInitiate` function. This function updates the local `editingTransaction` state with the selected transaction's details and opens the `TransactionEditModal` for editing.
   - **Delete:** Clicking the "Delete" button triggers `handleDeleteInitiate`. This function saves the transaction to be deleted in a local state variable (`transactionToDelete`) and opens an `AlertDialog` for confirmation. After user confirmation, the `handleDeleteConfirm` function calls the `deleteTransaction` action from the store, along with the transaction ID and current platform. Success or error messages for deletion are displayed using `toast`.
+- **Table Structure Constants:**
+  - `TOTAL_TABLE_COLUMNS`: A constant defined as `sortableColumns.length + 3` to represent the total number of columns in the table (6 sortable columns + chomesh + recurring + actions = 9 columns). This constant is used throughout the component to ensure consistency in `colSpan` attributes for skeleton loading, empty state messages, and month separators, avoiding magic numbers and making the code more maintainable.
 - **Main Sub-components:**
   - `TransactionsFilters`: UI for filtering displayed data.
   - `ExportButton`: Button for exporting data to various formats.
@@ -90,15 +98,30 @@ A popup modal allowing the user to edit the details of an existing transaction.
   - Uses `zodResolver` to perform input validation against a defined schema (`transactionUpdateSchema`). This schema is based on `transactionBaseSchema` but allows partial data updates and does not require filling server fields like `created_at` (as these are set by the server).
 - **Initial Form Population:**
   - When the modal opens with a specific transaction (passed via the `transaction` prop), form fields are populated with existing transaction values. The date field is converted to `yyyy-MM-dd` format required by a `date` type input field.
+  - Checkbox fields (`isExempt`, `isRecognized`, `isFromPersonalFunds`) are derived from the transaction's `type` field:
+    - `isExempt: true` if `type === "exempt-income"`
+    - `isRecognized: true` if `type === "recognized-expense"`
+    - `isFromPersonalFunds: true` if `type === "non_tithe_donation"`
   - If no transaction is passed (a state that should not occur in current usage), the form is initialized with empty or default values.
 - **Form Fields:**
   - Includes input fields for: date, description, amount, currency (`Select` component with `currencyOptions`), transaction type (`Select` component with `transactionTypeValues` and labels from `transactionTypeLabels`), category, and recipient/payer.
-  - Contains `Checkbox` for "Chomesh deduction?" (`is_chomesh`).
+  - Contains checkboxes for: "Chomesh deduction?" (`is_chomesh`), "Exempt Income" (`isExempt`), "Recognized Expense" (`isRecognized`), and "From Personal Funds" (`isFromPersonalFunds`).
 - **Form Submission Logic (`onSubmit`):**
   - Ensures a transaction to edit actually exists (`transaction.id`) and the platform is not in a loading state.
-  - Builds an `updatePayload` object containing only fields the user can change and actually changed. Boolean fields are always sent.
+  - **Type Calculation:** Uses `determineFinalType()` function (exported from `transactionForm.service.ts`) to calculate the final transaction type based on form values and checkbox states:
+    - `income` + `isExempt` → `exempt-income`
+    - `expense` + `isRecognized` → `recognized-expense`
+    - `donation` + `isFromPersonalFunds` → `non_tithe_donation`
+    - Otherwise, uses the base `type` value
+  - **Update Payload Construction:**
+    - Compares the calculated final type with the existing transaction type. If different, includes `type` in the update payload.
+    - Compares only user-editable fields that exist in the `Transaction` interface:
+      - `date`, `amount`, `currency`, `description`, `category`, `is_chomesh`, `recipient`
+    - Excludes system fields (`id`, `user_id`, `created_at`, `updated_at`), recurring metadata fields, and form-only fields (`isExempt`, `isRecognized`, `isFromPersonalFunds`, `is_recurring`, etc.)
+    - Normalizes values for comparison: treats empty strings and `undefined` as `null` to ensure accurate change detection
+    - Special handling for `date` field: direct string comparison (always string in format "YYYY-MM-DD")
   - Calls the `updateTransaction` action from the global store, passing it the transaction ID, the `updatePayload` containing changes, and the current platform.
-  - Upon successful update, the modal closes. Potential errors are logged to the console.
+  - Upon successful update, the modal closes and the tithe balance is automatically recalculated (via `lastDbFetchTimestamp` update triggering `useServerStats` hook). Potential errors are logged to the console.
 
 ### 2.7. `src/components/TransactionsTable/ExportButton.tsx`
 
@@ -107,16 +130,34 @@ This component allows the user to export the data currently displayed in the tab
 - **User Interface:** Uses a `DropdownMenu` component to offer the user three export formats: Excel (XLSX), PDF, and CSV.
 - **Export Logic:**
   - Upon selecting an export format, the component calls the `exportTransactions(format, platform)` action from the global store. The current platform (`platform`) is taken from `PlatformContext`.
+  - For PDF export, the store passes the current `sorting` configuration to `exportTransactionsToPDF` to enable month separators when sorting by date.
 - **Loading Indication and Error Handling:**
   - Displays a visual loading indicator (spinning `Loader2` icon and "Exporting..." text) and controls the `disabled` state of the button and menu items while the export process is ongoing (based on the `exportLoading` flag from the store).
   - Displays `toast` messages from the `sonner` library (success or error message) upon completion of the export operation. Message display is triggered by `useEffect` listening to changes in `exportLoading` and `exportError` flags from the store.
 
-### 2.8. `src/components/TransactionsTable/TransactionsTableFooter.tsx`
+### 2.8. PDF Export with Month Separators (`src/lib/utils/export-pdf.ts`)
+
+The PDF export functionality includes visual month separators when transactions are sorted by date, matching the table UI for consistency.
+
+- **Month Separator Logic:**
+  - Month separators are only added when `sorting.field === "date"` and there's a month change between consecutive transactions.
+  - The separator consists of a thicker horizontal line (1.5px thickness) with a small month label positioned on the side.
+  - For RTL languages (Hebrew), the label appears on the right side; for LTR languages, on the left side.
+  - The month label has a white background rectangle for better visibility against the table content.
+  - Month labels are formatted using the current language locale (e.g., "ינואר 2024" in Hebrew, "January 2024" in English).
+- **Implementation Details:**
+  - Uses helper functions `getMonthKey()` (returns YYYY-MM format) and `formatMonthLabel()` (formats month name in locale).
+  - Separators are drawn before the first transaction of each new month (not before the very first transaction).
+  - Handles page breaks: if there's insufficient space for a separator, a new page is created.
+  - The separator maintains the same visual style as the table UI separators for consistency.
+
+### 2.9. `src/components/TransactionsTable/TransactionsTableFooter.tsx`
 
 This component is responsible for displaying the bottom part of the transactions table, including pagination options and information about the amount of data displayed.
 
 - **"Load More" Button:** Displays a "Load More" button when more data is available to load (`pagination.hasMore` from the store) and loading is not currently in progress. Clicking the button calls the `handleLoadMore` function passed as a prop from the parent component (`TransactionsTableDisplay`).
 - **Data Count Information:** Displays text indicating how many transactions are currently displayed out of the total number of transactions meeting the criteria (information taken from `transactionsLength` and `pagination.totalCount` fields).
+- **Layout:** Uses `gap-6` (24px spacing) between the "Load More" button and the data count text for improved visual separation and readability.
 - **Loading Indication:** Displays a loading indicator ("Loading more data..." with a spinning `Loader2` icon) when the `loading` flag from the store is `true` and transactions are already displayed (i.e., this is loading "more" data, not an initial table load).
 
 ## 3. Central State Management (`src/lib/tableTransactions.store.ts`)
@@ -155,6 +196,7 @@ The Zustand global store, `useTableTransactionsStore`, centralizes all state and
     - After receiving success confirmation from the server, the action removes the transaction from the local `transactions` array in the store.
   - `exportTransactions(format: 'csv' | 'excel' | 'pdf', platform: Platform)`:
     - Initiates the data export process. The action fetches all relevant data from the server (unpaginated, but respecting current filters and sorting – by calling `transactionService.getAllTransactionsForExport`). Then, it uses client-side libraries (`exceljs`, `jspdf`, and a custom function for CSV creation) to generate and download the file in the requested format.
+    - For PDF export, passes the current `sorting` configuration to `exportTransactionsToPDF` to enable month separators when sorting by date.
     - Updates `exportLoading` and `exportError` flags based on process progress and potential errors.
   - `setFilters(newFilters: Partial<TableTransactionFilters>)`: Updates the filters object in the store.
   - `resetFiltersState()`: Resets the filters object in the store to initial values defined in `initialTableTransactionFilters`.
@@ -187,6 +229,7 @@ The `tableTransactions.store.ts` store does not communicate directly with the ba
   - **For Web (Supabase):** Calls an RPC function (e.g., `export_user_transactions`) that receives filters and sorting and returns all relevant data.
   - **For Desktop (Tauri):** Calls a Rust command (e.g., `invoke('export_transactions_handler', { filters, sorting })`) which fetches all data from SQLite according to filters and sorting.
   - In both cases, the full data (unpaginated) is sent back to the frontend, where it is processed and converted to a file in the requested format (CSV, Excel, PDF).
+  - **PDF Export with Month Separators:** When exporting to PDF and sorting by date (`sorting.field === "date"`), the PDF includes visual month separators - a thicker horizontal line with a small month label positioned on the side (right for RTL, left for LTR). This matches the visual separators shown in the table UI for consistency.
 
 ## 5. Database Queries (Web - Supabase - Conceptual Example)
 

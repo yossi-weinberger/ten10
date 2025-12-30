@@ -18,7 +18,7 @@ This document provides a historical reference and status overview of the Transac
 - ✅ **Editing**: Modal-based editing with form validation
 - ✅ **Deletion**: Confirmation dialog with optimistic updates
 - ✅ **Load More**: Pagination with "Load More" button
-- ✅ **Export**: CSV, Excel, and PDF export
+- ✅ **Export**: CSV, Excel, and PDF export (with month separators in PDF when sorting by date)
 - ❌ **Real-time Updates**: Removed (rely on optimistic updates and manual refresh)
 
 ### Architecture Status
@@ -318,6 +318,13 @@ WITH CHECK (auth.uid() = user_id);
 
 11. ⚠️ Performance optimizations (partially implemented - Skeleton, pagination info, React.memo for rows, Toast notifications)
 
+### Recently Added (v0.3.8)
+
+12. ✅ **Month Separators**: Visual month separators in table when sorting by date (subtle thicker border line with month label)
+13. ✅ **PDF Month Separators**: Month separators in PDF export matching table UI when sorting by date
+14. ✅ **Code Quality**: Extracted `TOTAL_TABLE_COLUMNS` constant to avoid magic numbers and ensure consistency
+15. ✅ **UI Improvements**: Increased spacing between "Load More" button and transaction count text (`gap-6`)
+
 ### Not Yet Implemented
 
 - Error boundaries in components
@@ -358,8 +365,21 @@ WITH CHECK (auth.uid() = user_id);
 
 ---
 
-**Last Updated**: January 2025  
+**Last Updated**: January 2025 (v0.3.8)  
 **Author**: Ten10 Development Team
+
+## Recent Updates (v0.3.8)
+
+### Month Separators Feature
+
+- **Table UI**: Added visual month separators when sorting by date. Separators appear as a subtle thicker border line (`border-t-2`) with a small month label positioned on the side (left for LTR, right for RTL). The label has a white background for better visibility.
+- **PDF Export**: Month separators are now included in PDF exports when sorting by date, matching the table UI for consistency. The separator consists of a thicker horizontal line (1.5px) with a small month label on the side.
+- **Implementation**: Uses `transactionsWithSeparators` memoized array that contains either transaction items or separator items. Separators only appear when there's a month change between consecutive transactions (not before the first transaction).
+- **Code Quality**: Extracted `TOTAL_TABLE_COLUMNS` constant (`sortableColumns.length + 3`) to replace magic numbers throughout the component, ensuring consistency in skeleton loading, empty states, and month separators.
+
+### UI Improvements
+
+- **Footer Spacing**: Increased spacing between "Load More" button and transaction count text from `space-x-4` (16px) to `gap-6` (24px) for better visual separation.
 
 ---
 

@@ -3,7 +3,11 @@ import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDonationStore } from "@/lib/store";
-import { handleTransactionSubmit } from "@/lib/data-layer/transactionForm.service";
+import {
+  handleTransactionSubmit,
+  determineFinalType,
+  normalizeToBaseType,
+} from "@/lib/data-layer/transactionForm.service";
 import {
   TransactionFormValues,
   createTransactionFormSchema,
@@ -132,8 +136,12 @@ export function TransactionForm({
   // Use useEffect to reset the form when initialData changes (for editing)
   React.useEffect(() => {
     if (isEditMode && initialData) {
+      // Normalize the type to base type for the form (TypeSelector only shows base types)
+      const baseType = normalizeToBaseType(initialData.type);
+
       const defaultVals: Partial<TransactionFormValues> = {
         ...initialData,
+        type: baseType, // Use normalized base type instead of derived type
         date: initialData.date
           ? new Date(initialData.date).toISOString().split("T")[0]
           : "",
@@ -169,15 +177,78 @@ export function TransactionForm({
       }
       // Logic for updating an existing transaction
       const updatePayload: Partial<Transaction> = {};
-      (Object.keys(values) as Array<keyof TransactionFormValues>).forEach(
-        (key) => {
-          if (values[key] !== initialData[key as keyof Transaction]) {
-            const value = values[key];
-            updatePayload[key as keyof Transaction] =
-              value === "" ? null : (value as any);
+
+      // Calculate the final type from form values (including checkboxes)
+      const newFinalType = determineFinalType(values);
+      const oldFinalType = initialData.type;
+
+      // Check if the type changed (considering checkboxes)
+      if (newFinalType !== oldFinalType) {
+        updatePayload.type = newFinalType;
+      }
+
+      // Compare other fields that exist in Transaction
+      // List of user-editable fields that can be updated.
+      // Excluded fields:
+      // - id, user_id, created_at, updated_at: System fields, not user-editable
+      // - type: Handled separately above using determineFinalType (includes checkbox logic)
+      // - source_recurring_id, execution_count, recurring_*: Recurring transaction metadata, not editable here
+      const transactionFields: Array<keyof Transaction> = [
+        "date",
+        "amount",
+        "currency",
+        "description",
+        "category",
+        "is_chomesh",
+        "recipient",
+      ];
+
+      // Helper function to safely assign values to updatePayload
+      const assignToPayload = <K extends keyof Transaction>(
+        key: K,
+        value: Transaction[K]
+      ): void => {
+        updatePayload[key] = value;
+      };
+
+      transactionFields.forEach((key) => {
+        const formKey = key as keyof TransactionFormValues;
+        const formValue = values[formKey];
+        const initialValue = initialData[key];
+
+        // Special handling for date field (always string in form, string in DB)
+        if (key === "date") {
+          // Date is always a string in format "YYYY-MM-DD"
+          const formDateStr = formValue as Transaction["date"];
+          const initialDateStr = initialValue as Transaction["date"];
+          if (formDateStr !== initialDateStr) {
+            assignToPayload("date", formDateStr);
           }
+          return;
         }
-      );
+
+        // Normalize values for comparison (handle null, undefined, empty string)
+        const normalizedFormValue =
+          formValue === "" || formValue === undefined ? null : formValue;
+        const normalizedInitialValue =
+          initialValue === "" || initialValue === undefined
+            ? null
+            : initialValue;
+
+        // Compare normalized values
+        if (normalizedFormValue !== normalizedInitialValue) {
+          // Convert empty string to null for database consistency
+          // Type assertion is safe here because:
+          // 1. We know the key exists in both TransactionFormValues and Transaction
+          // 2. We're normalizing undefined/empty string to null to match Transaction's types
+          // 3. The transactionFields array only contains valid Transaction keys
+          const normalizedValue = (
+            formValue === "" ? null : formValue
+          ) as Transaction[typeof key];
+          assignToPayload(key, normalizedValue);
+        }
+      });
+
       if (Object.keys(updatePayload).length > 0) {
         try {
           await updateTransaction(initialData.id, updatePayload, platform);
