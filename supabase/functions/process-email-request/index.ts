@@ -10,7 +10,7 @@ import {
   getContainerStyles,
 } from "../_shared/email-design.ts";
 
-const WORKER_SECRET = Deno.env.get("CLOUDFLARE_WORKER_SECRET");
+const WORKER_SECRET = (Deno.env.get("CLOUDFLARE_WORKER_SECRET") ?? "").trim();
 const JUMBOMAIL_LINK =
   Deno.env.get("JUMBOMAIL_LINK") || "https://www.jumbomail.me/en/";
 const RATE_LIMIT_DAILY = 3;
@@ -19,6 +19,24 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
+
+  // BUGFIX (Security): never allow "Bearer undefined" bypass.
+  // If the secret is missing, fail closed.
+  if (!WORKER_SECRET) {
+    console.error(
+      "Misconfiguration: CLOUDFLARE_WORKER_SECRET is missing or empty"
+    );
+    return new Response(JSON.stringify({ error: "Server misconfigured" }), {
+      status: 500,
+      headers: corsHeaders,
+    });
+  }
+
+  let supabaseClient: any | null = null;
+  let from: string | undefined;
+  let to: string | undefined;
+  let subject: string | undefined;
+  let messageId: string | undefined;
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -29,7 +47,7 @@ serve(async (req) => {
       });
     }
 
-    const { from, to, subject, messageId } = await req.json();
+    ({ from, to, subject, messageId } = await req.json());
 
     if (!from) {
       return new Response(
@@ -39,7 +57,7 @@ serve(async (req) => {
     }
 
     // Init Supabase
-    const supabaseClient = createClient(
+    supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
@@ -175,6 +193,21 @@ ${JUMBOMAIL_LINK}
     });
   } catch (error) {
     console.error("Error processing email request:", error);
+
+    // BUGFIX (Observability): log failed attempts as status=error whenever possible.
+    try {
+      if (supabaseClient && from) {
+        await supabaseClient.from("download_requests").insert({
+          from_email: from,
+          status: "error",
+          reason: String(error?.message ?? error),
+          metadata: { to, subject, messageId },
+        });
+      }
+    } catch (logError) {
+      console.error("Failed to write download_requests error log:", logError);
+    }
+
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: corsHeaders,
