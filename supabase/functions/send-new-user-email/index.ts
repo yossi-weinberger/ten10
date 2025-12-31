@@ -90,21 +90,44 @@ const fetchAuthUser = async (
   };
 };
 
-const buildEmailBodies = (args: { rows: SummaryRow[]; hours: number }) => {
-  const { rows, hours } = args;
+const buildEmailBodies = (args: {
+  rows: SummaryRow[];
+  hours: number;
+  downloadRequests: {
+    last_24h: number;
+    last_7d: number;
+    last_30d: number;
+    total: number;
+  };
+}) => {
+  const { rows, hours, downloadRequests } = args;
+  const { last_24h, last_7d, last_30d, total } = downloadRequests;
   const windowLabel = `Last ${hours} hours`;
 
-  if (rows.length === 0) {
-    const textBody = `${windowLabel}: No new profiles`;
+  if (rows.length === 0 && last_24h === 0) {
+    const textBody = `${windowLabel}: No new profiles and no new download requests.`;
     const htmlBody = `<!DOCTYPE html>
     <html>
       <body style="font-family:Arial,sans-serif; background:#f8fafc; padding:24px;">
-        <h2 style="margin:0 0 12px 0; color:#111827;">New users summary</h2>
-        <p style="margin:0; color:#374151;">${windowLabel}: No new profiles.</p>
+        <h2 style="margin:0 0 12px 0; color:#111827;">Daily Summary</h2>
+        <p style="margin:0; color:#374151;">${windowLabel}: No new profiles and no new download requests.</p>
       </body>
     </html>`;
     return { htmlBody, textBody };
   }
+
+  const downloadsSectionHtml =
+    last_24h > 0 || last_7d > 0 || last_30d > 0 || total > 0
+      ? `<div class="summary-box" style="background-color: #eff6ff; border-color: #bfdbfe; color: #1e40af; margin-bottom: 24px;">
+         <h3 style="margin: 0 0 8px 0; font-size: 18px;">Desktop Download Requests (Email)</h3>
+         <p style="margin: 0;">
+           Last 24h: <strong>${last_24h}</strong> ·
+           Last 7d: <strong>${last_7d}</strong> ·
+           Last 30d: <strong>${last_30d}</strong> ·
+           Total: <strong>${total}</strong>
+         </p>
+       </div>`
+      : "";
 
   const rowsHtml = rows
     .map((r) => {
@@ -197,7 +220,10 @@ const buildEmailBodies = (args: { rows: SummaryRow[]; hours: number }) => {
       <div class="container">
         ${getEmailHeader("en")}
         <div class="content">
-          <h2 style="margin: 0 0 16px 0; color: #111827; font-size: 24px;">New Users Summary</h2>
+          <h2 style="margin: 0 0 16px 0; color: #111827; font-size: 24px;">Daily Summary</h2>
+          
+          ${downloadsSectionHtml}
+
           <div class="summary-box">
             ${windowLabel}. Total: ${rows.length} new users found.
           </div>
@@ -225,8 +251,10 @@ const buildEmailBodies = (args: { rows: SummaryRow[]; hours: number }) => {
   </html>`;
 
   const textBodyLines: string[] = [
-    "New users summary",
-    `${windowLabel}. Total: ${rows.length}.`,
+    "Daily Summary",
+    `${windowLabel}.`,
+    `Download requests (email): last24h=${last_24h}, last7d=${last_7d}, last30d=${last_30d}, total=${total}`,
+    `New Users: ${rows.length}`,
     "",
   ];
 
@@ -363,12 +391,65 @@ serve(async (req) => {
     });
   }
 
-  const { htmlBody, textBody } = buildEmailBodies({ rows, hours });
+  // Download requests stats (status=sent)
+  const since24hIso = sinceIso;
+  const since7dIso = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+  const since30dIso = new Date(
+    Date.now() - 30 * 24 * 3600 * 1000
+  ).toISOString();
 
-  if (rows.length === 0) {
-    // No new users: still return 200, avoid sending an empty email
+  const [
+    { count: last24h, error: err24h },
+    { count: last7d, error: err7d },
+    { count: last30d, error: err30d },
+    { count: totalDownloads, error: errTotal },
+  ] = await Promise.all([
+    supabaseAdmin
+      .from("download_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "sent")
+      .gte("created_at", since24hIso),
+    supabaseAdmin
+      .from("download_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "sent")
+      .gte("created_at", since7dIso),
+    supabaseAdmin
+      .from("download_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "sent")
+      .gte("created_at", since30dIso),
+    supabaseAdmin
+      .from("download_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "sent"),
+  ]);
+
+  if (err24h)
+    console.error("Failed to fetch download requests last24h:", err24h);
+  if (err7d) console.error("Failed to fetch download requests last7d:", err7d);
+  if (err30d)
+    console.error("Failed to fetch download requests last30d:", err30d);
+  if (errTotal)
+    console.error("Failed to fetch download requests total:", errTotal);
+
+  const downloadRequests = {
+    last_24h: last24h ?? 0,
+    last_7d: last7d ?? 0,
+    last_30d: last30d ?? 0,
+    total: totalDownloads ?? 0,
+  };
+
+  const { htmlBody, textBody } = buildEmailBodies({
+    rows,
+    hours,
+    downloadRequests,
+  });
+
+  if (rows.length === 0 && downloadRequests.last_24h === 0) {
+    // No new users AND no downloads: still return 200, avoid sending an empty email
     return jsonResponse({
-      message: "No new profiles in window",
+      message: "No new profiles or download requests in window",
       hours,
       to: toEmail,
       sent: false,
@@ -383,7 +464,7 @@ serve(async (req) => {
     const emailService = new SimpleEmailService(fromUsers);
     await emailService.sendRawEmail({
       to: toEmail,
-      subject: `[Ten10] New users summary (${rows.length})`,
+      subject: `[Ten10] Daily Summary: ${rows.length} Users, ${downloadRequests.last_24h} Download Requests`,
       textBody,
       htmlBody,
     });
