@@ -1,0 +1,12 @@
+# Supabase project configuration (Edge Functions)
+#
+# This file allows per-function settings to be consistent across deployments,
+# so you don't have to remember CLI flags like --no-verify-jwt.
+#
+# Docs: https://supabase.com/docs/guides/functions/function-configuration
+
+[functions.process-email-request]
+# Cloudflare Email Routing authenticates via a shared secret (Authorization: Bearer <CLOUDFLARE_WORKER_SECRET>),
+# not a Supabase JWT, so JWT verification must be disabled for this function.
+verify_jwt = false
+

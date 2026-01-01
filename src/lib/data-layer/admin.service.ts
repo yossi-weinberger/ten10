@@ -32,6 +32,7 @@ export interface AdminFinanceStats {
 
 export interface AdminDownloadStats {
   total: number;
+  last_7d: number;
   last_30d: number;
   by_platform: Record<string, number>;
 }

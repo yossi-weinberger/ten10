@@ -8,8 +8,8 @@
     "financeShort": "Finance",
     "trends": "Trends",
     "trendsShort": "Trends",
-    "downloads": "Downloads",
-    "downloadsShort": "Downloads"
+    "downloads": "Download Requests",
+    "downloadsShort": "Requests"
   },
   "users": {
     "title": "User Statistics",
@@ -35,12 +35,12 @@
     "total": "Total"
   },
   "downloads": {
-    "title": "Desktop Software Downloads",
-    "total": "Total Downloads",
-    "last30d": "Downloads (30 days)",
-    "byPlatform": "Breakdown by Platform",
-    "noData": "No download data available",
-    "note": "Currently there is no download tracking. You can add tracking to the Landing Page in the future to collect this data.",
+    "title": "Desktop Download Requests (Email)",
+    "total": "Total Requests",
+    "last7d": "Requests (7 days)",
+    "last30d": "Requests (30 days)",
+    "noData": "No download request data available",
+    "note": "Counts are based on successful email replies (status=sent). Currently all requests are for Windows.",
     "platforms": {
       "windows": "Windows",
       "mac": "Mac",

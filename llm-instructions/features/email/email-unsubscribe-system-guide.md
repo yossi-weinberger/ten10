@@ -233,6 +233,12 @@ npx supabase@latest functions deploy unsubscribe --no-verify-jwt --project-ref P
 
 - **send-reminder-emails**: עם JWT verification (רגיל)
 - **unsubscribe**: ללא JWT verification (`--no-verify-jwt`)
+- **process-email-request**: ללא JWT verification (Cloudflare uses shared secret, not Supabase JWT)
+  - Recommended: enforce via `supabase/config.toml`:
+    ```toml
+    [functions.process-email-request]
+    verify_jwt = false
+    ```
 
 ## בדיקות ומוניטורינג
 

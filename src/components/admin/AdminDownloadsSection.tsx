@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Download, Monitor, Apple, Laptop, Info } from "lucide-react";
+import { Download, Info } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AdminDownloadStats } from "@/lib/data-layer/admin.service";
 
@@ -12,19 +12,6 @@ export function AdminDownloadsSection({
   downloads,
 }: AdminDownloadsSectionProps) {
   const { t, i18n } = useTranslation("admin");
-
-  const getPlatformIcon = (platform: string) => {
-    switch (platform.toLowerCase()) {
-      case "windows":
-        return <Monitor className="h-4 w-4" />;
-      case "mac":
-        return <Apple className="h-4 w-4" />;
-      case "linux":
-        return <Laptop className="h-4 w-4" />;
-      default:
-        return <Download className="h-4 w-4" />;
-    }
-  };
 
   const hasDownloadData =
     downloads.total > 0 ||
@@ -52,6 +39,20 @@ export function AdminDownloadsSection({
           </CardContent>
         </Card>
 
+        {/* Downloads Last 7 Days */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {t("downloads.last7d")}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+              {hasDownloadData ? downloads.last_7d : "N/A"}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Downloads Last 30 Days */}
         <Card>
           <CardHeader className="pb-3">
@@ -63,41 +64,6 @@ export function AdminDownloadsSection({
             <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
               {hasDownloadData ? downloads.last_30d : "N/A"}
             </div>
-          </CardContent>
-        </Card>
-
-        {/* By Platform */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              {t("downloads.byPlatform")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {hasDownloadData &&
-            downloads.by_platform &&
-            Object.keys(downloads.by_platform).length > 0 ? (
-              <div className="space-y-2">
-                {Object.entries(downloads.by_platform).map(
-                  ([platform, count]) => (
-                    <div
-                      key={platform}
-                      className="flex items-center justify-between"
-                    >
-                      <span className="flex items-center gap-2 capitalize">
-                        {getPlatformIcon(platform)}
-                        {t(`downloads.platforms.${platform}`, platform)}
-                      </span>
-                      <span className="font-semibold">{count}</span>
-                    </div>
-                  )
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                {t("downloads.noData")}
-              </p>
-            )}
           </CardContent>
         </Card>
       </div>

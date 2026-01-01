@@ -90,21 +90,76 @@ const fetchAuthUser = async (
   };
 };
 
-const buildEmailBodies = (args: { rows: SummaryRow[]; hours: number }) => {
-  const { rows, hours } = args;
+const buildEmailBodies = (args: {
+  rows: SummaryRow[];
+  hours: number;
+  downloadRequests: {
+    windowCount: number;
+    total: number;
+  };
+}) => {
+  const { rows, hours, downloadRequests } = args;
+  const { windowCount, total } = downloadRequests;
   const windowLabel = `Last ${hours} hours`;
 
-  if (rows.length === 0) {
-    const textBody = `${windowLabel}: No new profiles`;
+  if (rows.length === 0 && windowCount === 0) {
+    const textBody = `${windowLabel}: No new profiles and no new download requests.`;
     const htmlBody = `<!DOCTYPE html>
     <html>
       <body style="font-family:Arial,sans-serif; background:#f8fafc; padding:24px;">
-        <h2 style="margin:0 0 12px 0; color:#111827;">New users summary</h2>
-        <p style="margin:0; color:#374151;">${windowLabel}: No new profiles.</p>
+        <h2 style="margin:0 0 12px 0; color:#111827;">Daily Summary</h2>
+        <p style="margin:0; color:#374151;">${windowLabel}: No new profiles and no new download requests.</p>
       </body>
     </html>`;
     return { htmlBody, textBody };
   }
+
+  const statsSectionHtml = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 0 0 24px 0;">
+    <tr>
+      <td style="padding: 0 0 12px 0;">
+        <div style="font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;">
+          ${escapeHtml(windowLabel)}
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+          <tr>
+            <td width="50%" valign="top" style="padding: 0 8px 0 0;">
+              <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px;">
+                <div style="font-size: 12px; color: #1e3a8a; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">
+                  Download requests
+                </div>
+                <div style="margin-top: 8px; font-size: 34px; line-height: 1.1; color: #111827; font-weight: 900;">
+                  ${windowCount}
+                </div>
+                <div style="margin-top: 6px; font-size: 13px; color: #1f2937;">
+                  in the last ${hours} hours
+                </div>
+                <div style="margin-top: 12px; font-size: 12px; color: #6b7280;">
+                  All-time total: <strong style="color:#374151;">${total}</strong>
+                </div>
+              </div>
+            </td>
+            <td width="50%" valign="top" style="padding: 0 0 0 8px;">
+              <div style="background: #ecfdf5; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px;">
+                <div style="font-size: 12px; color: #065f46; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">
+                  New users
+                </div>
+                <div style="margin-top: 8px; font-size: 34px; line-height: 1.1; color: #111827; font-weight: 900;">
+                  ${rows.length}
+                </div>
+                <div style="margin-top: 6px; font-size: 13px; color: #1f2937;">
+                  joined in the last ${hours} hours
+                </div>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>`;
 
   const rowsHtml = rows
     .map((r) => {
@@ -197,10 +252,10 @@ const buildEmailBodies = (args: { rows: SummaryRow[]; hours: number }) => {
       <div class="container">
         ${getEmailHeader("en")}
         <div class="content">
-          <h2 style="margin: 0 0 16px 0; color: #111827; font-size: 24px;">New Users Summary</h2>
-          <div class="summary-box">
-            ${windowLabel}. Total: ${rows.length} new users found.
-          </div>
+          <h2 style="margin: 0 0 16px 0; color: #111827; font-size: 24px;">Daily Summary</h2>
+          
+          ${statsSectionHtml}
+
           <div style="overflow-x: auto;">
             <table>
               <thead>
@@ -225,8 +280,10 @@ const buildEmailBodies = (args: { rows: SummaryRow[]; hours: number }) => {
   </html>`;
 
   const textBodyLines: string[] = [
-    "New users summary",
-    `${windowLabel}. Total: ${rows.length}.`,
+    "Daily Summary",
+    `${windowLabel}.`,
+    `Download requests (email) in the last ${hours}h: ${windowCount} (all-time total: ${total})`,
+    `New users in the last ${hours}h: ${rows.length}`,
     "",
   ];
 
@@ -363,12 +420,42 @@ serve(async (req) => {
     });
   }
 
-  const { htmlBody, textBody } = buildEmailBodies({ rows, hours });
+  // Download requests stats (status=sent)
+  const [
+    { count: last24h, error: err24h },
+    { count: totalDownloads, error: errTotal },
+  ] = await Promise.all([
+    supabaseAdmin
+      .from("download_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "sent")
+      .gte("created_at", sinceIso),
+    supabaseAdmin
+      .from("download_requests")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "sent"),
+  ]);
 
-  if (rows.length === 0) {
-    // No new users: still return 200, avoid sending an empty email
+  if (err24h)
+    console.error("Failed to fetch download requests last24h:", err24h);
+  if (errTotal)
+    console.error("Failed to fetch download requests total:", errTotal);
+
+  const downloadRequests = {
+    windowCount: last24h ?? 0,
+    total: totalDownloads ?? 0,
+  };
+
+  const { htmlBody, textBody } = buildEmailBodies({
+    rows,
+    hours,
+    downloadRequests,
+  });
+
+  if (rows.length === 0 && downloadRequests.windowCount === 0) {
+    // No new users AND no downloads: still return 200, avoid sending an empty email
     return jsonResponse({
-      message: "No new profiles in window",
+      message: "No new profiles or download requests in window",
       hours,
       to: toEmail,
       sent: false,
@@ -383,7 +470,7 @@ serve(async (req) => {
     const emailService = new SimpleEmailService(fromUsers);
     await emailService.sendRawEmail({
       to: toEmail,
-      subject: `[Ten10] New users summary (${rows.length})`,
+      subject: `[Ten10] Daily Summary: ${rows.length} Users, ${downloadRequests.windowCount} Download Requests`,
       textBody,
       htmlBody,
     });
@@ -399,7 +486,10 @@ serve(async (req) => {
     return jsonResponse(
       {
         error: "Failed to send summary email",
-        details: String(error?.message ?? error),
+        details:
+          error instanceof Error
+            ? error.message
+            : String(error ?? "Unknown error"),
       },
       500
     );
