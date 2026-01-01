@@ -14,7 +14,7 @@ import {
 
 const WORKER_SECRET = (Deno.env.get("CLOUDFLARE_WORKER_SECRET") ?? "").trim();
 const JUMBOMAIL_LINK = (Deno.env.get("JUMBOMAIL_LINK") ?? "").trim();
-const RATE_LIMIT_DAILY = 3;
+const RATE_LIMIT_DAILY = 5;
 
 type IncomingPayload = {
   from: string;
