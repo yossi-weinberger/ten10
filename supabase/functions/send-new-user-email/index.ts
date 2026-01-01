@@ -95,13 +95,11 @@ const buildEmailBodies = (args: {
   hours: number;
   downloadRequests: {
     last_24h: number;
-    last_7d: number;
-    last_30d: number;
     total: number;
   };
 }) => {
   const { rows, hours, downloadRequests } = args;
-  const { last_24h, last_7d, last_30d, total } = downloadRequests;
+  const { last_24h, total } = downloadRequests;
   const windowLabel = `Last ${hours} hours`;
 
   if (rows.length === 0 && last_24h === 0) {
@@ -116,18 +114,52 @@ const buildEmailBodies = (args: {
     return { htmlBody, textBody };
   }
 
-  const downloadsSectionHtml =
-    last_24h > 0 || last_7d > 0 || last_30d > 0 || total > 0
-      ? `<div class="summary-box" style="background-color: #eff6ff; border-color: #bfdbfe; color: #1e40af; margin-bottom: 24px;">
-         <h3 style="margin: 0 0 8px 0; font-size: 18px;">Desktop Download Requests (Email)</h3>
-         <p style="margin: 0;">
-           Last 24h: <strong>${last_24h}</strong> ·
-           Last 7d: <strong>${last_7d}</strong> ·
-           Last 30d: <strong>${last_30d}</strong> ·
-           Total: <strong>${total}</strong>
-         </p>
-       </div>`
-      : "";
+  const statsSectionHtml = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 0 0 24px 0;">
+    <tr>
+      <td style="padding: 0 0 12px 0;">
+        <div style="font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;">
+          ${escapeHtml(windowLabel)}
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+          <tr>
+            <td width="50%" valign="top" style="padding: 0 8px 0 0;">
+              <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px;">
+                <div style="font-size: 12px; color: #1e3a8a; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">
+                  Download requests
+                </div>
+                <div style="margin-top: 8px; font-size: 34px; line-height: 1.1; color: #111827; font-weight: 900;">
+                  ${last_24h}
+                </div>
+                <div style="margin-top: 6px; font-size: 13px; color: #1f2937;">
+                  in the last 24 hours
+                </div>
+                <div style="margin-top: 12px; font-size: 12px; color: #6b7280;">
+                  All-time total: <strong style="color:#374151;">${total}</strong>
+                </div>
+              </div>
+            </td>
+            <td width="50%" valign="top" style="padding: 0 0 0 8px;">
+              <div style="background: #ecfdf5; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px;">
+                <div style="font-size: 12px; color: #065f46; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">
+                  New users
+                </div>
+                <div style="margin-top: 8px; font-size: 34px; line-height: 1.1; color: #111827; font-weight: 900;">
+                  ${rows.length}
+                </div>
+                <div style="margin-top: 6px; font-size: 13px; color: #1f2937;">
+                  joined in the last 24 hours
+                </div>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>`;
 
   const rowsHtml = rows
     .map((r) => {
@@ -222,11 +254,8 @@ const buildEmailBodies = (args: {
         <div class="content">
           <h2 style="margin: 0 0 16px 0; color: #111827; font-size: 24px;">Daily Summary</h2>
           
-          ${downloadsSectionHtml}
+          ${statsSectionHtml}
 
-          <div class="summary-box">
-            ${windowLabel}. Total: ${rows.length} new users found.
-          </div>
           <div style="overflow-x: auto;">
             <table>
               <thead>
@@ -253,8 +282,8 @@ const buildEmailBodies = (args: {
   const textBodyLines: string[] = [
     "Daily Summary",
     `${windowLabel}.`,
-    `Download requests (email): last24h=${last_24h}, last7d=${last_7d}, last30d=${last_30d}, total=${total}`,
-    `New Users: ${rows.length}`,
+    `Download requests (email) last 24h: ${last_24h} (all-time total: ${total})`,
+    `New users last 24h: ${rows.length}`,
     "",
   ];
 
@@ -393,15 +422,9 @@ serve(async (req) => {
 
   // Download requests stats (status=sent)
   const since24hIso = sinceIso;
-  const since7dIso = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
-  const since30dIso = new Date(
-    Date.now() - 30 * 24 * 3600 * 1000
-  ).toISOString();
 
   const [
     { count: last24h, error: err24h },
-    { count: last7d, error: err7d },
-    { count: last30d, error: err30d },
     { count: totalDownloads, error: errTotal },
   ] = await Promise.all([
     supabaseAdmin
@@ -412,31 +435,16 @@ serve(async (req) => {
     supabaseAdmin
       .from("download_requests")
       .select("*", { count: "exact", head: true })
-      .eq("status", "sent")
-      .gte("created_at", since7dIso),
-    supabaseAdmin
-      .from("download_requests")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "sent")
-      .gte("created_at", since30dIso),
-    supabaseAdmin
-      .from("download_requests")
-      .select("*", { count: "exact", head: true })
       .eq("status", "sent"),
   ]);
 
   if (err24h)
     console.error("Failed to fetch download requests last24h:", err24h);
-  if (err7d) console.error("Failed to fetch download requests last7d:", err7d);
-  if (err30d)
-    console.error("Failed to fetch download requests last30d:", err30d);
   if (errTotal)
     console.error("Failed to fetch download requests total:", errTotal);
 
   const downloadRequests = {
     last_24h: last24h ?? 0,
-    last_7d: last7d ?? 0,
-    last_30d: last30d ?? 0,
     total: totalDownloads ?? 0,
   };
 
