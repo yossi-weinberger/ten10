@@ -58,6 +58,13 @@ Script located in `infrastructure/cloudflare/email-worker.js`.
 - `SUPABASE_FUNCTION_URL`: Full URL to the edge function.
 - `CLOUDFLARE_WORKER_SECRET`: Must match the Supabase secret `CLOUDFLARE_WORKER_SECRET`.
 
+**Important note about Git-based deployments**
+
+- Git/Wrangler deployments can overwrite Cloudflare dashboard Variables if they are not defined in `wrangler.toml`.
+- To avoid losing configuration:
+  - Keep `SUPABASE_FUNCTION_URL` in `infrastructure/cloudflare/wrangler.toml` under `[vars]` (non-secret).
+  - Keep `CLOUDFLARE_WORKER_SECRET` in Cloudflare Dashboard **Secrets** (encrypted), not in Git.
+
 ## Deployment Guide
 
 ### Step 1: Database Migration
