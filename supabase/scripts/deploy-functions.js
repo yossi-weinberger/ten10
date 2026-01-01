@@ -94,6 +94,17 @@ try {
     }
   );
 
+  // Deploy process-email-request function (Cloudflare Email Routing)
+  // IMPORTANT: Cloudflare authenticates with a shared secret (not a Supabase JWT),
+  // so this function MUST be deployed with JWT verification disabled.
+  console.log("Deploying process-email-request function (no-verify-jwt)...");
+  execSync(
+    `npx supabase@latest functions deploy process-email-request --no-verify-jwt --project-ref ${projectRef}`,
+    {
+      stdio: "inherit",
+    }
+  );
+
   // Note: Unsubscribe functionality handled by /unsubscribe page with JWT verification
 
   console.log("✅ All Supabase functions deployed successfully!");

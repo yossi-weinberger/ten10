@@ -54,6 +54,16 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 - **Security:** Function uses Service Role Key; the cron job must use a Service Role Bearer, not anon.
 - **Cron:** Daily pg_cron at `0 19 * * *` (21:00 Israel) via `net.http_post` to `/functions/v1/send-new-user-email` with Service Role authorization.
 
+### Email Notifications - Desktop Download Requests (Email Routing)
+
+- **Flow:** Cloudflare Email Routing → Worker → Supabase Edge Function `process-email-request` → AWS SES → user.
+- **Important:** `process-email-request` must run with JWT verification disabled (Cloudflare authenticates via a shared secret header, not a Supabase JWT).
+- **Repo enforcement:** `supabase/config.toml` includes:
+  ```toml
+  [functions.process-email-request]
+  verify_jwt = false
+  ```
+
 ### Database (Transactions - Web Version)
 
 - **Project Identified:** Confirmed Supabase project `Ten10` (ID: `flpzqbvbymoluoeeeofg`).

@@ -132,6 +132,11 @@ If you connect the Worker to GitHub for auto-deploys, set:
 - Disable JWT verification for the edge function:
   - CLI: `supabase functions deploy process-email-request --no-verify-jwt`
   - Or in Supabase Dashboard: Edge Functions → `process-email-request` → Settings → **Verify JWT: Off**
+  - Recommended (repo): enforce via `supabase/config.toml`:
+    ```toml
+    [functions.process-email-request]
+    verify_jwt = false
+    ```
 
 **How to confirm**
 
@@ -143,4 +148,5 @@ If you connect the Worker to GitHub for auto-deploys, set:
 **Prevent recurrence**
 
 - Always deploy `process-email-request` with `--no-verify-jwt`.
+- Prefer enforcing this once in `supabase/config.toml` so future deploys don't accidentally re-enable JWT verification.
 - If the route breaks again, check Cloudflare logs first: they will show the exact Supabase status and body.
