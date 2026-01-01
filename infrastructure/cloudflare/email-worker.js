@@ -61,6 +61,13 @@ export default {
         body: JSON.stringify(payload),
       });
 
+      // Handle rate limit explicitly so the sender isn't left without feedback.
+      if (response.status === 429) {
+        console.log(`Blocked: Rate limit exceeded for ${message.from}`);
+        message.setReject("Rate limit exceeded. Try again tomorrow.");
+        return;
+      }
+
       if (!response.ok) {
         const errText = await response.text();
         throw new Error(`Supabase error: ${response.status} ${errText}`);

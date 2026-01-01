@@ -111,7 +111,13 @@ serve(async (req) => {
       });
       return new Response(
         JSON.stringify({ status: "blocked", reason: "Rate limit" }),
-        { headers: corsHeaders }
+        {
+          status: 429,
+          headers: {
+            ...corsHeaders,
+            "Content-Type": "application/json",
+          },
+        }
       );
     }
 

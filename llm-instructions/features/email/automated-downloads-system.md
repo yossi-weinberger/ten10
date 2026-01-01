@@ -130,6 +130,7 @@ If you connect the Worker to GitHub for auto-deploys, set:
 **Fix**
 
 - Disable JWT verification for the edge function:
+
   - CLI: `supabase functions deploy process-email-request --no-verify-jwt`
   - Or in Supabase Dashboard: Edge Functions → `process-email-request` → Settings → **Verify JWT: Off**
   - Recommended (repo): enforce via `supabase/config.toml`:
@@ -137,6 +138,10 @@ If you connect the Worker to GitHub for auto-deploys, set:
     [functions.process-email-request]
     verify_jwt = false
     ```
+
+- Rate limiting UX:
+  - The edge function returns HTTP `429` when rate-limited.
+  - The Cloudflare Worker should reject the email with a clear message, so the sender gets immediate feedback.
 
 **How to confirm**
 
