@@ -110,3 +110,37 @@ If you connect the Worker to GitHub for auto-deploys, set:
 3.  Check Supabase `download_requests` table for a new record.
 4.  Verify receipt of the auto-reply email.
 5.  Send 3 more emails to verify rate limiting (4th should be blocked).
+
+## Incident Log / Known Failure Mode
+
+### 2026-01-01: Gmail bounce `555 5.7.1 Temporary System Error`
+
+**Symptom**
+
+- Sender receives: `555 5.7.1 Temporary System Error`
+- Gmail UI: "The message was not delivered" to `maaser@ten10-app.com`.
+
+**Root cause**
+
+- Cloudflare Worker called the Supabase Edge Function and got:
+  - `401 {"code":401,"message":"Invalid JWT"}`
+- This happens when **Supabase Edge Function JWT verification is enabled** for `process-email-request`.
+- Cloudflare authenticates with a shared secret header (`Authorization: Bearer <CLOUDFLARE_WORKER_SECRET>`), which is **not a Supabase JWT**.
+
+**Fix**
+
+- Disable JWT verification for the edge function:
+  - CLI: `supabase functions deploy process-email-request --no-verify-jwt`
+  - Or in Supabase Dashboard: Edge Functions → `process-email-request` → Settings → **Verify JWT: Off**
+
+**How to confirm**
+
+- In Cloudflare Worker logs, you should see:
+  - `Success: Processed email from ...`
+- You should no longer see:
+  - `Supabase error: 401 ... Invalid JWT`
+
+**Prevent recurrence**
+
+- Always deploy `process-email-request` with `--no-verify-jwt`.
+- If the route breaks again, check Cloudflare logs first: they will show the exact Supabase status and body.

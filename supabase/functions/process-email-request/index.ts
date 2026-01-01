@@ -13,8 +13,7 @@ import {
 } from "../_shared/email-design.ts";
 
 const WORKER_SECRET = (Deno.env.get("CLOUDFLARE_WORKER_SECRET") ?? "").trim();
-const JUMBOMAIL_LINK =
-  Deno.env.get("JUMBOMAIL_LINK") || "https://www.jumbomail.me/en/";
+const JUMBOMAIL_LINK = (Deno.env.get("JUMBOMAIL_LINK") ?? "").trim();
 const RATE_LIMIT_DAILY = 3;
 
 type IncomingPayload = {
@@ -35,6 +34,13 @@ serve(async (req) => {
     console.error(
       "Misconfiguration: CLOUDFLARE_WORKER_SECRET is missing or empty"
     );
+    return new Response(JSON.stringify({ error: "Server misconfigured" }), {
+      status: 500,
+      headers: corsHeaders,
+    });
+  }
+  if (!JUMBOMAIL_LINK) {
+    console.error("Misconfiguration: JUMBOMAIL_LINK is missing or empty");
     return new Response(JSON.stringify({ error: "Server misconfigured" }), {
       status: 500,
       headers: corsHeaders,
