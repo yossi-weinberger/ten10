@@ -208,6 +208,8 @@ ${JUMBOMAIL_LINK}
     });
   } catch (error) {
     console.error("Error processing email request:", error);
+    const errorMessage =
+      error instanceof Error ? error.message : String(error ?? "Unknown error");
 
     // BUGFIX (Observability): log failed attempts as status=error whenever possible.
     try {
@@ -215,7 +217,7 @@ ${JUMBOMAIL_LINK}
         await supabaseClient.from("download_requests").insert({
           from_email: from,
           status: "error",
-          reason: String(error?.message ?? error),
+          reason: errorMessage,
           metadata: { to, subject, messageId },
         });
       }
@@ -223,7 +225,7 @@ ${JUMBOMAIL_LINK}
       console.error("Failed to write download_requests error log:", logError);
     }
 
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
       headers: corsHeaders,
     });

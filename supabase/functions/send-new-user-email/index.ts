@@ -94,15 +94,15 @@ const buildEmailBodies = (args: {
   rows: SummaryRow[];
   hours: number;
   downloadRequests: {
-    last_24h: number;
+    windowCount: number;
     total: number;
   };
 }) => {
   const { rows, hours, downloadRequests } = args;
-  const { last_24h, total } = downloadRequests;
+  const { windowCount, total } = downloadRequests;
   const windowLabel = `Last ${hours} hours`;
 
-  if (rows.length === 0 && last_24h === 0) {
+  if (rows.length === 0 && windowCount === 0) {
     const textBody = `${windowLabel}: No new profiles and no new download requests.`;
     const htmlBody = `<!DOCTYPE html>
     <html>
@@ -132,10 +132,10 @@ const buildEmailBodies = (args: {
                   Download requests
                 </div>
                 <div style="margin-top: 8px; font-size: 34px; line-height: 1.1; color: #111827; font-weight: 900;">
-                  ${last_24h}
+                  ${windowCount}
                 </div>
                 <div style="margin-top: 6px; font-size: 13px; color: #1f2937;">
-                  in the last 24 hours
+                  in the last ${hours} hours
                 </div>
                 <div style="margin-top: 12px; font-size: 12px; color: #6b7280;">
                   All-time total: <strong style="color:#374151;">${total}</strong>
@@ -151,7 +151,7 @@ const buildEmailBodies = (args: {
                   ${rows.length}
                 </div>
                 <div style="margin-top: 6px; font-size: 13px; color: #1f2937;">
-                  joined in the last 24 hours
+                  joined in the last ${hours} hours
                 </div>
               </div>
             </td>
@@ -282,8 +282,8 @@ const buildEmailBodies = (args: {
   const textBodyLines: string[] = [
     "Daily Summary",
     `${windowLabel}.`,
-    `Download requests (email) last 24h: ${last_24h} (all-time total: ${total})`,
-    `New users last 24h: ${rows.length}`,
+    `Download requests (email) in the last ${hours}h: ${windowCount} (all-time total: ${total})`,
+    `New users in the last ${hours}h: ${rows.length}`,
     "",
   ];
 
@@ -421,8 +421,6 @@ serve(async (req) => {
   }
 
   // Download requests stats (status=sent)
-  const since24hIso = sinceIso;
-
   const [
     { count: last24h, error: err24h },
     { count: totalDownloads, error: errTotal },
@@ -431,7 +429,7 @@ serve(async (req) => {
       .from("download_requests")
       .select("*", { count: "exact", head: true })
       .eq("status", "sent")
-      .gte("created_at", since24hIso),
+      .gte("created_at", sinceIso),
     supabaseAdmin
       .from("download_requests")
       .select("*", { count: "exact", head: true })
@@ -444,7 +442,7 @@ serve(async (req) => {
     console.error("Failed to fetch download requests total:", errTotal);
 
   const downloadRequests = {
-    last_24h: last24h ?? 0,
+    windowCount: last24h ?? 0,
     total: totalDownloads ?? 0,
   };
 
@@ -454,7 +452,7 @@ serve(async (req) => {
     downloadRequests,
   });
 
-  if (rows.length === 0 && downloadRequests.last_24h === 0) {
+  if (rows.length === 0 && downloadRequests.windowCount === 0) {
     // No new users AND no downloads: still return 200, avoid sending an empty email
     return jsonResponse({
       message: "No new profiles or download requests in window",
@@ -472,7 +470,7 @@ serve(async (req) => {
     const emailService = new SimpleEmailService(fromUsers);
     await emailService.sendRawEmail({
       to: toEmail,
-      subject: `[Ten10] Daily Summary: ${rows.length} Users, ${downloadRequests.last_24h} Download Requests`,
+      subject: `[Ten10] Daily Summary: ${rows.length} Users, ${downloadRequests.windowCount} Download Requests`,
       textBody,
       htmlBody,
     });
@@ -488,7 +486,10 @@ serve(async (req) => {
     return jsonResponse(
       {
         error: "Failed to send summary email",
-        details: String(error?.message ?? error),
+        details:
+          error instanceof Error
+            ? error.message
+            : String(error ?? "Unknown error"),
       },
       500
     );
