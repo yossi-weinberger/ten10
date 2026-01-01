@@ -5,4 +5,4 @@ compatibility_date = "2024-01-01"
 [vars]
 # Variables are set in the Cloudflare Dashboard to keep secrets safe
 # SUPABASE_FUNCTION_URL = "..."
-# WORKER_SECRET = "..."
+# CLOUDFLARE_WORKER_SECRET = "..."

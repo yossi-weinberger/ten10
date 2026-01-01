@@ -1,6 +1,8 @@
-// @ts-nocheck
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  createClient,
+  type SupabaseClient,
+} from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
 import {
@@ -14,6 +16,13 @@ const WORKER_SECRET = (Deno.env.get("CLOUDFLARE_WORKER_SECRET") ?? "").trim();
 const JUMBOMAIL_LINK =
   Deno.env.get("JUMBOMAIL_LINK") || "https://www.jumbomail.me/en/";
 const RATE_LIMIT_DAILY = 3;
+
+type IncomingPayload = {
+  from: string;
+  to?: string;
+  subject?: string;
+  messageId?: string;
+};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -32,7 +41,7 @@ serve(async (req) => {
     });
   }
 
-  let supabaseClient: any | null = null;
+  let supabaseClient: SupabaseClient | null = null;
   let from: string | undefined;
   let to: string | undefined;
   let subject: string | undefined;
@@ -47,7 +56,8 @@ serve(async (req) => {
       });
     }
 
-    ({ from, to, subject, messageId } = await req.json());
+    const body = (await req.json()) as Partial<IncomingPayload>;
+    ({ from, to, subject, messageId } = body);
 
     if (!from) {
       return new Response(
@@ -72,6 +82,11 @@ serve(async (req) => {
 
     if (rpcError) {
       throw new Error(`RPC Error: ${rpcError.message}`);
+    }
+    if (typeof currentCount !== "number" || !Number.isFinite(currentCount)) {
+      throw new Error(
+        "RPC Error: increment_download_count returned invalid data"
+      );
     }
 
     // Prepare log data

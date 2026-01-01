@@ -23,7 +23,7 @@ export default {
     }
 
     const autoSubmitted = message.headers.get("auto-submitted");
-    if (autoSubmitted && autoSubmitted !== "no") {
+    if (autoSubmitted && String(autoSubmitted).trim().toLowerCase() !== "no") {
       console.log("Blocked: Auto-Submitted header");
       return; // Drop silently
     }
