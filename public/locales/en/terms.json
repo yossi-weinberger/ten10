@@ -1,9 +1,16 @@
 {
   "title": "Terms of Service",
-  "lastUpdated": "Last updated: January 2025",
+  "lastUpdated": "Last updated: January 2026",
   "acceptance": {
     "title": "Acceptance of Terms",
-    "description": "By using Ten10, you agree to the following terms of service. If you do not agree, please do not use the service."
+    "description": "By accessing or using Ten10 (web app or desktop app), you agree to these Terms. If you do not agree, do not use the service."
+  },
+  "account": {
+    "title": "Eligibility & Account",
+    "description": "You are responsible for your account and for all activity under it.",
+    "item1": "Provide accurate information and keep it updated",
+    "item2": "Keep your login credentials secure and do not share them",
+    "item3": "Notify us if you suspect unauthorized access"
   },
   "service": {
     "title": "Service Description",
@@ -12,10 +19,37 @@
     "item2": "Management of income, expenses, and donations",
     "item3": "Reports and charts"
   },
+  "dataAndPrivacy": {
+    "title": "Data, Privacy & Platform Differences",
+    "description": "Ten10 has both a web version (cloud) and a desktop version (local). Data handling differs between them.",
+    "item1": "Web: account data (e.g., email) and app data may be stored in our Supabase database",
+    "item2": "Web: financial records you enter (transactions, recurring transactions) may be stored to provide the service",
+    "item3": "Web: communication preferences (e.g., reminders, mailing consent) may be stored to respect your choices",
+    "item4": "Support: if you contact us, we may store your message, attachments, and basic technical metadata (e.g., app version, locale, user-agent)",
+    "item5": "Desktop: your financial data is stored locally on your device (SQLite) unless you choose to export/share it",
+    "privacyLinkPrefix": "For details, see our",
+    "privacyLinkText": "Privacy Policy",
+    "privacyLinkSuffix": "."
+  },
+  "thirdParties": {
+    "title": "Third-Party Services",
+    "description": "To operate Ten10 we may rely on third-party services. Your use of Ten10 may involve these providers under their own terms and policies.",
+    "item1": "Supabase (authentication, database, storage)",
+    "item2": "AWS SES (sending service emails such as reminders and download links)",
+    "item3": "Cloudflare (email routing and CAPTCHA verification/anti-bot measures where applicable)",
+    "item4": "Google Analytics (landing page analytics, if enabled)"
+  },
   "disclaimer": {
     "title": "Disclaimer",
     "description": "Ten10 provides a tool for managing tithes and handling financial data. However:",
     "note": "The system is halachically approved by the Torah Adam L'Adam Institute, but final halachic decisions are the user's responsibility. It is recommended to consult with a qualified rabbi for specific halachic questions."
+  },
+  "security": {
+    "title": "Security",
+    "description": "We use reasonable measures to protect the service, but no system is 100% secure.",
+    "item1": "You are responsible for safeguarding your devices and access to your account",
+    "item2": "Do not upload malicious content or attempt to bypass security controls",
+    "item3": "We may suspend access to protect the service or other users"
   },
   "userResponsibilities": {
     "title": "User Responsibilities",
@@ -28,6 +62,24 @@
   "limitations": {
     "title": "Limitation of Liability",
     "description": "Ten10 is not responsible for any direct, indirect, or consequential damages arising from the use or non-use of the service. The service is provided 'as is' without any warranty."
+  },
+  "communications": {
+    "title": "Communications",
+    "description": "By using Ten10, you agree that we may send you service-related messages.",
+    "item1": "Service emails may include account verification, reminders, and essential service notices",
+    "item2": "You can opt out of certain emails where applicable (for example, reminders)",
+    "item3": "Do not reply to no-reply addresses; contact us via the support email instead"
+  },
+  "openSource": {
+    "title": "Open Source & Intellectual Property",
+    "description": "Ten10 uses open source components. The software may be distributed under open-source licenses (including AGPL-3.0). These Terms do not replace applicable open-source licenses."
+  },
+  "legal": {
+    "title": "Legal Terms",
+    "description": "Some terms apply to the extent permitted by law and may vary by jurisdiction.",
+    "item1": "Nothing in these Terms limits rights that cannot be limited under applicable law",
+    "item2": "If any part of these Terms is unenforceable, the rest remains in effect",
+    "item3": "We may update these Terms from time to time; continued use means acceptance of the updated Terms"
   },
   "changes": {
     "title": "Changes to Terms",
