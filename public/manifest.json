@@ -19,7 +19,7 @@
     },
     {
       "src": "/pwa-maskable.svg",
-      "sizes": "512x512",
+      "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "maskable"
     }

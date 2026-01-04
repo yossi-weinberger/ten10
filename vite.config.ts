@@ -48,6 +48,8 @@ export default defineConfig(() => {
               },
               {
                 // Maskable icon with extra safe padding (prevents Android adaptive-icon cropping)
+                // NOTE: JPEG is used here because we already have a padded asset available.
+                // For best icon sharpness, consider exporting a lossless PNG equivalent later.
                 src: "/icon-maskable-512.jpg",
                 sizes: "512x512",
                 type: "image/jpeg",
