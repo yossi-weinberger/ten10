@@ -49,7 +49,14 @@ export default defineConfig(() => {
             ],
           },
           workbox: {
-            maximumFileSizeToCacheInBytes: 5000000, // 5MB
+            // PERFORMANCE OPTIMIZATION: Minimal SW without precaching
+            // Why this works:
+            // - PWA install prompts only require a registered SW + manifest (since Chrome ~2023)
+            // - TWA (Android) uses the web version directly, doesn't need SW caching
+            // - Offline support is only needed for Desktop (Tauri), which uses SQLite, not SW
+            // - This eliminates ~1.3MB of precache downloads on first visit
+            globPatterns: [], // No precached assets
+            navigateFallback: null, // No offline HTML fallback; requires network
           },
         }),
     ].filter(Boolean),
