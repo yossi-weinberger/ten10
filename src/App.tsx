@@ -46,11 +46,12 @@ function App() {
   const _hasHydrated = useDonationStore((state) => state._hasHydrated);
 
   // Define pages that take full screen without sidebar/padding
-  // If user is NOT logged in, hide sidebar on ALL public routes (because they have no context).
-  // If user IS logged in, hide sidebar ONLY on truly full-screen pages (login/signup/landing) but SHOW on terms/privacy.
+  // - FULL_SCREEN_ROUTES (login/signup/landing) are always full-screen on all platforms.
+  // - On WEB: If user is NOT logged in, hide sidebar on public routes (because they have no context).
+  // - On DESKTOP: User is always null (no auth required), so ALWAYS show sidebar except on FULL_SCREEN_ROUTES.
   const isFullScreenPage =
     FULL_SCREEN_ROUTES.includes(currentPath) ||
-    (!user && PUBLIC_ROUTES.includes(currentPath));
+    (platform === "web" && !user && PUBLIC_ROUTES.includes(currentPath));
 
   // Show footer on all pages except login and signup
   const shouldShowFooter = ![
