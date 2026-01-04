@@ -76,6 +76,18 @@ The application needs to handle various types of financial entries, each affecti
 - **Status (Web)**: Implemented. Web users can opt-in to receive monthly email reminders. The content is personalized based on their current tithe balance. This is handled by a Supabase Edge Function triggered by a daily cron job.
 - **Status (Desktop)**: Implemented. Desktop users can receive native system notifications. The logic is triggered on application startup and uses the same user settings as the web version. To ensure timely reminders, an "Autostart" option is provided in the settings, allowing the application to launch on system startup.
 
+### Terms of Service Acceptance
+
+- **Requirement**: Users must explicitly accept the Terms of Service and Privacy Policy before using the application.
+- **Status**: ✅ Implemented.
+  - **Blocking Modal**: A non-dismissible modal appears after authentication (web) or on app launch (desktop) if terms haven't been accepted.
+  - **Version Tracking**: The system tracks which version of terms the user accepted, allowing re-prompting when terms are updated.
+  - **Metadata Collection**: Captures local time, timezone, user agent, and platform for legal compliance.
+  - **Platform-Specific Storage**:
+    - **Web**: Stored in Supabase `profiles` table (`terms_accepted_at`, `terms_version`, `terms_accepted_metadata`)
+    - **Desktop**: Stored locally in Zustand store (`settings.termsAcceptedVersion`)
+- **Implementation Details**: `../features/auth/terms-acceptance.md`
+
 ### Desktop Updates & Distribution
 
 - **Requirement**: Desktop users (who are offline) need a way to receive new versions and updates.
