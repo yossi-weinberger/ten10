@@ -27,6 +27,8 @@ import { TermsPage } from "./pages/TermsPage";
 import { AccessibilityPage } from "./pages/AccessibilityPage";
 import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 
+import { PUBLIC_ROUTES } from "./lib/constants";
+
 const rootRoute = createRootRoute({
   component: App,
   notFoundComponent: NotFoundPage,
@@ -46,21 +48,8 @@ const rootRoute = createRootRoute({
       data: { session },
     } = await supabase.auth.getSession();
 
-    // Define public routes that don't require authentication
-    const publicRoutes = [
-      "/login",
-      "/signup",
-      "/forgot-password",
-      "/reset-password",
-      "/unsubscribe",
-      "/landing",
-      "/privacy",
-      "/terms",
-      "/accessibility",
-    ];
-
     // Check if the user is trying to access a protected route on the web without a session
-    if (!session && !publicRoutes.includes(location.pathname)) {
+    if (!session && !PUBLIC_ROUTES.includes(location.pathname)) {
       // Redirect to the login page
       throw redirect({
         to: "/login", // Target route
@@ -70,7 +59,7 @@ const rootRoute = createRootRoute({
     }
 
     // Optional: Redirect logged-in web users away from login/signup pages
-    // if (session && publicRoutes.includes(location.pathname)) {
+    // if (session && PUBLIC_ROUTES.includes(location.pathname)) {
     //   throw redirect({
     //     to: '/',
     //     replace: true,
