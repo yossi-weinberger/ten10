@@ -24,7 +24,7 @@
   "appVersionCode": 1,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://ten10-app.com/manifest.webmanifest",
+  "webManifestUrl": "https://ten10-app.com/manifest.json",
   "fallbackType": "customtabs",
   "features": {
     "playBilling": {

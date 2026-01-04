@@ -28,35 +28,12 @@ export default defineConfig(() => {
       !isTauriBuild &&
         VitePWA({
           registerType: "autoUpdate",
-          manifest: {
-            name: "Ten10",
-            short_name: "Ten10",
-            start_url: "/",
-            display: "standalone",
-            background_color: "#ffffff",
-            theme_color: "#11676a",
-            icons: [
-              {
-                src: "/icon-192.png",
-                sizes: "192x192",
-                type: "image/png",
-              },
-              {
-                src: "/icon-512.png",
-                sizes: "512x512",
-                type: "image/png",
-              },
-              {
-                // Maskable icon with extra safe padding (prevents Android adaptive-icon cropping)
-                // NOTE: JPEG is used here because we already have a padded asset available.
-                // For best icon sharpness, consider exporting a lossless PNG equivalent later.
-                src: "/icon-maskable-512.jpg",
-                sizes: "512x512",
-                type: "image/jpeg",
-                purpose: "maskable",
-              },
-            ],
-          },
+          // IMPORTANT:
+          // We intentionally do NOT generate/inject a manifest here.
+          // The app's single source of truth is the static `public/manifest.json`
+          // referenced from `index.html`. This prevents duplicate <link rel="manifest">
+          // tags and avoids confusion about which manifest is deployed.
+          manifest: false,
           workbox: {
             // PERFORMANCE OPTIMIZATION: Minimal SW without precaching
             // Why this works:
