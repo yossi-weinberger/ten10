@@ -225,6 +225,9 @@ export function MonthlyChart() {
         }));
     }, [serverMonthlyChartData, i18n.language, dateLocale]);
 
+  // Consistent container height to prevent CLS
+  const chartContainerHeight = "min-h-[400px] md:min-h-[500px]";
+
   if (
     !platformReady ||
     (isLoadingServerMonthlyChartData &&
@@ -239,7 +242,9 @@ export function MonthlyChart() {
         <CardHeader className="p-4 sm:p-6">
           <CardTitle>{t("monthlyChart.title")}</CardTitle>
         </CardHeader>
-        <CardContent className="h-[450px] flex items-center justify-center">
+        <CardContent
+          className={`${chartContainerHeight} flex items-center justify-center`}
+        >
           <p>{t("monthlyChart.loading")}</p>
         </CardContent>
       </Card>
@@ -255,7 +260,9 @@ export function MonthlyChart() {
         <CardHeader className="p-4 sm:p-6">
           <CardTitle>{t("monthlyChart.title")}</CardTitle>
         </CardHeader>
-        <CardContent className="h-[450px] flex items-center justify-center">
+        <CardContent
+          className={`${chartContainerHeight} flex items-center justify-center`}
+        >
           <p className="text-red-500">
             {t("monthlyChart.error")}: {serverMonthlyChartDataError}
           </p>
@@ -277,7 +284,9 @@ export function MonthlyChart() {
         <CardHeader className="p-4 sm:p-6">
           <CardTitle>{t("monthlyChart.title")}</CardTitle>
         </CardHeader>
-        <CardContent className="h-[450px] flex items-center justify-center">
+        <CardContent
+          className={`${chartContainerHeight} flex items-center justify-center`}
+        >
           <p>{t("monthlyChart.noData")}</p>
         </CardContent>
       </Card>
@@ -294,12 +303,12 @@ export function MonthlyChart() {
       </CardHeader>
       <CardContent className="p-3 pt-0 sm:p-6 sm:pt-0">
         {formattedChartDataForAreaChart.length > 0 ? (
-          <>
+          <div className={chartContainerHeight}>
             <AreaChartInteractive
               chartData={formattedChartDataForAreaChart}
               chartConfig={monthlyChartConfig}
               withCard={false}
-              className="min-h-[320px] h-[55vh] md:h-[450px] w-full"
+              className="min-h-[320px] h-[55vh] md:h-[400px] w-full"
             />
             <div className="flex justify-center items-center gap-4 mt-4">
               {canLoadMoreChartData && (
@@ -323,9 +332,11 @@ export function MonthlyChart() {
                 <span className="sr-only">{t("monthlyChart.reset")}</span>
               </Button>
             </div>
-          </>
+          </div>
         ) : (
-          <div className="h-[400px] flex items-center justify-center">
+          <div
+            className={`${chartContainerHeight} flex items-center justify-center`}
+          >
             <p>{t("monthlyChart.noData")}</p>
           </div>
         )}

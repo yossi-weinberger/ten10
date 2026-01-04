@@ -3,31 +3,77 @@ import {
   createRootRoute,
   createRoute,
   redirect,
+  lazyRouteComponent,
 } from "@tanstack/react-router";
 import App from "./App";
+import { supabase } from "./lib/supabaseClient";
+import { PUBLIC_ROUTES } from "./lib/constants";
+
+// Critical pages loaded synchronously (needed immediately)
 import { HomePage } from "./pages/HomePage";
-import { AddTransactionPage } from "./pages/AddTransactionPage";
-import { HalachaPage } from "./pages/HalachaPage";
-import { SettingsPage } from "./pages/SettingsPage";
-import { AboutPage } from "./pages/AboutPage";
-import { ProfilePage } from "./pages/ProfilePage";
-import { AnalyticsPage } from "./pages/AnalyticsPage";
-import { TransactionsTable } from "./pages/TransactionsTable";
+import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import UnsubscribePage from "./pages/UnsubscribePage";
-import { supabase } from "./lib/supabaseClient";
 import { NotFoundPage } from "./pages/NotFoundPage";
-import { RecurringTransactionsTable } from "./pages/RecurringTransactionsTable";
-import LandingPage from "./pages/LandingPage";
-import { PrivacyPage } from "./pages/PrivacyPage";
-import { TermsPage } from "./pages/TermsPage";
-import { AccessibilityPage } from "./pages/AccessibilityPage";
-import { AdminDashboardPage } from "./pages/AdminDashboardPage";
 
-import { PUBLIC_ROUTES } from "./lib/constants";
+// Lazy-loaded pages for code splitting
+const AddTransactionPage = lazyRouteComponent(
+  () => import("./pages/AddTransactionPage"),
+  "AddTransactionPage"
+);
+const HalachaPage = lazyRouteComponent(
+  () => import("./pages/HalachaPage"),
+  "HalachaPage"
+);
+const SettingsPage = lazyRouteComponent(
+  () => import("./pages/SettingsPage"),
+  "SettingsPage"
+);
+const AboutPage = lazyRouteComponent(
+  () => import("./pages/AboutPage"),
+  "AboutPage"
+);
+const ProfilePage = lazyRouteComponent(
+  () => import("./pages/ProfilePage"),
+  "ProfilePage"
+);
+const AnalyticsPage = lazyRouteComponent(
+  () => import("./pages/AnalyticsPage"),
+  "AnalyticsPage"
+);
+const TransactionsTable = lazyRouteComponent(
+  () => import("./pages/TransactionsTable"),
+  "TransactionsTable"
+);
+const RecurringTransactionsTable = lazyRouteComponent(
+  () => import("./pages/RecurringTransactionsTable"),
+  "RecurringTransactionsTable"
+);
+const ForgotPasswordPage = lazyRouteComponent(
+  () => import("./pages/ForgotPasswordPage")
+);
+const ResetPasswordPage = lazyRouteComponent(
+  () => import("./pages/ResetPasswordPage")
+);
+const UnsubscribePage = lazyRouteComponent(
+  () => import("./pages/UnsubscribePage")
+);
+const PrivacyPage = lazyRouteComponent(
+  () => import("./pages/PrivacyPage"),
+  "PrivacyPage"
+);
+const TermsPage = lazyRouteComponent(
+  () => import("./pages/TermsPage"),
+  "TermsPage"
+);
+const AccessibilityPage = lazyRouteComponent(
+  () => import("./pages/AccessibilityPage"),
+  "AccessibilityPage"
+);
+const AdminDashboardPage = lazyRouteComponent(
+  () => import("./pages/AdminDashboardPage"),
+  "AdminDashboardPage"
+);
 
 const rootRoute = createRootRoute({
   component: App,

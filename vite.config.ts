@@ -49,7 +49,11 @@ export default defineConfig(() => {
             ],
           },
           workbox: {
-            maximumFileSizeToCacheInBytes: 5000000, // 5MB
+            // Minimal SW: No precaching to improve initial load performance
+            // The SW is still registered to enable PWA/TWA installation
+            // Offline functionality is only relevant for Desktop (Tauri) which doesn't use SW
+            globPatterns: [], // Empty array = no precaching
+            navigateFallback: null, // Disable navigation fallback (requires network)
           },
         }),
     ].filter(Boolean),
