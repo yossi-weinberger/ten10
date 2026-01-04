@@ -46,6 +46,13 @@ export default defineConfig(() => {
                 sizes: "512x512",
                 type: "image/png",
               },
+              {
+                // Maskable icon with extra safe padding (prevents Android adaptive-icon cropping)
+                src: "/icon-maskable-512.jpg",
+                sizes: "512x512",
+                type: "image/jpeg",
+                purpose: "maskable",
+              },
             ],
           },
           workbox: {
