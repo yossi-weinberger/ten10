@@ -22,6 +22,7 @@ export interface Settings {
   maaserYearStart?: string;
   reminderEnabled: boolean;
   reminderDayOfMonth: 1 | 10 | 15 | 20;
+  termsAcceptedVersion?: string | null;
 }
 
 export interface DonationState {
@@ -70,6 +71,7 @@ const defaultSettings: Settings = {
   maaserYearStart: "01-01",
   reminderEnabled: false,
   reminderDayOfMonth: 10,
+  termsAcceptedVersion: null,
 };
 
 export const useDonationStore = create<DonationState>()(
