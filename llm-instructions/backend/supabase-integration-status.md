@@ -29,9 +29,14 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - Added basic RLS policies (select/insert/update own profile).
   - Added trigger to create profile on new user signup.
   - Added trigger to update `updated_at` automatically.
+  - **Terms of Service Acceptance:**
+    - Added columns `terms_accepted_at` (TIMESTAMPTZ) and `terms_version` (TEXT) to `profiles` table.
+    - Added `terms_accepted_metadata` (JSONB) for legal audit trail (IP, User Agent, Timestamp).
+    - Implemented a "Gatekeeper Modal" that forces users to accept terms on login/signup if they haven't already.
 - **Signup Enhancements:**
   - Added Full Name and Mailing List Consent fields to the signup form.
   - Updated signup logic to attempt profile update if session is immediately available.
+  - **Removed Checkbox:** The "I agree to Terms" checkbox was removed from the signup form in favor of the post-login Gatekeeper Modal, ensuring better UX and consistent legal coverage for Google Login users.
 - **Protected Routes (Web):**
   - Implemented route protection via `beforeLoad` on the root route in `src/routes.ts`.
   - Logic correctly differentiates between web (protected) and desktop (open). Redirects unauthenticated web users to `/login`.

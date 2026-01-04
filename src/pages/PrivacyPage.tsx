@@ -2,7 +2,19 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { useScrollAnimation, fadeInUp } from "@/hooks/useScrollAnimation";
 import { Card, CardContent } from "@/components/ui/card";
-import { Shield, Database, Lock, Eye, Mail, Globe } from "lucide-react";
+import {
+  Shield,
+  Database,
+  Lock,
+  Eye,
+  Mail,
+  Globe,
+  Building,
+  Plane,
+  Clock,
+  Cookie,
+  UserCheck,
+} from "lucide-react";
 
 export function PrivacyPage() {
   const { t, i18n } = useTranslation("privacy");
@@ -38,6 +50,27 @@ export function PrivacyPage() {
 
         {/* Content */}
         <div className="space-y-8">
+          {/* Service Owner */}
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <Building className="h-6 w-6 text-slate-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    {t("serviceOwner.title")}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300 mb-2">
+                    {t("serviceOwner.description")}
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {t("serviceOwner.contact")}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Data Collection */}
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-start gap-3">
@@ -91,6 +124,55 @@ export function PrivacyPage() {
             </CardContent>
           </Card>
 
+          {/* International Transfer */}
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <Plane className="h-6 w-6 text-sky-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    {t("internationalTransfer.title")}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
+                    {t("internationalTransfer.description")}
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4">
+                    <li>{t("internationalTransfer.item1")}</li>
+                    <li>{t("internationalTransfer.item2")}</li>
+                    <li>{t("internationalTransfer.item3")}</li>
+                  </ul>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                    {t("internationalTransfer.note")}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Data Retention */}
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <Clock className="h-6 w-6 text-amber-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    {t("dataRetention.title")}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
+                    {t("dataRetention.description")}
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4">
+                    <li>{t("dataRetention.item1")}</li>
+                    <li>{t("dataRetention.item2")}</li>
+                    <li>{t("dataRetention.item3")}</li>
+                    <li>{t("dataRetention.item4")}</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Data Usage */}
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-start gap-3">
@@ -151,6 +233,49 @@ export function PrivacyPage() {
             </CardContent>
           </Card>
 
+          {/* Cookies */}
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <Cookie className="h-6 w-6 text-yellow-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    {t("cookies.title")}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
+                    {t("cookies.description")}
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4">
+                    <li>{t("cookies.item1")}</li>
+                    <li>{t("cookies.item2")}</li>
+                    <li>{t("cookies.item3")}</li>
+                  </ul>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                    {t("cookies.note")}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Age Requirement */}
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <UserCheck className="h-6 w-6 text-indigo-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    {t("ageRequirement.title")}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {t("ageRequirement.description")}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* User Rights */}
           <Card>
             <CardContent className="pt-6 space-y-4">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
@@ -164,10 +289,12 @@ export function PrivacyPage() {
                 <li>{t("userRights.item2")}</li>
                 <li>{t("userRights.item3")}</li>
                 <li>{t("userRights.item4")}</li>
+                <li>{t("userRights.item5")}</li>
               </ul>
             </CardContent>
           </Card>
 
+          {/* Contact */}
           <Card>
             <CardContent className="pt-6 space-y-4">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">

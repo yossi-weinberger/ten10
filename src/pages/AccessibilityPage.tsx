@@ -8,6 +8,9 @@ import {
   Eye,
   Volume2,
   MousePointer,
+  User,
+  FileCheck,
+  AlertTriangle,
 } from "lucide-react";
 
 export function AccessibilityPage() {
@@ -125,6 +128,7 @@ export function AccessibilityPage() {
             </CardContent>
           </Card>
 
+          {/* Standards */}
           <Card>
             <CardContent className="pt-6 space-y-4">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
@@ -137,10 +141,84 @@ export function AccessibilityPage() {
                 <li>{t("standards.item1")}</li>
                 <li>{t("standards.item2")}</li>
                 <li>{t("standards.item3")}</li>
+                <li>{t("standards.item4")}</li>
               </ul>
             </CardContent>
           </Card>
 
+          {/* Accessibility Coordinator */}
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <User className="h-6 w-6 text-indigo-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    {t("coordinator.title")}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
+                    {t("coordinator.description")}
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-300 mb-2">
+                    <a
+                      href={`mailto:${t("coordinator.email")}`}
+                      className="text-blue-600 hover:text-blue-700 underline"
+                    >
+                      {t("coordinator.email")}
+                    </a>
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {t("coordinator.alternative")}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Audit Statement */}
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <FileCheck className="h-6 w-6 text-green-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    {t("audit.title")}
+                  </h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                    {t("audit.lastUpdated")}
+                  </p>
+                  <p className="text-gray-600 dark:text-gray-300">
+                    {t("audit.description")}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Known Issues */}
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-6 w-6 text-amber-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    {t("knownIssues.title")}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
+                    {t("knownIssues.description")}
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4">
+                    <li>{t("knownIssues.item1")}</li>
+                    <li>{t("knownIssues.item2")}</li>
+                  </ul>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                    {t("knownIssues.note")}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Feedback */}
           <Card>
             <CardContent className="pt-6 space-y-4">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">

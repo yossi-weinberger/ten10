@@ -25,7 +25,10 @@ import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils/index";
 import toast from "react-hot-toast";
 import ContactFAB from "./components/layout/ContactFAB";
+import { TermsAcceptanceModal } from "./components/auth/TermsAcceptanceModal";
 import { Footer } from "@/pages/landing/sections/Footer";
+
+import { PUBLIC_ROUTES, FULL_SCREEN_ROUTES } from "./lib/constants";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -43,13 +46,12 @@ function App() {
   const _hasHydrated = useDonationStore((state) => state._hasHydrated);
 
   // Define pages that take full screen without sidebar/padding
-  const isFullScreenPage = [
-    "/landing",
-    "/login",
-    "/signup",
-    "/forgot-password",
-    "/reset-password",
-  ].includes(currentPath);
+  // - FULL_SCREEN_ROUTES (login/signup/landing) are always full-screen on all platforms.
+  // - On WEB: If user is NOT logged in, hide sidebar on public routes (because they have no context).
+  // - On DESKTOP: User is always null (no auth required), so ALWAYS show sidebar except on FULL_SCREEN_ROUTES.
+  const isFullScreenPage =
+    FULL_SCREEN_ROUTES.includes(currentPath) ||
+    (platform === "web" && !user && PUBLIC_ROUTES.includes(currentPath));
 
   // Show footer on all pages except login and signup
   const shouldShowFooter = ![
@@ -59,16 +61,11 @@ function App() {
     "/reset-password",
   ].includes(currentPath);
 
-  // Hide floating contact button on auth + landing pages
+  // Hide floating contact button on auth + landing pages (FULL_SCREEN_ROUTES)
+  // BUT allow it on terms/privacy if user is logged in
   const shouldShowContactFab =
     (user || platform === "desktop") &&
-    ![
-      "/login",
-      "/signup",
-      "/forgot-password",
-      "/reset-password",
-      "/landing",
-    ].includes(currentPath);
+    !FULL_SCREEN_ROUTES.includes(currentPath);
 
   // Synchronize i18n with Zustand store language after hydration
   useEffect(() => {
@@ -231,6 +228,7 @@ function App() {
         <Toaster richColors />
       </div>
       {shouldShowContactFab && <ContactFAB />}
+      <TermsAcceptanceModal />
     </TooltipProvider>
   );
 }

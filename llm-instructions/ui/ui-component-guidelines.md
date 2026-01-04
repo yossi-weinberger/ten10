@@ -592,7 +592,48 @@ The main `Sidebar` component requires careful synchronization between the parent
 3.  **No Dynamic Alignment:** To prevent icon jumping, navigation buttons should **always** be `justify-start` with fixed padding (e.g., `px-4`). Do not switch between `justify-center` (collapsed) and `justify-start` (expanded). The content should be perfectly centered in the collapsed state simply by virtue of the padding and container width.
 4.  **Text Fading:** Text labels must fade out (`opacity-0`) and collapse (`w-0`) **before** the sidebar finishes closing, or fade in **after** it starts opening, to prevent the text from being "cut off" by the shrinking container.
 
-### 10.2 Profile & Platform Indicator Alignment
+### 10.2 Sidebar Visibility by Platform
+
+The sidebar visibility logic in `App.tsx` must account for platform differences:
+
+```tsx
+const isFullScreenPage =
+  FULL_SCREEN_ROUTES.includes(currentPath) ||
+  (platform === "web" && !user && PUBLIC_ROUTES.includes(currentPath));
+```
+
+**Key Principle:** On desktop, `user` is always `null` (no authentication required), so the visibility check must be platform-aware.
+
+- **`FULL_SCREEN_ROUTES`** (login, signup, landing): Always full-screen (no sidebar) on ALL platforms.
+- **Other `PUBLIC_ROUTES`** (terms, privacy, accessibility):
+  - **Web**: Hide sidebar if user is not logged in
+  - **Desktop**: Always show sidebar (user is always `null`)
+
+**Route Constants** are defined in `src/lib/constants.ts`:
+
+```typescript
+export const PUBLIC_ROUTES = [
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/unsubscribe",
+  "/landing",
+  "/privacy",
+  "/terms",
+  "/accessibility",
+];
+
+export const FULL_SCREEN_ROUTES = [
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/reset-password",
+  "/landing",
+];
+```
+
+### 10.3 Profile & Platform Indicator Alignment
 
 To maintain a "Pixel Perfect" vertical alignment line for all icons (Menu, Profile, Platform):
 

@@ -30,10 +30,29 @@
   },
   "standards": {
     "title": "Accessibility Standards",
-    "description": "We strive to meet international accessibility standards:",
+    "description": "We are committed to meeting the following accessibility standards:",
     "item1": "WCAG 2.1 Level AA - Web Content Accessibility Guidelines",
-    "item2": "Support for various devices (computer, tablet, phone)",
-    "item3": "Support for leading browsers"
+    "item2": "Israeli Standard 5568 - Website Accessibility",
+    "item3": "Equal Rights for Persons with Disabilities Law (Israel)",
+    "item4": "Support for various devices (computer, tablet, phone) and leading browsers"
+  },
+  "coordinator": {
+    "title": "Accessibility Inquiries",
+    "description": "For accessibility inquiries, please contact us:",
+    "email": "accessibility@ten10-app.com",
+    "alternative": "Alternatively, you can use the contact form within the application."
+  },
+  "audit": {
+    "title": "Accessibility Statement",
+    "lastUpdated": "This accessibility statement was last updated: January 2026",
+    "description": "We conduct regular accessibility audits and continuously improve accessibility. Our user interface is built on Radix UI library which provides built-in accessibility support."
+  },
+  "knownIssues": {
+    "title": "Known Limitations",
+    "description": "We are aware of some accessibility limitations that we are working to address:",
+    "item1": "Charts and graphs may be difficult to fully interpret with screen readers",
+    "item2": "Some data tables are complex and may require additional navigation",
+    "note": "We continue to improve accessibility and welcome feedback and suggestions."
   },
   "feedback": {
     "title": "Feedback",

@@ -1,6 +1,11 @@
 {
   "title": "Privacy Policy",
-  "lastUpdated": "Last updated: January 2025",
+  "lastUpdated": "Last updated: January 2026",
+  "serviceOwner": {
+    "title": "Service Provider",
+    "description": "Ten10 is an open-source software for managing tithes and personal budgets. The service is operated as a non-profit community project.",
+    "contact": "Contact us: contact@ten10-app.com"
+  },
   "dataCollection": {
     "title": "Data Collection",
     "description": "Ten10 collects and uses the following information:",
@@ -22,6 +27,22 @@
       "description": "Data is stored locally on your computer in a SQLite file. Data is never sent to external servers. Only you can access your data."
     }
   },
+  "internationalTransfer": {
+    "title": "International Data Transfer",
+    "description": "Our cloud services operate on servers outside of Israel:",
+    "item1": "Supabase: Data storage and user authentication (servers in Europe/US)",
+    "item2": "AWS SES: Email delivery service (servers in Europe)",
+    "item3": "Cloudflare: Bot protection and CAPTCHA verification",
+    "note": "These providers are committed to strict security and privacy standards and comply with GDPR requirements."
+  },
+  "dataRetention": {
+    "title": "Data Retention",
+    "description": "We retain your data as follows:",
+    "item1": "Account data: Retained as long as your account is active",
+    "item2": "Financial data: Retained as long as your account is active or until you delete it",
+    "item3": "Data deletion: You can delete all your data at any time through the settings. Deletion is immediate",
+    "item4": "Contact messages: Retained for support purposes"
+  },
   "dataUsage": {
     "title": "Data Usage",
     "description": "We use your data for the following purposes:",
@@ -37,8 +58,20 @@
   },
   "analytics": {
     "title": "Analytics",
-    "description": "We use Google Analytics to track usage on the landing page. This helps us understand how users interact with the site and improve the experience.",
-    "note": "Google Analytics uses cookies and tracks activity. You can configure your browser to block tracking cookies if you wish."
+    "description": "We use Google Analytics to track usage on the landing page only. This helps us understand how users find and interact with the site.",
+    "note": "Google Analytics uses cookies and tracks activity. You can configure your browser to block tracking cookies if you wish. The application itself does not include analytics tracking."
+  },
+  "cookies": {
+    "title": "Cookies",
+    "description": "We use essential cookies required for the service to function:",
+    "item1": "Authentication cookies: To keep you signed in to your account",
+    "item2": "Preference cookies: To save your language and display settings",
+    "item3": "Google Analytics (landing page only): For anonymous traffic tracking",
+    "note": "You can block cookies in your browser settings, but this may affect service functionality."
+  },
+  "ageRequirement": {
+    "title": "Age Requirement",
+    "description": "This service is intended for adult users (18 years and older). If you are under 18, you must use the service with parental or legal guardian consent and supervision."
   },
   "userRights": {
     "title": "User Rights",
@@ -46,7 +79,8 @@
     "item1": "Access: You can view all your data at any time through the application",
     "item2": "Edit: You can edit or delete any of your data",
     "item3": "Export: You can export your data to various formats (CSV, Excel, PDF)",
-    "item4": "Deletion: You can delete your account and all associated data at any time"
+    "item4": "Deletion: You can delete your account and all associated data at any time",
+    "item5": "Complaint: You have the right to file a complaint with your local data protection authority if you believe your rights have been violated"
   },
   "contact": {
     "title": "Contact",
