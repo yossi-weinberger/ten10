@@ -178,7 +178,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
     icon: React.ElementType;
     children: React.ReactNode;
     tooltip?: string;
-    className?: string; // הגדרת הטייפ
+    className?: string;
     [key: string]: any;
   }) => {
     const isActive =
