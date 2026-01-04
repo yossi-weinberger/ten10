@@ -96,23 +96,23 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ sectionRef }) => {
                 </p>
               </div>
 
-              <div className="border-r-4 border-green-500 pr-4">
+              {/* <div className="border-r-4 border-green-500 pr-4">
                 <p className="text-gray-600 dark:text-gray-300 italic mb-2">
                   "{t("about.endorsements.quote2")}"
                 </p>
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
                   {t("about.endorsements.rabbi2")}
                 </p>
-              </div>
+              </div> */}
 
-              <div className="border-r-4 border-teal-500 pr-4">
+              {/* <div className="border-r-4 border-teal-500 pr-4">
                 <p className="text-gray-600 dark:text-gray-300 italic mb-2">
                   "{t("about.endorsements.quote3")}"
                 </p>
                 <p className="text-sm font-semibold text-gray-900 dark:text-white">
                   {t("about.endorsements.rabbi3")}
                 </p>
-              </div>
+              </div> */}
             </div>
           </motion.div>
         </motion.div>
