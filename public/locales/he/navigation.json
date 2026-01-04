@@ -9,7 +9,9 @@
     "settings": "הגדרות",
     "about": "אודות",
     "profile": "פרופיל",
-    "logout": "התנתק"
+    "logout": "התנתק",
+    "supportUs": "תרומה למכון",
+    "donateTooltip": "התרומה למכון ול-Ten10 יכולה להיות מכספי מעשר"
   },
   "user": {
     "loading": "טוען...",

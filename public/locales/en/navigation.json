@@ -9,7 +9,9 @@
     "settings": "Settings",
     "about": "About",
     "profile": "Profile",
-    "logout": "Logout"
+    "logout": "Logout",
+    "supportUs": "Donate to Institute",
+    "donateTooltip": "The donation to the institute and Ten10 can be from ma'aser funds"
   },
   "user": {
     "loading": "Loading...",
