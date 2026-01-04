@@ -43,6 +43,14 @@ export default defineConfig(() => {
             // - This eliminates ~1.3MB of precache downloads on first visit
             globPatterns: [], // No precached assets
             navigateFallback: null, // No offline HTML fallback; requires network
+            // Workbox requires either precaching or runtimeCaching; use NetworkOnly (no cache)
+            // to keep a minimal SW while satisfying workbox-build validation.
+            runtimeCaching: [
+              {
+                urlPattern: /.*/i,
+                handler: "NetworkOnly",
+              },
+            ],
           },
         }),
     ].filter(Boolean),
@@ -64,6 +72,8 @@ export default defineConfig(() => {
     // Exclude Tauri modules ONLY in web-only builds (Vercel or standalone CI).
     // Include them in ALL Tauri builds (local or CI doesn't matter).
     build: {
+      // Silence Rollup's large chunk warning (does not change output, only logging)
+      chunkSizeWarningLimit: 4000,
       rollupOptions: {
         // Exclude Tauri modules only in pure web builds
         external: isVercel || isStandaloneCIBuild ? [/^@tauri-apps\//] : [],
