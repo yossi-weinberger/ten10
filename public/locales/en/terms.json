@@ -1,9 +1,16 @@
 {
   "title": "Terms of Service",
-  "lastUpdated": "Last updated: January 2026",
+  "lastUpdated": "Last updated: January 2025",
   "acceptance": {
     "title": "Acceptance of Terms",
     "description": "By accessing or using Ten10 (web app or desktop app), you agree to these Terms. If you do not agree, do not use the service."
+  },
+  "eligibility": {
+    "title": "Eligibility",
+    "description": "Use of Ten10 is subject to the following conditions:",
+    "item1": "You represent that you are 18 years of age or older, or have parental/legal guardian consent",
+    "item2": "You represent that you are legally capable of entering into this agreement",
+    "item3": "You agree to provide accurate and truthful information during registration"
   },
   "account": {
     "title": "Eligibility & Account",
@@ -80,6 +87,12 @@
     "item1": "Nothing in these Terms limits rights that cannot be limited under applicable law",
     "item2": "If any part of these Terms is unenforceable, the rest remains in effect",
     "item3": "We may update these Terms from time to time; continued use means acceptance of the updated Terms"
+  },
+  "jurisdiction": {
+    "title": "Governing Law & Jurisdiction",
+    "description": "These Terms are governed by the laws of the State of Israel.",
+    "item1": "Any dispute arising from these Terms or use of the service shall be subject to the exclusive jurisdiction of the courts in Israel",
+    "item2": "The applicable law is Israeli law, without regard to conflict of law principles"
   },
   "changes": {
     "title": "Changes to Terms",

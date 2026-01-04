@@ -15,6 +15,8 @@ import {
   Globe,
   Gavel,
   Code,
+  UserCheck,
+  MapPin,
 } from "lucide-react";
 
 export function TermsPage() {
@@ -67,6 +69,29 @@ export function TermsPage() {
             </CardContent>
           </Card>
 
+          {/* Eligibility */}
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <UserCheck className="h-6 w-6 text-indigo-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    {t("eligibility.title")}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
+                    {t("eligibility.description")}
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4">
+                    <li>{t("eligibility.item1")}</li>
+                    <li>{t("eligibility.item2")}</li>
+                    <li>{t("eligibility.item3")}</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Account */}
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-start gap-3">
@@ -292,6 +317,28 @@ export function TermsPage() {
             </CardContent>
           </Card>
 
+          {/* Jurisdiction */}
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <MapPin className="h-6 w-6 text-red-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    {t("jurisdiction.title")}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
+                    {t("jurisdiction.description")}
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4">
+                    <li>{t("jurisdiction.item1")}</li>
+                    <li>{t("jurisdiction.item2")}</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Changes */}
           <Card>
             <CardContent className="pt-6 space-y-4">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
