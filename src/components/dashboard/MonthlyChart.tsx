@@ -308,7 +308,7 @@ export function MonthlyChart() {
               chartData={formattedChartDataForAreaChart}
               chartConfig={monthlyChartConfig}
               withCard={false}
-              className="min-h-[320px] h-[55vh] md:h-[400px] w-full"
+              className="min-h-[320px] h-[55vh] w-full"
             />
             <div className="flex justify-center items-center gap-4 mt-4">
               {canLoadMoreChartData && (

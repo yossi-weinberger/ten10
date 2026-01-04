@@ -50,13 +50,16 @@ const RecurringTransactionsTable = lazyRouteComponent(
   "RecurringTransactionsTable"
 );
 const ForgotPasswordPage = lazyRouteComponent(
-  () => import("./pages/ForgotPasswordPage")
+  () => import("./pages/ForgotPasswordPage"),
+  "default" // default export
 );
 const ResetPasswordPage = lazyRouteComponent(
-  () => import("./pages/ResetPasswordPage")
+  () => import("./pages/ResetPasswordPage"),
+  "default" // default export
 );
 const UnsubscribePage = lazyRouteComponent(
-  () => import("./pages/UnsubscribePage")
+  () => import("./pages/UnsubscribePage"),
+  "default" // default export
 );
 const PrivacyPage = lazyRouteComponent(
   () => import("./pages/PrivacyPage"),
