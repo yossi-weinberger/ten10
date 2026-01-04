@@ -49,11 +49,14 @@ export default defineConfig(() => {
             ],
           },
           workbox: {
-            // Minimal SW: No precaching to improve initial load performance
-            // The SW is still registered to enable PWA/TWA installation
-            // Offline functionality is only relevant for Desktop (Tauri) which doesn't use SW
-            globPatterns: [], // Empty array = no precaching
-            navigateFallback: null, // Disable navigation fallback (requires network)
+            // PERFORMANCE OPTIMIZATION: Minimal SW without precaching
+            // Why this works:
+            // - PWA install prompts only require a registered SW + manifest (since Chrome ~2023)
+            // - TWA (Android) uses the web version directly, doesn't need SW caching
+            // - Offline support is only needed for Desktop (Tauri), which uses SQLite, not SW
+            // - This eliminates ~1.3MB of precache downloads on first visit
+            globPatterns: [], // No precached assets
+            navigateFallback: null, // No offline HTML fallback; requires network
           },
         }),
     ].filter(Boolean),
