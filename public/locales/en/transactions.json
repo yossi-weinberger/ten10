@@ -109,7 +109,9 @@
       "submitting": "Adding...",
       "save": "Save Changes",
       "reset": "Reset",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "donateToInstitute": "Donate to Institute",
+      "donateTooltip": "The donation to the institute and Ten10 can be from ma'aser funds"
     },
     "messages": {
       "success": "Transaction added successfully",

@@ -351,6 +351,7 @@ export function TransactionForm({
           isSuccess={isSuccess}
           onCancel={onCancel}
           isEditMode={isEditMode}
+          selectedType={selectedType}
         />
       </form>
     </Form>

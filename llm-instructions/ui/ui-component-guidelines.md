@@ -644,9 +644,25 @@ To maintain a "Pixel Perfect" vertical alignment line for all icons (Menu, Profi
   - Profile Picture: `h-8 w-8` (slightly larger, but centered within the same effective column)
   - Platform Icons: `h-5 w-5` (inside a `w-6 h-6` wrapper)
 
+### 10.4 Special Navigation Items
+
+_(Added March 2025)_
+
+Certain navigation items, such as the "Support Us" (Donation) button, may require deviations from the standard styling to stand out.
+
+**Guidelines for Special Items:**
+
+1.  **Unified Component:** Always use the internal `NavLink` component (defined in `Sidebar.tsx`) even for special items. Do not duplicate the logic.
+    - `NavLink` has been updated to support `href` (for external links) and `target` props.
+    - It ensures animation synchronization is maintained.
+2.  **Custom Styling:** Pass a `className` prop to `NavLink` to override default styles (e.g., hover colors).
+    - Example: `hover:bg-golden-hover hover:text-yellow-900` for the donation button.
+3.  **Icon Sizing Exceptions:** While standard icons are `h-6 w-6`, special call-to-action buttons are permitted to use slightly larger icons (e.g., `h-7 w-7`) to draw attention, provided they maintain the correct `min-width` (e.g., `min-w-[28px]`) to prevent layout shifts during collapse.
+4.  **SVG Handling:** For custom SVG icons, ensure they handle Dark Mode correctly using Tailwind classes like `dark:invert` or `dark:text-white` depending on the SVG structure.
+
 ---
 
-**Last Updated:** February 2025
+**Last Updated:** March 2025
 **Status:** Active
 **Maintained By:** Development Team
 **Related Files:** `App.tsx`, `Sidebar.tsx`, `PlatformIndicator.tsx`, `tooltip.tsx`, `i18n.ts`, `index.css`

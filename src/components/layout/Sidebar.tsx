@@ -10,6 +10,11 @@ import {
   Book,
   Table,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -161,18 +166,43 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
 
   const NavLink = ({
     to,
+    href,
     icon: Icon,
     children,
+    tooltip,
+    className, // קבלת className
+    ...props
   }: {
-    to: string;
+    to?: string;
+    href?: string;
     icon: React.ElementType;
     children: React.ReactNode;
+    tooltip?: string;
+    className?: string;
+    [key: string]: any;
   }) => {
     const isActive =
-      to === "/" ? currentPath === to : currentPath.startsWith(to);
+      to && (to === "/" ? currentPath === to : currentPath.startsWith(to));
     const isRtl = i18n.dir() === "rtl";
 
-    return (
+    const content = (
+      <>
+        <Icon className="h-6 w-6 min-w-[24px] flex-shrink-0" />
+        <span
+          className={cn(
+            "whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out min-w-0",
+            expanded
+              ? "max-w-[200px] opacity-100 flex-1"
+              : "max-w-0 opacity-0 flex-none",
+            expanded ? (isRtl ? "mr-4" : "ml-4") : "mx-0"
+          )}
+        >
+          {children}
+        </span>
+      </>
+    );
+
+    const button = (
       <Button
         variant="ghost"
         className={cn(
@@ -182,30 +212,46 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
           isActive
             ? "text-secondary-foreground hover:bg-transparent"
             : "text-foreground",
-          "[&_svg]:size-6"
+          "[&_svg]:size-6",
+          className // הוספת className בסוף כדי לאפשר דריסה
         )}
         asChild
       >
-        <Link
-          to={to}
-          data-active={isActive}
-          className="flex items-center w-full min-w-0 max-w-full overflow-hidden"
-        >
-          <Icon className="h-6 w-6 min-w-[24px] flex-shrink-0" />
-          <span
-            className={cn(
-              "whitespace-nowrap overflow-hidden transition-all duration-300 ease-in-out min-w-0",
-              expanded
-                ? "max-w-[200px] opacity-100 flex-1"
-                : "max-w-0 opacity-0 flex-none",
-              expanded ? (isRtl ? "mr-4" : "ml-4") : "mx-0"
-            )}
+        {href ? (
+          <a
+            href={href}
+            className="flex items-center w-full min-w-0 max-w-full overflow-hidden"
+            {...props}
           >
-            {children}
-          </span>
-        </Link>
+            {content}
+          </a>
+        ) : (
+          <Link
+            to={to!}
+            data-active={isActive}
+            className="flex items-center w-full min-w-0 max-w-full overflow-hidden"
+            {...props}
+          >
+            {content}
+          </Link>
+        )}
       </Button>
     );
+
+    if (tooltip) {
+      return (
+        <Tooltip>
+          <TooltipTrigger asChild>{button}</TooltipTrigger>
+          <TooltipContent side={isRtl ? "left" : "right"} sideOffset={8}>
+            <p className="max-w-xs text-sm" dir={i18n.dir()}>
+              {tooltip}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    return button;
   };
 
   return (
@@ -326,7 +372,12 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
             <NavLink to="/transactions-table" icon={Table}>
               {t("menu.transactionsTable")}
             </NavLink>
-            <NavLink to="/halacha" icon={Book}>
+            <NavLink
+              to="/halacha"
+              icon={(props) => (
+                <Book {...props} style={{ transform: "scaleX(-1)" }} />
+              )}
+            >
               {t("menu.halacha")}
             </NavLink>
             <NavLink to="/settings" icon={Settings}>
@@ -334,6 +385,29 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
             </NavLink>
             <NavLink to="/about" icon={Info}>
               {t("menu.about")}
+            </NavLink>
+
+            {/* Support Us Button - Standard Style */}
+            <NavLink
+              href="https://www.matara.pro/nedarimplus/online/?mosad=7007125&Avour=%D7%A2%D7%91%D7%95%D7%A8%20Ten10"
+              icon={({ className, ...props }: { className?: string }) => (
+                <img
+                  src="/donate.svg"
+                  alt="Donate"
+                  className={cn(
+                    className,
+                    "h-7 w-7 min-w-[28px]",
+                    "dark:invert"
+                  )}
+                  {...props}
+                />
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              tooltip={t("menu.donateTooltip")}
+              className="hover:bg-golden-hover hover:text-yellow-900 dark:hover:bg-yellow-600 dark:hover:text-yellow-950"
+            >
+              {t("menu.supportUs")}
             </NavLink>
           </nav>
         </div>

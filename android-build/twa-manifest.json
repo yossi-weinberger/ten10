@@ -13,8 +13,8 @@
   "backgroundColor": "#FFFFFF",
   "enableNotifications": true,
   "startUrl": "/?twa=true",
-  "iconUrl": "https://ten10-app.com/icon-512.png",
-  "maskableIconUrl": "https://ten10-app.com/icon-512.png",
+  "iconUrl": "https://ten10-app.com/icon-maskable-512.jpg",
+  "maskableIconUrl": "https://ten10-app.com/icon-maskable-512.jpg",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "./android.keystore",
@@ -24,7 +24,7 @@
   "appVersionCode": 2,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
-  "webManifestUrl": "https://ten10-app.com/manifest.webmanifest",
+  "webManifestUrl": "https://ten10-app.com/manifest.json",
   "fallbackType": "customtabs",
   "features": {
     "playBilling": {
