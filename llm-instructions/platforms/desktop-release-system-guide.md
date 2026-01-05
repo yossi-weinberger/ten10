@@ -355,7 +355,7 @@ Example:
 
 ```toml
 # Cargo.toml
-tauri-plugin-updater = "2.9.0"
+tauri-plugin-updater = { version = "2.9.0", default-features = false, features = ["native-tls", "zip"] }
 ```
 
 ```json
