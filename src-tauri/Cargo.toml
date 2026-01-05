@@ -28,7 +28,7 @@ tauri-plugin-dialog = "2.4.0"
 tauri-plugin-os = "2.3.1"
 tauri-plugin-notification = "2.3.1"
 tauri-plugin-autostart = "2.5.0"
-tauri-plugin-updater = "2.9.0"
+tauri-plugin-updater = { version = "2.9.0", default-features = false, features = ["native-tls", "zip"] }
 tauri-plugin-clipboard-manager = "2.1.0" 
 
 [features]
