@@ -172,6 +172,13 @@ workbox: {
   // Offline functionality is only relevant for Desktop (Tauri) which doesn't use SW
   globPatterns: [], // Empty array = no precaching
   navigateFallback: null, // Disable navigation fallback (requires network)
+  // Workbox requires either precaching or runtimeCaching. Use NetworkOnly to avoid caching.
+  runtimeCaching: [
+    {
+      urlPattern: /.*/i,
+      handler: "NetworkOnly",
+    },
+  ],
 }
 ```
 
@@ -180,16 +187,16 @@ workbox: {
 - SW was downloading ~1.3MB of assets on first visit
 - PWA/TWA still work - they only need manifest + registered SW
 
-**Result** (dist/sw.js):
-```javascript
-// Before: precached 10+ files including all JS/CSS
-// After: only precaches icons and manifest
-precacheAndRoute([
-  { url: "icon-192.png" },
-  { url: "icon-512.png" },
-  { url: "manifest.webmanifest" }
-])
-```
+**Result**:
+- Build succeeds (no Workbox validation error)
+- Service worker is generated and registered
+- No precache entries are generated (0 entries)
+
+### 6. Web App Manifest: single source of truth (vite.config.ts + index.html)
+
+To avoid confusing dual-manifest behavior:
+- The app uses a single manifest: `public/manifest.json` referenced from `index.html`.
+- `vite-plugin-pwa` is configured with `manifest: false` to prevent injecting `manifest.webmanifest` into the final HTML.
 
 ## Build Output
 
