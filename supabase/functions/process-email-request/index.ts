@@ -202,7 +202,7 @@ ${JUMBOMAIL_LINK}
 </html>
     `.trim();
 
-    await emailService.sendRawEmail({
+    const sesResponse = await emailService.sendRawEmail({
       to: from,
       subject: "קישור להורדת Ten10",
       textBody: emailText,
@@ -213,6 +213,13 @@ ${JUMBOMAIL_LINK}
     await supabaseClient.from("download_requests").insert({
       ...logData,
       status: "sent",
+      metadata: {
+        ...(logData.metadata ?? {}),
+        sesMessageId:
+          typeof sesResponse?.MessageId === "string"
+            ? sesResponse.MessageId
+            : undefined,
+      },
     });
 
     return new Response(JSON.stringify({ status: "sent" }), {
