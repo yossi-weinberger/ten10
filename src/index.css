@@ -482,4 +482,9 @@ input[type="number"] {
     );
     background-size: 100% 100%;
   }
+
+  /* Fallback for dialog backgrounds when OKLCH is not supported */
+  .bg-dialog-fallback {
+    @apply bg-white dark:bg-[#020817];
+  }
 }
