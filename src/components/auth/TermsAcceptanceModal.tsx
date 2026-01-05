@@ -177,7 +177,7 @@ export function TermsAcceptanceModal() {
               {t("signup.termsConsentPrefix")}{" "}
               <Link
                 to="/terms"
-                target="_blank"
+                target={platform === "web" ? "_blank" : undefined}
                 className="text-primary hover:underline"
               >
                 {t("signup.termsConsentLink")}
@@ -188,7 +188,7 @@ export function TermsAcceptanceModal() {
               {t("terms:dataAndPrivacy.privacyLinkPrefix")}{" "}
               <Link
                 to="/privacy"
-                target="_blank"
+                target={platform === "web" ? "_blank" : undefined}
                 className="text-primary hover:underline"
               >
                 {t("terms:dataAndPrivacy.privacyLinkText")}

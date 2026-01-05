@@ -40,6 +40,35 @@ The TWA is essentially the web version packaged as an Android app - it uses Supa
 
 ---
 
+## App Icons (Maskable) & Manifest Source of Truth (Jan 2026 Update)
+
+### Why the Android icon was cropped
+
+Android (and Chrome/TWA) may apply an **adaptive icon mask** (circle / rounded square). If the icon artwork is too close to the edges, it will appear **cropped** even if the background is white.
+
+### Single manifest source of truth
+
+Ten10 uses a **single** Web App Manifest:
+
+- **Source**: `public/manifest.json`
+- **HTML reference**: `index.html` → `<link rel="manifest" href="/manifest.json" />`
+
+Important:
+- `vite-plugin-pwa` is configured with `manifest: false` to **avoid** generating/injecting `manifest.webmanifest`. This prevents duplicate `<link rel="manifest">` tags and avoids confusion about which manifest is deployed.
+
+### Maskable icon assets used
+
+For the PWA (installed from Chrome):
+- **Maskable icon (safe padding, SVG)**: `public/pwa-maskable.svg`
+  - Declared in `public/manifest.json` with `purpose: "maskable"` and `sizes: "any"`.
+  - The logo is scaled down to stay inside Android's safe area.
+
+For the TWA / Bubblewrap build:
+- **Maskable icon (safe padding, raster)**: `public/icon-maskable-512.jpg`
+  - Used because Bubblewrap/TWA tooling is most reliable with raster icons for app packaging.
+  - `twa-manifest.json` and `android-build/twa-manifest.json` point `iconUrl` and `maskableIconUrl` to:
+    - `https://ten10-app.com/icon-maskable-512.jpg`
+
 ## What Was Built in Code
 
 ### 1. TWA Detection System
@@ -257,7 +286,7 @@ These steps are done **once** to create the Android project:
 
 ```bash
 cd android-build
-bubblewrap init --manifest=https://ten10-app.com/manifest.webmanifest
+bubblewrap init --manifest=https://ten10-app.com/manifest.json
 ```
 
 **Answer the prompts:**
@@ -805,6 +834,15 @@ bubblewrap build --universalApk
   // Or in DevTools: Application → Storage → Local Storage → Clear
   ```
 
+**Icon/logo is cropped on Android home screen**
+
+- Cause: Android applies a mask (adaptive icon). Artwork near the edges gets cropped.
+- Fix (recommended):
+  1. Use a dedicated **maskable** icon with safe padding: `public/icon-maskable-512.jpg`
+  2. Point `maskableIconUrl` (and `iconUrl`) in `twa-manifest.json` to `https://ten10-app.com/icon-maskable-512.jpg`
+  3. Ensure Bubblewrap reads the correct manifest URL (see `webManifestUrl`), and rebuild the APK
+  4. Uninstall/reinstall the app to clear icon caching
+
 ---
 
 ## Summary
@@ -857,7 +895,7 @@ npm install -g @bubblewrap/cli
 
 # Initialize project (first time)
 cd android-build
-bubblewrap init --manifest=https://ten10-app.com/manifest.webmanifest
+bubblewrap init --manifest=https://ten10-app.com/manifest.json
 
 # Build APK/AAB
 bubblewrap build --universalApk
