@@ -575,6 +575,42 @@ Use appropriate namespaces to organize translations:
 - **Flex:** `flex-col md:flex-row`
 - **Visibility:** `hidden md:block` (Hide on mobile, show on desktop)
 
+### 9.4 Color System Compatibility (Graceful Degradation)
+
+**The Problem:** The application uses the modern **OKLCH** color format for richer, perceptually uniform colors (e.g., `oklch(var(--background))`). However, older environments—specifically older versions of **WebView2** on Desktop—do not support this format. In such cases, the browser treats the color as invalid (transparent), leading to invisible backgrounds on critical UI elements like Dialogs and Sheets.
+
+**The Solution:** We implement a **Graceful Degradation** strategy using a fallback class.
+
+1.  **Define Fallback Class:** In `src/index.css`, we define a utility class that sets a standard hex/named color background. This is applied _in addition_ to the theme color. If the browser understands OKLCH, the theme color (defined later or more specifically via Tailwind utility) takes precedence or blends if using transparency. If it doesn't understand OKLCH, it falls back to this solid color.
+
+    ```css
+    /* src/index.css */
+    @layer components {
+      /* Fallback for dialog backgrounds when OKLCH is not supported */
+      .bg-dialog-fallback {
+        @apply bg-white dark:bg-[#020817];
+      }
+    }
+    ```
+
+2.  **Apply to Overlay Components:** This class is added to the `className` of all overlay primitives (Dialog, Sheet, Popover, Select, etc.) _before_ the theme background class (like `bg-background`).
+
+    ```tsx
+    // Example: src/components/ui/dialog.tsx
+    <DialogPrimitive.Content
+      className={cn(
+        "..., bg-dialog-fallback bg-background ...", // Fallback first, then Theme
+        className
+      )}
+    />
+    ```
+
+**Impact:**
+
+- **Modern Browsers:** Render the OKLCH `bg-background` correctly.
+- **Legacy WebView2:** Ignored `bg-background` (OKLCH), displays `bg-dialog-fallback` (White/Dark Blue).
+- **Result:** No transparency bugs, UI remains functional and readable for all users.
+
 ---
 
 ## 10. Layout and Navigation Components
