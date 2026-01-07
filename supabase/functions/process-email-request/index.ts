@@ -23,6 +23,47 @@ type IncomingPayload = {
   messageId?: string;
 };
 
+interface GitHubAsset {
+  name: string;
+  browser_download_url: string;
+}
+
+interface GitHubRelease {
+  assets: GitHubAsset[];
+}
+
+async function getDirectDownloadLink(): Promise<string | null> {
+  try {
+    const response = await fetch(
+      "https://api.github.com/repos/yossi-weinberger/ten10/releases/latest",
+      {
+        headers: {
+          "User-Agent": "Ten10-Email-Service",
+          Accept: "application/vnd.github+json",
+        },
+      }
+    );
+    if (!response.ok) return null;
+    const data: GitHubRelease = await response.json();
+
+    // Prefer MSI, then EXE
+    const msi = data.assets.find(
+      (a) => a.name.endsWith(".msi") || a.name.includes(".msi.")
+    );
+    if (msi) return msi.browser_download_url;
+
+    const exe = data.assets.find(
+      (a) => a.name.endsWith(".exe") || a.name.includes(".exe.")
+    );
+    if (exe) return exe.browser_download_url;
+
+    return null;
+  } catch (e) {
+    console.error("Failed to fetch GitHub release:", e);
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -127,11 +168,22 @@ serve(async (req) => {
       Deno.env.get("SES_FROM_MAASER") ?? "maaser@ten10-app.com";
     const emailService = new SimpleEmailService(senderEmail);
 
+    const directDownloadLink = await getDirectDownloadLink();
+
     const emailText = `
 שלום,
 
-לבקשתך, הנה הקישור להורדת תוכנת Ten10:
+לבקשתך, הנה הקישורים להורדת תוכנת Ten10:
+
+1. להורדה דרך ג'מבו מייל (למי שחסום לו הגלישה ויש לו מייל בלבד):
 ${JUMBOMAIL_LINK}
+
+${
+  directDownloadLink
+    ? `2. להורדה ישירה:
+${directDownloadLink}`
+    : ""
+}
 
 אם הקישור לא נפתח, נא לבקש מסינון האינטרנט שלך לאשר אותו.
 
@@ -152,7 +204,7 @@ ${JUMBOMAIL_LINK}
     }; font-size: 16px; line-height: 1.6; }
     .btn { display: inline-block; background-color: ${
       EMAIL_THEME.colors.primary
-    }; color: #ffffff !important; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 16px; }
+    }; color: #ffffff !important; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin-top: 8px; margin-bottom: 8px; }
     .btn-secondary { display: inline-block; background-color: transparent; color: ${
       EMAIL_THEME.colors.primary
     }; border: 1px solid ${
@@ -163,6 +215,9 @@ ${JUMBOMAIL_LINK}
     }; margin-top: 32px; border-top: 1px solid ${
       EMAIL_THEME.colors.border
     }; padding-top: 16px; }
+    .note { font-size: 13px; color: ${
+      EMAIL_THEME.colors.textLight
+    }; margin-bottom: 16px; margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -170,10 +225,23 @@ ${JUMBOMAIL_LINK}
     ${getEmailHeader("he")}
     <div class="content">
       <p>שלום,</p>
-      <p>לבקשתך, הנה הקישור להורדת תוכנת <strong>Ten10</strong> לניהול מעשרות:</p>
+      <p>לבקשתך, הנה הקישורים להורדת תוכנת <strong>Ten10</strong> לניהול מעשרות:</p>
       
       <div style="text-align: center; margin: 24px 0;">
-        <a href="${JUMBOMAIL_LINK}" class="btn">להורדת התוכנה לחץ כאן</a>
+        <!-- JumboMail -->
+        <a href="${JUMBOMAIL_LINK}" class="btn">להורדה דרך ג'מבו מייל</a>
+        <p class="note">למי שחסום לו הגלישה ויש לו מייל בלבד</p>
+
+        <!-- Direct Download -->
+        ${
+          directDownloadLink
+            ? `
+        <div style="margin-top: 24px;">
+            <a href="${directDownloadLink}" class="btn-secondary" style="font-weight: bold;">להורדה ישירה</a>
+        </div>
+        `
+            : ""
+        }
       </div>
 
       <p style="font-size: 14px; background-color: ${
@@ -195,6 +263,11 @@ ${JUMBOMAIL_LINK}
           EMAIL_THEME.colors.primary
         };">support@ten10-app.com</a></p>
         <p>קישור ישיר (JumboMail) להעתקה:<br>${JUMBOMAIL_LINK}</p>
+        ${
+          directDownloadLink
+            ? `<p>קישור להורדה ישירה:<br>${directDownloadLink}</p>`
+            : ""
+        }
       </div>
     </div>
   </div>
