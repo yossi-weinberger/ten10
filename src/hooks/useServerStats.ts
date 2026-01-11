@@ -92,9 +92,6 @@ export function useServerStats(
           setIsLoadingServerIncome(true);
           setServerIncomeError(null);
           try {
-            // logger.log(
-            //   `useServerStats: Fetching server income. User: ${effectiveUserId}, Range: ${activeDateRangeObject.startDate}-${activeDateRangeObject.endDate}, Platform: ${platform}`
-            // );
             const incomeData: ServerIncomeData | null =
               await fetchTotalIncomeInRange(
                 effectiveUserId,
@@ -217,9 +214,6 @@ export function useServerStats(
         setIsLoadingServerTitheBalance(true);
         setServerTitheBalanceError(null);
         try {
-          // logger.log(
-          //   `useServerStats: Fetching server overall tithe balance. User: ${effectiveUserId}, Platform: ${platform}`
-          // );
           const balanceData: number | null = await fetchServerTitheBalance(
             effectiveUserId
           );

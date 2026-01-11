@@ -56,6 +56,26 @@ export default defineConfig(() => {
     ].filter(Boolean),
     optimizeDeps: {
       exclude: ["lucide-react"],
+      // Pre-bundle heavy dependencies to speed up dev mode startup
+      include: [
+        "react",
+        "react-dom",
+        "react/jsx-runtime",
+        "@supabase/supabase-js",
+        "@tanstack/react-router",
+        "framer-motion",
+        "recharts",
+        "i18next",
+        "react-i18next",
+        "zustand",
+        "date-fns",
+        "react-hook-form",
+        "@hookform/resolvers",
+        "zod",
+        "clsx",
+        "tailwind-merge",
+        "class-variance-authority",
+      ],
     },
     // VITAL: This configuration is crucial for building a hybrid Tauri (Desktop) + Vercel (Web) app.
     // THE PROBLEM:
