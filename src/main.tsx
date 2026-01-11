@@ -7,6 +7,7 @@ import { ThemeProvider } from "./lib/theme";
 import { PlatformProvider } from "./contexts/PlatformContext";
 import { TWAProvider } from "./contexts/TWAContext";
 import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider } from "./contexts/AuthContext";
 import "./index.css";
 import "./lib/i18n";
@@ -24,6 +25,7 @@ createRoot(document.getElementById("root")!).render(
             <RouterProvider router={router} />
             <Toaster position="top-center" />
             <SpeedInsights />
+            <Analytics />
           </AuthProvider>
         </TWAProvider>
       </PlatformProvider>
