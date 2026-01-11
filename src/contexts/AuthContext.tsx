@@ -123,6 +123,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       async (event, newAuthStateSession) => {
         logger.log(`AuthContext: Auth state changed. Event: ${event}`);
 
+        // Invalidate session cache on any auth state change to ensure consistency
+        invalidateSessionCache();
+
         setSession(newAuthStateSession);
         const newCurrentUser = newAuthStateSession?.user ?? null;
         setUser(newCurrentUser); // Update user state, triggering data loading useEffect
@@ -262,8 +265,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     setLoading(true);
-    // Invalidate session cache on sign out
-    invalidateSessionCache();
 
     const { error } = await supabase.auth.signOut();
     // State update and store clearing will be handled by onAuthStateChange listener.
@@ -273,6 +274,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         i18n.t("auth.signOut.error", "Sign out failed: ") + error.message
       );
       setLoading(false);
+    } else {
+      // Invalidate session cache only after successful sign out
+      invalidateSessionCache();
     }
   };
 
