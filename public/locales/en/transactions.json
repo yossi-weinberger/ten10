@@ -99,13 +99,13 @@
       "tooltip": "Check if this is an expense recognized for deduction from ma'aser-obligated income (10% of the expense will be deducted from the debt)."
     },
     "personalFunds": {
-      "label": "Donation from Personal Funds?",
+      "label": "Not from ma'aser",
       "tooltip": "Check if this donation is given from personal funds and should not reduce the ma'aser balance."
     },
     "taxDeductible": "Tax Deductible",
     "includeInCalculations": "Include in Ma'aser Calculations",
     "actions": {
-      "submit": "Add Transaction",
+      "submit": "Save Transaction",
       "submitting": "Adding...",
       "save": "Save Changes",
       "reset": "Reset",

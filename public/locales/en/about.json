@@ -4,7 +4,7 @@
   "appInfo": {
     "title": "About the Application",
     "badge": "Advanced System",
-    "description": "Ten10 is an advanced tithe management system that includes automatic calculations, smart reminders, and detailed reports. The system was developed in partnership with the Torah Adam Institute and is halachically approved. The project was born following the success of the Excel table series for tithe and chomesh calculations published by the institute over a long period, which gained widespread public popularity with over 3,500 orders in Israel. At the request of many, the institute decided to collaborate with an expert programmer to build a completely new system, offering an improved user experience, advanced functions, and additional diverse options for accurate and convenient tithe management.",
+    "description": "Ten10 is an advanced tithe management system that includes automatic calculations, smart reminders, and detailed reports. The system was developed in partnership with the Torat Ha’adam La’adam Institute and is halachically approved. The project was born following the success of the Excel table series for tithe and chomesh calculations published by the institute over a long period, which gained widespread public popularity with over 3,500 orders in Israel. At the request of many, the institute decided to collaborate with an expert programmer to build a completely new system, offering an improved user experience, advanced functions, and additional diverse options for accurate and convenient tithe management.",
     "feature1": "Accurate automatic calculations",
     "feature2": "Personal smart reminders",
     "feature3": "Detailed and visual reports",
@@ -12,9 +12,9 @@
     "learnMore": "Learn more about the features"
   },
   "institute": {
-    "title": "Torah Adam Institute",
+    "title": "Torat Ha’adam La’adam Institute",
     "badge": "Halachically Approved",
-    "description": "The Torah Adam Institute is the leader in practical halacha. The institute guided the development of Ten10 and approved the accuracy of halachic calculations, ensuring the system meets all halachic requirements.",
+    "description": "The Torat Ha’adam La’adam Institute was founded to revive interpersonal commandments (Bein Adam Lechavero) and to disseminate the study and practical observance of these laws. The institute is the leader in the field of research of interpersonal commandments. The institute's activities include publishing books, delivering lectures, and providing halachic guidance on various topics, with the goal of increasing respect for others and Ahavat Yisrael. In addition, the institute guided the development of Ten10 and approved the accuracy of halachic calculations, ensuring the system meets all halachic requirements.",
     "support": "Support the Institute",
     "supportDescription": "The institute operates as a non-profit organization and relies on donations. Every donation helps continue the important work.",
     "donateButton": "Donate to the Institute",
@@ -23,7 +23,7 @@
   "team": {
     "title": "Development Team",
     "badge": "Professional Development",
-    "description": "Ten10's development team consists of experienced developers and leading programmers in the technology field. The team works in close collaboration with the Torah Adam Institute to ensure complete halachic accuracy.",
+    "description": "Ten10's development team consists of experienced developers and leading programmers in the technology field. The team works in close collaboration with the Torat Ha’adam La’adam Institute to ensure complete halachic accuracy.",
     "contactEmail": "Email",
     "github": "GitHub",
     "contactButton": "Contact Us"

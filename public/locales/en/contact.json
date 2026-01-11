@@ -11,7 +11,7 @@
   "desktop": {
     "title": "Contact Us",
     "description": "Copy the relevant email address and information, then send it using your preferred email client.",
-    "rabbiInstruction": "For halachic questions, contact the rabbi directly.",
+    "rabbiInstruction": "For questions about ma'aser or Ben Adam Lechavero, contact the rabbi directly.",
     "devInstruction": "For bug reports or feature requests, contact the dev team.",
     "includeInfo": "To help us assist you faster, please include the following information in your message:",
     "copyInfoButton": "Copy Technical Info",
