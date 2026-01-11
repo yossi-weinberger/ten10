@@ -3,7 +3,18 @@ import { initReactI18next } from "react-i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
 import HttpApi from "i18next-http-backend";
 import { logger } from "./logger";
-import contact from "../../public/locales/en/contact.json";
+
+// Import critical translations statically (bundled) for instant loading
+// These are needed immediately on app startup
+import common_en from "../../public/locales/en/common.json";
+import common_he from "../../public/locales/he/common.json";
+import navigation_en from "../../public/locales/en/navigation.json";
+import navigation_he from "../../public/locales/he/navigation.json";
+import dashboard_en from "../../public/locales/en/dashboard.json";
+import dashboard_he from "../../public/locales/he/dashboard.json";
+import auth_en from "../../public/locales/en/auth.json";
+import auth_he from "../../public/locales/he/auth.json";
+import contact_en from "../../public/locales/en/contact.json";
 import contact_he from "../../public/locales/he/contact.json";
 
 // Read the language from Zustand store if available
@@ -22,11 +33,29 @@ const getInitialLanguage = (): string => {
   return "he"; // fallback to Hebrew
 };
 
+// Bundled resources for critical namespaces (loaded instantly, no HTTP)
+const bundledResources = {
+  en: {
+    common: common_en,
+    navigation: navigation_en,
+    dashboard: dashboard_en,
+    auth: auth_en,
+    contact: contact_en,
+  },
+  he: {
+    common: common_he,
+    navigation: navigation_he,
+    dashboard: dashboard_he,
+    auth: auth_he,
+    contact: contact_he,
+  },
+};
+
 // Using the default i18n instance from i18next, with a type-safe cast
 const i18n = i18next as unknown as import("i18next").i18n;
 
 (i18n as any)
-  .use(HttpApi) // Load translations via http
+  .use(HttpApi) // Load non-bundled translations via http (lazy loaded)
   .use(LanguageDetector) // Detect user language
   .use(initReactI18next) // pass the i18n instance to react-i18next.
   .init({
@@ -35,29 +64,18 @@ const i18n = i18next as unknown as import("i18next").i18n;
     lng: getInitialLanguage(), // Set initial language from Zustand store
     debug: import.meta.env.DEV,
 
-    // Define namespaces for your translation files
-    ns: [
-      "common",
-      "navigation",
-      "dashboard",
-      "transactions",
-      "data-tables",
-      "settings",
-      "auth",
-      "about",
-      "landing",
-      "halacha-common",
-      "halacha-introduction",
-      "halacha-faq",
-      "halacha-tithes",
-      "halacha-income",
-      "halacha-expenses",
-      "halacha-principles",
-      "halacha-chomesh",
-      "contact",
-      "admin",
-    ],
+    // Bundled resources - loaded instantly without HTTP requests
+    resources: bundledResources,
+    // Allow loading additional namespaces via HTTP backend
+    partialBundledLanguages: true,
+
+    // CRITICAL: Only load bundled namespaces at init time
+    // Other namespaces will be lazy-loaded when components request them
+    ns: ["common", "navigation", "dashboard", "auth", "contact"],
     defaultNS: "common",
+    
+    // Don't preload all namespaces - let them load on demand
+    preload: [],
 
     // Language detection configuration
     detection: {
@@ -70,7 +88,7 @@ const i18n = i18next as unknown as import("i18next").i18n;
     },
 
     backend: {
-      // Path where translation files are stored
+      // Path where translation files are stored (for lazy-loaded namespaces)
       loadPath: "/locales/{{lng}}/{{ns}}.json",
     },
 

@@ -6,7 +6,7 @@ import React, {
   ReactNode,
 } from "react";
 import { Session, User as SupabaseUser } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabaseClient"; // Using path alias from tsconfig
+import { supabase, getCachedSession, invalidateSessionCache } from "@/lib/supabaseClient"; // Using path alias from tsconfig
 import { toast } from "react-hot-toast";
 import { useDonationStore } from "@/lib/store"; // Import Zustand store
 import i18n from "@/lib/i18n";
@@ -101,9 +101,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logger.log("AuthContext: Initializing auth state listener.");
     setLoading(true);
 
-    // Initial session check
-    supabase.auth
-      .getSession()
+    // Initial session check - use cached session to share result with routes.ts
+    getCachedSession()
       .then(({ data: { session: initialSession } }) => {
         logger.log(
           "AuthContext: Initial session resolved.",
@@ -263,9 +262,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     setLoading(true);
-    // Clear store immediately for faster UI feedback (optional, as onAuthStateChange will also clear)
-    // logger.log("AuthContext: Clearing Zustand store immediately on signOut call.");
-    // useDonationStore.setState({ transactions: [] });
+    // Invalidate session cache on sign out
+    invalidateSessionCache();
 
     const { error } = await supabase.auth.signOut();
     // State update and store clearing will be handled by onAuthStateChange listener.

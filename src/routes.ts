@@ -6,7 +6,7 @@ import {
   lazyRouteComponent,
 } from "@tanstack/react-router";
 import App from "./App";
-import { supabase } from "./lib/supabaseClient";
+import { supabase, getCachedSession } from "./lib/supabaseClient";
 import { PUBLIC_ROUTES } from "./lib/constants";
 
 // Critical pages loaded synchronously (needed immediately)
@@ -93,9 +93,10 @@ const rootRoute = createRootRoute({
     }
 
     // --- Web Platform Auth Check ---
+    // Use cached session to avoid duplicate network requests
     const {
       data: { session },
-    } = await supabase.auth.getSession();
+    } = await getCachedSession();
 
     // Check if the user is trying to access a protected route on the web without a session
     if (!session && !PUBLIC_ROUTES.includes(location.pathname)) {
