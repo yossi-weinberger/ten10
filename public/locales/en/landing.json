@@ -61,22 +61,22 @@
     }
   },
   "quotes": {
-    "title": "From the Sources",
-    "main": "You shall surely tithe all the produce of your seed that comes forth from the field year by year",
+    "title": "From the Mekorot",
+    "main": "Asser Te'asser et kol tevuat zar'echa hayotze hasadeh shana shana",
     "source": "Deuteronomy 14:22",
-    "chazal1": "Tithing brings blessing to the home",
+    "chazal1": "Asser bishvil sheTitasher",
     "chazalSource1": "Babylonian Talmud, Taanit 9a",
-    "chazal2": "Test me now in this - regarding tithes",
+    "chazal2": "Haviu et kol hamaaser el beit haotzar vihi teref biveiti uvchanuni na bazot amar Hashem Tzvaot im lo eftach lachem et arubot hashamayim vaharikoti lachem bracha ad bli dai",
     "chazalSource2": "Malachi 3:10"
   },
   "about": {
     "title": "About Ten10",
     "subtitle": "Developed in partnership with Torah Adam L'Adam Institute and endorsed by leading rabbis",
     "partnership": {
-      "title": "Partnership with Torah Adam L'Adam Institute",
-      "description": "Ten10 was developed in partnership with the Torah Adam L'Adam Institute – one of the leading institutes in the field of practical halacha. The institute guided the entire development process and approved the accuracy of all halachic calculations in the system. Over a long period, the institute published various versions of Excel tables for tithe and chomesh calculations, which gained great public popularity with over 3,500 orders in Israel. Following the high demand and numerous requests, the institute decided to collaborate with an expert programmer to create a completely new system – modern, convenient, and advanced – that incorporates all the advantages of previous versions, alongside upgrades and new functions that will provide a fast, accurate, and pleasant user experience.",
+      "title": "Partnership with Torat Ha’adam La’adam Institute",
+      "description": "Ten10 was developed in partnership with the Torat Ha’adam La’adam Institute – one of the leading institutes in the field of practical halacha. The institute guided the entire development process and approved the accuracy of all halachic calculations in the system. Over a long period, the institute published various versions of Excel tables for tithe and chomesh calculations, which gained great public popularity with over 3,500 orders in Israel. Following the high demand and numerous requests, the institute decided to collaborate with an expert programmer to create a completely new system – modern, convenient, and advanced – that incorporates all the advantages of previous versions, alongside upgrades and new functions that will provide a fast, accurate, and pleasant user experience.",
       "verified": "Halachically Verified",
-      "institute": "Torah Adam L'Adam Institute",
+      "institute": "Torat Ha’adam La’adam Institute",
       "visitWebsite": "Visit Institute Website"
     },
     "endorsements": {
@@ -186,12 +186,12 @@
         "text": "This system changed my life. Now I know exactly how much I need to donate and have no more doubts"
       },
       {
-        "name": "Izzy Biton",
-        "text": "The interface is simple and convenient, and the monthly alerts help me stay updated"
+        "name": "itzik Biton",
+        "text": "The computer software is perfect for offline work (without internet connection). My data is secure and always accessible"
       },
       {
-        "name": "Avraham Goldberger",
-        "text": "The computer software is perfect for offline work (without internet connection). My data is secure and always accessible"
+        "name": "Sarah Goldberg",
+        "text": "The interface is simple and convenient, and the monthly alerts help me stay updated"
       }
     ]
   },
