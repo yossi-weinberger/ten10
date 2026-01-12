@@ -124,7 +124,7 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 
 - **Admin Access Control:**
   - Created `admin_emails` table with RLS for email-based whitelist access control.
-  - Admin email: `ayw100@gmail.com` configured as initial admin.
+  - Admin email: `<admin-email@example.com>` configured as initial admin.
   - All admin operations secured at database level - cannot be bypassed from frontend.
 - **Admin RPC Functions:**
   - `get_admin_dashboard_stats()` - Returns comprehensive statistics (users, finance, downloads, engagement, system).
@@ -155,6 +155,35 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - All data fetched via RPC functions with admin whitelist verification.
   - No sensitive information exposed in frontend code.
   - Cannot be accessed via F12 console or network inspection.
+
+### System Monitoring (Admin Dashboard - NEW)
+
+- **Edge Function:** `get-monitoring-data`
+  - Fetches system health data from multiple sources
+  - Admin-only access (verified via admin_emails table)
+  - Graceful degradation when external APIs not configured
+- **PostgreSQL RPC Functions (Migration: `20260112_add_monitoring_functions.sql`):**
+  - `is_admin_user()` - Helper function to check if current user is admin (checks admin_emails table)
+  - `get_active_connections()` - Current database connections (requires admin privileges)
+  - `get_slow_queries()` - Queries with mean_exec_time > 1000ms (requires admin privileges)
+  - `get_table_stats()` - Row counts, seq scans, index scans, dead tuples (requires admin privileges)
+  - `get_tables_without_rls()` - Security check for RLS policies (requires admin privileges)
+  - `get_missing_indexes()` - Performance check for high seq scan ratio (requires admin privileges)
+  - **Security:** All functions include admin access verification at SQL level. Functions skip admin check when called by `service_role` (Edge Function context), but require admin privileges for direct calls by authenticated users.
+- **External Integrations:**
+  - AWS SES - Email send statistics via GetSendStatistics API (requires AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+  - Cloudflare - Worker analytics via GraphQL API (requires CLOUDFLARE_API_TOKEN)
+  - Vercel - Deployment status via REST API (requires VERCEL_API_TOKEN)
+- **Frontend:**
+  - `AdminMonitoringSection.tsx` - React component with health cards, anomaly lists, detailed stats
+  - `monitoring.service.ts` - Service layer for fetching and processing monitoring data
+- **Anomaly Detection:**
+  - Auth failures threshold
+  - Edge function error rate
+  - Database slow queries
+  - Dead tuples (VACUUM needed)
+  - Email bounce rate
+  - Email complaints
 
 ### General
 

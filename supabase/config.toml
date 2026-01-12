@@ -10,3 +10,7 @@
 # not a Supabase JWT, so JWT verification must be disabled for this function.
 verify_jwt = false
 
+[functions.get-monitoring-data]
+# Admin monitoring endpoint - requires valid JWT for admin access verification
+verify_jwt = true
+
