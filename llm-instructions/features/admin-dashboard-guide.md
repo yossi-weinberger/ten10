@@ -41,8 +41,10 @@ CREATE TABLE admin_emails (
 
 3. **Database Protection (RPC Functions):**
    - All admin RPC functions use `SECURITY DEFINER`
-   - Email whitelist verification in every function
+   - Email whitelist verification in every function via `is_admin_user()` helper
    - Raises exception if user is not authenticated or not in whitelist
+   - Monitoring functions (`get_active_connections`, `get_slow_queries`, `get_table_stats`, `get_tables_without_rls`, `get_missing_indexes`) include admin checks at SQL level
+   - Functions skip admin check when called by `service_role` (Edge Function context)
 
 **Security guarantees:**
 
@@ -265,6 +267,14 @@ Real-time system health monitoring dashboard.
 - Requires admin access (checks admin_emails table)
 - Uses AWS SigV4 for SES API calls
 - Supports graceful degradation (shows "Not Configured" if secrets missing)
+- Calls PostgreSQL RPC functions via service_role client (admin check already verified in Edge Function)
+
+**PostgreSQL RPC Functions Security:**
+
+- All monitoring functions (`get_active_connections`, `get_slow_queries`, `get_table_stats`, `get_tables_without_rls`, `get_missing_indexes`) include admin access checks
+- Helper function `is_admin_user()` verifies user email against `admin_emails` table
+- Functions skip admin check when called by `service_role` (allows Edge Function to call them)
+- Direct calls by authenticated users require admin privileges (throws exception if not admin)
 
 **Required Secrets (Supabase):**
 
@@ -444,8 +454,10 @@ Potential future additions:
 - [ ] Access `/admin` with admin email - should work
 - [ ] Access `/admin` with non-admin email - should redirect to home
 - [ ] Try to call RPC from F12 console - should fail with "Access denied"
+- [ ] Try to call monitoring RPC functions directly (get_active_connections, etc.) - should fail with "Access denied" if not admin
 - [ ] Access from desktop version - should redirect to home
 - [ ] Check Network tab - no sensitive data exposed
+- [ ] Verify Edge Function can call monitoring functions (via service_role) - should work
 
 ### Functionality Testing
 

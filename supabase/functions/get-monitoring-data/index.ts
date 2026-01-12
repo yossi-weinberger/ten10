@@ -611,14 +611,20 @@ async function fetchCloudflareStats(): Promise<CloudflareStats> {
     const now = new Date();
     const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
+    // Sanitize account ID - only allow alphanumeric and hyphens
+    const sanitizedAccountId = cfAccountId
+      ? cfAccountId.replace(/[^a-zA-Z0-9-]/g, "")
+      : null;
+
+    // Use GraphQL variables to prevent injection
     const query = `
-      query {
+      query($accountTag: String, $datetimeGeq: Time, $datetimeLeq: Time) {
         viewer {
-          accounts(filter: {accountTag: "${cfAccountId || ""}"}) {
+          accounts(filter: {accountTag: $accountTag}) {
             workersInvocationsAdaptive(
               filter: {
-                datetime_geq: "${yesterday.toISOString()}"
-                datetime_leq: "${now.toISOString()}"
+                datetime_geq: $datetimeGeq
+                datetime_leq: $datetimeLeq
               }
               limit: 1000
             ) {
@@ -633,6 +639,12 @@ async function fetchCloudflareStats(): Promise<CloudflareStats> {
       }
     `;
 
+    const variables = {
+      accountTag: sanitizedAccountId || null,
+      datetimeGeq: yesterday.toISOString(),
+      datetimeLeq: now.toISOString(),
+    };
+
     const response = await fetch(
       "https://api.cloudflare.com/client/v4/graphql",
       {
@@ -641,7 +653,7 @@ async function fetchCloudflareStats(): Promise<CloudflareStats> {
           Authorization: `Bearer ${cfApiToken}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query, variables }),
       }
     );
 
@@ -708,9 +720,18 @@ async function fetchVercelStats(): Promise<VercelStats> {
   }
 
   try {
-    const url = vercelProjectId
-      ? `https://api.vercel.com/v6/deployments?projectId=${vercelProjectId}&limit=5`
-      : "https://api.vercel.com/v6/deployments?limit=5";
+    // Sanitize project ID - only allow alphanumeric, hyphens, and underscores
+    const sanitizedProjectId = vercelProjectId
+      ? vercelProjectId.replace(/[^a-zA-Z0-9_-]/g, "")
+      : null;
+
+    // Use URLSearchParams to safely construct URL
+    const baseUrl = "https://api.vercel.com/v6/deployments";
+    const params = new URLSearchParams({ limit: "5" });
+    if (sanitizedProjectId) {
+      params.set("projectId", sanitizedProjectId);
+    }
+    const url = `${baseUrl}?${params.toString()}`;
 
     const response = await fetch(url, {
       headers: {
