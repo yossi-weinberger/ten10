@@ -124,7 +124,7 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 
 - **Admin Access Control:**
   - Created `admin_emails` table with RLS for email-based whitelist access control.
-  - Admin email: `ayw100@gmail.com` configured as initial admin.
+  - Admin email: `<admin-email@example.com>` configured as initial admin.
   - All admin operations secured at database level - cannot be bypassed from frontend.
 - **Admin RPC Functions:**
   - `get_admin_dashboard_stats()` - Returns comprehensive statistics (users, finance, downloads, engagement, system).

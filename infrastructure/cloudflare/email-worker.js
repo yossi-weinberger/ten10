@@ -46,7 +46,7 @@ export default {
         "Missing configuration: SUPABASE_FUNCTION_URL or CLOUDFLARE_WORKER_SECRET"
       );
       // Fallback: Forward to admin so we don't lose the email if config is broken
-      // await message.forward("ayw100@gmail.com");
+      // await message.forward("admin-email@example.com");
       message.setReject("Internal Configuration Error");
       return;
     }
@@ -76,11 +76,11 @@ export default {
       console.log(`Success: Processed email from ${message.from}`);
 
       // Optional: If you want to also forward a copy to admin, you can do:
-      // await message.forward("ayw100@gmail.com");
+      // await message.forward("admin-email@example.com");
     } catch (err) {
       console.error("Failed to process email:", err);
       // On failure, maybe forward to admin?
-      // await message.forward("ayw100@gmail.com");
+      // await message.forward("admin-email@example.com");
       message.setReject("Temporary System Error");
     }
   },

@@ -23,7 +23,7 @@ CREATE TABLE admin_emails (
 
 - Only admins can view the admin_emails table
 - Only admins can insert/delete admin emails
-- Initial admin: `ayw100@gmail.com`
+- Initial admin: `<admin-email@example.com>`
 
 ### Security Layers
 
