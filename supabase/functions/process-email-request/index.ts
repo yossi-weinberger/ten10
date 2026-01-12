@@ -231,6 +231,9 @@ ${directDownloadLink}`
         <!-- JumboMail -->
         <a href="${JUMBOMAIL_LINK}" class="btn">להורדה דרך ג'מבו מייל</a>
         <p class="note">למי שחסום לו הגלישה ויש לו מייל בלבד</p>
+        <p style="margin-top: 12px; font-size: 14px;">או לחץ על הקישור: <a href="${JUMBOMAIL_LINK}" style="color: ${
+      EMAIL_THEME.colors.primary
+    }; word-break: break-all;">${JUMBOMAIL_LINK}</a></p>
 
         <!-- Direct Download -->
         ${
