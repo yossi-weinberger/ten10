@@ -159,11 +159,23 @@ src/
 │       ├── AdminEngagementSection.tsx  # Engagement metrics
 │       ├── AdminDownloadsSection.tsx   # Download tracking (placeholder)
 │       ├── AdminTrendsChart.tsx        # Interactive charts
-│       └── AdminMonitoringSection.tsx  # System monitoring (NEW)
+│       ├── AdminMonitoringSection.tsx  # System monitoring main component
+│       └── monitoring/                 # Monitoring components (organized)
+│           ├── AdminMonitoringComponents.tsx  # Shared components (StatusIcon, ServiceHealthCard, etc.)
+│           ├── monitoringUtils.ts      # Shared utilities (getTooltipDescriptions)
+│           └── stats/                  # Individual stats components
+│               ├── DatabaseStats.tsx   # Database statistics display
+│               ├── AuthStats.tsx       # Authentication statistics display
+│               ├── EdgeFunctionStats.tsx  # Edge Functions statistics display
+│               ├── EmailStatsDisplay.tsx  # Email (SES) statistics display
+│               ├── CloudflareStatsDisplay.tsx  # Cloudflare statistics display
+│               ├── VercelStatsDisplay.tsx  # Vercel statistics display
+│               └── index.ts           # Re-exports all stats components
 ├── lib/
 │   └── data-layer/
 │       ├── admin.service.ts            # Admin API service
-│       └── monitoring.service.ts       # Monitoring API service (NEW)
+│       ├── monitoring.service.ts       # Monitoring API service functions
+│       └── monitoring.types.ts         # Monitoring TypeScript types/interfaces
 └── routes.ts                           # Route definition with protection
 
 supabase/
@@ -244,12 +256,34 @@ Placeholder for download tracking.
 
 Real-time system health monitoring dashboard.
 
+**File Structure:**
+
+The monitoring section is organized into multiple files for better maintainability:
+
+- **`AdminMonitoringSection.tsx`** - Main component that orchestrates all monitoring displays
+- **`monitoring/AdminMonitoringComponents.tsx`** - Shared UI components:
+  - `MetricWithTooltip` - Metric display with help tooltip
+  - `StatusIcon` - Status indicator icon component
+  - `ServiceHealthCard` - Health status card for services
+  - `AnomalyList` - List display for anomalies/errors
+  - `AdvisoryList` - List display for security/performance advisories
+- **`monitoring/monitoringUtils.ts`** - Shared utility functions:
+  - `getTooltipDescriptions()` - i18n tooltip text helper
+- **`monitoring/stats/`** - Individual statistics display components:
+  - `DatabaseStats.tsx` - Database connections, slow queries, table statistics
+  - `AuthStats.tsx` - Authentication events, signups, password resets
+  - `EdgeFunctionStats.tsx` - Edge Functions invocations and errors
+  - `EmailStatsDisplay.tsx` - Email (SES) sends, deliveries, bounces
+  - `CloudflareStatsDisplay.tsx` - Cloudflare Workers requests and errors
+  - `VercelStatsDisplay.tsx` - Vercel deployment status and history
+
 **Features:**
 
 - System health overview cards (Database, Auth, Edge Functions, Email)
 - Anomaly detection and alerts
 - Security and performance advisories
 - Detailed statistics sections (collapsible)
+- Modular component architecture for easy maintenance
 
 **Data Sources:**
 
@@ -323,6 +357,8 @@ Interactive charts with date range filtering.
 
 ### Service Layer
 
+#### Admin Service
+
 **File:** `src/lib/data-layer/admin.service.ts`
 
 **Functions:**
@@ -333,6 +369,35 @@ Interactive charts with date range filtering.
 - `checkIsAdmin()` - Check if current user is admin
 
 **Exported via:** `src/lib/data-layer/index.ts`
+
+#### Monitoring Service
+
+**Files:**
+
+- `src/lib/data-layer/monitoring.service.ts` - Service functions
+- `src/lib/data-layer/monitoring.types.ts` - TypeScript types and interfaces
+
+**Service Functions:**
+
+- `fetchMonitoringData()` - Fetch monitoring data from Edge Function
+- `calculateSystemHealth(data)` - Calculate system health overview
+- `getRecentErrors(data)` - Get recent errors from monitoring data
+- `getWarnings(data)` - Get warnings from monitoring data
+- `getSecurityAdvisories(data)` - Get security advisories
+- `getPerformanceAdvisories(data)` - Get performance advisories
+- `formatTimestamp(timestamp, locale?)` - Format timestamp for display
+- `formatDuration(ms)` - Format milliseconds to readable duration
+
+**Types:**
+
+All TypeScript interfaces are exported from `monitoring.types.ts`:
+
+- `MonitoringData` - Main monitoring data structure
+- `SystemHealthOverview` - System health status
+- `DatabaseStats`, `AuthStats`, `EdgeFunctionStats`, `EmailStats`, `CloudflareStats`, `VercelStats`
+- `Anomaly`, `Advisory`, `ServiceHealth`, etc.
+
+**Note:** Types are re-exported from `monitoring.service.ts` for convenience, but the source of truth is `monitoring.types.ts`.
 
 ## Internationalization (i18n)
 

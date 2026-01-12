@@ -175,8 +175,12 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - Cloudflare - Worker analytics via GraphQL API (requires CLOUDFLARE_API_TOKEN)
   - Vercel - Deployment status via REST API (requires VERCEL_API_TOKEN)
 - **Frontend:**
-  - `AdminMonitoringSection.tsx` - React component with health cards, anomaly lists, detailed stats
-  - `monitoring.service.ts` - Service layer for fetching and processing monitoring data
+  - `AdminMonitoringSection.tsx` - Main React component orchestrating monitoring displays
+  - `monitoring/AdminMonitoringComponents.tsx` - Shared UI components (StatusIcon, ServiceHealthCard, AnomalyList, AdvisoryList)
+  - `monitoring/monitoringUtils.ts` - Shared utility functions (getTooltipDescriptions)
+  - `monitoring/stats/` - Individual statistics components (DatabaseStats, AuthStats, EdgeFunctionStats, EmailStatsDisplay, CloudflareStatsDisplay, VercelStatsDisplay)
+  - `monitoring.service.ts` - Service layer functions for fetching and processing monitoring data
+  - `monitoring.types.ts` - TypeScript types and interfaces for monitoring data
 - **Anomaly Detection:**
   - Auth failures threshold
   - Edge function error rate
