@@ -156,11 +156,20 @@ src/
 │       ├── AdminFinanceSection.tsx     # Financial overview
 │       ├── AdminEngagementSection.tsx  # Engagement metrics
 │       ├── AdminDownloadsSection.tsx   # Download tracking (placeholder)
-│       └── AdminTrendsChart.tsx        # Interactive charts
+│       ├── AdminTrendsChart.tsx        # Interactive charts
+│       └── AdminMonitoringSection.tsx  # System monitoring (NEW)
 ├── lib/
 │   └── data-layer/
-│       └── admin.service.ts            # Admin API service
+│       ├── admin.service.ts            # Admin API service
+│       └── monitoring.service.ts       # Monitoring API service (NEW)
 └── routes.ts                           # Route definition with protection
+
+supabase/
+├── functions/
+│   └── get-monitoring-data/
+│       └── index.ts                    # Monitoring Edge Function (NEW)
+└── migrations/
+    └── 20260112_add_monitoring_functions.sql  # PostgreSQL RPC functions (NEW)
 ```
 
 ### Components
@@ -175,6 +184,7 @@ Main page with tab-based navigation.
 2. **Finance** - Financial overview with currency breakdown
 3. **Trends** - Interactive charts with date range controls
 4. **Downloads** - Desktop download tracking (placeholder)
+5. **Monitoring** - System health monitoring and observability
 
 **Features:**
 
@@ -227,6 +237,55 @@ Engagement and system metrics.
 Placeholder for download tracking.
 
 **Note:** Currently returns placeholder data (0). Can be implemented in the future with:
+
+#### AdminMonitoringSection
+
+Real-time system health monitoring dashboard.
+
+**Features:**
+
+- System health overview cards (Database, Auth, Edge Functions, Email)
+- Anomaly detection and alerts
+- Security and performance advisories
+- Detailed statistics sections (collapsible)
+
+**Data Sources:**
+
+| Service        | Data                                         | Source                           |
+| -------------- | -------------------------------------------- | -------------------------------- |
+| Database       | Connections, table stats, RLS check, indexes | PostgreSQL pg_stat views via RPC |
+| Auth           | Signups, password resets, recent events      | auth.audit_log_entries           |
+| Edge Functions | Invocations, errors, error rate              | download_requests table (proxy)  |
+| Email (SES)    | Sends, deliveries, bounces, complaints       | AWS SES GetSendStatistics API    |
+| Cloudflare     | Requests, errors, error rate                 | Cloudflare GraphQL Analytics API |
+| Vercel         | Recent deployments, status                   | Vercel Deployments API           |
+
+**Edge Function:** `get-monitoring-data`
+
+- Requires admin access (checks admin_emails table)
+- Uses AWS SigV4 for SES API calls
+- Supports graceful degradation (shows "Not Configured" if secrets missing)
+
+**Required Secrets (Supabase):**
+
+- `AWS_ACCESS_KEY_ID` - For SES monitoring
+- `AWS_SECRET_ACCESS_KEY` - For SES monitoring
+- `AWS_REGION` - (optional, defaults to eu-central-1)
+- `CLOUDFLARE_API_TOKEN` - For Cloudflare analytics
+- `CLOUDFLARE_ACCOUNT_ID` - (optional, for account filtering)
+- `VERCEL_API_TOKEN` - For Vercel deployments
+- `VERCEL_PROJECT_ID` - (optional, for project filtering)
+
+**Visual Indicators:**
+
+- Color-coded table rows for database issues
+- Health status badges (healthy/warning/error/unknown)
+- Tooltips explaining each metric (in Hebrew)
+- Legend for color meanings
+
+**Limitations:**
+
+- Failed logins not tracked (Supabase limitation - doesn't log failed attempts)
 
 1. Create `download_events` table
 2. Create Edge Function to track downloads

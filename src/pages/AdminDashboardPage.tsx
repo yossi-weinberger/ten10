@@ -10,6 +10,7 @@ import {
   DollarSign,
   TrendingUp,
   Activity,
+  Gauge,
 } from "lucide-react";
 import { usePlatform } from "@/contexts/PlatformContext";
 import {
@@ -24,6 +25,7 @@ import { AdminFinanceSection } from "@/components/admin/AdminFinanceSection";
 import { AdminDownloadsSection } from "@/components/admin/AdminDownloadsSection";
 import { AdminEngagementSection } from "@/components/admin/AdminEngagementSection";
 import { AdminTrendsChart } from "@/components/admin/AdminTrendsChart";
+import { AdminMonitoringSection } from "@/components/admin/AdminMonitoringSection";
 
 export function AdminDashboardPage() {
   const { t, i18n } = useTranslation("admin");
@@ -122,7 +124,7 @@ export function AdminDashboardPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 lg:w-auto lg:inline-flex">
           <TabsTrigger value="users" className="gap-2">
             <Users className="h-4 w-4" />
             <span className="hidden sm:inline">{t("tabs.users")}</span>
@@ -142,6 +144,15 @@ export function AdminDashboardPage() {
             <Activity className="h-4 w-4" />
             <span className="hidden sm:inline">{t("tabs.downloads")}</span>
             <span className="sm:hidden">{t("tabs.downloadsShort")}</span>
+          </TabsTrigger>
+          <TabsTrigger value="monitoring" className="gap-2">
+            <Gauge className="h-4 w-4" />
+            <span className="hidden sm:inline">
+              {t("tabs.monitoring", "Monitoring")}
+            </span>
+            <span className="sm:hidden">
+              {t("tabs.monitoringShort", "Monitor")}
+            </span>
           </TabsTrigger>
         </TabsList>
 
@@ -177,6 +188,11 @@ export function AdminDashboardPage() {
         {/* Downloads Tab */}
         <TabsContent value="downloads" className="space-y-6">
           <AdminDownloadsSection downloads={stats.downloads} />
+        </TabsContent>
+
+        {/* Monitoring Tab */}
+        <TabsContent value="monitoring" className="space-y-6">
+          <AdminMonitoringSection />
         </TabsContent>
       </Tabs>
     </div>
