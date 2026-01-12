@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
   Collapsible,
   CollapsibleContent,
@@ -25,29 +24,8 @@ export function EmailStatsDisplay({ emailStats }: EmailStatsDisplayProps) {
   const { t, i18n } = useTranslation("admin");
   const tooltipDescriptions = getTooltipDescriptions(t);
 
-  if (!emailStats.available) {
-    return (
-      <Card className="border-dashed border-muted-foreground/30">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-muted-foreground">
-            <Mail className="h-5 w-5" />
-            Email Statistics
-            <Badge variant="outline" className="ml-2">
-              Not Configured
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            {emailStats.error || "AWS credentials not configured"}
-          </p>
-          <p className="text-xs text-muted-foreground mt-2">
-            {t("monitoring.addAwsKeys")}
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Note: The parent component (AdminMonitoringSection) handles the
+  // "not available" state, so this component always receives available=true
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
