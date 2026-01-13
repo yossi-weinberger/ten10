@@ -5,6 +5,13 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
@@ -18,6 +25,7 @@ import type {
   ContactDevFormValues,
   ContactRabbiFormValues,
 } from "@/lib/schemas";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -32,6 +40,7 @@ export const ContactModal = ({ isOpen, onOpenChange }: ContactModalProps) => {
   const [captchaToken, setCaptchaToken] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"rabbi" | "dev">("rabbi");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   // Reset CAPTCHA when modal closes
   const handleOpenChange = (open: boolean) => {
@@ -74,60 +83,80 @@ export const ContactModal = ({ isOpen, onOpenChange }: ContactModalProps) => {
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{t("modal.title")}</DialogTitle>
-          <DialogDescription>{t("modal.description")}</DialogDescription>
-        </DialogHeader>
-        <Tabs
-          defaultValue="rabbi"
-          className="w-full"
-          onValueChange={(value) => setActiveTab(value as "rabbi" | "dev")}
-        >
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="rabbi">{t("modal.tabs.rabbi")}</TabsTrigger>
-            <TabsTrigger value="dev">{t("modal.tabs.dev")}</TabsTrigger>
-          </TabsList>
-          <TabsContent value="rabbi">
-            <ContactForm
-              key="rabbi"
-              channel="rabbi"
-              captchaToken={captchaToken}
-              onSubmit={handleSubmit}
-            />
-          </TabsContent>
-          <TabsContent value="dev">
-            <ContactForm
-              key="dev"
-              channel="dev"
-              captchaToken={captchaToken}
-              onSubmit={handleSubmit}
-            />
-          </TabsContent>
-        </Tabs>
-        {/* Shared CAPTCHA outside tabs */}
-        <div className="mt-4">
-          <Turnstile
-            sitekey={import.meta.env.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY}
-            onVerify={(token) => setCaptchaToken(token)}
-            onExpire={() => setCaptchaToken("")}
-            refreshExpired="auto"
-            appearance="always"
+  const formContent = (
+    <>
+      <Tabs
+        defaultValue="rabbi"
+        className="w-full"
+        onValueChange={(value) => setActiveTab(value as "rabbi" | "dev")}
+      >
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="rabbi">{t("modal.tabs.rabbi")}</TabsTrigger>
+          <TabsTrigger value="dev">{t("modal.tabs.dev")}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="rabbi">
+          <ContactForm
+            key="rabbi"
+            channel="rabbi"
+            captchaToken={captchaToken}
+            onSubmit={handleSubmit}
           />
-        </div>
-        {/* Submit button after CAPTCHA */}
-        <div className="flex justify-end mt-4" dir={i18n.dir()}>
-          <Button
-            type="submit"
-            form={`contact-form-${activeTab}`}
-            disabled={isSubmitting || !captchaToken}
-          >
-            {isSubmitting ? t("forms.submitting") : t("forms.submit")}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </TabsContent>
+        <TabsContent value="dev">
+          <ContactForm
+            key="dev"
+            channel="dev"
+            captchaToken={captchaToken}
+            onSubmit={handleSubmit}
+          />
+        </TabsContent>
+      </Tabs>
+      {/* Shared CAPTCHA outside tabs */}
+      <div className="mt-4">
+        <Turnstile
+          sitekey={import.meta.env.VITE_CLOUDFLARE_TURNSTILE_SITE_KEY}
+          onVerify={(token) => setCaptchaToken(token)}
+          onExpire={() => setCaptchaToken("")}
+          refreshExpired="auto"
+          appearance="always"
+        />
+      </div>
+      {/* Submit button after CAPTCHA */}
+      <div className="flex justify-end mt-4" dir={i18n.dir()}>
+        <Button
+          type="submit"
+          form={`contact-form-${activeTab}`}
+          disabled={isSubmitting || !captchaToken}
+        >
+          {isSubmitting ? t("forms.submitting") : t("forms.submit")}
+        </Button>
+      </div>
+    </>
+  );
+
+  if (isDesktop) {
+    return (
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{t("modal.title")}</DialogTitle>
+            <DialogDescription>{t("modal.description")}</DialogDescription>
+          </DialogHeader>
+          {formContent}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Drawer open={isOpen} onOpenChange={handleOpenChange}>
+      <DrawerContent className="max-h-[90vh]">
+        <DrawerHeader className="text-start">
+          <DrawerTitle>{t("modal.title")}</DrawerTitle>
+          <DrawerDescription>{t("modal.description")}</DrawerDescription>
+        </DrawerHeader>
+        <div className="px-4 pb-8 overflow-y-auto">{formContent}</div>
+      </DrawerContent>
+    </Drawer>
   );
 };

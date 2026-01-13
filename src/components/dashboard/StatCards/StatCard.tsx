@@ -201,9 +201,9 @@ export function StatCard({
                   variant="ghost"
                   size="sm"
                   onClick={onAddClick}
-                  className={`h-9 w-9 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
+                  className={`h-10 w-10 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
                 >
-                  <BadgePlus className="h-5 w-5 [&]:!size-5" />
+                  <BadgePlus className="h-6 w-6 [&]:!size-6" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">

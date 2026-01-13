@@ -7,14 +7,23 @@ import { supabase } from "@/lib/supabaseClient";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { useRouterState, Link } from "@tanstack/react-router";
 import { PUBLIC_ROUTES } from "@/lib/constants";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 // Constants
 const CURRENT_TERMS_VERSION = "v1.0"; // Update this when terms change significantly
@@ -27,6 +36,7 @@ export function TermsAcceptanceModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   // Define public paths where the modal should NOT appear
   const isPublicPath = PUBLIC_ROUTES.includes(currentPath);
@@ -159,58 +169,83 @@ export function TermsAcceptanceModal() {
   // Rendering nothing is safer to avoid flashing.
   if (checkingStatus) return null;
 
-  return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent
-        className="sm:max-w-md [&>button]:hidden"
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
-        <DialogHeader>
-          <DialogTitle>{t("termsModal.title")}</DialogTitle>
-          <DialogDescription>{t("termsModal.description")}</DialogDescription>
-        </DialogHeader>
-
-        <div className="flex flex-col gap-4 py-4 text-start">
-          <div className="text-sm text-muted-foreground">
-            <span className="block mb-2">
-              {t("signup.termsConsentPrefix")}{" "}
-              <Link
-                to="/terms"
-                target={platform === "web" ? "_blank" : undefined}
-                className="text-primary hover:underline"
-              >
-                {t("signup.termsConsentLink")}
-              </Link>{" "}
-              {t("signup.termsConsentSuffix")}
-            </span>
-            <span className="block">
-              {t("terms:dataAndPrivacy.privacyLinkPrefix")}{" "}
-              <Link
-                to="/privacy"
-                target={platform === "web" ? "_blank" : undefined}
-                className="text-primary hover:underline"
-              >
-                {t("terms:dataAndPrivacy.privacyLinkText")}
-              </Link>{" "}
-              {t("terms:dataAndPrivacy.privacyLinkSuffix")}
-            </span>
-          </div>
-        </div>
-
-        <DialogFooter className="sm:justify-center">
-          <Button
-            type="button"
-            onClick={handleAccept}
-            disabled={isLoading}
-            className="w-full sm:w-auto min-w-[120px]"
+  const termsContent = (
+    <div className="flex flex-col gap-4 py-4 text-start">
+      <div className="text-sm text-muted-foreground">
+        <span className="block mb-2">
+          {t("signup.termsConsentPrefix")}{" "}
+          <Link
+            to="/terms"
+            target={platform === "web" ? "_blank" : undefined}
+            className="text-primary hover:underline"
           >
-            {isLoading
-              ? t("termsModal.accepting")
-              : t("termsModal.acceptButton")}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            {t("signup.termsConsentLink")}
+          </Link>{" "}
+          {t("signup.termsConsentSuffix")}
+        </span>
+        <span className="block">
+          {t("terms:dataAndPrivacy.privacyLinkPrefix")}{" "}
+          <Link
+            to="/privacy"
+            target={platform === "web" ? "_blank" : undefined}
+            className="text-primary hover:underline"
+          >
+            {t("terms:dataAndPrivacy.privacyLinkText")}
+          </Link>{" "}
+          {t("terms:dataAndPrivacy.privacyLinkSuffix")}
+        </span>
+      </div>
+    </div>
+  );
+
+  const acceptButton = (
+    <Button
+      type="button"
+      onClick={handleAccept}
+      disabled={isLoading}
+      className="w-full sm:w-auto min-w-[120px]"
+    >
+      {isLoading ? t("termsModal.accepting") : t("termsModal.acceptButton")}
+    </Button>
+  );
+
+  if (isDesktop) {
+    return (
+      <Dialog open={isOpen} onOpenChange={() => {}}>
+        <DialogContent
+          className="sm:max-w-md [&>button]:hidden"
+          onPointerDownOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle>{t("termsModal.title")}</DialogTitle>
+            <DialogDescription>{t("termsModal.description")}</DialogDescription>
+          </DialogHeader>
+
+          {termsContent}
+
+          <DialogFooter className="sm:justify-center">
+            {acceptButton}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Drawer
+      open={isOpen}
+      onOpenChange={() => {}}
+      dismissible={false} // Prevent dismissing by swipe/click outside for terms acceptance
+    >
+      <DrawerContent className="max-h-[90vh]">
+        <DrawerHeader className="text-start">
+          <DrawerTitle>{t("termsModal.title")}</DrawerTitle>
+          <DrawerDescription>{t("termsModal.description")}</DrawerDescription>
+        </DrawerHeader>
+        <div className="px-4 pb-4 overflow-y-auto">{termsContent}</div>
+        <DrawerFooter className="pt-2">{acceptButton}</DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

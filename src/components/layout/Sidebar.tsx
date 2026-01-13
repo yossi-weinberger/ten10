@@ -28,11 +28,16 @@ import { logger } from "@/lib/logger";
 interface SidebarProps {
   expanded?: boolean;
   inSheet?: boolean;
+  onLinkClick?: () => void;
 }
 
 type SliderStyle = { opacity: number; top: number; height: number };
 
-export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
+export function Sidebar({
+  expanded = false,
+  inSheet = false,
+  onLinkClick,
+}: SidebarProps) {
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
   const { platform } = usePlatform();
   const { session, loading: authLoading } = useAuth();
@@ -216,6 +221,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
           className // הוספת className בסוף כדי לאפשר דריסה
         )}
         asChild
+        onClick={onLinkClick}
       >
         {href ? (
           <a
@@ -265,6 +271,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
     >
       <Link
         to="/"
+        onClick={onLinkClick}
         aria-label={t("appName")}
         className={cn(
           "flex items-center mb-6 overflow-hidden shrink-0 transition-all duration-300",
@@ -419,6 +426,7 @@ export function Sidebar({ expanded = false, inSheet = false }: SidebarProps) {
         {platform === "web" && session?.user && (
           <Link
             to="/profile"
+            onClick={onLinkClick}
             data-active={currentPath.startsWith("/profile")}
             aria-label={t("menu.profile")}
             className={cn(
