@@ -197,7 +197,11 @@ function App() {
                 </SheetDescription>
               </SheetHeader>
               <div className="flex-1 overflow-y-auto overflow-x-hidden pt-12 pb-4">
-                <Sidebar expanded={true} inSheet={true} />
+                <Sidebar
+                  expanded={true}
+                  inSheet={true}
+                  onLinkClick={() => setIsMobileMenuOpen(false)}
+                />
               </div>
             </SheetContent>
           </Sheet>
