@@ -198,7 +198,7 @@ export function TermsAcceptanceModal() {
     </div>
   );
 
-  const footer = (
+  const acceptButton = (
     <Button
       type="button"
       onClick={handleAccept}
@@ -241,8 +241,8 @@ export function TermsAcceptanceModal() {
           <DrawerTitle>{t("termsModal.title")}</DrawerTitle>
           <DrawerDescription>{t("termsModal.description")}</DrawerDescription>
         </DrawerHeader>
-        <div className="px-4 pb-4 overflow-y-auto">{content}</div>
-        <DrawerFooter className="pt-2">{footer}</DrawerFooter>
+        <div className="px-4 pb-4 overflow-y-auto">{termsContent}</div>
+        <DrawerFooter className="pt-2">{acceptButton}</DrawerFooter>
       </DrawerContent>
     </Drawer>
   );

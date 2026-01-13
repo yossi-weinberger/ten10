@@ -83,7 +83,7 @@ export const ContactModal = ({ isOpen, onOpenChange }: ContactModalProps) => {
     }
   };
 
-  const content = (
+  const formContent = (
     <>
       <Tabs
         defaultValue="rabbi"
@@ -155,7 +155,7 @@ export const ContactModal = ({ isOpen, onOpenChange }: ContactModalProps) => {
           <DrawerTitle>{t("modal.title")}</DrawerTitle>
           <DrawerDescription>{t("modal.description")}</DrawerDescription>
         </DrawerHeader>
-        <div className="px-4 pb-8 overflow-y-auto">{content}</div>
+        <div className="px-4 pb-8 overflow-y-auto">{formContent}</div>
       </DrawerContent>
     </Drawer>
   );

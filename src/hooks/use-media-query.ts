@@ -10,6 +10,8 @@ export function useMediaQuery(query: string) {
   });
 
   React.useEffect(() => {
+    if (typeof window === "undefined") return;
+
     function onChange(event: MediaQueryListEvent) {
       setValue(event.matches);
     }
