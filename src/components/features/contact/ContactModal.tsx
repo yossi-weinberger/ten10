@@ -142,7 +142,7 @@ export const ContactModal = ({ isOpen, onOpenChange }: ContactModalProps) => {
             <DialogTitle>{t("modal.title")}</DialogTitle>
             <DialogDescription>{t("modal.description")}</DialogDescription>
           </DialogHeader>
-          {content}
+          {formContent}
         </DialogContent>
       </Dialog>
     );

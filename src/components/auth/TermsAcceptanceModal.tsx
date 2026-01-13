@@ -169,7 +169,7 @@ export function TermsAcceptanceModal() {
   // Rendering nothing is safer to avoid flashing.
   if (checkingStatus) return null;
 
-  const content = (
+  const termsContent = (
     <div className="flex flex-col gap-4 py-4 text-start">
       <div className="text-sm text-muted-foreground">
         <span className="block mb-2">
@@ -222,9 +222,11 @@ export function TermsAcceptanceModal() {
             <DialogDescription>{t("termsModal.description")}</DialogDescription>
           </DialogHeader>
 
-          {content}
+          {termsContent}
 
-          <DialogFooter className="sm:justify-center">{footer}</DialogFooter>
+          <DialogFooter className="sm:justify-center">
+            {acceptButton}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     );
