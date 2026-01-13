@@ -29,7 +29,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 const CURRENT_TERMS_VERSION = "v1.0"; // Update this when terms change significantly
 
 export function TermsAcceptanceModal() {
-  const { t, i18n } = useTranslation(["auth", "terms"]);
+  const { t } = useTranslation(["auth", "terms"]);
   const { user } = useAuth();
   const { platform } = usePlatform();
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
