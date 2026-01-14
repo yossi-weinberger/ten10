@@ -88,7 +88,7 @@ export function RecurringTransactionsTableDisplay() {
   const handleCloseModal = useCallback(() => {
     setIsEditModalOpen(false);
     setSelectedTransaction(null);
-  }, []);
+  }, [isEditModalOpen]);
 
   const handleDeleteClick = (transaction: RecurringTransaction) => {
     setTransactionToDelete(transaction);
@@ -100,13 +100,14 @@ export function RecurringTransactionsTableDisplay() {
     try {
       await deleteRecurringTransaction(transactionToDelete.id);
       toast.success(t("messages.recurringDeleteSuccess"));
-      fetchRecurring(); // Refresh the table
     } catch (error) {
       logger.error("Failed to delete recurring transaction:", error);
       toast.error(t("messages.recurringDeleteError"));
     } finally {
       setIsDeleteDialogOpen(false);
       setTransactionToDelete(null);
+      // Refresh table after dialog closes to avoid portal race conditions
+      requestAnimationFrame(() => fetchRecurring());
     }
   };
 
@@ -285,14 +286,22 @@ export function RecurringTransactionsTableDisplay() {
                               {t("actions.title")}
                             </DropdownMenuLabel>
                             <DropdownMenuItem
-                              onClick={() => handleEditClick(rec)}
+                              onClick={() => {
+                                requestAnimationFrame(() =>
+                                  handleEditClick(rec)
+                                );
+                              }}
                               disabled={rec.status === "completed"}
                             >
                               {t("actions.edit")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-red-600"
-                              onClick={() => handleDeleteClick(rec)}
+                              onClick={() => {
+                                requestAnimationFrame(() =>
+                                  handleDeleteClick(rec)
+                                );
+                              }}
                               disabled={rec.status === "completed"}
                             >
                               {t("actions.delete")}
