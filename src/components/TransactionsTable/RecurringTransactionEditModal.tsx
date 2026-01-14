@@ -53,8 +53,10 @@ export function RecurringTransactionEditModal({
         total_occurrences: values.total_occurrences ?? undefined,
       };
       await updateRecurringTransaction(transaction!.id, updateValues);
-      fetchRecurring();
+      // Close modal first to avoid race condition with Portal cleanup
       onClose();
+      // Then refresh the table after modal is closed
+      await fetchRecurring();
       toast.success(t("messages.recurringUpdateSuccess"));
     } catch (error) {
       logger.error("Failed to update recurring transaction:", error);

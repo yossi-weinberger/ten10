@@ -122,7 +122,8 @@ export function RecurringTransactionsTableDisplay() {
 
   useEffect(() => {
     fetchRecurring();
-  }, [fetchRecurring, sorting, filters]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sorting, filters]);
 
   const handleSort = useCallback(
     (field: SortableField) => {
