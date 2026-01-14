@@ -698,7 +698,117 @@ Certain navigation items, such as the "Support Us" (Donation) button, may requir
 
 ---
 
-**Last Updated:** March 2025
+## 11. Responsive Modals: Dialog/Drawer Pattern
+
+_(Added January 2026)_
+
+### 11.1 The Problem: Mobile Keyboard Causes DOM Errors
+
+When using responsive modals that switch between `Dialog` (desktop) and `Drawer` (mobile) based on screen size, a critical bug can occur on mobile devices:
+
+**Scenario:**
+1. User opens a modal on mobile → `Drawer` component renders (using Portal)
+2. User taps an input field → mobile keyboard opens
+3. Keyboard changes viewport height → `useMediaQuery` detects "desktop" size
+4. React tries to switch from `Drawer` to `Dialog`
+5. **DOM Error:** `Failed to execute 'removeChild' on 'Node': The node to be removed is not a child of this node`
+
+**Root Cause:** Both `Dialog` and `Drawer` use Portals. When React switches component types mid-render, it tries to unmount the `Drawer` Portal while simultaneously mounting the `Dialog` Portal, causing DOM conflicts.
+
+### 11.2 The Solution: Variant Locking Pattern
+
+**The Golden Rule:** Lock the modal variant (Dialog or Drawer) when the modal opens, and only update it when the modal closes.
+
+```tsx
+import { useMediaQuery } from "@/hooks/use-media-query";
+import { useState, useEffect } from "react";
+
+function ResponsiveModal({ isOpen, onClose }) {
+  // 1. Get current media query value
+  const isSmallNow = useMediaQuery("(max-width: 767px)");
+  
+  // 2. Lock the variant in state
+  const [useDrawer, setUseDrawer] = useState(isSmallNow);
+  
+  // 3. Only update when modal is CLOSED
+  useEffect(() => {
+    if (!isOpen) setUseDrawer(isSmallNow);
+  }, [isSmallNow, isOpen]);
+
+  // 4. Use locked variant for rendering
+  if (useDrawer) {
+    return <Drawer open={isOpen} onOpenChange={onClose}>...</Drawer>;
+  }
+  return <Dialog open={isOpen} onOpenChange={onClose}>...</Dialog>;
+}
+```
+
+### 11.3 Portal Cleanup: requestAnimationFrame Pattern
+
+When closing a modal that triggers a data refresh (e.g., after saving), use `requestAnimationFrame` to defer the refresh until after Portal cleanup:
+
+```tsx
+// ❌ WRONG - Race condition with Portal cleanup
+const handleSave = async () => {
+  await saveData();
+  fetchData();      // Data fetch while Portal still cleaning up
+  onClose();        // Close modal
+};
+
+// ✅ CORRECT - Defer refresh until after Portal cleanup
+const handleSave = async () => {
+  await saveData();
+  onClose();        // Close modal FIRST
+  requestAnimationFrame(() => {
+    fetchData();    // Refresh AFTER Portal cleanup
+    toast.success("Saved!");
+  });
+};
+```
+
+**Also apply to dropdown menu actions:**
+
+```tsx
+<DropdownMenuItem
+  onClick={() => {
+    requestAnimationFrame(() => handleEdit(item));
+  }}
+>
+  Edit
+</DropdownMenuItem>
+```
+
+### 11.4 Components Using This Pattern
+
+The following components implement the variant locking pattern:
+
+| Component | File |
+|-----------|------|
+| `RecurringTransactionEditModal` | `src/components/TransactionsTable/RecurringTransactionEditModal.tsx` |
+| `TransactionEditModal` | `src/components/TransactionsTable/TransactionEditModal.tsx` |
+| `TermsAcceptanceModal` | `src/components/auth/TermsAcceptanceModal.tsx` |
+| `ContactModal` | `src/components/features/contact/ContactModal.tsx` |
+
+### 11.5 Debugging Mobile Issues
+
+If users report DOM errors on mobile, use **Chrome Remote Debugging**:
+
+**On the phone (Android):**
+1. Settings → About Phone → Tap "Build Number" 7 times (enable Developer Options)
+2. Settings → Developer Options → Enable "USB Debugging"
+3. Connect phone to computer via USB
+4. Open Chrome and navigate to the problematic page
+
+**On the computer:**
+1. Open Chrome
+2. Navigate to `chrome://inspect/#devices`
+3. Check "Discover USB devices"
+4. Click "inspect" next to the phone's tab
+5. View Console errors in real-time
+
+---
+
+**Last Updated:** January 2026
 **Status:** Active
 **Maintained By:** Development Team
-**Related Files:** `App.tsx`, `Sidebar.tsx`, `PlatformIndicator.tsx`, `tooltip.tsx`, `i18n.ts`, `index.css`
+**Related Files:** `App.tsx`, `Sidebar.tsx`, `PlatformIndicator.tsx`, `tooltip.tsx`, `i18n.ts`, `index.css`, `use-media-query.ts`

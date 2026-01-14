@@ -365,7 +365,7 @@ WITH CHECK (auth.uid() = user_id);
 
 ---
 
-**Last Updated**: January 2025 (v0.3.8)  
+**Last Updated**: January 2026  
 **Author**: Ten10 Development Team
 
 ## Recent Updates (v0.3.8)
@@ -398,6 +398,16 @@ The table fully supports filtering and displaying recurring transactions:
 - **Web**: Uses Supabase RPC `get_user_transactions` with all filter parameters
 - **Desktop**: Uses Tauri command `get_filtered_transactions_handler` with equivalent filter payload
 - Both platforms share the same service interface and store logic
+
+### Mobile UI Patterns (January 2026)
+
+The edit modals (`TransactionEditModal`, `RecurringTransactionEditModal`) implement the **Variant Locking Pattern** to prevent DOM errors on mobile:
+
+1. **Dialog/Drawer Switch**: Desktop uses `Dialog`, mobile uses `Drawer`
+2. **Variant Locking**: The modal type is locked when opened, preventing mid-session switches that cause Portal cleanup errors
+3. **requestAnimationFrame**: Used for dropdown menu actions and post-save refreshes to avoid race conditions with Portal cleanup
+
+See `ui-component-guidelines.md` section 11 for detailed implementation.
 
 ### Export Implementation
 

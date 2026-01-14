@@ -126,4 +126,35 @@
 - **אתגרים פוטנציאליים:** טיפול בתאריכים (למשל, 31 בפברואר) מטופל על ידי chrono ב-Rust ו-INTERVAL ב-SQL.
 - **עדכונים עתידיים:** הרחבת תמיכה בסטטוסים (pause/resume) ועריכת הוראות קיימות.
 
-מסמך זה מעודכן נכון לתאריך [הכנס תאריך]; בדוק שינויים בקוד בפועל.
+---
+
+## עריכת הוראות קבע - רכיבי UI
+
+### RecurringTransactionEditModal
+
+מודל העריכה משתמש בפטרן **Variant Locking** למניעת שגיאות DOM בנייד:
+
+- **בדסקטופ:** משתמש ב-`Dialog`
+- **בנייד:** משתמש ב-`Drawer`
+- **נעילת וריאנט:** כשהמודל פתוח, לא מתבצע מעבר בין Dialog ל-Drawer גם אם גודל המסך משתנה (למשל, כשמקלדת נפתחת בנייד)
+
+### RecurringTransactionsTableDisplay
+
+טבלת הצגת הוראות הקבע כוללת:
+
+- **Dropdown Menu:** פעולות עריכה ומחיקה משתמשות ב-`requestAnimationFrame` לדחיית הפתיחה עד שה-Dropdown נסגר
+- **Portal Cleanup:** לאחר שמירה/מחיקה, רענון הטבלה מתבצע ב-`requestAnimationFrame` למניעת race conditions עם ניקוי ה-Portal
+
+```typescript
+// דוגמה מהקוד
+requestAnimationFrame(() => {
+  fetchRecurring();
+  toast.success(t("messages.recurringUpdateSuccess"));
+});
+```
+
+ראה `ui-component-guidelines.md` סעיף 11 לפירוט מלא על הפטרן.
+
+---
+
+מסמך זה מעודכן נכון לתאריך ינואר 2026; בדוק שינויים בקוד בפועל.
