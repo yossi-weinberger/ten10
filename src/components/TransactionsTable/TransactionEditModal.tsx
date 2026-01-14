@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/drawer";
 import { Transaction } from "@/types/transaction";
 import { TransactionForm } from "@/components/forms/TransactionForm";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface TransactionEditModalProps {
   isOpen: boolean;
@@ -29,21 +30,22 @@ export function TransactionEditModal({
   transaction,
 }: TransactionEditModalProps) {
   const { t, i18n } = useTranslation("data-tables");
-  const [isMobile, setIsMobile] = useState(false);
 
+  // Use media query instead of resize listener
+  const isSmallNow = useMediaQuery("(max-width: 767px)");
+  const [useDrawer, setUseDrawer] = useState(isSmallNow);
+
+  // Lock the variant (Drawer/Dialog) when the modal is open
   useEffect(() => {
-    const updateIsMobile = () => setIsMobile(window.innerWidth < 768);
-    updateIsMobile();
-    window.addEventListener("resize", updateIsMobile);
-    return () => window.removeEventListener("resize", updateIsMobile);
-  }, []);
+    if (!isOpen) setUseDrawer(isSmallNow);
+  }, [isSmallNow, isOpen]);
 
   if (!isOpen || !transaction) {
     return null;
   }
 
   // Mobile: use Drawer for full-height, scrollable experience
-  if (isMobile) {
+  if (useDrawer) {
     return (
       <Drawer open={isOpen} onOpenChange={onClose}>
         <DrawerContent dir={i18n.dir()}>

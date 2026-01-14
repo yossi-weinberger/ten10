@@ -88,7 +88,7 @@ export function RecurringTransactionsTableDisplay() {
   const handleCloseModal = useCallback(() => {
     setIsEditModalOpen(false);
     setSelectedTransaction(null);
-  }, [isEditModalOpen]);
+  }, []);
 
   const handleDeleteClick = (transaction: RecurringTransaction) => {
     setTransactionToDelete(transaction);

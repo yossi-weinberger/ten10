@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/drawer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTranslation } from "react-i18next";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Turnstile from "react-turnstile";
 import { ContactForm } from "./ContactForm";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,13 @@ export const ContactModal = ({ isOpen, onOpenChange }: ContactModalProps) => {
   const [captchaToken, setCaptchaToken] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"rabbi" | "dev">("rabbi");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const isDesktopQuery = useMediaQuery("(min-width: 768px)");
+  const [useDesktop, setUseDesktop] = useState(isDesktopQuery);
+
+  // Lock the variant (Drawer/Dialog) when the modal is open
+  useEffect(() => {
+    if (!isOpen) setUseDesktop(isDesktopQuery);
+  }, [isDesktopQuery, isOpen]);
 
   // Reset CAPTCHA when modal closes
   const handleOpenChange = (open: boolean) => {
@@ -134,7 +140,7 @@ export const ContactModal = ({ isOpen, onOpenChange }: ContactModalProps) => {
     </>
   );
 
-  if (isDesktop) {
+  if (useDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-[425px]">
