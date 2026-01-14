@@ -22,6 +22,7 @@ import { RecurringEditFormValues, recurringEditSchema } from "@/lib/schemas";
 import { z } from "zod";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface RecurringTransactionEditModalProps {
   isOpen: boolean;
@@ -37,13 +38,13 @@ export function RecurringTransactionEditModal({
   const { t, i18n } = useTranslation("data-tables");
   const { fetchRecurring } = useRecurringTableStore();
 
-  const [isMobile, setIsMobile] = useState(false);
+  const isSmallNow = useMediaQuery("(max-width: 767px)");
+  const [useDrawer, setUseDrawer] = useState(isSmallNow);
+
+  // Lock the variant (Drawer/Dialog) when the modal is open
   useEffect(() => {
-    const updateIsMobile = () => setIsMobile(window.innerWidth < 768);
-    updateIsMobile();
-    window.addEventListener("resize", updateIsMobile);
-    return () => window.removeEventListener("resize", updateIsMobile);
-  }, []);
+    if (!isOpen) setUseDrawer(isSmallNow);
+  }, [isSmallNow, isOpen]);
 
   const handleUpdate = async (values: RecurringEditFormValues) => {
     try {
@@ -53,9 +54,16 @@ export function RecurringTransactionEditModal({
         total_occurrences: values.total_occurrences ?? undefined,
       };
       await updateRecurringTransaction(transaction!.id, updateValues);
-      fetchRecurring();
+
+      // Close modal first to avoid race condition with Portal cleanup
       onClose();
-      toast.success(t("messages.recurringUpdateSuccess"));
+
+      // Then refresh the table after modal is closed, using requestAnimationFrame
+      // to ensure the portal cleanup has processed
+      requestAnimationFrame(() => {
+        fetchRecurring();
+        toast.success(t("messages.recurringUpdateSuccess"));
+      });
     } catch (error) {
       logger.error("Failed to update recurring transaction:", error);
       toast.error(t("messages.recurringUpdateError"));
@@ -64,8 +72,8 @@ export function RecurringTransactionEditModal({
 
   if (!isOpen) return null;
 
-  // Mobile: Drawer with scrollable content
-  if (isMobile) {
+  // Use the locked variant state instead of the live media query
+  if (useDrawer) {
     return (
       <Drawer open={isOpen} onOpenChange={onClose}>
         <DrawerContent dir={i18n.dir()}>

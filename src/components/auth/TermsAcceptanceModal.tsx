@@ -36,7 +36,13 @@ export function TermsAcceptanceModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
-  const isDesktop = useMediaQuery("(min-width: 768px)");
+  const isDesktopQuery = useMediaQuery("(min-width: 768px)");
+  const [useDesktop, setUseDesktop] = useState(isDesktopQuery);
+
+  // Lock the variant (Drawer/Dialog) when the modal is open
+  useEffect(() => {
+    if (!isOpen) setUseDesktop(isDesktopQuery);
+  }, [isDesktopQuery, isOpen]);
 
   // Define public paths where the modal should NOT appear
   const isPublicPath = PUBLIC_ROUTES.includes(currentPath);
@@ -198,18 +204,7 @@ export function TermsAcceptanceModal() {
     </div>
   );
 
-  const acceptButton = (
-    <Button
-      type="button"
-      onClick={handleAccept}
-      disabled={isLoading}
-      className="w-full sm:w-auto min-w-[120px]"
-    >
-      {isLoading ? t("termsModal.accepting") : t("termsModal.acceptButton")}
-    </Button>
-  );
-
-  if (isDesktop) {
+  if (useDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={() => {}}>
         <DialogContent
@@ -221,11 +216,18 @@ export function TermsAcceptanceModal() {
             <DialogTitle>{t("termsModal.title")}</DialogTitle>
             <DialogDescription>{t("termsModal.description")}</DialogDescription>
           </DialogHeader>
-
           {termsContent}
-
           <DialogFooter className="sm:justify-center">
-            {acceptButton}
+            <Button
+              type="button"
+              onClick={handleAccept}
+              disabled={isLoading}
+              className="w-full sm:w-auto min-w-[120px]"
+            >
+              {isLoading
+                ? t("termsModal.accepting")
+                : t("termsModal.acceptButton")}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -233,18 +235,25 @@ export function TermsAcceptanceModal() {
   }
 
   return (
-    <Drawer
-      open={isOpen}
-      onOpenChange={() => {}}
-      dismissible={false} // Prevent dismissing by swipe/click outside for terms acceptance
-    >
+    <Drawer open={isOpen} onOpenChange={() => {}} dismissible={false}>
       <DrawerContent className="max-h-[90vh]">
         <DrawerHeader className="text-start">
           <DrawerTitle>{t("termsModal.title")}</DrawerTitle>
           <DrawerDescription>{t("termsModal.description")}</DrawerDescription>
         </DrawerHeader>
         <div className="px-4 pb-4 overflow-y-auto">{termsContent}</div>
-        <DrawerFooter className="pt-2">{acceptButton}</DrawerFooter>
+        <DrawerFooter className="pt-2">
+          <Button
+            type="button"
+            onClick={handleAccept}
+            disabled={isLoading}
+            className="w-full sm:w-auto min-w-[120px]"
+          >
+            {isLoading
+              ? t("termsModal.accepting")
+              : t("termsModal.acceptButton")}
+          </Button>
+        </DrawerFooter>
       </DrawerContent>
     </Drawer>
   );
