@@ -124,6 +124,7 @@ When updating terms:
 - **Non-dismissible**: Modal cannot be closed by clicking outside or pressing Escape
 - **RTL Support**: Uses `text-start` for proper alignment in both LTR and RTL languages
 - **Accessibility**: Links to Terms and Privacy pages open in new tabs
+- **Responsive Design**: Uses Dialog (desktop) / Drawer (mobile) with **variant locking pattern** to prevent DOM errors when mobile keyboard changes viewport size. See `ui-component-guidelines.md` section 11 for details.
 
 ---
 
@@ -185,5 +186,5 @@ Located at root level (NOT nested under `signup`):
 
 ---
 
-**Last Updated:** January 2025
+**Last Updated:** January 2026
 **Status:** Active
