@@ -254,7 +254,6 @@ export function ProfilePage() {
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
                       required
-                      disabled={false}
                     />
                   ) : (
                     <Tooltip>
@@ -285,7 +284,6 @@ export function ProfilePage() {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
-                      disabled={false}
                     />
                   ) : (
                     <Tooltip>
