@@ -121,11 +121,8 @@ export function ProfilePage() {
         toast.success(t("profile.personalDetails.emailUpdateNotice"));
       }
 
-      if (fullNameChanged) {
-        toast.success(t("profile.personalDetails.saveSuccess"));
-      }
-
       if (fullNameChanged || emailChanged) {
+        toast.success(t("profile.personalDetails.saveSuccess"));
         setUserInfoRefreshKey((prev) => prev + 1);
       }
     } catch (error: any) {
