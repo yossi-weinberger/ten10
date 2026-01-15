@@ -117,7 +117,6 @@ export function ProfilePage() {
         });
 
         if (error) throw error;
-        setInitialEmail(trimmedEmail);
         toast.success(t("profile.personalDetails.emailUpdateNotice"));
       }
 
