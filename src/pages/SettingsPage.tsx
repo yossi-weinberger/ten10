@@ -112,7 +112,6 @@ export function SettingsPage() {
           updateSettings={(newFinancialSettings) =>
             updateSettings(newFinancialSettings)
           }
-          disableAutoCalcChomesh={true}
           disableMinMaaserPercentage={true}
         />
 

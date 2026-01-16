@@ -54,18 +54,20 @@ const indicatorColors: Record<ButtonStyleType, string> = {
 interface TransactionTypeSelectorProps {
   form: UseFormReturn<TransactionFormValues>;
   selectedType: TransactionType;
+  defaultIncomeChomesh?: boolean;
 }
 
 export function TransactionTypeSelector({
   form,
   selectedType,
+  defaultIncomeChomesh = false,
 }: TransactionTypeSelectorProps) {
   const { t } = useTranslation("transactions");
 
   // Remember last per-type checkbox choices so switching tabs doesn't lose them.
   const lastFlagsRef = useRef<Record<BaseType, Record<PerTypeFlag, boolean>>>({
     income: {
-      is_chomesh: false,
+      is_chomesh: defaultIncomeChomesh,
       isExempt: false,
       isRecognized: false,
       isFromPersonalFunds: false,
