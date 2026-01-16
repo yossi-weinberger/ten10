@@ -71,6 +71,9 @@ export function TransactionForm({
   const storedDefaultCurrency = useDonationStore(
     (state) => state.settings.defaultCurrency
   );
+  const autoCalcChomesh = useDonationStore(
+    (state) => state.settings.autoCalcChomesh
+  );
 
   // The form schema only allows these currencies.
   const validCurrencies: Array<TransactionFormValues["currency"]> = [
@@ -91,6 +94,10 @@ export function TransactionForm({
 
   const transactionSchema = useMemo(() => createTransactionFormSchema(t), [t]);
 
+  const initialType = getInitialType();
+  const shouldAutoChomeshOnInit =
+    initialType === "income" ? autoCalcChomesh : false;
+
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
     mode: "onChange",
@@ -99,9 +106,9 @@ export function TransactionForm({
       amount: undefined,
       currency: defaultCurrency,
       description: "",
-      type: getInitialType(), // Use URL param if valid, else default to "income"
+      type: initialType, // Use URL param if valid, else default to "income"
       category: "",
-      is_chomesh: false,
+      is_chomesh: shouldAutoChomeshOnInit,
       recipient: "",
       isExempt: false,
       isRecognized: false,
@@ -129,9 +136,27 @@ export function TransactionForm({
         "non_tithe_donation",
       ].includes(search.type as TransactionType)
     ) {
-      form.setValue("type", search.type as TransactionType);
+      const nextType = search.type as TransactionType;
+      form.setValue("type", nextType, { shouldValidate: false });
+
+      // Keep chomesh in sync when type changes programmatically (e.g., URL param)
+      if (nextType !== "income") {
+        form.setValue("is_chomesh", false, {
+          shouldValidate: false,
+          shouldDirty: false,
+        });
+      } else {
+        const isChomeshDirty = !!form.formState.dirtyFields?.is_chomesh;
+        if (!isChomeshDirty) {
+          const isExempt = !!form.getValues("isExempt");
+          form.setValue("is_chomesh", isExempt ? false : autoCalcChomesh, {
+            shouldValidate: false,
+            shouldDirty: false,
+          });
+        }
+      }
     }
-  }, [search, form, isEditMode]);
+  }, [search, form, isEditMode, autoCalcChomesh]);
 
   // Use useEffect to reset the form when initialData changes (for editing)
   React.useEffect(() => {
@@ -288,14 +313,15 @@ export function TransactionForm({
         setIsSuccess(true);
         setTimeout(() => {
           setIsSuccess(false);
+          const nextType = form.getValues("type");
           form.reset({
             date: new Date().toISOString().split("T")[0],
             amount: undefined,
             currency: defaultCurrency,
             description: "",
-            type: form.getValues("type"), // Use the current form value, not the submitted one
+            type: nextType, // Use the current form value, not the submitted one
             category: "",
-            is_chomesh: false,
+            is_chomesh: nextType === "income" ? autoCalcChomesh : false,
             recipient: "",
             isExempt: false,
             isRecognized: false,
@@ -324,7 +350,11 @@ export function TransactionForm({
         )}
       >
         {/* Type Selection using Tabs - Replaced with new component */}
-        <TransactionTypeSelector form={form} selectedType={selectedType} />
+        <TransactionTypeSelector
+          form={form}
+          selectedType={selectedType}
+          defaultIncomeChomesh={autoCalcChomesh}
+        />
 
         {/* Amount, currency and date fields - Replaced with new component */}
         <AmountCurrencyDateFields
