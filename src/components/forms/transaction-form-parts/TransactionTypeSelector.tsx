@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -105,6 +105,23 @@ export function TransactionTypeSelector({
     displayTypes.indexOf(selectedType as ButtonStyleType)
   );
   const sliderColor = indicatorColors[selectedType as ButtonStyleType];
+
+  useEffect(() => {
+    const isChomeshDirty = !!form.formState.dirtyFields?.is_chomesh;
+    if (isChomeshDirty) return;
+
+    lastFlagsRef.current.income.is_chomesh = defaultIncomeChomesh;
+
+    const currentBase = toBaseType(form.getValues("type") as TransactionType);
+    if (currentBase === "income") {
+      const isExempt = !!form.getValues("isExempt");
+      const nextValue = isExempt ? false : defaultIncomeChomesh;
+      form.setValue("is_chomesh", nextValue, {
+        shouldValidate: false,
+        shouldDirty: false,
+      });
+    }
+  }, [defaultIncomeChomesh, form]);
 
   return (
     <div className="space-y-2">

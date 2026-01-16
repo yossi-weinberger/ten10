@@ -136,9 +136,27 @@ export function TransactionForm({
         "non_tithe_donation",
       ].includes(search.type as TransactionType)
     ) {
-      form.setValue("type", search.type as TransactionType);
+      const nextType = search.type as TransactionType;
+      form.setValue("type", nextType, { shouldValidate: false });
+
+      // Keep chomesh in sync when type changes programmatically (e.g., URL param)
+      if (nextType !== "income") {
+        form.setValue("is_chomesh", false, {
+          shouldValidate: false,
+          shouldDirty: false,
+        });
+      } else {
+        const isChomeshDirty = !!form.formState.dirtyFields?.is_chomesh;
+        if (!isChomeshDirty) {
+          const isExempt = !!form.getValues("isExempt");
+          form.setValue("is_chomesh", isExempt ? false : autoCalcChomesh, {
+            shouldValidate: false,
+            shouldDirty: false,
+          });
+        }
+      }
     }
-  }, [search, form, isEditMode]);
+  }, [search, form, isEditMode, autoCalcChomesh]);
 
   // Use useEffect to reset the form when initialData changes (for editing)
   React.useEffect(() => {
