@@ -190,7 +190,7 @@ export function TransactionsTableDisplay() {
           // Refresh table data to reflect changes (reset=true to avoid appending duplicates)
           await fetchTransactions(true, platform);
         } catch (refreshError) {
-          console.warn("Failed to refresh table after update", refreshError);
+          logger.warn("Failed to refresh table after update", refreshError);
           // Do not re-throw refresh error - the update succeeded, so we should allow the modal to close
         }
       } else {
