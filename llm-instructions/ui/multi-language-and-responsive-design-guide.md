@@ -779,3 +779,50 @@ const formatCaption = (date: Date) => {
 ```
 
 This guide provides a roadmap. Each step will require careful implementation and testing.
+
+## VIII. Advanced Layout Patterns
+
+### 1. Complex Mobile vs. Desktop Ordering
+
+**Challenge:** Sometimes the desired order of elements on mobile is significantly different from the desktop layout, to the point where CSS Grid or Flexbox `order` properties become overly complex or insufficient (e.g., interleaving items from different desktop columns into a single mobile column).
+
+**Solution:** Use separate layout structures for mobile and desktop, controlling visibility with Tailwind's display utilities.
+
+**Example (Settings Page):**
+
+*   **Desktop (`hidden md:grid`):** Two distinct columns with specific content.
+*   **Mobile (`flex md:hidden`):** A single column with a completely custom order of elements.
+
+**Implementation Pattern:**
+
+```tsx
+// Define components as variables to avoid code duplication
+const sectionA = <ComponentA />;
+const sectionB = <ComponentB />;
+const sectionC = <ComponentC />;
+
+return (
+  <div className="container">
+    {/* Desktop Layout */}
+    <div className="hidden md:grid md:grid-cols-2 gap-6">
+      <div className="col-left">
+        {sectionA}
+        {sectionC}
+      </div>
+      <div className="col-right">
+        {sectionB}
+      </div>
+    </div>
+
+    {/* Mobile Layout - Custom Order */}
+    <div className="flex flex-col gap-6 md:hidden">
+      {sectionA}
+      {sectionB} // Moved to middle for mobile
+      {sectionC}
+    </div>
+  </div>
+);
+```
+
+This approach ensures perfect control over the user experience on all devices without fighting CSS limitations.
+

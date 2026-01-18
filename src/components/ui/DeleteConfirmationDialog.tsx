@@ -22,16 +22,18 @@ interface DeleteConfirmationDialogProps {
 export const DeleteConfirmationDialog: React.FC<
   DeleteConfirmationDialogProps
 > = ({ isOpen, onOpenChange, onConfirm, title, description }) => {
-  const { t } = useTranslation("data-tables");
+  const { t, i18n } = useTranslation("data-tables");
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
-      <AlertDialogContent dir="rtl">
-        <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+      <AlertDialogContent dir={i18n.dir()}>
+        <AlertDialogHeader className="text-start">
+          <AlertDialogTitle className="text-start">{title}</AlertDialogTitle>
+          <AlertDialogDescription className="text-start">
+            {description}
+          </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter>
+        <AlertDialogFooter className="gap-2 sm:space-x-0">
           <AlertDialogCancel onClick={() => onOpenChange(false)}>
             {t("actions.cancel")}
           </AlertDialogCancel>

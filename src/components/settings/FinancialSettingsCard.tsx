@@ -157,7 +157,8 @@ export function FinancialSettingsCard({
           />
         </div>
 
-        <div className="flex items-center justify-between">
+        {/* Min Maaser Percentage - Hidden for now */}
+        {/* <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-md border">
               <Percent className="h-5 w-5" />
@@ -193,7 +194,7 @@ export function FinancialSettingsCard({
             }
             disabled={disableMinMaaserPercentage}
           />
-        </div>
+        </div> */}
       </CardContent>
     </Card>
   );

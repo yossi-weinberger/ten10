@@ -25,7 +25,7 @@ This document outlines the standard approach for handling financial transactions
   - `'non_tithe_donation'`: Represents a donation made from personal, non-tithe funds. It does not reduce the required tithe amount. However, it _is_ included in the total sum of donations for reporting purposes and can be displayed separately.
   - `'initial_balance'`: Represents an opening balance adjustment for users who start using the application with existing debt or credit. This type:
     - **Positive amount**: Adds directly to the tithe obligation (user owes this amount).
-    - **Negative amount**: Reduces the tithe obligation (user has pre-paid/credit).
+    - **Negative amount**: Reduces the tithe obligation (user has pre-paid/credit). Allowed via specific DB constraint exception.
     - **Important**: This type is intentionally **excluded** from `INCOME_TYPES`, `EXPENSE_TYPES`, and `DONATION_TYPES` constants, ensuring it doesn't affect monthly charts or income/expense reports. It only affects the overall tithe balance calculation.
     - **UI**: Created via a dedicated "Opening Balance" modal in Settings, not through the main transaction form.
 - **Specific Fields**: Fields relevant only to certain types (e.g., `is_chomesh`, `recipient`) are defined in the interface but only populated when relevant.
@@ -70,6 +70,11 @@ This document outlines the standard approach for handling financial transactions
   - `recognized-expense`: Subtract `amount * 0.1` from the balance.
   - `non_tithe_donation`: No change to the balance.
   - `initial_balance`: Add `amount` directly to the balance (positive = debt, negative = credit).
+
+**Database Constraints:**
+- The `transactions_type_check` constraint must include `'initial_balance'`.
+- The `transactions_amount_check` constraint (normally `amount >= 0`) must have an exception for `'initial_balance'` to allow negative values (credits).
+
 - The final balance **can be negative**. A negative balance indicates a surplus, meaning the user has donated more than the calculated required amount up to that point.
 - This function is the **single source of truth** for the _overall_ required tithe balance.
 

@@ -26,15 +26,20 @@ import { formatCurrency } from "@/lib/utils/currency";
 import toast from "react-hot-toast";
 import { logger } from "@/lib/logger";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { Transaction } from "@/types/transaction";
 
 interface OpeningBalanceModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialData?: Transaction | null;
+  onUpdate?: (id: string, updates: Partial<Transaction>) => Promise<void>;
 }
 
 export function OpeningBalanceModal({
   isOpen,
   onClose,
+  initialData,
+  onUpdate,
 }: OpeningBalanceModalProps) {
   const { t } = useTranslation("settings");
   const { t: tCommon } = useTranslation("common");
@@ -46,14 +51,19 @@ export function OpeningBalanceModal({
   const isDesktopQuery = useMediaQuery("(min-width: 768px)");
   const [useDesktop, setUseDesktop] = useState(isDesktopQuery);
 
-  // Reset form when modal opens or closes
+  // Reset or populate form when modal opens
   useEffect(() => {
     if (isOpen) {
-      setAmount("");
-      setBalanceType("debt");
+      if (initialData) {
+        setAmount(Math.abs(initialData.amount).toString());
+        setBalanceType(initialData.amount >= 0 ? "debt" : "credit");
+      } else {
+        setAmount("");
+        setBalanceType("debt");
+      }
       setIsSubmitting(false);
     }
-  }, [isOpen]);
+  }, [isOpen, initialData]);
 
   // Lock the variant (Drawer/Dialog) when the modal is open
   useEffect(() => {
@@ -75,6 +85,15 @@ export function OpeningBalanceModal({
       // Credit = Negative amount (reduces obligation)
       const finalAmount =
         balanceType === "debt" ? parseFloat(amount) : -parseFloat(amount);
+
+      if (initialData && onUpdate) {
+        await onUpdate(initialData.id, {
+          amount: finalAmount,
+        });
+        toast.success(tCommon("toast.settings.saveSuccess"));
+        onClose();
+        return;
+      }
 
       await handleTransactionSubmit({
         type: "initial_balance",
@@ -187,7 +206,9 @@ export function OpeningBalanceModal({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader className="pr-10 rtl:pl-10">
-            <DialogTitle>{t("balanceManagement.modalTitle")}</DialogTitle>
+            <DialogTitle>
+              {initialData ? t("modal.editTitle", { ns: "data-tables" }) : t("balanceManagement.modalTitle")}
+            </DialogTitle>
             <DialogDescription>
               {t("balanceManagement.modalDescription")}
             </DialogDescription>
@@ -207,7 +228,9 @@ export function OpeningBalanceModal({
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DrawerContent>
         <DrawerHeader className="text-start">
-          <DrawerTitle>{t("balanceManagement.modalTitle")}</DrawerTitle>
+          <DrawerTitle>
+            {initialData ? t("modal.editTitle", { ns: "data-tables" }) : t("balanceManagement.modalTitle")}
+          </DrawerTitle>
           <DrawerDescription>
             {t("balanceManagement.modalDescription")}
           </DrawerDescription>

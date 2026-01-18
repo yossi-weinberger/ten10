@@ -1,12 +1,5 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
 import { useTheme } from "@/lib/theme";
 import { useDonationStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
@@ -42,7 +35,8 @@ export function SettingsPage() {
   const [isClearing, setIsClearing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
-  const [isOpeningBalanceModalOpen, setIsOpeningBalanceModalOpen] = useState(false);
+  const [isOpeningBalanceModalOpen, setIsOpeningBalanceModalOpen] =
+    useState(false);
   const { platform } = usePlatform();
   const { user } = useAuth();
   const { t } = useTranslation("settings");
@@ -81,6 +75,108 @@ export function SettingsPage() {
     }
   };
 
+  // Define components to reuse in both layouts
+  const languageSection = (
+    <LanguageAndDisplaySettingsCard
+      theme={theme}
+      setTheme={setTheme}
+      languageSettings={{ language: settings.language }}
+      updateSettings={(newLangSettings) => updateSettings(newLangSettings)}
+    />
+  );
+
+  const versionSection = <VersionInfoCard />;
+
+  const financialSection = (
+    <FinancialSettingsCard
+      financialSettings={{
+        defaultCurrency: settings.defaultCurrency as "ILS" | "USD" | "EUR",
+        autoCalcChomesh: settings.autoCalcChomesh,
+        minMaaserPercentage: settings.minMaaserPercentage,
+      }}
+      updateSettings={(newFinancialSettings) =>
+        updateSettings(newFinancialSettings)
+      }
+      disableMinMaaserPercentage={true}
+      onOpenBalanceModal={() => setIsOpeningBalanceModalOpen(true)}
+    />
+  );
+
+  const notificationSection = (
+    <NotificationSettingsCard
+      notificationSettings={{
+        notifications: settings.notifications,
+        recurringDonations: settings.recurringDonations,
+        reminderEnabled: settings.reminderEnabled,
+        reminderDayOfMonth: settings.reminderDayOfMonth,
+      }}
+      updateSettings={async (newNotificationSettings) => {
+        // Update local settings immediately
+        updateSettings(newNotificationSettings);
+
+        // Update Supabase for web users
+        if (platform === "web" && user) {
+          try {
+            await supabase
+              .from("profiles")
+              .update({
+                reminder_enabled: newNotificationSettings.reminderEnabled,
+                reminder_day_of_month:
+                  newNotificationSettings.reminderDayOfMonth,
+              })
+              .eq("id", user.id);
+          } catch (error) {
+            logger.error(
+              "Failed to update reminder settings in Supabase:",
+              error
+            );
+            toast.error(tCommon("toast.settings.updateError"));
+          }
+        }
+      }}
+      disabled={false}
+    />
+  );
+
+  const calendarSection = (
+    <CalendarSettingsCard
+      calendarSettings={{
+        calendarType: settings.calendarType,
+        maaserYearStart: ["tishrei", "nisan", "january"].includes(
+          settings.maaserYearStart ?? ""
+        )
+          ? (settings.maaserYearStart as
+              | "tishrei"
+              | "nisan"
+              | "january"
+              | undefined)
+          : undefined,
+      }}
+      updateSettings={(newCalendarSettings) =>
+        updateSettings(newCalendarSettings)
+      }
+      disabled={true}
+    />
+  );
+
+  const importExportSection = (
+    <ImportExportDataSection
+      handleExportData={handleExportData}
+      isExporting={isExporting}
+      handleImportData={handleImportData}
+      isImporting={isImporting}
+      className="flex-1"
+    />
+  );
+
+  const clearDataSection = (
+    <ClearDataSection
+      handleClearData={handleClearData}
+      isClearing={isClearing}
+      className="flex-1"
+    />
+  );
+
   return (
     <div className="grid gap-6">
       <div className="grid gap-2">
@@ -88,111 +184,34 @@ export function SettingsPage() {
         <p className="text-muted-foreground">{t("pageDescription")}</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Left Column: Language & Version */}
-        <div className="flex flex-col gap-6">
-          <LanguageAndDisplaySettingsCard
-            theme={theme}
-            setTheme={setTheme}
-            languageSettings={{ language: settings.language }}
-            updateSettings={(newLangSettings) =>
-              updateSettings(newLangSettings)
-            }
-          />
-
-          {/* Version Information (Desktop Only) */}
-          <VersionInfoCard />
+      {/* Desktop Layout (Two Independent Columns) */}
+      <div className="hidden md:grid md:grid-cols-2 gap-6 items-start">
+        {/* Left Column */}
+        <div className="flex flex-col gap-6 h-full">
+          {languageSection}
+          {versionSection}
+          {importExportSection}
+          {clearDataSection}
         </div>
 
-        {/* Right Column: Financial Settings */}
-        <FinancialSettingsCard
-          financialSettings={{
-            defaultCurrency: settings.defaultCurrency as "ILS" | "USD" | "EUR",
-            autoCalcChomesh: settings.autoCalcChomesh,
-            minMaaserPercentage: settings.minMaaserPercentage,
-          }}
-          updateSettings={(newFinancialSettings) =>
-            updateSettings(newFinancialSettings)
-          }
-          disableMinMaaserPercentage={true}
-          onOpenBalanceModal={() => setIsOpeningBalanceModalOpen(true)}
-        />
-
-        <NotificationSettingsCard
-          notificationSettings={{
-            notifications: settings.notifications,
-            recurringDonations: settings.recurringDonations,
-            reminderEnabled: settings.reminderEnabled,
-            reminderDayOfMonth: settings.reminderDayOfMonth,
-          }}
-          updateSettings={async (newNotificationSettings) => {
-            // Update local settings immediately
-            updateSettings(newNotificationSettings);
-
-            // Update Supabase for web users
-            if (platform === "web" && user) {
-              try {
-                await supabase
-                  .from("profiles")
-                  .update({
-                    reminder_enabled: newNotificationSettings.reminderEnabled,
-                    reminder_day_of_month:
-                      newNotificationSettings.reminderDayOfMonth,
-                  })
-                  .eq("id", user.id);
-              } catch (error) {
-                logger.error(
-                  "Failed to update reminder settings in Supabase:",
-                  error
-                );
-                toast.error(tCommon("toast.settings.updateError"));
-              }
-            }
-          }}
-          disabled={false}
-        />
-
-        <CalendarSettingsCard
-          calendarSettings={{
-            calendarType: settings.calendarType,
-            maaserYearStart: ["tishrei", "nisan", "january"].includes(
-              settings.maaserYearStart ?? ""
-            )
-              ? (settings.maaserYearStart as
-                  | "tishrei"
-                  | "nisan"
-                  | "january"
-                  | undefined)
-              : undefined,
-          }}
-          updateSettings={(newCalendarSettings) =>
-            updateSettings(newCalendarSettings)
-          }
-          disabled={true}
-        />
+        {/* Right Column */}
+        <div className="flex flex-col gap-6 h-full">
+          {financialSection}
+          {notificationSection}
+          {calendarSection}
+        </div>
       </div>
 
-      {/* Data Management Card */}
-      <Card className="mt-6">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle>{t("dataManagementTitle")}</CardTitle>
-          </div>
-          <CardDescription>{t("dataManagementDescription")}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col md:flex-row gap-6">
-          <ImportExportDataSection
-            handleExportData={handleExportData}
-            isExporting={isExporting}
-            handleImportData={handleImportData}
-            isImporting={isImporting}
-          />
-          <ClearDataSection
-            handleClearData={handleClearData}
-            isClearing={isClearing}
-          />
-        </CardContent>
-      </Card>
+      {/* Mobile Layout (Single Column, Custom Order) */}
+      <div className="flex flex-col gap-6 md:hidden">
+        {languageSection}
+        {versionSection}
+        {financialSection}
+        {notificationSection}
+        {calendarSection}
+        {importExportSection}
+        {clearDataSection}
+      </div>
 
       <OpeningBalanceModal
         isOpen={isOpeningBalanceModalOpen}
