@@ -88,27 +88,27 @@ export function LanguageAndDisplaySettingsCard({
       <CardContent className="grid gap-4">
         <div className="grid gap-2">
           <Label>{t("languageAndDisplay.languageLabel")}</Label>
-          <Select
+          <ToggleGroup
+            type="single"
             value={currentLanguage}
-            onValueChange={(value) =>
-              handleLanguageChange(value as "he" | "en")
-            }
-            dir={i18n.dir()}
+            onValueChange={(value) => {
+              if (value) handleLanguageChange(value as "he" | "en");
+            }}
+            className="grid grid-cols-2 gap-1 rounded-md border p-1"
           >
-            <SelectTrigger>
-              <SelectValue
-                placeholder={t("languageAndDisplay.languagePlaceholder")}
-              />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="he">
-                {t("languageAndDisplay.hebrew")}
-              </SelectItem>
-              <SelectItem value="en">
-                {t("languageAndDisplay.english")}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+            <ToggleGroupItem
+              value="he"
+              className="flex-1 justify-center hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            >
+              {t("languageAndDisplay.hebrew")}
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="en"
+              className="flex-1 justify-center hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            >
+              {t("languageAndDisplay.english")}
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
 
         <div className="grid gap-2">

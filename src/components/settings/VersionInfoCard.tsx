@@ -156,7 +156,7 @@ export function VersionInfoCard() {
           <span className="text-sm font-medium">
             {t("versionInfo.currentVersion")}
           </span>
-          <Badge variant="outline" className="font-mono">
+          <Badge variant="outline" className="font-mono text-base px-2 py-1">
             v{currentVersion || "..."}
           </Badge>
         </div>
