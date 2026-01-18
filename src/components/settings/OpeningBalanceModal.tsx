@@ -46,6 +46,15 @@ export function OpeningBalanceModal({
   const isDesktopQuery = useMediaQuery("(min-width: 768px)");
   const [useDesktop, setUseDesktop] = useState(isDesktopQuery);
 
+  // Reset form when modal opens or closes
+  useEffect(() => {
+    if (isOpen) {
+      setAmount("");
+      setBalanceType("debt");
+      setIsSubmitting(false);
+    }
+  }, [isOpen]);
+
   // Lock the variant (Drawer/Dialog) when the modal is open
   useEffect(() => {
     if (!isOpen) setUseDesktop(isDesktopQuery);

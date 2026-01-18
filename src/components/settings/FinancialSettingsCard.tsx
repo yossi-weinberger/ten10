@@ -103,7 +103,7 @@ export function FinancialSettingsCard({
               {t("financial.currencyWarning.description")}
             </AlertDescription>
           </Alert>
-        </div>יש בעיו
+        </div>
 
         {/* Opening Balance Button */}
         {onOpenBalanceModal && (
