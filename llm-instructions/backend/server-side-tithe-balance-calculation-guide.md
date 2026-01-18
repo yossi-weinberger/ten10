@@ -51,6 +51,11 @@
     - **`SELECT COALESCE(SUM(...), 0) INTO v_balance ...`**: זוהי ליבת החישוב, זהה למה שדנו עליו, עם `COALESCE` כדי להבטיח שיוחזר `0` אם אין טרנזקציות למשתמש (ולא `NULL`).
     - **`LANGUAGE plpgsql`**: מציין את שפת הפרוצדורה (שפת ברירת המחדל של PostgreSQL לפונקציות).
 
+    **Database Constraints Updates:**
+    To support `initial_balance` correctly, especially with negative amounts (credit), the following constraints were updated:
+    1.  **`transactions_type_check`**: Added `initial_balance` to the allowed types list.
+    2.  **`transactions_amount_check`**: Updated to allow negative amounts *only* when `type = 'initial_balance'` (e.g., `CHECK (amount >= 0 OR type = 'initial_balance')`).
+
 **שלב 2: הוספת פונקציה חדשה לשליפת היתרה ב-`src/lib/data-layer/analytics.service.ts`**
 
 1.  פתח את הקובץ `src/lib/data-layer/analytics.service.ts`.
