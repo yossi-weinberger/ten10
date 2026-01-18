@@ -255,7 +255,7 @@ export function StatsCards({
 
   const containerClass =
     orientation === "horizontal"
-      ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4"
+      ? "grid grid-cols-2 gap-4 lg:grid-cols-2 xl:grid-cols-4"
       : "grid grid-rows-4 gap-4 flex-grow";
 
   const rootContainerClass =

@@ -138,7 +138,7 @@ export function StatCard({
       } ${isSpecial ? specialStyles.border : ""} ${
         isSpecial ? specialStyles.ring : ""
         // controls the card height
-      } transition-all duration-300 h-[175px]`}
+      } transition-all duration-300 h-[200px] sm:h-[175px]`}
       gradientColor={styles.gradient}
     >
       <div className="relative h-full">
