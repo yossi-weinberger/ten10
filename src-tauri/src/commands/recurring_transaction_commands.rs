@@ -313,12 +313,6 @@ pub fn get_recurring_transactions_handler(
     Ok(recurring)
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct UpdateRecurringTransactionPayload {
-    pub id: String,
-    pub updates: serde_json::Value,
-}
-
 #[tauri::command]
 pub fn update_recurring_transaction_handler(
     db_state: State<'_, DbState>,
