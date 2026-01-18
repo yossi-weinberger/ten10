@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Globe } from "lucide-react";
 import { useDonationStore } from "@/lib/store";
+import { logger } from "@/lib/logger";
 
 interface LanguageToggleProps {
   className?: string;
@@ -22,7 +23,9 @@ export function LanguageToggle({
       .then(() => {
         updateSettings({ language: newLang });
       })
-      .catch(() => {});
+      .catch((error: unknown) => {
+        logger.error("Failed to change language:", error);
+      });
   };
 
   return (
