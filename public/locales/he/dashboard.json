@@ -43,7 +43,8 @@
       "change": "שינוי",
       "exceededGoal": "עברת את היעד ב-{{amount}} (יתרה)",
       "goalProgress": "{{percentage}}% מהיעד הושלם",
-      "addDonation": "הוסף תרומה"
+      "addDonation": "הוסף תרומה",
+      "setOpeningBalance": "הגדר יתרת פתיחה"
     },
     "magic": {
       "title": "קסם",

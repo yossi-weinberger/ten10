@@ -26,6 +26,7 @@ import { he, enUS } from "date-fns/locale";
 import { formatHebrewDate } from "@/lib/utils/hebrew-date";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { useEffect, useMemo, useState } from "react";
+import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 
 export function StatsCards({
   orientation = "horizontal",
@@ -102,6 +103,7 @@ export function StatsCards({
   } = useServerStats(activeDateRangeObject, user, platform);
 
   const [lastChomeshValue, setLastChomeshValue] = useState<number | null>(null);
+  const [isOpeningBalanceModalOpen, setIsOpeningBalanceModalOpen] = useState(false);
 
   useEffect(() => {
     if (typeof serverChomeshAmount === "number") {
@@ -327,9 +329,9 @@ export function StatsCards({
             colorScheme="blue"
             subtitleContent={overallRequiredSubtitle}
             isSpecial={true}
-            // onAddClick={handleOverallRequiredAdd}
-            showAddButton={false}
-            addButtonTooltip={t("statsCards.overallRequired.addDonation")}
+            onAddClick={() => setIsOpeningBalanceModalOpen(true)}
+            showAddButton={true}
+            addButtonTooltip={t("statsCards.overallRequired.setOpeningBalance")}
           />
         </motion.div>
         <StatCard
@@ -374,6 +376,11 @@ export function StatsCards({
           addButtonTooltip={t("statsCards.donations.addDonation")}
         />
       </div>
+      
+      <OpeningBalanceModal 
+        isOpen={isOpeningBalanceModalOpen}
+        onClose={() => setIsOpeningBalanceModalOpen(false)}
+      />
     </div>
   );
 }

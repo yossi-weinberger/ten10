@@ -102,6 +102,9 @@ pub async fn get_desktop_overall_tithe_balance(
                     "recognized-expense" => {
                         balance -= amount * 0.1;
                     }
+                    "initial_balance" => {
+                        balance += amount;
+                    }
                     _ => {} // Other types do not affect the balance
                 }
             }

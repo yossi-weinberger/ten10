@@ -28,6 +28,7 @@ import { CalendarSettingsCard } from "@/components/settings/CalendarSettingsCard
 import { ClearDataSection } from "@/components/settings/ClearDataSection";
 import { ImportExportDataSection } from "@/components/settings/ImportExportDataSection";
 import { VersionInfoCard } from "@/components/settings/VersionInfoCard";
+import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { logger } from "@/lib/logger";
 
 export function SettingsPage() {
@@ -41,6 +42,7 @@ export function SettingsPage() {
   const [isClearing, setIsClearing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isOpeningBalanceModalOpen, setIsOpeningBalanceModalOpen] = useState(false);
   const { platform } = usePlatform();
   const { user } = useAuth();
   const { t } = useTranslation("settings");
@@ -113,6 +115,7 @@ export function SettingsPage() {
             updateSettings(newFinancialSettings)
           }
           disableMinMaaserPercentage={true}
+          onOpenBalanceModal={() => setIsOpeningBalanceModalOpen(true)}
         />
 
         <NotificationSettingsCard
@@ -169,6 +172,7 @@ export function SettingsPage() {
         />
       </div>
 
+      {/* Data Management Card */}
       <Card className="mt-6">
         <CardHeader>
           <div className="flex items-center gap-2">
@@ -189,6 +193,11 @@ export function SettingsPage() {
           />
         </CardContent>
       </Card>
+
+      <OpeningBalanceModal
+        isOpen={isOpeningBalanceModalOpen}
+        onClose={() => setIsOpeningBalanceModalOpen(false)}
+      />
     </div>
   );
 }

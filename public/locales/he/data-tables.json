@@ -47,7 +47,8 @@
     "donation": "תרומה",
     "exempt-income": "הכנסה פטורה",
     "recognized-expense": "הוצאה מוכרת",
-    "non_tithe_donation": "תרומה שאינה ממעשר"
+    "non_tithe_donation": "תרומה שאינה ממעשר",
+    "initial_balance": "יתרת פתיחה"
   },
   "actions": {
     "title": "פעולות",

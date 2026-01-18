@@ -23,6 +23,11 @@ This document outlines the standard approach for handling financial transactions
   - `'exempt-income'`: Income inherently exempt from tithe (e.g., certain gifts, specific stipends, offset rental income). Does not affect tithe calculation. **Note:** Reimbursements for expenses are _not_ exempt income; they should reduce the amount of the original expense recorded (or the expense shouldn't be recorded if fully reimbursed).
   - `'recognized-expense'`: Business or work-related expenses that reduce the income base subject to tithe (e.g., travel, babysitting for work, business investments/ads). Reduces required tithe by 10% of the expense amount.
   - `'non_tithe_donation'`: Represents a donation made from personal, non-tithe funds. It does not reduce the required tithe amount. However, it _is_ included in the total sum of donations for reporting purposes and can be displayed separately.
+  - `'initial_balance'`: Represents an opening balance adjustment for users who start using the application with existing debt or credit. This type:
+    - **Positive amount**: Adds directly to the tithe obligation (user owes this amount).
+    - **Negative amount**: Reduces the tithe obligation (user has pre-paid/credit).
+    - **Important**: This type is intentionally **excluded** from `INCOME_TYPES`, `EXPENSE_TYPES`, and `DONATION_TYPES` constants, ensuring it doesn't affect monthly charts or income/expense reports. It only affects the overall tithe balance calculation.
+    - **UI**: Created via a dedicated "Opening Balance" modal in Settings, not through the main transaction form.
 - **Specific Fields**: Fields relevant only to certain types (e.g., `is_chomesh`, `recipient`) are defined in the interface but only populated when relevant.
   **UI Handling**: In the `TransactionForm`, subtypes like `exempt-income` and `recognized-expense` are handled via conditional checkboxes presented under the main `income` or `expense` type selections, simplifying the initial choice for the user while allowing for the necessary detail.
   
@@ -64,6 +69,7 @@ This document outlines the standard approach for handling financial transactions
   - `exempt-income`: No change to the balance.
   - `recognized-expense`: Subtract `amount * 0.1` from the balance.
   - `non_tithe_donation`: No change to the balance.
+  - `initial_balance`: Add `amount` directly to the balance (positive = debt, negative = credit).
 - The final balance **can be negative**. A negative balance indicates a surplus, meaning the user has donated more than the calculated required amount up to that point.
 - This function is the **single source of truth** for the _overall_ required tithe balance.
 

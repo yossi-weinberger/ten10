@@ -7,6 +7,7 @@ export const transactionTypeLabels: Record<TransactionType, string> = {
   "exempt-income": "הכנסה פטורה",
   "recognized-expense": "הוצאה מוכרת",
   non_tithe_donation: "תרומה שאינה ממעשר",
+  initial_balance: "יתרת פתיחה",
 };
 
 export const typeBadgeColors: Record<TransactionType, string> = {
@@ -16,4 +17,5 @@ export const typeBadgeColors: Record<TransactionType, string> = {
   "exempt-income": "bg-blue-100 text-blue-800 border-blue-300",
   "recognized-expense": "bg-rose-100 text-rose-800 border-rose-300",
   non_tithe_donation: "bg-orange-100 text-orange-800 border-orange-300",
+  initial_balance: "bg-gray-100 text-gray-800 border-gray-300",
 };

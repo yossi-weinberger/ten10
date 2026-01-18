@@ -102,7 +102,21 @@
     "offlineHelp": "לקבלת גרסה מעודכנת ללא חיבור לאינטרנט, אנא פנה אלינו במייל: support@ten10-app.com",
     "webVersionNote": "גרסת האתר מתעדכנת אוטומטית. אין צורך בעדכונים ידניים."
   },
+  "balanceManagement": {
+    "title": "ניהול יתרה",
+    "description": "ניהול יתרת פתיחה וחובות",
+    "openingBalanceButton": "הגדר יתרת פתיחה",
+    "modalTitle": "הגדרת יתרת פתיחה",
+    "modalDescription": "כאן ניתן להגדיר חוב או זכות התחלתיים ללא השפעה על דוחות ההכנסות.",
+    "currentBalance": "יתרה נוכחית",
+    "amountLabel": "סכום",
+    "debtLabel": "חוב",
+    "creditLabel": "זכות",
+    "saveButton": "עדכן יתרה",
+    "cancelButton": "ביטול"
+  },
   "messages": {
+    "invalidAmount": "סכום לא חוקי",
     "noDataToExport": "אין נתונים לייצא.",
     "exportSuccess": "הנתונים יוצאו בהצלחה!",
     "exportError": "שגיאה בייצוא הנתונים (Desktop).",

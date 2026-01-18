@@ -38,6 +38,7 @@ const availableTransactionTypes: TransactionType[] = [
   "exempt-income",
   "recognized-expense",
   "non_tithe_donation",
+  "initial_balance",
 ];
 
 // Moved to translation files - will use t() function

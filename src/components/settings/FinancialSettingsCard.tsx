@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Wallet, Calculator, Percent, AlertTriangle } from "lucide-react";
+import { Wallet, Calculator, Percent, AlertTriangle, Coins } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -26,6 +26,7 @@ interface FinancialSettingsCardProps {
   updateSettings: (newSettings: Partial<FinancialSettings>) => void;
   disableAutoCalcChomesh?: boolean;
   disableMinMaaserPercentage?: boolean;
+  onOpenBalanceModal?: () => void;
 }
 
 export function FinancialSettingsCard({
@@ -33,6 +34,7 @@ export function FinancialSettingsCard({
   updateSettings,
   disableAutoCalcChomesh = false,
   disableMinMaaserPercentage = false,
+  onOpenBalanceModal,
 }: FinancialSettingsCardProps) {
   const { t } = useTranslation("settings");
 
@@ -101,7 +103,27 @@ export function FinancialSettingsCard({
               {t("financial.currencyWarning.description")}
             </AlertDescription>
           </Alert>
-        </div>
+        </div>יש בעיו
+
+        {/* Opening Balance Button */}
+        {onOpenBalanceModal && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-md border">
+                <Coins className="h-5 w-5" />
+              </div>
+              <div>
+                <Label>{t("balanceManagement.title")}</Label>
+                <p className="text-sm text-muted-foreground">
+                  {t("balanceManagement.description")}
+                </p>
+              </div>
+            </div>
+            <Button variant="outline" onClick={onOpenBalanceModal}>
+              {t("balanceManagement.openingBalanceButton")}
+            </Button>
+          </div>
+        )}
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
