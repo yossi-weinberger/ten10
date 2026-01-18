@@ -195,6 +195,11 @@ The Zustand global store, `useTableTransactionsStore`, centralizes all state and
   - `deleteTransaction(transactionId: string, platform: Platform)`:
     - Responsible for deleting a transaction (by calling `transactionService`).
     - After receiving success confirmation from the server, the action removes the transaction from the local `transactions` array in the store.
+
+  ### 3.1. Dialog UX Improvements (January 2026)
+  - **Text Alignment:** All dialog headers (`AlertDialogTitle`) and descriptions now explicitly use `text-start` to respect text direction (RTL/LTR).
+  - **Button Spacing:** `AlertDialogFooter` now uses `gap-2` instead of `space-x` to prevent conflicts and ensure consistent spacing between action buttons across all screen sizes and directions.
+  - **Mobile Layout:** The Settings page layout has been refactored to use a "contents" display strategy or a dual-layout approach (hidden/block) to ensure correct element ordering on mobile (Language -> Version -> Financial...) while maintaining a two-column grid on desktop.
   - `exportTransactions(format: 'csv' | 'excel' | 'pdf', platform: Platform)`:
     - Initiates the data export process. The action fetches all relevant data from the server (unpaginated, but respecting current filters and sorting – by calling `transactionService.getAllTransactionsForExport`). Then, it uses client-side libraries (`exceljs`, `jspdf`, and a custom function for CSV creation) to generate and download the file in the requested format.
     - For PDF export, passes the current `sorting` configuration to `exportTransactionsToPDF` to enable month separators when sorting by date.
