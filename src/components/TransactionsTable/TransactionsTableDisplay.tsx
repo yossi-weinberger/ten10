@@ -14,10 +14,6 @@ import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { TransactionEditModal } from "./TransactionEditModal";
@@ -194,7 +190,6 @@ export function TransactionsTableDisplay() {
           // Do not re-throw refresh error - the update succeeded, so we should allow the modal to close
         }
       } else {
-        toast.error(t("messages.platformError"));
         throw new Error(t("messages.platformError"));
       }
     },
