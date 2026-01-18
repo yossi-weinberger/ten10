@@ -143,6 +143,8 @@ function parseTailwindColor(colorString: string): {
     "blue-100": rgb(0.93, 0.95, 0.99),
     "rose-100": rgb(0.99, 0.93, 0.95),
     "orange-100": rgb(0.99, 0.95, 0.91),
+    "gray-800": rgb(0.12, 0.16, 0.22), // Approximate tailwind gray-800
+    "gray-100": rgb(0.96, 0.97, 0.98), // Approximate tailwind gray-100
   };
 
   const textColorMatch = colorString.match(/text-([a-z]+)-(\d+)/);
