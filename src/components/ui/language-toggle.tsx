@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Globe } from "lucide-react";
+import { useDonationStore } from "@/lib/store";
 
 interface LanguageToggleProps {
   className?: string;
@@ -12,10 +13,16 @@ export function LanguageToggle({
   variant = "outline",
 }: LanguageToggleProps) {
   const { i18n } = useTranslation();
+  const updateSettings = useDonationStore((state) => state.updateSettings);
 
   const handleLanguageChange = () => {
     const newLang = i18n.language === "he" ? "en" : "he";
-    (i18n as any).changeLanguage(newLang);
+    (i18n as any)
+      .changeLanguage(newLang)
+      .then(() => {
+        updateSettings({ language: newLang });
+      })
+      .catch(() => {});
   };
 
   return (
