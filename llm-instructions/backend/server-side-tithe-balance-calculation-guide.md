@@ -22,6 +22,8 @@
                         -amount
                     WHEN type = 'recognized-expense' THEN
                         -amount * 0.1
+                    WHEN type = 'initial_balance' THEN
+                        amount  -- Direct adjustment: positive = debt, negative = credit
                     ELSE
                         0
                 END
@@ -35,6 +37,12 @@
     END;
     $$ LANGUAGE plpgsql;
     ```
+    
+    **Note about `initial_balance` type:**
+    - This type is used to set an opening balance (debt or credit) without affecting income/expense reports.
+    - A **positive amount** increases the tithe obligation (debt).
+    - A **negative amount** decreases the tithe obligation (credit/prepayment).
+    - This type is **NOT included** in `INCOME_TYPES`, `EXPENSE_TYPES`, or `DONATION_TYPES` to ensure it doesn't appear in charts or standard reports.
 
     - **`CREATE OR REPLACE FUNCTION`**: יוצר את הפונקציה או מחליף אותה אם היא כבר קיימת.
     - **`p_user_id UUID`**: פרמטר הקלט לפונקציה (מזהה המשתמש).

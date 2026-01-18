@@ -12,7 +12,8 @@
       "donation": "Donation",
       "exempt-income": "Exempt Income",
       "recognized-expense": "Recognized Expense",
-      "non_tithe_donation": "Non-Tithe Donation"
+      "non_tithe_donation": "Non-Tithe Donation",
+      "initial_balance": "Opening Balance"
     },
     "amount": {
       "label": "Amount",

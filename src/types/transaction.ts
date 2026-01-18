@@ -10,7 +10,8 @@ export type TransactionType =
   | "donation"
   | "exempt-income"
   | "recognized-expense"
-  | "non_tithe_donation";
+  | "non_tithe_donation"
+  | "initial_balance";
 
 // Array of literal types for Zod enum
 export const transactionTypes = [
@@ -20,6 +21,7 @@ export const transactionTypes = [
   "exempt-income",
   "recognized-expense",
   "non_tithe_donation",
+  "initial_balance",
 ] as const;
 
 export interface RecurringInfo {

@@ -43,7 +43,8 @@
       "change": "Change",
       "exceededGoal": "Exceeded goal by {{amount}} (surplus)",
       "goalProgress": "{{percentage}}% of goal completed",
-      "addDonation": "Add Donation"
+      "addDonation": "Add Donation",
+      "setOpeningBalance": "Set Opening Balance"
     },
     "magic": {
       "title": "Magic",

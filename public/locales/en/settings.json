@@ -102,7 +102,21 @@
     "offlineHelp": "To receive an updated version without internet, please contact us: support@ten10-app.com",
     "webVersionNote": "Web version is always up to date. No manual updates needed."
   },
+  "balanceManagement": {
+    "title": "Balance Management",
+    "description": "Manage your opening balance and debts",
+    "openingBalanceButton": "Set Opening Balance",
+    "modalTitle": "Set Opening Balance",
+    "modalDescription": "This allows you to set an initial debt or credit without affecting your income reports.",
+    "currentBalance": "Current Balance",
+    "amountLabel": "Amount",
+    "debtLabel": "Debt",
+    "creditLabel": "Credit",
+    "saveButton": "Update Balance",
+    "cancelButton": "Cancel"
+  },
   "messages": {
+    "invalidAmount": "Invalid amount",
     "noDataToExport": "No data to export.",
     "exportSuccess": "Data exported successfully!",
     "exportError": "Error exporting data (Desktop).",
