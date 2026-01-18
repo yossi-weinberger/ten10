@@ -34,6 +34,7 @@ import { getRecurringTransactionById } from "@/lib/data-layer/recurringTransacti
 import { RecurringTransaction, TransactionForTable } from "@/types/transaction";
 import { DeleteConfirmationDialog } from "../ui/DeleteConfirmationDialog";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
+import { TableTransactionsService } from "@/lib/tableTransactions/tableTransactionService";
 
 // Define Transaction type (can be imported from a central types file if available)
 type Transaction = import("@/types/transaction").Transaction;
@@ -173,13 +174,31 @@ export function TransactionsTableDisplay() {
   const handleUpdateOpeningBalance = useCallback(
     async (transactionId: string, updates: Partial<Transaction>) => {
       if (platform === "web" || platform === "desktop") {
-        await updateTransaction(transactionId, updates, platform);
-        // The store handles the UI update optimistically or refetches
+        try {
+          // Use service directly to catch errors, as store action might suppress them
+          await TableTransactionsService.updateTransaction(
+            transactionId,
+            updates,
+            platform
+          );
+        } catch (error) {
+          // Re-throw error so the modal can handle it (show error toast and keep open)
+          throw error;
+        }
+
+        try {
+          // Refresh table data to reflect changes (reset=true to avoid appending duplicates)
+          await fetchTransactions(true, platform);
+        } catch (refreshError) {
+          console.warn("Failed to refresh table after update", refreshError);
+          // Do not re-throw refresh error - the update succeeded, so we should allow the modal to close
+        }
       } else {
         toast.error(t("messages.platformError"));
+        throw new Error(t("messages.platformError"));
       }
     },
-    [platform, updateTransaction, t]
+    [platform, fetchTransactions, t]
   );
 
   const handleEditRecurringInitiate = useCallback(async (recId: string) => {

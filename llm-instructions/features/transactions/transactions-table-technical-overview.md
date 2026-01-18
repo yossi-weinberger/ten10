@@ -191,6 +191,7 @@ The Zustand global store, `useTableTransactionsStore`, centralizes all state and
   - `updateTransaction(transactionId: string, updates: Partial<Transaction>, platform: Platform)`:
     - Responsible for updating an existing transaction (by calling `transactionService`).
     - After receiving success confirmation from the server, the action updates the relevant transaction in the local `transactions` array in the store.
+    - **Note for `initial_balance`**: When updating an `initial_balance` transaction, the `OpeningBalanceModal` is used instead of the standard edit modal, but it still utilizes this `updateTransaction` action to save changes.
   - `deleteTransaction(transactionId: string, platform: Platform)`:
     - Responsible for deleting a transaction (by calling `transactionService`).
     - After receiving success confirmation from the server, the action removes the transaction from the local `transactions` array in the store.
