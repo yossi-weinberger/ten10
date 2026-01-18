@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { getRecurringTransactionById } from "@/lib/data-layer/recurringTransactions.service";
 import { RecurringTransaction, TransactionForTable } from "@/types/transaction";
 import { DeleteConfirmationDialog } from "../ui/DeleteConfirmationDialog";
+import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 
 // Define Transaction type (can be imported from a central types file if available)
 type Transaction = import("@/types/transaction").Transaction;
@@ -65,6 +66,7 @@ export function TransactionsTableDisplay() {
     sorting,
     setSorting,
     deleteTransaction,
+    updateTransaction,
   } = useTableTransactionsStore(
     useShallow((state) => ({
       transactions: state.transactions,
@@ -76,6 +78,7 @@ export function TransactionsTableDisplay() {
       sorting: state.sorting,
       setSorting: state.setSorting,
       deleteTransaction: state.deleteTransaction,
+      updateTransaction: state.updateTransaction,
     }))
   );
 
@@ -88,6 +91,11 @@ export function TransactionsTableDisplay() {
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  const [editingOpeningBalanceTransaction, setEditingOpeningBalanceTransaction] =
+    useState<Transaction | null>(null);
+  const [isOpeningBalanceEditModalOpen, setIsOpeningBalanceEditModalOpen] =
+    useState(false);
 
   const [editingRecTransaction, setEditingRecTransaction] =
     useState<RecurringTransaction | null>(null);
@@ -150,10 +158,29 @@ export function TransactionsTableDisplay() {
   }, [transactionToDelete, platform, deleteTransaction]);
 
   const handleEditInitiate = useCallback((transaction: Transaction) => {
+    // If it's an initial_balance transaction, open the dedicated modal
+    if (transaction.type === "initial_balance") {
+      setEditingOpeningBalanceTransaction(transaction);
+      requestAnimationFrame(() => setIsOpeningBalanceEditModalOpen(true));
+      return;
+    }
+
     // Defer opening modal to the next frame to allow DropdownMenu to close first
     setEditingTransaction(transaction);
     requestAnimationFrame(() => setIsEditModalOpen(true));
   }, []);
+
+  const handleUpdateOpeningBalance = useCallback(
+    async (transactionId: string, updates: Partial<Transaction>) => {
+      if (platform === "web" || platform === "desktop") {
+        await updateTransaction(transactionId, updates, platform);
+        // The store handles the UI update optimistically or refetches
+      } else {
+        toast.error(t("messages.platformError"));
+      }
+    },
+    [platform, updateTransaction, t]
+  );
 
   const handleEditRecurringInitiate = useCallback(async (recId: string) => {
     setIsFetchingRec(true);
@@ -372,6 +399,16 @@ export function TransactionsTableDisplay() {
           transaction={editingRecTransaction}
         />
       )}
+      
+      <OpeningBalanceModal
+        isOpen={isOpeningBalanceEditModalOpen}
+        onClose={() => {
+          setIsOpeningBalanceEditModalOpen(false);
+          setEditingOpeningBalanceTransaction(null);
+        }}
+        initialData={editingOpeningBalanceTransaction}
+        onUpdate={handleUpdateOpeningBalance}
+      />
     </div>
   );
 }
