@@ -21,7 +21,7 @@ export interface Settings {
   minMaaserPercentage?: number;
   maaserYearStart?: string;
   reminderEnabled: boolean;
-  reminderDayOfMonth: 1 | 10 | 15 | 20;
+  reminderDayOfMonth: 1 | 5 | 10 | 15 | 20 | 25;
   termsAcceptedVersion?: string | null;
 }
 
