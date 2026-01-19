@@ -128,6 +128,7 @@ interface NotificationSettingsCardProps {
 
 // Key features:
 // - Toggle switch for enabling/disabling reminders
+// - When enabled/disabled, it syncs both `reminder_enabled` and `mailing_list_consent` in the database (for web users)
 // - Day selector with 4 preset options
 // - Platform-specific messaging (web vs desktop)
 // - RTL/LTR support for Hebrew/English
@@ -163,17 +164,9 @@ interface Settings {
 
 ```json
 {
-  "reminderSettings": {
-    "title": "תזכורות חודשיות",
-    "description": "קבל תזכורות לעדכון המעשרות",
-    "enabled": "הפעל תזכורות",
-    "dayOfMonth": "יום בחודש",
-    "days": {
-      "1": "1 בחודש",
-      "10": "10 בחודש",
-      "15": "15 בחודש",
-      "20": "20 בחודש"
-    }
+  "notifications": {
+    "emailNotificationsDescription": "קבל עדכונים, התראות, סיכומים ותזכורות במייל", // Updated description
+    // ...
   }
 }
 ```

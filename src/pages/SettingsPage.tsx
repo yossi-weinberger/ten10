@@ -121,6 +121,7 @@ export function SettingsPage() {
               .from("profiles")
               .update({
                 reminder_enabled: newNotificationSettings.reminderEnabled,
+                mailing_list_consent: newNotificationSettings.reminderEnabled, // Also update mailing list consent
                 reminder_day_of_month:
                   newNotificationSettings.reminderDayOfMonth,
               })
