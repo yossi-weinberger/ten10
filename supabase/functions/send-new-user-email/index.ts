@@ -8,7 +8,7 @@ import {
   createClient,
   type SupabaseClient,
 } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
 import { EMAIL_THEME, getEmailHeader } from "../_shared/email-design.ts";
 
@@ -37,7 +37,8 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const jsonResponse = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
+    // Scheduled task, no specific origin
+    headers: { ...getCorsHeaders(null), "Content-Type": "application/json" },
   });
 
 const escapeHtml = (value: string) =>
@@ -304,8 +305,10 @@ const buildEmailBodies = (args: {
 };
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: getCorsHeaders(origin) });
   }
 
   if (!supabaseUrl || !supabaseServiceKey) {

@@ -189,6 +189,18 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - Email bounce rate
   - Email complaints
 
+### Security Hardening (January 2026)
+
+> **See:** [security-hardening-jan-2026.md](./security-hardening-jan-2026.md) for complete details.
+
+**Summary of Security Improvements:**
+- ✅ **CORS**: Restricted Edge Functions from `*` to whitelist of allowed origins
+- ✅ **RLS Policies**: Added policies for `download_rate_limits` and `download_requests` tables
+- ✅ **SQL Functions**: Fixed mutable `search_path` vulnerability in 27 functions
+- ✅ **RLS Optimization**: Wrapped `auth.uid()` in `(select ...)` for 10 policies (performance)
+- ✅ **Database**: Updated to PostgreSQL 17.6.1.063
+- ✅ **Auth**: Enabled leaked password protection (HaveIBeenPwned)
+
 ### General
 
 - **Testing:** Thoroughly test all CRUD operations and RLS rules on the web platform.

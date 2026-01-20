@@ -25,3 +25,28 @@
 4.  **אימות והצלחה:** לאחר הוספת `base: "./"` ובנייה מחדש, הלוגים מהאפליקציה המותקנת הראו בבירור `Platform: desktop`, אתחול מוצלח של מסד הנתונים, וקריאות נכונות לשירותי הנתונים של הדסקטופ. הבעיה נפתרה.
 
 5.  **ניקיון:** לבסוף, כדי להכין את האפליקציה להפצה, הוסר הפיצ'ר `devtools` מהקובץ `src-tauri/Cargo.toml` כדי לבטל את הגישה לכלי המפתחים בגרסה הסופית.
+
+---
+
+## Security Configuration (January 2026)
+
+**Content Security Policy (CSP)** was added to `src-tauri/tauri.conf.json` to prevent XSS attacks:
+
+```json
+{
+  "app": {
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: https: data:; connect-src 'self' https://api.github.com https://objects.githubusercontent.com https://github.com https://*.supabase.co;"
+    }
+  }
+}
+```
+
+**Allowed connections:**
+- `'self'` - Local Tauri backend (IPC)
+- `https://api.github.com` - Auto-updater API
+- `https://objects.githubusercontent.com` - Download release assets
+- `https://github.com` - Release page
+- `https://*.supabase.co` - Supabase API (if needed)
+
+For complete security documentation, see: `llm-instructions/backend/security-hardening-jan-2026.md`

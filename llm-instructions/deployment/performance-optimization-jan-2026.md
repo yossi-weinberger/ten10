@@ -311,6 +311,75 @@ optimizeDeps: {
 
 **Note**: This mainly helps dev mode. Production builds are already optimized.
 
+### 10. Synchronous Platform Detection for Web (January 2026)
+
+**Files**: `src/contexts/PlatformContext.tsx`, `src/App.tsx`, `src/lib/platformManager.ts`, `src/routes.ts`
+
+**Problem**: LandingPage and other public pages showed a loader for ~500ms even though no async operations were needed for web.
+
+**Root causes identified:**
+1. `beforeLoad` in routes.ts called `getCachedSession()` even for public routes (~230ms)
+2. `PlatformContext` started with `"loading"` state and showed `AppLoader` while detecting platform
+3. `App.tsx` started with `isAppReady=false` and returned `null` during init
+
+**Solution**: Synchronous platform detection for web:
+
+```typescript
+// PlatformContext.tsx - Synchronous initial state
+const getInitialPlatform = (): Platform => {
+  // @ts-expect-error __TAURI_INTERNALS__ is injected by Tauri
+  if (window.__TAURI_INTERNALS__) {
+    return "loading"; // Desktop needs async verification
+  }
+  return "web"; // Web detected synchronously - no loader needed!
+};
+
+// App.tsx - Web ready immediately
+const [isAppReady, setIsAppReady] = useState(() => !window.__TAURI_INTERNALS__);
+
+// routes.ts - Skip session check for public routes
+if (PUBLIC_ROUTES.includes(location.pathname)) {
+  return; // Skip session check for public routes
+}
+```
+
+**Result**:
+- Web LandingPage: 581ms → **26ms** (95% faster, no loader)
+- Desktop: Still shows AppLoader during init (correct behavior)
+
+### 11. Desktop Init Guard - Prevent Duplicate Initialization (January 2026)
+
+**File**: `src/App.tsx`
+
+**Problem**: The desktop initialization `useEffect` had `[platform, t]` as dependencies. When a user changed language, the `t` (translation function) reference changed, causing the effect to re-run. Since `platform === "desktop"` remained true, this re-executed the entire initialization sequence including `init_db` and `execute_due_recurring_transactions_handler`.
+
+**Risk Assessment**: While these functions are idempotent (safe to run multiple times), re-running them was unnecessary overhead and could cause duplicate toast notifications.
+
+**Solution**: Use `useRef` to prevent re-initialization:
+
+```typescript
+// Ref to track if desktop init already ran
+const desktopInitDone = useRef(false);
+
+// Ref to access latest t without adding to dependencies
+const tRef = useRef(t);
+tRef.current = t; // Always keep ref up to date
+
+useEffect(() => {
+  if (platform === "desktop") {
+    if (desktopInitDone.current) return; // Guard against re-runs
+    desktopInitDone.current = true;
+    
+    // ... init code using tRef.current instead of t
+  }
+}, [platform]); // Removed t from dependencies
+```
+
+**Benefits**:
+- Desktop init runs exactly once per app lifecycle
+- Language changes no longer trigger re-initialization
+- Toast notifications (e.g., "Update available") only appear once
+
 ## Future Work
 
 The main bundle is still large (~3.7MB) due to:

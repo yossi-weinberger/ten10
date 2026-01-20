@@ -6,7 +6,7 @@ import {
   createClient,
   type SupabaseClient,
 } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
 import { EMAIL_THEME, getEmailHeader } from "../_shared/email-design.ts";
 
@@ -287,7 +287,7 @@ async function sendEmailNotification(
               <span class="value"><strong>${
                 insertedRecord.subject
               }</strong></span>
-        </div>
+            </div>
             ${
               insertedRecord.severity
                 ? `<div class="info-item"><span class="label">Severity:</span>${severityBadge}</div>`
@@ -352,8 +352,10 @@ async function sendEmailNotification(
 }
 
 serve(async (req: Request) => {
+  const origin = req.headers.get("origin");
+
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders, status: 200 });
+    return new Response("ok", { headers: getCorsHeaders(origin), status: 200 });
   }
 
   try {
@@ -371,13 +373,19 @@ serve(async (req: Request) => {
     await sendEmailNotification(supabaseAdminClient, insertedRecord);
 
     return new Response(JSON.stringify({ success: true }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: {
+        ...getCorsHeaders(origin),
+        "Content-Type": "application/json",
+      },
       status: 200,
     });
   } catch (error) {
     console.error("Error sending contact email:", error);
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: {
+        ...getCorsHeaders(origin),
+        "Content-Type": "application/json",
+      },
       status: 500,
     });
   }

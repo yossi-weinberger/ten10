@@ -32,30 +32,45 @@ interface PlatformProviderProps {
   children: ReactNode;
 }
 
+// Synchronous platform detection for initial state (Performance optimization Jan 2026)
+// Web can be detected immediately (no __TAURI_INTERNALS__), desktop needs async verification
+const getInitialPlatform = (): Platform => {
+  // @ts-expect-error __TAURI_INTERNALS__ is injected by Tauri
+  if (window.__TAURI_INTERNALS__) {
+    return "loading"; // Desktop needs async verification of OS plugin
+  }
+  return "web"; // Web detected synchronously - no loader needed!
+};
+
 export const PlatformProvider: React.FC<PlatformProviderProps> = ({
   children,
 }) => {
-  const [platform, setPlatform] = useState<Platform>("loading");
+  const [platform, setPlatform] = useState<Platform>(getInitialPlatform);
 
   useEffect(() => {
-    const detectPlatform = async () => {
-      // @ts-expect-error -- Tauri-specific global
-      if (window.__TAURI_INTERNALS__) {
-        try {
-          const osPlugin = await import("@tauri-apps/plugin-os");
-          await osPlugin.platform();
-          setPlatform("desktop");
-        } catch (e) {
-          console.error("Tauri detected, but OS plugin failed:", e);
-          setPlatform("web");
-        }
-      } else {
-        setPlatform("web");
+    // Only run async detection for desktop (when initial state is "loading")
+    if (platform !== "loading") {
+      return; // Web already detected synchronously
+    }
+
+    const detectDesktopPlatform = async () => {
+      try {
+        const osPlugin = await import("@tauri-apps/plugin-os");
+        await osPlugin.platform();
+        setPlatform("desktop");
+      } catch (e) {
+        console.error("Tauri detected, but OS plugin failed:", e);
+        setPlatform("web"); // Fallback for safety
       }
     };
 
-    detectPlatform();
-  }, []);
+    detectDesktopPlatform();
+  }, [platform]);
+
+  // Only show loader for desktop (async verification needed)
+  if (platform === "loading") {
+    return <AppLoader />;
+  }
 
   return (
     <PlatformContext.Provider value={{ platform }}>

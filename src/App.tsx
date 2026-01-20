@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Menu } from "lucide-react";
 import { Outlet, useRouterState } from "@tanstack/react-router";
@@ -27,18 +27,25 @@ import toast from "react-hot-toast";
 import ContactFAB from "./components/layout/ContactFAB";
 import { TermsAcceptanceModal } from "./components/auth/TermsAcceptanceModal";
 import { Footer } from "@/pages/landing/sections/Footer";
+import AppLoader from "./components/layout/AppLoader";
 
 import { PUBLIC_ROUTES, FULL_SCREEN_ROUTES } from "./lib/constants";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
-  const [isAppReady, setIsAppReady] = useState(false);
+  // Web is ready immediately (no DB init needed), desktop needs async initialization
+  // @ts-expect-error __TAURI_INTERNALS__ is injected by Tauri
+  const [isAppReady, setIsAppReady] = useState(() => !window.__TAURI_INTERNALS__);
+  // Prevent re-running desktop init when language changes (t function reference changes)
+  const desktopInitDone = useRef(false);
 
   const { platform } = usePlatform();
   const { isTWA } = useTWA();
   const { user } = useAuth();
   const { i18n, t } = useTranslation();
+  const tRef = useRef(t); // Ref to access latest t without adding it to dependencies
+  tRef.current = t; // Always keep ref up to date
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
 
   // Get Zustand store state for language synchronization
@@ -86,6 +93,12 @@ function App() {
     if (platform !== "loading") {
       setGlobalPlatform(platform);
       if (platform === "desktop") {
+        // Prevent re-running desktop init (e.g., when language changes and t reference updates)
+        if (desktopInitDone.current) {
+          return;
+        }
+        desktopInitDone.current = true;
+
         import("@tauri-apps/api/core")
           .then(({ invoke }) => {
             invoke("init_db")
@@ -97,7 +110,8 @@ function App() {
               .then((message) => {
                 logger.log("Recurring transactions handler executed:", message);
                 // Check for desktop reminders after recurring transactions
-                return checkAndSendDesktopReminder(t);
+                // Use tRef.current to get latest t without adding it to dependencies
+                return checkAndSendDesktopReminder(tRef.current);
               })
               .then(() => {
                 logger.log("Desktop reminder check complete.");
@@ -107,8 +121,9 @@ function App() {
                     if (updateInfo) {
                       logger.log(`Update available: ${updateInfo.version}`);
                       // Notify user about available update
+                      // Use tRef.current to get latest t
                       toast.success(
-                        t("versionInfo.updateAvailable", {
+                        tRef.current("versionInfo.updateAvailable", {
                           version: updateInfo.version,
                           ns: "settings",
                         }),
@@ -149,10 +164,12 @@ function App() {
         setIsAppReady(true);
       }
     }
-  }, [platform, t]);
+  }, [platform]); // Removed t from dependencies - using tRef.current instead
 
   if (!isAppReady) {
-    return null;
+    // Desktop: Show loader during DB init (instead of blank screen)
+    // This only happens on desktop since web has isAppReady=true from start
+    return <AppLoader />;
   }
 
   return (

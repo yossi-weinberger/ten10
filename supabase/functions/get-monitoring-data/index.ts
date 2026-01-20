@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 interface MonitoringData {
   database: DatabaseStats;
@@ -119,9 +119,11 @@ const THRESHOLDS = {
 };
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: getCorsHeaders(origin) });
   }
 
   try {
@@ -130,7 +132,10 @@ serve(async (req) => {
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Missing authorization" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: {
+          ...getCorsHeaders(origin),
+          "Content-Type": "application/json",
+        },
       });
     }
 
@@ -151,7 +156,10 @@ serve(async (req) => {
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: {
+          ...getCorsHeaders(origin),
+          "Content-Type": "application/json",
+        },
       });
     }
 
@@ -168,7 +176,10 @@ serve(async (req) => {
     if (adminError || !adminData) {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: {
+          ...getCorsHeaders(origin),
+          "Content-Type": "application/json",
+        },
       });
     }
 
@@ -210,7 +221,10 @@ serve(async (req) => {
     };
 
     return new Response(JSON.stringify(monitoringData), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: {
+        ...getCorsHeaders(origin),
+        "Content-Type": "application/json",
+      },
     });
   } catch (error) {
     console.error("Error fetching monitoring data:", error);
@@ -218,7 +232,10 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: {
+        ...getCorsHeaders(origin),
+        "Content-Type": "application/json",
+      },
     });
   }
 });
