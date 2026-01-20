@@ -1,6 +1,6 @@
 // This function ONLY verifies a CAPTCHA token and returns a success/fail response.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { corsHeaders } from "../_shared/cors.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 interface CaptchaPayload {
   captchaToken: string;
@@ -34,8 +34,10 @@ async function verifyCaptcha(token: string, ip: string) {
 }
 
 serve(async (req: Request) => {
+  const origin = req.headers.get("origin");
+
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders, status: 200 });
+    return new Response("ok", { headers: getCorsHeaders(origin), status: 200 });
   }
 
   try {
@@ -54,13 +56,16 @@ serve(async (req: Request) => {
     return new Response(
       JSON.stringify({ success: true, message: "CAPTCHA verified." }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: {
+          ...getCorsHeaders(origin),
+          "Content-Type": "application/json",
+        },
         status: 200,
       }
     );
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...getCorsHeaders(origin), "Content-Type": "application/json" },
       status: 400,
     });
   }

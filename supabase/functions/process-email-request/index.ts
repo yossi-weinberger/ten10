@@ -3,7 +3,7 @@ import {
   createClient,
   type SupabaseClient,
 } from "https://esm.sh/@supabase/supabase-js@2";
-import { corsHeaders } from "../_shared/cors.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
 import {
   EMAIL_THEME,
@@ -65,8 +65,10 @@ async function getDirectDownloadLink(): Promise<string | null> {
 }
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: getCorsHeaders(origin) });
   }
 
   // BUGFIX (Security): never allow "Bearer undefined" bypass.
@@ -77,14 +79,14 @@ serve(async (req) => {
     );
     return new Response(JSON.stringify({ error: "Server misconfigured" }), {
       status: 500,
-      headers: corsHeaders,
+      headers: getCorsHeaders(origin),
     });
   }
   if (!JUMBOMAIL_LINK) {
     console.error("Misconfiguration: JUMBOMAIL_LINK is missing or empty");
     return new Response(JSON.stringify({ error: "Server misconfigured" }), {
       status: 500,
-      headers: corsHeaders,
+      headers: getCorsHeaders(origin),
     });
   }
 
@@ -99,7 +101,7 @@ serve(async (req) => {
     if (authHeader !== `Bearer ${WORKER_SECRET}`) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: corsHeaders,
+        headers: getCorsHeaders(origin),
       });
     }
 
@@ -109,7 +111,7 @@ serve(async (req) => {
     if (!from) {
       return new Response(
         JSON.stringify({ error: "Missing 'from' parameter" }),
-        { status: 400, headers: corsHeaders }
+        { status: 400, headers: getCorsHeaders(origin) }
       );
     }
 
@@ -155,7 +157,7 @@ serve(async (req) => {
         {
           status: 429,
           headers: {
-            ...corsHeaders,
+            ...getCorsHeaders(origin),
             "Content-Type": "application/json",
           },
         }
@@ -299,7 +301,7 @@ ${directDownloadLink}`
     });
 
     return new Response(JSON.stringify({ status: "sent" }), {
-      headers: corsHeaders,
+      headers: getCorsHeaders(origin),
     });
   } catch (error) {
     console.error("Error processing email request:", error);
@@ -322,7 +324,7 @@ ${directDownloadLink}`
 
     return new Response(JSON.stringify({ error: errorMessage }), {
       status: 500,
-      headers: corsHeaders,
+      headers: getCorsHeaders(origin),
     });
   }
 });

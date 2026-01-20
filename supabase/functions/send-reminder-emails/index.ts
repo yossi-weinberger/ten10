@@ -1,19 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { UserService } from "./user-service.ts";
 import { SimpleEmailService } from "./simple-email-service.ts";
+import { getCorsHeaders } from "../_shared/cors.ts";
 
 // Deployment trigger note: editing this file forces the GitHub workflow to redeploy the function.
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
-
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+
   // CORS handling
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+    return new Response("ok", { headers: getCorsHeaders(origin) });
   }
 
   // Security: Check for valid authorization
@@ -26,7 +23,10 @@ serve(async (req) => {
       JSON.stringify({ error: "Unauthorized - Missing Bearer token" }),
       {
         status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: {
+          ...getCorsHeaders(origin),
+          "Content-Type": "application/json",
+        },
       }
     );
   }
@@ -38,7 +38,10 @@ serve(async (req) => {
   if (token !== validAnonKey && token !== validServiceKey) {
     return new Response(JSON.stringify({ error: "Invalid token" }), {
       status: 403,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: {
+        ...getCorsHeaders(origin),
+        "Content-Type": "application/json",
+      },
     });
   }
 
@@ -66,7 +69,10 @@ serve(async (req) => {
           message: `Today is Saturday. Email reminders are not sent on Shabbat.`,
         }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: {
+            ...getCorsHeaders(origin),
+            "Content-Type": "application/json",
+          },
           status: 200,
         }
       );
@@ -94,7 +100,10 @@ serve(async (req) => {
           )}`,
         }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: {
+            ...getCorsHeaders(origin),
+            "Content-Type": "application/json",
+          },
           status: 200,
         }
       );
@@ -111,7 +120,10 @@ serve(async (req) => {
           message: `No users found with reminders enabled for day ${effectiveDay}`,
         }),
         {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          headers: {
+            ...getCorsHeaders(origin),
+            "Content-Type": "application/json",
+          },
           status: 200,
         }
       );
@@ -131,7 +143,10 @@ serve(async (req) => {
         results,
       }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: {
+          ...getCorsHeaders(origin),
+          "Content-Type": "application/json",
+        },
         status: 200,
       }
     );
@@ -148,7 +163,10 @@ serve(async (req) => {
         error: "Internal server error",
       }),
       {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: {
+          ...getCorsHeaders(origin),
+          "Content-Type": "application/json",
+        },
         status: 500,
       }
     );
