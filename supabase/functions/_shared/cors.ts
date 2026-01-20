@@ -29,10 +29,11 @@ export const getCorsHeaders = (origin: string | null) => {
     };
   }
 
-  // If origin is present but not allowed, return 'null' to explicitly block it in browser.
-  // We MUST NOT send 'Access-Control-Allow-Credentials: true' with 'null' origin.
+  // If origin is present but not allowed, do NOT send Access-Control-Allow-Origin header.
+  // This causes the browser to block the cross-origin request (CORS failure).
+  // Note: Returning "null" as a string is a security risk because sandboxed iframes
+  // and data: URLs send "Origin: null" and would match it!
   return {
-    "Access-Control-Allow-Origin": "null",
     "Access-Control-Allow-Headers":
       "authorization, x-client-info, apikey, content-type",
   };
