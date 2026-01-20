@@ -347,6 +347,39 @@ if (PUBLIC_ROUTES.includes(location.pathname)) {
 - Web LandingPage: 581ms → **26ms** (95% faster, no loader)
 - Desktop: Still shows AppLoader during init (correct behavior)
 
+### 11. Desktop Init Guard - Prevent Duplicate Initialization (January 2026)
+
+**File**: `src/App.tsx`
+
+**Problem**: The desktop initialization `useEffect` had `[platform, t]` as dependencies. When a user changed language, the `t` (translation function) reference changed, causing the effect to re-run. Since `platform === "desktop"` remained true, this re-executed the entire initialization sequence including `init_db` and `execute_due_recurring_transactions_handler`.
+
+**Risk Assessment**: While these functions are idempotent (safe to run multiple times), re-running them was unnecessary overhead and could cause duplicate toast notifications.
+
+**Solution**: Use `useRef` to prevent re-initialization:
+
+```typescript
+// Ref to track if desktop init already ran
+const desktopInitDone = useRef(false);
+
+// Ref to access latest t without adding to dependencies
+const tRef = useRef(t);
+tRef.current = t; // Always keep ref up to date
+
+useEffect(() => {
+  if (platform === "desktop") {
+    if (desktopInitDone.current) return; // Guard against re-runs
+    desktopInitDone.current = true;
+    
+    // ... init code using tRef.current instead of t
+  }
+}, [platform]); // Removed t from dependencies
+```
+
+**Benefits**:
+- Desktop init runs exactly once per app lifecycle
+- Language changes no longer trigger re-initialization
+- Toast notifications (e.g., "Update available") only appear once
+
 ## Future Work
 
 The main bundle is still large (~3.7MB) due to:
