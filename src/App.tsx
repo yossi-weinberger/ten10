@@ -27,13 +27,16 @@ import toast from "react-hot-toast";
 import ContactFAB from "./components/layout/ContactFAB";
 import { TermsAcceptanceModal } from "./components/auth/TermsAcceptanceModal";
 import { Footer } from "@/pages/landing/sections/Footer";
+import AppLoader from "./components/layout/AppLoader";
 
 import { PUBLIC_ROUTES, FULL_SCREEN_ROUTES } from "./lib/constants";
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
-  const [isAppReady, setIsAppReady] = useState(false);
+  // Web is ready immediately (no DB init needed), desktop needs async initialization
+  // @ts-expect-error __TAURI_INTERNALS__ is injected by Tauri
+  const [isAppReady, setIsAppReady] = useState(() => !window.__TAURI_INTERNALS__);
 
   const { platform } = usePlatform();
   const { isTWA } = useTWA();
@@ -152,7 +155,9 @@ function App() {
   }, [platform, t]);
 
   if (!isAppReady) {
-    return null;
+    // Desktop: Show loader during DB init (instead of blank screen)
+    // This only happens on desktop since web has isAppReady=true from start
+    return <AppLoader />;
   }
 
   return (

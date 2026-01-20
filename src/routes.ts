@@ -93,13 +93,18 @@ const rootRoute = createRootRoute({
     }
 
     // --- Web Platform Auth Check ---
-    // Use cached session to avoid duplicate network requests
+    // For public routes, skip the session check entirely to improve load time
+    if (PUBLIC_ROUTES.includes(location.pathname)) {
+      return; // Skip session check for public routes
+    }
+
+    // Use cached session to avoid duplicate network requests (only for protected routes)
     const {
       data: { session },
     } = await getCachedSession();
 
     // Check if the user is trying to access a protected route on the web without a session
-    if (!session && !PUBLIC_ROUTES.includes(location.pathname)) {
+    if (!session) {
       // Redirect to the login page
       throw redirect({
         to: "/login", // Target route

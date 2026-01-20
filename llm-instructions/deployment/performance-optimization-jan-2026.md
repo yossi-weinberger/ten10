@@ -311,6 +311,42 @@ optimizeDeps: {
 
 **Note**: This mainly helps dev mode. Production builds are already optimized.
 
+### 10. Synchronous Platform Detection for Web (January 2026)
+
+**Files**: `src/contexts/PlatformContext.tsx`, `src/App.tsx`, `src/lib/platformManager.ts`, `src/routes.ts`
+
+**Problem**: LandingPage and other public pages showed a loader for ~500ms even though no async operations were needed for web.
+
+**Root causes identified:**
+1. `beforeLoad` in routes.ts called `getCachedSession()` even for public routes (~230ms)
+2. `PlatformContext` started with `"loading"` state and showed `AppLoader` while detecting platform
+3. `App.tsx` started with `isAppReady=false` and returned `null` during init
+
+**Solution**: Synchronous platform detection for web:
+
+```typescript
+// PlatformContext.tsx - Synchronous initial state
+const getInitialPlatform = (): Platform => {
+  // @ts-expect-error __TAURI_INTERNALS__ is injected by Tauri
+  if (window.__TAURI_INTERNALS__) {
+    return "loading"; // Desktop needs async verification
+  }
+  return "web"; // Web detected synchronously - no loader needed!
+};
+
+// App.tsx - Web ready immediately
+const [isAppReady, setIsAppReady] = useState(() => !window.__TAURI_INTERNALS__);
+
+// routes.ts - Skip session check for public routes
+if (PUBLIC_ROUTES.includes(location.pathname)) {
+  return; // Skip session check for public routes
+}
+```
+
+**Result**:
+- Web LandingPage: 581ms → **26ms** (95% faster, no loader)
+- Desktop: Still shows AppLoader during init (correct behavior)
+
 ## Future Work
 
 The main bundle is still large (~3.7MB) due to:

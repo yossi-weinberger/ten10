@@ -27,41 +27,46 @@ interface PlatformProviderProps {
   children: ReactNode;
 }
 
+// Synchronous platform detection for initial state
+// Web can be detected immediately (no __TAURI_INTERNALS__)
+// Desktop needs async verification but we can start with "loading"
+const getInitialPlatform = (): Platform => {
+  // @ts-expect-error __TAURI_INTERNALS__ is injected by Tauri
+  if (window.__TAURI_INTERNALS__) {
+    return "loading"; // Desktop needs async verification of OS plugin
+  }
+  return "web"; // Web detected synchronously - no loader needed!
+};
+
 // 4. Create the Provider component
 export const PlatformProvider: React.FC<PlatformProviderProps> = ({
   children,
 }) => {
-  const [platform, setPlatform] = useState<Platform>("loading");
+  const [platform, setPlatform] = useState<Platform>(getInitialPlatform);
 
   useEffect(() => {
-    const detectPlatform = async () => {
-      // A reliable way to check if running inside Tauri.
-      // @ts-expect-error __TAURI_INTERNALS__ is injected by Tauri.
-      if (window.__TAURI_INTERNALS__) {
-        try {
-          // Dynamically import the plugin ONLY if in Tauri.
-          // Vite/Rollup will handle this and not bundle it for web.
-          const osPlugin = await import("@tauri-apps/plugin-os");
-          await osPlugin.platform(); // Calling it to be sure
-          setPlatform("desktop");
-        } catch (e) {
-          logger.error("Tauri environment detected, but OS plugin failed:", e);
-          // Fallback for safety
-          setPlatform("web");
-        }
-      } else {
-        // Not in a Tauri environment
-        setPlatform("web");
+    // Only run async detection for desktop (when initial state is "loading")
+    if (platform !== "loading") {
+      return; // Web already detected synchronously
+    }
+
+    const detectDesktopPlatform = async () => {
+      try {
+        // Dynamically import the plugin ONLY if in Tauri.
+        const osPlugin = await import("@tauri-apps/plugin-os");
+        await osPlugin.platform(); // Calling it to be sure
+        setPlatform("desktop");
+      } catch (e) {
+        logger.error("Tauri environment detected, but OS plugin failed:", e);
+        setPlatform("web"); // Fallback for safety
       }
     };
 
-    detectPlatform();
-  }, []);
+    detectDesktopPlatform();
+  }, [platform]);
 
-  // While platform is being detected, show a loader
+  // Only show loader for desktop (async verification needed)
   if (platform === "loading") {
-    // This was commented out to debug platform detection.
-    // If detection now works, we can re-evaluate this loader logic.
     return <AppLoader />;
   }
 
