@@ -243,6 +243,11 @@ export interface TransactionUpdatePayload {
   category?: string | null;
   is_chomesh?: boolean;
   recipient?: string | null;
+  original_amount?: number | null;
+  original_currency?: string | null;
+  conversion_rate?: number | null;
+  conversion_date?: string | null;
+  rate_source?: string | null;
 }
 
 /**
@@ -279,6 +284,16 @@ export async function updateTransaction(
     sanitizedPayload.is_chomesh = payload.is_chomesh;
   if (payload.recipient !== undefined)
     sanitizedPayload.recipient = payload.recipient;
+  if (payload.original_amount !== undefined)
+    sanitizedPayload.original_amount = payload.original_amount;
+  if (payload.original_currency !== undefined)
+    sanitizedPayload.original_currency = payload.original_currency;
+  if (payload.conversion_rate !== undefined)
+    sanitizedPayload.conversion_rate = payload.conversion_rate;
+  if (payload.conversion_date !== undefined)
+    sanitizedPayload.conversion_date = payload.conversion_date;
+  if (payload.rate_source !== undefined)
+    sanitizedPayload.rate_source = payload.rate_source;
 
   logger.log(
     `TransactionsService: Cleaned payload for transaction ${transactionId}:`,

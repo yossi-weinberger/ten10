@@ -26,12 +26,21 @@ import { logger } from "@/lib/logger";
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
-  const { settings, updateSettings } = useDonationStore(
+  const { settings, updateSettings, serverCalculatedTotalIncome, serverCalculatedTotalExpenses, serverCalculatedTotalDonations } = useDonationStore(
     useShallow((state) => ({
       settings: state.settings,
       updateSettings: state.updateSettings,
+      serverCalculatedTotalIncome: state.serverCalculatedTotalIncome,
+      serverCalculatedTotalExpenses: state.serverCalculatedTotalExpenses,
+      serverCalculatedTotalDonations: state.serverCalculatedTotalDonations,
     }))
   );
+
+  const hasTransactions =
+    (serverCalculatedTotalIncome || 0) > 0 ||
+    (serverCalculatedTotalExpenses || 0) > 0 ||
+    (serverCalculatedTotalDonations || 0) > 0;
+
   const [isClearing, setIsClearing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -90,7 +99,7 @@ export function SettingsPage() {
   const financialSection = (
     <FinancialSettingsCard
       financialSettings={{
-        defaultCurrency: settings.defaultCurrency as "ILS" | "USD" | "EUR",
+        defaultCurrency: settings.defaultCurrency as any,
         autoCalcChomesh: settings.autoCalcChomesh,
         minMaaserPercentage: settings.minMaaserPercentage,
       }}
@@ -99,6 +108,7 @@ export function SettingsPage() {
       }
       disableMinMaaserPercentage={true}
       onOpenBalanceModal={() => setIsOpeningBalanceModalOpen(true)}
+      currencyLocked={hasTransactions}
     />
   );
 

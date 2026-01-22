@@ -57,6 +57,17 @@ fn get_due_recurring_transactions(
 }
 
 #[tauri::command]
+pub fn get_due_recurring_transactions_handler(
+    db_state: State<'_, DbState>,
+) -> std::result::Result<Vec<RecurringTransaction>, String> {
+    let conn = db_state.0.lock().map_err(|e| e.to_string())?;
+    let today_str = Local::now().format("%Y-%m-%d").to_string();
+    
+    get_due_recurring_transactions(&conn, &today_str)
+        .map_err(|e| format!("Failed to query due transactions: {}", e))
+}
+
+#[tauri::command]
 pub fn execute_due_recurring_transactions_handler(
     db_state: State<'_, DbState>,
 ) -> std::result::Result<String, String> {

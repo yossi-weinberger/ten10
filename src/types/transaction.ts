@@ -1,7 +1,19 @@
 // Remove circular import of Currency from store.ts
 
 // Define the possible currency types
-export type Currency = "ILS" | "USD" | "EUR";
+export type Currency =
+  | "ILS"
+  | "USD"
+  | "EUR"
+  | "CAD"
+  | "GBP"
+  | "AUD"
+  | "CHF"
+  | "ARS"
+  | "BRL"
+  | "ZAR"
+  | "MXN"
+  | "UAH";
 
 // Define the possible types for a transaction
 export type TransactionType =
@@ -42,12 +54,17 @@ export interface Transaction {
   updated_at: string;
   date: string; // ISO 8601 date string (e.g., "2023-10-27")
   amount: number;
-  currency: "ILS" | "USD" | "EUR";
+  currency: Currency;
   description: string | null;
   type: TransactionType;
   category: string | null;
   is_chomesh: boolean | null;
   recipient: string | null;
+  original_amount?: number | null;
+  original_currency?: Currency | null;
+  conversion_rate?: number | null;
+  conversion_date?: string | null;
+  rate_source?: "auto" | "manual" | null;
   source_recurring_id?: string | null; // UUID linking to the recurring_transactions table
   execution_count?: number | null; // e.g., 3 (for the 3rd payment)
   total_occurrences?: number | null; // e.g., 12 (for a total of 12 payments)
@@ -72,7 +89,7 @@ export interface RecurringTransaction {
   execution_count: number;
   description?: string;
   amount: number;
-  currency: string;
+  currency: Currency;
   type: TransactionType;
   category?: string;
   is_chomesh?: boolean;

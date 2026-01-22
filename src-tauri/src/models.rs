@@ -28,6 +28,16 @@ pub struct Transaction {
     pub source_recurring_id: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub occurrence_number: Option<i32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub original_amount: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub original_currency: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub conversion_rate: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub conversion_date: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rate_source: Option<String>,
 }
 
 impl Transaction {
@@ -47,6 +57,11 @@ impl Transaction {
             updated_at: row.get("updated_at")?,
             source_recurring_id: row.get("source_recurring_id")?,
             occurrence_number: row.get("occurrence_number")?,
+            original_amount: row.get("original_amount")?,
+            original_currency: row.get("original_currency")?,
+            conversion_rate: row.get("conversion_rate")?,
+            conversion_date: row.get("conversion_date")?,
+            rate_source: row.get("rate_source")?,
         })
     }
 }

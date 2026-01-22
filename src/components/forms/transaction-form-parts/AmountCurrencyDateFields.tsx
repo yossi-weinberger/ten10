@@ -9,17 +9,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { CURRENCIES, CurrencyObject } from "@/lib/currencies";
+import { CurrencyPicker } from "@/components/ui/CurrencyPicker";
+import { CurrencyObject, CurrencyCode } from "@/lib/currencies";
 import { TransactionFormValues } from "@/lib/schemas";
 import { DatePicker } from "@/components/ui/date-picker";
 import { format, parse } from "date-fns";
+import { useDonationStore } from "@/lib/store";
+import { CurrencyConversionSection } from "./CurrencyConversionSection";
 
 interface AmountCurrencyDateFieldsProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -31,89 +27,103 @@ export function AmountCurrencyDateFields({
   availableCurrencies,
 }: AmountCurrencyDateFieldsProps) {
   const { t } = useTranslation("transactions");
+  const defaultCurrency = useDonationStore((state) => state.settings.defaultCurrency);
+  
+  const selectedCurrency = form.watch("currency");
+  const amount = form.watch("amount");
+  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {/* Amount and Currency */}
-      <div className="grid grid-cols-3 gap-2 items-end">
-        <FormField
-          control={form.control}
-          name="amount"
-          render={({ field }) => (
-            <FormItem className="col-span-2">
-              <FormLabel>{t("transactionForm.amount.label")}</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  {...field}
-                  value={field.value ?? ""}
-                  className="text-start"
-                  placeholder={t("transactionForm.amount.placeholder")}
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Amount and Currency */}
+        <div className="grid grid-cols-1 gap-2">
+            <div className="flex gap-2">
+                <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                    <FormItem className="flex-1">
+                    <FormLabel>{t("transactionForm.amount.label")}</FormLabel>
+                    <FormControl>
+                        <Input
+                        type="number"
+                        step="0.01"
+                        {...field}
+                        value={field.value ?? ""}
+                        className="text-start"
+                        placeholder={t("transactionForm.amount.placeholder")}
+                        />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
                 />
-              </FormControl>
-              <div className="h-5">
-                <FormMessage />
-              </div>
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="currency"
-          render={({ field }) => (
-            <FormItem>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+            </div>
+            
+            <FormField
+            control={form.control}
+            name="currency"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>{t("transactionForm.currency.placeholder")}</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={t("transactionForm.currency.placeholder")}
+                    <CurrencyPicker 
+                        value={field.value as CurrencyCode} 
+                        onChange={(val) => {
+                            field.onChange(val);
+                            // Reset rate source on change to trigger re-eval
+                            if (val === defaultCurrency) {
+                                form.setValue("rate_source", null);
+                                form.setValue("conversion_rate", null);
+                            } else {
+                                form.setValue("rate_source", "auto");
+                            }
+                        }} 
                     />
-                  </SelectTrigger>
                 </FormControl>
-                <SelectContent>
-                  {availableCurrencies.map((currency) => (
-                    <SelectItem key={currency.code} value={currency.code}>
-                      {`${currency.symbol} ${currency.code}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="h-5">
                 <FormMessage />
-              </div>
+                </FormItem>
+            )}
+            />
+        </div>
+
+        {/* Date - left */}
+        <FormField
+            control={form.control}
+            name="date"
+            render={({ field }) => (
+            <FormItem>
+                <FormLabel>{t("transactionForm.date.label")} *</FormLabel>
+                <FormControl>
+                <DatePicker
+                    date={
+                    field.value
+                        ? parse(field.value, "yyyy-MM-dd", new Date())
+                        : undefined
+                    }
+                    setDate={(date) => {
+                    if (date) {
+                        field.onChange(format(date, "yyyy-MM-dd"));
+                    } else {
+                        field.onChange("");
+                    }
+                    }}
+                />
+                </FormControl>
+                <FormMessage />
             </FormItem>
-          )}
+            )}
         />
       </div>
-      {/* Date - left */}
-      <FormField
-        control={form.control}
-        name="date"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t("transactionForm.date.label")} *</FormLabel>
-            <FormControl>
-              <DatePicker
-                date={
-                  field.value
-                    ? parse(field.value, "yyyy-MM-dd", new Date())
-                    : undefined
-                }
-                setDate={(date) => {
-                  if (date) {
-                    field.onChange(format(date, "yyyy-MM-dd"));
-                  } else {
-                    field.onChange("");
-                  }
-                }}
-              />
-            </FormControl>
-            <div className="h-5">
-              <FormMessage />
-            </div>
-          </FormItem>
-        )}
-      />
+
+      {/* Conversion Section */}
+      {selectedCurrency !== defaultCurrency && (
+          <CurrencyConversionSection
+              form={form as any}
+              selectedCurrency={selectedCurrency}
+              amount={amount}
+          />
+      )}
     </div>
   );
 }

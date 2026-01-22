@@ -14,9 +14,13 @@ import { Wallet, Calculator, Percent, AlertTriangle, Coins } from "lucide-react"
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
+import { CurrencyPicker } from "@/components/ui/CurrencyPicker";
+import { CurrencyCode } from "@/lib/currencies";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
 // Define the specific settings properties needed by this component
 interface FinancialSettings {
-  defaultCurrency: "ILS" | "USD" | "EUR";
+  defaultCurrency: CurrencyCode;
   autoCalcChomesh: boolean;
   minMaaserPercentage?: number;
 }
@@ -27,6 +31,7 @@ interface FinancialSettingsCardProps {
   disableAutoCalcChomesh?: boolean;
   disableMinMaaserPercentage?: boolean;
   onOpenBalanceModal?: () => void;
+  currencyLocked?: boolean;
 }
 
 export function FinancialSettingsCard({
@@ -35,6 +40,7 @@ export function FinancialSettingsCard({
   disableAutoCalcChomesh = false,
   disableMinMaaserPercentage = false,
   onOpenBalanceModal,
+  currencyLocked = false,
 }: FinancialSettingsCardProps) {
   const { t } = useTranslation("settings");
 
@@ -52,48 +58,28 @@ export function FinancialSettingsCard({
           <div className="grid gap-2 p-2">
             <Label>{t("financial.defaultCurrencyLabel")}</Label>
             <div className="flex items-center gap-4 ">
-              <Button
-                variant={
-                  financialSettings.defaultCurrency === "ILS"
-                    ? "default"
-                    : "outline"
-                }
-                onClick={() => updateSettings({ defaultCurrency: "ILS" })}
-                className="h-16 w-16 flex flex-col items-center justify-center gap-1"
-              >
-                <span className="text-xl font-bold">₪</span>
-                <span className="text-xs">
-                  {t("financial.currencyNameILS")}
-                </span>
-              </Button>
-              <Button
-                variant={
-                  financialSettings.defaultCurrency === "USD"
-                    ? "default"
-                    : "outline"
-                }
-                onClick={() => updateSettings({ defaultCurrency: "USD" })}
-                className="h-16 w-16 flex flex-col items-center justify-center gap-1"
-              >
-                <span className="text-xl font-bold">$</span>
-                <span className="text-xs">
-                  {t("financial.currencyNameUSD")}
-                </span>
-              </Button>
-              <Button
-                variant={
-                  financialSettings.defaultCurrency === "EUR"
-                    ? "default"
-                    : "outline"
-                }
-                onClick={() => updateSettings({ defaultCurrency: "EUR" })}
-                className="h-16 w-16 flex flex-col items-center justify-center gap-1"
-              >
-                <span className="text-xl font-bold">€</span>
-                <span className="text-xs">
-                  {t("financial.currencyNameEUR")}
-                </span>
-              </Button>
+              {currencyLocked ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="opacity-50 pointer-events-none">
+                      <CurrencyPicker
+                        value={financialSettings.defaultCurrency}
+                        onChange={() => {}}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">{t("financial.currencyWarning.description")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <CurrencyPicker
+                  value={financialSettings.defaultCurrency}
+                  onChange={(val) =>
+                    updateSettings({ defaultCurrency: val })
+                  }
+                />
+              )}
             </div>
           </div>
           <Alert variant="destructive" className="mt-2 xl:mt-0">

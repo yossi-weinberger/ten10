@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
+  Currency,
   Transaction,
   TransactionForTable,
   TransactionType,
@@ -22,13 +23,11 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { MoreHorizontal, Trash2, Edit3, Repeat, Infinity } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit3, Repeat, RefreshCw } from "lucide-react";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
 import { formatCurrency } from "@/lib/utils/currency";
-
-// Moved to translation files - will use t() instead
 
 // Moved to translation files - will use t() instead
 
@@ -48,6 +47,8 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   isFetchingRec,
 }) => {
   const { t, i18n } = useTranslation("data-tables");
+  const { t: tCurrency } = useTranslation("currency-features");
+
   return (
     <TableRow key={transaction.id}>
       <TableCell className="text-start whitespace-nowrap">
@@ -61,11 +62,36 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
         {transaction.description || "-"}
       </TableCell>
       <TableCell className="text-center font-medium whitespace-nowrap">
-        {formatCurrency(
-          transaction.amount,
-          transaction.currency,
-          i18n.language
-        )}
+        <div className="flex items-center justify-center gap-1">
+          {formatCurrency(
+            transaction.amount,
+            transaction.currency,
+            i18n.language
+          )}
+          {transaction.original_amount != null &&
+            transaction.original_amount !== transaction.amount && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <RefreshCw className="h-3 w-3 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent className="text-xs">
+                  <div className="grid gap-1 text-start">
+                    <div>
+                      {tCurrency("row.tooltip.original")}:{" "}
+                      {formatCurrency(
+                        transaction.original_amount,
+                        transaction.original_currency as any,
+                        i18n.language
+                      )}
+                    </div>
+                    <div>{tCurrency("row.tooltip.rate")}: {transaction.conversion_rate}</div>
+                    <div>{tCurrency("row.tooltip.date")}: {transaction.conversion_date}</div>
+                    <div>{tCurrency("row.tooltip.source")}: {tCurrency(`conversion.rateTypes.${transaction.rate_source}`, transaction.rate_source)}</div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            )}
+        </div>
       </TableCell>
       <TableCell className="text-center whitespace-nowrap">
         <Badge

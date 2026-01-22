@@ -22,9 +22,25 @@ const createAmountSchema = (t: TFunction) =>
     });
 
 const createCurrencySchema = (t: TFunction) =>
-  z.enum(["ILS", "USD", "EUR"], {
-    message: t("transactions:transactionForm.validation.currency.required"),
-  });
+  z.enum(
+    [
+      "ILS",
+      "USD",
+      "EUR",
+      "CAD",
+      "GBP",
+      "AUD",
+      "CHF",
+      "ARS",
+      "BRL",
+      "ZAR",
+      "MXN",
+      "UAH",
+    ],
+    {
+      message: t("transactions:transactionForm.validation.currency.required"),
+    }
+  );
 
 const createDayOfMonthSchema = (t: TFunction) =>
   z.preprocess(
@@ -136,6 +152,13 @@ export const createTransactionFormSchema = (t: TFunction) =>
 
       // Fields for editing recurring transactions
       status: z.enum(["active", "paused", "completed", "cancelled"]).optional(),
+
+      // Conversion fields
+      original_amount: z.number().optional().nullable(),
+      original_currency: z.string().optional().nullable(),
+      conversion_rate: z.number().optional().nullable(),
+      conversion_date: z.string().optional().nullable(),
+      rate_source: z.enum(["auto", "manual"]).optional().nullable(),
     })
     .refine(
       (data) => {

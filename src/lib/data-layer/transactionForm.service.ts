@@ -110,6 +110,11 @@ export async function handleTransactionSubmit(
       recipient: values.recipient ?? null,
       source_recurring_id: null,
       user_id: null,
+      original_amount: values.original_amount ?? null,
+      original_currency: (values.original_currency as any) ?? null,
+      conversion_rate: values.conversion_rate ?? null,
+      conversion_date: values.conversion_date ?? null,
+      rate_source: values.rate_source ?? null,
     };
     await addTransaction(newTransaction);
   }

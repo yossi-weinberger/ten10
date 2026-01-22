@@ -21,6 +21,11 @@ pub struct TransactionUpdatePayload {
     pub category: Option<String>,
     pub is_chomesh: Option<bool>,
     pub recipient: Option<String>,
+    pub original_amount: Option<f64>,
+    pub original_currency: Option<String>,
+    pub conversion_rate: Option<f64>,
+    pub conversion_date: Option<String>,
+    pub rate_source: Option<String>,
     // user_id is typically not updated by the user directly
     // updated_at should be handled by the database or set here to current time
 }
@@ -80,6 +85,26 @@ pub fn update_transaction_handler(
     if payload.recipient.is_some() {
         set_clauses.push("recipient = ?".to_string());
         params_dynamic.push(Box::new(payload.recipient.clone()));
+    }
+    if let Some(original_amount) = payload.original_amount {
+        set_clauses.push("original_amount = ?".to_string());
+        params_dynamic.push(Box::new(original_amount));
+    }
+    if let Some(original_currency) = &payload.original_currency {
+        set_clauses.push("original_currency = ?".to_string());
+        params_dynamic.push(Box::new(original_currency.clone()));
+    }
+    if let Some(conversion_rate) = payload.conversion_rate {
+        set_clauses.push("conversion_rate = ?".to_string());
+        params_dynamic.push(Box::new(conversion_rate));
+    }
+    if let Some(conversion_date) = &payload.conversion_date {
+        set_clauses.push("conversion_date = ?".to_string());
+        params_dynamic.push(Box::new(conversion_date.clone()));
+    }
+    if let Some(rate_source) = &payload.rate_source {
+        set_clauses.push("rate_source = ?".to_string());
+        params_dynamic.push(Box::new(rate_source.clone()));
     }
 
     set_clauses.push("updated_at = CURRENT_TIMESTAMP".to_string());
@@ -175,6 +200,7 @@ pub fn export_transactions_handler(
             t.type, t.category, t.is_chomesh, 
             t.recipient, t.created_at, t.updated_at, t.source_recurring_id,
             t.occurrence_number,
+            t.original_amount, t.original_currency, t.conversion_rate, t.conversion_date, t.rate_source,
             rt.status as recurring_status,
             rt.frequency as recurring_frequency,
             rt.execution_count as recurring_execution_count,
@@ -376,6 +402,7 @@ pub fn get_filtered_transactions_handler(
             t.type, t.category, t.is_chomesh, 
             t.recipient, t.created_at, t.updated_at, t.source_recurring_id,
             t.occurrence_number,
+            t.original_amount, t.original_currency, t.conversion_rate, t.conversion_date, t.rate_source,
             rt.status as recurring_status,
             rt.frequency as recurring_frequency,
             rt.execution_count as recurring_execution_count,
@@ -571,9 +598,9 @@ pub async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -
 
     let conn = db.0.lock().map_err(|e| e.to_string())?;
     conn.execute(
-        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at, source_recurring_id)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
-        (
+        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at, source_recurring_id, original_amount, original_currency, conversion_rate, conversion_date, rate_source)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
+        params![
             &transaction.id,
             &transaction.user_id,
             &transaction.date,
@@ -587,7 +614,45 @@ pub async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -
             &transaction.created_at,
             &transaction.updated_at,
             &transaction.source_recurring_id,
-        ),
+            &transaction.original_amount,
+            &transaction.original_currency,
+            &transaction.conversion_rate,
+            &transaction.conversion_date,
+            &transaction.rate_source,
+        ],
     ).map_err(|e| e.to_string())?;
     Ok(())
+}
+
+#[tauri::command]
+pub fn get_last_known_rate(
+    db_state: State<'_, DbState>,
+    from_currency: String,
+    to_currency: String,
+) -> std::result::Result<Option<f64>, String> {
+    let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
+    let conn = &*conn_guard;
+
+    // We want the latest transaction that has a conversion rate for this pair.
+    // The `transactions` table has `original_currency` and `currency` (which is the target, usually default).
+    // So we look for `original_currency = from` and `currency = to`.
+    // And `conversion_rate` IS NOT NULL.
+    
+    let query = "
+        SELECT conversion_rate 
+        FROM transactions 
+        WHERE original_currency = ?1 AND currency = ?2 AND conversion_rate IS NOT NULL
+        ORDER BY date DESC, created_at DESC 
+        LIMIT 1
+    ";
+
+    let mut stmt = conn.prepare(query).map_err(|e| e.to_string())?;
+    let mut rows = stmt.query(params![from_currency, to_currency]).map_err(|e| e.to_string())?;
+
+    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
+        let rate: f64 = row.get(0).map_err(|e| e.to_string())?;
+        Ok(Some(rate))
+    } else {
+        Ok(None)
+    }
 }

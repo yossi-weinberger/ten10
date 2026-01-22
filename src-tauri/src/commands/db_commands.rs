@@ -20,7 +20,12 @@ pub async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
             is_chomesh INTEGER,
             recipient TEXT,
             created_at TEXT,
-            updated_at TEXT
+            updated_at TEXT,
+            original_amount REAL,
+            original_currency TEXT,
+            conversion_rate REAL,
+            conversion_date TEXT,
+            rate_source TEXT
         )",
         [],
     )
@@ -66,6 +71,48 @@ pub async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
     if !column_exists(&conn, "transactions", "occurrence_number").map_err(|e| e.to_string())? {
         conn.execute(
             "ALTER TABLE transactions ADD COLUMN occurrence_number INTEGER",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    // --- Currency Conversion Columns ---
+    
+    if !column_exists(&conn, "transactions", "original_amount").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE transactions ADD COLUMN original_amount REAL",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    if !column_exists(&conn, "transactions", "original_currency").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE transactions ADD COLUMN original_currency TEXT",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    if !column_exists(&conn, "transactions", "conversion_rate").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE transactions ADD COLUMN conversion_rate REAL",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    if !column_exists(&conn, "transactions", "conversion_date").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE transactions ADD COLUMN conversion_date TEXT",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    if !column_exists(&conn, "transactions", "rate_source").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE transactions ADD COLUMN rate_source TEXT",
             [],
         )
         .map_err(|e| e.to_string())?;

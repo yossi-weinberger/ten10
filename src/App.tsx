@@ -29,6 +29,7 @@ import { TermsAcceptanceModal } from "./components/auth/TermsAcceptanceModal";
 import { Footer } from "@/pages/landing/sections/Footer";
 import AppLoader from "./components/layout/AppLoader";
 
+import { RecurringTransactionsService } from "./lib/services/recurring-transactions.service";
 import { PUBLIC_ROUTES, FULL_SCREEN_ROUTES } from "./lib/constants";
 
 function App() {
@@ -105,10 +106,10 @@ function App() {
               .then(() => {
                 logger.log("Database initialized successfully.");
                 // Now, execute the recurring transactions handler
-                return invoke("execute_due_recurring_transactions_handler");
+                return RecurringTransactionsService.processDueTransactions();
               })
-              .then((message) => {
-                logger.log("Recurring transactions handler executed:", message);
+              .then(() => {
+                logger.log("Recurring transactions processed.");
                 // Check for desktop reminders after recurring transactions
                 // Use tRef.current to get latest t without adding it to dependencies
                 return checkAndSendDesktopReminder(tRef.current);
