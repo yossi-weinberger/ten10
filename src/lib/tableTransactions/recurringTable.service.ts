@@ -85,6 +85,12 @@ export async function updateRecurringTransaction(
       p_status: values.status,
       p_total_occurrences: values.total_occurrences,
       p_day_of_month: values.day_of_month,
+      // Currency conversion fields
+      p_original_amount: values.original_amount ?? null,
+      p_original_currency: values.original_currency ?? null,
+      p_conversion_rate: values.conversion_rate ?? null,
+      p_conversion_date: values.conversion_date ?? null,
+      p_rate_source: values.rate_source ?? null,
     };
 
     const { data, error } = await supabase

@@ -268,6 +268,12 @@ export const createRecurringEditSchema = (t: TFunction) =>
     status: z.enum(["active", "paused", "completed", "cancelled"]),
     total_occurrences: createTotalOccurrencesSchema(t).nullable(),
     day_of_month: createDayOfMonthSchema(t).nullable(),
+    // Currency conversion fields
+    original_amount: z.number().optional().nullable(),
+    original_currency: z.string().optional().nullable(),
+    conversion_rate: z.number().optional().nullable(),
+    conversion_date: z.string().optional().nullable(),
+    rate_source: z.enum(["auto", "manual"]).optional().nullable(),
   });
 
 export type RecurringEditFormValues = z.infer<
