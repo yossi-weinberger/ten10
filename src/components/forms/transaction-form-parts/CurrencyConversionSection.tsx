@@ -30,7 +30,7 @@ export function CurrencyConversionSection({
   amount,
 }: CurrencyConversionSectionProps) {
   const { t, i18n } = useTranslation("currency-features");
-  const [isOnline, setIsOnline] = useState(true);
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine); // Initialize synchronously
   const [autoRate, setAutoRate] = useState<number | null>(null);
   const [loadingRate, setLoadingRate] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -42,10 +42,8 @@ export function CurrencyConversionSection({
   const rateSource = form.watch("rate_source");
   const conversionRate = form.watch("conversion_rate");
 
-  // Check online status
+  // Listen for online/offline status changes
   useEffect(() => {
-    ExchangeRateService.isOnline().then(setIsOnline);
-    
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
     

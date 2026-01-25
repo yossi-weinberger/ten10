@@ -12,7 +12,7 @@ interface CurrencyPickerProps {
 }
 
 export function CurrencyPicker({ value, onChange, className }: CurrencyPickerProps) {
-  const commonCurrencies: CurrencyCode[] = ["ILS", "USD", "EUR"];
+  const commonCurrencies: CurrencyCode[] = ["ILS", "USD", "EUR", "GBP"];
   const otherCurrencies = CURRENCIES.filter((c) => !commonCurrencies.includes(c.code));
 
   return (

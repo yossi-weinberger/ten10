@@ -32,9 +32,15 @@
     "currencyZAR": "South African Rand (ZAR)",
     "currencyMXN": "Mexican Peso (MXN)",
     "currencyUAH": "Ukrainian Hryvnia (UAH)",
-    "currencyWarning": {
-      "title": "Important Note on Currency Change",
-      "description": "Changing the currency affects only the display and does not convert existing transactions. New transactions can be entered in foreign currencies and will be converted to the default currency."
+    "currencyInfo": {
+      "unlocked": {
+        "title": "Default Currency Note",
+        "description": "The currency you select will be used as the base for all calculations and reports. After entering your first transaction, the currency will be locked and cannot be changed."
+      },
+      "locked": {
+        "title": "Default Currency Locked",
+        "description": "The currency is locked to maintain data consistency. You can enter transactions in any currency - they will be automatically converted to your default currency. To change the currency, delete all data at the bottom of this page."
+      }
     },
     "currencyNameILS": "Shekel",
     "currencyNameUSD": "Dollar",

@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Wallet, Calculator, Percent, AlertTriangle, Coins } from "lucide-react";
+import { Wallet, Calculator, Percent, Info, Lock, Coins } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -69,7 +69,7 @@ export function FinancialSettingsCard({
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="max-w-xs">{t("financial.currencyWarning.description")}</p>
+                    <p className="max-w-xs">{t("financial.currencyInfo.locked.description")}</p>
                   </TooltipContent>
                 </Tooltip>
               ) : (
@@ -82,11 +82,21 @@ export function FinancialSettingsCard({
               )}
             </div>
           </div>
-          <Alert variant="destructive" className="mt-2 xl:mt-0">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>{t("financial.currencyWarning.title")}</AlertTitle>
+          <Alert variant="default" className="mt-2 xl:mt-0">
+            {currencyLocked ? (
+              <Lock className="h-4 w-4" />
+            ) : (
+              <Info className="h-4 w-4" />
+            )}
+            <AlertTitle>
+              {currencyLocked 
+                ? t("financial.currencyInfo.locked.title") 
+                : t("financial.currencyInfo.unlocked.title")}
+            </AlertTitle>
             <AlertDescription>
-              {t("financial.currencyWarning.description")}
+              {currencyLocked 
+                ? t("financial.currencyInfo.locked.description") 
+                : t("financial.currencyInfo.unlocked.description")}
             </AlertDescription>
           </Alert>
         </div>
