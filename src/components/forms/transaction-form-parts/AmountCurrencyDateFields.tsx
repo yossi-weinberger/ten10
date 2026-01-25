@@ -31,8 +31,8 @@ export function AmountCurrencyDateFields({
   
   return (
     <div className="space-y-4">
-      {/* Amount, Currency, Date - all in one row */}
-      <div className="flex flex-col sm:flex-row gap-4 items-end">
+      {/* Amount + Currency row */}
+      <div className="flex gap-4 items-end">
         {/* Amount */}
         <FormField
           control={form.control}
@@ -81,35 +81,35 @@ export function AmountCurrencyDateFields({
             </FormItem>
           )}
         />
-
-        {/* Date */}
-        <FormField
-          control={form.control}
-          name="date"
-          render={({ field }) => (
-            <FormItem className="flex-1">
-              <FormLabel>{t("transactionForm.date.label")} *</FormLabel>
-              <FormControl>
-                <DatePicker
-                  date={
-                    field.value
-                      ? parse(field.value, "yyyy-MM-dd", new Date())
-                      : undefined
-                  }
-                  setDate={(date) => {
-                    if (date) {
-                      field.onChange(format(date, "yyyy-MM-dd"));
-                    } else {
-                      field.onChange("");
-                    }
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
       </div>
+
+      {/* Date row */}
+      <FormField
+        control={form.control}
+        name="date"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t("transactionForm.date.label")} *</FormLabel>
+            <FormControl>
+              <DatePicker
+                date={
+                  field.value
+                    ? parse(field.value, "yyyy-MM-dd", new Date())
+                    : undefined
+                }
+                setDate={(date) => {
+                  if (date) {
+                    field.onChange(format(date, "yyyy-MM-dd"));
+                  } else {
+                    field.onChange("");
+                  }
+                }}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
       {/* Conversion Section */}
       {selectedCurrency !== defaultCurrency && (
