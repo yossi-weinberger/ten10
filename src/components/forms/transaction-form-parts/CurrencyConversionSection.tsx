@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Wifi, WifiOff, PenTool, CheckCircle2, RefreshCw, Globe } from "lucide-react";
+import { Wifi, PenTool, RefreshCw, Globe } from "lucide-react";
 import { formatCurrency } from "@/lib/utils/currency";
 import { CURRENCIES, CurrencyCode } from "@/lib/currencies";
 import { ExchangeRateService } from "@/lib/services/exchange-rate.service";

@@ -1,7 +1,7 @@
 import { logger } from "@/lib/logger";
 import { getPlatform } from "@/lib/platformManager";
 import { CurrencyCode } from "@/lib/currencies";
-import { invoke } from "@tauri-apps/api/core";
+// import { invoke } from "@tauri-apps/api/core"; // STATIC IMPORT REMOVED - using dynamic imports instead
 
 // Provider configurations - ordered by priority (first = primary, rest = fallbacks)
 interface RateProvider {
@@ -120,6 +120,8 @@ export const ExchangeRateService = {
 
     if (platform === "desktop") {
       try {
+        // Dynamic import to avoid bundling Tauri in web builds
+        const { invoke } = await import("@tauri-apps/api/core");
         // Invoke Rust command to get last known rate from DB
         const rate = await invoke<number | null>("get_last_known_rate", { fromCurrency: from, toCurrency: to });
         if (rate) {

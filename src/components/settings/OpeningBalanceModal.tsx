@@ -248,7 +248,7 @@ export function OpeningBalanceModal({
             name="currency"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>&nbsp;</FormLabel> {/* Spacer */}
+                <div className="h-6" aria-hidden="true" /> {/* Spacer for alignment */}
                 <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                   <FormControl>
                     <SelectTrigger>

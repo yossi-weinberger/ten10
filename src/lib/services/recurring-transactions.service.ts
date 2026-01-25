@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+// import { invoke } from "@tauri-apps/api/core"; // STATIC IMPORT REMOVED - using dynamic imports instead
 import { RecurringTransaction, Transaction } from "@/types/transaction";
 import { ExchangeRateService } from "./exchange-rate.service";
 import { addTransaction } from "@/lib/data-layer/transactions.service";
@@ -41,6 +41,9 @@ export const RecurringTransactionsService = {
 
     try {
       logger.log("RecurringTransactionsService: Checking for due transactions...");
+      
+      // Dynamic import to avoid bundling Tauri in web builds
+      const { invoke } = await import("@tauri-apps/api/core");
       
       // Fetch due transactions
       // Note: We might need to re-fetch inside the loop if we process them one by one, 
