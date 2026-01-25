@@ -107,9 +107,15 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({
         {/* Grid - 2 cols on mobile, 4 on large screens */}
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-7xl mx-auto">
           <TooltipProvider>
-            {features.map((feature, i) => (
+            {features.map((feature, i) => {
+              // Center the last 2 items on large screens (14 items total, indices 12 and 13)
+              const isSecondToLast = i === features.length - 2;
+              const lastRowClass = isSecondToLast ? "lg:col-start-2" : "";
+
+              return (
               <motion.div
                 key={i}
+                className={lastRowClass}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
@@ -163,7 +169,8 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({
                   className="h-full min-h-[300px]" // Ensure height
                 />
               </motion.div>
-            ))}
+              );
+            })}
           </TooltipProvider>
         </div>
       </div>

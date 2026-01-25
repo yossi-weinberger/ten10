@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils/index";
 import toast from "react-hot-toast";
 import ContactFAB from "./components/layout/ContactFAB";
 import { TermsAcceptanceModal } from "./components/auth/TermsAcceptanceModal";
+import { WhatsNewModal } from "./components/WhatsNewModal";
 import { Footer } from "@/pages/landing/sections/Footer";
 import AppLoader from "./components/layout/AppLoader";
 
@@ -251,6 +252,7 @@ function App() {
       </div>
       {shouldShowContactFab && <ContactFAB />}
       <TermsAcceptanceModal />
+      <WhatsNewModal />
     </TooltipProvider>
   );
 }
