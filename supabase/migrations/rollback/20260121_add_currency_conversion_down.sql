@@ -1,4 +1,4 @@
--- rollback_20260121.sql
+-- 20260121_add_currency_conversion_down.sql
 ALTER TABLE transactions 
 DROP COLUMN IF EXISTS original_amount,
 DROP COLUMN IF EXISTS original_currency,

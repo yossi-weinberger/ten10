@@ -173,7 +173,7 @@ export function TransactionForm({
           : "",
         // Handle converted transactions: show original values in form
         amount: initialData.original_amount ?? initialData.amount,
-        currency: (initialData.original_currency as any) ?? initialData.currency,
+        currency: (initialData.original_currency as Transaction["currency"]) ?? initialData.currency,
         conversion_rate: initialData.conversion_rate ?? undefined,
         conversion_date: initialData.conversion_date ?? undefined,
         rate_source: (initialData.rate_source as any) ?? undefined,
