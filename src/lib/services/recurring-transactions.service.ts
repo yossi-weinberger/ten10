@@ -161,7 +161,7 @@ export const RecurringTransactionsService = {
              const newTransaction: Transaction = {
                  id: nanoid(),
                  user_id: rec.user_id || null,
-                 date: currentDueDate.toISOString().split("T")[0], // Use the calculate due date
+                 date: currentDueDate.toISOString().split("T")[0], // Use the calculated due date
                  amount: finalAmount,
                  currency: finalCurrency as any,
                  description: rec.description || null,
