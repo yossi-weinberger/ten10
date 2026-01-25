@@ -86,7 +86,7 @@ export function OpeningBalanceModal({
     defaultValues: {
       amount: initialData ? Math.abs(initialData.amount) : undefined,
       balanceType: initialData ? (initialData.amount >= 0 ? "debt" : "credit") : "debt",
-      currency: settings.defaultCurrency as any,
+      currency: settings.defaultCurrency as CurrencyCode,
     },
   });
 
@@ -95,8 +95,7 @@ export function OpeningBalanceModal({
     if (isOpen) {
       if (initialData) {
         // Determine currency to show: original (if converted) or current
-        // Cast to any to avoid type errors if currency is not in enum (though it should be)
-        const displayCurrency = (initialData.original_currency || initialData.currency) as any;
+        const displayCurrency = (initialData.original_currency || initialData.currency) as CurrencyCode;
         
         // Determine amount to show: original (if converted) or current
         // Always use absolute value for the form input
@@ -108,13 +107,13 @@ export function OpeningBalanceModal({
           currency: displayCurrency,
           conversion_rate: initialData.conversion_rate ?? undefined,
           conversion_date: initialData.conversion_date ?? undefined,
-          rate_source: (initialData.rate_source as any) ?? undefined,
+          rate_source: initialData.rate_source ?? undefined,
         });
       } else {
         form.reset({
           amount: undefined,
           balanceType: "debt",
-          currency: settings.defaultCurrency as any,
+          currency: settings.defaultCurrency as CurrencyCode,
         });
       }
       setIsSubmitting(false);

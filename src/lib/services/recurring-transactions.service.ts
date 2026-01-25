@@ -1,6 +1,7 @@
 // import { invoke } from "@tauri-apps/api/core"; // STATIC IMPORT REMOVED - using dynamic imports instead
 import { RecurringTransaction, Transaction } from "@/types/transaction";
 import { ExchangeRateService } from "./exchange-rate.service";
+import { CurrencyCode } from "@/lib/currencies";
 import { addTransaction } from "@/lib/data-layer/transactions.service";
 import { useDonationStore } from "@/lib/store";
 import { logger } from "@/lib/logger";
@@ -131,7 +132,7 @@ export const RecurringTransactionsService = {
                 }
              } else if (rec.currency !== defaultCurrency) {
                 // Legacy: no stored conversion details, try to fetch rate
-                const rate = await ExchangeRateService.fetchExchangeRate(rec.currency as any, defaultCurrency);
+                const rate = await ExchangeRateService.fetchExchangeRate(rec.currency as CurrencyCode, defaultCurrency);
                 
                 if (rate) {
                     finalAmount = Number((rec.amount * rate).toFixed(2));

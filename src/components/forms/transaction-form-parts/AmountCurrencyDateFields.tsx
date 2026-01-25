@@ -72,6 +72,7 @@ export function AmountCurrencyDateFields({
                       form.setValue("conversion_rate", null);
                     } else {
                       form.setValue("rate_source", "auto");
+                      form.setValue("conversion_rate", null); // Clear stale rate when switching currencies
                     }
                   }} 
                 />
