@@ -86,7 +86,7 @@ export function RecurringTransactionEditForm({
       // Foreign currency - conversion is REQUIRED
       if (!values.conversion_rate) {
         logger.error("Cannot submit: foreign currency selected but no conversion rate provided.");
-        toast.error(t("transactionForm.validation.conversionRateMissing", "Missing conversion rate"));
+        toast.error(t("transactionForm.errors.missingConversionRate"));
         return;
       }
       

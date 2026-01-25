@@ -396,14 +396,7 @@ export const importDataWeb = async ({
           if (!user) throw new Error("User not authenticated for web import.");
 
       await clearAllDataFromDataService();
-      
-      // Force unlock currency after clearing data (for web)
-      // We need to access the store state setter if possible, or trigger a re-render in SettingsPage
-      // Since this is a service, we can't easily set React state.
-      // However, SettingsPage listens to store changes (lastDbFetchTimestamp).
-      // clearAllDataFromDataService already updates the timestamp.
-      // The issue is likely that SettingsPage needs to re-evaluate 'hasTransactions' more aggressively.
-      // But for immediate feedback, we rely on the store update.
+      // Currency lock state is automatically updated via store changes (lastDbFetchTimestamp)
 
       const recurringIdMap = new Map<string, string>();
           let importCount = 0;

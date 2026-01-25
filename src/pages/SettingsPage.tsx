@@ -30,6 +30,7 @@ import { VersionInfoCard } from "@/components/settings/VersionInfoCard";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { logger } from "@/lib/logger";
 import { Transaction } from "@/types/transaction";
+import { CurrencyCode } from "@/lib/currencies";
 
 import { useIsCurrencyLocked } from "@/hooks/useIsCurrencyLocked";
 
@@ -125,7 +126,7 @@ export function SettingsPage() {
   const financialSection = (
     <FinancialSettingsCard
       financialSettings={{
-        defaultCurrency: settings.defaultCurrency as any,
+        defaultCurrency: settings.defaultCurrency as CurrencyCode,
         autoCalcChomesh: settings.autoCalcChomesh,
         minMaaserPercentage: settings.minMaaserPercentage,
       }}

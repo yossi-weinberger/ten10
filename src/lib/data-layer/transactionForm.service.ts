@@ -97,7 +97,7 @@ export async function handleTransactionSubmit(
       // Pass conversion details if present (only for manual rate usually, but can pass auto too if we want to snapshot it)
       // The backend/DB now supports these fields.
       original_amount: values.original_amount ?? undefined,
-      original_currency: (values.original_currency as any) ?? undefined,
+      original_currency: values.original_currency ?? undefined,
       conversion_rate: values.conversion_rate ?? undefined,
       conversion_date: values.conversion_date ?? undefined,
       rate_source: values.rate_source ?? undefined,
@@ -121,7 +121,7 @@ export async function handleTransactionSubmit(
       source_recurring_id: null,
       user_id: null,
       original_amount: values.original_amount ?? null,
-      original_currency: (values.original_currency as any) ?? null,
+      original_currency: values.original_currency ?? null,
       conversion_rate: values.conversion_rate ?? null,
       conversion_date: values.conversion_date ?? null,
       rate_source: values.rate_source ?? null,

@@ -613,9 +613,6 @@ pub fn get_transactions_count(
 
 #[tauri::command]
 pub async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Result<(), String> {
-    // DEBUG: Print the received transaction struct
-    println!("Received transaction in Rust: {:?}", transaction);
-
     let conn = db.0.lock().map_err(|e| e.to_string())?;
     conn.execute(
         "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at, source_recurring_id, original_amount, original_currency, conversion_rate, conversion_date, rate_source)
