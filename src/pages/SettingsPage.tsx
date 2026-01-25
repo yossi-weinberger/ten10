@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/lib/theme";
 import { useDonationStore } from "@/lib/store";
@@ -14,6 +14,12 @@ import {
   exportDataDesktop,
   importDataDesktop,
 } from "@/lib/data-layer/dataManagement.service";
+import { 
+  getInitialBalanceTransaction, 
+  updateTransaction,
+  hasAnyTransaction,
+  TransactionUpdatePayload 
+} from "@/lib/data-layer/transactions.service";
 import { LanguageAndDisplaySettingsCard } from "@/components/settings/LanguageAndDisplaySettingsCard";
 import { FinancialSettingsCard } from "@/components/settings/FinancialSettingsCard";
 import { NotificationSettingsCard } from "@/components/settings/NotificationSettingsCard";
@@ -23,38 +29,58 @@ import { ImportExportDataSection } from "@/components/settings/ImportExportDataS
 import { VersionInfoCard } from "@/components/settings/VersionInfoCard";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { logger } from "@/lib/logger";
+import { Transaction } from "@/types/transaction";
+
+import { useIsCurrencyLocked } from "@/hooks/useIsCurrencyLocked";
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
-  const { settings, updateSettings, serverCalculatedTotalIncome, serverCalculatedTotalExpenses, serverCalculatedTotalDonations } = useDonationStore(
+  const { settings, updateSettings } = useDonationStore(
     useShallow((state) => ({
       settings: state.settings,
       updateSettings: state.updateSettings,
-      serverCalculatedTotalIncome: state.serverCalculatedTotalIncome,
-      serverCalculatedTotalExpenses: state.serverCalculatedTotalExpenses,
-      serverCalculatedTotalDonations: state.serverCalculatedTotalDonations,
     }))
   );
 
-  const hasTransactions =
-    (serverCalculatedTotalIncome || 0) > 0 ||
-    (serverCalculatedTotalExpenses || 0) > 0 ||
-    (serverCalculatedTotalDonations || 0) > 0;
+  const { isLocked: isCurrencyLocked, isLoading: isCurrencyLockedLoading } = useIsCurrencyLocked();
 
   const [isClearing, setIsClearing] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [isOpeningBalanceModalOpen, setIsOpeningBalanceModalOpen] =
     useState(false);
+  const [openingBalanceTransaction, setOpeningBalanceTransaction] = useState<Transaction | null>(null);
   const { platform } = usePlatform();
   const { user } = useAuth();
   const { t } = useTranslation("settings");
   const { t: tCommon } = useTranslation("common");
 
+  // Fetch opening balance when modal opens
+  const handleOpenBalanceModal = async () => {
+    try {
+        const transaction = await getInitialBalanceTransaction();
+        setOpeningBalanceTransaction(transaction);
+    } catch (error) {
+        logger.error("Failed to fetch opening balance transaction:", error);
+        setOpeningBalanceTransaction(null);
+    }
+    setIsOpeningBalanceModalOpen(true);
+  };
+
+  const handleUpdateOpeningBalance = async (id: string, updates: Partial<Transaction>) => {
+      // Cast updates to TransactionUpdatePayload as updateTransaction expects specific structure
+      // We know OpeningBalanceModal sends correct fields
+      await updateTransaction(id, updates as TransactionUpdatePayload);
+      
+      // Refresh local state if needed
+      // Ideally we should re-fetch to ensure sync, but modal closes anyway
+  };
+
   const handleClearData = async () => {
     setIsClearing(true);
     try {
       await clearAllData();
+      // The hook will automatically update isCurrencyLocked when store changes
       toast.success(tCommon("toast.settings.clearDataSuccess"));
     } catch (error) {
       logger.error("Failed to clear data:", error);
@@ -103,12 +129,26 @@ export function SettingsPage() {
         autoCalcChomesh: settings.autoCalcChomesh,
         minMaaserPercentage: settings.minMaaserPercentage,
       }}
-      updateSettings={(newFinancialSettings) =>
-        updateSettings(newFinancialSettings)
-      }
+      updateSettings={(newFinancialSettings) => {
+        updateSettings(newFinancialSettings);
+        
+        // Also update Supabase profile if on web
+        if (platform === "web" && user && newFinancialSettings.defaultCurrency) {
+          supabase
+            .from("profiles")
+            .update({ default_currency: newFinancialSettings.defaultCurrency })
+            .eq("id", user.id)
+            .then(({ error }) => {
+              if (error) {
+                logger.error("Failed to update default currency in Supabase:", error);
+                toast.error(tCommon("toast.settings.updateError"));
+              }
+            });
+        }
+      }}
       disableMinMaaserPercentage={true}
-      onOpenBalanceModal={() => setIsOpeningBalanceModalOpen(true)}
-      currencyLocked={hasTransactions}
+      onOpenBalanceModal={handleOpenBalanceModal}
+      currencyLocked={isCurrencyLocked}
     />
   );
 
@@ -227,6 +267,8 @@ export function SettingsPage() {
       <OpeningBalanceModal
         isOpen={isOpeningBalanceModalOpen}
         onClose={() => setIsOpeningBalanceModalOpen(false)}
+        initialData={openingBalanceTransaction}
+        onUpdate={handleUpdateOpeningBalance}
       />
     </div>
   );

@@ -55,7 +55,19 @@ Deno.serve(async (req) => {
         let conversionDate = null;
         let rateSource = null;
 
-        if (sourceCurrency !== defaultCurrency) {
+        // Check if the recurring transaction already has conversion details stored
+        // (i.e., it was created with a locked-in rate from the form)
+        if (rec.original_amount && rec.original_currency) {
+          // Use the pre-calculated conversion data
+          console.log(`Using stored conversion for recurring ${rec.id}`);
+          finalAmount = rec.amount; // Already converted to default currency
+          finalCurrency = sourceCurrency; // Should be default currency (ILS)
+          originalAmount = rec.original_amount;
+          originalCurrency = rec.original_currency;
+          conversionRate = rec.conversion_rate;
+          conversionDate = rec.conversion_date;
+          rateSource = rec.rate_source;
+        } else if (sourceCurrency !== defaultCurrency) {
           // Fetch rate
           try {
             console.log(`Fetching rate for ${sourceCurrency} -> ${defaultCurrency}`);

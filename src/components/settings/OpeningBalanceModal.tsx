@@ -91,10 +91,21 @@ export function OpeningBalanceModal({
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
+        // Determine currency to show: original (if converted) or current
+        // Cast to any to avoid type errors if currency is not in enum (though it should be)
+        const displayCurrency = (initialData.original_currency || initialData.currency) as any;
+        
+        // Determine amount to show: original (if converted) or current
+        // Always use absolute value for the form input
+        const displayAmount = Math.abs(initialData.original_amount ?? initialData.amount);
+
         form.reset({
-          amount: Math.abs(initialData.amount),
+          amount: displayAmount,
           balanceType: initialData.amount >= 0 ? "debt" : "credit",
-          currency: settings.defaultCurrency as any, // Initial balance usually in default currency, but could be different if we support it
+          currency: displayCurrency,
+          conversion_rate: initialData.conversion_rate ?? undefined,
+          conversion_date: initialData.conversion_date ?? undefined,
+          rate_source: (initialData.rate_source as any) ?? undefined,
         });
       } else {
         form.reset({
@@ -120,28 +131,46 @@ export function OpeningBalanceModal({
       // Credit = Negative amount (reduces obligation)
       
       let finalAmount = values.balanceType === "debt" ? values.amount : -values.amount;
-      
+      const transactionPayload: Partial<Transaction> = {
+        amount: finalAmount,
+        currency: settings.defaultCurrency,
+        original_amount: null,
+        original_currency: null,
+        conversion_rate: null,
+        conversion_date: null,
+        rate_source: null,
+      };
+
       // Handle Currency Conversion Logic
       if (values.currency !== settings.defaultCurrency && values.conversion_rate) {
           const conversionRate = values.conversion_rate;
-          // Apply conversion to the magnitude, sign remains from balanceType
-          const convertedMagnitude = Number((Math.abs(finalAmount) * conversionRate).toFixed(2));
+          
+          // Original amount should also reflect debt/credit sign for consistency
+          const originalSignedAmount = values.balanceType === "debt" ? values.amount : -values.amount;
+          
+          // Apply conversion to the magnitude
+          const convertedMagnitude = Number((values.amount * conversionRate).toFixed(2));
           finalAmount = values.balanceType === "debt" ? convertedMagnitude : -convertedMagnitude;
+
+          transactionPayload.amount = finalAmount;
+          transactionPayload.original_amount = originalSignedAmount;
+          transactionPayload.original_currency = values.currency;
+          transactionPayload.conversion_rate = conversionRate;
+          transactionPayload.conversion_date = values.conversion_date || new Date().toISOString().split("T")[0];
+          transactionPayload.rate_source = values.rate_source;
       }
 
       if (initialData && onUpdate) {
-        await onUpdate(initialData.id, {
-          amount: finalAmount,
-        });
+        // Send ALL relevant fields to update, including conversion data
+        await onUpdate(initialData.id, transactionPayload);
         toast.success(tCommon("toast.settings.saveSuccess"));
         onClose();
         return;
       }
 
-      const transactionPayload: any = {
+      // Creating new transaction
+      await handleTransactionSubmit({
         type: "initial_balance",
-        amount: finalAmount, // Allow negative amounts for credit
-        currency: settings.defaultCurrency, // Always save in default currency
         date: new Date().toISOString().split("T")[0],
         description: t("balanceManagement.openingBalanceButton"),
         // Defaults
@@ -152,18 +181,8 @@ export function OpeningBalanceModal({
         isRecognized: false,
         isFromPersonalFunds: false,
         is_recurring: false,
-      };
-
-      // Add conversion fields if applicable
-      if (values.currency !== settings.defaultCurrency && values.conversion_rate) {
-          transactionPayload.original_amount = values.balanceType === "debt" ? values.amount : -values.amount;
-          transactionPayload.original_currency = values.currency;
-          transactionPayload.conversion_rate = values.conversion_rate;
-          transactionPayload.conversion_date = values.conversion_date || new Date().toISOString().split("T")[0];
-          transactionPayload.rate_source = values.rate_source;
-      }
-
-      await handleTransactionSubmit(transactionPayload);
+        ...transactionPayload, // Spread calculated values (amount, currency, original_*, etc)
+      } as any);
 
       toast.success(tCommon("toast.settings.saveSuccess"));
       onClose();
@@ -250,7 +269,7 @@ export function OpeningBalanceModal({
 
       {/* Currency Conversion Section */}
       <CurrencyConversionSection
-        form={form as any} // Cast to any to bypass strict type check for now, or define a compatible partial type
+        form={form as any} // Cast to any to bypass strict type check for now
         selectedCurrency={form.watch("currency")}
         amount={form.watch("amount")}
       />

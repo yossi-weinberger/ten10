@@ -207,10 +207,11 @@ export function TransactionForm({
     // Handle Currency Conversion Logic
     let submissionValues = { ...values };
     
-    // If currency is different from default and not recurring (recurring handles conversion at creation time)
-    // Actually recurring definition should use the selected currency (e.g. USD), so we DON'T convert recurring definitions here.
-    // We only convert ONE-TIME transactions here.
-    if (!values.is_recurring && values.currency !== defaultCurrency && values.conversion_rate) {
+    // Apply currency conversion if currency is different from default.
+    // This applies to BOTH one-time and recurring transactions now, ensuring consistency in the DB.
+    // We want recurring transactions to be stored in the base currency (e.g. ILS) with conversion details,
+    // so that generated transactions are also in the base currency.
+    if (values.currency !== defaultCurrency && values.conversion_rate) {
         const originalAmount = values.amount;
         const originalCurrency = values.currency;
         const conversionRate = values.conversion_rate;
@@ -225,7 +226,7 @@ export function TransactionForm({
             // conversion_rate, date, source are already in values
         };
         logger.log("Applying currency conversion:", { original: originalAmount, rate: conversionRate, converted: convertedAmount });
-    } else if (!values.is_recurring && values.currency === defaultCurrency) {
+    } else if (values.currency === defaultCurrency) {
         // Ensure clean state if currency is default
         submissionValues.original_amount = null;
         submissionValues.original_currency = null;
@@ -417,7 +418,7 @@ export function TransactionForm({
         />
 
         {/* Recurring fields section - Replaced with new component where applicable */}
-        {isRecurringChecked && <RecurringFields form={form} />}
+        {isRecurringChecked && <RecurringFields form={form as any} />}
 
         {/* Submit and Cancel Buttons - Replaced with new component */}
         <FormActionButtons

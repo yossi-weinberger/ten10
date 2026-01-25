@@ -54,7 +54,7 @@
   "app": {
     "windows": [],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: https: data:; connect-src 'self' https://api.github.com https://objects.githubusercontent.com https://github.com https://*.supabase.co;"
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: https: data:; connect-src 'self' https://api.github.com https://objects.githubusercontent.com https://github.com https://*.supabase.co https://api.exchangerate-api.com;"
     }
   }
 }

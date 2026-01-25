@@ -20,10 +20,13 @@
   },
   "row": {
     "tooltip": {
+      "conversionDetails": "פרטי המרה",
       "original": "סכום מקורי",
       "rate": "שער המרה",
       "date": "תאריך שער",
-      "source": "מקור המרה"
+      "source": "מקור המרה",
+      "target": "מטבע יעד",
+      "estimated": "משוער"
     }
   }
 }

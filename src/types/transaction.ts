@@ -96,6 +96,12 @@ export interface RecurringTransaction {
   recipient?: string;
   created_at?: string;
   updated_at?: string;
+  // Currency Conversion Fields
+  original_amount?: number | null;
+  original_currency?: Currency | null;
+  conversion_rate?: number | null;
+  conversion_date?: string | null;
+  rate_source?: "auto" | "manual" | null;
 }
 
 export type TransactionCategory =

@@ -592,6 +592,26 @@ pub fn get_filtered_transactions_handler(
 }
 
 #[tauri::command]
+pub fn get_transactions_count(
+    db_state: State<'_, DbState>,
+) -> std::result::Result<i64, String> {
+    let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
+    let conn = &*conn_guard;
+
+    // Use count with limit 1 logic for maximum speed if we just need existence,
+    // but here we return actual count as requested. For existence check:
+    // SELECT 1 FROM transactions LIMIT 1
+    
+    let count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM transactions",
+        [],
+        |row| row.get(0),
+    ).map_err(|e| e.to_string())?;
+
+    Ok(count)
+}
+
+#[tauri::command]
 pub async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Result<(), String> {
     // DEBUG: Print the received transaction struct
     println!("Received transaction in Rust: {:?}", transaction);

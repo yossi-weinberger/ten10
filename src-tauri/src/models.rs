@@ -93,10 +93,29 @@ pub struct RecurringTransaction {
     pub recipient: Option<String>,
     pub created_at: String,
     pub updated_at: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub original_amount: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub original_currency: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub conversion_rate: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub conversion_date: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rate_source: Option<String>,
 }
 
 impl RecurringTransaction {
     pub fn from_row(row: &rusqlite::Row<'_>) -> RusqliteResult<Self> {
+        let original_amount: Option<f64> = row.get("original_amount")?;
+        let original_currency: Option<String> = row.get("original_currency")?;
+        let conversion_rate: Option<f64> = row.get("conversion_rate")?;
+        let conversion_date: Option<String> = row.get("conversion_date")?;
+        let rate_source: Option<String> = row.get("rate_source")?;
+        
+        println!("[RUST DEBUG from_row] original_amount: {:?}, original_currency: {:?}, conversion_rate: {:?}, rate_source: {:?}", 
+            original_amount, original_currency, conversion_rate, rate_source);
+        
         Ok(RecurringTransaction {
             id: row.get("id")?,
             user_id: row.get("user_id")?,
@@ -116,6 +135,11 @@ impl RecurringTransaction {
             recipient: row.get("recipient")?,
             created_at: row.get("created_at")?,
             updated_at: row.get("updated_at")?,
+            original_amount,
+            original_currency,
+            conversion_rate,
+            conversion_date,
+            rate_source,
         })
     }
 }

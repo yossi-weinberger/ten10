@@ -51,11 +51,58 @@ pub async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
             is_chomesh INTEGER,
             recipient TEXT,
             created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL
+            updated_at TEXT NOT NULL,
+            original_amount REAL,
+            original_currency TEXT,
+            conversion_rate REAL,
+            conversion_date TEXT,
+            rate_source TEXT
         )",
         [],
     )
     .map_err(|e| e.to_string())?;
+
+    // --- Add new columns to recurring_transactions if they don't exist ---
+    
+    if !column_exists(&conn, "recurring_transactions", "original_amount").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE recurring_transactions ADD COLUMN original_amount REAL",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    if !column_exists(&conn, "recurring_transactions", "original_currency").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE recurring_transactions ADD COLUMN original_currency TEXT",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    if !column_exists(&conn, "recurring_transactions", "conversion_rate").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE recurring_transactions ADD COLUMN conversion_rate REAL",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    if !column_exists(&conn, "recurring_transactions", "conversion_date").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE recurring_transactions ADD COLUMN conversion_date TEXT",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    if !column_exists(&conn, "recurring_transactions", "rate_source").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE recurring_transactions ADD COLUMN rate_source TEXT",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
 
     // Add source_recurring_id to transactions table if it doesn't exist
     // Use a helper function to check for column existence to avoid errors on re-runs

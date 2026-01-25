@@ -20,10 +20,13 @@
   },
   "row": {
     "tooltip": {
+      "conversionDetails": "Conversion Details",
       "original": "Original Amount",
       "rate": "Exchange Rate",
       "date": "Rate Date",
-      "source": "Conversion Source"
+      "source": "Conversion Source",
+      "target": "Target Currency",
+      "estimated": "Est."
     }
   }
 }
