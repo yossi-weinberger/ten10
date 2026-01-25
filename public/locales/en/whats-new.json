@@ -1,5 +1,5 @@
 {
-  "title": "What's New in Version 0.5.1",
+  "title": "What's New in Version {{version}}",
   "description": "Here are the recent improvements and new features we've added",
   "dismissButton": "Got it",
   "dismissing": "Saving...",

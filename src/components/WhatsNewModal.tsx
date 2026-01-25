@@ -37,7 +37,11 @@ import {
   Bug,
 } from "lucide-react";
 
-// Constants - Update this when releasing new features
+// CURRENT_WHATS_NEW_VERSION controls when the "What's New" modal is shown.
+// - Bump this version string (e.g. "0.5.1" -> "0.6.0") whenever you change
+//   the modal content in a way that users should see again.
+// - This version is persisted per user to avoid re-showing the same release notes.
+// - This is intentionally separate from package.json version (not every release has new features).
 const CURRENT_WHATS_NEW_VERSION = "0.5.1";
 
 interface FeatureItem {
@@ -312,7 +316,7 @@ export function WhatsNewModal() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              {t("title")}
+              {t("title", { version: CURRENT_WHATS_NEW_VERSION })}
             </DialogTitle>
             <DialogDescription>{t("description")}</DialogDescription>
           </DialogHeader>
@@ -338,7 +342,7 @@ export function WhatsNewModal() {
         <DrawerHeader className="text-start">
           <DrawerTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            {t("title")}
+            {t("title", { version: CURRENT_WHATS_NEW_VERSION })}
           </DrawerTitle>
           <DrawerDescription>{t("description")}</DrawerDescription>
         </DrawerHeader>
