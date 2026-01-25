@@ -28,6 +28,7 @@ import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransact
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useTransactionFormInitialization } from "@/hooks/useTransactionFormInitialization";
 import { logger } from "@/lib/logger";
+import toast from "react-hot-toast";
 
 // Zod schema is now imported from "@/types/forms"
 
@@ -211,7 +212,16 @@ export function TransactionForm({
     // This applies to BOTH one-time and recurring transactions now, ensuring consistency in the DB.
     // We want recurring transactions to be stored in the base currency (e.g. ILS) with conversion details,
     // so that generated transactions are also in the base currency.
-    if (values.currency !== defaultCurrency && values.conversion_rate) {
+    if (values.currency !== defaultCurrency) {
+        // Foreign currency - conversion is REQUIRED
+        if (!values.conversion_rate) {
+            // This should not happen if UI validation is working correctly
+            // But as a safety net, prevent submission without a valid rate
+            logger.error("Cannot submit transaction: foreign currency selected but no conversion rate provided.");
+            toast.error("Missing conversion rate - please select a rate");
+            return;
+        }
+        
         const originalAmount = values.amount;
         const originalCurrency = values.currency;
         const conversionRate = values.conversion_rate;
@@ -226,8 +236,8 @@ export function TransactionForm({
             // conversion_rate, date, source are already in values
         };
         logger.log("Applying currency conversion:", { original: originalAmount, rate: conversionRate, converted: convertedAmount });
-    } else if (values.currency === defaultCurrency) {
-        // Ensure clean state if currency is default
+    } else {
+        // Default currency - ensure clean state (no conversion fields)
         submissionValues.original_amount = null;
         submissionValues.original_currency = null;
         submissionValues.conversion_rate = null;
@@ -402,10 +412,7 @@ export function TransactionForm({
         />
 
         {/* Amount, currency and date fields */}
-        <AmountCurrencyDateFields
-          form={form}
-          availableCurrencies={CURRENCIES}
-        />
+        <AmountCurrencyDateFields form={form} />
 
         {/* Description and category/recipient fields */}
         <DescriptionCategoryFields form={form} selectedType={selectedType} />

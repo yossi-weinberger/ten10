@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
         }
 
         const defaultCurrency = profile?.default_currency || "ILS";
-        const sourceCurrency = rec.currency;
+        const recCurrency = rec.currency; // rec.currency should already be defaultCurrency if converted at form
         
         let finalAmount = rec.amount;
         let finalCurrency = defaultCurrency;
@@ -130,23 +130,26 @@ Deno.serve(async (req) => {
         // (i.e., it was created with a locked-in rate from the form)
         if (rec.original_amount && rec.original_currency) {
           // Use the pre-calculated conversion data
+          // Per Base Currency Architecture: rec.currency is already the default currency (converted at form submission)
+          // and rec.original_currency contains the foreign currency
           console.log(`Using stored conversion for recurring ${rec.id}`);
           finalAmount = rec.amount; // Already converted to default currency
-          finalCurrency = sourceCurrency; // Should be default currency (ILS)
+          finalCurrency = defaultCurrency; // Use defaultCurrency explicitly for clarity
           originalAmount = rec.original_amount;
           originalCurrency = rec.original_currency;
           conversionRate = rec.conversion_rate;
           conversionDate = rec.conversion_date;
           rateSource = rec.rate_source;
-        } else if (sourceCurrency !== defaultCurrency) {
-          // Fetch rate using multi-provider strategy
-          console.log(`Fetching rate for ${sourceCurrency} -> ${defaultCurrency}`);
-          const rate = await fetchExchangeRate(sourceCurrency, defaultCurrency);
+        } else if (recCurrency !== defaultCurrency) {
+          // LEGACY: Recurring transaction in foreign currency without stored conversion
+          // This should only happen for old data created before currency conversion feature
+          console.log(`Fetching rate for ${recCurrency} -> ${defaultCurrency}`);
+          const rate = await fetchExchangeRate(recCurrency, defaultCurrency);
           
           if (rate) {
             finalAmount = Number((rec.amount * rate).toFixed(2));
             originalAmount = rec.amount;
-            originalCurrency = sourceCurrency;
+            originalCurrency = recCurrency;
             conversionRate = rate;
             conversionDate = today;
             rateSource = "auto";
@@ -154,7 +157,7 @@ Deno.serve(async (req) => {
             // LEGACY TRANSACTION: No stored rate, all APIs failed
             // This will retry on next cron run (typically tomorrow)
             // This should be rare - only affects old transactions created before currency conversion feature
-            console.error(`[RETRY-PENDING] Legacy recurring ${rec.id}: All rate providers failed for ${sourceCurrency} -> ${defaultCurrency}. Will retry on next cron run.`);
+            console.error(`[RETRY-PENDING] Legacy recurring ${rec.id}: All rate providers failed for ${recCurrency} -> ${defaultCurrency}. Will retry on next cron run.`);
             skippedCount++;
             continue;
           }

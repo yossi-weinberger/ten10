@@ -65,6 +65,7 @@ export function FinancialSettingsCard({
                       <CurrencyPicker
                         value={financialSettings.defaultCurrency}
                         onChange={() => {}}
+                        variant="expanded"
                       />
                     </div>
                   </TooltipTrigger>
@@ -78,6 +79,7 @@ export function FinancialSettingsCard({
                   onChange={(val) =>
                     updateSettings({ defaultCurrency: val })
                   }
+                  variant="expanded"
                 />
               )}
             </div>
