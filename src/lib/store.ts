@@ -24,6 +24,7 @@ export interface Settings {
   reminderDayOfMonth: 1 | 5 | 10 | 15 | 20 | 25;
   termsAcceptedVersion?: string | null;
   mailingListConsent?: boolean;
+  lastSeenVersion?: string | null;
 }
 
 export interface DonationState {
@@ -74,6 +75,7 @@ const defaultSettings: Settings = {
   reminderDayOfMonth: 10,
   termsAcceptedVersion: null,
   mailingListConsent: false,
+  lastSeenVersion: null,
 };
 
 export const useDonationStore = create<DonationState>()(
@@ -242,6 +244,13 @@ export const useDonationStore = create<DonationState>()(
                 "Zustand: Adding missing mailingListConsent to existing settings"
               );
               state.settings.mailingListConsent = false;
+            }
+
+            if (state.settings.lastSeenVersion === undefined) {
+              logger.log(
+                "Zustand: Adding missing lastSeenVersion to existing settings"
+              );
+              state.settings.lastSeenVersion = null;
             }
 
             state.setHasHydrated(true);

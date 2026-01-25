@@ -28,6 +28,7 @@ import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransact
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useTransactionFormInitialization } from "@/hooks/useTransactionFormInitialization";
 import { logger } from "@/lib/logger";
+import toast from "react-hot-toast";
 
 // Zod schema is now imported from "@/types/forms"
 
@@ -35,6 +36,8 @@ import { logger } from "@/lib/logger";
 // - is_chomesh: required if type is 'income'
 // - recipient: required if type is 'donation'
 // - category: perhaps more relevant for 'expense'/'recognized-expense'
+
+import { CurrencyConversionSection } from "./transaction-form-parts/CurrencyConversionSection";
 
 interface TransactionFormProps {
   initialData?: Transaction | null; // For editing
@@ -76,11 +79,9 @@ export function TransactionForm({
   );
 
   // The form schema only allows these currencies.
-  const validCurrencies: Array<TransactionFormValues["currency"]> = [
-    "ILS",
-    "USD",
-    "EUR",
-  ];
+  const validCurrencies: Array<TransactionFormValues["currency"]> = CURRENCIES.map(
+    (c) => c.code
+  );
 
   // If the stored currency isn't one of the valid ones, default to ILS.
   const defaultCurrency = validCurrencies.includes(
@@ -170,6 +171,15 @@ export function TransactionForm({
         date: initialData.date
           ? new Date(initialData.date).toISOString().split("T")[0]
           : "",
+        // Handle converted transactions: show original values in form
+        amount: initialData.original_amount ?? initialData.amount,
+        currency: (initialData.original_currency as Transaction["currency"]) ?? initialData.currency,
+        conversion_rate: initialData.conversion_rate ?? undefined,
+        conversion_date: initialData.conversion_date ?? undefined,
+        rate_source: (initialData.rate_source as any) ?? undefined,
+        original_amount: initialData.original_amount ?? undefined,
+        original_currency: initialData.original_currency ?? undefined,
+
         // Map backend fields to form fields if necessary
         isExempt: initialData.type === "exempt-income",
         isRecognized: initialData.type === "recognized-expense",
@@ -195,6 +205,46 @@ export function TransactionForm({
     setIsSuccess(false);
     logger.log("Form values submitted:", values);
 
+    // Handle Currency Conversion Logic
+    let submissionValues = { ...values };
+    
+    // Apply currency conversion if currency is different from default.
+    // This applies to BOTH one-time and recurring transactions now, ensuring consistency in the DB.
+    // We want recurring transactions to be stored in the base currency (e.g. ILS) with conversion details,
+    // so that generated transactions are also in the base currency.
+    if (values.currency !== defaultCurrency) {
+        // Foreign currency - conversion is REQUIRED
+        if (!values.conversion_rate) {
+            // This should not happen if UI validation is working correctly
+            // But as a safety net, prevent submission without a valid rate
+            logger.error("Cannot submit transaction: foreign currency selected but no conversion rate provided.");
+            toast.error(t("transactionForm.errors.missingConversionRate"));
+            return;
+        }
+        
+        const originalAmount = values.amount;
+        const originalCurrency = values.currency;
+        const conversionRate = values.conversion_rate;
+        const convertedAmount = Number((originalAmount * conversionRate).toFixed(2));
+        
+        submissionValues = {
+            ...values,
+            amount: convertedAmount,
+            currency: defaultCurrency as any,
+            original_amount: originalAmount,
+            original_currency: originalCurrency,
+            // conversion_rate, date, source are already in values
+        };
+        logger.log("Applying currency conversion:", { original: originalAmount, rate: conversionRate, converted: convertedAmount });
+    } else {
+        // Default currency - ensure clean state (no conversion fields)
+        submissionValues.original_amount = null;
+        submissionValues.original_currency = null;
+        submissionValues.conversion_rate = null;
+        submissionValues.conversion_date = null;
+        submissionValues.rate_source = null;
+    }
+
     if (isEditMode) {
       if (!initialData || !initialData.id) {
         logger.error("Cannot update: missing initial data or transaction ID.");
@@ -204,7 +254,7 @@ export function TransactionForm({
       const updatePayload: Partial<Transaction> = {};
 
       // Calculate the final type from form values (including checkboxes)
-      const newFinalType = determineFinalType(values);
+      const newFinalType = determineFinalType(submissionValues);
       const oldFinalType = initialData.type;
 
       // Check if the type changed (considering checkboxes)
@@ -226,6 +276,11 @@ export function TransactionForm({
         "category",
         "is_chomesh",
         "recipient",
+        "original_amount",
+        "original_currency",
+        "conversion_rate",
+        "conversion_date",
+        "rate_source",
       ];
 
       // Helper function to safely assign values to updatePayload
@@ -238,7 +293,7 @@ export function TransactionForm({
 
       transactionFields.forEach((key) => {
         const formKey = key as keyof TransactionFormValues;
-        let formValue = values[formKey];
+        let formValue = submissionValues[formKey];
         const initialValue = initialData[key];
 
         const normalizeEmptyAndUndefinedToNull = (value: unknown) =>
@@ -309,7 +364,7 @@ export function TransactionForm({
     } else {
       // Logic for creating a new transaction
       try {
-        await handleTransactionSubmit(values);
+        await handleTransactionSubmit(submissionValues);
         setIsSuccess(true);
         setTimeout(() => {
           setIsSuccess(false);
@@ -356,13 +411,10 @@ export function TransactionForm({
           defaultIncomeChomesh={autoCalcChomesh}
         />
 
-        {/* Amount, currency and date fields - Replaced with new component */}
-        <AmountCurrencyDateFields
-          form={form}
-          availableCurrencies={CURRENCIES}
-        />
+        {/* Amount, currency and date fields */}
+        <AmountCurrencyDateFields form={form} />
 
-        {/* Description and category/recipient fields - Replaced with new component */}
+        {/* Description and category/recipient fields */}
         <DescriptionCategoryFields form={form} selectedType={selectedType} />
 
         {/* All checkboxes in one row as squares - Replaced with new component */}
@@ -373,7 +425,7 @@ export function TransactionForm({
         />
 
         {/* Recurring fields section - Replaced with new component where applicable */}
-        {isRecurringChecked && <RecurringFields form={form} />}
+        {isRecurringChecked && <RecurringFields form={form as any} />}
 
         {/* Submit and Cancel Buttons - Replaced with new component */}
         <FormActionButtons

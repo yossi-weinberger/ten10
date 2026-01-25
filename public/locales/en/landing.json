@@ -102,6 +102,10 @@
         "title": "Automatic maaser & chomesh calculation",
         "description": "Automatically calculates your maaser balance, with full support for chomesh (20%) — based on income, expenses, and donations"
       },
+      "currencyConversion": {
+        "title": "Multi-Currency Support & Conversion",
+        "description": "Enter transactions in 12 different currencies with automatic conversion to your default currency"
+      },
       "accessAnywhere": {
         "title": "Access Anywhere",
         "description": "Full website version with cloud sync and computer software for offline work (without internet connection)"
@@ -145,6 +149,10 @@
       "halachaLibrary": {
         "title": "Comprehensive halacha library",
         "description": "A clear, organized knowledge base for maaser topics, written and reviewed by expert rabbis"
+      },
+      "multiLanguage": {
+        "title": "Hebrew & English Support",
+        "description": "Full interface in both languages with easy switching between them"
       }
     }
   },

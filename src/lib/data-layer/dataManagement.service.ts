@@ -395,9 +395,10 @@ export const importDataWeb = async ({
           } = await supabase.auth.getUser();
           if (!user) throw new Error("User not authenticated for web import.");
 
-          await clearAllDataFromDataService();
+      await clearAllDataFromDataService();
+      // Currency lock state is automatically updated via store changes (lastDbFetchTimestamp)
 
-          const recurringIdMap = new Map<string, string>();
+      const recurringIdMap = new Map<string, string>();
           let importCount = 0;
 
           for (const item of transactionsToImport) {

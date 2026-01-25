@@ -11,6 +11,8 @@ import {
   LayoutDashboard,
   ShieldCheck,
   Library,
+  ArrowRightLeft,
+  Languages,
 } from "lucide-react";
 
 export type PlatformAvailability = "web" | "desktop";
@@ -74,6 +76,13 @@ export const features: Feature[] = [
     imageSrc: "/features/recurring.webp",
   },
   {
+    icon: ArrowRightLeft,
+    titleKey: "features.items.currencyConversion.title",
+    descriptionKey: "features.items.currencyConversion.description",
+    availability: ["web", "desktop"],
+    imageSrc: "/features/currency.webp",
+  },
+  {
     icon: PieChart,
     titleKey: "features.items.reportsCharts.title",
     descriptionKey: "features.items.reportsCharts.description",
@@ -108,6 +117,13 @@ export const features: Feature[] = [
     availability: ["web"],
     imageSrc: "/features/rabbi.webp",
   },
+  {
+    icon: Languages,
+    titleKey: "features.items.multiLanguage.title",
+    descriptionKey: "features.items.multiLanguage.description",
+    availability: ["web", "desktop"],
+    imageSrc: "/features/languages.webp",
+  }
 ];
 
 // Add FAQ Data here if not already in JSON, but typically FAQs are handled in landing.json

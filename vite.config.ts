@@ -17,8 +17,12 @@ export default defineConfig(() => {
   // We exclude Tauri modules ONLY if it's CI build AND NOT a Tauri build
   const isStandaloneCIBuild = process.env.CI === "true" && !isTauriBuild;
 
+  // For web builds (Vercel), use absolute paths so deep routes work on refresh
+  // For Tauri builds, use relative paths for local file loading
+  const base = isTauriBuild ? "./" : "/";
+
   return {
-    base: "./",
+    base,
     define: {
       "import.meta.env.VITE_APP_VERSION": JSON.stringify(packageJson.version),
     },

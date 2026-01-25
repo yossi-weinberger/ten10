@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { logger } from "@/lib/logger";
 import { useTranslation } from "react-i18next";
+import toast from "react-hot-toast";
 import {
   Form,
   FormControl,
@@ -21,12 +22,15 @@ import {
 } from "@/components/ui/select";
 import { recurringStatusLabels } from "@/types/recurringTransactionLabels";
 import { RecurringTransaction } from "@/types/transaction";
-import { CURRENCIES, CurrencyObject } from "@/lib/currencies";
+import { CurrencyCode } from "@/lib/currencies";
 import { FormActionButtons } from "./transaction-form-parts/FormActionButtons";
 import {
   RecurringEditFormValues,
   createRecurringEditSchema,
 } from "@/lib/schemas";
+import { CurrencyPicker } from "@/components/ui/CurrencyPicker";
+import { CurrencyConversionSection } from "./transaction-form-parts/CurrencyConversionSection";
+import { useDonationStore } from "@/lib/store";
 
 interface RecurringTransactionEditFormProps {
   initialData: RecurringTransaction;
@@ -41,6 +45,10 @@ export function RecurringTransactionEditForm({
 }: RecurringTransactionEditFormProps) {
   const { t, i18n } = useTranslation("transactions");
   const [isSuccess, setIsSuccess] = React.useState(false);
+  
+  const defaultCurrency = useDonationStore(
+    (state) => state.settings.defaultCurrency
+  );
 
   const recurringSchema = useMemo(() => createRecurringEditSchema(t), [t]);
 
@@ -48,21 +56,65 @@ export function RecurringTransactionEditForm({
     resolver: zodResolver(recurringSchema),
     mode: "onChange",
     defaultValues: {
-      amount: initialData.amount,
-      currency: initialData.currency as "ILS" | "USD" | "EUR",
+      // Handle converted transactions: show original values in form
+      amount: initialData.original_amount ?? initialData.amount,
+      currency: (initialData.original_currency as CurrencyCode) ?? initialData.currency,
       description: initialData.description ?? "",
       status: initialData.status,
       total_occurrences: initialData.total_occurrences,
       day_of_month: initialData.day_of_month,
+      // Conversion fields from initial data
+      conversion_rate: initialData.conversion_rate ?? undefined,
+      conversion_date: initialData.conversion_date ?? undefined,
+      rate_source: initialData.rate_source ?? undefined,
+      original_amount: initialData.original_amount ?? undefined,
+      original_currency: initialData.original_currency ?? undefined,
     },
   });
 
   const status = form.watch("status");
+  const selectedCurrency = form.watch("currency");
+  const amount = form.watch("amount");
 
   const handleFormSubmit = async (values: RecurringEditFormValues) => {
     setIsSuccess(false);
+    
+    // Handle Currency Conversion Logic
+    let submissionValues = { ...values };
+    
+    if (values.currency !== defaultCurrency) {
+      // Foreign currency - conversion is REQUIRED
+      if (!values.conversion_rate) {
+        logger.error("Cannot submit: foreign currency selected but no conversion rate provided.");
+        toast.error(t("transactionForm.errors.missingConversionRate"));
+        return;
+      }
+      
+      const originalAmount = values.amount;
+      const originalCurrency = values.currency;
+      const conversionRate = values.conversion_rate;
+      const convertedAmount = Number((originalAmount * conversionRate).toFixed(2));
+      
+      submissionValues = {
+        ...values,
+        amount: convertedAmount,
+        currency: defaultCurrency as CurrencyCode,
+        original_amount: originalAmount,
+        original_currency: originalCurrency,
+        // conversion_rate, date, source are already in values
+      };
+      logger.log("Applying currency conversion:", { original: originalAmount, rate: conversionRate, converted: convertedAmount });
+    } else {
+      // Default currency - clear conversion fields
+      submissionValues.original_amount = null;
+      submissionValues.original_currency = null;
+      submissionValues.conversion_rate = null;
+      submissionValues.conversion_date = null;
+      submissionValues.rate_source = null;
+    }
+    
     try {
-      await onSubmit(values);
+      await onSubmit(submissionValues);
       setIsSuccess(true);
       setTimeout(() => {
         setIsSuccess(false);
@@ -98,52 +150,61 @@ export function RecurringTransactionEditForm({
           />
 
           {/* Amount and Currency */}
-          <div className="grid grid-cols-3 gap-2 items-end">
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel>{t("transactionForm.amount.label")}</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.01" {...field} />
-                  </FormControl>
-                  <div className="h-5">
-                    <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="currency"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t("transactionForm.currency.label")}</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    dir={i18n.dir()}
-                  >
+          <div className="md:col-span-2 space-y-4">
+            <div className="flex flex-col sm:flex-row gap-4 items-end">
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem className="flex-1">
+                    <FormLabel>{t("transactionForm.amount.label")}</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
+                      <Input 
+                        type="number" 
+                        step="0.01" 
+                        {...field}
+                        value={field.value ?? ""}
+                        className="text-start"
+                      />
                     </FormControl>
-                    <SelectContent>
-                      {CURRENCIES.map((c: CurrencyObject) => (
-                        <SelectItem key={c.code} value={c.code}>
-                          {c.code}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="h-5">
                     <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="currency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <CurrencyPicker
+                        value={field.value as CurrencyCode}
+                        onChange={(val) => {
+                          field.onChange(val);
+                          // Reset rate source on change to trigger re-eval
+                          if (val === defaultCurrency) {
+                            form.setValue("rate_source", null);
+                            form.setValue("conversion_rate", null);
+                          } else {
+                            form.setValue("rate_source", "auto");
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Currency Conversion Section */}
+            {selectedCurrency !== defaultCurrency && (
+              <CurrencyConversionSection
+                form={form as any}
+                selectedCurrency={selectedCurrency}
+                amount={amount}
+              />
+            )}
           </div>
 
           {/* Status */}

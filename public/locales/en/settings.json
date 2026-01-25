@@ -23,13 +23,37 @@
     "currencyILS": "Israeli Shekel (ILS)",
     "currencyUSD": "US Dollar (USD)",
     "currencyEUR": "Euro (EUR)",
-    "currencyWarning": {
-      "title": "Important Note on Currency Change",
-      "description": "Changing the default currency only changes how currencies are displayed. It does not convert existing transactions. For accuracy, enter transactions in the same currency."
+    "currencyCAD": "Canadian Dollar (CAD)",
+    "currencyGBP": "British Pound (GBP)",
+    "currencyAUD": "Australian Dollar (AUD)",
+    "currencyCHF": "Swiss Franc (CHF)",
+    "currencyARS": "Argentine Peso (ARS)",
+    "currencyBRL": "Brazilian Real (BRL)",
+    "currencyZAR": "South African Rand (ZAR)",
+    "currencyMXN": "Mexican Peso (MXN)",
+    "currencyUAH": "Ukrainian Hryvnia (UAH)",
+    "currencyInfo": {
+      "unlocked": {
+        "title": "Default Currency Note",
+        "description": "The currency you select will be used as the base for all calculations and reports. After entering your first transaction, the currency will be locked and cannot be changed."
+      },
+      "locked": {
+        "title": "Default Currency Locked",
+        "description": "The currency is locked to maintain data consistency. You can enter transactions in any currency - they will be automatically converted to your default currency. To change the currency, delete all data at the bottom of this page."
+      }
     },
     "currencyNameILS": "Shekel",
     "currencyNameUSD": "Dollar",
     "currencyNameEUR": "Euro",
+    "currencyNameCAD": "Canadian Dollar",
+    "currencyNameGBP": "Pound Sterling",
+    "currencyNameAUD": "Australian Dollar",
+    "currencyNameCHF": "Swiss Franc",
+    "currencyNameARS": "Argentine Peso",
+    "currencyNameBRL": "Brazilian Real",
+    "currencyNameZAR": "South African Rand",
+    "currencyNameMXN": "Mexican Peso",
+    "currencyNameUAH": "Ukrainian Hryvnia",
     "autoCalcChomeshLabel": "Automatically calculate Chomesh",
     "autoCalcChomeshDescription": "Automatically add Chomesh to all income.",
     "minMaaserPercentageLabel": "Minimum Ma'aser Percentage",

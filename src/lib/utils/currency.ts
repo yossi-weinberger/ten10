@@ -42,20 +42,3 @@ export function formatCurrency(
   return new Intl.NumberFormat(locale, options).format(amount);
 }
 
-export function convertCurrency(
-  amount: number,
-  from: CurrencyCode,
-  to: CurrencyCode
-): number {
-  if (from === to) return amount;
-
-  // This is a simplified conversion rate map.
-  // In a real-world application, this would come from an API.
-  const rates: Record<CurrencyCode, Record<CurrencyCode, number>> = {
-    ILS: { USD: 0.27, EUR: 0.25, ILS: 1 },
-    USD: { ILS: 3.7, EUR: 0.93, USD: 1 },
-    EUR: { ILS: 4, USD: 1.07, EUR: 1 },
-  };
-
-  return amount * rates[from][to];
-}

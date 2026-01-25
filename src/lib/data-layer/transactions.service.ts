@@ -102,6 +102,82 @@ export async function loadTransactions(
 }
 
 /**
+ * Fetches the initial balance transaction if it exists.
+ */
+export async function getInitialBalanceTransaction(): Promise<Transaction | null> {
+  const currentPlatform = getPlatform();
+  
+  if (currentPlatform === "desktop") {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      // We can reuse get_transactions and filter, or add a specific command.
+      // Since initial balance is one transaction, filtering in JS is fine for MVP if list is small,
+      // but better to query. For now, let's use get_filtered_transactions_handler logic via existing service or add new one.
+      // Actually, we can just fetch all and find it, but that's heavy.
+      // Let's rely on loadTransactions cache if possible? No, store only has summary.
+      
+      // Let's assume we need to fetch it.
+      // Simplest: fetch all transactions (since SQLite is local and fast) and find it.
+      // Optimization: Add a specific Rust command later.
+      const transactions = await invoke<Transaction[]>("get_transactions");
+      return transactions.find(t => t.type === "initial_balance") || null;
+    } catch (error) {
+      logger.error("Error fetching initial balance transaction (Desktop):", error);
+      return null;
+    }
+  } else if (currentPlatform === "web") {
+    try {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("type", "initial_balance")
+        .limit(1)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data as Transaction | null;
+    } catch (error) {
+      logger.error("Error fetching initial balance transaction (Web):", error);
+      return null;
+    }
+  }
+  return null;
+}
+
+/**
+ * Checks if there are ANY transactions in the database.
+ * Useful for determining if currency settings should be locked.
+ */
+export async function hasAnyTransaction(): Promise<boolean> {
+  const currentPlatform = getPlatform();
+  
+  if (currentPlatform === "desktop") {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      const count = await invoke<number>("get_transactions_count");
+      return count > 0;
+    } catch (error) {
+      logger.error("Error checking for transactions (Desktop):", error);
+      return false;
+    }
+  } else if (currentPlatform === "web") {
+    try {
+      // Use count with head: true to avoid fetching data
+      const { count, error } = await supabase
+        .from("transactions")
+        .select("*", { count: "exact", head: true });
+
+      if (error) throw error;
+      return (count || 0) > 0;
+    } catch (error) {
+      logger.error("Error checking for transactions (Web):", error);
+      return false;
+    }
+  }
+  return false;
+}
+
+/**
  * Adds a single transaction.
  * On desktop, saves to SQLite via Tauri.
  * On web, saves to Supabase.
@@ -243,6 +319,11 @@ export interface TransactionUpdatePayload {
   category?: string | null;
   is_chomesh?: boolean;
   recipient?: string | null;
+  original_amount?: number | null;
+  original_currency?: string | null;
+  conversion_rate?: number | null;
+  conversion_date?: string | null;
+  rate_source?: string | null;
 }
 
 /**
@@ -279,6 +360,16 @@ export async function updateTransaction(
     sanitizedPayload.is_chomesh = payload.is_chomesh;
   if (payload.recipient !== undefined)
     sanitizedPayload.recipient = payload.recipient;
+  if (payload.original_amount !== undefined)
+    sanitizedPayload.original_amount = payload.original_amount;
+  if (payload.original_currency !== undefined)
+    sanitizedPayload.original_currency = payload.original_currency;
+  if (payload.conversion_rate !== undefined)
+    sanitizedPayload.conversion_rate = payload.conversion_rate;
+  if (payload.conversion_date !== undefined)
+    sanitizedPayload.conversion_date = payload.conversion_date;
+  if (payload.rate_source !== undefined)
+    sanitizedPayload.rate_source = payload.rate_source;
 
   logger.log(
     `TransactionsService: Cleaned payload for transaction ${transactionId}:`,

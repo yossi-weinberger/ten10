@@ -237,3 +237,25 @@ To add a new field (e.g., `notes`) to the `Transaction` model, you typically nee
     - **Edit Form Logic:** If the new field is user-editable, add it to the `transactionFields` array in `TransactionForm.tsx` (in the `onSubmit` function's edit mode section) so it's included in update payload comparisons. Ensure proper null/undefined/empty string normalization for accurate change detection.
 
 **Remember to test thoroughly across both Desktop and Web versions after adding a field.**
+
+## 11. Currency Conversion
+
+The application supports multiple currencies with automatic conversion to the user's default currency.
+
+### 11.1. Data Model
+The `transactions` table includes fields to store the original transaction details alongside the converted amount:
+- `amount`: The converted amount in the user's default currency (used for all calculations).
+- `currency`: The user's default currency.
+- `original_amount`: The amount in the original currency (if different).
+- `original_currency`: The original currency code.
+- `conversion_rate`: The rate used for conversion.
+- `conversion_date`: The date of the rate used.
+- `rate_source`: 'auto' (API) or 'manual'.
+
+### 11.2. Conversion Logic
+- **One-time Transactions:** Converted at the time of creation/update in the UI. The database stores the converted amount in `amount` and original details in `original_*` fields.
+- **Recurring Transactions:** The *definition* stores the original currency and amount. Each occurrence is converted at the time of generation (via Edge Function on Web, or Rust/Frontend logic on Desktop).
+
+### 11.3. Exchange Rates
+- **Web:** Uses `exchangerate-api.com` (free tier) via `ExchangeRateService`.
+- **Desktop:** Tries to fetch from API if online. If offline, falls back to the last known rate from the database or requires manual input.
