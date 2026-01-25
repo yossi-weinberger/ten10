@@ -41,12 +41,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CURRENCIES } from "@/lib/currencies";
+import { CURRENCIES, CurrencyCode } from "@/lib/currencies";
 import { Form } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CurrencyConversionSection } from "@/components/forms/transaction-form-parts/CurrencyConversionSection";
+
+// Derive currency codes tuple from CURRENCIES for type-safe Zod enum
+const CURRENCY_CODES = CURRENCIES.map((c) => c.code) as [CurrencyCode, ...CurrencyCode[]];
 
 interface OpeningBalanceModalProps {
   isOpen: boolean;
@@ -72,7 +75,7 @@ export function OpeningBalanceModal({
   const formSchema = z.object({
     amount: z.coerce.number().positive(),
     balanceType: z.enum(["debt", "credit"]),
-    currency: z.enum(["ILS", "USD", "EUR", "CAD", "GBP", "AUD", "CHF", "ARS", "BRL", "ZAR", "MXN", "UAH"]),
+    currency: z.enum(CURRENCY_CODES),
     conversion_rate: z.number().optional(),
     conversion_date: z.string().optional(),
     rate_source: z.enum(["auto", "manual"]).optional(),

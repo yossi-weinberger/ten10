@@ -112,10 +112,7 @@ impl RecurringTransaction {
         let conversion_rate: Option<f64> = row.get("conversion_rate")?;
         let conversion_date: Option<String> = row.get("conversion_date")?;
         let rate_source: Option<String> = row.get("rate_source")?;
-        
-        println!("[RUST DEBUG from_row] original_amount: {:?}, original_currency: {:?}, conversion_rate: {:?}, rate_source: {:?}", 
-            original_amount, original_currency, conversion_rate, rate_source);
-        
+
         Ok(RecurringTransaction {
             id: row.get("id")?,
             user_id: row.get("user_id")?,

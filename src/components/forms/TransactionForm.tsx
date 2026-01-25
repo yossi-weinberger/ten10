@@ -218,7 +218,7 @@ export function TransactionForm({
             // This should not happen if UI validation is working correctly
             // But as a safety net, prevent submission without a valid rate
             logger.error("Cannot submit transaction: foreign currency selected but no conversion rate provided.");
-            toast.error("Missing conversion rate - please select a rate");
+            toast.error(t("transactionForm.errors.missingConversionRate"));
             return;
         }
         
