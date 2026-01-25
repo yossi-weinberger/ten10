@@ -52,12 +52,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils/formatting";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RecurringTransactionsFilters } from "./RecurringTransactionsFilters";
@@ -67,8 +61,8 @@ import {
 } from "./RecurringTransactionsTableHeader";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
 import { DeleteConfirmationDialog } from "../ui/DeleteConfirmationDialog";
-import { formatCurrency } from "@/lib/utils/currency";
 import { usePlatform } from "@/contexts/PlatformContext";
+import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversionInfo";
 
 export function RecurringTransactionsTableDisplay() {
   const { t, i18n } = useTranslation("data-tables");
@@ -233,11 +227,16 @@ export function RecurringTransactionsTableDisplay() {
                         {rec.description || "-"}
                       </TableCell>
                       <TableCell className="text-center font-medium whitespace-nowrap">
-                        {formatCurrency(
-                          rec.amount,
-                          rec.currency,
-                          i18n.language
-                        )}
+                        <CurrencyConversionInfo 
+                            amount={rec.amount} 
+                            currency={rec.currency}
+                            originalAmount={rec.original_amount}
+                            originalCurrency={rec.original_currency}
+                            conversionRate={rec.conversion_rate}
+                            conversionDate={rec.conversion_date}
+                            rateSource={rec.rate_source}
+                            mode="live"
+                        />
                       </TableCell>
                       <TableCell className="text-center">
                         {t(

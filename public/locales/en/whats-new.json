@@ -1,0 +1,49 @@
+{
+  "title": "What's New in Version {{version}}",
+  "description": "Here are the recent improvements and new features we've added",
+  "dismissButton": "Got it",
+  "dismissing": "Saving...",
+  "sections": {
+    "newFeatures": "New Features",
+    "improvements": "Improvements",
+    "important": "Important"
+  },
+  "features": {
+    "currencyConversion": {
+      "title": "Multi-Currency Support & Conversion",
+      "description": "Enter transactions in 12 different currencies with automatic conversion to your default currency"
+    },
+    "openingBalance": {
+      "title": "Opening Balance",
+      "description": "Set an initial debt or credit for tithe management"
+    }
+  },
+  "improvements": {
+    "autoChomesh": {
+      "title": "Optional Chomesh Calculation",
+      "description": "Enable automatic chomesh (20%) calculation in settings for all income transactions"
+    },
+    "performance": {
+      "title": "Performance Improvements",
+      "description": "Faster loading and improved user experience"
+    },
+    "security": {
+      "title": "Security Enhancements",
+      "description": "Additional security improvements to protect your data"
+    },
+    "bugFixes": {
+      "title": "Bug Fixes",
+      "description": "Various fixes to improve system stability"
+    }
+  },
+  "notices": {
+    "multiCurrency": {
+      "title": "Note: Multiple Currencies",
+      "description": "If you have transactions in different currencies, we recommend updating them to a single currency to ensure accurate calculations"
+    },
+    "emailPrivacy": {
+      "title": "Your Email Privacy",
+      "description": "We never send emails without your consent. To receive updates and reminders, enable this in Settings. We promise not to spam or share your email with third parties"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "conversion": {
+    "title": "המרה למטבע ראשי ({{symbol}})",
+    "rateTypes": {
+      "auto": "אוטומטי",
+      "manual": "ידני"
+    },
+    "autoRate": {
+      "available": "שער יציג: 1{{from}} = {{rate}}{{to}}",
+      "unavailable": "אין חיבור לרשת - נא לבחור שער ידני",
+      "source": "מקור: ExchangeRate-API",
+      "updatedAt": "נכון לשעה"
+    },
+    "manualRate": {
+      "label": "שער המרה",
+      "placeholder": "1{{from}} = ?{{to}}",
+      "helper": "1{{from}} = {{rate}}{{to}}"
+    },
+    "total": "סה״כ"
+  },
+  "row": {
+    "tooltip": {
+      "conversionDetails": "פרטי המרה",
+      "original": "סכום מקורי",
+      "rate": "שער המרה",
+      "date": "תאריך שער",
+      "source": "מקור המרה",
+      "target": "מטבע יעד",
+      "estimated": "משוער"
+    }
+  }
+}

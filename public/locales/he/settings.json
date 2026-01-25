@@ -23,13 +23,37 @@
     "currencyILS": "שקל ישראלי (ILS)",
     "currencyUSD": "דולר אמריקאי (USD)",
     "currencyEUR": "אירו (EUR)",
-    "currencyWarning": {
-      "title": "הערה חשובה לגבי שינוי מטבע",
-      "description": "שינוי המטבע משפיע רק על תצוגת המטבע ולא ממיר את התנועות – יש להזין את כל התנועות באותו המטבע."
+    "currencyCAD": "דולר קנדי (CAD)",
+    "currencyGBP": "לירה שטרלינג (GBP)",
+    "currencyAUD": "דולר אוסטרלי (AUD)",
+    "currencyCHF": "פרנק שוויצרי (CHF)",
+    "currencyARS": "פסו ארגנטינאי (ARS)",
+    "currencyBRL": "ריאל ברזילאי (BRL)",
+    "currencyZAR": "ראנד דרום אפריקאי (ZAR)",
+    "currencyMXN": "פסו מקסיקני (MXN)",
+    "currencyUAH": "גריבנה אוקראינית (UAH)",
+    "currencyInfo": {
+      "unlocked": {
+        "title": "הערה על מטבע ברירת מחדל",
+        "description": "המטבע שתבחר ישמש כבסיס לכל החישובים והדוחות. לאחר הזנת התנועה הראשונה, המטבע יינעל ולא ניתן יהיה לשנות אותו."
+      },
+      "locked": {
+        "title": "מטבע ברירת מחדל נעול",
+        "description": "המטבע נעול לשמירת עקביות הנתונים. ניתן להזין תנועות בכל מטבע - הן יומרו אוטומטית למטבע ברירת המחדל. לשינוי המטבע, יש למחוק את כל הנתונים בתחתית העמוד."
+      }
     },
     "currencyNameILS": "שקל",
     "currencyNameUSD": "דולר",
     "currencyNameEUR": "אירו",
+    "currencyNameCAD": "דולר קנדי",
+    "currencyNameGBP": "לירה שטרלינג",
+    "currencyNameAUD": "דולר אוסטרלי",
+    "currencyNameCHF": "פרנק שוויצרי",
+    "currencyNameARS": "פסו ארגנטינאי",
+    "currencyNameBRL": "ריאל ברזילאי",
+    "currencyNameZAR": "ראנד דרום אפריקאי",
+    "currencyNameMXN": "פסו מקסיקני",
+    "currencyNameUAH": "גריבנה אוקראינית",
     "autoCalcChomeshLabel": "חישוב אוטומטי של חומש",
     "autoCalcChomeshDescription": "הוסף חומש באופן אוטומטי לכל ההכנסות.",
     "minMaaserPercentageLabel": "אחוז מעשר מינימלי",

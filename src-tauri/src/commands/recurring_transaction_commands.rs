@@ -57,6 +57,17 @@ fn get_due_recurring_transactions(
 }
 
 #[tauri::command]
+pub fn get_due_recurring_transactions_handler(
+    db_state: State<'_, DbState>,
+) -> std::result::Result<Vec<RecurringTransaction>, String> {
+    let conn = db_state.0.lock().map_err(|e| e.to_string())?;
+    let today_str = Local::now().format("%Y-%m-%d").to_string();
+    
+    get_due_recurring_transactions(&conn, &today_str)
+        .map_err(|e| format!("Failed to query due transactions: {}", e))
+}
+
+#[tauri::command]
 pub fn execute_due_recurring_transactions_handler(
     db_state: State<'_, DbState>,
 ) -> std::result::Result<String, String> {
@@ -114,13 +125,14 @@ pub fn execute_due_recurring_transactions_handler(
             let new_transaction_id = Uuid::new_v4().to_string();
             let now_iso = Local::now().to_rfc3339();
             if let Err(e) = tx.execute(
-                "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, source_recurring_id, created_at, updated_at, occurrence_number)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14)",
+                "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, source_recurring_id, created_at, updated_at, occurrence_number, original_amount, original_currency, conversion_rate, conversion_date, rate_source)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19)",
                 params![
                     new_transaction_id, rec.user_id, current_due_date.format("%Y-%m-%d").to_string(),
                     rec.amount, rec.currency, rec.description, rec.transaction_type, rec.category,
                     rec.is_chomesh.map(|b| b as i32), rec.recipient, rec.id, now_iso, now_iso,
                     rec.execution_count + 1,
+                    rec.original_amount, rec.original_currency, rec.conversion_rate, rec.conversion_date, rec.rate_source
                 ],
             ) {
                 eprintln!("[RUST ERROR] Failed to insert new transaction for {}: {}. Rolling back this batch.", original_rec_id, e);
@@ -190,8 +202,8 @@ pub fn add_recurring_transaction_handler(
         .map_err(|e| format!("DB lock error: {}", e))?;
 
     conn.execute(
-        "INSERT INTO recurring_transactions (id, user_id, status, start_date, next_due_date, frequency, day_of_month, total_occurrences, execution_count, description, amount, currency, type, category, is_chomesh, recipient, created_at, updated_at)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
+        "INSERT INTO recurring_transactions (id, user_id, status, start_date, next_due_date, frequency, day_of_month, total_occurrences, execution_count, description, amount, currency, type, category, is_chomesh, recipient, created_at, updated_at, original_amount, original_currency, conversion_rate, conversion_date, rate_source)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23)",
         params![
             rec_transaction.id,
             rec_transaction.user_id,
@@ -211,6 +223,11 @@ pub fn add_recurring_transaction_handler(
             rec_transaction.recipient,
             rec_transaction.created_at,
             rec_transaction.updated_at,
+            rec_transaction.original_amount,
+            rec_transaction.original_currency,
+            rec_transaction.conversion_rate,
+            rec_transaction.conversion_date,
+            rec_transaction.rate_source,
         ],
     )
     .map_err(|e| format!("Failed to insert recurring transaction: {}", e))?;

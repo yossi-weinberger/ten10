@@ -121,6 +121,9 @@
       "invalidDate": "Invalid date",
       "requiredField": "Required field"
     },
+    "errors": {
+      "missingConversionRate": "Missing conversion rate - please select a rate"
+    },
     "validation": {
       "amount": {
         "number": "Amount must be a number",

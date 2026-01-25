@@ -19,12 +19,13 @@ use commands::expense_commands::get_desktop_total_expenses_in_range;
 use commands::income_commands::get_desktop_total_income_in_range;
 use commands::recurring_transaction_commands::{
     add_recurring_transaction_handler, delete_recurring_transaction_handler,
-    execute_due_recurring_transactions_handler, get_recurring_transaction_by_id_handler,
+    get_due_recurring_transactions_handler, get_recurring_transaction_by_id_handler,
     get_recurring_transactions_handler, update_recurring_transaction_handler,
 };
 use commands::transaction_commands::{
     add_transaction, delete_transaction_handler, export_transactions_handler,
-    get_filtered_transactions_handler, update_transaction_handler,
+    get_filtered_transactions_handler, get_last_known_rate, update_transaction_handler,
+    get_transactions_count,
 };
 use commands::platform_commands::{get_platform_info, copy_to_clipboard};
 
@@ -60,8 +61,10 @@ fn main() {
             export_transactions_handler,
             get_filtered_transactions_handler,
             update_transaction_handler,
+            get_last_known_rate,
+            get_transactions_count,
             get_desktop_monthly_financial_summary,
-            execute_due_recurring_transactions_handler,
+            get_due_recurring_transactions_handler,
             add_recurring_transaction_handler,
             get_recurring_transactions_handler,
             update_recurring_transaction_handler,

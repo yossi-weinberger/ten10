@@ -1,0 +1,32 @@
+{
+  "conversion": {
+    "title": "Convert to Main Currency ({{symbol}})",
+    "rateTypes": {
+      "auto": "Automatic",
+      "manual": "Manual"
+    },
+    "autoRate": {
+      "available": "Exchange Rate: 1{{from}} = {{rate}}{{to}}",
+      "unavailable": "No internet connection - please select manual rate",
+      "source": "Source: ExchangeRate-API",
+      "updatedAt": "Updated at"
+    },
+    "manualRate": {
+      "label": "Exchange Rate",
+      "placeholder": "1{{from}} = ?{{to}}",
+      "helper": "1{{from}} = {{rate}}{{to}}"
+    },
+    "total": "Total"
+  },
+  "row": {
+    "tooltip": {
+      "conversionDetails": "Conversion Details",
+      "original": "Original Amount",
+      "rate": "Exchange Rate",
+      "date": "Rate Date",
+      "source": "Conversion Source",
+      "target": "Target Currency",
+      "estimated": "Est."
+    }
+  }
+}

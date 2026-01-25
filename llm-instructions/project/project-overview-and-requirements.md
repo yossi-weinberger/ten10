@@ -39,7 +39,11 @@ In both platforms, data is loaded from the respective database (Supabase for web
 
 - **Theme**: Light and Dark mode support.
 - **Language**: Multi-language support (starting with Hebrew and English), with full Right-to-Left (RTL) layout support for Hebrew. Default to Hebrew initially.
-- **Currency**: Multi-currency support (starting with ILS, USD, EUR).
+- **Currency**: Multi-currency support (12 major currencies supported).
+  - Transactions can be entered in any supported currency.
+  - Automatic conversion to the user's Default Currency (e.g., ILS) for aggregation and reporting.
+  - Conversion rates are fetched from a live API (with manual fallback for offline/custom scenarios).
+  - Original transaction details (amount, currency, rate) are preserved.
 - **Calendar**: Support for Gregorian and Hebrew calendars.
 
 ## Pages / Views

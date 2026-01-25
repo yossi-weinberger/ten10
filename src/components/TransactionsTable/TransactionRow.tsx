@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
+  Currency,
   Transaction,
   TransactionForTable,
   TransactionType,
@@ -15,22 +16,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { MoreHorizontal, Trash2, Edit3, Repeat, Infinity } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit3, Repeat } from "lucide-react";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
-import { formatCurrency } from "@/lib/utils/currency";
-
-// Moved to translation files - will use t() instead
-
-// Moved to translation files - will use t() instead
+import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversionInfo";
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
@@ -47,7 +38,8 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   onEditRecurring,
   isFetchingRec,
 }) => {
-  const { t, i18n } = useTranslation("data-tables");
+  const { t } = useTranslation("data-tables");
+
   return (
     <TableRow key={transaction.id}>
       <TableCell className="text-start whitespace-nowrap">
@@ -61,11 +53,16 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
         {transaction.description || "-"}
       </TableCell>
       <TableCell className="text-center font-medium whitespace-nowrap">
-        {formatCurrency(
-          transaction.amount,
-          transaction.currency,
-          i18n.language
-        )}
+        <CurrencyConversionInfo
+          amount={transaction.amount}
+          currency={transaction.currency}
+          originalAmount={transaction.original_amount}
+          originalCurrency={transaction.original_currency}
+          conversionRate={transaction.conversion_rate}
+          conversionDate={transaction.conversion_date}
+          rateSource={transaction.rate_source}
+          mode="static"
+        />
       </TableCell>
       <TableCell className="text-center whitespace-nowrap">
         <Badge

@@ -14,6 +14,8 @@ import {
 } from "./recurringTransactions.service";
 import { logger } from "@/lib/logger";
 
+import { useDonationStore } from "@/lib/store";
+
 /**
  * Normalizes a transaction type to its base type.
  * Converts derived types (exempt-income, recognized-expense, non_tithe_donation)
@@ -71,6 +73,7 @@ export async function handleTransactionSubmit(
   logger.log("handleTransactionSubmit received values:", values);
   const platform = getPlatform();
   const finalType = determineFinalType(values);
+  const defaultCurrency = useDonationStore.getState().settings.defaultCurrency;
 
   // For recurring transactions, the day of the month is derived from the start date.
   // Using getUTCDate to avoid timezone-related off-by-one errors.
@@ -91,6 +94,13 @@ export async function handleTransactionSubmit(
       category: values.category ?? undefined,
       is_chomesh: values.is_chomesh ?? undefined,
       recipient: values.recipient ?? undefined,
+      // Pass conversion details if present (only for manual rate usually, but can pass auto too if we want to snapshot it)
+      // The backend/DB now supports these fields.
+      original_amount: values.original_amount ?? undefined,
+      original_currency: values.original_currency ?? undefined,
+      conversion_rate: values.conversion_rate ?? undefined,
+      conversion_date: values.conversion_date ?? undefined,
+      rate_source: values.rate_source ?? undefined,
     };
     // The createRecurringTransaction function is platform-aware
     await createRecurringTransaction(definition);
@@ -110,6 +120,11 @@ export async function handleTransactionSubmit(
       recipient: values.recipient ?? null,
       source_recurring_id: null,
       user_id: null,
+      original_amount: values.original_amount ?? null,
+      original_currency: values.original_currency ?? null,
+      conversion_rate: values.conversion_rate ?? null,
+      conversion_date: values.conversion_date ?? null,
+      rate_source: values.rate_source ?? null,
     };
     await addTransaction(newTransaction);
   }

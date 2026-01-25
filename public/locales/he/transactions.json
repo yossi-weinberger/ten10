@@ -124,6 +124,9 @@
       "invalidDate": "תאריך לא חוקי",
       "requiredField": "שדה חובה"
     },
+    "errors": {
+      "missingConversionRate": "חסר שער המרה - נא לבחור שער"
+    },
     "validation": {
       "amount": {
         "number": "הסכום חייב להיות מספר",

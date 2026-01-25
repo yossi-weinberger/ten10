@@ -37,7 +37,14 @@
   - `total_occurrences`: מספר ביצועים כולל (אופציונלי).
   - `execution_count`: מספר ביצועים שבוצעו.
   - שדות תנועה: `amount`, `currency`, `type`, `category`, `is_chomesh`, `recipient`.
+  - **שדות המרת מטבע (נוסף ינואר 2026):**
+    - `original_amount`: הסכום המקורי (לפני המרה, אם רלוונטי).
+    - `original_currency`: מטבע המקור.
+    - `conversion_rate`: שער ההמרה שנקבע ביצירה.
+    - `conversion_date`: תאריך קביעת השער.
+    - `rate_source`: "auto" (API) או "manual" (ידני).
   - `created_at` ו-`updated_at`: חותמות זמן.
+- **חשוב:** כאשר נוצרת הוראת קבע עם מטבע זר, השדה `amount` מכיל את הסכום **המומר** (במטבע ברירת המחדל), והפרטים המקוריים נשמרים בשדות `original_*`. גישה זו ("Locked-in Rate") מבטיחה עקביות ביצירת התנועות.
 - **אבטחה (ווב):** RLS מופעל, עם פוליסה המאפשרת גישה רק לנתוני המשתמש עצמו.
 
 ### 2. טבלת `transactions` (תנועות בפועל)
@@ -71,30 +78,37 @@
 
 ## תהליך ביצוע הוראות הקבע (Web - Supabase)
 
-- **תזמון:** Cron Job יומי (בחצות UTC) דרך Supabase, קורא לפונקציית SQL `execute_due_recurring_transactions`.
-- **לוגיקה (SQL):**
-  - סורק הוראות עם `status = 'active'` ו-`next_due_date <= CURRENT_DATE`.
-  - לכל הוראה:
-    1. יוצר תנועה חדשה ב-`transactions` עם `source_recurring_id` ו-`occurrence_number = execution_count + 1`.
-    2. מעדכן `execution_count`, מחשב `next_due_date` (מוסיף חודש).
-    3. אם הגיע ל-`total_occurrences`, משנה סטטוס ל-'completed'.
-- **אטומיות:** בתוך לולאת FOR, מבטיחה idempotence; מתקנת כשלים אוטומטית.
+- **תזמון:** Cron Job יומי (בחצות UTC) דרך Supabase, קורא ל-Edge Function `process-recurring-transactions`.
+- **לוגיקה (Edge Function - TypeScript):**
+  - **שליפה:** שולף הוראות עם `status = 'active'` ו-`next_due_date <= CURRENT_DATE`.
+  - **לכל הוראה:**
+    1. **בדיקת פרטי המרה שמורים:** אם `original_amount` ו-`original_currency` קיימים בהוראה, משתמש בנתונים אלו ישירות (השער "ננעל" בעת יצירת ההוראה).
+    2. **Fallback להמרה דינמית:** אם אין פרטי המרה שמורים ומטבע ההוראה שונה מהמטבע הראשי, קורא ל-API חיצוני (`exchangerate-api.com`) לקבלת שער עדכני.
+    3. **יצירת תנועה:** מכניס תנועה חדשה לטבלת `transactions` עם:
+       - `amount`: הסכום המומר (במטבע הראשי).
+       - `original_amount`: הסכום המקורי במטבע ההוראה.
+       - `conversion_rate`, `conversion_date`, `rate_source`: פרטי ההמרה.
+       - `source_recurring_id` ו-`occurrence_number`.
+    4. **עדכון הוראה:** מעדכן `execution_count`, מחשב `next_due_date` (מוסיף חודש), ומעדכן סטטוס אם הסתיים.
+- **אטומיות:** ריצה סדרתית בתוך ה-Function, עם טיפול בשגיאות פרטני לכל הוראה.
+- **קובץ:** `supabase/functions/process-recurring-transactions/index.ts`
 
 ---
 
 ## תהליך ביצוע הוראות הקבע (Desktop - Tauri/SQLite)
 
-- **תזמון:** מופעל אוטומטית בעת טעינת האפליקציה (ב-`App.tsx` בתוך `useEffect`, אחרי `init_db`).
-- **לוגיקה (Rust - `execute_due_recurring_transactions_handler` ב-`recurring_transaction_commands.rs`):**
-  - מקבל תאריך נוכחי.
-  - סורק הוראות עם `status = 'active'` ו-`next_due_date <= today`.
-  - לכל הוראה (בתוך טרנזקציה):
-    - לופ פנימי על כל התאריכים שהוחמצו (עד היום).
-    - יוצר תנועה ב-`transactions` עם `source_recurring_id` ו-`occurrence_number`.
-    - מעדכן `execution_count`, מחשב `next_due_date` (מוסיף חודש, פונקציה `calculate_next_due_date`).
-    - אם הגיע ל-`total_occurrences`, משנה סטטוס ל-'completed'.
-  - Commit בסוף כל הוראה; rollback אם כשל.
-- **אטומיות ויעילות:** לופים מקוננים מבטיחים טיפול בפערים גדולים; idempotent.
+- **תזמון:** מופעל אוטומטית בעת טעינת האפליקציה (ב-`App.tsx` קורא ל-`RecurringTransactionsService.processDueTransactions`).
+- **לוגיקה (TypeScript Service - `src/lib/services/recurring-transactions.service.ts`):**
+  - השירות משתמש ב-`invoke` לשליפת ההוראות (`get_due_recurring_transactions_handler`).
+  - **לכל הוראה עם פרטי המרה שמורים:**
+    1. **שער ידני (`rate_source === "manual"`):** תמיד משתמש בשער שנקבע בעת ההגדרה. המשתמש הגדיר אותו במפורש.
+    2. **שער אוטומטי (`rate_source === "auto"`):** מנסה למשוך שער עדכני מה-API. אם הצליח - משתמש בשער החדש. אם נכשל (אין אינטרנט) - משתמש בשער השמור מעת ההגדרה.
+  - **לכל הוראה legacy (ללא פרטי המרה):** משתמש ב-`ExchangeRateService` לקבלת שער (API עם fallback ל-DB/Cache).
+  - **יצירה:** קורא ל-`addTransaction` עם הנתונים המומרים ופרטי ההמרה.
+  - **עדכון:** קורא ל-`update_recurring_transaction_handler` לעדכון המונה והתאריך הבא.
+- **עקרון מרכזי:** לעולם לא מדלגים על תנועה בגלל חוסר שער. שער ידני קבוע לנצח. שער אוטומטי מנסה להתרענן אך חוזר לשער השמור אם צריך.
+- **יתרון:** שימוש בלוגיקה משותפת (TS) להמרת מטבעות ומניעת כפילות קוד מול Rust.
+- **הערה:** קיים גם קוד Rust מקביל ב-`recurring_transaction_commands.rs`, אך כרגע הקוד ב-TypeScript הוא הפעיל.
 
 ---
 
@@ -157,4 +171,4 @@ requestAnimationFrame(() => {
 
 ---
 
-מסמך זה מעודכן נכון לתאריך ינואר 2026; בדוק שינויים בקוד בפועל.
+מסמך זה מעודכן נכון לתאריך ינואר 2026; עודכן לאחרונה עם תמיכה בהמרת מטבע להוראות קבע (שער ידני קבוע / שער אוטומטי עם fallback). בדוק שינויים בקוד בפועל.

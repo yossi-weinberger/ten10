@@ -11,11 +11,8 @@ import { toast } from "react-hot-toast";
 import { useDonationStore } from "@/lib/store"; // Import Zustand store
 import i18n from "@/lib/i18n";
 import { logger } from "@/lib/logger";
-// import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store"; // This seems unused in the provided snippet, might be removable if not used elsewhere
-// Import table transactions store
-// import { loadTransactions, setDataServicePlatform } from "@/lib/dataService"; // loadTransactions will be removed from dataService, setDataServicePlatform is still used.
-// import { setDataServicePlatform } from "@/lib/dataService"; // REMOVED
 import { usePlatform } from "./PlatformContext"; // Import usePlatform to set platform for dataService
+import { CurrencySyncService } from "@/lib/services/currency-sync.service";
 
 export type { SupabaseUser as User }; // Re-exporting the User type
 
@@ -214,6 +211,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // We might still want to update lastDbFetchTimestamp on login, but not necessarily by loading all transactions.
         // Let's update the timestamp directly here for now to signify an auth event / potential data refresh point.
         useDonationStore.setState({ lastDbFetchTimestamp: Date.now() });
+        
+        // --- SYNC CURRENCY SETTINGS ---
+        if (platform === "web") {
+            // Only sync currency on Web where we have direct DB access and need consistency with Edge Functions
+            CurrencySyncService.syncDefaultCurrency(user.id);
+        }
+
         setInitialForcedLoadDone(true);
       } else {
         logger.log(
@@ -238,10 +242,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     //     "AuthContext: Setting up realtime subscription for user:",
     //     user.id
     //   );
-    //   setupRealtimeSubscription(user.id);
+    //   // setupRealtimeSubscription(user.id);
     // } else {
     //   // Cleanup if not on web or no user (this might be redundant due to the above else if, but safe)
-    //   cleanupRealtimeSubscription(); // REMOVED
+    //   // cleanupRealtimeSubscription(); // REMOVED
     // }
 
     // Cleanup function for this useEffect - REMOVED Realtime part
@@ -251,7 +255,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     //     logger.log(
     //       "AuthContext: useEffect cleanup for realtime subscription."
     //     );
-    //     cleanupRealtimeSubscription(); // REMOVED
+    //     // cleanupRealtimeSubscription(); // REMOVED
     //   }
     // };
   }, [
