@@ -243,7 +243,7 @@ export function SettingsPage() {
           {languageSection}
           {versionSection}
           {importExportSection}
-          {clearDataSection}
+          <div className="mt-auto">{clearDataSection}</div>
         </div>
 
         {/* Right Column */}
