@@ -3,13 +3,43 @@ import { getPlatform } from "@/lib/platformManager";
 import { CurrencyCode } from "@/lib/currencies";
 import { invoke } from "@tauri-apps/api/core";
 
-const API_URL = "https://api.exchangerate-api.com/v4/latest/";
-
-interface ExchangeRateResponse {
-  base: string;
-  date: string;
-  rates: Record<string, number>;
+// Provider configurations - ordered by priority (first = primary, rest = fallbacks)
+interface RateProvider {
+  name: string;
+  buildUrl: (from: CurrencyCode, to: CurrencyCode) => string;
+  parseRate: (data: unknown, from: CurrencyCode, to: CurrencyCode) => number | null;
 }
+
+const PROVIDERS: RateProvider[] = [
+  {
+    // 1st Priority: ExchangeRate-API (free tier, CORS-enabled)
+    name: "exchangerate-api",
+    buildUrl: (from) => `https://api.exchangerate-api.com/v4/latest/${from}`,
+    parseRate: (data: unknown, _from, to) => {
+      const d = data as { rates?: Record<string, number> };
+      return d.rates?.[to] ?? null;
+    },
+  },
+  {
+    // 2nd Priority: Frankfurter (free, no API key, ECB rates)
+    name: "frankfurter",
+    buildUrl: (from, to) => `https://api.frankfurter.app/latest?from=${from}&symbols=${to}`,
+    parseRate: (data: unknown, _from, to) => {
+      const d = data as { rates?: Record<string, number> };
+      return d.rates?.[to] ?? null;
+    },
+  },
+  {
+    // 3rd Priority: FloatRates (free, reliable, CORS-enabled, daily updates)
+    name: "floatrates",
+    buildUrl: (from) => `https://www.floatrates.com/daily/${from.toLowerCase()}.json`,
+    parseRate: (data: unknown, _from, to) => {
+      const d = data as Record<string, { rate?: number }>;
+      const key = to.toLowerCase();
+      return d[key]?.rate ?? null;
+    },
+  },
+];
 
 // Simple in-memory cache: { "USD-ILS": { rate: 3.7, timestamp: 123456789 } }
 const rateCache: Record<string, { rate: number; timestamp: number }> = {};
@@ -35,32 +65,46 @@ export const ExchangeRateService = {
       return this.getLastKnownRate(from, to);
     }
 
-    try {
-      const response = await fetch(`${API_URL}${from}`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch rates: ${response.statusText}`);
+    // Try each provider in order until one succeeds
+    for (const provider of PROVIDERS) {
+      try {
+        logger.log(`ExchangeRateService: Trying provider "${provider.name}" for ${from} -> ${to}`);
+        
+        const url = provider.buildUrl(from, to);
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`${provider.name} returned ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const rate = provider.parseRate(data, from, to);
+
+        if (!rate) {
+          throw new Error(`${provider.name}: Rate not found for ${from} -> ${to}`);
+        }
+
+        // Round rate to 4 decimal places for storage/display
+        const roundedRate = Math.round(rate * 10000) / 10000;
+
+        // Success! Update cache
+        rateCache[cacheKey] = { rate: roundedRate, timestamp: Date.now() };
+        
+        // Also cache the reverse rate (approximation)
+        const reverseCacheKey = `${to}-${from}`;
+        const reverseRate = Math.round((1 / rate) * 10000) / 10000;
+        rateCache[reverseCacheKey] = { rate: reverseRate, timestamp: Date.now() };
+
+        logger.log(`ExchangeRateService: Got rate from "${provider.name}" for ${from} -> ${to}: ${roundedRate}`);
+        return roundedRate;
+      } catch (error) {
+        logger.warn(`ExchangeRateService: Provider "${provider.name}" failed:`, error);
+        // Continue to next provider
       }
-
-      const data: ExchangeRateResponse = await response.json();
-      const rate = data.rates[to];
-
-      if (!rate) {
-        throw new Error(`Rate not found for ${to} in response for ${from}`);
-      }
-
-      // Update cache
-      rateCache[cacheKey] = { rate, timestamp: Date.now() };
-      
-      // Also cache the reverse rate if possible (approximation)
-      const reverseCacheKey = `${to}-${from}`;
-      rateCache[reverseCacheKey] = { rate: 1 / rate, timestamp: Date.now() };
-
-      logger.log(`ExchangeRateService: Fetched rate for ${from} -> ${to}: ${rate}`);
-      return rate;
-    } catch (error) {
-      logger.error("ExchangeRateService: Error fetching exchange rate:", error);
-      return this.getLastKnownRate(from, to);
     }
+
+    // All providers failed
+    logger.error(`ExchangeRateService: All providers failed for ${from} -> ${to}`);
+    return this.getLastKnownRate(from, to);
   },
 
   async getLastKnownRate(from: CurrencyCode, to: CurrencyCode): Promise<number | null> {

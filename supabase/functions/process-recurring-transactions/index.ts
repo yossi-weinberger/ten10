@@ -5,6 +5,76 @@ const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
+// Multi-provider exchange rate fetching (same priority as frontend)
+interface RateProvider {
+  name: string;
+  buildUrl: (from: string, to: string) => string;
+  parseRate: (data: unknown, from: string, to: string) => number | null;
+}
+
+const RATE_PROVIDERS: RateProvider[] = [
+  {
+    // 1st Priority: ExchangeRate-API (free tier)
+    name: "exchangerate-api",
+    buildUrl: (from) => `https://api.exchangerate-api.com/v4/latest/${from}`,
+    parseRate: (data: unknown, _from, to) => {
+      const d = data as { rates?: Record<string, number> };
+      return d.rates?.[to] ?? null;
+    },
+  },
+  {
+    // 2nd Priority: Frankfurter (ECB rates)
+    name: "frankfurter",
+    buildUrl: (from, to) => `https://api.frankfurter.app/latest?from=${from}&symbols=${to}`,
+    parseRate: (data: unknown, _from, to) => {
+      const d = data as { rates?: Record<string, number> };
+      return d.rates?.[to] ?? null;
+    },
+  },
+  {
+    // 3rd Priority: FloatRates (free, reliable, daily updates)
+    name: "floatrates",
+    buildUrl: (from) => `https://www.floatrates.com/daily/${from.toLowerCase()}.json`,
+    parseRate: (data: unknown, _from, to) => {
+      const d = data as Record<string, { rate?: number }>;
+      const key = to.toLowerCase();
+      return d[key]?.rate ?? null;
+    },
+  },
+];
+
+async function fetchExchangeRate(from: string, to: string): Promise<number | null> {
+  for (const provider of RATE_PROVIDERS) {
+    try {
+      console.log(`Trying provider "${provider.name}" for ${from} -> ${to}`);
+      const url = provider.buildUrl(from, to);
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`${provider.name} returned ${response.status}`);
+      }
+      
+      const data = await response.json();
+      const rate = provider.parseRate(data, from, to);
+      
+      if (!rate) {
+        throw new Error(`${provider.name}: Rate not found for ${from} -> ${to}`);
+      }
+      
+      // Round rate to 4 decimal places
+      const roundedRate = Math.round(rate * 10000) / 10000;
+      console.log(`Got rate from "${provider.name}": ${from} -> ${to} = ${roundedRate}`);
+      return roundedRate;
+    } catch (error) {
+      console.warn(`Provider "${provider.name}" failed:`, error);
+      // Continue to next provider
+    }
+  }
+  
+  console.error(`All providers failed for ${from} -> ${to}`);
+  return null;
+}
+
 Deno.serve(async (req) => {
   try {
     console.log("Starting process-recurring-transactions...");
@@ -27,7 +97,8 @@ Deno.serve(async (req) => {
     }
 
     console.log(`Found ${dueTransactions.length} due transactions.`);
-    const results = [];
+    const results: { id: string; status: string }[] = [];
+    let skippedCount = 0;
 
     // 2. Process each transaction
     for (const rec of dueTransactions) {
@@ -68,32 +139,24 @@ Deno.serve(async (req) => {
           conversionDate = rec.conversion_date;
           rateSource = rec.rate_source;
         } else if (sourceCurrency !== defaultCurrency) {
-          // Fetch rate
-          try {
-            console.log(`Fetching rate for ${sourceCurrency} -> ${defaultCurrency}`);
-            const rateRes = await fetch(`https://api.exchangerate-api.com/v4/latest/${sourceCurrency}`);
-            
-            if (rateRes.ok) {
-              const rateData = await rateRes.json();
-              const rate = rateData.rates[defaultCurrency];
-              if (rate) {
-                finalAmount = Number((rec.amount * rate).toFixed(2));
-                originalAmount = rec.amount;
-                originalCurrency = sourceCurrency;
-                conversionRate = rate;
-                conversionDate = today;
-                rateSource = "auto";
-              } else {
-                  throw new Error(`Rate not found in API response`);
-              }
-            } else {
-                throw new Error(`API returned ${rateRes.status}`);
-            }
-          } catch (e) {
-            console.error(`Failed to fetch rate for ${sourceCurrency} -> ${defaultCurrency}`, e);
-            // Skip processing this transaction for now to avoid bad data
-            // Or maybe retry logic could be implemented here?
-            continue; 
+          // Fetch rate using multi-provider strategy
+          console.log(`Fetching rate for ${sourceCurrency} -> ${defaultCurrency}`);
+          const rate = await fetchExchangeRate(sourceCurrency, defaultCurrency);
+          
+          if (rate) {
+            finalAmount = Number((rec.amount * rate).toFixed(2));
+            originalAmount = rec.amount;
+            originalCurrency = sourceCurrency;
+            conversionRate = rate;
+            conversionDate = today;
+            rateSource = "auto";
+          } else {
+            // LEGACY TRANSACTION: No stored rate, all APIs failed
+            // This will retry on next cron run (typically tomorrow)
+            // This should be rare - only affects old transactions created before currency conversion feature
+            console.error(`[RETRY-PENDING] Legacy recurring ${rec.id}: All rate providers failed for ${sourceCurrency} -> ${defaultCurrency}. Will retry on next cron run.`);
+            skippedCount++;
+            continue;
           }
         } else {
             // Same currency
@@ -121,7 +184,10 @@ Deno.serve(async (req) => {
         });
 
         if (insertError) {
-          console.error(`Error inserting transaction for recurring ${rec.id}:`, insertError);
+          // INSERT FAILED: This will retry on next cron run
+          // Common causes: constraint violation, permissions issue, or transient DB error
+          console.error(`[RETRY-PENDING] Recurring ${rec.id}: Insert failed. Will retry on next cron run. Error:`, insertError);
+          skippedCount++;
           continue;
         }
 
@@ -173,7 +239,14 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ processed: results }), {
+    // Summary log for monitoring
+    console.log(`[SUMMARY] Processed: ${results.length}, Skipped (will retry): ${skippedCount}, Total due: ${dueTransactions.length}`);
+    
+    return new Response(JSON.stringify({ 
+      processed: results.length, 
+      skipped: skippedCount,
+      details: results 
+    }), {
       headers: { "Content-Type": "application/json" },
     });
 
