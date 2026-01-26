@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { recurringStatusLabels } from "@/types/recurringTransactionLabels";
-import { RecurringTransaction } from "@/types/transaction";
+import { RecurringTransaction, TransactionType } from "@/types/transaction";
 import { CurrencyCode } from "@/lib/currencies";
 import { FormActionButtons } from "./transaction-form-parts/FormActionButtons";
 import {
@@ -30,6 +30,7 @@ import {
 } from "@/lib/schemas";
 import { CurrencyPicker } from "@/components/ui/CurrencyPicker";
 import { CurrencyConversionSection } from "./transaction-form-parts/CurrencyConversionSection";
+import { CategoryCombobox } from "@/components/ui/category-combobox";
 import { useDonationStore } from "@/lib/store";
 
 interface RecurringTransactionEditFormProps {
@@ -60,6 +61,7 @@ export function RecurringTransactionEditForm({
       amount: initialData.original_amount ?? initialData.amount,
       currency: (initialData.original_currency as CurrencyCode) ?? initialData.currency,
       description: initialData.description ?? "",
+      category: initialData.category ?? "",
       status: initialData.status,
       total_occurrences: initialData.total_occurrences,
       day_of_month: initialData.day_of_month,
@@ -131,27 +133,10 @@ export function RecurringTransactionEditForm({
         onSubmit={form.handleSubmit(handleFormSubmit)}
         className="space-y-6"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Description */}
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel>{t("transactionForm.description.label")}</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <div className="h-5">
-                  <FormMessage />
-                </div>
-              </FormItem>
-            )}
-          />
-
-          {/* Amount and Currency */}
-          <div className="md:col-span-2 space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4 items-end">
+        <div className="grid grid-cols-2 gap-4">
+          {/* Amount and Currency - First Row */}
+          <div className="col-span-2 space-y-4">
+            <div className="flex flex-row gap-4 items-end">
               <FormField
                 control={form.control}
                 name="amount"
@@ -206,6 +191,52 @@ export function RecurringTransactionEditForm({
               />
             )}
           </div>
+
+          {/* Description - Second Row */}
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("transactionForm.description.label")}</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <div className="h-5">
+                  <FormMessage />
+                </div>
+              </FormItem>
+            )}
+          />
+
+          {/* Category - show for income and expense types */}
+          {(initialData.type === "income" || initialData.type === "expense" || 
+            initialData.type === "exempt-income" || initialData.type === "recognized-expense") && (
+            <FormField
+              control={form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("transactionForm.category.label")}</FormLabel>
+                  <FormControl>
+                    <CategoryCombobox
+                      value={field.value ?? null}
+                      onChange={(value) => field.onChange(value)}
+                      transactionType={initialData.type as TransactionType}
+                      placeholder={
+                        initialData.type === "income" || initialData.type === "exempt-income"
+                          ? t("transactionForm.category.incomePlaceholder", "קטגוריית הכנסה (אופציונלי)")
+                          : t("transactionForm.category.placeholder")
+                      }
+                    />
+                  </FormControl>
+                  <div className="h-5">
+                    <FormMessage />
+                  </div>
+                </FormItem>
+              )}
+            />
+          )}
 
           {/* Status */}
           <FormField

@@ -57,6 +57,7 @@ This document explains how data (unified `Transaction` objects) is saved locally
     - `update_transaction_handler`: Updates a specific transaction.
     - `delete_transaction_handler`: Deletes a specific transaction.
     - `export_transactions_handler`: Fetches all transactions matching filters for data export.
+    - `get_distinct_categories`: Fetches distinct category values for a given transaction type (used by CategoryCombobox). See `category-selection-guide.md`.
   - **`recurring_transaction_commands.rs`**: Manages all logic for recurring transactions.
 - **Database Connection:** Managed via `DbState(Mutex<Connection>)` and passed as `State` to each command handler.
 

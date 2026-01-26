@@ -66,6 +66,7 @@ export function OpeningBalanceModal({
 }: OpeningBalanceModalProps) {
   const { t } = useTranslation("settings");
   const { t: tCommon } = useTranslation("common");
+  const { t: tTransactions } = useTranslation("transactions");
   const { serverCalculatedTitheBalance, settings } = useDonationStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -73,7 +74,13 @@ export function OpeningBalanceModal({
   const [useDesktop, setUseDesktop] = useState(isDesktopQuery);
 
   const formSchema = z.object({
-    amount: z.coerce.number().positive(),
+    amount: z.coerce
+      .number({
+        message: tTransactions("transactionForm.validation.amount.number"),
+      })
+      .positive({
+        message: tTransactions("transactionForm.validation.amount.positive"),
+      }),
     balanceType: z.enum(["debt", "credit"]),
     currency: z.enum(CURRENCY_CODES),
     conversion_rate: z.number().optional(),

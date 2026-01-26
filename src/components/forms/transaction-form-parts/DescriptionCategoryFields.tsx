@@ -1,4 +1,3 @@
-import React from "react";
 import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import {
@@ -9,19 +8,27 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { CategoryCombobox } from "@/components/ui/category-combobox";
 import { TransactionFormValues } from "@/lib/schemas";
-import { TransactionType } from "@/types/transaction"; // Import TransactionType
+import { TransactionType } from "@/types/transaction";
 
 interface DescriptionCategoryFieldsProps {
   form: UseFormReturn<TransactionFormValues>;
   selectedType: TransactionType;
 }
 
+// Transaction types that should show the category field
+const CATEGORY_TYPES: TransactionType[] = ["expense", "income"];
+
 export function DescriptionCategoryFields({
   form,
   selectedType,
 }: DescriptionCategoryFieldsProps) {
   const { t } = useTranslation("transactions");
+  
+  const showCategoryField = CATEGORY_TYPES.includes(selectedType);
+  const showRecipientField = selectedType === "donation";
+  
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
       {/* Description - start */}
@@ -46,8 +53,8 @@ export function DescriptionCategoryFields({
           </FormItem>
         )}
       />
-      {/* קטגוריה או מקבל תרומה - left */}
-      {selectedType === "expense" && (
+      {/* קטגוריה - עבור הכנסות והוצאות */}
+      {showCategoryField && (
         <FormField
           control={form.control}
           name="category"
@@ -55,11 +62,15 @@ export function DescriptionCategoryFields({
             <FormItem>
               <FormLabel>{t("transactionForm.category.label")}</FormLabel>
               <FormControl>
-                <Input
-                  {...field}
-                  value={field.value ?? ""}
-                  placeholder={t("transactionForm.category.placeholder")}
-                  className="text-start"
+                <CategoryCombobox
+                  value={field.value ?? null}
+                  onChange={(value) => field.onChange(value)}
+                  transactionType={selectedType}
+                  placeholder={
+                    selectedType === "income"
+                      ? t("transactionForm.category.incomePlaceholder", "קטגוריית הכנסה (אופציונלי)")
+                      : t("transactionForm.category.placeholder")
+                  }
                 />
               </FormControl>
               <div className="h-5">
@@ -69,7 +80,8 @@ export function DescriptionCategoryFields({
           )}
         />
       )}
-      {selectedType === "donation" && (
+      {/* מקבל תרומה - עבור תרומות */}
+      {showRecipientField && (
         <FormField
           control={form.control}
           name="recipient"

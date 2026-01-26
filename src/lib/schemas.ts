@@ -265,6 +265,15 @@ export const createRecurringEditSchema = (t: TFunction) =>
     amount: createAmountSchema(t),
     currency: createCurrencySchema(t),
     description: z.string().optional(),
+    category: z
+      .string()
+      .optional()
+      .nullable()
+      .refine((val) => !val || val.length <= 50, {
+        message: t(
+          "transactions:transactionForm.validation.category.maxLength"
+        ),
+      }),
     status: z.enum(["active", "paused", "completed", "cancelled"]),
     total_occurrences: createTotalOccurrencesSchema(t).nullable(),
     day_of_month: createDayOfMonthSchema(t).nullable(),

@@ -24,8 +24,8 @@ use commands::recurring_transaction_commands::{
 };
 use commands::transaction_commands::{
     add_transaction, delete_transaction_handler, export_transactions_handler,
-    get_filtered_transactions_handler, get_last_known_rate, update_transaction_handler,
-    get_transactions_count,
+    get_distinct_categories, get_filtered_transactions_handler, get_last_known_rate,
+    get_transactions_count, update_transaction_handler,
 };
 use commands::platform_commands::{get_platform_info, copy_to_clipboard};
 
@@ -63,6 +63,7 @@ fn main() {
             update_transaction_handler,
             get_last_known_rate,
             get_transactions_count,
+            get_distinct_categories,
             get_desktop_monthly_financial_summary,
             get_due_recurring_transactions_handler,
             add_recurring_transaction_handler,

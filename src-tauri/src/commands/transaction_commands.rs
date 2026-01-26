@@ -673,3 +673,40 @@ pub fn get_last_known_rate(
         Ok(None)
     }
 }
+
+/// Get distinct categories that the user has used for a specific transaction type.
+/// This is used to populate the category combobox with user-defined categories
+/// in addition to the predefined ones.
+#[tauri::command]
+pub fn get_distinct_categories(
+    db_state: State<'_, DbState>,
+    transaction_type: String,
+) -> std::result::Result<Vec<String>, String> {
+    let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
+    let conn = &*conn_guard;
+
+    let query = "
+        SELECT DISTINCT category 
+        FROM transactions 
+        WHERE type = ?1 AND category IS NOT NULL AND category != ''
+        ORDER BY category
+    ";
+
+    let mut stmt = conn.prepare(query).map_err(|e| e.to_string())?;
+    let categories_iter = stmt
+        .query_map(params![transaction_type], |row| row.get::<_, String>(0))
+        .map_err(|e| e.to_string())?;
+
+    let mut categories = Vec::new();
+    for category_result in categories_iter {
+        categories.push(category_result.map_err(|e| e.to_string())?);
+    }
+
+    println!(
+        "[Rust DEBUG] get_distinct_categories for type '{}': found {} categories",
+        transaction_type,
+        categories.len()
+    );
+
+    Ok(categories)
+}

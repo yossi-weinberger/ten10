@@ -85,6 +85,8 @@ This document tracks the progress of integrating Supabase into the Ten10 project
     - `updateTransaction`: Calls a Supabase RPC (e.g., `update_user_transaction`) to update a specific transaction.
     - `deleteTransaction`: Calls a Supabase RPC (e.g., `delete_user_transaction`) to delete a transaction.
     - `exportTransactions`: Calls a Supabase RPC (e.g., `export_user_transactions`) to fetch all relevant data for export, respecting filters and sorting.
+  - `categories.service.ts` (Category Operations): Provides category-related functionality:
+    - `getUserCategories`: Calls `get_user_categories` RPC to fetch distinct categories for a transaction type. See `category-selection-guide.md`.
   - Both services fetch user data using the Anon Key (RLS enforced) and let the database generate the `id` (UUID).
   - Data is handled consistently using `snake_case` for both TypeScript objects and database interactions.
   - **State Synchronization:**
