@@ -39,7 +39,7 @@
     ]
   },
   "productName": "Ten10",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "identifier": "com.ten10.dev",
   "plugins": {
     "updater": {
@@ -54,7 +54,7 @@
   "app": {
     "windows": [],
     "security": {
-      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: https: data:; connect-src 'self' https://api.github.com https://objects.githubusercontent.com https://github.com https://*.supabase.co https://www.floatrates.com https://api.exchangerate-api.com https://api.frankfurter.app;"
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' asset: https: data:; connect-src 'self' https://api.github.com https://objects.githubusercontent.com https://github.com https://*.supabase.co https://www.floatrates.com https://api.exchangerate-api.com https://api.frankfurter.app;"
     }
   }
 }
