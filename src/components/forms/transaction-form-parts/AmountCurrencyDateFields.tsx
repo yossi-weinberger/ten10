@@ -31,50 +31,81 @@ export function AmountCurrencyDateFields({
   
   return (
     <div className="space-y-4">
-      {/* Amount + Currency row */}
-      <div className="flex gap-4 items-end">
-        {/* Amount */}
-        <FormField
-          control={form.control}
-          name="amount"
-          render={({ field }) => (
-            <FormItem className="flex-1">
-              <FormLabel>{t("transactionForm.amount.label")}</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.01"
-                  {...field}
-                  value={field.value ?? ""}
-                  className="text-start"
-                  placeholder={t("transactionForm.amount.placeholder")}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      {/* Amount + Currency + Date: responsive layout */}
+      <div className="flex flex-wrap gap-4 items-end">
+        {/* Amount + Currency group */}
+        <div className="flex gap-4 items-end flex-1 min-w-0 md:flex-[1.5]">
+          {/* Amount */}
+          <FormField
+            control={form.control}
+            name="amount"
+            render={({ field }) => (
+              <FormItem className="flex-1 min-w-0">
+                <FormLabel>{t("transactionForm.amount.label")}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    {...field}
+                    value={field.value ?? ""}
+                    className="text-start"
+                    placeholder={t("transactionForm.amount.placeholder")}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        {/* Currency Picker */}
+          {/* Currency Picker */}
+          <FormField
+            control={form.control}
+            name="currency"
+            render={({ field }) => (
+              <FormItem>
+                <FormControl>
+                  <CurrencyPicker 
+                    value={field.value as CurrencyCode} 
+                    onChange={(val) => {
+                      field.onChange(val);
+                      // Reset rate source on change to trigger re-eval
+                      if (val === defaultCurrency) {
+                        form.setValue("rate_source", null);
+                        form.setValue("conversion_rate", null);
+                      } else {
+                        form.setValue("rate_source", "auto");
+                        form.setValue("conversion_rate", null); // Clear stale rate when switching currencies
+                      }
+                    }} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Date - full width on mobile, flexible on desktop */}
         <FormField
           control={form.control}
-          name="currency"
+          name="date"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="w-full md:w-auto md:flex-1">
+              <FormLabel>{t("transactionForm.date.label")} *</FormLabel>
               <FormControl>
-                <CurrencyPicker 
-                  value={field.value as CurrencyCode} 
-                  onChange={(val) => {
-                    field.onChange(val);
-                    // Reset rate source on change to trigger re-eval
-                    if (val === defaultCurrency) {
-                      form.setValue("rate_source", null);
-                      form.setValue("conversion_rate", null);
+                <DatePicker
+                  date={
+                    field.value
+                      ? parse(field.value, "yyyy-MM-dd", new Date())
+                      : undefined
+                  }
+                  setDate={(date) => {
+                    if (date) {
+                      field.onChange(format(date, "yyyy-MM-dd"));
                     } else {
-                      form.setValue("rate_source", "auto");
-                      form.setValue("conversion_rate", null); // Clear stale rate when switching currencies
+                      field.onChange("");
                     }
-                  }} 
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -82,34 +113,6 @@ export function AmountCurrencyDateFields({
           )}
         />
       </div>
-
-      {/* Date row */}
-      <FormField
-        control={form.control}
-        name="date"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>{t("transactionForm.date.label")} *</FormLabel>
-            <FormControl>
-              <DatePicker
-                date={
-                  field.value
-                    ? parse(field.value, "yyyy-MM-dd", new Date())
-                    : undefined
-                }
-                setDate={(date) => {
-                  if (date) {
-                    field.onChange(format(date, "yyyy-MM-dd"));
-                  } else {
-                    field.onChange("");
-                  }
-                }}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
 
       {/* Conversion Section */}
       {selectedCurrency !== defaultCurrency && (
