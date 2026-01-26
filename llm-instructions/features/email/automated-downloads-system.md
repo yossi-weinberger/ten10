@@ -162,3 +162,39 @@ If you connect the Worker to GitHub for auto-deploys, set:
 - Always deploy `process-email-request` with `--no-verify-jwt`.
 - Prefer enforcing this once in `supabase/config.toml` so future deploys don't accidentally re-enable JWT verification.
 - If the route breaks again, check Cloudflare logs first: they will show the exact Supabase status and body.
+
+### 2026-01-26: Gmail bounce `555 5.7.1 Temporary System Error` (WORKER_ERROR)
+
+**Symptom**
+
+- Sender receives: `555 5.7.1 Temporary System Error`
+- Gmail UI: "The message was not delivered" to `maaser@ten10-app.com`.
+
+**Root cause**
+
+- Cloudflare Worker called the Supabase Edge Function and got:
+  - `500 {"code":"WORKER_ERROR","message":"Function exited due to an error (please check logs)"}`
+- This is **different from the JWT issue** – the function crashed at runtime.
+- Possible causes: corrupted deployment, transient platform issue, or bundling problem during GitHub Actions deploy.
+
+**Diagnosis steps**
+
+1. Check Cloudflare Worker logs (MCP: `query_worker_observability`):
+   - Look for `$metadata.error` containing `Supabase error: 500`
+2. Check Supabase Edge Function logs (MCP: `get_logs` with `service: "edge-function"`):
+   - Look for `500` status codes on `process-email-request`
+3. Compare working version vs broken version in logs.
+
+**Fix**
+
+- Redeploy the function via CLI:
+  ```bash
+  supabase functions deploy process-email-request --no-verify-jwt --project-ref flpzqbvbymoluoeeeofg
+  ```
+- A fresh deploy resolved the issue (version 39 → 40).
+
+**Prevent recurrence**
+
+- If MCP/API is used to deploy, always specify `verify_jwt: false` explicitly.
+- The `config.toml` only works when deploying via CLI from the repo root.
+- Optional: Set up Cloudflare Worker notifications (Dashboard → Notifications → Workers Health Alert).
