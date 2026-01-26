@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/popover";
 import { TransactionType } from "@/types/transaction";
 import { getUserCategories, getCategoryCacheVersion } from "@/lib/data-layer";
+import { normalizeToBaseType } from "@/lib/data-layer/transactionForm.service";
 
 interface CategoryComboboxProps {
   value: string | null;
@@ -37,15 +38,8 @@ interface CategoryComboboxProps {
   disabled?: boolean;
 }
 
-// Map transaction types to their category keys in translations
-const typeToTranslationKey: Record<string, string> = {
-  income: "income",
-  "exempt-income": "income",
-  expense: "expense",
-  "recognized-expense": "expense",
-  donation: "donation",
-  non_tithe_donation: "donation",
-};
+// Valid base types that have predefined categories in translations
+const CATEGORY_BASE_TYPES = ["income", "expense", "donation"] as const;
 
 export function CategoryCombobox({
   value,
@@ -54,7 +48,7 @@ export function CategoryCombobox({
   placeholder,
   disabled = false,
 }: CategoryComboboxProps) {
-  const { t } = useTranslation("transactions");
+  const { t, i18n } = useTranslation("transactions");
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState("");
   const [userCategories, setUserCategories] = React.useState<string[]>([]);
@@ -64,8 +58,11 @@ export function CategoryCombobox({
 
   // Get predefined categories from translations
   const getPredefinedCategories = React.useCallback((): string[] => {
-    const translationKey = typeToTranslationKey[transactionType];
-    if (!translationKey) return [];
+    // Use centralized normalizeToBaseType to map derived types to base types
+    const baseType = normalizeToBaseType(transactionType);
+    if (!CATEGORY_BASE_TYPES.includes(baseType as typeof CATEGORY_BASE_TYPES[number])) {
+      return [];
+    }
 
     const categoryKeys = [
       "salary",
@@ -92,7 +89,7 @@ export function CategoryCombobox({
     const categories: string[] = [];
     for (const key of categoryKeys) {
       const translated = t(
-        `transactionForm.category.${translationKey}.${key}`,
+        `transactionForm.category.${baseType}.${key}`,
         ""
       );
       if (translated) {
@@ -137,8 +134,8 @@ export function CategoryCombobox({
   const allCategories = React.useMemo(() => {
     const predefined = getPredefinedCategories();
     const combined = [...new Set([...predefined, ...userCategories])];
-    return combined.sort((a, b) => a.localeCompare(b, "he"));
-  }, [getPredefinedCategories, userCategories]);
+    return combined.sort((a, b) => a.localeCompare(b, i18n.language));
+  }, [getPredefinedCategories, userCategories, i18n.language]);
 
   // Check if search value is a new category (not in the list)
   const isNewCategory =
