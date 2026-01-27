@@ -7,6 +7,7 @@ import { Wallet, CreditCard, HandCoins } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TransactionType } from "@/types/transaction";
 import type { TransactionFormValues } from "@/lib/schemas";
+import { normalizeToBaseType } from "@/lib/data-layer/transactionForm.service";
 
 const userFacingTransactionTypes: TransactionType[] = [
   "income",
@@ -35,12 +36,15 @@ const FLAGS_BY_TYPE: Record<BaseType, PerTypeFlag[]> = {
   donation: ["isFromPersonalFunds"],
 };
 
+/**
+ * Converts a transaction type to its base type for UI purposes.
+ * Uses the centralized normalizeToBaseType function and filters to valid base types.
+ */
 function toBaseType(type: TransactionType): BaseType | null {
-  if (type === "income" || type === "expense" || type === "donation")
-    return type;
-  if (type === "exempt-income") return "income";
-  if (type === "recognized-expense") return "expense";
-  if (type === "non_tithe_donation") return "donation";
+  const normalized = normalizeToBaseType(type);
+  if (normalized === "income" || normalized === "expense" || normalized === "donation") {
+    return normalized;
+  }
   return null;
 }
 

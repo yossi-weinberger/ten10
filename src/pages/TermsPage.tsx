@@ -17,6 +17,7 @@ import {
   Code,
   UserCheck,
   MapPin,
+  UserX,
 } from "lucide-react";
 
 export function TermsPage() {
@@ -128,6 +129,28 @@ export function TermsPage() {
                     <li>{t("service.item1")}</li>
                     <li>{t("service.item2")}</li>
                     <li>{t("service.item3")}</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Intended Use / Permitted Use */}
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <div className="flex items-start gap-3">
+                <UserX className="h-6 w-6 text-rose-600 flex-shrink-0 mt-1" />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                    {t("intendedUse.title")}
+                  </h2>
+                  <p className="text-gray-600 dark:text-gray-300 mb-4">
+                    {t("intendedUse.description")}
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4">
+                    <li>{t("intendedUse.item1")}</li>
+                    <li>{t("intendedUse.item2")}</li>
+                    <li>{t("intendedUse.item3")}</li>
                   </ul>
                 </div>
               </div>

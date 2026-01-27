@@ -1,6 +1,6 @@
 {
   "title": "Terms of Service",
-  "lastUpdated": "Last updated: January 2025",
+  "lastUpdated": "Last updated: January 2026",
   "acceptance": {
     "title": "Acceptance of Terms",
     "description": "By accessing or using Ten10 (web app or desktop app), you agree to these Terms. If you do not agree, do not use the service."
@@ -25,6 +25,13 @@
     "item1": "Automatic tithe and chomesh calculations",
     "item2": "Management of income, expenses, and donations",
     "item3": "Reports and charts"
+  },
+  "intendedUse": {
+    "title": "Permitted Use",
+    "description": "Ten10 is intended for personal use only, for managing tithes and household budgeting.",
+    "item1": "The service is not intended for commercial, business, or organizational use",
+    "item2": "Sale, rental, or commercial distribution of the service is prohibited",
+    "item3": "Organizational use requires a separate agreement in advance"
   },
   "dataAndPrivacy": {
     "title": "Data, Privacy & Platform Differences",

@@ -34,11 +34,17 @@
     "category": {
       "label": "Category",
       "placeholder": "Expense category (optional)",
+      "incomePlaceholder": "Income category (optional)",
+      "searchPlaceholder": "Search or type a category...",
+      "createNew": "Create new category",
+      "loading": "Loading...",
+      "noResults": "No categories found",
       "income": {
         "salary": "Salary",
         "business": "Business",
         "freelance": "Freelance",
         "investment": "Investment",
+        "allowance": "Allowance",
         "gift": "Gift",
         "other": "Other"
       },
@@ -49,7 +55,7 @@
         "utilities": "Utilities",
         "healthcare": "Healthcare",
         "education": "Education",
-        "entertainment": "Entertainment",
+        "leisure": "Leisure",
         "shopping": "Shopping",
         "other": "Other"
       },

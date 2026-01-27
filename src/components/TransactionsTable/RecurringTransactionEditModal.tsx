@@ -77,7 +77,7 @@ export function RecurringTransactionEditModal({
     return (
       <Drawer open={isOpen} onOpenChange={onClose}>
         <DrawerContent dir={i18n.dir()}>
-          <DrawerHeader className="rtl:text-right ltr:text-left">
+          <DrawerHeader className="rtl:text-right ltr:text-left pe-8">
             <DrawerTitle>{t("modal.editRecurringTitle")}</DrawerTitle>
             <DrawerDescription>
               {t("modal.editRecurringDescription")}
@@ -108,7 +108,7 @@ export function RecurringTransactionEditModal({
         className="sm:max-w-2xl w-[95vw] sm:w-full max-h-[85vh] overflow-y-auto p-4 sm:p-6"
         dir={i18n.dir()}
       >
-        <DialogHeader className="rtl:text-right ltr:text-left">
+        <DialogHeader className="rtl:text-right ltr:text-left pe-8">
           <DialogTitle>{t("modal.editRecurringTitle")}</DialogTitle>
           <DialogDescription>
             {t("modal.editRecurringDescription")}

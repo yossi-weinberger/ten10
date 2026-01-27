@@ -673,3 +673,65 @@ pub fn get_last_known_rate(
         Ok(None)
     }
 }
+
+/// Get distinct categories that the user has used for a specific transaction type.
+/// This is used to populate the category combobox with user-defined categories
+/// in addition to the predefined ones.
+/// 
+/// Includes derived types: income includes exempt-income, expense includes
+/// recognized-expense, donation includes non_tithe_donation.
+#[tauri::command]
+pub fn get_distinct_categories(
+    db_state: State<'_, DbState>,
+    transaction_type: String,
+) -> std::result::Result<Vec<String>, String> {
+    let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
+    let conn = &*conn_guard;
+
+    // Map base type to include derived types
+    // This ensures categories are shared across base and derived types
+    let types_to_query: Vec<&str> = match transaction_type.as_str() {
+        "income" => vec!["income", "exempt-income"],
+        "expense" => vec!["expense", "recognized-expense"],
+        "donation" => vec!["donation", "non_tithe_donation"],
+        _ => vec![transaction_type.as_str()],
+    };
+
+    // Build query with IN clause for multiple types
+    let placeholders: Vec<String> = (1..=types_to_query.len())
+        .map(|i| format!("?{}", i))
+        .collect();
+    let query = format!(
+        "SELECT DISTINCT category 
+         FROM transactions 
+         WHERE type IN ({}) AND category IS NOT NULL AND category != ''
+         ORDER BY category",
+        placeholders.join(", ")
+    );
+
+    let mut stmt = conn.prepare(&query).map_err(|e| e.to_string())?;
+    
+    // Convert types to rusqlite params
+    let params: Vec<&dyn rusqlite::ToSql> = types_to_query
+        .iter()
+        .map(|s| s as &dyn rusqlite::ToSql)
+        .collect();
+    
+    let categories_iter = stmt
+        .query_map(params.as_slice(), |row| row.get::<_, String>(0))
+        .map_err(|e| e.to_string())?;
+
+    let mut categories = Vec::new();
+    for category_result in categories_iter {
+        categories.push(category_result.map_err(|e| e.to_string())?);
+    }
+
+    println!(
+        "[Rust DEBUG] get_distinct_categories for type '{}' (querying {:?}): found {} categories",
+        transaction_type,
+        types_to_query,
+        categories.len()
+    );
+
+    Ok(categories)
+}

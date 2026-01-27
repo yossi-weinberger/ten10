@@ -78,3 +78,10 @@ export type {
   AdminSystemStats,
   MonthlyTrend,
 } from "./admin.service";
+
+export {
+  getUserCategories,
+  clearCategoryCache,
+  clearCategoryCacheForType,
+  getCategoryCacheVersion,
+} from "./categories.service";

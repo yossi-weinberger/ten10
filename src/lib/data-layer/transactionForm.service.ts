@@ -12,6 +12,7 @@ import {
   createRecurringTransaction,
   NewRecurringTransaction,
 } from "./recurringTransactions.service";
+import { clearCategoryCacheForType } from "./categories.service";
 import { logger } from "@/lib/logger";
 
 import { useDonationStore } from "@/lib/store";
@@ -127,5 +128,11 @@ export async function handleTransactionSubmit(
       rate_source: values.rate_source ?? null,
     };
     await addTransaction(newTransaction);
+  }
+
+  // Clear category cache for this transaction type if a category was provided
+  // This ensures new categories appear in the combobox dropdown
+  if (values.category) {
+    clearCategoryCacheForType(finalType);
   }
 }

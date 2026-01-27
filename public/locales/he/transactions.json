@@ -34,11 +34,17 @@
     "category": {
       "label": "קטגוריה",
       "placeholder": "קטגוריית הוצאה (אופציונלי)",
+      "incomePlaceholder": "קטגוריית הכנסה (אופציונלי)",
+      "searchPlaceholder": "חפש או הקלד קטגוריה...",
+      "createNew": "צור קטגוריה חדשה",
+      "loading": "טוען...",
+      "noResults": "לא נמצאו קטגוריות",
       "income": {
         "salary": "משכורת",
         "business": "עסק",
         "freelance": "עבודה עצמאית",
         "investment": "השקעות",
+        "allowance": "קצבאות",
         "gift": "מתנה",
         "other": "אחר"
       },
@@ -49,7 +55,7 @@
         "utilities": "שירותים",
         "healthcare": "בריאות",
         "education": "חינוך",
-        "entertainment": "בידור",
+        "leisure": "פנאי",
         "shopping": "קניות",
         "other": "אחר"
       },
