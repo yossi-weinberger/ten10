@@ -9,6 +9,10 @@
     "important": "Important"
   },
   "features": {
+    "categories": {
+      "title": "Transaction Categories",
+      "description": "Organize your income and expenses by categories - choose from predefined categories or create custom ones"
+    },
     "currencyConversion": {
       "title": "Multi-Currency Support & Conversion",
       "description": "Enter transactions in 12 different currencies with automatic conversion to your default currency"
@@ -20,8 +24,8 @@
   },
   "improvements": {
     "autoChomesh": {
-      "title": "Optional Chomesh Calculation",
-      "description": "Enable automatic chomesh (20%) calculation in settings for all income transactions"
+      "title": "Automatic chomesh calculation for all income",
+      "description": "You can now enable automatic chomesh (20%) calculation for all your income in the settings"
     },
     "performance": {
       "title": "Performance Improvements",
@@ -39,7 +43,7 @@
   "notices": {
     "multiCurrency": {
       "title": "Note: Multiple Currencies",
-      "description": "If you have transactions in different currencies, we recommend updating them to a single currency to ensure accurate calculations"
+      "description": "If you have transactions in different currencies, you must update them to a single currency to ensure accurate calculations"
     },
     "emailPrivacy": {
       "title": "Your Email Privacy",

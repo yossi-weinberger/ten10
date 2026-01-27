@@ -124,7 +124,8 @@
     "autoUpdateNote": "The app checks for updates automatically on startup. You can also check manually here.",
     "networkError": "No internet connection",
     "offlineHelp": "To receive an updated version without internet, please contact us: support@ten10-app.com",
-    "webVersionNote": "Web version is always up to date. No manual updates needed."
+    "webVersionNote": "Web version is always up to date. No manual updates needed.",
+    "whatsNewButton": "What's New"
   },
   "balanceManagement": {
     "title": "Balance Management",

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -35,6 +35,7 @@ import {
   AlertTriangle,
   Mail,
   Bug,
+  Tag,
 } from "lucide-react";
 
 // CURRENT_WHATS_NEW_VERSION controls when the "What's New" modal is shown.
@@ -42,7 +43,7 @@ import {
 //   the modal content in a way that users should see again.
 // - This version is persisted per user to avoid re-showing the same release notes.
 // - This is intentionally separate from package.json version (not every release has new features).
-const CURRENT_WHATS_NEW_VERSION = "0.5.1";
+const CURRENT_WHATS_NEW_VERSION = "0.5.4";
 
 interface FeatureItem {
   icon: React.ReactNode;
@@ -51,6 +52,11 @@ interface FeatureItem {
 }
 
 const newFeatures: FeatureItem[] = [
+  {
+    icon: <Tag className="h-5 w-5 text-purple-500" />,
+    titleKey: "features.categories.title",
+    descriptionKey: "features.categories.description",
+  },
   {
     icon: <ArrowRightLeft className="h-5 w-5 text-blue-500" />,
     titleKey: "features.currencyConversion.title",
@@ -92,14 +98,19 @@ const notices: FeatureItem[] = [
     titleKey: "notices.multiCurrency.title",
     descriptionKey: "notices.multiCurrency.description",
   },
-  {
-    icon: <Mail className="h-5 w-5 text-blue-400" />,
-    titleKey: "notices.emailPrivacy.title",
-    descriptionKey: "notices.emailPrivacy.description",
-  },
 ];
 
-export function WhatsNewModal() {
+interface WhatsNewModalProps {
+  /** Force open the modal (manual trigger) */
+  open?: boolean;
+  /** Callback when modal is closed (for manual control) */
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function WhatsNewModal({
+  open: forcedOpen,
+  onOpenChange: onForcedOpenChange,
+}: WhatsNewModalProps = {}) {
   const { t } = useTranslation("whats-new");
   const { user } = useAuth();
   const { platform } = usePlatform();
@@ -107,13 +118,21 @@ export function WhatsNewModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
+  const updatePromiseRef = useRef<Promise<void> | null>(null);
   const isDesktopQuery = useMediaQuery("(min-width: 768px)");
   const [useDesktop, setUseDesktop] = useState(isDesktopQuery);
 
+  // If forced open is provided, use it instead of auto-check
+  // Only consider it "manually controlled" if both open and onOpenChange are provided
+  const isManuallyControlled =
+    forcedOpen !== undefined && onForcedOpenChange !== undefined;
+  // Use forcedOpen if fully controlled, otherwise use local state
+  const modalOpen = isManuallyControlled ? forcedOpen : isOpen;
+
   // Lock the variant (Drawer/Dialog) when the modal is open
   useEffect(() => {
-    if (!isOpen) setUseDesktop(isDesktopQuery);
-  }, [isDesktopQuery, isOpen]);
+    if (!modalOpen) setUseDesktop(isDesktopQuery);
+  }, [isDesktopQuery, modalOpen]);
 
   // Define public paths where the modal should NOT appear
   const isPublicPath = PUBLIC_ROUTES.includes(currentPath);
@@ -121,11 +140,29 @@ export function WhatsNewModal() {
   // Desktop state - get store reference once
   const store = useDonationStore();
   const updateSettings = store.updateSettings;
+  const lastSeenVersion = store.settings.lastSeenVersion;
 
   // Extract user ID for proper dependency tracking
   const userId = user?.id;
 
+  // Determine if component is in partial manual mode (only open prop, no callback)
+  const isPartialManualMode =
+    forcedOpen !== undefined && onForcedOpenChange === undefined;
+
   useEffect(() => {
+    // Skip auto-check if fully manually controlled (both open and onOpenChange provided)
+    if (isManuallyControlled) {
+      setCheckingStatus(false);
+      return;
+    }
+
+    // If only open is provided without callback, treat as local state control
+    if (isPartialManualMode) {
+      setIsOpen(forcedOpen!);
+      setCheckingStatus(false);
+      return;
+    }
+
     const checkWhatsNewStatus = async () => {
       setCheckingStatus(true);
 
@@ -137,16 +174,16 @@ export function WhatsNewModal() {
       }
 
       if (platform === "loading") {
+        setCheckingStatus(false);
         return; // Wait for platform detection
       }
 
       // For Desktop: Check local store (single user per device)
       if (platform === "desktop") {
-        const lastSeen = store.settings.lastSeenVersion;
         logger.log(
-          `[WhatsNew] Desktop check: lastSeen=${lastSeen}, current=${CURRENT_WHATS_NEW_VERSION}`
+          `[WhatsNew] Desktop check: lastSeen=${lastSeenVersion}, current=${CURRENT_WHATS_NEW_VERSION}`,
         );
-        if (!lastSeen || lastSeen < CURRENT_WHATS_NEW_VERSION) {
+        if (!lastSeenVersion || lastSeenVersion < CURRENT_WHATS_NEW_VERSION) {
           setIsOpen(true);
         } else {
           setIsOpen(false);
@@ -177,7 +214,7 @@ export function WhatsNewModal() {
           } else {
             const lastSeen = data?.last_seen_version;
             logger.log(
-              `[WhatsNew] Web check: lastSeen=${lastSeen}, current=${CURRENT_WHATS_NEW_VERSION}`
+              `[WhatsNew] Web check: lastSeen=${lastSeen}, current=${CURRENT_WHATS_NEW_VERSION}`,
             );
             if (!lastSeen || lastSeen < CURRENT_WHATS_NEW_VERSION) {
               setIsOpen(true);
@@ -196,66 +233,127 @@ export function WhatsNewModal() {
 
     checkWhatsNewStatus();
     // userId changes when user switches accounts - this triggers re-check
-  }, [userId, platform, isPublicPath, store]);
+    // forcedOpen and onForcedOpenChange are needed for manual control mode
+    // lastSeenVersion is needed for desktop mode to react to store changes
+  }, [
+    userId,
+    platform,
+    isPublicPath,
+    lastSeenVersion,
+    forcedOpen,
+    onForcedOpenChange,
+  ]);
 
-  const handleDismiss = async () => {
+  // Update DB/store in background (fire and forget)
+  const updateLastSeenVersion = async () => {
+    // Prevent concurrent execution by tracking the promise
+    if (updatePromiseRef.current) {
+      return updatePromiseRef.current;
+    }
+
     setIsLoading(true);
 
-    try {
-      if (platform === "desktop") {
-        // Update local store
-        updateSettings({ lastSeenVersion: CURRENT_WHATS_NEW_VERSION });
-        setIsOpen(false);
-        logger.log("[WhatsNew] Desktop: Updated lastSeenVersion in store");
-      } else if (platform === "web" && user) {
-        // Update Supabase
-        const { error } = await supabase
-          .from("profiles")
-          .update({
-            last_seen_version: CURRENT_WHATS_NEW_VERSION,
-          })
-          .eq("id", user.id);
+    const updatePromise = (async () => {
+      try {
+        // Always update lastSeenVersion when modal is dismissed, regardless of control mode
+        if (platform === "desktop") {
+          // Update local store
+          updateSettings({ lastSeenVersion: CURRENT_WHATS_NEW_VERSION });
+          logger.log("[WhatsNew] Desktop: Updated lastSeenVersion in store");
+        } else if (platform === "web" && user) {
+          // Update Supabase
+          const { error } = await supabase
+            .from("profiles")
+            .update({
+              last_seen_version: CURRENT_WHATS_NEW_VERSION,
+            })
+            .eq("id", user.id);
 
-        if (error) {
-          throw error;
+          if (error) {
+            throw error;
+          }
+
+          // Update local store for cache
+          updateSettings({ lastSeenVersion: CURRENT_WHATS_NEW_VERSION });
+          logger.log(
+            "[WhatsNew] Web: Updated last_seen_version in DB and store",
+          );
         }
-
-        // Update local store for cache
-        updateSettings({ lastSeenVersion: CURRENT_WHATS_NEW_VERSION });
-        setIsOpen(false);
-        logger.log("[WhatsNew] Web: Updated last_seen_version in DB and store");
+      } catch (error) {
+        logger.error("Failed to update lastSeenVersion:", error);
+        // Continue even if save fails
+      } finally {
+        setIsLoading(false);
+        updatePromiseRef.current = null;
       }
-    } catch (error) {
-      logger.error("Failed to dismiss whats-new:", error);
-      // Still close the modal even if save fails
-      setIsOpen(false);
-    } finally {
-      setIsLoading(false);
+    })();
+
+    updatePromiseRef.current = updatePromise;
+    return updatePromise;
+  };
+
+  // Handle modal state update (immediate, synchronous)
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      // Modal is being closed - update state immediately for responsive UI
+      // Use existing control-mode logic instead of recomputing it here
+      if (isManuallyControlled && onForcedOpenChange) {
+        // Fully manually controlled - delegate to parent
+        onForcedOpenChange(false);
+      } else {
+        // Auto or partially controlled mode - close via local state
+        setIsOpen(false);
+      }
+
+      // Update DB/store in background (fire and forget)
+      updateLastSeenVersion();
     }
   };
 
-  // Don't render anything while checking or if not open
-  if (!isOpen && !checkingStatus) return null;
-  if (checkingStatus) return null;
+  // Handle button click (same as handleOpenChange but for explicit button clicks)
+  const handleDismiss = () => {
+    handleOpenChange(false);
+  };
+
+  // Don't render anything while checking (unless manually controlled) or if not open
+  // If forcedOpen is provided, component runs in manual mode (skip auto-check)
+  const isManualMode = forcedOpen !== undefined;
+  if (!isManualMode && !isOpen && !checkingStatus) return null;
+  if (!isManualMode && checkingStatus) return null;
+
+  // Filter notices based on platform - email privacy only for web
+  const visibleNotices: FeatureItem[] =
+    platform === "web"
+      ? [
+          ...notices,
+          {
+            icon: <Mail className="h-5 w-5 text-blue-400" />,
+            titleKey: "notices.emailPrivacy.title",
+            descriptionKey: "notices.emailPrivacy.description",
+          },
+        ]
+      : notices;
 
   const whatsNewContent = (
-    <div className="flex flex-col gap-4 py-2 text-start">
+    <div className="flex flex-col gap-4 md:gap-6 py-2 text-start">
       {/* New Features Section */}
       <div>
-        <h3 className="text-base font-semibold text-primary mb-2 flex items-center gap-2">
+        <h3 className="text-base font-semibold text-primary mb-2 md:mb-3 flex items-center gap-2">
           <Sparkles className="h-5 w-5" />
           {t("sections.newFeatures")}
         </h3>
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
           {newFeatures.map((feature, index) => (
             <div
               key={index}
-              className="flex gap-3 p-3 rounded-lg bg-muted/50"
+              className="flex gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-muted/50"
             >
               <div className="flex-shrink-0 mt-0.5">{feature.icon}</div>
-              <div>
-                <p className="font-medium text-base">{t(feature.titleKey)}</p>
-                <p className="text-sm text-muted-foreground">
+              <div className="min-w-0">
+                <p className="font-medium text-sm md:text-base">
+                  {t(feature.titleKey)}
+                </p>
+                <p className="text-xs md:text-sm text-muted-foreground">
                   {t(feature.descriptionKey)}
                 </p>
               </div>
@@ -266,16 +364,16 @@ export function WhatsNewModal() {
 
       {/* Improvements Section */}
       <div>
-        <h3 className="text-base font-semibold text-muted-foreground mb-2">
+        <h3 className="text-base font-semibold text-muted-foreground mb-2 md:mb-3">
           {t("sections.improvements")}
         </h3>
-        <div className="space-y-1.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {improvements.map((item, index) => (
-            <div key={index} className="flex gap-3 p-2">
+            <div key={index} className="flex gap-2 md:gap-3 p-2">
               <div className="flex-shrink-0 mt-0.5">{item.icon}</div>
-              <div>
-                <p className="text-base">{t(item.titleKey)}</p>
-                <p className="text-sm text-muted-foreground">
+              <div className="min-w-0">
+                <p className="text-sm md:text-base">{t(item.titleKey)}</p>
+                <p className="text-xs md:text-sm text-muted-foreground">
                   {t(item.descriptionKey)}
                 </p>
               </div>
@@ -286,19 +384,21 @@ export function WhatsNewModal() {
 
       {/* Important Notices Section */}
       <div>
-        <h3 className="text-base font-semibold text-amber-600 dark:text-amber-400 mb-2">
+        <h3 className="text-base font-semibold text-amber-600 dark:text-amber-400 mb-2 md:mb-3">
           {t("sections.important")}
         </h3>
-        <div className="space-y-2">
-          {notices.map((notice, index) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
+          {visibleNotices.map((notice, index) => (
             <div
               key={index}
-              className="flex gap-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800"
+              className="flex gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800"
             >
               <div className="flex-shrink-0 mt-0.5">{notice.icon}</div>
-              <div>
-                <p className="font-medium text-base">{t(notice.titleKey)}</p>
-                <p className="text-sm text-muted-foreground">
+              <div className="min-w-0">
+                <p className="font-medium text-sm md:text-base">
+                  {t(notice.titleKey)}
+                </p>
+                <p className="text-xs md:text-sm text-muted-foreground">
                   {t(notice.descriptionKey)}
                 </p>
               </div>
@@ -311,8 +411,8 @@ export function WhatsNewModal() {
 
   if (useDesktop) {
     return (
-      <Dialog open={isOpen} onOpenChange={handleDismiss}>
-        <DialogContent className="sm:max-w-2xl">
+      <Dialog open={modalOpen} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
@@ -337,8 +437,8 @@ export function WhatsNewModal() {
   }
 
   return (
-    <Drawer open={isOpen} onOpenChange={handleDismiss}>
-      <DrawerContent className="max-h-[90vh]">
+    <Drawer open={modalOpen} onOpenChange={handleOpenChange}>
+      <DrawerContent className="max-h-[95vh]">
         <DrawerHeader className="text-start">
           <DrawerTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
@@ -346,7 +446,9 @@ export function WhatsNewModal() {
           </DrawerTitle>
           <DrawerDescription>{t("description")}</DrawerDescription>
         </DrawerHeader>
-        <div className="px-4 pb-4 overflow-y-auto">{whatsNewContent}</div>
+        <div className="px-3 md:px-4 pb-4 overflow-y-auto">
+          {whatsNewContent}
+        </div>
         <DrawerFooter className="pt-2">
           <Button
             type="button"
