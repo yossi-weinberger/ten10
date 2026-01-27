@@ -1,0 +1,65 @@
+---
+description: Supabase Edge Functions - dependency versioning and security standards
+globs: supabase/functions/**/*.ts
+alwaysApply: false
+---
+
+# Supabase Edge Functions Standards
+
+## Critical: Always Use Specific Package Versions
+
+**NEVER** use `@2` or `@latest` for Supabase client imports in Edge Functions. Always pin to a specific version that's known to work with Deno runtime.
+
+### ❌ BAD - Will break when esm.sh updates
+```typescript
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+```
+
+### ✅ GOOD - Pinned version that works with Deno
+```typescript
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+```
+
+## Why This Matters
+
+- esm.sh automatically serves the latest version when you use `@2`
+- Newer versions (like 2.92.0) may not be compatible with Deno Edge Runtime
+- This causes runtime errors: `The argument 'filename' must be a file URL object...`
+- All functions break simultaneously when esm.sh updates
+
+## Current Working Version
+
+**Use `@supabase/supabase-js@2.39.0`** - This version is tested and works with:
+- Deno Edge Runtime 1.70.0 (compatible with Deno v2.1.4)
+- Supabase Edge Functions
+- All current project functions
+
+## Authentication Requirements
+
+All Edge Functions called by CRON jobs MUST:
+1. Accept both API keys (`sb_publishable_...` or `sb_secret_...`) AND JWT tokens
+2. Validate JWT tokens with Supabase (don't just check role/expiration)
+3. Use `service_role` JWT tokens for CRON jobs (not API keys)
+
+## Example: Proper Authentication
+
+```typescript
+// Check if token is API key
+const isApiKey = token.startsWith("sb_publishable_") || token.startsWith("sb_secret_");
+
+if (isApiKey) {
+  // Validate against known keys
+  if (token !== validAnonKey && token !== validServiceKey) {
+    return new Response(JSON.stringify({ error: "Invalid token" }), { status: 403 });
+  }
+} else {
+  // JWT token - validate with Supabase
+  const testClient = createClient(supabaseUrl, validAnonKey ?? "", {
+    global: { headers: { Authorization: authorization } },
+  });
+  const { error: testError } = await testClient.from("profiles").select("id").limit(1);
+  if (testError && testError.message.includes("JWT")) {
+    return new Response(JSON.stringify({ error: "Invalid token" }), { status: 403 });
+  }
+}
+```

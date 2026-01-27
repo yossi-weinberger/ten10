@@ -1,6 +1,8 @@
 // supabase/functions/_shared/cors.ts
 
-export const getCorsHeaders = (origin: string | null) => {
+export const getCorsHeaders = (
+  origin: string | null,
+): Record<string, string> => {
   const ALLOWED_ORIGINS = [
     "https://ten10-app.com",
     "https://www.ten10-app.com",

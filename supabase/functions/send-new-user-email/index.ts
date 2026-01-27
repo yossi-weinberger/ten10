@@ -7,7 +7,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import {
   createClient,
   type SupabaseClient,
-} from "https://esm.sh/@supabase/supabase-js@2";
+} from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
 import { EMAIL_THEME, getEmailHeader } from "../_shared/email-design.ts";
@@ -71,7 +71,7 @@ const formatDateParts = (value: string | null | undefined) => {
 
 const fetchAuthUser = async (
   client: SupabaseClient,
-  userId: string
+  userId: string,
 ): Promise<{
   email: string | null;
   created_at: string | null;
@@ -166,7 +166,7 @@ const buildEmailBodies = (args: {
     .map((r) => {
       const avatarCell = r.avatar_url
         ? `<img src="${escapeHtml(
-            r.avatar_url
+            r.avatar_url,
           )}" alt="avatar" class="avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid #e5e7eb;" />`
         : `<div class="avatar-placeholder" style="width:36px;height:36px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:12px;">N/A</div>`;
 
@@ -174,8 +174,8 @@ const buildEmailBodies = (args: {
         r.mailing_list_consent === true
           ? `<span class="badge badge-yes" style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background-color:#dcfce7;color:#166534;">Yes</span>`
           : r.mailing_list_consent === false
-          ? `<span class="badge badge-no" style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background-color:#fee2e2;color:#991b1b;">No</span>`
-          : `<span class="badge" style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background-color:#f3f4f6;color:#6b7280;">Unknown</span>`;
+            ? `<span class="badge badge-no" style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background-color:#fee2e2;color:#991b1b;">No</span>`
+            : `<span class="badge" style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background-color:#f3f4f6;color:#6b7280;">Unknown</span>`;
 
       return `
       <tr>
@@ -183,13 +183,13 @@ const buildEmailBodies = (args: {
         <td><strong>${escapeHtml(r.full_name ?? "Not provided")}</strong></td>
         <td>${escapeHtml(r.email ?? "unknown")}</td>
         <td style="font-family: monospace; color: #6b7280;">${escapeHtml(
-          r.id.substring(0, 8)
+          r.id.substring(0, 8),
         )}...</td>
         <td>${escapeHtml(
-          formatDateParts(r.auth_created_at ?? r.updated_at ?? null).date
+          formatDateParts(r.auth_created_at ?? r.updated_at ?? null).date,
         )}</td>
         <td>${escapeHtml(
-          formatDateParts(r.auth_created_at ?? r.updated_at ?? null).time
+          formatDateParts(r.auth_created_at ?? r.updated_at ?? null).time,
         )}</td>
         <td>${consentBadge}</td>
       </tr>`;
@@ -204,33 +204,33 @@ const buildEmailBodies = (args: {
       <title>New users summary</title>
       <style>
         body { font-family: ${EMAIL_THEME.fonts.main}; background-color: ${
-    EMAIL_THEME.colors.background
-  }; margin: 0; padding: 0; }
+          EMAIL_THEME.colors.background
+        }; margin: 0; padding: 0; }
         .container { max-width: 800px; margin: 40px auto; background: ${
           EMAIL_THEME.colors.cardBackground
         }; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); overflow: hidden; border-top: 6px solid ${
-    EMAIL_THEME.colors.primary
-  }; }
+          EMAIL_THEME.colors.primary
+        }; }
         /* Header styles are inline */
         .content { padding: 32px; }
         .summary-box { background-color: ${
           EMAIL_THEME.colors.success.bg
         }; border: 1px solid ${
-    EMAIL_THEME.colors.success.border
-  }; border-radius: 8px; padding: 16px; margin-bottom: 24px; color: ${
-    EMAIL_THEME.colors.success.text
-  }; font-weight: 500; }
+          EMAIL_THEME.colors.success.border
+        }; border-radius: 8px; padding: 16px; margin-bottom: 24px; color: ${
+          EMAIL_THEME.colors.success.text
+        }; font-weight: 500; }
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 12px; border-bottom: 2px solid ${
           EMAIL_THEME.colors.border
         }; color: ${
-    EMAIL_THEME.colors.textSecondary
-  }; font-weight: 600; font-size: 14px; }
+          EMAIL_THEME.colors.textSecondary
+        }; font-weight: 600; font-size: 14px; }
         td { padding: 12px; border-bottom: 1px solid ${
           EMAIL_THEME.colors.background
         }; color: ${
-    EMAIL_THEME.colors.textMain
-  }; font-size: 14px; vertical-align: middle; }
+          EMAIL_THEME.colors.textMain
+        }; font-size: 14px; vertical-align: middle; }
         tr:last-child td { border-bottom: none; }
         .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid ${
           EMAIL_THEME.colors.border
@@ -238,15 +238,15 @@ const buildEmailBodies = (args: {
         .avatar-placeholder { width: 36px; height: 36px; border-radius: 50%; background: ${
           EMAIL_THEME.colors.border
         }; display: flex; align-items: center; justify-content: center; color: ${
-    EMAIL_THEME.colors.textLight
-  }; font-size: 12px; }
+          EMAIL_THEME.colors.textLight
+        }; font-size: 12px; }
         .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
         .badge-yes { background-color: ${
           EMAIL_THEME.colors.success.bg
         }; color: ${EMAIL_THEME.colors.success.text}; }
         .badge-no { background-color: ${EMAIL_THEME.colors.error.bg}; color: ${
-    EMAIL_THEME.colors.error.text
-  }; }
+          EMAIL_THEME.colors.error.text
+        }; }
       </style>
     </head>
     <body>
@@ -297,7 +297,7 @@ const buildEmailBodies = (args: {
         parts.time
       } | mailing consent: ${formatBoolean(r.mailing_list_consent)} | avatar: ${
         r.avatar_url ?? "N/A"
-      }`
+      }`,
     );
   }
 
@@ -314,7 +314,7 @@ serve(async (req) => {
   if (!supabaseUrl || !supabaseServiceKey) {
     return jsonResponse(
       { error: "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY" },
-      500
+      500,
     );
   }
 
@@ -358,7 +358,7 @@ serve(async (req) => {
       return jsonResponse({ error: "Failed to fetch auth users" }, 500);
     }
     const filtered = (data?.users ?? []).filter(
-      (u) => u.created_at && u.created_at >= sinceIso
+      (u) => u.created_at && u.created_at >= sinceIso,
     );
     newUsers.push(
       ...filtered.map((u) => ({
@@ -366,7 +366,7 @@ serve(async (req) => {
         email: u.email ?? null,
         created_at: u.created_at,
         raw_user_meta_data: u.user_metadata,
-      }))
+      })),
     );
 
     if ((data?.users?.length ?? 0) < pageSize) {
@@ -386,7 +386,7 @@ serve(async (req) => {
     ? await supabaseAdmin
         .from("profiles")
         .select(
-          "id, full_name, mailing_list_consent, reminder_enabled, reminder_day_of_month, updated_at, avatar_url"
+          "id, full_name, mailing_list_consent, reminder_enabled, reminder_day_of_month, updated_at, avatar_url",
         )
         .in("id", userIds)
     : { data: [], error: null };
@@ -494,7 +494,7 @@ serve(async (req) => {
             ? error.message
             : String(error ?? "Unknown error"),
       },
-      500
+      500,
     );
   }
 });

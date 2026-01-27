@@ -2,6 +2,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const validAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+const validServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
@@ -25,7 +27,8 @@ const RATE_PROVIDERS: RateProvider[] = [
   {
     // 2nd Priority: Frankfurter (ECB rates)
     name: "frankfurter",
-    buildUrl: (from, to) => `https://api.frankfurter.app/latest?from=${from}&symbols=${to}`,
+    buildUrl: (from, to) =>
+      `https://api.frankfurter.app/latest?from=${from}&symbols=${to}`,
     parseRate: (data: unknown, _from, to) => {
       const d = data as { rates?: Record<string, number> };
       return d.rates?.[to] ?? null;
@@ -34,7 +37,8 @@ const RATE_PROVIDERS: RateProvider[] = [
   {
     // 3rd Priority: FloatRates (free, reliable, daily updates)
     name: "floatrates",
-    buildUrl: (from) => `https://www.floatrates.com/daily/${from.toLowerCase()}.json`,
+    buildUrl: (from) =>
+      `https://www.floatrates.com/daily/${from.toLowerCase()}.json`,
     parseRate: (data: unknown, _from, to) => {
       const d = data as Record<string, { rate?: number }>;
       const key = to.toLowerCase();
@@ -43,39 +47,148 @@ const RATE_PROVIDERS: RateProvider[] = [
   },
 ];
 
-async function fetchExchangeRate(from: string, to: string): Promise<number | null> {
+async function fetchExchangeRate(
+  from: string,
+  to: string,
+): Promise<number | null> {
   for (const provider of RATE_PROVIDERS) {
     try {
       console.log(`Trying provider "${provider.name}" for ${from} -> ${to}`);
       const url = provider.buildUrl(from, to);
       const response = await fetch(url);
-      
+
       if (!response.ok) {
         throw new Error(`${provider.name} returned ${response.status}`);
       }
-      
+
       const data = await response.json();
       const rate = provider.parseRate(data, from, to);
-      
+
       if (!rate) {
-        throw new Error(`${provider.name}: Rate not found for ${from} -> ${to}`);
+        throw new Error(
+          `${provider.name}: Rate not found for ${from} -> ${to}`,
+        );
       }
-      
+
       // Round rate to 4 decimal places
       const roundedRate = Math.round(rate * 10000) / 10000;
-      console.log(`Got rate from "${provider.name}": ${from} -> ${to} = ${roundedRate}`);
+      console.log(
+        `Got rate from "${provider.name}": ${from} -> ${to} = ${roundedRate}`,
+      );
       return roundedRate;
     } catch (error) {
       console.warn(`Provider "${provider.name}" failed:`, error);
       // Continue to next provider
     }
   }
-  
+
   console.error(`All providers failed for ${from} -> ${to}`);
   return null;
 }
 
 Deno.serve(async (req) => {
+  // Security: Check for valid authorization
+  const authorization = req.headers.get("Authorization");
+
+  if (!authorization || !authorization.includes("Bearer")) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized - Missing Bearer token" }),
+      {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
+
+  // Extract token from "Bearer TOKEN" format
+  const token = authorization.replace("Bearer ", "");
+
+  // Check if token is API key (sb_publishable_... or sb_secret_...)
+  const isApiKey =
+    token.startsWith("sb_publishable_") || token.startsWith("sb_secret_");
+
+  // If it's an API key, validate against known keys
+  if (isApiKey) {
+    const tokenMatchesAnon = token === validAnonKey;
+    const tokenMatchesService = token === validServiceKey;
+
+    if (!tokenMatchesAnon && !tokenMatchesService) {
+      return new Response(JSON.stringify({ error: "Invalid token" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+  } else {
+    // If it's a JWT token, validate it with Supabase
+    try {
+      // Decode JWT to check role first (quick check)
+      const tokenParts = token.split(".");
+      if (tokenParts.length !== 3) {
+        return new Response(JSON.stringify({ error: "Invalid token" }), {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      const tokenData = JSON.parse(atob(tokenParts[1])) as {
+        role?: string;
+        exp?: number;
+      };
+
+      // Check expiration first
+      if (tokenData.exp && tokenData.exp < Date.now() / 1000) {
+        return new Response(JSON.stringify({ error: "Token expired" }), {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      // For service_role tokens, verify by attempting to use it with Supabase
+      // We create a client with the token as Authorization header to verify it's valid
+      if (tokenData.role === "service_role") {
+        // Verify token by creating a client with the token and making a simple request
+        // If token is invalid, Supabase will reject it
+        const testClient = createClient(supabaseUrl, validAnonKey ?? "", {
+          global: { headers: { Authorization: authorization } },
+        });
+
+        // Try to make a simple request - if token is invalid, this will fail
+        const { error: testError } = await testClient
+          .from("recurring_transactions")
+          .select("id")
+          .limit(1);
+
+        if (testError) {
+          // If error is related to JWT/auth, token is invalid
+          if (
+            testError.message.includes("JWT") ||
+            testError.message.includes("token") ||
+            testError.message.includes("auth")
+          ) {
+            return new Response(JSON.stringify({ error: "Invalid token" }), {
+              status: 403,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+          // Other errors (like network) are OK - token itself is valid
+        }
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Invalid token - requires service_role" }),
+          {
+            status: 403,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      }
+    } catch (error) {
+      return new Response(JSON.stringify({ error: "Invalid token" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+  }
+
   try {
     console.log("Starting process-recurring-transactions...");
 
@@ -88,7 +201,7 @@ Deno.serve(async (req) => {
       .lte("next_due_date", today);
 
     if (fetchError) throw fetchError;
-    
+
     if (!dueTransactions || dueTransactions.length === 0) {
       console.log("No due transactions found.");
       return new Response(JSON.stringify({ message: "No due transactions" }), {
@@ -110,21 +223,25 @@ Deno.serve(async (req) => {
           .eq("id", rec.user_id)
           .single();
 
-        if (profileError && profileError.code !== "PGRST116") { // Ignore 'row not found' (user might be deleted?)
-             console.error(`Error fetching profile for user ${rec.user_id}:`, profileError);
-             continue;
+        if (profileError && profileError.code !== "PGRST116") {
+          // Ignore 'row not found' (user might be deleted?)
+          console.error(
+            `Error fetching profile for user ${rec.user_id}:`,
+            profileError,
+          );
+          continue;
         }
 
         const defaultCurrency = profile?.default_currency || "ILS";
         const recCurrency = rec.currency; // rec.currency should already be defaultCurrency if converted at form
-        
+
         let finalAmount = rec.amount;
         let finalCurrency = defaultCurrency;
-        let originalAmount = null;
-        let originalCurrency = null;
-        let conversionRate = null;
-        let conversionDate = null;
-        let rateSource = null;
+        let originalAmount: number | null = null;
+        let originalCurrency: string | null = null;
+        let conversionRate: number | null = null;
+        let conversionDate: string | null = null;
+        let rateSource: string | null = null;
 
         // Check if the recurring transaction already has conversion details stored
         // (i.e., it was created with a locked-in rate from the form)
@@ -145,7 +262,7 @@ Deno.serve(async (req) => {
           // This should only happen for old data created before currency conversion feature
           console.log(`Fetching rate for ${recCurrency} -> ${defaultCurrency}`);
           const rate = await fetchExchangeRate(recCurrency, defaultCurrency);
-          
+
           if (rate) {
             finalAmount = Number((rec.amount * rate).toFixed(2));
             originalAmount = rec.amount;
@@ -157,102 +274,124 @@ Deno.serve(async (req) => {
             // LEGACY TRANSACTION: No stored rate, all APIs failed
             // This will retry on next cron run (typically tomorrow)
             // This should be rare - only affects old transactions created before currency conversion feature
-            console.error(`[RETRY-PENDING] Legacy recurring ${rec.id}: All rate providers failed for ${recCurrency} -> ${defaultCurrency}. Will retry on next cron run.`);
+            console.error(
+              `[RETRY-PENDING] Legacy recurring ${rec.id}: All rate providers failed for ${recCurrency} -> ${defaultCurrency}. Will retry on next cron run.`,
+            );
             skippedCount++;
             continue;
           }
         } else {
-            // Same currency
-            finalCurrency = defaultCurrency;
+          // Same currency
+          finalCurrency = defaultCurrency;
         }
 
         // Insert transaction
-        const { error: insertError } = await supabase.from("transactions").insert({
-          user_id: rec.user_id,
-          date: rec.next_due_date,
-          amount: finalAmount,
-          currency: finalCurrency,
-          description: rec.description,
-          type: rec.type,
-          category: rec.category,
-          is_chomesh: rec.is_chomesh,
-          recipient: rec.recipient,
-          source_recurring_id: rec.id,
-          occurrence_number: rec.execution_count + 1,
-          original_amount: originalAmount,
-          original_currency: originalCurrency,
-          conversion_rate: conversionRate,
-          conversion_date: conversionDate,
-          rate_source: rateSource,
-        });
+        const { error: insertError } = await supabase
+          .from("transactions")
+          .insert({
+            user_id: rec.user_id,
+            date: rec.next_due_date,
+            amount: finalAmount,
+            currency: finalCurrency,
+            description: rec.description,
+            type: rec.type,
+            category: rec.category,
+            is_chomesh: rec.is_chomesh,
+            recipient: rec.recipient,
+            source_recurring_id: rec.id,
+            occurrence_number: rec.execution_count + 1,
+            original_amount: originalAmount,
+            original_currency: originalCurrency,
+            conversion_rate: conversionRate,
+            conversion_date: conversionDate,
+            rate_source: rateSource,
+          });
 
         if (insertError) {
           // INSERT FAILED: This will retry on next cron run
           // Common causes: constraint violation, permissions issue, or transient DB error
-          console.error(`[RETRY-PENDING] Recurring ${rec.id}: Insert failed. Will retry on next cron run. Error:`, insertError);
+          console.error(
+            `[RETRY-PENDING] Recurring ${rec.id}: Insert failed. Will retry on next cron run. Error:`,
+            insertError,
+          );
           skippedCount++;
           continue;
         }
 
         // Update recurring transaction
         let nextDueDateObj = new Date(rec.next_due_date);
-        
-        // Calculate next date (simple implementation)
-        if (rec.frequency === 'monthly') {
-            const currentMonth = nextDueDateObj.getMonth();
-            nextDueDateObj.setMonth(currentMonth + 1);
-            // Handle overflow (e.g. Jan 31 -> Feb 28/29)
-            // If the day changed, it means we overflowed. 
-            // We should stick to `day_of_month` if possible, but JS Date auto-adjusts.
-            // Ideally we should use the stored `day_of_month` to reset the day if it's valid for the new month.
-            // But let's keep it simple as JS logic:
-            if (rec.day_of_month) {
-                // Try to set to the preferred day
-                const year = nextDueDateObj.getFullYear();
-                const month = nextDueDateObj.getMonth(); // This is the NEW month
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-                nextDueDateObj.setDate(Math.min(rec.day_of_month, daysInMonth));
-            }
-        } else if (rec.frequency === 'weekly') {
-            nextDueDateObj.setDate(nextDueDateObj.getDate() + 7);
-        } else if (rec.frequency === 'yearly') {
-            nextDueDateObj.setFullYear(nextDueDateObj.getFullYear() + 1);
-        } else if (rec.frequency === 'daily') {
-            nextDueDateObj.setDate(nextDueDateObj.getDate() + 1);
-        }
-        
-        const newNextDueDate = nextDueDateObj.toISOString().split('T')[0];
-        const newExecutionCount = rec.execution_count + 1;
-        const newStatus = (rec.total_occurrences && newExecutionCount >= rec.total_occurrences) ? 'completed' : 'active';
 
-        const { error: updateError } = await supabase.from("recurring_transactions").update({
-          execution_count: newExecutionCount,
-          next_due_date: newNextDueDate,
-          status: newStatus
-        }).eq("id", rec.id);
+        // Calculate next date (simple implementation)
+        if (rec.frequency === "monthly") {
+          const currentMonth = nextDueDateObj.getMonth();
+          nextDueDateObj.setMonth(currentMonth + 1);
+          // Handle overflow (e.g. Jan 31 -> Feb 28/29)
+          // If the day changed, it means we overflowed.
+          // We should stick to `day_of_month` if possible, but JS Date auto-adjusts.
+          // Ideally we should use the stored `day_of_month` to reset the day if it's valid for the new month.
+          // But let's keep it simple as JS logic:
+          if (rec.day_of_month) {
+            // Try to set to the preferred day
+            const year = nextDueDateObj.getFullYear();
+            const month = nextDueDateObj.getMonth(); // This is the NEW month
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            nextDueDateObj.setDate(Math.min(rec.day_of_month, daysInMonth));
+          }
+        } else if (rec.frequency === "weekly") {
+          nextDueDateObj.setDate(nextDueDateObj.getDate() + 7);
+        } else if (rec.frequency === "yearly") {
+          nextDueDateObj.setFullYear(nextDueDateObj.getFullYear() + 1);
+        } else if (rec.frequency === "daily") {
+          nextDueDateObj.setDate(nextDueDateObj.getDate() + 1);
+        }
+
+        const newNextDueDate = nextDueDateObj.toISOString().split("T")[0];
+        const newExecutionCount = rec.execution_count + 1;
+        const newStatus =
+          rec.total_occurrences && newExecutionCount >= rec.total_occurrences
+            ? "completed"
+            : "active";
+
+        const { error: updateError } = await supabase
+          .from("recurring_transactions")
+          .update({
+            execution_count: newExecutionCount,
+            next_due_date: newNextDueDate,
+            status: newStatus,
+          })
+          .eq("id", rec.id);
 
         if (updateError) {
-             console.error(`Error updating recurring transaction ${rec.id}:`, updateError);
+          console.error(
+            `Error updating recurring transaction ${rec.id}:`,
+            updateError,
+          );
         } else {
-            results.push({ id: rec.id, status: "processed" });
+          results.push({ id: rec.id, status: "processed" });
         }
-
       } catch (innerErr) {
-          console.error(`Error processing recurring transaction ${rec.id}:`, innerErr);
+        console.error(
+          `Error processing recurring transaction ${rec.id}:`,
+          innerErr,
+        );
       }
     }
 
     // Summary log for monitoring
-    console.log(`[SUMMARY] Processed: ${results.length}, Skipped (will retry): ${skippedCount}, Total due: ${dueTransactions.length}`);
-    
-    return new Response(JSON.stringify({ 
-      processed: results.length, 
-      skipped: skippedCount,
-      details: results 
-    }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    console.log(
+      `[SUMMARY] Processed: ${results.length}, Skipped (will retry): ${skippedCount}, Total due: ${dueTransactions.length}`,
+    );
 
+    return new Response(
+      JSON.stringify({
+        processed: results.length,
+        skipped: skippedCount,
+        details: results,
+      }),
+      {
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (err) {
     console.error("Fatal error in process-recurring-transactions:", err);
     return new Response(String(err), { status: 500 });

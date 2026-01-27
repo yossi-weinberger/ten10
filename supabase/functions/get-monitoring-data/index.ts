@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
 interface MonitoringData {
@@ -206,7 +206,7 @@ serve(async (req) => {
       authStats,
       edgeFunctionStats,
       emailStats,
-      cloudflareStats
+      cloudflareStats,
     );
 
     const monitoringData: MonitoringData = {
@@ -241,7 +241,7 @@ serve(async (req) => {
 });
 
 async function fetchDatabaseStats(
-  client: ReturnType<typeof createClient>
+  client: ReturnType<typeof createClient>,
 ): Promise<DatabaseStats> {
   // Query active connections
   const { data: connections } = await client
@@ -306,7 +306,7 @@ async function fetchDatabaseStats(
 }
 
 async function fetchAuthStats(
-  client: ReturnType<typeof createClient>
+  client: ReturnType<typeof createClient>,
 ): Promise<AuthStats> {
   const now = new Date();
   const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -346,7 +346,7 @@ async function fetchAuthStats(
     recentEvents: (recentEvents ?? []).map((e: Record<string, unknown>) => ({
       id: String(e.id ?? ""),
       action: String(
-        (e.payload as Record<string, unknown>)?.action ?? "unknown"
+        (e.payload as Record<string, unknown>)?.action ?? "unknown",
       ),
       createdAt: String(e.created_at ?? ""),
       ipAddress: e.ip_address ? String(e.ip_address) : undefined,
@@ -358,7 +358,7 @@ async function fetchAuthStats(
 }
 
 async function fetchEdgeFunctionStats(
-  client: ReturnType<typeof createClient>
+  client: ReturnType<typeof createClient>,
 ): Promise<EdgeFunctionStats> {
   // Edge function logs are stored in Supabase's internal logging system
   // We'll query download_requests table as a proxy for edge function activity
@@ -436,14 +436,14 @@ async function fetchEmailStats(): Promise<EmailStats> {
 
     const canonicalRequest = `${method}\n${canonicalUri}\n${canonicalQuerystring}\n${canonicalHeaders}\n${signedHeaders}\n${payloadHash}`;
     const stringToSign = `${algorithm}\n${amzDate}\n${credentialScope}\n${await sha256(
-      canonicalRequest
+      canonicalRequest,
     )}`;
 
     const signingKey = await getSignatureKey(
       awsSecretAccessKey,
       dateStamp,
       awsRegion,
-      service
+      service,
     );
     const signature = await hmacHex(signingKey, stringToSign);
 
@@ -458,7 +458,7 @@ async function fetchEmailStats(): Promise<EmailStats> {
           "X-Amz-Date": amzDate,
           Authorization: authorizationHeader,
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -499,17 +499,17 @@ async function fetchEmailStats(): Promise<EmailStats> {
         if (timestamp >= yesterday) {
           const deliveryAttempts = parseInt(
             dataPoint.match(
-              /<DeliveryAttempts>(\d+)<\/DeliveryAttempts>/
-            )?.[1] ?? "0"
+              /<DeliveryAttempts>(\d+)<\/DeliveryAttempts>/,
+            )?.[1] ?? "0",
           );
           const bouncesCount = parseInt(
-            dataPoint.match(/<Bounces>(\d+)<\/Bounces>/)?.[1] ?? "0"
+            dataPoint.match(/<Bounces>(\d+)<\/Bounces>/)?.[1] ?? "0",
           );
           const complaintsCount = parseInt(
-            dataPoint.match(/<Complaints>(\d+)<\/Complaints>/)?.[1] ?? "0"
+            dataPoint.match(/<Complaints>(\d+)<\/Complaints>/)?.[1] ?? "0",
           );
           const rejectsCount = parseInt(
-            dataPoint.match(/<Rejects>(\d+)<\/Rejects>/)?.[1] ?? "0"
+            dataPoint.match(/<Rejects>(\d+)<\/Rejects>/)?.[1] ?? "0",
           );
 
           sends24h += deliveryAttempts;
@@ -564,7 +564,7 @@ async function sha256(message: string): Promise<string> {
 
 async function hmacBytes(
   key: ArrayBuffer | Uint8Array,
-  message: string
+  message: string,
 ): Promise<Uint8Array> {
   const keyBuffer = key instanceof Uint8Array ? key.buffer : key;
   const cryptoKey = await crypto.subtle.importKey(
@@ -572,19 +572,19 @@ async function hmacBytes(
     keyBuffer,
     { name: "HMAC", hash: "SHA-256" },
     false,
-    ["sign"]
+    ["sign"],
   );
   const signature = await crypto.subtle.sign(
     "HMAC",
     cryptoKey,
-    new TextEncoder().encode(message)
+    new TextEncoder().encode(message),
   );
   return new Uint8Array(signature);
 }
 
 async function hmacHex(
   key: ArrayBuffer | Uint8Array,
-  message: string
+  message: string,
 ): Promise<string> {
   const bytes = await hmacBytes(key, message);
   return Array.from(bytes)
@@ -596,11 +596,11 @@ async function getSignatureKey(
   secretKey: string,
   dateStamp: string,
   region: string,
-  service: string
+  service: string,
 ): Promise<Uint8Array> {
   const kDate = await hmacBytes(
     new TextEncoder().encode("AWS4" + secretKey),
-    dateStamp
+    dateStamp,
   );
   const kRegion = await hmacBytes(kDate, region);
   const kService = await hmacBytes(kRegion, service);
@@ -671,7 +671,7 @@ async function fetchCloudflareStats(): Promise<CloudflareStats> {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ query, variables }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -772,7 +772,7 @@ async function fetchVercelStats(): Promise<VercelStats> {
         id: String(d.uid || ""),
         state: String(d.state || d.readyState || "unknown"),
         createdAt: String(
-          d.created ? new Date(Number(d.created)).toISOString() : ""
+          d.created ? new Date(Number(d.created)).toISOString() : "",
         ),
         url: d.url ? String(d.url) : undefined,
         meta: d.meta
@@ -780,7 +780,7 @@ async function fetchVercelStats(): Promise<VercelStats> {
               githubCommitMessage: (d.meta as Record<string, unknown>)
                 .githubCommitMessage
                 ? String(
-                    (d.meta as Record<string, unknown>).githubCommitMessage
+                    (d.meta as Record<string, unknown>).githubCommitMessage,
                   )
                 : undefined,
               githubCommitRef: (d.meta as Record<string, unknown>)
@@ -789,7 +789,7 @@ async function fetchVercelStats(): Promise<VercelStats> {
                 : undefined,
             }
           : undefined,
-      })
+      }),
     );
 
     return {
@@ -812,7 +812,7 @@ function detectAnomalies(
   authStats: AuthStats,
   edgeFunctionStats: EdgeFunctionStats,
   emailStats: EmailStats,
-  cloudflareStats: CloudflareStats
+  cloudflareStats: CloudflareStats,
 ): Anomaly[] {
   const anomalies: Anomaly[] = [];
 
