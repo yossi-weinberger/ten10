@@ -130,8 +130,8 @@ export function WhatsNewModal({
 
   // Lock the variant (Drawer/Dialog) when the modal is open
   useEffect(() => {
-    if (!isOpen) setUseDesktop(isDesktopQuery);
-  }, [isDesktopQuery, isOpen]);
+    if (!modalOpen) setUseDesktop(isDesktopQuery);
+  }, [isDesktopQuery, modalOpen]);
 
   // Define public paths where the modal should NOT appear
   const isPublicPath = PUBLIC_ROUTES.includes(currentPath);
@@ -139,13 +139,18 @@ export function WhatsNewModal({
   // Desktop state - get store reference once
   const store = useDonationStore();
   const updateSettings = store.updateSettings;
+  const lastSeenVersion = store.settings.lastSeenVersion;
 
   // Extract user ID for proper dependency tracking
   const userId = user?.id;
 
   useEffect(() => {
+    // Calculate isManuallyControlled inside effect to ensure it's up-to-date
+    const isFullyControlled =
+      forcedOpen !== undefined && onForcedOpenChange !== undefined;
+
     // Skip auto-check if fully manually controlled (both open and onOpenChange provided)
-    if (isManuallyControlled) {
+    if (isFullyControlled) {
       setCheckingStatus(false);
       return;
     }
@@ -168,16 +173,16 @@ export function WhatsNewModal({
       }
 
       if (platform === "loading") {
+        setCheckingStatus(false);
         return; // Wait for platform detection
       }
 
       // For Desktop: Check local store (single user per device)
       if (platform === "desktop") {
-        const lastSeen = store.settings.lastSeenVersion;
         logger.log(
-          `[WhatsNew] Desktop check: lastSeen=${lastSeen}, current=${CURRENT_WHATS_NEW_VERSION}`,
+          `[WhatsNew] Desktop check: lastSeen=${lastSeenVersion}, current=${CURRENT_WHATS_NEW_VERSION}`,
         );
-        if (!lastSeen || lastSeen < CURRENT_WHATS_NEW_VERSION) {
+        if (!lastSeenVersion || lastSeenVersion < CURRENT_WHATS_NEW_VERSION) {
           setIsOpen(true);
         } else {
           setIsOpen(false);
@@ -227,28 +232,25 @@ export function WhatsNewModal({
 
     checkWhatsNewStatus();
     // userId changes when user switches accounts - this triggers re-check
-  }, [userId, platform, isPublicPath, store]);
+    // forcedOpen and onForcedOpenChange are needed for manual control mode
+    // lastSeenVersion is needed for desktop mode to react to store changes
+  }, [
+    userId,
+    platform,
+    isPublicPath,
+    lastSeenVersion,
+    forcedOpen,
+    onForcedOpenChange,
+  ]);
 
   const handleDismiss = async () => {
-    // If fully manually controlled (both open and callback), delegate to parent
-    if (isManuallyControlled) {
-      onForcedOpenChange!(false);
-      return;
-    }
-
-    // If only open is provided without callback, use local state
-    if (forcedOpen !== undefined && onForcedOpenChange === undefined) {
-      setIsOpen(false);
-      return;
-    }
-
     setIsLoading(true);
 
     try {
+      // Always update lastSeenVersion when modal is dismissed, regardless of control mode
       if (platform === "desktop") {
         // Update local store
         updateSettings({ lastSeenVersion: CURRENT_WHATS_NEW_VERSION });
-        setIsOpen(false);
         logger.log("[WhatsNew] Desktop: Updated lastSeenVersion in store");
       } else if (platform === "web" && user) {
         // Update Supabase
@@ -265,22 +267,39 @@ export function WhatsNewModal({
 
         // Update local store for cache
         updateSettings({ lastSeenVersion: CURRENT_WHATS_NEW_VERSION });
-        setIsOpen(false);
         logger.log("[WhatsNew] Web: Updated last_seen_version in DB and store");
       }
     } catch (error) {
-      logger.error("Failed to dismiss whats-new:", error);
-      // Still close the modal even if save fails
-      setIsOpen(false);
+      logger.error("Failed to update lastSeenVersion:", error);
+      // Continue with dismissal even if save fails
     } finally {
       setIsLoading(false);
     }
+
+    // Handle state updates based on control mode
+    // Check control mode at dismissal time (not at render time)
+    const isFullyControlled =
+      forcedOpen !== undefined && onForcedOpenChange !== undefined;
+
+    if (isFullyControlled) {
+      // Fully manually controlled - delegate to parent
+      onForcedOpenChange(false);
+      return;
+    }
+
+    // If only open is provided without callback, use local state
+    if (forcedOpen !== undefined && onForcedOpenChange === undefined) {
+      setIsOpen(false);
+      return;
+    }
+
+    // Auto mode - close local state
+    setIsOpen(false);
   };
 
   // Don't render anything while checking (unless manually controlled) or if not open
-  const shouldSkipAutoCheck =
-    isManuallyControlled ||
-    (forcedOpen !== undefined && onForcedOpenChange === undefined);
+  // If forcedOpen is provided, skip auto-check (manual mode)
+  const shouldSkipAutoCheck = forcedOpen !== undefined;
   if (!shouldSkipAutoCheck && !isOpen && !checkingStatus) return null;
   if (!shouldSkipAutoCheck && checkingStatus) return null;
 
