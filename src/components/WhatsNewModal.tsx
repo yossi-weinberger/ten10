@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -118,6 +118,7 @@ export function WhatsNewModal({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
+  const isUpdatingRef = useRef(false);
   const isDesktopQuery = useMediaQuery("(min-width: 768px)");
   const [useDesktop, setUseDesktop] = useState(isDesktopQuery);
 
@@ -245,11 +246,12 @@ export function WhatsNewModal({
 
   // Update DB/store in background (fire and forget)
   const updateLastSeenVersion = async () => {
-    // Prevent concurrent execution
-    if (isLoading) {
+    // Prevent concurrent execution using ref (more robust than state check)
+    if (isUpdatingRef.current) {
       return;
     }
 
+    isUpdatingRef.current = true;
     setIsLoading(true);
 
     try {
@@ -280,6 +282,7 @@ export function WhatsNewModal({
       // Continue even if save fails
     } finally {
       setIsLoading(false);
+      isUpdatingRef.current = false;
     }
   };
 
@@ -410,7 +413,7 @@ export function WhatsNewModal({
 
   if (useDesktop) {
     return (
-      <Dialog open={modalOpen} onOpenChange={handleDismiss}>
+      <Dialog open={modalOpen} onOpenChange={handleOpenChange}>
         <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
