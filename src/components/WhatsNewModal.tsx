@@ -145,37 +145,19 @@ export function WhatsNewModal({
   // Extract user ID for proper dependency tracking
   const userId = user?.id;
 
-  // Helper function to determine control mode
-  const getControlMode = (
-    forcedOpenValue: boolean | undefined,
-    onForcedOpenChangeValue?: (open: boolean) => void,
-  ): "fullyControlled" | "partiallyControlled" | "uncontrolled" => {
-    if (
-      forcedOpenValue !== undefined &&
-      onForcedOpenChangeValue !== undefined
-    ) {
-      return "fullyControlled";
-    }
-    if (
-      forcedOpenValue !== undefined &&
-      onForcedOpenChangeValue === undefined
-    ) {
-      return "partiallyControlled";
-    }
-    return "uncontrolled";
-  };
+  // Determine if component is in partial manual mode (only open prop, no callback)
+  const isPartialManualMode =
+    forcedOpen !== undefined && onForcedOpenChange === undefined;
 
   useEffect(() => {
-    const controlMode = getControlMode(forcedOpen, onForcedOpenChange);
-
     // Skip auto-check if fully manually controlled (both open and onOpenChange provided)
-    if (controlMode === "fullyControlled") {
+    if (isManuallyControlled) {
       setCheckingStatus(false);
       return;
     }
 
     // If only open is provided without callback, treat as local state control
-    if (controlMode === "partiallyControlled") {
+    if (isPartialManualMode) {
       setIsOpen(forcedOpen!);
       setCheckingStatus(false);
       return;
@@ -314,20 +296,12 @@ export function WhatsNewModal({
   const handleOpenChange = (open: boolean) => {
     if (!open) {
       // Modal is being closed - update state immediately for responsive UI
-      const isFullyControlled =
-        forcedOpen !== undefined && onForcedOpenChange !== undefined;
-      const isPartiallyControlled =
-        forcedOpen !== undefined && onForcedOpenChange === undefined;
-
-      // Update state immediately
-      if (isFullyControlled && onForcedOpenChange) {
+      // Use existing control-mode logic instead of recomputing it here
+      if (isManuallyControlled && onForcedOpenChange) {
         // Fully manually controlled - delegate to parent
         onForcedOpenChange(false);
-      } else if (isPartiallyControlled) {
-        // If only open is provided without callback, use local state
-        setIsOpen(false);
       } else {
-        // Auto mode - close local state
+        // Auto or partially controlled mode - close via local state
         setIsOpen(false);
       }
 
