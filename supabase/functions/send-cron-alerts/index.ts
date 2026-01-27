@@ -1,11 +1,11 @@
 /**
  * Edge Function: send-cron-alerts
  * Monitors cron job executions and Edge Function errors, sends alerts when failures occur
- * 
+ *
  * This function should be called periodically (e.g., every hour) to check for:
  * - Failed cron jobs
  * - Edge Function errors (5xx status codes)
- * 
+ *
  * Sends email notifications to admins when failures are detected.
  */
 
@@ -55,29 +55,63 @@ serve(async (req) => {
   // Extract token and validate (similar to other functions)
   const token = authorization.replace("Bearer ", "");
   const validServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  
-  if (token !== validServiceKey && !token.startsWith("sb_")) {
-    return new Response(JSON.stringify({ error: "Invalid token" }), {
-      status: 403,
-      headers: {
-        ...getCorsHeaders(origin),
-        "Content-Type": "application/json",
-      },
-    });
+  const validAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+
+  // Check if token is API key (sb_publishable_... or sb_secret_...)
+  const isApiKey =
+    token.startsWith("sb_publishable_") || token.startsWith("sb_secret_");
+
+  if (isApiKey) {
+    // Validate against known keys
+    if (token !== validAnonKey && token !== validServiceKey) {
+      return new Response(JSON.stringify({ error: "Invalid token" }), {
+        status: 403,
+        headers: {
+          ...getCorsHeaders(origin),
+          "Content-Type": "application/json",
+        },
+      });
+    }
+  } else {
+    // For this admin function, we strictly require service_role key
+    // (either via API key or JWT, but usually this function is called by CRON with service key)
+
+    // If it's a JWT, we need to verify it has service_role
+    // But to keep it simple and secure for CRON:
+    // We expect the Authorization header to match the service key for internal CRON calls.
+
+    if (token !== validServiceKey) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized - Service Key required" }),
+        {
+          status: 403,
+          headers: {
+            ...getCorsHeaders(origin),
+            "Content-Type": "application/json",
+          },
+        },
+      );
+    }
   }
 
   try {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Check for cron job failures in the last 24 hours
-    const { data: cronFailures, error: cronError } = await supabase.rpc("get_cron_job_failures", {
-      hours_back: 24,
-    });
+    const { data: cronFailures, error: cronError } = await supabase.rpc(
+      "get_cron_job_failures",
+      {
+        hours_back: 24,
+      },
+    );
 
     if (cronError) {
       console.error("Error fetching cron failures:", cronError);
       return new Response(
-        JSON.stringify({ error: "Failed to fetch cron job failures", details: cronError.message }),
+        JSON.stringify({
+          error: "Failed to fetch cron job failures",
+          details: cronError.message,
+        }),
         {
           status: 500,
           headers: {
@@ -92,7 +126,9 @@ serve(async (req) => {
 
     if (failures.length === 0) {
       return new Response(
-        JSON.stringify({ message: "No failures detected in the last 24 hours" }),
+        JSON.stringify({
+          message: "No failures detected in the last 24 hours",
+        }),
         {
           status: 200,
           headers: {
