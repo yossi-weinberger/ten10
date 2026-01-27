@@ -243,19 +243,12 @@ export function WhatsNewModal({
     onForcedOpenChange,
   ]);
 
-  const handleDismiss = async () => {
+  // Update DB/store in background (fire and forget)
+  const updateLastSeenVersion = async () => {
     // Prevent concurrent execution
     if (isLoading) {
       return;
     }
-
-    // Capture control mode at entry to ensure consistent behavior
-    // even if props change during async operations
-    const isFullyControlled =
-      forcedOpen !== undefined && onForcedOpenChange !== undefined;
-    const isPartiallyControlled =
-      forcedOpen !== undefined && onForcedOpenChange === undefined;
-    const capturedOnForcedOpenChange = onForcedOpenChange;
 
     setIsLoading(true);
 
@@ -284,26 +277,41 @@ export function WhatsNewModal({
       }
     } catch (error) {
       logger.error("Failed to update lastSeenVersion:", error);
-      // Continue with dismissal even if save fails
+      // Continue even if save fails
     } finally {
       setIsLoading(false);
     }
+  };
 
-    // Handle state updates based on captured control mode
-    if (isFullyControlled && capturedOnForcedOpenChange) {
-      // Fully manually controlled - delegate to parent
-      capturedOnForcedOpenChange(false);
-      return;
+  // Handle modal state update (immediate, synchronous)
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      // Modal is being closed - update state immediately for responsive UI
+      const isFullyControlled =
+        forcedOpen !== undefined && onForcedOpenChange !== undefined;
+      const isPartiallyControlled =
+        forcedOpen !== undefined && onForcedOpenChange === undefined;
+
+      // Update state immediately
+      if (isFullyControlled && onForcedOpenChange) {
+        // Fully manually controlled - delegate to parent
+        onForcedOpenChange(false);
+      } else if (isPartiallyControlled) {
+        // If only open is provided without callback, use local state
+        setIsOpen(false);
+      } else {
+        // Auto mode - close local state
+        setIsOpen(false);
+      }
+
+      // Update DB/store in background (fire and forget)
+      updateLastSeenVersion();
     }
+  };
 
-    // If only open is provided without callback, use local state
-    if (isPartiallyControlled) {
-      setIsOpen(false);
-      return;
-    }
-
-    // Auto mode - close local state
-    setIsOpen(false);
+  // Handle button click (same as handleOpenChange but for explicit button clicks)
+  const handleDismiss = () => {
+    handleOpenChange(false);
   };
 
   // Don't render anything while checking (unless manually controlled) or if not open
@@ -428,7 +436,7 @@ export function WhatsNewModal({
   }
 
   return (
-    <Drawer open={modalOpen} onOpenChange={handleDismiss}>
+    <Drawer open={modalOpen} onOpenChange={handleOpenChange}>
       <DrawerContent className="max-h-[95vh]">
         <DrawerHeader className="text-start">
           <DrawerTitle className="flex items-center gap-2">
