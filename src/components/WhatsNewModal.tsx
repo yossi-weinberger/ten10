@@ -122,7 +122,10 @@ export function WhatsNewModal({
   const [useDesktop, setUseDesktop] = useState(isDesktopQuery);
 
   // If forced open is provided, use it instead of auto-check
-  const isManuallyControlled = forcedOpen !== undefined;
+  // Only consider it "manually controlled" if both open and onOpenChange are provided
+  const isManuallyControlled =
+    forcedOpen !== undefined && onForcedOpenChange !== undefined;
+  // Use forcedOpen if fully controlled, otherwise use local state
   const modalOpen = isManuallyControlled ? forcedOpen : isOpen;
 
   // Lock the variant (Drawer/Dialog) when the modal is open
@@ -141,8 +144,15 @@ export function WhatsNewModal({
   const userId = user?.id;
 
   useEffect(() => {
-    // Skip auto-check if manually controlled
+    // Skip auto-check if fully manually controlled (both open and onOpenChange provided)
     if (isManuallyControlled) {
+      setCheckingStatus(false);
+      return;
+    }
+
+    // If only open is provided without callback, treat as local state control
+    if (forcedOpen !== undefined && onForcedOpenChange === undefined) {
+      setIsOpen(forcedOpen);
       setCheckingStatus(false);
       return;
     }
@@ -220,15 +230,15 @@ export function WhatsNewModal({
   }, [userId, platform, isPublicPath, store]);
 
   const handleDismiss = async () => {
-    // If manually controlled, handle dismissal appropriately
+    // If fully manually controlled (both open and callback), delegate to parent
     if (isManuallyControlled) {
-      // If callback provided, use it (parent controls state)
-      if (onForcedOpenChange) {
-        onForcedOpenChange(false);
-        return;
-      }
-      // If no callback but manually controlled, just return
-      // (parent should handle state, but we don't want to update backend)
+      onForcedOpenChange!(false);
+      return;
+    }
+
+    // If only open is provided without callback, use local state
+    if (forcedOpen !== undefined && onForcedOpenChange === undefined) {
+      setIsOpen(false);
       return;
     }
 
@@ -268,8 +278,11 @@ export function WhatsNewModal({
   };
 
   // Don't render anything while checking (unless manually controlled) or if not open
-  if (!isManuallyControlled && !isOpen && !checkingStatus) return null;
-  if (!isManuallyControlled && checkingStatus) return null;
+  const shouldSkipAutoCheck =
+    isManuallyControlled ||
+    (forcedOpen !== undefined && onForcedOpenChange === undefined);
+  if (!shouldSkipAutoCheck && !isOpen && !checkingStatus) return null;
+  if (!shouldSkipAutoCheck && checkingStatus) return null;
 
   // Filter notices based on platform - email privacy only for web
   const visibleNotices: FeatureItem[] =
