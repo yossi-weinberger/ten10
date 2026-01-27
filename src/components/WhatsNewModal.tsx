@@ -220,9 +220,15 @@ export function WhatsNewModal({
   }, [userId, platform, isPublicPath, store]);
 
   const handleDismiss = async () => {
-    // If manually controlled, just call the callback
-    if (isManuallyControlled && onForcedOpenChange) {
-      onForcedOpenChange(false);
+    // If manually controlled, handle dismissal appropriately
+    if (isManuallyControlled) {
+      // If callback provided, use it (parent controls state)
+      if (onForcedOpenChange) {
+        onForcedOpenChange(false);
+        return;
+      }
+      // If no callback but manually controlled, just return
+      // (parent should handle state, but we don't want to update backend)
       return;
     }
 
