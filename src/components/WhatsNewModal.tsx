@@ -118,7 +118,7 @@ export function WhatsNewModal({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
-  const isUpdatingRef = useRef(false);
+  const updatePromiseRef = useRef<Promise<void> | null>(null);
   const isDesktopQuery = useMediaQuery("(min-width: 768px)");
   const [useDesktop, setUseDesktop] = useState(isDesktopQuery);
 
@@ -145,20 +145,38 @@ export function WhatsNewModal({
   // Extract user ID for proper dependency tracking
   const userId = user?.id;
 
+  // Helper function to determine control mode
+  const getControlMode = (
+    forcedOpenValue: boolean | undefined,
+    onForcedOpenChangeValue?: (open: boolean) => void,
+  ): "fullyControlled" | "partiallyControlled" | "uncontrolled" => {
+    if (
+      forcedOpenValue !== undefined &&
+      onForcedOpenChangeValue !== undefined
+    ) {
+      return "fullyControlled";
+    }
+    if (
+      forcedOpenValue !== undefined &&
+      onForcedOpenChangeValue === undefined
+    ) {
+      return "partiallyControlled";
+    }
+    return "uncontrolled";
+  };
+
   useEffect(() => {
-    // Calculate isManuallyControlled inside effect to ensure it's up-to-date
-    const isFullyControlled =
-      forcedOpen !== undefined && onForcedOpenChange !== undefined;
+    const controlMode = getControlMode(forcedOpen, onForcedOpenChange);
 
     // Skip auto-check if fully manually controlled (both open and onOpenChange provided)
-    if (isFullyControlled) {
+    if (controlMode === "fullyControlled") {
       setCheckingStatus(false);
       return;
     }
 
     // If only open is provided without callback, treat as local state control
-    if (forcedOpen !== undefined && onForcedOpenChange === undefined) {
-      setIsOpen(forcedOpen);
+    if (controlMode === "partiallyControlled") {
+      setIsOpen(forcedOpen!);
       setCheckingStatus(false);
       return;
     }
@@ -246,44 +264,50 @@ export function WhatsNewModal({
 
   // Update DB/store in background (fire and forget)
   const updateLastSeenVersion = async () => {
-    // Prevent concurrent execution using ref (more robust than state check)
-    if (isUpdatingRef.current) {
-      return;
+    // Prevent concurrent execution by tracking the promise
+    if (updatePromiseRef.current) {
+      return updatePromiseRef.current;
     }
 
-    isUpdatingRef.current = true;
     setIsLoading(true);
 
-    try {
-      // Always update lastSeenVersion when modal is dismissed, regardless of control mode
-      if (platform === "desktop") {
-        // Update local store
-        updateSettings({ lastSeenVersion: CURRENT_WHATS_NEW_VERSION });
-        logger.log("[WhatsNew] Desktop: Updated lastSeenVersion in store");
-      } else if (platform === "web" && user) {
-        // Update Supabase
-        const { error } = await supabase
-          .from("profiles")
-          .update({
-            last_seen_version: CURRENT_WHATS_NEW_VERSION,
-          })
-          .eq("id", user.id);
+    const updatePromise = (async () => {
+      try {
+        // Always update lastSeenVersion when modal is dismissed, regardless of control mode
+        if (platform === "desktop") {
+          // Update local store
+          updateSettings({ lastSeenVersion: CURRENT_WHATS_NEW_VERSION });
+          logger.log("[WhatsNew] Desktop: Updated lastSeenVersion in store");
+        } else if (platform === "web" && user) {
+          // Update Supabase
+          const { error } = await supabase
+            .from("profiles")
+            .update({
+              last_seen_version: CURRENT_WHATS_NEW_VERSION,
+            })
+            .eq("id", user.id);
 
-        if (error) {
-          throw error;
+          if (error) {
+            throw error;
+          }
+
+          // Update local store for cache
+          updateSettings({ lastSeenVersion: CURRENT_WHATS_NEW_VERSION });
+          logger.log(
+            "[WhatsNew] Web: Updated last_seen_version in DB and store",
+          );
         }
-
-        // Update local store for cache
-        updateSettings({ lastSeenVersion: CURRENT_WHATS_NEW_VERSION });
-        logger.log("[WhatsNew] Web: Updated last_seen_version in DB and store");
+      } catch (error) {
+        logger.error("Failed to update lastSeenVersion:", error);
+        // Continue even if save fails
+      } finally {
+        setIsLoading(false);
+        updatePromiseRef.current = null;
       }
-    } catch (error) {
-      logger.error("Failed to update lastSeenVersion:", error);
-      // Continue even if save fails
-    } finally {
-      setIsLoading(false);
-      isUpdatingRef.current = false;
-    }
+    })();
+
+    updatePromiseRef.current = updatePromise;
+    return updatePromise;
   };
 
   // Handle modal state update (immediate, synchronous)
@@ -318,10 +342,10 @@ export function WhatsNewModal({
   };
 
   // Don't render anything while checking (unless manually controlled) or if not open
-  // If forcedOpen is provided, skip auto-check (manual mode)
-  const shouldSkipAutoCheck = forcedOpen !== undefined;
-  if (!shouldSkipAutoCheck && !isOpen && !checkingStatus) return null;
-  if (!shouldSkipAutoCheck && checkingStatus) return null;
+  // If forcedOpen is provided, component runs in manual mode (skip auto-check)
+  const isManualMode = forcedOpen !== undefined;
+  if (!isManualMode && !isOpen && !checkingStatus) return null;
+  if (!isManualMode && checkingStatus) return null;
 
   // Filter notices based on platform - email privacy only for web
   const visibleNotices: FeatureItem[] =
