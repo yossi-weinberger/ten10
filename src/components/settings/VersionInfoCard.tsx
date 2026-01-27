@@ -17,6 +17,7 @@ import {
   Info,
   Loader2,
   AlertCircle,
+  Sparkles,
 } from "lucide-react";
 import { usePlatform } from "@/contexts/PlatformContext";
 import {
@@ -26,6 +27,7 @@ import {
   type UpdateInfo,
 } from "@/lib/data-layer/updater.service";
 import toast from "react-hot-toast";
+import { WhatsNewModal } from "@/components/WhatsNewModal";
 
 type CheckStatus =
   | "idle"
@@ -44,6 +46,7 @@ export function VersionInfoCard() {
   const [isInstalling, setIsInstalling] = useState(false);
   const [error, setError] = useState<string>("");
   const [isNetworkError, setIsNetworkError] = useState(false);
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
 
   // Load version on mount
   useEffect(() => {
@@ -72,7 +75,7 @@ export function VersionInfoCard() {
         setCheckStatus("update-available");
         setUpdateInfo(update);
         toast.success(
-          t("versionInfo.updateAvailable", { version: update.version })
+          t("versionInfo.updateAvailable", { version: update.version }),
         );
       } else {
         setCheckStatus("up-to-date");
@@ -90,7 +93,7 @@ export function VersionInfoCard() {
           err !== null &&
           "code" in err &&
           ["ENOTFOUND", "ECONNREFUSED", "ECONNRESET", "ETIMEDOUT"].includes(
-            (err as any).code
+            (err as any).code,
           )) ||
         errorMessage.toLowerCase().includes("could not fetch");
 
@@ -103,7 +106,7 @@ export function VersionInfoCard() {
       }
 
       toast.error(
-        isNetwork ? t("versionInfo.networkError") : t("versionInfo.checkError")
+        isNetwork ? t("versionInfo.networkError") : t("versionInfo.checkError"),
       );
     }
   };
@@ -152,13 +155,25 @@ export function VersionInfoCard() {
 
       <CardContent className="space-y-4">
         {/* Current Version */}
-        <div className="flex items-center justify-between">
+        <div className="grid grid-cols-3 items-center gap-3">
           <span className="text-sm font-medium">
             {t("versionInfo.currentVersion")}
           </span>
-          <Badge variant="outline" className="font-mono text-base px-2 py-1">
-            v{currentVersion || "..."}
-          </Badge>
+          <div className="flex justify-center">
+            <Badge variant="outline" className="font-mono text-base px-2 py-1">
+              v{currentVersion || "..."}
+            </Badge>
+          </div>
+          <div className="flex justify-end">
+            <Button
+              onClick={() => setShowWhatsNew(true)}
+              variant="outline"
+              size="sm"
+            >
+              <Sparkles className="mr-2 h-4 w-4" />
+              {t("versionInfo.whatsNewButton")}
+            </Button>
+          </div>
         </div>
 
         {/* Update Status */}
@@ -267,6 +282,7 @@ export function VersionInfoCard() {
           </p>
         )}
       </CardContent>
+      <WhatsNewModal open={showWhatsNew} onOpenChange={setShowWhatsNew} />
     </Card>
   );
 }
