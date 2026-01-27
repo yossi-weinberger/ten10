@@ -244,6 +244,19 @@ export function WhatsNewModal({
   ]);
 
   const handleDismiss = async () => {
+    // Prevent concurrent execution
+    if (isLoading) {
+      return;
+    }
+
+    // Capture control mode at entry to ensure consistent behavior
+    // even if props change during async operations
+    const isFullyControlled =
+      forcedOpen !== undefined && onForcedOpenChange !== undefined;
+    const isPartiallyControlled =
+      forcedOpen !== undefined && onForcedOpenChange === undefined;
+    const capturedOnForcedOpenChange = onForcedOpenChange;
+
     setIsLoading(true);
 
     try {
@@ -276,19 +289,15 @@ export function WhatsNewModal({
       setIsLoading(false);
     }
 
-    // Handle state updates based on control mode
-    // Check control mode at dismissal time (not at render time)
-    const isFullyControlled =
-      forcedOpen !== undefined && onForcedOpenChange !== undefined;
-
-    if (isFullyControlled) {
+    // Handle state updates based on captured control mode
+    if (isFullyControlled && capturedOnForcedOpenChange) {
       // Fully manually controlled - delegate to parent
-      onForcedOpenChange(false);
+      capturedOnForcedOpenChange(false);
       return;
     }
 
     // If only open is provided without callback, use local state
-    if (forcedOpen !== undefined && onForcedOpenChange === undefined) {
+    if (isPartiallyControlled) {
       setIsOpen(false);
       return;
     }
