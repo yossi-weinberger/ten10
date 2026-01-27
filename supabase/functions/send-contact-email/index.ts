@@ -5,7 +5,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import {
   createClient,
   type SupabaseClient,
-} from "https://esm.sh/@supabase/supabase-js@2";
+} from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
 import { EMAIL_THEME, getEmailHeader } from "../_shared/email-design.ts";
@@ -31,7 +31,7 @@ interface ContactMessage {
 
 async function sendEmailNotification(
   supabaseAdminClient: SupabaseClient,
-  insertedRecord: ContactMessage
+  insertedRecord: ContactMessage,
 ) {
   // Use a dedicated sender for contact emails so it won't be affected by the global SES_FROM
   // (which may be set for reminder emails).
@@ -49,7 +49,7 @@ async function sendEmailNotification(
 
   const channelLabel = insertedRecord.channel.toUpperCase();
   const ticketNumber = `TEN-${new Date(
-    insertedRecord.created_at
+    insertedRecord.created_at,
   ).getFullYear()}-${insertedRecord.id.substring(0, 5).toUpperCase()}`;
   const subject = `[TEN10][${channelLabel}] #${ticketNumber} - ${insertedRecord.subject}`;
 
@@ -65,7 +65,7 @@ async function sendEmailNotification(
           return `<li>${att.name} (Error generating link)</li>`;
         }
         return `<li><a href="${data.signedUrl}" style="font-weight: bold; font-size: 1.1em; color: #2b6cb0;">${att.name}</a></li>`;
-      })
+      }),
     );
     attachmentLinks = `
       <div style="margin-top: 20px; padding: 15px; background-color: #ebf8ff; border: 2px solid #4299e1; border-radius: 8px;">
@@ -88,8 +88,8 @@ async function sendEmailNotification(
           insertedRecord.severity === "high"
             ? "גבוהה"
             : insertedRecord.severity === "med"
-            ? "בינונית"
-            : "נמוכה"
+              ? "בינונית"
+              : "נמוכה"
         }`
       : "";
 
@@ -102,10 +102,10 @@ async function sendEmailNotification(
           body { font-family: ${
             EMAIL_THEME.fonts.main
           }; line-height: 1.6; color: ${
-      EMAIL_THEME.colors.textMain
-    }; max-width: 600px; margin: 0 auto; padding: 0; direction: rtl; text-align: right; background-color: ${
-      EMAIL_THEME.colors.background
-    }; }
+            EMAIL_THEME.colors.textMain
+          }; max-width: 600px; margin: 0 auto; padding: 0; direction: rtl; text-align: right; background-color: ${
+            EMAIL_THEME.colors.background
+          }; }
           .container { background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin: 40px auto; border-top: 6px solid ${
             EMAIL_THEME.colors.primary
           }; direction: rtl; text-align: right; }
@@ -150,8 +150,8 @@ async function sendEmailNotification(
             <div class="info-grid">
               <span class="label">מאת:</span>
               <span class="value">${insertedRecord.user_name || "אנונימי"} (${
-      insertedRecord.user_email || "לא צוין"
-    })</span>
+                insertedRecord.user_email || "לא צוין"
+              })</span>
               
               <span class="label">מספר כרטיס:</span>
               <span class="value">${ticketNumber}</span>
@@ -227,10 +227,10 @@ async function sendEmailNotification(
           body { font-family: ${
             EMAIL_THEME.fonts.main
           }; line-height: 1.6; color: ${
-      EMAIL_THEME.colors.textMain
-    }; max-width: 600px; margin: 0 auto; padding: 0; background-color: ${
-      EMAIL_THEME.colors.background
-    }; }
+            EMAIL_THEME.colors.textMain
+          }; max-width: 600px; margin: 0 auto; padding: 0; background-color: ${
+            EMAIL_THEME.colors.background
+          }; }
           .container { background-color: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin: 40px auto; border-top: 6px solid ${
             EMAIL_THEME.colors.primary
           }; }
@@ -275,8 +275,8 @@ async function sendEmailNotification(
             <div class="info-item">
               <span class="label">From:</span>
               <span class="value">${insertedRecord.user_name || "Anonymous"} (${
-      insertedRecord.user_email || "No email"
-    })</span>
+                insertedRecord.user_email || "No email"
+              })</span>
             </div>
             <div class="info-item">
               <span class="label">Ticket ID:</span>
@@ -361,7 +361,7 @@ serve(async (req: Request) => {
   try {
     const supabaseAdminClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
     const payload = await req.json();

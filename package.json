@@ -12,7 +12,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "deploy-supabase": "node supabase/scripts/deploy-functions.js",
-    "release": "node scripts/release.cjs"
+    "release": "node scripts/release.cjs",
+    "check-supabase-imports": "node scripts/check-supabase-imports.js"
   },
   "dependencies": {
     "@hebcal/core": "^6.0.8",

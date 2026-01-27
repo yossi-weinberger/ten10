@@ -3,7 +3,7 @@
  * Handles all user-related database operations
  */
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 
 export interface ReminderUser {
   id: string;
@@ -23,14 +23,14 @@ export class UserService {
     this.supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { autoRefreshToken: false, persistSession: false } }
+      { auth: { autoRefreshToken: false, persistSession: false } },
     );
   }
 
   async getReminderUsers(reminderDay: number): Promise<ReminderUser[]> {
     const { data: users, error } = await this.supabaseClient.rpc(
       "get_reminder_users_with_emails",
-      { reminder_day: reminderDay }
+      { reminder_day: reminderDay },
     );
 
     if (error) {
@@ -43,7 +43,7 @@ export class UserService {
   async calculateUserTitheBalance(userId: string): Promise<number> {
     const { data: titheData, error } = await this.supabaseClient.rpc(
       "calculate_user_tithe_balance",
-      { p_user_id: userId }
+      { p_user_id: userId },
     );
 
     if (error) {
@@ -55,7 +55,7 @@ export class UserService {
   }
 
   async getUsersWithTitheBalances(
-    reminderDay: number
+    reminderDay: number,
   ): Promise<UserWithTitheBalance[]> {
     const users = await this.getReminderUsers(reminderDay);
     const usersWithBalances: UserWithTitheBalance[] = [];

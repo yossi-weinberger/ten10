@@ -44,11 +44,23 @@ export class SimpleEmailService {
     this.mailtoUnsub = Deno.env.get("MAILTO_UNSUB") ?? undefined; // optional
     this.listHelpUrl = Deno.env.get("UNSUB_HELP_URL") ?? undefined; // optional
 
+    console.log("[EMAIL_SERVICE] Initializing with config:", {
+      awsRegion: this.awsRegion,
+      fromEmail: this.fromEmail,
+      hasAccessKey: !!this.awsAccessKeyId,
+      hasSecretKey: !!this.awsSecretAccessKey,
+      hasFromEmail: !!this.fromEmail,
+    });
+
     if (!this.awsAccessKeyId || !this.awsSecretAccessKey) {
-      throw new Error("Missing AWS credentials (AWS_ACCESS_KEY_ID/SECRET).");
+      const error = "Missing AWS credentials (AWS_ACCESS_KEY_ID/SECRET).";
+      console.error("[EMAIL_SERVICE]", error);
+      throw new Error(error);
     }
     if (!this.fromEmail) {
-      throw new Error("Missing SES_FROM sender address.");
+      const error = "Missing SES_FROM sender address.";
+      console.error("[EMAIL_SERVICE]", error);
+      throw new Error(error);
     }
   }
 
@@ -57,11 +69,24 @@ export class SimpleEmailService {
   async sendReminderEmail(
     userEmail: string,
     userId: string,
-    titheBalance: number
+    titheBalance: number,
   ): Promise<EmailResult> {
     try {
+      console.log(`[EMAIL] Starting to send reminder email to ${userEmail}`);
+
       // 1) Build template data
-      const unsubscribeUrls = await generateUnsubscribeUrls(userId, userEmail);
+      let unsubscribeUrls;
+      try {
+        unsubscribeUrls = await generateUnsubscribeUrls(userId, userEmail);
+        console.log(`[EMAIL] Generated unsubscribe URLs for ${userEmail}`);
+      } catch (error) {
+        console.error(
+          `[EMAIL] Failed to generate unsubscribe URLs for ${userEmail}:`,
+          error,
+        );
+        // Continue without unsubscribe URLs - email can still be sent
+        unsubscribeUrls = { reminderUrl: "", allUrl: "" };
+      }
       const templateData: EmailTemplateData = {
         titheBalance,
         isPositive: titheBalance > 0,
@@ -115,6 +140,7 @@ export class SimpleEmailService {
       });
 
       // 5) Send
+      console.log(`[EMAIL] Sending email to ${userEmail} via AWS SES...`);
       const res = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -127,10 +153,15 @@ export class SimpleEmailService {
 
       if (!res.ok) {
         const t = await res.text();
-        throw new Error(`SES V2 error: ${res.status} ${t}`);
+        const errorMsg = `SES V2 error: ${res.status} ${t}`;
+        console.error(`[EMAIL] AWS SES error for ${userEmail}:`, errorMsg);
+        throw new Error(errorMsg);
       }
 
       const json = (await res.json()) as { MessageId?: string };
+      console.log(
+        `[EMAIL] Successfully sent email to ${userEmail}, MessageId: ${json?.MessageId}`,
+      );
       return {
         userId,
         email: userEmail,
@@ -151,7 +182,7 @@ export class SimpleEmailService {
   }
 
   async sendBulkReminders(
-    users: Array<{ id: string; email: string; titheBalance: number }>
+    users: Array<{ id: string; email: string; titheBalance: number }>,
   ): Promise<EmailResult[]> {
     const results: EmailResult[] = [];
     // Sequential with a gentle delay; you can replace with a small concurrency pool if needed.
@@ -285,7 +316,7 @@ export class SimpleEmailService {
       this.awsSecretAccessKey,
       dateStamp,
       this.awsRegion,
-      "ses"
+      "ses",
     );
     const signature = await this.hmacHex(stringToSign, signingKey);
 
@@ -309,12 +340,12 @@ export class SimpleEmailService {
       key,
       { name: "HMAC", hash: "SHA-256" },
       false,
-      ["sign"]
+      ["sign"],
     );
     const sig = await crypto.subtle.sign(
       "HMAC",
       cryptoKey,
-      new TextEncoder().encode(message)
+      new TextEncoder().encode(message),
     );
     return buf2hex(new Uint8Array(sig));
   }
@@ -323,11 +354,11 @@ export class SimpleEmailService {
     key: string,
     dateStamp: string,
     regionName: string,
-    serviceName: string
+    serviceName: string,
   ): Promise<Uint8Array> {
     const kDate = await this.hmacBytes(
       dateStamp,
-      new TextEncoder().encode("AWS4" + key)
+      new TextEncoder().encode("AWS4" + key),
     );
     const kRegion = await this.hmacBytes(regionName, kDate);
     const kService = await this.hmacBytes(serviceName, kRegion);
@@ -337,19 +368,19 @@ export class SimpleEmailService {
 
   private async hmacBytes(
     message: string,
-    key: Uint8Array
+    key: Uint8Array,
   ): Promise<Uint8Array> {
     const cryptoKey = await crypto.subtle.importKey(
       "raw",
       key,
       { name: "HMAC", hash: "SHA-256" },
       false,
-      ["sign"]
+      ["sign"],
     );
     const sig = await crypto.subtle.sign(
       "HMAC",
       cryptoKey,
-      new TextEncoder().encode(message)
+      new TextEncoder().encode(message),
     );
     return new Uint8Array(sig);
   }
@@ -357,7 +388,7 @@ export class SimpleEmailService {
   // ---------------- Helpers ----------------
 
   private async buildEmailTagsSafe(
-    userId: string
+    userId: string,
   ): Promise<Array<{ Name: string; Value: string }>> {
     const hash = await this.sha256Hex(userId);
     const short = hash.slice(0, 12);

@@ -24,20 +24,22 @@ export async function createUnsubscribeToken(
   userId: string,
   email: string,
   type: "reminder" | "all" = "all",
-  expirationHours: number = 720 // 30 days
+  expirationHours: number = 720, // 30 days
 ): Promise<string> {
   try {
     const jwtSecret = Deno.env.get("JWT_SECRET");
     if (!jwtSecret) {
+      console.error("[JWT] JWT_SECRET environment variable is not set");
       throw new Error("JWT_SECRET environment variable is not set");
     }
-    
+    console.log(`[JWT] Creating unsubscribe token for ${email}, type: ${type}`);
+
     const key = await crypto.subtle.importKey(
       "raw",
       new TextEncoder().encode(jwtSecret),
       { name: "HMAC", hash: "SHA-256" },
       false,
-      ["sign"]
+      ["sign"],
     );
 
     const payload: UnsubscribeTokenPayload = {
@@ -62,7 +64,7 @@ export async function createUnsubscribeToken(
  */
 export async function generateUnsubscribeUrls(
   userId: string,
-  email: string
+  email: string,
 ): Promise<{ reminderUrl: string; allUrl: string }> {
   const baseUrl = "https://ten10-app.com/unsubscribe";
 
