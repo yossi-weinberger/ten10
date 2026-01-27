@@ -241,7 +241,7 @@ function generateAlertEmailHTML(failures: CronJobFailure[]): string {
         <td style="padding: 8px; border-bottom: 1px solid ${EMAIL_THEME.colors.border};">${escapeHtml(f.jobname)}</td>
         <td style="padding: 8px; border-bottom: 1px solid ${EMAIL_THEME.colors.border};">${escapeHtml(f.status)}</td>
         <td style="padding: 8px; border-bottom: 1px solid ${EMAIL_THEME.colors.border};">${escapeHtml(f.return_message || "N/A")}</td>
-        <td style="padding: 8px; border-bottom: 1px solid ${EMAIL_THEME.colors.border};">${new Date(f.start_time).toLocaleString()}</td>
+        <td style="padding: 8px; border-bottom: 1px solid ${EMAIL_THEME.colors.border};">${escapeHtml(new Date(f.start_time).toLocaleString())}</td>
       </tr>
     `,
     )
