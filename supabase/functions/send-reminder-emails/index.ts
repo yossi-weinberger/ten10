@@ -190,10 +190,41 @@ serve(async (req) => {
   try {
     // Check for test mode in request body
     const body = await req.json().catch(() => ({}));
-    const isTest = body.test === true;
+    let isTest = body.test === true;
 
     if (isTest) {
-      console.log("[REMINDER] TEST MODE ENABLED - Will bypass day check");
+      // Validate that test mode is only allowed for service_role or admin
+      // We already validated the token above, so we just need to check if it was a service key
+      // or if we want to allow specific admin users (but service key is safest for now)
+
+      const isServiceKey =
+        authorization?.replace("Bearer ", "") === validServiceKey;
+
+      // If we are using JWT, we can check the role
+      let isServiceRole = false;
+      if (!isServiceKey && authorization) {
+        try {
+          const token = authorization.replace("Bearer ", "");
+          const tokenParts = token.split(".");
+          if (tokenParts.length === 3) {
+            const tokenData = JSON.parse(atob(tokenParts[1]));
+            isServiceRole = tokenData.role === "service_role";
+          }
+        } catch (e) {
+          // ignore error
+        }
+      }
+
+      if (!isServiceKey && !isServiceRole) {
+        console.warn(
+          "[REMINDER] Unauthorized attempt to use test mode. Disabling test mode.",
+        );
+        isTest = false;
+      } else {
+        console.log(
+          "[REMINDER] TEST MODE ENABLED (Authorized) - Will bypass day check",
+        );
+      }
     }
 
     // Initialize services with error handling
