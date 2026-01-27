@@ -73,24 +73,31 @@ serve(async (req) => {
       });
     }
   } else {
-    // For this admin function, we strictly require service_role key
-    // (either via API key or JWT, but usually this function is called by CRON with service key)
+    // JWT token - validate with Supabase
+    // We create a client with the incoming token to verify it's valid and signed by our project
+    const testClient = createClient(supabaseUrl, validAnonKey ?? "", {
+      global: { headers: { Authorization: authorization } },
+    });
 
-    // If it's a JWT, we need to verify it has service_role
-    // But to keep it simple and secure for CRON:
-    // We expect the Authorization header to match the service key for internal CRON calls.
+    // Make a lightweight request to verify the token
+    const { error: testError } = await testClient
+      .from("profiles")
+      .select("id")
+      .limit(1);
 
-    if (token !== validServiceKey) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized - Service Key required" }),
-        {
-          status: 403,
-          headers: {
-            ...getCorsHeaders(origin),
-            "Content-Type": "application/json",
-          },
+    if (
+      testError &&
+      (testError.message.includes("JWT") ||
+        testError.message.includes("Invalid token"))
+    ) {
+      console.error("[AUTH] JWT validation failed:", testError.message);
+      return new Response(JSON.stringify({ error: "Invalid token" }), {
+        status: 403,
+        headers: {
+          ...getCorsHeaders(origin),
+          "Content-Type": "application/json",
         },
-      );
+      });
     }
   }
 
