@@ -1,5 +1,9 @@
 # Ten10: Financial Management Platform
 
+[![downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fyossi-weinberger%2Ften10%2Fmain%2F.github%2Fdownloads.json&query=%24.installer_downloads&label=downloads&color=0ea5e9&logo=windows&logoColor=white&style=flat)](https://github.com/yossi-weinberger/ten10/releases)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/yossi-weinberger/ten10?style=flat&logo=github&logoColor=white&label=release)](https://github.com/yossi-weinberger/ten10/releases/latest)
+[![License: AGPL-3.0](https://img.shields.io/github/license/yossi-weinberger/ten10?style=flat&logo=gnu&logoColor=white&label=license)](https://github.com/yossi-weinberger/ten10/blob/main/LICENSE)
+
 Ten10 is an intuitive platform designed for managing income, expenses, and the corresponding tithes (Ma'aserot) that need to be deducted. It aims to simplify household financial management for both online and offline users.
 
 ## Target Audience & Platforms
@@ -29,16 +33,19 @@ Each user is expected to use only one platform; data synchronization between web
 ## Key Features
 
 - **Unified Transaction Model**: A single `Transaction` type for all financial events (income, expenses, donations).
-- **Dynamic Tithe Calculation**: Required tithe balance is calculated dynamically in the frontend based on the transaction list.
+- **Tithe Calculation**: Required tithe balance is calculated on the server (Supabase RPC for web, SQLite for desktop) and displayed in the dashboard; client-side calculations are available as fallback.
 - **Dashboard**: Displays key metrics: income, expenses, donations, and required tithe balance.
-- **Data Entry**: Intuitive forms for inputting financial transactions.
-- **Data Visualization**: Tables and charts with filtering and sorting options.
+- **Data Entry**: Intuitive forms for inputting financial transactions, including recurring transactions and category selection.
+- **Data Visualization**: Interactive transactions table and charts with filtering, sorting, and export to CSV, Excel, or PDF.
 - **Data Import/Export**:
   - **Desktop**: Export/Import all transaction data to/from a JSON file.
   - **Web**: Planned for future implementation.
-- **Multi-Language Support**: Initial support for Hebrew (default) and English.
+- **Reminders & Notifications**: Web users can opt in to monthly email reminders; desktop users get system notifications and an optional autostart on login.
+- **Auth & Compliance**: Terms of Service and Privacy Policy acceptance (blocking modal); password reset for web users.
+- **Contact**: Contact form (web) with Supabase Edge Functions for sending and verification (e.g. CAPTCHA).
+- **Multi-Language Support**: Hebrew (default) and English, with full RTL support.
 - **Theming**: Light and Dark mode support.
-- **Currency Support**: Initial support for ILS, USD, EUR.
+- **Currency Support**: Multiple currencies (e.g. ILS, USD, EUR) with conversion; see `llm-instructions/features/currency/`.
 - **Platform Detection**: Uses React Context to determine if running on web or desktop, allowing for platform-specific logic and UI.
 
 ## Getting Started
@@ -120,7 +127,7 @@ All financial events (income, expenses, donations) are represented by a single `
 
 ### State Management
 
-Zustand (`src/lib/store.ts`) is used for global state management. The primary piece of state is the `transactions: Transaction[]` array, which holds all financial records. The required tithe balance is calculated dynamically from this array using a memoized selector (`selectCalculatedBalance`).
+Zustand (`src/lib/store.ts`) is used for global state management. The primary piece of state is the `transactions: Transaction[]` array, which holds all financial records. Key statistics and the required tithe balance are fetched from the server (Supabase RPC or Tauri/SQLite); client-side selectors such as `selectCalculatedBalance` remain available for fallback and compatibility.
 
 ### Data Flow
 
@@ -138,15 +145,19 @@ The desktop application supports exporting all transaction data to a JSON file a
 
 ## Development Guidelines
 
-For more detailed information on specific aspects of the project, refer to the documents in the `llm-instructions/` directory. These guides cover:
+For more detailed information on specific aspects of the project, refer to the documents in the `llm-instructions/` directory:
 
-- Platform-specific data saving (`platforms/desktop-data-saving-guide.md`)
-- Platform context API (`platforms/platform-context-api-guide.md`)
-- Transaction data model and tithe calculations (`features/transactions/transaction-data-model-and-calculations.md`)
-- Multi-language support and responsive design (`ui/multi-language-and-responsive-design-guide.md`)
-- And more... (see `llm-instructions/` directory structure)
+| Category       | Documents                                                                                                                                                                                                                                                                                             |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Project**    | `project/project-overview-and-requirements.md`, `project/project-tech-stack-and-guidelines.md`                                                                                                                                                                                                        |
+| **Platforms**  | `platforms/desktop-data-saving-guide.md`, `platforms/desktop-release-system-guide.md`, `platforms/platform-context-api-guide.md`, `platforms/tauri-v2-build-and-platform-detection-summary.md`, `platforms/android-twa-implementation-guide.md`                                                       |
+| **Features**   | `features/transactions/` (data model, recurring, category selection, table overview/status), `features/email/` (reminders, unsubscribe, automated downloads), `features/auth/` (terms acceptance, password reset), `features/contact-us-feature.md`, `features/currency/currency-conversion-guide.md` |
+| **Backend**    | `backend/data-flow-server-calculations-and-cleanup.md`, `backend/server-side-tithe-balance-calculation-guide.md`, `backend/supabase-integration-status.md`, `backend/supabase-edge-functions-maintenance.md`, `backend/security-hardening-jan-2026.md`                                                |
+| **Deployment** | `deployment/release-management-guide.md`, `deployment/setup-updater-keys.md`, `deployment/code-signing-guide.md`, `deployment/performance-optimization-jan-2026.md`                                                                                                                                   |
+| **UI**         | `ui/landing-page-complete-guide.md`, `ui/multi-language-and-responsive-design-guide.md`, `ui/ui-component-guidelines.md`, `ui/translation-map.md`, `ui/halacha-page-revamp-plan.md`                                                                                                                   |
+| **Utilities**  | `utilities/logger-utility-guide.md`, `utilities/migration-guide.md`, `utilities/GOOGLE_ANALYTICS_SETUP.md`                                                                                                                                                                                            |
 
-These documents should be consulted when making changes or adding new features to ensure consistency and adherence to project standards.
+See `llm-instructions/project-structure.md` for the full file tree. These documents should be consulted when making changes or adding new features to ensure consistency and adherence to project standards.
 
 ## Releases and Updates
 
