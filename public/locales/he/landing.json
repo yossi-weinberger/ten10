@@ -34,7 +34,8 @@
   },
   "stats": {
     "downloads": "הורדות לתוכנה למחשב",
-    "websiteUsers": "משתמשים באתר"
+    "websiteUsers": "משתמשים באתר",
+    "asOf": "נכון לתאריך {{date}}"
   },
   "nav": {
     "home": "בית",

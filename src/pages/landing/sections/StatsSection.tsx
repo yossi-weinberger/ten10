@@ -7,15 +7,36 @@ import {
   staggerItem,
 } from "@/hooks/useScrollAnimation";
 import { useCountUp } from "@/hooks/useCountUp";
+import { usePublicStats } from "@/hooks/usePublicStats";
+
+function formatStatsDate(isoDate: string, locale: string): string {
+  if (!isoDate) return "";
+  try {
+    const date = new Date(isoDate);
+    return date.toLocaleDateString(locale === "he" ? "he-IL" : "en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  } catch {
+    return "";
+  }
+}
 
 export const StatsSection: React.FC = () => {
-  const { t } = useTranslation("landing");
+  const { t, i18n } = useTranslation("landing");
   const statsRef = useScrollAnimation({ threshold: 0.3 });
+  const { stats, loading: statsLoading } = usePublicStats();
+  const asOfDate = formatStatsDate(stats.updated_at, i18n.language);
 
-  // Animated counters for stats
-  const downloadsCount = useCountUp({ end: 1850, duration: 2500, delay: 500 });
+  // Animated counters: use .github/public-stats.json (fallback while loading)
+  const downloadsCount = useCountUp({
+    end: statsLoading ? 1850 : stats.total_downloads,
+    duration: 2500,
+    delay: 500,
+  });
   const websiteUsersCount = useCountUp({
-    end: 2450,
+    end: statsLoading ? 2450 : stats.website_users,
     duration: 2500,
     delay: 700,
   });
@@ -99,6 +120,14 @@ export const StatsSection: React.FC = () => {
             </motion.p>
           </motion.div>
         </motion.div>
+        {asOfDate && (
+          <motion.p
+            className="text-blue-200/80 text-sm mt-4 text-center"
+            variants={fadeInUp}
+          >
+            {t("stats.asOf", { date: asOfDate })}
+          </motion.p>
+        )}
       </div>
     </motion.section>
   );
