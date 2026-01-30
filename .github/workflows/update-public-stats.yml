@@ -1,0 +1,44 @@
+# Single workflow: updates .github/public-stats.json (website_users, installer_downloads,
+# email_downloads, total_downloads). Creates a PR instead of pushing to main (works with branch protection).
+# Add secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY. GITHUB_TOKEN is provided automatically.
+name: Update public stats
+
+on:
+  schedule:
+    - cron: "0 12 * * 0" # weekly, Sunday 12:00 UTC
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Update public-stats.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/update-public-stats.js
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update public stats"
+          branch: chore/update-public-stats
+          title: "chore: update public stats"
+          body: "Auto-update .github/public-stats.json (website_users, downloads). Merge to update main."
+          add-paths: .github/public-stats.json
