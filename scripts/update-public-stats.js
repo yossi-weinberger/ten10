@@ -15,11 +15,22 @@ async function getInstallerDownloads() {
     "User-Agent": "ten10-public-stats",
     ...(token && { Authorization: `Bearer ${token}` }),
   };
-  const res = await fetch(`https://api.github.com/repos/${REPO}/releases`, {
-    headers,
-  });
-  if (!res.ok) throw new Error(`GitHub API ${res.status}: ${await res.text()}`);
-  const releases = await res.json();
+  const perPage = 100;
+  const releases = [];
+  let page = 1;
+  let hasMore = true;
+  while (hasMore) {
+    const res = await fetch(
+      `https://api.github.com/repos/${REPO}/releases?per_page=${perPage}&page=${page}`,
+      { headers }
+    );
+    if (!res.ok)
+      throw new Error(`GitHub API ${res.status}: ${await res.text()}`);
+    const chunk = await res.json();
+    releases.push(...chunk);
+    hasMore = chunk.length === perPage;
+    page += 1;
+  }
   let total = 0;
   for (const rel of releases) {
     for (const asset of rel.assets || []) {
@@ -36,7 +47,15 @@ async function getSupabaseCounts() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return { website_users: 0, email_downloads: 0 };
 
-  const { createClient } = await import("@supabase/supabase-js");
+  let createClient;
+  try {
+    ({ createClient } = await import("@supabase/supabase-js"));
+  } catch (err) {
+    throw new Error(
+      'Failed to load "@supabase/supabase-js". Install it (e.g. npm install) or unset SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY. ' +
+        (err && err.message ? err.message : String(err))
+    );
+  }
   const supabase = createClient(url, key);
 
   const [

@@ -23,7 +23,10 @@ const defaultStats: PublicStats = {
   updated_at: "",
 };
 
-/** Fallback when offline and no cache (e.g. first run on desktop without network). */
+/**
+ * Fallback when offline and no cache (e.g. first run on desktop without network).
+ * Values last reviewed 2026-01-30; update periodically to keep them reasonably accurate.
+ */
 const FALLBACK_OFFLINE_STATS: PublicStats = {
   website_users: 2450,
   installer_downloads: 1500,
@@ -38,7 +41,13 @@ function getCachedStats(): PublicStats | null {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as { data: PublicStats; ts: number };
     const now = Date.now();
-    if (parsed.ts > now || now - parsed.ts > CACHE_MAX_AGE_MS) return null;
+    if (parsed.ts > now) {
+      console.warn(
+        "Cached public stats have a future timestamp; possible clock skew.",
+        { cachedTimestamp: parsed.ts, now }
+      );
+    }
+    if (now - parsed.ts > CACHE_MAX_AGE_MS) return null;
     return parsed.data;
   } catch {
     return null;
