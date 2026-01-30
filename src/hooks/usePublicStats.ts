@@ -37,7 +37,8 @@ function getCachedStats(): PublicStats | null {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as { data: PublicStats; ts: number };
-    if (Date.now() - parsed.ts > CACHE_MAX_AGE_MS) return null;
+    const now = Date.now();
+    if (parsed.ts > now || now - parsed.ts > CACHE_MAX_AGE_MS) return null;
     return parsed.data;
   } catch {
     return null;

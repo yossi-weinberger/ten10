@@ -79,7 +79,7 @@ async function main() {
   const fs = await import("fs");
   const path = await import("path");
   const dir = path.dirname(OUT_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(OUT_FILE, JSON.stringify(payload, null, 2) + "\n");
 
   console.log("Public stats:", payload);
