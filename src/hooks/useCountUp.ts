@@ -19,6 +19,7 @@ export function useCountUp({
   const hasStarted = useRef(false);
   const endRef = useRef(end);
   endRef.current = end;
+  const cancelAnimationRef = useRef(false);
 
   // Intersection Observer for starting animation when in view
   useEffect(() => {
@@ -48,12 +49,15 @@ export function useCountUp({
   useEffect(() => {
     if (!isVisible) return;
 
+    cancelAnimationRef.current = false;
     const targetEnd = endRef.current;
     const timer = setTimeout(() => {
       const startTime = Date.now();
       const startValue = 0;
 
       const animate = () => {
+        if (cancelAnimationRef.current) return;
+
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
 
@@ -76,9 +80,10 @@ export function useCountUp({
     return () => clearTimeout(timer);
   }, [isVisible, duration, delay]);
 
-  // When end changes after animation has started, update count without re-animating
+  // When end changes after animation has started, stop animation and show new end
   useEffect(() => {
     if (hasStarted.current) {
+      cancelAnimationRef.current = true;
       setCount(end);
     }
   }, [end]);

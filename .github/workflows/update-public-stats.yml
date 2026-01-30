@@ -41,4 +41,4 @@ jobs:
           branch: chore/update-public-stats
           title: "chore: update public stats"
           body: "Auto-update .github/public-stats.json (website_users, downloads). Merge to update main."
-          path: .github/public-stats.json
+          add-paths: .github/public-stats.json
