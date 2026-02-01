@@ -45,15 +45,19 @@ function findNsisSig() {
   return sig ? path.join(NSIS_DIR, sig) : null;
 }
 
+function applySigningWorkaround(bundleConfig) {
+  // Avoid signing failure when no private key (local dev); CI has TAURI_SIGNING_PRIVATE_KEY
+  if (!process.env.TAURI_SIGNING_PRIVATE_KEY) {
+    bundleConfig.createUpdaterArtifacts = false;
+  }
+}
+
 function patchTauriConf(add) {
   const j = JSON.parse(fs.readFileSync(TAURI_CONF, "utf8"));
   if (add) {
     j.bundle.windows = j.bundle.windows || {};
     j.bundle.windows.webviewInstallMode = { type: "offlineInstaller" };
-    // Avoid signing failure when no private key (local dev); CI has TAURI_SIGNING_PRIVATE_KEY
-    if (!process.env.TAURI_SIGNING_PRIVATE_KEY) {
-      j.bundle.createUpdaterArtifacts = false;
-    }
+    applySigningWorkaround(j.bundle);
   } else {
     if (j.bundle.windows) delete j.bundle.windows.webviewInstallMode;
     if (savedCreateUpdaterArtifacts !== undefined) {
@@ -78,12 +82,12 @@ const version = getVersion();
 const standardExeName = `Ten10_${version}_x64_standard-setup.exe`;
 const webview2ExeName = `Ten10_${version}_x64_with_WebView2-setup.exe`;
 
-// When no signing key (local dev), disable updater artifacts for both builds to avoid "public key found, no private key" error
+// When no signing key (local dev), disable updater artifacts for both builds
 const needSigningWorkaround = !process.env.TAURI_SIGNING_PRIVATE_KEY;
 if (needSigningWorkaround) {
   const j = JSON.parse(fs.readFileSync(TAURI_CONF, "utf8"));
   savedCreateUpdaterArtifacts = j.bundle.createUpdaterArtifacts;
-  j.bundle.createUpdaterArtifacts = false;
+  applySigningWorkaround(j.bundle);
   fs.writeFileSync(TAURI_CONF, JSON.stringify(j, null, 2));
 }
 

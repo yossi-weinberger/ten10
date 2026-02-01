@@ -59,6 +59,8 @@ export async function unregisterServiceWorkersInTauri() {
           logger.debug(
             "[SW-Cleanup] No service workers found in Tauri. Clean state."
           );
+          // Clear any stale reload flag since we are in a clean state
+          sessionStorage.removeItem("tauri_sw_cleanup_reload");
         }
       } catch (error) {
         logger.error(

@@ -102,6 +102,8 @@ jobs:
           fs.writeFileSync(path, JSON.stringify(j, null, 2));
           "
           # Clean previous builds to ensure we pick the right file
+          # Remove any existing NSIS EXEs (including the standard installer built earlier)
+          # so that the EXE we pick up after this step is guaranteed to be the WebView2 variant.
           Remove-Item -Path "src-tauri/target/release/bundle/nsis/*.exe" -ErrorAction SilentlyContinue
           npx tauri build
           $nsisDir = "src-tauri/target/release/bundle/nsis"
