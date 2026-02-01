@@ -337,8 +337,9 @@ Deno.serve(async (req) => {
                 insertError
               );
               skippedCount++;
-              // If insert failed (e.g. DB error), we skip counting it as processed
-              // BUT we still advance the date to prevent infinite loop on this item
+              // If insert failed (e.g. DB error), we skip counting it as processed.
+              // The loop will still advance executionCount and the due date below,
+              // which prevents an infinite loop on this item.
             } else {
               // Advance state only on success or intended skip
               processedOccurrences++;
