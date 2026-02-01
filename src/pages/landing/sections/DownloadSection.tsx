@@ -156,7 +156,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
                               ? t("download.moreOptions")
                               : t("download.downloadButton")}
                             <ChevronDown
-                              className={`mr-1 h-3 w-3 opacity-70 transition-transform ${
+                              className={`ml-1 h-3 w-3 opacity-70 transition-transform ${
                                 moreOptionsOpen ? "rotate-180" : ""
                               }`}
                             />
