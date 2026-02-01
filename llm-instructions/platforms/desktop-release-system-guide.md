@@ -388,6 +388,15 @@ const isCIBuild = process.env.CI === "true";
 external: isVercel || isCIBuild ? [/^@tauri-apps\//] : [];
 ```
 
+### "Old version loads after update" (Zombie Service Worker)
+
+**Cause**: WebView2 caches Service Workers from previous versions (especially if PWA was enabled historically) which intercept requests and serve stale content.
+
+**Fix (Implemented)**:
+
+1. **Installer**: Added `clean-webview.nsh` hook that wipes `%LOCALAPPDATA%\com.ten10.dev\EBWebView` during installation.
+2. **App Code**: `serviceWorkerUtils.ts` detects rogue SWs, unregisters them, and forces a reload (with loop protection).
+
 ---
 
 ## Important Notes
