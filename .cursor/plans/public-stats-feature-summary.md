@@ -47,11 +47,11 @@ This document describes what was implemented (and later reverted) for "public st
 
 ## Current State (After Revert)
 
-- **Landing:** "Downloads" comes from `useInstallerDownloadCount` (`.github/downloads.json`); "Website users" is hardcoded (2450).
-- **Workflow:** Only `update-downloads-badge.yml` – updates `.github/downloads.json` (installer count from GitHub API); push to `main` may fail if branch protection requires PRs.
-- **README badge:** Points at `.github/downloads.json` and `$.installer_downloads`.
+- **Landing:** Both stats are hardcoded: "Downloads" = 1850, "Website users" = 2450. No fetch, no `useInstallerDownloadCount` or `usePublicStats`.
+- **README:** No downloads badge; only release and license badges remain.
+- **Workflows / JSON:** No `update-downloads-badge.yml`, no `update-public-stats.yml`; no `.github/downloads.json` or `.github/public-stats.json`. Scripts `update-downloads-badge.js` and `update-public-stats.js` were removed.
 
-Commits that added the public-stats feature remain in history; the working tree was reverted to the state before that feature.
+Commits that added the public-stats feature remain in history; the working tree was reverted and the downloads badge + related workflow/files were removed.
 
 ---
 
@@ -69,7 +69,7 @@ Commits that added the public-stats feature remain in history; the working tree 
    Instead of a file in the repo: an Edge Function (or similar) that runs on a schedule, reads from DB + GitHub API, and writes to a single row in a table (e.g. `public_stats`) or to storage. Client calls that endpoint or reads from storage; no GitHub workflow writing to the repo.
 
 4. **Only installer downloads (no DB)**  
-   Keep the current `.github/downloads.json` + `update-downloads-badge.yml` for the badge and for "downloads" on the landing; leave "website users" hardcoded or remove it until a backend/public-stats solution is in place.
+   Re-add `.github/downloads.json` + `update-downloads-badge.yml` + `scripts/update-downloads-badge.js` for a README badge and/or live "downloads" on the landing; leave "website users" hardcoded until a backend/public-stats solution is in place.
 
 5. **Fallback and "As of" again**  
    When re-adding any live stats: keep a fallback (cache + default numbers) when fetch fails or data is unpopulated, and optional "As of &lt;date&gt;" when `updated_at` is present.
@@ -78,17 +78,18 @@ Commits that added the public-stats feature remain in history; the working tree 
 
 ## Relevant Paths (for re-implementation)
 
-| Item | Path |
-|------|------|
-| Workflow (reverted) | `.github/workflows/update-public-stats.yml` |
-| Script (reverted) | `scripts/update-public-stats.js` |
-| JSON (reverted) | `.github/public-stats.json` |
-| Hook (reverted) | `src/hooks/usePublicStats.ts` |
-| Downloads badge workflow | `.github/workflows/update-downloads-badge.yml` |
-| Downloads JSON | `.github/downloads.json` |
-| Landing stats UI | `src/pages/landing/sections/StatsSection.tsx` |
-| Installer count hook | `src/hooks/useInstallerDownloadCount.ts` |
-| DB: profiles count | Supabase `profiles` |
-| DB: email downloads | Supabase `download_requests` where `status = 'sent'` |
+| Item | Path | Status |
+|------|------|--------|
+| Public stats workflow | `.github/workflows/update-public-stats.yml` | Removed |
+| Public stats script | `scripts/update-public-stats.js` | Removed |
+| Public stats JSON | `.github/public-stats.json` | Removed |
+| usePublicStats hook | `src/hooks/usePublicStats.ts` | Removed |
+| Downloads badge workflow | `.github/workflows/update-downloads-badge.yml` | Removed |
+| Downloads badge script | `scripts/update-downloads-badge.js` | Removed |
+| Downloads JSON | `.github/downloads.json` | Removed |
+| Landing stats UI | `src/pages/landing/sections/StatsSection.tsx` | Hardcoded values |
+| useInstallerDownloadCount hook | `src/hooks/useInstallerDownloadCount.ts` | Removed (never re-added after revert) |
+| DB: profiles count | Supabase `profiles` | — |
+| DB: email downloads | Supabase `download_requests` where `status = 'sent'` | — |
 
 The full implementation can be reconstructed from the commit history and this summary.
