@@ -1,6 +1,6 @@
 # Ten10: Financial Management Platform
 
-[![downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fyossi-weinberger%2Ften10%2Fmain%2F.github%2Fpublic-stats.json&query=%24.installer_downloads&label=downloads&color=0ea5e9&logo=windows&logoColor=white&style=flat)](https://github.com/yossi-weinberger/ten10/releases)
+[![downloads](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fyossi-weinberger%2Ften10%2Fmain%2F.github%2Fdownloads.json&query=%24.installer_downloads&label=downloads&color=0ea5e9&logo=windows&logoColor=white&style=flat)](https://github.com/yossi-weinberger/ten10/releases)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/yossi-weinberger/ten10?style=flat&logo=github&logoColor=white&label=release)](https://github.com/yossi-weinberger/ten10/releases/latest)
 [![License: AGPL-3.0](https://img.shields.io/github/license/yossi-weinberger/ten10?style=flat&logo=gnu&logoColor=white&label=license)](https://github.com/yossi-weinberger/ten10/blob/main/LICENSE)
 

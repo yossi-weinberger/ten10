@@ -17,9 +17,6 @@ export function useCountUp({
   const [isVisible, setIsVisible] = useState(false);
   const elementRef = useRef<HTMLDivElement>(null);
   const hasStarted = useRef(false);
-  const endRef = useRef(end);
-  endRef.current = end;
-  const cancelAnimationRef = useRef(false);
 
   // Intersection Observer for starting animation when in view
   useEffect(() => {
@@ -35,7 +32,7 @@ export function useCountUp({
           hasStarted.current = true;
         }
       },
-      { threshold: 0.3 },
+      { threshold: 0.3 }
     );
 
     if (elementRef.current) {
@@ -45,26 +42,22 @@ export function useCountUp({
     return () => observer.disconnect();
   }, [startOnInView]);
 
-  // Count up animation (runs once when in view; uses end at that time)
+  // Count up animation
   useEffect(() => {
     if (!isVisible) return;
 
-    cancelAnimationRef.current = false;
-    const targetEnd = endRef.current;
     const timer = setTimeout(() => {
       const startTime = Date.now();
       const startValue = 0;
 
       const animate = () => {
-        if (cancelAnimationRef.current) return;
-
         const elapsed = Date.now() - startTime;
         const progress = Math.min(elapsed / duration, 1);
 
         // Easing function (ease-out)
         const easeOut = 1 - Math.pow(1 - progress, 3);
         const currentValue = Math.floor(
-          startValue + (targetEnd - startValue) * easeOut,
+          startValue + (end - startValue) * easeOut
         );
 
         setCount(currentValue);
@@ -78,15 +71,7 @@ export function useCountUp({
     }, delay);
 
     return () => clearTimeout(timer);
-  }, [isVisible, duration, delay]);
-
-  // When end changes after animation has started, stop animation and show new end
-  useEffect(() => {
-    if (hasStarted.current) {
-      cancelAnimationRef.current = true;
-      setCount(end);
-    }
-  }, [end]);
+  }, [isVisible, end, duration, delay]);
 
   return { count, elementRef };
 }

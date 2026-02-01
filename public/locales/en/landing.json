@@ -34,8 +34,7 @@
   },
   "stats": {
     "downloads": "Desktop Downloads",
-    "websiteUsers": "Website Users",
-    "asOf": "As of {{date}}"
+    "websiteUsers": "Website Users"
   },
   "nav": {
     "home": "Home",
