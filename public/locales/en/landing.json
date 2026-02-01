@@ -246,6 +246,15 @@
     "notAvailable": "Not Available",
     "error": "Failed to load download links. Please try again later.",
     "comingSoon": "macOS and Linux versions coming soon",
+    "recommended": "Recommended",
+    "explainExe": "No admin rights; for most users.",
+    "explainMsi": "System-wide (Program Files); for IT or shared PC.",
+    "explainWebView2": "For offline, older Windows, or when the main installer fails (includes WebView2).",
+    "optionExe": "Standard install (EXE)",
+    "optionMsi": "System-wide install (MSI)",
+    "optionWebView2": "Install with WebView2 (offline / when main fails)",
+    "comingSoonWebView2": "Coming soon",
+    "moreOptions": "More install options",
     "webCard": {
       "title": "Website Version",
       "button": "Open Now"

@@ -1,6 +1,6 @@
 # Desktop Release System - Complete Guide
 
-**Last Updated**: November 2025  
+**Last Updated**: January 2026  
 **Status**: ✅ Fully Implemented and Working
 
 ---
@@ -47,10 +47,10 @@ The Ten10 desktop application has a complete automated release management system
 **What it does**:
 
 1. Builds the frontend (Vite)
-2. Builds the Tauri app (Rust + bundling)
+2. Builds the Tauri app (Rust + bundling) – NSIS (EXE) + MSI
 3. Signs installers with Tauri signer
-4. Creates GitHub Release
-5. Uploads installers and `latest.json`
+4. Creates GitHub Release and uploads installers + `latest.json` (updater prefers **EXE**)
+5. Builds a second installer with WebView2 embedded (`offlineInstaller`) and uploads it as `Ten10_<version>_x64_with_WebView2-setup.exe`
 
 **Required Secrets**:
 
@@ -79,8 +79,11 @@ The Ten10 desktop application has a complete automated release management system
 
 **DownloadSection**: `src/pages/landing/sections/DownloadSection.tsx`
 
-- Shows Windows download button with version badge
-- Dynamic link from GitHub Releases
+- Shows **three Windows download options** with short explanations:
+  1. **EXE (Standard install)** – labelled "Recommended"; install without admin, for most users
+  2. **MSI** – system-wide (Program Files), for IT or shared computers
+  3. **Full install with WebView2** – for computers without internet or older Windows (offline installer)
+- Dynamic links from GitHub Releases via `useLatestRelease`
 - Coming soon message for macOS/Linux
 
 ### 4. Backend Service
@@ -231,9 +234,9 @@ git push origin v0.3.0
 ### First Install (From Landing Page)
 
 1. User visits: `https://ten10-app.com/landing`
-2. Sees Windows download button with version badge
-3. Clicks to download from GitHub Release
-4. Installs `.msi` file
+2. Sees Windows card with **three download options** (EXE recommended, MSI, With WebView2) and version badge
+3. Chooses the appropriate installer (EXE for most users; WebView2 for offline/old Windows)
+4. Clicks to download from GitHub Release and installs
 5. Done!
 
 ---
@@ -289,13 +292,16 @@ src-tauri/capabilities/migrated.json
 
 ### Generated Files (In GitHub Release)
 
-- `Ten10_0.3.0_x64_he-IL.msi` - Hebrew installer
-- `Ten10_0.3.0_x64_en-US.msi` - English installer
-- `Ten10_0.3.0_x64-setup.exe` - NSIS installer
+- `Ten10_0.3.0_x64-setup.exe` - NSIS installer (per-user, **default for updater**)
+- `Ten10_0.3.0_x64_he-IL.msi` - Hebrew MSI installer
+- `Ten10_0.3.0_x64_en-US.msi` - English MSI installer
+- `Ten10_0.3.0_x64_with_WebView2-setup.exe` - NSIS installer with WebView2 embedded (offline)
 - `*.sig` files - Signatures
-- `latest.json` - Update manifest
+- `latest.json` - Update manifest (points to EXE when `updaterJsonPreferNsis: true`)
 
 ### latest.json Structure
+
+With `updaterJsonPreferNsis: true`, the updater URL points to the **EXE** (NSIS) so users can update without admin rights:
 
 ```json
 {
@@ -304,11 +310,19 @@ src-tauri/capabilities/migrated.json
   "platforms": {
     "windows-x86_64": {
       "signature": "...",
-      "url": "https://github.com/.../Ten10_0.3.0_x64_he-IL.msi.zip"
+      "url": "https://github.com/.../Ten10_0.3.0_x64-setup.exe"
     }
   }
 }
 ```
+
+### Install Options Policy
+
+- **Updater**: Prefers EXE (NSIS) so updates work without administrator privileges.
+- **Landing page**: Offers three choices – EXE (recommended), MSI, and With WebView2 – with short explanations.
+- **Email download link** (process-email-request): Prefers standard EXE over MSI; excludes the WebView2/offline exe from the default link.
+
+**When to use "Full install with WebView2"**: For computers without internet during install, older Windows (e.g. Windows 7), or when the standard installer fails with WebView2-related errors. The WebView2 variant adds ~127MB to the installer size.
 
 ---
 
@@ -531,13 +545,13 @@ When working with the release system:
 
 ## Quick Reference
 
-| Task           | Command                               |
-| -------------- | ------------------------------------- |
-| Create release | `npm run release 0.3.0`               |
-| Build locally  | `npm run tauri build`                 |
-| Dev mode       | `npm run tauri dev`                   |
-| Check actions  | https://github.com/USER/REPO/actions  |
-| View releases  | https://github.com/USER/REPO/releases |
+| Task                                     | Command                               |
+| ---------------------------------------- | ------------------------------------- |
+| Create release                           | `npm run release 0.3.0`               |
+| Build locally (EXE + MSI + WebView2 EXE) | `npm run tauri build`                 |
+| Dev mode                                 | `npm run tauri dev`                   |
+| Check actions                            | https://github.com/USER/REPO/actions  |
+| View releases                            | https://github.com/USER/REPO/releases |
 
 ---
 

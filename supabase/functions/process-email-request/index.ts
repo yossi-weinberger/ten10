@@ -41,21 +41,39 @@ async function getDirectDownloadLink(): Promise<string | null> {
           "User-Agent": "Ten10-Email-Service",
           Accept: "application/vnd.github+json",
         },
-      },
+      }
     );
     if (!response.ok) return null;
     const data: GitHubRelease = await response.json();
 
-    // Prefer MSI, then EXE
-    const msi = data.assets.find(
-      (a) => a.name.endsWith(".msi") || a.name.includes(".msi."),
-    );
-    if (msi) return msi.browser_download_url;
+    // Prefer standard EXE (per-user, no admin), then MSI; exclude WebView2/offline exe from default
+    const nameLower = (n: string) => n.toLowerCase();
+    // Match useLatestRelease.ts: with_webview2, webview2, webview, offline
+    const isWebView2Exe = (n: string) => {
+      const lower = nameLower(n);
+      return (
+        (lower.endsWith(".exe") || lower.includes(".exe.")) &&
+        (lower.includes("with_webview2") ||
+          lower.includes("webview2") ||
+          lower.includes("webview") ||
+          lower.includes("offline"))
+      );
+    };
 
-    const exe = data.assets.find(
-      (a) => a.name.endsWith(".exe") || a.name.includes(".exe."),
-    );
+    const exe = data.assets.find((a) => {
+      const lower = nameLower(a.name);
+      return (
+        (lower.endsWith(".exe") || lower.includes(".exe.")) &&
+        !isWebView2Exe(a.name)
+      );
+    });
     if (exe) return exe.browser_download_url;
+
+    const msi = data.assets.find((a) => {
+      const lower = nameLower(a.name);
+      return lower.endsWith(".msi") || lower.includes(".msi.");
+    });
+    if (msi) return msi.browser_download_url;
 
     return null;
   } catch (e) {
@@ -75,7 +93,7 @@ serve(async (req) => {
   // If the secret is missing, fail closed.
   if (!WORKER_SECRET) {
     console.error(
-      "Misconfiguration: CLOUDFLARE_WORKER_SECRET is missing or empty",
+      "Misconfiguration: CLOUDFLARE_WORKER_SECRET is missing or empty"
     );
     return new Response(JSON.stringify({ error: "Server misconfigured" }), {
       status: 500,
@@ -111,14 +129,14 @@ serve(async (req) => {
     if (!from) {
       return new Response(
         JSON.stringify({ error: "Missing 'from' parameter" }),
-        { status: 400, headers: getCorsHeaders(origin) },
+        { status: 400, headers: getCorsHeaders(origin) }
       );
     }
 
     // Init Supabase
     supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
     // Rate Limit Check via RPC
@@ -126,7 +144,7 @@ serve(async (req) => {
       "increment_download_count",
       {
         p_email: from,
-      },
+      }
     );
 
     if (rpcError) {
@@ -134,7 +152,7 @@ serve(async (req) => {
     }
     if (typeof currentCount !== "number" || !Number.isFinite(currentCount)) {
       throw new Error(
-        "RPC Error: increment_download_count returned invalid data",
+        "RPC Error: increment_download_count returned invalid data"
       );
     }
 
@@ -160,7 +178,7 @@ serve(async (req) => {
             ...getCorsHeaders(origin),
             "Content-Type": "application/json",
           },
-        },
+        }
       );
     }
 
@@ -234,8 +252,8 @@ ${directDownloadLink}`
         <a href="${JUMBOMAIL_LINK}" class="btn">להורדה דרך ג'מבו מייל</a>
         <p class="note">למי שחסום לו הגלישה ויש לו מייל בלבד</p>
         <p style="margin-top: 12px; font-size: 14px;">או לחץ על הקישור: <a href="${JUMBOMAIL_LINK}" style="color: ${
-          EMAIL_THEME.colors.primary
-        }; word-break: break-all;">${JUMBOMAIL_LINK}</a></p>
+      EMAIL_THEME.colors.primary
+    }; word-break: break-all;">${JUMBOMAIL_LINK}</a></p>
 
         <!-- Direct Download -->
         ${
@@ -252,8 +270,8 @@ ${directDownloadLink}`
       <p style="font-size: 14px; background-color: ${
         EMAIL_THEME.colors.warning.bg
       }; padding: 12px; border-radius: 6px; border: 1px solid ${
-        EMAIL_THEME.colors.warning.border
-      }; color: ${EMAIL_THEME.colors.warning.text};">
+      EMAIL_THEME.colors.warning.border
+    }; color: ${EMAIL_THEME.colors.warning.text};">
         <strong>שים לב:</strong> אם הקישור לא נפתח (למשל בנטפרי/אתרוג), ייתכן שצריך לבקש אישור מיוחד מהסינון שלך עבור הקישור הספציפי הזה.
       </p>
 

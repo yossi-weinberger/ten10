@@ -21,7 +21,11 @@
         "languages": [
           "Hebrew",
           "English"
-        ]
+        ],
+        "customLanguageFiles": {
+          "Hebrew": "./nsis/Hebrew.nsh"
+        },
+        "installerHooks": "./windows/clean-webview.nsh"
       },
       "wix": {
         "language": [

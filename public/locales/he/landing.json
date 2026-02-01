@@ -246,6 +246,15 @@
     "notAvailable": "לא זמין",
     "error": "נכשל בטעינת קישורי ההורדה. אנא נסה שוב מאוחר יותר.",
     "comingSoon": "גרסאות macOS ו-Linux בקרוב",
+    "recommended": "מומלץ",
+    "explainExe": "ללא הרשאת מנהל, לרוב המשתמשים.",
+    "explainMsi": "גלובלית (Program Files), ל-IT או מחשב משותף.",
+    "explainWebView2": "לאופליין, Windows ישן, או כשהתקנה הרגילה לא עובדת (כולל WebView2).",
+    "optionExe": "התקנה רגילה (EXE)",
+    "optionMsi": "התקנה גלובלית (MSI)",
+    "optionWebView2": "התקנה עם WebView2 (אופליין / כשהראשית נכשלת)",
+    "comingSoonWebView2": "בקרוב",
+    "moreOptions": "אפשרויות התקנה נוספות",
     "webCard": {
       "title": "גרסת אתר",
       "button": "פתח כעת"

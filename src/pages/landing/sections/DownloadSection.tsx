@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
@@ -11,7 +12,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Download, Globe, Monitor, Loader2, AlertCircle } from "lucide-react";
+import {
+  Download,
+  Globe,
+  Monitor,
+  Loader2,
+  AlertCircle,
+  ChevronDown,
+} from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useLatestRelease, getVersionFromTag } from "@/hooks/useLatestRelease";
 
 interface DownloadSectionProps {
@@ -24,6 +37,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
   const { t } = useTranslation("landing");
   const downloadRef = useScrollAnimation({ threshold: 0.1 });
   const { release, downloads, loading, error } = useLatestRelease();
+  const [moreOptionsOpen, setMoreOptionsOpen] = useState(false);
 
   const version = release ? getVersionFromTag(release.tag_name) : null;
 
@@ -47,7 +61,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
           >
             <span className="block">{t("cta.subtitle")}</span>
             <span className="block mt-2 text-base text-gray-500 dark:text-gray-400">
-            {t("download.subtitle")}
+              {t("download.subtitle")}
             </span>
           </motion.p>
         </motion.div>
@@ -63,21 +77,19 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
         )}
 
         <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-          {/* Windows Download */}
+          {/* Windows Download - three options: EXE (recommended), MSI, With WebView2 */}
           <motion.div
             variants={staggerItem}
             whileHover={{ y: -8 }}
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
           >
             <Card className="hover:shadow-xl transition-all duration-300 group hover:border-blue-200 dark:hover:border-blue-800 h-full">
-              <CardContent className="pt-6 text-center">
-                <motion.div
-                // Removed rotation animation, kept simple scale on hover if desired, or static
-                >
-                  <Monitor className="h-12 w-12 mx-auto mb-4 text-blue-600 group-hover:text-blue-700 transition-colors duration-300" />
+              <CardContent className="pt-4 pb-4 text-center">
+                <motion.div>
+                  <Monitor className="h-10 w-10 mx-auto mb-2 text-blue-600 group-hover:text-blue-700 transition-colors duration-300" />
                 </motion.div>
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <h3 className="font-semibold group-hover:text-blue-600 transition-colors duration-300">
+                  <h3 className="font-semibold text-sm group-hover:text-blue-600 transition-colors duration-300">
                     Windows
                   </h3>
                   {version && (
@@ -86,33 +98,167 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
                     </Badge>
                   )}
                 </div>
-                <motion.div whileHover={buttonHover} whileTap={buttonTap}>
-                  {loading ? (
-                    <Button className="w-full" disabled>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {t("download.loading")}
-                    </Button>
-                  ) : downloads.windowsMsi || downloads.windowsExe ? (
-                    <Button className="w-full" asChild>
-                      <a
-                        href={
-                          downloads.windowsMsi?.browser_download_url ||
-                          downloads.windowsExe?.browser_download_url
-                        }
-                        target="_blank"
-                        rel="noopener noreferrer"
+                {loading ? (
+                  <Button className="w-full" size="sm" disabled>
+                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                    {t("download.loading")}
+                  </Button>
+                ) : (
+                  <div className="space-y-2 text-left">
+                    {/* Main: EXE (recommended) when available */}
+                    {downloads.windowsExe && (
+                      <>
+                        <p className="text-xs text-muted-foreground text-center">
+                          {t("download.explainExe")}
+                        </p>
+                        <motion.div
+                          whileHover={buttonHover}
+                          whileTap={buttonTap}
+                        >
+                          <Button className="w-full" asChild>
+                            <a
+                              href={downloads.windowsExe.browser_download_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Download className="mr-2 h-4 w-4" />
+                              {t("download.downloadButton")}{" "}
+                              <Badge
+                                variant="secondary"
+                                className="ml-2 text-[10px] px-1.5 py-0"
+                              >
+                                {t("download.recommended")}
+                              </Badge>
+                            </a>
+                          </Button>
+                        </motion.div>
+                      </>
+                    )}
+                    {/* Popover: MSI + WebView2 – show when EXE exists (as "More options") or when only MSI/WebView2 exist (as "Download options") */}
+                    {(downloads.windowsExe ||
+                      downloads.windowsMsi ||
+                      downloads.windowsWithWebView2) && (
+                      <Popover
+                        open={moreOptionsOpen}
+                        onOpenChange={setMoreOptionsOpen}
                       >
-                        <Download className="mr-2 h-4 w-4" />
-                        {t("download.downloadButton")}
-                      </a>
-                    </Button>
-                  ) : (
-                    <Button className="w-full" disabled>
-                      <Download className="mr-2 h-4 w-4" />
-                      {t("download.notAvailable")}
-                    </Button>
-                  )}
-                </motion.div>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={downloads.windowsExe ? "ghost" : "default"}
+                            size="sm"
+                            className={
+                              downloads.windowsExe
+                                ? "w-full text-xs text-muted-foreground hover:text-foreground"
+                                : "w-full"
+                            }
+                          >
+                            {downloads.windowsExe
+                              ? t("download.moreOptions")
+                              : t("download.downloadButton")}
+                            <ChevronDown
+                              className={`ml-1 h-3 w-3 opacity-70 transition-transform ${
+                                moreOptionsOpen ? "rotate-180" : ""
+                              }`}
+                            />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          align="center"
+                          side="bottom"
+                          sideOffset={6}
+                          className="w-80 max-w-[calc(100vw-2rem)] p-3"
+                        >
+                          <div className="space-y-2">
+                            {downloads.windowsMsi && (
+                              <div className="rounded-md border border-border px-2.5 py-2 flex flex-col gap-1">
+                                <span className="font-medium text-xs">
+                                  {t("download.optionMsi")}
+                                </span>
+                                <p className="text-[11px] text-muted-foreground leading-tight">
+                                  {t("download.explainMsi")}
+                                </p>
+                                <motion.div
+                                  className="mt-0.5"
+                                  whileHover={buttonHover}
+                                  whileTap={buttonTap}
+                                >
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 text-xs w-full"
+                                    asChild
+                                  >
+                                    <a
+                                      href={
+                                        downloads.windowsMsi
+                                          .browser_download_url
+                                      }
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      <Download className="mr-1.5 h-3 w-3" />
+                                      {t("download.downloadButton")}
+                                    </a>
+                                  </Button>
+                                </motion.div>
+                              </div>
+                            )}
+                            <div className="rounded-md border border-border px-2.5 py-2 flex flex-col gap-1">
+                              <span className="font-medium text-xs">
+                                {t("download.optionWebView2")}
+                              </span>
+                              <p className="text-[11px] text-muted-foreground leading-tight">
+                                {t("download.explainWebView2")}
+                              </p>
+                              {downloads.windowsWithWebView2 ? (
+                                <motion.div
+                                  className="mt-0.5"
+                                  whileHover={buttonHover}
+                                  whileTap={buttonTap}
+                                >
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 text-xs w-full"
+                                    asChild
+                                  >
+                                    <a
+                                      href={
+                                        downloads.windowsWithWebView2
+                                          .browser_download_url
+                                      }
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                    >
+                                      <Download className="mr-1.5 h-3 w-3" />
+                                      {t("download.downloadButton")}
+                                    </a>
+                                  </Button>
+                                </motion.div>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-7 text-xs w-full"
+                                  disabled
+                                >
+                                  {t("download.comingSoonWebView2")}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                    )}
+                    {!downloads.windowsExe &&
+                      !downloads.windowsMsi &&
+                      !downloads.windowsWithWebView2 && (
+                        <p className="text-sm text-muted-foreground pt-2">
+                          {t("download.notAvailable")}
+                        </p>
+                      )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
