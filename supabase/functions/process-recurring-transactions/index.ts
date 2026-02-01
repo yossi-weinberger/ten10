@@ -49,7 +49,7 @@ const RATE_PROVIDERS: RateProvider[] = [
 
 async function fetchExchangeRate(
   from: string,
-  to: string,
+  to: string
 ): Promise<number | null> {
   for (const provider of RATE_PROVIDERS) {
     try {
@@ -66,14 +66,14 @@ async function fetchExchangeRate(
 
       if (!rate) {
         throw new Error(
-          `${provider.name}: Rate not found for ${from} -> ${to}`,
+          `${provider.name}: Rate not found for ${from} -> ${to}`
         );
       }
 
       // Round rate to 4 decimal places
       const roundedRate = Math.round(rate * 10000) / 10000;
       console.log(
-        `Got rate from "${provider.name}": ${from} -> ${to} = ${roundedRate}`,
+        `Got rate from "${provider.name}": ${from} -> ${to} = ${roundedRate}`
       );
       return roundedRate;
     } catch (error) {
@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
       {
         status: 401,
         headers: { "Content-Type": "application/json" },
-      },
+      }
     );
   }
 
@@ -178,7 +178,7 @@ Deno.serve(async (req) => {
           {
             status: 403,
             headers: { "Content-Type": "application/json" },
-          },
+          }
         );
       }
     } catch (error) {
@@ -209,14 +209,23 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log(`Found ${dueTransactions.length} due transactions.`);
+    console.log(`Found ${dueTransactions.length} due recurring definitions.`);
     const results: { id: string; status: string }[] = [];
     let skippedCount = 0;
 
-    // 2. Process each transaction
+    // Helper to parse "YYYY-MM-DD" string to a Date object at local midnight
+    const parseLocal = (dateStr: string) => {
+      const [year, month, day] = dateStr.split("-").map(Number);
+      return new Date(year, month - 1, day); // Month is 0-indexed in JS Date
+    };
+
+    const todayDateObj = new Date();
+    todayDateObj.setHours(0, 0, 0, 0);
+
+    // 2. Process each transaction definition
     for (const rec of dueTransactions) {
       try {
-        // Get user profile for default currency
+        // Get user profile for default currency (Optimization: fetch once per definition)
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
           .select("default_currency")
@@ -224,162 +233,193 @@ Deno.serve(async (req) => {
           .single();
 
         if (profileError && profileError.code !== "PGRST116") {
-          // Ignore 'row not found' (user might be deleted?)
           console.error(
             `Error fetching profile for user ${rec.user_id}:`,
-            profileError,
+            profileError
           );
           continue;
         }
 
         const defaultCurrency = profile?.default_currency || "ILS";
-        const recCurrency = rec.currency; // rec.currency should already be defaultCurrency if converted at form
 
-        let finalAmount = rec.amount;
-        let finalCurrency = defaultCurrency;
-        let originalAmount: number | null = null;
-        let originalCurrency: string | null = null;
-        let conversionRate: number | null = null;
-        let conversionDate: string | null = null;
-        let rateSource: string | null = null;
+        // Loop variables
+        let currentDueDateObj = parseLocal(rec.next_due_date);
+        let executionCount = rec.execution_count;
+        let currentStatus = rec.status;
+        let processedOccurrences = 0;
 
-        // Check if the recurring transaction already has conversion details stored
-        // (i.e., it was created with a locked-in rate from the form)
-        if (rec.original_amount && rec.original_currency) {
-          // Use the pre-calculated conversion data
-          // Per Base Currency Architecture: rec.currency is already the default currency (converted at form submission)
-          // and rec.original_currency contains the foreign currency
-          console.log(`Using stored conversion for recurring ${rec.id}`);
-          finalAmount = rec.amount; // Already converted to default currency
-          finalCurrency = defaultCurrency; // Use defaultCurrency explicitly for clarity
-          originalAmount = rec.original_amount;
-          originalCurrency = rec.original_currency;
-          conversionRate = rec.conversion_rate;
-          conversionDate = rec.conversion_date;
-          rateSource = rec.rate_source;
-        } else if (recCurrency !== defaultCurrency) {
-          // LEGACY: Recurring transaction in foreign currency without stored conversion
-          // This should only happen for old data created before currency conversion feature
-          console.log(`Fetching rate for ${recCurrency} -> ${defaultCurrency}`);
-          const rate = await fetchExchangeRate(recCurrency, defaultCurrency);
+        // Catch-up Loop: Process all missed occurrences up to today
+        while (
+          currentDueDateObj <= todayDateObj &&
+          currentStatus === "active"
+        ) {
+          const year = currentDueDateObj.getFullYear();
+          const month = String(currentDueDateObj.getMonth() + 1).padStart(
+            2,
+            "0"
+          );
+          const day = String(currentDueDateObj.getDate()).padStart(2, "0");
+          const currentDueDateStr = `${year}-${month}-${day}`;
 
-          if (rate) {
-            finalAmount = Number((rec.amount * rate).toFixed(2));
-            originalAmount = rec.amount;
-            originalCurrency = recCurrency;
-            conversionRate = rate;
-            conversionDate = today;
-            rateSource = "auto";
+          console.log(
+            `Processing occurrence for ${rec.id} due on ${currentDueDateStr}`
+          );
+
+          const recCurrency = rec.currency;
+          let finalAmount = rec.amount;
+          let finalCurrency = defaultCurrency;
+          let originalAmount: number | null = null;
+          let originalCurrency: string | null = null;
+          let conversionRate: number | null = null;
+          let conversionDate: string | null = null;
+          let rateSource: string | null = null;
+
+          // Check conversion logic
+          let shouldInsert = true;
+
+          if (rec.original_amount && rec.original_currency) {
+            // Use stored conversion
+            finalAmount = rec.amount;
+            finalCurrency = defaultCurrency;
+            originalAmount = rec.original_amount;
+            originalCurrency = rec.original_currency;
+            conversionRate = rec.conversion_rate;
+            conversionDate = rec.conversion_date;
+            rateSource = rec.rate_source;
+          } else if (recCurrency !== defaultCurrency) {
+            // Legacy / Foreign currency without stored conversion
+            const rate = await fetchExchangeRate(recCurrency, defaultCurrency);
+
+            if (rate) {
+              finalAmount = Number((rec.amount * rate).toFixed(2));
+              originalAmount = rec.amount;
+              originalCurrency = recCurrency;
+              conversionRate = rate;
+              conversionDate = today;
+              rateSource = "auto";
+            } else {
+              console.error(
+                `[RETRY-PENDING] Legacy recurring ${rec.id}: All rate providers failed. Skipping this occurrence.`
+              );
+              skippedCount++;
+              shouldInsert = false; // Skip insertion but allow loop to advance
+            }
           } else {
-            // LEGACY TRANSACTION: No stored rate, all APIs failed
-            // This will retry on next cron run (typically tomorrow)
-            // This should be rare - only affects old transactions created before currency conversion feature
+            finalCurrency = defaultCurrency;
+          }
+
+          // Insert transaction
+          if (shouldInsert) {
+            const { error: insertError } = await supabase
+              .from("transactions")
+              .insert({
+                user_id: rec.user_id,
+                date: currentDueDateStr,
+                amount: finalAmount,
+                currency: finalCurrency,
+                description: rec.description,
+                type: rec.type,
+                category: rec.category,
+                is_chomesh: rec.is_chomesh,
+                recipient: rec.recipient,
+                source_recurring_id: rec.id,
+                occurrence_number: executionCount + 1,
+                original_amount: originalAmount,
+                original_currency: originalCurrency,
+                conversion_rate: conversionRate,
+                conversion_date: conversionDate,
+                rate_source: rateSource,
+              });
+
+            if (insertError) {
+              console.error(
+                `[RETRY-PENDING] Recurring ${rec.id}: Insert failed. Error:`,
+                insertError
+              );
+              skippedCount++;
+              // If insert failed (e.g. DB error), we skip counting it as processed.
+              // The loop will still advance executionCount and the due date below,
+              // which prevents an infinite loop on this item.
+            } else {
+              // Advance state only on success or intended skip
+              processedOccurrences++;
+            }
+          }
+
+          executionCount++;
+
+          // Calculate next date using Logic that respects day_of_month
+          if (rec.frequency === "monthly") {
+            const currentMonth = currentDueDateObj.getMonth();
+            currentDueDateObj.setMonth(currentMonth + 1);
+            if (rec.day_of_month) {
+              const y = currentDueDateObj.getFullYear();
+              const m = currentDueDateObj.getMonth();
+              const daysInMonth = new Date(y, m + 1, 0).getDate();
+              currentDueDateObj.setDate(
+                Math.min(rec.day_of_month, daysInMonth)
+              );
+            }
+          } else if (rec.frequency === "weekly") {
+            currentDueDateObj.setDate(currentDueDateObj.getDate() + 7);
+          } else if (rec.frequency === "yearly") {
+            currentDueDateObj.setFullYear(currentDueDateObj.getFullYear() + 1);
+          } else if (rec.frequency === "daily") {
+            currentDueDateObj.setDate(currentDueDateObj.getDate() + 1);
+          }
+
+          // Check completion
+          if (
+            rec.total_occurrences &&
+            executionCount >= rec.total_occurrences
+          ) {
+            currentStatus = "completed";
+          }
+        }
+
+        // Update recurring transaction definition (Always update if we entered the loop/advanced state)
+        // We check if executionCount changed to know if we did anything
+        if (executionCount > rec.execution_count) {
+          const nextYear = currentDueDateObj.getFullYear();
+          const nextMonth = String(currentDueDateObj.getMonth() + 1).padStart(
+            2,
+            "0"
+          );
+          const nextDay = String(currentDueDateObj.getDate()).padStart(2, "0");
+          const finalNextDueDate = `${nextYear}-${nextMonth}-${nextDay}`;
+
+          const { error: updateError } = await supabase
+            .from("recurring_transactions")
+            .update({
+              execution_count: executionCount,
+              next_due_date: finalNextDueDate,
+              status: currentStatus,
+            })
+            .eq("id", rec.id);
+
+          if (updateError) {
             console.error(
-              `[RETRY-PENDING] Legacy recurring ${rec.id}: All rate providers failed for ${recCurrency} -> ${defaultCurrency}. Will retry on next cron run.`,
+              `Error updating recurring transaction ${rec.id}:`,
+              updateError
             );
-            skippedCount++;
-            continue;
+          } else {
+            results.push({
+              id: rec.id,
+              status: `processed_${processedOccurrences}_advanced_to_${finalNextDueDate}`,
+            });
           }
-        } else {
-          // Same currency
-          finalCurrency = defaultCurrency;
-        }
-
-        // Insert transaction
-        const { error: insertError } = await supabase
-          .from("transactions")
-          .insert({
-            user_id: rec.user_id,
-            date: rec.next_due_date,
-            amount: finalAmount,
-            currency: finalCurrency,
-            description: rec.description,
-            type: rec.type,
-            category: rec.category,
-            is_chomesh: rec.is_chomesh,
-            recipient: rec.recipient,
-            source_recurring_id: rec.id,
-            occurrence_number: rec.execution_count + 1,
-            original_amount: originalAmount,
-            original_currency: originalCurrency,
-            conversion_rate: conversionRate,
-            conversion_date: conversionDate,
-            rate_source: rateSource,
-          });
-
-        if (insertError) {
-          // INSERT FAILED: This will retry on next cron run
-          // Common causes: constraint violation, permissions issue, or transient DB error
-          console.error(
-            `[RETRY-PENDING] Recurring ${rec.id}: Insert failed. Will retry on next cron run. Error:`,
-            insertError,
-          );
-          skippedCount++;
-          continue;
-        }
-
-        // Update recurring transaction
-        let nextDueDateObj = new Date(rec.next_due_date);
-
-        // Calculate next date (simple implementation)
-        if (rec.frequency === "monthly") {
-          const currentMonth = nextDueDateObj.getMonth();
-          nextDueDateObj.setMonth(currentMonth + 1);
-          // Handle overflow (e.g. Jan 31 -> Feb 28/29)
-          // If the day changed, it means we overflowed.
-          // We should stick to `day_of_month` if possible, but JS Date auto-adjusts.
-          // Ideally we should use the stored `day_of_month` to reset the day if it's valid for the new month.
-          // But let's keep it simple as JS logic:
-          if (rec.day_of_month) {
-            // Try to set to the preferred day
-            const year = nextDueDateObj.getFullYear();
-            const month = nextDueDateObj.getMonth(); // This is the NEW month
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            nextDueDateObj.setDate(Math.min(rec.day_of_month, daysInMonth));
-          }
-        } else if (rec.frequency === "weekly") {
-          nextDueDateObj.setDate(nextDueDateObj.getDate() + 7);
-        } else if (rec.frequency === "yearly") {
-          nextDueDateObj.setFullYear(nextDueDateObj.getFullYear() + 1);
-        } else if (rec.frequency === "daily") {
-          nextDueDateObj.setDate(nextDueDateObj.getDate() + 1);
-        }
-
-        const newNextDueDate = nextDueDateObj.toISOString().split("T")[0];
-        const newExecutionCount = rec.execution_count + 1;
-        const newStatus =
-          rec.total_occurrences && newExecutionCount >= rec.total_occurrences
-            ? "completed"
-            : "active";
-
-        const { error: updateError } = await supabase
-          .from("recurring_transactions")
-          .update({
-            execution_count: newExecutionCount,
-            next_due_date: newNextDueDate,
-            status: newStatus,
-          })
-          .eq("id", rec.id);
-
-        if (updateError) {
-          console.error(
-            `Error updating recurring transaction ${rec.id}:`,
-            updateError,
-          );
-        } else {
-          results.push({ id: rec.id, status: "processed" });
         }
       } catch (innerErr) {
         console.error(
           `Error processing recurring transaction ${rec.id}:`,
-          innerErr,
+          innerErr
         );
       }
     }
 
     // Summary log for monitoring
     console.log(
-      `[SUMMARY] Processed: ${results.length}, Skipped (will retry): ${skippedCount}, Total due: ${dueTransactions.length}`,
+      `[SUMMARY] Processed: ${results.length} definitions, Skipped (will retry): ${skippedCount}, Total due definitions: ${dueTransactions.length}`
     );
 
     return new Response(
@@ -390,7 +430,7 @@ Deno.serve(async (req) => {
       }),
       {
         headers: { "Content-Type": "application/json" },
-      },
+      }
     );
   } catch (err) {
     console.error("Fatal error in process-recurring-transactions:", err);
