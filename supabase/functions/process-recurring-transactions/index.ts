@@ -215,8 +215,8 @@ Deno.serve(async (req) => {
 
     // Helper to parse "YYYY-MM-DD" string to a Date object at local midnight
     const parseLocal = (dateStr: string) => {
-      const [y, m, d] = dateStr.split("-").map(Number);
-      return new Date(y, m - 1, d); // Month is 0-indexed in JS Date
+      const [year, month, day] = dateStr.split("-").map(Number);
+      return new Date(year, month - 1, day); // Month is 0-indexed in JS Date
     };
 
     const todayDateObj = new Date();
