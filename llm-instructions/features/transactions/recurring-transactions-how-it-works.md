@@ -12,8 +12,8 @@
 - **ארכיטקטורה כללית:**
   - **מבנה נתונים:** שתי טבלאות נפרדות - `transactions` (לתנועות בפועל) ו-`recurring_transactions` (להגדרות הוראות הקבע).
   - **לוגיקה מבוססת מצב (Stateful):** המערכת משתמשת בשדות כמו `next_due_date` ו-`execution_count` כדי להתמודד עם כשלים או ריצות שהוחמצו, מה שהופך אותה ל-idempotent (בטוחה לריצות חוזרות).
-  - **הבדלים בין פלטפורמות:** בווב - Cron Job יומי. בדסקטופ - הרצה בעת טעינת האפליקציה.
-- **קבצים מרכזיים בקוד:**
+  - **הבדלים בין פלטפורמות:** בווב - Cron Job יומי. בדסקטופ - הרצה בעת טעינת האפליקציה. הלוגיקה הפנימית (חישוב תאריכים והשלמת פערים) זהה לחלוטין.
+  - **קבצים מרכזיים בקוד:**
   - Frontend: `src/lib/data-layer/recurringTransactions.service.ts`, `src/lib/data-layer/transactionForm.service.ts`, `src/components/forms/TransactionForm.tsx`.
   - Desktop (Rust): `src-tauri/src/commands/recurring_transaction_commands.rs`, `src-tauri/src/commands/db_commands.rs`.
   - סוגים: `src/types/transaction.ts`.
@@ -66,9 +66,10 @@
 
 - **ממשק משתמש:** דרך `TransactionForm.tsx` (ב-`src/components/forms/TransactionForm.tsx`).
   - אם `is_recurring` מסומן, הטופס אוסף `frequency`, `recurringTotalCount` ו-`day_of_month` (מחושב מתאריך ההתחלה).
-- **לוגיקה (Frontend):**
-  - `transactionForm.service.ts` קובע את סוג התנועה הסופי (למשל, "exempt-income" אם `isExempt`).
-  - אם recurring, בונה אובייקט `NewRecurringTransaction` וקורא ל-`createRecurringTransaction` מ-`recurringTransactions.service.ts`.
+  - **לוגיקה (Frontend):**
+    - `transactionForm.service.ts` קובע את סוג התנועה הסופי.
+    - **טיפול ביום החיוב:** אם המשתמש מזין `recurring_day_of_month` בטופס, ערך זה מקבל עדיפות. אחרת, המערכת גוזרת אותו מתאריך ההתחלה (`date`).
+    - אם recurring, בונה אובייקט `NewRecurringTransaction` וקורא ל-`createRecurringTransaction` מ-`recurringTransactions.service.ts`.
 - **פלטפורמות:**
   - **ווב:** מכניס ישירות ל-Supabase דרך `supabase.from("recurring_transactions").insert()`.
   - **דסקטופ:** מייצר ID מקומי (nanoid), קורא לפקודת Rust `add_recurring_transaction_handler` שמכניס ל-SQLite.
@@ -79,10 +80,12 @@
 ## תהליך ביצוע הוראות הקבע (Web - Supabase)
 
 - **תזמון:** Cron Job יומי (בחצות UTC) דרך Supabase, קורא ל-Edge Function `process-recurring-transactions`.
-- **לוגיקה (Edge Function - TypeScript):**
-  - **שליפה:** שולף הוראות עם `status = 'active'` ו-`next_due_date <= CURRENT_DATE`.
-  - **לכל הוראה:**
-    1. **בדיקת פרטי המרה שמורים:** אם `original_amount` ו-`original_currency` קיימים בהוראה, משתמש בנתונים אלו ישירות (השער "ננעל" בעת יצירת ההוראה).
+  - **לוגיקה (Edge Function - TypeScript):**
+    - **שליפה:** שולף הוראות עם `status = 'active'` ו-`next_due_date <= CURRENT_DATE`.
+    - **לוגיקת Catch-Up (השלמת פערים):** מריץ לולאה (`while`) עבור כל הוראה, שמייצרת את כל התנועות שהוחמצו עד להיום.
+    - **מניעת נדידת תאריכים (Timezone Drift):** שימוש בפונקציית `parseLocal` ופירוק מחרוזת תאריך ידני ("YYYY-MM-DD") כדי למנוע הזזת תאריכים עקב המרות UTC.
+    - **לכל תנועה בלולאה:**
+      1. **בדיקת פרטי המרה שמורים:** אם `original_amount` ו-`original_currency` קיימים בהוראה, משתמש בנתונים אלו ישירות.
     2. **Fallback להמרה דינמית:** אם אין פרטי המרה שמורים ומטבע ההוראה שונה מהמטבע הראשי, קורא ל-API חיצוני (`exchangerate-api.com`) לקבלת שער עדכני.
     3. **יצירת תנועה:** מכניס תנועה חדשה לטבלת `transactions` עם:
        - `amount`: הסכום המומר (במטבע הראשי).
@@ -100,6 +103,8 @@
 - **תזמון:** מופעל אוטומטית בעת טעינת האפליקציה (ב-`App.tsx` קורא ל-`RecurringTransactionsService.processDueTransactions`).
 - **לוגיקה (TypeScript Service - `src/lib/services/recurring-transactions.service.ts`):**
   - השירות משתמש ב-`invoke` לשליפת ההוראות (`get_due_recurring_transactions_handler`).
+  - **לוגיקת Catch-Up:** מבצע לולאה עד להיום (`while (currentDueDate <= today)`) כדי להשלים את כל הפערים במכה אחת.
+  - **טיפול בתאריכים:** שימוש ב-`parseLocal` ובניית מחרוזת תאריך ידנית למניעת נדידת אזורי זמן.
   - **לכל הוראה עם פרטי המרה שמורים:**
     1. **שער ידני (`rate_source === "manual"`):** תמיד משתמש בשער שנקבע בעת ההגדרה. המשתמש הגדיר אותו במפורש.
     2. **שער אוטומטי (`rate_source === "auto"`):** מנסה למשוך שער עדכני מה-API. אם הצליח - משתמש בשער החדש. אם נכשל (אין אינטרנט) - משתמש בשער השמור מעת ההגדרה.

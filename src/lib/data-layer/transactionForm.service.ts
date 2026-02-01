@@ -76,9 +76,12 @@ export async function handleTransactionSubmit(
   const finalType = determineFinalType(values);
   const defaultCurrency = useDonationStore.getState().settings.defaultCurrency;
 
-  // For recurring transactions, the day of the month is derived from the start date.
-  // Using getUTCDate to avoid timezone-related off-by-one errors.
-  const dayOfMonth = new Date(values.date).getUTCDate();
+  // For recurring transactions, the day of the month is derived from the start date,
+  // unless explicitly provided by the user (e.g. they want charge on 15th but start on 10th).
+  // We prioritize the user input recurring_day_of_month.
+  // Using getUTCDate to avoid timezone-related off-by-one errors when deriving from date.
+  const derivedDayOfMonth = new Date(values.date).getUTCDate();
+  const dayOfMonth = values.recurring_day_of_month || derivedDayOfMonth;
 
   // Logic for recurring transactions
   if (values.is_recurring) {
