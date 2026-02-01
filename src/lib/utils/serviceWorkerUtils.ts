@@ -40,8 +40,21 @@ export async function unregisterServiceWorkersInTauri() {
           // If we successfully unregistered any SW, we might want to log it clearly
           // because the *next* reload will be the one that actually fetches fresh content.
           logger.info(
-            "[SW-Cleanup] Cleanup complete. Next app restart should load fresh content."
+            "[SW-Cleanup] Cleanup complete. Reloading app to fetch fresh content..."
           );
+
+          // Force reload to ensure the new version is loaded immediately
+          // Use sessionStorage to prevent infinite reload loops in case of persistent SW issues
+          const RELOAD_KEY = "tauri_sw_cleanup_reload";
+          if (!sessionStorage.getItem(RELOAD_KEY)) {
+            sessionStorage.setItem(RELOAD_KEY, "true");
+            window.location.reload();
+          } else {
+            logger.warn(
+              "[SW-Cleanup] App already reloaded for SW cleanup. Skipping reload to avoid loop."
+            );
+            sessionStorage.removeItem(RELOAD_KEY); // Clear for next launch
+          }
         } else {
           logger.debug(
             "[SW-Cleanup] No service workers found in Tauri. Clean state."

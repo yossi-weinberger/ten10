@@ -19,6 +19,7 @@ export interface GitHubRelease {
 export interface ReleaseDownloads {
   windowsMsi?: GitHubAsset;
   windowsExe?: GitHubAsset;
+  windowsWithWebView2?: GitHubAsset;
   macOsDmg?: GitHubAsset;
   linuxAppImage?: GitHubAsset;
 }
@@ -82,11 +83,21 @@ export function useLatestRelease(): UseLatestReleaseReturn {
             continue;
           }
 
+          // Windows with WebView2 (offline installer) - must check before generic exe
+          if (
+            (name.endsWith(".exe") || name.includes(".exe.")) &&
+            (name.includes("with_webview2") ||
+              name.includes("webview2") ||
+              name.includes("webview") ||
+              name.includes("offline"))
+          ) {
+            parsedDownloads.windowsWithWebView2 = asset;
+          }
           // Windows MSI
-          if (name.endsWith(".msi") || name.includes(".msi.")) {
+          else if (name.endsWith(".msi") || name.includes(".msi.")) {
             parsedDownloads.windowsMsi = asset;
           }
-          // Windows EXE (NSIS)
+          // Windows EXE (NSIS) - standard installer
           else if (name.endsWith(".exe") || name.includes(".exe.")) {
             parsedDownloads.windowsExe = asset;
           }

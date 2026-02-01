@@ -10,7 +10,7 @@
     "clean-dist": "rimraf src-tauri/target/release/bundle",
     "lint": "eslint .",
     "preview": "vite preview",
-    "tauri": "tauri",
+    "tauri": "node scripts/tauri-cli.cjs",
     "deploy-supabase": "node supabase/scripts/deploy-functions.js",
     "release": "node scripts/release.cjs",
     "check-supabase-imports": "node scripts/check-supabase-imports.js"
