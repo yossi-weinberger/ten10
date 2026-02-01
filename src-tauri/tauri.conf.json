@@ -43,7 +43,7 @@
     ]
   },
   "productName": "Ten10",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "identifier": "com.ten10.dev",
   "plugins": {
     "updater": {
