@@ -1,7 +1,7 @@
 {
   "name": "ten10",
   "private": true,
-  "version": "0.5.4",
+  "version": "0.5.5",
   "type": "module",
   "license": "AGPL-3.0",
   "scripts": {
@@ -51,7 +51,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@tauri-apps/api": "^2.9.1",
     "@tauri-apps/plugin-autostart": "^2.5.1",
-    "@tauri-apps/plugin-dialog": "^2.5.0",
+    "@tauri-apps/plugin-dialog": "^2.6.0",
     "@tauri-apps/plugin-fs": "^2.4.5",
     "@tauri-apps/plugin-notification": "^2.3.3",
     "@tauri-apps/plugin-os": "^2.3.2",
