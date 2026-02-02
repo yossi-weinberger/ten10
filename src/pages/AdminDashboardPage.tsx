@@ -26,6 +26,7 @@ import { AdminDownloadsSection } from "@/components/admin/AdminDownloadsSection"
 import { AdminEngagementSection } from "@/components/admin/AdminEngagementSection";
 import { AdminTrendsChart } from "@/components/admin/AdminTrendsChart";
 import { AdminMonitoringSection } from "@/components/admin/AdminMonitoringSection";
+import { cn } from "@/lib/utils";
 
 export function AdminDashboardPage() {
   const { t, i18n } = useTranslation("admin");
@@ -122,31 +123,73 @@ export function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs - Halacha-style: card container, 2 per row on mobile */}
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 lg:w-auto lg:inline-flex">
-          <TabsTrigger value="users" className="gap-2">
-            <Users className="h-4 w-4" />
+        <TabsList
+          className={cn(
+            "grid w-full grid-cols-2 gap-2 p-2 h-auto",
+            "rounded-lg border bg-card",
+            "sm:grid-cols-5 sm:gap-0 sm:p-1 sm:rounded-md sm:border-0 sm:bg-muted",
+            "lg:inline-flex lg:w-auto"
+          )}
+        >
+          <TabsTrigger
+            value="users"
+            className={cn(
+              "gap-2 rounded-md px-3 py-2.5 h-auto",
+              "bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+              "sm:bg-transparent sm:data-[state=active]:bg-background sm:data-[state=active]:text-foreground"
+            )}
+          >
+            <Users className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t("tabs.users")}</span>
             <span className="sm:hidden">{t("tabs.usersShort")}</span>
           </TabsTrigger>
-          <TabsTrigger value="finance" className="gap-2">
-            <DollarSign className="h-4 w-4" />
+          <TabsTrigger
+            value="finance"
+            className={cn(
+              "gap-2 rounded-md px-3 py-2.5 h-auto",
+              "bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+              "sm:bg-transparent sm:data-[state=active]:bg-background sm:data-[state=active]:text-foreground"
+            )}
+          >
+            <DollarSign className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t("tabs.finance")}</span>
             <span className="sm:hidden">{t("tabs.financeShort")}</span>
           </TabsTrigger>
-          <TabsTrigger value="trends" className="gap-2">
-            <TrendingUp className="h-4 w-4" />
+          <TabsTrigger
+            value="trends"
+            className={cn(
+              "gap-2 rounded-md px-3 py-2.5 h-auto",
+              "bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+              "sm:bg-transparent sm:data-[state=active]:bg-background sm:data-[state=active]:text-foreground"
+            )}
+          >
+            <TrendingUp className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t("tabs.trends")}</span>
             <span className="sm:hidden">{t("tabs.trendsShort")}</span>
           </TabsTrigger>
-          <TabsTrigger value="downloads" className="gap-2">
-            <Activity className="h-4 w-4" />
+          <TabsTrigger
+            value="downloads"
+            className={cn(
+              "gap-2 rounded-md px-3 py-2.5 h-auto",
+              "bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+              "sm:bg-transparent sm:data-[state=active]:bg-background sm:data-[state=active]:text-foreground"
+            )}
+          >
+            <Activity className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t("tabs.downloads")}</span>
             <span className="sm:hidden">{t("tabs.downloadsShort")}</span>
           </TabsTrigger>
-          <TabsTrigger value="monitoring" className="gap-2">
-            <Gauge className="h-4 w-4" />
+          <TabsTrigger
+            value="monitoring"
+            className={cn(
+              "gap-2 rounded-md px-3 py-2.5 h-auto",
+              "bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+              "sm:bg-transparent sm:data-[state=active]:bg-background sm:data-[state=active]:text-foreground"
+            )}
+          >
+            <Gauge className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">
               {t("tabs.monitoring", "Monitoring")}
             </span>
