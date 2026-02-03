@@ -273,7 +273,6 @@ export const importDataDesktop = async ({
       for (let i = 0; i < total; i++) {
         const item = transactionsToImport[i];
         try {
-          onImportProgress?.(i + 1, total);
           // The item from web export can be a complex object
           const transaction = (item as any).transaction || item;
           const recurringInfo = (item as any).recurring_info;
@@ -312,6 +311,7 @@ export const importDataDesktop = async ({
           };
 
           await invoke("add_transaction", { transaction: transactionForRust });
+          onImportProgress?.(i + 1, total);
           importCount += 1;
         } catch (error) {
           logger.error("Error processing imported item:", item, error);
@@ -753,6 +753,7 @@ export const importDataWeb = async ({
               webSourceRecurringId ?? null
             );
             transactionRows.push(row);
+            onImportProgress?.(i + 1, total);
           }
 
           // Pass 2: Bulk insert transactions in batches (much faster than one-by-one)
@@ -776,8 +777,8 @@ export const importDataWeb = async ({
               throw batchError;
             }
             importCount += batch.length;
-            onImportProgress?.(Math.min(offset + BATCH_SIZE, total), total);
           }
+          onImportProgress?.(total, total);
 
           useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
 
