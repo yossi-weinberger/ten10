@@ -120,17 +120,17 @@ The application needs to handle various types of financial entries, each affecti
 ### Data Import/Export
 
 - **Requirement**: Users should be able to export all their transaction data to a local file and import data from such a file. This facilitates data backup, migration between platforms (desktop/web), and data recovery.
-- **Status (Desktop - Phase 1)**:
-  - **Export**: Implemented. Users can export all transactions to a JSON file.
-  - **Import**: Implemented. Users can import transactions from a JSON file, which will overwrite existing data after user confirmation.
-  - **Logic Location**: Core import/export logic for desktop is located in `src/lib/data-layer/dataManagement.service.ts`, invoked from `src/pages/SettingsPage.tsx`.
-- **Status (Web)**: Not yet implemented.
-- **Format**: JSON, based on the unified `Transaction` data model.
+- **Status (Desktop + Web)**:
+  - **Export**: Implemented. Exports JSON in **V2** format with both `transactions` and `recurring_transactions`.
+  - **Import**: Implemented. Supports **V1** (array of transactions) and **V2** formats. Import overwrites existing data after user confirmation.
+  - **Logic Location**: Core import/export logic lives in `src/lib/data-layer/dataManagement.service.ts` and is invoked from `src/pages/SettingsPage.tsx` via a UI hook.
+- **Format**: JSON (V2 payload `{ version, transactions, recurring_transactions }`), with backward compatibility for V1.
+- **Validation**: Robust import validation uses Zod schema `ImportFileSchema` in `src/lib/data-layer/importSchemas.ts`.
+- **UI**: Uses a custom confirmation dialog (Shadcn AlertDialog) where possible; falls back to `window.confirm` if needed.
+- **Field Mapping**: Import normalizes legacy `camelCase` fields to `snake_case` and drops non-DB keys using `src/lib/data-layer/fieldMapping.ts`.
+- **Performance**: Web import uses batch inserts for speed.
 - **Pending/Future Improvements**:
-  - Robust data validation (e.g., using Zod schemas) during import to prevent data corruption.
   - Option for data merging instead of complete overwrite during import (more complex).
-  - Implementation of import/export functionality for the web platform (Supabase).
-  - Enhanced UI for confirmation dialogs (e.g., using `shadcn/ui` components instead of `window.confirm`).
 
 ## Future Enhancements / Nice-to-Haves
 

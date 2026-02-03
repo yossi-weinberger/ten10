@@ -100,7 +100,7 @@ export function AdminEngagementSection({
           {t("engagement.title")}
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Average Transactions per User */}
           <StatCardNumber
             title={t("engagement.avgTransactions")}
@@ -134,7 +134,7 @@ export function AdminEngagementSection({
           {t("system.title")}
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
           <StatCardNumber
             title={t("system.totalRecurring")}
             value={system.total_recurring_transactions}
