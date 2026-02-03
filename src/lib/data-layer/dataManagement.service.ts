@@ -499,7 +499,6 @@ export const importDataWeb = async ({
   onImportProgress,
   onConfirmNeeded,
 }: DataManagementOptions): Promise<void> => {
-  setIsLoading(true);
   let fileWasSelected = false;
   let cancelCheckTimeout: ReturnType<typeof setTimeout> | null = null;
   let fallbackTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -595,6 +594,7 @@ export const importDataWeb = async ({
             return;
           }
 
+          setIsLoading(true);
           const {
             data: { user },
           } = await supabase.auth.getUser();
