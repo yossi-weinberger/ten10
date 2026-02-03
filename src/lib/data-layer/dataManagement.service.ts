@@ -213,12 +213,7 @@ export const importDataDesktop = async ({
         return;
       }
 
-      if (
-        !payload ||
-        payload.transactions.some(
-          (t) => typeof t.id === "undefined" || typeof t.amount === "undefined"
-        )
-      ) {
+      if (!payload) {
         toast.error(i18n.t("settings:messages.invalidStructure"));
         setIsLoading(false);
         return;
@@ -274,6 +269,7 @@ export const importDataDesktop = async ({
         }
       }
       const total = transactionsToImport.length;
+      let importCount = 0;
       for (let i = 0; i < total; i++) {
         const item = transactionsToImport[i];
         try {
@@ -316,8 +312,10 @@ export const importDataDesktop = async ({
           };
 
           await invoke("add_transaction", { transaction: transactionForRust });
+          importCount += 1;
         } catch (error) {
           logger.error("Error processing imported item:", item, error);
+          throw error;
         }
       }
 
@@ -325,7 +323,7 @@ export const importDataDesktop = async ({
 
       toast.success(
         i18n.t("settings:messages.importSuccessWithCount", {
-          count: transactionsToImport.length,
+          count: importCount,
         })
       );
     } else {
@@ -564,16 +562,7 @@ export const importDataWeb = async ({
             return;
           }
 
-          if (
-            !payload ||
-            payload.transactions.some(
-              (t) =>
-                typeof t.id === "undefined" ||
-                typeof t.amount === "undefined" ||
-                typeof t.date === "undefined" ||
-                typeof t.type === "undefined"
-            )
-          ) {
+          if (!payload) {
             toast.error(i18n.t("settings:messages.invalidStructure"));
             setIsLoading(false);
             return;
@@ -667,7 +656,26 @@ export const importDataWeb = async ({
                 day_of_month,
                 start_date,
                 next_due_date,
-              } = recurringInfo;
+              } = normalizeKeysToSnake(
+                recurringInfo as unknown as Record<string, unknown>,
+                RECURRING_CAMEL_TO_SNAKE,
+                RECURRING_KEYS_TO_DROP_ON_INSERT
+              ) as {
+                status?: string;
+                frequency?: string;
+                execution_count?: number;
+                total_occurrences?: number | null;
+                day_of_month?: number | null;
+                start_date?: string | null;
+                next_due_date?: string | null;
+              };
+
+              const normalizedTransaction = normalizeKeysToSnake(
+                transaction as Record<string, unknown>,
+                TRANSACTION_CAMEL_TO_SNAKE,
+                []
+              ) as Record<string, unknown>;
+
               const {
                 description,
                 amount,
@@ -676,7 +684,25 @@ export const importDataWeb = async ({
                 category,
                 is_chomesh,
                 recipient,
-              } = transaction;
+                original_amount,
+                original_currency,
+                conversion_rate,
+                conversion_date,
+                rate_source,
+              } = normalizedTransaction as {
+                description?: string;
+                amount?: number;
+                currency?: string;
+                type?: string;
+                category?: string;
+                is_chomesh?: boolean;
+                recipient?: string | null;
+                original_amount?: number | null;
+                original_currency?: string | null;
+                conversion_rate?: number | null;
+                conversion_date?: string | null;
+                rate_source?: string | null;
+              };
 
               const definitionToInsert = {
                 user_id: user.id,
@@ -694,6 +720,11 @@ export const importDataWeb = async ({
                 category,
                 is_chomesh,
                 recipient,
+                original_amount,
+                original_currency,
+                conversion_rate,
+                conversion_date,
+                rate_source,
               };
 
               const { data: newDefinition, error: definitionError } =
