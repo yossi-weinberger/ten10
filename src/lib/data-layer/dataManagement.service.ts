@@ -635,6 +635,7 @@ export const importDataWeb = async ({
 
           // Pass 1: Create recurring definitions and build map; prepare all transaction rows for bulk insert
           const transactionRows: Record<string, unknown>[] = [];
+          const prepProgressMax = total > 1 ? total - 1 : 0;
           for (let i = 0; i < total; i++) {
             const item = transactionsToImport[i];
             const transaction = (item as any).transaction || item;
@@ -752,7 +753,9 @@ export const importDataWeb = async ({
               webSourceRecurringId ?? null
             );
             transactionRows.push(row);
-            onImportProgress?.(i + 1, total);
+            if (prepProgressMax > 0) {
+              onImportProgress?.(Math.min(i + 1, prepProgressMax), total);
+            }
           }
 
           // Pass 2: Bulk insert transactions in batches (much faster than one-by-one)
