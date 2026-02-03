@@ -604,6 +604,7 @@ export const importDataWeb = async ({
 
           const recurringIdMap = new Map<string, string>();
           const total = transactionsToImport.length;
+          const totalProgressSteps = total * 2;
 
           if (recurringToImport.length > 0) {
             for (const rec of recurringToImport) {
@@ -635,7 +636,6 @@ export const importDataWeb = async ({
 
           // Pass 1: Create recurring definitions and build map; prepare all transaction rows for bulk insert
           const transactionRows: Record<string, unknown>[] = [];
-          const prepProgressMax = total > 1 ? total - 1 : 0;
           for (let i = 0; i < total; i++) {
             const item = transactionsToImport[i];
             const transaction = (item as any).transaction || item;
@@ -753,14 +753,15 @@ export const importDataWeb = async ({
               webSourceRecurringId ?? null
             );
             transactionRows.push(row);
-            if (prepProgressMax > 0) {
-              onImportProgress?.(Math.min(i + 1, prepProgressMax), total);
+            if (totalProgressSteps > 0) {
+              onImportProgress?.(i + 1, totalProgressSteps);
             }
           }
 
           // Pass 2: Bulk insert transactions in batches (much faster than one-by-one)
           const BATCH_SIZE = 100;
           let importCount = 0;
+          let progressSoFar = total;
           for (
             let offset = 0;
             offset < transactionRows.length;
@@ -779,8 +780,14 @@ export const importDataWeb = async ({
               throw batchError;
             }
             importCount += batch.length;
+            progressSoFar += batch.length;
+            if (totalProgressSteps > 0) {
+              onImportProgress?.(
+                Math.min(progressSoFar, totalProgressSteps),
+                totalProgressSteps
+              );
+            }
           }
-          onImportProgress?.(total, total);
 
           useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
 
