@@ -4,7 +4,6 @@ import toast from "react-hot-toast";
 import { nanoid } from "nanoid";
 import { getPlatform } from "../platformManager";
 import { supabase } from "@/lib/supabaseClient";
-import { clearAllData as clearAllDataFromDataService } from "./index";
 import { logger } from "@/lib/logger";
 import i18n from "../i18n";
 import {
@@ -600,7 +599,7 @@ export const importDataWeb = async ({
           } = await supabase.auth.getUser();
           if (!user) throw new Error("User not authenticated for web import.");
 
-          await clearAllDataFromDataService();
+          await clearAllData();
           // Currency lock state is automatically updated via store changes (lastDbFetchTimestamp)
 
           const recurringIdMap = new Map<string, string>();
