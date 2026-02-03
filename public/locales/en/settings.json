@@ -96,9 +96,11 @@
     "exportTitle": "Export Data",
     "exportDescription": "Export all application data to a file",
     "exportButton": "Export Data",
+    "exporting": "Exporting data...",
     "importTitle": "Import Data",
     "importDescription": "Import data from a backup file",
-    "importButton": "Import Data"
+    "importButton": "Import Data",
+    "importing": "Importing data..."
   },
   "clearData": {
     "title": "Clear Data",
@@ -149,6 +151,9 @@
     "invalidJson": "Invalid file or not in JSON format.",
     "invalidStructure": "Data structure in file is invalid or missing required fields.",
     "emptyFile": "Selected file contains no data to import.",
+    "importRecordCount": "{{count}} records",
+    "importRecordCountTransactions": "{{count}} transactions",
+    "importRecordCountRecurring": "{{count}} recurring transactions",
     "importConfirm": "Are you sure you want to import data from this file? This action will overwrite your current data with the data from the file. It is recommended to back up your current data first.",
     "importCancelled": "Data import cancelled.",
     "importSuccessWithCount": "Import complete! {{count}} records imported successfully.",

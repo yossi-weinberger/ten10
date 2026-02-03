@@ -106,7 +106,7 @@ export async function loadTransactions(
  */
 export async function getInitialBalanceTransaction(): Promise<Transaction | null> {
   const currentPlatform = getPlatform();
-  
+
   if (currentPlatform === "desktop") {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
@@ -115,14 +115,17 @@ export async function getInitialBalanceTransaction(): Promise<Transaction | null
       // but better to query. For now, let's use get_filtered_transactions_handler logic via existing service or add new one.
       // Actually, we can just fetch all and find it, but that's heavy.
       // Let's rely on loadTransactions cache if possible? No, store only has summary.
-      
+
       // Let's assume we need to fetch it.
       // Simplest: fetch all transactions (since SQLite is local and fast) and find it.
       // Optimization: Add a specific Rust command later.
       const transactions = await invoke<Transaction[]>("get_transactions");
-      return transactions.find(t => t.type === "initial_balance") || null;
+      return transactions.find((t) => t.type === "initial_balance") || null;
     } catch (error) {
-      logger.error("Error fetching initial balance transaction (Desktop):", error);
+      logger.error(
+        "Error fetching initial balance transaction (Desktop):",
+        error
+      );
       return null;
     }
   } else if (currentPlatform === "web") {
@@ -150,7 +153,7 @@ export async function getInitialBalanceTransaction(): Promise<Transaction | null
  */
 export async function hasAnyTransaction(): Promise<boolean> {
   const currentPlatform = getPlatform();
-  
+
   if (currentPlatform === "desktop") {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
@@ -184,15 +187,10 @@ export async function hasAnyTransaction(): Promise<boolean> {
  */
 export async function addTransaction(transaction: Transaction): Promise<void> {
   const currentPlatform = getPlatform();
-  logger.log("Current platform in addTransaction:", currentPlatform);
   if (currentPlatform === "desktop") {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
       await invoke("add_transaction", { transaction });
-      logger.log(
-        "Tauri invoke add_transaction successful for ID:",
-        transaction.id
-      );
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
     } catch (error) {
       logger.error("Error invoking add_transaction:", error);
@@ -232,8 +230,6 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
         throw new Error(
           "Failed to retrieve inserted transaction data from Supabase."
         );
-
-      logger.log("Supabase insert successful. ID:", insertedData.id);
 
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
     } catch (error) {

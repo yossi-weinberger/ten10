@@ -131,9 +131,14 @@
 
 ## ייצוא וייבוא נתונים
 
-- **ייצוא:** כולל מידע recurring דרך JOIN (ב-`export_transactions_handler` ב-Rust; דומה בווב).
+- **ייצוא (V2):** יוצר payload עם שתי רשימות נפרדות:
+  - `transactions`
+  - `recurring_transactions`
+    (במקום JOIN בזמן הייצוא).
 - **ייבוא:** ב-`dataManagement.service.ts`:
-  - יוצר הגדרות recurring חדשות ומקשר תנועות (משמר IDים חדשים).
+  - תומך גם בקבצים ישנים (V1: מערך תנועות בלבד).
+  - יוצר הגדרות recurring חדשות וממפה `oldId → newId`, ואז מקשר תנועות באמצעות `source_recurring_id`.
+  - מבצע מיפוי `camelCase → snake_case` ומסיר שדות שאינם קיימים בטבלאות.
   - תומך בהעברה בין פלטפורמות (web-to-desktop ולהיפך).
 
 ---

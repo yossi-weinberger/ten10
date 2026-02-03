@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "@/lib/theme";
 import { useDonationStore } from "@/lib/store";
@@ -8,18 +8,23 @@ import toast from "react-hot-toast";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
+import { useDataImportExport } from "@/hooks/useDataImportExport";
 import {
-  exportDataWeb,
-  importDataWeb,
-  exportDataDesktop,
-  importDataDesktop,
-} from "@/lib/data-layer/dataManagement.service";
-import { 
-  getInitialBalanceTransaction, 
+  getInitialBalanceTransaction,
   updateTransaction,
-  hasAnyTransaction,
-  TransactionUpdatePayload 
+  TransactionUpdatePayload,
 } from "@/lib/data-layer/transactions.service";
+import AppLoader from "@/components/layout/AppLoader";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { LanguageAndDisplaySettingsCard } from "@/components/settings/LanguageAndDisplaySettingsCard";
 import { FinancialSettingsCard } from "@/components/settings/FinancialSettingsCard";
 import { NotificationSettingsCard } from "@/components/settings/NotificationSettingsCard";
@@ -43,38 +48,55 @@ export function SettingsPage() {
     }))
   );
 
-  const { isLocked: isCurrencyLocked, isLoading: isCurrencyLockedLoading } = useIsCurrencyLocked();
+  const { isLocked: isCurrencyLocked, isLoading: isCurrencyLockedLoading } =
+    useIsCurrencyLocked();
 
   const [isClearing, setIsClearing] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
+
+  // Use custom hook for import/export logic
+  const {
+    isExporting,
+    isImporting,
+    importProgress,
+    importCounts,
+    importConfirmDialog,
+    handleExportData,
+    handleImportData,
+    handleImportConfirm,
+    handleImportCancel,
+  } = useDataImportExport();
+
   const [isOpeningBalanceModalOpen, setIsOpeningBalanceModalOpen] =
     useState(false);
-  const [openingBalanceTransaction, setOpeningBalanceTransaction] = useState<Transaction | null>(null);
+  const [openingBalanceTransaction, setOpeningBalanceTransaction] =
+    useState<Transaction | null>(null);
   const { platform } = usePlatform();
   const { user } = useAuth();
-  const { t } = useTranslation("settings");
+  const { t, i18n } = useTranslation("settings");
   const { t: tCommon } = useTranslation("common");
 
   // Fetch opening balance when modal opens
   const handleOpenBalanceModal = async () => {
     try {
-        const transaction = await getInitialBalanceTransaction();
-        setOpeningBalanceTransaction(transaction);
+      const transaction = await getInitialBalanceTransaction();
+      setOpeningBalanceTransaction(transaction);
     } catch (error) {
-        logger.error("Failed to fetch opening balance transaction:", error);
-        setOpeningBalanceTransaction(null);
+      logger.error("Failed to fetch opening balance transaction:", error);
+      setOpeningBalanceTransaction(null);
     }
     setIsOpeningBalanceModalOpen(true);
   };
 
-  const handleUpdateOpeningBalance = async (id: string, updates: Partial<Transaction>) => {
-      // Cast updates to TransactionUpdatePayload as updateTransaction expects specific structure
-      // We know OpeningBalanceModal sends correct fields
-      await updateTransaction(id, updates as TransactionUpdatePayload);
-      
-      // Refresh local state if needed
-      // Ideally we should re-fetch to ensure sync, but modal closes anyway
+  const handleUpdateOpeningBalance = async (
+    id: string,
+    updates: Partial<Transaction>
+  ) => {
+    // Cast updates to TransactionUpdatePayload as updateTransaction expects specific structure
+    // We know OpeningBalanceModal sends correct fields
+    await updateTransaction(id, updates as TransactionUpdatePayload);
+
+    // Refresh local state if needed
+    // Ideally we should re-fetch to ensure sync, but modal closes anyway
   };
 
   const handleClearData = async () => {
@@ -88,26 +110,6 @@ export function SettingsPage() {
       toast.error(tCommon("toast.settings.clearDataError"));
     } finally {
       setIsClearing(false);
-    }
-  };
-
-  const handleExportData = async () => {
-    if (platform === "desktop") {
-      await exportDataDesktop({ setIsLoading: setIsExporting });
-    } else if (platform === "web") {
-      await exportDataWeb({ setIsLoading: setIsExporting });
-    } else {
-      toast.error(tCommon("toast.settings.exportError"));
-    }
-  };
-
-  const handleImportData = async () => {
-    if (platform === "desktop") {
-      await importDataDesktop({ setIsLoading: setIsImporting });
-    } else if (platform === "web") {
-      await importDataWeb({ setIsLoading: setIsImporting });
-    } else {
-      toast.error(tCommon("toast.settings.importError"));
     }
   };
 
@@ -132,16 +134,23 @@ export function SettingsPage() {
       }}
       updateSettings={(newFinancialSettings) => {
         updateSettings(newFinancialSettings);
-        
+
         // Also update Supabase profile if on web
-        if (platform === "web" && user && newFinancialSettings.defaultCurrency) {
+        if (
+          platform === "web" &&
+          user &&
+          newFinancialSettings.defaultCurrency
+        ) {
           supabase
             .from("profiles")
             .update({ default_currency: newFinancialSettings.defaultCurrency })
             .eq("id", user.id)
             .then(({ error }) => {
               if (error) {
-                logger.error("Failed to update default currency in Supabase:", error);
+                logger.error(
+                  "Failed to update default currency in Supabase:",
+                  error
+                );
                 toast.error(tCommon("toast.settings.updateError"));
               }
             });
@@ -230,47 +239,107 @@ export function SettingsPage() {
   );
 
   return (
-    <div className="grid gap-6">
-      <div className="grid gap-2">
-        <h2 className="text-2xl font-bold text-foreground">{t("pageTitle")}</h2>
-        <p className="text-muted-foreground">{t("pageDescription")}</p>
-      </div>
-
-      {/* Desktop Layout (Two Independent Columns) */}
-      <div className="hidden md:grid md:grid-cols-2 gap-6 items-start">
-        {/* Left Column */}
-        <div className="flex flex-col gap-6 h-full">
-          {languageSection}
-          {versionSection}
-          {importExportSection}
-          <div className="mt-auto">{clearDataSection}</div>
+    <>
+      {(isImporting || isExporting) && (
+        <AppLoader
+          message={
+            isImporting
+              ? t("importExport.importing")
+              : t("importExport.exporting")
+          }
+          progress={isImporting ? importProgress ?? undefined : undefined}
+          details={
+            isImporting && importCounts
+              ? `${t("messages.importRecordCountTransactions", {
+                  count: importCounts.transactions,
+                })} · ${t("messages.importRecordCountRecurring", {
+                  count: importCounts.recurring,
+                })}`
+              : undefined
+          }
+        />
+      )}
+      <div className="grid gap-6">
+        <div className="grid gap-2">
+          <h2 className="text-2xl font-bold text-foreground">
+            {t("pageTitle")}
+          </h2>
+          <p className="text-muted-foreground">{t("pageDescription")}</p>
         </div>
 
-        {/* Right Column */}
-        <div className="flex flex-col gap-6 h-full">
+        {/* Desktop Layout (Two Independent Columns) */}
+        <div className="hidden md:grid md:grid-cols-2 gap-6 items-start">
+          {/* Left Column */}
+          <div className="flex flex-col gap-6 h-full">
+            {languageSection}
+            {versionSection}
+            {importExportSection}
+            <div className="mt-auto">{clearDataSection}</div>
+          </div>
+
+          {/* Right Column */}
+          <div className="flex flex-col gap-6 h-full">
+            {financialSection}
+            {notificationSection}
+            {calendarSection}
+          </div>
+        </div>
+
+        {/* Mobile Layout (Single Column, Custom Order) */}
+        <div className="flex flex-col gap-6 md:hidden">
+          {languageSection}
+          {versionSection}
           {financialSection}
           {notificationSection}
           {calendarSection}
+          {importExportSection}
+          {clearDataSection}
         </div>
-      </div>
 
-      {/* Mobile Layout (Single Column, Custom Order) */}
-      <div className="flex flex-col gap-6 md:hidden">
-        {languageSection}
-        {versionSection}
-        {financialSection}
-        {notificationSection}
-        {calendarSection}
-        {importExportSection}
-        {clearDataSection}
-      </div>
+        <AlertDialog
+          open={!!importConfirmDialog}
+          onOpenChange={handleImportCancel}
+        >
+          <AlertDialogContent dir={i18n.dir()}>
+            <AlertDialogHeader className="text-start">
+              <AlertDialogTitle className="text-start">
+                {t("importExport.importTitle")}
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-start">
+                {platform === "web"
+                  ? t("messages.importConfirmWeb")
+                  : t("messages.importConfirm")}
+                {importConfirmDialog && (
+                  <span className="mt-2 block font-medium text-foreground">
+                    {t("messages.importRecordCountTransactions", {
+                      count: importConfirmDialog.transactions,
+                    })}
+                    {" · "}
+                    {t("messages.importRecordCountRecurring", {
+                      count: importConfirmDialog.recurring,
+                    })}
+                  </span>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="gap-2 sm:space-x-0">
+              <AlertDialogCancel onClick={() => handleImportCancel(false)}>
+                {tCommon("actions.cancel")}
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={handleImportConfirm}>
+                {t("importExport.importButton")}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-      <OpeningBalanceModal
-        isOpen={isOpeningBalanceModalOpen}
-        onClose={() => setIsOpeningBalanceModalOpen(false)}
-        initialData={openingBalanceTransaction}
-        onUpdate={handleUpdateOpeningBalance}
-      />
-    </div>
+        <OpeningBalanceModal
+          isOpen={isOpeningBalanceModalOpen}
+          onClose={() => setIsOpeningBalanceModalOpen(false)}
+          initialData={openingBalanceTransaction}
+          onUpdate={handleUpdateOpeningBalance}
+        />
+      </div>
+    </>
   );
 }

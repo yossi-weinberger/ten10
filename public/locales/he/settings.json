@@ -96,9 +96,11 @@
     "exportTitle": "ייצוא נתונים",
     "exportDescription": "ייצא את כל נתוני האפליקציה לקובץ",
     "exportButton": "ייצא נתונים",
+    "exporting": "מייצא נתונים...",
     "importTitle": "ייבוא נתונים",
     "importDescription": "ייבא נתונים מקובץ גיבוי",
-    "importButton": "ייבא נתונים"
+    "importButton": "ייבא נתונים",
+    "importing": "מייבא נתונים..."
   },
   "clearData": {
     "title": "מחיקת נתונים",
@@ -149,6 +151,9 @@
     "invalidJson": "קובץ לא תקין או שאינו בפורמט JSON.",
     "invalidStructure": "מבנה הנתונים בקובץ אינו תקין או חסרים שדות הכרחיים.",
     "emptyFile": "הקובץ שנבחר אינו מכיל נתונים לייבוא.",
+    "importRecordCount": "{{count}} רשומות",
+    "importRecordCountTransactions": "{{count}} תנועות",
+    "importRecordCountRecurring": "{{count}} הוראות קבע",
     "importConfirm": "האם אתה בטוח שברצונך לייבא את הנתונים מקובץ זה? פעולה זו תמחק את כל הנתונים הנוכחיים שלך ותחליף אותם בנתונים מהקובץ. מומלץ לגבות את הנתונים הנוכחיים תחילה.",
     "importCancelled": "ייבוא הנתונים בוטל.",
     "importSuccessWithCount": "ייבוא הושלם! {{count}} רשומות יובאו בהצלחה.",

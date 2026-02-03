@@ -183,8 +183,10 @@ The application supports exporting all transaction data to a JSON file and impor
 1.  **Trigger**: User clicks the "Export Data" button in `SettingsPage.tsx`.
 2.  **Platform Check**: Ensures the platform is `desktop` (logic within `SettingsPage.tsx` before calling the exported function).
 3.  **Function Call**: `handleExportData` in `SettingsPage.tsx` calls `exportDataDesktop` from `src/lib/data-layer/dataManagement.service.ts`.
-4.  **Data Retrieval**: The `exportDataDesktop` function calls a helper `fetchAllTransactionsForExportDesktop`, which in turn calls `invoke<Transaction[]>('export_transactions_handler')` to fetch all transactions matching the (empty) filters from the local SQLite database.
-5.  **JSON Conversion**: The retrieved transaction array is converted to a JSON string.
+4.  **Data Retrieval**: The `exportDataDesktop` function calls:
+    - `fetchAllTransactionsForExportDesktop` → `invoke<Transaction[]>('export_transactions_handler')`
+    - `fetchAllRecurringTransactionsForExportDesktop` → `invoke<RecurringTransaction[]>('get_recurring_transactions_handler')`
+5.  **JSON Conversion**: Builds **V2** payload `{ version: 2, transactions, recurring_transactions }` and serializes to JSON.
 6.  **File Save Dialog**: Tauri's `dialog.save()` API is used to prompt the user for a filename and location.
 7.  **File Write**: Tauri's `fs.writeTextFile()` API writes the JSON string to the selected file.
 8.  **Permissions**: Requires `dialog > save: true` and `fs > writeFile: true` (or `fs > all: true`) in `tauri.conf.json` allowlist.
@@ -196,13 +198,19 @@ The application supports exporting all transaction data to a JSON file and impor
 3.  **Function Call**: `handleImportData` in `SettingsPage.tsx` calls `importDataDesktop` from `src/lib/data-layer/dataManagement.service.ts`.
 4.  **File Open Dialog**: The `importDataDesktop` function uses Tauri's `dialog.open()` API to allow the user to select a JSON file.
 5.  **File Read**: Tauri's `fs.readTextFile()` API reads the content of the selected file.
-6.  **JSON Parse & Basic Validation**: The file content is parsed into an array of `Transaction` objects. Basic validation checks if it's an array and if essential fields (e.g., `id`, `amount`) exist.
-    - **TODO**: Implement robust validation using Zod schemas (e.g., a comprehensive `transactionSchema` in `src/lib/schemas.ts`).
+6.  **JSON Parse & Validation**:
+    - Parses JSON and validates with `ImportFileSchema` in `src/lib/data-layer/importSchemas.ts`.
+    - Supports **V1** (array of transactions) and **V2** (object with `transactions` + `recurring_transactions`) formats.
+    - Logs detailed schema errors via `logger.error` and shows user-friendly toasts.
 7.  **User Confirmation**: A custom `AlertDialog` from `shadcn/ui` is used to warn the user that existing data will be overwritten and asks for confirmation.
-8.  **Clear Existing Data**: If confirmed, `clearAllData()` from `dataManagement.service.ts` is called, which invokes `clear_all_data` in Rust to remove existing transactions and recurring transactions from SQLite.
-9.  **Data Insertion**: Each transaction from the imported file is saved to SQLite by calling `addTransaction` from `transactions.service.ts`, which invokes `add_transaction_handler`.
-10. **Store Update**: After all transactions are imported, `useDonationStore.getState().setLastDbFetchTimestamp(Date.now())` is called to signal that the data has changed and a refresh is needed.
-11. **Permissions**: Requires `dialog > open: true` and `fs > readFile: true` (or `fs > all: true`) in `tauri.conf.json` allowlist.
+8.  **Clear Existing Data**: If confirmed, calls `clear_all_data` to wipe transactions + recurring data.
+9.  **Recurring Import (First)**: Creates recurring definitions first, maps old IDs → new IDs.
+10. **Transactions Import**: Inserts transactions and links to new `source_recurring_id` when applicable.
+11. **Field Normalization**:
+    - Uses `fieldMapping.ts` to map `camelCase` → `snake_case`.
+    - Drops keys that are not DB columns (e.g., derived recurring fields).
+12. **Store Update**: Signals data refresh with `setLastDbFetchTimestamp(Date.now())`.
+13. **Permissions**: Requires `dialog > open: true` and `fs > readFile: true` (or `fs > all: true`) in `tauri.conf.json` allowlist.
 
 ## Utilities and Libraries
 
