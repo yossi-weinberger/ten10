@@ -94,7 +94,7 @@ export function ImportConfirmModal({
   }
 
   return (
-    <AlertDialog open={open} onOpenChange={onCancel}>
+    <AlertDialog open={open} onOpenChange={(o) => !o && onCancel(false)}>
       <AlertDialogContent dir={i18n.dir()}>
         <AlertDialogHeader className="text-start">
           <AlertDialogTitle className="text-start">{title}</AlertDialogTitle>
