@@ -15,16 +15,6 @@ import {
   TransactionUpdatePayload,
 } from "@/lib/data-layer/transactions.service";
 import AppLoader from "@/components/layout/AppLoader";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { LanguageAndDisplaySettingsCard } from "@/components/settings/LanguageAndDisplaySettingsCard";
 import { FinancialSettingsCard } from "@/components/settings/FinancialSettingsCard";
 import { NotificationSettingsCard } from "@/components/settings/NotificationSettingsCard";
@@ -33,6 +23,7 @@ import { ClearDataSection } from "@/components/settings/ClearDataSection";
 import { ImportExportDataSection } from "@/components/settings/ImportExportDataSection";
 import { VersionInfoCard } from "@/components/settings/VersionInfoCard";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
+import { ImportConfirmModal } from "@/components/settings/ImportConfirmModal";
 import { logger } from "@/lib/logger";
 import { Transaction } from "@/types/transaction";
 import { CurrencyCode } from "@/lib/currencies";
@@ -72,7 +63,7 @@ export function SettingsPage() {
     useState<Transaction | null>(null);
   const { platform } = usePlatform();
   const { user } = useAuth();
-  const { t, i18n } = useTranslation("settings");
+  const { t } = useTranslation("settings");
   const { t: tCommon } = useTranslation("common");
 
   // Fetch opening balance when modal opens
@@ -296,42 +287,14 @@ export function SettingsPage() {
           {clearDataSection}
         </div>
 
-        <AlertDialog
+        <ImportConfirmModal
           open={!!importConfirmDialog}
-          onOpenChange={handleImportCancel}
-        >
-          <AlertDialogContent dir={i18n.dir()}>
-            <AlertDialogHeader className="text-start">
-              <AlertDialogTitle className="text-start">
-                {t("importExport.importTitle")}
-              </AlertDialogTitle>
-              <AlertDialogDescription className="text-start">
-                {platform === "web"
-                  ? t("messages.importConfirmWeb")
-                  : t("messages.importConfirm")}
-                {importConfirmDialog && (
-                  <span className="mt-2 block font-medium text-foreground">
-                    {t("messages.importRecordCountTransactions", {
-                      count: importConfirmDialog.transactions,
-                    })}
-                    {" · "}
-                    {t("messages.importRecordCountRecurring", {
-                      count: importConfirmDialog.recurring,
-                    })}
-                  </span>
-                )}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="gap-2 sm:space-x-0">
-              <AlertDialogCancel onClick={() => handleImportCancel(false)}>
-                {tCommon("actions.cancel")}
-              </AlertDialogCancel>
-              <AlertDialogAction onClick={handleImportConfirm}>
-                {t("importExport.importButton")}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          platform={platform === "web" ? "web" : "desktop"}
+          transactionsCount={importConfirmDialog?.transactions ?? 0}
+          recurringCount={importConfirmDialog?.recurring ?? 0}
+          onConfirm={handleImportConfirm}
+          onCancel={handleImportCancel}
+        />
 
         <OpeningBalanceModal
           isOpen={isOpeningBalanceModalOpen}

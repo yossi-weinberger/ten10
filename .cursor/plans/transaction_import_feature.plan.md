@@ -28,7 +28,7 @@ isProject: false
 
 # תוכנית ייבוא תנועות - Ten10 (גרסה מעודכנת)
 
-## החלטות עיצוב שהתקבלו
+## החלטות עיצוב שהתקבלו (מעודכן)
 
 לאחר דיון עם הצוות, הוחלט:
 
@@ -42,10 +42,31 @@ isProject: false
 | **הוראות קבע** | זיהוי והזהרה - לא דילוג אוטומטי             | לתת למשתמש להחליט                            |
 | **פלטפורמה**   | פרונט משותף, לוגיקה משותפת                  | כמו שאר הפרויקט                              |
 | **Rust/Tauri** | שימוש ב-add_transaction הקיים (ללא שינוי)   | כבר יש הכל                                   |
+| **ולידציה**    | Zod (`ImportFileSchema`) + נירמול שדות      | עקביות בין Web/Desktop ומניעת שגיאות         |
+| **מיפוי שדות** | מרכזי ב־`fieldMapping.ts`                   | תמיכה ב־camelCase ישן ושדות שהוסרו מה־DB     |
 
 ---
 
-## שלב 0: הגדרת vitest
+## התאמות בעקבות השינויים האחרונים בקוד
+
+- **צנרת ייבוא קיימת**: מומלץ שהייבוא החדש (CSV/Excel) ייכנס דרך `dataManagement.service.ts`, כדי ליהנות מה־progress, confirm dialog, ומנגנון clear/reload שכבר קיים בווב ובדסקטופ.
+- **ולידציה מרכזית**: במקום ליצור סכמת Zod חדשה במודול נפרד, נעדכן/נרחיב את `src/lib/data-layer/importSchemas.ts` כך שהייבוא מ־CSV/Excel יתמוך באותו סט כללים כמו JSON.
+- **מיפוי שדות**: להשתמש ב־`fieldMapping.ts` לנירמול camelCase→snake_case והסרת שדות לא קיימים — כדי למנוע סטיות בין מקורות.
+- **UX אחיד**: להשתמש ב־`useDataImportExport` ו־`AppLoader` להצגת progress והודעות בצורה עקבית בין הייבוא הקיים לייבוא החדש.
+
+---
+
+## שיקולי בטיחות (מומלץ להוסיף כחלק מהפיצ'ר)
+
+- **מגבלות קובץ**: הגבלת גודל קובץ מקסימלי ומספר שורות מקסימלי כדי למנוע עומסי זיכרון.
+- **Allowlist לעמודות**: התעלמות מעמודות לא מזוהות במקום ניסיון לנחש.
+- **פורמולות**: קריאה כנתונים בלבד (ללא הרצה/אינטרפרטציה של נוסחאות).
+- **אימות מוקדם**: בדיקת עמודות חובה (date, amount, type) לפני עיבוד מלא.
+- **מניעת כתיבה חלקית**: אם ולידציה נכשלת — לא מתחילים כתיבה ל־DB.
+
+---
+
+## שלב 0: הגדרת vitest (אופציונלי לפי החלטה)
 
 ### התקנה:
 
@@ -126,7 +147,7 @@ import { useDonationStore } from "@/lib/store";
 export async function convertImportedAmount(
   amount: number,
   sourceCurrency: Currency,
-  platform: "web" | "desktop",
+  platform: "web" | "desktop"
 ): Promise<{
   convertedAmount: number;
   original_amount: number;
@@ -150,7 +171,7 @@ export async function convertImportedAmount(
   // ממנפים את השירות הקיים
   const rate = await ExchangeRateService.getRate(
     sourceCurrency,
-    defaultCurrency,
+    defaultCurrency
   );
 
   return {
@@ -173,7 +194,7 @@ export async function convertImportedAmount(
 // src/lib/import/type-resolver.ts
 export function resolveTransactionType(
   amount: number,
-  description?: string,
+  description?: string
 ): TransactionType {
   // סכום שלילי = הוצאה
   if (amount < 0) {
@@ -221,7 +242,7 @@ function getMonthKey(dateStr: string): string {
 
 export function detectDuplicates(
   newTransactions: ParsedTransaction[],
-  existingTransactions: Transaction[],
+  existingTransactions: Transaction[]
 ): DuplicateCandidate[] {
   const duplicates: DuplicateCandidate[] = [];
 
@@ -308,13 +329,13 @@ export interface RecurringMatch {
 export function detectRecurringMatches(
   newTransactions: ParsedTransaction[],
   existingRecurring: RecurringTransaction[],
-  existingTransactions: Transaction[],
+  existingTransactions: Transaction[]
 ): RecurringMatch[] {
   const matches: RecurringMatch[] = [];
 
   // סינון רק recurring פעילות
   const activeRecurring = existingRecurring.filter(
-    (r) => r.status === "active",
+    (r) => r.status === "active"
   );
 
   for (const imported of newTransactions) {
@@ -337,7 +358,7 @@ export function detectRecurringMatches(
       const alreadyExecuted = existingTransactions.some(
         (t) =>
           t.source_recurring_id === recurring.id &&
-          getMonthKey(t.date) === monthYear,
+          getMonthKey(t.date) === monthYear
       );
 
       if (amountMatch && dayMatch && !alreadyExecuted) {
@@ -440,10 +461,10 @@ describe("detectRecurringMatches", () => {
 ```
 src/lib/import/
 ├── index.ts                    # Re-exports
-├── import.service.ts           # Orchestration - main entry point
+├── import.service.ts           # Orchestration - main entry point (משתלב עם dataManagement.service.ts)
 ├── parsers/
 │   ├── csv-parser.ts          # Parse CSV files
-│   ├── excel-parser.ts        # Parse XLSX files (using exceljs)
+│   ├── excel-parser.ts        # Parse XLSX files (xlsx/SheetJS או exceljs)
 │   ├── types.ts               # ParsedRow, ParsedTransaction
 │   └── __tests__/
 │       ├── csv-parser.test.ts
@@ -488,8 +509,10 @@ src/components/import/
 
 ## סכמת ולידציה לייבוא
 
+**עדכון חשוב**: קיימת כבר סכמת Zod פעילה ב־`src/lib/data-layer/importSchemas.ts`. מומלץ להרחיב אותה במקום ליצור סכמה מקבילה, כדי לשמור על ולידציה אחידה בין JSON ו־CSV/Excel.
+
 ```typescript
-// src/lib/import/validation/import-schema.ts
+// מומלץ לשלב בתוך src/lib/data-layer/importSchemas.ts
 import { z } from "zod";
 
 export const importedRowSchema = z.object({
