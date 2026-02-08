@@ -13,7 +13,7 @@ This document provides a historical reference and status overview of the Transac
 ### Core Features ✅
 
 - ✅ **Display**: Transaction table with all columns
-- ✅ **Filtering**: Date range, transaction types, free text search, recurring status, recurring statuses, recurring frequencies
+- ✅ **Filtering**: Date range, transaction types, payment methods (multi-select, exact match), free text search, recurring status, recurring statuses, recurring frequencies
 - ✅ **Sorting**: Dynamic sorting by columns
 - ✅ **Editing**: Modal-based editing with form validation
 - ✅ **Deletion**: Confirmation dialog with optimistic updates
@@ -76,6 +76,7 @@ interface Transaction {
   category: string | null;
   is_chomesh: boolean | null;
   recipient: string | null;
+  payment_method: string | null;
   created_at: string;
   updated_at: string;
   // Recurring transaction fields
@@ -103,7 +104,8 @@ interface TableTransactionFilters {
     to: string | null; // ISO date string, not Date object
   };
   types: string[]; // Array of TransactionType strings
-  search: string; // For category, description, or recipient
+  search: string; // For category, description, recipient, or payment method
+  paymentMethods: string[]; // Multi-select payment methods (exact match)
   isRecurring: IsRecurringFilter; // Filter by recurring status
   recurringStatuses: string[]; // Filter by specific recurring statuses
   recurringFrequencies: string[]; // Filter by recurring frequencies
@@ -184,15 +186,16 @@ CREATE OR REPLACE FUNCTION get_user_transactions(
   p_user_id UUID,
   p_offset INTEGER DEFAULT 0,
   p_limit INTEGER DEFAULT 20,
-  p_date_from DATE DEFAULT NULL,
-  p_date_to DATE DEFAULT NULL,
+  p_date_from TEXT DEFAULT NULL,
+  p_date_to TEXT DEFAULT NULL,
   p_types TEXT[] DEFAULT NULL,
   p_search TEXT DEFAULT NULL,
   p_sort_field TEXT DEFAULT 'date',
   p_sort_direction TEXT DEFAULT 'desc',
   p_is_recurring BOOLEAN DEFAULT NULL, -- Filter by recurring status (true/false/null for all)
   p_recurring_statuses TEXT[] DEFAULT NULL, -- Filter by specific recurring statuses
-  p_recurring_frequencies TEXT[] DEFAULT NULL -- Filter by recurring frequencies
+  p_recurring_frequencies TEXT[] DEFAULT NULL, -- Filter by recurring frequencies
+  p_payment_methods TEXT[] DEFAULT NULL -- Filter by payment methods
 )
 RETURNS TABLE (
   transactions JSONB,
