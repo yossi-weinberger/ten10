@@ -1,46 +1,21 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { logger } from "@/lib/logger";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  flexRender,
-  SortingState,
-  ColumnDef,
-} from "@tanstack/react-table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PAYMENT_METHOD_KEYS } from "@/components/ui/payment-method-combobox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { deleteRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
-import { MoreHorizontal, Repeat, Infinity, InfoIcon } from "lucide-react";
+import { MoreHorizontal, InfoIcon } from "lucide-react";
 import { RecurringTransaction, TransactionType } from "@/types/transaction";
 import { recurringStatusBadgeColors } from "@/types/recurringTransactionLabels";
 import { typeBadgeColors } from "@/types/transactionLabels";
@@ -233,22 +208,26 @@ export function RecurringTransactionsTableDisplay() {
                       </TableCell>
                       <TableCell className="text-start">
                         {rec.payment_method
-                          ? tTransactions(
-                              `transactionForm.paymentMethod.options.${rec.payment_method}`,
-                              rec.payment_method
+                          ? PAYMENT_METHOD_KEYS.includes(
+                              rec.payment_method as (typeof PAYMENT_METHOD_KEYS)[number]
                             )
+                            ? tTransactions(
+                                `transactionForm.paymentMethod.options.${rec.payment_method}`,
+                                rec.payment_method
+                              )
+                            : rec.payment_method
                           : "-"}
                       </TableCell>
                       <TableCell className="text-center font-medium whitespace-nowrap">
-                        <CurrencyConversionInfo 
-                            amount={rec.amount} 
-                            currency={rec.currency}
-                            originalAmount={rec.original_amount}
-                            originalCurrency={rec.original_currency}
-                            conversionRate={rec.conversion_rate}
-                            conversionDate={rec.conversion_date}
-                            rateSource={rec.rate_source}
-                            mode="live"
+                        <CurrencyConversionInfo
+                          amount={rec.amount}
+                          currency={rec.currency}
+                          originalAmount={rec.original_amount}
+                          originalCurrency={rec.original_currency}
+                          conversionRate={rec.conversion_rate}
+                          conversionDate={rec.conversion_date}
+                          rateSource={rec.rate_source}
+                          mode="live"
                         />
                       </TableCell>
                       <TableCell className="text-center">

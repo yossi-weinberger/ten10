@@ -21,7 +21,7 @@ pub struct TransactionUpdatePayload {
     pub category: Option<String>,
     pub is_chomesh: Option<bool>,
     pub recipient: Option<String>,
-    pub payment_method: Option<String>,
+    pub payment_method: Option<Option<String>>,
     pub original_amount: Option<f64>,
     pub original_currency: Option<String>,
     pub conversion_rate: Option<f64>,
@@ -87,9 +87,9 @@ pub fn update_transaction_handler(
         set_clauses.push("recipient = ?".to_string());
         params_dynamic.push(Box::new(payload.recipient.clone()));
     }
-    if payload.payment_method.is_some() {
+    if let Some(payment_method_opt) = payload.payment_method {
         set_clauses.push("payment_method = ?".to_string());
-        params_dynamic.push(Box::new(payload.payment_method.clone()));
+        params_dynamic.push(Box::new(payment_method_opt));
     }
     if let Some(original_amount) = payload.original_amount {
         set_clauses.push("original_amount = ?".to_string());

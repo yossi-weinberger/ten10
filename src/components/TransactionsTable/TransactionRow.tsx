@@ -17,6 +17,7 @@ import { typeBadgeColors } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
 import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversionInfo";
+import { PAYMENT_METHOD_KEYS } from "@/components/ui/payment-method-combobox";
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
@@ -79,10 +80,14 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
       </TableCell>
       <TableCell className="text-center">
         {transaction.payment_method
-          ? tTransactions(
-              `transactionForm.paymentMethod.options.${transaction.payment_method}`,
-              transaction.payment_method
+          ? PAYMENT_METHOD_KEYS.includes(
+              transaction.payment_method as (typeof PAYMENT_METHOD_KEYS)[number]
             )
+            ? tTransactions(
+                `transactionForm.paymentMethod.options.${transaction.payment_method}`,
+                transaction.payment_method
+              )
+            : transaction.payment_method
           : "-"}
       </TableCell>
       <TableCell className="text-center whitespace-nowrap">
