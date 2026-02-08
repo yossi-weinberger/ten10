@@ -34,7 +34,10 @@ import {
   getPaymentMethodCacheVersion,
   getUserPaymentMethods,
 } from "@/lib/data-layer";
-import { PAYMENT_METHOD_KEYS } from "@/components/ui/payment-method-combobox";
+import {
+  PAYMENT_METHOD_KEYS,
+  PAYMENT_METHOD_PRIORITY,
+} from "@/components/ui/payment-method-combobox";
 
 const availableTransactionTypes: TransactionType[] = [
   "income",
@@ -232,25 +235,34 @@ export function TransactionsFilters() {
   );
 
   const predefinedPaymentMethods = React.useMemo(
-    () => PAYMENT_METHOD_KEYS.map((key) => key),
+    () => PAYMENT_METHOD_PRIORITY.map((key) => key),
     []
   );
 
   const allPaymentMethods = React.useMemo(() => {
-    const combined = [...predefinedPaymentMethods, ...userPaymentMethods];
     const dedupedMap = new Map<string, string>();
-    combined.forEach((item) => {
-      const key = item.toLowerCase();
-      if (!dedupedMap.has(key)) {
-        dedupedMap.set(key, item);
-      }
-    });
-    return Array.from(dedupedMap.values()).sort((a, b) =>
+    const sortedCustom = [...userPaymentMethods].sort((a, b) =>
       getPaymentMethodLabel(a).localeCompare(
         getPaymentMethodLabel(b),
         i18n.language
       )
     );
+
+    predefinedPaymentMethods.forEach((item) => {
+      const key = item.toLowerCase();
+      if (!dedupedMap.has(key)) {
+        dedupedMap.set(key, item);
+      }
+    });
+
+    sortedCustom.forEach((item) => {
+      const key = item.toLowerCase();
+      if (!dedupedMap.has(key)) {
+        dedupedMap.set(key, item);
+      }
+    });
+
+    return Array.from(dedupedMap.values());
   }, [
     predefinedPaymentMethods,
     userPaymentMethods,

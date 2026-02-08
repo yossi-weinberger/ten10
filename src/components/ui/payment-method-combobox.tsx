@@ -40,6 +40,17 @@ export const PAYMENT_METHOD_KEYS = [
   "other",
 ] as const;
 
+export const PAYMENT_METHOD_PRIORITY = [
+  "credit_card",
+  "cash",
+  "bank_transfer",
+  "debit_card",
+  "check",
+  "bit_paybox",
+  "paypal",
+  "other",
+] as const;
+
 type PaymentMethodKey = (typeof PAYMENT_METHOD_KEYS)[number];
 
 type PaymentMethodOption = {
@@ -69,7 +80,7 @@ export function PaymentMethodCombobox({
   );
 
   const getPredefinedMethods = React.useCallback((): PaymentMethodOption[] => {
-    return PAYMENT_METHOD_KEYS.map((key) => ({
+    return PAYMENT_METHOD_PRIORITY.map((key) => ({
       value: key,
       label: getLabelForKey(key),
     }));
@@ -115,19 +126,26 @@ export function PaymentMethodCombobox({
         : method,
     }));
 
-    const combined = [...predefined, ...userOptions];
     const dedupedMap = new Map<string, PaymentMethodOption>();
+    const sortedUserOptions = [...userOptions].sort((a, b) =>
+      a.label.localeCompare(b.label, i18n.language)
+    );
 
-    combined.forEach((item) => {
+    predefined.forEach((item) => {
       const key = item.value.toLowerCase();
       if (!dedupedMap.has(key)) {
         dedupedMap.set(key, item);
       }
     });
 
-    return Array.from(dedupedMap.values()).sort((a, b) =>
-      a.label.localeCompare(b.label, i18n.language)
-    );
+    sortedUserOptions.forEach((item) => {
+      const key = item.value.toLowerCase();
+      if (!dedupedMap.has(key)) {
+        dedupedMap.set(key, item);
+      }
+    });
+
+    return Array.from(dedupedMap.values());
   }, [getPredefinedMethods, userMethods, i18n.language]);
 
   const isNewValue =
@@ -179,7 +197,10 @@ export function PaymentMethodCombobox({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50 rtl:ml-0 rtl:mr-2" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+      <PopoverContent
+        className="w-[--radix-popover-trigger-width] p-0"
+        align="start"
+      >
         <Command shouldFilter={true}>
           <CommandInput
             placeholder={t(
@@ -210,8 +231,8 @@ export function PaymentMethodCombobox({
                         {t(
                           "transactionForm.paymentMethod.createNew",
                           "צור אפשרות חדשה"
-                        )}: {" "}
-                        <strong>"{searchValue.trim()}"</strong>
+                        )}
+                        : <strong>"{searchValue.trim()}"</strong>
                       </span>
                     </button>
                   ) : (
@@ -247,7 +268,8 @@ export function PaymentMethodCombobox({
                         {t(
                           "transactionForm.paymentMethod.createNew",
                           "צור אפשרות חדשה"
-                        )}: {" "}
+                        )}
+                        :{" "}
                         <strong className="ml-1 rtl:ml-0 rtl:mr-1">
                           "{searchValue.trim()}"
                         </strong>
