@@ -215,19 +215,26 @@ export function TransactionsFilters() {
     e.stopPropagation();
   };
 
-  const predefinedPaymentMethods = React.useMemo(() => {
-    const methods: string[] = [];
-    for (const key of PAYMENT_METHOD_KEYS) {
-      const translated = tTransactions(
-        `transactionForm.paymentMethod.options.${key}`,
-        ""
+  const getPaymentMethodLabel = React.useCallback(
+    (method: string) => {
+      const isPredefined = PAYMENT_METHOD_KEYS.includes(
+        method as (typeof PAYMENT_METHOD_KEYS)[number]
       );
-      if (translated) {
-        methods.push(translated);
+      if (!isPredefined) {
+        return method;
       }
-    }
-    return methods;
-  }, [tTransactions]);
+      return tTransactions(
+        `transactionForm.paymentMethod.options.${method}`,
+        method
+      );
+    },
+    [tTransactions]
+  );
+
+  const predefinedPaymentMethods = React.useMemo(
+    () => PAYMENT_METHOD_KEYS.map((key) => key),
+    []
+  );
 
   const allPaymentMethods = React.useMemo(() => {
     const combined = [...predefinedPaymentMethods, ...userPaymentMethods];
@@ -239,9 +246,17 @@ export function TransactionsFilters() {
       }
     });
     return Array.from(dedupedMap.values()).sort((a, b) =>
-      a.localeCompare(b, i18n.language)
+      getPaymentMethodLabel(a).localeCompare(
+        getPaymentMethodLabel(b),
+        i18n.language
+      )
     );
-  }, [predefinedPaymentMethods, userPaymentMethods, i18n.language]);
+  }, [
+    predefinedPaymentMethods,
+    userPaymentMethods,
+    i18n.language,
+    getPaymentMethodLabel,
+  ]);
 
   const handlePaymentMethodsOpenChange = async (open: boolean) => {
     setPaymentMethodsDropdownOpen(open);
@@ -261,6 +276,10 @@ export function TransactionsFilters() {
       }
     }
   };
+
+  const isRtl = i18n.dir(i18n.language) === "rtl";
+  const dropdownAlign = isRtl ? "end" : "start";
+  const dropdownDir = isRtl ? "rtl" : "ltr";
 
   return (
     <Card className="mb-4">
@@ -304,6 +323,7 @@ export function TransactionsFilters() {
               <DropdownMenu
                 open={typesDropdownOpen}
                 onOpenChange={setTypesDropdownOpen}
+                dir={dropdownDir}
               >
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-full justify-between">
@@ -321,7 +341,7 @@ export function TransactionsFilters() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   className="w-56"
-                  align="start"
+                  align={dropdownAlign}
                   onClick={stopPropagation}
                 >
                   <DropdownMenuLabel>
@@ -352,6 +372,7 @@ export function TransactionsFilters() {
               <DropdownMenu
                 open={paymentMethodsDropdownOpen}
                 onOpenChange={handlePaymentMethodsOpenChange}
+                dir={dropdownDir}
               >
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="w-full justify-between">
@@ -359,7 +380,7 @@ export function TransactionsFilters() {
                       {localPaymentMethods.length === 0
                         ? tTables("filters.paymentMethodPlaceholder")
                         : localPaymentMethods.length === 1
-                        ? localPaymentMethods[0]
+                        ? getPaymentMethodLabel(localPaymentMethods[0])
                         : tTables("filters.paymentMethodsSelected", {
                             count: localPaymentMethods.length,
                           })}
@@ -369,7 +390,7 @@ export function TransactionsFilters() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   className="w-56"
-                  align="start"
+                  align={dropdownAlign}
                   onClick={stopPropagation}
                 >
                   <DropdownMenuLabel>
@@ -385,7 +406,7 @@ export function TransactionsFilters() {
                       }
                       onClick={stopPropagation}
                     >
-                      {method}
+                      {getPaymentMethodLabel(method)}
                     </DropdownMenuCheckboxItem>
                   ))}
                 </DropdownMenuContent>
@@ -432,6 +453,7 @@ export function TransactionsFilters() {
                   <DropdownMenu
                     open={statusDropdownOpen}
                     onOpenChange={setStatusDropdownOpen}
+                    dir={dropdownDir}
                   >
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -451,6 +473,7 @@ export function TransactionsFilters() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       className="w-56"
+                      align={dropdownAlign}
                       onClick={stopPropagation}
                     >
                       <DropdownMenuLabel>

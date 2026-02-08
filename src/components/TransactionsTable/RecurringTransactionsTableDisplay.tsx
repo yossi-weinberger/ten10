@@ -66,6 +66,7 @@ import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversion
 
 export function RecurringTransactionsTableDisplay() {
   const { t, i18n } = useTranslation("data-tables");
+  const { t: tTransactions } = useTranslation("transactions");
   const { platform } = usePlatform();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
@@ -231,7 +232,12 @@ export function RecurringTransactionsTableDisplay() {
                         {rec.description || "-"}
                       </TableCell>
                       <TableCell className="text-start">
-                        {rec.payment_method || "-"}
+                        {rec.payment_method
+                          ? tTransactions(
+                              `transactionForm.paymentMethod.options.${rec.payment_method}`,
+                              rec.payment_method
+                            )
+                          : "-"}
                       </TableCell>
                       <TableCell className="text-center font-medium whitespace-nowrap">
                         <CurrencyConversionInfo 

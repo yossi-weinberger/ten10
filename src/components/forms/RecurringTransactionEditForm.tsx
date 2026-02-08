@@ -105,7 +105,7 @@ export function RecurringTransactionEditForm({
       const convertedAmount = Number((originalAmount * conversionRate).toFixed(2));
       
       submissionValues = {
-        ...values,
+        ...submissionValues,
         amount: convertedAmount,
         currency: defaultCurrency as CurrencyCode,
         original_amount: originalAmount,

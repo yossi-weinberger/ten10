@@ -40,6 +40,13 @@ export const PAYMENT_METHOD_KEYS = [
   "other",
 ] as const;
 
+type PaymentMethodKey = (typeof PAYMENT_METHOD_KEYS)[number];
+
+type PaymentMethodOption = {
+  value: string;
+  label: string;
+};
+
 export function PaymentMethodCombobox({
   value,
   onChange,
@@ -55,19 +62,18 @@ export function PaymentMethodCombobox({
     number | null
   >(null);
 
-  const getPredefinedMethods = React.useCallback((): string[] => {
-    const methods: string[] = [];
-    for (const key of PAYMENT_METHOD_KEYS) {
-      const translated = t(
-        `transactionForm.paymentMethod.options.${key}`,
-        ""
-      );
-      if (translated) {
-        methods.push(translated);
-      }
-    }
-    return methods;
-  }, [t]);
+  const getLabelForKey = React.useCallback(
+    (key: PaymentMethodKey) =>
+      t(`transactionForm.paymentMethod.options.${key}`, key),
+    [t]
+  );
+
+  const getPredefinedMethods = React.useCallback((): PaymentMethodOption[] => {
+    return PAYMENT_METHOD_KEYS.map((key) => ({
+      value: key,
+      label: getLabelForKey(key),
+    }));
+  }, [getLabelForKey]);
 
   const handleOpenChange = React.useCallback(
     async (newOpen: boolean) => {
@@ -100,27 +106,36 @@ export function PaymentMethodCombobox({
     setUserMethods([]);
   }, []);
 
-  const allMethods = React.useMemo(() => {
+  const allMethods = React.useMemo<PaymentMethodOption[]>(() => {
     const predefined = getPredefinedMethods();
-    const combined = [...predefined, ...userMethods];
-    const dedupedMap = new Map<string, string>();
+    const userOptions = userMethods.map((method) => ({
+      value: method,
+      label: PAYMENT_METHOD_KEYS.includes(method as PaymentMethodKey)
+        ? getLabelForKey(method as PaymentMethodKey)
+        : method,
+    }));
+
+    const combined = [...predefined, ...userOptions];
+    const dedupedMap = new Map<string, PaymentMethodOption>();
 
     combined.forEach((item) => {
-      const key = item.toLowerCase();
+      const key = item.value.toLowerCase();
       if (!dedupedMap.has(key)) {
         dedupedMap.set(key, item);
       }
     });
 
     return Array.from(dedupedMap.values()).sort((a, b) =>
-      a.localeCompare(b, i18n.language)
+      a.label.localeCompare(b.label, i18n.language)
     );
   }, [getPredefinedMethods, userMethods, i18n.language]);
 
   const isNewValue =
     searchValue.trim() !== "" &&
     !allMethods.some(
-      (method) => method.toLowerCase() === searchValue.trim().toLowerCase()
+      (method) =>
+        method.label.toLowerCase() === searchValue.trim().toLowerCase() ||
+        method.value.toLowerCase() === searchValue.trim().toLowerCase()
     );
 
   const handleSelect = (selectedValue: string) => {
@@ -141,6 +156,12 @@ export function PaymentMethodCombobox({
   const displayPlaceholder =
     placeholder || t("transactionForm.paymentMethod.placeholder");
 
+  const displayValue = value
+    ? PAYMENT_METHOD_KEYS.includes(value as PaymentMethodKey)
+      ? getLabelForKey(value as PaymentMethodKey)
+      : value
+    : displayPlaceholder;
+
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
@@ -154,7 +175,7 @@ export function PaymentMethodCombobox({
             !value && "text-muted-foreground"
           )}
         >
-          <span className="truncate">{value || displayPlaceholder}</span>
+          <span className="truncate">{displayValue}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50 rtl:ml-0 rtl:mr-2" />
         </Button>
       </PopoverTrigger>
@@ -203,17 +224,17 @@ export function PaymentMethodCombobox({
                 <CommandGroup>
                   {allMethods.map((method) => (
                     <CommandItem
-                      key={method}
-                      value={method}
-                      onSelect={() => handleSelect(method)}
+                      key={method.value}
+                      value={method.label}
+                      onSelect={() => handleSelect(method.value)}
                     >
                       <Check
                         className={cn(
                           "mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2",
-                          value === method ? "opacity-100" : "opacity-0"
+                          value === method.value ? "opacity-100" : "opacity-0"
                         )}
                       />
-                      {method}
+                      {method.label}
                     </CommandItem>
                   ))}
                 </CommandGroup>

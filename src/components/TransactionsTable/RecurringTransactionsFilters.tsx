@@ -20,7 +20,7 @@ import { transactionTypes } from "@/types/transaction";
 // Moved to translation files - no longer needed
 
 export function RecurringTransactionsFilters() {
-  const { t } = useTranslation("data-tables");
+  const { t, i18n } = useTranslation("data-tables");
   const { filters, setFilters, resetFilters } = useRecurringTableStore();
   const [localSearch, setLocalSearch] = useState(filters.search);
   const [localTypes, setLocalTypes] = useState<string[]>(filters.types);
@@ -75,6 +75,10 @@ export function RecurringTransactionsFilters() {
     e.stopPropagation();
   };
 
+  const isRtl = i18n.dir(i18n.language) === "rtl";
+  const dropdownAlign = isRtl ? "end" : "start";
+  const dropdownDir = isRtl ? "rtl" : "ltr";
+
   return (
     <Card className="mb-4">
       <CardHeader>
@@ -101,6 +105,7 @@ export function RecurringTransactionsFilters() {
             <DropdownMenu
               open={typesDropdownOpen}
               onOpenChange={setTypesDropdownOpen}
+              dir={dropdownDir}
             >
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
@@ -118,7 +123,7 @@ export function RecurringTransactionsFilters() {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 className="w-56"
-                align="start"
+                align={dropdownAlign}
                 onClick={stopPropagation}
               >
                 <DropdownMenuLabel>
@@ -148,6 +153,7 @@ export function RecurringTransactionsFilters() {
             <DropdownMenu
               open={statusDropdownOpen}
               onOpenChange={setStatusDropdownOpen}
+              dir={dropdownDir}
             >
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
@@ -165,7 +171,7 @@ export function RecurringTransactionsFilters() {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 className="w-56"
-                align="start"
+                align={dropdownAlign}
                 onClick={stopPropagation}
               >
                 <DropdownMenuLabel>{t("recurring.status")}</DropdownMenuLabel>
@@ -198,6 +204,7 @@ export function RecurringTransactionsFilters() {
             <DropdownMenu
               open={frequencyDropdownOpen}
               onOpenChange={setFrequencyDropdownOpen}
+              dir={dropdownDir}
             >
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
@@ -213,7 +220,7 @@ export function RecurringTransactionsFilters() {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 className="w-56"
-                align="start"
+                align={dropdownAlign}
                 onClick={stopPropagation}
               >
                 <DropdownMenuLabel>

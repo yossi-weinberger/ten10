@@ -34,6 +34,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   isFetchingRec,
 }) => {
   const { t } = useTranslation("data-tables");
+  const { t: tTransactions } = useTranslation("transactions");
 
   return (
     <TableRow key={transaction.id}>
@@ -77,7 +78,12 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
         {transaction.recipient || "-"}
       </TableCell>
       <TableCell className="text-center">
-        {transaction.payment_method || "-"}
+        {transaction.payment_method
+          ? tTransactions(
+              `transactionForm.paymentMethod.options.${transaction.payment_method}`,
+              transaction.payment_method
+            )
+          : "-"}
       </TableCell>
       <TableCell className="text-center whitespace-nowrap">
         {formatBoolean(transaction.is_chomesh)}
