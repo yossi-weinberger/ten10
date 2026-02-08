@@ -21,6 +21,7 @@ pub struct TransactionUpdatePayload {
     pub category: Option<String>,
     pub is_chomesh: Option<bool>,
     pub recipient: Option<String>,
+    pub payment_method: Option<String>,
     pub original_amount: Option<f64>,
     pub original_currency: Option<String>,
     pub conversion_rate: Option<f64>,
@@ -85,6 +86,10 @@ pub fn update_transaction_handler(
     if payload.recipient.is_some() {
         set_clauses.push("recipient = ?".to_string());
         params_dynamic.push(Box::new(payload.recipient.clone()));
+    }
+    if payload.payment_method.is_some() {
+        set_clauses.push("payment_method = ?".to_string());
+        params_dynamic.push(Box::new(payload.payment_method.clone()));
     }
     if let Some(original_amount) = payload.original_amount {
         set_clauses.push("original_amount = ?".to_string());
@@ -176,6 +181,7 @@ pub struct ExportFiltersPayload {
     date_from: Option<String>,
     date_to: Option<String>,
     types: Option<Vec<String>>,
+    payment_methods: Option<Vec<String>>,
     show_only: Option<String>,
     recurring_statuses: Option<Vec<String>>,
     recurring_frequencies: Option<Vec<String>>,
@@ -198,7 +204,7 @@ pub fn export_transactions_handler(
         SELECT 
             t.id, t.user_id, t.date, t.amount, t.currency, t.description, 
             t.type, t.category, t.is_chomesh, 
-            t.recipient, t.created_at, t.updated_at, t.source_recurring_id,
+            t.recipient, t.payment_method, t.created_at, t.updated_at, t.source_recurring_id,
             t.occurrence_number,
             t.original_amount, t.original_currency, t.conversion_rate, t.conversion_date, t.rate_source,
             rt.status as recurring_status,
@@ -218,7 +224,7 @@ pub fn export_transactions_handler(
 
     if let Some(search_term) = &filters.search {
         if !search_term.is_empty() {
-            where_clauses.push(format!("(LOWER(t.description) LIKE LOWER(?{0}) OR LOWER(t.category) LIKE LOWER(?{0}) OR LOWER(t.recipient) LIKE LOWER(?{0}))", current_param_idx));
+            where_clauses.push(format!("(LOWER(t.description) LIKE LOWER(?{0}) OR LOWER(t.category) LIKE LOWER(?{0}) OR LOWER(t.recipient) LIKE LOWER(?{0}) OR LOWER(t.payment_method) LIKE LOWER(?{0}))", current_param_idx));
             sql_params_dynamic.push(Box::new(format!("%{}%", search_term)));
             current_param_idx += 1;
         }
@@ -249,6 +255,22 @@ pub fn export_transactions_handler(
                 sql_params_dynamic.push(Box::new(t_type.clone()));
             }
             current_param_idx += types.len();
+        }
+    }
+
+    if let Some(payment_methods) = &filters.payment_methods {
+        if !payment_methods.is_empty() {
+            let placeholders: Vec<String> = (0..payment_methods.len())
+                .map(|i| format!("?{}", current_param_idx + i))
+                .collect();
+            where_clauses.push(format!(
+                "t.payment_method IN ({})",
+                placeholders.join(", ")
+            ));
+            for method in payment_methods {
+                sql_params_dynamic.push(Box::new(method.clone()));
+            }
+            current_param_idx += payment_methods.len();
         }
     }
 
@@ -347,6 +369,7 @@ pub struct TableFiltersPayload {
     date_from: Option<String>,
     date_to: Option<String>,
     types: Option<Vec<String>>,
+    payment_methods: Option<Vec<String>>,
     // Filters for recurring transactions
     show_only: Option<String>,
     recurring_statuses: Option<Vec<String>>,
@@ -400,7 +423,7 @@ pub fn get_filtered_transactions_handler(
         SELECT 
             t.id, t.user_id, t.date, t.amount, t.currency, t.description, 
             t.type, t.category, t.is_chomesh, 
-            t.recipient, t.created_at, t.updated_at, t.source_recurring_id,
+            t.recipient, t.payment_method, t.created_at, t.updated_at, t.source_recurring_id,
             t.occurrence_number,
             t.original_amount, t.original_currency, t.conversion_rate, t.conversion_date, t.rate_source,
             rt.status as recurring_status,
@@ -422,7 +445,7 @@ pub fn get_filtered_transactions_handler(
 
     if let Some(search_term) = &filters.search {
         if !search_term.is_empty() {
-            where_clauses.push(format!("(LOWER(t.description) LIKE LOWER(?{0}) OR LOWER(t.category) LIKE LOWER(?{0}) OR LOWER(t.recipient) LIKE LOWER(?{0}))", current_param_idx));
+            where_clauses.push(format!("(LOWER(t.description) LIKE LOWER(?{0}) OR LOWER(t.category) LIKE LOWER(?{0}) OR LOWER(t.recipient) LIKE LOWER(?{0}) OR LOWER(t.payment_method) LIKE LOWER(?{0}))", current_param_idx));
             sql_params_dynamic.push(Box::new(format!("%{}%", search_term)));
             current_param_idx += 1;
         }
@@ -453,6 +476,22 @@ pub fn get_filtered_transactions_handler(
                 sql_params_dynamic.push(Box::new(t_type.clone()));
             }
             current_param_idx += types.len();
+        }
+    }
+
+    if let Some(payment_methods) = &filters.payment_methods {
+        if !payment_methods.is_empty() {
+            let placeholders: Vec<String> = (0..payment_methods.len())
+                .map(|i| format!("?{}", current_param_idx + i))
+                .collect();
+            where_clauses.push(format!(
+                "t.payment_method IN ({})",
+                placeholders.join(", ")
+            ));
+            for method in payment_methods {
+                sql_params_dynamic.push(Box::new(method.clone()));
+            }
+            current_param_idx += payment_methods.len();
         }
     }
 
@@ -531,6 +570,7 @@ pub fn get_filtered_transactions_handler(
         "type" => "t.type",
         "category" => "t.category",
         "recipient" => "t.recipient",
+        "payment_method" => "t.payment_method",
         "is_chomesh" => "t.is_chomesh",
         "created_at" => "t.created_at",
         "updated_at" => "t.updated_at",
@@ -615,8 +655,8 @@ pub fn get_transactions_count(
 pub async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Result<(), String> {
     let conn = db.0.lock().map_err(|e| e.to_string())?;
     conn.execute(
-        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, created_at, updated_at, source_recurring_id, original_amount, original_currency, conversion_rate, conversion_date, rate_source)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18)",
+        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, payment_method, created_at, updated_at, source_recurring_id, original_amount, original_currency, conversion_rate, conversion_date, rate_source)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19)",
         params![
             &transaction.id,
             &transaction.user_id,
@@ -628,6 +668,7 @@ pub async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -
             &transaction.category,
             &transaction.is_chomesh.map(|b| b as i32),
             &transaction.recipient,
+            &transaction.payment_method,
             &transaction.created_at,
             &transaction.updated_at,
             &transaction.source_recurring_id,
@@ -734,4 +775,37 @@ pub fn get_distinct_categories(
     );
 
     Ok(categories)
+}
+
+/// Get distinct payment methods that the user has used.
+#[tauri::command]
+pub fn get_distinct_payment_methods(
+    db_state: State<'_, DbState>,
+) -> std::result::Result<Vec<String>, String> {
+    let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
+    let conn = &*conn_guard;
+
+    let query = "
+        SELECT DISTINCT payment_method
+        FROM transactions
+        WHERE payment_method IS NOT NULL AND payment_method != ''
+        ORDER BY payment_method
+    ";
+
+    let mut stmt = conn.prepare(query).map_err(|e| e.to_string())?;
+    let methods_iter = stmt
+        .query_map([], |row| row.get::<_, String>(0))
+        .map_err(|e| e.to_string())?;
+
+    let mut methods = Vec::new();
+    for method_result in methods_iter {
+        methods.push(method_result.map_err(|e| e.to_string())?);
+    }
+
+    println!(
+        "[Rust DEBUG] get_distinct_payment_methods: found {} methods",
+        methods.len()
+    );
+
+    Ok(methods)
 }

@@ -134,6 +134,10 @@ export function RecurringTransactionsTableDisplay() {
         label: t("columns.description"),
         field: "description" as SortableField,
       },
+      {
+        label: t("columns.paymentMethod"),
+        field: "payment_method" as SortableField,
+      },
       { label: t("columns.amount"), field: "amount" as SortableField },
       {
         label: t("recurringColumns.frequency"),
@@ -187,14 +191,14 @@ export function RecurringTransactionsTableDisplay() {
                 {loading &&
                   [...Array(5)].map((_, i) => (
                     <TableRow key={`skeleton-${i}`}>
-                      <TableCell colSpan={8}>
+                      <TableCell colSpan={9}>
                         <Skeleton className="h-6 w-full" />
                       </TableCell>
                     </TableRow>
                   ))}
                 {!loading && !error && recurring.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center">
+                    <TableCell colSpan={9} className="h-24 text-center">
                       {t("recurringTable.noData")}
                     </TableCell>
                   </TableRow>
@@ -202,7 +206,7 @@ export function RecurringTransactionsTableDisplay() {
                 {!loading && error && (
                   <TableRow>
                     <TableCell
-                      colSpan={8}
+                      colSpan={9}
                       className="h-24 text-center text-red-500"
                     >
                       {t("messages.loadingError", { error })}
@@ -225,6 +229,9 @@ export function RecurringTransactionsTableDisplay() {
                       </TableCell>
                       <TableCell className="text-start">
                         {rec.description || "-"}
+                      </TableCell>
+                      <TableCell className="text-start">
+                        {rec.payment_method || "-"}
                       </TableCell>
                       <TableCell className="text-center font-medium whitespace-nowrap">
                         <CurrencyConversionInfo 

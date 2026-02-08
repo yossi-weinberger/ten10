@@ -19,6 +19,7 @@ pub async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
             category TEXT,
             is_chomesh INTEGER,
             recipient TEXT,
+            payment_method TEXT,
             created_at TEXT,
             updated_at TEXT,
             original_amount REAL,
@@ -50,6 +51,7 @@ pub async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
             category TEXT,
             is_chomesh INTEGER,
             recipient TEXT,
+            payment_method TEXT,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
             original_amount REAL,
@@ -99,6 +101,14 @@ pub async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
     if !column_exists(&conn, "recurring_transactions", "rate_source").map_err(|e| e.to_string())? {
         conn.execute(
             "ALTER TABLE recurring_transactions ADD COLUMN rate_source TEXT",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    if !column_exists(&conn, "recurring_transactions", "payment_method").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE recurring_transactions ADD COLUMN payment_method TEXT",
             [],
         )
         .map_err(|e| e.to_string())?;
@@ -160,6 +170,14 @@ pub async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
     if !column_exists(&conn, "transactions", "rate_source").map_err(|e| e.to_string())? {
         conn.execute(
             "ALTER TABLE transactions ADD COLUMN rate_source TEXT",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    if !column_exists(&conn, "transactions", "payment_method").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE transactions ADD COLUMN payment_method TEXT",
             [],
         )
         .map_err(|e| e.to_string())?;

@@ -21,6 +21,8 @@ pub struct Transaction {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub recipient: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub payment_method: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub created_at: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub updated_at: Option<String>,
@@ -53,6 +55,7 @@ impl Transaction {
             category: row.get("category")?,
             is_chomesh: row.get::<_, Option<i64>>("is_chomesh")?.map(|v| v != 0),
             recipient: row.get("recipient")?,
+            payment_method: row.get("payment_method")?,
             created_at: row.get("created_at")?,
             updated_at: row.get("updated_at")?,
             source_recurring_id: row.get("source_recurring_id")?,
@@ -91,6 +94,8 @@ pub struct RecurringTransaction {
     pub is_chomesh: Option<bool>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub recipient: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub payment_method: Option<String>,
     pub created_at: String,
     pub updated_at: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -130,6 +135,7 @@ impl RecurringTransaction {
             category: row.get("category")?,
             is_chomesh: row.get::<_, Option<i32>>("is_chomesh")?.map(|v| v != 0),
             recipient: row.get("recipient")?,
+            payment_method: row.get("payment_method")?,
             created_at: row.get("created_at")?,
             updated_at: row.get("updated_at")?,
             original_amount,

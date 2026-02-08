@@ -37,6 +37,7 @@ interface GetFilteredTransactionsArgsPayload {
     dateFrom: string | null;
     dateTo: string | null;
     types: string[] | null;
+    paymentMethods: string[] | null;
     showOnly: string | null;
     recurringStatuses: string[] | null;
     recurringFrequencies: string[] | null;
@@ -49,16 +50,6 @@ interface GetFilteredTransactionsArgsPayload {
     field: string;
     direction: string;
   };
-}
-
-interface ExportTransactionsFiltersPayload {
-  search: string | null;
-  dateFrom: string | null;
-  dateTo: string | null;
-  types: string[] | null;
-  showOnly: string | null;
-  recurringStatuses: string[] | null;
-  recurringFrequencies: string[] | null;
 }
 
 export class TableTransactionsService {
@@ -95,6 +86,8 @@ export class TableTransactionsService {
             : null,
           p_types: filters.types.length > 0 ? filters.types : null,
           p_search: filters.search || null,
+          p_payment_methods:
+            filters.paymentMethods.length > 0 ? filters.paymentMethods : null,
           p_sort_field: sorting.field as string,
           p_sort_direction: sorting.direction,
           p_is_recurring:
@@ -185,6 +178,8 @@ export class TableTransactionsService {
               ? new Date(filters.dateRange.to).toISOString().split("T")[0]
               : null,
             types: filters.types.length > 0 ? filters.types : null,
+            paymentMethods:
+              filters.paymentMethods.length > 0 ? filters.paymentMethods : null,
             showOnly:
               filters.isRecurring === "all" ? null : filters.isRecurring,
             recurringStatuses:
@@ -239,7 +234,7 @@ export class TableTransactionsService {
   static async updateTransaction(
     id: string,
     updates: Partial<Transaction>,
-    platform: Platform
+    _platform: Platform
   ): Promise<void> {
     logger.log(
       `TableTransactionsService: updateTransaction for ID ${id} - delegating to dataService. Platform awareness is in dataService.`
@@ -267,7 +262,7 @@ export class TableTransactionsService {
 
   static async deleteTransaction(
     id: string,
-    platform: Platform
+    _platform: Platform
   ): Promise<void> {
     logger.log(
       `TableTransactionsService: deleteTransaction for ID ${id} - delegating to dataService. Platform awareness is in dataService.`

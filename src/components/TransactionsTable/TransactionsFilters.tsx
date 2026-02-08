@@ -30,6 +30,11 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { ListFilter } from "lucide-react";
+import {
+  getPaymentMethodCacheVersion,
+  getUserPaymentMethods,
+} from "@/lib/data-layer";
+import { PAYMENT_METHOD_KEYS } from "@/components/ui/payment-method-combobox";
 
 const availableTransactionTypes: TransactionType[] = [
   "income",
@@ -41,10 +46,11 @@ const availableTransactionTypes: TransactionType[] = [
   "initial_balance",
 ];
 
-// Moved to translation files - will use t() function
+// Moved to translation files - will use tTables() function
 
 export function TransactionsFilters() {
-  const { t } = useTranslation("data-tables");
+  const { t: tTables, i18n } = useTranslation("data-tables");
+  const { t: tTransactions } = useTranslation("transactions");
   const { platform } = usePlatform();
   const {
     storeFilters,
@@ -74,6 +80,9 @@ export function TransactionsFilters() {
       : undefined
   );
   const [localTypes, setLocalTypes] = useState<string[]>(storeFilters.types);
+  const [localPaymentMethods, setLocalPaymentMethods] = useState<string[]>(
+    storeFilters.paymentMethods ?? []
+  );
   const [localIsRecurring, setLocalIsRecurring] = useState<IsRecurringFilter>(
     storeFilters.isRecurring
   );
@@ -87,8 +96,14 @@ export function TransactionsFilters() {
 
   // Added state for dropdown visibility
   const [typesDropdownOpen, setTypesDropdownOpen] = useState(false);
+  const [paymentMethodsDropdownOpen, setPaymentMethodsDropdownOpen] =
+    useState(false);
   const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
   // const [frequencyDropdownOpen, setFrequencyDropdownOpen] = useState(false); // Commented out - frequency filter disabled
+
+  const [userPaymentMethods, setUserPaymentMethods] = useState<string[]>([]);
+  const [loadedPaymentMethodCacheVersion, setLoadedPaymentMethodCacheVersion] =
+    useState<number | null>(null);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -119,6 +134,14 @@ export function TransactionsFilters() {
       : localTypes.filter((t) => t !== type);
     setLocalTypes(newTypes);
     setStoreFilters({ types: newTypes });
+  };
+
+  const handlePaymentMethodChange = (method: string, checked: boolean) => {
+    const newMethods = checked
+      ? [...localPaymentMethods, method]
+      : localPaymentMethods.filter((m) => m !== method);
+    setLocalPaymentMethods(newMethods);
+    setStoreFilters({ paymentMethods: newMethods });
   };
 
   const handleIsRecurringChange = (value: IsRecurringFilter) => {
@@ -170,6 +193,7 @@ export function TransactionsFilters() {
         : undefined
     );
     setLocalTypes(initialTableTransactionFilters.types);
+    setLocalPaymentMethods(initialTableTransactionFilters.paymentMethods);
     setLocalIsRecurring(initialTableTransactionFilters.isRecurring);
     setLocalRecurringStatuses(initialTableTransactionFilters.recurringStatuses);
     // setLocalRecurringFrequencies( // Commented out - frequency filter disabled
@@ -191,6 +215,53 @@ export function TransactionsFilters() {
     e.stopPropagation();
   };
 
+  const predefinedPaymentMethods = React.useMemo(() => {
+    const methods: string[] = [];
+    for (const key of PAYMENT_METHOD_KEYS) {
+      const translated = tTransactions(
+        `transactionForm.paymentMethod.options.${key}`,
+        ""
+      );
+      if (translated) {
+        methods.push(translated);
+      }
+    }
+    return methods;
+  }, [tTransactions]);
+
+  const allPaymentMethods = React.useMemo(() => {
+    const combined = [...predefinedPaymentMethods, ...userPaymentMethods];
+    const dedupedMap = new Map<string, string>();
+    combined.forEach((item) => {
+      const key = item.toLowerCase();
+      if (!dedupedMap.has(key)) {
+        dedupedMap.set(key, item);
+      }
+    });
+    return Array.from(dedupedMap.values()).sort((a, b) =>
+      a.localeCompare(b, i18n.language)
+    );
+  }, [predefinedPaymentMethods, userPaymentMethods, i18n.language]);
+
+  const handlePaymentMethodsOpenChange = async (open: boolean) => {
+    setPaymentMethodsDropdownOpen(open);
+    if (!open) return;
+
+    const currentCacheVersion = getPaymentMethodCacheVersion();
+    if (
+      loadedPaymentMethodCacheVersion === null ||
+      loadedPaymentMethodCacheVersion !== currentCacheVersion
+    ) {
+      try {
+        const methods = await getUserPaymentMethods();
+        setUserPaymentMethods(methods);
+        setLoadedPaymentMethodCacheVersion(currentCacheVersion);
+      } catch {
+        // Silent fail: filtering should still work with predefined methods
+      }
+    }
+  };
+
   return (
     <Card className="mb-4">
       <CardContent className="p-4">
@@ -203,11 +274,11 @@ export function TransactionsFilters() {
                 htmlFor="search"
                 className="mb-2 block text-sm font-medium"
               >
-                {t("filters.freeSearch")}
+                {tTables("filters.freeSearch")}
               </Label>
               <Input
                 id="search"
-                placeholder={t("filters.searchPlaceholder")}
+                placeholder={tTables("filters.searchPlaceholder")}
                 value={localSearch}
                 onChange={(e) => setLocalSearch(e.target.value)}
                 className="w-full"
@@ -217,7 +288,7 @@ export function TransactionsFilters() {
             {/* Date Range */}
             <div className="flex-grow sm:flex-grow-0 sm:w-auto">
               <Label className="mb-2 block text-sm font-medium">
-                {t("filters.dateRange")}
+                {tTables("filters.dateRange")}
               </Label>
               <DatePickerWithRange
                 date={localDateRange}
@@ -228,7 +299,7 @@ export function TransactionsFilters() {
             {/* Transaction Types */}
             <div className="flex-grow sm:flex-grow-0 sm:w-auto">
               <Label className="mb-2 block text-sm font-medium">
-                {t("filters.transactionTypes")}
+                {tTables("filters.transactionTypes")}
               </Label>
               <DropdownMenu
                 open={typesDropdownOpen}
@@ -238,10 +309,10 @@ export function TransactionsFilters() {
                   <Button variant="outline" className="w-full justify-between">
                     <span>
                       {localTypes.length === 0
-                        ? t("filters.allTypes")
+                        ? tTables("filters.allTypes")
                         : localTypes.length === 1
-                        ? t(`types.${localTypes[0]}`)
-                        : t("filters.typesSelected", {
+                        ? tTables(`types.${localTypes[0]}`)
+                        : tTables("filters.typesSelected", {
                             count: localTypes.length,
                           })}
                     </span>
@@ -254,7 +325,7 @@ export function TransactionsFilters() {
                   onClick={stopPropagation}
                 >
                   <DropdownMenuLabel>
-                    {t("filters.selectTransactionTypes")}
+                    {tTables("filters.selectTransactionTypes")}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   {availableTransactionTypes.map((type) => (
@@ -266,7 +337,55 @@ export function TransactionsFilters() {
                       }
                       onClick={stopPropagation} // Prevent closing
                     >
-                      {t(`types.${type}`)}
+                      {tTables(`types.${type}`)}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Payment Method */}
+            <div className="flex-grow sm:flex-grow-0 sm:w-auto">
+              <Label className="mb-2 block text-sm font-medium">
+                {tTables("filters.paymentMethod")}
+              </Label>
+              <DropdownMenu
+                open={paymentMethodsDropdownOpen}
+                onOpenChange={handlePaymentMethodsOpenChange}
+              >
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between">
+                    <span>
+                      {localPaymentMethods.length === 0
+                        ? tTables("filters.paymentMethodPlaceholder")
+                        : localPaymentMethods.length === 1
+                        ? localPaymentMethods[0]
+                        : tTables("filters.paymentMethodsSelected", {
+                            count: localPaymentMethods.length,
+                          })}
+                    </span>
+                    <ListFilter className="ml-2 h-4 w-4 opacity-50" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="w-56"
+                  align="start"
+                  onClick={stopPropagation}
+                >
+                  <DropdownMenuLabel>
+                    {tTables("filters.selectPaymentMethods")}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {allPaymentMethods.map((method) => (
+                    <DropdownMenuCheckboxItem
+                      key={method}
+                      checked={localPaymentMethods.includes(method)}
+                      onCheckedChange={(checked) =>
+                        handlePaymentMethodChange(method, !!checked)
+                      }
+                      onClick={stopPropagation}
+                    >
+                      {method}
                     </DropdownMenuCheckboxItem>
                   ))}
                 </DropdownMenuContent>
@@ -276,7 +395,7 @@ export function TransactionsFilters() {
             {/* Recurring Filter */}
             <div className="flex-grow sm:flex-grow-0 sm:w-auto">
               <Label className="mb-2 block text-sm font-medium">
-                {t("filters.recurringTransactions")}
+                {tTables("filters.recurringTransactions")}
               </Label>
               <Select
                 value={localIsRecurring}
@@ -285,16 +404,16 @@ export function TransactionsFilters() {
               >
                 <SelectTrigger className="w-full">
                   <SelectValue
-                    placeholder={t("filters.filterRecurringPlaceholder")}
+                    placeholder={tTables("filters.filterRecurringPlaceholder")}
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{t("filters.all")}</SelectItem>
+                  <SelectItem value="all">{tTables("filters.all")}</SelectItem>
                   <SelectItem value="recurring">
-                    {t("filters.recurringOnly")}
+                    {tTables("filters.recurringOnly")}
                   </SelectItem>
                   <SelectItem value="regular">
-                    {t("filters.regularOnly")}
+                    {tTables("filters.regularOnly")}
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -308,7 +427,7 @@ export function TransactionsFilters() {
                 {/* Recurring Status */}
                 <div className="flex-grow sm:flex-grow-0 sm:w-auto">
                   <Label className="mb-2 block text-sm font-medium">
-                    {t("filters.recurringStatus")}
+                    {tTables("filters.recurringStatus")}
                   </Label>
                   <DropdownMenu
                     open={statusDropdownOpen}
@@ -322,8 +441,8 @@ export function TransactionsFilters() {
                       >
                         <span>
                           {localRecurringStatuses.length === 0
-                            ? t("filters.allStatuses")
-                            : t("filters.statusesSelected", {
+                            ? tTables("filters.allStatuses")
+                            : tTables("filters.statusesSelected", {
                                 count: localRecurringStatuses.length,
                               })}
                         </span>
@@ -335,7 +454,7 @@ export function TransactionsFilters() {
                       onClick={stopPropagation}
                     >
                       <DropdownMenuLabel>
-                        {t("filters.filterByStatus")}
+                        {tTables("filters.filterByStatus")}
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       {["active", "paused", "completed", "cancelled"].map(
@@ -348,7 +467,7 @@ export function TransactionsFilters() {
                             }
                             onClick={stopPropagation} // Prevent closing
                           >
-                            {t(`recurring.statuses.${value}`)}
+                            {tTables(`recurring.statuses.${value}`)}
                           </DropdownMenuCheckboxItem>
                         )
                       )}
@@ -360,7 +479,7 @@ export function TransactionsFilters() {
                 {/* 
                 <div className="flex-grow sm:flex-grow-0 sm:w-auto">
                   <Label className="mb-2 block text-sm font-medium">
-                    {t("filters.recurringFrequency")}
+                    {tTables("filters.recurringFrequency")}
                   </Label>
                   <DropdownMenu
                     open={frequencyDropdownOpen}
@@ -374,8 +493,8 @@ export function TransactionsFilters() {
                       >
                         <span>
                           {localRecurringFrequencies.length === 0
-                            ? t("filters.allFrequencies")
-                            : t("filters.frequenciesSelected", {
+                            ? tTables("filters.allFrequencies")
+                            : tTables("filters.frequenciesSelected", {
                                 count: localRecurringFrequencies.length,
                               })}
                         </span>
@@ -387,7 +506,7 @@ export function TransactionsFilters() {
                       onClick={stopPropagation}
                     >
                       <DropdownMenuLabel>
-                        {t("filters.filterByFrequency")}
+                        {tTables("filters.filterByFrequency")}
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
                       {["daily", "weekly", "monthly", "yearly"].map((value) => (
@@ -399,7 +518,7 @@ export function TransactionsFilters() {
                           }
                           onClick={stopPropagation} // Prevent closing
                         >
-                          {t(`recurring.frequencies.${value}`)}
+                          {tTables(`recurring.frequencies.${value}`)}
                         </DropdownMenuCheckboxItem>
                       ))}
                     </DropdownMenuContent>
@@ -416,7 +535,7 @@ export function TransactionsFilters() {
                 variant="outline"
                 className="w-full"
               >
-                {t("filters.resetFilters")}
+                {tTables("filters.resetFilters")}
               </Button>
             </div>
           </div>

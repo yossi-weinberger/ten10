@@ -232,6 +232,7 @@ export const RecurringTransactionsService = {
               category: rec.category || null,
               is_chomesh: rec.is_chomesh || null,
               recipient: rec.recipient || null,
+              payment_method: rec.payment_method || null,
               source_recurring_id: rec.id,
               execution_count: executionCount + 1,
               occurrence_number: executionCount + 1,

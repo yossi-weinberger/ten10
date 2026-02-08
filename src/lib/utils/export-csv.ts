@@ -41,6 +41,10 @@ export function exportTransactionsToCSV(
     i18n.t("columns.description", { lng: currentLanguage, ns: "data-tables" }),
     i18n.t("columns.category", { lng: currentLanguage, ns: "data-tables" }),
     i18n.t("columns.recipient", { lng: currentLanguage, ns: "data-tables" }),
+    i18n.t("columns.paymentMethod", {
+      lng: currentLanguage,
+      ns: "data-tables",
+    }),
     i18n.t("columns.amount", { lng: currentLanguage, ns: "data-tables" }),
     i18n.t("columns.currency", { lng: currentLanguage, ns: "data-tables" }),
     i18n.t("columns.chomesh", { lng: currentLanguage, ns: "data-tables" }),
@@ -100,6 +104,7 @@ export function exportTransactionsToCSV(
         transaction.description || "",
         transaction.category || "",
         transaction.recipient || "",
+        transaction.payment_method || "",
         transaction.amount,
         transaction.currency,
         transaction.is_chomesh

@@ -20,6 +20,7 @@ interface RecurringTableHeaderProps {
 function getAlignmentClass(field: SortableField): string {
   switch (field) {
     case "description":
+    case "payment_method":
       return "text-start";
     case "type":
     case "amount":

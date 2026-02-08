@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { logger } from "@/lib/logger";
 import { useTranslation } from "react-i18next";
@@ -32,6 +32,7 @@ import { CurrencyPicker } from "@/components/ui/CurrencyPicker";
 import { CurrencyConversionSection } from "./transaction-form-parts/CurrencyConversionSection";
 import { CategoryCombobox } from "@/components/ui/category-combobox";
 import { useDonationStore } from "@/lib/store";
+import { PaymentMethodCombobox } from "@/components/ui/payment-method-combobox";
 
 interface RecurringTransactionEditFormProps {
   initialData: RecurringTransaction;
@@ -54,7 +55,7 @@ export function RecurringTransactionEditForm({
   const recurringSchema = useMemo(() => createRecurringEditSchema(t), [t]);
 
   const form = useForm<RecurringEditFormValues>({
-    resolver: zodResolver(recurringSchema),
+    resolver: zodResolver(recurringSchema) as Resolver<RecurringEditFormValues>,
     mode: "onChange",
     defaultValues: {
       // Handle converted transactions: show original values in form
@@ -62,6 +63,7 @@ export function RecurringTransactionEditForm({
       currency: (initialData.original_currency as CurrencyCode) ?? initialData.currency,
       description: initialData.description ?? "",
       category: initialData.category ?? "",
+      payment_method: initialData.payment_method ?? "",
       status: initialData.status,
       total_occurrences: initialData.total_occurrences,
       day_of_month: initialData.day_of_month,
@@ -83,6 +85,11 @@ export function RecurringTransactionEditForm({
     
     // Handle Currency Conversion Logic
     let submissionValues = { ...values };
+    const normalizedPaymentMethod =
+      values.payment_method && values.payment_method.trim() !== ""
+        ? values.payment_method.trim()
+        : null;
+    submissionValues.payment_method = normalizedPaymentMethod;
     
     if (values.currency !== defaultCurrency) {
       // Foreign currency - conversion is REQUIRED
@@ -267,6 +274,27 @@ export function RecurringTransactionEditForm({
                     )}
                   </SelectContent>
                 </Select>
+                <div className="h-5">
+                  <FormMessage />
+                </div>
+              </FormItem>
+            )}
+          />
+
+          {/* Payment Method */}
+          <FormField
+            control={form.control}
+            name="payment_method"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("transactionForm.paymentMethod.label")}</FormLabel>
+                <FormControl>
+                  <PaymentMethodCombobox
+                    value={field.value ?? null}
+                    onChange={(value) => field.onChange(value)}
+                    placeholder={t("transactionForm.paymentMethod.placeholder")}
+                  />
+                </FormControl>
                 <div className="h-5">
                   <FormMessage />
                 </div>

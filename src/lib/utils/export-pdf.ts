@@ -424,19 +424,21 @@ export async function exportTransactionsToPDF(
       i18n.t("export.pdf.columns.details", { lng: currentLanguage }),
       i18n.t("export.pdf.columns.category", { lng: currentLanguage }),
       i18n.t("export.pdf.columns.recipient", { lng: currentLanguage }),
+      i18n.t("export.pdf.columns.paymentMethod", { lng: currentLanguage }),
       i18n.t("export.pdf.columns.chomesh", { lng: currentLanguage }),
       i18n.t("export.pdf.columns.recurring", { lng: currentLanguage }),
     ];
 
     const columnWidths = [
       50, // Date
-      70, // Type
+      65, // Type
       55, // Amount
-      135, // Details
-      65, // Category
-      65, // Recipient
+      115, // Details
+      55, // Category
+      55, // Recipient
+      60, // Payment Method
       35, // Chomesh
-      80, // Recurring
+      65, // Recurring
     ];
 
     const drawTableHeader = (yPos: number) => {
@@ -652,6 +654,7 @@ export async function exportTransactionsToPDF(
         t.description || "-",
         t.category || "-",
         t.recipient || "-",
+        t.payment_method || "-",
         isChomesh ? "YES" : "", // Placeholder for drawing function
         recurringStatusText,
       ];
@@ -693,7 +696,7 @@ export async function exportTransactionsToPDF(
             size: fontSize - 1,
             color: badgeTextColor,
           });
-        } else if (i === 6) {
+        } else if (i === 7) {
           // CHOMESH
           const iconCenterX = isRtl
             ? cellX - colWidth + colWidth / 2

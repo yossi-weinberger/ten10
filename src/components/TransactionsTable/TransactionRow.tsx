@@ -1,11 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Currency,
-  Transaction,
-  TransactionForTable,
-  TransactionType,
-} from "@/types/transaction";
+import { Transaction, TransactionForTable, TransactionType } from "@/types/transaction";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -80,6 +75,9 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
       </TableCell>
       <TableCell className="text-center">
         {transaction.recipient || "-"}
+      </TableCell>
+      <TableCell className="text-center">
+        {transaction.payment_method || "-"}
       </TableCell>
       <TableCell className="text-center whitespace-nowrap">
         {formatBoolean(transaction.is_chomesh)}

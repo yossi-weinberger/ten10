@@ -69,6 +69,14 @@ export async function exportTransactionsToExcel(
       width: 20,
     },
     {
+      header: i18n.t("columns.paymentMethod", {
+        lng: currentLanguage,
+        ns: "data-tables",
+      }),
+      key: "payment_method",
+      width: 18,
+    },
+    {
       header: i18n.t("columns.chomesh", {
         lng: currentLanguage,
         ns: "data-tables",
@@ -134,6 +142,7 @@ export async function exportTransactionsToExcel(
       amount: transaction.amount,
       description: transaction.description || "",
       category: transaction.category || "",
+      payment_method: transaction.payment_method || "",
       is_chomesh:
         transaction.type === "income"
           ? transaction.is_chomesh
@@ -175,6 +184,7 @@ export async function exportTransactionsToExcel(
     "type",
     "description",
     "category",
+    "payment_method",
     "is_chomesh",
     "is_recurring",
     "recurring_status",

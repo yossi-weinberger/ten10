@@ -134,6 +134,15 @@ export const createTransactionFormSchema = (t: TFunction) =>
             "transactions:transactionForm.validation.recipient.maxLength"
           ),
         }),
+      payment_method: z
+        .string()
+        .optional()
+        .nullable()
+        .refine((val) => !val || val.length <= 50, {
+          message: t(
+            "transactions:transactionForm.validation.paymentMethod.maxLength"
+          ),
+        }),
       isExempt: z.boolean().default(false),
       isRecognized: z.boolean().default(false),
       isFromPersonalFunds: z.boolean().default(false),
@@ -272,6 +281,15 @@ export const createRecurringEditSchema = (t: TFunction) =>
       .refine((val) => !val || val.length <= 50, {
         message: t(
           "transactions:transactionForm.validation.category.maxLength"
+        ),
+      }),
+    payment_method: z
+      .string()
+      .optional()
+      .nullable()
+      .refine((val) => !val || val.length <= 50, {
+        message: t(
+          "transactions:transactionForm.validation.paymentMethod.maxLength"
         ),
       }),
     status: z.enum(["active", "paused", "completed", "cancelled"]),
