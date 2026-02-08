@@ -53,7 +53,7 @@ export function RecurringTransactionsFilters() {
 
   const handleTypeChange = (type: string, checked: boolean) => {
     const newTypes = checked
-      ? [...localTypes, type]
+      ? Array.from(new Set([...localTypes, type]))
       : localTypes.filter((t) => t !== type);
     setLocalTypes(newTypes);
     setFilters({ types: newTypes });
@@ -61,7 +61,7 @@ export function RecurringTransactionsFilters() {
 
   const handleFrequencyChange = (frequency: string, checked: boolean) => {
     const newFrequencies = checked
-      ? [...localFrequencies, frequency]
+      ? Array.from(new Set([...localFrequencies, frequency]))
       : localFrequencies.filter((f) => f !== frequency);
     setLocalFrequencies(newFrequencies);
     setFilters({ frequencies: newFrequencies });
@@ -183,7 +183,7 @@ export function RecurringTransactionsFilters() {
                       checked={filters.statuses.includes(status)}
                       onCheckedChange={(checked) => {
                         const newSelection = checked
-                          ? [...filters.statuses, status]
+                          ? Array.from(new Set([...filters.statuses, status]))
                           : filters.statuses.filter((s) => s !== status);
                         handleStatusChange(newSelection);
                       }}

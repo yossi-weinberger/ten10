@@ -133,7 +133,7 @@ export function TransactionsFilters() {
 
   const handleTypeChange = (type: TransactionType, checked: boolean) => {
     const newTypes = checked
-      ? [...localTypes, type]
+      ? Array.from(new Set([...localTypes, type]))
       : localTypes.filter((t) => t !== type);
     setLocalTypes(newTypes);
     setStoreFilters({ types: newTypes });
@@ -141,7 +141,7 @@ export function TransactionsFilters() {
 
   const handlePaymentMethodChange = (method: string, checked: boolean) => {
     const newMethods = checked
-      ? [...localPaymentMethods, method]
+      ? Array.from(new Set([...localPaymentMethods, method]))
       : localPaymentMethods.filter((m) => m !== method);
     setLocalPaymentMethods(newMethods);
     setStoreFilters({ paymentMethods: newMethods });
@@ -162,7 +162,7 @@ export function TransactionsFilters() {
 
   const handleRecurringStatusChange = (status: string, checked: boolean) => {
     const newStatuses = checked
-      ? [...localRecurringStatuses, status]
+      ? Array.from(new Set([...localRecurringStatuses, status]))
       : localRecurringStatuses.filter((s) => s !== status);
     setLocalRecurringStatuses(newStatuses);
     setStoreFilters({ recurringStatuses: newStatuses });
