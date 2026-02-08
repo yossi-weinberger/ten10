@@ -348,7 +348,7 @@ export function TransactionsFilters() {
                             count: localTypes.length,
                           })}
                     </span>
-                    <ListFilter className="ml-2 h-4 w-4 opacity-50" />
+                    <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -397,7 +397,7 @@ export function TransactionsFilters() {
                             count: localPaymentMethods.length,
                           })}
                     </span>
-                    <ListFilter className="ml-2 h-4 w-4 opacity-50" />
+                    <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
@@ -480,7 +480,7 @@ export function TransactionsFilters() {
                                 count: localRecurringStatuses.length,
                               })}
                         </span>
-                        <ListFilter className="ml-2 h-4 w-4 opacity-50" />
+                        <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
@@ -533,7 +533,7 @@ export function TransactionsFilters() {
                                 count: localRecurringFrequencies.length,
                               })}
                         </span>
-                        <ListFilter className="ml-2 h-4 w-4 opacity-50" />
+                        <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent

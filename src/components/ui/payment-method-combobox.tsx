@@ -223,7 +223,11 @@ export function PaymentMethodCombobox({
                 <CommandEmpty>
                   {isNewValue ? (
                     <button
-                      onClick={handleCreateNew}
+                      type="button"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        handleCreateNew();
+                      }}
                       className="flex w-full items-center justify-center gap-2 px-2 py-1.5 text-sm hover:bg-accent rounded-sm cursor-pointer"
                     >
                       <Plus className="h-4 w-4" />

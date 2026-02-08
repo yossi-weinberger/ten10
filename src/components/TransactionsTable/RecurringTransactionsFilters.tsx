@@ -118,7 +118,7 @@ export function RecurringTransactionsFilters() {
                           count: localTypes.length,
                         })}
                   </span>
-                  <ListFilter className="ml-2 h-4 w-4 opacity-50" />
+                  <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -166,7 +166,7 @@ export function RecurringTransactionsFilters() {
                           count: filters.statuses.length,
                         })}
                   </span>
-                  <ListFilter className="ml-2 h-4 w-4 opacity-50" />
+                  <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -215,7 +215,7 @@ export function RecurringTransactionsFilters() {
                           count: localFrequencies.length,
                         })}
                   </span>
-                  <ListFilter className="ml-2 h-4 w-4 opacity-50" />
+                  <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
