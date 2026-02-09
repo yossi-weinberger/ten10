@@ -18,7 +18,7 @@
   It uses CSS custom properties (variables) that are mapped to Tailwind CSS utility classes.
   
   Key Concepts:
-  - OKLCH Color Space: We use OKLCH for perceptual uniformity. Format: `lightness chroma hue`
+  - HSL Color Space: Theme variables use HSL (H S% L%) for broad browser support. Tailwind consumes them via hsl(var(--name) / <alpha-value>).
   - Theming: Supports both 'light' and 'dark' modes via CSS classes and data attributes.
   - Animation: Custom keyframes for complex UI interactions (float, pulse, shimmer).
 */
@@ -243,45 +243,45 @@ html {
       (such as scrollbars, input fields, and buttons), ensuring they match the light theme.
     */
     color-scheme: light;
-    /* Neutrals */
-    --background: 0.99 0.01 95;
-    --foreground: 0.2 0.02 95;
+    /* Neutrals (HSL for broad browser support) */
+    --background: 48 79% 98%;
+    --foreground: 47 37% 7%;
 
-    --card: 0.98 0.01 95;
-    --card-foreground: 0.2 0.02 95;
+    --card: 48 50% 96%;
+    --card-foreground: 47 37% 7%;
 
-    --popover: 0.99 0.01 95;
-    --popover-foreground: 0.2 0.02 95;
+    --popover: 48 79% 98%;
+    --popover-foreground: 47 37% 7%;
 
-    --muted: 0.94 0.01 95;
-    --muted-foreground: 0.55 0.02 95;
+    --muted: 48 20% 91%;
+    --muted-foreground: 48 8% 43%;
 
-    --border: 0.9 0.01 95;
-    --input: 0.92 0.01 95;
+    --border: 48 13% 86%;
+    --input: 48 16% 89%;
 
     /* Brand */
-    --primary: 0.4686 0.0751 198.61; /* Logo teal (was: 0.64 0.15 155) */
-    --primary-foreground: 0.99 0.01 95;
+    --primary: 182 73% 24%; /* Logo teal */
+    --primary-foreground: 48 79% 98%;
 
-    --secondary: 0.9 0.04 155; /* Soft Green */
-    --secondary-foreground: 0.3 0.04 155;
+    --secondary: 138 36% 85%; /* Soft Green */
+    --secondary-foreground: 141 29% 16%;
 
-    --accent: 0.8267 0.168963 90.4589; /* Logo gold (was: 0.78 0.11 85) */
-    --accent-foreground: 0.28 0.04 85;
+    --accent: 48 100% 47%; /* Logo gold */
+    --accent-foreground: 41 51% 13%;
 
-    --destructive: 0.57 0.2 23; /* Red */
-    --destructive-foreground: 0.99 0.01 95;
+    --destructive: 356 66% 51%; /* Red */
+    --destructive-foreground: 48 79% 98%;
 
-    --success: 0.62 0.13 145; /* Success */
-    --success-foreground: 0.99 0.01 95;
+    --success: 124 33% 45%; /* Success */
+    --success-foreground: 48 79% 98%;
 
-    --warning: 0.7 0.15 90; /* Yellow/Orange */
-    --warning-foreground: 0.24 0.04 90;
+    --warning: 49 100% 33%; /* Yellow/Orange */
+    --warning-foreground: 44 72% 9%;
 
-    --info: 0.64 0.14 220; /* Blue Info */
-    --info-foreground: 0.99 0.01 95;
+    --info: 189 100% 27%; /* Blue Info */
+    --info-foreground: 48 79% 98%;
 
-    --ring: 0.4686 0.0751 198.61; /* Matches primary (was: 0.64 0.15 155) */
+    --ring: 182 73% 24%; /* Matches primary */
 
     --radius: 0.5rem;
 
@@ -361,45 +361,45 @@ html {
   .dark,
   [data-theme="ten10-emerald-dark"] {
     color-scheme: dark;
-    /* Neutrals – Dark, slightly warm */
-    --background: 0.15 0.02 95;
-    --foreground: 0.96 0.01 95;
+    /* Neutrals – Dark, slightly warm (HSL) */
+    --background: 45 63% 3%;
+    --foreground: 48 29% 94%;
 
-    --card: 0.2 0.02 95;
-    --card-foreground: 0.96 0.01 95;
+    --card: 47 37% 7%;
+    --card-foreground: 48 29% 94%;
 
-    --popover: 0.22 0.02 95;
-    --popover-foreground: 0.96 0.01 95;
+    --popover: 47 30% 9%;
+    --popover-foreground: 48 29% 94%;
 
-    --muted: 0.26 0.02 95;
-    --muted-foreground: 0.8 0.02 95;
+    --muted: 47 22% 13%;
+    --muted-foreground: 48 13% 72%;
 
-    --border: 0.32 0.02 95;
-    --input: 0.3 0.02 95;
+    --border: 47 16% 18%;
+    --input: 47 17% 16%;
 
     /* Brand */
-    --primary: 0.72 0.0751 198.61; /* Logo teal (brighter for dark mode) (was: 0.7 0.15 155) */
-    --primary-foreground: 0.12 0.02 198.61; /* (was: 0.12 0.02 155) */
+    --primary: 182 35% 56%; /* Logo teal (brighter for dark mode) */
+    --primary-foreground: 184 97% 2%;
 
-    --secondary: 0.28 0.05 155; /* Dark Green */
-    --secondary-foreground: 0.9 0.02 155;
+    --secondary: 144 47% 13%; /* Dark Green */
+    --secondary-foreground: 137 19% 86%;
 
-    --accent: 0.8267 0.168963 90.4589; /* Logo gold (was: 0.78 0.11 85) */
-    --accent-foreground: 0.2 0.04 85;
+    --accent: 48 100% 47%; /* Logo gold */
+    --accent-foreground: 40 97% 6%;
 
-    --destructive: 0.62 0.21 23;
-    --destructive-foreground: 0.99 0.01 95;
+    --destructive: 356 80% 57%;
+    --destructive-foreground: 48 79% 98%;
 
-    --success: 0.68 0.14 145;
-    --success-foreground: 0.12 0.02 145;
+    --success: 123 34% 52%;
+    --success-foreground: 122 48% 2%;
 
-    --warning: 0.76 0.16 90;
-    --warning-foreground: 0.22 0.04 90;
+    --warning: 49 100% 38%;
+    --warning-foreground: 44 84% 7%;
 
-    --info: 0.7 0.15 220;
-    --info-foreground: 0.1 0.02 220;
+    --info: 189 100% 31%;
+    --info-foreground: 201 100% 1%;
 
-    --ring: 0.72 0.0751 198.61; /* Matches primary (was: 0.7 0.15 155) */
+    --ring: 182 35% 56%; /* Matches primary */
 
     /* Chart colors for dark mode (kept as HSL) */
     --chart-green: 142.1 70.6% 35.3%;
@@ -490,7 +490,7 @@ input[type="number"] {
     background-size: 100% 100%;
   }
 
-  /* Fallback for dialog backgrounds when OKLCH is not supported */
+  /* Optional fallback for overlay backgrounds (hex) */
   .bg-dialog-fallback {
     @apply bg-white dark:bg-[#020817];
   }
