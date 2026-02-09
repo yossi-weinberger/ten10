@@ -85,6 +85,7 @@ export async function updateRecurringTransaction(
       p_status: values.status,
       p_total_occurrences: values.total_occurrences,
       p_day_of_month: values.day_of_month,
+      p_payment_method: values.payment_method ?? null,
       // Currency conversion fields
       p_original_amount: values.original_amount ?? null,
       p_original_currency: values.original_currency ?? null,

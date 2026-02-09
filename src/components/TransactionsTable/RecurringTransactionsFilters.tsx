@@ -20,7 +20,7 @@ import { transactionTypes } from "@/types/transaction";
 // Moved to translation files - no longer needed
 
 export function RecurringTransactionsFilters() {
-  const { t } = useTranslation("data-tables");
+  const { t, i18n } = useTranslation("data-tables");
   const { filters, setFilters, resetFilters } = useRecurringTableStore();
   const [localSearch, setLocalSearch] = useState(filters.search);
   const [localTypes, setLocalTypes] = useState<string[]>(filters.types);
@@ -53,7 +53,7 @@ export function RecurringTransactionsFilters() {
 
   const handleTypeChange = (type: string, checked: boolean) => {
     const newTypes = checked
-      ? [...localTypes, type]
+      ? Array.from(new Set([...localTypes, type]))
       : localTypes.filter((t) => t !== type);
     setLocalTypes(newTypes);
     setFilters({ types: newTypes });
@@ -61,7 +61,7 @@ export function RecurringTransactionsFilters() {
 
   const handleFrequencyChange = (frequency: string, checked: boolean) => {
     const newFrequencies = checked
-      ? [...localFrequencies, frequency]
+      ? Array.from(new Set([...localFrequencies, frequency]))
       : localFrequencies.filter((f) => f !== frequency);
     setLocalFrequencies(newFrequencies);
     setFilters({ frequencies: newFrequencies });
@@ -74,6 +74,10 @@ export function RecurringTransactionsFilters() {
   const stopPropagation = (e: React.MouseEvent | React.TouchEvent) => {
     e.stopPropagation();
   };
+
+  const isRtl = i18n.dir(i18n.language) === "rtl";
+  const dropdownAlign = isRtl ? "end" : "start";
+  const dropdownDir = isRtl ? "rtl" : "ltr";
 
   return (
     <Card className="mb-4">
@@ -101,6 +105,7 @@ export function RecurringTransactionsFilters() {
             <DropdownMenu
               open={typesDropdownOpen}
               onOpenChange={setTypesDropdownOpen}
+              dir={dropdownDir}
             >
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
@@ -113,12 +118,12 @@ export function RecurringTransactionsFilters() {
                           count: localTypes.length,
                         })}
                   </span>
-                  <ListFilter className="ml-2 h-4 w-4 opacity-50" />
+                  <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 className="w-56"
-                align="start"
+                align={dropdownAlign}
                 onClick={stopPropagation}
               >
                 <DropdownMenuLabel>
@@ -148,6 +153,7 @@ export function RecurringTransactionsFilters() {
             <DropdownMenu
               open={statusDropdownOpen}
               onOpenChange={setStatusDropdownOpen}
+              dir={dropdownDir}
             >
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
@@ -160,12 +166,12 @@ export function RecurringTransactionsFilters() {
                           count: filters.statuses.length,
                         })}
                   </span>
-                  <ListFilter className="ml-2 h-4 w-4 opacity-50" />
+                  <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 className="w-56"
-                align="start"
+                align={dropdownAlign}
                 onClick={stopPropagation}
               >
                 <DropdownMenuLabel>{t("recurring.status")}</DropdownMenuLabel>
@@ -177,7 +183,7 @@ export function RecurringTransactionsFilters() {
                       checked={filters.statuses.includes(status)}
                       onCheckedChange={(checked) => {
                         const newSelection = checked
-                          ? [...filters.statuses, status]
+                          ? Array.from(new Set([...filters.statuses, status]))
                           : filters.statuses.filter((s) => s !== status);
                         handleStatusChange(newSelection);
                       }}
@@ -198,6 +204,7 @@ export function RecurringTransactionsFilters() {
             <DropdownMenu
               open={frequencyDropdownOpen}
               onOpenChange={setFrequencyDropdownOpen}
+              dir={dropdownDir}
             >
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="w-full justify-between">
@@ -208,12 +215,12 @@ export function RecurringTransactionsFilters() {
                           count: localFrequencies.length,
                         })}
                   </span>
-                  <ListFilter className="ml-2 h-4 w-4 opacity-50" />
+                  <ListFilter className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 className="w-56"
-                align="start"
+                align={dropdownAlign}
                 onClick={stopPropagation}
               >
                 <DropdownMenuLabel>

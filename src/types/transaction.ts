@@ -37,8 +37,8 @@ export const transactionTypes = [
 ] as const;
 
 export interface RecurringInfo {
-  status: string;
-  frequency: string;
+  status: RecurringTransaction["status"];
+  frequency: RecurringTransaction["frequency"];
   execution_count: number;
   total_occurrences: number | null;
   day_of_month: number;
@@ -60,6 +60,7 @@ export interface Transaction {
   category: string | null;
   is_chomesh: boolean | null;
   recipient: string | null;
+  payment_method: string | null;
   original_amount?: number | null;
   original_currency?: Currency | null;
   conversion_rate?: number | null;
@@ -94,6 +95,7 @@ export interface RecurringTransaction {
   category?: string;
   is_chomesh?: boolean;
   recipient?: string;
+  payment_method?: string | null;
   created_at?: string;
   updated_at?: string;
   // Currency Conversion Fields

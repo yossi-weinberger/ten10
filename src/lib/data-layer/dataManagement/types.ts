@@ -19,4 +19,5 @@ export interface ExportFiltersPayload {
   date_from?: string | null;
   date_to?: string | null;
   types?: string[] | null;
+  payment_methods?: string[] | null;
 }

@@ -79,8 +79,8 @@ pub fn add_recurring_transaction_handler(
         .map_err(|e| format!("DB lock error: {}", e))?;
 
     conn.execute(
-        "INSERT INTO recurring_transactions (id, user_id, status, start_date, next_due_date, frequency, day_of_month, total_occurrences, execution_count, description, amount, currency, type, category, is_chomesh, recipient, created_at, updated_at, original_amount, original_currency, conversion_rate, conversion_date, rate_source)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23)",
+        "INSERT INTO recurring_transactions (id, user_id, status, start_date, next_due_date, frequency, day_of_month, total_occurrences, execution_count, description, amount, currency, type, category, is_chomesh, recipient, payment_method, created_at, updated_at, original_amount, original_currency, conversion_rate, conversion_date, rate_source)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24)",
         params![
             rec_transaction.id,
             rec_transaction.user_id,
@@ -98,6 +98,7 @@ pub fn add_recurring_transaction_handler(
             rec_transaction.category,
             rec_transaction.is_chomesh,
             rec_transaction.recipient,
+            rec_transaction.payment_method,
             rec_transaction.created_at,
             rec_transaction.updated_at,
             rec_transaction.original_amount,
@@ -122,7 +123,7 @@ pub fn get_recurring_transactions_handler(
     let filters = args.filters;
 
     let sort_field = match sorting.field.as_str() {
-        "description" | "amount" | "next_due_date" | "status" | "type" | "frequency" => sorting.field,
+        "description" | "amount" | "next_due_date" | "status" | "type" | "frequency" | "payment_method" => sorting.field,
         _ => "next_due_date".to_string(),
     };
     let sort_direction = if sorting.direction.to_lowercase() == "desc" { "DESC" } else { "ASC" };
@@ -133,8 +134,9 @@ pub fn get_recurring_transactions_handler(
     if let Some(search_term) = filters.search {
         let trimmed = search_term.trim();
         if !trimmed.is_empty() {
-            where_clauses.push("(description LIKE ? OR recipient LIKE ?)".to_string());
+            where_clauses.push("(description LIKE ? OR recipient LIKE ? OR payment_method LIKE ?)".to_string());
             let like_val = format!("%{}%", trimmed);
+            params.push(Box::new(like_val.clone()));
             params.push(Box::new(like_val.clone()));
             params.push(Box::new(like_val));
         }

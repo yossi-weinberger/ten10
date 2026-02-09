@@ -8,7 +8,8 @@ export interface TableTransactionFilters {
     to: string | null;
   };
   types: string[]; // Array of TransactionType strings
-  search: string; // For category, description, or recipient
+  search: string; // For category, description, recipient, or payment method
+  paymentMethods: string[]; // Exact payment method filter (multi-select)
   isRecurring: IsRecurringFilter;
   recurringStatuses: string[];
   recurringFrequencies: string[];
@@ -31,6 +32,7 @@ export const initialTableTransactionFilters: TableTransactionFilters = {
   dateRange: { from: null, to: null },
   types: [],
   search: "",
+  paymentMethods: [],
   isRecurring: "all",
   recurringStatuses: [],
   recurringFrequencies: [],

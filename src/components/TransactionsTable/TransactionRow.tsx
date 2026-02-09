@@ -1,11 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Currency,
-  Transaction,
-  TransactionForTable,
-  TransactionType,
-} from "@/types/transaction";
+import { Transaction, TransactionForTable, TransactionType } from "@/types/transaction";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +17,7 @@ import { typeBadgeColors } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
 import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversionInfo";
+import { formatPaymentMethod } from "@/lib/payment-methods";
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
@@ -38,7 +34,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   onEditRecurring,
   isFetchingRec,
 }) => {
-  const { t } = useTranslation("data-tables");
+  const { t, i18n } = useTranslation("data-tables");
 
   return (
     <TableRow key={transaction.id}>
@@ -80,6 +76,13 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
       </TableCell>
       <TableCell className="text-center">
         {transaction.recipient || "-"}
+      </TableCell>
+      <TableCell className="text-center">
+        {formatPaymentMethod(
+          transaction.payment_method,
+          i18n.language,
+          "-"
+        )}
       </TableCell>
       <TableCell className="text-center whitespace-nowrap">
         {formatBoolean(transaction.is_chomesh)}

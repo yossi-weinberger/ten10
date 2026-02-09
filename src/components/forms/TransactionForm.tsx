@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useForm } from "react-hook-form";
+import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDonationStore } from "@/lib/store";
 import {
@@ -37,7 +37,6 @@ import toast from "react-hot-toast";
 // - recipient: required if type is 'donation'
 // - category: perhaps more relevant for 'expense'/'recognized-expense'
 
-import { CurrencyConversionSection } from "./transaction-form-parts/CurrencyConversionSection";
 
 interface TransactionFormProps {
   initialData?: Transaction | null; // For editing
@@ -53,6 +52,7 @@ const backgroundStyles: Record<TransactionType, string> = {
   "exempt-income": "bg-green-50 dark:bg-green-950",
   "recognized-expense": "bg-red-50 dark:bg-red-950",
   non_tithe_donation: "bg-yellow-50 dark:bg-yellow-950", // Renamed, kept style same as donation
+  initial_balance: "bg-green-50 dark:bg-green-950",
 };
 
 export function TransactionForm({
@@ -100,7 +100,7 @@ export function TransactionForm({
     initialType === "income" ? autoCalcChomesh : false;
 
   const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(transactionSchema),
+    resolver: zodResolver(transactionSchema) as Resolver<TransactionFormValues>,
     mode: "onChange",
     defaultValues: {
       date: new Date().toISOString().split("T")[0],
@@ -111,6 +111,7 @@ export function TransactionForm({
       category: "",
       is_chomesh: shouldAutoChomeshOnInit,
       recipient: "",
+      payment_method: "",
       isExempt: false,
       isRecognized: false,
       isFromPersonalFunds: false,
@@ -179,6 +180,7 @@ export function TransactionForm({
         rate_source: (initialData.rate_source as any) ?? undefined,
         original_amount: initialData.original_amount ?? undefined,
         original_currency: initialData.original_currency ?? undefined,
+        payment_method: initialData.payment_method ?? "",
 
         // Map backend fields to form fields if necessary
         isExempt: initialData.type === "exempt-income",
@@ -276,6 +278,7 @@ export function TransactionForm({
         "category",
         "is_chomesh",
         "recipient",
+        "payment_method",
         "original_amount",
         "original_currency",
         "conversion_rate",
@@ -378,6 +381,7 @@ export function TransactionForm({
             category: "",
             is_chomesh: nextType === "income" ? autoCalcChomesh : false,
             recipient: "",
+            payment_method: "",
             isExempt: false,
             isRecognized: false,
             isFromPersonalFunds: false,

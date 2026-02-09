@@ -315,6 +315,7 @@ export interface TransactionUpdatePayload {
   category?: string | null;
   is_chomesh?: boolean;
   recipient?: string | null;
+  payment_method?: string | null;
   original_amount?: number | null;
   original_currency?: string | null;
   conversion_rate?: number | null;
@@ -356,6 +357,8 @@ export async function updateTransaction(
     sanitizedPayload.is_chomesh = payload.is_chomesh;
   if (payload.recipient !== undefined)
     sanitizedPayload.recipient = payload.recipient;
+  if (payload.payment_method !== undefined)
+    sanitizedPayload.payment_method = payload.payment_method;
   if (payload.original_amount !== undefined)
     sanitizedPayload.original_amount = payload.original_amount;
   if (payload.original_currency !== undefined)

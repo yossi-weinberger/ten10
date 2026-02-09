@@ -72,6 +72,24 @@
       "label": "מקבל/ת התרומה",
       "placeholder": "שם המקבל/ת (אופציונלי)"
     },
+    "paymentMethod": {
+      "label": "אמצעי תשלום",
+      "placeholder": "בחר או הקלד אמצעי תשלום",
+      "searchPlaceholder": "חפש או הקלד אמצעי תשלום...",
+      "createNew": "צור אפשרות חדשה",
+      "loading": "טוען...",
+      "noResults": "לא נמצאו אפשרויות",
+      "options": {
+        "cash": "מזומן",
+        "credit_card": "כרטיס אשראי",
+        "debit_card": "כרטיס דביט",
+        "bank_transfer": "העברה בנקאית",
+        "check": "צ׳ק",
+        "bit_paybox": "ביט/פייבוקס",
+        "paypal": "PayPal",
+        "other": "אחר"
+      }
+    },
     "recurringTransaction": {
       "isRecurring": "(הוראת קבע) תנועה קבועה",
       "tooltip": "סמן אם זוהי תנועה שחוזרת באופן קבוע.",
@@ -156,6 +174,9 @@
       "recipient": {
         "maxLength": "שם המקבל יכול להכיל עד 50 תווים",
         "requiredForDonation": "שם המקבל הוא שדה חובה עבור תרומות"
+      },
+      "paymentMethod": {
+        "maxLength": "אמצעי התשלום יכול להכיל עד 50 תווים"
       },
       "chomesh": {
         "notForExempt": "לא ניתן לסמן חומש עבור הכנסה פטורה",

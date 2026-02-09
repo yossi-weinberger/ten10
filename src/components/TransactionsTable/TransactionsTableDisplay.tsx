@@ -48,6 +48,7 @@ export function TransactionsTableDisplay() {
     { label: t("columns.type"), field: "type" },
     { label: t("columns.category"), field: "category" },
     { label: t("columns.recipient"), field: "recipient" },
+    { label: t("columns.paymentMethod"), field: "payment_method" },
   ];
 
   // Total number of columns: sortable columns + chomesh + recurring + actions

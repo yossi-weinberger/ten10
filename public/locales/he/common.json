@@ -67,11 +67,12 @@
       "columns": {
         "date": "תאריך",
         "type": "סוג",
-        "details": "פרטים",
-        "category": "קטגוריה",
-        "recipient": "נמען",
-        "recurring": "הוראת קבע",
-        "chomesh": "חומש?",
+      "details": "פרטים",
+      "category": "קטגוריה",
+      "recipient": "נמען",
+      "paymentMethod": "אמצעי תשלום",
+      "recurring": "הוראת קבע",
+      "chomesh": "חומש?",
         "amount": "סכום"
       },
       "frequencies": {

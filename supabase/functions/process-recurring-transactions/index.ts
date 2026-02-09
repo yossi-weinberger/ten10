@@ -322,6 +322,7 @@ Deno.serve(async (req) => {
                 category: rec.category,
                 is_chomesh: rec.is_chomesh,
                 recipient: rec.recipient,
+                payment_method: rec.payment_method,
                 source_recurring_id: rec.id,
                 occurrence_number: executionCount + 1,
                 original_amount: originalAmount,

@@ -24,7 +24,7 @@ This is the core table component, managing most of the logic related to data dis
   - **Initial Fetch:** Performs an initial data fetch using the `fetchTransactions` action from the global `useTableTransactionsStore`. This fetch occurs when the component loads and the platform is identified (`platform !== "loading"`).
   - **Re-fetch:** Data is also re-fetched when sort settings (`sorting` from the store) change, or when defined filters in the store change. This logic is implemented using `useEffect` listening to these changes.
 - **Handling Loading and Error States:**
-  - **Loading Skeletons:** Displays a loading animation using the `Skeleton` component when data is loading (`loading === true`) and there are no transactions to display yet (`transactions.length === 0`). The skeleton uses `TOTAL_TABLE_COLUMNS` constant (calculated as `sortableColumns.length + 3`) to ensure proper column alignment with the actual table structure (6 sortable columns + chomesh + recurring + actions = 9 columns total).
+  - **Loading Skeletons:** Displays a loading animation using the `Skeleton` component when data is loading (`loading === true`) and there are no transactions to display yet (`transactions.length === 0`). The skeleton uses `TOTAL_TABLE_COLUMNS` constant (calculated as `sortableColumns.length + 3`) to ensure proper column alignment with the actual table structure (7 sortable columns + chomesh + recurring + actions = 10 columns total).
   - **Error Message:** Displays an error message to the user (error taken from the `error` field in the store) if `fetchTransactions` fails.
   - **No Data:** Displays a "No transactions found" message if loading finishes without errors but no transactions matching the criteria are found.
 - **Month Separators:**
@@ -42,7 +42,7 @@ This is the core table component, managing most of the logic related to data dis
   - **Edit:** Clicking the "Edit" button on a specific transaction row triggers the `handleEditInitiate` function. This function updates the local `editingTransaction` state with the selected transaction's details and opens the `TransactionEditModal` for editing.
   - **Delete:** Clicking the "Delete" button triggers `handleDeleteInitiate`. This function saves the transaction to be deleted in a local state variable (`transactionToDelete`) and opens an `AlertDialog` for confirmation. After user confirmation, the `handleDeleteConfirm` function calls the `deleteTransaction` action from the store, along with the transaction ID and current platform. Success or error messages for deletion are displayed using `toast`.
 - **Table Structure Constants:**
-  - `TOTAL_TABLE_COLUMNS`: A constant defined as `sortableColumns.length + 3` to represent the total number of columns in the table (6 sortable columns + chomesh + recurring + actions = 9 columns). This constant is used throughout the component to ensure consistency in `colSpan` attributes for skeleton loading, empty state messages, and month separators, avoiding magic numbers and making the code more maintainable.
+  - `TOTAL_TABLE_COLUMNS`: A constant defined as `sortableColumns.length + 3` to represent the total number of columns in the table (7 sortable columns + chomesh + recurring + actions = 10 columns). This constant is used throughout the component to ensure consistency in `colSpan` attributes for skeleton loading, empty state messages, and month separators, avoiding magic numbers and making the code more maintainable.
 - **Main Sub-components:**
   - `TransactionsFilters`: UI for filtering displayed data.
   - `ExportButton`: Button for exporting data to various formats.
@@ -56,9 +56,11 @@ This is the core table component, managing most of the logic related to data dis
 This component allows the user to filter transactions displayed in the table by various criteria.
 
 - **Available Filter Fields:**
-  - **Free Text Search:** `Input` field allowing search in transaction description, category, or recipient/payer.
+  - **Free Text Search:** `Input` field allowing search in transaction description, category, recipient/payer, or payment method.
   - **Date Range:** Uses `DatePickerWithRange` component to select start and end dates for filtering.
   - **Transaction Types:** Multiple selection of transaction types from a `DropdownMenu` containing `DropdownMenuCheckboxItem` items. The list of possible types (`availableTransactionTypes`) and their translations (`transactionTypeTranslations`) are defined directly in the component.
+  - **Payment Methods:** Multiple selection (same UI pattern as transaction types) using a `DropdownMenu` with `DropdownMenuCheckboxItem`. There is **no search input** inside this filter. The list merges predefined **keys** with distinct user history values; predefined keys are translated for display, free-text values are shown as-is.
+  - **Translation Helper:** Translation/formatting of payment methods is centralized in `src/lib/payment-methods.ts` to avoid UI-component dependencies and keep export/table logic consistent.
 - **Filter State Management (Local and Global):**
   - The component uses local `useState` for input values (e.g., `localSearch`, `localDateRange`, `localTypes`). This provides a responsive user experience and prevents too frequent updates to the global store.
   - Free text search value is synchronized to the global store (`setStoreFilters({ search: localSearch })`) using a 500ms `setTimeout` to prevent multiple data fetches while the user types.
@@ -86,7 +88,7 @@ This component is responsible for displaying a single transaction row in the tra
   - **Amount:** Formatted as a number with two decimal places.
   - **Transaction Type:** Displays a colored `Badge` component containing the translated label of the transaction type (labels taken from `transactionTypeLabels` object). The badge's background color is determined by color settings in `typeBadgeColors` object and applied using the `cn` (classnames) function.
   - **Boolean Values:** Fields like `is_chomesh` and `is_recurring` are formatted for display as "Yes" or "No" using the `formatBoolean` function.
-  - **Textual Fields:** Fields like description, category, and recipient/payer are displayed as is. If a field is empty, "-" is displayed.
+  - **Textual Fields:** Fields like description, category, recipient/payer, and payment method are displayed as is. If a field is empty, "-" is displayed.
 - **Actions Menu:** Displays a `DropdownMenu` triggered by a three-dot icon (`MoreHorizontal`). The menu contains "Edit" (with `Edit3` icon) and "Delete" (with `Trash2` icon and red color for emphasis) options.
 
 ### 2.6. `src/components/TransactionsTable/TransactionEditModal.tsx`
@@ -177,6 +179,7 @@ The Zustand global store, `useTableTransactionsStore`, centralizes all state and
     - `search: string`: Free text search string.
     - `dateRange: { from: Date | null; to: Date | null }`: Selected date range.
     - `types: string[]`: Array of transaction types selected for filtering.
+    - `paymentMethods: string[]`: Multi-select payment method filter (exact matches).
   - `sorting`: Object containing current sort settings:
     - `field: SortableField`: Field by which sorting is performed.
     - `direction: "asc" | "desc"`: Sort direction (ascending or descending).
@@ -244,7 +247,7 @@ For the Web platform using Supabase, the `get_filtered_transactions` function (o
 ```sql
 -- Conceptual SQL for a Supabase RPC function: get_filtered_transactions
 -- Parameters might include: p_user_id UUID, p_search_term TEXT,
--- p_start_date DATE, p_end_date DATE, p_types TEXT[],
+-- p_start_date DATE, p_end_date DATE, p_types TEXT[], p_payment_methods TEXT[],
 -- p_sort_field TEXT, p_sort_direction TEXT, p_limit INT, p_offset INT
 
 SELECT
@@ -253,19 +256,21 @@ SELECT
     created_at, updated_at,
     (SELECT COUNT(*) FROM public.transactions sub
      WHERE sub.user_id = p_user_id -- Ensure user matches
-       AND (p_search_term IS NULL OR sub.description ILIKE '%' || p_search_term || '%' OR sub.category ILIKE '%' || p_search_term || '%' OR sub.recipient ILIKE '%' || p_search_term || '%')
+       AND (p_search_term IS NULL OR sub.description ILIKE '%' || p_search_term || '%' OR sub.category ILIKE '%' || p_search_term || '%' OR sub.recipient ILIKE '%' || p_search_term || '%' OR sub.payment_method ILIKE '%' || p_search_term || '%')
        AND (p_start_date IS NULL OR sub.date >= p_start_date)
        AND (p_end_date IS NULL OR sub.date <= p_end_date)
        AND (p_types IS NULL OR sub.type = ANY(p_types)) -- Filter by array of types
+       AND (p_payment_methods IS NULL OR sub.payment_method = ANY(p_payment_methods))
     ) as total_count
 FROM
     public.transactions main
 WHERE
     main.user_id = p_user_id -- Ensure user matches
-    AND (p_search_term IS NULL OR main.description ILIKE '%' || p_search_term || '%' OR main.category ILIKE '%' || p_search_term || '%' OR main.recipient ILIKE '%' || p_search_term || '%')
+    AND (p_search_term IS NULL OR main.description ILIKE '%' || p_search_term || '%' OR main.category ILIKE '%' || p_search_term || '%' OR main.recipient ILIKE '%' || p_search_term || '%' OR main.payment_method ILIKE '%' || p_search_term || '%')
     AND (p_start_date IS NULL OR main.date >= p_start_date)
     AND (p_end_date IS NULL OR main.date <= p_end_date)
     AND (p_types IS NULL OR main.type = ANY(p_types)) -- Filter by array of types
+    AND (p_payment_methods IS NULL OR main.payment_method = ANY(p_payment_methods))
 ORDER BY
     -- Dynamic sorting based on p_sort_field and p_sort_direction
     -- Example (simplified, actual dynamic sorting in SQL can be more complex):
@@ -298,6 +303,7 @@ This section describes the steps required to implement data fetching from SQLite
       date_from: Option<String>, // ISO date string "YYYY-MM-DD"
       date_to: Option<String>,   // ISO date string "YYYY-MM-DD"
       types: Option<Vec<String>>,
+      payment_methods: Option<Vec<String>>,
   }
 
   #[derive(serde::Deserialize, Debug)]
@@ -380,6 +386,15 @@ This section describes the steps required to implement data fetching from SQLite
               where_clauses.push(format!("type IN ({})", placeholders.join(", ")));
               for t_type in types {
                   sql_params.push(Box::new(t_type.clone()));
+              }
+          }
+      }
+      if let Some(payment_methods) = &args.filters.payment_methods {
+          if !payment_methods.is_empty() {
+              let placeholders: Vec<String> = payment_methods.iter().enumerate().map(|(i, _)| format!("?{}", sql_params.len() + 1 + i)).collect();
+              where_clauses.push(format!("payment_method IN ({})", placeholders.join(", ")));
+              for method in payment_methods {
+                  sql_params.push(Box::new(method.clone()));
               }
           }
       }
