@@ -575,41 +575,23 @@ Use appropriate namespaces to organize translations:
 - **Flex:** `flex-col md:flex-row`
 - **Visibility:** `hidden md:block` (Hide on mobile, show on desktop)
 
-### 9.4 Color System Compatibility (Graceful Degradation)
+### 9.4 Color System Compatibility
 
-**The Problem:** The application uses the modern **OKLCH** color format for richer, perceptually uniform colors (e.g., `oklch(var(--background))`). However, older environments—specifically older versions of **WebView2** on Desktop—do not support this format. In such cases, the browser treats the color as invalid (transparent), leading to invisible backgrounds on critical UI elements like Dialogs and Sheets.
+**Current setup:** The application uses **HSL** for theme colors (e.g. `hsl(var(--background) / 1)`), which is supported in all relevant browsers. Theme variables are defined in `src/index.css` and consumed by Tailwind in `tailwind.config.js`.
 
-**The Solution:** We implement a **Graceful Degradation** strategy using a fallback class.
+**Optional fallback:** The utility class `.bg-dialog-fallback` (hex backgrounds) is still applied to overlay primitives (Dialog, Sheet, Popover, Select, etc.) _before_ the theme class. It is no longer required for OKLCH compatibility but can be kept as extra safety or removed if desired.
 
-1.  **Define Fallback Class:** In `src/index.css`, we define a utility class that sets a standard hex/named color background. This is applied _in addition_ to the theme color. If the browser understands OKLCH, the theme color (defined later or more specifically via Tailwind utility) takes precedence or blends if using transparency. If it doesn't understand OKLCH, it falls back to this solid color.
+1.  **Fallback class** in `src/index.css`:
 
     ```css
-    /* src/index.css */
     @layer components {
-      /* Fallback for dialog backgrounds when OKLCH is not supported */
       .bg-dialog-fallback {
         @apply bg-white dark:bg-[#020817];
       }
     }
     ```
 
-2.  **Apply to Overlay Components:** This class is added to the `className` of all overlay primitives (Dialog, Sheet, Popover, Select, etc.) _before_ the theme background class (like `bg-background`).
-
-    ```tsx
-    // Example: src/components/ui/dialog.tsx
-    <DialogPrimitive.Content
-      className={cn(
-        "..., bg-dialog-fallback bg-background ...", // Fallback first, then Theme
-        className
-      )}
-    />
-    ```
-
-**Impact:**
-
-- **Modern Browsers:** Render the OKLCH `bg-background` correctly.
-- **Legacy WebView2:** Ignored `bg-background` (OKLCH), displays `bg-dialog-fallback` (White/Dark Blue).
-- **Result:** No transparency bugs, UI remains functional and readable for all users.
+2.  **Usage:** Overlay components use `bg-dialog-fallback bg-background` (fallback first, then theme) so that in edge cases a solid background is always visible.
 
 ---
 

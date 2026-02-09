@@ -186,7 +186,9 @@ export function TransactionForm({
         isExempt: initialData.type === "exempt-income",
         isRecognized: initialData.type === "recognized-expense",
         isFromPersonalFunds: initialData.type === "non_tithe_donation",
-        is_recurring: !!initialData.source_recurring_id, // Example logic
+        // When editing, always false - we edit the single transaction instance, not the recurring definition.
+        // Transactions with source_recurring_id can have their recurring instruction edited via "Edit Recurring" in the row menu.
+        is_recurring: false,
       };
       form.reset(defaultVals);
     }
