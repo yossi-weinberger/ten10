@@ -101,10 +101,9 @@ function drawRtlText(
 
 // Brand colors and layout constants
 const COLORS = {
-  // Brand: aligned to the app logo colors (see src/index.css)
-  // Primary (logo teal): oklch(0.4686 0.0751 198.61)
+  // Brand: aligned to the app logo colors (see src/index.css theme variables)
+  // Primary (logo teal), Accent (logo gold) – RGB for PDF output
   primary: rgb(0.07, 0.4, 0.42),
-  // Accent (logo gold): oklch(0.8267 0.168963 90.4589)
   accent: rgb(0.94, 0.75, 0),
   // Light zebra background (kept neutral for readability)
   primaryLight: rgb(0.93, 0.98, 0.94),
