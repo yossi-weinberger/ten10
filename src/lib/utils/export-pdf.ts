@@ -6,6 +6,7 @@ import { formatCurrency } from "./currency";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import i18n from "@/lib/i18n";
 import { logger } from "@/lib/logger";
+import { formatPaymentMethod } from "@/lib/payment-methods";
 
 // Import fonts directly using Vite's ?url feature for robust path handling
 import regularFontUrl from "/fonts/Rubik-Regular.ttf?url";
@@ -165,7 +166,7 @@ function parseTailwindColor(colorString: string): {
 
 // Helper function to download the PDF
 function downloadPdf(bytes: Uint8Array, filename: string) {
-  const blob = new Blob([bytes], {
+  const blob = new Blob([bytes as BlobPart], {
     type: "application/pdf",
   });
   const link = document.createElement("a");
@@ -424,19 +425,21 @@ export async function exportTransactionsToPDF(
       i18n.t("export.pdf.columns.details", { lng: currentLanguage }),
       i18n.t("export.pdf.columns.category", { lng: currentLanguage }),
       i18n.t("export.pdf.columns.recipient", { lng: currentLanguage }),
+      i18n.t("export.pdf.columns.paymentMethod", { lng: currentLanguage }),
       i18n.t("export.pdf.columns.chomesh", { lng: currentLanguage }),
       i18n.t("export.pdf.columns.recurring", { lng: currentLanguage }),
     ];
 
     const columnWidths = [
       50, // Date
-      70, // Type
+      65, // Type
       55, // Amount
-      135, // Details
-      65, // Category
-      65, // Recipient
+      115, // Details
+      55, // Category
+      55, // Recipient
+      60, // Payment Method
       35, // Chomesh
-      80, // Recurring
+      65, // Recurring
     ];
 
     const drawTableHeader = (yPos: number) => {
@@ -652,6 +655,7 @@ export async function exportTransactionsToPDF(
         t.description || "-",
         t.category || "-",
         t.recipient || "-",
+        formatPaymentMethod(t.payment_method, currentLanguage, "-"),
         isChomesh ? "YES" : "", // Placeholder for drawing function
         recurringStatusText,
       ];
@@ -693,7 +697,7 @@ export async function exportTransactionsToPDF(
             size: fontSize - 1,
             color: badgeTextColor,
           });
-        } else if (i === 6) {
+        } else if (i === 7) {
           // CHOMESH
           const iconCenterX = isRtl
             ? cellX - colWidth + colWidth / 2

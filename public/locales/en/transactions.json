@@ -72,6 +72,24 @@
       "label": "Donation Recipient",
       "placeholder": "Recipient name (optional)"
     },
+    "paymentMethod": {
+      "label": "Payment Method",
+      "placeholder": "Select or type a payment method",
+      "searchPlaceholder": "Search or type a payment method...",
+      "createNew": "Create new option",
+      "loading": "Loading...",
+      "noResults": "No options found",
+      "options": {
+        "cash": "Cash",
+        "credit_card": "Credit card",
+        "debit_card": "Debit card",
+        "bank_transfer": "Bank transfer",
+        "check": "Check",
+        "bit_paybox": "Bit/PayBox",
+        "paypal": "PayPal",
+        "other": "Other"
+      }
+    },
     "recurringTransaction": {
       "isRecurring": "Recurring Transaction",
       "tooltip": "Check if this is a transaction that repeats regularly.",
@@ -153,6 +171,9 @@
       "recipient": {
         "maxLength": "Recipient name can contain up to 50 characters",
         "requiredForDonation": "Recipient name is required for donations"
+      },
+      "paymentMethod": {
+        "maxLength": "Payment method can contain up to 50 characters"
       },
       "chomesh": {
         "notForExempt": "Chomesh cannot be selected for exempt income",

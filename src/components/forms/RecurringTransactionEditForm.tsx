@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { logger } from "@/lib/logger";
 import { useTranslation } from "react-i18next";
@@ -32,6 +32,7 @@ import { CurrencyPicker } from "@/components/ui/CurrencyPicker";
 import { CurrencyConversionSection } from "./transaction-form-parts/CurrencyConversionSection";
 import { CategoryCombobox } from "@/components/ui/category-combobox";
 import { useDonationStore } from "@/lib/store";
+import { PaymentMethodCombobox } from "@/components/ui/payment-method-combobox";
 
 interface RecurringTransactionEditFormProps {
   initialData: RecurringTransaction;
@@ -46,22 +47,24 @@ export function RecurringTransactionEditForm({
 }: RecurringTransactionEditFormProps) {
   const { t, i18n } = useTranslation("transactions");
   const [isSuccess, setIsSuccess] = React.useState(false);
-  
+
   const defaultCurrency = useDonationStore(
-    (state) => state.settings.defaultCurrency
+    (state) => state.settings.defaultCurrency,
   );
 
   const recurringSchema = useMemo(() => createRecurringEditSchema(t), [t]);
 
   const form = useForm<RecurringEditFormValues>({
-    resolver: zodResolver(recurringSchema),
+    resolver: zodResolver(recurringSchema) as Resolver<RecurringEditFormValues>,
     mode: "onChange",
     defaultValues: {
       // Handle converted transactions: show original values in form
       amount: initialData.original_amount ?? initialData.amount,
-      currency: (initialData.original_currency as CurrencyCode) ?? initialData.currency,
+      currency:
+        (initialData.original_currency as CurrencyCode) ?? initialData.currency,
       description: initialData.description ?? "",
       category: initialData.category ?? "",
+      payment_method: initialData.payment_method ?? "",
       status: initialData.status,
       total_occurrences: initialData.total_occurrences,
       day_of_month: initialData.day_of_month,
@@ -80,32 +83,45 @@ export function RecurringTransactionEditForm({
 
   const handleFormSubmit = async (values: RecurringEditFormValues) => {
     setIsSuccess(false);
-    
+
     // Handle Currency Conversion Logic
     let submissionValues = { ...values };
-    
+    const normalizedPaymentMethod =
+      values.payment_method && values.payment_method.trim() !== ""
+        ? values.payment_method.trim()
+        : null;
+    submissionValues.payment_method = normalizedPaymentMethod;
+
     if (values.currency !== defaultCurrency) {
       // Foreign currency - conversion is REQUIRED
       if (!values.conversion_rate) {
-        logger.error("Cannot submit: foreign currency selected but no conversion rate provided.");
+        logger.error(
+          "Cannot submit: foreign currency selected but no conversion rate provided.",
+        );
         toast.error(t("transactionForm.errors.missingConversionRate"));
         return;
       }
-      
+
       const originalAmount = values.amount;
       const originalCurrency = values.currency;
       const conversionRate = values.conversion_rate;
-      const convertedAmount = Number((originalAmount * conversionRate).toFixed(2));
-      
+      const convertedAmount = Number(
+        (originalAmount * conversionRate).toFixed(2),
+      );
+
       submissionValues = {
-        ...values,
+        ...submissionValues,
         amount: convertedAmount,
         currency: defaultCurrency as CurrencyCode,
         original_amount: originalAmount,
         original_currency: originalCurrency,
         // conversion_rate, date, source are already in values
       };
-      logger.log("Applying currency conversion:", { original: originalAmount, rate: conversionRate, converted: convertedAmount });
+      logger.log("Applying currency conversion:", {
+        original: originalAmount,
+        rate: conversionRate,
+        converted: convertedAmount,
+      });
     } else {
       // Default currency - clear conversion fields
       submissionValues.original_amount = null;
@@ -114,7 +130,7 @@ export function RecurringTransactionEditForm({
       submissionValues.conversion_date = null;
       submissionValues.rate_source = null;
     }
-    
+
     try {
       await onSubmit(submissionValues);
       setIsSuccess(true);
@@ -144,9 +160,9 @@ export function RecurringTransactionEditForm({
                   <FormItem className="flex-1">
                     <FormLabel>{t("transactionForm.amount.label")}</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01" 
+                      <Input
+                        type="number"
+                        step="0.01"
                         {...field}
                         value={field.value ?? ""}
                         className="text-start"
@@ -210,8 +226,10 @@ export function RecurringTransactionEditForm({
           />
 
           {/* Category - show for income and expense types */}
-          {(initialData.type === "income" || initialData.type === "expense" || 
-            initialData.type === "exempt-income" || initialData.type === "recognized-expense") && (
+          {(initialData.type === "income" ||
+            initialData.type === "expense" ||
+            initialData.type === "exempt-income" ||
+            initialData.type === "recognized-expense") && (
             <FormField
               control={form.control}
               name="category"
@@ -224,8 +242,12 @@ export function RecurringTransactionEditForm({
                       onChange={(value) => field.onChange(value)}
                       transactionType={initialData.type as TransactionType}
                       placeholder={
-                        initialData.type === "income" || initialData.type === "exempt-income"
-                          ? t("transactionForm.category.incomePlaceholder", "קטגוריית הכנסה (אופציונלי)")
+                        initialData.type === "income" ||
+                        initialData.type === "exempt-income"
+                          ? t(
+                              "transactionForm.category.incomePlaceholder",
+                              "קטגוריית הכנסה (אופציונלי)",
+                            )
                           : t("transactionForm.category.placeholder")
                       }
                     />
@@ -263,10 +285,33 @@ export function RecurringTransactionEditForm({
                         <SelectItem key={value} value={value}>
                           {label}
                         </SelectItem>
-                      )
+                      ),
                     )}
                   </SelectContent>
                 </Select>
+                <div className="h-5">
+                  <FormMessage />
+                </div>
+              </FormItem>
+            )}
+          />
+
+          {/* Payment Method */}
+          <FormField
+            control={form.control}
+            name="payment_method"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {t("transactionForm.paymentMethod.label")}
+                </FormLabel>
+                <FormControl>
+                  <PaymentMethodCombobox
+                    value={field.value ?? null}
+                    onChange={(value) => field.onChange(value)}
+                    placeholder={t("transactionForm.paymentMethod.placeholder")}
+                  />
+                </FormControl>
                 <div className="h-5">
                   <FormMessage />
                 </div>

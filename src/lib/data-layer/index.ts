@@ -1,14 +1,3 @@
-import { useDonationStore } from "../store";
-import { Transaction, RecurringTransaction } from "../../types/transaction";
-import { TransactionFormValues } from "../../types/forms";
-import {
-  createRecurringTransaction,
-  NewRecurringTransaction,
-} from "./recurringTransactions.service";
-import { nanoid } from "nanoid";
-import { getPlatform } from "../platformManager";
-import { supabase } from "@/lib/supabaseClient";
-
 // The platform is no longer managed here. It is set once in App.tsx
 // and retrieved via getPlatform() from the platformManager.
 
@@ -85,3 +74,9 @@ export {
   clearCategoryCacheForType,
   getCategoryCacheVersion,
 } from "./categories.service";
+
+export {
+  getUserPaymentMethods,
+  clearPaymentMethodCache,
+  getPaymentMethodCacheVersion,
+} from "./paymentMethods.service";

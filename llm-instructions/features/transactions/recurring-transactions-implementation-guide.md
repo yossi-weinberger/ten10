@@ -64,6 +64,7 @@ CREATE TABLE public.recurring_transactions (
     category text,
     is_chomesh boolean,
     recipient text,
+    payment_method text,
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -88,6 +89,9 @@ COMMENT ON COLUMN public.transactions.source_recurring_id IS 'Links to the recur
 ```
 
 **ביצוע:** יש להריץ את הסקריפט הזה דרך עורך ה-SQL של Supabase או באמצעות קובץ מיגרציה ב-Supabase CLI. **(בוצע בהצלחה)**
+
+**נורמליזציה ל-`payment_method` (מיגרציית נתונים):**  
+אם היו ערכי תצוגה בעברית/אנגלית שנשמרו כטקסט, יש להריץ מיגרציית ניקוי שממירה אותם למפתחות יציבים (לדוגמה "Cash" / "מזומן" → `cash`). לאחר מכן ה־UI מתרגם להצגה, וערכים חופשיים נשמרים כפי שהוזנו.
 
 ### 1.3: מיגרציית נתונים קיימים (אתגר מרכזי)
 
@@ -211,6 +215,7 @@ $$ LANGUAGE plpgsql;
   - נשנה את לוגיקת `onSubmit`.
   - אם ה-checkbox של הוראת קבע מסומן, הפונקציה תקרא ל-`createRecurringTransaction` מהשירות החדש.
   - אם ה-checkbox אינו מסומן, הפונקציה תתנהג כרגיל ותיצור טרנזקציה רגילה.
+  - יש לכלול גם `payment_method` בהגדרת הוראת הקבע (כמו בשאר שדות הטופס).
 
 ### 3.3: עדכון תצוגת טבלת הטרנזקציות הראשית
 
@@ -225,6 +230,13 @@ $$ LANGUAGE plpgsql;
 
 - **אתגר:** איך להציג את המידע "תשלום X מתוך Y" ביעילות, מבלי לבצע שאילתה נפרדת עבור כל שורת טרנזקציה (בעיית N+1).
 - **פתרון:** בעת שליפת הטרנזקציות לתצוגה, נבצע `JOIN` בין טבלת `transactions` לטבלת `recurring_transactions` על בסיס העמודה `source_recurring_id`. כך, כל המידע הנדרש (`execution_count`, `total_occurrences`, `status`) יהיה זמין לכל טרנזקציה שנוצרה מהוראת קבע, ללא צורך בשאילתות נוספות. **(בוצע באמצעות עדכון פונקציית `get_user_transactions`).**
+
+### 3.4: עדכון טבלת הוראות הקבע (Recurring Table UI)
+
+**סטטוס:** ✅ **בוצע**
+
+- טבלת הוראות הקבע (`RecurringTransactionsTableDisplay`) עודכנה להציג עמודה נוספת של `payment_method`.
+- העמודה תומכת במיון בדיוק כמו שאר העמודות בטבלה.
 
 ### 3.4: הוספת מסננים מתקדמים לטבלה
 

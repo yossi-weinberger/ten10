@@ -1,46 +1,21 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { logger } from "@/lib/logger";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  flexRender,
-  SortingState,
-  ColumnDef,
-} from "@tanstack/react-table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { formatPaymentMethod } from "@/lib/payment-methods";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { deleteRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
-import { MoreHorizontal, Repeat, Infinity, InfoIcon } from "lucide-react";
+import { MoreHorizontal, InfoIcon } from "lucide-react";
 import { RecurringTransaction, TransactionType } from "@/types/transaction";
 import { recurringStatusBadgeColors } from "@/types/recurringTransactionLabels";
 import { typeBadgeColors } from "@/types/transactionLabels";
@@ -134,6 +109,10 @@ export function RecurringTransactionsTableDisplay() {
         label: t("columns.description"),
         field: "description" as SortableField,
       },
+      {
+        label: t("columns.paymentMethod"),
+        field: "payment_method" as SortableField,
+      },
       { label: t("columns.amount"), field: "amount" as SortableField },
       {
         label: t("recurringColumns.frequency"),
@@ -187,14 +166,14 @@ export function RecurringTransactionsTableDisplay() {
                 {loading &&
                   [...Array(5)].map((_, i) => (
                     <TableRow key={`skeleton-${i}`}>
-                      <TableCell colSpan={8}>
+                      <TableCell colSpan={9}>
                         <Skeleton className="h-6 w-full" />
                       </TableCell>
                     </TableRow>
                   ))}
                 {!loading && !error && recurring.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} className="h-24 text-center">
+                    <TableCell colSpan={9} className="h-24 text-center">
                       {t("recurringTable.noData")}
                     </TableCell>
                   </TableRow>
@@ -202,7 +181,7 @@ export function RecurringTransactionsTableDisplay() {
                 {!loading && error && (
                   <TableRow>
                     <TableCell
-                      colSpan={8}
+                      colSpan={9}
                       className="h-24 text-center text-red-500"
                     >
                       {t("messages.loadingError", { error })}
@@ -226,16 +205,23 @@ export function RecurringTransactionsTableDisplay() {
                       <TableCell className="text-start">
                         {rec.description || "-"}
                       </TableCell>
+                      <TableCell className="text-start">
+                        {formatPaymentMethod(
+                          rec.payment_method,
+                          i18n.language,
+                          "-"
+                        )}
+                      </TableCell>
                       <TableCell className="text-center font-medium whitespace-nowrap">
-                        <CurrencyConversionInfo 
-                            amount={rec.amount} 
-                            currency={rec.currency}
-                            originalAmount={rec.original_amount}
-                            originalCurrency={rec.original_currency}
-                            conversionRate={rec.conversion_rate}
-                            conversionDate={rec.conversion_date}
-                            rateSource={rec.rate_source}
-                            mode="live"
+                        <CurrencyConversionInfo
+                          amount={rec.amount}
+                          currency={rec.currency}
+                          originalAmount={rec.original_amount}
+                          originalCurrency={rec.original_currency}
+                          conversionRate={rec.conversion_rate}
+                          conversionDate={rec.conversion_date}
+                          rateSource={rec.rate_source}
+                          mode="live"
                         />
                       </TableCell>
                       <TableCell className="text-center">

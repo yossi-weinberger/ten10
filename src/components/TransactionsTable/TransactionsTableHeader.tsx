@@ -43,6 +43,7 @@ export const TransactionsTableHeader: React.FC<
       case "type":
       case "category":
       case "recipient":
+      case "payment_method":
         return "text-center";
       default:
         return "text-start";

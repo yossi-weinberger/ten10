@@ -67,11 +67,12 @@
       "columns": {
         "date": "Date",
         "type": "Type",
-        "details": "Details",
-        "category": "Category",
-        "recipient": "Recipient",
-        "recurring": "Recurring",
-        "chomesh": "Tithe?",
+      "details": "Details",
+      "category": "Category",
+      "recipient": "Recipient",
+      "paymentMethod": "Payment Method",
+      "recurring": "Recurring",
+      "chomesh": "Tithe?",
         "amount": "Amount"
       },
       "frequencies": {

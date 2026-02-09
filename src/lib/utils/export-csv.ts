@@ -1,6 +1,7 @@
 import type { Transaction } from "@/types/transaction";
 import i18n from "@/lib/i18n";
 import { logger } from "@/lib/logger";
+import { formatPaymentMethod } from "@/lib/payment-methods";
 
 function escapeCsvCell(
   cellData: string | number | boolean | null | undefined
@@ -41,6 +42,10 @@ export function exportTransactionsToCSV(
     i18n.t("columns.description", { lng: currentLanguage, ns: "data-tables" }),
     i18n.t("columns.category", { lng: currentLanguage, ns: "data-tables" }),
     i18n.t("columns.recipient", { lng: currentLanguage, ns: "data-tables" }),
+    i18n.t("columns.paymentMethod", {
+      lng: currentLanguage,
+      ns: "data-tables",
+    }),
     i18n.t("columns.amount", { lng: currentLanguage, ns: "data-tables" }),
     i18n.t("columns.currency", { lng: currentLanguage, ns: "data-tables" }),
     i18n.t("columns.chomesh", { lng: currentLanguage, ns: "data-tables" }),
@@ -100,6 +105,7 @@ export function exportTransactionsToCSV(
         transaction.description || "",
         transaction.category || "",
         transaction.recipient || "",
+        formatPaymentMethod(transaction.payment_method, currentLanguage),
         transaction.amount,
         transaction.currency,
         transaction.is_chomesh

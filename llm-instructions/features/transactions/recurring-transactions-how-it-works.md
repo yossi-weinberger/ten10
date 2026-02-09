@@ -36,7 +36,7 @@
   - `day_of_month`: יום בחודש לביצוע (1-31).
   - `total_occurrences`: מספר ביצועים כולל (אופציונלי).
   - `execution_count`: מספר ביצועים שבוצעו.
-  - שדות תנועה: `amount`, `currency`, `type`, `category`, `is_chomesh`, `recipient`.
+  - שדות תנועה: `amount`, `currency`, `type`, `category`, `is_chomesh`, `recipient`, `payment_method`.
   - **שדות המרת מטבע (נוסף ינואר 2026):**
     - `original_amount`: הסכום המקורי (לפני המרה, אם רלוונטי).
     - `original_currency`: מטבע המקור.
@@ -124,8 +124,12 @@
 - **מסננים (ב-`TransactionsFilters.tsx`):**
   - סינון ראשי: "הכל", "הוראות קבע בלבד", "תנועות רגילות".
   - משנה: סטטוס (active/paused וכו') ותדירות (monthly וכו').
+  - בנוסף: מסנן **אמצעי תשלום** הוא רב־בחירה (DropdownMenu עם Checkbox), ללא חיפוש פנימי.
+  - הערה: עבור אפשרויות מובנות הערך נשמר כמפתח יציב (למשל `cash`), וה־UI מתרגם להצגה; ערכים חופשיים נשמרים כפי שהוזנו.
   - לוגיקה: מסננים משנה פעילים רק אם "הוראות קבע בלבד" נבחר.
 - **שאילתות:** בווב - RPC `get_user_transactions`; בדסקטופ - `get_filtered_transactions_handler` עם JOIN.
+
+- **טבלת הוראות הקבע:** `RecurringTransactionsTableDisplay` מציגה עמודת `payment_method` נוספת עם מיון לפי עמודה.
 
 ---
 

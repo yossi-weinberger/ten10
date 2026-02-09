@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { CategoryCombobox } from "@/components/ui/category-combobox";
+import { PaymentMethodCombobox } from "@/components/ui/payment-method-combobox";
 import { TransactionFormValues } from "@/lib/schemas";
 import { TransactionType } from "@/types/transaction";
 
@@ -30,7 +31,7 @@ export function DescriptionCategoryFields({
   const showRecipientField = selectedType === "donation";
   
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
       {/* Description - start */}
       <FormField
         control={form.control}
@@ -53,7 +54,7 @@ export function DescriptionCategoryFields({
           </FormItem>
         )}
       />
-      {/* קטגוריה - עבור הכנסות והוצאות */}
+      {/* Category - income and expense */}
       {showCategoryField && (
         <FormField
           control={form.control}
@@ -68,7 +69,7 @@ export function DescriptionCategoryFields({
                   transactionType={selectedType}
                   placeholder={
                     selectedType === "income"
-                      ? t("transactionForm.category.incomePlaceholder", "קטגוריית הכנסה (אופציונלי)")
+                      ? t("transactionForm.category.incomePlaceholder", "Income category (optional)")
                       : t("transactionForm.category.placeholder")
                   }
                 />
@@ -80,7 +81,7 @@ export function DescriptionCategoryFields({
           )}
         />
       )}
-      {/* מקבל תרומה - עבור תרומות */}
+      {/* Donation recipient - donation type */}
       {showRecipientField && (
         <FormField
           control={form.control}
@@ -103,6 +104,27 @@ export function DescriptionCategoryFields({
           )}
         />
       )}
+
+      {/* Payment method - all types */}
+      <FormField
+        control={form.control}
+        name="payment_method"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>{t("transactionForm.paymentMethod.label")}</FormLabel>
+            <FormControl>
+              <PaymentMethodCombobox
+                value={field.value ?? null}
+                onChange={(value) => field.onChange(value)}
+                placeholder={t("transactionForm.paymentMethod.placeholder")}
+              />
+            </FormControl>
+            <div className="h-5">
+              <FormMessage />
+            </div>
+          </FormItem>
+        )}
+      />
     </div>
   );
 }

@@ -20,6 +20,7 @@ export const TRANSACTION_CAMEL_TO_SNAKE: Record<string, string> = {
   conversionRate: "conversion_rate",
   conversionDate: "conversion_date",
   rateSource: "rate_source",
+  paymentMethod: "payment_method",
   executionCount: "execution_count",
   totalOccurrences: "total_occurrences",
   recurringStatus: "recurring_status",

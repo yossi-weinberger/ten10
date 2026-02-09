@@ -1,5 +1,4 @@
 // This service is dedicated to handling the logic from the TransactionForm
-import { getPlatform } from "../platformManager";
 import { TransactionFormValues } from "@/types/forms";
 import {
   Transaction,
@@ -13,9 +12,9 @@ import {
   NewRecurringTransaction,
 } from "./recurringTransactions.service";
 import { clearCategoryCacheForType } from "./categories.service";
+import { clearPaymentMethodCache } from "./paymentMethods.service";
 import { logger } from "@/lib/logger";
 
-import { useDonationStore } from "@/lib/store";
 
 /**
  * Normalizes a transaction type to its base type.
@@ -72,9 +71,11 @@ export async function handleTransactionSubmit(
   values: TransactionFormValues
 ): Promise<void> {
   logger.log("handleTransactionSubmit received values:", values);
-  const platform = getPlatform();
   const finalType = determineFinalType(values);
-  const defaultCurrency = useDonationStore.getState().settings.defaultCurrency;
+  const normalizedPaymentMethod =
+    values.payment_method && values.payment_method.trim() !== ""
+      ? values.payment_method.trim()
+      : null;
 
   // For recurring transactions, the day of the month is derived from the start date,
   // unless explicitly provided by the user (e.g. they want charge on 15th but start on 10th).
@@ -98,6 +99,7 @@ export async function handleTransactionSubmit(
       category: values.category ?? undefined,
       is_chomesh: values.is_chomesh ?? undefined,
       recipient: values.recipient ?? undefined,
+      payment_method: normalizedPaymentMethod ?? undefined,
       // Pass conversion details if present (only for manual rate usually, but can pass auto too if we want to snapshot it)
       // The backend/DB now supports these fields.
       original_amount: values.original_amount ?? undefined,
@@ -122,6 +124,7 @@ export async function handleTransactionSubmit(
       category: values.category ?? null,
       is_chomesh: values.is_chomesh ?? false,
       recipient: values.recipient ?? null,
+      payment_method: normalizedPaymentMethod,
       source_recurring_id: null,
       user_id: null,
       original_amount: values.original_amount ?? null,
@@ -137,5 +140,9 @@ export async function handleTransactionSubmit(
   // This ensures new categories appear in the combobox dropdown
   if (values.category) {
     clearCategoryCacheForType(finalType);
+  }
+
+  if (normalizedPaymentMethod) {
+    clearPaymentMethodCache();
   }
 }
