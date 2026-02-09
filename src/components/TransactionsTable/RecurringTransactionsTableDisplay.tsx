@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PAYMENT_METHOD_KEYS } from "@/components/ui/payment-method-combobox";
+import { formatPaymentMethod } from "@/lib/payment-methods";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,7 +41,6 @@ import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversion
 
 export function RecurringTransactionsTableDisplay() {
   const { t, i18n } = useTranslation("data-tables");
-  const { t: tTransactions } = useTranslation("transactions");
   const { platform } = usePlatform();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
@@ -207,16 +206,11 @@ export function RecurringTransactionsTableDisplay() {
                         {rec.description || "-"}
                       </TableCell>
                       <TableCell className="text-start">
-                        {rec.payment_method
-                          ? PAYMENT_METHOD_KEYS.includes(
-                              rec.payment_method as (typeof PAYMENT_METHOD_KEYS)[number]
-                            )
-                            ? tTransactions(
-                                `transactionForm.paymentMethod.options.${rec.payment_method}`,
-                                rec.payment_method
-                              )
-                            : rec.payment_method
-                          : "-"}
+                        {formatPaymentMethod(
+                          rec.payment_method,
+                          i18n.language,
+                          "-"
+                        )}
                       </TableCell>
                       <TableCell className="text-center font-medium whitespace-nowrap">
                         <CurrencyConversionInfo

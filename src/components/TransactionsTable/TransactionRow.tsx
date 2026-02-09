@@ -17,7 +17,7 @@ import { typeBadgeColors } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
 import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversionInfo";
-import { PAYMENT_METHOD_KEYS } from "@/components/ui/payment-method-combobox";
+import { formatPaymentMethod } from "@/lib/payment-methods";
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
@@ -34,8 +34,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   onEditRecurring,
   isFetchingRec,
 }) => {
-  const { t } = useTranslation("data-tables");
-  const { t: tTransactions } = useTranslation("transactions");
+  const { t, i18n } = useTranslation("data-tables");
 
   return (
     <TableRow key={transaction.id}>
@@ -79,16 +78,11 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
         {transaction.recipient || "-"}
       </TableCell>
       <TableCell className="text-center">
-        {transaction.payment_method
-          ? PAYMENT_METHOD_KEYS.includes(
-              transaction.payment_method as (typeof PAYMENT_METHOD_KEYS)[number]
-            )
-            ? tTransactions(
-                `transactionForm.paymentMethod.options.${transaction.payment_method}`,
-                transaction.payment_method
-              )
-            : transaction.payment_method
-          : "-"}
+        {formatPaymentMethod(
+          transaction.payment_method,
+          i18n.language,
+          "-"
+        )}
       </TableCell>
       <TableCell className="text-center whitespace-nowrap">
         {formatBoolean(transaction.is_chomesh)}

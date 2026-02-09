@@ -60,6 +60,7 @@ This component allows the user to filter transactions displayed in the table by 
   - **Date Range:** Uses `DatePickerWithRange` component to select start and end dates for filtering.
   - **Transaction Types:** Multiple selection of transaction types from a `DropdownMenu` containing `DropdownMenuCheckboxItem` items. The list of possible types (`availableTransactionTypes`) and their translations (`transactionTypeTranslations`) are defined directly in the component.
   - **Payment Methods:** Multiple selection (same UI pattern as transaction types) using a `DropdownMenu` with `DropdownMenuCheckboxItem`. There is **no search input** inside this filter. The list merges predefined **keys** with distinct user history values; predefined keys are translated for display, free-text values are shown as-is.
+  - **Translation Helper:** Translation/formatting of payment methods is centralized in `src/lib/payment-methods.ts` to avoid UI-component dependencies and keep export/table logic consistent.
 - **Filter State Management (Local and Global):**
   - The component uses local `useState` for input values (e.g., `localSearch`, `localDateRange`, `localTypes`). This provides a responsive user experience and prevents too frequent updates to the global store.
   - Free text search value is synchronized to the global store (`setStoreFilters({ search: localSearch })`) using a 500ms `setTimeout` to prevent multiple data fetches while the user types.

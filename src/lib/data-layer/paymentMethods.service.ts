@@ -57,11 +57,14 @@ export async function getUserPaymentMethods(): Promise<string[]> {
   if (platform === "web") {
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      cacheKey = `${platform}:${user?.id ?? "anonymous"}`;
+        data: { session },
+      } = await supabase.auth.getSession();
+      cacheKey = `${platform}:${session?.user?.id ?? "anonymous"}`;
     } catch (error) {
-      logger.error("PaymentMethodsService: Failed to resolve user for cache", error);
+      logger.error(
+        "PaymentMethodsService: Failed to resolve session for cache",
+        error
+      );
       cacheKey = `${platform}:anonymous`;
     }
   }

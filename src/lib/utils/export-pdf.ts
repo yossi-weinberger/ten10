@@ -6,7 +6,7 @@ import { formatCurrency } from "./currency";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import i18n from "@/lib/i18n";
 import { logger } from "@/lib/logger";
-import { PAYMENT_METHOD_KEYS } from "@/components/ui/payment-method-combobox";
+import { formatPaymentMethod } from "@/lib/payment-methods";
 
 // Import fonts directly using Vite's ?url feature for robust path handling
 import regularFontUrl from "/fonts/Rubik-Regular.ttf?url";
@@ -17,29 +17,6 @@ type TextSegment = {
   text: string;
   isNumber: boolean;
 };
-
-function formatPaymentMethod(
-  value: string | null | undefined,
-  currentLanguage: string,
-  fallback: string
-): string {
-  if (!value) {
-    return fallback;
-  }
-  if (
-    PAYMENT_METHOD_KEYS.includes(
-      value as (typeof PAYMENT_METHOD_KEYS)[number]
-    )
-  ) {
-    return (
-      i18n.t(`transactionForm.paymentMethod.options.${value}`, {
-        lng: currentLanguage,
-        ns: "transactions",
-      }) || value
-    );
-  }
-  return value;
-}
 
 /**
  * Splits text into segments of Hebrew/text and numbers
@@ -189,7 +166,7 @@ function parseTailwindColor(colorString: string): {
 
 // Helper function to download the PDF
 function downloadPdf(bytes: Uint8Array, filename: string) {
-  const blob = new Blob([bytes], {
+  const blob = new Blob([bytes as BlobPart], {
     type: "application/pdf",
   });
   const link = document.createElement("a");

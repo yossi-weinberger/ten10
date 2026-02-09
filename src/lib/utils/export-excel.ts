@@ -1,29 +1,7 @@
 import ExcelJS from "exceljs";
 import type { Transaction } from "@/types/transaction";
 import i18n from "@/lib/i18n";
-import { PAYMENT_METHOD_KEYS } from "@/components/ui/payment-method-combobox";
-
-function formatPaymentMethod(
-  value: string | null | undefined,
-  currentLanguage: string
-): string {
-  if (!value) {
-    return "";
-  }
-  if (
-    PAYMENT_METHOD_KEYS.includes(
-      value as (typeof PAYMENT_METHOD_KEYS)[number]
-    )
-  ) {
-    return (
-      i18n.t(`transactionForm.paymentMethod.options.${value}`, {
-        lng: currentLanguage,
-        ns: "transactions",
-      }) || value
-    );
-  }
-  return value;
-}
+import { formatPaymentMethod } from "@/lib/payment-methods";
 
 export async function exportTransactionsToExcel(
   transactions: Transaction[],

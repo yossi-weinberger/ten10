@@ -35,9 +35,10 @@ import {
   getUserPaymentMethods,
 } from "@/lib/data-layer";
 import {
-  PAYMENT_METHOD_KEYS,
   PAYMENT_METHOD_PRIORITY,
-} from "@/components/ui/payment-method-combobox";
+  formatPaymentMethod,
+  isPredefinedPaymentMethod,
+} from "@/lib/payment-methods";
 
 const availableTransactionTypes: TransactionType[] = [
   "income",
@@ -53,7 +54,6 @@ const availableTransactionTypes: TransactionType[] = [
 
 export function TransactionsFilters() {
   const { t: tTables, i18n } = useTranslation("data-tables");
-  const { t: tTransactions } = useTranslation("transactions");
   const { platform } = usePlatform();
   const {
     storeFilters,
@@ -219,19 +219,11 @@ export function TransactionsFilters() {
   };
 
   const getPaymentMethodLabel = React.useCallback(
-    (method: string) => {
-      const isPredefined = PAYMENT_METHOD_KEYS.includes(
-        method as (typeof PAYMENT_METHOD_KEYS)[number]
-      );
-      if (!isPredefined) {
-        return method;
-      }
-      return tTransactions(
-        `transactionForm.paymentMethod.options.${method}`,
-        method
-      );
-    },
-    [tTransactions]
+    (method: string) =>
+      isPredefinedPaymentMethod(method)
+        ? formatPaymentMethod(method, i18n.language, method)
+        : method,
+    [i18n.language]
   );
 
   const predefinedPaymentMethods = React.useMemo(

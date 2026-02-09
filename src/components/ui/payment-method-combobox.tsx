@@ -21,6 +21,11 @@ import {
   getUserPaymentMethods,
   getPaymentMethodCacheVersion,
 } from "@/lib/data-layer";
+import {
+  PAYMENT_METHOD_PRIORITY,
+  type PaymentMethodKey,
+  isPredefinedPaymentMethod,
+} from "@/lib/payment-methods";
 
 interface PaymentMethodComboboxProps {
   value: string | null;
@@ -28,30 +33,6 @@ interface PaymentMethodComboboxProps {
   placeholder?: string;
   disabled?: boolean;
 }
-
-export const PAYMENT_METHOD_KEYS = [
-  "cash",
-  "credit_card",
-  "debit_card",
-  "bank_transfer",
-  "check",
-  "bit_paybox",
-  "paypal",
-  "other",
-] as const;
-
-export const PAYMENT_METHOD_PRIORITY = [
-  "credit_card",
-  "cash",
-  "bank_transfer",
-  "debit_card",
-  "check",
-  "bit_paybox",
-  "paypal",
-  "other",
-] as const;
-
-type PaymentMethodKey = (typeof PAYMENT_METHOD_KEYS)[number];
 
 type PaymentMethodOption = {
   value: string;
@@ -121,7 +102,7 @@ export function PaymentMethodCombobox({
     const predefined = getPredefinedMethods();
     const userOptions = userMethods.map((method) => ({
       value: method,
-      label: PAYMENT_METHOD_KEYS.includes(method as PaymentMethodKey)
+      label: isPredefinedPaymentMethod(method)
         ? getLabelForKey(method as PaymentMethodKey)
         : method,
     }));
@@ -175,7 +156,7 @@ export function PaymentMethodCombobox({
     placeholder || t("transactionForm.paymentMethod.placeholder");
 
   const displayValue = value
-    ? PAYMENT_METHOD_KEYS.includes(value as PaymentMethodKey)
+    ? isPredefinedPaymentMethod(value)
       ? getLabelForKey(value as PaymentMethodKey)
       : value
     : displayPlaceholder;
