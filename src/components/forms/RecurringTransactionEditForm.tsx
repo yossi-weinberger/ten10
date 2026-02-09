@@ -47,9 +47,9 @@ export function RecurringTransactionEditForm({
 }: RecurringTransactionEditFormProps) {
   const { t, i18n } = useTranslation("transactions");
   const [isSuccess, setIsSuccess] = React.useState(false);
-  
+
   const defaultCurrency = useDonationStore(
-    (state) => state.settings.defaultCurrency
+    (state) => state.settings.defaultCurrency,
   );
 
   const recurringSchema = useMemo(() => createRecurringEditSchema(t), [t]);
@@ -60,7 +60,8 @@ export function RecurringTransactionEditForm({
     defaultValues: {
       // Handle converted transactions: show original values in form
       amount: initialData.original_amount ?? initialData.amount,
-      currency: (initialData.original_currency as CurrencyCode) ?? initialData.currency,
+      currency:
+        (initialData.original_currency as CurrencyCode) ?? initialData.currency,
       description: initialData.description ?? "",
       category: initialData.category ?? "",
       payment_method: initialData.payment_method ?? "",
@@ -82,7 +83,7 @@ export function RecurringTransactionEditForm({
 
   const handleFormSubmit = async (values: RecurringEditFormValues) => {
     setIsSuccess(false);
-    
+
     // Handle Currency Conversion Logic
     let submissionValues = { ...values };
     const normalizedPaymentMethod =
@@ -90,20 +91,24 @@ export function RecurringTransactionEditForm({
         ? values.payment_method.trim()
         : null;
     submissionValues.payment_method = normalizedPaymentMethod;
-    
+
     if (values.currency !== defaultCurrency) {
       // Foreign currency - conversion is REQUIRED
       if (!values.conversion_rate) {
-        logger.error("Cannot submit: foreign currency selected but no conversion rate provided.");
+        logger.error(
+          "Cannot submit: foreign currency selected but no conversion rate provided.",
+        );
         toast.error(t("transactionForm.errors.missingConversionRate"));
         return;
       }
-      
+
       const originalAmount = values.amount;
       const originalCurrency = values.currency;
       const conversionRate = values.conversion_rate;
-      const convertedAmount = Number((originalAmount * conversionRate).toFixed(2));
-      
+      const convertedAmount = Number(
+        (originalAmount * conversionRate).toFixed(2),
+      );
+
       submissionValues = {
         ...submissionValues,
         amount: convertedAmount,
@@ -112,7 +117,11 @@ export function RecurringTransactionEditForm({
         original_currency: originalCurrency,
         // conversion_rate, date, source are already in values
       };
-      logger.log("Applying currency conversion:", { original: originalAmount, rate: conversionRate, converted: convertedAmount });
+      logger.log("Applying currency conversion:", {
+        original: originalAmount,
+        rate: conversionRate,
+        converted: convertedAmount,
+      });
     } else {
       // Default currency - clear conversion fields
       submissionValues.original_amount = null;
@@ -121,7 +130,7 @@ export function RecurringTransactionEditForm({
       submissionValues.conversion_date = null;
       submissionValues.rate_source = null;
     }
-    
+
     try {
       await onSubmit(submissionValues);
       setIsSuccess(true);
@@ -151,9 +160,9 @@ export function RecurringTransactionEditForm({
                   <FormItem className="flex-1">
                     <FormLabel>{t("transactionForm.amount.label")}</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01" 
+                      <Input
+                        type="number"
+                        step="0.01"
                         {...field}
                         value={field.value ?? ""}
                         className="text-start"
@@ -217,8 +226,10 @@ export function RecurringTransactionEditForm({
           />
 
           {/* Category - show for income and expense types */}
-          {(initialData.type === "income" || initialData.type === "expense" || 
-            initialData.type === "exempt-income" || initialData.type === "recognized-expense") && (
+          {(initialData.type === "income" ||
+            initialData.type === "expense" ||
+            initialData.type === "exempt-income" ||
+            initialData.type === "recognized-expense") && (
             <FormField
               control={form.control}
               name="category"
@@ -231,8 +242,12 @@ export function RecurringTransactionEditForm({
                       onChange={(value) => field.onChange(value)}
                       transactionType={initialData.type as TransactionType}
                       placeholder={
-                        initialData.type === "income" || initialData.type === "exempt-income"
-                          ? t("transactionForm.category.incomePlaceholder", "קטגוריית הכנסה (אופציונלי)")
+                        initialData.type === "income" ||
+                        initialData.type === "exempt-income"
+                          ? t(
+                              "transactionForm.category.incomePlaceholder",
+                              "קטגוריית הכנסה (אופציונלי)",
+                            )
                           : t("transactionForm.category.placeholder")
                       }
                     />
@@ -270,7 +285,7 @@ export function RecurringTransactionEditForm({
                         <SelectItem key={value} value={value}>
                           {label}
                         </SelectItem>
-                      )
+                      ),
                     )}
                   </SelectContent>
                 </Select>
@@ -287,7 +302,9 @@ export function RecurringTransactionEditForm({
             name="payment_method"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t("transactionForm.paymentMethod.label")}</FormLabel>
+                <FormLabel>
+                  {t("transactionForm.paymentMethod.label")}
+                </FormLabel>
                 <FormControl>
                   <PaymentMethodCombobox
                     value={field.value ?? null}
