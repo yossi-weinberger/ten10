@@ -29,7 +29,8 @@ tauri-plugin-os = "2.3.1"
 tauri-plugin-notification = "2.3.1"
 tauri-plugin-autostart = "2.5.0"
 tauri-plugin-updater = { version = "2.9.0", default-features = false, features = ["native-tls", "zip"] }
-tauri-plugin-clipboard-manager = "2.1.0" 
+tauri-plugin-clipboard-manager = "2.1.0"
+tauri-plugin-stronghold = "2"
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]
@@ -37,6 +38,9 @@ custom-protocol = ["tauri/custom-protocol"]
 [[bin]]
 name = "Ten10"
 path = "src/main.rs"
+
+[profile.dev.package.scrypt]
+opt-level = 3
 
 [profile.release]
 panic = "abort"

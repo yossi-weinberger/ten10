@@ -80,11 +80,17 @@ fn main() {
             // Move database to proper app data directory
             let app_data_dir = app.path().app_data_dir()
                 .expect("Failed to get app data directory");
-            
+
             // Create the directory if it doesn't exist
             std::fs::create_dir_all(&app_data_dir)
                 .expect("Failed to create app data directory");
-            
+
+            // Initialize Stronghold plugin for app lock (salt file in app data dir)
+            let salt_path = app_data_dir.join("stronghold_salt.txt");
+            app.handle().plugin(
+                tauri_plugin_stronghold::Builder::with_argon2(&salt_path).build(),
+            )?;
+
             let db_path = app_data_dir.join("Ten10.db");
             
             // If the old database exists, move it to the new location
