@@ -45,6 +45,10 @@ import {
   generateRecoveryKey,
   changePassword,
 } from "@/lib/security/appLock.service";
+import {
+  validateChangePassword,
+  validatePasswordPair,
+} from "@/lib/security/appLockPasswordSchema";
 import { useDonationStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import toast from "react-hot-toast";
@@ -79,11 +83,6 @@ export function AppLockSettingsCard() {
   const [changeOldPw, setChangeOldPw] = useState("");
   const [changeNewPw, setChangeNewPw] = useState("");
   const [changeNewPwConfirm, setChangeNewPwConfirm] = useState("");
-  const trimmedEnablePassword = enablePassword.trim();
-  const trimmedEnableConfirm = enableConfirm.trim();
-  const trimmedChangeOldPw = changeOldPw.trim();
-  const trimmedChangeNewPw = changeNewPw.trim();
-  const trimmedChangeNewPwConfirm = changeNewPwConfirm.trim();
 
   useEffect(() => {
     isDesktopLockEnabled().then(setLockEnabled);
@@ -109,11 +108,15 @@ export function AppLockSettingsCard() {
   };
 
   const handleEnableSubmit = async () => {
-    if (!trimmedEnablePassword || !trimmedEnableConfirm) {
+    const validation = validatePasswordPair({
+      password: enablePassword,
+      confirmPassword: enableConfirm,
+    });
+    if (!validation.success && validation.error === "too_short") {
       toast.error(t("appLock.passwordMinLength"));
       return;
     }
-    if (enablePassword !== enableConfirm) {
+    if (!validation.success && validation.error === "mismatch") {
       toast.error(t("appLock.passwordsDoNotMatch"));
       return;
     }
@@ -152,11 +155,16 @@ export function AppLockSettingsCard() {
   };
 
   const handleChangePasswordSubmit = async () => {
-    if (!trimmedChangeOldPw || !trimmedChangeNewPw || !trimmedChangeNewPwConfirm) {
+    const validation = validateChangePassword({
+      oldPassword: changeOldPw,
+      newPassword: changeNewPw,
+      confirmNewPassword: changeNewPwConfirm,
+    });
+    if (!validation.success && validation.error === "too_short") {
       toast.error(t("appLock.passwordMinLength"));
       return;
     }
-    if (changeNewPw !== changeNewPwConfirm) {
+    if (!validation.success && validation.error === "mismatch") {
       toast.error(t("appLock.passwordsDoNotMatch"));
       return;
     }
@@ -404,11 +412,7 @@ export function AppLockSettingsCard() {
             </Button>
             <Button
               onClick={handleEnableSubmit}
-              disabled={
-                loading ||
-                !trimmedEnablePassword ||
-                !trimmedEnableConfirm
-              }
+              disabled={loading || !enablePassword || !enableConfirm}
             >
               {t("appLock.enableLock")}
             </Button>
@@ -459,10 +463,7 @@ export function AppLockSettingsCard() {
             <Button
               onClick={handleChangePasswordSubmit}
               disabled={
-                loading ||
-                !trimmedChangeOldPw ||
-                !trimmedChangeNewPw ||
-                !trimmedChangeNewPwConfirm
+                loading || !changeOldPw || !changeNewPw || !changeNewPwConfirm
               }
             >
               {t("appLock.updatePassword")}

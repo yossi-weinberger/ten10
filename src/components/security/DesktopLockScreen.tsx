@@ -20,6 +20,7 @@ import {
   resetVaultWithNewPassword,
   removeVaultAndRecoveryKeyOnly,
 } from "@/lib/security/appLock.service";
+import { validatePasswordPair } from "@/lib/security/appLockPasswordSchema";
 import { clearAllData } from "@/lib/data-layer";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { logger } from "@/lib/logger";
@@ -76,11 +77,15 @@ export function DesktopLockScreen({
 
   async function handleSetup() {
     setError(null);
-    if (!password.trim() || !confirmPassword.trim()) {
+    const validation = validatePasswordPair({
+      password,
+      confirmPassword,
+    });
+    if (!validation.success && validation.error === "too_short") {
       setError(t("errorPasswordTooShort"));
       return;
     }
-    if (password !== confirmPassword) {
+    if (!validation.success && validation.error === "mismatch") {
       setError(t("errorPasswordMismatch"));
       return;
     }
@@ -99,7 +104,6 @@ export function DesktopLockScreen({
 
   function handleRecoveryKeySaved() {
     setDisplayRecoveryKey("");
-    setMode("unlock");
     setPassword("");
     setConfirmPassword("");
     onUnlocked();
@@ -123,11 +127,15 @@ export function DesktopLockScreen({
 
   async function handleResetAndSetNew() {
     setError(null);
-    if (!password.trim() || !confirmPassword.trim()) {
+    const validation = validatePasswordPair({
+      password,
+      confirmPassword,
+    });
+    if (!validation.success && validation.error === "too_short") {
       setError(t("errorPasswordTooShort"));
       return;
     }
-    if (password !== confirmPassword) {
+    if (!validation.success && validation.error === "mismatch") {
       setError(t("errorPasswordMismatch"));
       return;
     }
@@ -315,7 +323,7 @@ export function DesktopLockScreen({
           <Button
             className={formButtonClass}
             onClick={handleResetAndSetNew}
-            disabled={loading || !password.trim() || !confirmPassword.trim()}
+            disabled={loading || !password || !confirmPassword}
           >
             {t("resetButton")}
           </Button>
@@ -362,7 +370,7 @@ export function DesktopLockScreen({
           <Button
             className={formButtonClass}
             onClick={handleSetup}
-            disabled={loading || !password.trim() || !confirmPassword.trim()}
+            disabled={loading || !password || !confirmPassword}
           >
             {t("setupButton")}
           </Button>
