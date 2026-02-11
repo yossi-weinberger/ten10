@@ -25,6 +25,8 @@ export interface Settings {
   termsAcceptedVersion?: string | null;
   mailingListConsent?: boolean;
   lastSeenVersion?: string | null;
+  /** Desktop app lock: auto-lock after this many minutes of inactivity (0 = disabled). */
+  autoLockTimeoutMinutes?: number;
 }
 
 export interface DonationState {
@@ -76,6 +78,7 @@ const defaultSettings: Settings = {
   termsAcceptedVersion: null,
   mailingListConsent: false,
   lastSeenVersion: null,
+  autoLockTimeoutMinutes: 10,
 };
 
 export const useDonationStore = create<DonationState>()(
@@ -251,6 +254,10 @@ export const useDonationStore = create<DonationState>()(
                 "Zustand: Adding missing lastSeenVersion to existing settings"
               );
               state.settings.lastSeenVersion = null;
+            }
+
+            if (state.settings.autoLockTimeoutMinutes === undefined) {
+              state.settings.autoLockTimeoutMinutes = 10;
             }
 
             state.setHasHydrated(true);

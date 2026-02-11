@@ -16,7 +16,6 @@ import { Label } from "@/components/ui/label";
 import { Trash2 } from "lucide-react";
 import {
   Card,
-  CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
@@ -38,28 +37,34 @@ export function ClearDataSection({
   const { t: tCommon } = useTranslation("common");
   return (
     <Card className={cn("border-destructive/50", className)}>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <Trash2 className="h-5 w-5 text-destructive" />
-          <CardTitle className="text-destructive">
-            {t("clearData.title")}
-          </CardTitle>
-        </div>
-        <CardDescription>{t("clearData.description")}</CardDescription>
-      </CardHeader>
-      <CardContent>
+      <CardHeader className="py-4">
         <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button
-              variant="destructive"
-              disabled={isClearing}
-              className="w-full"
-            >
-              {isClearing
-                ? tCommon("labels.loading")
-                : t("clearData.confirmButton")}
-            </Button>
-          </AlertDialogTrigger>
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <Trash2 className="h-5 w-5 text-destructive" />
+                <CardTitle className="text-destructive">
+                  {t("clearData.title")}
+                </CardTitle>
+              </div>
+              <CardDescription className="text-sm">
+                {t("clearData.description")}
+              </CardDescription>
+            </div>
+
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="destructive"
+                disabled={isClearing}
+                className="w-full md:w-auto md:min-w-[220px]"
+              >
+                {isClearing
+                  ? tCommon("labels.loading")
+                  : t("clearData.confirmButton")}
+              </Button>
+            </AlertDialogTrigger>
+          </div>
+
           <AlertDialogContent dir={i18n.dir()}>
             <AlertDialogHeader className="text-start">
               <AlertDialogTitle className="text-start">
@@ -83,7 +88,7 @@ export function ClearDataSection({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </CardContent>
+      </CardHeader>
     </Card>
   );
 }

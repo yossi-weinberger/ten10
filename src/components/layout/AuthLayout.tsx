@@ -7,6 +7,7 @@ interface AuthLayoutProps {
   title?: string;
   subtitle?: string;
   imageSideContent?: React.ReactNode;
+  showHomeButton?: boolean;
 }
 
 export const AuthLayout: React.FC<AuthLayoutProps> = ({
@@ -14,6 +15,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   title,
   subtitle,
   imageSideContent,
+  showHomeButton = true,
 }) => {
   const { t, i18n } = useTranslation("auth");
 
@@ -23,7 +25,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
       dir={i18n.dir()}
     >
       {/* Navigation & Controls */}
-      <AuthControls />
+      <AuthControls showHome={showHomeButton} />
 
       {/* Page Background Image (Mobile Only) */}
       <div className="absolute inset-0 z-0 lg:hidden">

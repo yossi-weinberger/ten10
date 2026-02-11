@@ -3,13 +3,25 @@ import { getPlatform } from "../../platformManager";
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
 
+function isTauriRuntime(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    !!(window as unknown as { __TAURI_INTERNALS__?: unknown })
+      .__TAURI_INTERNALS__
+  );
+}
+
 export async function clearAllData() {
   const currentPlatform = getPlatform();
+  const shouldUseDesktopPath =
+    currentPlatform === "desktop" ||
+    (currentPlatform === "loading" && isTauriRuntime());
+
   logger.log(
     "DataManagementService: Clearing all data. Platform:",
-    currentPlatform
+    currentPlatform,
   );
-  if (currentPlatform === "desktop") {
+  if (shouldUseDesktopPath) {
     try {
       logger.log("Invoking clear_all_data...");
       const { invoke } = await import("@tauri-apps/api/core");
@@ -33,6 +45,12 @@ export async function clearAllData() {
       logger.error("Error clearing Supabase data:", error);
       throw error; // Re-throw the error to be caught by the calling function
     }
+  } else {
+    const err = new Error(
+      `Unsupported platform for clearAllData: ${String(currentPlatform)}`,
+    );
+    logger.error(err.message);
+    throw err;
   }
 
   logger.log("Clearing Zustand store...");

@@ -32,6 +32,16 @@ import AppLoader from "./components/layout/AppLoader";
 
 import { RecurringTransactionsService } from "./lib/services/recurring-transactions.service";
 import { PUBLIC_ROUTES, FULL_SCREEN_ROUTES } from "./lib/constants";
+import {
+  isDesktopLockEnabled,
+  isUnlocked,
+  lockNow,
+} from "./lib/security/appLock.service";
+import { DesktopLockScreen } from "./components/security/DesktopLockScreen";
+
+export type DesktopLockStatus =
+  | null
+  | { enabled: boolean; unlocked: boolean };
 
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -39,6 +49,10 @@ function App() {
   // Web is ready immediately (no DB init needed), desktop needs async initialization
   // @ts-expect-error __TAURI_INTERNALS__ is injected by Tauri
   const [isAppReady, setIsAppReady] = useState(() => !window.__TAURI_INTERNALS__);
+  // Desktop app lock: null = checking, { enabled, unlocked } = resolved
+  const [desktopLockStatus, setDesktopLockStatus] =
+    useState<DesktopLockStatus>(null);
+  const [desktopInitComplete, setDesktopInitComplete] = useState(false);
   // Prevent re-running desktop init when language changes (t function reference changes)
   const desktopInitDone = useRef(false);
 
@@ -50,9 +64,11 @@ function App() {
   tRef.current = t; // Always keep ref up to date
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
 
-  // Get Zustand store state for language synchronization
+  // Get Zustand store state for language synchronization and auto-lock
   const settings = useDonationStore((state) => state.settings);
   const _hasHydrated = useDonationStore((state) => state._hasHydrated);
+  const autoLockTimeoutMinutes =
+    settings.autoLockTimeoutMinutes ?? 10;
 
   // Define pages that take full screen without sidebar/padding
   // - FULL_SCREEN_ROUTES (login/signup/landing) are always full-screen on all platforms.
@@ -91,86 +107,211 @@ function App() {
     document.documentElement.lang = i18n.language;
   }, [i18n, i18n.language]);
 
+  // Desktop: resolve app lock status (enabled + unlocked) then set app ready
   useEffect(() => {
-    if (platform !== "loading") {
-      setGlobalPlatform(platform);
-      if (platform === "desktop") {
-        // Prevent re-running desktop init (e.g., when language changes and t reference updates)
-        if (desktopInitDone.current) {
-          return;
+    if (platform !== "desktop" || desktopLockStatus !== null) return;
+    let cancelled = false;
+    isDesktopLockEnabled()
+      .then((enabled) => {
+        if (cancelled) return;
+        const unlocked = enabled ? isUnlocked() : true;
+        setDesktopLockStatus({ enabled, unlocked });
+        setIsAppReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setDesktopLockStatus({ enabled: false, unlocked: true });
+          setIsAppReady(true);
         }
-        desktopInitDone.current = true;
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [platform, desktopLockStatus]);
 
-        import("@tauri-apps/api/core")
-          .then(({ invoke }) => {
-            invoke("init_db")
-              .then(() => {
-                logger.log("Database initialized successfully.");
-                // Now, execute the recurring transactions handler
-                return RecurringTransactionsService.processDueTransactions();
+  // Web: app ready as soon as platform is known
+  useEffect(() => {
+    if (platform === "web") {
+      setGlobalPlatform(platform);
+      setIsAppReady(true);
+    }
+  }, [platform]);
+
+  // Desktop: run init_db only when lock is disabled or user has unlocked
+  useEffect(() => {
+    if (platform !== "desktop" || !desktopLockStatus) return;
+    if (desktopLockStatus.enabled && !desktopLockStatus.unlocked) return;
+    if (desktopInitDone.current) return;
+    setGlobalPlatform(platform);
+    desktopInitDone.current = true;
+
+    import("@tauri-apps/api/core")
+      .then(({ invoke }) => {
+        invoke("init_db")
+          .then(() => {
+            logger.log("Database initialized successfully.");
+            return RecurringTransactionsService.processDueTransactions();
+          })
+          .then(() => {
+            logger.log("Recurring transactions processed.");
+            return checkAndSendDesktopReminder(tRef.current);
+          })
+          .then(() => {
+            logger.log("Desktop reminder check complete.");
+            checkForUpdates()
+              .then((updateInfo) => {
+                if (updateInfo) {
+                  logger.log(`Update available: ${updateInfo.version}`);
+                  toast.success(
+                    tRef.current("versionInfo.updateAvailable", {
+                      version: updateInfo.version,
+                      ns: "settings",
+                    }),
+                    { duration: 5000, icon: "🔔" }
+                  );
+                } else {
+                  logger.log("App is up to date");
+                }
               })
-              .then(() => {
-                logger.log("Recurring transactions processed.");
-                // Check for desktop reminders after recurring transactions
-                // Use tRef.current to get latest t without adding it to dependencies
-                return checkAndSendDesktopReminder(tRef.current);
-              })
-              .then(() => {
-                logger.log("Desktop reminder check complete.");
-                // Check for updates silently in background (non-blocking)
-                checkForUpdates()
-                  .then((updateInfo) => {
-                    if (updateInfo) {
-                      logger.log(`Update available: ${updateInfo.version}`);
-                      // Notify user about available update
-                      // Use tRef.current to get latest t
-                      toast.success(
-                        tRef.current("versionInfo.updateAvailable", {
-                          version: updateInfo.version,
-                          ns: "settings",
-                        }),
-                        {
-                          duration: 5000,
-                          icon: "🔔",
-                        }
-                      );
-                    } else {
-                      logger.log("App is up to date");
-                      // No notification if up to date - silent check
-                    }
-                  })
-                  .catch((error) => {
-                    logger.error("Failed to check for updates:", error);
-                    // Don't block app startup if update check fails
-                    // Don't show error toast on startup - user can check manually if needed
-                  });
-              })
-              .catch((error) =>
-                logger.error(
-                  "Error during desktop initialization sequence:",
-                  error
-                )
-              )
-              .finally(() => {
-                // Ensure app is ready even if there was an error
-                setIsAppReady(true);
+              .catch((error) => {
+                logger.error("Failed to check for updates:", error);
               });
           })
-          .catch((e) => {
-            logger.error("Failed to load Tauri core API", e);
-            setIsAppReady(true);
+          .catch((error) =>
+            logger.error("Error during desktop initialization sequence:", error)
+          )
+          .finally(() => {
+            setDesktopInitComplete(true);
           });
-      } else {
-        // For web, we can consider the app ready once platform is known.
-        // Auth and data loading are handled within components/contexts.
-        setIsAppReady(true);
+      })
+      .catch((e) => {
+        logger.error("Failed to load Tauri core API", e);
+        setDesktopInitComplete(true);
+      });
+  }, [platform, desktopLockStatus]);
+
+  // Desktop: auto-lock after real user inactivity (mouse/keyboard/touch/etc.)
+  useEffect(() => {
+    if (platform !== "desktop") return;
+    if (!desktopLockStatus?.enabled || !desktopLockStatus?.unlocked) return;
+    if (!desktopInitComplete || autoLockTimeoutMinutes <= 0) return;
+
+    const NOISY_ACTIVITY_THROTTLE_MS = 1000;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const delayMs = autoLockTimeoutMinutes * 60 * 1000;
+    let lastActivityAt = Date.now();
+    let lastRescheduleAt = 0;
+
+    const lockApp = () => {
+      lockNow();
+      setDesktopLockStatus((prev) =>
+        prev ? { ...prev, unlocked: false } : prev
+      );
+    };
+
+    const scheduleLock = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      const elapsedMs = Date.now() - lastActivityAt;
+      const remainingMs = delayMs - elapsedMs;
+      if (remainingMs <= 0) {
+        lockApp();
+        return;
       }
+      timeoutId = setTimeout(() => {
+        timeoutId = null;
+        lockApp();
+      }, remainingMs);
+    };
+
+    const clearLockTimer = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    };
+
+    const markActivity: EventListener = (event) => {
+      const now = Date.now();
+      lastActivityAt = now;
+      if (document.hidden) return;
+
+      const isNoisyEvent =
+        event.type === "mousemove" || event.type === "wheel";
+      if (isNoisyEvent && now - lastRescheduleAt < NOISY_ACTIVITY_THROTTLE_MS) {
+        return;
+      }
+
+      lastRescheduleAt = now;
+      scheduleLock();
+    };
+
+    // Start counting inactivity immediately.
+    scheduleLock();
+
+    // Treat these interactions as user activity.
+    const activityEvents: Array<keyof WindowEventMap> = [
+      "mousemove",
+      "mousedown",
+      "keydown",
+      "touchstart",
+      "wheel",
+      "focus",
+    ];
+
+    const listenerOptions: AddEventListenerOptions = { passive: true };
+    for (const eventName of activityEvents) {
+      window.addEventListener(eventName, markActivity, listenerOptions);
     }
-  }, [platform]); // Removed t from dependencies - using tRef.current instead
+
+    // When returning to the app, lock immediately if timeout already passed.
+    const onVisibilityChange = () => {
+      if (!document.hidden) scheduleLock();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      for (const eventName of activityEvents) {
+        window.removeEventListener(eventName, markActivity, listenerOptions);
+      }
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      clearLockTimer();
+    };
+  }, [
+    platform,
+    desktopLockStatus?.enabled,
+    desktopLockStatus?.unlocked,
+    desktopInitComplete,
+    autoLockTimeoutMinutes,
+  ]);
 
   if (!isAppReady) {
-    // Desktop: Show loader during DB init (instead of blank screen)
-    // This only happens on desktop since web has isAppReady=true from start
+    return <AppLoader />;
+  }
+
+  const desktopLocked =
+    platform === "desktop" &&
+    desktopLockStatus?.enabled &&
+    !desktopLockStatus.unlocked;
+
+  if (desktopLocked) {
+    return (
+      <DesktopLockScreen
+        isFirstTime={false}
+        onUnlocked={() => {
+          setDesktopLockStatus((s) =>
+            s ? { ...s, unlocked: true } : s
+          );
+        }}
+      />
+    );
+  }
+
+  const desktopInitPending =
+    platform === "desktop" &&
+    (!desktopLockStatus?.enabled || desktopLockStatus?.unlocked) &&
+    !desktopInitComplete;
+
+  if (desktopInitPending) {
     return <AppLoader />;
   }
 

@@ -1,10 +1,7 @@
-import React from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import {
   Card,
-  CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
@@ -31,36 +28,41 @@ export function ImportExportDataSection({
   return (
     <Card className={className}>
       <CardHeader>
-        <div className="flex items-center gap-2">
-          <ArrowDownUp className="h-5 w-5 text-primary" />
-          <CardTitle>{t("importExport.exportTitle")}</CardTitle>
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-2">
+              <ArrowDownUp className="h-5 w-5 text-primary" />
+              <CardTitle>{t("importExport.exportTitle")}</CardTitle>
+            </div>
+            <CardDescription>
+              {t("importExport.exportDescription")}
+            </CardDescription>
+          </div>
+
+          <div className="flex w-full flex-col gap-2 md:w-auto md:min-w-[220px]">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleExportData}
+              disabled={isExporting}
+            >
+              {isExporting
+                ? tCommon("labels.loading")
+                : t("importExport.exportButton")}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleImportData}
+              disabled={isImporting || isExporting}
+            >
+              {isImporting
+                ? tCommon("labels.loading")
+                : t("importExport.importButton")}
+            </Button>
+          </div>
         </div>
-        <CardDescription>{t("importExport.exportDescription")}</CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleExportData}
-            disabled={isExporting}
-          >
-            {isExporting
-              ? tCommon("labels.loading")
-              : t("importExport.exportButton")}
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={handleImportData}
-            disabled={isImporting || isExporting}
-          >
-            {isImporting
-              ? tCommon("labels.loading")
-              : t("importExport.importButton")}
-          </Button>
-        </div>
-      </CardContent>
     </Card>
   );
 }

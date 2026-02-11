@@ -18,10 +18,10 @@ import AppLoader from "@/components/layout/AppLoader";
 import { LanguageAndDisplaySettingsCard } from "@/components/settings/LanguageAndDisplaySettingsCard";
 import { FinancialSettingsCard } from "@/components/settings/FinancialSettingsCard";
 import { NotificationSettingsCard } from "@/components/settings/NotificationSettingsCard";
-import { CalendarSettingsCard } from "@/components/settings/CalendarSettingsCard";
 import { ClearDataSection } from "@/components/settings/ClearDataSection";
 import { ImportExportDataSection } from "@/components/settings/ImportExportDataSection";
 import { VersionInfoCard } from "@/components/settings/VersionInfoCard";
+import { AppLockSettingsCard } from "@/components/settings/AppLockSettingsCard";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { ImportConfirmModal } from "@/components/settings/ImportConfirmModal";
 import { logger } from "@/lib/logger";
@@ -36,11 +36,10 @@ export function SettingsPage() {
     useShallow((state) => ({
       settings: state.settings,
       updateSettings: state.updateSettings,
-    }))
+    })),
   );
 
-  const { isLocked: isCurrencyLocked, isLoading: isCurrencyLockedLoading } =
-    useIsCurrencyLocked();
+  const { isLocked: isCurrencyLocked } = useIsCurrencyLocked();
 
   const [isClearing, setIsClearing] = useState(false);
 
@@ -80,7 +79,7 @@ export function SettingsPage() {
 
   const handleUpdateOpeningBalance = async (
     id: string,
-    updates: Partial<Transaction>
+    updates: Partial<Transaction>,
   ) => {
     // Cast updates to TransactionUpdatePayload as updateTransaction expects specific structure
     // We know OpeningBalanceModal sends correct fields
@@ -140,7 +139,7 @@ export function SettingsPage() {
               if (error) {
                 logger.error(
                   "Failed to update default currency in Supabase:",
-                  error
+                  error,
                 );
                 toast.error(tCommon("toast.settings.updateError"));
               }
@@ -180,7 +179,7 @@ export function SettingsPage() {
           } catch (error) {
             logger.error(
               "Failed to update reminder settings in Supabase:",
-              error
+              error,
             );
             toast.error(tCommon("toast.settings.updateError"));
           }
@@ -190,26 +189,8 @@ export function SettingsPage() {
     />
   );
 
-  const calendarSection = (
-    <CalendarSettingsCard
-      calendarSettings={{
-        calendarType: settings.calendarType,
-        maaserYearStart: ["tishrei", "nisan", "january"].includes(
-          settings.maaserYearStart ?? ""
-        )
-          ? (settings.maaserYearStart as
-              | "tishrei"
-              | "nisan"
-              | "january"
-              | undefined)
-          : undefined,
-      }}
-      updateSettings={(newCalendarSettings) =>
-        updateSettings(newCalendarSettings)
-      }
-      disabled={true}
-    />
-  );
+  // Calendar section is intentionally hidden for now.
+  const calendarSection = null;
 
   const importExportSection = (
     <ImportExportDataSection
@@ -217,7 +198,7 @@ export function SettingsPage() {
       isExporting={isExporting}
       handleImportData={handleImportData}
       isImporting={isImporting}
-      className="flex-1"
+      className="flex-none"
     />
   );
 
@@ -229,6 +210,10 @@ export function SettingsPage() {
     />
   );
 
+  const appLockSection =
+    platform === "desktop" ? <AppLockSettingsCard /> : null;
+  const isDesktop = platform === "desktop";
+
   return (
     <>
       {(isImporting || isExporting) && (
@@ -238,7 +223,7 @@ export function SettingsPage() {
               ? t("importExport.importing")
               : t("importExport.exporting")
           }
-          progress={isImporting ? importProgress ?? undefined : undefined}
+          progress={isImporting ? (importProgress ?? undefined) : undefined}
           details={
             isImporting && importCounts
               ? `${t("messages.importRecordCountTransactions", {
@@ -259,27 +244,48 @@ export function SettingsPage() {
         </div>
 
         {/* Desktop Layout (Two Independent Columns) */}
-        <div className="hidden md:grid md:grid-cols-2 gap-6 items-start">
-          {/* Left Column */}
-          <div className="flex flex-col gap-6 h-full">
-            {languageSection}
-            {versionSection}
-            {importExportSection}
-            <div className="mt-auto">{clearDataSection}</div>
-          </div>
+        {isDesktop ? (
+          <div className="hidden md:grid md:grid-cols-2 gap-6 items-start">
+            {/* Desktop left column */}
+            <div className="flex flex-col gap-6">
+              {languageSection}
+              {versionSection}
+              {appLockSection}
+              {importExportSection}
+            </div>
 
-          {/* Right Column */}
-          <div className="flex flex-col gap-6 h-full">
-            {financialSection}
-            {notificationSection}
-            {calendarSection}
+            {/* Desktop right column */}
+            <div className="flex flex-col gap-6">
+              {financialSection}
+              {notificationSection}
+              {calendarSection}
+              {clearDataSection}
+            </div>
           </div>
-        </div>
+        ) : null}
 
-        {/* Mobile Layout (Single Column, Custom Order) */}
+        {/* Web Layout (Two Columns) */}
+        {!isDesktop ? (
+          <div className="hidden md:grid md:grid-cols-2 gap-6 items-start">
+            <div className="flex flex-col gap-6">
+              {languageSection}
+              {versionSection}
+              {importExportSection}
+            </div>
+            <div className="flex flex-col gap-6">
+              {financialSection}
+              {notificationSection}
+              {calendarSection}
+              {clearDataSection}
+            </div>
+          </div>
+        ) : null}
+
+        {/* Mobile Layout (Single Column) */}
         <div className="flex flex-col gap-6 md:hidden">
           {languageSection}
           {versionSection}
+          {appLockSection}
           {financialSection}
           {notificationSection}
           {calendarSection}
