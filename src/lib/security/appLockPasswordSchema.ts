@@ -2,7 +2,9 @@ import { z } from "zod";
 
 export type PasswordValidationError = "too_short" | "mismatch";
 
-export const passwordSchema = z.string().min(1);
+export const MIN_PASSWORD_LENGTH = 1;
+
+export const passwordSchema = z.string().min(MIN_PASSWORD_LENGTH);
 
 export const passwordPairSchema = z
   .object({
@@ -27,7 +29,8 @@ export const changePasswordSchema = z
 
 function hasTooShortIssue(error: z.ZodError): boolean {
   return error.issues.some(
-    (issue) => issue.code === "too_small" && issue.minimum === 1,
+    (issue) =>
+      issue.code === "too_small" && issue.minimum === MIN_PASSWORD_LENGTH,
   );
 }
 

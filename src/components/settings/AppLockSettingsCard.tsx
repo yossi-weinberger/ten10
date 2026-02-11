@@ -49,6 +49,7 @@ import {
   validateChangePassword,
   validatePasswordPair,
 } from "@/lib/security/appLockPasswordSchema";
+import { logger } from "@/lib/logger";
 import { useDonationStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import toast from "react-hot-toast";
@@ -130,7 +131,8 @@ export function AppLockSettingsCard() {
       setRecoveryKeyDialogOpen(true);
       setLockEnabled(true);
     } catch (e) {
-      toast.error(String(e));
+      logger.error("Enable app lock failed", e);
+      toast.error(t("appLock.enableLockError"));
     } finally {
       setLoading(false);
     }
@@ -143,7 +145,8 @@ export function AppLockSettingsCard() {
       setLockEnabled(false);
       toast.success(t("appLock.lockDisabled"));
     } catch (e) {
-      toast.error(String(e));
+      logger.error("Disable app lock failed", e);
+      toast.error(t("appLock.disableLockError"));
     } finally {
       setLoading(false);
     }
@@ -177,6 +180,7 @@ export function AppLockSettingsCard() {
       setChangePwDialogOpen(false);
       toast.success(t("appLock.changePasswordSuccess"));
     } catch (e) {
+      logger.error("Change app lock password failed", e);
       toast.error(t("appLock.changePasswordError"));
     } finally {
       setLoading(false);
@@ -192,7 +196,8 @@ export function AppLockSettingsCard() {
       setRecoveryKeyDialogOpen(true);
       toast.success(t("appLock.regenerateSuccess"));
     } catch (e) {
-      toast.error(String(e));
+      logger.error("Regenerate recovery key failed", e);
+      toast.error(t("appLock.regenerateError"));
     } finally {
       setLoading(false);
     }

@@ -196,9 +196,11 @@ function App() {
     if (!desktopLockStatus?.enabled || !desktopLockStatus?.unlocked) return;
     if (!desktopInitComplete || autoLockTimeoutMinutes <= 0) return;
 
+    const NOISY_ACTIVITY_THROTTLE_MS = 1000;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
     const delayMs = autoLockTimeoutMinutes * 60 * 1000;
     let lastActivityAt = Date.now();
+    let lastRescheduleAt = 0;
 
     const lockApp = () => {
       lockNow();
@@ -228,9 +230,19 @@ function App() {
       }
     };
 
-    const markActivity = () => {
-      lastActivityAt = Date.now();
-      if (!document.hidden) scheduleLock();
+    const markActivity: EventListener = (event) => {
+      const now = Date.now();
+      lastActivityAt = now;
+      if (document.hidden) return;
+
+      const isNoisyEvent =
+        event.type === "mousemove" || event.type === "wheel";
+      if (isNoisyEvent && now - lastRescheduleAt < NOISY_ACTIVITY_THROTTLE_MS) {
+        return;
+      }
+
+      lastRescheduleAt = now;
+      scheduleLock();
     };
 
     // Start counting inactivity immediately.
@@ -246,8 +258,9 @@ function App() {
       "focus",
     ];
 
+    const listenerOptions: AddEventListenerOptions = { passive: true };
     for (const eventName of activityEvents) {
-      window.addEventListener(eventName, markActivity, { passive: true });
+      window.addEventListener(eventName, markActivity, listenerOptions);
     }
 
     // When returning to the app, lock immediately if timeout already passed.
@@ -258,7 +271,7 @@ function App() {
 
     return () => {
       for (const eventName of activityEvents) {
-        window.removeEventListener(eventName, markActivity);
+        window.removeEventListener(eventName, markActivity, listenerOptions);
       }
       document.removeEventListener("visibilitychange", onVisibilityChange);
       clearLockTimer();
