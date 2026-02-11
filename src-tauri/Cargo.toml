@@ -39,6 +39,7 @@ custom-protocol = ["tauri/custom-protocol"]
 name = "Ten10"
 path = "src/main.rs"
 
+# scrypt (password hashing in Stronghold) needs higher opt-level in dev for acceptable unlock performance
 [profile.dev.package.scrypt]
 opt-level = 3
 

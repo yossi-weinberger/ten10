@@ -190,13 +190,6 @@ if (standardSigBackupPath && fs.existsSync(standardSigBackupPath)) {
   fs.unlinkSync(standardSigBackupPath);
 }
 
-// Restore createUpdaterArtifacts so git diff stays clean (in case of interrupt or early exit)
-// if (needSigningWorkaround && savedCreateUpdaterArtifacts !== undefined) {
-//   const j = JSON.parse(fs.readFileSync(TAURI_CONF, "utf8"));
-//   j.bundle.createUpdaterArtifacts = savedCreateUpdaterArtifacts;
-//   fs.writeFileSync(TAURI_CONF, JSON.stringify(j, null, 2));
-// }
-
 console.log("Done. Bundles:");
 console.log(`  ${path.basename(standardExePath)} (standard)`);
 console.log(`  ${webview2ExeName} (with WebView2)`);
