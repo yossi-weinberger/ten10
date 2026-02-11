@@ -217,16 +217,47 @@ export async function changePassword(
   }
 
   const hashPath = await getRecoveryHashPath();
-  const { readTextFile, writeTextFile, exists } =
+  const { readTextFile, writeTextFile, readFile, writeFile, exists, remove } =
     await import("@tauri-apps/plugin-fs");
+
+  let existingVault: Uint8Array | null = null;
   let existingHash: string | null = null;
+  if (await exists(vaultPath)) {
+    existingVault = await readFile(vaultPath);
+  }
   if (await exists(hashPath)) {
     existingHash = await readTextFile(hashPath);
   }
-  await disableLock();
-  await setupLock(newPassword);
-  if (existingHash !== null) {
-    await writeTextFile(hashPath, existingHash);
+
+  try {
+    await disableLock();
+    await setupLock(newPassword);
+    if (existingHash !== null) {
+      await writeTextFile(hashPath, existingHash);
+    }
+  } catch (error) {
+    // Best-effort rollback: restore original vault/hash so user is not locked out.
+    if (await exists(vaultPath)) await remove(vaultPath);
+    if (await exists(hashPath)) await remove(hashPath);
+
+    if (existingVault !== null) {
+      await writeFile(vaultPath, existingVault);
+    }
+    if (existingHash !== null) {
+      await writeTextFile(hashPath, existingHash);
+    }
+
+    try {
+      const restored = await Stronghold.load(vaultPath, oldPassword);
+      await restored.loadClient(CLIENT_NAME);
+      strongholdInstance = restored;
+      isUnlockedFlag = true;
+    } catch {
+      strongholdInstance = null;
+      isUnlockedFlag = false;
+    }
+
+    throw error;
   }
 }
 
