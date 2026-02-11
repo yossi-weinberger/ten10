@@ -25,7 +25,7 @@ dist-ssr
 
 # Tauri build artifacts
 /src-tauri/target
-/src-tauri/Cargo.lock
+# Cargo.lock committed for reproducible builds (application, not library)
 
 # SQLite database (if you use tauri-plugin-sqlite)
 # Adjust the path if your database is located elsewhere
