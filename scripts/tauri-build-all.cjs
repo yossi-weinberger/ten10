@@ -7,6 +7,10 @@
  * 3. Keeps both EXEs: standard and with_WebView2
  *
  * Invoked by: npm run tauri build (wrapper in package.json).
+ *
+ * Old installers from previous versions may remain in the NSIS folder; the script
+ * always picks the current-version output by name (Ten10_<version>_x64-setup.exe)
+ * so old files do not affect the result.
  */
 
 const fs = require("fs");
@@ -21,27 +25,51 @@ const NSIS_DIR = path.join(
   "target",
   "release",
   "bundle",
-  "nsis"
+  "nsis",
 );
 
 function getVersion() {
   const pkg = JSON.parse(
-    fs.readFileSync(path.join(ROOT, "package.json"), "utf8")
+    fs.readFileSync(path.join(ROOT, "package.json"), "utf8"),
   );
   return pkg.version;
 }
 
-function findNsisExe() {
+function findNsisExe(excludeFileName) {
   if (!fs.existsSync(NSIS_DIR)) return null;
+  // Prefer the default Tauri output for current version so we don't pick an old build
+  const defaultPath = path.join(NSIS_DIR, defaultNsisExeName);
+  if (
+    fs.existsSync(defaultPath) &&
+    (!excludeFileName || defaultNsisExeName !== excludeFileName)
+  ) {
+    return defaultPath;
+  }
   const files = fs.readdirSync(NSIS_DIR);
-  const exe = files.find((f) => f.endsWith(".exe") && !f.endsWith(".sig"));
+  const exe = files.find(
+    (f) =>
+      f.endsWith(".exe") &&
+      !f.endsWith(".sig") &&
+      (!excludeFileName || f !== excludeFileName),
+  );
   return exe ? path.join(NSIS_DIR, exe) : null;
 }
 
-function findNsisSig() {
+function findNsisSig(excludeFileName) {
   if (!fs.existsSync(NSIS_DIR)) return null;
+  const defaultSigName = defaultNsisExeName + ".sig";
+  const defaultSigPath = path.join(NSIS_DIR, defaultSigName);
+  if (
+    fs.existsSync(defaultSigPath) &&
+    (!excludeFileName || defaultSigName !== excludeFileName)
+  ) {
+    return defaultSigPath;
+  }
   const files = fs.readdirSync(NSIS_DIR);
-  const sig = files.find((f) => f.endsWith(".exe.sig"));
+  const sig = files.find(
+    (f) =>
+      f.endsWith(".exe.sig") && (!excludeFileName || f !== excludeFileName),
+  );
   return sig ? path.join(NSIS_DIR, sig) : null;
 }
 
@@ -79,6 +107,8 @@ function runTauriBuild() {
 }
 
 const version = getVersion();
+/** Default name Tauri outputs for NSIS (same in both builds until we rename). */
+const defaultNsisExeName = `Ten10_${version}_x64-setup.exe`;
 const standardExeName = `Ten10_${version}_x64_standard-setup.exe`;
 const webview2ExeName = `Ten10_${version}_x64_with_WebView2-setup.exe`;
 
@@ -138,7 +168,8 @@ try {
   console.log("Restored tauri.conf.json\n");
 }
 
-const currentExePath = findNsisExe();
+// After second build, Tauri overwrote the default-named exe (WebView2). Ignore our backup name.
+const currentExePath = findNsisExe(standardExeName);
 if (!currentExePath) {
   console.error("Expected NSIS EXE not found after second build.");
   process.exit(1);
@@ -146,7 +177,8 @@ if (!currentExePath) {
 
 const webview2Path = path.join(NSIS_DIR, webview2ExeName);
 const webview2SigPath = path.join(NSIS_DIR, webview2ExeName + ".sig");
-const currentSigPath = findNsisSig();
+const standardSigExclude = standardExeName + ".sig";
+const currentSigPath = findNsisSig(standardSigExclude);
 
 fs.renameSync(currentExePath, webview2Path);
 if (currentSigPath) fs.renameSync(currentSigPath, webview2SigPath);
@@ -157,6 +189,13 @@ if (standardSigBackupPath && fs.existsSync(standardSigBackupPath)) {
   fs.copyFileSync(standardSigBackupPath, origSig);
   fs.unlinkSync(standardSigBackupPath);
 }
+
+// Restore createUpdaterArtifacts so git diff stays clean (in case of interrupt or early exit)
+// if (needSigningWorkaround && savedCreateUpdaterArtifacts !== undefined) {
+//   const j = JSON.parse(fs.readFileSync(TAURI_CONF, "utf8"));
+//   j.bundle.createUpdaterArtifacts = savedCreateUpdaterArtifacts;
+//   fs.writeFileSync(TAURI_CONF, JSON.stringify(j, null, 2));
+// }
 
 console.log("Done. Bundles:");
 console.log(`  ${path.basename(standardExePath)} (standard)`);
