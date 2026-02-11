@@ -27,6 +27,7 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { logger } from "@/lib/logger";
 import {
   Wallet,
+  Lock,
   Package,
   RefreshCw,
   Bug,
@@ -55,6 +56,11 @@ const newFeatures: FeatureItem[] = [
     icon: <Wallet className={iconClass} />,
     titleKey: "features.paymentMethod.title",
     descriptionKey: "features.paymentMethod.description",
+  },
+  {
+    icon: <Lock className={iconClass} />,
+    titleKey: "features.appLock.title",
+    descriptionKey: "features.appLock.description",
   },
 ];
 
