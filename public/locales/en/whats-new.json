@@ -20,6 +20,14 @@
     "openingBalance": {
       "title": "Opening Balance",
       "description": "Set an initial debt or credit for tithe management"
+    },
+    "paymentMethod": {
+      "title": "Payment Method",
+      "description": "Payment method field (cash, card, transfer, etc.)"
+    },
+    "appLock": {
+      "title": "Lock with password (desktop app)",
+      "description": "You can now set an app login password for enhanced privacy"
     }
   },
   "improvements": {
@@ -38,6 +46,22 @@
     "bugFixes": {
       "title": "Bug Fixes",
       "description": "Various fixes to improve system stability"
+    },
+    "desktopInstaller": {
+      "title": "Computer app installer",
+      "description": "We added more installation options for those who had trouble installing the app"
+    },
+    "recurringTransactions": {
+      "title": "Standing order transactions",
+      "description": "Improved logic and UI for standing order transactions"
+    },
+    "securityPatch": {
+      "title": "Security",
+      "description": "Security improvements and authentication updates"
+    },
+    "pdfColors": {
+      "title": "Colors and display",
+      "description": "Fixed a color and display bug that some users may have experienced"
     }
   },
   "notices": {

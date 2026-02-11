@@ -26,16 +26,13 @@ import { PUBLIC_ROUTES } from "@/lib/constants";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { logger } from "@/lib/logger";
 import {
-  Sparkles,
-  ArrowRightLeft,
   Wallet,
-  Calculator,
-  ShieldCheck,
-  Zap,
+  Package,
+  RefreshCw,
+  Bug,
+  Palette,
   AlertTriangle,
   Mail,
-  Bug,
-  Tag,
 } from "lucide-react";
 
 // CURRENT_WHATS_NEW_VERSION controls when the "What's New" modal is shown.
@@ -43,7 +40,7 @@ import {
 //   the modal content in a way that users should see again.
 // - This version is persisted per user to avoid re-showing the same release notes.
 // - This is intentionally separate from package.json version (not every release has new features).
-const CURRENT_WHATS_NEW_VERSION = "0.5.4";
+const CURRENT_WHATS_NEW_VERSION = "0.5.7";
 
 interface FeatureItem {
   icon: React.ReactNode;
@@ -51,42 +48,34 @@ interface FeatureItem {
   descriptionKey: string;
 }
 
+const iconClass = "h-4 w-4 text-primary flex-shrink-0";
+
 const newFeatures: FeatureItem[] = [
   {
-    icon: <Tag className="h-5 w-5 text-purple-500" />,
-    titleKey: "features.categories.title",
-    descriptionKey: "features.categories.description",
-  },
-  {
-    icon: <ArrowRightLeft className="h-5 w-5 text-blue-500" />,
-    titleKey: "features.currencyConversion.title",
-    descriptionKey: "features.currencyConversion.description",
-  },
-  {
-    icon: <Wallet className="h-5 w-5 text-green-500" />,
-    titleKey: "features.openingBalance.title",
-    descriptionKey: "features.openingBalance.description",
+    icon: <Wallet className={iconClass} />,
+    titleKey: "features.paymentMethod.title",
+    descriptionKey: "features.paymentMethod.description",
   },
 ];
 
 const improvements: FeatureItem[] = [
   {
-    icon: <Calculator className="h-5 w-5 text-purple-500" />,
-    titleKey: "improvements.autoChomesh.title",
-    descriptionKey: "improvements.autoChomesh.description",
+    icon: <Package className={iconClass} />,
+    titleKey: "improvements.desktopInstaller.title",
+    descriptionKey: "improvements.desktopInstaller.description",
   },
   {
-    icon: <Zap className="h-5 w-5 text-yellow-500" />,
-    titleKey: "improvements.performance.title",
-    descriptionKey: "improvements.performance.description",
+    icon: <Palette className={iconClass} />,
+    titleKey: "improvements.pdfColors.title",
+    descriptionKey: "improvements.pdfColors.description",
   },
   {
-    icon: <ShieldCheck className="h-5 w-5 text-red-500" />,
-    titleKey: "improvements.security.title",
-    descriptionKey: "improvements.security.description",
+    icon: <RefreshCw className={iconClass} />,
+    titleKey: "improvements.recurringTransactions.title",
+    descriptionKey: "improvements.recurringTransactions.description",
   },
   {
-    icon: <Bug className="h-5 w-5 text-green-500" />,
+    icon: <Bug className={iconClass} />,
     titleKey: "improvements.bugFixes.title",
     descriptionKey: "improvements.bugFixes.description",
   },
@@ -94,7 +83,7 @@ const improvements: FeatureItem[] = [
 
 const notices: FeatureItem[] = [
   {
-    icon: <AlertTriangle className="h-5 w-5 text-amber-500" />,
+    icon: <AlertTriangle className={iconClass} />,
     titleKey: "notices.multiCurrency.title",
     descriptionKey: "notices.multiCurrency.description",
   },
@@ -327,7 +316,7 @@ export function WhatsNewModal({
       ? [
           ...notices,
           {
-            icon: <Mail className="h-5 w-5 text-blue-400" />,
+            icon: <Mail className={iconClass} />,
             titleKey: "notices.emailPrivacy.title",
             descriptionKey: "notices.emailPrivacy.description",
           },
@@ -335,90 +324,95 @@ export function WhatsNewModal({
       : notices;
 
   const whatsNewContent = (
-    <div className="flex flex-col gap-4 md:gap-6 py-2 text-start">
-      {/* New Features Section */}
-      <div>
-        <h3 className="text-base font-semibold text-primary mb-2 md:mb-3 flex items-center gap-2">
-          <Sparkles className="h-5 w-5" />
+    <div className="flex flex-col gap-6 text-start">
+      {/* New Features */}
+      <section>
+        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">
           {t("sections.newFeatures")}
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
+        <ul className="space-y-0 divide-y divide-border rounded-md border border-border bg-card">
           {newFeatures.map((feature, index) => (
-            <div
+            <li
               key={index}
-              className="flex gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-muted/50"
+              className="flex gap-3 px-3 py-2.5 first:pt-3 last:pb-3"
             >
-              <div className="flex-shrink-0 mt-0.5">{feature.icon}</div>
+              <span className="mt-0.5">{feature.icon}</span>
               <div className="min-w-0">
-                <p className="font-medium text-sm md:text-base">
+                <p className="font-medium text-sm text-foreground">
                   {t(feature.titleKey)}
                 </p>
-                <p className="text-xs md:text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground mt-0.5">
                   {t(feature.descriptionKey)}
                 </p>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
-      </div>
+        </ul>
+      </section>
 
-      {/* Improvements Section */}
-      <div>
-        <h3 className="text-base font-semibold text-muted-foreground mb-2 md:mb-3">
+      {/* Improvements */}
+      <section>
+        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">
           {t("sections.improvements")}
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <ul className="space-y-0 divide-y divide-border rounded-md border border-border bg-card">
           {improvements.map((item, index) => (
-            <div key={index} className="flex gap-2 md:gap-3 p-2">
-              <div className="flex-shrink-0 mt-0.5">{item.icon}</div>
+            <li
+              key={index}
+              className="flex gap-3 px-3 py-2.5 first:pt-3 last:pb-3"
+            >
+              <span className="mt-0.5">{item.icon}</span>
               <div className="min-w-0">
-                <p className="text-sm md:text-base">{t(item.titleKey)}</p>
-                <p className="text-xs md:text-sm text-muted-foreground">
+                <p className="font-medium text-sm text-foreground">
+                  {t(item.titleKey)}
+                </p>
+                <p className="text-sm text-muted-foreground mt-0.5">
                   {t(item.descriptionKey)}
                 </p>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
-      </div>
+        </ul>
+      </section>
 
-      {/* Important Notices Section */}
-      <div>
-        <h3 className="text-base font-semibold text-amber-600 dark:text-amber-400 mb-2 md:mb-3">
+      {/* Important Notices */}
+      <section>
+        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">
           {t("sections.important")}
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
+        <ul className="space-y-2">
           {visibleNotices.map((notice, index) => (
-            <div
+            <li
               key={index}
-              className="flex gap-2 md:gap-3 p-2 md:p-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800"
+              className="flex gap-3 rounded-md border border-border bg-muted/40 px-3 py-2.5 border-s-2 border-s-primary"
             >
-              <div className="flex-shrink-0 mt-0.5">{notice.icon}</div>
+              <span className="mt-0.5">{notice.icon}</span>
               <div className="min-w-0">
-                <p className="font-medium text-sm md:text-base">
+                <p className="font-medium text-sm text-foreground">
                   {t(notice.titleKey)}
                 </p>
-                <p className="text-xs md:text-sm text-muted-foreground">
+                <p className="text-sm text-muted-foreground mt-0.5">
                   {t(notice.descriptionKey)}
                 </p>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
-      </div>
+        </ul>
+      </section>
     </div>
   );
 
   if (useDesktop) {
     return (
       <Dialog open={modalOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-primary" />
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="space-y-1.5">
+            <DialogTitle className="text-lg font-semibold text-foreground">
               {t("title", { version: CURRENT_WHATS_NEW_VERSION })}
             </DialogTitle>
-            <DialogDescription>{t("description")}</DialogDescription>
+            <DialogDescription className="text-sm text-muted-foreground">
+              {t("description")}
+            </DialogDescription>
           </DialogHeader>
           {whatsNewContent}
           <DialogFooter className="sm:justify-center">
@@ -439,12 +433,13 @@ export function WhatsNewModal({
   return (
     <Drawer open={modalOpen} onOpenChange={handleOpenChange}>
       <DrawerContent className="max-h-[95vh]">
-        <DrawerHeader className="text-start">
-          <DrawerTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
+        <DrawerHeader className="text-start space-y-1.5">
+          <DrawerTitle className="text-lg font-semibold text-foreground">
             {t("title", { version: CURRENT_WHATS_NEW_VERSION })}
           </DrawerTitle>
-          <DrawerDescription>{t("description")}</DrawerDescription>
+          <DrawerDescription className="text-sm text-muted-foreground">
+            {t("description")}
+          </DrawerDescription>
         </DrawerHeader>
         <div className="px-3 md:px-4 pb-4 overflow-y-auto">
           {whatsNewContent}
