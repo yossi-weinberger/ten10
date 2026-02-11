@@ -13,26 +13,20 @@
     "core:menu:default",
     "core:tray:default",
     "shell:allow-open",
-    "fs:allow-read-file",
     {
       "identifier": "fs:allow-read-file",
       "allow": [{ "path": "$APPDATA/**" }]
     },
-    "fs:allow-write-file",
     {
       "identifier": "fs:allow-write-file",
       "allow": [{ "path": "$APPDATA/**" }]
     },
-    "fs:allow-write-text-file",
     {
       "identifier": "fs:allow-write-text-file",
       "allow": [{ "path": "$APPDATA/**" }]
     },
-    "fs:allow-exists",
     { "identifier": "fs:allow-exists", "allow": [{ "path": "$APPDATA/**" }] },
-    "fs:allow-read-text-file",
     { "identifier": "fs:allow-read-text-file", "allow": [{ "path": "$APPDATA/**" }] },
-    "fs:allow-remove",
     { "identifier": "fs:allow-remove", "allow": [{ "path": "$APPDATA/**" }] },
     "dialog:allow-open",
     "dialog:allow-save",
