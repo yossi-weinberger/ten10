@@ -200,6 +200,22 @@ export async function changePassword(
 ): Promise<void> {
   if (!isDesktop()) throw new Error("App lock is only available on desktop");
   if (!isUnlockedFlag) throw new Error("Must be unlocked to change password");
+  const vaultPath = await getVaultPath();
+  const { Stronghold } = await import("@tauri-apps/plugin-stronghold");
+  let passwordVerifier: Awaited<
+    ReturnType<typeof import("@tauri-apps/plugin-stronghold").Stronghold.load>
+  > | null = null;
+  try {
+    passwordVerifier = await Stronghold.load(vaultPath, oldPassword);
+    await passwordVerifier.loadClient(CLIENT_NAME);
+  } catch {
+    throw new Error("Current password is incorrect");
+  } finally {
+    if (passwordVerifier) {
+      await passwordVerifier.unload().catch(() => {});
+    }
+  }
+
   const hashPath = await getRecoveryHashPath();
   const { readTextFile, writeTextFile, exists } =
     await import("@tauri-apps/plugin-fs");
