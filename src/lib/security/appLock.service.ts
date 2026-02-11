@@ -236,28 +236,43 @@ export async function changePassword(
       await writeTextFile(hashPath, existingHash);
     }
   } catch (error) {
-    // Best-effort rollback: restore original vault/hash so user is not locked out.
-    if (await exists(vaultPath)) await remove(vaultPath);
-    if (await exists(hashPath)) await remove(hashPath);
-
-    if (existingVault !== null) {
-      await writeFile(vaultPath, existingVault);
-    }
-    if (existingHash !== null) {
-      await writeTextFile(hashPath, existingHash);
-    }
+    const originalMsg =
+      error instanceof Error ? error.message : String(error);
+    let rollbackError: unknown = null;
 
     try {
-      const restored = await Stronghold.load(vaultPath, oldPassword);
-      await restored.loadClient(CLIENT_NAME);
-      strongholdInstance = restored;
-      isUnlockedFlag = true;
-    } catch {
-      strongholdInstance = null;
-      isUnlockedFlag = false;
+      // Best-effort rollback: restore original vault/hash so user is not locked out.
+      if (await exists(vaultPath)) await remove(vaultPath);
+      if (await exists(hashPath)) await remove(hashPath);
+      if (existingVault !== null) {
+        await writeFile(vaultPath, existingVault);
+      }
+      if (existingHash !== null) {
+        await writeTextFile(hashPath, existingHash);
+      }
+      try {
+        const restored = await Stronghold.load(vaultPath, oldPassword);
+        await restored.loadClient(CLIENT_NAME);
+        strongholdInstance = restored;
+        isUnlockedFlag = true;
+      } catch {
+        strongholdInstance = null;
+        isUnlockedFlag = false;
+      }
+    } catch (rbErr) {
+      rollbackError = rbErr;
     }
 
-    throw error;
+    const rollbackMsg = rollbackError
+      ? rollbackError instanceof Error
+        ? rollbackError.message
+        : String(rollbackError)
+      : null;
+    throw new Error(
+      rollbackMsg
+        ? `Failed to change password: ${originalMsg}. Rollback failed: ${rollbackMsg}`
+        : `Failed to change password: ${originalMsg}. Rollback completed successfully.`,
+    );
   }
 }
 
