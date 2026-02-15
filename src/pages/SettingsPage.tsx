@@ -103,13 +103,33 @@ export function SettingsPage() {
     }
   };
 
+  // Persist to SQLite on desktop when user changes settings (survives WebView cache wipe)
+  const persistDesktopSetting = (key: string, value: string) => {
+    if (platform === "desktop") {
+      import("@tauri-apps/api/core")
+        .then(({ invoke }) => invoke("set_app_setting", { key, value }))
+        .catch((err) => logger.error(`Failed to persist ${key} (desktop):`, err));
+    }
+  };
+
+  const handleSetTheme = (newTheme: "light" | "dark" | "system") => {
+    setTheme(newTheme);
+    updateSettings({ theme: newTheme });
+    persistDesktopSetting("theme", newTheme);
+  };
+
   // Define components to reuse in both layouts
   const languageSection = (
     <LanguageAndDisplaySettingsCard
       theme={theme}
-      setTheme={setTheme}
+      setTheme={handleSetTheme}
       languageSettings={{ language: settings.language }}
-      updateSettings={(newLangSettings) => updateSettings(newLangSettings)}
+      updateSettings={(newLangSettings) => {
+        updateSettings(newLangSettings);
+        if (newLangSettings.language) {
+          persistDesktopSetting("language", newLangSettings.language);
+        }
+      }}
     />
   );
 
@@ -144,6 +164,22 @@ export function SettingsPage() {
                 toast.error(tCommon("toast.settings.updateError"));
               }
             });
+        }
+
+        // Persist to SQLite on desktop so it survives WebView cache wipe on update
+        if (
+          platform === "desktop" &&
+          newFinancialSettings.defaultCurrency
+        ) {
+          import("@tauri-apps/api/core")
+            .then(({ invoke }) =>
+              invoke("set_default_currency", {
+                currency: newFinancialSettings.defaultCurrency,
+              })
+            )
+            .catch((err) =>
+              logger.error("Failed to persist default currency (desktop):", err)
+            );
         }
       }}
       disableMinMaaserPercentage={true}

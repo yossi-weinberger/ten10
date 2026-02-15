@@ -11,7 +11,10 @@ mod models;
 mod transaction_types;
 
 use commands::chart_commands::get_desktop_monthly_financial_summary;
-use commands::db_commands::{clear_all_data, get_app_version, init_db};
+use commands::db_commands::{
+    clear_all_data, get_app_setting, get_app_version, get_default_currency,
+    infer_default_currency_from_transactions, init_db, set_app_setting, set_default_currency,
+};
 use commands::donation_commands::{
     get_desktop_overall_tithe_balance, get_desktop_total_donations_in_range,
 };
@@ -53,6 +56,11 @@ fn main() {
             add_transaction,
             clear_all_data,
             get_app_version,
+            get_default_currency,
+            set_default_currency,
+            get_app_setting,
+            set_app_setting,
+            infer_default_currency_from_transactions,
             get_desktop_total_income_in_range,
             get_desktop_total_expenses_in_range,
             get_desktop_total_donations_in_range,
