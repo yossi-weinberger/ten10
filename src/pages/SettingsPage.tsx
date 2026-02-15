@@ -27,6 +27,10 @@ import { ImportConfirmModal } from "@/components/settings/ImportConfirmModal";
 import { logger } from "@/lib/logger";
 import { Transaction } from "@/types/transaction";
 import { CurrencyCode } from "@/lib/currencies";
+import {
+  persistDesktopSetting,
+  persistDefaultCurrency,
+} from "@/lib/services/desktop-settings.service";
 
 import { useIsCurrencyLocked } from "@/hooks/useIsCurrencyLocked";
 
@@ -103,19 +107,12 @@ export function SettingsPage() {
     }
   };
 
-  // Persist to SQLite on desktop when user changes settings (survives WebView cache wipe)
-  const persistDesktopSetting = (key: string, value: string) => {
-    if (platform === "desktop") {
-      import("@tauri-apps/api/core")
-        .then(({ invoke }) => invoke("set_app_setting", { key, value }))
-        .catch((err) => logger.error(`Failed to persist ${key} (desktop):`, err));
-    }
-  };
-
   const handleSetTheme = (newTheme: "light" | "dark" | "system") => {
     setTheme(newTheme);
     updateSettings({ theme: newTheme });
-    persistDesktopSetting("theme", newTheme);
+    if (platform === "desktop") {
+      persistDesktopSetting("theme", newTheme);
+    }
   };
 
   // Define components to reuse in both layouts
@@ -126,7 +123,10 @@ export function SettingsPage() {
       languageSettings={{ language: settings.language }}
       updateSettings={(newLangSettings) => {
         updateSettings(newLangSettings);
-        if (newLangSettings.language) {
+        if (
+          platform === "desktop" &&
+          newLangSettings.language
+        ) {
           persistDesktopSetting("language", newLangSettings.language);
         }
       }}
@@ -166,20 +166,11 @@ export function SettingsPage() {
             });
         }
 
-        // Persist to SQLite on desktop so it survives WebView cache wipe on update
         if (
           platform === "desktop" &&
           newFinancialSettings.defaultCurrency
         ) {
-          import("@tauri-apps/api/core")
-            .then(({ invoke }) =>
-              invoke("set_default_currency", {
-                currency: newFinancialSettings.defaultCurrency,
-              })
-            )
-            .catch((err) =>
-              logger.error("Failed to persist default currency (desktop):", err)
-            );
+          persistDefaultCurrency(newFinancialSettings.defaultCurrency);
         }
       }}
       disableMinMaaserPercentage={true}

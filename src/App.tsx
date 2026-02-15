@@ -31,7 +31,7 @@ import { Footer } from "@/pages/landing/sections/Footer";
 import AppLoader from "./components/layout/AppLoader";
 
 import { RecurringTransactionsService } from "./lib/services/recurring-transactions.service";
-import { restoreDesktopSettings } from "./lib/services/desktop-currency.service";
+import { restoreDesktopSettings } from "./lib/services/desktop-settings.service";
 import { useTheme } from "@/lib/theme";
 import { PUBLIC_ROUTES, FULL_SCREEN_ROUTES } from "./lib/constants";
 import {

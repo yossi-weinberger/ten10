@@ -60,13 +60,15 @@ function isUpdateCheckAsset(name: string): boolean {
   return n === "latest.json";
 }
 
+const MAX_PAGES = 5;
+const PER_PAGE = 100;
+
 async function fetchAllReleases(): Promise<GitHubRelease[]> {
   const releases: GitHubRelease[] = [];
   let page = 1;
-  const perPage = 100;
 
-  while (true) {
-    const url = `${GITHUB_RELEASES_URL}?per_page=${perPage}&page=${page}`;
+  while (page <= MAX_PAGES) {
+    const url = `${GITHUB_RELEASES_URL}?per_page=${PER_PAGE}&page=${page}`;
     const response = await fetch(url, {
       headers: { Accept: "application/vnd.github+json" },
     });
@@ -81,7 +83,7 @@ async function fetchAllReleases(): Promise<GitHubRelease[]> {
     if (data.length === 0) break;
 
     releases.push(...data);
-    if (data.length < perPage) break;
+    if (data.length < PER_PAGE) break;
     page++;
   }
 
