@@ -47,7 +47,16 @@
       "windows": "Windows",
       "mac": "Mac",
       "linux": "Linux"
-    }
+    },
+    "githubSection": "הורדות מ-GitHub Releases",
+    "githubInstallerDownloads": "הורדות מתקינים (כל הגרסאות)",
+    "githubInstallerDownloadsLast3": "הורדות מתקינים (3 גרסאות אחרונות)",
+    "githubUpdateChecks": "בדיקות עדכונים (latest.json)",
+    "unavailable": "לא זמין",
+    "byVersionTable": "הורדות לפי גרסה",
+    "tableVersion": "גרסה",
+    "tableInstallers": "הורדות מתקינים",
+    "tableUpdateChecks": "בדיקות עדכונים"
   },
   "engagement": {
     "title": "מדדי מעורבות",
