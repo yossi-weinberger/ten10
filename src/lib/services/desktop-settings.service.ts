@@ -1,6 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
 import { useDonationStore } from "@/lib/store";
 import { logger } from "@/lib/logger";
+import { getPlatform } from "@/lib/platformManager";
 import { CURRENCIES } from "@/lib/currencies";
 import type { CurrencyCode } from "@/lib/currencies";
 import type { Language } from "@/lib/store";
@@ -11,7 +11,9 @@ const VALID_CURRENCIES = new Set(CURRENCIES.map((c) => c.code));
 const VALID_LANGUAGES = new Set<Language>(["he", "en"]);
 const VALID_THEMES = new Set<Theme>(["light", "dark", "system"]);
 
-function isValidCurrency(code: string | null | undefined): code is CurrencyCode {
+function isValidCurrency(
+  code: string | null | undefined,
+): code is CurrencyCode {
   return !!code && VALID_CURRENCIES.has(code as CurrencyCode);
 }
 
@@ -30,8 +32,11 @@ export interface RestoredDesktopSettings {
 /**
  * Persist a generic app setting to SQLite on desktop.
  * Survives WebView cache wipe during app update.
+ * No-op on web.
  */
 export function persistDesktopSetting(key: string, value: string): void {
+  if (getPlatform() !== "desktop") return;
+
   import("@tauri-apps/api/core")
     .then(({ invoke }) => invoke("set_app_setting", { key, value }))
     .catch((err) => logger.error(`Failed to persist ${key} (desktop):`, err));
@@ -40,12 +45,15 @@ export function persistDesktopSetting(key: string, value: string): void {
 /**
  * Persist default currency to SQLite on desktop.
  * Survives WebView cache wipe during app update.
+ * No-op on web.
  */
 export function persistDefaultCurrency(currency: string): void {
+  if (getPlatform() !== "desktop") return;
+
   import("@tauri-apps/api/core")
     .then(({ invoke }) => invoke("set_default_currency", { currency }))
     .catch((err) =>
-      logger.error("Failed to persist default currency (desktop):", err)
+      logger.error("Failed to persist default currency (desktop):", err),
     );
 }
 
@@ -55,24 +63,32 @@ export function persistDefaultCurrency(currency: string): void {
  * Returns theme so caller can sync ThemeProvider (which uses separate localStorage).
  */
 export async function restoreDesktopSettings(): Promise<RestoredDesktopSettings> {
+  if (getPlatform() !== "desktop") {
+    return {};
+  }
+
   const result: RestoredDesktopSettings = {};
   const store = useDonationStore.getState();
   const settings = store.settings;
+
+  // Dynamic import to avoid bundling Tauri in web builds
+  const { invoke } = await import("@tauri-apps/api/core");
 
   try {
     // --- Currency ---
     const storedCurrency = await invoke<string | null>("get_default_currency");
     if (isValidCurrency(storedCurrency)) {
       logger.log(
-        `DesktopSettingsService: Restored default_currency from SQLite: ${storedCurrency}`
+        `DesktopSettingsService: Restored default_currency from SQLite: ${storedCurrency}`,
       );
       store.updateSettings({ defaultCurrency: storedCurrency });
     } else {
-      const inferred =
-        await invoke<string | null>("infer_default_currency_from_transactions");
+      const inferred = await invoke<string | null>(
+        "infer_default_currency_from_transactions",
+      );
       if (isValidCurrency(inferred)) {
         logger.log(
-          `DesktopSettingsService: Inferred default_currency from transactions: ${inferred}`
+          `DesktopSettingsService: Inferred default_currency from transactions: ${inferred}`,
         );
         store.updateSettings({ defaultCurrency: inferred });
         await invoke("set_default_currency", { currency: inferred });
@@ -92,7 +108,7 @@ export async function restoreDesktopSettings(): Promise<RestoredDesktopSettings>
     });
     if (isValidLanguage(storedLang)) {
       logger.log(
-        `DesktopSettingsService: Restored language from SQLite: ${storedLang}`
+        `DesktopSettingsService: Restored language from SQLite: ${storedLang}`,
       );
       store.updateSettings({ language: storedLang });
     } else if (
@@ -111,14 +127,11 @@ export async function restoreDesktopSettings(): Promise<RestoredDesktopSettings>
     });
     if (isValidTheme(storedTheme)) {
       logger.log(
-        `DesktopSettingsService: Restored theme from SQLite: ${storedTheme}`
+        `DesktopSettingsService: Restored theme from SQLite: ${storedTheme}`,
       );
       store.updateSettings({ theme: storedTheme });
       result.theme = storedTheme;
-    } else if (
-      isValidTheme(settings.theme) &&
-      settings.theme !== "system"
-    ) {
+    } else if (isValidTheme(settings.theme) && settings.theme !== "system") {
       await invoke("set_app_setting", {
         key: "theme",
         value: settings.theme,
@@ -133,7 +146,7 @@ export async function restoreDesktopSettings(): Promise<RestoredDesktopSettings>
       const num = parseInt(storedTimeout, 10);
       if (!isNaN(num) && num >= 0) {
         logger.log(
-          `DesktopSettingsService: Restored autoLockTimeoutMinutes from SQLite: ${num}`
+          `DesktopSettingsService: Restored autoLockTimeoutMinutes from SQLite: ${num}`,
         );
         store.updateSettings({ autoLockTimeoutMinutes: num });
       }
