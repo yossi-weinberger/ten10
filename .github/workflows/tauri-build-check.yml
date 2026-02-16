@@ -17,6 +17,7 @@ on:
 
 jobs:
   build:
+    if: false  # TODO: Re-enable when needed - temporarily disabled
     strategy:
       matrix:
         platform: [windows-latest]

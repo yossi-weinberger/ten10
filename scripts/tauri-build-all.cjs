@@ -2,9 +2,9 @@
 
 /**
  * Builds all desktop installers locally: standard NSIS, MSI, and full NSIS with WebView2.
- * 1. Runs normal tauri build (standard EXE + MSI)
- * 2. Builds again with WebView2 bundled (offline installer)
- * 3. Keeps both EXEs: standard and with_WebView2
+ * 1. Runs normal tauri build (standard EXE + MSI, ~50MB each)
+ * 2. Backs up MSI; builds again with WebView2 bundled (offline installer)
+ * 3. Keeps: Ten10_x_x64-setup.exe (standard), Ten10_x_with_WebView2-setup.exe, MSI (standard, no WebView2)
  *
  * Invoked by: npm run tauri build (wrapper in package.json).
  *
@@ -27,6 +27,15 @@ const NSIS_DIR = path.join(
   "bundle",
   "nsis",
 );
+const MSI_DIR = path.join(
+  ROOT,
+  "src-tauri",
+  "target",
+  "release",
+  "bundle",
+  "msi",
+);
+const MSI_BACKUP_DIR = path.join(MSI_DIR, "..", "msi-backup");
 
 function getVersion() {
   const pkg = JSON.parse(
@@ -155,6 +164,17 @@ fs.copyFileSync(standardExePath, standardBackupPath);
 if (standardSigPath) fs.copyFileSync(standardSigPath, standardSigBackupPath);
 console.log(`Saved standard EXE as ${standardExeName}\n`);
 
+// Backup MSI from first build (standard, ~50MB); second build overwrites with WebView2 (~200MB)
+if (fs.existsSync(MSI_DIR)) {
+  fs.mkdirSync(MSI_BACKUP_DIR, { recursive: true });
+  for (const f of fs.readdirSync(MSI_DIR)) {
+    if (f.endsWith(".msi") || f.endsWith(".msi.sig") || f.endsWith(".zip")) {
+      fs.copyFileSync(path.join(MSI_DIR, f), path.join(MSI_BACKUP_DIR, f));
+    }
+  }
+  console.log("Backed up standard MSI files.\n");
+}
+
 console.log("Building full installer with WebView2 (offline)...\n");
 saveAndPatchForWebView2();
 try {
@@ -178,12 +198,31 @@ const currentSigPath = findNsisSig(standardSigExclude);
 
 fs.renameSync(currentExePath, webview2Path);
 if (currentSigPath) fs.renameSync(currentSigPath, webview2SigPath);
-// Keep standard installer at standardExeName (Ten10_<version>_x64_standard-setup.exe)
-// so its .sig stays paired. Do not copy to default-named path or the sig would be misplaced.
-// The backup is already at standardBackupPath = standardExeName - just leave it.
-// Sig backup is already at standardSigBackupPath = standardExeName + .sig - leave it paired.
+
+// Restore default-named exe for tauri-action (CI upload): it only looks for Ten10_<version>_x64-setup.exe.
+const defaultExePath = path.join(NSIS_DIR, defaultNsisExeName);
+const defaultSigPath = path.join(NSIS_DIR, defaultNsisExeName + ".sig");
+fs.copyFileSync(standardBackupPath, defaultExePath);
+if (standardSigBackupPath && fs.existsSync(standardSigBackupPath)) {
+  fs.copyFileSync(standardSigBackupPath, defaultSigPath);
+}
+
+// Remove redundant standard-setup (we have it at default path now)
+fs.unlinkSync(standardBackupPath);
+if (standardSigBackupPath && fs.existsSync(standardSigBackupPath)) {
+  fs.unlinkSync(standardSigBackupPath);
+}
+
+// Restore MSI from first build (standard, ~50MB) – second build overwrote with WebView2 (~200MB)
+if (fs.existsSync(MSI_BACKUP_DIR)) {
+  for (const f of fs.readdirSync(MSI_BACKUP_DIR)) {
+    fs.copyFileSync(path.join(MSI_BACKUP_DIR, f), path.join(MSI_DIR, f));
+  }
+  fs.rmSync(MSI_BACKUP_DIR, { recursive: true });
+  console.log("Restored standard MSI (no WebView2 bundled).\n");
+}
 
 console.log("Done. Bundles:");
-console.log(`  ${standardExeName} (standard)`);
+console.log(`  ${defaultNsisExeName} (standard)`);
 console.log(`  ${webview2ExeName} (with WebView2)`);
-console.log(`  src-tauri/target/release/bundle/msi/*.msi`);
+console.log(`  src-tauri/target/release/bundle/msi/*.msi (standard)`);
