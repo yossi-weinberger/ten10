@@ -47,7 +47,16 @@
       "windows": "Windows",
       "mac": "Mac",
       "linux": "Linux"
-    }
+    },
+    "githubSection": "Downloads from GitHub Releases",
+    "githubInstallerDownloads": "Installer Downloads (all versions)",
+    "githubInstallerDownloadsLast3": "Installer Downloads (last 3 releases)",
+    "githubUpdateChecks": "Update Checks (latest.json)",
+    "unavailable": "Unavailable",
+    "byVersionTable": "Downloads by version",
+    "tableVersion": "Version",
+    "tableInstallers": "Installer downloads",
+    "tableUpdateChecks": "Update checks"
   },
   "engagement": {
     "title": "Engagement Metrics",

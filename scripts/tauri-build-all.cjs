@@ -121,19 +121,15 @@ if (needSigningWorkaround) {
   fs.writeFileSync(TAURI_CONF, JSON.stringify(j, null, 2));
 }
 
-console.log("Building standard installers (NSIS + MSI)...\n");
+// Ensure first build runs WITHOUT webviewInstallMode (standard installer, ~50MB)
+// Config may have it left from previous run; remove before first build
+const preBuildConf = JSON.parse(fs.readFileSync(TAURI_CONF, "utf8"));
+if (preBuildConf.bundle?.windows?.webviewInstallMode) {
+  delete preBuildConf.bundle.windows.webviewInstallMode;
+  fs.writeFileSync(TAURI_CONF, JSON.stringify(preBuildConf, null, 2));
+}
 
-// Clean up old artifacts to avoid confusion if build fails
-if (fs.existsSync(path.join(NSIS_DIR, webview2ExeName))) {
-  try {
-    fs.unlinkSync(path.join(NSIS_DIR, webview2ExeName));
-  } catch (e) {}
-}
-if (fs.existsSync(path.join(NSIS_DIR, standardExeName))) {
-  try {
-    fs.unlinkSync(path.join(NSIS_DIR, standardExeName));
-  } catch (e) {}
-}
+console.log("Building standard installers (NSIS + MSI)...\n");
 
 try {
   runTauriBuild();
@@ -182,15 +178,12 @@ const currentSigPath = findNsisSig(standardSigExclude);
 
 fs.renameSync(currentExePath, webview2Path);
 if (currentSigPath) fs.renameSync(currentSigPath, webview2SigPath);
-fs.copyFileSync(standardBackupPath, standardExePath);
-fs.unlinkSync(standardBackupPath);
-if (standardSigBackupPath && fs.existsSync(standardSigBackupPath)) {
-  const origSig = path.join(NSIS_DIR, path.basename(standardExePath) + ".sig");
-  fs.copyFileSync(standardSigBackupPath, origSig);
-  fs.unlinkSync(standardSigBackupPath);
-}
+// Keep standard installer at standardExeName (Ten10_<version>_x64_standard-setup.exe)
+// so its .sig stays paired. Do not copy to default-named path or the sig would be misplaced.
+// The backup is already at standardBackupPath = standardExeName - just leave it.
+// Sig backup is already at standardSigBackupPath = standardExeName + .sig - leave it paired.
 
 console.log("Done. Bundles:");
-console.log(`  ${path.basename(standardExePath)} (standard)`);
+console.log(`  ${standardExeName} (standard)`);
 console.log(`  ${webview2ExeName} (with WebView2)`);
 console.log(`  src-tauri/target/release/bundle/msi/*.msi`);

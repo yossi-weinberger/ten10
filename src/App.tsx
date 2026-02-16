@@ -31,6 +31,8 @@ import { Footer } from "@/pages/landing/sections/Footer";
 import AppLoader from "./components/layout/AppLoader";
 
 import { RecurringTransactionsService } from "./lib/services/recurring-transactions.service";
+import { restoreDesktopSettings } from "./lib/services/desktop-settings.service";
+import { useTheme } from "@/lib/theme";
 import { PUBLIC_ROUTES, FULL_SCREEN_ROUTES } from "./lib/constants";
 import {
   isDesktopLockEnabled,
@@ -57,6 +59,7 @@ function App() {
   const desktopInitDone = useRef(false);
 
   const { platform } = usePlatform();
+  const { setTheme } = useTheme();
   const { isTWA } = useTWA();
   const { user } = useAuth();
   const { i18n, t } = useTranslation();
@@ -150,6 +153,14 @@ function App() {
         invoke("init_db")
           .then(() => {
             logger.log("Database initialized successfully.");
+            return restoreDesktopSettings();
+          })
+          .then((restored) => {
+            if (restored.theme) {
+              setTheme(restored.theme);
+            }
+          })
+          .then(() => {
             return RecurringTransactionsService.processDueTransactions();
           })
           .then(() => {
@@ -158,24 +169,21 @@ function App() {
           })
           .then(() => {
             logger.log("Desktop reminder check complete.");
-            checkForUpdates()
-              .then((updateInfo) => {
-                if (updateInfo) {
-                  logger.log(`Update available: ${updateInfo.version}`);
-                  toast.success(
-                    tRef.current("versionInfo.updateAvailable", {
-                      version: updateInfo.version,
-                      ns: "settings",
-                    }),
-                    { duration: 5000, icon: "🔔" }
-                  );
-                } else {
-                  logger.log("App is up to date");
-                }
-              })
-              .catch((error) => {
-                logger.error("Failed to check for updates:", error);
-              });
+            return checkForUpdates();
+          })
+          .then((updateInfo) => {
+            if (updateInfo) {
+              logger.log(`Update available: ${updateInfo.version}`);
+              toast.success(
+                tRef.current("versionInfo.updateAvailable", {
+                  version: updateInfo.version,
+                  ns: "settings",
+                }),
+                { duration: 5000, icon: "🔔" }
+              );
+            } else {
+              logger.log("App is up to date");
+            }
           })
           .catch((error) =>
             logger.error("Error during desktop initialization sequence:", error)

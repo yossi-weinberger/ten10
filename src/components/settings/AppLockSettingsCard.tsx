@@ -51,6 +51,7 @@ import {
 } from "@/lib/security/appLockPasswordSchema";
 import { logger } from "@/lib/logger";
 import { useDonationStore } from "@/lib/store";
+import { persistDesktopSetting } from "@/lib/services/desktop-settings.service";
 import { useShallow } from "zustand/react/shallow";
 import toast from "react-hot-toast";
 
@@ -98,6 +99,7 @@ export function AppLockSettingsCard() {
 
   const setAutoLockTimeout = (value: number) => {
     updateSettings({ autoLockTimeoutMinutes: value });
+    persistDesktopSetting("autoLockTimeoutMinutes", String(value));
   };
 
   const stepAutoLockTimeout = (delta: -1 | 1) => {

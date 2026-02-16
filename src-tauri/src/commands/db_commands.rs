@@ -195,6 +195,16 @@ pub async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
         }
     }
 
+    // --- App settings table (for default_currency etc.) - survives WebView cache wipe on update ---
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS app_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )",
+        [],
+    )
+    .map_err(|e| e.to_string())?;
+
     Ok(())
 }
 
@@ -239,4 +249,96 @@ pub async fn clear_all_data(db: State<'_, DbState>) -> Result<(), String> {
 #[tauri::command]
 pub fn get_app_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
+}
+
+/**
+ * Get the default currency from app_settings (SQLite).
+ * Used on desktop to restore currency after WebView cache wipe during app update.
+ * Returns None if not set.
+ */
+#[tauri::command]
+pub fn get_default_currency(db: State<'_, DbState>) -> Result<Option<String>, String> {
+    let conn = db.0.lock().map_err(|e| e.to_string())?;
+    let mut stmt = conn
+        .prepare("SELECT value FROM app_settings WHERE key = 'default_currency'")
+        .map_err(|e| e.to_string())?;
+    let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
+    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
+        let value: String = row.get(0).map_err(|e| e.to_string())?;
+        Ok(Some(value))
+    } else {
+        Ok(None)
+    }
+}
+
+/**
+ * Set the default currency in app_settings (SQLite).
+ * Used on desktop to persist currency so it survives WebView cache wipe.
+ */
+#[tauri::command]
+pub fn set_default_currency(db: State<'_, DbState>, currency: String) -> Result<(), String> {
+    let conn = db.0.lock().map_err(|e| e.to_string())?;
+    conn.execute(
+        "INSERT INTO app_settings (key, value) VALUES ('default_currency', ?1) ON CONFLICT(key) DO UPDATE SET value = ?1",
+        [&currency],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/**
+ * Generic get/set for app_settings. Used for language, theme, autoLockTimeoutMinutes.
+ */
+#[tauri::command]
+pub fn get_app_setting(db: State<'_, DbState>, key: String) -> Result<Option<String>, String> {
+    let conn = db.0.lock().map_err(|e| e.to_string())?;
+    let mut stmt = conn
+        .prepare("SELECT value FROM app_settings WHERE key = ?1")
+        .map_err(|e| e.to_string())?;
+    let mut rows = stmt.query([&key]).map_err(|e| e.to_string())?;
+    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
+        let value: String = row.get(0).map_err(|e| e.to_string())?;
+        Ok(Some(value))
+    } else {
+        Ok(None)
+    }
+}
+
+#[tauri::command]
+pub fn set_app_setting(db: State<'_, DbState>, key: String, value: String) -> Result<(), String> {
+    let conn = db.0.lock().map_err(|e| e.to_string())?;
+    conn.execute(
+        "INSERT INTO app_settings (key, value) VALUES (?1, ?2) ON CONFLICT(key) DO UPDATE SET value = ?2",
+        rusqlite::params![&key, &value],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/**
+ * Infer default currency from existing transactions when app_settings has no value.
+ * Uses the most common (original_currency ?? currency) across transactions.
+ * Returns None if no transactions.
+ */
+#[tauri::command]
+pub fn infer_default_currency_from_transactions(db: State<'_, DbState>) -> Result<Option<String>, String> {
+    let conn = db.0.lock().map_err(|e| e.to_string())?;
+    // COALESCE(original_currency, currency) - for legacy tx without original_currency, use currency
+    let mut stmt = conn
+        .prepare(
+            "SELECT COALESCE(original_currency, currency) as c, COUNT(*) as cnt
+             FROM transactions
+             WHERE COALESCE(original_currency, currency) IS NOT NULL AND COALESCE(original_currency, currency) != ''
+             GROUP BY c
+             ORDER BY cnt DESC
+             LIMIT 1",
+        )
+        .map_err(|e| e.to_string())?;
+    let mut rows = stmt.query([]).map_err(|e| e.to_string())?;
+    if let Some(row) = rows.next().map_err(|e| e.to_string())? {
+        let value: String = row.get(0).map_err(|e| e.to_string())?;
+        Ok(Some(value))
+    } else {
+        Ok(None)
+    }
 } 
