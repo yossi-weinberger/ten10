@@ -8,19 +8,30 @@
   "bundle": {
     "active": true,
     "createUpdaterArtifacts": true,
-    "targets": ["nsis", "msi"],
-    "resources": ["../dist/**/*"],
+    "targets": [
+      "nsis",
+      "msi"
+    ],
+    "resources": [
+      "../dist/**/*"
+    ],
     "windows": {
       "nsis": {
         "displayLanguageSelector": true,
-        "languages": ["Hebrew", "English"],
+        "languages": [
+          "Hebrew",
+          "English"
+        ],
         "customLanguageFiles": {
           "Hebrew": "./nsis/Hebrew.nsh"
         },
         "installerHooks": "./windows/clean-webview.nsh"
       },
       "wix": {
-        "language": ["he-IL", "en-US"]
+        "language": [
+          "he-IL",
+          "en-US"
+        ]
       }
     },
     "icon": [
@@ -32,7 +43,7 @@
     ]
   },
   "productName": "Ten10",
-  "version": "0.5.9",
+  "version": "0.6.0",
   "identifier": "com.ten10.dev",
   "plugins": {
     "updater": {
