@@ -140,6 +140,7 @@ export function SettingsPage() {
       financialSettings={{
         defaultCurrency: settings.defaultCurrency as CurrencyCode,
         autoCalcChomesh: settings.autoCalcChomesh,
+        trackChomeshSeparately: settings.trackChomeshSeparately,
         minMaaserPercentage: settings.minMaaserPercentage,
       }}
       updateSettings={(newFinancialSettings) => {

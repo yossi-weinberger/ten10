@@ -70,6 +70,8 @@ export class SimpleEmailService {
     userEmail: string,
     userId: string,
     titheBalance: number,
+    maaserBalance?: number,
+    chomeshBalance?: number,
   ): Promise<EmailResult> {
     try {
       console.log(`[EMAIL] Starting to send reminder email to ${userEmail}`);
@@ -89,6 +91,8 @@ export class SimpleEmailService {
       }
       const templateData: EmailTemplateData = {
         titheBalance,
+        maaserBalance,
+        chomeshBalance,
         isPositive: titheBalance > 0,
         isNegative: titheBalance < 0,
         unsubscribeUrls,
@@ -182,12 +186,24 @@ export class SimpleEmailService {
   }
 
   async sendBulkReminders(
-    users: Array<{ id: string; email: string; titheBalance: number }>,
+    users: Array<{
+      id: string;
+      email: string;
+      titheBalance: number;
+      maaserBalance?: number;
+      chomeshBalance?: number;
+    }>,
   ): Promise<EmailResult[]> {
     const results: EmailResult[] = [];
     // Sequential with a gentle delay; you can replace with a small concurrency pool if needed.
     for (const u of users) {
-      const r = await this.sendReminderEmail(u.email, u.id, u.titheBalance);
+      const r = await this.sendReminderEmail(
+        u.email,
+        u.id,
+        u.titheBalance,
+        u.maaserBalance,
+        u.chomeshBalance,
+      );
       results.push(r);
       await this.sleep(100);
     }

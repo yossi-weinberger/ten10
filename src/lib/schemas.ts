@@ -199,14 +199,32 @@ export const createTransactionFormSchema = (t: TFunction) =>
     )
     .refine(
       (data) => {
-        if (data.type !== "income" && data.is_chomesh) {
+        // is_chomesh is allowed for: income, donation, expense, recognized-expense
+        if (!data.is_chomesh) return true;
+        if (data.type === "income") return true;
+        if (data.type === "donation") return true;
+        if (data.type === "expense") return true;
+        if (data.type === "recognized-expense") return true;
+        return false;
+      },
+      {
+        message: t(
+          "transactions:transactionForm.validation.chomesh.onlyForIncome"
+        ),
+        path: ["is_chomesh"],
+      }
+    )
+    .refine(
+      (data) => {
+        // is_chomesh and isFromPersonalFunds are mutually exclusive on donations
+        if (data.type === "donation" && data.is_chomesh && data.isFromPersonalFunds) {
           return false;
         }
         return true;
       },
       {
         message: t(
-          "transactions:transactionForm.validation.chomesh.onlyForIncome"
+          "transactions:transactionForm.validation.chomesh.notWithPersonalFunds"
         ),
         path: ["is_chomesh"],
       }

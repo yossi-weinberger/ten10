@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Wallet, Calculator, Percent, Info, Lock, Coins } from "lucide-react";
+import { Wallet, Calculator, Percent, Info, Lock, Coins, Split, HelpCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
@@ -22,6 +22,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 interface FinancialSettings {
   defaultCurrency: CurrencyCode;
   autoCalcChomesh: boolean;
+  trackChomeshSeparately: boolean;
   minMaaserPercentage?: number;
 }
 
@@ -152,6 +153,40 @@ export function FinancialSettingsCard({
               updateSettings({ autoCalcChomesh: checked })
             }
             disabled={disableAutoCalcChomesh}
+          />
+        </div>
+
+        {/* Track Chomesh Separately */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex h-9 w-9 items-center justify-center rounded-md border">
+              <Split className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <Label htmlFor="trackChomeshSeparatelySwitch">
+                  {t("financial.trackChomeshSeparatelyLabel")}
+                </Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-4 w-4 text-muted-foreground/70 hover:text-foreground cursor-help transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs">
+                    <p className="text-sm">{t("financial.trackChomeshSeparatelyTooltip")}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {t("financial.trackChomeshSeparatelyDescription")}
+              </p>
+            </div>
+          </div>
+          <Switch
+            id="trackChomeshSeparatelySwitch"
+            checked={financialSettings.trackChomeshSeparately}
+            onCheckedChange={(checked) =>
+              updateSettings({ trackChomeshSeparately: checked })
+            }
           />
         </div>
 

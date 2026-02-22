@@ -318,9 +318,16 @@ export async function fetchTotalDonationsInRange(
 }
 
 // --- TITHE BALANCE FUNCTIONS ---
+
+export interface TitheBalanceBreakdown {
+  total_balance: number;
+  maaser_balance: number;
+  chomesh_balance: number;
+}
+
 async function fetchServerTitheBalanceWeb(
   userId: string
-): Promise<number | null> {
+): Promise<TitheBalanceBreakdown | null> {
   logger.log(
     `AnalyticsService (Web): Fetching overall tithe balance for user ${userId}`
   );
@@ -336,27 +343,67 @@ async function fetchServerTitheBalanceWeb(
       );
       throw error;
     }
-    if (typeof data === "number") {
-      return data;
-    } else {
-      logger.warn(
-        "AnalyticsService (Web): Received unexpected data structure from Supabase RPC for overall tithe balance:",
-        data
-      );
-      return 0;
+
+    // Handle new TABLE format (array of row objects)
+    if (Array.isArray(data) && data.length > 0) {
+      const row = data[0];
+      if (typeof row.total_balance === "number") {
+        return {
+          total_balance: row.total_balance,
+          maaser_balance: row.maaser_balance ?? row.total_balance,
+          chomesh_balance: row.chomesh_balance ?? 0,
+        };
+      }
     }
+
+    // Handle old scalar format (backward compat before migration is applied)
+    if (typeof data === "number") {
+      return { total_balance: data, maaser_balance: data, chomesh_balance: 0 };
+    }
+
+    // Handle single object format (some Supabase versions)
+    if (
+      data &&
+      typeof data === "object" &&
+      !Array.isArray(data) &&
+      typeof data.total_balance === "number"
+    ) {
+      return {
+        total_balance: data.total_balance,
+        maaser_balance: data.maaser_balance ?? data.total_balance,
+        chomesh_balance: data.chomesh_balance ?? 0,
+      };
+    }
+
+    logger.warn(
+      "AnalyticsService (Web): Received unexpected data structure from Supabase RPC for overall tithe balance:",
+      data
+    );
+    return { total_balance: 0, maaser_balance: 0, chomesh_balance: 0 };
   } catch (error) {
     logger.error("Error in fetchServerTitheBalanceWeb:", error);
     return null;
   }
 }
 
-async function fetchServerTitheBalanceDesktop(): Promise<number | null> {
+async function fetchServerTitheBalanceDesktop(): Promise<TitheBalanceBreakdown | null> {
   logger.log(`AnalyticsService (Desktop): Fetching overall tithe balance`);
   try {
     const { invoke } = await import("@tauri-apps/api/core");
-    const balance = await invoke<number>("get_desktop_overall_tithe_balance");
-    return balance;
+    const result = await invoke<TitheBalanceBreakdown>(
+      "get_desktop_overall_tithe_balance"
+    );
+
+    // Handle old scalar format (before Rust is updated)
+    if (typeof result === "number") {
+      return {
+        total_balance: result,
+        maaser_balance: result,
+        chomesh_balance: 0,
+      };
+    }
+
+    return result;
   } catch (error) {
     logger.error("Error invoking get_desktop_overall_tithe_balance:", error);
     return null;
@@ -365,7 +412,7 @@ async function fetchServerTitheBalanceDesktop(): Promise<number | null> {
 
 export async function fetchServerTitheBalance(
   userId: string | null // userId is only needed for web
-): Promise<number | null> {
+): Promise<TitheBalanceBreakdown | null> {
   const currentPlatform = getPlatform();
   if (currentPlatform === "web") {
     if (!userId) {

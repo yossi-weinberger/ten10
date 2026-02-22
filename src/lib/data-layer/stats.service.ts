@@ -351,6 +351,7 @@ export async function fetchDbCalculatedTotalDonationsForStatsCards(
 }
 
 // Web: Fetch overall tithe balance for a user from Supabase
+// NOTE: This is a legacy function - the primary version is in analytics.service.ts
 async function fetchServerTitheBalanceWeb(
   userId: string
 ): Promise<number | null> {
@@ -373,6 +374,10 @@ async function fetchServerTitheBalanceWeb(
       "DbStatsCardsService (Web): Supabase RPC call for overall tithe balance successful. Data:",
       data
     );
+    // Handle new TABLE format (array of row objects)
+    if (Array.isArray(data) && data.length > 0 && typeof data[0].total_balance === "number") {
+      return data[0].total_balance;
+    }
     if (typeof data === "number") {
       return data;
     } else {

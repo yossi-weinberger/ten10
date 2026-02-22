@@ -14,6 +14,8 @@ export interface ReminderUser {
 
 export interface UserWithTitheBalance extends ReminderUser {
   titheBalance: number;
+  maaserBalance?: number;
+  chomeshBalance?: number;
 }
 
 export class UserService {
@@ -40,7 +42,9 @@ export class UserService {
     return users || [];
   }
 
-  async calculateUserTitheBalance(userId: string): Promise<number> {
+  async calculateUserTitheBalance(
+    userId: string,
+  ): Promise<{ total: number; maaser: number; chomesh: number }> {
     const { data: titheData, error } = await this.supabaseClient.rpc(
       "calculate_user_tithe_balance",
       { p_user_id: userId },
@@ -48,10 +52,25 @@ export class UserService {
 
     if (error) {
       console.error(`Error calculating tithe for user ${userId}:`, error);
-      return 0; // Return 0 as fallback
+      return { total: 0, maaser: 0, chomesh: 0 };
     }
 
-    return titheData || 0;
+    // Handle new TABLE format (array of row objects)
+    if (Array.isArray(titheData) && titheData.length > 0) {
+      const row = titheData[0];
+      return {
+        total: row.total_balance ?? 0,
+        maaser: row.maaser_balance ?? row.total_balance ?? 0,
+        chomesh: row.chomesh_balance ?? 0,
+      };
+    }
+
+    // Handle old scalar format (backward compat)
+    if (typeof titheData === "number") {
+      return { total: titheData, maaser: titheData, chomesh: 0 };
+    }
+
+    return { total: 0, maaser: 0, chomesh: 0 };
   }
 
   async getUsersWithTitheBalances(
@@ -61,10 +80,12 @@ export class UserService {
     const usersWithBalances: UserWithTitheBalance[] = [];
 
     for (const user of users) {
-      const titheBalance = await this.calculateUserTitheBalance(user.id);
+      const balanceData = await this.calculateUserTitheBalance(user.id);
       usersWithBalances.push({
         ...user,
-        titheBalance,
+        titheBalance: balanceData.total,
+        maaserBalance: balanceData.maaser,
+        chomeshBalance: balanceData.chomesh,
       });
     }
 

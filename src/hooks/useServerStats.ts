@@ -7,6 +7,7 @@ import {
   fetchTotalDonationsInRange,
   fetchServerTitheBalance,
   ServerDonationData,
+  TitheBalanceBreakdown,
 } from "@/lib/data-layer";
 import { User } from "@/contexts/AuthContext";
 import { DateRangeObject } from "./useDateControls";
@@ -69,6 +70,18 @@ export function useServerStats(
   );
   const setServerTitheBalance = useDonationStore(
     (state) => state.setServerCalculatedTitheBalance
+  );
+  const serverMaaserBalance = useDonationStore(
+    (state) => state.serverCalculatedMaaserBalance
+  );
+  const setServerMaaserBalance = useDonationStore(
+    (state) => state.setServerCalculatedMaaserBalance
+  );
+  const serverChomeshBalance = useDonationStore(
+    (state) => state.serverCalculatedChomeshBalance
+  );
+  const setServerChomeshBalance = useDonationStore(
+    (state) => state.setServerCalculatedChomeshBalance
   );
   const [isLoadingServerTitheBalance, setIsLoadingServerTitheBalance] =
     useState(false);
@@ -214,10 +227,17 @@ export function useServerStats(
         setIsLoadingServerTitheBalance(true);
         setServerTitheBalanceError(null);
         try {
-          const balanceData: number | null = await fetchServerTitheBalance(
-            effectiveUserId
-          );
-          setServerTitheBalance(balanceData);
+          const balanceData: TitheBalanceBreakdown | null =
+            await fetchServerTitheBalance(effectiveUserId);
+          if (balanceData) {
+            setServerTitheBalance(balanceData.total_balance);
+            setServerMaaserBalance(balanceData.maaser_balance);
+            setServerChomeshBalance(balanceData.chomesh_balance);
+          } else {
+            setServerTitheBalance(null);
+            setServerMaaserBalance(null);
+            setServerChomeshBalance(null);
+          }
         } catch (error) {
           logger.error(
             "useServerStats: Failed to fetch server overall tithe balance:",
@@ -227,15 +247,16 @@ export function useServerStats(
             error instanceof Error ? error.message : String(error)
           );
           setServerTitheBalance(null);
+          setServerMaaserBalance(null);
+          setServerChomeshBalance(null);
         }
         setIsLoadingServerTitheBalance(false);
       };
       loadServerTitheBalance();
     } else if (platform === "web" && !effectiveUserId) {
-      // logger.warn(
-      //   "useServerStats: Web platform detected but no user ID available. Skipping server overall tithe balance fetch."
-      // );
       setServerTitheBalance(null);
+      setServerMaaserBalance(null);
+      setServerChomeshBalance(null);
       setIsLoadingServerTitheBalance(false);
       setServerTitheBalanceError(null);
     }
@@ -249,6 +270,8 @@ export function useServerStats(
     setServerTotalDonations,
     setServerCalculatedDonationsData,
     setServerTitheBalance,
+    setServerMaaserBalance,
+    setServerChomeshBalance,
     lastDbFetchTimestamp,
   ]);
 
@@ -265,6 +288,8 @@ export function useServerStats(
     isLoadingServerDonations,
     serverDonationsError,
     serverTitheBalance,
+    serverMaaserBalance,
+    serverChomeshBalance,
     isLoadingServerTitheBalance,
     serverTitheBalanceError,
   };

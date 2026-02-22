@@ -142,12 +142,8 @@ export function TransactionForm({
       form.setValue("type", nextType, { shouldValidate: false });
 
       // Keep chomesh in sync when type changes programmatically (e.g., URL param)
-      if (nextType !== "income") {
-        form.setValue("is_chomesh", false, {
-          shouldValidate: false,
-          shouldDirty: false,
-        });
-      } else {
+      // is_chomesh is meaningful for: income, donation, expense (when recognized)
+      if (nextType === "income") {
         const isChomeshDirty = !!form.formState.dirtyFields?.is_chomesh;
         if (!isChomeshDirty) {
           const isExempt = !!form.getValues("isExempt");
@@ -156,6 +152,12 @@ export function TransactionForm({
             shouldDirty: false,
           });
         }
+      } else if (nextType !== "donation" && nextType !== "recognized-expense") {
+        // Clear chomesh for types where it has no meaning
+        form.setValue("is_chomesh", false, {
+          shouldValidate: false,
+          shouldDirty: false,
+        });
       }
     }
   }, [search, form, isEditMode, autoCalcChomesh]);
@@ -305,9 +307,13 @@ export function TransactionForm({
           value === "" || value === undefined ? null : value;
 
         // Sanitize dependent fields based on the new final type
-        // This fixes the issue where changing type from 'income' (with chomesh) to 'expense'
-        // would fail validation because is_chomesh remained true.
-        if (key === "is_chomesh" && newFinalType !== "income") {
+        // is_chomesh is valid for: income, donation, recognized-expense
+        if (
+          key === "is_chomesh" &&
+          newFinalType !== "income" &&
+          newFinalType !== "donation" &&
+          newFinalType !== "recognized-expense"
+        ) {
           formValue = null;
         }
         // Optional: clear recipient if not a donation type

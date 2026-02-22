@@ -44,7 +44,9 @@
       "exceededGoal": "Exceeded goal by {{amount}} (surplus)",
       "goalProgress": "{{percentage}}% of goal completed",
       "addDonation": "Add Donation",
-      "setOpeningBalance": "Set Opening Balance"
+      "setOpeningBalance": "Set Opening Balance",
+      "maaser": "Ma'aser",
+      "chomesh": "Chomesh"
     },
     "magic": {
       "title": "Magic",

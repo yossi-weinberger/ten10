@@ -17,6 +17,7 @@ export interface Settings {
   defaultCurrency: TransactionCurrency;
   notifications: boolean;
   autoCalcChomesh: boolean;
+  trackChomeshSeparately: boolean;
   recurringDonations: boolean;
   minMaaserPercentage?: number;
   maaserYearStart?: string;
@@ -31,6 +32,8 @@ export interface Settings {
 
 export interface DonationState {
   serverCalculatedTitheBalance?: number | null;
+  serverCalculatedMaaserBalance?: number | null;
+  serverCalculatedChomeshBalance?: number | null;
   settings: Settings;
   lastDbFetchTimestamp: number | null;
   _hasHydrated: boolean;
@@ -48,6 +51,8 @@ export interface DonationState {
   setLastDbFetchTimestamp: (timestamp: number | null) => void;
   setHasHydrated: (status: boolean) => void;
   setServerCalculatedTitheBalance: (balance: number | null) => void;
+  setServerCalculatedMaaserBalance: (balance: number | null) => void;
+  setServerCalculatedChomeshBalance: (balance: number | null) => void;
   setServerCalculatedTotalIncome: (totalIncome: number | null) => void;
   setServerCalculatedChomeshAmount: (chomeshAmount: number | null) => void;
   setServerCalculatedTotalExpenses: (totalExpenses: number | null) => void;
@@ -70,6 +75,7 @@ const defaultSettings: Settings = {
   defaultCurrency: "ILS",
   notifications: true,
   autoCalcChomesh: false,
+  trackChomeshSeparately: false,
   recurringDonations: true,
   minMaaserPercentage: 10,
   maaserYearStart: "01-01",
@@ -85,6 +91,8 @@ export const useDonationStore = create<DonationState>()(
   persist(
     (set, get) => ({
       serverCalculatedTitheBalance: null,
+      serverCalculatedMaaserBalance: null,
+      serverCalculatedChomeshBalance: null,
       settings: defaultSettings,
       lastDbFetchTimestamp: null,
       _hasHydrated: false,
@@ -115,6 +123,12 @@ export const useDonationStore = create<DonationState>()(
 
       setServerCalculatedTitheBalance: (balance) =>
         set({ serverCalculatedTitheBalance: balance }),
+
+      setServerCalculatedMaaserBalance: (balance) =>
+        set({ serverCalculatedMaaserBalance: balance }),
+
+      setServerCalculatedChomeshBalance: (balance) =>
+        set({ serverCalculatedChomeshBalance: balance }),
 
       setServerCalculatedTotalIncome: (totalIncome) =>
         set({ serverCalculatedTotalIncome: totalIncome }),
@@ -258,6 +272,13 @@ export const useDonationStore = create<DonationState>()(
 
             if (state.settings.autoLockTimeoutMinutes === undefined) {
               state.settings.autoLockTimeoutMinutes = 10;
+            }
+
+            if (state.settings.trackChomeshSeparately === undefined) {
+              logger.log(
+                "Zustand: Adding missing trackChomeshSeparately to existing settings"
+              );
+              state.settings.trackChomeshSeparately = false;
             }
 
             state.setHasHydrated(true);

@@ -3,6 +3,7 @@ use serde::Serialize;
 use tauri::State;
 
 use crate::DbState;
+use crate::models::TitheBalanceBreakdown;
 use crate::transaction_types::{donation_types_case_condition, donation_types_condition};
 
 // New struct for returning detailed donation data
@@ -66,7 +67,7 @@ pub async fn get_desktop_total_donations_in_range(
 #[tauri::command]
 pub async fn get_desktop_overall_tithe_balance(
     db_state: State<'_, DbState>,
-) -> Result<f64, String> {
+) -> Result<TitheBalanceBreakdown, String> {
     let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
     let conn: &Connection = &*conn_guard;
 
@@ -86,7 +87,8 @@ pub async fn get_desktop_overall_tithe_balance(
         Err(e) => return Err(format!("Failed to query rows: {}", e)),
     };
 
-    let mut balance = 0.0;
+    let mut maaser_balance = 0.0;
+    let mut chomesh_balance = 0.0;
 
     for row_result in rows {
         match row_result {
@@ -94,16 +96,38 @@ pub async fn get_desktop_overall_tithe_balance(
                 let is_chomesh = is_chomesh_opt.map_or(false, |v| v == 1);
                 match type_str.as_str() {
                     "income" => {
-                        balance += amount * if is_chomesh { 0.2 } else { 0.1 };
+                        // BALANCE SPLIT LOGIC: maaser gets 10% of ALL income (base obligation).
+                        // Chomesh pot gets only the EXTRA 10% from chomesh-marked income (delta).
+                        // So income of 1000 with chomesh: maaser +100, chomesh +100, total +200.
+                        // To change this split logic, also update: SQL migration file.
+                        maaser_balance += amount * 0.1;
+                        if is_chomesh {
+                            chomesh_balance += amount * 0.1;
+                        }
                     }
                     "donation" => {
-                        balance -= amount;
+                        // Donation reduces the pot indicated by is_chomesh
+                        if is_chomesh {
+                            chomesh_balance -= amount;
+                        } else {
+                            maaser_balance -= amount;
+                        }
                     }
                     "recognized-expense" => {
-                        balance -= amount * 0.1;
+                        // All recognized-expenses reduce maaser by 10%
+                        maaser_balance -= amount * 0.1;
+                        // Chomesh recognized-expenses also reduce chomesh by an extra 10%
+                        if is_chomesh {
+                            chomesh_balance -= amount * 0.1;
+                        }
                     }
                     "initial_balance" => {
-                        balance += amount;
+                        // Initial balance goes to the pot indicated by is_chomesh
+                        if is_chomesh {
+                            chomesh_balance += amount;
+                        } else {
+                            maaser_balance += amount;
+                        }
                     }
                     _ => {} // Other types do not affect the balance
                 }
@@ -111,9 +135,15 @@ pub async fn get_desktop_overall_tithe_balance(
             Err(e) => return Err(format!("Error processing row: {}", e)),
         }
     }
+
+    let total_balance = maaser_balance + chomesh_balance;
     println!(
-        "Desktop Query Result (donation_commands.rs): overall_tithe_balance = {}",
-        balance
+        "Desktop Query Result (donation_commands.rs): tithe_balance = {} (maaser: {}, chomesh: {})",
+        total_balance, maaser_balance, chomesh_balance
     );
-    Ok(balance)
+    Ok(TitheBalanceBreakdown {
+        total_balance,
+        maaser_balance,
+        chomesh_balance,
+    })
 }

@@ -56,6 +56,9 @@
     "currencyNameUAH": "גריבנה אוקראינית",
     "autoCalcChomeshLabel": "חישוב אוטומטי של חומש",
     "autoCalcChomeshDescription": "הוסף חומש באופן אוטומטי לכל ההכנסות.",
+    "trackChomeshSeparatelyLabel": "מעקב נפרד אחר יתרת חומש",
+    "trackChomeshSeparatelyDescription": "הצג פירוט מעשר/חומש ביתרה ואפשר סימון חומש על תרומות.",
+    "trackChomeshSeparatelyTooltip": "כשמופעל, יתרת המעשרות מפוצלת לשתיים: יתרת מעשר מכילה את ה-10% הבסיסיים מכל הכנסה. יתרת חומש מכילה רק את ה-10% הנוספים מהכנסות שסומנו כחומש (מעבר ל-10% שכבר נכנסו למעשר). לדוגמה: הכנסה של 1,000 ₪ עם חומש → מעשר: 100 ₪, חומש: 100 ₪, סה\"כ: 200 ₪. תרומה שתסומן כ'תרומה מחומש' תרד מיתרת החומש בלבד.",
     "minMaaserPercentageLabel": "אחוז מעשר מינימלי",
     "minMaaserPercentageDescription": "הגדר אחוז מינימלי לתרומה מכל הכנסה",
     "comingSoon": "בקרוב"

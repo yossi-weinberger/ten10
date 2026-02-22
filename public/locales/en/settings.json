@@ -56,6 +56,9 @@
     "currencyNameUAH": "Ukrainian Hryvnia",
     "autoCalcChomeshLabel": "Automatically calculate Chomesh",
     "autoCalcChomeshDescription": "Automatically add Chomesh to all income.",
+    "trackChomeshSeparatelyLabel": "Track Chomesh balance separately",
+    "trackChomeshSeparatelyDescription": "Show Ma'aser/Chomesh breakdown in balance and allow marking Chomesh on donations.",
+    "trackChomeshSeparatelyTooltip": "When enabled, the tithe balance is split into two: Ma'aser balance contains the base 10% from all income. Chomesh balance contains only the extra 10% from income marked as Chomesh (on top of the 10% already in Ma'aser). Example: income of 1,000 with Chomesh → Ma'aser: 100, Chomesh: 100, Total: 200. Donations marked as 'from Chomesh' reduce the Chomesh balance only.",
     "minMaaserPercentageLabel": "Minimum Ma'aser Percentage",
     "minMaaserPercentageDescription": "Set minimum percentage for donation from all income",
     "comingSoon": "Coming Soon"

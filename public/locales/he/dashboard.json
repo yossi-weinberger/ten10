@@ -44,7 +44,9 @@
       "exceededGoal": "עברת את היעד ב-{{amount}} (יתרה)",
       "goalProgress": "{{percentage}}% מהיעד הושלם",
       "addDonation": "הוסף תרומה",
-      "setOpeningBalance": "הגדר יתרת פתיחה"
+      "setOpeningBalance": "הגדר יתרת פתיחה",
+      "maaser": "מעשר",
+      "chomesh": "חומש"
     },
     "magic": {
       "title": "קסם",

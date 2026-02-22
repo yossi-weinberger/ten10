@@ -86,6 +86,9 @@ export function StatsCards({
     return format(date, "dd/MM/yyyy", { locale: currentLocale });
   };
 
+  const trackChomeshSeparately = useDonationStore(
+    (state) => state.settings.trackChomeshSeparately
+  );
   const {
     serverTotalIncome,
     isLoadingServerIncome,
@@ -98,6 +101,8 @@ export function StatsCards({
     isLoadingServerDonations,
     serverDonationsError,
     serverTitheBalance,
+    serverMaaserBalance,
+    serverChomeshBalance,
     isLoadingServerTitheBalance,
     serverTitheBalanceError,
   } = useServerStats(activeDateRangeObject, user, platform);
@@ -217,10 +222,51 @@ export function StatsCards({
   })();
 
   const displayBalanceForText = serverTitheBalance ?? 0;
+  const showChomeshBreakdown =
+    trackChomeshSeparately &&
+    typeof serverChomeshBalance === "number" &&
+    serverChomeshBalance !== 0;
+
+  const maaserVal = serverMaaserBalance ?? 0;
+  const chomeshVal = serverChomeshBalance ?? 0;
+
   const overallRequiredSubtitle = (
     <>
-      <div className="mt-2 relative">
-        <div className="h-2.5 bg-blue-200 dark:bg-blue-800 rounded-full">
+      {showChomeshBreakdown && (
+        <div
+          className={`flex flex-wrap justify-center gap-x-3 gap-y-0 text-base font-semibold ${
+            showChomeshBreakdown ? "-mt-1" : ""
+          }`}
+          dir={i18n.dir()}
+        >
+          {/* Positive (> 0) = debt = red, Negative/zero (≤ 0) = surplus = green */}
+          <span
+            className={`whitespace-nowrap ${
+              maaserVal > 0
+                ? "text-red-600 dark:text-red-400"
+                : "text-green-600 dark:text-green-400"
+            }`}
+          >
+            {t("statsCards.overallRequired.maaser")}:{" "}
+            {formatCurrency(maaserVal, defaultCurrency, i18n.language)}
+          </span>
+          <span
+            className={`whitespace-nowrap ${
+              chomeshVal > 0
+                ? "text-red-600 dark:text-red-400"
+                : "text-green-600 dark:text-green-400"
+            }`}
+          >
+            {t("statsCards.overallRequired.chomesh")}:{" "}
+            {formatCurrency(chomeshVal, defaultCurrency, i18n.language)}
+          </span>
+        </div>
+      )}
+      <div
+        className={`relative ${showChomeshBreakdown ? "mt-1" : "mt-2"}`}
+        style={{ marginInlineEnd: "3rem" }}
+      >
+        <div className="h-2 bg-blue-200 dark:bg-blue-800 rounded-full">
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-sky-500 rounded-full transition-all duration-1000 ease-in-out"
             style={{
@@ -232,10 +278,8 @@ export function StatsCards({
       <motion.p
         initial={{ opacity: 0.8 }}
         whileHover={{ opacity: 1 }}
-        className={`text-xs text-muted-foreground mt-2 ${
-          i18n.dir() === "rtl" ? "text-right" : "text-left"
-        } font-medium`}
-        style={{ minHeight: "1.2em" }}
+        className="text-xs text-muted-foreground mt-1 text-center font-medium"
+        style={{ minHeight: "1.2em", marginInlineEnd: "3rem" }}
         dir={i18n.dir()}
       >
         {displayBalanceForText <= 0

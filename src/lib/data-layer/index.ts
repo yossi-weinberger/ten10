@@ -27,7 +27,11 @@ export {
   fetchTotalDonationsInRange,
   fetchServerTitheBalance,
 } from "./analytics.service";
-export type { ServerIncomeData, ServerDonationData } from "./analytics.service";
+export type {
+  ServerIncomeData,
+  ServerDonationData,
+  TitheBalanceBreakdown,
+} from "./analytics.service";
 
 export {
   exportDataDesktop,

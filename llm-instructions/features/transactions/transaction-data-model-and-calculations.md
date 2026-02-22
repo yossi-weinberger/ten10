@@ -65,12 +65,31 @@ This document outlines the standard approach for handling financial transactions
 - A central function, e.g., `calculateTotalRequiredDonation(transactions: Transaction[]): number`, will be responsible for this. This function would typically operate on the `transactions` array from `useDonationStore` or a comprehensive list fetched for this purpose.
 - This function will iterate through the _entire_ `transactions` array and calculate the final balance based on the `type` and `amount` (and `is_chomesh` where applicable) of each transaction.
   - `income`: Add `amount * 0.1` (or `amount * 0.2` if `is_chomesh`) to the balance.
-  - `donation`: Subtract `amount` from the balance.
+  - `donation`: Subtract `amount` from the balance. If `is_chomesh=true`, deducts from chomesh pot; otherwise from maaser pot.
   - `expense`: No change to the balance.
   - `exempt-income`: No change to the balance.
-  - `recognized-expense`: Subtract `amount * 0.1` from the balance.
+  - `recognized-expense`: Subtract `amount * 0.1` from the balance. If `is_chomesh=true`, deducts `amount * 0.2` total (0.1 from maaser + 0.1 from chomesh).
   - `non_tithe_donation`: No change to the balance.
-  - `initial_balance`: Add `amount` directly to the balance (positive = debt, negative = credit).
+  - `initial_balance`: Add `amount` directly to the balance (positive = debt, negative = credit). If `is_chomesh=true`, goes to chomesh pot; otherwise to maaser pot.
+
+### 3.1 Maaser/Chomesh Balance Breakdown
+
+The tithe balance can be split into two components: **maaser** (base 10%) and **chomesh** (extra 10% from chomesh income):
+
+- **Maaser balance** = SUM(all income * 0.1) + SUM(initial_balance where NOT is_chomesh) - SUM(donation where NOT is_chomesh) - SUM(all recognized-expense * 0.1)
+- **Chomesh balance** = SUM(chomesh income * 0.1) + SUM(initial_balance where is_chomesh) - SUM(donation where is_chomesh) - SUM(recognized-expense * 0.1 where is_chomesh)
+- **Total = maaser + chomesh** (always adds up correctly)
+
+The breakdown is controlled by the user setting `trackChomeshSeparately`. When enabled:
+- `is_chomesh` toggle appears on donations and recognized-expenses (in addition to income)
+- The tithe balance card shows the maaser/chomesh breakdown as a subtitle
+- Reminder emails include the breakdown
+
+The `is_chomesh` field already exists on all transaction types in the DB. No schema migration is needed for the column itself.
+
+The server-side calculation functions return 3 values: `total_balance`, `maaser_balance`, `chomesh_balance`:
+- **Supabase**: `calculate_user_tithe_balance(p_user_id UUID)` returns `TABLE(total_balance, maaser_balance, chomesh_balance)`
+- **Desktop (Rust)**: `get_desktop_overall_tithe_balance` returns `TitheBalanceBreakdown { total_balance, maaser_balance, chomesh_balance }`
 
 **Database Constraints:**
 - The `transactions_type_check` constraint must include `'initial_balance'`.
