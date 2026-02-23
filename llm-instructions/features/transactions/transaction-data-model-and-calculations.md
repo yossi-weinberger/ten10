@@ -98,6 +98,14 @@ The server-side calculation functions return 3 values: `total_balance`, `maaser_
 - The final balance **can be negative**. A negative balance indicates a surplus, meaning the user has donated more than the calculated required amount up to that point.
 - This function is the **single source of truth** for the _overall_ required tithe balance.
 
+### 3.2 Dashboard tithe balance card – progress line ("XX% מהיעד הושלם")
+
+The tithe balance card (e.g. in `StatsCards.tsx`) shows a progress line and text "XX% מהיעד הושלם" when there is remaining debt. This **must** be consistent with the balance calculation:
+
+- **Only transactions that reduce the tithe balance** count toward "מהיעד הושלם". So use **tithe-only donations** in the selected date range: `total_donations_amount - non_tithe_donation_amount` (from `ServerDonationData`). Do **not** use `total_donations_amount` alone, because that includes `non_tithe_donation`, which does not reduce the balance (see §3 above).
+- Formula: when balance (debt) &gt; 0, progress = `(tithe_donations_in_range / (tithe_donations_in_range + current_balance)) * 100`. When balance ≤ 0, show 100%.
+- Changing this to use all donations would make the percentage inconsistent with the displayed balance and with the transaction types (donation vs non_tithe_donation).
+
 ## 4. Frontend Calculation and Performance
 
 - To display the current _overall required tithe balance_ in the UI, use memoization techniques:

@@ -13,7 +13,9 @@ import {
   HandCoins,
   Scale,
   Calendar as CalendarIcon,
+  Info,
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { StatCard } from "./StatCards/StatCard";
 import { motion } from "framer-motion";
 import CountUp from "react-countup";
@@ -202,8 +204,10 @@ export function StatsCards({
   );
 
   // Overall Required Card Subtitle Logic (handles negatives safely)
-  const rawDonations =
-    serverCalculatedDonationsData?.total_donations_amount ?? 0;
+  // Use only tithe donations (exclude non_tithe_donation) so progress matches the balance calculation
+  const totalDonations = serverCalculatedDonationsData?.total_donations_amount ?? 0;
+  const nonTitheDonations = serverCalculatedDonationsData?.non_tithe_donation_amount ?? 0;
+  const rawDonations = Math.max(0, totalDonations - nonTitheDonations);
   const rawBalance = serverTitheBalance ?? 0;
 
   const donations = Math.max(0, rawDonations); // refunds shouldn't create negative progress
@@ -275,25 +279,47 @@ export function StatsCards({
           />
         </div>
       </div>
-      <motion.p
-        initial={{ opacity: 0.8 }}
-        whileHover={{ opacity: 1 }}
-        className="text-xs text-muted-foreground mt-1 text-center font-medium"
+      <div
+        className="flex items-center justify-center gap-1.5 mt-1 text-center"
         style={{ minHeight: "1.2em", marginInlineEnd: "3rem" }}
         dir={i18n.dir()}
       >
-        {displayBalanceForText <= 0
-          ? t("statsCards.overallRequired.exceededGoal", {
-              amount: formatCurrency(
-                Math.abs(displayBalanceForText),
-                defaultCurrency,
-                i18n.language
-              ),
-            })
-          : t("statsCards.overallRequired.goalProgress", {
-              percentage: donationProgress.toFixed(1),
-            })}
-      </motion.p>
+        <motion.p
+          initial={{ opacity: 0.8 }}
+          whileHover={{ opacity: 1 }}
+          className="text-xs text-muted-foreground font-medium"
+        >
+          {displayBalanceForText === 0
+            ? t("statsCards.overallRequired.exactlyOnGoal")
+            : displayBalanceForText < 0
+              ? t("statsCards.overallRequired.exceededGoal", {
+                  amount: formatCurrency(
+                    Math.abs(displayBalanceForText),
+                    defaultCurrency,
+                    i18n.language
+                  ),
+                })
+              : t("statsCards.overallRequired.goalProgress", {
+                  percentage: donationProgress.toFixed(1),
+                })}
+        </motion.p>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              className="inline-flex text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded p-0.5"
+              aria-label={t("statsCards.overallRequired.goalProgressTooltip")}
+            >
+              <Info className="h-3.5 w-3.5 shrink-0" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs">
+            <p className="text-sm">
+              {t("statsCards.overallRequired.goalProgressTooltip")}
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
     </>
   );
 
