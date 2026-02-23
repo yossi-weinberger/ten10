@@ -61,9 +61,11 @@ This document outlines the standard approach for handling financial transactions
 
 ## 3. Balance Calculation Logic (Overall Tithe Balance)
 
-- All logic for calculating the _overall required tithe balance_ (not specific to a filtered table view) will reside in a dedicated utility file (e.g., `src/lib/tithe-calculator.ts`).
-- A central function, e.g., `calculateTotalRequiredDonation(transactions: Transaction[]): number`, will be responsible for this. This function would typically operate on the `transactions` array from `useDonationStore` or a comprehensive list fetched for this purpose.
-- This function will iterate through the _entire_ `transactions` array and calculate the final balance based on the `type` and `amount` (and `is_chomesh` where applicable) of each transaction.
+- The _overall required tithe balance_ is calculated **server-side** (not client-side):
+  - **Web (Supabase)**: SQL function `calculate_user_tithe_balance` called via RPC from `src/lib/data-layer/analytics.service.ts`
+  - **Desktop (Rust)**: command `get_desktop_overall_tithe_balance` in `src-tauri/src/commands/donation_commands.rs`
+- Both return a `TitheBalanceBreakdown { total_balance, maaser_balance, chomesh_balance }`.
+- The calculation iterates through all transactions and computes the balance based on `type`, `amount`, and `is_chomesh`:
   - `income`: Add `amount * 0.1` (or `amount * 0.2` if `is_chomesh`) to the balance.
   - `donation`: Subtract `amount` from the balance. If `is_chomesh=true`, deducts from chomesh pot; otherwise from maaser pot.
   - `expense`: No change to the balance.
