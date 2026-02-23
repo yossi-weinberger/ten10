@@ -111,6 +111,7 @@ export function StatsCards({
 
   const [lastChomeshValue, setLastChomeshValue] = useState<number | null>(null);
   const [isOpeningBalanceModalOpen, setIsOpeningBalanceModalOpen] = useState(false);
+  const [goalProgressTooltipOpen, setGoalProgressTooltipOpen] = useState(false);
 
   useEffect(() => {
     if (typeof serverChomeshAmount === "number") {
@@ -303,17 +304,21 @@ export function StatsCards({
                   percentage: donationProgress.toFixed(1),
                 })}
         </motion.p>
-        <Tooltip>
+        <Tooltip
+          open={goalProgressTooltipOpen}
+          onOpenChange={setGoalProgressTooltipOpen}
+        >
           <TooltipTrigger asChild>
             <button
               type="button"
               className="inline-flex text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded p-0.5"
               aria-label={t("statsCards.overallRequired.goalProgressTooltip")}
+              onClick={() => setGoalProgressTooltipOpen((prev) => !prev)}
             >
               <Info className="h-3.5 w-3.5 shrink-0" />
             </button>
           </TooltipTrigger>
-          <TooltipContent side="top" className="max-w-xs">
+          <TooltipContent side="top" className="z-[9999] max-w-xs">
             <p className="text-sm">
               {t("statsCards.overallRequired.goalProgressTooltip")}
             </p>
