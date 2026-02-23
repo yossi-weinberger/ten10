@@ -209,7 +209,7 @@ export const createTransactionFormSchema = (t: TFunction) =>
       },
       {
         message: t(
-          "transactions:transactionForm.validation.chomesh.onlyForIncome"
+          "transactions:transactionForm.validation.chomesh.invalidType"
         ),
         path: ["is_chomesh"],
       }

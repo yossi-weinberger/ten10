@@ -185,7 +185,7 @@
       },
       "chomesh": {
         "notForExempt": "Chomesh cannot be selected for exempt income",
-        "onlyForIncome": "Chomesh is relevant only for income, donations, and recognized expenses",
+        "invalidType": "Chomesh is relevant only for income, donations, and recognized expenses",
         "notWithPersonalFunds": "Chomesh cannot be selected for a personal (non-ma'aser) donation"
       },
       "recurring": {

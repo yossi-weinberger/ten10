@@ -99,7 +99,7 @@ export function generateReminderEmailHTML(data: EmailTemplateData): string {
               ${statusText}
             </h3>
             ${
-              data.chomeshBalance && data.chomeshBalance !== 0
+              typeof data.chomeshBalance === "number" && data.chomeshBalance !== 0
                 ? `<p style="margin: 10px 0 0 0; color: ${textColor}; font-size: 14px; opacity: 0.85;">
                      מעשר: ${(data.maaserBalance ?? 0).toFixed(2)} ₪ | חומש: ${data.chomeshBalance.toFixed(2)} ₪
                    </p>`

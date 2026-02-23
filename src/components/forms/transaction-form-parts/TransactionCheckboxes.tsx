@@ -307,9 +307,9 @@ export function TransactionCheckboxes({
             "isFromPersonalFunds",
             "transactionForm.personalFunds.label",
             "transactionForm.personalFunds.tooltip",
-            !!isChomeshChecked,
+            trackChomeshSeparately && !!isChomeshChecked,
             (isChecked, onChange) => {
-              if (isChomeshChecked) return;
+              if (trackChomeshSeparately && isChomeshChecked) return;
               onChange(!isChecked);
             }
           )}
