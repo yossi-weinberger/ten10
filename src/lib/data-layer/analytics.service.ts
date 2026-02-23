@@ -390,9 +390,7 @@ async function fetchServerTitheBalanceDesktop(): Promise<TitheBalanceBreakdown |
   logger.log(`AnalyticsService (Desktop): Fetching overall tithe balance`);
   try {
     const { invoke } = await import("@tauri-apps/api/core");
-    const result = await invoke<TitheBalanceBreakdown>(
-      "get_desktop_overall_tithe_balance"
-    );
+    const result = await invoke<unknown>("get_desktop_overall_tithe_balance");
 
     // Handle old scalar format (before Rust is updated)
     if (typeof result === "number") {
@@ -403,7 +401,7 @@ async function fetchServerTitheBalanceDesktop(): Promise<TitheBalanceBreakdown |
       };
     }
 
-    return result;
+    return result as TitheBalanceBreakdown;
   } catch (error) {
     logger.error("Error invoking get_desktop_overall_tithe_balance:", error);
     return null;
