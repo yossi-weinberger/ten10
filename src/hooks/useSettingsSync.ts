@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useDonationStore } from "@/lib/store";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,8 +17,15 @@ export function useSettingsSync() {
   const settings = useDonationStore((state) => state.settings);
   const _hasHydrated = useDonationStore((state) => state._hasHydrated);
 
+  // Keep track of the settings reference to prevent pushing on initial mount
+  const prevSettings = useRef(settings);
+
   useEffect(() => {
     if (!_hasHydrated) return;
+
+    // Prevent push if settings haven't actually changed (e.g. on initial user login)
+    if (prevSettings.current === settings) return;
+    prevSettings.current = settings;
 
     const syncSettings = async () => {
       try {
