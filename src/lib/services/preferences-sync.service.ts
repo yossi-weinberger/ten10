@@ -34,16 +34,22 @@ export const PreferencesSyncService = {
         .single();
 
       if (error) {
-        logger.error("PreferencesSyncService: Failed to fetch client_preferences:", error);
+        logger.error(
+          "PreferencesSyncService: Failed to fetch client_preferences:",
+          error,
+        );
         return;
       }
 
-      const dbPreferences = profile?.client_preferences as Partial<Settings> | null;
+      const dbPreferences =
+        profile?.client_preferences as Partial<Settings> | null;
       const localSettings = useDonationStore.getState().settings;
 
       if (!dbPreferences) {
         // DB is empty (null). Local wins. Push to DB.
-        logger.log("PreferencesSyncService: DB preferences empty. Pushing local settings to DB.");
+        logger.log(
+          "PreferencesSyncService: DB preferences empty. Pushing local settings to DB.",
+        );
         const preferencesToPush = this.extractClientPreferences(localSettings);
         await this.pushPreferences(userId, preferencesToPush);
       } else {
@@ -52,7 +58,10 @@ export const PreferencesSyncService = {
         useDonationStore.getState().updateSettings(dbPreferences);
       }
     } catch (err) {
-      logger.error("PreferencesSyncService: Unexpected error during sync:", err);
+      logger.error(
+        "PreferencesSyncService: Unexpected error during sync:",
+        err,
+      );
     }
   },
 
@@ -65,14 +74,22 @@ export const PreferencesSyncService = {
         .from("profiles")
         .update({ client_preferences: preferences })
         .eq("id", userId);
-        
+
       if (error) {
-        logger.error("PreferencesSyncService: Failed to update client_preferences:", error);
+        logger.error(
+          "PreferencesSyncService: Failed to update client_preferences:",
+          error,
+        );
       } else {
-        logger.log("PreferencesSyncService: Successfully pushed preferences to DB.");
+        logger.log(
+          "PreferencesSyncService: Successfully pushed preferences to DB.",
+        );
       }
     } catch (err) {
-      logger.error("PreferencesSyncService: Unexpected error during push:", err);
+      logger.error(
+        "PreferencesSyncService: Unexpected error during push:",
+        err,
+      );
     }
-  }
+  },
 };

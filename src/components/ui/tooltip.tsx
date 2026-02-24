@@ -7,9 +7,133 @@ import { cn } from "@/lib/utils";
 
 const TooltipProvider = TooltipPrimitive.Provider;
 
-const Tooltip = TooltipPrimitive.Root;
+type TooltipRootProps = React.ComponentPropsWithoutRef<
+  typeof TooltipPrimitive.Root
+>;
+type TooltipTriggerProps = React.ComponentPropsWithoutRef<
+  typeof TooltipPrimitive.Trigger
+>;
 
-const TooltipTrigger = TooltipPrimitive.Trigger;
+type TooltipInteractionContextValue = {
+  isTouchLikeDevice: boolean;
+  toggle: () => void;
+};
+
+const TooltipInteractionContext =
+  React.createContext<TooltipInteractionContextValue | null>(null);
+
+function useIsTouchLikeDevice() {
+  const [isTouchLikeDevice, setIsTouchLikeDevice] = React.useState(false);
+
+  React.useEffect(() => {
+    const hoverNoneMediaQuery = window.matchMedia("(hover: none)");
+    const coarsePointerMediaQuery = window.matchMedia("(pointer: coarse)");
+
+    const updateTouchLikeState = () => {
+      setIsTouchLikeDevice(
+        hoverNoneMediaQuery.matches || coarsePointerMediaQuery.matches,
+      );
+    };
+
+    updateTouchLikeState();
+
+    hoverNoneMediaQuery.addEventListener("change", updateTouchLikeState);
+    coarsePointerMediaQuery.addEventListener("change", updateTouchLikeState);
+
+    return () => {
+      hoverNoneMediaQuery.removeEventListener("change", updateTouchLikeState);
+      coarsePointerMediaQuery.removeEventListener(
+        "change",
+        updateTouchLikeState,
+      );
+    };
+  }, []);
+
+  return isTouchLikeDevice;
+}
+
+const Tooltip = ({
+  children,
+  open: openProp,
+  defaultOpen,
+  onOpenChange,
+  ...props
+}: TooltipRootProps) => {
+  const isTouchLikeDevice = useIsTouchLikeDevice();
+  const isControlled = typeof openProp === "boolean";
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(
+    defaultOpen ?? false,
+  );
+  const resolvedOpen = isControlled ? openProp : uncontrolledOpen;
+
+  const handleTouchOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      if (!isControlled) {
+        setUncontrolledOpen(nextOpen);
+      }
+      onOpenChange?.(nextOpen);
+    },
+    [isControlled, onOpenChange],
+  );
+
+  const toggleTouchTooltip = React.useCallback(() => {
+    if (!isTouchLikeDevice) return;
+    handleTouchOpenChange(!resolvedOpen);
+  }, [isTouchLikeDevice, handleTouchOpenChange, resolvedOpen]);
+
+  const interactionContextValue = React.useMemo(
+    () => ({
+      isTouchLikeDevice,
+      toggle: toggleTouchTooltip,
+    }),
+    [isTouchLikeDevice, toggleTouchTooltip],
+  );
+
+  const rootProps: TooltipRootProps = isTouchLikeDevice
+    ? {
+        ...props,
+        open: resolvedOpen,
+        onOpenChange: handleTouchOpenChange,
+      }
+    : isControlled
+      ? {
+          ...props,
+          open: openProp,
+          onOpenChange,
+        }
+      : {
+          ...props,
+          defaultOpen,
+          onOpenChange,
+        };
+
+  return (
+    <TooltipInteractionContext.Provider value={interactionContextValue}>
+      <TooltipPrimitive.Root {...rootProps}>{children}</TooltipPrimitive.Root>
+    </TooltipInteractionContext.Provider>
+  );
+};
+Tooltip.displayName = "Tooltip";
+
+const TooltipTrigger = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Trigger>,
+  TooltipTriggerProps
+>(({ onClick, ...props }, ref) => {
+  const interactionContext = React.useContext(TooltipInteractionContext);
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    onClick?.(event);
+    if (event.defaultPrevented) return;
+    if (interactionContext?.isTouchLikeDevice) {
+      interactionContext.toggle();
+    }
+  };
+
+  return (
+    <TooltipPrimitive.Trigger ref={ref} {...props} onClick={handleClick} />
+  );
+});
+TooltipTrigger.displayName = TooltipPrimitive.Trigger.displayName;
 
 const TooltipContent = React.forwardRef<
   React.ElementRef<typeof TooltipPrimitive.Content>,

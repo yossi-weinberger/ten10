@@ -13,7 +13,7 @@ import { logger } from "@/lib/logger";
 export function useSettingsSync() {
   const { platform } = usePlatform();
   const { user } = useAuth();
-  
+
   const settings = useDonationStore((state) => state.settings);
   const _hasHydrated = useDonationStore((state) => state._hasHydrated);
 
@@ -30,8 +30,12 @@ export function useSettingsSync() {
     const syncSettings = async () => {
       try {
         if (platform === "web" && user) {
-          const preferencesToPush = PreferencesSyncService.extractClientPreferences(settings);
-          await PreferencesSyncService.pushPreferences(user.id, preferencesToPush);
+          const preferencesToPush =
+            PreferencesSyncService.extractClientPreferences(settings);
+          await PreferencesSyncService.pushPreferences(
+            user.id,
+            preferencesToPush,
+          );
         } else if (platform === "desktop") {
           await persistAllDesktopSettings(settings);
         }
