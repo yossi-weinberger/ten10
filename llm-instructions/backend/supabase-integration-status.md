@@ -23,7 +23,8 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - Google Sign-In (`signInWithOAuth`) - UI added, requires manual setup in dashboards.
   - Magic Link (`signInWithOtp`) - UI added, enabled by default in Supabase.
 - **User Profiles & RLS:**
-  - Created `public.profiles` table (`id`, `updated_at`, `full_name`, `avatar_url`, `mailing_list_consent`).
+  - Created `public.profiles` table (`id`, `updated_at`, `full_name`, `avatar_url`, `mailing_list_consent`, `client_preferences`).
+  - Added `client_preferences` (JSONB) to hold general user settings (language, theme, tracking preferences) dynamically.
   - Established Foreign Key to `auth.users`.
   - Enabled RLS on `profiles` table.
   - Added basic RLS policies (select/insert/update own profile).

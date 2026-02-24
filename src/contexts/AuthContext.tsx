@@ -13,6 +13,7 @@ import i18n from "@/lib/i18n";
 import { logger } from "@/lib/logger";
 import { usePlatform } from "./PlatformContext"; // Import usePlatform to set platform for dataService
 import { CurrencySyncService } from "@/lib/services/currency-sync.service";
+import { PreferencesSyncService } from "@/lib/services/preferences-sync.service";
 
 export type { SupabaseUser as User }; // Re-exporting the User type
 
@@ -216,6 +217,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (platform === "web") {
             // Only sync currency on Web where we have direct DB access and need consistency with Edge Functions
             CurrencySyncService.syncDefaultCurrency(user.id);
+            PreferencesSyncService.syncPreferences(user.id);
         }
 
         setInitialForcedLoadDone(true);

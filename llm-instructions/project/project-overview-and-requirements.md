@@ -88,8 +88,8 @@ The application needs to handle various types of financial entries, each affecti
   - **Version Tracking**: The system tracks which version of terms the user accepted, allowing re-prompting when terms are updated.
   - **Metadata Collection**: Captures local time, timezone, user agent, and platform for legal compliance.
   - **Platform-Specific Storage**:
-    - **Web**: Stored in Supabase `profiles` table (`terms_accepted_at`, `terms_version`, `terms_accepted_metadata`)
-    - **Desktop**: Stored locally in Zustand store (`settings.termsAcceptedVersion`)
+    - **Web**: Stored in Supabase `profiles` table (`terms_accepted_at`, `terms_version`, `terms_accepted_metadata`, `client_preferences` for JSON settings)
+    - **Desktop**: Stored locally in Zustand store (and persisted via SQLite `app_settings` for unified settings)
 - **Implementation Details**: `../features/auth/terms-acceptance.md`
 
 ### Desktop Updates & Distribution

@@ -315,6 +315,17 @@ pub fn set_app_setting(db: State<'_, DbState>, key: String, value: String) -> Re
     Ok(())
 }
 
+#[tauri::command]
+pub fn delete_app_setting(db: State<'_, DbState>, key: String) -> Result<(), String> {
+    let conn = db.0.lock().map_err(|e| e.to_string())?;
+    conn.execute(
+        "DELETE FROM app_settings WHERE key = ?1",
+        rusqlite::params![&key],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 /**
  * Infer default currency from existing transactions when app_settings has no value.
  * Uses the most common (original_currency ?? currency) across transactions.
