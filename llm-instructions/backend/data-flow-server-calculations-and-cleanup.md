@@ -105,10 +105,11 @@
 - **ניהול מצב (Zustand - `src/lib/store.ts`):**
   - **משתנה מצב:** `serverCalculatedTitheBalance: number | null`
   - **פעולת עדכון:** `setServerCalculatedTitheBalance(balance: number | null)`
-- **ממשק משתמש (UI - `src/hooks/useServerStats.ts`):**
+- **ממשק משתמש (UI - `src/hooks/useServerStats.ts`, `src/components/dashboard/StatsCards.tsx`):**
   - `useEffect` קורא ל-`fetchServerTitheBalance` (לא תלוי בטווח תאריכים).
   - משתני `useState` (`isLoadingServerTitheBalance`, `serverTitheBalanceError`) מנהלים טעינה ושגיאות.
   - הנתון (`serverCalculatedTitheBalance`) מה-store מוצג בכרטיסייה עם סימון (S).
+  - **שורת "XX% מהיעד הושלם"**: החישוב משתמש רק בתרומות שמפחיתות מעשר (`total_donations_amount - non_tithe_donation_amount`) בטווח התאריכים, כדי להתאים ליתרה המחושבת (ש-`non_tithe_donation` לא משפיעה עליה). ראה `transaction-data-model-and-calculations.md` §3.2.
 
 ## חלק 2: קבצים וקטעי קוד למחיקה (חישובי קליינט ישנים - C)
 

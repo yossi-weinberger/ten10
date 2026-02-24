@@ -67,7 +67,7 @@ function drawRtlText(
   y: number,
   font: PDFFont,
   size: number,
-  color: RGB
+  color: RGB,
 ): void {
   const segments = splitTextSegments(text);
 
@@ -184,7 +184,7 @@ function drawSafeVectorCheckbox(
   x: number,
   y: number,
   size: number,
-  color: RGB
+  color: RGB,
 ) {
   // Use a slightly smaller box than the full cell height
   // Ignore size param to keep it fixed logic or use it if scaling needed
@@ -236,7 +236,7 @@ export async function exportTransactionsToPDF(
   },
   totalCount: number,
   currentLanguage: string = "he",
-  sorting?: { field: string; direction: "asc" | "desc" }
+  sorting?: { field: string; direction: "asc" | "desc" },
 ) {
   try {
     const pdfDoc = await PDFDocument.create();
@@ -244,7 +244,7 @@ export async function exportTransactionsToPDF(
 
     // Set Metadata
     pdfDoc.setTitle(
-      `Ten10 Transactions Report - ${format(new Date(), "yyyy-MM-dd")}`
+      `Ten10 Transactions Report - ${format(new Date(), "yyyy-MM-dd")}`,
     );
     pdfDoc.setAuthor("Ten10 App");
     pdfDoc.setCreator("Ten10 Export Service");
@@ -252,10 +252,10 @@ export async function exportTransactionsToPDF(
     pdfDoc.setCreationDate(new Date());
 
     const regularFontBytes = await fetch(regularFontUrl).then((res) =>
-      res.arrayBuffer()
+      res.arrayBuffer(),
     );
     const mediumFontBytes = await fetch(mediumFontUrl).then((res) =>
-      res.arrayBuffer()
+      res.arrayBuffer(),
     );
 
     const regularFont = await pdfDoc.embedFont(regularFontBytes);
@@ -267,7 +267,7 @@ export async function exportTransactionsToPDF(
     try {
       // Prefer wide header logo
       const wideLogoBytes = await fetch("/logo/logo-wide.png").then((res) =>
-        res.arrayBuffer()
+        res.arrayBuffer(),
       );
       logoImage = await pdfDoc.embedPng(wideLogoBytes);
       logoAspectRatio = logoImage.width / logoImage.height;
@@ -275,7 +275,7 @@ export async function exportTransactionsToPDF(
       try {
         // Fallback to app icon (square)
         const logoBytes = await fetch("/icon-192.png").then((res) =>
-          res.arrayBuffer()
+          res.arrayBuffer(),
         );
         logoImage = await pdfDoc.embedPng(logoBytes);
         logoAspectRatio = logoImage.width / logoImage.height;
@@ -336,7 +336,7 @@ export async function exportTransactionsToPDF(
         y,
         boldFont,
         LAYOUT.fontSize.title,
-        COLORS.primary
+        COLORS.primary,
       );
     } else {
       page.drawText(titleText, {
@@ -374,7 +374,7 @@ export async function exportTransactionsToPDF(
         y,
         regularFont,
         LAYOUT.fontSize.meta,
-        COLORS.textSecondary
+        COLORS.textSecondary,
       );
     } else {
       page.drawText(metaText, {
@@ -400,7 +400,7 @@ export async function exportTransactionsToPDF(
         y,
         boldFont,
         LAYOUT.fontSize.meta,
-        COLORS.text
+        COLORS.text,
       );
     } else {
       page.drawText(countText, {
@@ -458,7 +458,7 @@ export async function exportTransactionsToPDF(
           const colW = columnWidths[i];
           const textWidth = boldFont.widthOfTextAtSize(
             header,
-            LAYOUT.fontSize.header
+            LAYOUT.fontSize.header,
           );
           page.drawText(header, {
             x: currentX - colW + (colW - textWidth) / 2, // Center in column
@@ -476,7 +476,7 @@ export async function exportTransactionsToPDF(
           const colW = columnWidths[i];
           const textWidth = boldFont.widthOfTextAtSize(
             header,
-            LAYOUT.fontSize.header
+            LAYOUT.fontSize.header,
           );
           page.drawText(header, {
             x: currentX + (colW - textWidth) / 2, // Center in column
@@ -578,7 +578,7 @@ export async function exportTransactionsToPDF(
             labelY,
             boldFont,
             labelFontSize,
-            COLORS.textSecondary
+            COLORS.textSecondary,
           );
         } else {
           page.drawText(monthLabel, {
@@ -644,7 +644,11 @@ export async function exportTransactionsToPDF(
         recurringStatusText = "";
       }
 
-      const isChomesh = t.type === "income" && t.is_chomesh === true;
+      const isChomesh =
+        (t.type === "income" ||
+          t.type === "donation" ||
+          t.type === "recognized-expense") &&
+        t.is_chomesh === true;
 
       const rowData = [
         format(new Date(t.date), "dd/MM/yy"),
@@ -703,16 +707,19 @@ export async function exportTransactionsToPDF(
             : cellX + colWidth / 2;
           const iconCenterY = rowY + LAYOUT.rowHeight / 2;
 
-          if (t.type === "income" && isChomesh) {
-            // DRAW VECTOR CHECKBOX (SAFE)
+          if (isChomesh) {
             drawSafeVectorCheckbox(
               page,
               iconCenterX,
               iconCenterY,
               12,
-              COLORS.primary
+              COLORS.primary,
             );
-          } else if (t.type === "income") {
+          } else if (
+            t.type === "income" ||
+            t.type === "donation" ||
+            t.type === "recognized-expense"
+          ) {
             const textWidth = regularFont.widthOfTextAtSize("-", fontSize);
             page.drawText("-", {
               x: iconCenterX - textWidth / 2,
@@ -747,7 +754,7 @@ export async function exportTransactionsToPDF(
           }
           const finalWidth = regularFont.widthOfTextAtSize(
             textToDraw,
-            fontSize
+            fontSize,
           );
 
           const finalCenterX = isRtl
@@ -789,7 +796,7 @@ export async function exportTransactionsToPDF(
           margin / 2,
           regularFont,
           8,
-          COLORS.textSecondary
+          COLORS.textSecondary,
         );
       } else {
         p.drawText(pageText, {

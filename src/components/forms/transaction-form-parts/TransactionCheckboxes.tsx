@@ -14,6 +14,7 @@ import type { TransactionFormValues } from "@/lib/schemas";
 import { TransactionType } from "@/types/transaction";
 import { cn } from "@/lib/utils";
 import { GoldenBubbles } from "@/components/ui/golden-bubbles";
+import { useDonationStore } from "@/lib/store";
 
 interface TransactionCheckboxesProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -27,7 +28,12 @@ export function TransactionCheckboxes({
   isExemptChecked,
 }: TransactionCheckboxesProps) {
   const { t } = useTranslation("transactions");
+  const trackChomeshSeparately = useDonationStore(
+    (state) => state.settings.trackChomeshSeparately
+  );
   const isChomeshChecked = form.watch("is_chomesh");
+  const isRecognizedChecked = form.watch("isRecognized");
+  const isFromPersonalFundsChecked = form.watch("isFromPersonalFunds");
   // Track if shine animation should trigger (only once per hover/click)
   const [shineKey, setShineKey] = React.useState(0);
   // Track hover state for golden button
@@ -252,19 +258,63 @@ export function TransactionCheckboxes({
         </>
       )}
 
-      {selectedType === "expense" &&
-        renderToggleButton(
-          "isRecognized",
-          "transactionForm.recognizedExpense.label",
-          "transactionForm.recognizedExpense.tooltip"
-        )}
+      {selectedType === "expense" && (
+        <>
+          {/* Recognized expense for maaser (10%) - mutually exclusive with chomesh */}
+          {renderToggleButton(
+            "isRecognized",
+            "transactionForm.recognizedExpense.label",
+            "transactionForm.recognizedExpense.tooltip",
+            !!isChomeshChecked,
+            (isChecked, onChange) => {
+              if (isChomeshChecked) return;
+              onChange(!isChecked);
+            }
+          )}
 
-      {selectedType === "donation" &&
-        renderToggleButton(
-          "isFromPersonalFunds",
-          "transactionForm.personalFunds.label",
-          "transactionForm.personalFunds.tooltip"
-        )}
+          {/* Recognized expense for chomesh (20%) - always visible, mutually exclusive with maaser */}
+          {renderToggleButton(
+            "is_chomesh",
+            "transactionForm.chomeshExpense.label",
+            "transactionForm.chomeshExpense.tooltip",
+            !!isRecognizedChecked,
+            (isChecked, onChange) => {
+              if (isRecognizedChecked) return;
+              onChange(!isChecked);
+            },
+            true // Golden mode
+          )}
+        </>
+      )}
+
+      {selectedType === "donation" && (
+        <>
+          {/* Chomesh for donation - only when trackChomeshSeparately is ON */}
+          {trackChomeshSeparately &&
+            renderToggleButton(
+              "is_chomesh",
+              "transactionForm.chomeshDonation.label",
+              "transactionForm.chomeshDonation.tooltip",
+              !!isFromPersonalFundsChecked,
+              (isChecked, onChange) => {
+                if (isFromPersonalFundsChecked) return;
+                onChange(!isChecked);
+              },
+              true // Golden mode
+            )}
+
+          {renderToggleButton(
+            "isFromPersonalFunds",
+            "transactionForm.personalFunds.label",
+            "transactionForm.personalFunds.tooltip",
+            trackChomeshSeparately && !!isChomeshChecked,
+            (isChecked, onChange) => {
+              if (trackChomeshSeparately && isChomeshChecked) return;
+              onChange(!isChecked);
+            }
+          )}
+        </>
+      )}
 
       {/* Recurring Transaction - Always Visible */}
       {renderToggleButton(

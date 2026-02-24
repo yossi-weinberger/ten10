@@ -80,11 +80,12 @@ export async function checkAndSendDesktopReminder(t: TFunction): Promise<void> {
     }
 
     logger.log("Fetching tithe balance...");
-    const titheBalance = await fetchServerTitheBalance(null); // null for desktop user_id
-    if (titheBalance === null) {
+    const balanceData = await fetchServerTitheBalance(null); // null for desktop user_id
+    if (balanceData === null) {
       logger.error("Could not fetch tithe balance for reminder. Exiting.");
       return;
     }
+    const titheBalance = balanceData.total_balance;
     logger.log("Tithe balance fetched:", titheBalance);
 
     const { title, body } = generateReminderContent(t, titheBalance);

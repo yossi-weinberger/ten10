@@ -41,7 +41,8 @@ export function normalizeToBaseType(type: TransactionType): TransactionType {
 export function determineFinalType(
   values: TransactionFormValues
 ): TransactionType {
-  const { type, isExempt, isRecognized, isFromPersonalFunds } = values;
+  const { type, isExempt, isRecognized, isFromPersonalFunds, is_chomesh } =
+    values;
 
   // Normalize the type to base type first (handles editing existing derived types)
   const baseType = normalizeToBaseType(type);
@@ -50,7 +51,9 @@ export function determineFinalType(
   if (baseType === "income" && isExempt) {
     return "exempt-income";
   }
-  if (baseType === "expense" && isRecognized) {
+  // Expense becomes recognized-expense if either "recognized for maaser" or
+  // "recognized for chomesh" is checked (both reduce the tithe balance)
+  if (baseType === "expense" && (isRecognized || is_chomesh)) {
     return "recognized-expense";
   }
   if (baseType === "donation" && isFromPersonalFunds) {

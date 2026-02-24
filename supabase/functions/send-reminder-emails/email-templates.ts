@@ -7,6 +7,8 @@ import { EMAIL_THEME, getEmailHeader } from "../_shared/email-design.ts";
 
 export interface EmailTemplateData {
   titheBalance: number;
+  maaserBalance?: number;
+  chomeshBalance?: number;
   isPositive: boolean;
   isNegative: boolean;
   userName?: string;
@@ -96,6 +98,13 @@ export function generateReminderEmailHTML(data: EmailTemplateData): string {
             <h3 style="margin: 0; color: ${textColor}; font-size: 20px; font-weight: 600;">
               ${statusText}
             </h3>
+            ${
+              typeof data.chomeshBalance === "number" && data.chomeshBalance !== 0
+                ? `<p style="margin: 10px 0 0 0; color: ${textColor}; font-size: 14px; opacity: 0.85;">
+                     מעשר: ${(data.maaserBalance ?? 0).toFixed(2)} ₪ | חומש: ${data.chomeshBalance.toFixed(2)} ₪
+                   </p>`
+                : ""
+            }
           </div>
           
           <!-- Call to Action -->

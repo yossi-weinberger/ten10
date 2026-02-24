@@ -163,4 +163,11 @@ pub struct TransactionForTable {
     #[serde(flatten)]
     pub transaction: Transaction,
     pub recurring_info: Option<RecurringInfo>,
-} 
+}
+
+#[derive(Serialize, Debug, Clone)]
+pub struct TitheBalanceBreakdown {
+    pub total_balance: f64,
+    pub maaser_balance: f64,
+    pub chomesh_balance: f64,
+}

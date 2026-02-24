@@ -123,6 +123,14 @@
       "label": "Recognized Expense for Ma'aser?",
       "tooltip": "Check if this is an expense recognized for deduction from ma'aser-obligated income (10% of the expense will be deducted from the debt)."
     },
+    "chomeshExpense": {
+      "label": "Recognized for Chomesh?",
+      "tooltip": "Check if this expense is recognized for chomesh deduction (20% of the expense will be deducted from the debt)."
+    },
+    "chomeshDonation": {
+      "label": "Donation from Chomesh?",
+      "tooltip": "Check if this donation should reduce the chomesh balance (not the regular ma'aser balance)."
+    },
     "personalFunds": {
       "label": "Not from ma'aser",
       "tooltip": "Check if this donation is given from personal funds and should not reduce the ma'aser balance."
@@ -177,7 +185,8 @@
       },
       "chomesh": {
         "notForExempt": "Chomesh cannot be selected for exempt income",
-        "onlyForIncome": "Chomesh is relevant only for income"
+        "invalidType": "Chomesh is relevant only for income, donations, and recognized expenses",
+        "notWithPersonalFunds": "Chomesh cannot be selected for a personal (non-ma'aser) donation"
       },
       "recurring": {
         "frequencyRequired": "Frequency must be selected",

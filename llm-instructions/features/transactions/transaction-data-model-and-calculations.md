@@ -61,16 +61,37 @@ This document outlines the standard approach for handling financial transactions
 
 ## 3. Balance Calculation Logic (Overall Tithe Balance)
 
-- All logic for calculating the _overall required tithe balance_ (not specific to a filtered table view) will reside in a dedicated utility file (e.g., `src/lib/tithe-calculator.ts`).
-- A central function, e.g., `calculateTotalRequiredDonation(transactions: Transaction[]): number`, will be responsible for this. This function would typically operate on the `transactions` array from `useDonationStore` or a comprehensive list fetched for this purpose.
-- This function will iterate through the _entire_ `transactions` array and calculate the final balance based on the `type` and `amount` (and `is_chomesh` where applicable) of each transaction.
+- The _overall required tithe balance_ is calculated **server-side** (not client-side):
+  - **Web (Supabase)**: SQL function `calculate_user_tithe_balance` called via RPC from `src/lib/data-layer/analytics.service.ts`
+  - **Desktop (Rust)**: command `get_desktop_overall_tithe_balance` in `src-tauri/src/commands/donation_commands.rs`
+- Both return a `TitheBalanceBreakdown { total_balance, maaser_balance, chomesh_balance }`.
+- The calculation iterates through all transactions and computes the balance based on `type`, `amount`, and `is_chomesh`:
   - `income`: Add `amount * 0.1` (or `amount * 0.2` if `is_chomesh`) to the balance.
-  - `donation`: Subtract `amount` from the balance.
+  - `donation`: Subtract `amount` from the balance. If `is_chomesh=true`, deducts from chomesh pot; otherwise from maaser pot.
   - `expense`: No change to the balance.
   - `exempt-income`: No change to the balance.
-  - `recognized-expense`: Subtract `amount * 0.1` from the balance.
+  - `recognized-expense`: Subtract `amount * 0.1` from the balance. If `is_chomesh=true`, deducts `amount * 0.2` total (0.1 from maaser + 0.1 from chomesh).
   - `non_tithe_donation`: No change to the balance.
-  - `initial_balance`: Add `amount` directly to the balance (positive = debt, negative = credit).
+  - `initial_balance`: Add `amount` directly to the balance (positive = debt, negative = credit). If `is_chomesh=true`, goes to chomesh pot; otherwise to maaser pot.
+
+### 3.1 Maaser/Chomesh Balance Breakdown
+
+The tithe balance can be split into two components: **maaser** (base 10%) and **chomesh** (extra 10% from chomesh income):
+
+- **Maaser balance** = SUM(all income * 0.1) + SUM(initial_balance where NOT is_chomesh) - SUM(donation where NOT is_chomesh) - SUM(all recognized-expense * 0.1)
+- **Chomesh balance** = SUM(chomesh income * 0.1) + SUM(initial_balance where is_chomesh) - SUM(donation where is_chomesh) - SUM(recognized-expense * 0.1 where is_chomesh)
+- **Total = maaser + chomesh** (always adds up correctly)
+
+The breakdown is controlled by the user setting `trackChomeshSeparately`. When enabled:
+- `is_chomesh` toggle appears on donations and recognized-expenses (in addition to income)
+- The tithe balance card shows the maaser/chomesh breakdown as a subtitle
+- Reminder emails include the breakdown
+
+The `is_chomesh` field already exists on all transaction types in the DB. No schema migration is needed for the column itself.
+
+The server-side calculation functions return 3 values: `total_balance`, `maaser_balance`, `chomesh_balance`:
+- **Supabase**: `calculate_user_tithe_balance(p_user_id UUID)` returns `TABLE(total_balance, maaser_balance, chomesh_balance)`
+- **Desktop (Rust)**: `get_desktop_overall_tithe_balance` returns `TitheBalanceBreakdown { total_balance, maaser_balance, chomesh_balance }`
 
 **Database Constraints:**
 - The `transactions_type_check` constraint must include `'initial_balance'`.
@@ -78,6 +99,14 @@ This document outlines the standard approach for handling financial transactions
 
 - The final balance **can be negative**. A negative balance indicates a surplus, meaning the user has donated more than the calculated required amount up to that point.
 - This function is the **single source of truth** for the _overall_ required tithe balance.
+
+### 3.2 Dashboard tithe balance card – progress line ("XX% מהיעד הושלם")
+
+The tithe balance card (e.g. in `StatsCards.tsx`) shows a progress line and text "XX% מהיעד הושלם" when there is remaining debt. This **must** be consistent with the balance calculation:
+
+- **Only transactions that reduce the tithe balance** count toward "מהיעד הושלם". So use **tithe-only donations** in the selected date range: `total_donations_amount - non_tithe_donation_amount` (from `ServerDonationData`). Do **not** use `total_donations_amount` alone, because that includes `non_tithe_donation`, which does not reduce the balance (see §3 above).
+- Formula: when balance (debt) &gt; 0, progress = `(tithe_donations_in_range / (tithe_donations_in_range + current_balance)) * 100`. When balance ≤ 0, show 100%.
+- Changing this to use all donations would make the percentage inconsistent with the displayed balance and with the transaction types (donation vs non_tithe_donation).
 
 ## 4. Frontend Calculation and Performance
 
