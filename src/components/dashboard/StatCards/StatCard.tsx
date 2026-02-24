@@ -1,7 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import {
-  Card,
   CardContent,
   CardHeader,
   CardTitle,
@@ -138,7 +137,7 @@ export function StatCard({
       } ${isSpecial ? specialStyles.border : ""} ${
         isSpecial ? specialStyles.ring : ""
         // controls the card height
-      } transition-all duration-300 h-[200px] sm:h-[175px]`}
+      } transition-all duration-300 h-[210px] sm:h-[185px]`}
       gradientColor={styles.gradient}
     >
       <div className="relative h-full">
