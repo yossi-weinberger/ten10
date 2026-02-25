@@ -27,7 +27,7 @@ jobs:
       - name: Deploy Functions
         run: |
           # Deploy JWT-protected functions (default behavior: verify_jwt = true)
-          supabase functions deploy send-reminder-emails send-contact-email send-new-user-email verify-captcha verify-unsubscribe-token --project-ref flpzqbvbymoluoeeeofg
+          supabase functions deploy send-reminder-emails send-contact-email send-new-user-email verify-captcha verify-unsubscribe-token get-experiment-chart --project-ref flpzqbvbymoluoeeeofg
 
           # Cloudflare Email Routing authenticates via shared secret, not Supabase JWT
           # This function MUST be deployed with verify_jwt disabled.
