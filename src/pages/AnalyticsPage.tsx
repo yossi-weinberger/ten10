@@ -84,18 +84,23 @@ export function AnalyticsPage() {
     if (platform === "web" && !effectiveUserId) return;
 
     let cancelled = false;
-    setIsLoadingMonthly(true);
 
-    fetchServerMonthlyChartData(effectiveUserId, new Date(), 12)
-      .then((data) => {
+    const load = async () => {
+      setIsLoadingMonthly(true);
+      try {
+        const data = await fetchServerMonthlyChartData(
+          effectiveUserId,
+          new Date(),
+          12
+        );
         if (!cancelled && data) setMonthlyData(data);
-      })
-      .catch((err) => {
+      } catch (err) {
         logger.error("AnalyticsPage: Error fetching monthly data:", err);
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setIsLoadingMonthly(false);
-      });
+      }
+    };
+    load();
 
     return () => {
       cancelled = true;
@@ -114,22 +119,23 @@ export function AnalyticsPage() {
       return;
 
     let cancelled = false;
-    setIsLoadingPrev(true);
 
-    fetchPreviousPeriodData(
-      effectiveUserId,
-      activeDateRangeObject.startDate,
-      activeDateRangeObject.endDate
-    )
-      .then((data) => {
+    const load = async () => {
+      setIsLoadingPrev(true);
+      try {
+        const data = await fetchPreviousPeriodData(
+          effectiveUserId,
+          activeDateRangeObject.startDate,
+          activeDateRangeObject.endDate
+        );
         if (!cancelled) setPrevPeriod(data);
-      })
-      .catch((err) => {
+      } catch (err) {
         logger.error("AnalyticsPage: Error fetching previous period:", err);
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setIsLoadingPrev(false);
-      });
+      }
+    };
+    load();
 
     return () => {
       cancelled = true;
@@ -177,23 +183,26 @@ export function AnalyticsPage() {
     [analyticsData, formatCurrencyFn]
   );
 
-  const formatDate = (date: Date) => {
-    if (settings.calendarType === "hebrew") {
-      return formatHebrewDate(date);
-    }
-    const currentLocale = i18n.language === "he" ? he : enUS;
-    return format(date, "dd/MM/yyyy", { locale: currentLocale });
-  };
+  const formatDateFn = useCallback(
+    (date: Date) => {
+      if (settings.calendarType === "hebrew") {
+        return formatHebrewDate(date);
+      }
+      const currentLocale = i18n.language === "he" ? he : enUS;
+      return format(date, "dd/MM/yyyy", { locale: currentLocale });
+    },
+    [settings.calendarType, i18n.language]
+  );
 
   const periodLabel = useMemo(() => {
     const start = activeDateRangeObject.startDate;
     const end = activeDateRangeObject.endDate;
     if (!start || !end) return "";
 
-    const startFormatted = formatDate(new Date(start + "T00:00:00"));
-    const endFormatted = formatDate(new Date(end + "T00:00:00"));
+    const startFormatted = formatDateFn(new Date(start + "T00:00:00"));
+    const endFormatted = formatDateFn(new Date(end + "T00:00:00"));
     return `${t("period")}: ${startFormatted} – ${endFormatted}`;
-  }, [activeDateRangeObject, t, i18n.language, settings.calendarType]);
+  }, [activeDateRangeObject, t, formatDateFn]);
 
   return (
     <div className="grid gap-6">
@@ -245,7 +254,7 @@ export function AnalyticsPage() {
               <CalendarIcon className="h-4 w-4 md:ml-2" />
               <span className="hidden md:inline">
                 {customDateRange?.from && customDateRange?.to
-                  ? `${formatDate(customDateRange.from)} - ${formatDate(
+                  ? `${formatDateFn(customDateRange.from)} - ${formatDateFn(
                       customDateRange.to
                     )}`
                   : dateRangeLabels.custom}
