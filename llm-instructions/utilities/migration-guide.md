@@ -213,6 +213,15 @@ When you (the user) request a schema change (e.g., "add a 'priority' field to tr
 7.  **Commit Changes:**
     - Commit the migration files (SQL), application code changes (TS, Rust), and this guide if updated.
 
+## 4. Production (Supabase Web) – apply only when ready
+
+For the **web (Supabase)** project, migrations are **not** run automatically on production. The workflow is:
+
+1. **Create** the migration file in `supabase/migrations/` (e.g. `YYYYMMDDHHMMSS_description.sql`) and **commit to Git** (see Guiding Principles: Version Control).
+2. **Apply to production** only when you are ready: run `supabase db push --linked` from the project root (or use Supabase Dashboard → Database → Migrations if available). This runs only migrations that have not yet been applied; Supabase tracks applied migrations in `schema_migrations`.
+
+**References:** See `supabase/MIGRATIONS_WORKFLOW.md` for the full workflow, working with MCP/plugin, and what not to do. For CI/CD and Supabase Branching, see `supabase/BRANCHES_AND_CI_CD_MAP.md`.
+
 ## Example: Adding a `due_date` to `transactions`
 
 Let's say we want to add an optional `due_date` (TEXT, ISO8601 format) to transactions.

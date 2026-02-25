@@ -117,7 +117,15 @@ This section details how the different parts of the project interact with each o
 │       └── en/            # English translations
 │           ├── contact.json
 │           └── ...
-├── supabase/              # Supabase configuration and Edge Functions
+├── supabase/              # Supabase configuration, migrations, and Edge Functions
+│   ├── config.toml        # Per-function config (e.g. verify_jwt)
+│   ├── migrations/       # Versioned SQL migrations (apply with supabase db push)
+│   │   ├── *.sql         # Migration files (timestamp_description.sql)
+│   │   └── rollback/     # Manual rollback scripts (do not run as normal migrations)
+│   ├── MIGRATIONS_WORKFLOW.md      # How to work with migrations and Git
+│   ├── MIGRATION_VAULT_SETUP.md     # Vault secret for cron (functions_base_url)
+│   ├── BRANCHES_AND_CI_CD_MAP.md   # Where branches and CI/CD are configured
+│   ├── CRON_VAULT_*.md             # Cron Vault: apply steps, risks, rollback
 │   ├── functions/
 │   │   ├── _shared/
 │   │   │   ├── cors.ts
