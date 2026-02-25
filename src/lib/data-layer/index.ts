@@ -84,3 +84,6 @@ export {
   clearPaymentMethodCache,
   getPaymentMethodCacheVersion,
 } from "./paymentMethods.service";
+
+export { fetchPreviousPeriodData } from "./insights.service";
+export type { PreviousPeriodData } from "./insights.service";
