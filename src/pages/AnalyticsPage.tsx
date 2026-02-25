@@ -18,6 +18,12 @@ import { FinancialHealthScore } from "@/components/analytics/FinancialHealthScor
 import { SmartInsights } from "@/components/analytics/SmartInsights";
 import { TopDrivers } from "@/components/analytics/TopDrivers";
 import { CashFlowChart } from "@/components/analytics/CashFlowChart";
+import { AnalyticsExportButton } from "@/components/analytics/AnalyticsExportButton";
+import { ExpensesByCategoryChart } from "@/components/analytics/ExpensesByCategoryChart";
+import {
+  fetchExpensesByCategory,
+} from "@/lib/data-layer";
+import type { CategoryBreakdown } from "@/lib/data-layer";
 import {
   calculateHealthScore,
   generateInsights,
@@ -68,6 +74,10 @@ export function AnalyticsPage() {
     prevDonations: null,
   });
   const [isLoadingPrev, setIsLoadingPrev] = useState(false);
+  const [expensesByCategory, setExpensesByCategory] = useState<
+    CategoryBreakdown[]
+  >([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false);
 
   const isLoadingAny =
     isLoadingServerIncome ||
@@ -142,6 +152,41 @@ export function AnalyticsPage() {
     };
   }, [platform, user, activeDateRangeObject]);
 
+  // Fetch category breakdown data
+  useEffect(() => {
+    const effectiveUserId = platform === "web" ? user?.id ?? null : null;
+    if (platform === "loading") return;
+    if (platform === "web" && !effectiveUserId) return;
+    if (
+      !activeDateRangeObject.startDate ||
+      !activeDateRangeObject.endDate
+    )
+      return;
+
+    let cancelled = false;
+
+    const load = async () => {
+      setIsLoadingCategories(true);
+      try {
+        const data = await fetchExpensesByCategory(
+          effectiveUserId,
+          activeDateRangeObject.startDate,
+          activeDateRangeObject.endDate
+        );
+        if (!cancelled) setExpensesByCategory(data);
+      } catch (err) {
+        logger.error("AnalyticsPage: Error fetching category data:", err);
+      } finally {
+        if (!cancelled) setIsLoadingCategories(false);
+      }
+    };
+    load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [platform, user, activeDateRangeObject]);
+
   const formatCurrencyFn = useCallback(
     (amount: number) => formatCurrency(amount, defaultCurrency, i18n.language),
     [defaultCurrency, i18n.language]
@@ -207,11 +252,28 @@ export function AnalyticsPage() {
   return (
     <div className="grid gap-6">
       {/* Header */}
-      <div className="grid gap-2">
-        <h2 className="text-2xl font-bold text-foreground">
-          {t("pageTitle")}
-        </h2>
-        <p className="text-muted-foreground">{t("pageSubtitle")}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="grid gap-2">
+          <h2 className="text-2xl font-bold text-foreground">
+            {t("pageTitle")}
+          </h2>
+          <p className="text-muted-foreground">{t("pageSubtitle")}</p>
+        </div>
+        <AnalyticsExportButton
+          data={{
+            periodStart: activeDateRangeObject.startDate,
+            periodEnd: activeDateRangeObject.endDate,
+            income: serverTotalIncome,
+            expenses: serverTotalExpenses,
+            donations: serverTotalDonations,
+            titheBalance: serverTitheBalance,
+            healthScore: healthScore.score,
+            monthlyData,
+            insights,
+            drivers: topDrivers,
+          }}
+          t={t}
+        />
       </div>
 
       {/* Global Date Range Filter */}
@@ -290,6 +352,15 @@ export function AnalyticsPage() {
         isLoading={isLoadingMonthly}
         periodLabel={periodLabel}
       />
+
+      {/* Row 3: Category breakdown */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <ExpensesByCategoryChart
+          data={expensesByCategory}
+          isLoading={isLoadingCategories}
+          periodLabel={periodLabel}
+        />
+      </div>
     </div>
   );
 }

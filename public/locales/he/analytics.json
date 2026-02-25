@@ -42,6 +42,20 @@
     "donationDriverTooltip": "מחושב כ: סך תרומות / סך הכנסות × 100",
     "titheDriverTooltip": "יתרת מעשר כוללת – סכום שעדיין צריך לשלם"
   },
+  "categories": {
+    "expensesTitle": "הוצאות לפי קטגוריה",
+    "expensesTooltip": "פילוח סך ההוצאות בתקופה לפי קטגוריה",
+    "incomeTitle": "הכנסות לפי קטגוריה",
+    "incomesTooltip": "פילוח סך ההכנסות בתקופה לפי קטגוריה",
+    "paymentMethodTitle": "הוצאות לפי אמצעי תשלום",
+    "paymentMethodTooltip": "פילוח ההוצאות בתקופה לפי אמצעי תשלום"
+  },
+  "export": {
+    "button": "ייצוא",
+    "csv": "ייצוא ל-CSV",
+    "excel": "ייצוא ל-Excel",
+    "pdf": "ייצוא ל-PDF"
+  },
   "cashFlow": {
     "title": "זרימת מזומן חודשית",
     "subtitle": "הכנסות מול הוצאות + חיסכון/גירעון",

@@ -42,6 +42,20 @@
     "donationDriverTooltip": "Calculated as: Total Donations / Total Income × 100",
     "titheDriverTooltip": "Total tithe balance – amount still owed"
   },
+  "categories": {
+    "expensesTitle": "Expenses by Category",
+    "expensesTooltip": "Breakdown of total expenses in the period by category",
+    "incomeTitle": "Income by Category",
+    "incomesTooltip": "Breakdown of total income in the period by category",
+    "paymentMethodTitle": "Expenses by Payment Method",
+    "paymentMethodTooltip": "Breakdown of expenses in the period by payment method"
+  },
+  "export": {
+    "button": "Export",
+    "csv": "Export to CSV",
+    "excel": "Export to Excel",
+    "pdf": "Export to PDF"
+  },
   "cashFlow": {
     "title": "Monthly Cash Flow",
     "subtitle": "Income vs. Expenses + Savings/Deficit",

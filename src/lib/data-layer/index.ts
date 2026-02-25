@@ -87,3 +87,15 @@ export {
 
 export { fetchPreviousPeriodData } from "./insights.service";
 export type { PreviousPeriodData } from "./insights.service";
+
+export {
+  fetchExpensesByCategory,
+  fetchIncomeByCategory,
+  fetchExpensesByPaymentMethod,
+  fetchDailyExpenses,
+} from "./category-analytics.service";
+export type {
+  CategoryBreakdown,
+  PaymentMethodBreakdown,
+  DailyExpense,
+} from "./category-analytics.service";
