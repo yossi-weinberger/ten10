@@ -50,6 +50,12 @@
     "paymentMethodTitle": "Expenses by Payment Method",
     "paymentMethodTooltip": "Breakdown of expenses in the period by payment method"
   },
+  "heatMap": {
+    "title": "Heat Map – Daily Expenses",
+    "tooltip": "Each cell represents a day. Darker colors indicate higher spending on that day.",
+    "less": "Less",
+    "more": "More"
+  },
   "export": {
     "button": "Export",
     "csv": "Export to CSV",

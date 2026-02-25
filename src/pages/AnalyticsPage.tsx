@@ -20,10 +20,20 @@ import { TopDrivers } from "@/components/analytics/TopDrivers";
 import { CashFlowChart } from "@/components/analytics/CashFlowChart";
 import { AnalyticsExportButton } from "@/components/analytics/AnalyticsExportButton";
 import { ExpensesByCategoryChart } from "@/components/analytics/ExpensesByCategoryChart";
+import { IncomeByCategoryChart } from "@/components/analytics/IncomeByCategoryChart";
+import { ExpensesByPaymentMethodChart } from "@/components/analytics/ExpensesByPaymentMethodChart";
+import { ExpensesHeatMap } from "@/components/analytics/ExpensesHeatMap";
 import {
   fetchExpensesByCategory,
+  fetchIncomeByCategory,
+  fetchExpensesByPaymentMethod,
+  fetchDailyExpenses,
 } from "@/lib/data-layer";
-import type { CategoryBreakdown } from "@/lib/data-layer";
+import type {
+  CategoryBreakdown,
+  PaymentMethodBreakdown,
+  DailyExpense,
+} from "@/lib/data-layer";
 import {
   calculateHealthScore,
   generateInsights,
@@ -77,6 +87,13 @@ export function AnalyticsPage() {
   const [expensesByCategory, setExpensesByCategory] = useState<
     CategoryBreakdown[]
   >([]);
+  const [incomeByCategory, setIncomeByCategory] = useState<
+    CategoryBreakdown[]
+  >([]);
+  const [expensesByPaymentMethod, setExpensesByPaymentMethod] = useState<
+    PaymentMethodBreakdown[]
+  >([]);
+  const [dailyExpenses, setDailyExpenses] = useState<DailyExpense[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(false);
 
   const isLoadingAny =
@@ -152,7 +169,7 @@ export function AnalyticsPage() {
     };
   }, [platform, user, activeDateRangeObject]);
 
-  // Fetch category breakdown data
+  // Fetch category / payment method / daily breakdown data
   useEffect(() => {
     const effectiveUserId = platform === "web" ? user?.id ?? null : null;
     if (platform === "loading") return;
@@ -164,18 +181,26 @@ export function AnalyticsPage() {
       return;
 
     let cancelled = false;
+    const start = activeDateRangeObject.startDate;
+    const end = activeDateRangeObject.endDate;
 
     const load = async () => {
       setIsLoadingCategories(true);
       try {
-        const data = await fetchExpensesByCategory(
-          effectiveUserId,
-          activeDateRangeObject.startDate,
-          activeDateRangeObject.endDate
-        );
-        if (!cancelled) setExpensesByCategory(data);
+        const [expCat, incCat, expPm, daily] = await Promise.all([
+          fetchExpensesByCategory(effectiveUserId, start, end),
+          fetchIncomeByCategory(effectiveUserId, start, end),
+          fetchExpensesByPaymentMethod(effectiveUserId, start, end),
+          fetchDailyExpenses(effectiveUserId, start, end),
+        ]);
+        if (!cancelled) {
+          setExpensesByCategory(expCat);
+          setIncomeByCategory(incCat);
+          setExpensesByPaymentMethod(expPm);
+          setDailyExpenses(daily);
+        }
       } catch (err) {
-        logger.error("AnalyticsPage: Error fetching category data:", err);
+        logger.error("AnalyticsPage: Error fetching breakdown data:", err);
       } finally {
         if (!cancelled) setIsLoadingCategories(false);
       }
@@ -353,14 +378,31 @@ export function AnalyticsPage() {
         periodLabel={periodLabel}
       />
 
-      {/* Row 3: Category breakdown */}
-      <div className="grid gap-4 md:grid-cols-2">
+      {/* Row 3: Category & Payment Method breakdown */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <ExpensesByCategoryChart
           data={expensesByCategory}
           isLoading={isLoadingCategories}
           periodLabel={periodLabel}
         />
+        <IncomeByCategoryChart
+          data={incomeByCategory}
+          isLoading={isLoadingCategories}
+          periodLabel={periodLabel}
+        />
+        <ExpensesByPaymentMethodChart
+          data={expensesByPaymentMethod}
+          isLoading={isLoadingCategories}
+          periodLabel={periodLabel}
+        />
       </div>
+
+      {/* Row 4: Daily Expenses Heat Map */}
+      <ExpensesHeatMap
+        data={dailyExpenses}
+        isLoading={isLoadingCategories}
+        periodLabel={periodLabel}
+      />
     </div>
   );
 }
