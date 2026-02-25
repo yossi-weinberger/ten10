@@ -31,6 +31,10 @@ use commands::transaction_commands::{
     get_transactions_count, get_distinct_payment_methods, update_transaction_handler,
 };
 use commands::platform_commands::{get_platform_info, copy_to_clipboard};
+use commands::analytics_commands::{
+    get_desktop_expenses_by_category, get_desktop_income_by_category,
+    get_desktop_expenses_by_payment_method, get_desktop_daily_expenses,
+};
 
 pub struct DbState(Mutex<Connection>);
 
@@ -82,6 +86,10 @@ fn main() {
             delete_recurring_transaction_handler,
             get_platform_info,
             copy_to_clipboard,
+            get_desktop_expenses_by_category,
+            get_desktop_income_by_category,
+            get_desktop_expenses_by_payment_method,
+            get_desktop_daily_expenses,
         ])
         // create main window with cache-busting index.html?v=<version>
         .setup(|app| {
