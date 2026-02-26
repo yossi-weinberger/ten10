@@ -50,7 +50,8 @@ export function IncomeByCategoryChart({
   const chartConfig = useMemo<ChartConfig>(() => {
     const config: ChartConfig = {};
     data.forEach((item, idx) => {
-      config[item.category] = {
+      const key = `cat${idx}`;
+      config[key] = {
         label: item.category,
         color: CHART_COLORS[idx % CHART_COLORS.length],
       };
@@ -60,10 +61,11 @@ export function IncomeByCategoryChart({
 
   const chartData = useMemo(
     () =>
-      data.map((item) => ({
-        name: item.category,
+      data.map((item, idx) => ({
+        name: `cat${idx}`,
+        displayName: item.category,
         value: item.total_amount,
-        fill: `var(--color-${item.category})`,
+        fill: `var(--color-cat${idx})`,
       })),
     [data]
   );
@@ -103,7 +105,7 @@ export function IncomeByCategoryChart({
         ) : (
           <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[280px]">
             <PieChart>
-              <ChartTooltip content={<ChartTooltipContent />} />
+              <ChartTooltip content={<ChartTooltipContent nameKey="displayName" />} />
               <Pie
                 data={chartData}
                 dataKey="value"
@@ -114,7 +116,7 @@ export function IncomeByCategoryChart({
                 outerRadius={100}
                 paddingAngle={2}
               />
-              <ChartLegend content={<ChartLegendContent nameKey="name" />} />
+              <ChartLegend content={<ChartLegendContent nameKey="displayName" />} />
             </PieChart>
           </ChartContainer>
         )}

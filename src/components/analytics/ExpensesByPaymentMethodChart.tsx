@@ -54,7 +54,8 @@ export function ExpensesByPaymentMethodChart({
   const chartConfig = useMemo<ChartConfig>(() => {
     const config: ChartConfig = {};
     data.forEach((item, idx) => {
-      config[item.payment_method] = {
+      const key = `pm${idx}`;
+      config[key] = {
         label: item.payment_method,
         color: CHART_COLORS[idx % CHART_COLORS.length],
       };
@@ -64,10 +65,10 @@ export function ExpensesByPaymentMethodChart({
 
   const chartData = useMemo(
     () =>
-      data.map((item) => ({
+      data.map((item, idx) => ({
         name: item.payment_method,
         value: item.total_amount,
-        fill: `var(--color-${item.payment_method})`,
+        fill: `var(--color-pm${idx})`,
       })),
     [data]
   );
