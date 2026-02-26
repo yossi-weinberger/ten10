@@ -23,7 +23,8 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - Google Sign-In (`signInWithOAuth`) - UI added, requires manual setup in dashboards.
   - Magic Link (`signInWithOtp`) - UI added, enabled by default in Supabase.
 - **User Profiles & RLS:**
-  - Created `public.profiles` table (`id`, `updated_at`, `full_name`, `avatar_url`, `mailing_list_consent`).
+  - Created `public.profiles` table (`id`, `updated_at`, `full_name`, `avatar_url`, `mailing_list_consent`, `client_preferences`).
+  - Added `client_preferences` (JSONB) to hold general user settings (language, theme, tracking preferences) dynamically.
   - Established Foreign Key to `auth.users`.
   - Enabled RLS on `profiles` table.
   - Added basic RLS policies (select/insert/update own profile).
@@ -202,6 +203,12 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 - ✅ **RLS Optimization**: Wrapped `auth.uid()` in `(select ...)` for 10 policies (performance)
 - ✅ **Database**: Updated to PostgreSQL 17.6.1.063
 - ✅ **Auth**: Enabled leaked password protection (HaveIBeenPwned)
+
+### Database migrations workflow and Branching
+
+- **Workflow:** All schema/RPC/cron changes go into versioned migration files in `supabase/migrations/`. Apply to staging manually (MCP or Dashboard), verify, then open PR; GitHub Action `deploy-supabase-migrations.yml` runs `db push` on production when PR is opened (so you can test Vercel preview before merge). See `llm-instructions/backend/supabase-database-migrations-workflow.md`.
+- **Recurring-transactions cron (pg_cron):** The daily job `daily-recurring-executor` calls the Edge Function `process-recurring-transactions`. Its base URL is read from Supabase Vault (secret name `functions_base_url`) so the same migration works on production and on Supabase branches. Migration: `20260225100000_cron_use_vault_for_functions_url.sql`. After applying that migration, create the Vault secret once per environment; see `supabase/MIGRATION_VAULT_SETUP.md` and `supabase/CRON_VAULT_APPLY_STEP_BY_STEP.md`.
+- **Branches and CI/CD:** Staging: apply migrations manually (MCP or Dashboard). Production: migrations via `deploy-supabase-migrations.yml` on **PR open** (and push to main); functions via `deploy-supabase-functions.yml` on push to `main`. See `llm-instructions/backend/supabase-database-migrations-workflow.md`.
 
 ### General
 

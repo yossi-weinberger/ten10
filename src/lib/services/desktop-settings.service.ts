@@ -1,4 +1,4 @@
-import { useDonationStore } from "@/lib/store";
+import { useDonationStore, Settings } from "@/lib/store";
 import { logger } from "@/lib/logger";
 import { getPlatform } from "@/lib/platformManager";
 import { CURRENCIES } from "@/lib/currencies";
@@ -30,31 +30,38 @@ export interface RestoredDesktopSettings {
 }
 
 /**
- * Persist a generic app setting to SQLite on desktop.
+ * Persist the entire settings object to SQLite as JSON.
  * Survives WebView cache wipe during app update.
  * No-op on web.
  */
-export function persistDesktopSetting(key: string, value: string): void {
+export async function persistAllDesktopSettings(settings: Settings): Promise<void> {
   if (getPlatform() !== "desktop") return;
 
-  import("@tauri-apps/api/core")
-    .then(({ invoke }) => invoke("set_app_setting", { key, value }))
-    .catch((err) => logger.error(`Failed to persist ${key} (desktop):`, err));
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    await invoke("set_app_setting", { 
+      key: "client_preferences", 
+      value: JSON.stringify(settings) 
+    });
+  } catch (err) {
+    logger.error("Failed to persist all desktop settings:", err);
+  }
 }
 
 /**
- * Persist default currency to SQLite on desktop.
- * Survives WebView cache wipe during app update.
- * No-op on web.
+ * @deprecated Handled automatically by the centralized store listener using persistAllDesktopSettings.
+ */
+export function persistDesktopSetting(key: string, value: string): void {
+  // We keep this as a no-op or fallback. The central listener handles it.
+  logger.log(`persistDesktopSetting called for ${key} - ignoring in favor of central listener.`);
+}
+
+/**
+ * @deprecated Handled automatically by the centralized store listener using persistAllDesktopSettings.
  */
 export function persistDefaultCurrency(currency: string): void {
-  if (getPlatform() !== "desktop") return;
-
-  import("@tauri-apps/api/core")
-    .then(({ invoke }) => invoke("set_default_currency", { currency }))
-    .catch((err) =>
-      logger.error("Failed to persist default currency (desktop):", err),
-    );
+  // We keep this as a no-op or fallback. The central listener handles it.
+  logger.log(`persistDefaultCurrency called for ${currency} - ignoring in favor of central listener.`);
 }
 
 /**
@@ -75,90 +82,81 @@ export async function restoreDesktopSettings(): Promise<RestoredDesktopSettings>
   const { invoke } = await import("@tauri-apps/api/core");
 
   try {
+    // 1. Try to read the new centralized client_preferences
+    const storedPreferencesStr = await invoke<string | null>("get_app_setting", {
+      key: "client_preferences",
+    });
+
+    if (storedPreferencesStr) {
+      try {
+        const parsed = JSON.parse(storedPreferencesStr);
+        logger.log("DesktopSettingsService: Restored client_preferences from SQLite.");
+        store.updateSettings(parsed);
+        if (isValidTheme(parsed.theme)) {
+          result.theme = parsed.theme;
+        }
+        return result;
+      } catch (parseErr) {
+        logger.error("DesktopSettingsService: Failed to parse client_preferences JSON:", parseErr);
+        // Fall back to legacy individual keys if parsing fails
+      }
+    }
+
+    // 2. Fallback to legacy individual keys
+    logger.log("DesktopSettingsService: No valid client_preferences found. Falling back to individual keys.");
+
     // --- Currency ---
     const storedCurrency = await invoke<string | null>("get_default_currency");
     if (isValidCurrency(storedCurrency)) {
-      logger.log(
-        `DesktopSettingsService: Restored default_currency from SQLite: ${storedCurrency}`,
-      );
+      logger.log(`DesktopSettingsService: Restored legacy default_currency: ${storedCurrency}`);
       store.updateSettings({ defaultCurrency: storedCurrency });
     } else {
-      const inferred = await invoke<string | null>(
-        "infer_default_currency_from_transactions",
-      );
+      const inferred = await invoke<string | null>("infer_default_currency_from_transactions");
       if (isValidCurrency(inferred)) {
-        logger.log(
-          `DesktopSettingsService: Inferred default_currency from transactions: ${inferred}`,
-        );
+        logger.log(`DesktopSettingsService: Inferred default_currency: ${inferred}`);
         store.updateSettings({ defaultCurrency: inferred });
-        await invoke("set_default_currency", { currency: inferred });
-      } else if (
-        isValidCurrency(settings.defaultCurrency) &&
-        settings.defaultCurrency !== "ILS"
-      ) {
-        await invoke("set_default_currency", {
-          currency: settings.defaultCurrency,
-        });
       }
     }
 
     // --- Language ---
-    const storedLang = await invoke<string | null>("get_app_setting", {
-      key: "language",
-    });
+    const storedLang = await invoke<string | null>("get_app_setting", { key: "language" });
     if (isValidLanguage(storedLang)) {
-      logger.log(
-        `DesktopSettingsService: Restored language from SQLite: ${storedLang}`,
-      );
+      logger.log(`DesktopSettingsService: Restored legacy language: ${storedLang}`);
       store.updateSettings({ language: storedLang });
-    } else if (
-      isValidLanguage(settings.language) &&
-      settings.language !== "he"
-    ) {
-      await invoke("set_app_setting", {
-        key: "language",
-        value: settings.language,
-      });
     }
 
     // --- Theme ---
-    const storedTheme = await invoke<string | null>("get_app_setting", {
-      key: "theme",
-    });
+    const storedTheme = await invoke<string | null>("get_app_setting", { key: "theme" });
     if (isValidTheme(storedTheme)) {
-      logger.log(
-        `DesktopSettingsService: Restored theme from SQLite: ${storedTheme}`,
-      );
+      logger.log(`DesktopSettingsService: Restored legacy theme: ${storedTheme}`);
       store.updateSettings({ theme: storedTheme });
       result.theme = storedTheme;
-    } else if (isValidTheme(settings.theme) && settings.theme !== "system") {
-      await invoke("set_app_setting", {
-        key: "theme",
-        value: settings.theme,
-      });
     }
 
     // --- Auto-lock timeout ---
-    const storedTimeout = await invoke<string | null>("get_app_setting", {
-      key: "autoLockTimeoutMinutes",
-    });
+    const storedTimeout = await invoke<string | null>("get_app_setting", { key: "autoLockTimeoutMinutes" });
     if (storedTimeout !== null && storedTimeout !== undefined) {
       const num = parseInt(storedTimeout, 10);
       if (!isNaN(num) && num >= 0) {
-        logger.log(
-          `DesktopSettingsService: Restored autoLockTimeoutMinutes from SQLite: ${num}`,
-        );
+        logger.log(`DesktopSettingsService: Restored legacy autoLockTimeoutMinutes: ${num}`);
         store.updateSettings({ autoLockTimeoutMinutes: num });
       }
-    } else if (
-      settings.autoLockTimeoutMinutes !== undefined &&
-      settings.autoLockTimeoutMinutes !== 10
-    ) {
-      await invoke("set_app_setting", {
-        key: "autoLockTimeoutMinutes",
-        value: String(settings.autoLockTimeoutMinutes),
-      });
     }
+    
+    // After fallback, let's persist the combined preferences so next time it's fast
+    await persistAllDesktopSettings(useDonationStore.getState().settings);
+
+    // Clean up legacy keys from SQLite so they don't cause confusion
+    try {
+      await invoke("delete_app_setting", { key: "default_currency" });
+      await invoke("delete_app_setting", { key: "language" });
+      await invoke("delete_app_setting", { key: "theme" });
+      await invoke("delete_app_setting", { key: "autoLockTimeoutMinutes" });
+      logger.log("DesktopSettingsService: Cleaned up legacy keys from SQLite.");
+    } catch (cleanupErr) {
+      logger.error("DesktopSettingsService: Failed to clean up legacy keys:", cleanupErr);
+    }
+
   } catch (err) {
     logger.error("DesktopSettingsService: Failed to restore settings:", err);
   }

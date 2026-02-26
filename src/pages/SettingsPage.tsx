@@ -27,10 +27,6 @@ import { ImportConfirmModal } from "@/components/settings/ImportConfirmModal";
 import { logger } from "@/lib/logger";
 import { Transaction } from "@/types/transaction";
 import { CurrencyCode } from "@/lib/currencies";
-import {
-  persistDesktopSetting,
-  persistDefaultCurrency,
-} from "@/lib/services/desktop-settings.service";
 
 import { useIsCurrencyLocked } from "@/hooks/useIsCurrencyLocked";
 
@@ -110,9 +106,6 @@ export function SettingsPage() {
   const handleSetTheme = (newTheme: "light" | "dark" | "system") => {
     setTheme(newTheme);
     updateSettings({ theme: newTheme });
-    if (platform === "desktop") {
-      persistDesktopSetting("theme", newTheme);
-    }
   };
 
   // Define components to reuse in both layouts
@@ -123,12 +116,6 @@ export function SettingsPage() {
       languageSettings={{ language: settings.language }}
       updateSettings={(newLangSettings) => {
         updateSettings(newLangSettings);
-        if (
-          platform === "desktop" &&
-          newLangSettings.language
-        ) {
-          persistDesktopSetting("language", newLangSettings.language);
-        }
       }}
     />
   );
@@ -165,13 +152,6 @@ export function SettingsPage() {
                 toast.error(tCommon("toast.settings.updateError"));
               }
             });
-        }
-
-        if (
-          platform === "desktop" &&
-          newFinancialSettings.defaultCurrency
-        ) {
-          persistDefaultCurrency(newFinancialSettings.defaultCurrency);
         }
       }}
       disableMinMaaserPercentage={true}

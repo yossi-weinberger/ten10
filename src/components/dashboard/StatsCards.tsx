@@ -111,7 +111,6 @@ export function StatsCards({
 
   const [lastChomeshValue, setLastChomeshValue] = useState<number | null>(null);
   const [isOpeningBalanceModalOpen, setIsOpeningBalanceModalOpen] = useState(false);
-  const [goalProgressTooltipOpen, setGoalProgressTooltipOpen] = useState(false);
 
   useEffect(() => {
     if (typeof serverChomeshAmount === "number") {
@@ -269,7 +268,7 @@ export function StatsCards({
       )}
       <div
         className={`relative ${showChomeshBreakdown ? "mt-1" : "mt-2"}`}
-        style={{ marginInlineEnd: "3rem" }}
+        style={{ marginInlineEnd: "2.75rem" }}
       >
         <div className="h-2 bg-blue-200 dark:bg-blue-800 rounded-full">
           <div
@@ -282,43 +281,70 @@ export function StatsCards({
       </div>
       <div
         className="flex items-center justify-center gap-1.5 mt-1 text-center"
-        style={{ minHeight: "1.2em", marginInlineEnd: "3rem" }}
+        style={{ minHeight: "1.2em", marginInlineEnd: "2.75rem" }}
         dir={i18n.dir()}
       >
         <motion.p
           initial={{ opacity: 0.8 }}
           whileHover={{ opacity: 1 }}
-          className="text-xs text-muted-foreground font-medium"
+          className="min-w-0 whitespace-normal break-normal leading-tight text-[11px] sm:text-xs text-muted-foreground font-medium"
         >
-          {displayBalanceForText === 0
-            ? t("statsCards.overallRequired.exactlyOnGoal")
-            : displayBalanceForText < 0
-              ? t("statsCards.overallRequired.exceededGoal", {
+          {displayBalanceForText === 0 ? (
+            <>
+              <span className="hidden sm:inline">
+                {t("statsCards.overallRequired.exactlyOnGoal")}
+              </span>
+              <span className="sm:hidden">
+                {t("statsCards.overallRequired.exactlyOnGoalShort")}
+              </span>
+            </>
+          ) : displayBalanceForText < 0 ? (
+            <>
+              <span className="hidden sm:inline">
+                {t("statsCards.overallRequired.exceededGoal", {
                   amount: formatCurrency(
                     Math.abs(displayBalanceForText),
                     defaultCurrency,
                     i18n.language
                   ),
-                })
-              : t("statsCards.overallRequired.goalProgress", {
+                })}
+              </span>
+              <span className="sm:hidden">
+                {t("statsCards.overallRequired.exceededGoalShort", {
+                  amount: formatCurrency(
+                    Math.abs(displayBalanceForText),
+                    defaultCurrency,
+                    i18n.language
+                  ),
+                })}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="hidden sm:inline">
+                {t("statsCards.overallRequired.goalProgress", {
                   percentage: donationProgress.toFixed(1),
                 })}
+              </span>
+              <span className="sm:hidden">
+                {t("statsCards.overallRequired.goalProgressShort", {
+                  percentage: donationProgress.toFixed(1),
+                })}
+              </span>
+            </>
+          )}
         </motion.p>
-        <Tooltip
-          open={goalProgressTooltipOpen}
-          onOpenChange={setGoalProgressTooltipOpen}
-        >
+        <Tooltip>
           <TooltipTrigger asChild>
             <button
               type="button"
               className="inline-flex text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded p-0.5"
               aria-label={t("statsCards.overallRequired.goalProgressTooltip")}
-              onClick={() => setGoalProgressTooltipOpen((prev) => !prev)}
             >
               <Info className="h-3.5 w-3.5 shrink-0" />
             </button>
           </TooltipTrigger>
-          <TooltipContent side="top" className="z-[9999] max-w-xs">
+          <TooltipContent side="top" className="z-[99999] max-w-xs">
             <p className="text-sm">
               {t("statsCards.overallRequired.goalProgressTooltip")}
             </p>
