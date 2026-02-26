@@ -37,3 +37,14 @@ npm run build   # Production build (use CI=true to exclude Tauri modules)
 - For desktop (Tauri) development, Rust and system dependencies (webkit2gtk, etc.) are required. See Tauri v2 prerequisites.
 - On first login/signup, the app shows a Terms acceptance modal followed by a "What's New" modal. Both must be dismissed before the dashboard is usable.
 - These secrets must be injected as environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`. The update script writes them to `.env` automatically when present.
+
+### Database migrations
+
+See `llm-instructions/backend/supabase-database-migrations-workflow.md` for the full workflow. Key points:
+
+- **Staging** project ref: `ngtsnskyupageagcmqdp` — test migrations here first
+- **Production** project ref: `flpzqbvbymoluoeeeofg` — updated via GitHub Action on PR merge
+- Migration files use `YYYYMMDDHHMMSS_description.sql` naming (full timestamp)
+- Apply to staging: `supabase link --project-ref ngtsnskyupageagcmqdp && supabase db push --password "$SUPABASE_DB_PASSWORD" --include-all`
+- Requires `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` secrets
+- **Never** run migrations directly on production — use the PR workflow
