@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Info } from "lucide-react";
-import { Pie, PieChart } from "recharts";
+import { Pie, PieChart, Cell, Tooltip as RechartsTooltip } from "recharts";
 import {
   Tooltip,
   TooltipContent,
@@ -13,14 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
-  ChartConfig,
-} from "@/components/ui/chart";
 import type { CategoryBreakdown } from "@/lib/data-layer/category-analytics.service";
 
 interface IncomeByCategoryChartProps {
@@ -29,15 +21,9 @@ interface IncomeByCategoryChartProps {
   periodLabel: string;
 }
 
-const CHART_COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-5))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-4))",
-  "hsl(150, 60%, 45%)",
-  "hsl(190, 70%, 50%)",
-  "hsl(60, 70%, 45%)",
+const PIE_COLORS = [
+  "#2a9d8f", "#e9c46a", "#264653", "#e76e50", "#f4a261",
+  "#6a4c93", "#1982c4", "#8ac926",
 ];
 
 export function IncomeByCategoryChart({
@@ -47,26 +33,8 @@ export function IncomeByCategoryChart({
 }: IncomeByCategoryChartProps) {
   const { t } = useTranslation("analytics");
 
-  const chartConfig = useMemo<ChartConfig>(() => {
-    const config: ChartConfig = {};
-    data.forEach((item, idx) => {
-      const key = `cat${idx}`;
-      config[key] = {
-        label: item.category,
-        color: CHART_COLORS[idx % CHART_COLORS.length],
-      };
-    });
-    return config;
-  }, [data]);
-
   const chartData = useMemo(
-    () =>
-      data.map((item, idx) => ({
-        name: `cat${idx}`,
-        displayName: item.category,
-        value: item.total_amount,
-        fill: `var(--color-cat${idx})`,
-      })),
+    () => data.map((item) => ({ name: item.category, value: item.total_amount })),
     [data]
   );
 
@@ -79,10 +47,7 @@ export function IncomeByCategoryChart({
           </CardTitle>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button
-                type="button"
-                className="text-muted-foreground hover:text-foreground focus:outline-none rounded p-1"
-              >
+              <button type="button" className="text-muted-foreground hover:text-foreground focus:outline-none rounded p-1">
                 <Info className="h-4 w-4" />
               </button>
             </TooltipTrigger>
@@ -99,13 +64,10 @@ export function IncomeByCategoryChart({
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
           </div>
         ) : chartData.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-8 text-center">
-            {t("noData")}
-          </p>
+          <p className="text-sm text-muted-foreground py-8 text-center">{t("noData")}</p>
         ) : (
-          <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[280px]">
-            <PieChart>
-              <ChartTooltip content={<ChartTooltipContent nameKey="displayName" />} />
+          <div className="flex flex-col items-center">
+            <PieChart width={260} height={220}>
               <Pie
                 data={chartData}
                 dataKey="value"
@@ -113,12 +75,29 @@ export function IncomeByCategoryChart({
                 cx="50%"
                 cy="50%"
                 innerRadius={50}
-                outerRadius={100}
-                paddingAngle={2}
+                outerRadius={90}
+                paddingAngle={3}
+              >
+                {chartData.map((_, idx) => (
+                  <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
+                ))}
+              </Pie>
+              <RechartsTooltip
+                formatter={(value: number) => [`₪${value.toLocaleString("he-IL")}`, ""]}
               />
-              <ChartLegend content={<ChartLegendContent nameKey="displayName" />} />
             </PieChart>
-          </ChartContainer>
+            <div className="flex flex-wrap justify-center gap-3 mt-1">
+              {chartData.map((item, idx) => (
+                <div key={item.name} className="flex items-center gap-1.5 text-xs">
+                  <div
+                    className="w-3 h-3 rounded-sm shrink-0"
+                    style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }}
+                  />
+                  <span className="text-foreground">{item.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </CardContent>
     </Card>

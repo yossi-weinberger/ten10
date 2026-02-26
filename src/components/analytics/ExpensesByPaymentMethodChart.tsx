@@ -1,7 +1,15 @@
 import { useMemo, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Info } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Cell,
+  Tooltip as RechartsTooltip,
+} from "recharts";
 import {
   Tooltip,
   TooltipContent,
@@ -13,12 +21,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartConfig,
-} from "@/components/ui/chart";
 import type { PaymentMethodBreakdown } from "@/lib/data-layer/category-analytics.service";
 
 interface ExpensesByPaymentMethodChartProps {
@@ -27,12 +29,8 @@ interface ExpensesByPaymentMethodChartProps {
   periodLabel: string;
 }
 
-const CHART_COLORS = [
-  "hsl(var(--chart-1))",
-  "hsl(var(--chart-2))",
-  "hsl(var(--chart-3))",
-  "hsl(var(--chart-4))",
-  "hsl(var(--chart-5))",
+const BAR_COLORS = [
+  "#e76e50", "#2a9d8f", "#e9c46a", "#264653", "#f4a261",
 ];
 
 export function ExpensesByPaymentMethodChart({
@@ -51,27 +49,16 @@ export function ExpensesByPaymentMethodChart({
     return () => mql.removeEventListener?.("change", onChange);
   }, []);
 
-  const chartConfig = useMemo<ChartConfig>(() => {
-    const config: ChartConfig = {};
-    data.forEach((item, idx) => {
-      const key = `pm${idx}`;
-      config[key] = {
-        label: item.payment_method,
-        color: CHART_COLORS[idx % CHART_COLORS.length],
-      };
-    });
-    return config;
-  }, [data]);
-
   const chartData = useMemo(
     () =>
-      data.map((item, idx) => ({
+      data.map((item) => ({
         name: item.payment_method,
         value: item.total_amount,
-        fill: `var(--color-pm${idx})`,
       })),
     [data]
   );
+
+  const chartHeight = Math.max(180, chartData.length * 50 + 40);
 
   return (
     <Card>
@@ -82,10 +69,7 @@ export function ExpensesByPaymentMethodChart({
           </CardTitle>
           <Tooltip>
             <TooltipTrigger asChild>
-              <button
-                type="button"
-                className="text-muted-foreground hover:text-foreground focus:outline-none rounded p-1"
-              >
+              <button type="button" className="text-muted-foreground hover:text-foreground focus:outline-none rounded p-1">
                 <Info className="h-4 w-4" />
               </button>
             </TooltipTrigger>
@@ -102,50 +86,45 @@ export function ExpensesByPaymentMethodChart({
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />
           </div>
         ) : chartData.length === 0 ? (
-          <p className="text-sm text-muted-foreground py-8 text-center">
-            {t("noData")}
-          </p>
+          <p className="text-sm text-muted-foreground py-8 text-center">{t("noData")}</p>
         ) : (
-          <ChartContainer config={chartConfig} className="aspect-auto h-[250px] w-full">
-            <BarChart
-              data={chartData}
-              layout="vertical"
-              margin={{
-                left: isSmallScreen ? 4 : 8,
-                right: isSmallScreen ? 4 : 12,
-                top: 8,
-                bottom: 8,
-              }}
-            >
-              <CartesianGrid horizontal={false} className="stroke-muted" />
-              <YAxis
-                dataKey="name"
-                type="category"
-                tickLine={false}
-                axisLine={false}
-                width={isSmallScreen ? 60 : 100}
-                className="text-xs"
-                tick={{ fill: "currentColor" }}
-              />
-              <XAxis
-                type="number"
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value) => {
-                  const num = Number(value);
-                  if (!Number.isFinite(num)) return "";
-                  return `₪${num.toLocaleString("he-IL")}`;
-                }}
-                className="text-xs"
-                tick={{ fill: "currentColor" }}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent />}
-              />
-              <Bar dataKey="value" radius={[0, 4, 4, 0]} />
-            </BarChart>
-          </ChartContainer>
+          <BarChart
+            width={350}
+            height={chartHeight}
+            data={chartData}
+            layout="vertical"
+            margin={{
+              left: isSmallScreen ? 4 : 8,
+              right: isSmallScreen ? 4 : 16,
+              top: 8,
+              bottom: 8,
+            }}
+          >
+            <CartesianGrid horizontal={false} strokeDasharray="3 3" opacity={0.3} />
+            <YAxis
+              dataKey="name"
+              type="category"
+              tickLine={false}
+              axisLine={false}
+              width={isSmallScreen ? 60 : 80}
+              tick={{ fill: "currentColor", fontSize: 12 }}
+            />
+            <XAxis
+              type="number"
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => `₪${Number(value).toLocaleString("he-IL")}`}
+              tick={{ fill: "currentColor", fontSize: 11 }}
+            />
+            <RechartsTooltip
+              formatter={(value: number) => [`₪${value.toLocaleString("he-IL")}`, ""]}
+            />
+            <Bar dataKey="value" radius={[0, 6, 6, 0]} barSize={24}>
+              {chartData.map((_, idx) => (
+                <Cell key={idx} fill={BAR_COLORS[idx % BAR_COLORS.length]} />
+              ))}
+            </Bar>
+          </BarChart>
         )}
       </CardContent>
     </Card>

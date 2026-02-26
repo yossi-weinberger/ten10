@@ -78,15 +78,15 @@ export function CashFlowChart({
   const chartConfig: ChartConfig = {
     income: {
       label: t("cashFlow.income"),
-      color: "hsl(var(--chart-1))",
+      color: "#2a9d8f",
     },
     expenses: {
       label: t("cashFlow.expenses"),
-      color: "hsl(var(--chart-2))",
+      color: "#e76e50",
     },
     net: {
       label: t("cashFlow.net"),
-      color: "hsl(var(--chart-3))",
+      color: "#264653",
     },
   };
 
