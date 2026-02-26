@@ -16,6 +16,17 @@ alwaysApply: true
   - **Web:** Supabase (PostgreSQL).
   - **Desktop:** SQLite (local).
 
+## Supabase Database Migrations (CRITICAL)
+
+When changing Supabase schema, RPC, cron, or permissions:
+
+1. **Staging first** – Apply via MCP (`project_id=ngtsnskyupageagcmqdp`) or Dashboard. Verify locally.
+2. **File in repo** – Create `supabase/migrations/YYYYMMDDHHMMSS_description.sql` before applying.
+3. **Merge to main** – GitHub Action runs `db push` on production automatically.
+4. **Never** run ad-hoc SQL on production without a migration file in Git.
+
+Full workflow: `llm-instructions/backend/supabase-database-migrations-workflow.md`
+
 ## 2. Directory Structure & Naming
 
 - **Components:** `src/components/[Feature]/[Component].tsx` (PascalCase).

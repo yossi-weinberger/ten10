@@ -213,6 +213,16 @@ When you (the user) request a schema change (e.g., "add a 'priority' field to tr
 7.  **Commit Changes:**
     - Commit the migration files (SQL), application code changes (TS, Rust), and this guide if updated.
 
+## 4. Production (Supabase Web)
+
+For the **web (Supabase)** project:
+
+1. **Apply to staging first** – Use MCP (`plugin-supabase-supabase`, `project_id=ngtsnskyupageagcmqdp`) or Dashboard SQL Editor. Verify with `npm run dev` pointing to staging.
+2. **Create** the migration file in `supabase/migrations/` (e.g. `YYYYMMDDHHMMSS_description.sql`) and **commit to Git**.
+3. **Merge to main** – GitHub Action `deploy-supabase-migrations.yml` runs `db push` automatically on production.
+
+**References:** See **`llm-instructions/backend/supabase-database-migrations-workflow.md`** for the full step-by-step workflow, MCP usage, and staging/production flow. See also `supabase/BRANCHES_AND_CI_CD_MAP.md` for env details.
+
 ## Example: Adding a `due_date` to `transactions`
 
 Let's say we want to add an optional `due_date` (TEXT, ISO8601 format) to transactions.

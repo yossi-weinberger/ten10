@@ -79,7 +79,7 @@
 
 ## תהליך ביצוע הוראות הקבע (Web - Supabase)
 
-- **תזמון:** Cron Job יומי (בחצות UTC) דרך Supabase, קורא ל-Edge Function `process-recurring-transactions`.
+- **תזמון:** Cron Job יומי (בחצות UTC) דרך Supabase, קורא ל-Edge Function `process-recurring-transactions`. כתובת ה-URL של ה-Function נשמרת ב-Supabase Vault (סוד `functions_base_url`) כדי לתמוך גם בבראנצ'ים; ראה `supabase/MIGRATION_VAULT_SETUP.md`.
   - **לוגיקה (Edge Function - TypeScript):**
     - **שליפה:** שולף הוראות עם `status = 'active'` ו-`next_due_date <= CURRENT_DATE`.
     - **לוגיקת Catch-Up (השלמת פערים):** מריץ לולאה (`while`) עבור כל הוראה, שמייצרת את כל התנועות שהוחמצו עד להיום.

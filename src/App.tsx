@@ -40,6 +40,7 @@ import {
   lockNow,
 } from "./lib/security/appLock.service";
 import { DesktopLockScreen } from "./components/security/DesktopLockScreen";
+import { useSettingsSync } from "./hooks/useSettingsSync";
 
 export type DesktopLockStatus =
   | null
@@ -94,6 +95,9 @@ function App() {
   const shouldShowContactFab =
     (user || platform === "desktop") &&
     !FULL_SCREEN_ROUTES.includes(currentPath);
+
+  // Central listener for settings changes (sync to Web Supabase or Desktop SQLite)
+  useSettingsSync();
 
   // Synchronize i18n with Zustand store language after hydration
   useEffect(() => {

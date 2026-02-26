@@ -42,7 +42,7 @@ This section details how the different parts of the project interact with each o
       - **Platforms**: `platforms/desktop-data-saving-guide.md`, `platforms/desktop-release-system-guide.md`, `platforms/platform-context-api-guide.md`, `platforms/tauri-v2-build-and-platform-detection-summary.md`, `platforms/android-twa-implementation-guide.md`
       - **Deployment**: `deployment/release-management-guide.md`, `deployment/setup-updater-keys.md`, `deployment/code-signing-guide.md`, `deployment/performance-optimization-jan-2026.md`
       - **UI/UX**: `ui/landing-page-complete-guide.md`, `ui/multi-language-and-responsive-design-guide.md`, `ui/ui-component-guidelines.md`, `ui/translation-map.md`, `ui/halacha-page-revamp-plan.md`
-      - **Backend**: `backend/data-flow-server-calculations-and-cleanup.md`, `backend/server-side-tithe-balance-calculation-guide.md`, `backend/supabase-integration-status.md`, `backend/supabase-edge-functions-maintenance.md`, `backend/security-hardening-jan-2026.md`
+      - **Backend**: `backend/data-flow-server-calculations-and-cleanup.md`, `backend/server-side-tithe-balance-calculation-guide.md`, `backend/supabase-integration-status.md`, `backend/supabase-database-migrations-workflow.md`, `backend/supabase-edge-functions-maintenance.md`, `backend/security-hardening-jan-2026.md`
       - **Utilities**: `utilities/logger-utility-guide.md`, `utilities/migration-guide.md`, `utilities/GOOGLE_ANALYTICS_SETUP.md`, `utilities/session_summary_monthly_chart_platform_issues.md`
     - See `project-structure.md` (this file) for the complete structure map.
 
@@ -117,7 +117,15 @@ This section details how the different parts of the project interact with each o
 │       └── en/            # English translations
 │           ├── contact.json
 │           └── ...
-├── supabase/              # Supabase configuration and Edge Functions
+├── supabase/              # Supabase configuration, migrations, and Edge Functions
+│   ├── config.toml        # Per-function config (e.g. verify_jwt)
+│   ├── migrations/       # Versioned SQL migrations (apply with supabase db push)
+│   │   ├── *.sql         # Migration files (timestamp_description.sql)
+│   │   └── rollback/     # Manual rollback scripts (do not run as normal migrations)
+│   ├── MIGRATIONS_WORKFLOW.md      # How to work with migrations and Git
+│   ├── MIGRATION_VAULT_SETUP.md     # Vault secret for cron (functions_base_url)
+│   ├── BRANCHES_AND_CI_CD_MAP.md   # Where branches and CI/CD are configured
+│   ├── CRON_VAULT_*.md             # Cron Vault: apply steps, risks, rollback
 │   ├── functions/
 │   │   ├── _shared/
 │   │   │   ├── cors.ts
