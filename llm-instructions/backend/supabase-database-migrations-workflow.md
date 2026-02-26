@@ -4,9 +4,10 @@ This document describes the full process for applying database changes (schema, 
 
 ## Overview
 
-- **Staging first**: Apply migrations to staging, verify, then merge to main.
-- **Production automatic**: After merge to `main`, GitHub Action runs `db push` on production.
-- **Source of truth**: Migration files in `supabase/migrations/` must exist before applying.
+- **DEV**: Create migration file, push to staging via MCP, verify.
+- **PR**: Opening a PR triggers GitHub Action → `db push` to **production** (so you can test Vercel preview before merge).
+- **Staging**: MCP only (manual). No double push – staging gets it once via MCP.
+- **Only new migrations**: Do not modify history, legacy files, or applied migrations.
 
 ---
 
@@ -76,23 +77,19 @@ VALUES ('<file-timestamp>', '<file-timestamp>_<name>', ARRAY[]::text[]);
 - Run `npm run dev` and test the change
 - If the migration involves Edge Functions: deploy to staging (`npx supabase functions deploy <name> --project-ref ngtsnskyupageagcmqdp`)
 
-### 4. Commit and merge to main
+### 4. Open PR
 
 ```bash
 git add supabase/migrations/YYYYMMDDHHMMSS_short_description.sql
 git commit -m "feat(db): short description"
-git push
+git push -u origin feature-branch
 ```
 
-Open PR, merge to `main`.
+Open PR. **On PR open (or sync):** GitHub Action runs `db push` to **production**. Verify Vercel preview works.
 
-### 5. Production (automatic)
+### 5. Merge to main
 
-When `supabase/migrations/**` changes on `main`:
-
-- GitHub Action `deploy-supabase-migrations.yml` runs
-- Runs `supabase db push --linked` on production
-- Applies only pending migrations (tracked in `schema_migrations`)
+Merge. Production already has the migration from step 4. Push to main triggers the same Action (idempotent).
 
 ---
 

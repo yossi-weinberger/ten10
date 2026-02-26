@@ -16,9 +16,10 @@ alwaysApply: false
 ## Workflow (always follow)
 
 1. Create migration file: `supabase/migrations/YYYYMMDDHHMMSS_description.sql` (full timestamp).
-2. Apply to staging: MCP `apply_migration(project_id=ngtsnskyupageagcmqdp, name, query)` or Dashboard SQL Editor.
+2. Apply to staging: MCP `apply_migration(project_id=ngtsnskyupageagcmqdp, name, query)`.
 3. Verify: `.env` → staging, `npm run dev`, test.
-4. Commit + merge to main → GitHub Action deploys to production automatically.
+4. Open PR → GitHub Action pushes to **production** (Vercel preview works).
+5. Merge to main.
 
 ## MCP (plugin-supabase-supabase)
 

@@ -219,7 +219,7 @@ For the **web (Supabase)** project:
 
 1. **Apply to staging first** – Use MCP (`plugin-supabase-supabase`, `project_id=ngtsnskyupageagcmqdp`) or Dashboard SQL Editor. Verify with `npm run dev` pointing to staging.
 2. **Create** the migration file in `supabase/migrations/` (e.g. `YYYYMMDDHHMMSS_description.sql`) and **commit to Git**.
-3. **Merge to main** – GitHub Action `deploy-supabase-migrations.yml` runs `db push` automatically on production.
+3. **Open PR** – GitHub Action `deploy-supabase-migrations.yml` runs `db push` on production (so you can test Vercel preview before merge).
 
 **References:** See **`llm-instructions/backend/supabase-database-migrations-workflow.md`** for the full step-by-step workflow, MCP usage, and staging/production flow. See also `supabase/BRANCHES_AND_CI_CD_MAP.md` for env details.
 
