@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Info } from "lucide-react";
-import { Pie, PieChart, Cell } from "recharts";
+import { Pie, PieChart } from "recharts";
 import {
   Tooltip,
   TooltipContent,
@@ -29,15 +29,15 @@ interface ExpensesByCategoryChartProps {
   periodLabel: string;
 }
 
-const COLORS = [
+const CHART_COLORS = [
   "hsl(var(--chart-1))",
   "hsl(var(--chart-2))",
   "hsl(var(--chart-3))",
   "hsl(var(--chart-4))",
   "hsl(var(--chart-5))",
-  "hsl(210, 70%, 50%)",
-  "hsl(280, 60%, 50%)",
-  "hsl(30, 80%, 50%)",
+  "hsl(210, 70%, 55%)",
+  "hsl(280, 60%, 55%)",
+  "hsl(30, 80%, 55%)",
 ];
 
 export function ExpensesByCategoryChart({
@@ -52,7 +52,7 @@ export function ExpensesByCategoryChart({
     data.forEach((item, idx) => {
       config[item.category] = {
         label: item.category,
-        color: COLORS[idx % COLORS.length],
+        color: CHART_COLORS[idx % CHART_COLORS.length],
       };
     });
     return config;
@@ -60,10 +60,10 @@ export function ExpensesByCategoryChart({
 
   const chartData = useMemo(
     () =>
-      data.map((item, idx) => ({
+      data.map((item) => ({
         name: item.category,
         value: item.total_amount,
-        fill: COLORS[idx % COLORS.length],
+        fill: `var(--color-${item.category})`,
       })),
     [data]
   );
@@ -113,11 +113,7 @@ export function ExpensesByCategoryChart({
                 innerRadius={50}
                 outerRadius={100}
                 paddingAngle={2}
-              >
-                {chartData.map((entry) => (
-                  <Cell key={entry.name} fill={entry.fill} />
-                ))}
-              </Pie>
+              />
               <ChartLegend content={<ChartLegendContent nameKey="name" />} />
             </PieChart>
           </ChartContainer>

@@ -27,6 +27,14 @@ interface ExpensesByPaymentMethodChartProps {
   periodLabel: string;
 }
 
+const CHART_COLORS = [
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+];
+
 export function ExpensesByPaymentMethodChart({
   data,
   isLoading,
@@ -45,18 +53,21 @@ export function ExpensesByPaymentMethodChart({
 
   const chartConfig = useMemo<ChartConfig>(() => {
     const config: ChartConfig = {};
-    config["total_amount"] = {
-      label: t("categories.paymentMethodTitle"),
-      color: "hsl(var(--chart-4))",
-    };
+    data.forEach((item, idx) => {
+      config[item.payment_method] = {
+        label: item.payment_method,
+        color: CHART_COLORS[idx % CHART_COLORS.length],
+      };
+    });
     return config;
-  }, [t]);
+  }, [data]);
 
   const chartData = useMemo(
     () =>
       data.map((item) => ({
         name: item.payment_method,
-        total_amount: item.total_amount,
+        value: item.total_amount,
+        fill: `var(--color-${item.payment_method})`,
       })),
     [data]
   );
@@ -131,11 +142,7 @@ export function ExpensesByPaymentMethodChart({
                 cursor={false}
                 content={<ChartTooltipContent />}
               />
-              <Bar
-                dataKey="total_amount"
-                fill="var(--color-total_amount)"
-                radius={[0, 4, 4, 0]}
-              />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ChartContainer>
         )}
