@@ -206,9 +206,9 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 
 ### Database migrations workflow and Branching
 
-- **Workflow:** All schema/RPC/cron changes go into versioned migration files in `supabase/migrations/`. Migrations are committed to Git first; production is updated only when you run `supabase db push --linked` (or via Dashboard). See `supabase/MIGRATIONS_WORKFLOW.md`.
+- **Workflow:** All schema/RPC/cron changes go into versioned migration files in `supabase/migrations/`. Apply to staging manually (MCP or Dashboard), verify, then merge to main; GitHub Action `deploy-supabase-migrations.yml` runs `db push` on production automatically. See `llm-instructions/backend/supabase-database-migrations-workflow.md`.
 - **Recurring-transactions cron (pg_cron):** The daily job `daily-recurring-executor` calls the Edge Function `process-recurring-transactions`. Its base URL is read from Supabase Vault (secret name `functions_base_url`) so the same migration works on production and on Supabase branches. Migration: `20260225100000_cron_use_vault_for_functions_url.sql`. After applying that migration, create the Vault secret once per environment; see `supabase/MIGRATION_VAULT_SETUP.md` and `supabase/CRON_VAULT_APPLY_STEP_BY_STEP.md`.
-- **Branches and CI/CD:** Supabase Branching (Dashboard – GitHub Integration) creates preview branches per PR; migrations and Edge Functions run there automatically. Production: Functions are deployed via `.github/workflows/deploy-supabase-functions.yml` on push to `main`; migrations are applied manually. See `supabase/BRANCHES_AND_CI_CD_MAP.md`.
+- **Branches and CI/CD:** Supabase Branching (Dashboard – GitHub Integration) creates preview branches per PR; migrations and Edge Functions run there automatically. Production: Functions via `deploy-supabase-functions.yml`, migrations via `deploy-supabase-migrations.yml` (both on push to `main`). Staging: apply migrations manually (MCP or Dashboard). See `supabase/BRANCHES_AND_CI_CD_MAP.md`.
 
 ### General
 
