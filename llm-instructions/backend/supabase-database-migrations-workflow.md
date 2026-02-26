@@ -132,6 +132,4 @@ Production gets functions via GitHub Action (`deploy-supabase-functions.yml`) on
 
 ## References
 
-- `supabase/BRANCHES_AND_CI_CD_MAP.md` – Full map of branches, CI/CD, and env toggle
-- `supabase/MIGRATIONS_WORKFLOW.md` – Original workflow (manual `db push`)
 - `supabase/MIGRATION_VAULT_SETUP.md` – Vault secrets for cron migrations

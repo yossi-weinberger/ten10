@@ -221,7 +221,7 @@ For the **web (Supabase)** project:
 2. **Create** the migration file in `supabase/migrations/` (e.g. `YYYYMMDDHHMMSS_description.sql`) and **commit to Git**.
 3. **Open PR** – GitHub Action `deploy-supabase-migrations.yml` runs `db push` on production (so you can test Vercel preview before merge).
 
-**References:** See **`llm-instructions/backend/supabase-database-migrations-workflow.md`** for the full step-by-step workflow, MCP usage, and staging/production flow. See also `supabase/BRANCHES_AND_CI_CD_MAP.md` for env details.
+**References:** See **`llm-instructions/backend/supabase-database-migrations-workflow.md`** for the full step-by-step workflow, MCP usage, and staging/production flow.
 
 ## Example: Adding a `due_date` to `transactions`
 
