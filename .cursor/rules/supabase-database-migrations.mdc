@@ -1,0 +1,36 @@
+---
+description: Supabase database migrations - staging, MCP, production workflow
+globs: supabase/migrations/**,supabase/**/*.md,.github/workflows/deploy-supabase-migrations.yml
+alwaysApply: false
+---
+
+# Supabase Database Migrations
+
+## Environments
+
+| Environment | Project ID (MCP) | Role |
+|-------------|------------------|------|
+| Staging | `ngtsnskyupageagcmqdp` | Test migrations first |
+| Production | `flpzqbvbymoluoeeeofg` | Updated via merge to main |
+
+## Workflow (always follow)
+
+1. Create migration file: `supabase/migrations/YYYYMMDDHHMMSS_description.sql` (full timestamp).
+2. Apply to staging: MCP `apply_migration(project_id=ngtsnskyupageagcmqdp, name, query)` or Dashboard SQL Editor.
+3. Verify: `.env` → staging, `npm run dev`, test.
+4. Commit + merge to main → GitHub Action deploys to production automatically.
+
+## MCP (plugin-supabase-supabase)
+
+- `apply_migration(project_id, name, query)` – Runs SQL + registers in schema_migrations.
+- `execute_sql(project_id, query)` – Runs SQL only.
+- If `apply_migration` uses auto-timestamp, align with file: `DELETE` old row, `INSERT` with file timestamp.
+
+## Do not
+
+- Run ad-hoc SQL on production without a migration file in Git.
+- Edit or delete migration files already applied on production.
+- Run `supabase db reset` on production.
+- Run files in `supabase/migrations/rollback/` on production.
+
+**Full details:** `llm-instructions/backend/supabase-database-migrations-workflow.md`
