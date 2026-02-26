@@ -22,7 +22,7 @@ When changing Supabase schema, RPC, cron, or permissions:
 
 1. **Staging first** – Apply via MCP (`project_id=ngtsnskyupageagcmqdp`) or Dashboard. Verify locally.
 2. **File in repo** – Create `supabase/migrations/YYYYMMDDHHMMSS_description.sql` before applying.
-3. **Merge to main** – GitHub Action runs `db push` on production automatically.
+3. **Open PR** – GitHub Action runs `db push` on production (so you can test Vercel preview before merge).
 4. **Never** run ad-hoc SQL on production without a migration file in Git.
 
 Full workflow: `llm-instructions/backend/supabase-database-migrations-workflow.md`
