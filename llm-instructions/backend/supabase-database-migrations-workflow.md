@@ -104,17 +104,30 @@ Merge. Production already has the migration from step 4. Push to main triggers t
 
 ## Migrations Requiring Vault Secrets
 
-Some migrations (e.g. cron with dynamic URL) use `vault.decrypted_secrets`. Set the secret **per environment** before or right after applying:
+Some migrations (e.g. cron jobs) use `vault.decrypted_secrets`. Secrets must be set **per environment** manually via the Supabase Dashboard (never in git).
 
+### Required Vault Secrets
+
+| Name | Production | Staging |
+|------|-----------|---------|
+| `functions_base_url` | `https://flpzqbvbymoluoeeeofg.supabase.co` | `https://ngtsnskyupageagcmqdp.supabase.co` |
+| `service_role_key` | service_role JWT from Project Settings → API | service_role JWT from Project Settings → API |
+
+### How to Add
+
+**Dashboard (recommended – secret never touches git):**
+Dashboard → Project Settings → Vault → New Secret
+
+**Or via SQL (only if value is not sensitive to log):**
 ```sql
--- Production
-SELECT vault.create_secret('https://flpzqbvbymoluoeeeofg.supabase.co', 'functions_base_url', 'Base URL for cron');
-
--- Staging
-SELECT vault.create_secret('https://ngtsnskyupageagcmqdp.supabase.co', 'functions_base_url', 'Base URL for cron');
+SELECT vault.create_secret('<value>', '<name>', '<description>');
 ```
 
-See `supabase/MIGRATION_VAULT_SETUP.md` for details.
+### Which cron jobs use vault secrets
+
+| Cron job | Vault secrets used |
+|----------|--------------------|
+| `daily-recurring-executor` | `functions_base_url`, `service_role_key` |
 
 ---
 
@@ -132,4 +145,4 @@ Production gets functions via GitHub Action (`deploy-supabase-functions.yml`) on
 
 ## References
 
-- `supabase/MIGRATION_VAULT_SETUP.md` – Vault secrets for cron migrations
+- `supabase/MIGRATION_VAULT_SETUP.md` – Full list of required Vault secrets per environment
