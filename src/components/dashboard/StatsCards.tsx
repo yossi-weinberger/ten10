@@ -15,7 +15,11 @@ import {
   Calendar as CalendarIcon,
   Info,
 } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { StatCard } from "./StatCards/StatCard";
 import { motion } from "framer-motion";
 import CountUp from "react-countup";
@@ -40,7 +44,7 @@ export function StatsCards({
   const { t, i18n } = useTranslation("dashboard");
   const navigate = useNavigate();
   const defaultCurrency = useDonationStore(
-    (state) => state.settings.defaultCurrency
+    (state) => state.settings.defaultCurrency,
   );
 
   // Navigation functions for each stat card
@@ -89,7 +93,7 @@ export function StatsCards({
   };
 
   const trackChomeshSeparately = useDonationStore(
-    (state) => state.settings.trackChomeshSeparately
+    (state) => state.settings.trackChomeshSeparately,
   );
   const {
     serverTotalIncome,
@@ -110,7 +114,8 @@ export function StatsCards({
   } = useServerStats(activeDateRangeObject, user, platform);
 
   const [lastChomeshValue, setLastChomeshValue] = useState<number | null>(null);
-  const [isOpeningBalanceModalOpen, setIsOpeningBalanceModalOpen] = useState(false);
+  const [isOpeningBalanceModalOpen, setIsOpeningBalanceModalOpen] =
+    useState(false);
 
   useEffect(() => {
     if (typeof serverChomeshAmount === "number") {
@@ -136,7 +141,7 @@ export function StatsCards({
   const formatChomeshCurrency = useMemo(
     () => (value: number) =>
       formatCurrency(value, defaultCurrency, i18n.language),
-    [defaultCurrency, i18n.language]
+    [defaultCurrency, i18n.language],
   );
 
   const incomeSubtitle = useMemo(() => {
@@ -178,9 +183,9 @@ export function StatsCards({
       ? (serverTotalDonationsAmount / serverTotalIncome) * 100
       : 0;
   const donationsSubtitle = (
-    <>
-      <div className="mt-2 relative">
-        <div className="h-2.5 bg-gray-200 dark:bg-gray-700 rounded-full">
+    <div className="mt-[42px]">
+      <div className="relative" style={{ marginInlineEnd: "2.75rem" }}>
+        <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
           <div
             className="h-full bg-gradient-to-r from-yellow-500 to-amber-500 rounded-full transition-all duration-1000 ease-in-out"
             style={{
@@ -190,23 +195,25 @@ export function StatsCards({
         </div>
       </div>
       <p
-        className={`text-xs text-muted-foreground mt-2 ${
+        className={`text-xs text-muted-foreground mt-1 ${
           i18n.dir() === "rtl" ? "text-right" : "text-left"
         }`}
-        style={{ minHeight: "1.2em" }}
+        style={{ minHeight: "1.2em", marginInlineEnd: "2.75rem" }}
         dir={i18n.dir()}
       >
         {t("statsCards.donations.percentageOfIncome", {
           percentage: percentageOfIncome.toFixed(1),
         })}
       </p>
-    </>
+    </div>
   );
 
   // Overall Required Card Subtitle Logic (handles negatives safely)
   // Use only tithe donations (exclude non_tithe_donation) so progress matches the balance calculation
-  const totalDonations = serverCalculatedDonationsData?.total_donations_amount ?? 0;
-  const nonTitheDonations = serverCalculatedDonationsData?.non_tithe_donation_amount ?? 0;
+  const totalDonations =
+    serverCalculatedDonationsData?.total_donations_amount ?? 0;
+  const nonTitheDonations =
+    serverCalculatedDonationsData?.non_tithe_donation_amount ?? 0;
   const rawDonations = Math.max(0, totalDonations - nonTitheDonations);
   const rawBalance = serverTitheBalance ?? 0;
 
@@ -238,27 +245,27 @@ export function StatsCards({
     <>
       {showChomeshBreakdown && (
         <div
-          className={`flex flex-wrap justify-center gap-x-3 gap-y-0 text-base font-semibold ${
+          className={`flex flex-nowrap justify-center gap-x-2 ${
             showChomeshBreakdown ? "-mt-1" : ""
           }`}
           dir={i18n.dir()}
         >
           {/* Positive (> 0) = debt = red, Negative/zero (≤ 0) = surplus = green */}
           <span
-            className={`whitespace-nowrap ${
+            className={`whitespace-nowrap inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
               maaserVal > 0
-                ? "text-red-600 dark:text-red-400"
-                : "text-green-600 dark:text-green-400"
+                ? "bg-destructive/10 text-foreground/70 border-destructive/25"
+                : "bg-success/10 text-foreground/70 border-success/25"
             }`}
           >
             {t("statsCards.overallRequired.maaser")}:{" "}
             {formatCurrency(maaserVal, defaultCurrency, i18n.language)}
           </span>
           <span
-            className={`whitespace-nowrap ${
+            className={`whitespace-nowrap inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
               chomeshVal > 0
-                ? "text-red-600 dark:text-red-400"
-                : "text-green-600 dark:text-green-400"
+                ? "bg-destructive/10 text-foreground/70 border-destructive/25"
+                : "bg-success/10 text-foreground/70 border-success/25"
             }`}
           >
             {t("statsCards.overallRequired.chomesh")}:{" "}
@@ -266,90 +273,89 @@ export function StatsCards({
           </span>
         </div>
       )}
-      <div
-        className={`relative ${showChomeshBreakdown ? "mt-1" : "mt-2"}`}
-        style={{ marginInlineEnd: "2.75rem" }}
-      >
-        <div className="h-2 bg-blue-200 dark:bg-blue-800 rounded-full">
-          <div
-            className="h-full bg-gradient-to-r from-blue-500 to-sky-500 rounded-full transition-all duration-1000 ease-in-out"
-            style={{
-              width: `${Math.min(donationProgress, 100)}%`,
-            }}
-          />
+      <div className={showChomeshBreakdown ? "mt-4" : "mt-[42px]"}>
+        <div className="relative" style={{ marginInlineEnd: "2.75rem" }}>
+          <div className="h-2 bg-blue-200 dark:bg-blue-800 rounded-full">
+            <div
+              className="h-full bg-gradient-to-r from-blue-500 to-sky-500 rounded-full transition-all duration-1000 ease-in-out"
+              style={{
+                width: `${Math.min(donationProgress, 100)}%`,
+              }}
+            />
+          </div>
         </div>
-      </div>
-      <div
-        className="flex items-center justify-center gap-1.5 mt-1 text-center"
-        style={{ minHeight: "1.2em", marginInlineEnd: "2.75rem" }}
-        dir={i18n.dir()}
-      >
-        <motion.p
-          initial={{ opacity: 0.8 }}
-          whileHover={{ opacity: 1 }}
-          className="min-w-0 whitespace-normal break-normal leading-tight text-[11px] sm:text-xs text-muted-foreground font-medium"
+        <div
+          className="flex items-center justify-center gap-1.5 mt-1 text-center"
+          style={{ minHeight: "1.2em", marginInlineEnd: "2.75rem" }}
+          dir={i18n.dir()}
         >
-          {displayBalanceForText === 0 ? (
-            <>
-              <span className="hidden sm:inline">
-                {t("statsCards.overallRequired.exactlyOnGoal")}
-              </span>
-              <span className="sm:hidden">
-                {t("statsCards.overallRequired.exactlyOnGoalShort")}
-              </span>
-            </>
-          ) : displayBalanceForText < 0 ? (
-            <>
-              <span className="hidden sm:inline">
-                {t("statsCards.overallRequired.exceededGoal", {
-                  amount: formatCurrency(
-                    Math.abs(displayBalanceForText),
-                    defaultCurrency,
-                    i18n.language
-                  ),
-                })}
-              </span>
-              <span className="sm:hidden">
-                {t("statsCards.overallRequired.exceededGoalShort", {
-                  amount: formatCurrency(
-                    Math.abs(displayBalanceForText),
-                    defaultCurrency,
-                    i18n.language
-                  ),
-                })}
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="hidden sm:inline">
-                {t("statsCards.overallRequired.goalProgress", {
-                  percentage: donationProgress.toFixed(1),
-                })}
-              </span>
-              <span className="sm:hidden">
-                {t("statsCards.overallRequired.goalProgressShort", {
-                  percentage: donationProgress.toFixed(1),
-                })}
-              </span>
-            </>
-          )}
-        </motion.p>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              className="inline-flex text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded p-0.5"
-              aria-label={t("statsCards.overallRequired.goalProgressTooltip")}
-            >
-              <Info className="h-3.5 w-3.5 shrink-0" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="z-[99999] max-w-xs">
-            <p className="text-sm">
-              {t("statsCards.overallRequired.goalProgressTooltip")}
-            </p>
-          </TooltipContent>
-        </Tooltip>
+          <motion.p
+            initial={{ opacity: 0.8 }}
+            whileHover={{ opacity: 1 }}
+            className="min-w-0 whitespace-normal break-normal leading-tight text-[11px] sm:text-xs text-muted-foreground font-medium"
+          >
+            {displayBalanceForText === 0 ? (
+              <>
+                <span className="hidden sm:inline">
+                  {t("statsCards.overallRequired.exactlyOnGoal")}
+                </span>
+                <span className="sm:hidden">
+                  {t("statsCards.overallRequired.exactlyOnGoalShort")}
+                </span>
+              </>
+            ) : displayBalanceForText < 0 ? (
+              <>
+                <span className="hidden sm:inline">
+                  {t("statsCards.overallRequired.exceededGoal", {
+                    amount: formatCurrency(
+                      Math.abs(displayBalanceForText),
+                      defaultCurrency,
+                      i18n.language,
+                    ),
+                  })}
+                </span>
+                <span className="sm:hidden">
+                  {t("statsCards.overallRequired.exceededGoalShort", {
+                    amount: formatCurrency(
+                      Math.abs(displayBalanceForText),
+                      defaultCurrency,
+                      i18n.language,
+                    ),
+                  })}
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="hidden sm:inline">
+                  {t("statsCards.overallRequired.goalProgress", {
+                    percentage: donationProgress.toFixed(1),
+                  })}
+                </span>
+                <span className="sm:hidden">
+                  {t("statsCards.overallRequired.goalProgressShort", {
+                    percentage: donationProgress.toFixed(1),
+                  })}
+                </span>
+              </>
+            )}
+          </motion.p>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                className="inline-flex text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded p-0.5"
+                aria-label={t("statsCards.overallRequired.goalProgressTooltip")}
+              >
+                <Info className="h-3.5 w-3.5 shrink-0" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="z-[99999] max-w-xs">
+              <p className="text-sm">
+                {t("statsCards.overallRequired.goalProgressTooltip")}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </div>
     </>
   );
@@ -405,7 +411,7 @@ export function StatsCards({
               <span className="hidden md:inline">
                 {customDateRange?.from && customDateRange?.to
                   ? `${formatDate(customDateRange.from)} - ${formatDate(
-                      customDateRange.to
+                      customDateRange.to,
                     )}`
                   : dateRangeLabels.custom}
               </span>
@@ -477,8 +483,8 @@ export function StatsCards({
           addButtonTooltip={t("statsCards.donations.addDonation")}
         />
       </div>
-      
-      <OpeningBalanceModal 
+
+      <OpeningBalanceModal
         isOpen={isOpeningBalanceModalOpen}
         onClose={() => setIsOpeningBalanceModalOpen(false)}
       />
