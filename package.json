@@ -4,6 +4,9 @@
   "version": "0.6.0",
   "type": "module",
   "license": "AGPL-3.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -116,6 +119,7 @@
     "vite-plugin-pwa": "^1.2.0"
   },
   "overrides": {
-    "minimatch": "^10.2.1"
+    "minimatch": "^10.2.3",
+    "serialize-javascript": "^7.0.4"
   }
 }
