@@ -1,0 +1,5 @@
+-- Fix: Add Authorization header to daily-recurring-executor cron job.
+-- The edge function requires a Bearer token (added in the auth-hardening commit),
+-- but the cron job was never updated to include one, causing 401 errors.
+-- NOTE: Superseded by 20260306130000 which moves the token to Supabase Vault.
+-- Applied directly via MCP to production (token not stored in git).
