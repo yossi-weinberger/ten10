@@ -122,11 +122,11 @@ export function StatCard({
   // Special styling for the overall required card
   const specialStyles = isSpecial
     ? {
-        border: "border-2 border-blue-500 dark:border-blue-400",
+        border: "border-2 border-blue-500 dark:border-blue-800",
         shadow:
-          "shadow-lg hover:shadow-xl shadow-blue-500/20 dark:shadow-blue-400/20",
-        bg: "bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 dark:from-blue-950 dark:via-blue-900 dark:to-blue-800",
-        ring: "ring-2 ring-blue-200 dark:ring-blue-800",
+          "shadow-lg hover:shadow-xl shadow-blue-500/20 dark:shadow-blue-900/30",
+        bg: "bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 dark:from-blue-950 dark:via-blue-950 dark:to-blue-900",
+        ring: "ring-2 ring-blue-200 dark:ring-blue-900",
       }
     : {};
 

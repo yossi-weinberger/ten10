@@ -254,8 +254,8 @@ export function StatsCards({
           <span
             className={`whitespace-nowrap inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
               maaserVal > 0
-                ? "bg-destructive/10 text-foreground/70 border-destructive/25"
-                : "bg-success/10 text-foreground/70 border-success/25"
+                ? "bg-destructive/10 dark:bg-white/5 text-foreground/70 dark:text-rose-300 border-destructive/25 dark:border-rose-400/40"
+                : "bg-success/10 dark:bg-white/5 text-foreground/70 dark:text-emerald-400 border-success/25 dark:border-emerald-500/40"
             }`}
           >
             {t("statsCards.overallRequired.maaser")}:{" "}
@@ -264,8 +264,8 @@ export function StatsCards({
           <span
             className={`whitespace-nowrap inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
               chomeshVal > 0
-                ? "bg-destructive/10 text-foreground/70 border-destructive/25"
-                : "bg-success/10 text-foreground/70 border-success/25"
+                ? "bg-destructive/10 dark:bg-white/5 text-foreground/70 dark:text-rose-300 border-destructive/25 dark:border-rose-400/40"
+                : "bg-success/10 dark:bg-white/5 text-foreground/70 dark:text-emerald-400 border-success/25 dark:border-emerald-500/40"
             }`}
           >
             {t("statsCards.overallRequired.chomesh")}:{" "}
