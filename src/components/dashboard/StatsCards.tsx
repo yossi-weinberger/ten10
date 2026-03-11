@@ -183,8 +183,9 @@ export function StatsCards({
       ? (serverTotalDonationsAmount / serverTotalIncome) * 100
       : 0;
   const donationsSubtitle = (
-    <div className="mt-[42px]">
-      <div className="relative" style={{ marginInlineEnd: "2.75rem" }}>
+    // mt-11 (≈42px) matches the add-button gutter used in the tithe balance card
+    <div className="mt-11">
+      <div className="relative me-11">
         <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
           <div
             className="h-full bg-gradient-to-r from-yellow-500 to-amber-500 rounded-full transition-all duration-1000 ease-in-out"
@@ -195,10 +196,10 @@ export function StatsCards({
         </div>
       </div>
       <p
-        className={`text-xs text-muted-foreground mt-1 ${
+        className={`text-xs text-muted-foreground mt-1 me-11 ${
           i18n.dir() === "rtl" ? "text-right" : "text-left"
         }`}
-        style={{ minHeight: "1.2em", marginInlineEnd: "2.75rem" }}
+        style={{ minHeight: "1.2em" }}
         dir={i18n.dir()}
       >
         {t("statsCards.donations.percentageOfIncome", {
@@ -273,8 +274,10 @@ export function StatsCards({
           </span>
         </div>
       )}
-      <div className={showChomeshBreakdown ? "mt-4" : "mt-[42px]"}>
-        <div className="relative" style={{ marginInlineEnd: "2.75rem" }}>
+      {/* mt-11 (≈42px) = pill height (~26px) + gap (mt-4/16px); keeps bar in the
+          same vertical position whether or not the chomesh breakdown pills are shown */}
+      <div className={showChomeshBreakdown ? "mt-4" : "mt-11"}>
+        <div className="relative me-11">
           <div className="h-2 bg-blue-200 dark:bg-blue-800 rounded-full">
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-sky-500 rounded-full transition-all duration-1000 ease-in-out"
@@ -285,8 +288,8 @@ export function StatsCards({
           </div>
         </div>
         <div
-          className="flex items-center justify-center gap-1.5 mt-1 text-center"
-          style={{ minHeight: "1.2em", marginInlineEnd: "2.75rem" }}
+          className="flex items-center justify-center gap-1.5 mt-1 text-center me-11"
+          style={{ minHeight: "1.2em" }}
           dir={i18n.dir()}
         >
           <motion.p
