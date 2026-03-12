@@ -9,66 +9,23 @@
     "important": "Important"
   },
   "features": {
-    "categories": {
-      "title": "Transaction Categories",
-      "description": "Organize your income and expenses by categories - choose from predefined categories or create custom ones"
-    },
-    "currencyConversion": {
-      "title": "Multi-Currency Support & Conversion",
-      "description": "Enter transactions in 12 different currencies with automatic conversion to your default currency"
-    },
-    "openingBalance": {
-      "title": "Opening Balance",
-      "description": "Set an initial debt or credit for tithe management"
-    },
-    "paymentMethod": {
-      "title": "Payment Method",
-      "description": "Payment method field (cash, card, transfer, etc.)"
-    },
-    "appLock": {
-      "title": "Lock with password (desktop app)",
-      "description": "You can now set an app login password for enhanced privacy"
+    "chomeshTracking": {
+      "badge": "By popular request",
+      "title": "Separate Chomesh Balance Tracking",
+      "description": "Track your chomesh balance separately from maaser. To enable: go to Settings → Financial Settings"
     }
   },
   "improvements": {
-    "autoChomesh": {
-      "title": "Automatic chomesh calculation for all income",
-      "description": "You can now enable automatic chomesh (20%) calculation for all your income in the settings"
-    },
-    "performance": {
-      "title": "Performance Improvements",
-      "description": "Faster loading and improved user experience"
-    },
-    "security": {
-      "title": "Security Enhancements",
-      "description": "Additional security improvements to protect your data"
+    "settingsSync": {
+      "title": "Automatic Settings Saving",
+      "description": "Settings are automatically saved and synced — no need to worry about losing them"
     },
     "bugFixes": {
-      "title": "Bug Fixes",
-      "description": "Various fixes to improve system stability"
-    },
-    "desktopInstaller": {
-      "title": "Computer app installer",
-      "description": "We added more installation options for those who had trouble installing the app"
-    },
-    "recurringTransactions": {
-      "title": "Standing order transactions",
-      "description": "Improved logic and UI for standing order transactions"
-    },
-    "securityPatch": {
-      "title": "Security",
-      "description": "Security improvements and authentication updates"
-    },
-    "pdfColors": {
-      "title": "Colors and display",
-      "description": "Fixed a color and display bug that some users may have experienced"
+      "title": "Bug Fixes & Stability",
+      "description": "Fixed several bugs, including an issue with automatic recurring transactions"
     }
   },
   "notices": {
-    "multiCurrency": {
-      "title": "Note: Multiple Currencies",
-      "description": "If you have transactions in different currencies, you must update them to a single currency to ensure accurate calculations"
-    },
     "emailPrivacy": {
       "title": "Your Email Privacy",
       "description": "We never send emails without your consent. To receive updates and reminders, enable this in Settings. We promise not to spam or share your email with third parties"

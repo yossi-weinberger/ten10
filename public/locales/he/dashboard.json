@@ -34,6 +34,7 @@
       "lastMonth": "חודש קודם",
       "change": "שינוי",
       "percentageOfIncome": "{{percentage}}% מתוך סך ההכנסות",
+      "percentageOfIncomeShort": "{{percentage}}% מההכנסות",
       "addDonation": "הוסף תרומה"
     },
     "overallRequired": {
@@ -44,7 +45,7 @@
       "exactlyOnGoal": "הגעת ליעד! כל המעשרות שלך שולמו במלואם",
       "exactlyOnGoalShort": "הגעת ליעד!",
       "exceededGoal": "עברת את היעד ב-{{amount}} (יתרה)",
-      "exceededGoalShort": "יתרה {{amount}}",
+      "exceededGoalShort": "בזכות!",
       "goalProgress": "{{percentage}}% מהיעד הושלם",
       "goalProgressShort": "{{percentage}}% הושלם",
       "goalProgressTooltip": "היעד הוא להגיע ליתרה אפס – לפרוע את כל חוב המעשר. האחוז מראה איזה חלק מהדרך ליעד כיסית בתרומות בתקופה הנבחרת (ביחס לחוב הנוכחי ולתרומות בתקופה). יתרה שלילית = תרמת מעבר ליעד ואתה בזכות.",
