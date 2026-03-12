@@ -154,7 +154,7 @@ export function StatsCards({
     }
 
     return (
-      <span className="block text-xs text-muted-foreground" dir={i18n.dir()}>
+      <span className="block text-xs text-muted-foreground me-9 sm:me-11" dir={i18n.dir()}>
         <CountUp
           start={chomeshStartValue}
           end={chomeshDisplayValue}
@@ -183,9 +183,8 @@ export function StatsCards({
       ? (serverTotalDonationsAmount / serverTotalIncome) * 100
       : 0;
   const donationsSubtitle = (
-    // mt-11 (≈42px) matches the add-button gutter used in the tithe balance card
-    <div className="mt-11">
-      <div className="relative me-11">
+    <div>
+      <div className="relative me-9 sm:me-11">
         <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
           <div
             className="h-full bg-gradient-to-r from-yellow-500 to-amber-500 rounded-full transition-all duration-1000 ease-in-out"
@@ -196,15 +195,21 @@ export function StatsCards({
         </div>
       </div>
       <p
-        className={`text-xs text-muted-foreground mt-1 me-11 ${
+        className={`text-xs text-muted-foreground mt-1 me-9 sm:me-11 ${
           i18n.dir() === "rtl" ? "text-right" : "text-left"
         }`}
-        style={{ minHeight: "1.2em" }}
         dir={i18n.dir()}
       >
-        {t("statsCards.donations.percentageOfIncome", {
-          percentage: percentageOfIncome.toFixed(1),
-        })}
+        <span className="hidden sm:inline">
+          {t("statsCards.donations.percentageOfIncome", {
+            percentage: percentageOfIncome.toFixed(1),
+          })}
+        </span>
+        <span className="sm:hidden">
+          {t("statsCards.donations.percentageOfIncomeShort", {
+            percentage: percentageOfIncome.toFixed(1),
+          })}
+        </span>
       </p>
     </div>
   );
@@ -245,15 +250,9 @@ export function StatsCards({
   const overallRequiredSubtitle = (
     <>
       {showChomeshBreakdown && (
-        <div
-          className={`flex flex-nowrap justify-center gap-x-2 ${
-            showChomeshBreakdown ? "-mt-1" : ""
-          }`}
-          dir={i18n.dir()}
-        >
-          {/* Positive (> 0) = debt = red, Negative/zero (≤ 0) = surplus = green */}
+        <div className="flex flex-wrap justify-center items-start gap-x-2 gap-y-1" dir={i18n.dir()}>
           <span
-            className={`whitespace-nowrap inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
+            className={`whitespace-nowrap inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium border ${
               maaserVal > 0
                 ? "bg-destructive/10 dark:bg-white/5 text-foreground/70 dark:text-rose-300 border-destructive/25 dark:border-rose-400/40"
                 : "bg-success/10 dark:bg-white/5 text-foreground/70 dark:text-emerald-400 border-success/25 dark:border-emerald-500/40"
@@ -263,7 +262,7 @@ export function StatsCards({
             {formatCurrency(maaserVal, defaultCurrency, i18n.language)}
           </span>
           <span
-            className={`whitespace-nowrap inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
+            className={`whitespace-nowrap inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-medium border ${
               chomeshVal > 0
                 ? "bg-destructive/10 dark:bg-white/5 text-foreground/70 dark:text-rose-300 border-destructive/25 dark:border-rose-400/40"
                 : "bg-success/10 dark:bg-white/5 text-foreground/70 dark:text-emerald-400 border-success/25 dark:border-emerald-500/40"
@@ -274,10 +273,8 @@ export function StatsCards({
           </span>
         </div>
       )}
-      {/* mt-11 (≈42px) = pill height (~26px) + gap (mt-4/16px); keeps bar in the
-          same vertical position whether or not the chomesh breakdown pills are shown */}
-      <div className={showChomeshBreakdown ? "mt-4" : "mt-11"}>
-        <div className="relative me-11">
+      <div className="mt-2">
+        <div className="relative me-9 sm:me-11">
           <div className="h-2 bg-blue-200 dark:bg-blue-800 rounded-full">
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-sky-500 rounded-full transition-all duration-1000 ease-in-out"
@@ -288,7 +285,7 @@ export function StatsCards({
           </div>
         </div>
         <div
-          className="flex items-center justify-center gap-1.5 mt-1 text-center me-11"
+          className="flex items-center justify-center gap-1.5 mt-1 text-center me-9 sm:me-11"
           style={{ minHeight: "1.2em" }}
           dir={i18n.dir()}
         >

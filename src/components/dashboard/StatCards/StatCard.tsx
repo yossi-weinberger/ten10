@@ -109,7 +109,7 @@ export function StatCard({
 }: StatCardProps) {
   const { t, i18n } = useTranslation("dashboard");
   const defaultCurrency = useDonationStore(
-    (state) => state.settings.defaultCurrency
+    (state) => state.settings.defaultCurrency,
   );
 
   const { displayValue, startAnimateValue } = useAnimatedCounter({
@@ -137,29 +137,29 @@ export function StatCard({
       } ${isSpecial ? specialStyles.border : ""} ${
         isSpecial ? specialStyles.ring : ""
         // controls the card height
-      } transition-all duration-300 h-[210px] sm:h-[185px]`}
+      } transition-all duration-300 min-h-[170px] sm:min-h-[185px]`}
       gradientColor={styles.gradient}
     >
-      <div className="relative h-full">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="flex items-center gap-2 text-sm font-medium">
-            {TitleIcon && <TitleIcon className={`h-4 w-4 ${styles.icon}`} />}
+      <div className="relative h-full flex flex-col">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 sm:px-6">
+          <CardTitle className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-medium leading-tight">
+            {TitleIcon && <TitleIcon className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${styles.icon}`} />}
             {title}
           </CardTitle>
-          <Icon className={`h-5 w-5 ${styles.icon}`} />
+          <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${styles.icon} flex-shrink-0`} />
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col flex-1 !pb-1 px-3 sm:px-6">
           <div
-            className={`${
-              i18n.dir() === "rtl" ? "text-right" : "text-left"
-            } h-12`}
+            className={`text-center ${
+              i18n.dir() === "rtl" ? "sm:text-right" : "sm:text-left"
+            } mt-2 sm:mt-0 h-10 sm:h-12`}
           >
             {error ? (
               <p className="text-xs text-red-500" dir={i18n.dir()}>
                 {t("monthlyChart.error")}
               </p>
             ) : (
-              <span className={`text-3xl font-bold ${styles.text}`}>
+              <span className={`text-2xl sm:text-3xl font-bold ${styles.text}`}>
                 <CountUp
                   start={startAnimateValue}
                   end={displayValue}
@@ -172,22 +172,19 @@ export function StatCard({
               </span>
             )}
           </div>
-          {subtitleContent && (
-            <div
-              className={`text-xs text-muted-foreground mt-1 ${
-                i18n.dir() === "rtl" ? "text-right" : "text-left"
-              } h-12`}
-              dir={i18n.dir()}
-            >
-              {subtitleContent}
-            </div>
-          )}
+          <div
+            className={`mt-auto text-xs text-muted-foreground ${
+              i18n.dir() === "rtl" ? "text-right" : "text-left"
+            }`}
+            dir={i18n.dir()}
+          >
+            {subtitleContent}
+          </div>
         </CardContent>
         {footerContent && (
           <CardFooter className="pt-2">{footerContent}</CardFooter>
         )}
 
-        {/* Add Button positioned at bottom with absolute positioning */}
         {showAddButton && onAddClick && (
           <div
             className={`absolute bottom-2 ${
@@ -200,9 +197,9 @@ export function StatCard({
                   variant="ghost"
                   size="sm"
                   onClick={onAddClick}
-                  className={`h-10 w-10 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
+                  className={`h-8 w-8 sm:h-10 sm:w-10 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
                 >
-                  <BadgePlus className="h-6 w-6 [&]:!size-6" />
+                  <BadgePlus className="h-5 w-5 sm:h-6 sm:w-6 [&]:!size-5 sm:[&]:!size-6" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="top">
