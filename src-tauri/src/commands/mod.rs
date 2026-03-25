@@ -6,3 +6,4 @@ pub mod chart_commands;
 pub mod recurring_transaction_commands;
 pub mod platform_commands;
 pub mod db_commands;
+pub mod insights_commands;

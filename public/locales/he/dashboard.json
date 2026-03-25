@@ -62,8 +62,118 @@
     }
   },
   "analytics": {
-    "title": "ניתוח נתונים מתקדם",
-    "description": "כאן יוצגו גרפים וניתוחים מתקדמים..."
+    "title": "ניתוח נתונים",
+    "subtitle": "תובנות פיננסיות מבוססות על הנתונים שלך",
+    "exportPdf": "ייצוא PDF",
+    "loading": "טוען...",
+    "error": "שגיאה בטעינת הנתונים",
+    "noData": "אין נתונים להצגה",
+    "vsPrevious": "לעומת תקופה קודמת",
+    "increase": "עלייה",
+    "decrease": "ירידה",
+    "noChange": "ללא שינוי",
+    "cashFlow": {
+      "title": "תזרים מזומנים",
+      "income": "הכנסות",
+      "expenses": "הוצאות",
+      "net": "תזרים נטו",
+      "savingsRate": "שיעור חיסכון",
+      "chartTitle": "הכנסות מול הוצאות לאורך זמן",
+      "noData": "אין נתוני תזרים להצגה"
+    },
+    "categories": {
+      "title": "פירוט קטגוריות",
+      "tabExpenses": "הוצאות",
+      "tabIncome": "הכנסות",
+      "other": "אחר",
+      "noData": "אין נתוני קטגוריות להצגה"
+    },
+    "tithe": {
+      "title": "סיכום מעשרות",
+      "balance": "יתרה כוללת",
+      "maaser": "מעשר (10%)",
+      "chomesh": "חומש (20%)",
+      "goalProgress": "{{percentage}}% מהיעד הושלם",
+      "goalReached": "הגעת ליעד!",
+      "goalExceeded": "עברת את היעד ב-{{amount}}",
+      "donationRate": "שיעור תרומות מהכנסות",
+      "titheOnlyDonations": "תרומות מעשר",
+      "personalDonations": "תרומות אישיות"
+    },
+    "forecast": {
+      "title": "תנועות קבועות",
+      "subtitle": "הוראות הקבע הפעילות שלך",
+      "recurringIncome": "הכנסות קבועות חודשיות",
+      "recurringExpenses": "הוצאות קבועות חודשיות",
+      "expectedNet": "תזרים צפוי",
+      "activeRecurring": "{{count}} הוראות קבע פעילות",
+      "noData": "אין הוראות קבע פעילות",
+      "monthlyTotal": "סה\"כ חודשי",
+      "noDescription": "ללא תיאור",
+      "dayOfMonth": "יום {{day}} בחודש"
+    },
+    "paymentMethods": {
+      "title": "אמצעי תשלום",
+      "subtitle": "חלוקת הוצאות לפי אמצעי תשלום",
+      "other": "אחר",
+      "noData": "אין נתוני אמצעי תשלום להצגה"
+    },
+    "recurringRatio": {
+      "title": "קבוע מול חד-פעמי",
+      "recurring": "הוצאות קבועות",
+      "onetime": "הוצאות חד-פעמיות",
+      "recurringPct": "{{percentage}}% קבועות",
+      "onetimePct": "{{percentage}}% חד-פעמיות",
+      "noData": "אין נתונים להצגה"
+    },
+    "recipients": {
+      "title": "נמעני תרומות",
+      "subtitle": "Top נמענים בתקופה הנבחרת",
+      "other": "אחר",
+      "noData": "אין תרומות עם נמענים בתקופה זו"
+    },
+    "pdfExported": "קובץ PDF הורד בהצלחה",
+    "pdfGenerating": "מייצר PDF...",
+    "chartTypeBar": "גרף עמודות",
+    "chartTypePie": "גרף עוגה",
+    "insights": {
+      "title": "תובנות",
+      "savingsGood": "שיעור חיסכון של {{percentage}}% — מצוין!",
+      "savingsOk": "שיעור חיסכון: {{percentage}}%",
+      "savingsNegative": "הוצאותיך עלו על הכנסותיך ב-{{amount}} בתקופה זו",
+      "recurringHighPct": "{{percentage}}% מהוצאותיך קבועות — קל לתכנן קדימה",
+      "expensesUp": "הוצאותיך עלו ב-{{percentage}}% לעומת התקופה הקודמת",
+      "expensesDown": "הוצאותיך ירדו ב-{{percentage}}% לעומת התקופה הקודמת",
+      "incomeUp": "הכנסותיך עלו ב-{{percentage}}% לעומת התקופה הקודמת",
+      "incomeDown": "הכנסותיך ירדו ב-{{percentage}}% לעומת התקופה הקודמת",
+      "noCategories": "הוסף קטגוריות לעסקאות לקבל תובנות מדויקות יותר",
+      "noData": "אין מספיק נתונים לתובנות בתקופה זו"
+    },
+    "insightsSummary": {
+      "savingsRate": "שיעור חיסכון",
+      "savingsRateTooltip": "מה % מההכנסות נחסך לאחר הוצאות",
+      "recurringPct": "הוצאות קבועות",
+      "recurringPctTooltip": "אחוז ההוצאות שמגיעות מהוראות קבע",
+      "periodComparison": "שינוי מתקופה קודמת",
+      "periodComparisonTooltip": "השינוי בהכנסות לעומת אותה תקופה בעבר",
+      "noData": "אין מספיק נתונים",
+      "notApplicable": "לא רלוונטי לטווח זה"
+    },
+    "recurringRatioByType": {
+      "title": "קבוע מול חד-פעמי לפי סוג",
+      "income": "הכנסות",
+      "expenses": "הוצאות",
+      "donations": "תרומות",
+      "recurringOf": "{{recurring}} מתוך {{total}} קבוע"
+    },
+      "heatmap": {
+      "title": "פעילות עסקאות",
+      "subtitle": "עוצמת פעילות לפי יום",
+      "typeAll": "כל הסוגים",
+      "tooltip": "{{date}}: {{count}} עסקאות, {{amount}}",
+      "noData": "אין עסקאות בתקופה זו",
+      "weekdays": ["א'", "ב'", "ג'", "ד'", "ה'", "ו'", "ש'"]
+    }
   },
   "monthlyChart": {
     "title": "סיכום חודשי",

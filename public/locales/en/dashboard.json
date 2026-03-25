@@ -62,8 +62,118 @@
     }
   },
   "analytics": {
-    "title": "Advanced Analytics",
-    "description": "Advanced charts and analysis will be shown here..."
+    "title": "Analytics",
+    "subtitle": "Financial insights based on your data",
+    "exportPdf": "Export PDF",
+    "loading": "Loading...",
+    "error": "Error loading data",
+    "noData": "No data to display",
+    "vsPrevious": "vs. previous period",
+    "increase": "increase",
+    "decrease": "decrease",
+    "noChange": "no change",
+    "cashFlow": {
+      "title": "Cash Flow",
+      "income": "Income",
+      "expenses": "Expenses",
+      "net": "Net Cash Flow",
+      "savingsRate": "Savings Rate",
+      "chartTitle": "Income vs. Expenses over Time",
+      "noData": "No cash flow data to display"
+    },
+    "categories": {
+      "title": "Category Breakdown",
+      "tabExpenses": "Expenses",
+      "tabIncome": "Income",
+      "other": "Other",
+      "noData": "No category data to display"
+    },
+    "tithe": {
+      "title": "Tithe Summary",
+      "balance": "Total Balance",
+      "maaser": "Ma'aser (10%)",
+      "chomesh": "Chomesh (20%)",
+      "goalProgress": "{{percentage}}% of goal completed",
+      "goalReached": "Goal reached!",
+      "goalExceeded": "Exceeded goal by {{amount}}",
+      "donationRate": "Donation rate of income",
+      "titheOnlyDonations": "Tithe donations",
+      "personalDonations": "Personal donations"
+    },
+    "forecast": {
+      "title": "Standing Orders",
+      "subtitle": "Your active recurring transactions",
+      "recurringIncome": "Monthly recurring income",
+      "recurringExpenses": "Monthly recurring expenses",
+      "expectedNet": "Expected net flow",
+      "activeRecurring": "{{count}} active standing orders",
+      "noData": "No active standing orders",
+      "monthlyTotal": "Monthly total",
+      "noDescription": "No description",
+      "dayOfMonth": "Day {{day}} of month"
+    },
+    "paymentMethods": {
+      "title": "Payment Methods",
+      "subtitle": "Expense breakdown by payment method",
+      "other": "Other",
+      "noData": "No payment method data to display"
+    },
+    "recurringRatio": {
+      "title": "Recurring vs. One-Time",
+      "recurring": "Recurring expenses",
+      "onetime": "One-time expenses",
+      "recurringPct": "{{percentage}}% recurring",
+      "onetimePct": "{{percentage}}% one-time",
+      "noData": "No data to display"
+    },
+    "recipients": {
+      "title": "Donation Recipients",
+      "subtitle": "Top recipients in selected period",
+      "other": "Other",
+      "noData": "No donations with recipients in this period"
+    },
+    "pdfExported": "PDF file downloaded successfully",
+    "pdfGenerating": "Generating PDF...",
+    "chartTypeBar": "Bar chart",
+    "chartTypePie": "Pie chart",
+    "insights": {
+      "title": "Insights",
+      "savingsGood": "Savings rate of {{percentage}}% — excellent!",
+      "savingsOk": "Savings rate: {{percentage}}%",
+      "savingsNegative": "Your expenses exceeded your income by {{amount}} this period",
+      "recurringHighPct": "{{percentage}}% of your expenses are recurring — easy to plan ahead",
+      "expensesUp": "Your expenses rose {{percentage}}% vs. the previous period",
+      "expensesDown": "Your expenses dropped {{percentage}}% vs. the previous period",
+      "incomeUp": "Your income rose {{percentage}}% vs. the previous period",
+      "incomeDown": "Your income dropped {{percentage}}% vs. the previous period",
+      "noCategories": "Add categories to your transactions for more precise insights",
+      "noData": "Not enough data for insights in this period"
+    },
+    "insightsSummary": {
+      "savingsRate": "Savings Rate",
+      "savingsRateTooltip": "What % of income is saved after expenses",
+      "recurringPct": "Fixed Expenses",
+      "recurringPctTooltip": "Percentage of expenses from standing orders",
+      "periodComparison": "Change vs. prev. period",
+      "periodComparisonTooltip": "Change in income vs. the equivalent previous period",
+      "noData": "Not enough data",
+      "notApplicable": "Not applicable for this range"
+    },
+    "recurringRatioByType": {
+      "title": "Recurring vs. One-Time by Type",
+      "income": "Income",
+      "expenses": "Expenses",
+      "donations": "Donations",
+      "recurringOf": "{{recurring}} of {{total}} recurring"
+    },
+      "heatmap": {
+      "title": "Transaction Activity",
+      "subtitle": "Activity intensity by day",
+      "typeAll": "All Types",
+      "tooltip": "{{date}}: {{count}} transactions, {{amount}}",
+      "noData": "No transactions in this period",
+      "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    }
   },
   "monthlyChart": {
     "title": "Monthly Summary",

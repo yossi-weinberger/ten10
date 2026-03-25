@@ -84,3 +84,27 @@ export {
   clearPaymentMethodCache,
   getPaymentMethodCacheVersion,
 } from "./paymentMethods.service";
+
+export {
+  fetchCategoryBreakdown,
+  fetchRecurringForecast,
+  fetchPaymentMethodBreakdown,
+  fetchRecurringVsOnetime,
+  fetchDonationRecipientsBreakdown,
+  fetchDailyHeatmap,
+} from "./insights.service";
+export type {
+  CategoryBreakdownItem,
+  CategoryBreakdownResponse,
+  CategoryType,
+  RecurringForecastItem,
+  RecurringForecastResponse,
+  PaymentMethodBreakdownItem,
+  PaymentMethodBreakdownResponse,
+  RecurringVsOnetimeItem,
+  RecurringVsOnetimeResponse,
+  DonationRecipientItem,
+  DonationRecipientsResponse,
+  DailyHeatmapItem,
+  DailyHeatmapResponse,
+} from "./insights.service";
