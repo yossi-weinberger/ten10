@@ -32,6 +32,7 @@ In both platforms, data is loaded from the respective database (Supabase for web
 - **Dashboard**: Display key metrics: income, expenses, donations (Tzedakah), and the remaining balance required for tithes.
 - **Data Entry**: Allow users to input income, expenses, and donations.
 - **Data Visualization**: Present data in tables and graphs with various filtering and segmentation options.
+- **Analytics Dashboard**: Comprehensive financial analytics page with automatic insights, category/payment breakdowns, recurring transactions analysis, daily heatmap, period comparisons, and PDF export with charts. See `features/analytics/analytics-page-guide.md`.
 - **Data Import/Export**: Enable easy import and export of data (e.g., CSV, Excel, PDF). This is crucial for allowing users to potentially migrate between platforms or other tools.
 - **Backup & Restore (Desktop Only)**: Provide functionality for users of the offline desktop version to back up their local SQLite database and restore it.
 
@@ -48,12 +49,16 @@ In both platforms, data is loaded from the respective database (Supabase for web
 
 ## Pages / Views
 
-- Main Dashboard
-- Income / Expenses / Donations Page (likely combined or separate views)
-- Halachot (Jewish Law) Information Page
-- About Page
-- Settings Page
-- User Profile Page (Web only)
+- Main Dashboard (`/`) — KPI stats cards + monthly chart
+- Add Transaction (`/add-transaction`)
+- Transactions Table (`/transactions-table`) — filterable, sortable, exportable
+- Recurring Transactions (`/transactions-table/recurring-transactions`)
+- Analytics Dashboard (`/analytics`) — insights, category breakdown, heatmap, PDF export
+- Halachot (Jewish Law) Information Page (`/halacha`)
+- About Page (`/about`)
+- Settings Page (`/settings`)
+- User Profile Page (`/profile`, Web only)
+- Admin Dashboard (`/admin`, Web only, admin-whitelisted)
 
 ## Data Types and Tithe Calculations
 
@@ -109,11 +114,12 @@ The application needs to handle various types of financial entries, each affecti
 
 ## Future Features (Low Priority)
 
-- **Advanced Reporting**: Annual summaries, period comparisons, custom expense categories.
 - **Budgeting Tools**: Define and track budgets for expense categories.
 - **Goal Management**: Set and track savings or donation goals.
 - **Advanced Halachic Calculations**: Handle more complex scenarios (consultation required).
 - **Direct Data Import**: Import from bank/credit card statements (CSV/Excel).
+- **Maaser Stories Widget**: Collapsible widget on home page with educational content about tithing.
+- **Financial Health Score**: Composite score based on savings rate, tithe compliance, recurring stability.
 
 ## Data Management Features
 

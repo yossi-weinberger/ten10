@@ -38,7 +38,7 @@ This section details how the different parts of the project interact with each o
 6.  **LLM Instructions (`llm-instructions`)**:
     - This directory contains Markdown documents providing development guidelines and context, organized by topic. Key documents include:
       - **Project Overview**: `project/project-overview-and-requirements.md`, `project/project-tech-stack-and-guidelines.md`
-      - **Features**: `features/transactions/` (data model, recurring, category selection, table overview/status), `features/email/` (reminders, unsubscribe, automated downloads), `features/auth/` (terms acceptance, password reset, desktop app lock), `features/contact-us-feature.md`, `features/currency/currency-conversion-guide.md`
+      - **Features**: `features/analytics/analytics-page-guide.md` (analytics dashboard — comprehensive), `features/transactions/` (data model, recurring, category selection, table overview/status), `features/email/` (reminders, unsubscribe, automated downloads), `features/auth/` (terms acceptance, password reset, desktop app lock), `features/contact-us-feature.md`, `features/currency/currency-conversion-guide.md`
       - **Platforms**: `platforms/desktop-data-saving-guide.md`, `platforms/desktop-release-system-guide.md`, `platforms/platform-context-api-guide.md`, `platforms/tauri-v2-build-and-platform-detection-summary.md`, `platforms/android-twa-implementation-guide.md`
       - **Deployment**: `deployment/release-management-guide.md`, `deployment/setup-updater-keys.md`, `deployment/code-signing-guide.md`, `deployment/performance-optimization-jan-2026.md`
       - **UI/UX**: `ui/landing-page-complete-guide.md`, `ui/multi-language-and-responsive-design-guide.md`, `ui/ui-component-guidelines.md`, `ui/translation-map.md`, `ui/halacha-page-revamp-plan.md`
@@ -57,6 +57,8 @@ This section details how the different parts of the project interact with each o
 │   │   ├── project-overview-and-requirements.md
 │   │   └── project-tech-stack-and-guidelines.md
 │   ├── features/          # Feature-specific documentation
+│   │   ├── analytics/     # Analytics dashboard
+│   │   │   └── analytics-page-guide.md
 │   │   ├── transactions/  # Transactions table and data model
 │   │   │   ├── transactions-table-technical-overview.md
 │   │   │   ├── transactions-table-implementation-status.md
@@ -183,6 +185,17 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── AdminEngagementSection.tsx
 │   │   │   ├── AdminDownloadsSection.tsx
 │   │   │   └── AdminTrendsChart.tsx
+│   │   ├── analytics/     # Analytics page components (see features/analytics/analytics-page-guide.md)
+│   │   │   ├── CategoryBreakdownChart.tsx    # Bar/Pie category breakdown, fixed height 7 rows
+│   │   │   ├── DonationRecipientsInsight.tsx # Bar/Pie donations by description/recipient
+│   │   │   ├── InsightsSummaryRow.tsx        # 3 KPI cards: savings%, fixed expenses%, period delta
+│   │   │   ├── PaymentMethodInsight.tsx      # Bar/Pie payment method breakdown
+│   │   │   ├── RecurringForecastInsight.tsx  # Active standing orders by type tab
+│   │   │   ├── RecurringRatioInsight.tsx     # % recurring vs one-time per type
+│   │   │   ├── TextInsightsCard.tsx          # Rule-based auto-generated text insights
+│   │   │   ├── TransactionHeatmap.tsx        # GitHub-style daily activity heatmap
+│   │   │   ├── CashFlowInsight.tsx           # (built, not currently used in AnalyticsPage)
+│   │   │   └── TitheSummaryInsight.tsx       # (built, not currently used in AnalyticsPage)
 │   │   ├── ui/            # shadcn/ui components and other generic UI elements
 │   │   │   ├── accordion.tsx
 │   │   │   ├── alert-dialog.tsx
@@ -242,6 +255,8 @@ This section details how the different parts of the project interact with each o
 │   ├── hooks/
 │   │   ├── useAnimatedCounter.ts
 │   │   ├── useDateControls.ts      # Manages date range selection (month/year/all/custom) for dashboard stats
+│   │   ├── useInsights.ts          # Fetches analytics data (6 streams: categories, recurring, payments, heatmap, etc.)
+│   │   ├── usePeriodComparison.ts  # Fetches prior-period stats (same duration, immediately before current range)
 │   │   └── useServerStats.ts       # Fetches server-calculated statistics (income, expenses, donations, tithe balance)
 │   ├── lib/
 │   │   ├── currencies.ts
@@ -253,6 +268,7 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── contact.service.ts
 │   │   │   ├── dataManagement.service.ts
 │   │   │   ├── index.ts
+│   │   │   ├── insights.service.ts          # Analytics RPCs / Tauri commands (categories, heatmap, payments, etc.)
 │   │   │   ├── notification.service.ts
 │   │   │   ├── recurringTransactions.service.ts
 │   │   │   ├── reminder.service.ts
@@ -277,7 +293,8 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── export-pdf.ts
 │   │   │   ├── formatting.tsx
 │   │   │   ├── hebrew-date.ts
-│   │   │   └── index.ts
+│   │   │   ├── index.ts
+│   │   │   └── pdf-helpers.ts               # Shared PDF utilities: drawRtlText, splitTextSegments
 │   │   └── utils.ts
 │   ├── pages/
 │   │   ├── AboutPage.tsx
@@ -339,7 +356,9 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── donation_commands.rs
 │   │   │   ├── expense_commands.rs
 │   │   │   ├── income_commands.rs
+│   │   │   ├── insights_commands.rs          # Analytics Tauri commands (heatmap, categories, recipients, etc.)
 │   │   │   ├── mod.rs
+│   │   │   ├── platform_commands.rs
 │   │   │   ├── recurring_transaction_commands.rs
 │   │   │   └── transaction_commands.rs
 │   │   ├── transaction_types.rs
