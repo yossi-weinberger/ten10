@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell,
@@ -60,17 +60,23 @@ export function DonationRecipientsInsight({
   const { t, i18n } = useTranslation("dashboard");
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
   const [chartView, setChartView] = useState<ChartViewType>("bar");
-  const fmt = (v: number) => formatCurrency(v, defaultCurrency, i18n.language);
+  const fmt = useCallback(
+    (v: number) => formatCurrency(v, defaultCurrency, i18n.language),
+    [defaultCurrency, i18n.language]
+  );
 
   // ChartContainer CSS var injection for pie colors
-  const chartConfig: ChartConfig = {
-    total_amount: { label: t("monthlyChart.amount"), color: "hsl(var(--chart-yellow))" },
-    "slice-0": { color: "hsl(var(--chart-yellow))" },
-    "slice-1": { color: "hsl(var(--chart-orange))" },
-    "slice-2": { color: "hsl(var(--chart-teal))" },
-    "slice-3": { color: "hsl(var(--chart-blue))" },
-    "slice-4": { color: "hsl(var(--chart-purple))" },
-  };
+  const chartConfig = useMemo<ChartConfig>(
+    () => ({
+      total_amount: { label: t("monthlyChart.amount"), color: "hsl(var(--chart-yellow))" },
+      "slice-0": { color: "hsl(var(--chart-yellow))" },
+      "slice-1": { color: "hsl(var(--chart-orange))" },
+      "slice-2": { color: "hsl(var(--chart-teal))" },
+      "slice-3": { color: "hsl(var(--chart-blue))" },
+      "slice-4": { color: "hsl(var(--chart-purple))" },
+    }),
+    [t]
+  );
 
   const localizedData = useMemo(() =>
     data.map((item, index) => ({
@@ -153,10 +159,11 @@ export function DonationRecipientsInsight({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
+                    className="w-full"
                     dir="ltr"
                   >
                     {/* Scroll wrapper — fixed visible height, full chart inside */}
-                    <div style={{ maxHeight: SCROLL_HEIGHT, overflowY: "auto" }}>
+                    <div style={{ maxHeight: SCROLL_HEIGHT, overflowY: "auto", width: "100%" }}>
                       <ChartContainer
                         config={chartConfig}
                         className="w-full"
@@ -183,6 +190,7 @@ export function DonationRecipientsInsight({
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2 }}
+                    className="w-full"
                     dir="ltr"
                   >
                     <ChartContainer

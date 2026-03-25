@@ -53,7 +53,7 @@ pub fn get_desktop_category_breakdown(
         "expense"  => "type IN ('expense', 'recognized-expense')".to_string(),
         "income"   => format!("({})", income_types_condition()),
         "donation" => "type IN ('donation', 'non_tithe_donation')".to_string(),
-        other      => format!("type = '{}'", other),
+        other      => return Err(format!("Invalid transaction_type: {}", other)),
     };
 
     let sql = format!(
@@ -123,7 +123,8 @@ pub fn get_desktop_payment_method_breakdown(
          FROM transactions
          WHERE {} AND date >= ?1 AND date <= ?2
          GROUP BY COALESCE(payment_method, 'other')
-         ORDER BY total_amount DESC",
+         ORDER BY total_amount DESC
+         LIMIT 20",
         expense_cond
     );
 

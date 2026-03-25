@@ -1,7 +1,7 @@
 import regularFontUrl from "/fonts/Rubik-Regular.ttf?url";
 import mediumFontUrl from "/fonts/Rubik-Medium.ttf?url";
 import { drawRtlText } from "@/lib/utils/pdf-helpers";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -86,11 +86,14 @@ export function AnalyticsPage() {
     setHeatmapTypeGroup,
   } = useInsights(activeDateRangeObject, user, platform);
 
-  const formatDate = (date: Date) => {
-    if (settings.calendarType === "hebrew") return formatHebrewDate(date);
-    const locale = i18n.language === "he" ? he : enUS;
-    return format(date, "dd/MM/yyyy", { locale });
-  };
+  const formatDate = useCallback(
+    (date: Date) => {
+      if (settings.calendarType === "hebrew") return formatHebrewDate(date);
+      const locale = i18n.language === "he" ? he : enUS;
+      return format(date, "dd/MM/yyyy", { locale });
+    },
+    [settings.calendarType, i18n.language]
+  );
 
   const handleExportPdf = async () => {
     setIsExportingPdf(true);
@@ -110,10 +113,11 @@ export function AnalyticsPage() {
       };
 
       // Capture all chart elements before building PDF
-      const [catPng, paymentPng, heatmapPng] = await Promise.all([
+      const [catPng, paymentPng, heatmapPng, donationsPng] = await Promise.all([
         captureChart("pdf-chart-categories"),
         captureChart("pdf-chart-payment"),
         captureChart("pdf-chart-heatmap"),
+        captureChart("pdf-chart-donations"),
       ]);
 
       const [regularFontBytes, mediumFontBytes] = await Promise.all([
@@ -126,10 +130,11 @@ export function AnalyticsPage() {
       const regularFont = await pdfDoc.embedFont(regularFontBytes);
       const boldFont = await pdfDoc.embedFont(mediumFontBytes);
 
-      const [catImg, paymentImg, heatmapImg] = await Promise.all([
+      const [catImg, paymentImg, heatmapImg, donationsImg] = await Promise.all([
         catPng ? pdfDoc.embedPng(catPng).catch(() => null) : null,
         paymentPng ? pdfDoc.embedPng(paymentPng).catch(() => null) : null,
         heatmapPng ? pdfDoc.embedPng(heatmapPng).catch(() => null) : null,
+        donationsPng ? pdfDoc.embedPng(donationsPng).catch(() => null) : null,
       ]);
 
       let logoImage: Awaited<ReturnType<typeof pdfDoc.embedPng>> | null = null;
@@ -262,6 +267,15 @@ export function AnalyticsPage() {
           return `${label}: ${fmt(item.total_amount)}`;
         });
         drawSectionWithChart(t("analytics.paymentMethods.title"), payLines, paymentImg, 120);
+      }
+
+      // Section: Donation recipients — list + chart side by side
+      if (recipientsData.length > 0) {
+        const donLines = recipientsData.slice(0, 7).map((item) => {
+          const label = item.recipient === "other" ? t("analytics.recipients.other") : item.recipient;
+          return `${label}: ${fmt(item.total_amount)}`;
+        });
+        drawSectionWithChart(t("analytics.recipients.title"), donLines, donationsImg, 120);
       }
 
       // Section: Standing orders (text only)

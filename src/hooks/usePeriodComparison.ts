@@ -64,6 +64,9 @@ export function usePeriodComparison(
       })
       .catch((err) => {
         logger.error("usePeriodComparison: fetch error:", err);
+        setPrevIncome(null);
+        setPrevExpenses(null);
+        setPrevDonations(null);
       })
       .finally(() => setIsLoading(false));
   }, [startDate, endDate, platform, user?.id]);

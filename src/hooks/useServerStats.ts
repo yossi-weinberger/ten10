@@ -95,10 +95,6 @@ export function useServerStats(
 
   useEffect(() => {
     const effectiveUserId = platform === "web" ? user?.id || null : null;
-    logger.log(
-      `useServerStats useEffect triggered. Platform: ${platform}, UserID: ${effectiveUserId}, DateRange: ${activeDateRangeObject.startDate}-${activeDateRangeObject.endDate}, Timestamp: ${lastDbFetchTimestamp}`
-    );
-
     const canFetch = (platform === "web" && effectiveUserId) || platform === "desktop";
     const isWebNoUser = platform === "web" && !effectiveUserId;
 
@@ -167,7 +163,7 @@ export function useServerStats(
       loadAll();
     }
   }, [
-    user,
+    user?.id,
     platform,
     activeDateRangeObject,
     setServerTotalIncome,

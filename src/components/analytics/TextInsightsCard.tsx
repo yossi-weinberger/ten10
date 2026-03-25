@@ -137,12 +137,11 @@ export function TextInsightsCard({
     }
 
     return list.slice(0, 4);
-  // fmt is defined inside useMemo — remove it from deps (no longer an external reference)
-  }, [serverTotalIncome, serverTotalExpenses, prevIncome, prevExpenses, activeRecurring, categoryData, t, defaultCurrency, i18n.language]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [serverTotalIncome, serverTotalExpenses, prevIncome, prevExpenses, activeRecurring, categoryData, t, defaultCurrency, i18n.language]);
 
   if (isLoading) {
     return (
-      <Card className="bg-gradient-to-br from-background to-muted/20">
+      <Card className="bg-gradient-to-br from-background to-muted/20 flex-1">
         <CardHeader className="p-4 sm:p-5 pb-2">
           <div className="flex items-center gap-2">
             <Skeleton className="h-4 w-4 rounded-full" />
@@ -168,8 +167,9 @@ export function TextInsightsCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
+      className="flex-1 flex flex-col"
     >
-      <Card dir={i18n.dir()} className="bg-gradient-to-br from-background to-muted/20 flex-1">
+      <Card dir={i18n.dir()} className="bg-gradient-to-br from-background to-muted/20 h-full">
         <CardHeader className="p-4 sm:p-5 pb-2">
           <CardTitle className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
             <Lightbulb className="h-4 w-4 text-yellow-500" />

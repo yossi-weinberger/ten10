@@ -249,32 +249,29 @@ export function useInsights(
     }
   }, [isReady, startDate, endDate, heatmapTypeGroup]);
 
+  // Fetch everything that depends only on date range / platform / db timestamp
   useEffect(() => {
     if (!isReady) return;
-    loadCategory();
     loadActiveRecurring();
     loadPaymentMethods();
     loadRecurringRatio();
     loadRecipients();
-    loadHeatmap();
-  }, [
-    isReady,
-    startDate,
-    endDate,
-    platform,
-    lastDbFetchTimestamp,
-  ]);
+  }, [isReady, startDate, endDate, platform, lastDbFetchTimestamp]);
 
-  // Re-fetch heatmap when type group changes
-  useEffect(() => {
-    if (!isReady) return;
-    loadHeatmap();
-  }, [heatmapTypeGroup]); // eslint-disable-line react-hooks/exhaustive-deps
-
+  // Category re-fetches when date range, categoryType, platform, or db changes.
+  // loadCategory captures [isReady, startDate, endDate, categoryType] via useCallback,
+  // so a new reference is produced whenever any of those change.
   useEffect(() => {
     if (!isReady) return;
     loadCategory();
-  }, [categoryType]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [loadCategory, platform, lastDbFetchTimestamp]);
+
+  // Heatmap re-fetches when date range, heatmapTypeGroup, platform, or db changes.
+  // loadHeatmap captures [isReady, startDate, endDate, heatmapTypeGroup] via useCallback.
+  useEffect(() => {
+    if (!isReady) return;
+    loadHeatmap();
+  }, [loadHeatmap, platform, lastDbFetchTimestamp]);
 
   return {
     categoryData,

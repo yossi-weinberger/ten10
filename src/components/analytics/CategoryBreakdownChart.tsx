@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell,
@@ -75,18 +75,24 @@ export function CategoryBreakdownChart({
   const { t, i18n } = useTranslation("dashboard");
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
   const [chartView, setChartView] = useState<ChartViewType>("bar");
-  const fmt = (v: number) => formatCurrency(v, defaultCurrency, i18n.language);
+  const fmt = useCallback(
+    (v: number) => formatCurrency(v, defaultCurrency, i18n.language),
+    [defaultCurrency, i18n.language]
+  );
 
   // ChartContainer injects --color-slice-0..4 as resolved CSS values;
   // Cell uses var(--color-slice-N) which works in SVG (unlike hsl(var(--chart-N)))
-  const chartConfig: ChartConfig = {
-    total_amount: { label: t("monthlyChart.amount"), color: "hsl(var(--chart-red))" },
-    "slice-0": { color: "hsl(var(--chart-teal))" },
-    "slice-1": { color: "hsl(var(--chart-blue))" },
-    "slice-2": { color: "hsl(var(--chart-yellow))" },
-    "slice-3": { color: "hsl(var(--chart-orange))" },
-    "slice-4": { color: "hsl(var(--chart-purple))" },
-  };
+  const chartConfig = useMemo<ChartConfig>(
+    () => ({
+      total_amount: { label: t("monthlyChart.amount"), color: "hsl(var(--chart-red))" },
+      "slice-0": { color: "hsl(var(--chart-teal))" },
+      "slice-1": { color: "hsl(var(--chart-blue))" },
+      "slice-2": { color: "hsl(var(--chart-yellow))" },
+      "slice-3": { color: "hsl(var(--chart-orange))" },
+      "slice-4": { color: "hsl(var(--chart-purple))" },
+    }),
+    [t]
+  );
 
   const localizedData = useMemo(() =>
     data.map((item, index) => ({
@@ -152,9 +158,9 @@ export function CategoryBreakdownChart({
             <div id="pdf-chart-categories">
               <AnimatePresence mode="wait">
                 {chartView === "bar" ? (
-                  <motion.div key={`bar-${categoryType}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} dir="ltr">
+                  <motion.div key={`bar-${categoryType}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="w-full" dir="ltr">
                     {/* Scroll wrapper — fixed visible height, inner chart as tall as needed */}
-                    <div style={{ maxHeight: SCROLL_HEIGHT, overflowY: "auto" }}>
+                    <div style={{ maxHeight: SCROLL_HEIGHT, overflowY: "auto", width: "100%" }}>
                       <ChartContainer config={chartConfig} className="w-full" style={{ height: fullBarHeight, minHeight: fullBarHeight }}>
                         <BarChart data={localizedData} layout="vertical" margin={{ top: 0, right: 70, bottom: 0, left: 0 }}>
                           <CartesianGrid strokeDasharray="3 3" horizontal={false} />
@@ -171,7 +177,7 @@ export function CategoryBreakdownChart({
                     </div>
                   </motion.div>
                 ) : (
-                  <motion.div key={`pie-${categoryType}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} dir="ltr">
+                  <motion.div key={`pie-${categoryType}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="w-full" dir="ltr">
                     <ChartContainer config={chartConfig} className="w-full" style={{ height: pieHeight, minHeight: pieHeight }}>
                       <PieChart>
                         <Pie data={localizedData} dataKey="total_amount" nameKey="label" cx="50%" cy="45%" outerRadius={90} isAnimationActive>
