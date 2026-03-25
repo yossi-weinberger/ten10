@@ -146,6 +146,7 @@
       "expensesDown": "Your expenses dropped {{percentage}}% vs. the previous period",
       "incomeUp": "Your income rose {{percentage}}% vs. the previous period",
       "incomeDown": "Your income dropped {{percentage}}% vs. the previous period",
+      "topCategory": "Top expense category: {{category}} — {{amount}} ({{percentage}}% of expenses)",
       "noCategories": "Add categories to your transactions for more precise insights",
       "noData": "Not enough data for insights in this period"
     },
@@ -155,7 +156,8 @@
       "recurringPct": "Fixed Expenses",
       "recurringPctTooltip": "Percentage of expenses from standing orders",
       "periodComparison": "Change vs. prev. period",
-      "periodComparisonTooltip": "Change in income vs. the equivalent previous period",
+      "periodComparisonTooltip": "Change in income vs. the previous period — same duration, immediately before the current range",
+      "periodComparisonTooltipWithDates": "Change in income vs. previous period: {{prevStart}} to {{prevEnd}}",
       "noData": "Not enough data",
       "notApplicable": "Not applicable for this range"
     },
@@ -172,6 +174,8 @@
       "typeAll": "All Types",
       "tooltip": "{{date}}: {{count}} transactions, {{amount}}",
       "noData": "No transactions in this period",
+      "legendLow": "Less",
+      "legendHigh": "More",
       "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
     }
   },

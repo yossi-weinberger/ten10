@@ -231,25 +231,29 @@ pub fn get_desktop_donation_recipients_breakdown(
     start_date: String,
     end_date: String,
 ) -> Result<Vec<DonationRecipientItem>, String> {
-    // Get recipients with the most recent description per group using a subquery
+    // Group by COALESCE(description, recipient, 'other') — uses description first.
+    // Order by SUM(amount) DESC (largest first), LIMIT 50.
     let sql =
         "SELECT
-           grp.recipient,
-           grp.total_amount,
-           (SELECT t2.description FROM transactions t2
-            WHERE t2.type IN ('donation', 'non_tithe_donation')
-              AND COALESCE(t2.recipient, 'other') = grp.recipient
-              AND t2.description IS NOT NULL AND t2.description != ''
-            ORDER BY t2.date DESC LIMIT 1) AS last_description
+           display_key AS recipient,
+           total_amount,
+           display_key AS last_description
          FROM (
-           SELECT COALESCE(recipient, 'other') AS recipient, SUM(amount) AS total_amount
+           SELECT
+             COALESCE(NULLIF(TRIM(COALESCE(description,'')), ''),
+                      NULLIF(TRIM(COALESCE(recipient,'')), ''),
+                      'other') AS display_key,
+             SUM(amount) AS total_amount
            FROM transactions
-           WHERE type IN ('donation', 'non_tithe_donation') AND date >= ?1 AND date <= ?2
-           GROUP BY COALESCE(recipient, 'other')
+           WHERE type IN ('donation', 'non_tithe_donation')
+             AND date >= ?1 AND date <= ?2
+           GROUP BY COALESCE(NULLIF(TRIM(COALESCE(description,'')), ''),
+                              NULLIF(TRIM(COALESCE(recipient,'')), ''),
+                              'other')
            ORDER BY total_amount DESC
-           LIMIT 10
-         ) grp
-         ORDER BY grp.total_amount DESC";
+           LIMIT 50
+         )
+         ORDER BY total_amount DESC";
 
     let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
     let mut stmt = conn_guard.prepare(sql).map_err(|e| e.to_string())?;

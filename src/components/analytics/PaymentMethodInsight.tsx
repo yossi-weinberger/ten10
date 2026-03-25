@@ -60,11 +60,11 @@ export function PaymentMethodInsight({ data, isLoading, error }: PaymentMethodIn
   // ChartContainer injects --color-slice-0..4 as resolved CSS values
   const chartConfig: ChartConfig = {
     total_amount: { label: t("monthlyChart.amount"), color: "hsl(var(--chart-blue))" },
-    "slice-0": { color: "hsl(var(--chart-3))" },
-    "slice-1": { color: "hsl(var(--chart-1))" },
-    "slice-2": { color: "hsl(var(--chart-4))" },
-    "slice-3": { color: "hsl(var(--chart-2))" },
-    "slice-4": { color: "hsl(var(--chart-5))" },
+    "slice-0": { color: "hsl(var(--chart-blue))" },
+    "slice-1": { color: "hsl(var(--chart-teal))" },
+    "slice-2": { color: "hsl(var(--chart-purple))" },
+    "slice-3": { color: "hsl(var(--chart-orange))" },
+    "slice-4": { color: "hsl(var(--chart-yellow))" },
   };
 
   const localizedData = useMemo(() =>
@@ -90,7 +90,11 @@ export function PaymentMethodInsight({ data, isLoading, error }: PaymentMethodIn
     [localizedData]
   );
 
-  const barHeight = Math.max(160, localizedData.length * 44);
+  const ROW_HEIGHT = 40;
+  const VISIBLE_ROWS = 7;
+  const SCROLL_HEIGHT = Math.max(160, VISIBLE_ROWS * ROW_HEIGHT); // 280px
+  const fullBarHeight = Math.max(SCROLL_HEIGHT, localizedData.length * ROW_HEIGHT);
+  const pieHeight = 240;
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.1 }} className="h-full">
@@ -132,23 +136,25 @@ export function PaymentMethodInsight({ data, isLoading, error }: PaymentMethodIn
               <AnimatePresence mode="wait">
                 {chartView === "bar" ? (
                   <motion.div key="bar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} dir="ltr">
-                    <ChartContainer config={chartConfig} className="w-full" style={{ minHeight: barHeight, height: barHeight }}>
-                      <BarChart data={localizedData} layout="vertical" margin={{ top: 0, right: 70, bottom: 0, left: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                        <YAxis dataKey="label" type="category" width={95} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                        <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => fmt(v)} tickLine={false} axisLine={false} />
-                        <ChartTooltip content={<ChartTooltipContent formatter={(value) => fmt(Number(value))} />} />
-                        <Bar dataKey="total_amount" radius={[0, 4, 4, 0]} isAnimationActive>
-                          {localizedData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.fill} />
-                          ))}
-                        </Bar>
-                      </BarChart>
-                    </ChartContainer>
+                    <div style={{ maxHeight: SCROLL_HEIGHT, overflowY: "auto" }}>
+                      <ChartContainer config={chartConfig} className="w-full" style={{ height: fullBarHeight, minHeight: fullBarHeight }}>
+                        <BarChart data={localizedData} layout="vertical" margin={{ top: 0, right: 70, bottom: 0, left: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                          <YAxis dataKey="label" type="category" width={95} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                          <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => fmt(v)} tickLine={false} axisLine={false} />
+                          <ChartTooltip content={<ChartTooltipContent formatter={(value) => fmt(Number(value))} />} />
+                          <Bar dataKey="total_amount" radius={[0, 4, 4, 0]} isAnimationActive>
+                            {localizedData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.fill} />
+                            ))}
+                          </Bar>
+                        </BarChart>
+                      </ChartContainer>
+                    </div>
                   </motion.div>
                 ) : (
                   <motion.div key="pie" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} dir="ltr">
-                    <ChartContainer config={chartConfig} className="w-full" style={{ minHeight: 240, height: 240 }}>
+                    <ChartContainer config={chartConfig} className="w-full" style={{ height: pieHeight, minHeight: pieHeight }}>
                       <PieChart>
                         <Pie data={localizedData} dataKey="total_amount" nameKey="label" cx="50%" cy="45%" outerRadius={80} isAnimationActive>
                           {localizedData.map((_, index) => (

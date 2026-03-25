@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import CountUp from "react-countup";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Tooltip,
   TooltipContent,
@@ -19,6 +20,8 @@ interface InsightsSummaryRowProps {
   activeRecurring: RecurringTransaction[];
   isLoading: boolean;
   isAllTime?: boolean;
+  prevPeriodStart?: string;
+  prevPeriodEnd?: string;
 }
 
 // Defined at module level — not inside render — to avoid unmount/remount on every render
@@ -71,9 +74,9 @@ function InsightKpiCard({
       transition={{ duration: 0.3, delay: index * 0.06 }}
     >
       <Card className="bg-gradient-to-br from-background to-muted/20 h-full">
-        <CardContent className="p-4 sm:p-5">
-          <div className="flex items-start justify-between gap-1 mb-2" dir={i18n.dir()}>
-            <p className="text-xs text-muted-foreground leading-tight">{label}</p>
+        <CardContent className="p-2 sm:p-4 sm:p-5">
+          <div className="flex items-start justify-between gap-0.5 mb-1 sm:mb-2" dir={i18n.dir()}>
+            <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">{label}</p>
             {tooltip && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -87,7 +90,7 @@ function InsightKpiCard({
               </Tooltip>
             )}
           </div>
-          <p className={`text-2xl font-bold ${colorClass}`}>
+          <p className={`text-lg sm:text-2xl font-bold ${colorClass}`}>
             <CountUp
               start={startAnimateValue}
               end={displayValue}
@@ -110,6 +113,8 @@ export function InsightsSummaryRow({
   activeRecurring,
   isLoading,
   isAllTime = false,
+  prevPeriodStart,
+  prevPeriodEnd,
 }: InsightsSummaryRowProps) {
   const { t } = useTranslation("dashboard");
 
@@ -135,16 +140,45 @@ export function InsightsSummaryRow({
       ? ((income - prevIncome) / prevIncome) * 100
       : null;
 
-  // Hide entirely only if truly no data and not all-time
-  if (!isLoading && savingsRate === null && recurringPct === null && !isAllTime) {
+  // Always render 3 cards to keep consistent height.
+  // When loading: skeleton. When no data: placeholder card.
+
+  // Show skeleton cards while loading
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        {[0, 1, 2].map((i) => (
+          <Card key={i} className="bg-gradient-to-br from-background to-muted/20">
+            <CardContent className="p-2 sm:p-4 sm:p-5 space-y-1.5 sm:space-y-2">
+              <Skeleton className="h-2.5 sm:h-3 w-16 sm:w-24" />
+              <Skeleton className="h-7 sm:h-8 w-12 sm:w-16" />
+              <Skeleton className="h-2 sm:h-2.5 w-14 sm:w-20" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  // Hide entirely only when truly no data at all and not all-time
+  if (savingsRate === null && recurringPct === null && !isAllTime && incomeDelta === null) {
     return null;
   }
 
   const notApplicableLabel = t("analytics.insightsSummary.notApplicable");
 
+  // Build period comparison tooltip with actual dates
+  const periodTooltip = prevPeriodStart && prevPeriodEnd && !isAllTime
+    ? t("analytics.insightsSummary.periodComparisonTooltipWithDates", {
+        prevStart: prevPeriodStart,
+        prevEnd: prevPeriodEnd,
+      })
+    : t("analytics.insightsSummary.periodComparisonTooltip");
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-      {savingsRate !== null && (
+    <div className="grid grid-cols-3 gap-2 sm:gap-4">
+      {/* Slot 1: Savings rate — show placeholder if null */}
+      {savingsRate !== null ? (
         <InsightKpiCard
           label={t("analytics.insightsSummary.savingsRate")}
           value={savingsRate}
@@ -153,8 +187,17 @@ export function InsightsSummaryRow({
           tooltip={t("analytics.insightsSummary.savingsRateTooltip")}
           index={0}
         />
+      ) : (
+        <Card className="bg-gradient-to-br from-background to-muted/20">
+          <CardContent className="p-4 sm:p-5">
+            <p className="text-xs text-muted-foreground mb-1">{t("analytics.insightsSummary.savingsRate")}</p>
+            <p className="text-2xl font-bold text-muted-foreground">—</p>
+          </CardContent>
+        </Card>
       )}
-      {recurringPct !== null && (
+
+      {/* Slot 2: Recurring % — show placeholder if null */}
+      {recurringPct !== null ? (
         <InsightKpiCard
           label={t("analytics.insightsSummary.recurringPct")}
           value={recurringPct}
@@ -163,31 +206,37 @@ export function InsightsSummaryRow({
           tooltip={t("analytics.insightsSummary.recurringPctTooltip")}
           index={1}
         />
+      ) : (
+        <Card className="bg-gradient-to-br from-background to-muted/20">
+          <CardContent className="p-4 sm:p-5">
+            <p className="text-xs text-muted-foreground mb-1">{t("analytics.insightsSummary.recurringPct")}</p>
+            <p className="text-2xl font-bold text-muted-foreground">—</p>
+          </CardContent>
+        </Card>
       )}
-      {/* Period comparison — always show card, but "not applicable" for all-time */}
-      {(incomeDelta !== null || isAllTime) && (
-        <InsightKpiCard
-          label={t("analytics.insightsSummary.periodComparison")}
-          value={incomeDelta !== null ? Math.abs(incomeDelta) : 0}
-          isLoading={isLoading && !isAllTime}
-          colorClass={
-            isAllTime
-              ? "text-muted-foreground"
-              : incomeDelta !== null && incomeDelta >= 0
-              ? "text-green-500"
-              : "text-destructive"
-          }
-          tooltip={t("analytics.insightsSummary.periodComparisonTooltip")}
-          deltaNode={
-            isAllTime ? (
-              <NotApplicableBadge label={notApplicableLabel} />
-            ) : incomeDelta !== null ? (
-              <DeltaBadge pct={incomeDelta} t={t} />
-            ) : null
-          }
-          index={2}
-        />
-      )}
+
+      {/* Slot 3: Period comparison — always shown */}
+      <InsightKpiCard
+        label={t("analytics.insightsSummary.periodComparison")}
+        value={incomeDelta !== null ? Math.abs(incomeDelta) : 0}
+        isLoading={isLoading && !isAllTime}
+        colorClass={
+          isAllTime
+            ? "text-muted-foreground"
+            : incomeDelta !== null && incomeDelta >= 0
+            ? "text-green-500"
+            : "text-destructive"
+        }
+        tooltip={periodTooltip}
+        deltaNode={
+          isAllTime ? (
+            <NotApplicableBadge label={notApplicableLabel} />
+          ) : incomeDelta !== null ? (
+            <DeltaBadge pct={incomeDelta} t={t} />
+          ) : null
+        }
+        index={2}
+      />
     </div>
   );
 }

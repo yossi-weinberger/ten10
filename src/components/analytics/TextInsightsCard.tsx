@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { RecurringTransaction } from "@/types/transaction";
 import { CategoryBreakdownResponse } from "@/lib/data-layer/insights.service";
 import { useDonationStore } from "@/lib/store";
@@ -59,88 +60,108 @@ export function TextInsightsCard({
     const income = serverTotalIncome ?? 0;
     const expenses = serverTotalExpenses ?? 0;
 
-    if (income <= 0 || expenses <= 0) return list;
+    // 1. Savings rate (always fire when income > 0)
+    const savingsRate = income > 0 ? ((income - expenses) / income) * 100 : null;
 
-    // 1. Savings rate
-    const savingsRate = ((income - expenses) / income) * 100;
-    if (savingsRate >= 20) {
-      list.push({
-        id: "savings-good",
-        text: t("analytics.insights.savingsGood", { percentage: savingsRate.toFixed(1) }),
-        severity: "positive",
-      });
-    } else if (savingsRate < 0) {
-      list.push({
-        id: "savings-negative",
-        text: t("analytics.insights.savingsNegative", { amount: fmt(expenses - income) }),
-        severity: "negative",
-      });
-    } else {
-      list.push({
-        id: "savings-ok",
-        text: t("analytics.insights.savingsOk", { percentage: savingsRate.toFixed(1) }),
-        severity: "neutral",
-      });
+    if (savingsRate !== null) {
+      if (savingsRate >= 20) {
+        list.push({ id: "savings-good", text: t("analytics.insights.savingsGood", { percentage: savingsRate.toFixed(1) }), severity: "positive" });
+      } else if (savingsRate < 0) {
+        list.push({ id: "savings-negative", text: t("analytics.insights.savingsNegative", { amount: fmt(expenses - income) }), severity: "negative" });
+      } else {
+        list.push({ id: "savings-ok", text: t("analytics.insights.savingsOk", { percentage: savingsRate.toFixed(1) }), severity: "neutral" });
+      }
     }
 
-    // 2. Recurring expenses ratio
-    const recurringExpenses = activeRecurring
-      .filter((r) => ["expense", "recognized-expense"].includes(r.type))
-      .reduce((s, r) => s + r.amount, 0);
-    const recurringPct = expenses > 0 ? (recurringExpenses / expenses) * 100 : 0;
-    if (recurringPct > 60) {
-      list.push({
-        id: "recurring-high",
-        text: t("analytics.insights.recurringHighPct", { percentage: recurringPct.toFixed(0) }),
-        severity: "neutral",
-      });
+    // 2. Top expense category (always fire when category data available)
+    if (categoryData.length > 0) {
+      const topCat = categoryData[0];
+      if (topCat && topCat.total_amount > 0 && expenses > 0) {
+        const catPct = (topCat.total_amount / expenses) * 100;
+        const catLabel = topCat.category === "other" ? t("analytics.categories.other") : topCat.category;
+        list.push({
+          id: "top-category",
+          text: t("analytics.insights.topCategory", {
+            category: catLabel,
+            percentage: catPct.toFixed(0),
+            amount: fmt(topCat.total_amount),
+          }),
+          severity: "neutral",
+        });
+      }
     }
 
-    // 3. Period comparison — expenses
-    if (prevExpenses != null && prevExpenses > 0) {
+    // 3. Recurring expenses ratio
+    if (expenses > 0) {
+      const recurringExpenses = activeRecurring
+        .filter((r) => ["expense", "recognized-expense"].includes(r.type))
+        .reduce((s, r) => s + r.amount, 0);
+      const recurringPct = (recurringExpenses / expenses) * 100;
+      if (recurringPct > 60) {
+        list.push({ id: "recurring-high", text: t("analytics.insights.recurringHighPct", { percentage: recurringPct.toFixed(0) }), severity: "neutral" });
+      }
+    }
+
+    // 4. Period comparison — expenses
+    if (prevExpenses != null && prevExpenses > 0 && expenses > 0) {
       const expDelta = ((expenses - prevExpenses) / prevExpenses) * 100;
       if (Math.abs(expDelta) >= 10) {
         list.push({
           id: "expenses-delta",
-          text:
-            expDelta > 0
-              ? t("analytics.insights.expensesUp", { percentage: expDelta.toFixed(0) })
-              : t("analytics.insights.expensesDown", { percentage: Math.abs(expDelta).toFixed(0) }),
+          text: expDelta > 0
+            ? t("analytics.insights.expensesUp", { percentage: expDelta.toFixed(0) })
+            : t("analytics.insights.expensesDown", { percentage: Math.abs(expDelta).toFixed(0) }),
           severity: expDelta > 0 ? "negative" : "positive",
         });
       }
     }
 
-    // 4. Period comparison — income
-    if (prevIncome != null && prevIncome > 0) {
+    // 5. Period comparison — income
+    if (prevIncome != null && prevIncome > 0 && income > 0) {
       const incDelta = ((income - prevIncome) / prevIncome) * 100;
       if (Math.abs(incDelta) >= 10) {
         list.push({
           id: "income-delta",
-          text:
-            incDelta > 0
-              ? t("analytics.insights.incomeUp", { percentage: incDelta.toFixed(0) })
-              : t("analytics.insights.incomeDown", { percentage: Math.abs(incDelta).toFixed(0) }),
+          text: incDelta > 0
+            ? t("analytics.insights.incomeUp", { percentage: incDelta.toFixed(0) })
+            : t("analytics.insights.incomeDown", { percentage: Math.abs(incDelta).toFixed(0) }),
           severity: incDelta > 0 ? "positive" : "negative",
         });
       }
     }
 
-    // 5. No categories set
+    // 6. No categories set
     const hasCategories = categoryData.some((c) => c.category !== "other" && c.category !== "");
     if (!hasCategories && categoryData.length > 0) {
-      list.push({
-        id: "no-categories",
-        text: t("analytics.insights.noCategories"),
-        severity: "tip",
-      });
+      list.push({ id: "no-categories", text: t("analytics.insights.noCategories"), severity: "tip" });
     }
 
     return list.slice(0, 4);
   // fmt is defined inside useMemo — remove it from deps (no longer an external reference)
   }, [serverTotalIncome, serverTotalExpenses, prevIncome, prevExpenses, activeRecurring, categoryData, t, defaultCurrency, i18n.language]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (isLoading || insights.length === 0) return null;
+  if (isLoading) {
+    return (
+      <Card className="bg-gradient-to-br from-background to-muted/20">
+        <CardHeader className="p-4 sm:p-5 pb-2">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-4 w-4 rounded-full" />
+            <Skeleton className="h-3.5 w-20" />
+          </div>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-5 pt-0 space-y-2.5">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="flex items-start gap-2.5">
+              <Skeleton className="h-4 w-4 rounded-full shrink-0 mt-0.5" />
+              <Skeleton className="h-4 flex-1" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (insights.length === 0) return null;
 
   return (
     <motion.div
@@ -148,14 +169,14 @@ export function TextInsightsCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35 }}
     >
-      <Card dir={i18n.dir()} className="bg-gradient-to-br from-background to-muted/20">
+      <Card dir={i18n.dir()} className="bg-gradient-to-br from-background to-muted/20 flex-1">
         <CardHeader className="p-4 sm:p-5 pb-2">
           <CardTitle className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
             <Lightbulb className="h-4 w-4 text-yellow-500" />
             {t("analytics.insights.title")}
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 sm:p-5 pt-0">
+        <CardContent className="p-4 sm:p-5 pt-0 min-h-[80px]">
           <ul className="space-y-2.5">
             {insights.map((insight, i) => {
               const { icon: Icon, className } = SEVERITY_CONFIG[insight.severity];

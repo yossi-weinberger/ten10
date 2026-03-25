@@ -32,6 +32,7 @@ isProject: false
 
 לאחר דיון עם הצוות, הוחלט:
 
+
 | נושא           | החלטה                                       | סיבה                                         |
 | -------------- | ------------------------------------------- | -------------------------------------------- |
 | **טסטים**      | vitest + טסטים מלאים לכל הלוגיקה            | פיצ'ר מורכב שצריך לדבג בזהירות               |
@@ -44,6 +45,7 @@ isProject: false
 | **Rust/Tauri** | שימוש ב-add_transaction הקיים (ללא שינוי)   | כבר יש הכל                                   |
 | **ולידציה**    | Zod (`ImportFileSchema`) + נירמול שדות      | עקביות בין Web/Desktop ומניעת שגיאות         |
 | **מיפוי שדות** | מרכזי ב־`fieldMapping.ts`                   | תמיכה ב־camelCase ישן ושדות שהוסרו מה־DB     |
+
 
 ---
 
@@ -445,12 +447,14 @@ describe("detectRecurringMatches", () => {
 
 בדיקה של `src-tauri/src/commands/transaction_commands.rs` מראה שכבר יש את כל מה שצריך:
 
+
 | פקודה קיימת                         | שימוש בייבוא                        |
 | ----------------------------------- | ----------------------------------- |
 | `add_transaction`                   | להוספת תנועה בודדת                  |
 | `get_transactions_count`            | לבדוק אם יש תנועות קיימות           |
 | `export_transactions_handler`       | לשליפת כל התנועות (לבדיקת כפילויות) |
 | `get_filtered_transactions_handler` | לשליפת תנועות מסוננות               |
+
 
 **אסטרטגיה**: נקרא ל-`add_transaction` בלולאה מצד ה-TypeScript. אם יהיו בעיות ביצועים (ייבוא של אלפי תנועות), נוסיף `import_transactions_batch` בשלב מאוחר יותר.
 
@@ -723,7 +727,7 @@ export const bankHapoalimTemplate: BankTemplate = {
 
 - מטבע: המרה עובדת ב-Web (API)
 - מטבע: Fallback עובד ב-Desktop (offline)
-- שדות `original_*` מאוכלסים נכון
+- שדות `original_`* מאוכלסים נכון
 - **טסטים**: integration tests
 
 ### פלטפורמות

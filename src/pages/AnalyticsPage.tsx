@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useDateControls, DateRangeSelectionType } from "@/hooks/useDateControls";
-import { useInsights } from "@/hooks/useInsights";
+import { useInsights, getPreviousPeriodRange } from "@/hooks/useInsights";
 import { useServerStats } from "@/hooks/useServerStats";
 import { usePeriodComparison } from "@/hooks/usePeriodComparison";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,13 @@ export function AnalyticsPage() {
   } = useServerStats(activeDateRangeObject, user, platform);
 
   const { prevIncome, prevExpenses } = usePeriodComparison(activeDateRangeObject, user, platform);
+
+  // Compute previous period dates for tooltip display
+  const prevPeriodDates = useMemo(() => {
+    const { startDate, endDate } = activeDateRangeObject;
+    if (!startDate || !endDate || startDate === "1970-01-01") return null;
+    return getPreviousPeriodRange(startDate, endDate);
+  }, [activeDateRangeObject]);
 
   const {
     categoryData,
@@ -408,6 +415,8 @@ export function AnalyticsPage() {
             activeRecurring={activeRecurring}
             isLoading={isLoadingServerIncome || isLoadingServerExpenses}
             isAllTime={isAllTime}
+            prevPeriodStart={prevPeriodDates?.startDate}
+            prevPeriodEnd={prevPeriodDates?.endDate}
           />
           <TextInsightsCard
             serverTotalIncome={serverTotalIncome}
@@ -445,8 +454,8 @@ export function AnalyticsPage() {
         />
       </div>
 
-      {/* Standing Orders + Recurring Ratio + Donation Recipients — 3 columns on xl */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      {/* Standing Orders + Recurring Ratio + Donation Recipients — 3 columns on xl, equal height */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
         <RecurringForecastInsight
           activeRecurring={activeRecurring}
           isLoading={isLoadingRecurring}

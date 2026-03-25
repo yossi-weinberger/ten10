@@ -146,6 +146,7 @@
       "expensesDown": "הוצאותיך ירדו ב-{{percentage}}% לעומת התקופה הקודמת",
       "incomeUp": "הכנסותיך עלו ב-{{percentage}}% לעומת התקופה הקודמת",
       "incomeDown": "הכנסותיך ירדו ב-{{percentage}}% לעומת התקופה הקודמת",
+      "topCategory": "הקטגוריה הגדולה ביותר: {{category}} — {{amount}} ({{percentage}}% מהוצאות)",
       "noCategories": "הוסף קטגוריות לעסקאות לקבל תובנות מדויקות יותר",
       "noData": "אין מספיק נתונים לתובנות בתקופה זו"
     },
@@ -155,7 +156,8 @@
       "recurringPct": "הוצאות קבועות",
       "recurringPctTooltip": "אחוז ההוצאות שמגיעות מהוראות קבע",
       "periodComparison": "שינוי מתקופה קודמת",
-      "periodComparisonTooltip": "השינוי בהכנסות לעומת אותה תקופה בעבר",
+      "periodComparisonTooltip": "השינוי בהכנסות לעומת התקופה הקודמת — אותה אורך זמן, ממש לפני התקופה הנוכחית",
+      "periodComparisonTooltipWithDates": "השינוי בהכנסות לעומת התקופה הקודמת: {{prevStart}} עד {{prevEnd}}",
       "noData": "אין מספיק נתונים",
       "notApplicable": "לא רלוונטי לטווח זה"
     },
@@ -172,6 +174,8 @@
       "typeAll": "כל הסוגים",
       "tooltip": "{{date}}: {{count}} עסקאות, {{amount}}",
       "noData": "אין עסקאות בתקופה זו",
+      "legendLow": "פחות",
+      "legendHigh": "יותר",
       "weekdays": ["א'", "ב'", "ג'", "ד'", "ה'", "ו'", "ש'"]
     }
   },

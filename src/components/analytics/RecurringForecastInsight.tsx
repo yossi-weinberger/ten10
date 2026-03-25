@@ -34,22 +34,22 @@ interface RecurringItemCardProps {
 function RecurringItemCard({ item, defaultCurrency, language, t, dir, index }: RecurringItemCardProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.04, duration: 0.25 }}
-      className="flex items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2.5"
+      transition={{ delay: Math.min(index * 0.03, 0.2), duration: 0.2 }}
+      className="flex items-center justify-between gap-2 rounded-md border border-border bg-card px-2.5 py-1.5"
       dir={dir}
     >
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-foreground truncate">
+        <p className="text-xs font-medium text-foreground truncate">
           {item.description || t("analytics.forecast.noDescription")}
         </p>
-        <p className="text-xs text-muted-foreground mt-0.5">
+        <p className="text-[10px] text-muted-foreground">
           {t("analytics.forecast.dayOfMonth", { day: item.day_of_month ?? 1 })}
           {item.category ? ` · ${item.category}` : ""}
         </p>
       </div>
-      <p className="text-sm font-semibold text-foreground shrink-0">
+      <p className="text-xs font-semibold text-foreground shrink-0">
         {formatCurrency(item.amount, defaultCurrency, language)}
       </p>
     </motion.div>
@@ -141,10 +141,11 @@ export function RecurringForecastInsight({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
+      className="h-full"
     >
       <Card
         dir={i18n.dir()}
-        className="bg-gradient-to-br from-background to-muted/20"
+        className="bg-gradient-to-br from-background to-muted/20 h-full"
       >
         <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -192,53 +193,50 @@ export function RecurringForecastInsight({
                 ))}
               </TabsList>
 
-              {(["expense", "income", "donation"] as RecurringTab[]).map((tab) => (
-                <TabsContent key={tab} value={tab} className="mt-0">
-                  <AnimatePresence mode="wait">
-                    {tabItems[tab].length === 0 ? (
-                      <motion.div
-                        key="empty"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="h-20 flex items-center justify-center"
-                      >
+              {/* Single AnimatePresence for smooth slide when switching tabs */}
+              <div className="overflow-hidden">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTab}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                  >
+                    {tabItems[activeTab].length === 0 ? (
+                      <div className="h-20 flex items-center justify-center">
                         <p className="text-sm text-muted-foreground">
                           {t("analytics.forecast.noData")}
                         </p>
-                      </motion.div>
+                      </div>
                     ) : (
-                      <motion.div
-                        key="list"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="space-y-2"
-                      >
-                        {tabItems[tab].map((item, index) => (
-                          <RecurringItemCard
-                            key={item.id}
-                            item={item}
-                            defaultCurrency={defaultCurrency}
-                            language={i18n.language}
-                            t={t}
-                            dir={i18n.dir()}
-                            index={index}
-                          />
-                        ))}
+                      <div className="space-y-1.5">
+                        <div className="max-h-52 overflow-y-auto space-y-1.5 pr-0.5">
+                          {tabItems[activeTab].map((item, index) => (
+                            <RecurringItemCard
+                              key={item.id}
+                              item={item}
+                              defaultCurrency={defaultCurrency}
+                              language={i18n.language}
+                              t={t}
+                              dir={i18n.dir()}
+                              index={index}
+                            />
+                          ))}
+                        </div>
                         <TabTotal
-                          items={tabItems[tab]}
+                          items={tabItems[activeTab]}
                           isLoading={isLoading}
                           defaultCurrency={defaultCurrency}
                           language={i18n.language}
                           label={t("analytics.forecast.monthlyTotal")}
-                          colorClass={tabColors[tab]}
+                          colorClass={tabColors[activeTab]}
                         />
-                      </motion.div>
+                      </div>
                     )}
-                  </AnimatePresence>
-                </TabsContent>
-              ))}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
             </Tabs>
           )}
         </CardContent>

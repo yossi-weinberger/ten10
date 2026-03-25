@@ -289,6 +289,10 @@ html {
     --chart-green: 142.1 70.6% 45.3%;
     --chart-yellow: 47.9 95.8% 53.1%;
     --chart-red: 0 72.2% 50.6%;
+    --chart-blue: 213 94% 68%;
+    --chart-purple: 271 81% 56%;
+    --chart-teal: 182 70% 45%;
+    --chart-orange: 25 95% 53%;
 
     /* Golden Gradients */
     --gold-dark: #daa520; /* Legacy gold (consider aligning to logo gold) */
@@ -405,6 +409,10 @@ html {
     --chart-green: 142.1 70.6% 35.3%;
     --chart-yellow: 47.9 95.8% 43.1%;
     --chart-red: 0 72.2% 40.6%;
+    --chart-blue: 213 94% 58%;
+    --chart-purple: 271 81% 46%;
+    --chart-teal: 182 70% 35%;
+    --chart-orange: 25 95% 43%;
 
     /* Golden Gradients */
     --gold-dark: #daa520; /* Legacy gold (consider aligning to logo gold) */
