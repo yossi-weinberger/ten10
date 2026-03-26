@@ -21,8 +21,8 @@ interface RecurringRatioInsightProps {
   error: string | null;
 }
 
-const RING_R = 30;
-const RING_C = 2 * Math.PI * RING_R; // ≈ 188.5
+const RING_R = 40;
+const RING_C = 2 * Math.PI * RING_R; // ≈ 251.3
 
 function TypeRingChart({
   label,
@@ -56,18 +56,18 @@ function TypeRingChart({
       className="flex flex-col items-center gap-1.5"
     >
       {/* Ring */}
-      <div className="relative w-[72px] h-[72px]">
-        <svg viewBox="0 0 72 72" className="w-full h-full -rotate-90">
+      <div className="relative w-[96px] h-[96px]">
+        <svg viewBox="0 0 96 96" className="w-full h-full -rotate-90">
           {/* Track */}
           <circle
-            cx="36" cy="36" r={RING_R} fill="none"
+            cx="48" cy="48" r={RING_R} fill="none"
             style={{ stroke: "hsl(var(--muted))" }}
-            strokeWidth="7"
+            strokeWidth="8"
           />
           {/* Progress */}
           <motion.circle
-            cx="36" cy="36" r={RING_R} fill="none"
-            strokeWidth="7"
+            cx="48" cy="48" r={RING_R} fill="none"
+            strokeWidth="8"
             strokeLinecap="round"
             style={{ stroke: strokeColor }}
             strokeDasharray={RING_C}
@@ -78,7 +78,7 @@ function TypeRingChart({
         </svg>
         {/* Center label */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-sm font-bold text-foreground">{pct.toFixed(0)}%</span>
+          <span className="text-base font-bold text-foreground">{pct.toFixed(0)}%</span>
         </div>
       </div>
 
@@ -141,7 +141,7 @@ export function RecurringRatioInsight({
       <Card dir={i18n.dir()} className="bg-gradient-to-br from-background to-muted/20 h-full">
         <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <Repeat className="h-4 w-4 shrink-0 text-purple-500" />
+            <Repeat className="h-4 w-4 shrink-0 text-purple-500" aria-hidden="true" />
             {t("analytics.recurringRatioByType.title")}
           </CardTitle>
           <p className="text-xs text-muted-foreground mt-0.5">

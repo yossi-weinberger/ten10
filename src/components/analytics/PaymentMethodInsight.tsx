@@ -76,7 +76,7 @@ export function PaymentMethodInsight({ data, isLoading, error }: PaymentMethodIn
           <div className="flex items-center justify-between gap-2">
             <div>
               <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                <CreditCard className="h-4 w-4 shrink-0 text-blue-500" />
+                <CreditCard className="h-4 w-4 shrink-0 text-blue-500" aria-hidden="true" />
                 {t("analytics.paymentMethods.title")}
               </CardTitle>
               <p className="text-xs text-muted-foreground mt-0.5">{t("analytics.paymentMethods.subtitle")}</p>

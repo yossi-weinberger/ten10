@@ -87,7 +87,7 @@ export function CategoryBreakdownChart({
         <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-              <LayoutList className="h-4 w-4 shrink-0 text-yellow-500" />
+              <LayoutList className="h-4 w-4 shrink-0 text-yellow-500" aria-hidden="true" />
               {t("analytics.categories.title")}
             </CardTitle>
             <div className="flex items-center gap-2">

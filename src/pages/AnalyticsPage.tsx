@@ -419,7 +419,7 @@ export function AnalyticsPage() {
         </Button>
       </div>
 
-      {/* Insights summary + Heatmap — side by side on large screens, equal height */}
+      {/* Row 1: Insights summary + Recurring Ratio side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         <div className="flex flex-col gap-4">
           <InsightsSummaryRow
@@ -443,18 +443,21 @@ export function AnalyticsPage() {
             isLoading={isLoadingServerIncome || isLoadingServerExpenses}
           />
         </div>
-        <TransactionHeatmap
-          data={heatmapData}
-          isLoading={isLoadingHeatmap}
-          error={heatmapError}
-          typeGroup={heatmapTypeGroup}
-          onTypeGroupChange={setHeatmapTypeGroup}
-          className="h-full"
+        <RecurringRatioInsight
+          data={recurringVsOnetimeData}
+          recurringExpenses={recurringTotals.expenses}
+          totalExpenses={serverTotalExpenses}
+          recurringIncome={recurringTotals.income}
+          totalIncome={serverTotalIncome}
+          recurringDonations={recurringTotals.donations}
+          totalDonations={serverCalculatedDonationsData?.total_donations_amount ?? null}
+          isLoading={isLoadingRecurringRatio || isLoadingServerIncome || isLoadingServerExpenses}
+          error={recurringRatioError}
         />
       </div>
 
-      {/* Category + Payment Methods — side by side, equal height */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+      {/* Row 2: Category + Payment Methods + Donation Recipients — 3 columns on xl */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
         <CategoryBreakdownChart
           data={categoryData}
           isLoading={isLoadingCategory}
@@ -467,30 +470,27 @@ export function AnalyticsPage() {
           isLoading={isLoadingPaymentMethod}
           error={paymentMethodError}
         />
+        <DonationRecipientsInsight
+          data={recipientsData}
+          isLoading={isLoadingRecipients}
+          error={recipientsError}
+        />
       </div>
 
-      {/* Standing Orders + Recurring Ratio + Donation Recipients — 3 columns on xl, equal height */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 items-stretch">
+      {/* Row 3: Standing Orders + Heatmap */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         <RecurringForecastInsight
           activeRecurring={activeRecurring}
           isLoading={isLoadingRecurring}
           error={recurringError}
         />
-        <RecurringRatioInsight
-          data={recurringVsOnetimeData}
-          recurringExpenses={recurringTotals.expenses}
-          totalExpenses={serverTotalExpenses}
-          recurringIncome={recurringTotals.income}
-          totalIncome={serverTotalIncome}
-          recurringDonations={recurringTotals.donations}
-          totalDonations={serverCalculatedDonationsData?.total_donations_amount ?? null}
-          isLoading={isLoadingRecurringRatio || isLoadingServerIncome || isLoadingServerExpenses}
-          error={recurringRatioError}
-        />
-        <DonationRecipientsInsight
-          data={recipientsData}
-          isLoading={isLoadingRecipients}
-          error={recipientsError}
+        <TransactionHeatmap
+          data={heatmapData}
+          isLoading={isLoadingHeatmap}
+          error={heatmapError}
+          typeGroup={heatmapTypeGroup}
+          onTypeGroupChange={setHeatmapTypeGroup}
+          className="h-full"
         />
       </div>
     </div>

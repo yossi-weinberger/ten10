@@ -170,7 +170,7 @@ export function TransactionHeatmap({
         <CardHeader className="p-4 sm:p-5 pb-2">
           <div className="flex items-start justify-between gap-2">
             <CardTitle className="flex items-center gap-2 text-base">
-              <CalendarDays className="h-4 w-4 shrink-0 text-primary" />
+              <CalendarDays className="h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
               {t("analytics.heatmap.title")}
             </CardTitle>
             {/* Type tabs in header */}

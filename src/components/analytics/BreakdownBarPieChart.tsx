@@ -94,7 +94,7 @@ export function BreakdownBarPieChart({
                   axisLine={false}
                 />
                 <ChartTooltip content={<ChartTooltipContent formatter={(value) => fmt(Number(value))} />} />
-                <Bar dataKey="total_amount" radius={[0, 4, 4, 0]} isAnimationActive>
+                <Bar dataKey="total_amount" radius={[0, 4, 4, 0]} isAnimationActive maxBarSize={22}>
                   {data.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.fill} />
                   ))}

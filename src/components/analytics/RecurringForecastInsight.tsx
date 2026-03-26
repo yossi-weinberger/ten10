@@ -149,7 +149,7 @@ export function RecurringForecastInsight({
       >
         <CardHeader className="p-4 sm:p-6 pb-2 sm:pb-3">
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <CalendarClock className="h-4 w-4 shrink-0 text-blue-400" />
+            <CalendarClock className="h-4 w-4 shrink-0 text-blue-400" aria-hidden="true" />
             {t("analytics.forecast.title")}
           </CardTitle>
           <p className="text-xs text-muted-foreground">

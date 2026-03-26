@@ -237,7 +237,10 @@ export function useInsights(
     setIsLoadingHeatmap(true);
     setHeatmapError(null);
     try {
-      const data = await fetchDailyHeatmap(startDate, endDate, heatmapTypeGroup);
+      // Always fetch full history so the heatmap shows meaningful density
+      // regardless of the active date filter.
+      const todayStr = new Date().toISOString().split("T")[0];
+      const data = await fetchDailyHeatmap("1970-01-01", todayStr, heatmapTypeGroup);
       setHeatmapData(data);
     } catch (err) {
       logger.error("useInsights: heatmap error:", err);
@@ -245,7 +248,7 @@ export function useInsights(
     } finally {
       setIsLoadingHeatmap(false);
     }
-  }, [isReady, startDate, endDate, heatmapTypeGroup]);
+  }, [isReady, heatmapTypeGroup]);
 
   // Fetch everything that depends only on date range / platform / db timestamp
   useEffect(() => {

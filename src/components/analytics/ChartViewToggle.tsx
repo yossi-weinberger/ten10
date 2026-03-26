@@ -16,18 +16,18 @@ export function ChartViewToggle({ value, onChange }: ChartViewToggleProps) {
         variant={value === "bar" ? "secondary" : "ghost"}
         className="h-8 w-8 rounded-none"
         onClick={() => onChange("bar")}
-        title={t("analytics.chartTypeBar")}
+        aria-label={t("analytics.chartTypeBar")}
       >
-        <BarChart2 className="h-3.5 w-3.5" />
+        <BarChart2 className="h-3.5 w-3.5" aria-hidden="true" />
       </Button>
       <Button
         size="icon"
         variant={value === "pie" ? "secondary" : "ghost"}
         className="h-8 w-8 rounded-none border-s border-border"
         onClick={() => onChange("pie")}
-        title={t("analytics.chartTypePie")}
+        aria-label={t("analytics.chartTypePie")}
       >
-        <PieChartIcon className="h-3.5 w-3.5" />
+        <PieChartIcon className="h-3.5 w-3.5" aria-hidden="true" />
       </Button>
     </div>
   );
