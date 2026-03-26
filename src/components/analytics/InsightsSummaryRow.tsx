@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import CountUp from "react-countup";
@@ -44,6 +44,17 @@ function DeltaBadge({ pct, t }: { pct: number; t: (key: string) => string }) {
 function NotApplicableBadge({ label }: { label: string }) {
   return (
     <p className="text-xs text-muted-foreground mt-1 italic">{label}</p>
+  );
+}
+
+function KpiPlaceholderCard({ label }: { label: ReactNode }) {
+  return (
+    <Card className="bg-gradient-to-br from-background to-muted/20">
+      <CardContent className="p-4 sm:p-5">
+        <p className="text-xs text-muted-foreground mb-1">{label}</p>
+        <p className="text-2xl font-bold text-muted-foreground">—</p>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -188,12 +199,7 @@ export function InsightsSummaryRow({
           index={0}
         />
       ) : (
-        <Card className="bg-gradient-to-br from-background to-muted/20">
-          <CardContent className="p-4 sm:p-5">
-            <p className="text-xs text-muted-foreground mb-1">{t("analytics.insightsSummary.savingsRate")}</p>
-            <p className="text-2xl font-bold text-muted-foreground">—</p>
-          </CardContent>
-        </Card>
+        <KpiPlaceholderCard label={t("analytics.insightsSummary.savingsRate")} />
       )}
 
       {/* Slot 2: Recurring % — show placeholder if null */}
@@ -207,12 +213,7 @@ export function InsightsSummaryRow({
           index={1}
         />
       ) : (
-        <Card className="bg-gradient-to-br from-background to-muted/20">
-          <CardContent className="p-4 sm:p-5">
-            <p className="text-xs text-muted-foreground mb-1">{t("analytics.insightsSummary.recurringPct")}</p>
-            <p className="text-2xl font-bold text-muted-foreground">—</p>
-          </CardContent>
-        </Card>
+        <KpiPlaceholderCard label={t("analytics.insightsSummary.recurringPct")} />
       )}
 
       {/* Slot 3: Period comparison — always shown */}

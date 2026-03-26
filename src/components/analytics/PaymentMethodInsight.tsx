@@ -1,23 +1,16 @@
 import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell,
-  PieChart, Pie, Legend, Tooltip,
-} from "recharts";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartConfig,
-} from "@/components/ui/chart";
+import { ChartConfig } from "@/components/ui/chart";
 import { PaymentMethodBreakdownResponse } from "@/lib/data-layer/insights.service";
 import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
 import { isPredefinedPaymentMethod } from "@/lib/payment-methods";
-import { CreditCard, BarChart2, PieChart as PieChartIcon } from "lucide-react";
+import { CreditCard } from "lucide-react";
+import { BreakdownBarPieChart } from "./BreakdownBarPieChart";
+import { ChartViewToggle } from "./ChartViewToggle";
 
 type ChartViewType = "bar" | "pie";
 
@@ -27,27 +20,6 @@ interface PaymentMethodInsightProps {
   error: string | null;
 }
 
-function PieCustomTooltip({
-  active,
-  payload,
-  total,
-  fmt,
-}: {
-  active?: boolean;
-  payload?: Array<{ name: string; value: number }>;
-  total: number;
-  fmt: (v: number) => string;
-}) {
-  if (!active || !payload?.length) return null;
-  const { name, value } = payload[0];
-  const pct = total > 0 ? ((value / total) * 100).toFixed(1) : "0";
-  return (
-    <div className="rounded-md border border-border bg-popover px-3 py-2 text-sm shadow-md">
-      <p className="font-medium text-foreground">{name}</p>
-      <p className="text-muted-foreground">{fmt(value)} ({pct}%)</p>
-    </div>
-  );
-}
 
 export function PaymentMethodInsight({ data, isLoading, error }: PaymentMethodInsightProps) {
   const { t, i18n } = useTranslation("dashboard");
@@ -64,11 +36,6 @@ export function PaymentMethodInsight({ data, isLoading, error }: PaymentMethodIn
   const chartConfig = useMemo<ChartConfig>(
     () => ({
       total_amount: { label: t("monthlyChart.amount"), color: "hsl(var(--chart-blue))" },
-      "slice-0": { color: "hsl(var(--chart-blue))" },
-      "slice-1": { color: "hsl(var(--chart-teal))" },
-      "slice-2": { color: "hsl(var(--chart-purple))" },
-      "slice-3": { color: "hsl(var(--chart-orange))" },
-      "slice-4": { color: "hsl(var(--chart-yellow))" },
     }),
     [t]
   );
@@ -114,14 +81,7 @@ export function PaymentMethodInsight({ data, isLoading, error }: PaymentMethodIn
               </CardTitle>
               <p className="text-xs text-muted-foreground mt-0.5">{t("analytics.paymentMethods.subtitle")}</p>
             </div>
-            <div className="flex border border-border rounded-md overflow-hidden shrink-0">
-              <Button size="icon" variant={chartView === "bar" ? "secondary" : "ghost"} className="h-8 w-8 rounded-none" onClick={() => setChartView("bar")} title={t("analytics.chartTypeBar")}>
-                <BarChart2 className="h-3.5 w-3.5" />
-              </Button>
-              <Button size="icon" variant={chartView === "pie" ? "secondary" : "ghost"} className="h-8 w-8 rounded-none border-s border-border" onClick={() => setChartView("pie")} title={t("analytics.chartTypePie")}>
-                <PieChartIcon className="h-3.5 w-3.5" />
-              </Button>
-            </div>
+            <ChartViewToggle value={chartView} onChange={setChartView} />
           </div>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
@@ -139,41 +99,17 @@ export function PaymentMethodInsight({ data, isLoading, error }: PaymentMethodIn
             </div>
           ) : (
             <div id="pdf-chart-payment">
-              <AnimatePresence mode="wait">
-                {chartView === "bar" ? (
-                  <motion.div key="bar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="w-full" dir="ltr">
-                    <div style={{ maxHeight: SCROLL_HEIGHT, overflowY: "auto", width: "100%" }}>
-                      <ChartContainer config={chartConfig} className="w-full" style={{ height: fullBarHeight, minHeight: fullBarHeight }}>
-                        <BarChart data={localizedData} layout="vertical" margin={{ top: 0, right: 70, bottom: 0, left: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-                          <YAxis dataKey="label" type="category" width={95} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                          <XAxis type="number" tick={{ fontSize: 10 }} tickFormatter={(v) => fmt(v)} tickLine={false} axisLine={false} />
-                          <ChartTooltip content={<ChartTooltipContent formatter={(value) => fmt(Number(value))} />} />
-                          <Bar dataKey="total_amount" radius={[0, 4, 4, 0]} isAnimationActive>
-                            {localizedData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.fill} />
-                            ))}
-                          </Bar>
-                        </BarChart>
-                      </ChartContainer>
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div key="pie" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="w-full" dir="ltr">
-                    <ChartContainer config={chartConfig} className="w-full" style={{ height: pieHeight, minHeight: pieHeight }}>
-                      <PieChart>
-                        <Pie data={localizedData} dataKey="total_amount" nameKey="label" cx="50%" cy="45%" outerRadius={80} isAnimationActive>
-                          {localizedData.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={`var(--color-slice-${index % 5})`} />
-                          ))}
-                        </Pie>
-                        <Tooltip content={<PieCustomTooltip total={totalAmount} fmt={fmt} />} />
-                        <Legend layout="horizontal" verticalAlign="bottom" align="center" iconType="circle" iconSize={8} formatter={(value) => <span style={{ fontSize: 11 }}>{value}</span>} />
-                      </PieChart>
-                    </ChartContainer>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <BreakdownBarPieChart
+                data={localizedData}
+                totalAmount={totalAmount}
+                chartConfig={chartConfig}
+                chartView={chartView}
+                pieHeight={pieHeight}
+                scrollHeight={SCROLL_HEIGHT}
+                fullBarHeight={fullBarHeight}
+                fmt={fmt}
+                outerRadius={80}
+              />
             </div>
           )}
         </CardContent>

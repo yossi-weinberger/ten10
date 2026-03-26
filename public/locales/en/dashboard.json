@@ -163,6 +163,7 @@
     },
     "recurringRatioByType": {
       "title": "Recurring vs. One-Time by Type",
+      "subtitle": "Share of standing orders per category",
       "income": "Income",
       "expenses": "Expenses",
       "donations": "Donations",

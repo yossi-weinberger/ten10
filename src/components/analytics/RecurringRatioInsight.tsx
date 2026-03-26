@@ -21,12 +21,15 @@ interface RecurringRatioInsightProps {
   error: string | null;
 }
 
-function TypeProgressBar({
+const RING_R = 30;
+const RING_C = 2 * Math.PI * RING_R; // ≈ 188.5
+
+function TypeRingChart({
   label,
   recurringAmount,
   totalAmount,
   isLoading,
-  barColor,
+  strokeColor,
   defaultCurrency,
   language,
   index,
@@ -35,45 +38,63 @@ function TypeProgressBar({
   recurringAmount: number;
   totalAmount: number | null | undefined;
   isLoading: boolean;
-  barColor: string;
+  strokeColor: string;
   defaultCurrency: string;
   language: string;
   index: number;
 }) {
   const pct = totalAmount && totalAmount > 0 ? Math.min((recurringAmount / totalAmount) * 100, 100) : 0;
   const { displayValue, startAnimateValue } = useAnimatedCounter({ serverValue: recurringAmount, isLoading });
-  const { i18n } = useTranslation("dashboard");
 
   if (totalAmount == null || totalAmount === 0) return null;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08 }}
-      className="space-y-1.5"
+      initial={{ opacity: 0, scale: 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: index * 0.12, duration: 0.4, ease: "easeOut" }}
+      className="flex flex-col items-center gap-1.5"
     >
-      <div className="flex items-center justify-between text-xs" dir={i18n.dir()}>
-        <span className="text-muted-foreground">{label}</span>
-        <span className="font-medium text-foreground">
-          <CountUp
-            start={startAnimateValue}
-            end={displayValue}
-            duration={0.65}
-            decimals={2}
-            formattingFn={(v) => formatCurrency(v, defaultCurrency, language)}
+      {/* Ring */}
+      <div className="relative w-[72px] h-[72px]">
+        <svg viewBox="0 0 72 72" className="w-full h-full -rotate-90">
+          {/* Track */}
+          <circle
+            cx="36" cy="36" r={RING_R} fill="none"
+            style={{ stroke: "hsl(var(--muted))" }}
+            strokeWidth="7"
           />
-          <span className="text-muted-foreground ms-1">({pct.toFixed(0)}%)</span>
-        </span>
+          {/* Progress */}
+          <motion.circle
+            cx="36" cy="36" r={RING_R} fill="none"
+            strokeWidth="7"
+            strokeLinecap="round"
+            style={{ stroke: strokeColor }}
+            strokeDasharray={RING_C}
+            initial={{ strokeDashoffset: RING_C }}
+            animate={{ strokeDashoffset: RING_C * (1 - pct / 100) }}
+            transition={{ duration: 1, ease: "easeOut", delay: index * 0.12 }}
+          />
+        </svg>
+        {/* Center label */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-sm font-bold text-foreground">{pct.toFixed(0)}%</span>
+        </div>
       </div>
-      <div className="h-2 rounded-full bg-muted overflow-hidden">
-        <motion.div
-          className={`h-full rounded-full ${barColor}`}
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.7, ease: "easeOut", delay: index * 0.08 }}
+
+      {/* Recurring amount */}
+      <p className="text-xs font-semibold text-foreground">
+        <CountUp
+          start={startAnimateValue}
+          end={displayValue}
+          duration={0.75}
+          decimals={0}
+          formattingFn={(v) => formatCurrency(v, defaultCurrency, language)}
         />
-      </div>
+      </p>
+
+      {/* Type label */}
+      <p className="text-[11px] text-muted-foreground text-center leading-tight">{label}</p>
     </motion.div>
   );
 }
@@ -123,6 +144,9 @@ export function RecurringRatioInsight({
             <Repeat className="h-4 w-4 shrink-0 text-purple-500" />
             {t("analytics.recurringRatioByType.title")}
           </CardTitle>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {t("analytics.recurringRatioByType.subtitle")}
+          </p>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
           {isLoading ? (
@@ -136,37 +160,24 @@ export function RecurringRatioInsight({
               <p className="text-sm text-muted-foreground">{t("analytics.recurringRatio.noData")}</p>
             </div>
           ) : hasPerTypeData ? (
-            <div className="space-y-4">
-              <TypeProgressBar
-                label={t("analytics.recurringRatioByType.expenses")}
-                recurringAmount={recurringExpenses}
-                totalAmount={totalExpenses}
-                isLoading={isLoading}
-                barColor="bg-destructive"
-                defaultCurrency={defaultCurrency}
-                language={i18n.language}
-                index={0}
-              />
-              <TypeProgressBar
-                label={t("analytics.recurringRatioByType.income")}
-                recurringAmount={recurringIncome}
-                totalAmount={totalIncome}
-                isLoading={isLoading}
-                barColor="bg-green-500"
-                defaultCurrency={defaultCurrency}
-                language={i18n.language}
-                index={1}
-              />
-              <TypeProgressBar
-                label={t("analytics.recurringRatioByType.donations")}
-                recurringAmount={recurringDonations}
-                totalAmount={totalDonations}
-                isLoading={isLoading}
-                barColor="bg-yellow-500"
-                defaultCurrency={defaultCurrency}
-                language={i18n.language}
-                index={2}
-              />
+            <div className="flex justify-around items-start pt-2 pb-1">
+              {([
+                { labelKey: "expenses",  recurring: recurringExpenses,  total: totalExpenses,  strokeColor: "hsl(0, 68%, 54%)" },
+                { labelKey: "income",    recurring: recurringIncome,    total: totalIncome,    strokeColor: "hsl(145, 58%, 44%)" },
+                { labelKey: "donations", recurring: recurringDonations, total: totalDonations, strokeColor: "hsl(42, 78%, 48%)" },
+              ] as const).map(({ labelKey, recurring, total, strokeColor }, i) => (
+                <TypeRingChart
+                  key={labelKey}
+                  label={t(`analytics.recurringRatioByType.${labelKey}`)}
+                  recurringAmount={recurring}
+                  totalAmount={total}
+                  isLoading={isLoading}
+                  strokeColor={strokeColor}
+                  defaultCurrency={defaultCurrency}
+                  language={i18n.language}
+                  index={i}
+                />
+              ))}
             </div>
           ) : (
             // Fallback: original combined split bar

@@ -163,6 +163,7 @@
     },
     "recurringRatioByType": {
       "title": "קבוע מול חד-פעמי לפי סוג",
+      "subtitle": "כמה מכל סוג מגיע מהוראות קבע",
       "income": "הכנסות",
       "expenses": "הוצאות",
       "donations": "תרומות",

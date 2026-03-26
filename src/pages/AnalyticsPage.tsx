@@ -84,7 +84,7 @@ export function AnalyticsPage() {
     heatmapError,
     heatmapTypeGroup,
     setHeatmapTypeGroup,
-  } = useInsights(activeDateRangeObject, user, platform);
+  } = useInsights(activeDateRangeObject, platform);
 
   const formatDate = useCallback(
     (date: Date) => {
@@ -439,6 +439,7 @@ export function AnalyticsPage() {
             prevExpenses={prevExpenses}
             activeRecurring={activeRecurring}
             categoryData={categoryData}
+            categoryType={categoryType}
             isLoading={isLoadingServerIncome || isLoadingServerExpenses}
           />
         </div>

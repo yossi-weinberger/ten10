@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   fetchTotalIncomeInRange,
   fetchTotalExpensesInRange,
-  fetchTotalDonationsInRange,
 } from "@/lib/data-layer";
 import { getPreviousPeriodRange } from "./useInsights";
 import { DateRangeObject } from "./useDateControls";
@@ -13,7 +12,6 @@ import { logger } from "@/lib/logger";
 export interface PeriodComparisonData {
   prevIncome: number | null;
   prevExpenses: number | null;
-  prevDonations: number | null;
   isLoading: boolean;
 }
 
@@ -28,7 +26,6 @@ export function usePeriodComparison(
 ): PeriodComparisonData {
   const [prevIncome, setPrevIncome] = useState<number | null>(null);
   const [prevExpenses, setPrevExpenses] = useState<number | null>(null);
-  const [prevDonations, setPrevDonations] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const { startDate, endDate } = activeDateRangeObject;
@@ -55,21 +52,18 @@ export function usePeriodComparison(
     Promise.all([
       fetchTotalIncomeInRange(userId, prevStart, prevEnd),
       fetchTotalExpensesInRange(userId, prevStart, prevEnd),
-      fetchTotalDonationsInRange(userId, prevStart, prevEnd),
     ])
-      .then(([income, expenses, donations]) => {
+      .then(([income, expenses]) => {
         setPrevIncome(income?.total_income ?? null);
         setPrevExpenses(expenses ?? null);
-        setPrevDonations(donations?.total_donations_amount ?? null);
       })
       .catch((err) => {
         logger.error("usePeriodComparison: fetch error:", err);
         setPrevIncome(null);
         setPrevExpenses(null);
-        setPrevDonations(null);
       })
       .finally(() => setIsLoading(false));
   }, [startDate, endDate, platform, user?.id]);
 
-  return { prevIncome, prevExpenses, prevDonations, isLoading };
+  return { prevIncome, prevExpenses, isLoading };
 }

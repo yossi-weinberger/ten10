@@ -17,7 +17,6 @@ import {
 import { RecurringTransaction } from "@/types/transaction";
 import { DateRangeObject } from "./useDateControls";
 import { Platform } from "@/contexts/PlatformContext";
-import { User } from "@/contexts/AuthContext";
 import { logger } from "@/lib/logger";
 import { getPlatform } from "@/lib/platformManager";
 import { supabase } from "@/lib/supabaseClient";
@@ -117,7 +116,6 @@ interface UseInsightsResult {
 
 export function useInsights(
   activeDateRangeObject: DateRangeObject,
-  _user: User | null,
   platform: Platform | undefined
 ): UseInsightsResult {
   const lastDbFetchTimestamp = useDonationStore(

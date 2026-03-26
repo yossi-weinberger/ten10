@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RecurringTransaction } from "@/types/transaction";
-import { CategoryBreakdownResponse } from "@/lib/data-layer/insights.service";
+import { CategoryBreakdownResponse, CategoryType } from "@/lib/data-layer/insights.service";
 import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
 import {
@@ -31,6 +31,7 @@ interface TextInsightsCardProps {
   prevExpenses: number | null | undefined;
   activeRecurring: RecurringTransaction[];
   categoryData: CategoryBreakdownResponse;
+  categoryType: CategoryType;
   isLoading: boolean;
 }
 
@@ -48,6 +49,7 @@ export function TextInsightsCard({
   prevExpenses,
   activeRecurring,
   categoryData,
+  categoryType,
   isLoading,
 }: TextInsightsCardProps) {
   const { t, i18n } = useTranslation("dashboard");
@@ -73,11 +75,12 @@ export function TextInsightsCard({
       }
     }
 
-    // 2. Top expense category (always fire when category data available)
+    // 2. Top category — use the denominator matching the active categoryType
     if (categoryData.length > 0) {
       const topCat = categoryData[0];
-      if (topCat && topCat.total_amount > 0 && expenses > 0) {
-        const catPct = (topCat.total_amount / expenses) * 100;
+      const denominator = categoryType === "income" ? income : expenses;
+      if (topCat && topCat.total_amount > 0 && denominator > 0) {
+        const catPct = (topCat.total_amount / denominator) * 100;
         const catLabel = topCat.category === "other" ? t("analytics.categories.other") : topCat.category;
         list.push({
           id: "top-category",
