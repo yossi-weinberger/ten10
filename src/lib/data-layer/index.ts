@@ -91,9 +91,6 @@ export {
   fetchCategoryBreakdown,
   fetchActiveRecurring,
   fetchAnalyticsBreakdowns,
-  fetchPaymentMethodBreakdown,
-  fetchRecurringVsOnetime,
-  fetchDonationRecipientsBreakdown,
   fetchDailyHeatmap,
 } from "./insights.service";
 export type {
