@@ -25,14 +25,14 @@ import { useRouterState } from "@tanstack/react-router";
 import { PUBLIC_ROUTES } from "@/lib/constants";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { logger } from "@/lib/logger";
-import { BarChart2, Settings, Bug, Mail } from "lucide-react";
+import { BarChart2, PieChart, Settings, Bug, Mail } from "lucide-react";
 
 // CURRENT_WHATS_NEW_VERSION controls when the "What's New" modal is shown.
 // - Bump this version string (e.g. "0.5.1" -> "0.6.0") whenever you change
 //   the modal content in a way that users should see again.
 // - This version is persisted per user to avoid re-showing the same release notes.
 // - This is intentionally separate from package.json version (not every release has new features).
-const CURRENT_WHATS_NEW_VERSION = "0.6.1";
+const CURRENT_WHATS_NEW_VERSION = "0.6.2";
 
 interface FeatureItem {
   icon: React.ReactNode;
@@ -44,6 +44,12 @@ interface FeatureItem {
 const iconClass = "h-4 w-4 text-primary flex-shrink-0";
 
 const newFeatures: FeatureItem[] = [
+  {
+    icon: <PieChart className={iconClass} />,
+    titleKey: "features.analyticsPage.title",
+    descriptionKey: "features.analyticsPage.description",
+    badgeKey: "features.analyticsPage.badge",
+  },
   {
     icon: <BarChart2 className={iconClass} />,
     titleKey: "features.chomeshTracking.title",

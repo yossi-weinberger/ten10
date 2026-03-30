@@ -9,6 +9,15 @@
     "important": "Important"
   },
   "features": {
+    "analyticsPage": {
+      "badge": "Brand new",
+      "title": "Analytics Dashboard",
+      "description": "A new financial dashboard with insights, category breakdown, payment methods, donation recipients, recurring vs. one-time charts, and activity heatmap. Includes PDF export."
+    },
+    "analyticsPerformance": {
+      "title": "Faster Analytics Loading",
+      "description": "Analytics data loads significantly faster — changing date ranges feels much more instant"
+    },
     "chomeshTracking": {
       "badge": "By popular request",
       "title": "Separate Chomesh Balance Tracking",
