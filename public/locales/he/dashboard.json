@@ -147,17 +147,19 @@
       "incomeUp": "הכנסותיך עלו ב-{{percentage}}% לעומת התקופה הקודמת",
       "incomeDown": "הכנסותיך ירדו ב-{{percentage}}% לעומת התקופה הקודמת",
       "topCategory": "הקטגוריה הגדולה ביותר: {{category}} — {{amount}} ({{percentage}}% מהוצאות)",
+      "topCategoryExpense": "קטגוריית הוצאות מובילה: {{category}} — {{amount}} ({{percentage}}% מהוצאות)",
+      "topCategoryIncome": "קטגוריית הכנסות מובילה: {{category}} — {{amount}} ({{percentage}}% מהכנסות)",
       "noCategories": "הוסף קטגוריות לעסקאות לקבל תובנות מדויקות יותר",
       "noData": "אין מספיק נתונים לתובנות בתקופה זו"
     },
     "insightsSummary": {
       "savingsRate": "שיעור חיסכון",
-      "savingsRateTooltip": "מה % מההכנסות נחסך לאחר הוצאות",
+      "savingsRateTooltip": "כמה אחוז מהכנסות הטווח נשאר לאחר כל ההוצאות — 20% ומעלה נחשב חיסכון טוב",
       "recurringPct": "הוצאות קבועות",
-      "recurringPctTooltip": "אחוז ההוצאות שמגיעות מהוראות קבע",
-      "periodComparison": "שינוי מתקופה קודמת",
-      "periodComparisonTooltip": "השינוי בהכנסות לעומת התקופה הקודמת — אותה אורך זמן, ממש לפני התקופה הנוכחית",
-      "periodComparisonTooltipWithDates": "השינוי בהכנסות לעומת התקופה הקודמת: {{prevStart}} עד {{prevEnd}}",
+      "recurringPctTooltip": "סכום חודשי של הוראות הקבע הפעילות, מחולק בסך ההוצאות בטווח. שונה מהגרף 'קבוע מול חד-פעמי' שמציג כמה עסקאות בפועל נוצרו מהוראת קבע",
+      "periodComparison": "שינוי הכנסות",
+      "periodComparisonTooltip": "שינוי בהכנסות לעומת תקופה שווה שקדמה לטווח הנוכחי",
+      "periodComparisonTooltipWithDates": "שינוי הכנסות לעומת התקופה הקודמת ({{prevStart}}–{{prevEnd}})",
       "noData": "אין מספיק נתונים",
       "notApplicable": "לא רלוונטי לטווח זה"
     },
@@ -171,7 +173,7 @@
     },
       "heatmap": {
       "title": "פעילות עסקאות",
-      "subtitle": "עוצמת פעילות לפי יום",
+      "subtitle": "ריכוז עסקאות לפי יום לאורך ההיסטוריה",
       "typeAll": "כל הסוגים",
       "tooltip": "{{date}}: {{count}} עסקאות, {{amount}}",
       "noData": "אין עסקאות בתקופה זו",

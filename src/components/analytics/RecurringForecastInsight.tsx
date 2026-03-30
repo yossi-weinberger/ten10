@@ -9,6 +9,7 @@ import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { CalendarClock } from "lucide-react";
+import { ListRowsSkeleton } from "./AnalyticsSkeleton";
 
 const INCOME_TYPES = ["income", "exempt-income"];
 const EXPENSE_TYPES = ["expense", "recognized-expense"];
@@ -162,10 +163,8 @@ export function RecurringForecastInsight({
           </p>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
-          {isLoading ? (
-            <div className="h-32 flex items-center justify-center">
-              <p className="text-sm text-muted-foreground">{t("analytics.loading")}</p>
-            </div>
+          {isLoading && activeRecurring.length === 0 ? (
+            <ListRowsSkeleton rows={4} />
           ) : error ? (
             <p className="text-sm text-destructive">{t("analytics.error")}</p>
           ) : activeRecurring.length === 0 ? (

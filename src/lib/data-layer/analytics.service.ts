@@ -408,6 +408,72 @@ async function fetchServerTitheBalanceDesktop(): Promise<TitheBalanceBreakdown |
   }
 }
 
+// ─── Combined range stats ─────────────────────────────────────────────────────
+// Replaces three separate RPCs (income + expenses + donations) with one.
+// Uses auth.uid() internally on web; desktop uses a single SQLite scan.
+
+export interface AnalyticsRangeStats {
+  total_income: number;
+  chomesh_amount: number;
+  total_expenses: number;
+  total_donations: number;
+  non_tithe_donation_amount: number;
+}
+
+async function fetchAnalyticsRangeStatsWeb(
+  startDate: string,
+  endDate: string
+): Promise<AnalyticsRangeStats | null> {
+  try {
+    const { data, error } = await supabase.rpc("get_analytics_range_stats", {
+      p_start_date: startDate,
+      p_end_date: endDate,
+    });
+    if (error) {
+      logger.error("AnalyticsService: range stats RPC error:", error);
+      throw error;
+    }
+    if (data && typeof data.total_income === "number") {
+      return data as AnalyticsRangeStats;
+    }
+    logger.warn("AnalyticsService: unexpected range stats shape:", data);
+    return { total_income: 0, chomesh_amount: 0, total_expenses: 0, total_donations: 0, non_tithe_donation_amount: 0 };
+  } catch (err) {
+    logger.error("AnalyticsService: fetchAnalyticsRangeStatsWeb error:", err);
+    return null;
+  }
+}
+
+async function fetchAnalyticsRangeStatsDesktop(
+  startDate: string,
+  endDate: string
+): Promise<AnalyticsRangeStats | null> {
+  try {
+    // Inline import intentional: Tauri APIs are unavailable in web context.
+    const { invoke } = await import("@tauri-apps/api/core");
+    return invoke<AnalyticsRangeStats>("get_desktop_analytics_range_stats", {
+      startDate,
+      endDate,
+    });
+  } catch (err) {
+    logger.error("AnalyticsService: fetchAnalyticsRangeStatsDesktop error:", err);
+    return null;
+  }
+}
+
+export async function fetchAnalyticsRangeStats(
+  startDate: string,
+  endDate: string
+): Promise<AnalyticsRangeStats | null> {
+  const platform = getPlatform();
+  if (platform === "web") return fetchAnalyticsRangeStatsWeb(startDate, endDate);
+  if (platform === "desktop") return fetchAnalyticsRangeStatsDesktop(startDate, endDate);
+  logger.warn("AnalyticsService (fetchAnalyticsRangeStats): platform not determined.");
+  return null;
+}
+
+// ─── Tithe balance ────────────────────────────────────────────────────────────
+
 export async function fetchServerTitheBalance(
   userId: string | null // userId is only needed for web
 ): Promise<TitheBalanceBreakdown | null> {

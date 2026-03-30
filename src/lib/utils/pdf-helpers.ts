@@ -49,6 +49,17 @@ export function splitTextSegments(text: string): TextSegment[] {
  * @param size    - Font size in pt
  * @param color   - rgb() color
  */
+/**
+ * In RTL context, bracket characters must be mirrored so they visually "open"
+ * in the correct direction. `(` in logical RTL text should render as `)` etc.
+ */
+const RTL_MIRROR: Record<string, string> = {
+  "(": ")", ")": "(", "[": "]", "]": "[", "{": "}", "}": "{",
+};
+function mirrorBrackets(text: string): string {
+  return text.split("").map((c) => RTL_MIRROR[c] ?? c).join("");
+}
+
 export function drawRtlText(
   page: PDFPage,
   text: string,
@@ -59,8 +70,11 @@ export function drawRtlText(
   color: RGB
 ): void {
   const segments = splitTextSegments(text);
-  // Reverse so the first logical segment appears at the right edge
-  const reversed = [...segments].reverse();
+  // Reverse so the first logical segment appears at the right edge.
+  // Mirror brackets in non-number segments so they open the correct way.
+  const reversed = [...segments].reverse().map((s) =>
+    s.isNumber ? s : { ...s, text: mirrorBrackets(s.text) }
+  );
 
   const widths = reversed.map((s) => font.widthOfTextAtSize(s.text, size));
   const totalWidth = widths.reduce((a, b) => a + b, 0);

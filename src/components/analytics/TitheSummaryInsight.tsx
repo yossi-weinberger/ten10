@@ -1,8 +1,11 @@
+import CountUp from "react-countup";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
+import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { Scale } from "lucide-react";
+import { KpiGridSkeleton } from "./AnalyticsSkeleton";
 
 interface TitheSummaryInsightProps {
   serverTitheBalance: number | null | undefined;
@@ -13,6 +16,29 @@ interface TitheSummaryInsightProps {
   serverNonTitheDonations: number | null | undefined;
   isLoading: boolean;
   error: string | null;
+}
+
+interface AnimatedAmountProps {
+  value: number;
+  isLoading: boolean;
+  defaultCurrency: string;
+  language: string;
+  colorClass: string;
+}
+
+function AnimatedAmount({ value, isLoading, defaultCurrency, language, colorClass }: AnimatedAmountProps) {
+  const { displayValue, startAnimateValue } = useAnimatedCounter({ serverValue: value, isLoading });
+  return (
+    <p className={`text-lg sm:text-xl font-bold ${colorClass}`}>
+      <CountUp
+        start={startAnimateValue}
+        end={displayValue}
+        duration={0.75}
+        decimals={2}
+        formattingFn={(v) => formatCurrency(v, defaultCurrency, language)}
+      />
+    </p>
+  );
 }
 
 export function TitheSummaryInsight({
@@ -48,7 +74,7 @@ export function TitheSummaryInsight({
     return Math.min(100, Math.max(0, (titheOnlyDonations / denom) * 100));
   })();
 
-  const fmt = (v: number) => formatCurrency(v, defaultCurrency, i18n.language);
+  const isInitialLoad = isLoading && serverTitheBalance == null;
 
   return (
     <Card dir={i18n.dir()} className="bg-gradient-to-br from-background to-muted/20">
@@ -59,9 +85,12 @@ export function TitheSummaryInsight({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4 sm:p-6 pt-0">
-        {isLoading ? (
-          <div className="h-32 flex items-center justify-center">
-            <p className="text-sm text-muted-foreground">{t("analytics.loading")}</p>
+        {isInitialLoad ? (
+          <div className="space-y-4">
+            <KpiGridSkeleton count={3} className="grid-cols-3" />
+            <div className="space-y-2">
+              <div className="h-2 rounded-full bg-muted" />
+            </div>
           </div>
         ) : error ? (
           <p className="text-sm text-destructive">{t("analytics.error")}</p>
@@ -73,13 +102,13 @@ export function TitheSummaryInsight({
                 <p className="text-xs text-muted-foreground mb-1">
                   {t("analytics.tithe.balance")}
                 </p>
-                <p
-                  className={`text-lg sm:text-xl font-bold ${
-                    balance > 0 ? "text-destructive" : "text-green-500"
-                  }`}
-                >
-                  {fmt(balance)}
-                </p>
+                <AnimatedAmount
+                  value={balance}
+                  isLoading={isLoading}
+                  defaultCurrency={defaultCurrency}
+                  language={i18n.language}
+                  colorClass={balance > 0 ? "text-destructive" : "text-green-500"}
+                />
               </div>
 
               {trackChomeshSeparately ? (
@@ -88,25 +117,25 @@ export function TitheSummaryInsight({
                     <p className="text-xs text-muted-foreground mb-1">
                       {t("analytics.tithe.maaser")}
                     </p>
-                    <p
-                      className={`text-lg sm:text-xl font-bold ${
-                        maaserBalance > 0 ? "text-destructive" : "text-green-500"
-                      }`}
-                    >
-                      {fmt(maaserBalance)}
-                    </p>
+                    <AnimatedAmount
+                      value={maaserBalance}
+                      isLoading={isLoading}
+                      defaultCurrency={defaultCurrency}
+                      language={i18n.language}
+                      colorClass={maaserBalance > 0 ? "text-destructive" : "text-green-500"}
+                    />
                   </div>
                   <div className="rounded-lg border border-border bg-card p-3 text-center">
                     <p className="text-xs text-muted-foreground mb-1">
                       {t("analytics.tithe.chomesh")}
                     </p>
-                    <p
-                      className={`text-lg sm:text-xl font-bold ${
-                        chomeshBalance > 0 ? "text-destructive" : "text-green-500"
-                      }`}
-                    >
-                      {fmt(chomeshBalance)}
-                    </p>
+                    <AnimatedAmount
+                      value={chomeshBalance}
+                      isLoading={isLoading}
+                      defaultCurrency={defaultCurrency}
+                      language={i18n.language}
+                      colorClass={chomeshBalance > 0 ? "text-destructive" : "text-green-500"}
+                    />
                   </div>
                 </>
               ) : (
@@ -115,9 +144,13 @@ export function TitheSummaryInsight({
                     <p className="text-xs text-muted-foreground mb-1">
                       {t("analytics.tithe.titheOnlyDonations")}
                     </p>
-                    <p className="text-lg sm:text-xl font-bold text-yellow-500">
-                      {fmt(titheOnlyDonations)}
-                    </p>
+                    <AnimatedAmount
+                      value={titheOnlyDonations}
+                      isLoading={isLoading}
+                      defaultCurrency={defaultCurrency}
+                      language={i18n.language}
+                      colorClass="text-yellow-500"
+                    />
                   </div>
                   <div className="rounded-lg border border-border bg-card p-3 text-center">
                     <p className="text-xs text-muted-foreground mb-1">
@@ -138,7 +171,7 @@ export function TitheSummaryInsight({
                   {balance <= 0
                     ? t("analytics.tithe.goalReached")
                     : balance < 0
-                    ? t("analytics.tithe.goalExceeded", { amount: fmt(Math.abs(balance)) })
+                    ? t("analytics.tithe.goalExceeded", { amount: formatCurrency(Math.abs(balance), defaultCurrency, i18n.language) })
                     : t("analytics.tithe.goalProgress", {
                         percentage: donationProgress.toFixed(1),
                       })}
@@ -163,13 +196,13 @@ export function TitheSummaryInsight({
               >
                 <div className="flex flex-col">
                   <span className="font-medium text-foreground">
-                    {fmt(titheOnlyDonations)}
+                    {formatCurrency(titheOnlyDonations, defaultCurrency, i18n.language)}
                   </span>
                   <span>{t("analytics.tithe.titheOnlyDonations")}</span>
                 </div>
                 <div className="flex flex-col">
                   <span className="font-medium text-foreground">
-                    {fmt(nonTitheDonations)}
+                    {formatCurrency(nonTitheDonations, defaultCurrency, i18n.language)}
                   </span>
                   <span>{t("analytics.tithe.personalDonations")}</span>
                 </div>

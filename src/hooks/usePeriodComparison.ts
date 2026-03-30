@@ -1,9 +1,7 @@
 import { useEffect, useState } from "react";
-import {
-  fetchTotalIncomeInRange,
-  fetchTotalExpensesInRange,
-} from "@/lib/data-layer";
-import { getPreviousPeriodRange } from "./useInsights";
+import { useDonationStore } from "@/lib/store";
+import { fetchAnalyticsRangeStats } from "@/lib/data-layer";
+import { getPreviousPeriodRange } from "@/lib/utils/date-range";
 import { DateRangeObject } from "./useDateControls";
 import { Platform } from "@/contexts/PlatformContext";
 import { User } from "@/contexts/AuthContext";
@@ -28,6 +26,10 @@ export function usePeriodComparison(
   const [prevExpenses, setPrevExpenses] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const lastDbFetchTimestamp = useDonationStore(
+    (state) => state.lastDbFetchTimestamp
+  );
+
   const { startDate, endDate } = activeDateRangeObject;
 
   useEffect(() => {
@@ -45,17 +47,14 @@ export function usePeriodComparison(
       endDate
     );
 
-    const userId = platform === "web" ? user?.id ?? null : null;
-
     setIsLoading(true);
 
-    Promise.all([
-      fetchTotalIncomeInRange(userId, prevStart, prevEnd),
-      fetchTotalExpensesInRange(userId, prevStart, prevEnd),
-    ])
-      .then(([income, expenses]) => {
-        setPrevIncome(income?.total_income ?? null);
-        setPrevExpenses(expenses ?? null);
+    // Single combined call for both prevIncome and prevExpenses.
+    // auth.uid() / platform detection handled inside fetchAnalyticsRangeStats.
+    fetchAnalyticsRangeStats(prevStart, prevEnd)
+      .then((stats) => {
+        setPrevIncome(stats?.total_income ?? null);
+        setPrevExpenses(stats?.total_expenses ?? null);
       })
       .catch((err) => {
         logger.error("usePeriodComparison: fetch error:", err);
@@ -63,7 +62,7 @@ export function usePeriodComparison(
         setPrevExpenses(null);
       })
       .finally(() => setIsLoading(false));
-  }, [startDate, endDate, platform, user?.id]);
+  }, [startDate, endDate, platform, user?.id, lastDbFetchTimestamp]);
 
   return { prevIncome, prevExpenses, isLoading };
 }

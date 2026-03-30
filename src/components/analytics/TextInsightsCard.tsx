@@ -1,10 +1,10 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RecurringTransaction } from "@/types/transaction";
-import { CategoryBreakdownResponse, CategoryType } from "@/lib/data-layer/insights.service";
+import { CategoryBreakdownResponse, CategoryBreakdownItem, CategoryType } from "@/lib/data-layer/insights.service";
 import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
 import {
@@ -15,6 +15,8 @@ import {
   Info,
   Lightbulb,
 } from "lucide-react";
+
+const INSIGHTS_CARD_HEIGHT = "h-[170px] sm:h-[192px]";
 
 type InsightSeverity = "positive" | "negative" | "neutral" | "tip";
 
@@ -33,6 +35,9 @@ interface TextInsightsCardProps {
   categoryData: CategoryBreakdownResponse;
   categoryType: CategoryType;
   isLoading: boolean;
+  /** Top expense and income categories — independent of chart tab selection */
+  expenseCategoryTop?: CategoryBreakdownItem | null;
+  incomeCategoryTop?: CategoryBreakdownItem | null;
 }
 
 const SEVERITY_CONFIG: Record<InsightSeverity, { icon: React.ElementType; className: string }> = {
@@ -51,11 +56,20 @@ export function TextInsightsCard({
   categoryData,
   categoryType,
   isLoading,
+  expenseCategoryTop,
+  incomeCategoryTop,
 }: TextInsightsCardProps) {
   const { t, i18n } = useTranslation("dashboard");
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
+  const isInitialLoading =
+    isLoading &&
+    serverTotalIncome == null &&
+    serverTotalExpenses == null &&
+    prevIncome == null &&
+    prevExpenses == null &&
+    categoryData.length === 0;
 
-  const insights: Insight[] = useMemo(() => {
+  const nextInsights: Insight[] = useMemo(() => {
     // Define fmt inside useMemo to avoid stale closure and broken memoization
     const fmt = (v: number) => formatCurrency(v, defaultCurrency, i18n.language);
     const list: Insight[] = [];
@@ -75,23 +89,26 @@ export function TextInsightsCard({
       }
     }
 
-    // 2. Top category — use the denominator matching the active categoryType
-    if (categoryData.length > 0) {
-      const topCat = categoryData[0];
-      const denominator = categoryType === "income" ? income : expenses;
-      if (topCat && topCat.total_amount > 0 && denominator > 0) {
-        const catPct = (topCat.total_amount / denominator) * 100;
-        const catLabel = topCat.category === "other" ? t("analytics.categories.other") : topCat.category;
-        list.push({
-          id: "top-category",
-          text: t("analytics.insights.topCategory", {
-            category: catLabel,
-            percentage: catPct.toFixed(0),
-            amount: fmt(topCat.total_amount),
-          }),
-          severity: "neutral",
-        });
-      }
+    // 2a. Top expense category — always shown independent of chart tab
+    if (expenseCategoryTop && expenseCategoryTop.total_amount > 0 && expenses > 0) {
+      const catPct = (expenseCategoryTop.total_amount / expenses) * 100;
+      const catLabel = expenseCategoryTop.category === "other" ? t("analytics.categories.other") : expenseCategoryTop.category;
+      list.push({
+        id: "top-category-expense",
+        text: t("analytics.insights.topCategoryExpense", { category: catLabel, percentage: catPct.toFixed(0), amount: fmt(expenseCategoryTop.total_amount) }),
+        severity: "neutral",
+      });
+    }
+
+    // 2b. Top income category — always shown independent of chart tab
+    if (incomeCategoryTop && incomeCategoryTop.total_amount > 0 && income > 0) {
+      const catPct = (incomeCategoryTop.total_amount / income) * 100;
+      const catLabel = incomeCategoryTop.category === "other" ? t("analytics.categories.other") : incomeCategoryTop.category;
+      list.push({
+        id: "top-category-income",
+        text: t("analytics.insights.topCategoryIncome", { category: catLabel, percentage: catPct.toFixed(0), amount: fmt(incomeCategoryTop.total_amount) }),
+        severity: "neutral",
+      });
     }
 
     // 3. Recurring expenses ratio
@@ -140,11 +157,19 @@ export function TextInsightsCard({
     }
 
     return list.slice(0, 4);
-  }, [serverTotalIncome, serverTotalExpenses, prevIncome, prevExpenses, activeRecurring, categoryData, t, defaultCurrency, i18n.language]);
+  }, [serverTotalIncome, serverTotalExpenses, prevIncome, prevExpenses, activeRecurring, categoryData, expenseCategoryTop, incomeCategoryTop, t, defaultCurrency, i18n.language]);
 
-  if (isLoading) {
+  const [displayedInsights, setDisplayedInsights] = useState<Insight[]>(nextInsights);
+
+  useEffect(() => {
+    if (!isLoading) {
+      setDisplayedInsights(nextInsights);
+    }
+  }, [isLoading, nextInsights]);
+
+  if (isInitialLoading) {
     return (
-      <Card className="bg-gradient-to-br from-background to-muted/20 flex-1">
+      <Card className={`bg-gradient-to-br from-background to-muted/20 flex-1 ${INSIGHTS_CARD_HEIGHT}`}>
         <CardHeader className="p-4 sm:p-5 pb-2">
           <div className="flex items-center gap-2">
             <Skeleton className="h-4 w-4 rounded-full" />
@@ -163,8 +188,6 @@ export function TextInsightsCard({
     );
   }
 
-  if (insights.length === 0) return null;
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -172,32 +195,40 @@ export function TextInsightsCard({
       transition={{ duration: 0.35 }}
       className="flex-1 flex flex-col"
     >
-      <Card dir={i18n.dir()} className="bg-gradient-to-br from-background to-muted/20 h-full">
+      <Card dir={i18n.dir()} className={`bg-gradient-to-br from-background to-muted/20 h-full ${INSIGHTS_CARD_HEIGHT}`}>
         <CardHeader className="p-4 sm:p-5 pb-2">
           <CardTitle className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
             <Lightbulb className="h-4 w-4 text-yellow-500" />
             {t("analytics.insights.title")}
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-4 sm:p-5 pt-0 min-h-[80px]">
-          <ul className="space-y-2.5">
-            {insights.map((insight, i) => {
-              const { icon: Icon, className } = SEVERITY_CONFIG[insight.severity];
-              return (
-                <motion.li
-                  key={insight.id}
-                  initial={{ opacity: 0, x: i18n.dir() === "rtl" ? 10 : -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.07 }}
-                  className="flex items-start gap-2.5"
-                  dir={i18n.dir()}
-                >
-                  <Icon className={`h-4 w-4 mt-0.5 shrink-0 ${className}`} />
-                  <span className="text-sm text-foreground leading-snug">{insight.text}</span>
-                </motion.li>
-              );
-            })}
-          </ul>
+        <CardContent className="p-4 sm:p-5 pt-0 h-full min-h-0">
+          {displayedInsights.length === 0 ? (
+            <div className="h-full flex items-center justify-center">
+              <p className="text-sm text-muted-foreground">{t("analytics.insights.noData")}</p>
+            </div>
+          ) : (
+            <ul className={`space-y-2 ${isLoading ? "opacity-85" : ""}`}>
+              {displayedInsights.map((insight, i) => {
+                const { icon: Icon, className } = SEVERITY_CONFIG[insight.severity];
+                return (
+                  <motion.li
+                    key={insight.id}
+                    initial={{ opacity: 0, x: i18n.dir() === "rtl" ? 10 : -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.07 }}
+                    className="flex items-start gap-2.5"
+                    dir={i18n.dir()}
+                  >
+                    <Icon className={`h-4 w-4 mt-0.5 shrink-0 ${className}`} />
+                    <span className="text-[15px] sm:text-sm text-foreground leading-snug">
+                      {insight.text}
+                    </span>
+                  </motion.li>
+                );
+              })}
+            </ul>
+          )}
         </CardContent>
       </Card>
     </motion.div>

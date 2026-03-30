@@ -13,12 +13,6 @@ pub struct CategoryBreakdownItem {
     pub total_amount: f64,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct RecurringForecastItem {
-    pub r#type: String,
-    pub total_amount: f64,
-    pub tx_count: i64,
-}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PaymentMethodBreakdownItem {
@@ -73,34 +67,6 @@ pub fn get_desktop_category_breakdown(
             Ok(CategoryBreakdownItem {
                 category: row.get(0)?,
                 total_amount: row.get(1)?,
-            })
-        })
-        .map_err(|e| e.to_string())?;
-
-    rows.collect::<Result<Vec<_>, _>>()
-        .map_err(|e| e.to_string())
-}
-
-// ─── 2. Recurring Forecast ────────────────────────────────────────────────────
-
-#[tauri::command]
-pub fn get_desktop_recurring_forecast(
-    db_state: State<'_, DbState>,
-) -> Result<Vec<RecurringForecastItem>, String> {
-    let sql =
-        "SELECT type, SUM(amount) AS total_amount, COUNT(*) AS tx_count
-         FROM recurring_transactions
-         WHERE status = 'active'
-         GROUP BY type";
-
-    let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
-    let mut stmt = conn_guard.prepare(sql).map_err(|e| e.to_string())?;
-    let rows = stmt
-        .query_map([], |row| {
-            Ok(RecurringForecastItem {
-                r#type: row.get(0)?,
-                total_amount: row.get(1)?,
-                tx_count: row.get(2)?,
             })
         })
         .map_err(|e| e.to_string())?;
@@ -221,6 +187,149 @@ pub fn get_desktop_daily_heatmap(
         .map_err(|e| e.to_string())?;
 
     rows.collect::<Result<Vec<_>, _>>()
+        .map_err(|e| e.to_string())
+}
+
+// ─── 7. Combined breakdowns bundle ────────────────────────────────────────────
+// Replaces 3 separate IPC calls with one, scanning the transactions table once.
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AnalyticsBreakdownsBundle {
+    pub payment_methods: Vec<PaymentMethodBreakdownItem>,
+    pub recurring_vs_onetime: Vec<RecurringVsOnetimeItem>,
+    pub recipients: Vec<DonationRecipientItem>,
+}
+
+#[tauri::command]
+pub fn get_desktop_analytics_breakdowns(
+    db_state: State<'_, DbState>,
+    start_date: String,
+    end_date: String,
+) -> Result<AnalyticsBreakdownsBundle, String> {
+    let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
+    let expense_cond = expense_types_condition();
+
+    // Payment methods (expenses only)
+    let pm_sql = format!(
+        "SELECT COALESCE(payment_method, 'other') AS payment_method, SUM(amount) AS total_amount
+         FROM transactions
+         WHERE {} AND date >= ?1 AND date <= ?2
+         GROUP BY COALESCE(payment_method, 'other')
+         ORDER BY total_amount DESC
+         LIMIT 20",
+        expense_cond
+    );
+    let mut pm_stmt = conn_guard.prepare(&pm_sql).map_err(|e| e.to_string())?;
+    let payment_methods: Vec<PaymentMethodBreakdownItem> = pm_stmt
+        .query_map(params![start_date, end_date], |row| {
+            Ok(PaymentMethodBreakdownItem {
+                payment_method: row.get(0)?,
+                total_amount: row.get(1)?,
+            })
+        })
+        .map_err(|e| e.to_string())?
+        .collect::<Result<_, _>>()
+        .map_err(|e| e.to_string())?;
+
+    // Recurring vs one-time
+    let rvo_sql =
+        "SELECT (source_recurring_id IS NOT NULL) AS is_recurring,
+                SUM(amount) AS total_amount,
+                COUNT(*) AS tx_count
+         FROM transactions
+         WHERE type != 'initial_balance' AND date >= ?1 AND date <= ?2
+         GROUP BY (source_recurring_id IS NOT NULL)";
+    let mut rvo_stmt = conn_guard.prepare(rvo_sql).map_err(|e| e.to_string())?;
+    let recurring_vs_onetime: Vec<RecurringVsOnetimeItem> = rvo_stmt
+        .query_map(params![start_date, end_date], |row| {
+            let is_rec: i32 = row.get(0)?;
+            Ok(RecurringVsOnetimeItem {
+                is_recurring: is_rec != 0,
+                total_amount: row.get(1)?,
+                tx_count: row.get(2)?,
+            })
+        })
+        .map_err(|e| e.to_string())?
+        .collect::<Result<_, _>>()
+        .map_err(|e| e.to_string())?;
+
+    // Donation recipients
+    let rec_sql =
+        "SELECT display_key AS recipient, total_amount, display_key AS last_description
+         FROM (
+           SELECT
+             COALESCE(NULLIF(TRIM(COALESCE(description,'')), ''),
+                      NULLIF(TRIM(COALESCE(recipient,'')), ''),
+                      'other') AS display_key,
+             SUM(amount) AS total_amount
+           FROM transactions
+           WHERE type IN ('donation', 'non_tithe_donation')
+             AND date >= ?1 AND date <= ?2
+           GROUP BY COALESCE(NULLIF(TRIM(COALESCE(description,'')), ''),
+                              NULLIF(TRIM(COALESCE(recipient,'')), ''),
+                              'other')
+           ORDER BY total_amount DESC
+           LIMIT 50
+         )
+         ORDER BY total_amount DESC";
+    let mut rec_stmt = conn_guard.prepare(rec_sql).map_err(|e| e.to_string())?;
+    let recipients: Vec<DonationRecipientItem> = rec_stmt
+        .query_map(params![start_date, end_date], |row| {
+            Ok(DonationRecipientItem {
+                recipient: row.get(0)?,
+                total_amount: row.get(1)?,
+                last_description: row.get(2)?,
+            })
+        })
+        .map_err(|e| e.to_string())?
+        .collect::<Result<_, _>>()
+        .map_err(|e| e.to_string())?;
+
+    Ok(AnalyticsBreakdownsBundle { payment_methods, recurring_vs_onetime, recipients })
+}
+
+// ─── 8. Combined range stats ───────────────────────────────────────────────────
+// Single SQL scan replacing 3 separate IPC calls for income/expenses/donations.
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct AnalyticsRangeStats {
+    pub total_income: f64,
+    pub chomesh_amount: f64,
+    pub total_expenses: f64,
+    pub total_donations: f64,
+    pub non_tithe_donation_amount: f64,
+}
+
+#[tauri::command]
+pub fn get_desktop_analytics_range_stats(
+    db_state: State<'_, DbState>,
+    start_date: String,
+    end_date: String,
+) -> Result<AnalyticsRangeStats, String> {
+    let sql = format!(
+        "SELECT
+           COALESCE(SUM(CASE WHEN ({income}) THEN amount ELSE 0 END), 0) AS total_income,
+           COALESCE(SUM(CASE WHEN is_chomesh THEN amount ELSE 0 END),  0) AS chomesh_amount,
+           COALESCE(SUM(CASE WHEN ({expense}) THEN amount ELSE 0 END), 0) AS total_expenses,
+           COALESCE(SUM(CASE WHEN (type = 'donation' OR type = 'non_tithe_donation') THEN amount ELSE 0 END), 0) AS total_donations,
+           COALESCE(SUM(CASE WHEN type = 'non_tithe_donation' THEN amount ELSE 0 END), 0) AS non_tithe_donation_amount
+         FROM transactions
+         WHERE date >= ?1 AND date <= ?2",
+        income  = income_types_condition().trim_matches(|c| c == '(' || c == ')'),
+        expense = expense_types_condition().trim_matches(|c| c == '(' || c == ')')
+    );
+
+    let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
+    conn_guard
+        .query_row(&sql, params![start_date, end_date], |row| {
+            Ok(AnalyticsRangeStats {
+                total_income:              row.get(0)?,
+                chomesh_amount:            row.get(1)?,
+                total_expenses:            row.get(2)?,
+                total_donations:           row.get(3)?,
+                non_tithe_donation_amount: row.get(4)?,
+            })
+        })
         .map_err(|e| e.to_string())
 }
 

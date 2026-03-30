@@ -13,6 +13,17 @@ import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { RecurringTransaction } from "@/types/transaction";
 import { Info, TrendingUp, TrendingDown, Minus } from "lucide-react";
 
+const KPI_GRID_CLASS = "grid grid-cols-3 gap-2 sm:gap-4 items-stretch";
+
+/** Converts "YYYY-MM-DD" → "DD/MM/YY" for tooltip display */
+function isoToDDMMYY(iso: string): string {
+  const parts = iso.split("-");
+  if (parts.length !== 3) return iso;
+  return `${parts[2]}/${parts[1]}/${parts[0].slice(2)}`;
+}
+const KPI_CARD_HEIGHT = "h-[112px] sm:h-[132px]";
+const KPI_DELTA_SLOT_HEIGHT = "min-h-[18px] sm:min-h-[22px]";
+
 interface InsightsSummaryRowProps {
   serverTotalIncome: number | null | undefined;
   serverTotalExpenses: number | null | undefined;
@@ -30,8 +41,8 @@ function DeltaBadge({ pct, t }: { pct: number; t: (key: string) => string }) {
   const isDown = pct < -0.5;
   return (
     <span
-      className={`inline-flex items-center gap-0.5 text-[11px] font-medium mt-1 ${
-        isUp ? "text-green-500" : isDown ? "text-destructive" : "text-muted-foreground"
+      className={`inline-flex items-center gap-0.5 text-[11px] sm:text-xs font-medium mt-1 ${
+        isUp ? "text-primary" : isDown ? "text-destructive" : "text-muted-foreground"
       }`}
     >
       {isUp ? <TrendingUp className="h-3 w-3" /> : isDown ? <TrendingDown className="h-3 w-3" /> : <Minus className="h-3 w-3" />}
@@ -49,10 +60,11 @@ function NotApplicableBadge({ label }: { label: string }) {
 
 function KpiPlaceholderCard({ label }: { label: ReactNode }) {
   return (
-    <Card className="bg-gradient-to-br from-background to-muted/20">
-      <CardContent className="p-4 sm:p-5">
+    <Card className={`bg-gradient-to-br from-background to-muted/20 h-full ${KPI_CARD_HEIGHT}`}>
+      <CardContent className="p-3 sm:p-4 h-full flex flex-col">
         <p className="text-xs text-muted-foreground mb-1">{label}</p>
-        <p className="text-2xl font-bold text-muted-foreground">—</p>
+        <p className="text-2xl sm:text-3xl font-semibold tracking-tight text-muted-foreground">—</p>
+        <div className={KPI_DELTA_SLOT_HEIGHT} />
       </CardContent>
     </Card>
   );
@@ -83,9 +95,10 @@ function InsightKpiCard({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: index * 0.06 }}
+      className="h-full"
     >
-      <Card className="bg-gradient-to-br from-background to-muted/20 h-full">
-        <CardContent className="p-2 sm:p-4 sm:p-5">
+      <Card className={`bg-gradient-to-br from-background to-muted/20 h-full ${KPI_CARD_HEIGHT}`}>
+        <CardContent className="p-3 sm:p-4 h-full flex flex-col">
           <div className="flex items-start justify-between gap-0.5 mb-1 sm:mb-2" dir={i18n.dir()}>
             <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">{label}</p>
             {tooltip && (
@@ -101,7 +114,7 @@ function InsightKpiCard({
               </Tooltip>
             )}
           </div>
-          <p className={`text-lg sm:text-2xl font-bold ${colorClass}`}>
+          <p className={`text-2xl sm:text-3xl font-semibold tracking-tight ${colorClass}`}>
             <CountUp
               start={startAnimateValue}
               end={displayValue}
@@ -110,7 +123,9 @@ function InsightKpiCard({
               suffix="%"
             />
           </p>
-          {deltaNode}
+          <div className={`mt-auto ${KPI_DELTA_SLOT_HEIGHT}`}>
+            {deltaNode}
+          </div>
         </CardContent>
       </Card>
     </motion.div>
@@ -151,16 +166,22 @@ export function InsightsSummaryRow({
       ? ((income - prevIncome) / prevIncome) * 100
       : null;
 
+  const isInitialLoading =
+    isLoading &&
+    serverTotalIncome == null &&
+    serverTotalExpenses == null &&
+    prevIncome == null;
+
   // Always render 3 cards to keep consistent height.
   // When loading: skeleton. When no data: placeholder card.
 
   // Show skeleton cards while loading
-  if (isLoading) {
+  if (isInitialLoading) {
     return (
-      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+      <div className={KPI_GRID_CLASS}>
         {[0, 1, 2].map((i) => (
-          <Card key={i} className="bg-gradient-to-br from-background to-muted/20">
-            <CardContent className="p-2 sm:p-4 sm:p-5 space-y-1.5 sm:space-y-2">
+          <Card key={i} className={`bg-gradient-to-br from-background to-muted/20 ${KPI_CARD_HEIGHT}`}>
+            <CardContent className="p-3 sm:p-4 space-y-1.5 sm:space-y-2 h-full">
               <Skeleton className="h-2.5 sm:h-3 w-16 sm:w-24" />
               <Skeleton className="h-7 sm:h-8 w-12 sm:w-16" />
               <Skeleton className="h-2 sm:h-2.5 w-14 sm:w-20" />
@@ -181,20 +202,26 @@ export function InsightsSummaryRow({
   // Build period comparison tooltip with actual dates
   const periodTooltip = prevPeriodStart && prevPeriodEnd && !isAllTime
     ? t("analytics.insightsSummary.periodComparisonTooltipWithDates", {
-        prevStart: prevPeriodStart,
-        prevEnd: prevPeriodEnd,
+        prevStart: isoToDDMMYY(prevPeriodStart),
+        prevEnd: isoToDDMMYY(prevPeriodEnd),
       })
     : t("analytics.insightsSummary.periodComparisonTooltip");
 
   return (
-    <div className="grid grid-cols-3 gap-2 sm:gap-4">
+    <div className={KPI_GRID_CLASS}>
       {/* Slot 1: Savings rate — show placeholder if null */}
       {savingsRate !== null ? (
         <InsightKpiCard
           label={t("analytics.insightsSummary.savingsRate")}
           value={savingsRate}
           isLoading={isLoading}
-          colorClass={savingsRate >= 20 ? "text-green-500" : savingsRate >= 0 ? "text-blue-500" : "text-destructive"}
+          colorClass={
+            savingsRate >= 20
+              ? "text-primary"
+              : savingsRate >= 0
+              ? "text-foreground"
+              : "text-destructive"
+          }
           tooltip={t("analytics.insightsSummary.savingsRateTooltip")}
           index={0}
         />
@@ -208,7 +235,7 @@ export function InsightsSummaryRow({
           label={t("analytics.insightsSummary.recurringPct")}
           value={recurringPct}
           isLoading={isLoading}
-          colorClass={recurringPct > 70 ? "text-yellow-500" : "text-purple-500"}
+          colorClass={recurringPct > 70 ? "text-amber-600 dark:text-amber-400" : "text-primary"}
           tooltip={t("analytics.insightsSummary.recurringPctTooltip")}
           index={1}
         />
@@ -225,7 +252,7 @@ export function InsightsSummaryRow({
           isAllTime
             ? "text-muted-foreground"
             : incomeDelta !== null && incomeDelta >= 0
-            ? "text-green-500"
+            ? "text-primary"
             : "text-destructive"
         }
         tooltip={periodTooltip}

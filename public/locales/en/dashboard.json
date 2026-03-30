@@ -147,17 +147,19 @@
       "incomeUp": "Your income rose {{percentage}}% vs. the previous period",
       "incomeDown": "Your income dropped {{percentage}}% vs. the previous period",
       "topCategory": "Top expense category: {{category}} — {{amount}} ({{percentage}}% of expenses)",
+      "topCategoryExpense": "Top expense category: {{category}} — {{amount}} ({{percentage}}% of expenses)",
+      "topCategoryIncome": "Top income category: {{category}} — {{amount}} ({{percentage}}% of income)",
       "noCategories": "Add categories to your transactions for more precise insights",
       "noData": "Not enough data for insights in this period"
     },
     "insightsSummary": {
       "savingsRate": "Savings Rate",
-      "savingsRateTooltip": "What % of income is saved after expenses",
+      "savingsRateTooltip": "What % of income remains after all expenses — 20%+ is considered healthy savings",
       "recurringPct": "Fixed Expenses",
-      "recurringPctTooltip": "Percentage of expenses from standing orders",
-      "periodComparison": "Change vs. prev. period",
-      "periodComparisonTooltip": "Change in income vs. the previous period — same duration, immediately before the current range",
-      "periodComparisonTooltipWithDates": "Change in income vs. previous period: {{prevStart}} to {{prevEnd}}",
+      "recurringPctTooltip": "Sum of active standing order amounts divided by total expenses in range. Different from the Recurring vs. One-Time chart, which shows how many actual transactions were generated from templates",
+      "periodComparison": "Income change",
+      "periodComparisonTooltip": "Change in income compared to the same-length period that preceded the current range",
+      "periodComparisonTooltipWithDates": "Income change vs. previous period ({{prevStart}}–{{prevEnd}})",
       "noData": "Not enough data",
       "notApplicable": "Not applicable for this range"
     },
@@ -171,7 +173,7 @@
     },
       "heatmap": {
       "title": "Transaction Activity",
-      "subtitle": "Activity intensity by day",
+      "subtitle": "Transaction density by day across all history",
       "typeAll": "All Types",
       "tooltip": "{{date}}: {{count}} transactions, {{amount}}",
       "noData": "No transactions in this period",

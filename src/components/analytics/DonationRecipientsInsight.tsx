@@ -10,6 +10,7 @@ import { formatCurrency } from "@/lib/utils/currency";
 import { HandCoins } from "lucide-react";
 import { BreakdownBarPieChart } from "./BreakdownBarPieChart";
 import { ChartViewToggle } from "./ChartViewToggle";
+import { BreakdownBarSkeleton } from "./AnalyticsSkeleton";
 
 const ROW_HEIGHT = 40;
 const VISIBLE_ROWS = 7;
@@ -84,10 +85,8 @@ export function DonationRecipientsInsight({
           </div>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
-          {isLoading ? (
-            <div className="flex items-center justify-center" style={{ height: SCROLL_HEIGHT }}>
-              <p className="text-sm text-muted-foreground">{t("analytics.loading")}</p>
-            </div>
+          {isLoading && data.length === 0 ? (
+            <BreakdownBarSkeleton height={SCROLL_HEIGHT} />
           ) : error ? (
             <div className="flex items-center justify-center" style={{ height: SCROLL_HEIGHT }}>
               <p className="text-sm text-destructive">{t("analytics.error")}</p>

@@ -11,6 +11,7 @@ import { isPredefinedPaymentMethod } from "@/lib/payment-methods";
 import { CreditCard } from "lucide-react";
 import { BreakdownBarPieChart } from "./BreakdownBarPieChart";
 import { ChartViewToggle } from "./ChartViewToggle";
+import { BreakdownBarSkeleton } from "./AnalyticsSkeleton";
 
 type ChartViewType = "bar" | "pie";
 
@@ -85,10 +86,8 @@ export function PaymentMethodInsight({ data, isLoading, error }: PaymentMethodIn
           </div>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
-          {isLoading ? (
-            <div className="h-40 flex items-center justify-center">
-              <p className="text-sm text-muted-foreground">{t("analytics.loading")}</p>
-            </div>
+          {isLoading && data.length === 0 ? (
+            <BreakdownBarSkeleton height={SCROLL_HEIGHT} />
           ) : error ? (
             <div className="h-40 flex items-center justify-center">
               <p className="text-sm text-destructive">{t("analytics.error")}</p>

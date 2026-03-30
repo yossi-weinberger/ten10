@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import CountUp from "react-countup";
 import { parse, format, subMonths } from "date-fns";
 import { he, enUS } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,22 +14,47 @@ import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
+import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { TrendingUp } from "lucide-react";
 import { DateRangeObject } from "@/hooks/useDateControls";
 import { logger } from "@/lib/logger";
+import { KpiGridSkeleton, ChartAreaSkeleton } from "./AnalyticsSkeleton";
+
+interface AnimatedCurrencyProps {
+  value: number;
+  isLoading: boolean;
+  colorClass: string;
+  defaultCurrency: string;
+  language: string;
+}
+
+function AnimatedCurrency({ value, isLoading, colorClass, defaultCurrency, language }: AnimatedCurrencyProps) {
+  const { displayValue, startAnimateValue } = useAnimatedCounter({ serverValue: value, isLoading });
+  return (
+    <p className={`text-base sm:text-lg font-bold ${colorClass}`}>
+      <CountUp
+        start={startAnimateValue}
+        end={displayValue}
+        duration={0.75}
+        decimals={2}
+        formattingFn={(v) => formatCurrency(v, defaultCurrency, language)}
+      />
+    </p>
+  );
+}
 
 interface KpiCardProps {
   label: string;
-  value: string;
   colorClass: string;
   deltaContent?: React.ReactNode;
+  children: React.ReactNode;
 }
 
-function KpiCard({ label, value, colorClass, deltaContent }: KpiCardProps) {
+function KpiCard({ label, colorClass: _colorClass, deltaContent, children }: KpiCardProps) {
   return (
     <div className="rounded-lg border border-border bg-card p-3">
       <p className="text-xs text-muted-foreground mb-1 truncate">{label}</p>
-      <p className={`text-base sm:text-lg font-bold ${colorClass}`}>{value}</p>
+      {children}
       {deltaContent && <div className="mt-1">{deltaContent}</div>}
     </div>
   );
@@ -36,11 +62,9 @@ function KpiCard({ label, value, colorClass, deltaContent }: KpiCardProps) {
 
 interface CashFlowInsightProps {
   activeDateRangeObject: DateRangeObject;
-  // KPI values from useServerStats (passed down to avoid double-fetching)
   serverTotalIncome: number | null | undefined;
   serverTotalExpenses: number | null | undefined;
   isLoadingStats: boolean;
-  // delta props (from comparison todo — passed as undefined until implemented)
   prevIncome?: number | null;
   prevExpenses?: number | null;
 }
@@ -65,7 +89,6 @@ export function CashFlowInsight({
 
   const { startDate, endDate } = activeDateRangeObject;
 
-  // Calculate number of months in the range
   const numMonths = useMemo(() => {
     if (!startDate || !endDate) return 6;
     const start = new Date(startDate);
@@ -124,12 +147,15 @@ export function CashFlowInsight({
     loadChartData();
   }, [loadChartData]);
 
-  const fmt = (v: number) => formatCurrency(v, defaultCurrency, i18n.language);
-
   const income = serverTotalIncome ?? 0;
   const expenses = serverTotalExpenses ?? 0;
   const net = income - expenses;
   const savingsRate = income > 0 ? (net / income) * 100 : 0;
+
+  const { displayValue: savingsDisplay, startAnimateValue: savingsStart } = useAnimatedCounter({
+    serverValue: savingsRate,
+    isLoading: isLoadingStats,
+  });
 
   const chartConfig: ChartConfig = {
     income: {
@@ -146,7 +172,9 @@ export function CashFlowInsight({
     },
   };
 
-  const isLoading = isLoadingStats || isLoadingChart;
+  // Show skeleton only on first load (no data in store yet)
+  const isInitialLoad = isLoadingStats && serverTotalIncome == null;
+  const isChartInitialLoad = isLoadingChart && chartData.length === 0;
 
   return (
     <Card
@@ -161,44 +189,73 @@ export function CashFlowInsight({
       </CardHeader>
       <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
         {/* KPI row */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <KpiCard
-            label={t("analytics.cashFlow.income")}
-            value={isLoadingStats ? "..." : fmt(income)}
-            colorClass="text-green-500"
-            deltaContent={
-              prevIncome != null && prevIncome > 0 ? (
-                <DeltaBadge current={income} previous={prevIncome} />
-              ) : undefined
-            }
-          />
-          <KpiCard
-            label={t("analytics.cashFlow.expenses")}
-            value={isLoadingStats ? "..." : fmt(expenses)}
-            colorClass="text-destructive"
-            deltaContent={
-              prevExpenses != null && prevExpenses > 0 ? (
-                <DeltaBadge current={expenses} previous={prevExpenses} />
-              ) : undefined
-            }
-          />
-          <KpiCard
-            label={t("analytics.cashFlow.net")}
-            value={isLoadingStats ? "..." : fmt(net)}
-            colorClass={net >= 0 ? "text-blue-500" : "text-destructive"}
-          />
-          <KpiCard
-            label={t("analytics.cashFlow.savingsRate")}
-            value={isLoadingStats ? "..." : `${savingsRate.toFixed(1)}%`}
-            colorClass={savingsRate >= 10 ? "text-purple-500" : "text-muted-foreground"}
-          />
-        </div>
+        {isInitialLoad ? (
+          <KpiGridSkeleton count={4} className="grid-cols-2 lg:grid-cols-4" />
+        ) : (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <KpiCard
+              label={t("analytics.cashFlow.income")}
+              colorClass="text-green-500"
+              deltaContent={
+                prevIncome != null && prevIncome > 0 ? (
+                  <DeltaBadge current={income} previous={prevIncome} />
+                ) : undefined
+              }
+            >
+              <AnimatedCurrency
+                value={income}
+                isLoading={isLoadingStats}
+                colorClass="text-green-500"
+                defaultCurrency={defaultCurrency}
+                language={i18n.language}
+              />
+            </KpiCard>
+            <KpiCard
+              label={t("analytics.cashFlow.expenses")}
+              colorClass="text-destructive"
+              deltaContent={
+                prevExpenses != null && prevExpenses > 0 ? (
+                  <DeltaBadge current={expenses} previous={prevExpenses} />
+                ) : undefined
+              }
+            >
+              <AnimatedCurrency
+                value={expenses}
+                isLoading={isLoadingStats}
+                colorClass="text-destructive"
+                defaultCurrency={defaultCurrency}
+                language={i18n.language}
+              />
+            </KpiCard>
+            <KpiCard label={t("analytics.cashFlow.net")} colorClass={net >= 0 ? "text-blue-500" : "text-destructive"}>
+              <AnimatedCurrency
+                value={net}
+                isLoading={isLoadingStats}
+                colorClass={net >= 0 ? "text-blue-500" : "text-destructive"}
+                defaultCurrency={defaultCurrency}
+                language={i18n.language}
+              />
+            </KpiCard>
+            <KpiCard
+              label={t("analytics.cashFlow.savingsRate")}
+              colorClass={savingsRate >= 10 ? "text-purple-500" : "text-muted-foreground"}
+            >
+              <p className={`text-base sm:text-lg font-bold ${savingsRate >= 10 ? "text-purple-500" : "text-muted-foreground"}`}>
+                <CountUp
+                  start={savingsStart}
+                  end={savingsDisplay}
+                  duration={0.75}
+                  decimals={1}
+                  suffix="%"
+                />
+              </p>
+            </KpiCard>
+          </div>
+        )}
 
         {/* Chart */}
-        {isLoading && chartData.length === 0 ? (
-          <div className="h-48 flex items-center justify-center">
-            <p className="text-sm text-muted-foreground">{t("analytics.loading")}</p>
-          </div>
+        {isChartInitialLoad ? (
+          <ChartAreaSkeleton height={220} />
         ) : chartError ? (
           <div className="h-48 flex items-center justify-center">
             <p className="text-sm text-destructive">{t("analytics.error")}</p>

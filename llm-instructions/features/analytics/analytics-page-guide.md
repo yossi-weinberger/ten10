@@ -198,9 +198,9 @@ useInsights(activeDateRangeObject, user, platform): {
 
 **Refetch triggers:** date range change, platform change, `lastDbFetchTimestamp` change, `categoryType` change, `heatmapTypeGroup` change.
 
-**`activeRecurring` fetch:** Queries `recurring_transactions` directly (not via `insights.service`) with `status = 'active'`. Desktop uses `get_recurring_transactions_handler` with `args: { sorting: { field: "next_due_date", direction: "asc" }, filters: { statuses: ["active"], ... } }`.
+**`activeRecurring` fetch:** Delegated to `fetchActiveRecurring()` in `insights.service.ts`. Web: queries `recurring_transactions` table via Supabase with `status = 'active'`. Desktop: invokes `get_recurring_transactions_handler` with `args: { sorting: { field: "next_due_date", direction: "asc" }, filters: { statuses: ["active"], ... } }`.
 
-**`getPreviousPeriodRange`:** Exported utility — computes prior period of same duration immediately before the current range.
+**`getPreviousPeriodRange`:** Utility in `src/lib/utils/date-range.ts` — computes prior period of same duration immediately before the current range. Re-exported from `useInsights` for backward compatibility.
 
 ### `usePeriodComparison` — `src/hooks/usePeriodComparison.ts`
 
@@ -219,9 +219,9 @@ All functions support both platforms via `getPlatform()`.
 | `fetchRecurringVsOnetime(start, end)` | `get_recurring_vs_onetime` | `get_desktop_recurring_vs_onetime` |
 | `fetchDonationRecipientsBreakdown(start, end)` | `get_donation_recipients_breakdown` | `get_desktop_donation_recipients_breakdown` |
 | `fetchDailyHeatmap(start, end, typeGroup)` | `get_daily_transaction_heatmap` | `get_desktop_daily_heatmap` |
-| `fetchRecurringForecast()` | `get_recurring_forecast` | `get_desktop_recurring_forecast` |
+| `fetchActiveRecurring()` | direct table query (`status=active`) | `get_recurring_transactions_handler` |
 
-**Note:** `fetchRecurringForecast` exists in the service but is not called from `useInsights`. The active recurring list is fetched directly from Supabase/Tauri.
+**Note:** `fetchRecurringForecast` was removed — it was legacy code not consumed by the UI. Active recurring data comes via `fetchActiveRecurring()` in `insights.service.ts`. The SQL function `get_recurring_forecast` still exists in Supabase but is no longer called from TypeScript or Rust.
 
 **Key types:** `CategoryBreakdownItem`, `PaymentMethodBreakdownItem`, `RecurringVsOnetimeItem`, `DonationRecipientItem` (with `last_description`), `DailyHeatmapItem`, `HeatmapTypeGroup`, `CategoryType`.
 
@@ -250,19 +250,51 @@ All RPCs: `SECURITY DEFINER SET search_path = public`, use `auth.uid()` internal
 2. `20260325115226_add_heatmap_rpc.sql` — heatmap RPC
 3. `20260325125322_update_heatmap_and_recipients_rpcs.sql` — add `p_type_group` to heatmap; add `last_description` to recipients
 4. `20260325152414_fix_donation_recipients_by_description.sql` — rewrite recipients grouping to prioritize description field
+5. `20260325161050_fix_donation_recipients_order_and_limit.sql` — increase recipients LIMIT to 50
+
+### Web ↔ Desktop Parity Checklist
+
+Last verified: branch `feature/analytics-page`. When changing any insight's SQL or Rust logic, verify all columns below remain in sync:
+
+| Insight | Web LIMIT | Desktop LIMIT | Grouping logic | Type filter |
+|---|---|---|---|---|
+| Category | 10 | 10 | `COALESCE(category, 'other')` | expense/income/donation arrays |
+| Payment Methods | 20 | 20 | `COALESCE(payment_method, 'other')` | `expense + recognized-expense` |
+| Recurring vs Onetime | none | none | `source_recurring_id IS NOT NULL` | excludes `initial_balance` |
+| Donation Recipients | 50 | 50 | description → recipient → 'other' | `donation + non_tithe_donation` |
+| Heatmap | none | none | `GROUP BY date` | optional type_group filter |
+
+All 5 insights are in full parity as of the above migrations.
+
+### Hook Fetch Dependency Map
+
+Understanding what triggers each fetch prevents accidental over-fetching:
+
+| Data | Depends on date range? | Re-fetches on |
+|---|---|---|
+| `activeRecurring` | No | platform, lastDbFetchTimestamp |
+| `titheBalance` | No | user, platform, lastDbFetchTimestamp |
+| `categoryBreakdown` | Yes | startDate, endDate, categoryType, platform, lastDbFetchTimestamp |
+| `paymentMethods` | Yes | startDate, endDate, platform, lastDbFetchTimestamp (batched) |
+| `recurringVsOnetime` | Yes | startDate, endDate, platform, lastDbFetchTimestamp (batched) |
+| `recipients` | Yes | startDate, endDate, platform, lastDbFetchTimestamp (batched) |
+| `heatmap` | No (always all-time) | heatmapTypeGroup, platform, lastDbFetchTimestamp |
+| `income/expenses/donations` | Yes | startDate, endDate, user, platform, lastDbFetchTimestamp |
+| `prevIncome/prevExpenses` | Yes (previous period) | startDate, endDate, user, platform, lastDbFetchTimestamp |
 
 ---
 
 ## Desktop Tauri Commands — `src-tauri/src/commands/insights_commands.rs`
 
-6 commands parallel to the Supabase RPCs:
+5 active commands (parallel to the Supabase RPCs):
 
 - `get_desktop_category_breakdown(start, end, transaction_type)` — SQLite GROUP BY category
 - `get_desktop_payment_method_breakdown(start, end)` — expenses only, GROUP BY payment_method
 - `get_desktop_recurring_vs_onetime(start, end)` — GROUP BY `source_recurring_id IS NOT NULL`
 - `get_desktop_donation_recipients_breakdown(start, end)` — GROUP BY `COALESCE(description, recipient, 'other')`
 - `get_desktop_daily_heatmap(start, end, type_group: Option<String>)` — GROUP BY date
-- `get_desktop_recurring_forecast()` — GROUP BY type from recurring_transactions WHERE status='active'
+
+**Removed:** `get_desktop_recurring_forecast` — was legacy, not consumed by the UI. Active recurring transactions are fetched via `get_recurring_transactions_handler` (existing command, shared with the Recurring Transactions page).
 
 Registered in `src-tauri/src/commands/mod.rs` and `src-tauri/src/main.rs` `generate_handler!`.
 
@@ -384,6 +416,23 @@ Files: `public/locales/he/dashboard.json` and `public/locales/en/dashboard.json`
 ## Performance Notes
 
 - `recurringTotals` (sum by type from `activeRecurring`) is computed with `useMemo` in `AnalyticsPage` to avoid 3 passes on every render
-- `useServerStats` uses `Promise.all` for all 4 fetches (income, expenses, donations, tithe) — single render on completion
+- `useServerStats` uses `Promise.allSettled` for 3 range-sensitive fetches (income, expenses, donations); **tithe balance** runs in a separate effect that does not re-fetch on date range changes
+- `useInsights`: **`activeRecurring`** runs in a separate effect independent of date range; **payment methods, recurring ratio, recipients** are batched in a single `Promise.allSettled` so their setState calls resolve in one React 18 batch
+- `usePeriodComparison` includes `lastDbFetchTimestamp` to stay in sync with the rest of the analytics data after a DB change
 - `TextInsightsCard.insights` computed inside `useMemo` with `fmt` defined internally (avoids broken memoization from external function reference)
 - `DeltaBadge` defined at module level in `InsightsSummaryRow` (not inside render function) to avoid unmount/remount animations
+
+### When to consider deeper backend batching
+
+Before implementing a combined RPC or further aggregation, measure first:
+
+| Signal | Recommended action |
+|---|---|
+| Network DevTools shows ≥6 sequential/slow requests per range change | Consider a `get_analytics_summary(start, end)` RPC combining income+expenses+donations |
+| React Profiler shows excessive commits from chart components | Add `React.memo` to heavy chart wrappers |
+| Heatmap query takes >500ms (visible in DevTools) | Add a year/range cap or aggregation tier |
+| No bottleneck found after measurement | Do NOT add batching — current architecture is clean and maintainable |
+
+Current fetch count per date range change (after optimization):
+- **Range-dependent:** category (1) + [payment+ratio+recipients] (1 batched) + [income+expenses+donations] (1 batched) + period comparison (1) = **4 network round-trips**
+- **Range-independent:** activeRecurring and titheBalance do NOT re-fetch on range change

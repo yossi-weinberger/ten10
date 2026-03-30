@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDonationStore } from "@/lib/store";
 import {
-  fetchTotalIncomeInRange,
-  ServerIncomeData,
-  fetchTotalExpensesInRange,
-  fetchTotalDonationsInRange,
+  fetchAnalyticsRangeStats,
   fetchServerTitheBalance,
   ServerDonationData,
   TitheBalanceBreakdown,
@@ -93,74 +90,63 @@ export function useServerStats(
     (state) => state.lastDbFetchTimestamp
   );
 
+  // ─── Range-dependent stats: income, expenses, donations ──────────────────
+  // Re-fetches whenever the active date range, user, or DB changes.
   useEffect(() => {
     const effectiveUserId = platform === "web" ? user?.id || null : null;
     const canFetch = (platform === "web" && effectiveUserId) || platform === "desktop";
     const isWebNoUser = platform === "web" && !effectiveUserId;
 
     if (isWebNoUser) {
-      // Clear all values — no user available on web
       setServerTotalIncome(null); setServerChomeshAmount(null); setIsLoadingServerIncome(false); setServerIncomeError(null);
       setServerTotalExpenses(null); setIsLoadingServerExpenses(false); setServerExpensesError(null);
       setServerTotalDonations(null); setServerCalculatedDonationsData(null); setIsLoadingServerDonations(false); setServerDonationsError(null);
-      setServerTitheBalance(null); setServerMaaserBalance(null); setServerChomeshBalance(null); setIsLoadingServerTitheBalance(false); setServerTitheBalanceError(null);
       return;
     }
 
     if (canFetch && activeDateRangeObject.startDate && activeDateRangeObject.endDate) {
-      // Single Promise.all → all setStates fire close together → React batches into ~1 render
-      const loadAll = async () => {
+      const loadRangeStats = async () => {
         setIsLoadingServerIncome(true);
         setIsLoadingServerExpenses(true);
         setIsLoadingServerDonations(true);
-        setIsLoadingServerTitheBalance(true);
         setServerIncomeError(null);
         setServerExpensesError(null);
         setServerDonationsError(null);
-        setServerTitheBalanceError(null);
 
-        try {
-          const [incomeData, expensesData, donationsData, titheData] = await Promise.all([
-            fetchTotalIncomeInRange(effectiveUserId, activeDateRangeObject.startDate, activeDateRangeObject.endDate),
-            fetchTotalExpensesInRange(effectiveUserId, activeDateRangeObject.startDate, activeDateRangeObject.endDate),
-            fetchTotalDonationsInRange(effectiveUserId, activeDateRangeObject.startDate, activeDateRangeObject.endDate),
-            fetchServerTitheBalance(effectiveUserId),
-          ]);
-
-          // Income
-          if (incomeData) { setServerTotalIncome(incomeData.total_income); setServerChomeshAmount(incomeData.chomesh_amount); }
-          else { setServerTotalIncome(null); setServerChomeshAmount(null); }
-
-          // Expenses
-          setServerTotalExpenses(expensesData);
-
-          // Donations
-          setServerCalculatedDonationsData(donationsData);
-          setServerTotalDonations(donationsData?.total_donations_amount ?? null);
-
-          // Tithe balance
-          if (titheData) { setServerTitheBalance(titheData.total_balance); setServerMaaserBalance(titheData.maaser_balance); setServerChomeshBalance(titheData.chomesh_balance); }
-          else { setServerTitheBalance(null); setServerMaaserBalance(null); setServerChomeshBalance(null); }
-
-        } catch (error) {
-          logger.error("useServerStats: Failed to fetch stats:", error);
-          const msg = error instanceof Error ? error.message : String(error);
+        // Single combined RPC/command instead of 3 separate round-trips.
+        // auth.uid() / platform detection is handled inside fetchAnalyticsRangeStats.
+        const stats = await fetchAnalyticsRangeStats(
+          activeDateRangeObject.startDate,
+          activeDateRangeObject.endDate
+        ).catch((err) => {
+          const msg = err instanceof Error ? err.message : String(err);
+          logger.error("useServerStats: range stats fetch failed:", err);
           setServerIncomeError(msg);
           setServerExpensesError(msg);
           setServerDonationsError(msg);
-          setServerTitheBalanceError(msg);
           setServerTotalIncome(null); setServerChomeshAmount(null);
           setServerTotalExpenses(null);
           setServerTotalDonations(null); setServerCalculatedDonationsData(null);
-          setServerTitheBalance(null); setServerMaaserBalance(null); setServerChomeshBalance(null);
-        } finally {
-          setIsLoadingServerIncome(false);
-          setIsLoadingServerExpenses(false);
-          setIsLoadingServerDonations(false);
-          setIsLoadingServerTitheBalance(false);
+          return null;
+        });
+
+        if (stats) {
+          setServerTotalIncome(stats.total_income);
+          setServerChomeshAmount(stats.chomesh_amount);
+          setServerTotalExpenses(stats.total_expenses);
+          const donationsData: ServerDonationData = {
+            total_donations_amount: stats.total_donations,
+            non_tithe_donation_amount: stats.non_tithe_donation_amount,
+          };
+          setServerCalculatedDonationsData(donationsData);
+          setServerTotalDonations(stats.total_donations);
         }
+
+        setIsLoadingServerIncome(false);
+        setIsLoadingServerExpenses(false);
+        setIsLoadingServerDonations(false);
       };
-      loadAll();
+      loadRangeStats();
     }
   }, [
     user?.id,
@@ -171,10 +157,51 @@ export function useServerStats(
     setServerTotalExpenses,
     setServerTotalDonations,
     setServerCalculatedDonationsData,
+    lastDbFetchTimestamp,
+  ]);
+
+  // ─── Tithe balance — date-range INDEPENDENT ───────────────────────────────
+  // The tithe balance is a cumulative all-time figure, not filtered by range.
+  // Re-fetches only when the user identity, platform, or DB content changes.
+  useEffect(() => {
+    const effectiveUserId = platform === "web" ? user?.id || null : null;
+    const canFetch = (platform === "web" && effectiveUserId) || platform === "desktop";
+    const isWebNoUser = platform === "web" && !effectiveUserId;
+
+    if (isWebNoUser) {
+      setServerTitheBalance(null); setServerMaaserBalance(null); setServerChomeshBalance(null);
+      setIsLoadingServerTitheBalance(false); setServerTitheBalanceError(null);
+      return;
+    }
+    if (!canFetch) return;
+
+    setIsLoadingServerTitheBalance(true);
+    setServerTitheBalanceError(null);
+
+    fetchServerTitheBalance(effectiveUserId)
+      .then((titheData) => {
+        if (titheData) {
+          setServerTitheBalance(titheData.total_balance);
+          setServerMaaserBalance(titheData.maaser_balance);
+          setServerChomeshBalance(titheData.chomesh_balance);
+        } else {
+          setServerTitheBalance(null); setServerMaaserBalance(null); setServerChomeshBalance(null);
+        }
+      })
+      .catch((err) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        logger.error("useServerStats: tithe balance fetch failed:", err);
+        setServerTitheBalanceError(msg);
+        setServerTitheBalance(null); setServerMaaserBalance(null); setServerChomeshBalance(null);
+      })
+      .finally(() => setIsLoadingServerTitheBalance(false));
+  }, [
+    user?.id,
+    platform,
+    lastDbFetchTimestamp,
     setServerTitheBalance,
     setServerMaaserBalance,
     setServerChomeshBalance,
-    lastDbFetchTimestamp,
   ]);
 
   return {

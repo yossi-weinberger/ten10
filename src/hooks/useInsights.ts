@@ -2,9 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useDonationStore } from "@/lib/store";
 import {
   fetchCategoryBreakdown,
-  fetchPaymentMethodBreakdown,
-  fetchRecurringVsOnetime,
-  fetchDonationRecipientsBreakdown,
+  fetchActiveRecurring,
+  fetchAnalyticsBreakdowns,
   fetchDailyHeatmap,
   CategoryBreakdownResponse,
   CategoryType,
@@ -18,75 +17,25 @@ import { RecurringTransaction } from "@/types/transaction";
 import { DateRangeObject } from "./useDateControls";
 import { Platform } from "@/contexts/PlatformContext";
 import { logger } from "@/lib/logger";
-import { getPlatform } from "@/lib/platformManager";
-import { supabase } from "@/lib/supabaseClient";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/**
- * Compute the "previous period" date range of the same length as the active one.
- * Used for delta % comparison on KPI cards.
- */
-export function getPreviousPeriodRange(
-  startDate: string,
-  endDate: string
-): { startDate: string; endDate: string } {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const lengthMs = end.getTime() - start.getTime();
-  const prevEnd = new Date(start.getTime() - 1);
-  const prevStart = new Date(prevEnd.getTime() - lengthMs);
-  return {
-    startDate: prevStart.toISOString().split("T")[0],
-    endDate: prevEnd.toISOString().split("T")[0],
-  };
-}
-
-/** Fetch active recurring transactions for current platform. */
-async function fetchActiveRecurring(): Promise<RecurringTransaction[]> {
-  const platform = getPlatform();
-  if (platform === "web") {
-    const { data, error } = await supabase
-      .from("recurring_transactions")
-      .select("*")
-      .eq("status", "active");
-    if (error) throw error;
-    return (data ?? []) as RecurringTransaction[];
-  } else if (platform === "desktop") {
-    const { invoke } = await import("@tauri-apps/api/core");
-    // get_recurring_transactions_handler requires args: GetRecurringTransactionsArgs
-    const all = await invoke<RecurringTransaction[]>(
-      "get_recurring_transactions_handler",
-      {
-        args: {
-          sorting: { field: "next_due_date", direction: "asc" },
-          filters: {
-            search: null,
-            statuses: ["active"],
-            types: null,
-            date_from: null,
-            date_to: null,
-            frequencies: null,
-          },
-        },
-      }
-    );
-    return all; // statuses: ["active"] filter already applied server-side
-  }
-  return [];
-}
+// Re-export so existing callers don't break
+export { getPreviousPeriodRange } from "@/lib/utils/date-range";
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
 
 interface UseInsightsResult {
-  // Category breakdown
+  // Category breakdown (chart — depends on categoryType selection)
   categoryData: CategoryBreakdownResponse;
   isLoadingCategory: boolean;
   categoryError: string | null;
   categoryType: CategoryType;
   setCategoryType: (t: CategoryType) => void;
 
-  // Active recurring transactions (replaces forecastData)
+  // Top category per type — always fetched, independent of chart tab
+  expenseCategoryTop: import("@/lib/data-layer/insights.service").CategoryBreakdownItem | null;
+  incomeCategoryTop: import("@/lib/data-layer/insights.service").CategoryBreakdownItem | null;
+
+  // Active recurring transactions
   activeRecurring: RecurringTransaction[];
   isLoadingRecurring: boolean;
   recurringError: string | null;
@@ -124,6 +73,9 @@ export function useInsights(
 
   const [categoryType, setCategoryType] = useState<CategoryType>("expense");
 
+  const [expenseCategoryTop, setExpenseCategoryTop] = useState<import("@/lib/data-layer/insights.service").CategoryBreakdownItem | null>(null);
+  const [incomeCategoryTop, setIncomeCategoryTop] = useState<import("@/lib/data-layer/insights.service").CategoryBreakdownItem | null>(null);
+
   const [categoryData, setCategoryData] = useState<CategoryBreakdownResponse>([]);
   const [isLoadingCategory, setIsLoadingCategory] = useState(false);
   const [categoryError, setCategoryError] = useState<string | null>(null);
@@ -157,6 +109,8 @@ export function useInsights(
     !!startDate &&
     !!endDate;
 
+  // ─── Category (own effect — also depends on categoryType) ─────────────────
+
   const loadCategory = useCallback(async () => {
     if (!isReady) return;
     setIsLoadingCategory(true);
@@ -172,65 +126,66 @@ export function useInsights(
     }
   }, [isReady, startDate, endDate, categoryType]);
 
-  const loadActiveRecurring = useCallback(async () => {
+  useEffect(() => {
+    if (!isReady) return;
+    loadCategory();
+  }, [loadCategory, platform, lastDbFetchTimestamp]);
+
+  // ─── Active recurring — date-range INDEPENDENT ────────────────────────────
+  // Does NOT depend on startDate/endDate; re-fetches only when platform or
+  // the DB itself changes (e.g. after adding a transaction or importing).
+  useEffect(() => {
     if (!isReady) return;
     setIsLoadingRecurring(true);
     setRecurringError(null);
-    try {
-      const data = await fetchActiveRecurring();
-      setActiveRecurring(data);
-    } catch (err) {
-      logger.error("useInsights: active recurring error:", err);
-      setRecurringError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsLoadingRecurring(false);
-    }
-  }, [isReady]);
+    fetchActiveRecurring()
+      .then((data) => setActiveRecurring(data))
+      .catch((err) => {
+        logger.error("useInsights: active recurring error:", err);
+        setRecurringError(err instanceof Error ? err.message : String(err));
+      })
+      .finally(() => setIsLoadingRecurring(false));
+  }, [isReady, platform, lastDbFetchTimestamp]);
 
-  const loadPaymentMethods = useCallback(async () => {
+  // ─── Date-range dependent insights (single combined call) ────────────────
+  // One HTTP request / IPC call instead of three.
+  // The CTE in the RPC/desktop-command scans transactions once.
+  useEffect(() => {
     if (!isReady) return;
     setIsLoadingPaymentMethod(true);
-    setPaymentMethodError(null);
-    try {
-      const data = await fetchPaymentMethodBreakdown(startDate, endDate);
-      setPaymentMethodData(data);
-    } catch (err) {
-      logger.error("useInsights: payment method error:", err);
-      setPaymentMethodError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsLoadingPaymentMethod(false);
-    }
-  }, [isReady, startDate, endDate]);
-
-  const loadRecurringRatio = useCallback(async () => {
-    if (!isReady) return;
     setIsLoadingRecurringRatio(true);
-    setRecurringRatioError(null);
-    try {
-      const data = await fetchRecurringVsOnetime(startDate, endDate);
-      setRecurringVsOnetimeData(data);
-    } catch (err) {
-      logger.error("useInsights: recurring ratio error:", err);
-      setRecurringRatioError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setIsLoadingRecurringRatio(false);
-    }
-  }, [isReady, startDate, endDate]);
-
-  const loadRecipients = useCallback(async () => {
-    if (!isReady) return;
     setIsLoadingRecipients(true);
+    setPaymentMethodError(null);
+    setRecurringRatioError(null);
     setRecipientsError(null);
-    try {
-      const data = await fetchDonationRecipientsBreakdown(startDate, endDate);
-      setRecipientsData(data);
-    } catch (err) {
-      logger.error("useInsights: recipients error:", err);
-      setRecipientsError(err instanceof Error ? err.message : String(err));
-    } finally {
+
+    Promise.allSettled([
+      fetchAnalyticsBreakdowns(startDate, endDate),
+      fetchCategoryBreakdown(startDate, endDate, "expense"),
+      fetchCategoryBreakdown(startDate, endDate, "income"),
+    ]).then(([breakdownsResult, expCatResult, incCatResult]) => {
+      if (breakdownsResult.status === "fulfilled") {
+        setPaymentMethodData(breakdownsResult.value.payment_methods);
+        setRecurringVsOnetimeData(breakdownsResult.value.recurring_vs_onetime);
+        setRecipientsData(breakdownsResult.value.recipients);
+      } else {
+        logger.error("useInsights: analytics breakdowns error:", breakdownsResult.reason);
+        const msg = breakdownsResult.reason instanceof Error ? breakdownsResult.reason.message : String(breakdownsResult.reason);
+        setPaymentMethodError(msg);
+        setRecurringRatioError(msg);
+        setRecipientsError(msg);
+      }
+      setIsLoadingPaymentMethod(false);
+      setIsLoadingRecurringRatio(false);
       setIsLoadingRecipients(false);
-    }
-  }, [isReady, startDate, endDate]);
+
+      // Top category per type — independent of chart selection
+      if (expCatResult.status === "fulfilled") setExpenseCategoryTop(expCatResult.value[0] ?? null);
+      if (incCatResult.status === "fulfilled") setIncomeCategoryTop(incCatResult.value[0] ?? null);
+    });
+  }, [isReady, startDate, endDate, platform, lastDbFetchTimestamp]);
+
+  // ─── Heatmap (own effect — also depends on heatmapTypeGroup) ──────────────
 
   const loadHeatmap = useCallback(async () => {
     if (!isReady) return;
@@ -250,25 +205,6 @@ export function useInsights(
     }
   }, [isReady, heatmapTypeGroup]);
 
-  // Fetch everything that depends only on date range / platform / db timestamp
-  useEffect(() => {
-    if (!isReady) return;
-    loadActiveRecurring();
-    loadPaymentMethods();
-    loadRecurringRatio();
-    loadRecipients();
-  }, [isReady, startDate, endDate, platform, lastDbFetchTimestamp]);
-
-  // Category re-fetches when date range, categoryType, platform, or db changes.
-  // loadCategory captures [isReady, startDate, endDate, categoryType] via useCallback,
-  // so a new reference is produced whenever any of those change.
-  useEffect(() => {
-    if (!isReady) return;
-    loadCategory();
-  }, [loadCategory, platform, lastDbFetchTimestamp]);
-
-  // Heatmap re-fetches when date range, heatmapTypeGroup, platform, or db changes.
-  // loadHeatmap captures [isReady, startDate, endDate, heatmapTypeGroup] via useCallback.
   useEffect(() => {
     if (!isReady) return;
     loadHeatmap();
@@ -280,6 +216,8 @@ export function useInsights(
     categoryError,
     categoryType,
     setCategoryType,
+    expenseCategoryTop,
+    incomeCategoryTop,
     activeRecurring,
     isLoadingRecurring,
     recurringError,

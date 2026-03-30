@@ -26,11 +26,13 @@ export {
   fetchTotalExpensesInRange,
   fetchTotalDonationsInRange,
   fetchServerTitheBalance,
+  fetchAnalyticsRangeStats,
 } from "./analytics.service";
 export type {
   ServerIncomeData,
   ServerDonationData,
   TitheBalanceBreakdown,
+  AnalyticsRangeStats,
 } from "./analytics.service";
 
 export {
@@ -87,7 +89,8 @@ export {
 
 export {
   fetchCategoryBreakdown,
-  fetchRecurringForecast,
+  fetchActiveRecurring,
+  fetchAnalyticsBreakdowns,
   fetchPaymentMethodBreakdown,
   fetchRecurringVsOnetime,
   fetchDonationRecipientsBreakdown,
@@ -97,8 +100,7 @@ export type {
   CategoryBreakdownItem,
   CategoryBreakdownResponse,
   CategoryType,
-  RecurringForecastItem,
-  RecurringForecastResponse,
+  AnalyticsBreakdownsBundle,
   PaymentMethodBreakdownItem,
   PaymentMethodBreakdownResponse,
   RecurringVsOnetimeItem,

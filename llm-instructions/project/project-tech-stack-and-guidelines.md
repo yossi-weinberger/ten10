@@ -87,7 +87,7 @@ The project has two PDF export implementations:
 
 1. **Transactions Table PDF** (`src/lib/utils/export-pdf.ts`): Full-featured table export with columns, row highlighting, logo, page numbers. RTL-aware with `drawRtlText`.
 
-2. **Analytics Page PDF** (`src/pages/AnalyticsPage.tsx` `handleExportPdf`): Chart-based export using `html-to-image` to capture DOM elements, plus text summaries. Uses the same `drawRtlText` from `src/lib/utils/pdf-helpers.ts`.
+2. **Analytics Page PDF** (`src/lib/analytics/export-pdf.ts` `generateAnalyticsPdf`): Chart-based export using `html-to-image` to capture DOM elements, plus text summaries. Uses the same `drawRtlText` from `src/lib/utils/pdf-helpers.ts`. Called from `AnalyticsPage` via `handleExportPdf`. Platform detection uses `getPlatform()` from `platformManager`.
 
 ### Shared PDF Utilities — `src/lib/utils/pdf-helpers.ts`
 

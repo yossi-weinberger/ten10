@@ -8,6 +8,7 @@ import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { Repeat } from "lucide-react";
+import { RingsRowSkeleton } from "./AnalyticsSkeleton";
 
 interface RecurringRatioInsightProps {
   data: RecurringVsOnetimeResponse;
@@ -53,7 +54,7 @@ function TypeRingChart({
       initial={{ opacity: 0, scale: 0.85 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: index * 0.12, duration: 0.4, ease: "easeOut" }}
-      className="flex flex-col items-center gap-1.5"
+      className="flex flex-col items-center gap-2"
     >
       {/* Ring */}
       <div className="relative w-[96px] h-[96px]">
@@ -78,12 +79,19 @@ function TypeRingChart({
         </svg>
         {/* Center label */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-base font-bold text-foreground">{pct.toFixed(0)}%</span>
+          <span className="text-lg sm:text-xl font-semibold tracking-tight text-foreground">
+            {pct.toFixed(0)}%
+          </span>
         </div>
       </div>
 
+      {/* Type label */}
+      <p className="text-sm sm:text-base font-semibold text-foreground text-center leading-tight">
+        {label}
+      </p>
+
       {/* Recurring amount */}
-      <p className="text-xs font-semibold text-foreground">
+      <p className="text-xs sm:text-sm font-medium text-muted-foreground">
         <CountUp
           start={startAnimateValue}
           end={displayValue}
@@ -93,8 +101,6 @@ function TypeRingChart({
         />
       </p>
 
-      {/* Type label */}
-      <p className="text-[11px] text-muted-foreground text-center leading-tight">{label}</p>
     </motion.div>
   );
 }
@@ -148,11 +154,9 @@ export function RecurringRatioInsight({
             {t("analytics.recurringRatioByType.subtitle")}
           </p>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6 pt-0">
-          {isLoading ? (
-            <div className="h-28 flex items-center justify-center">
-              <p className="text-sm text-muted-foreground">{t("analytics.loading")}</p>
-            </div>
+        <CardContent className="p-3 sm:p-5 pt-0">
+          {isLoading && !hasPerTypeData && recurringAmount === 0 ? (
+            <RingsRowSkeleton count={3} />
           ) : error ? (
             <p className="text-sm text-destructive">{t("analytics.error")}</p>
           ) : noData ? (
@@ -160,11 +164,11 @@ export function RecurringRatioInsight({
               <p className="text-sm text-muted-foreground">{t("analytics.recurringRatio.noData")}</p>
             </div>
           ) : hasPerTypeData ? (
-            <div className="flex justify-around items-start pt-2 pb-1">
+            <div className="flex justify-around items-start pt-1 pb-0.5">
               {([
-                { labelKey: "expenses",  recurring: recurringExpenses,  total: totalExpenses,  strokeColor: "hsl(0, 68%, 54%)" },
-                { labelKey: "income",    recurring: recurringIncome,    total: totalIncome,    strokeColor: "hsl(145, 58%, 44%)" },
-                { labelKey: "donations", recurring: recurringDonations, total: totalDonations, strokeColor: "hsl(42, 78%, 48%)" },
+                { labelKey: "expenses",  recurring: recurringExpenses,  total: totalExpenses,  strokeColor: "hsl(var(--destructive))" },
+                { labelKey: "income",    recurring: recurringIncome,    total: totalIncome,    strokeColor: "hsl(var(--primary))" },
+                { labelKey: "donations", recurring: recurringDonations, total: totalDonations, strokeColor: "hsl(var(--chart-yellow))" },
               ] as const).map(({ labelKey, recurring, total, strokeColor }, i) => (
                 <TypeRingChart
                   key={labelKey}

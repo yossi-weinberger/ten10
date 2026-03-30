@@ -12,9 +12,10 @@ mod transaction_types;
 
 use commands::chart_commands::get_desktop_monthly_financial_summary;
 use commands::insights_commands::{
-    get_desktop_category_breakdown, get_desktop_recurring_forecast,
+    get_desktop_category_breakdown,
     get_desktop_payment_method_breakdown, get_desktop_recurring_vs_onetime,
     get_desktop_donation_recipients_breakdown, get_desktop_daily_heatmap,
+    get_desktop_analytics_breakdowns, get_desktop_analytics_range_stats,
 };
 use commands::db_commands::{
     clear_all_data, get_app_setting, get_app_version, get_default_currency,
@@ -89,8 +90,9 @@ fn main() {
             delete_recurring_transaction_handler,
             get_platform_info,
             copy_to_clipboard,
+            get_desktop_analytics_breakdowns,
+            get_desktop_analytics_range_stats,
             get_desktop_category_breakdown,
-            get_desktop_recurring_forecast,
             get_desktop_payment_method_breakdown,
             get_desktop_recurring_vs_onetime,
             get_desktop_donation_recipients_breakdown,
