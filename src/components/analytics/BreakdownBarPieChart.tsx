@@ -12,13 +12,14 @@ import {
 import { PieCustomTooltip } from "./PieCustomTooltip";
 
 /**
- * Generate evenly-distributed, muted HSL colors for pie/donut slices.
- * Spreads hues across 360° so colors never repeat regardless of slice count.
- * Saturation ~50% and lightness ~57% keep colors readable without being harsh.
+ * Generate perceptually-distinct, muted HSL colors for pie/donut slices.
+ * Uses the golden angle (137.5°) so adjacent slices never share similar hues,
+ * and starts at 195° (steel-blue) so index 0 is never red/bordeaux — a hue
+ * that reads as "negative" in a financial context.
  */
-function getPieSliceColor(index: number, total: number): string {
-  const hue = Math.round((index * 360) / Math.max(total, 1)) % 360;
-  return `hsl(${hue}, 50%, 57%)`;
+function getPieSliceColor(index: number, _total: number): string {
+  const hue = Math.round((index * 137.5 + 195) % 360);
+  return `hsl(${hue}, 48%, 55%)`;
 }
 
 export interface BreakdownDataItem {
@@ -129,11 +130,8 @@ export function BreakdownBarPieChart({
                 outerRadius={outerRadius}
                 isAnimationActive
               >
-                {data.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={entry.fill ?? getPieSliceColor(index, data.length)}
-                  />
+                {data.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={getPieSliceColor(index, data.length)} />
                 ))}
               </Pie>
               <Tooltip content={<PieCustomTooltip total={totalAmount} fmt={fmt} />} />
