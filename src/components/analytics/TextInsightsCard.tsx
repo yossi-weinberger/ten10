@@ -4,12 +4,10 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RecurringTransaction } from "@/types/transaction";
-import { CategoryBreakdownResponse, CategoryBreakdownItem, CategoryType } from "@/lib/data-layer/insights.service";
+import { CategoryBreakdownResponse, CategoryBreakdownItem } from "@/lib/data-layer/insights.service";
 import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
 import {
-  TrendingUp,
-  TrendingDown,
   CheckCircle2,
   AlertCircle,
   Info,
@@ -33,8 +31,8 @@ interface TextInsightsCardProps {
   prevExpenses: number | null | undefined;
   activeRecurring: RecurringTransaction[];
   categoryData: CategoryBreakdownResponse;
-  categoryType: CategoryType;
   isLoading: boolean;
+  isAllTime?: boolean;
   /** Top expense and income categories — independent of chart tab selection */
   expenseCategoryTop?: CategoryBreakdownItem | null;
   incomeCategoryTop?: CategoryBreakdownItem | null;
@@ -54,8 +52,8 @@ export function TextInsightsCard({
   prevExpenses,
   activeRecurring,
   categoryData,
-  categoryType,
   isLoading,
+  isAllTime = false,
   expenseCategoryTop,
   incomeCategoryTop,
 }: TextInsightsCardProps) {
@@ -123,7 +121,7 @@ export function TextInsightsCard({
     }
 
     // 4. Period comparison — expenses
-    if (prevExpenses != null && prevExpenses > 0 && expenses > 0) {
+    if (!isAllTime && prevExpenses != null && prevExpenses > 0 && expenses > 0) {
       const expDelta = ((expenses - prevExpenses) / prevExpenses) * 100;
       if (Math.abs(expDelta) >= 10) {
         list.push({
@@ -137,7 +135,7 @@ export function TextInsightsCard({
     }
 
     // 5. Period comparison — income
-    if (prevIncome != null && prevIncome > 0 && income > 0) {
+    if (!isAllTime && prevIncome != null && prevIncome > 0 && income > 0) {
       const incDelta = ((income - prevIncome) / prevIncome) * 100;
       if (Math.abs(incDelta) >= 10) {
         list.push({
@@ -157,7 +155,7 @@ export function TextInsightsCard({
     }
 
     return list.slice(0, 4);
-  }, [serverTotalIncome, serverTotalExpenses, prevIncome, prevExpenses, activeRecurring, categoryData, expenseCategoryTop, incomeCategoryTop, t, defaultCurrency, i18n.language]);
+  }, [serverTotalIncome, serverTotalExpenses, prevIncome, prevExpenses, activeRecurring, categoryData, isAllTime, expenseCategoryTop, incomeCategoryTop, t, defaultCurrency, i18n.language]);
 
   const [displayedInsights, setDisplayedInsights] = useState<Insight[]>(nextInsights);
 

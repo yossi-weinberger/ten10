@@ -4,7 +4,6 @@ import {
   fetchAnalyticsRangeStats,
   fetchServerTitheBalance,
   ServerDonationData,
-  TitheBalanceBreakdown,
 } from "@/lib/data-layer";
 import { User } from "@/contexts/AuthContext";
 import { DateRangeObject } from "./useDateControls";
@@ -96,15 +95,29 @@ export function useServerStats(
     const effectiveUserId = platform === "web" ? user?.id || null : null;
     const canFetch = (platform === "web" && effectiveUserId) || platform === "desktop";
     const isWebNoUser = platform === "web" && !effectiveUserId;
+    const rangeStatsFetchError = "Failed to load analytics range stats.";
+    const clearRangeStats = () => {
+      setServerTotalIncome(null);
+      setServerChomeshAmount(null);
+      setServerTotalExpenses(null);
+      setServerTotalDonations(null);
+      setServerCalculatedDonationsData(null);
+    };
 
     if (isWebNoUser) {
-      setServerTotalIncome(null); setServerChomeshAmount(null); setIsLoadingServerIncome(false); setServerIncomeError(null);
-      setServerTotalExpenses(null); setIsLoadingServerExpenses(false); setServerExpensesError(null);
-      setServerTotalDonations(null); setServerCalculatedDonationsData(null); setIsLoadingServerDonations(false); setServerDonationsError(null);
+      clearRangeStats();
+      setIsLoadingServerIncome(false);
+      setServerIncomeError(null);
+      setIsLoadingServerExpenses(false);
+      setServerExpensesError(null);
+      setIsLoadingServerDonations(false);
+      setServerDonationsError(null);
       return;
     }
 
     if (canFetch && activeDateRangeObject.startDate && activeDateRangeObject.endDate) {
+      let cancelled = false;
+
       const loadRangeStats = async () => {
         setIsLoadingServerIncome(true);
         setIsLoadingServerExpenses(true);
@@ -113,24 +126,24 @@ export function useServerStats(
         setServerExpensesError(null);
         setServerDonationsError(null);
 
-        // Single combined RPC/command instead of 3 separate round-trips.
-        // auth.uid() / platform detection is handled inside fetchAnalyticsRangeStats.
-        const stats = await fetchAnalyticsRangeStats(
-          activeDateRangeObject.startDate,
-          activeDateRangeObject.endDate
-        ).catch((err) => {
-          const msg = err instanceof Error ? err.message : String(err);
-          logger.error("useServerStats: range stats fetch failed:", err);
-          setServerIncomeError(msg);
-          setServerExpensesError(msg);
-          setServerDonationsError(msg);
-          setServerTotalIncome(null); setServerChomeshAmount(null);
-          setServerTotalExpenses(null);
-          setServerTotalDonations(null); setServerCalculatedDonationsData(null);
-          return null;
-        });
+        try {
+          // Single combined RPC/command instead of 3 separate round-trips.
+          // auth.uid() / platform detection is handled inside fetchAnalyticsRangeStats.
+          const stats = await fetchAnalyticsRangeStats(
+            activeDateRangeObject.startDate,
+            activeDateRangeObject.endDate
+          );
 
-        if (stats) {
+          if (cancelled) return;
+
+          if (!stats) {
+            clearRangeStats();
+            setServerIncomeError(rangeStatsFetchError);
+            setServerExpensesError(rangeStatsFetchError);
+            setServerDonationsError(rangeStatsFetchError);
+            return;
+          }
+
           setServerTotalIncome(stats.total_income);
           setServerChomeshAmount(stats.chomesh_amount);
           setServerTotalExpenses(stats.total_expenses);
@@ -140,13 +153,29 @@ export function useServerStats(
           };
           setServerCalculatedDonationsData(donationsData);
           setServerTotalDonations(stats.total_donations);
-        }
+        } catch (err) {
+          if (cancelled) return;
 
-        setIsLoadingServerIncome(false);
-        setIsLoadingServerExpenses(false);
-        setIsLoadingServerDonations(false);
+          const msg = err instanceof Error ? err.message : String(err);
+          logger.error("useServerStats: range stats fetch failed:", err);
+          setServerIncomeError(msg);
+          setServerExpensesError(msg);
+          setServerDonationsError(msg);
+          clearRangeStats();
+        } finally {
+          if (cancelled) return;
+
+          setIsLoadingServerIncome(false);
+          setIsLoadingServerExpenses(false);
+          setIsLoadingServerDonations(false);
+        }
       };
-      loadRangeStats();
+
+      void loadRangeStats();
+
+      return () => {
+        cancelled = true;
+      };
     }
   }, [
     user?.id,

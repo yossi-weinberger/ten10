@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import CountUp from "react-countup";
-import { parse, format, subMonths } from "date-fns";
+import { parse, format } from "date-fns";
 import { he, enUS } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartConfig } from "@/components/ui/chart";
@@ -10,6 +10,7 @@ import {
   MonthlyChartDataPoint,
 } from "@/components/charts/area-chart-interactive";
 import { fetchServerMonthlyChartData } from "@/lib/data-layer/chart.service";
+import type { CurrencyCode } from "@/lib/currencies";
 import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,7 +25,7 @@ interface AnimatedCurrencyProps {
   value: number;
   isLoading: boolean;
   colorClass: string;
-  defaultCurrency: string;
+  defaultCurrency: CurrencyCode;
   language: string;
 }
 

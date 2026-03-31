@@ -3,7 +3,9 @@ use serde::{Deserialize, Serialize};
 use tauri::State;
 
 use crate::DbState;
-use crate::transaction_types::{expense_types_condition, income_types_condition};
+use crate::transaction_types::{
+    donation_types_condition, expense_types_condition, income_types_condition,
+};
 
 // ─── Return types ─────────────────────────────────────────────────────────────
 
@@ -44,9 +46,9 @@ pub fn get_desktop_category_breakdown(
     transaction_type: String,
 ) -> Result<Vec<CategoryBreakdownItem>, String> {
     let type_condition = match transaction_type.as_str() {
-        "expense"  => "type IN ('expense', 'recognized-expense')".to_string(),
-        "income"   => format!("({})", income_types_condition()),
-        "donation" => "type IN ('donation', 'non_tithe_donation')".to_string(),
+        "expense"  => expense_types_condition(),
+        "income"   => income_types_condition(),
+        "donation" => donation_types_condition(),
         other      => return Err(format!("Invalid transaction_type: {}", other)),
     };
 
@@ -160,10 +162,10 @@ pub fn get_desktop_daily_heatmap(
 ) -> Result<Vec<DailyHeatmapItem>, String> {
     let group = type_group.as_deref().unwrap_or("all");
     let type_filter = match group {
-        "income"   => " AND type IN ('income', 'exempt-income')",
-        "expense"  => " AND type IN ('expense', 'recognized-expense')",
-        "donation" => " AND type IN ('donation', 'non_tithe_donation')",
-        _          => "", // "all" — no extra filter
+        "income"   => format!(" AND {}", income_types_condition()),
+        "expense"  => format!(" AND {}", expense_types_condition()),
+        "donation" => format!(" AND {}", donation_types_condition()),
+        _          => String::new(), // "all" — no extra filter
     };
     let sql = format!(
         "SELECT date AS tx_date, COUNT(*) AS tx_count, SUM(amount) AS total_amount
@@ -254,7 +256,7 @@ pub fn get_desktop_analytics_breakdowns(
         .map_err(|e| e.to_string())?;
 
     // Donation recipients
-    let rec_sql =
+    let rec_sql = format!(
         "SELECT display_key AS recipient, total_amount, display_key AS last_description
          FROM (
            SELECT
@@ -263,7 +265,7 @@ pub fn get_desktop_analytics_breakdowns(
                       'other') AS display_key,
              SUM(amount) AS total_amount
            FROM transactions
-           WHERE type IN ('donation', 'non_tithe_donation')
+           WHERE {}
              AND date >= ?1 AND date <= ?2
            GROUP BY COALESCE(NULLIF(TRIM(COALESCE(description,'')), ''),
                               NULLIF(TRIM(COALESCE(recipient,'')), ''),
@@ -271,8 +273,10 @@ pub fn get_desktop_analytics_breakdowns(
            ORDER BY total_amount DESC
            LIMIT 50
          )
-         ORDER BY total_amount DESC";
-    let mut rec_stmt = conn_guard.prepare(rec_sql).map_err(|e| e.to_string())?;
+         ORDER BY total_amount DESC",
+        donation_types_condition(),
+    );
+    let mut rec_stmt = conn_guard.prepare(&rec_sql).map_err(|e| e.to_string())?;
     let recipients: Vec<DonationRecipientItem> = rec_stmt
         .query_map(params![start_date, end_date], |row| {
             Ok(DonationRecipientItem {
@@ -311,12 +315,13 @@ pub fn get_desktop_analytics_range_stats(
            COALESCE(SUM(CASE WHEN ({income}) THEN amount ELSE 0 END), 0) AS total_income,
            COALESCE(SUM(CASE WHEN is_chomesh THEN amount ELSE 0 END),  0) AS chomesh_amount,
            COALESCE(SUM(CASE WHEN ({expense}) THEN amount ELSE 0 END), 0) AS total_expenses,
-           COALESCE(SUM(CASE WHEN (type = 'donation' OR type = 'non_tithe_donation') THEN amount ELSE 0 END), 0) AS total_donations,
+           COALESCE(SUM(CASE WHEN ({donation}) THEN amount ELSE 0 END), 0) AS total_donations,
            COALESCE(SUM(CASE WHEN type = 'non_tithe_donation' THEN amount ELSE 0 END), 0) AS non_tithe_donation_amount
          FROM transactions
          WHERE date >= ?1 AND date <= ?2",
-        income  = income_types_condition().trim_matches(|c| c == '(' || c == ')'),
-        expense = expense_types_condition().trim_matches(|c| c == '(' || c == ')')
+        income = income_types_condition().trim_matches(|c| c == '(' || c == ')'),
+        expense = expense_types_condition().trim_matches(|c| c == '(' || c == ')'),
+        donation = donation_types_condition().trim_matches(|c| c == '(' || c == ')')
     );
 
     let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
@@ -343,7 +348,7 @@ pub fn get_desktop_donation_recipients_breakdown(
 ) -> Result<Vec<DonationRecipientItem>, String> {
     // Group by COALESCE(description, recipient, 'other') — uses description first.
     // Order by SUM(amount) DESC (largest first), LIMIT 50.
-    let sql =
+    let sql = format!(
         "SELECT
            display_key AS recipient,
            total_amount,
@@ -355,7 +360,7 @@ pub fn get_desktop_donation_recipients_breakdown(
                       'other') AS display_key,
              SUM(amount) AS total_amount
            FROM transactions
-           WHERE type IN ('donation', 'non_tithe_donation')
+           WHERE {}
              AND date >= ?1 AND date <= ?2
            GROUP BY COALESCE(NULLIF(TRIM(COALESCE(description,'')), ''),
                               NULLIF(TRIM(COALESCE(recipient,'')), ''),
@@ -363,10 +368,12 @@ pub fn get_desktop_donation_recipients_breakdown(
            ORDER BY total_amount DESC
            LIMIT 50
          )
-         ORDER BY total_amount DESC";
+         ORDER BY total_amount DESC",
+        donation_types_condition(),
+    );
 
     let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
-    let mut stmt = conn_guard.prepare(sql).map_err(|e| e.to_string())?;
+    let mut stmt = conn_guard.prepare(&sql).map_err(|e| e.to_string())?;
     let rows = stmt
         .query_map(params![start_date, end_date], |row| {
             Ok(DonationRecipientItem {

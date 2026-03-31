@@ -67,3 +67,5 @@ android-build/local.properties
 android-build/android.keystore 
 
 .vercel
+.cursor/rules/charts-analytics/RULE.md
+.cursor/skills/ten10-financial-viz-architect/SKILL.md

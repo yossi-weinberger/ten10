@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { ChartConfig } from "@/components/ui/chart";
 import { CategoryBreakdownResponse, CategoryType } from "@/lib/data-layer/insights.service";
 import { useDonationStore } from "@/lib/store";

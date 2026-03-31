@@ -129,8 +129,11 @@ export function BreakdownBarPieChart({
                 outerRadius={outerRadius}
                 isAnimationActive
               >
-                {data.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={getPieSliceColor(index, data.length)} />
+                {data.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={entry.fill ?? getPieSliceColor(index, data.length)}
+                  />
                 ))}
               </Pie>
               <Tooltip content={<PieCustomTooltip total={totalAmount} fmt={fmt} />} />

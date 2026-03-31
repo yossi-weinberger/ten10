@@ -139,7 +139,7 @@ export function AnalyticsPage() {
         const catLabel = incomeCategoryTop.category === "other" ? t("analytics.categories.other") : incomeCategoryTop.category;
         pdfInsights.push(t("analytics.insights.topCategoryIncome", { category: catLabel, percentage: catPct.toFixed(0), amount: fmt(incomeCategoryTop.total_amount) }));
       }
-      if (prevExpenses != null && prevExpenses > 0 && expenses > 0) {
+      if (!isAllTime && prevExpenses != null && prevExpenses > 0 && expenses > 0) {
         const expDelta = ((expenses - prevExpenses) / prevExpenses) * 100;
         if (Math.abs(expDelta) >= 10) {
           pdfInsights.push(expDelta > 0
@@ -265,7 +265,7 @@ export function AnalyticsPage() {
             prevExpenses={prevExpenses}
             activeRecurring={activeRecurring}
             categoryData={categoryData}
-            categoryType={categoryType}
+            isAllTime={isAllTime}
             expenseCategoryTop={expenseCategoryTop}
             incomeCategoryTop={incomeCategoryTop}
             isLoading={

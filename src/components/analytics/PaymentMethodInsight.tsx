@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { ChartConfig } from "@/components/ui/chart";
 import { PaymentMethodBreakdownResponse } from "@/lib/data-layer/insights.service";
 import { useDonationStore } from "@/lib/store";
