@@ -152,18 +152,27 @@ export function useInsights(
   // The CTE in the RPC/desktop-command scans transactions once.
   useEffect(() => {
     if (!isReady) return;
+
+    let cancelled = false;
+
     setIsLoadingPaymentMethod(true);
     setIsLoadingRecurringRatio(true);
     setIsLoadingRecipients(true);
     setPaymentMethodError(null);
     setRecurringRatioError(null);
     setRecipientsError(null);
+    // Reset top-category immediately so a stale value from the previous range
+    // is never shown while the new fetch is in flight.
+    setExpenseCategoryTop(null);
+    setIncomeCategoryTop(null);
 
     Promise.allSettled([
       fetchAnalyticsBreakdowns(startDate, endDate),
       fetchCategoryBreakdown(startDate, endDate, "expense"),
       fetchCategoryBreakdown(startDate, endDate, "income"),
     ]).then(([breakdownsResult, expCatResult, incCatResult]) => {
+      if (cancelled) return;
+
       if (breakdownsResult.status === "fulfilled") {
         setPaymentMethodData(breakdownsResult.value.payment_methods);
         setRecurringVsOnetimeData(breakdownsResult.value.recurring_vs_onetime);
@@ -180,9 +189,13 @@ export function useInsights(
       setIsLoadingRecipients(false);
 
       // Top category per type — independent of chart selection
-      if (expCatResult.status === "fulfilled") setExpenseCategoryTop(expCatResult.value[0] ?? null);
-      if (incCatResult.status === "fulfilled") setIncomeCategoryTop(incCatResult.value[0] ?? null);
+      setExpenseCategoryTop(expCatResult.status === "fulfilled" ? (expCatResult.value[0] ?? null) : null);
+      setIncomeCategoryTop(incCatResult.status === "fulfilled" ? (incCatResult.value[0] ?? null) : null);
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [isReady, startDate, endDate, platform, lastDbFetchTimestamp]);
 
   // ─── Heatmap (own effect — also depends on heatmapTypeGroup) ──────────────

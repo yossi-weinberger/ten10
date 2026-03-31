@@ -168,10 +168,10 @@ export function TitheSummaryInsight({
             <div className="space-y-2">
               <div className="flex justify-between text-xs text-muted-foreground" dir={i18n.dir()}>
                 <span>
-                  {balance <= 0
-                    ? t("analytics.tithe.goalReached")
-                    : balance < 0
+                  {balance < 0
                     ? t("analytics.tithe.goalExceeded", { amount: formatCurrency(Math.abs(balance), defaultCurrency, i18n.language) })
+                    : balance === 0
+                    ? t("analytics.tithe.goalReached")
                     : t("analytics.tithe.goalProgress", {
                         percentage: donationProgress.toFixed(1),
                       })}

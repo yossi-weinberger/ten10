@@ -104,8 +104,11 @@ function InsightKpiCard({
             {tooltip && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button className="text-muted-foreground hover:text-foreground shrink-0">
-                    <Info className="h-3 w-3" />
+                  <button
+                    className="text-muted-foreground hover:text-foreground shrink-0"
+                    aria-label={label}
+                  >
+                    <Info className="h-3 w-3" aria-hidden="true" />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs">
