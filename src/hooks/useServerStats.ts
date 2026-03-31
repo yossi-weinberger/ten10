@@ -1,13 +1,9 @@
 import { useEffect, useState } from "react";
 import { useDonationStore } from "@/lib/store";
 import {
-  fetchTotalIncomeInRange,
-  ServerIncomeData,
-  fetchTotalExpensesInRange,
-  fetchTotalDonationsInRange,
+  fetchAnalyticsRangeStats,
   fetchServerTitheBalance,
   ServerDonationData,
-  TitheBalanceBreakdown,
 } from "@/lib/data-layer";
 import { User } from "@/contexts/AuthContext";
 import { DateRangeObject } from "./useDateControls";
@@ -93,175 +89,96 @@ export function useServerStats(
     (state) => state.lastDbFetchTimestamp
   );
 
+  // ─── Range-dependent stats: income, expenses, donations ──────────────────
+  // Re-fetches whenever the active date range, user, or DB changes.
   useEffect(() => {
     const effectiveUserId = platform === "web" ? user?.id || null : null;
-    logger.log(
-      `useServerStats useEffect triggered. Platform: ${platform}, UserID: ${effectiveUserId}, DateRange: ${activeDateRangeObject.startDate}-${activeDateRangeObject.endDate}, Timestamp: ${lastDbFetchTimestamp}`
-    );
+    const canFetch = (platform === "web" && effectiveUserId) || platform === "desktop";
+    const isWebNoUser = platform === "web" && !effectiveUserId;
+    const rangeStatsFetchError = "Failed to load analytics range stats.";
+    const clearRangeStats = () => {
+      setServerTotalIncome(null);
+      setServerChomeshAmount(null);
+      setServerTotalExpenses(null);
+      setServerTotalDonations(null);
+      setServerCalculatedDonationsData(null);
+    };
 
-    if (activeDateRangeObject.startDate && activeDateRangeObject.endDate) {
-      if ((platform === "web" && effectiveUserId) || platform === "desktop") {
-        const loadTotalIncome = async () => {
-          setIsLoadingServerIncome(true);
-          setServerIncomeError(null);
-          try {
-            const incomeData: ServerIncomeData | null =
-              await fetchTotalIncomeInRange(
-                effectiveUserId,
-                activeDateRangeObject.startDate,
-                activeDateRangeObject.endDate
-              );
-            if (incomeData) {
-              setServerTotalIncome(incomeData.total_income);
-              setServerChomeshAmount(incomeData.chomesh_amount);
-            } else {
-              setServerTotalIncome(null);
-              setServerChomeshAmount(null);
-            }
-          } catch (error) {
-            logger.error(
-              "useServerStats: Failed to fetch server total income:",
-              error
-            );
-            setServerIncomeError(
-              error instanceof Error ? error.message : String(error)
-            );
-            setServerTotalIncome(null);
-            setServerChomeshAmount(null);
-          }
-          setIsLoadingServerIncome(false);
-        };
-        loadTotalIncome();
-      } else if (platform === "web" && !effectiveUserId) {
-        // logger.warn(
-        //   "useServerStats: Web platform detected but no user ID available. Skipping server income fetch."
-        // );
-        setServerTotalIncome(null);
-        setServerChomeshAmount(null);
-        setIsLoadingServerIncome(false);
-        setServerIncomeError(null);
-      }
-
-      if ((platform === "web" && effectiveUserId) || platform === "desktop") {
-        const loadTotalExpenses = async () => {
-          setIsLoadingServerExpenses(true);
-          setServerExpensesError(null);
-          try {
-            // logger.log(
-            //   `useServerStats: Fetching server expenses. User: ${effectiveUserId}, Range: ${activeDateRangeObject.startDate}-${activeDateRangeObject.endDate}, Platform: ${platform}`
-            // );
-            const expensesData: number | null = await fetchTotalExpensesInRange(
-              effectiveUserId,
-              activeDateRangeObject.startDate,
-              activeDateRangeObject.endDate
-            );
-            setServerTotalExpenses(expensesData);
-          } catch (error) {
-            logger.error(
-              "useServerStats: Failed to fetch server total expenses:",
-              error
-            );
-            setServerExpensesError(
-              error instanceof Error ? error.message : String(error)
-            );
-            setServerTotalExpenses(null);
-          }
-          setIsLoadingServerExpenses(false);
-        };
-        loadTotalExpenses();
-      } else if (platform === "web" && !effectiveUserId) {
-        // logger.warn(
-        //   "useServerStats: Web platform detected but no user ID available. Skipping server expenses fetch."
-        // );
-        setServerTotalExpenses(null);
-        setIsLoadingServerExpenses(false);
-        setServerExpensesError(null);
-      }
-
-      if ((platform === "web" && effectiveUserId) || platform === "desktop") {
-        const loadTotalDonations = async () => {
-          setIsLoadingServerDonations(true);
-          setServerDonationsError(null);
-          try {
-            // logger.log(
-            //   `useServerStats: Fetching server donations. User: ${effectiveUserId}, Range: ${activeDateRangeObject.startDate}-${activeDateRangeObject.endDate}, Platform: ${platform}`
-            // );
-            const donationsData: ServerDonationData | null =
-              await fetchTotalDonationsInRange(
-                effectiveUserId,
-                activeDateRangeObject.startDate,
-                activeDateRangeObject.endDate
-              );
-            setServerCalculatedDonationsData(donationsData);
-
-            if (donationsData) {
-              setServerTotalDonations(donationsData.total_donations_amount);
-            } else {
-              setServerTotalDonations(null);
-            }
-          } catch (error) {
-            logger.error(
-              "useServerStats: Failed to fetch server total donations:",
-              error
-            );
-            setServerDonationsError(
-              error instanceof Error ? error.message : String(error)
-            );
-            setServerCalculatedDonationsData(null);
-          }
-          setIsLoadingServerDonations(false);
-        };
-        loadTotalDonations();
-      } else if (platform === "web" && !effectiveUserId) {
-        // logger.warn(
-        //   "useServerStats: Web platform detected but no user ID available. Skipping server donations fetch."
-        // );
-        setServerTotalDonations(null);
-        setIsLoadingServerDonations(false);
-        setServerDonationsError(null);
-      }
+    if (isWebNoUser) {
+      clearRangeStats();
+      setIsLoadingServerIncome(false);
+      setServerIncomeError(null);
+      setIsLoadingServerExpenses(false);
+      setServerExpensesError(null);
+      setIsLoadingServerDonations(false);
+      setServerDonationsError(null);
+      return;
     }
 
-    if ((platform === "web" && effectiveUserId) || platform === "desktop") {
-      const loadServerTitheBalance = async () => {
-        setIsLoadingServerTitheBalance(true);
-        setServerTitheBalanceError(null);
+    if (canFetch && activeDateRangeObject.startDate && activeDateRangeObject.endDate) {
+      let cancelled = false;
+
+      const loadRangeStats = async () => {
+        setIsLoadingServerIncome(true);
+        setIsLoadingServerExpenses(true);
+        setIsLoadingServerDonations(true);
+        setServerIncomeError(null);
+        setServerExpensesError(null);
+        setServerDonationsError(null);
+
         try {
-          const balanceData: TitheBalanceBreakdown | null =
-            await fetchServerTitheBalance(effectiveUserId);
-          if (balanceData) {
-            setServerTitheBalance(balanceData.total_balance);
-            setServerMaaserBalance(balanceData.maaser_balance);
-            setServerChomeshBalance(balanceData.chomesh_balance);
-          } else {
-            setServerTitheBalance(null);
-            setServerMaaserBalance(null);
-            setServerChomeshBalance(null);
+          // Single combined RPC/command instead of 3 separate round-trips.
+          // auth.uid() / platform detection is handled inside fetchAnalyticsRangeStats.
+          const stats = await fetchAnalyticsRangeStats(
+            activeDateRangeObject.startDate,
+            activeDateRangeObject.endDate
+          );
+
+          if (cancelled) return;
+
+          if (!stats) {
+            clearRangeStats();
+            setServerIncomeError(rangeStatsFetchError);
+            setServerExpensesError(rangeStatsFetchError);
+            setServerDonationsError(rangeStatsFetchError);
+            return;
           }
-        } catch (error) {
-          logger.error(
-            "useServerStats: Failed to fetch server overall tithe balance:",
-            error
-          );
-          setServerTitheBalanceError(
-            error instanceof Error ? error.message : String(error)
-          );
-          setServerTitheBalance(null);
-          setServerMaaserBalance(null);
-          setServerChomeshBalance(null);
+
+          setServerTotalIncome(stats.total_income);
+          setServerChomeshAmount(stats.chomesh_amount);
+          setServerTotalExpenses(stats.total_expenses);
+          const donationsData: ServerDonationData = {
+            total_donations_amount: stats.total_donations,
+            non_tithe_donation_amount: stats.non_tithe_donation_amount,
+          };
+          setServerCalculatedDonationsData(donationsData);
+          setServerTotalDonations(stats.total_donations);
+        } catch (err) {
+          if (cancelled) return;
+
+          const msg = err instanceof Error ? err.message : String(err);
+          logger.error("useServerStats: range stats fetch failed:", err);
+          setServerIncomeError(msg);
+          setServerExpensesError(msg);
+          setServerDonationsError(msg);
+          clearRangeStats();
+        } finally {
+          if (cancelled) return;
+
+          setIsLoadingServerIncome(false);
+          setIsLoadingServerExpenses(false);
+          setIsLoadingServerDonations(false);
         }
-        setIsLoadingServerTitheBalance(false);
       };
-      loadServerTitheBalance();
-    } else if (platform === "web" && !effectiveUserId) {
-      setServerTitheBalance(null);
-      setServerMaaserBalance(null);
-      setServerChomeshBalance(null);
-      setIsLoadingServerTitheBalance(false);
-      setServerTitheBalanceError(null);
+
+      void loadRangeStats();
+
+      return () => {
+        cancelled = true;
+      };
     }
   }, [
-    user,
+    user?.id,
     platform,
     activeDateRangeObject,
     setServerTotalIncome,
@@ -269,10 +186,51 @@ export function useServerStats(
     setServerTotalExpenses,
     setServerTotalDonations,
     setServerCalculatedDonationsData,
+    lastDbFetchTimestamp,
+  ]);
+
+  // ─── Tithe balance — date-range INDEPENDENT ───────────────────────────────
+  // The tithe balance is a cumulative all-time figure, not filtered by range.
+  // Re-fetches only when the user identity, platform, or DB content changes.
+  useEffect(() => {
+    const effectiveUserId = platform === "web" ? user?.id || null : null;
+    const canFetch = (platform === "web" && effectiveUserId) || platform === "desktop";
+    const isWebNoUser = platform === "web" && !effectiveUserId;
+
+    if (isWebNoUser) {
+      setServerTitheBalance(null); setServerMaaserBalance(null); setServerChomeshBalance(null);
+      setIsLoadingServerTitheBalance(false); setServerTitheBalanceError(null);
+      return;
+    }
+    if (!canFetch) return;
+
+    setIsLoadingServerTitheBalance(true);
+    setServerTitheBalanceError(null);
+
+    fetchServerTitheBalance(effectiveUserId)
+      .then((titheData) => {
+        if (titheData) {
+          setServerTitheBalance(titheData.total_balance);
+          setServerMaaserBalance(titheData.maaser_balance);
+          setServerChomeshBalance(titheData.chomesh_balance);
+        } else {
+          setServerTitheBalance(null); setServerMaaserBalance(null); setServerChomeshBalance(null);
+        }
+      })
+      .catch((err) => {
+        const msg = err instanceof Error ? err.message : String(err);
+        logger.error("useServerStats: tithe balance fetch failed:", err);
+        setServerTitheBalanceError(msg);
+        setServerTitheBalance(null); setServerMaaserBalance(null); setServerChomeshBalance(null);
+      })
+      .finally(() => setIsLoadingServerTitheBalance(false));
+  }, [
+    user?.id,
+    platform,
+    lastDbFetchTimestamp,
     setServerTitheBalance,
     setServerMaaserBalance,
     setServerChomeshBalance,
-    lastDbFetchTimestamp,
   ]);
 
   return {

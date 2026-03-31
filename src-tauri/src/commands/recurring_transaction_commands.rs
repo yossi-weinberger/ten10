@@ -2,12 +2,11 @@
 
 use crate::models::RecurringTransaction;
 use crate::DbState;
-use chrono::{Local, Months, NaiveDate};
+use chrono::Local;
 use rusqlite::{params, Connection, Result as RusqliteResult};
-use tauri::State;
-use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 use rusqlite::types::ToSql;
+use tauri::State;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TableSortingPayload {
@@ -29,20 +28,6 @@ pub struct TableFiltersPayload {
 pub struct GetRecurringTransactionsArgs {
     pub sorting: TableSortingPayload,
     pub filters: TableFiltersPayload,
-}
-
-fn calculate_next_due_date(current_due_date_str: &str, frequency: &str) -> Result<String, String> {
-    let current_date = NaiveDate::parse_from_str(current_due_date_str, "%Y-%m-%d")
-        .map_err(|e| format!("Failed to parse date: {}", e))?;
-
-    // TODO: Implement logic for other frequencies (weekly, yearly)
-    let next_date = match frequency {
-        "monthly" => current_date.checked_add_months(Months::new(1))
-            .ok_or_else(|| "Failed to add one month to the date.".to_string())?,
-        _ => return Err(format!("Unsupported frequency: {}", frequency)),
-    };
-
-    Ok(next_date.format("%Y-%m-%d").to_string())
 }
 
 fn get_due_recurring_transactions(

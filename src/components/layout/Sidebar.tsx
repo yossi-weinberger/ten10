@@ -9,6 +9,7 @@ import {
   User,
   Book,
   Table,
+  PieChart,
 } from "lucide-react";
 import {
   Tooltip,
@@ -373,11 +374,11 @@ export function Sidebar({
             <NavLink to="/add-transaction" icon={PlusCircle}>
               {t("menu.addTransaction")}
             </NavLink>
-            {/* <NavLink to="/analytics" icon={BarChart}>
-              {t("menu.analytics")}
-            </NavLink> */}
             <NavLink to="/transactions-table" icon={Table}>
               {t("menu.transactionsTable")}
+            </NavLink>
+            <NavLink to="/analytics" icon={PieChart}>
+              {t("menu.analytics")}
             </NavLink>
             <NavLink
               to="/halacha"

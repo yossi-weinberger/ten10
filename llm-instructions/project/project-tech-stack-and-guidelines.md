@@ -11,6 +11,8 @@ This document outlines the main technologies and conventions used in this projec
     - `@tauri-apps/plugin-os`: For platform detection.
     - `@tauri-apps/plugin-notification`: For sending native system notifications.
     - `@tauri-apps/plugin-autostart`: To enable the application to launch on system startup.
+    - `@tauri-apps/plugin-dialog`: For native file save/open dialogs (used in Analytics PDF export).
+    - `@tauri-apps/plugin-fs`: For writing files to the local filesystem (used in Analytics PDF export).
 - **Build Tool**: **Vite** - Handles development server and production builds. Configuration is in `vite.config.ts`.
   - Uses `@vitejs/plugin-react`.
   - Path alias `@` is configured to point to the `src/` directory.
@@ -58,8 +60,14 @@ The application follows a clear strategy for handling text directionality:
   - **`react-day-picker`**: Used for date range selection (integrated via `shadcn/ui`).
 - **Data Export**:
   - **`exceljs`**: For generating Excel files.
-  - **`jspdf`** and **`jspdf-autotable`**: For generating PDF files.
+  - **`pdf-lib`** + **`@pdf-lib/fontkit`**: For generating PDF files with embedded fonts (Rubik). Used for both the Transactions Table PDF and the Analytics page PDF.
+  - **`html-to-image`**: For capturing rendered React/Recharts DOM elements as PNG images, then embedding them in the Analytics PDF. Uses a double-call pattern to prime SVG/font cache before the actual capture.
   - **`papaparse`**: For generating CSV files.
+- **Animations**:
+  - **`framer-motion`**: Used for entrance animations, tab content transitions (`AnimatePresence mode="wait"`), and animated counters support.
+  - **`react-countup`**: For animated number counting in KPI cards.
+- **Charts**:
+  - **`recharts`**: Main charting library. Wrapped by shadcn/ui's `ChartContainer`/`ChartTooltipContent` in `src/components/ui/chart.tsx`. Supports area, bar, line, and pie charts.
 - **Unique IDs**:
   - **`nanoid`**: For generating unique identifiers (e.g., for transactions).
 - **Linting**: **ESLint** - Configured in `eslint.config.js`. Ensure code adheres to the linting rules.
@@ -72,6 +80,35 @@ The application follows a clear strategy for handling text directionality:
 - `lint`: Runs ESLint to check code quality (`eslint .`).
 - `preview`: Starts a local server to preview the production build (`vite preview`).
 - `tauri`: The main entry point for Tauri CLI commands (e.g., `npm run tauri dev`, `npm run tauri build`). Use this for desktop development and building.
+
+## PDF Export Pattern
+
+The project has two PDF export implementations:
+
+1. **Transactions Table PDF** (`src/lib/utils/export-pdf.ts`): Full-featured table export with columns, row highlighting, logo, page numbers. RTL-aware with `drawRtlText`.
+
+2. **Analytics Page PDF** (`src/lib/analytics/export-pdf.ts` `generateAnalyticsPdf`): Chart-based export using `html-to-image` to capture DOM elements, plus text summaries. Uses the same `drawRtlText` from `src/lib/utils/pdf-helpers.ts`. Called from `AnalyticsPage` via `handleExportPdf`. Platform detection uses `getPlatform()` from `platformManager`.
+
+### Shared PDF Utilities — `src/lib/utils/pdf-helpers.ts`
+
+- **`splitTextSegments(text)`**: Splits Hebrew+number mixed text into typed segments. Regex handles `1,234.56`, dates, times — keeps number internals intact when reversing for RTL.
+- **`drawRtlText(page, text, rightX, y, font, size, color)`**: Draws text right-to-left, with embedded numbers staying LTR. Used for Hebrew text with embedded currency amounts.
+
+### Chart Color Variables
+
+Analytics chart components require additional CSS variables in `src/index.css` beyond the original 3:
+```
+--chart-green, --chart-yellow, --chart-red   (original)
+--chart-blue, --chart-purple, --chart-teal, --chart-orange  (added for analytics)
+```
+
+### Pie Chart Color Pattern (shadcn ChartConfig)
+
+SVG `fill` attributes cannot resolve CSS custom properties directly. The correct pattern for pie slices in Recharts:
+
+1. Define `slice-0` through `slice-4` keys in `ChartConfig` with actual color values
+2. `ChartContainer` injects `--color-slice-N: hsl(...)` as resolved values via `<style>` tag
+3. Cell uses `fill={`var(--color-slice-${index % 5})`}` — works because the variable is already resolved
 
 ---
 

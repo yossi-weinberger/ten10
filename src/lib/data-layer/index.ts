@@ -26,11 +26,13 @@ export {
   fetchTotalExpensesInRange,
   fetchTotalDonationsInRange,
   fetchServerTitheBalance,
+  fetchAnalyticsRangeStats,
 } from "./analytics.service";
 export type {
   ServerIncomeData,
   ServerDonationData,
   TitheBalanceBreakdown,
+  AnalyticsRangeStats,
 } from "./analytics.service";
 
 export {
@@ -84,3 +86,24 @@ export {
   clearPaymentMethodCache,
   getPaymentMethodCacheVersion,
 } from "./paymentMethods.service";
+
+export {
+  fetchCategoryBreakdown,
+  fetchActiveRecurring,
+  fetchAnalyticsBreakdowns,
+  fetchDailyHeatmap,
+} from "./insights.service";
+export type {
+  CategoryBreakdownItem,
+  CategoryBreakdownResponse,
+  CategoryType,
+  AnalyticsBreakdownsBundle,
+  PaymentMethodBreakdownItem,
+  PaymentMethodBreakdownResponse,
+  RecurringVsOnetimeItem,
+  RecurringVsOnetimeResponse,
+  DonationRecipientItem,
+  DonationRecipientsResponse,
+  DailyHeatmapItem,
+  DailyHeatmapResponse,
+} from "./insights.service";
