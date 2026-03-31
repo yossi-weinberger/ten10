@@ -19,7 +19,7 @@ export function splitTextSegments(text: string): TextSegment[] {
   // Matches digit sequences with , . / : - separators (thousands, decimals, dates, times)
   const regex = /(\d[\d,\.\/:\-]*\d|\d)/g;
   let lastIndex = 0;
-  let match;
+  let match: RegExpExecArray | null;
   while ((match = regex.exec(text)) !== null) {
     if (match.index > lastIndex) {
       segments.push({ text: text.substring(lastIndex, match.index), isNumber: false });

@@ -137,9 +137,12 @@ export function TransactionHeatmap({
 
   const isMultiYear = availableYears.length > 1;
 
-  // Default: latest available year
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
-  const effectiveYear = selectedYear ?? (availableYears[availableYears.length - 1] ?? null);
+  // If selectedYear no longer exists (e.g. typeGroup changed and data refreshed),
+  // fall back to the latest available year to avoid showing an empty heatmap.
+  const effectiveYear = (selectedYear && availableYears.includes(selectedYear))
+    ? selectedYear
+    : (availableYears[availableYears.length - 1] ?? null);
 
   // Filter data to selected year when multi-year; otherwise show all
   const filteredData = useMemo(() => {

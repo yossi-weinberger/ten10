@@ -193,7 +193,8 @@ pub fn get_desktop_daily_heatmap(
 }
 
 // ─── 7. Combined breakdowns bundle ────────────────────────────────────────────
-// Replaces 3 separate IPC calls with one, scanning the transactions table once.
+// Bundles 3 queries into one IPC call (payment methods, recurring-vs-onetime,
+// recipients). Reduces round-trips; each query still scans the table separately.
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AnalyticsBreakdownsBundle {

@@ -52,7 +52,7 @@ export function PaymentMethodInsight({ data, isLoading, error }: PaymentMethodIn
       return {
         ...item,
         label,
-        fill: `hsl(210 ${Math.round(85 - index * 6)}% ${Math.round(45 + index * 5)}%)`,
+        fill: `hsl(210 ${Math.max(0, Math.min(100, Math.round(85 - index * 6)))}% ${Math.max(0, Math.min(100, Math.round(45 + index * 5)))}%)`,
       };
     }),
     [data, tTx, t, i18n.language]

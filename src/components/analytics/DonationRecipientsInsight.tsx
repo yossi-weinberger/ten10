@@ -51,7 +51,7 @@ export function DonationRecipientsInsight({
       label: item.recipient === "other"
         ? t("analytics.recipients.other")
         : (item.last_description || item.recipient || t("analytics.recipients.other")),
-      fill: `hsl(42 ${Math.round(90 - index * 8)}% ${Math.round(45 + index * 5)}%)`,
+      fill: `hsl(42 ${Math.max(0, Math.min(100, Math.round(90 - index * 8)))}% ${Math.max(0, Math.min(100, Math.round(45 + index * 5)))}%)`,
     })),
     [data, t]
   );
