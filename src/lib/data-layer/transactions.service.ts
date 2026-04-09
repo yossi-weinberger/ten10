@@ -3,6 +3,7 @@ import { Transaction } from "@/types/transaction";
 import { getPlatform } from "../platformManager";
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
+import { invokeDesktopFilteredTransactions } from "@/lib/tableTransactions/desktop-filtered-transactions-invoke";
 
 // --- New CRUD API for Transactions ---
 
@@ -21,14 +22,14 @@ export async function loadTransactions(
   );
   if (currentPlatform === "desktop") {
     try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      const transactions = await invoke<Transaction[]>("get_transactions");
+      const response = await invokeDesktopFilteredTransactions();
+      const transactions = response.transactions ?? [];
       logger.log(
-        `TransactionsService: Tauri load successful: ${transactions.length} transactions.`
+        `TransactionsService: Tauri load successful: ${transactions.length} transactions (total ${response.totalCount}).`
       );
       return transactions;
     } catch (error) {
-      logger.error("Error invoking get_transactions:", error);
+      logger.error("Error invoking get_filtered_transactions_handler:", error);
       throw error;
     }
   } else if (currentPlatform === "web") {
@@ -111,13 +112,13 @@ export async function getInitialBalanceForPot(
 
   if (currentPlatform === "desktop") {
     try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      const transactions = await invoke<Transaction[]>("get_transactions");
+      const response = await invokeDesktopFilteredTransactions({
+        filters: { types: ["initial_balance"] },
+        pagination: { limit: 10 },
+      });
+      const rows = response.transactions ?? [];
       return (
-        transactions.find(
-          (t) =>
-            t.type === "initial_balance" && !!t.is_chomesh === isChomesh
-        ) || null
+        rows.find((t) => !!t.is_chomesh === isChomesh) ?? null
       );
     } catch (error) {
       logger.error(

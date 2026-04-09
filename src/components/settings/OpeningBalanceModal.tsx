@@ -47,7 +47,7 @@ import {
 } from "@/components/ui/select";
 import { CURRENCIES, CurrencyCode, normalizeCurrencyCode } from "@/lib/currencies";
 import { Form } from "@/components/ui/form";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { useForm, UseFormReturn, type Resolver } from "react-hook-form";
 import type { TransactionFormValues } from "@/lib/schemas";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -93,13 +93,38 @@ export function OpeningBalanceModal({
   const [useDesktop, setUseDesktop] = useState(isDesktopQuery);
   const fetchGeneration = useRef(0);
 
+  /** Stable primitive for effect deps (avoids reference churn and keeps dependency array length fixed). */
+  const initialDataSyncKey = initialData
+    ? `${initialData.id}:${initialData.updated_at}:${String(initialData.is_chomesh)}`
+    : "";
+
+  type OpeningBalanceFormValues = {
+    amount: number | undefined;
+    balanceType: "debt" | "credit";
+    balancePot: "maaser" | "chomesh";
+    currency: CurrencyCode;
+    conversion_rate?: number;
+    conversion_date?: string;
+    rate_source?: "auto" | "manual";
+  };
+
   const formSchema = z.object({
-    amount: z.coerce
-      .number({
-        message: tTransactions("transactionForm.validation.amount.number"),
-      })
-      .positive({
-        message: tTransactions("transactionForm.validation.amount.positive"),
+    amount: z
+      .union([z.number(), z.undefined()])
+      .superRefine((val, ctx) => {
+        if (val === undefined || typeof val !== "number" || Number.isNaN(val)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: tTransactions("transactionForm.validation.amount.number"),
+          });
+          return;
+        }
+        if (val <= 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: tTransactions("transactionForm.validation.amount.positive"),
+          });
+        }
       }),
     balanceType: z.enum(["debt", "credit"]),
     balancePot: z.enum(["maaser", "chomesh"]),
@@ -109,8 +134,8 @@ export function OpeningBalanceModal({
     rate_source: z.enum(["auto", "manual"]).optional(),
   });
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<OpeningBalanceFormValues>({
+    resolver: zodResolver(formSchema) as Resolver<OpeningBalanceFormValues>,
     defaultValues: {
       amount: initialData ? Math.abs(initialData.amount) : undefined,
       balanceType: initialData
@@ -166,6 +191,8 @@ export function OpeningBalanceModal({
   useEffect(() => {
     if (!isOpen) {
       setResolvedTransaction(null);
+      // Clear RHF state so the next open does not briefly show (or keep) the previous session values
+      resetEmptyForPot(false);
       return;
     }
 
@@ -210,7 +237,7 @@ export function OpeningBalanceModal({
     isChomeshPot,
     potIsChomeshForFetch,
     trackChomeshSeparately,
-    initialData,
+    initialDataSyncKey,
     applyTransactionToForm,
     resetEmptyForPot,
   ]);
@@ -220,14 +247,19 @@ export function OpeningBalanceModal({
     if (!isOpen) setUseDesktop(isDesktopQuery);
   }, [isDesktopQuery, isOpen]);
 
-  const handleSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (values: OpeningBalanceFormValues) => {
     setIsSubmitting(true);
     try {
+      const amount = values.amount;
+      if (amount === undefined) {
+        return;
+      }
+
       const isChomesh = trackChomeshSeparately
         ? values.balancePot === "chomesh"
         : !!resolvedTransaction?.is_chomesh;
 
-      let finalAmount = values.balanceType === "debt" ? values.amount : -values.amount;
+      let finalAmount = values.balanceType === "debt" ? amount : -amount;
       const transactionPayload: Partial<Transaction> = {
         amount: finalAmount,
         currency: settings.defaultCurrency,
@@ -245,8 +277,8 @@ export function OpeningBalanceModal({
       ) {
         const conversionRate = values.conversion_rate;
         const originalSignedAmount =
-          values.balanceType === "debt" ? values.amount : -values.amount;
-        const convertedMagnitude = Number((values.amount * conversionRate).toFixed(2));
+          values.balanceType === "debt" ? amount : -amount;
+        const convertedMagnitude = Number((amount * conversionRate).toFixed(2));
         finalAmount = values.balanceType === "debt" ? convertedMagnitude : -convertedMagnitude;
 
         transactionPayload.amount = finalAmount;
@@ -377,8 +409,23 @@ export function OpeningBalanceModal({
                               type="number"
                               step="0.01"
                               placeholder="0.00"
-                              {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                              name={field.name}
+                              ref={field.ref}
+                              onBlur={field.onBlur}
+                              value={
+                                field.value === undefined || field.value === null
+                                  ? ""
+                                  : field.value
+                              }
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                if (raw === "" || raw === "-") {
+                                  field.onChange(undefined);
+                                  return;
+                                }
+                                const n = parseFloat(raw);
+                                field.onChange(Number.isFinite(n) ? n : undefined);
+                              }}
                               className="text-start"
                             />
                           </FormControl>
