@@ -45,7 +45,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CURRENCIES, CurrencyCode } from "@/lib/currencies";
+import { CURRENCIES, CurrencyCode, normalizeCurrencyCode } from "@/lib/currencies";
 import { Form } from "@/components/ui/form";
 import { useForm, UseFormReturn } from "react-hook-form";
 import type { TransactionFormValues } from "@/lib/schemas";
@@ -119,7 +119,7 @@ export function OpeningBalanceModal({
           : "credit"
         : "debt",
       balancePot: initialData?.is_chomesh ? "chomesh" : "maaser",
-      currency: settings.defaultCurrency as CurrencyCode,
+      currency: normalizeCurrencyCode(settings.defaultCurrency),
     },
   });
 
@@ -130,7 +130,9 @@ export function OpeningBalanceModal({
 
   const applyTransactionToForm = useCallback(
     (row: Transaction) => {
-      const displayCurrency = (row.original_currency || row.currency) as CurrencyCode;
+      const displayCurrency = normalizeCurrencyCode(
+        row.original_currency || row.currency
+      );
       const displayAmount = Math.abs(row.original_amount ?? row.amount);
       form.reset({
         amount: displayAmount,
@@ -151,7 +153,7 @@ export function OpeningBalanceModal({
         amount: undefined,
         balanceType: "debt",
         balancePot: isChomesh ? "chomesh" : "maaser",
-        currency: settings.defaultCurrency as CurrencyCode,
+        currency: normalizeCurrencyCode(settings.defaultCurrency),
         conversion_rate: undefined,
         conversion_date: undefined,
         rate_source: undefined,
@@ -237,7 +239,10 @@ export function OpeningBalanceModal({
         is_chomesh: isChomesh,
       };
 
-      if (values.currency !== settings.defaultCurrency && values.conversion_rate) {
+      if (
+        values.currency !== normalizeCurrencyCode(settings.defaultCurrency) &&
+        values.conversion_rate
+      ) {
         const conversionRate = values.conversion_rate;
         const originalSignedAmount =
           values.balanceType === "debt" ? values.amount : -values.amount;
