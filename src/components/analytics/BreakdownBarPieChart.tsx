@@ -68,13 +68,22 @@ export function BreakdownBarPieChart({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="w-full"
+          className="w-full min-w-0"
           dir="ltr"
         >
-          <div style={{ maxHeight: scrollHeight, overflowY: "auto", width: "100%" }}>
+          {/*
+            Scroll + Recharts resize loop fix:
+            - overflow-x hidden prevents horizontal scrollbar ↔ vertical scrollbar feedback (RTL included).
+            - scrollbar-gutter: stable reserves gutter width so layout does not thrash when overflow toggles.
+            - aspect-auto overrides ChartContainer default aspect-video which fights fixed bar chart height.
+          */}
+          <div
+            className="w-full min-w-0 max-w-full overflow-x-hidden overflow-y-auto [scrollbar-gutter:stable]"
+            style={{ maxHeight: scrollHeight }}
+          >
             <ChartContainer
               config={chartConfig}
-              className="w-full"
+              className="w-full aspect-auto min-h-0 min-w-0"
               style={{ height: fullBarHeight, minHeight: fullBarHeight }}
             >
               <BarChart data={data} layout="vertical" margin={{ top: 0, right: 70, bottom: 0, left: 0 }}>
