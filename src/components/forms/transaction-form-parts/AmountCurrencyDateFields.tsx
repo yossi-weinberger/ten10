@@ -37,7 +37,7 @@ export function AmountCurrencyDateFields({
       {/* Amount + Currency + Date: responsive layout */}
       <div className="flex flex-wrap gap-4 items-start">
         {/* Amount + Currency group */}
-        <div className="flex gap-4 items-end flex-1 min-w-0 md:flex-[1.5]">
+        <div className="flex gap-4 items-start flex-1 min-w-0 md:flex-[1.5]">
           {/* Amount */}
           <FormField
             control={form.control}
