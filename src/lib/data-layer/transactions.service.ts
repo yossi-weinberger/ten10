@@ -133,6 +133,8 @@ export async function getInitialBalanceForPot(
         .select("*")
         .eq("type", "initial_balance")
         .eq("is_chomesh", isChomesh)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (error) throw error;

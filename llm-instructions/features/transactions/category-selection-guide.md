@@ -6,14 +6,14 @@ This document describes the category selection feature for transactions, includi
 
 The `category` field follows the same pattern as `payment_method`:
 
-- **Predefined categories** are stored in the DB as **stable English keys** (e.g. `food`, `salary`, `charity`). Labels are resolved to the active UI language at render time via `formatCategory()` from `src/lib/category-registry.ts`.
+- **Predefined categories** are stored in the DB as **stable English keys** (e.g. `food`, `salary`). Labels are resolved to the active UI language at render time via `formatCategory()` from `src/lib/category-registry.ts`.
 - **Custom user-created categories** are stored as raw free text exactly as typed.
 - `formatCategory(baseType, value, language)` returns the localized label for a known key, or the raw text for a custom value.
 - `normalizeCategoryValue(value)` maps known Hebrew/English localized labels back to their stable keys. Used on import and during the one-time data migration.
 
 ### Source of truth
 `src/lib/category-registry.ts` defines:
-- `INCOME_CATEGORY_KEYS`, `EXPENSE_CATEGORY_KEYS`, `DONATION_CATEGORY_KEYS`
+- `INCOME_CATEGORY_KEYS`, `EXPENSE_CATEGORY_KEYS` (donation types do not use categories; there is no donation category key list)
 - `isPredefinedCategory(value)`
 - `formatCategory(baseType, value, language, fallback?)`
 - `normalizeCategoryValue(value)` — maps localized label → key for migration/import
