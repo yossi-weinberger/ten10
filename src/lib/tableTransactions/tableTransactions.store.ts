@@ -301,6 +301,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           `Exporting ${transactionsToExport.length} transactions with a total count of ${totalCount}.`
         );
 
+        // PDF/Excel/CSV throw on failure → caught below. They return false only when the user cancels the desktop save dialog.
         let saved = true;
         if (format === "pdf") {
           const exportFilters = {
@@ -332,6 +333,13 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
             "Ten10-transactions.csv",
             i18n.language
           );
+        } else {
+          const _exhaustive: never = format;
+          void _exhaustive;
+          set({
+            exportError: "Unknown export format.",
+          });
+          return;
         }
         if (saved === false) {
           set({ exportError: EXPORT_DESKTOP_SAVE_CANCELLED });

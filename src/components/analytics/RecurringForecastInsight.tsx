@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RecurringTransaction } from "@/types/transaction";
 import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
-import type { CurrencyCode } from "@/lib/currencies";
+import { normalizeCurrencyCode, type CurrencyCode } from "@/lib/currencies";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { CalendarClock } from "lucide-react";
 import { formatCategory } from "@/lib/category-registry";
@@ -111,7 +111,9 @@ export function RecurringForecastInsight({
   error,
 }: RecurringForecastInsightProps) {
   const { t, i18n } = useTranslation("dashboard");
-  const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
+  const defaultCurrency = normalizeCurrencyCode(
+    useDonationStore((s) => s.settings.defaultCurrency)
+  );
   const [activeTab, setActiveTab] = useState<RecurringTab>("expense");
 
   const expenseItems = useMemo(

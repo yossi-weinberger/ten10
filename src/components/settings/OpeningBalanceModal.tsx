@@ -171,6 +171,8 @@ export function OpeningBalanceModal({
     const isChomesh = potIsChomeshForFetch;
 
     const run = async () => {
+      // initialData set: apply when it matches the selected pot (or maaser-only mode). Otherwise fetch the correct pot row.
+      // initialData null: skip straight to fetch — loads maaser/chomesh row per `isChomesh` (and `resetEmptyForPot` when missing).
       if (initialData) {
         if (
           !trackChomeshSeparately ||

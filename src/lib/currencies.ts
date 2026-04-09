@@ -15,3 +15,15 @@ export const CURRENCIES = [
 
 export type CurrencyObject = (typeof CURRENCIES)[number];
 export type CurrencyCode = CurrencyObject["code"];
+
+const CURRENCY_CODE_SET = new Set<string>(CURRENCIES.map((c) => c.code));
+
+/** Safe for UI/formatting when settings or DB may hold an unknown code. */
+export function normalizeCurrencyCode(
+  code: string | undefined | null
+): CurrencyCode {
+  if (code && CURRENCY_CODE_SET.has(code)) {
+    return code as CurrencyCode;
+  }
+  return "ILS";
+}
