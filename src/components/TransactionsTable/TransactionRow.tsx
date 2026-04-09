@@ -18,6 +18,7 @@ import { formatBoolean, cn } from "@/lib/utils/formatting";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
 import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversionInfo";
 import { formatPaymentMethod } from "@/lib/payment-methods";
+import { formatCategory } from "@/lib/category-registry";
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
@@ -72,7 +73,14 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
         </Badge>
       </TableCell>
       <TableCell className="text-center">
-        {transaction.category || "-"}
+        {formatCategory(
+          transaction.type === "income" || transaction.type === "exempt-income" ? "income"
+            : transaction.type === "expense" || transaction.type === "recognized-expense" ? "expense"
+            : undefined,
+          transaction.category,
+          i18n.language,
+          "-"
+        )}
       </TableCell>
       <TableCell className="text-center">
         {transaction.recipient || "-"}

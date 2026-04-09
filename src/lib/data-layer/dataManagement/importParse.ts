@@ -6,6 +6,7 @@ import {
   normalizeKeysToSnake,
 } from "../fieldMapping";
 import { ImportFileSchema } from "../importSchemas";
+import { normalizeCategoryValue } from "@/lib/category-registry";
 
 /**
  * Normalize a transaction from an export file for Supabase insert.
@@ -44,9 +45,17 @@ export function parseImportFile(raw: string): {
     throw err;
   }
 
-  return {
-    transactions: result.data.transactions as unknown as Transaction[],
-    recurring: result.data
-      .recurring_transactions as unknown as RecurringTransaction[],
-  };
+  const transactions = (result.data.transactions as unknown as Transaction[]).map((tx) => ({
+    ...tx,
+    category: normalizeCategoryValue(tx.category ?? null),
+  }));
+
+  const recurring = (result.data.recurring_transactions as unknown as RecurringTransaction[]).map(
+    (rec) => ({
+      ...rec,
+      category: normalizeCategoryValue(rec.category ?? null) ?? undefined,
+    })
+  );
+
+  return { transactions, recurring };
 }

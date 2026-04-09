@@ -183,6 +183,43 @@ pub async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     }
 
+    // --- Normalize predefined category labels to stable keys ---
+    // Maps known Hebrew and English localized labels to canonical keys
+    // (e.g. "מזון" or "Food" → "food"). Unknown values are left unchanged
+    // so custom categories survive untouched.
+    // Donation transactions do not support categories (they use recipient).
+    // Only touch legacy localized labels; stable keys and custom text skip the UPDATE (cheaper on large DBs).
+    let normalize_category_sql =
+        "UPDATE {} SET category = CASE \
+          WHEN category IN ('Salary', 'משכורת')          THEN 'salary' \
+          WHEN category IN ('Business', 'עסק')             THEN 'business' \
+          WHEN category IN ('Freelance', 'עבודה עצמאית')  THEN 'freelance' \
+          WHEN category IN ('Investment', 'השקעות')        THEN 'investment' \
+          WHEN category IN ('Allowance', 'קצבאות')         THEN 'allowance' \
+          WHEN category IN ('Gift', 'מתנה')               THEN 'gift' \
+          WHEN category IN ('Food', 'מזון')               THEN 'food' \
+          WHEN category IN ('Transportation', 'תחבורה')   THEN 'transportation' \
+          WHEN category IN ('Housing', 'דיור')            THEN 'housing' \
+          WHEN category IN ('Utilities', 'שירותים')       THEN 'utilities' \
+          WHEN category IN ('Healthcare', 'בריאות')       THEN 'healthcare' \
+          WHEN category IN ('Education', 'חינוך')         THEN 'education' \
+          WHEN category IN ('Leisure', 'פנאי')            THEN 'leisure' \
+          WHEN category IN ('Shopping', 'קניות')          THEN 'shopping' \
+          WHEN category IN ('Other', 'אחר')               THEN 'other' \
+          ELSE category \
+        END \
+        WHERE category IN ( \
+          'Salary', 'משכורת', 'Business', 'עסק', 'Freelance', 'עבודה עצמאית', \
+          'Investment', 'השקעות', 'Allowance', 'קצבאות', 'Gift', 'מתנה', \
+          'Food', 'מזון', 'Transportation', 'תחבורה', 'Housing', 'דיור', \
+          'Utilities', 'שירותים', 'Healthcare', 'בריאות', 'Education', 'חינוך', \
+          'Leisure', 'פנאי', 'Shopping', 'קניות', 'Other', 'אחר' \
+        )";
+    conn.execute(&normalize_category_sql.replace("{}", "transactions"), [])
+        .map_err(|e| e.to_string())?;
+    conn.execute(&normalize_category_sql.replace("{}", "recurring_transactions"), [])
+        .map_err(|e| e.to_string())?;
+
     // --- Cleanup: Drop old recurring columns if they exist ---
     let columns_to_drop = vec!["is_recurring", "recurring_day_of_month", "recurring_total_count"];
     for col in columns_to_drop {

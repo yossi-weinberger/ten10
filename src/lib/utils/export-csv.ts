@@ -1,7 +1,9 @@
 import type { Transaction } from "@/types/transaction";
 import i18n from "@/lib/i18n";
 import { logger } from "@/lib/logger";
+import { saveOrDownloadExportedFile } from "@/lib/utils/save-export-file";
 import { formatPaymentMethod } from "@/lib/payment-methods";
+import { formatCategory } from "@/lib/category-registry";
 
 function escapeCsvCell(
   cellData: string | number | boolean | null | undefined
@@ -23,15 +25,14 @@ function escapeCsvCell(
   return stringData;
 }
 
-export function exportTransactionsToCSV(
+export async function exportTransactionsToCSV(
   transactions: Transaction[],
   filename = "Ten10-transactions.csv",
   currentLanguage: string = "he"
-) {
+): Promise<boolean> {
   if (!transactions || transactions.length === 0) {
     logger.warn("No transactions to export to CSV.");
-    // Optionally, show a user notification here
-    return;
+    return true;
   }
 
   const isHebrew = currentLanguage === "he";
@@ -103,7 +104,13 @@ export function exportTransactionsToCSV(
           ns: "common",
         }) || transaction.type,
         transaction.description || "",
-        transaction.category || "",
+        formatCategory(
+          transaction.type === "income" || transaction.type === "exempt-income" ? "income"
+            : transaction.type === "expense" || transaction.type === "recognized-expense" ? "expense"
+            : undefined,
+          transaction.category,
+          currentLanguage
+        ),
         transaction.recipient || "",
         formatPaymentMethod(transaction.payment_method, currentLanguage),
         transaction.amount,
@@ -144,24 +151,12 @@ export function exportTransactionsToCSV(
     type: "text/csv;charset=utf-8;",
   }); // \uFEFF for BOM to ensure Excel opens UTF-8 correctly
 
-  const link = document.createElement("a");
-  if (link.download !== undefined) {
-    // Feature detection
-    const url = URL.createObjectURL(blob);
-    link.setAttribute("href", url);
-    link.setAttribute(
-      "download",
-      `${filename}_${new Date().toISOString().split("T")[0]}.csv`
-    );
-    link.style.visibility = "hidden";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  } else {
-    // Fallback for older browsers (e.g., IE)
-    // This might not work as well for UTF-8 or large files
-    logger.warn("CSV download method not fully supported in this browser.");
-    // (navigator as any).msSaveBlob(blob, filename); // If you need IE10+ support
-  }
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  const defaultFilename = `${filename}_${new Date().toISOString().split("T")[0]}.csv`;
+  return saveOrDownloadExportedFile({
+    bytes,
+    defaultFilename,
+    filters: [{ name: "CSV", extensions: ["csv"] }],
+    mimeType: "text/csv;charset=utf-8",
+  });
 }

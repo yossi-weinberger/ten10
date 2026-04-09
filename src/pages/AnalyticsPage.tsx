@@ -24,6 +24,7 @@ import { formatHebrewDate } from "@/lib/utils/hebrew-date";
 import { useDonationStore } from "@/lib/store";
 import { generateAnalyticsPdf, computeRecurringTotals } from "@/lib/analytics/export-pdf";
 import { formatCurrency } from "@/lib/utils/currency";
+import { formatCategory } from "@/lib/category-registry";
 
 export function AnalyticsPage() {
   const { t, i18n } = useTranslation("dashboard");
@@ -130,13 +131,13 @@ export function AnalyticsPage() {
       // Top expense category
       if (expenseCategoryTop && expenseCategoryTop.total_amount > 0 && expenses > 0) {
         const catPct = (expenseCategoryTop.total_amount / expenses) * 100;
-        const catLabel = expenseCategoryTop.category === "other" ? t("analytics.categories.other") : expenseCategoryTop.category;
+        const catLabel = formatCategory("expense", expenseCategoryTop.category, i18n.language) || t("analytics.categories.other");
         pdfInsights.push(t("analytics.insights.topCategoryExpense", { category: catLabel, percentage: catPct.toFixed(0), amount: fmt(expenseCategoryTop.total_amount) }));
       }
       // Top income category
       if (incomeCategoryTop && incomeCategoryTop.total_amount > 0 && income > 0) {
         const catPct = (incomeCategoryTop.total_amount / income) * 100;
-        const catLabel = incomeCategoryTop.category === "other" ? t("analytics.categories.other") : incomeCategoryTop.category;
+        const catLabel = formatCategory("income", incomeCategoryTop.category, i18n.language) || t("analytics.categories.other");
         pdfInsights.push(t("analytics.insights.topCategoryIncome", { category: catLabel, percentage: catPct.toFixed(0), amount: fmt(incomeCategoryTop.total_amount) }));
       }
       if (!isAllTime && prevExpenses != null && prevExpenses > 0 && expenses > 0) {

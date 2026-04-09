@@ -22,7 +22,7 @@ export function AddTransactionPage() {
       </div>
 
       {/* Change grid layout: Form takes 2/3, StatsCards take 1/3 */}
-      <div className="grid gap-6 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-3 md:items-start">
         {/* Form Card (Spans 2 columns) */}
         <Card className="md:col-span-2">
           <CardHeader></CardHeader>

@@ -9,6 +9,7 @@ import {
   TransactionUpdatePayload, // Assuming TransactionUpdatePayload is exported from dataService or a shared types file
 } from "../data-layer"; // Adjusted path to dataService
 import { logger } from "@/lib/logger";
+import { invokeDesktopFilteredTransactions } from "@/lib/tableTransactions/desktop-filtered-transactions-invoke";
 
 interface FetchTransactionsParams {
   offset: number;
@@ -24,32 +25,6 @@ interface FetchTransactionsParams {
 interface FetchTransactionsResponse {
   data: Transaction[];
   totalCount: number;
-}
-
-interface PaginatedTransactionsResponseFromRust {
-  transactions: Transaction[];
-  totalCount: number;
-}
-
-interface GetFilteredTransactionsArgsPayload {
-  filters: {
-    search: string | null;
-    dateFrom: string | null;
-    dateTo: string | null;
-    types: string[] | null;
-    paymentMethods: string[] | null;
-    showOnly: string | null;
-    recurringStatuses: string[] | null;
-    recurringFrequencies: string[] | null;
-  };
-  pagination: {
-    page: number;
-    limit: number;
-  };
-  sorting: {
-    field: string;
-    direction: string;
-  };
 }
 
 export class TableTransactionsService {
@@ -167,8 +142,7 @@ export class TableTransactionsService {
     } else if (platform === "desktop") {
       // Desktop implementation
       try {
-        const { invoke } = await import("@tauri-apps/api/core");
-        const payload: GetFilteredTransactionsArgsPayload = {
+        const response = await invokeDesktopFilteredTransactions({
           filters: {
             search: filters.search || null,
             dateFrom: filters.dateRange.from
@@ -199,15 +173,7 @@ export class TableTransactionsService {
             field: sorting.field as string,
             direction: sorting.direction,
           },
-        };
-        logger.log(
-          "TableTransactionsService: Invoking get_filtered_transactions_handler with payload:",
-          JSON.stringify(payload)
-        );
-        const response = await invoke<PaginatedTransactionsResponseFromRust>(
-          "get_filtered_transactions_handler",
-          { args: payload }
-        );
+        });
         logger.log(
           "TableTransactionsService: Response from desktop (get_filtered_transactions_handler):",
           response

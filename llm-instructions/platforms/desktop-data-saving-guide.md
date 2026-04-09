@@ -23,8 +23,9 @@ This document explains how data (unified `Transaction` objects) is saved locally
     - If `'web'`, it should eventually call the Supabase API (currently placeholder for general add, table uses specific RPCs).
   - **Load Operation (General):**
     - An exported `loadTransactions` function (from `transactions.service.ts`) checks the platform.
-    - If `'desktop'`, it calls Tauri `invoke('get_transactions_handler')` to retrieve all `Transaction` records from the SQLite `transactions` table. The returned array is used to populate the `useDonationStore`.
-    - If `'web'`, it should eventually fetch from Supabase (currently returns empty array for general load, table uses specific RPCs).
+    - If `'desktop'`, it calls `invokeDesktopFilteredTransactions()` from `src/lib/tableTransactions/desktop-filtered-transactions-invoke.ts`, which invokes **`get_filtered_transactions_handler`** with empty filters and a high limit (same IPC path as the interactive table). The returned `transactions` array is used to populate the `useDonationStore`. There is no separate `get_transactions_handler` command.
+    - **`getInitialBalanceForPot`** (Opening Balance modal) uses the same helper with `filters.types: ['initial_balance']` to read `initial_balance` rows from SQLite on desktop.
+    - If `'web'`, it loads via Supabase (`loadTransactions` selects from `transactions`); the table uses paginated RPCs via `tableTransactionService.ts`.
 
 - **`src/lib/tableTransactions/tableTransactionService.ts` (`TableTransactionsService` class):** This service is specifically designed for the complex interactions of the main interactive transactions table.
   - It provides methods like `fetchTransactions`, `updateTransaction`, `deleteTransaction`, and `exportTransactions`.
@@ -36,11 +37,11 @@ This document explains how data (unified `Transaction` objects) is saved locally
 ## 3. Frontend to Backend Communication (Tauri Invoke)
 
 - **Mechanism:** When `platform` is `'desktop'`:
-  - The data layer services (e.g., `transactions.service.ts`) use `invoke` with commands like `add_transaction_handler` and `get_transactions_handler`.
-  - `tableTransactionService.ts` (for table-specific operations) uses `invoke` with commands like `get_filtered_transactions_handler`, `update_transaction_handler`, `delete_transaction_handler`.
+  - The data layer services (e.g., `transactions.service.ts`) use `invoke` for writes (`add_transaction_handler`, etc.) and **`get_filtered_transactions_handler`** for reads (via `invokeDesktopFilteredTransactions` in `desktop-filtered-transactions-invoke.ts`).
+  - `tableTransactionService.ts` uses the same `get_filtered_transactions_handler` with table-controlled filters, pagination, and sorting.
 - **Usage (Save - General):** `await invoke('add_transaction_handler', { transaction: transactionData })`
-- **Usage (Load - General):** `await invoke<Transaction[]>('get_transactions_handler')`
-- **Usage (Load - Table Specific):** `await invoke<PaginatedTransactionsResponse>('get_filtered_transactions_handler', { args: { filters, pagination, sorting } })`
+- **Usage (Load - General / shared reads):** `invokeDesktopFilteredTransactions()` → `get_filtered_transactions_handler` (defaults: no filters, limit 10000, sort by date desc). Prefer this helper so payload shape stays aligned with Rust.
+- **Usage (Load - Table):** `get_filtered_transactions_handler` with `{ args: { filters, pagination, sorting } }` (often through `TableTransactionsService` / store, not raw `invoke` everywhere).
 - **Error Handling:** `try...catch` blocks should wrap `invoke` calls to handle potential errors during DB operations.
 
 ## 4. Backend (Rust) Implementation (`src-tauri/`)
@@ -80,8 +81,8 @@ This document explains how data (unified `Transaction` objects) is saved locally
 - **DB Init Command:** `init_db` ensures the `transactions` table exists.
 - **Trigger:** Invoked once from `src/App.tsx` when `platform === 'desktop'`.
 - **Initial Data Load (General - `useDonationStore`):** _Immediately after_ `init_db` succeeds in `App.tsx`:
-  1. The `loadTransactions()` function from the data layer is called. This invokes `get_transactions_handler` in Rust.
-  2. The returned array (`Vec<Transaction>`) is used to **overwrite** the `transactions` state in `useDonationStore` using `useDonationStore.setState({ transactions: ... })`.
+  1. The `loadTransactions()` function from the data layer is called. On desktop this invokes **`get_filtered_transactions_handler`** via `invokeDesktopFilteredTransactions()` (not a separate list-all command).
+  2. The returned transactions are used to **overwrite** the `transactions` state in `useDonationStore` using `useDonationStore.setState({ transactions: ... })`.
   3. This populates `useDonationStore` (used for overall calculations) with the current state of the `transactions` table in the SQLite DB.
 - **Initial Data Load (Transactions Table - `useTableTransactionsStore`):**
   - The `TransactionsTableDisplay.tsx` component, upon mount (and after platform identification), triggers `fetchTransactions(true, 'desktop')` from `useTableTransactionsStore`. This fetches the first page of data for the table.
@@ -114,9 +115,11 @@ This document explains how data (unified `Transaction` objects) is saved locally
 - `src/App.tsx` (Platform init, DB init via invoke, Initial general `transactions` load to `useDonationStore`)
 - `src/routes.ts` (Defines application routes and navigation structure)
 - `src/lib/data-layer/` (Directory for data service modules like `transactions.service.ts`, `stats.service.ts`, etc.)
+- `src/lib/tableTransactions/desktop-filtered-transactions-invoke.ts` (shared `invokeDesktopFilteredTransactions` → `get_filtered_transactions_handler` for store load, opening balance fetch, and table)
 - `src/lib/tableTransactions/tableTransactionService.ts` (Service for interactive table: `fetchTransactions`, `updateTransaction`, `deleteTransaction`, `exportTransactions`)
 - `src/lib/store.ts` (Zustand store - `useDonationStore`: general `transactions` array, `settings`, `selectCalculatedBalance` selector)
 - `src/lib/tableTransactions/tableTransactions.store.ts` (Zustand store - `useTableTransactionsStore`: table-specific state and actions)
+- `src/lib/utils/save-export-file.ts` (desktop save dialog + web download for table CSV/Excel/PDF; sentinel `EXPORT_DESKTOP_SAVE_CANCELLED`)
 - `src/lib/tithe-calculator.ts` (Contains `calculateTotalRequiredDonation` logic for overall balance)
 - **UI Components:**
   - `src/components/forms/TransactionForm.tsx` (Unified form, potentially used by `TransactionEditModal`)
@@ -212,12 +215,22 @@ The application supports exporting all transaction data to a JSON file and impor
 12. **Store Update**: Signals data refresh with `setLastDbFetchTimestamp(Date.now())`.
 13. **Permissions**: Requires `dialog > open: true` and `fs > readFile: true` (or `fs > all: true`) in `tauri.conf.json` allowlist.
 
+## 12. Transactions table export (CSV / Excel / PDF) on Desktop
+
+Separate from the Settings **JSON** backup (§11). The interactive table (`ExportButton` → `useTableTransactionsStore.exportTransactions`) generates files client-side and saves them as follows:
+
+1. **Data**: `TableTransactionsService.getDataForExport()` loads rows matching filters/sort (not paginated).
+2. **Generators**: `src/lib/utils/export-csv.ts`, `export-excel.ts`, `export-pdf.ts` (`exportTransactionsToPDF`).
+3. **Desktop**: `saveOrDownloadExportedFile()` in `src/lib/utils/save-export-file.ts` calls `dialog.save()` with an appropriate file filter, then `writeFile` with the generated bytes (same UX as Analytics PDF—user chooses folder and name).
+4. **Web**: Same helper falls back to a programmatic download (`Blob` + `<a download>`).
+5. **Cancel**: If the user closes the save dialog without saving, the export functions return `false`; the store sets `exportError` to `EXPORT_DESKTOP_SAVE_CANCELLED`; `ExportButton` does not show success or error toasts.
+
 ## Utilities and Libraries
 
 - **Data Export**:
   - **`exceljs`**: For generating Excel files.
-  - **`jspdf`** and **`jspdf-autotable`**: For generating PDF files.
-  - **`papaparse`**: For generating CSV files.
+  - **`pdf-lib`** + **`@pdf-lib/fontkit`**: For generating PDF files (transactions table and Analytics).
+  - **`papaparse`**: Used where applicable; transactions CSV export builds UTF-8 with BOM in `export-csv.ts`.
 - **Unique IDs**:
   - **`nanoid`**: For generating unique identifiers (e.g., for transactions).
 - **Linting**: **ESLint** - Configured in `eslint.config.js`. Ensure code adheres to the linting rules.

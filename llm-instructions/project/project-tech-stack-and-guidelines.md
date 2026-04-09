@@ -11,8 +11,8 @@ This document outlines the main technologies and conventions used in this projec
     - `@tauri-apps/plugin-os`: For platform detection.
     - `@tauri-apps/plugin-notification`: For sending native system notifications.
     - `@tauri-apps/plugin-autostart`: To enable the application to launch on system startup.
-    - `@tauri-apps/plugin-dialog`: For native file save/open dialogs (used in Analytics PDF export).
-    - `@tauri-apps/plugin-fs`: For writing files to the local filesystem (used in Analytics PDF export).
+    - `@tauri-apps/plugin-dialog`: For native file save/open dialogs (Analytics PDF, Settings JSON backup/import, **and** Transactions table CSV/Excel/PDF via `saveOrDownloadExportedFile` in `src/lib/utils/save-export-file.ts`).
+    - `@tauri-apps/plugin-fs`: For writing files to the local filesystem (same flows as above).
 - **Build Tool**: **Vite** - Handles development server and production builds. Configuration is in `vite.config.ts`.
   - Uses `@vitejs/plugin-react`.
   - Path alias `@` is configured to point to the `src/` directory.
@@ -62,7 +62,8 @@ The application follows a clear strategy for handling text directionality:
   - **`exceljs`**: For generating Excel files.
   - **`pdf-lib`** + **`@pdf-lib/fontkit`**: For generating PDF files with embedded fonts (Rubik). Used for both the Transactions Table PDF and the Analytics page PDF.
   - **`html-to-image`**: For capturing rendered React/Recharts DOM elements as PNG images, then embedding them in the Analytics PDF. Uses a double-call pattern to prime SVG/font cache before the actual capture.
-  - **`papaparse`**: For generating CSV files.
+  - **`papaparse`**: For generating CSV files (where used; transactions CSV is built manually with BOM for Excel UTF-8).
+  - **Desktop save vs web download**: `src/lib/utils/save-export-file.ts` exports `saveOrDownloadExportedFile()`. On **`desktop`**, it uses `dialog.save()` + `fs.writeFile` so the user picks path and filename (same pattern as Analytics PDF). On **`web`**, it triggers a browser download via `Blob` + `<a download>`. Used by `export-csv.ts`, `export-excel.ts`, and `export-pdf.ts` (transactions report). Analytics PDF (`src/lib/analytics/export-pdf.ts`) uses the same Tauri APIs inline inside `generateAnalyticsPdf`.
 - **Animations**:
   - **`framer-motion`**: Used for entrance animations, tab content transitions (`AnimatePresence mode="wait"`), and animated counters support.
   - **`react-countup`**: For animated number counting in KPI cards.
@@ -88,6 +89,10 @@ The project has two PDF export implementations:
 1. **Transactions Table PDF** (`src/lib/utils/export-pdf.ts`): Full-featured table export with columns, row highlighting, logo, page numbers. RTL-aware with `drawRtlText`.
 
 2. **Analytics Page PDF** (`src/lib/analytics/export-pdf.ts` `generateAnalyticsPdf`): Chart-based export using `html-to-image` to capture DOM elements, plus text summaries. Uses the same `drawRtlText` from `src/lib/utils/pdf-helpers.ts`. Called from `AnalyticsPage` via `handleExportPdf`. Platform detection uses `getPlatform()` from `platformManager`.
+
+### Desktop: cancel save dialog (transactions export)
+
+When the user dismisses the save dialog without saving, `saveOrDownloadExportedFile` returns `false`. `useTableTransactionsStore.exportTransactions` sets `exportError` to the sentinel `EXPORT_DESKTOP_SAVE_CANCELLED` from `save-export-file.ts`. `ExportButton` treats that as silent (no success/error toast). See `desktop-data-saving-guide.md` §12.
 
 ### Shared PDF Utilities — `src/lib/utils/pdf-helpers.ts`
 

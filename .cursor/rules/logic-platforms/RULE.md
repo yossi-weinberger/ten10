@@ -18,12 +18,13 @@ alwaysApply: true
 - **Single Source of Truth:** All data access goes through this layer.
 - **Service Pattern:**
   - Create standard services (e.g., `transactions.service.ts`).
-  - Internally handle the split:
+  - Internally handle the split (actual names vary by operation; do not invent generic `get_transactions`):
     ```ts
+    // Example: desktop reads for the transactions table / store use the filtered handler
     if (isPlatform.desktop) {
-      return await invoke("get_transactions"); // Tauri/Rust
+      return await invoke("get_filtered_transactions_handler", { args });
     } else {
-      return await supabase.rpc("get_transactions"); // Web/Supabase
+      await supabase.from("transactions").select("*"); // or RPCs such as get_user_transactions
     }
     ```
 - **Store (Zustand):** Use stores for client-side state, but sync back to DB via services.

@@ -2,9 +2,10 @@
  * CategoryCombobox Component
  *
  * A combobox for selecting transaction categories with:
- * - Predefined categories based on transaction type (from translations)
- * - User's previously used categories (fetched lazily on open)
- * - Ability to create new categories by typing
+ * - Predefined categories stored as stable keys (e.g. "food", "salary")
+ *   and displayed as localized labels at render time.
+ * - User's previously used categories (fetched lazily on open).
+ * - Ability to create new categories by typing (stored as raw free text).
  */
 
 import * as React from "react";
@@ -29,6 +30,11 @@ import {
 import { TransactionType } from "@/types/transaction";
 import { getUserCategories, getCategoryCacheVersion } from "@/lib/data-layer";
 import { normalizeToBaseType } from "@/lib/data-layer/transactionForm.service";
+import {
+  CATEGORY_KEYS_BY_TYPE,
+  formatCategory,
+  normalizeCategoryValue,
+} from "@/lib/category-registry";
 
 interface CategoryComboboxProps {
   value: string | null;
@@ -38,8 +44,14 @@ interface CategoryComboboxProps {
   disabled?: boolean;
 }
 
-// Valid base types that have predefined categories in translations
-const CATEGORY_BASE_TYPES = ["income", "expense", "donation"] as const;
+type CategoryOption = {
+  value: string;
+  label: string;
+};
+
+// Donation types intentionally excluded: donations use the recipient field
+// instead of category in the transaction form.
+const CATEGORY_BASE_TYPES = ["income", "expense"] as const;
 
 export function CategoryCombobox({
   value,
@@ -53,60 +65,34 @@ export function CategoryCombobox({
   const [searchValue, setSearchValue] = React.useState("");
   const [userCategories, setUserCategories] = React.useState<string[]>([]);
   const [isLoading, setIsLoading] = React.useState(false);
-  // Track which cache version we last loaded - allows detecting when cache was invalidated
   const [loadedCacheVersion, setLoadedCacheVersion] = React.useState<number | null>(null);
 
-  // Get predefined categories from translations
-  const getPredefinedCategories = React.useCallback((): string[] => {
-    // Use centralized normalizeToBaseType to map derived types to base types
-    const baseType = normalizeToBaseType(transactionType);
-    if (!CATEGORY_BASE_TYPES.includes(baseType as typeof CATEGORY_BASE_TYPES[number])) {
-      return [];
-    }
+  const baseType = React.useMemo(
+    () => normalizeToBaseType(transactionType),
+    [transactionType]
+  );
 
-    const categoryKeys = [
-      "salary",
-      "business",
-      "freelance",
-      "investment",
-      "allowance",
-      "gift",
-      "food",
-      "transportation",
-      "housing",
-      "utilities",
-      "healthcare",
-      "education",
-      "leisure",
-      "shopping",
-      "charity",
-      "religious",
-      "health",
-      "community",
-      "other",
-    ];
+  const validBaseType: "income" | "expense" | null =
+    CATEGORY_BASE_TYPES.includes(baseType as typeof CATEGORY_BASE_TYPES[number])
+      ? (baseType as "income" | "expense")
+      : null;
 
-    const categories: string[] = [];
-    for (const key of categoryKeys) {
-      const translated = t(
-        `transactionForm.category.${baseType}.${key}`,
-        ""
-      );
-      if (translated) {
-        categories.push(translated);
-      }
-    }
-    return categories;
-  }, [transactionType, t]);
+  // Build predefined options from stable keys. Labels are resolved from i18n
+  // so they switch automatically when the app language changes.
+  const predefinedOptions = React.useMemo<CategoryOption[]>(() => {
+    if (!validBaseType) return [];
+    const keys = CATEGORY_KEYS_BY_TYPE[validBaseType] as readonly string[];
+    return keys.map((key) => ({
+      value: key,
+      label: formatCategory(validBaseType, key, i18n.language),
+    }));
+  }, [validBaseType, i18n.language]);
 
-  // Fetch user categories when combobox opens
   const handleOpenChange = React.useCallback(
     async (newOpen: boolean) => {
       setOpen(newOpen);
-
       if (newOpen) {
         const currentCacheVersion = getCategoryCacheVersion();
-        // Refetch if we haven't loaded yet, or if the cache was invalidated
         if (loadedCacheVersion === null || loadedCacheVersion !== currentCacheVersion) {
           setIsLoading(true);
           try {
@@ -124,34 +110,61 @@ export function CategoryCombobox({
     [loadedCacheVersion, transactionType]
   );
 
-  // Reset loaded state when transaction type changes
   React.useEffect(() => {
     setLoadedCacheVersion(null);
     setUserCategories([]);
   }, [transactionType]);
 
-  // Combine and deduplicate categories
-  const allCategories = React.useMemo(() => {
-    const predefined = getPredefinedCategories();
-    const combined = [...new Set([...predefined, ...userCategories])];
-    return combined.sort((a, b) => a.localeCompare(b, i18n.language));
-  }, [getPredefinedCategories, userCategories, i18n.language]);
+  // Merge predefined options with user-created categories.
+  // User categories are normalized so that predefined labels saved in old
+  // localized form ("מזון", "Food") collapse into the same key.
+  const allOptions = React.useMemo<CategoryOption[]>(() => {
+    const predefinedKeys = new Set(predefinedOptions.map((o) => o.value));
 
-  // Check if search value is a new category (not in the list)
-  const isNewCategory =
-    searchValue.trim() !== "" &&
-    !allCategories.some(
-      (cat) => cat.toLowerCase() === searchValue.trim().toLowerCase()
+    const userOptions: CategoryOption[] = userCategories
+      .map((raw) => {
+        const normalized = normalizeCategoryValue(raw) ?? raw;
+        if (predefinedKeys.has(normalized)) return null; // already shown above
+        return {
+          value: normalized,
+          label: validBaseType
+            ? formatCategory(validBaseType, normalized, i18n.language)
+            : normalized,
+        };
+      })
+      .filter((o): o is CategoryOption => o !== null);
+
+    // Dedupe user options by value
+    const seen = new Set<string>();
+    const uniqueUserOptions = userOptions.filter((o) => {
+      if (seen.has(o.value)) return false;
+      seen.add(o.value);
+      return true;
+    });
+
+    const combinedUserOptions = uniqueUserOptions.sort((a, b) =>
+      a.label.localeCompare(b.label, i18n.language)
     );
 
-  // Handle category selection
+    return [...predefinedOptions, ...combinedUserOptions];
+  }, [predefinedOptions, userCategories, validBaseType, i18n.language]);
+
+  // For the search filter we compare against localized labels so the user
+  // can type "food" or "מזון" and find the same entry.
+  const isNewCategory =
+    searchValue.trim() !== "" &&
+    !allOptions.some(
+      (opt) =>
+        opt.label.toLowerCase() === searchValue.trim().toLowerCase() ||
+        opt.value.toLowerCase() === searchValue.trim().toLowerCase()
+    );
+
   const handleSelect = (selectedValue: string) => {
     onChange(selectedValue === value ? null : selectedValue);
     setOpen(false);
     setSearchValue("");
   };
 
-  // Handle creating a new category
   const handleCreateNew = () => {
     const newCategory = searchValue.trim();
     if (newCategory) {
@@ -163,6 +176,11 @@ export function CategoryCombobox({
 
   const displayPlaceholder =
     placeholder || t("transactionForm.category.placeholder");
+
+  // Resolve the stored value to its localized label for display in the trigger.
+  const displayValue = value
+    ? formatCategory(validBaseType ?? undefined, value, i18n.language)
+    : displayPlaceholder;
 
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
@@ -177,7 +195,7 @@ export function CategoryCombobox({
             !value && "text-muted-foreground"
           )}
         >
-          <span className="truncate">{value || displayPlaceholder}</span>
+          <span className="truncate">{displayValue}</span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50 rtl:ml-0 rtl:mr-2" />
         </Button>
       </PopoverTrigger>
@@ -215,23 +233,23 @@ export function CategoryCombobox({
                   )}
                 </CommandEmpty>
                 <CommandGroup>
-                  {allCategories.map((category) => (
+                  {allOptions.map((option) => (
                     <CommandItem
-                      key={category}
-                      value={category}
-                      onSelect={() => handleSelect(category)}
+                      key={option.value}
+                      value={`${option.label} ${option.value}`}
+                      onSelect={() => handleSelect(option.value)}
                     >
                       <Check
                         className={cn(
                           "mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2",
-                          value === category ? "opacity-100" : "opacity-0"
+                          value === option.value ? "opacity-100" : "opacity-0"
                         )}
                       />
-                      {category}
+                      {option.label}
                     </CommandItem>
                   ))}
                 </CommandGroup>
-                {isNewCategory && allCategories.length > 0 && (
+                {isNewCategory && allOptions.length > 0 && (
                   <>
                     <CommandSeparator />
                     <CommandGroup>

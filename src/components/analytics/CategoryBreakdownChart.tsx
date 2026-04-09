@@ -8,6 +8,7 @@ import { CategoryBreakdownResponse, CategoryType } from "@/lib/data-layer/insigh
 import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
 import { LayoutList } from "lucide-react";
+import { formatCategory } from "@/lib/category-registry";
 import { BreakdownBarPieChart } from "./BreakdownBarPieChart";
 import { ChartViewToggle } from "./ChartViewToggle";
 import { BreakdownBarSkeleton } from "./AnalyticsSkeleton";
@@ -64,10 +65,10 @@ export function CategoryBreakdownChart({
   const localizedData = useMemo(() =>
     data.map((item, index) => ({
       ...item,
-      label: item.category === "other" ? t("analytics.categories.other") : item.category,
+      label: formatCategory(categoryType === "donation" ? undefined : categoryType as "income" | "expense", item.category, i18n.language) || t("analytics.categories.other"),
       fill: getBarColor(categoryType, index, data.length),
     })),
-    [data, categoryType, t]
+    [data, categoryType, t, i18n.language]
   );
 
   const totalAmount = useMemo(

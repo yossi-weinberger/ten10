@@ -3,6 +3,10 @@ import { Transaction } from "@/types/transaction";
 import { getPlatform } from "../platformManager";
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
+import {
+  invokeDesktopFilteredTransactions,
+  invokeDesktopFilteredTransactionsAllPages,
+} from "@/lib/tableTransactions/desktop-filtered-transactions-invoke";
 
 // --- New CRUD API for Transactions ---
 
@@ -21,14 +25,13 @@ export async function loadTransactions(
   );
   if (currentPlatform === "desktop") {
     try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      const transactions = await invoke<Transaction[]>("get_transactions");
+      const transactions = await invokeDesktopFilteredTransactionsAllPages();
       logger.log(
-        `TransactionsService: Tauri load successful: ${transactions.length} transactions.`
+        `TransactionsService: Tauri load successful: ${transactions.length} transactions (full paged load).`
       );
       return transactions;
     } catch (error) {
-      logger.error("Error invoking get_transactions:", error);
+      logger.error("Error invoking get_filtered_transactions_handler:", error);
       throw error;
     }
   } else if (currentPlatform === "web") {
@@ -102,25 +105,23 @@ export async function loadTransactions(
 }
 
 /**
- * Fetches the initial balance transaction if it exists.
+ * Fetches the initial balance transaction for the maaser or chomesh pot.
  */
-export async function getInitialBalanceTransaction(): Promise<Transaction | null> {
+export async function getInitialBalanceForPot(
+  isChomesh: boolean
+): Promise<Transaction | null> {
   const currentPlatform = getPlatform();
 
   if (currentPlatform === "desktop") {
     try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      // We can reuse get_transactions and filter, or add a specific command.
-      // Since initial balance is one transaction, filtering in JS is fine for MVP if list is small,
-      // but better to query. For now, let's use get_filtered_transactions_handler logic via existing service or add new one.
-      // Actually, we can just fetch all and find it, but that's heavy.
-      // Let's rely on loadTransactions cache if possible? No, store only has summary.
-
-      // Let's assume we need to fetch it.
-      // Simplest: fetch all transactions (since SQLite is local and fast) and find it.
-      // Optimization: Add a specific Rust command later.
-      const transactions = await invoke<Transaction[]>("get_transactions");
-      return transactions.find((t) => t.type === "initial_balance") || null;
+      const response = await invokeDesktopFilteredTransactions({
+        filters: { types: ["initial_balance"] },
+        pagination: { limit: 10 },
+      });
+      const rows = response.transactions ?? [];
+      return (
+        rows.find((row: Transaction) => !!row.is_chomesh === isChomesh) ?? null
+      );
     } catch (error) {
       logger.error(
         "Error fetching initial balance transaction (Desktop):",
@@ -134,6 +135,8 @@ export async function getInitialBalanceTransaction(): Promise<Transaction | null
         .from("transactions")
         .select("*")
         .eq("type", "initial_balance")
+        .eq("is_chomesh", isChomesh)
+        .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
 
@@ -145,6 +148,13 @@ export async function getInitialBalanceTransaction(): Promise<Transaction | null
     }
   }
   return null;
+}
+
+/**
+ * Fetches the maaser-pot initial balance (backward compatible default).
+ */
+export async function getInitialBalanceTransaction(): Promise<Transaction | null> {
+  return getInitialBalanceForPot(false);
 }
 
 /**

@@ -13,6 +13,7 @@ import {
 import { Download, Loader2 } from "lucide-react"; // Added Loader2
 import { useShallow } from "zustand/react/shallow";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store"; // Updated path
+import { EXPORT_DESKTOP_SAVE_CANCELLED } from "@/lib/utils/save-export-file";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { logger } from "@/lib/logger";
 
@@ -31,14 +32,16 @@ export function ExportButton() {
 
   useEffect(() => {
     if (prevExportLoading && !exportLoading) {
-      if (exportError) {
+      if (exportError === EXPORT_DESKTOP_SAVE_CANCELLED) {
+        // Desktop save dialog closed without saving
+      } else if (exportError) {
         toast.error(t("export.error", { error: exportError }));
       } else {
         toast.success(t("export.success"));
       }
     }
     setPrevExportLoading(exportLoading);
-  }, [exportLoading, exportError, prevExportLoading]);
+  }, [exportLoading, exportError, prevExportLoading, t]);
 
   const handleExport = async (format: "csv" | "excel" | "pdf") => {
     if (exportLoading || platform === "loading") return;

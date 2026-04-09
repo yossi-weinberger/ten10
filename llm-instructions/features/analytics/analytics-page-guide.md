@@ -302,6 +302,8 @@ Registered in `src-tauri/src/commands/mod.rs` and `src-tauri/src/main.rs` `gener
 
 ## PDF Export
 
+**Desktop note:** `generateAnalyticsPdf` uses `getPlatform() === "desktop"` to call `dialog.save()` + `fs.writeFile` (same native save UX as transactions table exports, which route through `src/lib/utils/save-export-file.ts`).
+
 ### Libraries
 - `html-to-image` (npm) — capture DOM elements as PNG
 - `pdf-lib` + `@pdf-lib/fontkit` — generate PDF

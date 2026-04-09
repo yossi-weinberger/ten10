@@ -13,6 +13,7 @@ import { Platform } from "@/contexts/PlatformContext"; // Path should be relativ
 import { exportTransactionsToPDF } from "../utils/export-pdf"; // Updated path
 import { exportTransactionsToExcel } from "../utils/export-excel"; // Updated path
 import { exportTransactionsToCSV } from "../utils/export-csv"; // Updated path
+import { EXPORT_DESKTOP_SAVE_CANCELLED } from "../utils/save-export-file";
 import { supabase } from "../supabaseClient"; // Updated path
 import i18n from "../i18n"; // For current language
 import { logger } from "@/lib/logger";
@@ -300,6 +301,8 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           `Exporting ${transactionsToExport.length} transactions with a total count of ${totalCount}.`
         );
 
+        // PDF/Excel/CSV throw on failure → caught below. They return false only when the user cancels the desktop save dialog.
+        let saved = true;
         if (format === "pdf") {
           const exportFilters = {
             dateRange: {
@@ -311,7 +314,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
                 : undefined,
             },
           };
-          await exportTransactionsToPDF(
+          saved = await exportTransactionsToPDF(
             transactionsToExport,
             exportFilters,
             totalCount,
@@ -319,17 +322,28 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
             sorting
           );
         } else if (format === "excel") {
-          await exportTransactionsToExcel(
+          saved = await exportTransactionsToExcel(
             transactionsToExport,
             "Ten10-transactions.xlsx",
             i18n.language
           );
         } else if (format === "csv") {
-          await exportTransactionsToCSV(
+          saved = await exportTransactionsToCSV(
             transactionsToExport,
             "Ten10-transactions.csv",
             i18n.language
           );
+        } else {
+          const _exhaustive: never = format;
+          void _exhaustive;
+          set({
+            exportError: "Unknown export format.",
+          });
+          return;
+        }
+        if (saved === false) {
+          set({ exportError: EXPORT_DESKTOP_SAVE_CANCELLED });
+          return;
         }
       } catch (err: any) {
         logger.error("Failed to export transactions:", err);

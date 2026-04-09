@@ -18,7 +18,7 @@ This document provides a historical reference and status overview of the Transac
 - ✅ **Editing**: Modal-based editing with form validation
 - ✅ **Deletion**: Confirmation dialog with optimistic updates
 - ✅ **Load More**: Pagination with "Load More" button
-- ✅ **Export**: CSV, Excel, and PDF export (with month separators in PDF when sorting by date)
+- ✅ **Export**: CSV, Excel, and PDF export (with month separators in PDF when sorting by date). On **desktop**, save uses `src/lib/utils/save-export-file.ts` (`dialog.save` + `writeFile`); cancelling the dialog sets `EXPORT_DESKTOP_SAVE_CANCELLED` (no success toast).
 - ❌ **Real-time Updates**: Removed (rely on optimistic updates and manual refresh)
 
 ### Architecture Status
@@ -49,7 +49,8 @@ src/
 └── utils/
     ├── export-csv.ts                          # CSV export helper
     ├── export-excel.ts                        # Excel export helper
-    └── export-pdf.ts                          # PDF export helper
+    ├── export-pdf.ts                          # PDF export helper (transactions table)
+    └── save-export-file.ts                    # Desktop save dialog + web download; cancel sentinel
 ```
 
 ## TypeScript Types
@@ -419,3 +420,4 @@ Export functionality does not use a dedicated RPC function. Instead:
 1. `exportTransactions` in the store calls `getDataForExport` from the service
 2. `getDataForExport` calls `fetchTransactions` with `limit: 10000` to get all matching records
 3. Export formats (CSV, Excel, PDF) are generated client-side using the fetched data
+4. On **desktop**, writing the file goes through `saveOrDownloadExportedFile` (`src/lib/utils/save-export-file.ts`): native save dialog, not silent download to Downloads
