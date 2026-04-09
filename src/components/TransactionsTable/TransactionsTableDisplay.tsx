@@ -416,6 +416,7 @@ export function TransactionsTableDisplay() {
       )}
       
       <OpeningBalanceModal
+        key={editingOpeningBalanceTransaction?.id ?? "opening-balance-edit"}
         isOpen={isOpeningBalanceEditModalOpen}
         onClose={() => {
           setIsOpeningBalanceEditModalOpen(false);

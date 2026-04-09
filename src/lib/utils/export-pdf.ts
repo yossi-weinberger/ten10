@@ -648,7 +648,8 @@ export async function exportTransactionsToPDF(
       const isChomesh =
         (t.type === "income" ||
           t.type === "donation" ||
-          t.type === "recognized-expense") &&
+          t.type === "recognized-expense" ||
+          t.type === "initial_balance") &&
         t.is_chomesh === true;
 
       const rowData = [
@@ -726,7 +727,8 @@ export async function exportTransactionsToPDF(
           } else if (
             t.type === "income" ||
             t.type === "donation" ||
-            t.type === "recognized-expense"
+            t.type === "recognized-expense" ||
+            t.type === "initial_balance"
           ) {
             const textWidth = regularFont.widthOfTextAtSize("-", fontSize);
             page.drawText("-", {

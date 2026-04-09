@@ -102,25 +102,23 @@ export async function loadTransactions(
 }
 
 /**
- * Fetches the initial balance transaction if it exists.
+ * Fetches the initial balance transaction for the maaser or chomesh pot.
  */
-export async function getInitialBalanceTransaction(): Promise<Transaction | null> {
+export async function getInitialBalanceForPot(
+  isChomesh: boolean
+): Promise<Transaction | null> {
   const currentPlatform = getPlatform();
 
   if (currentPlatform === "desktop") {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
-      // We can reuse get_transactions and filter, or add a specific command.
-      // Since initial balance is one transaction, filtering in JS is fine for MVP if list is small,
-      // but better to query. For now, let's use get_filtered_transactions_handler logic via existing service or add new one.
-      // Actually, we can just fetch all and find it, but that's heavy.
-      // Let's rely on loadTransactions cache if possible? No, store only has summary.
-
-      // Let's assume we need to fetch it.
-      // Simplest: fetch all transactions (since SQLite is local and fast) and find it.
-      // Optimization: Add a specific Rust command later.
       const transactions = await invoke<Transaction[]>("get_transactions");
-      return transactions.find((t) => t.type === "initial_balance") || null;
+      return (
+        transactions.find(
+          (t) =>
+            t.type === "initial_balance" && !!t.is_chomesh === isChomesh
+        ) || null
+      );
     } catch (error) {
       logger.error(
         "Error fetching initial balance transaction (Desktop):",
@@ -134,7 +132,7 @@ export async function getInitialBalanceTransaction(): Promise<Transaction | null
         .from("transactions")
         .select("*")
         .eq("type", "initial_balance")
-        .limit(1)
+        .eq("is_chomesh", isChomesh)
         .maybeSingle();
 
       if (error) throw error;
@@ -145,6 +143,13 @@ export async function getInitialBalanceTransaction(): Promise<Transaction | null
     }
   }
   return null;
+}
+
+/**
+ * Fetches the maaser-pot initial balance (backward compatible default).
+ */
+export async function getInitialBalanceTransaction(): Promise<Transaction | null> {
+  return getInitialBalanceForPot(false);
 }
 
 /**

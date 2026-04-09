@@ -10,7 +10,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { useDataImportExport } from "@/hooks/useDataImportExport";
 import {
-  getInitialBalanceTransaction,
   updateTransaction,
   TransactionUpdatePayload,
 } from "@/lib/data-layer/transactions.service";
@@ -58,22 +57,12 @@ export function SettingsPage() {
 
   const [isOpeningBalanceModalOpen, setIsOpeningBalanceModalOpen] =
     useState(false);
-  const [openingBalanceTransaction, setOpeningBalanceTransaction] =
-    useState<Transaction | null>(null);
   const { platform } = usePlatform();
   const { user } = useAuth();
   const { t } = useTranslation("settings");
   const { t: tCommon } = useTranslation("common");
 
-  // Fetch opening balance when modal opens
-  const handleOpenBalanceModal = async () => {
-    try {
-      const transaction = await getInitialBalanceTransaction();
-      setOpeningBalanceTransaction(transaction);
-    } catch (error) {
-      logger.error("Failed to fetch opening balance transaction:", error);
-      setOpeningBalanceTransaction(null);
-    }
+  const handleOpenBalanceModal = () => {
     setIsOpeningBalanceModalOpen(true);
   };
 
@@ -313,7 +302,6 @@ export function SettingsPage() {
         <OpeningBalanceModal
           isOpen={isOpeningBalanceModalOpen}
           onClose={() => setIsOpeningBalanceModalOpen(false)}
-          initialData={openingBalanceTransaction}
           onUpdate={handleUpdateOpeningBalance}
         />
       </div>

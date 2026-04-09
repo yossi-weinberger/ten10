@@ -157,7 +157,8 @@ export async function exportTransactionsToExcel(
       is_chomesh:
         transaction.type === "income" ||
         transaction.type === "donation" ||
-        transaction.type === "recognized-expense"
+        transaction.type === "recognized-expense" ||
+        transaction.type === "initial_balance"
           ? transaction.is_chomesh
             ? i18n.t("boolean.yes", { lng: currentLanguage, ns: "common" })
             : i18n.t("boolean.no", { lng: currentLanguage, ns: "common" })

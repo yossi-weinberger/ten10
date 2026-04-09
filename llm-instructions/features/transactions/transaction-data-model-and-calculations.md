@@ -28,7 +28,7 @@ This document outlines the standard approach for handling financial transactions
     - **Positive amount**: Adds directly to the tithe obligation (user owes this amount).
     - **Negative amount**: Reduces the tithe obligation (user has pre-paid/credit). Allowed via specific DB constraint exception.
     - **Important**: This type is intentionally **excluded** from `INCOME_TYPES`, `EXPENSE_TYPES`, and `DONATION_TYPES` constants, ensuring it doesn't affect monthly charts or income/expense reports. It only affects the overall tithe balance calculation.
-    - **UI**: Created via a dedicated "Opening Balance" modal in Settings, not through the main transaction form.
+    - **UI**: Created via a dedicated "Opening Balance" modal (from Settings, the dashboard tithe stat card, or by editing an `initial_balance` row in the transactions table). The modal always offers a **maaser vs chomesh** pot choice, stored as `is_chomesh` (`false` = maaser pot, `true` = chomesh pot). Not created through the main transaction form.
 - **Specific Fields**: Fields relevant only to certain types (e.g., `is_chomesh`, `recipient`) are defined in the interface but only populated when relevant.
   **UI Handling**: In the `TransactionForm`, subtypes like `exempt-income` and `recognized-expense` are handled via conditional checkboxes presented under the main `income` or `expense` type selections, simplifying the initial choice for the user while allowing for the necessary detail.
   
