@@ -22,12 +22,15 @@ interface CurrencyConversionSectionProps {
   form: UseFormReturn<TransactionFormValues>;
   selectedCurrency: string;
   amount?: number;
+  /** Merged onto the root container (e.g. mt-0 when nested in a grouped card). */
+  className?: string;
 }
 
 export function CurrencyConversionSection({
   form,
   selectedCurrency,
   amount,
+  className,
 }: CurrencyConversionSectionProps) {
   const { t, i18n } = useTranslation("currency-features");
   const [isOnline, setIsOnline] = useState(() => navigator.onLine); // Initialize synchronously
@@ -100,7 +103,12 @@ export function CurrencyConversionSection({
   ];
 
   return (
-    <div className="bg-muted/30 rounded-lg p-4 border border-border mt-4 space-y-4">
+    <div
+      className={cn(
+        "bg-muted/30 rounded-lg p-4 border border-border mt-4 space-y-4",
+        className,
+      )}
+    >
       {/* Title */}
       <div className="flex items-center gap-2">
         <RefreshCw className="h-4 w-4 text-muted-foreground" />

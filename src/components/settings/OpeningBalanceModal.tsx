@@ -54,7 +54,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CurrencyConversionSection } from "@/components/forms/transaction-form-parts/CurrencyConversionSection";
 import { OpeningBalanceHomeStyleStatCard } from "@/components/settings/OpeningBalanceHomeStyleStatCard";
 import { ToggleChoiceCard } from "@/components/ui/toggle-choice-card";
-import { cn } from "@/lib/utils";
 
 // Derive currency codes tuple from CURRENCIES for type-safe Zod enum
 const CURRENCY_CODES = CURRENCIES.map((c) => c.code) as [CurrencyCode, ...CurrencyCode[]];
@@ -63,8 +62,8 @@ const CURRENCY_CODES = CURRENCIES.map((c) => c.code) as [CurrencyCode, ...Curren
 const OPENING_BALANCE_TOGGLE_ROW_MAX_CLASS =
   "mx-auto w-full max-w-[calc(180px+0.75rem+180px)]";
 
-/** Padding reserves space for absolutely positioned FormMessage (no layout shift, keeps items-end). */
-const FIELD_MESSAGE_PAD_CLASS = "pb-5";
+/** Outer wrapper only — `relative` must wrap just the control so `top-full` sits under the input, not under padded box. */
+const FIELD_MESSAGE_OUTER_CLASS = "pb-5";
 
 interface OpeningBalanceModalProps {
   isOpen: boolean;
@@ -364,19 +363,21 @@ export function OpeningBalanceModal({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t("balanceManagement.amountLabel")}</FormLabel>
-                      <div className={cn("relative", FIELD_MESSAGE_PAD_CLASS)}>
-                        <FormControl>
-                          <Input
-                            type="number"
-                            step="0.01"
-                            placeholder="0.00"
-                            {...field}
-                            onChange={(e) => field.onChange(parseFloat(e.target.value))}
-                            className="text-start"
-                          />
-                        </FormControl>
-                        <div className="absolute start-0 top-full mt-1 w-full">
-                          <FormMessage />
+                      <div className={FIELD_MESSAGE_OUTER_CLASS}>
+                        <div className="relative">
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="0.00"
+                              {...field}
+                              onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                              className="text-start"
+                            />
+                          </FormControl>
+                          <div className="absolute start-0 top-full mt-1 w-full">
+                            <FormMessage />
+                          </div>
                         </div>
                       </div>
                     </FormItem>
@@ -390,27 +391,29 @@ export function OpeningBalanceModal({
                   render={({ field }) => (
                     <FormItem>
                       <div className="h-6 max-sm:hidden" aria-hidden="true" />
-                      <div className={cn("relative", FIELD_MESSAGE_PAD_CLASS)}>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Currency" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {CURRENCIES.map((currency) => (
-                              <SelectItem key={currency.code} value={currency.code}>
-                                {currency.code}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <div className="absolute start-0 top-full mt-1 w-full">
-                          <FormMessage />
+                      <div className={FIELD_MESSAGE_OUTER_CLASS}>
+                        <div className="relative">
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Currency" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {CURRENCIES.map((currency) => (
+                                <SelectItem key={currency.code} value={currency.code}>
+                                  {currency.code}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <div className="absolute start-0 top-full mt-1 w-full">
+                            <FormMessage />
+                          </div>
                         </div>
                       </div>
                     </FormItem>
