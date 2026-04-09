@@ -7,6 +7,7 @@ import { typeBadgeColors } from "@/types/transactionLabels";
 import i18n from "@/lib/i18n";
 import { logger } from "@/lib/logger";
 import { formatPaymentMethod } from "@/lib/payment-methods";
+import { formatCategory } from "@/lib/category-registry";
 
 // Import fonts directly using Vite's ?url feature for robust path handling
 import regularFontUrl from "/fonts/Rubik-Regular.ttf?url";
@@ -656,7 +657,14 @@ export async function exportTransactionsToPDF(
           t.type,
         formatCurrency(t.amount, t.currency, currentLanguage),
         t.description || "-",
-        t.category || "-",
+        formatCategory(
+          t.type === "income" || t.type === "exempt-income" ? "income"
+            : t.type === "expense" || t.type === "recognized-expense" ? "expense"
+            : undefined,
+          t.category,
+          currentLanguage,
+          "-"
+        ),
         t.recipient || "-",
         formatPaymentMethod(t.payment_method, currentLanguage, "-"),
         isChomesh ? "YES" : "", // Placeholder for drawing function

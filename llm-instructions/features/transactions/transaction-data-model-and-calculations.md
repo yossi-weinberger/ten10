@@ -13,7 +13,7 @@ This document outlines the standard approach for handling financial transactions
   - `currency`: `Currency` (Type defined in store, e.g., 'ILS', 'USD', 'EUR')
   - `description`: `string` (User-provided description)
   - `type`: `TransactionType` (Enum/string literal union, see below)
-  - `category`: `string | null` (Optional category for 'income', 'expense', 'exempt-income', and 'recognized-expense' types. See `category-selection-guide.md` for details.)
+  - `category`: `string | null` (Optional category for 'income', 'expense', 'exempt-income', and 'recognized-expense' types. Predefined categories stored as stable keys like `food`, `salary`; free-text custom categories stored as provided. See `category-selection-guide.md` and `src/lib/category-registry.ts` for details.)
   - `payment_method`: `string | null` (Optional payment method. For predefined options stored as stable keys like `cash`, `credit_card`; free-text values are stored as provided.)
   - `created_at`: `string` (ISO 8601 timestamp, optional)
   - `updated_at`: `string` (ISO 8601 timestamp, optional)
@@ -133,7 +133,7 @@ The tithe balance card (e.g. in `StatsCards.tsx`) shows a progress line and text
 | `currency`    | `TEXT` / `VARCHAR(3)`               | Currency code (e.g., 'ILS')                                    | No       |                                                                               |
 | `description` | `TEXT`                              | User-provided description                                      | Yes      |                                                                               |
 | `type`        | `TEXT` / `VARCHAR`                  | Transaction type ('income', 'donation', 'expense', etc.)       | No       | Consider CHECK constraint for valid types (must include `non_tithe_donation`) |
-| `category`    | `TEXT` / `VARCHAR`                  | Optional category (e.g., 'Housing', 'Salary')                  | Yes      | For income and expense types. See `category-selection-guide.md`               |
+| `category`    | `TEXT` / `VARCHAR`                  | Optional category (stable key e.g. 'housing', 'salary', or custom free text) | Yes | Predefined options stored as stable keys; custom free text stored as entered. See `category-selection-guide.md` |
 | `payment_method` | `TEXT`                            | Optional payment method (stable keys or free text)             | Yes      | Predefined options stored as keys; free text stored as entered                 |
 | `is_chomesh`  | `BOOLEAN` / `INTEGER(1)`            | Indicates if 20% tithe applies (for 'income' type)             | Yes      | Only relevant for `type = 'income'`, NULL otherwise                           |
 | `recipient`   | `TEXT`                              | Recipient/purpose of donation (for 'donation' type)            | Yes      | Only relevant for `type = 'donation'`, NULL otherwise                         |

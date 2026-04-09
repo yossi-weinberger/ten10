@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 import type { Transaction } from "@/types/transaction";
 import i18n from "@/lib/i18n";
 import { formatPaymentMethod } from "@/lib/payment-methods";
+import { formatCategory } from "@/lib/category-registry";
 
 export async function exportTransactionsToExcel(
   transactions: Transaction[],
@@ -142,7 +143,13 @@ export async function exportTransactionsToExcel(
         }) || transaction.type,
       amount: transaction.amount,
       description: transaction.description || "",
-      category: transaction.category || "",
+      category: formatCategory(
+        transaction.type === "income" || transaction.type === "exempt-income" ? "income"
+          : transaction.type === "expense" || transaction.type === "recognized-expense" ? "expense"
+          : undefined,
+        transaction.category,
+        currentLanguage
+      ),
       payment_method: formatPaymentMethod(
         transaction.payment_method,
         currentLanguage

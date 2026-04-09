@@ -106,21 +106,29 @@ export interface RecurringTransaction {
   rate_source?: "auto" | "manual" | null;
 }
 
+// Stable predefined category keys (same values stored in the DB).
+// Labels are resolved to localized text at render time via formatCategory()
+// from @/lib/category-registry. Custom user-created categories are stored as
+// plain strings and are not part of this union.
+// Note: donation transactions do not support categories (they use recipient).
 export type TransactionCategory =
+  // income
   | "salary"
-  | "bonus"
-  | "commission"
-  | "dividend"
-  | "interest"
-  | "rent"
-  | "royalty"
-  | "sale"
-  | "service"
-  | "tax"
-  | "tip"
-  | "transfer"
-  | "utility"
-  | "wage"
+  | "business"
+  | "freelance"
+  | "investment"
+  | "allowance"
+  | "gift"
+  // expense
+  | "food"
+  | "transportation"
+  | "housing"
+  | "utilities"
+  | "healthcare"
+  | "education"
+  | "leisure"
+  | "shopping"
+  // shared
   | "other";
 
 export type Status = "pending" | "completed" | "cancelled" | "failed";

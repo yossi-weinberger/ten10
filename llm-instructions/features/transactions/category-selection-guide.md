@@ -2,13 +2,34 @@
 
 This document describes the category selection feature for transactions, including the UI component, backend services, and caching mechanism.
 
+## 0. Data Model — Hybrid Key + Free-Text
+
+The `category` field follows the same pattern as `payment_method`:
+
+- **Predefined categories** are stored in the DB as **stable English keys** (e.g. `food`, `salary`, `charity`). Labels are resolved to the active UI language at render time via `formatCategory()` from `src/lib/category-registry.ts`.
+- **Custom user-created categories** are stored as raw free text exactly as typed.
+- `formatCategory(baseType, value, language)` returns the localized label for a known key, or the raw text for a custom value.
+- `normalizeCategoryValue(value)` maps known Hebrew/English localized labels back to their stable keys. Used on import and during the one-time data migration.
+
+### Source of truth
+`src/lib/category-registry.ts` defines:
+- `INCOME_CATEGORY_KEYS`, `EXPENSE_CATEGORY_KEYS`, `DONATION_CATEGORY_KEYS`
+- `isPredefinedCategory(value)`
+- `formatCategory(baseType, value, language, fallback?)`
+- `normalizeCategoryValue(value)` — maps localized label → key for migration/import
+
+### Data migration
+- **Supabase**: `supabase/migrations/20260331000000_normalize_category_keys.sql` normalizes known He/En labels in `transactions` and `recurring_transactions`.
+- **Desktop/SQLite**: `src-tauri/src/commands/db_commands.rs` `init_db()` runs the same normalization on startup (idempotent).
+- **Import**: `src/lib/data-layer/dataManagement/importParse.ts` calls `normalizeCategoryValue` on every imported category so old backup files are also normalized.
+
 ## 1. Overview
 
 Categories allow users to classify their income and expense transactions for better tracking and future analytics. The system supports:
 
-- **Predefined categories**: Common categories translated for each transaction type
-- **User-created categories**: Custom categories that persist across sessions
-- **Categories derived from data**: No separate categories table - categories are extracted from existing transactions
+- **Predefined categories**: Stored as stable keys; localized labels displayed at render time
+- **User-created categories**: Stored as raw free text; displayed as-is
+- **Categories derived from data**: No separate categories table — categories are extracted from existing transactions
 
 ## 2. Supported Transaction Types
 
@@ -64,7 +85,8 @@ The combobox tracks a `cacheVersion` from the categories service. When a new cat
 
 ## 4. Predefined Categories
 
-Defined in translation files (`public/locales/{lang}/transactions.json`):
+Keys are defined in `src/lib/category-registry.ts` and labels are in `public/locales/{lang}/transactions.json`.
+Do **not** hard-code localized labels anywhere; always use `formatCategory()` for display.
 
 ### Income Categories
 - Salary (משכורת)

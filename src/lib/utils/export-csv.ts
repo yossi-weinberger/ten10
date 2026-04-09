@@ -2,6 +2,7 @@ import type { Transaction } from "@/types/transaction";
 import i18n from "@/lib/i18n";
 import { logger } from "@/lib/logger";
 import { formatPaymentMethod } from "@/lib/payment-methods";
+import { formatCategory } from "@/lib/category-registry";
 
 function escapeCsvCell(
   cellData: string | number | boolean | null | undefined
@@ -103,7 +104,13 @@ export function exportTransactionsToCSV(
           ns: "common",
         }) || transaction.type,
         transaction.description || "",
-        transaction.category || "",
+        formatCategory(
+          transaction.type === "income" || transaction.type === "exempt-income" ? "income"
+            : transaction.type === "expense" || transaction.type === "recognized-expense" ? "expense"
+            : undefined,
+          transaction.category,
+          currentLanguage
+        ),
         transaction.recipient || "",
         formatPaymentMethod(transaction.payment_method, currentLanguage),
         transaction.amount,

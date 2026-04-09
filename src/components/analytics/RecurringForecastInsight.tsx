@@ -3,12 +3,14 @@ import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import CountUp from "react-countup";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RecurringTransaction } from "@/types/transaction";
 import { useDonationStore } from "@/lib/store";
 import { formatCurrency } from "@/lib/utils/currency";
+import type { CurrencyCode } from "@/lib/currencies";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { CalendarClock } from "lucide-react";
+import { formatCategory } from "@/lib/category-registry";
 import { ListRowsSkeleton } from "./AnalyticsSkeleton";
 
 const INCOME_TYPES = ["income", "exempt-income"];
@@ -25,7 +27,7 @@ interface RecurringForecastInsightProps {
 
 interface RecurringItemCardProps {
   item: RecurringTransaction;
-  defaultCurrency: string;
+  defaultCurrency: CurrencyCode;
   language: string;
   t: (key: string, opts?: Record<string, unknown>) => string;
   dir: string;
@@ -47,7 +49,13 @@ function RecurringItemCard({ item, defaultCurrency, language, t, dir, index }: R
         </p>
         <p className="text-[10px] text-muted-foreground">
           {t("analytics.forecast.dayOfMonth", { day: item.day_of_month ?? 1 })}
-          {item.category ? ` · ${item.category}` : ""}
+          {item.category ? ` · ${formatCategory(
+            item.type === "income" || item.type === "exempt-income" ? "income"
+              : item.type === "expense" || item.type === "recognized-expense" ? "expense"
+              : undefined,
+            item.category,
+            language
+          )}` : ""}
         </p>
       </div>
       <p className="text-xs font-semibold text-foreground shrink-0">
@@ -67,7 +75,7 @@ function TabTotal({
 }: {
   items: RecurringTransaction[];
   isLoading: boolean;
-  defaultCurrency: string;
+  defaultCurrency: CurrencyCode;
   language: string;
   label: string;
   colorClass: string;
