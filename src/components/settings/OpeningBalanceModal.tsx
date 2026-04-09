@@ -262,7 +262,7 @@ export function OpeningBalanceModal({
       let finalAmount = values.balanceType === "debt" ? amount : -amount;
       const transactionPayload: Partial<Transaction> = {
         amount: finalAmount,
-        currency: settings.defaultCurrency,
+        currency: values.currency,
         original_amount: null,
         original_currency: null,
         conversion_rate: null,

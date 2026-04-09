@@ -3,7 +3,10 @@ import { Transaction } from "@/types/transaction";
 import { getPlatform } from "../platformManager";
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
-import { invokeDesktopFilteredTransactions } from "@/lib/tableTransactions/desktop-filtered-transactions-invoke";
+import {
+  invokeDesktopFilteredTransactions,
+  invokeDesktopFilteredTransactionsAllPages,
+} from "@/lib/tableTransactions/desktop-filtered-transactions-invoke";
 
 // --- New CRUD API for Transactions ---
 
@@ -22,10 +25,9 @@ export async function loadTransactions(
   );
   if (currentPlatform === "desktop") {
     try {
-      const response = await invokeDesktopFilteredTransactions();
-      const transactions = response.transactions ?? [];
+      const transactions = await invokeDesktopFilteredTransactionsAllPages();
       logger.log(
-        `TransactionsService: Tauri load successful: ${transactions.length} transactions (total ${response.totalCount}).`
+        `TransactionsService: Tauri load successful: ${transactions.length} transactions (full paged load).`
       );
       return transactions;
     } catch (error) {
@@ -118,7 +120,7 @@ export async function getInitialBalanceForPot(
       });
       const rows = response.transactions ?? [];
       return (
-        rows.find((t) => !!t.is_chomesh === isChomesh) ?? null
+        rows.find((row: Transaction) => !!row.is_chomesh === isChomesh) ?? null
       );
     } catch (error) {
       logger.error(

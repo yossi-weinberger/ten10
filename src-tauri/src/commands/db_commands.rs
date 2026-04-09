@@ -188,6 +188,7 @@ pub async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
     // (e.g. "מזון" or "Food" → "food"). Unknown values are left unchanged
     // so custom categories survive untouched.
     // Donation transactions do not support categories (they use recipient).
+    // Only touch legacy localized labels; stable keys and custom text skip the UPDATE (cheaper on large DBs).
     let normalize_category_sql =
         "UPDATE {} SET category = CASE \
           WHEN category IN ('Salary', 'משכורת')          THEN 'salary' \
@@ -207,7 +208,13 @@ pub async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
           WHEN category IN ('Other', 'אחר')               THEN 'other' \
           ELSE category \
         END \
-        WHERE category IS NOT NULL";
+        WHERE category IN ( \
+          'Salary', 'משכורת', 'Business', 'עסק', 'Freelance', 'עבודה עצמאית', \
+          'Investment', 'השקעות', 'Allowance', 'קצבאות', 'Gift', 'מתנה', \
+          'Food', 'מזון', 'Transportation', 'תחבורה', 'Housing', 'דיור', \
+          'Utilities', 'שירותים', 'Healthcare', 'בריאות', 'Education', 'חינוך', \
+          'Leisure', 'פנאי', 'Shopping', 'קניות', 'Other', 'אחר' \
+        )";
     conn.execute(&normalize_category_sql.replace("{}", "transactions"), [])
         .map_err(|e| e.to_string())?;
     conn.execute(&normalize_category_sql.replace("{}", "recurring_transactions"), [])

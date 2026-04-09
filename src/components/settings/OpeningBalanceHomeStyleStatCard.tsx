@@ -2,6 +2,7 @@ import { Scale } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { StatCard } from "@/components/dashboard/StatCards/StatCard";
 import { useDonationStore } from "@/lib/store";
+import { normalizeCurrencyCode } from "@/lib/currencies";
 import { formatCurrency } from "@/lib/utils/currency";
 
 /**
@@ -10,7 +11,9 @@ import { formatCurrency } from "@/lib/utils/currency";
  */
 export function OpeningBalanceHomeStyleStatCard() {
   const { t, i18n } = useTranslation("dashboard");
-  const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
+  const defaultCurrency = normalizeCurrencyCode(
+    useDonationStore((s) => s.settings.defaultCurrency)
+  );
   const trackChomeshSeparately = useDonationStore(
     (s) => s.settings.trackChomeshSeparately,
   );

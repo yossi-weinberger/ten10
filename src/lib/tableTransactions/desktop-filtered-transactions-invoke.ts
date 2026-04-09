@@ -59,3 +59,33 @@ export async function invokeDesktopFilteredTransactions(
     { args }
   );
 }
+
+const PAGE_SIZE = 10_000;
+
+/**
+ * Fetches every row matching the given filters (same defaults as the table with no filters).
+ * Used for store hydration where a single page must not truncate above PAGE_SIZE.
+ */
+export async function invokeDesktopFilteredTransactionsAllPages(
+  partial: {
+    filters?: Partial<DesktopFilteredTransactionsFilters>;
+    sorting?: Partial<DesktopFilteredTransactionsArgs["sorting"]>;
+  } = {}
+): Promise<Transaction[]> {
+  const all: Transaction[] = [];
+  let page = 1;
+  while (true) {
+    const response = await invokeDesktopFilteredTransactions({
+      ...partial,
+      pagination: { page, limit: PAGE_SIZE },
+    });
+    const batch = response.transactions ?? [];
+    all.push(...batch);
+    const total = response.totalCount ?? 0;
+    if (batch.length === 0 || all.length >= total) {
+      break;
+    }
+    page += 1;
+  }
+  return all;
+}
