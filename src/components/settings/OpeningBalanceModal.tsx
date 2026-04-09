@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Dialog,
@@ -22,7 +22,6 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { handleTransactionSubmit } from "@/lib/data-layer/transactionForm.service";
 import {
-  getInitialBalanceForPot,
   updateTransaction,
   TransactionUpdatePayload,
 } from "@/lib/data-layer/transactions.service";
@@ -81,6 +80,8 @@ export function OpeningBalanceModal({
   const { t } = useTranslation("settings");
   const { t: tCommon } = useTranslation("common");
   const { t: tTransactions } = useTranslation("transactions");
+  /** Loaded eagerly so `modal.editTitle` resolves when opened from the transactions table. */
+  const { t: tDataTables } = useTranslation("data-tables");
   const { settings } = useDonationStore();
   /** Match Zustand language — portal/dialog subtrees must not rely on html dir alone (see llm-instructions ui guidelines). */
   const layoutDir = settings.language === "he" ? "rtl" : "ltr";
@@ -91,7 +92,6 @@ export function OpeningBalanceModal({
 
   const isDesktopQuery = useMediaQuery("(min-width: 768px)");
   const [useDesktop, setUseDesktop] = useState(isDesktopQuery);
-  const fetchGeneration = useRef(0);
 
   /** Stable primitive for effect deps (avoids reference churn and keeps dependency array length fixed). */
   const initialDataSyncKey = initialData
@@ -187,58 +187,31 @@ export function OpeningBalanceModal({
     [form, settings.defaultCurrency]
   );
 
-  // Sync form with server row or prop when modal opens / pot changes
+  // Close: clear so the next open does not flash previous values
   useEffect(() => {
     if (!isOpen) {
       setResolvedTransaction(null);
-      // Clear RHF state so the next open does not briefly show (or keep) the previous session values
       resetEmptyForPot(false);
-      return;
     }
+  }, [isOpen, resetEmptyForPot]);
 
-    const gen = ++fetchGeneration.current;
-    const isChomesh = potIsChomeshForFetch;
+  // Edit from table: always bind to this row only. Do not fetch another pot's row when the user switches maaser/chomesh.
+  useEffect(() => {
+    if (!isOpen || !initialData) return;
+    setResolvedTransaction(initialData);
+    applyTransactionToForm(initialData);
+  }, [isOpen, initialDataSyncKey, initialData, applyTransactionToForm]);
 
-    const run = async () => {
-      // initialData set: apply when it matches the selected pot (or maaser-only mode). Otherwise fetch the correct pot row.
-      // initialData null: skip straight to fetch — loads maaser/chomesh row per `isChomesh` (and `resetEmptyForPot` when missing).
-      if (initialData) {
-        if (
-          !trackChomeshSeparately ||
-          !!initialData.is_chomesh === isChomeshPot
-        ) {
-          if (gen !== fetchGeneration.current) return;
-          setResolvedTransaction(initialData);
-          applyTransactionToForm(initialData);
-          return;
-        }
-      }
-
-      try {
-        const row = await getInitialBalanceForPot(isChomesh);
-        if (gen !== fetchGeneration.current) return;
-        setResolvedTransaction(row);
-        if (row) {
-          applyTransactionToForm(row);
-        } else {
-          resetEmptyForPot(isChomesh);
-        }
-      } catch (e) {
-        logger.error("OpeningBalanceModal: failed to load row for pot", e);
-        if (gen !== fetchGeneration.current) return;
-        setResolvedTransaction(null);
-        resetEmptyForPot(isChomesh);
-      }
-    };
-
-    void run();
+  // Create (settings / dashboard +): empty form; reset when pot changes
+  useEffect(() => {
+    if (!isOpen || initialData) return;
+    setResolvedTransaction(null);
+    resetEmptyForPot(potIsChomeshForFetch);
   }, [
     isOpen,
-    isChomeshPot,
-    potIsChomeshForFetch,
-    trackChomeshSeparately,
+    initialData,
     initialDataSyncKey,
-    applyTransactionToForm,
+    potIsChomeshForFetch,
     resetEmptyForPot,
   ]);
 
@@ -290,12 +263,14 @@ export function OpeningBalanceModal({
         transactionPayload.rate_source = values.rate_source;
       }
 
-      if (resolvedTransaction) {
+      // Table edit: always the row that was opened (`initialData`), even if the user moved the amount to another pot.
+      const rowBeingUpdated = initialData ?? resolvedTransaction;
+      if (rowBeingUpdated) {
         if (onUpdate) {
-          await onUpdate(resolvedTransaction.id, transactionPayload);
+          await onUpdate(rowBeingUpdated.id, transactionPayload);
         } else {
           await updateTransaction(
-            resolvedTransaction.id,
+            rowBeingUpdated.id,
             transactionPayload as TransactionUpdatePayload
           );
         }
@@ -549,6 +524,12 @@ export function OpeningBalanceModal({
     </div>
   );
 
+  /** "Edit transaction" chrome only when opening this modal from a table row (explicit `initialData`). */
+  const isEditFromTransactionsTable = initialData != null;
+  const modalTitle = isEditFromTransactionsTable
+    ? tDataTables("modal.editTitle")
+    : t("balanceManagement.modalTitle");
+
   if (useDesktop) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -563,11 +544,7 @@ export function OpeningBalanceModal({
             style={{ direction: layoutDir }}
           >
             <DialogHeader className="pe-10">
-              <DialogTitle>
-                {initialData != null || resolvedTransaction != null
-                  ? t("modal.editTitle", { ns: "data-tables" })
-                  : t("balanceManagement.modalTitle")}
-              </DialogTitle>
+              <DialogTitle>{modalTitle}</DialogTitle>
               <DialogDescription>
                 {t("balanceManagement.modalDescription")}
               </DialogDescription>
@@ -586,11 +563,7 @@ export function OpeningBalanceModal({
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DrawerContent dir={layoutDir} style={{ direction: layoutDir }}>
         <DrawerHeader className="text-start">
-          <DrawerTitle>
-            {initialData != null || resolvedTransaction != null
-              ? t("modal.editTitle", { ns: "data-tables" })
-              : t("balanceManagement.modalTitle")}
-          </DrawerTitle>
+          <DrawerTitle>{modalTitle}</DrawerTitle>
           <DrawerDescription>
             {t("balanceManagement.modalDescription")}
           </DrawerDescription>
