@@ -28,7 +28,7 @@ This document outlines the standard approach for handling financial transactions
     - **Positive amount**: Adds directly to the tithe obligation (user owes this amount).
     - **Negative amount**: Reduces the tithe obligation (user has pre-paid/credit). Allowed via specific DB constraint exception.
     - **Important**: This type is intentionally **excluded** from `INCOME_TYPES`, `EXPENSE_TYPES`, and `DONATION_TYPES` constants, ensuring it doesn't affect monthly charts or income/expense reports. It only affects the overall tithe balance calculation.
-    - **UI**: Created via a dedicated "Opening Balance" modal (from Settings, the dashboard tithe stat card, or by editing an `initial_balance` row in the transactions table). The modal always offers a **maaser vs chomesh** pot choice, stored as `is_chomesh` (`false` = maaser pot, `true` = chomesh pot). Not created through the main transaction form.
+    - **UI**: Created via a dedicated "Opening Balance" modal (from Settings, the dashboard tithe stat card, or by editing an `initial_balance` row in the transactions table). When **`trackChomeshSeparately`** is enabled, the modal offers a **maaser vs chomesh** pot choice (`is_chomesh`: `false` = maaser, `true` = chomesh). When it is disabled, adjustments use the maaser pot only (no pot selector), consistent with the previous single-balance UX. Not created through the main transaction form.
 - **Specific Fields**: Fields relevant only to certain types (e.g., `is_chomesh`, `recipient`) are defined in the interface but only populated when relevant.
   **UI Handling**: In the `TransactionForm`, subtypes like `exempt-income` and `recognized-expense` are handled via conditional checkboxes presented under the main `income` or `expense` type selections, simplifying the initial choice for the user while allowing for the necessary detail.
   
@@ -187,8 +187,11 @@ The tithe balance card (e.g. in `StatsCards.tsx`) shows a progress line and text
   - User selects an export format in `ExportButton.tsx`.
   - The `exportTransactions` action in `useTableTransactionsStore` is called.
   - This action sets `exportLoading` to true.
-  - It calls `src/lib/tableTransactions/tableTransactionService.ts` (`TableTransactionsService.exportTransactions`), which fetches _all_ relevant data (respecting filters/sort, but not paginated) from the backend.
-  - Once data is received, client-side libraries (`exceljs`, `jspdf`) are used to generate and download the file.
+  - It uses `TableTransactionsService.getDataForExport()` (via the service layer), which fetches _all_ relevant data (respecting filters/sort, but not paginated) from the backend.
+  - Once data is received, client-side code generates the file: **`exceljs`** (Excel), **`pdf-lib`** (PDF table report), CSV builder in `export-csv.ts`.
+  - **Desktop (Tauri):** `saveOrDownloadExportedFile` in `src/lib/utils/save-export-file.ts` opens the native save dialog (`dialog.save`) and writes with `fs.writeFile` (user picks path; same pattern as Analytics PDF export).
+  - **Web:** the same helper triggers a browser download.
+  - If the user cancels the desktop save dialog, export returns `false`, `exportError` is set to `EXPORT_DESKTOP_SAVE_CANCELLED`, and toasts are suppressed in `ExportButton`.
   - `exportLoading` and `exportError` are updated accordingly.
 
 ## 7. Implementation Plan

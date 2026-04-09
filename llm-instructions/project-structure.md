@@ -291,6 +291,7 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── export-csv.ts
 │   │   │   ├── export-excel.ts
 │   │   │   ├── export-pdf.ts
+│   │   │   ├── save-export-file.ts            # Tauri save dialog vs web download for exports
 │   │   │   ├── formatting.tsx
 │   │   │   ├── hebrew-date.ts
 │   │   │   ├── index.ts
