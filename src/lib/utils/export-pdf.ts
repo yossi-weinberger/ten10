@@ -8,6 +8,7 @@ import i18n from "@/lib/i18n";
 import { logger } from "@/lib/logger";
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { formatCategory } from "@/lib/category-registry";
+import { saveOrDownloadExportedFile } from "@/lib/utils/save-export-file";
 
 // Import fonts directly using Vite's ?url feature for robust path handling
 import regularFontUrl from "/fonts/Rubik-Regular.ttf?url";
@@ -164,20 +165,6 @@ function parseTailwindColor(colorString: string): {
   };
 }
 
-// Helper function to download the PDF
-function downloadPdf(bytes: Uint8Array, filename: string) {
-  const blob = new Blob([bytes as BlobPart], {
-    type: "application/pdf",
-  });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(link.href);
-}
-
 // Helper to manually draw a "Ballot Box with Check" using basic vectors
 // This replaces unicode characters which are failing to render properly.
 function drawSafeVectorCheckbox(
@@ -238,7 +225,7 @@ export async function exportTransactionsToPDF(
   totalCount: number,
   currentLanguage: string = "he",
   sorting?: { field: string; direction: "asc" | "desc" },
-) {
+): Promise<boolean> {
   try {
     const pdfDoc = await PDFDocument.create();
     pdfDoc.registerFontkit(fontkit);
@@ -826,8 +813,15 @@ export async function exportTransactionsToPDF(
     const toDate = filters.dateRange.to
       ? format(filters.dateRange.to, "yyyy-MM-dd")
       : "end";
-    downloadPdf(pdfBytes, `Ten10_Transactions_${fromDate}_to_${toDate}.pdf`);
+    const defaultFilename = `Ten10_Transactions_${fromDate}_to_${toDate}.pdf`;
+    return saveOrDownloadExportedFile({
+      bytes: pdfBytes,
+      defaultFilename,
+      filters: [{ name: "PDF", extensions: ["pdf"] }],
+      mimeType: "application/pdf",
+    });
   } catch (error) {
     logger.error("Error exporting transactions to PDF:", error);
+    throw error;
   }
 }

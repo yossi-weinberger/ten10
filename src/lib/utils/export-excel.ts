@@ -3,12 +3,13 @@ import type { Transaction } from "@/types/transaction";
 import i18n from "@/lib/i18n";
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { formatCategory } from "@/lib/category-registry";
+import { saveOrDownloadExportedFile } from "@/lib/utils/save-export-file";
 
 export async function exportTransactionsToExcel(
   transactions: Transaction[],
   filename = "Ten10-transactions.xlsx",
   currentLanguage: string = "he"
-) {
+): Promise<boolean> {
   const workbook = new ExcelJS.Workbook();
 
   workbook.creator = "Ten10";
@@ -225,14 +226,14 @@ export async function exportTransactionsToExcel(
   }
 
   const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], {
-    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
+  const bytes = new Uint8Array(buffer);
   const baseName = filename.replace(/\.xlsx$/i, "");
-  a.download = `${baseName}-${new Date().toISOString().split("T")[0]}.xlsx`;
-  a.click();
-  window.URL.revokeObjectURL(url);
+  const defaultFilename = `${baseName}-${new Date().toISOString().split("T")[0]}.xlsx`;
+  return saveOrDownloadExportedFile({
+    bytes,
+    defaultFilename,
+    filters: [{ name: "Excel", extensions: ["xlsx"] }],
+    mimeType:
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
 }
