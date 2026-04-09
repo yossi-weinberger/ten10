@@ -27,9 +27,9 @@ export function CurrencyPicker({ value, onChange, className, variant = "compact"
   // Compact variant - for transaction form
   if (variant === "compact") {
     return (
-      <div className={cn("flex items-center gap-1", className)}>
-        {/* Selected currency display */}
-        <div className="flex items-center gap-1 px-3 py-2 bg-primary text-primary-foreground rounded-md font-medium text-sm min-w-[70px] justify-center">
+      <div className={cn("flex shrink-0 items-center gap-1", className)}>
+        {/* Selected currency display — h-10 matches Input / DatePicker controls */}
+        <div className="flex h-10 min-w-[70px] items-center justify-center gap-1 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">
           <span>{selectedCurrency?.symbol}</span>
           <span>{value}</span>
         </div>
@@ -41,7 +41,7 @@ export function CurrencyPicker({ value, onChange, className, variant = "compact"
               type="button"
               variant="outline"
               size="icon"
-              className="h-9 w-9"
+              className="h-10 w-10 shrink-0"
             >
               <ArrowLeftRight className="h-4 w-4" />
             </Button>
