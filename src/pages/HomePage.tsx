@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { StatsCards } from "@/components/dashboard/StatsCards";
 import { MonthlyChart } from "@/components/dashboard/MonthlyChart";
+import { ExperimentChart } from "@/components/dashboard/ExperimentChart";
 
 export function HomePage() {
   const { t } = useTranslation("dashboard");
@@ -16,6 +17,7 @@ export function HomePage() {
       </div>
 
       <StatsCards />
+      <ExperimentChart />
       <MonthlyChart />
     </div>
   );
