@@ -64,7 +64,7 @@ async function fetchExchangeRate(
       const data = await response.json();
       const rate = provider.parseRate(data, from, to);
 
-      if (!rate) {
+      if (rate == null) {
         throw new Error(
           `${provider.name}: Rate not found for ${from} -> ${to}`
         );
@@ -261,6 +261,7 @@ Deno.serve(async (req) => {
         let executionCount = rec.execution_count;
         let currentStatus = rec.status;
         let processedOccurrences = 0;
+        const recCurrency = rec.currency; // stable for all iterations
 
         // Catch-up Loop: Process all missed occurrences up to today
         while (
@@ -278,8 +279,6 @@ Deno.serve(async (req) => {
           console.log(
             `Processing occurrence for ${rec.id} due on ${currentDueDateStr}`
           );
-
-          const recCurrency = rec.currency;
           let finalAmount = rec.amount;
           let finalCurrency = defaultCurrency;
           let originalAmount: number | null = null;

@@ -35,7 +35,7 @@ The same conversion columns were added to recurring transactions (Jan 2026):
 | `conversion_date` | `DATE` | The date the rate was set. |
 | `rate_source` | `VARCHAR` | 'auto' or 'manual' - indicates how the rate was determined. |
 
-**Important:** When a recurring transaction is created with a foreign currency, the `amount` field stores the **converted** value (in default currency), and the original details are stored in the `original_*` fields. This "locked-in rate" approach ensures consistent transaction generation.
+**Important:** When a recurring transaction is created with a foreign currency, the `amount` field stores the **converted** value (in the user's default currency at creation time, recorded in `currency`), and the original details are stored in the `original_*` fields. When reusing the stored amount (manual rate, or auto-rate fallback), the code uses `rec.currency` (the creation-time default) rather than the profile's current `default_currency`, to ensure the stored amount and its currency label are always consistent.
 
 ### `profiles` Table
 | Column Name | Type | Default | Description |
