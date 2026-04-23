@@ -35,7 +35,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   onEditRecurring,
   isFetchingRec,
 }) => {
-  const { t, i18n } = useTranslation("data-tables");
+  const { t, i18n } = useTranslation(["data-tables", "transactions"]);
 
   return (
     <TableRow key={transaction.id}>

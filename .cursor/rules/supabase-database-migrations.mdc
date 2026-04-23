@@ -21,14 +21,36 @@ alwaysApply: false
 4. Open PR → GitHub Action pushes to **production** (Vercel preview works).
 5. Merge to main.
 
-## MCP (plugin-supabase-supabase)
+## MCP tools — which to use
 
-- `apply_migration(project_id, name, query)` – Runs SQL + registers in schema_migrations.
-- `execute_sql(project_id, query)` – Runs SQL only.
-- If `apply_migration` uses auto-timestamp, align with file: `DELETE` old row, `INSERT` with file timestamp.
+| MCP server | Connected to | Use for |
+|---|---|---|
+| `plugin-supabase-supabase` | requires `project_id` param | ✅ staging migrations |
+| `user-supabase` | **PRODUCTION** hardcoded | ❌ never for migrations |
+
+**CRITICAL**: `user-supabase` MCP is hardwired to production (`flpzqbvbymoluoeeeofg`).  
+**Always use `plugin-supabase-supabase` with `project_id: "ngtsnskyupageagcmqdp"` for staging.**
+
+### Correct apply_migration call:
+```
+plugin-supabase-supabase › apply_migration({
+  project_id: "ngtsnskyupageagcmqdp",
+  name: "description_snake_case",
+  query: "..."
+})
+```
+
+### After apply_migration (fix auto-timestamp):
+MCP generates its own timestamp → mismatches the file. Fix:
+```sql
+DELETE FROM supabase_migrations.schema_migrations WHERE name = 'migration_name' AND version != '20260423120000';
+INSERT INTO supabase_migrations.schema_migrations (version, name, statements)
+VALUES ('20260423120000', 'migration_name', ARRAY['...']) ON CONFLICT DO NOTHING;
+```
 
 ## Do not
 
+- Use `user-supabase` MCP for any migration (it goes to production).
 - Run ad-hoc SQL on production without a migration file in Git.
 - Edit or delete migration files already applied on production.
 - Run `supabase db reset` on production.

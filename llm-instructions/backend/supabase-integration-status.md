@@ -96,6 +96,15 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 
 ## Known Issues & Workarounds
 
+### update_recurring_transaction RPC 404 Error
+
+- **Issue Description:** The `update_recurring_transaction` RPC function was returning 404 errors when attempting to edit recurring transactions. The error message indicated that the function signature in the database schema cache didn't match the parameters sent from the frontend.
+- **Root Cause:** The function was not defined in any migration file in the repository. It was likely created manually in the database at some point, but the version in production was missing the currency conversion parameters (`p_original_amount`, `p_original_currency`, `p_conversion_rate`, `p_conversion_date`, `p_rate_source`) that were added in January 2026.
+- **Solution:** Recreated `update_recurring_transaction` with the full 14-parameter signature the frontend expects, including currency conversion fields (`p_original_amount`, `p_original_currency`, `p_conversion_rate`, `p_conversion_date`, `p_rate_source`). Switched to `RETURNS SETOF recurring_transactions` + `UPDATE ... RETURNING *` to avoid ambiguous column name errors. The frontend continues to call `update_recurring_transaction`.
+- **Root cause of original bug:** `p_total_occurrences: values.total_occurrences` — when `undefined`, JavaScript strips the key from JSON, so PostgREST received 13 params and couldn't match the 14-param function. Fixed with `?? null`.
+- **Migration:** `20260423120000_fix_update_recurring_transaction_rpc.sql` (re)creates the function; `20260423130000_cleanup_unnecessary_rpc_functions.sql` drops the temporary `edit_recurring_transaction` and `update_recurring_v2` functions that were created during debugging.
+- **Status:** Fixed on staging and production.
+
 ### Supabase Client Hangs After Refresh (Chrome/Vite/React)
 
 - **Issue Description:** A significant issue was identified where the `@supabase/supabase-js` client becomes unresponsive to network requests (both `select` and `rpc` calls) after a page refresh when a session is restored from localStorage (`persistSession: true`). The `onAuthStateChange` event fires correctly, indicating a valid session and user, but subsequent attempts to use the client for network operations hang indefinitely without sending a request or throwing a network error. This issue primarily affects Chrome-based browsers in the Vite/React development environment.
@@ -118,7 +127,8 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 
 ### Database & Services (Web - Supabase)
 
-- **RPC Function Implementation & Verification:** Ensure all Supabase RPC functions used by `transactionService.ts` (e.g., `get_paginated_transactions`, `update_user_transaction`, `delete_user_transaction`, `export_user_transactions`) are fully implemented, tested, and secured with appropriate RLS-aware logic within the SQL functions themselves (e.g., checking `auth.uid()`).
+- **RPC inventory (audit, project-wide):** [`supabase-rpc-inventory.md`](supabase-rpc-inventory.md) — full `public` routine list (staging snapshot), every `supabase.rpc` use in `src/` and Edge Functions, direct `.from()` table access, Edge↔table/RPC matrix, orphan candidates, and the `get_cron_job_failures` gap. Also verifies analytics cleanup migration `20260330000000_cleanup_unused_analytics_rpcs` on staging/production.
+- **RPC Function Implementation & Verification:** Ensure all Supabase RPC functions used by the table service layer (e.g., `get_user_transactions`, `update_user_transaction`, `delete_user_transaction`) are fully implemented, tested, and secured with appropriate RLS-aware logic within the SQL functions themselves (e.g., checking `auth.uid()`).
 - **`transactionService.ts` Completeness:** Confirm that all methods in `transactionService.ts` for the web platform correctly map to and handle responses from their respective Supabase RPCs, including error handling.
 - **Data Synchronization/Migration:** Define a strategy for potential data sync or migration between Desktop (SQLite) and Web (Supabase) if needed in the future.
 - **Naming Convention Alignment:** Alignment to `snake_case` for the `Transaction` TypeScript type and the Supabase database schema has been completed, enhancing consistency.
