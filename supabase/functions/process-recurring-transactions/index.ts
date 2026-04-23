@@ -292,7 +292,7 @@ Deno.serve(async (req) => {
             if (rec.rate_source === "manual") {
               // MANUAL RATE: Always use the stored rate - user explicitly set it
               finalAmount = rec.amount;
-              finalCurrency = defaultCurrency;
+              finalCurrency = recCurrency; // rec.currency = the currency amount was converted into at creation
               originalAmount = rec.original_amount;
               originalCurrency = rec.original_currency;
               conversionRate = rec.conversion_rate;
@@ -325,7 +325,7 @@ Deno.serve(async (req) => {
                   `No fresh rate available for ${rec.id}, falling back to stored rate`
                 );
                 finalAmount = rec.amount;
-                finalCurrency = defaultCurrency;
+                finalCurrency = recCurrency; // rec.currency = the currency amount was converted into at creation
                 originalAmount = rec.original_amount;
                 originalCurrency = rec.original_currency;
                 conversionRate = rec.conversion_rate;
