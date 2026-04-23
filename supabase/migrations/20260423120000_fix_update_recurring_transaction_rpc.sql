@@ -30,6 +30,7 @@ CREATE OR REPLACE FUNCTION update_recurring_transaction(
 RETURNS SETOF recurring_transactions
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path TO 'public'
 AS $$
 BEGIN
     RETURN QUERY

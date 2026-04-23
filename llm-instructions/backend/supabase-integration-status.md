@@ -100,9 +100,10 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 
 - **Issue Description:** The `update_recurring_transaction` RPC function was returning 404 errors when attempting to edit recurring transactions. The error message indicated that the function signature in the database schema cache didn't match the parameters sent from the frontend.
 - **Root Cause:** The function was not defined in any migration file in the repository. It was likely created manually in the database at some point, but the version in production was missing the currency conversion parameters (`p_original_amount`, `p_original_currency`, `p_conversion_rate`, `p_conversion_date`, `p_rate_source`) that were added in January 2026.
-- **Solution:** Created new RPC function `edit_recurring_transaction` with the correct signature including currency conversion fields. The frontend now uses `edit_recurring_transaction` instead of `update_recurring_transaction` to avoid PostgREST schema cache issues.
-- **Migration:** `edit_recurring_transaction` function created via `apply_migration` MCP tool on staging.
-- **Status:** Fixed - function deployed to staging, frontend code updated.
+- **Solution:** Recreated `update_recurring_transaction` with the full 14-parameter signature the frontend expects, including currency conversion fields (`p_original_amount`, `p_original_currency`, `p_conversion_rate`, `p_conversion_date`, `p_rate_source`). Switched to `RETURNS SETOF recurring_transactions` + `UPDATE ... RETURNING *` to avoid ambiguous column name errors. The frontend continues to call `update_recurring_transaction`.
+- **Root cause of original bug:** `p_total_occurrences: values.total_occurrences` — when `undefined`, JavaScript strips the key from JSON, so PostgREST received 13 params and couldn't match the 14-param function. Fixed with `?? null`.
+- **Migration:** `20260423120000_fix_update_recurring_transaction_rpc.sql` (re)creates the function; `20260423130000_cleanup_unnecessary_rpc_functions.sql` drops the temporary `edit_recurring_transaction` and `update_recurring_v2` functions that were created during debugging.
+- **Status:** Fixed on staging and production.
 
 ### Supabase Client Hangs After Refresh (Chrome/Vite/React)
 
