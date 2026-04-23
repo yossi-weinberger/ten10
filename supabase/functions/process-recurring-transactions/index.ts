@@ -214,13 +214,16 @@ Deno.serve(async (req) => {
     let skippedCount = 0;
 
     // Cache fetched rates per invocation to avoid redundant API calls
-    // during catch-up loops (e.g. 6 missed months = 1 API call instead of 6)
-    const rateCache = new Map<string, number | null>();
+    // during catch-up loops (e.g. 6 missed months = 1 API call instead of 6).
+    // Only successful (non-null) rates are cached so transient failures are retried.
+    const rateCache = new Map<string, number>();
     const fetchExchangeRateCached = async (from: string, to: string) => {
       const key = `${from}:${to}`;
       if (rateCache.has(key)) return rateCache.get(key)!;
       const rate = await fetchExchangeRate(from, to);
-      rateCache.set(key, rate);
+      if (rate !== null) {
+        rateCache.set(key, rate);
+      }
       return rate;
     };
 
