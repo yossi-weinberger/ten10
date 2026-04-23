@@ -278,14 +278,48 @@ Deno.serve(async (req) => {
           let shouldInsert = true;
 
           if (rec.original_amount && rec.original_currency) {
-            // Use stored conversion
-            finalAmount = rec.amount;
-            finalCurrency = defaultCurrency;
-            originalAmount = rec.original_amount;
-            originalCurrency = rec.original_currency;
-            conversionRate = rec.conversion_rate;
-            conversionDate = rec.conversion_date;
-            rateSource = rec.rate_source;
+            if (rec.rate_source === "manual") {
+              // MANUAL RATE: Always use the stored rate - user explicitly set it
+              finalAmount = rec.amount;
+              finalCurrency = defaultCurrency;
+              originalAmount = rec.original_amount;
+              originalCurrency = rec.original_currency;
+              conversionRate = rec.conversion_rate;
+              conversionDate = rec.conversion_date;
+              rateSource = "manual";
+            } else {
+              // AUTO RATE: Try to get a fresh rate, fallback to stored rate
+              const freshRate = await fetchExchangeRate(
+                rec.original_currency,
+                defaultCurrency
+              );
+              if (freshRate) {
+                finalAmount = Number(
+                  (rec.original_amount * freshRate).toFixed(2)
+                );
+                finalCurrency = defaultCurrency;
+                originalAmount = rec.original_amount;
+                originalCurrency = rec.original_currency;
+                conversionRate = freshRate;
+                conversionDate = today;
+                rateSource = "auto";
+                console.log(
+                  `Using FRESH rate for ${rec.id}: ${rec.original_amount} ${rec.original_currency} -> ${finalAmount} ${defaultCurrency} (Rate: ${freshRate})`
+                );
+              } else {
+                // Fallback to stored rate from creation time
+                console.warn(
+                  `No fresh rate available for ${rec.id}, falling back to stored rate`
+                );
+                finalAmount = rec.amount;
+                finalCurrency = defaultCurrency;
+                originalAmount = rec.original_amount;
+                originalCurrency = rec.original_currency;
+                conversionRate = rec.conversion_rate;
+                conversionDate = rec.conversion_date;
+                rateSource = "auto";
+              }
+            }
           } else if (recCurrency !== defaultCurrency) {
             // Legacy / Foreign currency without stored conversion
             const rate = await fetchExchangeRate(recCurrency, defaultCurrency);

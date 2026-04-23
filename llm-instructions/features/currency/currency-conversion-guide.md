@@ -69,7 +69,9 @@ The same conversion columns were added to recurring transactions (Jan 2026):
 **Execution - Web (Edge Function `process-recurring-transactions`):**
 - Runs daily via Supabase cron job.
 - For each due transaction:
-  1. **Check for stored conversion:** If `original_amount` and `original_currency` exist, copy these values directly to the new transaction (use the locked-in rate).
+  1. **Check for stored conversion:** If `original_amount` and `original_currency` exist:
+     - **Manual Rate (`rate_source === "manual"`):** Always use the stored rate — user explicitly set it.
+     - **Auto Rate (`rate_source === "auto"`):** Try to fetch a fresh rate from the API providers. If successful, use the fresh rate. If all providers fail, fall back to the stored rate from creation time.
   2. **Legacy fallback:** If no stored conversion and currency differs from default, fetch a live rate from API.
   3. Creates the transaction with proper conversion metadata.
 
