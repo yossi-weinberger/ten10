@@ -53,7 +53,7 @@ const availableTransactionTypes: TransactionType[] = [
 // Moved to translation files - will use tTables() function
 
 export function TransactionsFilters() {
-  const { t: tTables, i18n } = useTranslation("data-tables");
+  const { t: tTables, i18n } = useTranslation(["data-tables", "transactions"]);
   const { platform } = usePlatform();
   const {
     storeFilters,

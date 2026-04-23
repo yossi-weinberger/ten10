@@ -40,7 +40,7 @@ import { usePlatform } from "@/contexts/PlatformContext";
 import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversionInfo";
 
 export function RecurringTransactionsTableDisplay() {
-  const { t, i18n } = useTranslation("data-tables");
+  const { t, i18n } = useTranslation(["data-tables", "transactions"]);
   const { platform } = usePlatform();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
