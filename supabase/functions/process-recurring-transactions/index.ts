@@ -213,6 +213,17 @@ Deno.serve(async (req) => {
     const results: { id: string; status: string }[] = [];
     let skippedCount = 0;
 
+    // Cache fetched rates per invocation to avoid redundant API calls
+    // during catch-up loops (e.g. 6 missed months = 1 API call instead of 6)
+    const rateCache = new Map<string, number | null>();
+    const fetchExchangeRateCached = async (from: string, to: string) => {
+      const key = `${from}:${to}`;
+      if (rateCache.has(key)) return rateCache.get(key)!;
+      const rate = await fetchExchangeRate(from, to);
+      rateCache.set(key, rate);
+      return rate;
+    };
+
     // Helper to parse "YYYY-MM-DD" string to a Date object at local midnight
     const parseLocal = (dateStr: string) => {
       const [year, month, day] = dateStr.split("-").map(Number);
@@ -277,7 +288,7 @@ Deno.serve(async (req) => {
           // Check conversion logic
           let shouldInsert = true;
 
-          if (rec.original_amount && rec.original_currency) {
+          if (rec.original_amount != null && rec.original_currency != null) {
             if (rec.rate_source === "manual") {
               // MANUAL RATE: Always use the stored rate - user explicitly set it
               finalAmount = rec.amount;
@@ -288,8 +299,10 @@ Deno.serve(async (req) => {
               conversionDate = rec.conversion_date;
               rateSource = "manual";
             } else {
-              // AUTO RATE: Try to get a fresh rate, fallback to stored rate
-              const freshRate = await fetchExchangeRate(
+              // AUTO RATE: Try to get a fresh rate, fallback to stored rate.
+              // Rate is cached per (from,to) pair for this invocation to avoid
+              // redundant API calls during catch-up loops.
+              const freshRate = await fetchExchangeRateCached(
                 rec.original_currency,
                 defaultCurrency
               );
@@ -322,7 +335,7 @@ Deno.serve(async (req) => {
             }
           } else if (recCurrency !== defaultCurrency) {
             // Legacy / Foreign currency without stored conversion
-            const rate = await fetchExchangeRate(recCurrency, defaultCurrency);
+            const rate = await fetchExchangeRateCached(recCurrency, defaultCurrency);
 
             if (rate) {
               finalAmount = Number((rec.amount * rate).toFixed(2));
