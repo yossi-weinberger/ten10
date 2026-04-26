@@ -308,7 +308,7 @@ Deno.serve(async (req) => {
                 rec.original_currency,
                 defaultCurrency
               );
-              if (freshRate) {
+              if (freshRate != null) {
                 finalAmount = Number(
                   (rec.original_amount * freshRate).toFixed(2)
                 );
@@ -339,7 +339,7 @@ Deno.serve(async (req) => {
             // Legacy / Foreign currency without stored conversion
             const rate = await fetchExchangeRateCached(recCurrency, defaultCurrency);
 
-            if (rate) {
+            if (rate != null) {
               finalAmount = Number((rec.amount * rate).toFixed(2));
               originalAmount = rec.amount;
               originalCurrency = recCurrency;
