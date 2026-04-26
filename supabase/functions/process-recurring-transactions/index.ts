@@ -64,7 +64,7 @@ async function fetchExchangeRate(
       const data = await response.json();
       const rate = provider.parseRate(data, from, to);
 
-      if (!rate) {
+      if (rate == null) {
         throw new Error(
           `${provider.name}: Rate not found for ${from} -> ${to}`
         );
@@ -213,6 +213,20 @@ Deno.serve(async (req) => {
     const results: { id: string; status: string }[] = [];
     let skippedCount = 0;
 
+    // Cache fetched rates per invocation to avoid redundant API calls
+    // during catch-up loops (e.g. 6 missed months = 1 API call instead of 6).
+    // Only successful (non-null) rates are cached so transient failures are retried.
+    const rateCache = new Map<string, number>();
+    const fetchExchangeRateCached = async (from: string, to: string) => {
+      const key = `${from}:${to}`;
+      if (rateCache.has(key)) return rateCache.get(key)!;
+      const rate = await fetchExchangeRate(from, to);
+      if (rate !== null) {
+        rateCache.set(key, rate);
+      }
+      return rate;
+    };
+
     // Helper to parse "YYYY-MM-DD" string to a Date object at local midnight
     const parseLocal = (dateStr: string) => {
       const [year, month, day] = dateStr.split("-").map(Number);
@@ -247,6 +261,7 @@ Deno.serve(async (req) => {
         let executionCount = rec.execution_count;
         let currentStatus = rec.status;
         let processedOccurrences = 0;
+        const recCurrency = rec.currency; // stable for all iterations
 
         // Catch-up Loop: Process all missed occurrences up to today
         while (
@@ -264,8 +279,6 @@ Deno.serve(async (req) => {
           console.log(
             `Processing occurrence for ${rec.id} due on ${currentDueDateStr}`
           );
-
-          const recCurrency = rec.currency;
           let finalAmount = rec.amount;
           let finalCurrency = defaultCurrency;
           let originalAmount: number | null = null;
@@ -277,20 +290,56 @@ Deno.serve(async (req) => {
           // Check conversion logic
           let shouldInsert = true;
 
-          if (rec.original_amount && rec.original_currency) {
-            // Use stored conversion
-            finalAmount = rec.amount;
-            finalCurrency = defaultCurrency;
-            originalAmount = rec.original_amount;
-            originalCurrency = rec.original_currency;
-            conversionRate = rec.conversion_rate;
-            conversionDate = rec.conversion_date;
-            rateSource = rec.rate_source;
+          if (rec.original_amount != null && rec.original_currency != null) {
+            if (rec.rate_source === "manual") {
+              // MANUAL RATE: Always use the stored rate - user explicitly set it
+              finalAmount = rec.amount;
+              finalCurrency = recCurrency; // rec.currency = the currency amount was converted into at creation
+              originalAmount = rec.original_amount;
+              originalCurrency = rec.original_currency;
+              conversionRate = rec.conversion_rate;
+              conversionDate = rec.conversion_date;
+              rateSource = "manual";
+            } else {
+              // AUTO RATE: Try to get a fresh rate, fallback to stored rate.
+              // Rate is cached per (from,to) pair for this invocation to avoid
+              // redundant API calls during catch-up loops.
+              const freshRate = await fetchExchangeRateCached(
+                rec.original_currency,
+                defaultCurrency
+              );
+              if (freshRate != null) {
+                finalAmount = Number(
+                  (rec.original_amount * freshRate).toFixed(2)
+                );
+                finalCurrency = defaultCurrency;
+                originalAmount = rec.original_amount;
+                originalCurrency = rec.original_currency;
+                conversionRate = freshRate;
+                conversionDate = today;
+                rateSource = "auto";
+                console.log(
+                  `Using FRESH rate for ${rec.id}: ${rec.original_amount} ${rec.original_currency} -> ${finalAmount} ${defaultCurrency} (Rate: ${freshRate})`
+                );
+              } else {
+                // Fallback to stored rate from creation time
+                console.warn(
+                  `No fresh rate available for ${rec.id}, falling back to stored rate`
+                );
+                finalAmount = rec.amount;
+                finalCurrency = recCurrency; // rec.currency = the currency amount was converted into at creation
+                originalAmount = rec.original_amount;
+                originalCurrency = rec.original_currency;
+                conversionRate = rec.conversion_rate;
+                conversionDate = rec.conversion_date;
+                rateSource = "auto";
+              }
+            }
           } else if (recCurrency !== defaultCurrency) {
             // Legacy / Foreign currency without stored conversion
-            const rate = await fetchExchangeRate(recCurrency, defaultCurrency);
+            const rate = await fetchExchangeRateCached(recCurrency, defaultCurrency);
 
-            if (rate) {
+            if (rate != null) {
               finalAmount = Number((rec.amount * rate).toFixed(2));
               originalAmount = rec.amount;
               originalCurrency = recCurrency;
