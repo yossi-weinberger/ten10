@@ -7,6 +7,17 @@ import {
 } from "./recurringTable.store";
 import { logger } from "@/lib/logger";
 
+function activeFirst(
+  recurring: RecurringTransaction[]
+): RecurringTransaction[] {
+  return [...recurring].sort((a, b) => {
+    const aPriority = a.status === "active" ? 0 : 1;
+    const bPriority = b.status === "active" ? 0 : 1;
+
+    return aPriority - bPriority;
+  });
+}
+
 export async function fetchAllRecurring(
   sorting: RecurringTableSortConfig,
   filters: RecurringTableFilters
@@ -38,7 +49,7 @@ export async function fetchAllRecurring(
       logger.error("Error fetching recurring transactions via RPC:", error);
       throw error;
     }
-    return data || [];
+    return activeFirst(data || []);
   } else if (platform === "desktop") {
     const { invoke } = await import("@tauri-apps/api/core");
     const payload = {
@@ -54,9 +65,10 @@ export async function fetchAllRecurring(
           filters.frequencies.length > 0 ? filters.frequencies : null,
       },
     };
-    return await invoke("get_recurring_transactions_handler", {
+    const data = await invoke<RecurringTransaction[]>("get_recurring_transactions_handler", {
       args: payload,
     });
+    return activeFirst(data);
   }
   return [];
 }
