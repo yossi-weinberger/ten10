@@ -287,7 +287,6 @@ export function RecurringTransactionsTableDisplay() {
                                   handleDeleteClick(rec)
                                 );
                               }}
-                              disabled={rec.status === "completed"}
                             >
                               {t("actions.delete")}
                             </DropdownMenuItem>
