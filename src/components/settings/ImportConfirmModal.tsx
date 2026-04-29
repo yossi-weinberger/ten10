@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
+import { GitMerge, Trash2 } from "lucide-react";
 import type { ImportMode } from "@/lib/data-layer/dataManagement.service";
 
 export interface ImportConfirmModalProps {
@@ -34,7 +35,6 @@ export interface ImportConfirmModalProps {
 
 export function ImportConfirmModal({
   open,
-  platform,
   transactionsCount,
   recurringCount,
   onConfirm,
@@ -49,16 +49,6 @@ export function ImportConfirmModal({
   const [useDrawer] = useState(isSmallNow);
 
   const title = t("importExport.importTitle");
-  const replaceMessage =
-    platform === "web"
-      ? t("messages.importConfirmWeb")
-      : t("messages.importConfirm");
-  const mergeMessage =
-    platform === "web"
-      ? t("messages.importConfirmMergeWeb")
-      : t("messages.importConfirmMerge");
-  const bodyMessage = mode === "replace" ? replaceMessage : mergeMessage;
-
   const countsBlock = (
     <span className="mt-2 block font-medium text-foreground">
       {t("messages.importRecordCountTransactions", {
@@ -89,12 +79,19 @@ export function ImportConfirmModal({
             : "border-border hover:border-primary/35 hover:bg-muted/40"
         )}
       >
-        <span className="block font-semibold leading-snug text-foreground">
-          {t("messages.importModeReplace")}
+        <span className="flex items-start gap-3">
+          <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+            <Trash2 className="size-4" aria-hidden="true" />
+          </span>
+          <span>
+            <span className="block text-base font-semibold leading-snug text-foreground">
+              {t("messages.importModeReplace")}
+            </span>
+            <span className="text-muted-foreground mt-2 block text-sm font-normal leading-relaxed">
+              {t("messages.importModeReplaceHint")}
+            </span>
+          </span>
         </span>
-        <p className="text-muted-foreground mt-2 text-xs font-normal leading-snug">
-          {t("messages.importModeReplaceHint")}
-        </p>
       </button>
       <button
         type="button"
@@ -108,12 +105,19 @@ export function ImportConfirmModal({
             : "border-border hover:border-primary/35 hover:bg-muted/40"
         )}
       >
-        <span className="block font-semibold leading-snug text-foreground">
-          {t("messages.importModeMerge")}
+        <span className="flex items-start gap-3">
+          <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <GitMerge className="size-4" aria-hidden="true" />
+          </span>
+          <span>
+            <span className="block text-base font-semibold leading-snug text-foreground">
+              {t("messages.importModeMerge")}
+            </span>
+            <span className="text-muted-foreground mt-2 block text-sm font-normal leading-relaxed">
+              {t("messages.importModeMergeHint")}
+            </span>
+          </span>
         </span>
-        <p className="text-muted-foreground mt-2 text-xs font-normal leading-snug">
-          {t("messages.importModeMergeHint")}
-        </p>
       </button>
     </div>
   );
@@ -129,8 +133,8 @@ export function ImportConfirmModal({
         <DrawerContent dir={i18n.dir()} className="max-h-[90vh]">
           <DrawerHeader className="text-start">
             <DrawerTitle>{title}</DrawerTitle>
-            <DrawerDescription className="text-start">
-              {bodyMessage}
+            <DrawerDescription className="sr-only">
+              {t("importExport.importDescription")}
             </DrawerDescription>
             <div className="text-muted-foreground mt-2 grid gap-3 text-sm">
               {countsBlock}
@@ -159,8 +163,8 @@ export function ImportConfirmModal({
       <AlertDialogContent dir={i18n.dir()}>
         <AlertDialogHeader className="text-start">
           <AlertDialogTitle className="text-start">{title}</AlertDialogTitle>
-          <AlertDialogDescription className="text-start">
-            {bodyMessage}
+          <AlertDialogDescription className="sr-only">
+            {t("importExport.importDescription")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="text-muted-foreground grid gap-3 text-sm">
