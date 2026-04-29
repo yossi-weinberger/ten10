@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { cn } from "@/lib/utils";
 import type { DuplicateImportDecision } from "@/lib/data-layer/dataManagement.service";
 
 export interface ImportDuplicatesModalProps {
@@ -48,6 +49,9 @@ export function ImportDuplicatesModal({
     unique: uniqueCount,
     total: totalCount,
   });
+
+  const cancelButtonClass =
+    "border-destructive/55 text-destructive hover:bg-destructive/10 hover:border-destructive hover:text-destructive";
 
   const summaryBlock = (
     <div className="text-muted-foreground grid gap-2 text-sm">
@@ -88,9 +92,9 @@ export function ImportDuplicatesModal({
               {t("messages.importDuplicatesImportAll")}
             </Button>
             <Button
-              variant="ghost"
+              variant="outline"
               onClick={() => onDecision("cancel")}
-              className="w-full"
+              className={cn("w-full", cancelButtonClass)}
             >
               {t("messages.importDuplicatesCancel")}
             </Button>
@@ -114,7 +118,10 @@ export function ImportDuplicatesModal({
         </AlertDialogHeader>
         {summaryBlock}
         <AlertDialogFooter className="gap-2 sm:space-x-0">
-          <AlertDialogCancel onClick={() => onDecision("cancel")}>
+          <AlertDialogCancel
+            onClick={() => onDecision("cancel")}
+            className={cancelButtonClass}
+          >
             {t("messages.importDuplicatesCancel")}
           </AlertDialogCancel>
           <Button variant="outline" onClick={() => onDecision("import_all")}>

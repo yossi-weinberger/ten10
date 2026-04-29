@@ -19,9 +19,8 @@ import {
   DrawerFooter,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { cn } from "@/lib/utils";
 import type { ImportMode } from "@/lib/data-layer/dataManagement.service";
 
 export interface ImportConfirmModalProps {
@@ -70,48 +69,59 @@ export function ImportConfirmModal({
     </span>
   );
 
+  const modesRadioLabel = t("importExport.importTitle");
   const modeBlock = (
-    <RadioGroup
-      value={mode}
-      onValueChange={(v) => setMode(v as ImportMode)}
+    <div
       className="mt-4 grid gap-3"
+      role="radiogroup"
+      aria-label={modesRadioLabel}
       dir={i18n.dir()}
     >
-      <div className="flex items-start gap-3">
-        <RadioGroupItem
-          value="replace"
-          id="import-mode-replace"
-          className="mt-1 shrink-0"
-        />
-        <div className="grid gap-1">
-          <Label htmlFor="import-mode-replace" className="cursor-pointer">
-            {t("messages.importModeReplace")}
-          </Label>
-          <p className="text-muted-foreground text-xs font-normal leading-snug">
-            {t("messages.importModeReplaceHint")}
-          </p>
-        </div>
-      </div>
-      <div className="flex items-start gap-3">
-        <RadioGroupItem
-          value="merge"
-          id="import-mode-merge"
-          className="mt-1 shrink-0"
-        />
-        <div className="grid gap-1">
-          <Label htmlFor="import-mode-merge" className="cursor-pointer">
-            {t("messages.importModeMerge")}
-          </Label>
-          <p className="text-muted-foreground text-xs font-normal leading-snug">
-            {t("messages.importModeMergeHint")}
-          </p>
-        </div>
-      </div>
-    </RadioGroup>
+      <button
+        type="button"
+        role="radio"
+        aria-checked={mode === "replace"}
+        onClick={() => setMode("replace")}
+        className={cn(
+          "rounded-xl border-2 px-4 py-3 text-start transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          mode === "replace"
+            ? "border-primary bg-primary/5 shadow-sm ring-2 ring-primary/20"
+            : "border-border hover:border-primary/35 hover:bg-muted/40"
+        )}
+      >
+        <span className="block font-semibold leading-snug text-foreground">
+          {t("messages.importModeReplace")}
+        </span>
+        <p className="text-muted-foreground mt-2 text-xs font-normal leading-snug">
+          {t("messages.importModeReplaceHint")}
+        </p>
+      </button>
+      <button
+        type="button"
+        role="radio"
+        aria-checked={mode === "merge"}
+        onClick={() => setMode("merge")}
+        className={cn(
+          "rounded-xl border-2 px-4 py-3 text-start transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          mode === "merge"
+            ? "border-primary bg-primary/5 shadow-sm ring-2 ring-primary/20"
+            : "border-border hover:border-primary/35 hover:bg-muted/40"
+        )}
+      >
+        <span className="block font-semibold leading-snug text-foreground">
+          {t("messages.importModeMerge")}
+        </span>
+        <p className="text-muted-foreground mt-2 text-xs font-normal leading-snug">
+          {t("messages.importModeMergeHint")}
+        </p>
+      </button>
+    </div>
   );
 
   const cancelLabel = tCommon("actions.cancel");
   const confirmLabel = t("importExport.importButton");
+  const cancelButtonClass =
+    "border-destructive/55 text-destructive hover:bg-destructive/10 hover:border-destructive hover:text-destructive";
 
   if (useDrawer) {
     return (
@@ -131,7 +141,7 @@ export function ImportConfirmModal({
             <Button
               variant="outline"
               onClick={() => onCancel(false)}
-              className="w-full"
+              className={cn("w-full", cancelButtonClass)}
             >
               {cancelLabel}
             </Button>
@@ -158,7 +168,10 @@ export function ImportConfirmModal({
           {modeBlock}
         </div>
         <AlertDialogFooter className="gap-2 sm:space-x-0">
-          <AlertDialogCancel onClick={() => onCancel(false)}>
+          <AlertDialogCancel
+            onClick={() => onCancel(false)}
+            className={cancelButtonClass}
+          >
             {cancelLabel}
           </AlertDialogCancel>
           <AlertDialogAction onClick={() => onConfirm(mode)}>
