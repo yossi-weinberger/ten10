@@ -6,6 +6,8 @@ export interface ImportProgress {
 /** Replace: clear existing data then import. Merge: append imported rows without clearing. */
 export type ImportMode = "replace" | "merge";
 
+export type DuplicateImportDecision = "skip" | "import_all" | "cancel";
+
 export interface DataManagementOptions {
   setIsLoading: (loading: boolean) => void;
   /** Optional progress callback for import: (current, total) */
@@ -19,6 +21,16 @@ export interface DataManagementOptions {
     transactions: number;
     recurring: number;
   }) => Promise<ImportMode | null>;
+  /**
+   * Optional: user chooses how to handle duplicate-looking transactions during merge.
+   * Resolve with `skip` to import only unique rows, `import_all` to keep all rows, or
+   * `cancel` to abort before any writes.
+   */
+  onDuplicatesFound?: (counts: {
+    duplicates: number;
+    unique: number;
+    total: number;
+  }) => Promise<DuplicateImportDecision>;
 }
 
 export interface ExportFiltersPayload {

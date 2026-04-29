@@ -70,6 +70,87 @@ export function isImportPayloadEmpty(
   return transactions.length === 0 && recurring.length === 0;
 }
 
+const TRANSACTION_FINGERPRINT_FIELDS = [
+  ["date"],
+  ["amount"],
+  ["currency"],
+  ["type"],
+  ["category"],
+  ["description"],
+  ["recipient"],
+  ["payment_method", "paymentMethod"],
+  ["is_chomesh", "isChomesh"],
+  ["original_amount", "originalAmount"],
+  ["original_currency", "originalCurrency"],
+  ["conversion_rate", "conversionRate"],
+  ["conversion_date", "conversionDate"],
+  ["rate_source", "rateSource"],
+  ["occurrence_number", "occurrenceNumber"],
+] as const;
+
+export interface ImportDuplicateFilterResult<T> {
+  unique: T[];
+  duplicates: T[];
+}
+
+function readFirstKnownField(
+  row: Record<string, unknown>,
+  keys: readonly string[]
+): unknown {
+  for (const key of keys) {
+    if (Object.prototype.hasOwnProperty.call(row, key)) {
+      return row[key];
+    }
+  }
+  return null;
+}
+
+function normalizeFingerprintValue(value: unknown): unknown {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : null;
+  }
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+  if (typeof value === "boolean" || value === null) {
+    return value;
+  }
+  return value ?? null;
+}
+
+export function buildTransactionImportFingerprint(item: unknown): string {
+  const { transaction } = unpackImportTransactionItem(item);
+  const normalized = TRANSACTION_FINGERPRINT_FIELDS.map((keys) =>
+    normalizeFingerprintValue(readFirstKnownField(transaction, keys))
+  );
+  return JSON.stringify(normalized);
+}
+
+export function filterDuplicateImportTransactions<T>(
+  imported: T[],
+  existing: unknown[]
+): ImportDuplicateFilterResult<T> {
+  const seenFingerprints = new Set(
+    existing.map((transaction) => buildTransactionImportFingerprint(transaction))
+  );
+  const unique: T[] = [];
+  const duplicates: T[] = [];
+
+  for (const item of imported) {
+    const fingerprint = buildTransactionImportFingerprint(item);
+    if (seenFingerprints.has(fingerprint)) {
+      duplicates.push(item);
+      continue;
+    }
+
+    seenFingerprints.add(fingerprint);
+    unique.push(item);
+  }
+
+  return { unique, duplicates };
+}
+
 /** Total progress steps for web import (recurring inserts + tx prep + tx batch inserts). */
 export function getWebImportProgressTotal(
   recurringCount: number,

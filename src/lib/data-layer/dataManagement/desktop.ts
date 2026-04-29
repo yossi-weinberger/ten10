@@ -19,6 +19,7 @@ import {
   isImportPayloadEmpty,
   getDesktopImportProgressTotal,
   unpackImportTransactionItem,
+  filterDuplicateImportTransactions,
 } from "./importPrepare";
 
 async function fetchAllTransactionsForExportDesktop(): Promise<Transaction[]> {
@@ -113,6 +114,7 @@ export const importDataDesktop = async ({
   setIsLoading,
   onImportProgress,
   onConfirmNeeded,
+  onDuplicatesFound,
 }: DataManagementOptions): Promise<void> => {
   try {
     // Dynamic imports for Tauri modules
@@ -174,9 +176,38 @@ export const importDataDesktop = async ({
 
       setIsLoading(true);
 
+      let activeTransactionsToImport = transactionsToImport;
+      let skippedDuplicateCount = 0;
+
+      if (importMode === "merge" && onDuplicatesFound) {
+        const existingTransactions = await fetchAllTransactionsForExportDesktop();
+        const duplicateResult = filterDuplicateImportTransactions(
+          transactionsToImport,
+          existingTransactions
+        );
+
+        if (duplicateResult.duplicates.length > 0) {
+          const duplicateDecision = await onDuplicatesFound({
+            duplicates: duplicateResult.duplicates.length,
+            unique: duplicateResult.unique.length,
+            total: transactionsToImport.length,
+          });
+
+          if (duplicateDecision === "cancel") {
+            toast.error(i18n.t("settings:messages.importCancelled"));
+            return;
+          }
+
+          if (duplicateDecision === "skip") {
+            activeTransactionsToImport = duplicateResult.unique;
+            skippedDuplicateCount = duplicateResult.duplicates.length;
+          }
+        }
+      }
+
       const totalProgressSteps = getDesktopImportProgressTotal(
         recurringToImport.length,
-        transactionsToImport.length
+        activeTransactionsToImport.length
       );
       let progressStep = 0;
       const reportProgress = () => {
@@ -213,11 +244,11 @@ export const importDataDesktop = async ({
         }
       }
 
-      const total = transactionsToImport.length;
+      const total = activeTransactionsToImport.length;
       const transactionsPayload: Transaction[] = [];
 
       for (let i = 0; i < total; i++) {
-        const item = transactionsToImport[i];
+        const item = activeTransactionsToImport[i];
         try {
           const { transaction, recurringInfo, oldRecurringId } =
             unpackImportTransactionItem(item);
@@ -268,11 +299,20 @@ export const importDataDesktop = async ({
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
 
       if (importMode === "merge") {
-        toast.success(
-          i18n.t("settings:messages.importSuccessMergeWithCount", {
-            count: importCount,
-          })
-        );
+        if (skippedDuplicateCount > 0) {
+          toast.success(
+            i18n.t("settings:messages.importSuccessMergeSkippedWithCount", {
+              count: importCount,
+              skipped: skippedDuplicateCount,
+            })
+          );
+        } else {
+          toast.success(
+            i18n.t("settings:messages.importSuccessMergeWithCount", {
+              count: importCount,
+            })
+          );
+        }
       } else {
         toast.success(
           i18n.t("settings:messages.importSuccessWithCount", {

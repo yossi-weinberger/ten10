@@ -23,6 +23,7 @@ import {
   getWebImportProgressTotal,
   WEB_IMPORT_BATCH_SIZE,
   unpackImportTransactionItem,
+  filterDuplicateImportTransactions,
 } from "./importPrepare";
 
 async function fetchAllTransactionsForExportWeb(): Promise<
@@ -146,6 +147,7 @@ export const importDataWeb = async ({
   setIsLoading,
   onImportProgress,
   onConfirmNeeded,
+  onDuplicatesFound,
 }: DataManagementOptions): Promise<void> => {
   let fileWasSelected = false;
   let cancelCheckTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -238,8 +240,38 @@ export const importDataWeb = async ({
             await clearAllData();
           }
 
+          let activeTransactionsToImport = transactionsToImport;
+          let skippedDuplicateCount = 0;
+
+          if (importMode === "merge" && onDuplicatesFound) {
+            const existingTransactions = await fetchAllTransactionsForExportWeb();
+            const duplicateResult = filterDuplicateImportTransactions(
+              transactionsToImport,
+              existingTransactions
+            );
+
+            if (duplicateResult.duplicates.length > 0) {
+              const duplicateDecision = await onDuplicatesFound({
+                duplicates: duplicateResult.duplicates.length,
+                unique: duplicateResult.unique.length,
+                total: transactionsToImport.length,
+              });
+
+              if (duplicateDecision === "cancel") {
+                toast.error(i18n.t("settings:messages.importCancelled"));
+                setIsLoading(false);
+                return;
+              }
+
+              if (duplicateDecision === "skip") {
+                activeTransactionsToImport = duplicateResult.unique;
+                skippedDuplicateCount = duplicateResult.duplicates.length;
+              }
+            }
+          }
+
           const recurringIdMap = new Map<string, string>();
-          const total = transactionsToImport.length;
+          const total = activeTransactionsToImport.length;
           const totalProgressSteps = getWebImportProgressTotal(
             recurringToImport.length,
             total
@@ -284,7 +316,7 @@ export const importDataWeb = async ({
           // Pass 1: Create recurring definitions and build map; prepare all transaction rows for bulk insert
           const transactionRows: Record<string, unknown>[] = [];
           for (let i = 0; i < total; i++) {
-            const item = transactionsToImport[i];
+            const item = activeTransactionsToImport[i];
             const { transaction, recurringInfo, oldRecurringId } =
               unpackImportTransactionItem(item);
 
@@ -436,12 +468,25 @@ export const importDataWeb = async ({
           useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
 
           if (importMode === "merge") {
-            toast.success(
-              i18n.t("settings:messages.importSuccessMergeWithCountWeb", {
-                count: importCount,
-                total: transactionsToImport.length,
-              })
-            );
+            if (skippedDuplicateCount > 0) {
+              toast.success(
+                i18n.t(
+                  "settings:messages.importSuccessMergeSkippedWithCountWeb",
+                  {
+                    count: importCount,
+                    total: transactionsToImport.length,
+                    skipped: skippedDuplicateCount,
+                  }
+                )
+              );
+            } else {
+              toast.success(
+                i18n.t("settings:messages.importSuccessMergeWithCountWeb", {
+                  count: importCount,
+                  total: transactionsToImport.length,
+                })
+              );
+            }
           } else {
             toast.success(
               i18n.t("settings:messages.importSuccessWithCountWeb", {
