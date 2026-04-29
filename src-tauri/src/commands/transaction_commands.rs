@@ -2,7 +2,8 @@
 
 use crate::DbState;
 use crate::models::{RecurringInfo, Transaction, TransactionForTable};
-use rusqlite::{params, Result, ToSql};
+use rusqlite::{params, ToSql};
+use rusqlite::Result as RusqliteResult;
 use serde::{Deserialize, Serialize};
 use tauri::State; // Assuming DbState is in lib.rs or main.rs and accessible
 
@@ -651,9 +652,11 @@ pub fn get_transactions_count(
     Ok(count)
 }
 
-#[tauri::command]
-pub async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Result<(), String> {
-    let conn = db.0.lock().map_err(|e| e.to_string())?;
+/// Shared INSERT for `transactions` (used by `add_transaction` and bulk import).
+pub(crate) fn insert_transaction_row(
+    conn: &rusqlite::Connection,
+    transaction: &Transaction,
+) -> RusqliteResult<()> {
     conn.execute(
         "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, payment_method, created_at, updated_at, source_recurring_id, original_amount, original_currency, conversion_rate, conversion_date, rate_source)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19)",
@@ -678,7 +681,14 @@ pub async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -
             &transaction.conversion_date,
             &transaction.rate_source,
         ],
-    ).map_err(|e| e.to_string())?;
+    )?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Result<(), String> {
+    let conn = db.0.lock().map_err(|e| e.to_string())?;
+    insert_transaction_row(&conn, &transaction).map_err(|e| e.to_string())?;
     Ok(())
 }
 

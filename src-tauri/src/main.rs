@@ -27,6 +27,7 @@ use commands::donation_commands::{
 };
 use commands::expense_commands::get_desktop_total_expenses_in_range;
 use commands::income_commands::get_desktop_total_income_in_range;
+use commands::import_commands::import_desktop_data_bulk;
 use commands::recurring_transaction_commands::{
     add_recurring_transaction_handler, delete_recurring_transaction_handler,
     get_due_recurring_transactions_handler, get_recurring_transaction_by_id_handler,
@@ -61,6 +62,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             init_db,
             add_transaction,
+            import_desktop_data_bulk,
             clear_all_data,
             get_app_version,
             get_default_currency,

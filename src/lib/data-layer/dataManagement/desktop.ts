@@ -173,9 +173,6 @@ export const importDataDesktop = async ({
       }
 
       setIsLoading(true);
-      if (importMode === "replace") {
-        await invoke("clear_all_data");
-      }
 
       const totalProgressSteps = getDesktopImportProgressTotal(
         recurringToImport.length,
@@ -190,6 +187,8 @@ export const importDataDesktop = async ({
       };
 
       const recurringIdMap = new Map<string, string>();
+      const recurringPayload: RecurringTransaction[] = [];
+
       if (recurringToImport.length > 0) {
         for (const rec of recurringToImport) {
           const oldId = rec.id;
@@ -204,17 +203,19 @@ export const importDataDesktop = async ({
             id: newDesktopId,
             user_id: undefined,
           };
-          await invoke("add_recurring_transaction_handler", {
-            recTransaction: definitionToInsert,
-          });
+          recurringPayload.push(
+            definitionToInsert as unknown as RecurringTransaction
+          );
           if (oldId) {
             recurringIdMap.set(oldId, newDesktopId);
           }
           reportProgress();
         }
       }
+
       const total = transactionsToImport.length;
-      let importCount = 0;
+      const transactionsPayload: Transaction[] = [];
+
       for (let i = 0; i < total; i++) {
         const item = transactionsToImport[i];
         try {
@@ -226,41 +227,43 @@ export const importDataDesktop = async ({
           if (oldRecurringId && recurringIdMap.has(oldRecurringId)) {
             desktopSourceRecurringId = recurringIdMap.get(oldRecurringId);
           } else if (recurringInfo && oldRecurringId) {
-            // This is the first time we see this recurring definition.
-            // We need to create it in the desktop DB.
             const newDesktopId = nanoid();
             const definitionToInsert = {
-              // We construct a payload that matches what `add_recurring_transaction_handler` expects
-              // It's based on the Transaction object itself, which holds the details
               ...transaction,
               ...recurringInfo,
-              id: newDesktopId, // Let Rust generate a new ID
-              user_id: undefined, // Not needed for desktop
+              id: newDesktopId,
+              user_id: undefined,
             };
 
-            await invoke("add_recurring_transaction_handler", {
-              recTransaction: definitionToInsert,
-            });
+            recurringPayload.push(
+              definitionToInsert as unknown as RecurringTransaction
+            );
 
             desktopSourceRecurringId = newDesktopId;
             recurringIdMap.set(oldRecurringId, newDesktopId);
           }
 
-          // Fresh id avoids PRIMARY KEY collisions when merging into non-empty SQLite
           const transactionForRust = {
             ...transaction,
             id: nanoid(),
             source_recurring_id: desktopSourceRecurringId,
-          };
+          } as unknown as Transaction;
 
-          await invoke("add_transaction", { transaction: transactionForRust });
+          transactionsPayload.push(transactionForRust);
           reportProgress();
-          importCount += 1;
         } catch (error) {
           logger.error("Error processing imported item:", item, error);
           throw error;
         }
       }
+
+      const importCount = transactionsPayload.length;
+
+      await invoke("import_desktop_data_bulk", {
+        mode: importMode,
+        recurring: recurringPayload,
+        transactions: transactionsPayload,
+      });
 
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
 
