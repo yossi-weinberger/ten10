@@ -9,8 +9,17 @@ import {
   RECURRING_KEYS_TO_DROP_ON_INSERT,
   normalizeKeysToSnake,
 } from "../fieldMapping";
-import type { DataManagementOptions, ExportFiltersPayload } from "./types";
-import { parseImportFile } from "./importParse";
+import type {
+  DataManagementOptions,
+  ExportFiltersPayload,
+  ImportMode,
+} from "./types";
+import {
+  tryParseImportFileContents,
+  isImportPayloadEmpty,
+  getDesktopImportProgressTotal,
+  unpackImportTransactionItem,
+} from "./importPrepare";
 
 async function fetchAllTransactionsForExportDesktop(): Promise<Transaction[]> {
   const { invoke } = await import("@tauri-apps/api/core");
@@ -125,25 +134,15 @@ export const importDataDesktop = async ({
 
     if (selectedPath && typeof selectedPath === "string") {
       const fileContents = await readTextFile(selectedPath);
-      let payload: {
-        transactions: Transaction[];
-        recurring: RecurringTransaction[];
-      } | null = null;
-
-      try {
-        payload = parseImportFile(fileContents);
-      } catch (error) {
-        if (error instanceof Error && error.message === "invalid_structure") {
-          toast.error(i18n.t("settings:messages.invalidStructure"));
-        } else {
-          toast.error(i18n.t("settings:messages.invalidJson"));
-        }
-        setIsLoading(false);
-        return;
-      }
-
-      if (!payload) {
-        toast.error(i18n.t("settings:messages.invalidStructure"));
+      const parsed = tryParseImportFileContents(fileContents);
+      if (!parsed.ok) {
+        toast.error(
+          i18n.t(
+            parsed.error === "invalid_structure"
+              ? "settings:messages.invalidStructure"
+              : "settings:messages.invalidJson"
+          )
+        );
         setIsLoading(false);
         return;
       }
@@ -151,33 +150,49 @@ export const importDataDesktop = async ({
       const {
         transactions: transactionsToImport,
         recurring: recurringToImport,
-      } = payload;
+      } = parsed;
 
-      if (transactionsToImport.length === 0 && recurringToImport.length === 0) {
+      if (isImportPayloadEmpty(transactionsToImport, recurringToImport)) {
         toast(i18n.t("settings:messages.emptyFile"));
         setIsLoading(false);
         return;
       }
 
-      const confirmed = onConfirmNeeded
+      const importMode: ImportMode | null = onConfirmNeeded
         ? await onConfirmNeeded({
             transactions: transactionsToImport.length,
             recurring: recurringToImport.length,
           })
-        : window.confirm(i18n.t("settings:messages.importConfirm"));
+        : window.confirm(i18n.t("settings:messages.importConfirm"))
+          ? "replace"
+          : null;
 
-      if (!confirmed) {
+      if (!importMode) {
         toast.error(i18n.t("settings:messages.importCancelled"));
         return;
       }
 
       setIsLoading(true);
-      await invoke("clear_all_data");
+      if (importMode === "replace") {
+        await invoke("clear_all_data");
+      }
+
+      const totalProgressSteps = getDesktopImportProgressTotal(
+        recurringToImport.length,
+        transactionsToImport.length
+      );
+      let progressStep = 0;
+      const reportProgress = () => {
+        if (totalProgressSteps > 0) {
+          progressStep = Math.min(progressStep + 1, totalProgressSteps);
+          onImportProgress?.(progressStep, totalProgressSteps);
+        }
+      };
 
       const recurringIdMap = new Map<string, string>();
       if (recurringToImport.length > 0) {
         for (const rec of recurringToImport) {
-          const oldId = (rec as any).id as string | undefined;
+          const oldId = rec.id;
           const normalized = normalizeKeysToSnake(
             rec as unknown as Record<string, unknown>,
             RECURRING_CAMEL_TO_SNAKE,
@@ -195,6 +210,7 @@ export const importDataDesktop = async ({
           if (oldId) {
             recurringIdMap.set(oldId, newDesktopId);
           }
+          reportProgress();
         }
       }
       const total = transactionsToImport.length;
@@ -202,11 +218,8 @@ export const importDataDesktop = async ({
       for (let i = 0; i < total; i++) {
         const item = transactionsToImport[i];
         try {
-          // The item from web export can be a complex object
-          const transaction = (item as any).transaction || item;
-          const recurringInfo = (item as any).recurring_info;
-          const oldRecurringId =
-            (transaction as any).source_recurring_id ?? recurringInfo?.id;
+          const { transaction, recurringInfo, oldRecurringId } =
+            unpackImportTransactionItem(item);
 
           let desktopSourceRecurringId: string | undefined = undefined;
 
@@ -233,14 +246,15 @@ export const importDataDesktop = async ({
             recurringIdMap.set(oldRecurringId, newDesktopId);
           }
 
-          // Now, add the individual transaction, linking it to the new recurring ID if it exists
+          // Fresh id avoids PRIMARY KEY collisions when merging into non-empty SQLite
           const transactionForRust = {
             ...transaction,
+            id: nanoid(),
             source_recurring_id: desktopSourceRecurringId,
           };
 
           await invoke("add_transaction", { transaction: transactionForRust });
-          onImportProgress?.(i + 1, total);
+          reportProgress();
           importCount += 1;
         } catch (error) {
           logger.error("Error processing imported item:", item, error);
@@ -250,11 +264,19 @@ export const importDataDesktop = async ({
 
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
 
-      toast.success(
-        i18n.t("settings:messages.importSuccessWithCount", {
-          count: importCount,
-        })
-      );
+      if (importMode === "merge") {
+        toast.success(
+          i18n.t("settings:messages.importSuccessMergeWithCount", {
+            count: importCount,
+          })
+        );
+      } else {
+        toast.success(
+          i18n.t("settings:messages.importSuccessWithCount", {
+            count: importCount,
+          })
+        );
+      }
     } else {
       // User cancelled file picker or no path selected
       if (selectedPath !== null) {

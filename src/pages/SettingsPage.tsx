@@ -291,6 +291,11 @@ export function SettingsPage() {
         </div>
 
         <ImportConfirmModal
+          key={
+            importConfirmDialog
+              ? `import-confirm-${importConfirmDialog.nonce}`
+              : "import-confirm-closed"
+          }
           open={!!importConfirmDialog}
           platform={platform === "web" ? "web" : "desktop"}
           transactionsCount={importConfirmDialog?.transactions ?? 0}

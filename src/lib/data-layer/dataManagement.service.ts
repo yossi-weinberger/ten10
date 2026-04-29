@@ -4,6 +4,7 @@
  */
 export {
   type ImportProgress,
+  type ImportMode,
   clearAllData,
   exportDataDesktop,
   importDataDesktop,

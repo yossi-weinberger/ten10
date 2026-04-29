@@ -128,15 +128,15 @@ The application needs to handle various types of financial entries, each affecti
 - **Requirement**: Users should be able to export all their transaction data to a local file and import data from such a file. This facilitates data backup, migration between platforms (desktop/web), and data recovery.
 - **Status (Desktop + Web)**:
   - **Export**: Implemented. Exports JSON in **V2** format with both `transactions` and `recurring_transactions`.
-  - **Import**: Implemented. Supports **V1** (array of transactions) and **V2** formats. Import overwrites existing data after user confirmation.
-  - **Logic Location**: Core import/export logic lives in `src/lib/data-layer/dataManagement.service.ts` and is invoked from `src/pages/SettingsPage.tsx` via a UI hook.
+  - **Import**: Implemented. Supports **V1** (array of transactions) and **V2** formats. After confirmation, the user chooses **replace** (clear existing data, then import) or **merge** (append imported rows without clearing; no duplicate detection yet).
+  - **Logic Location**: Core import/export logic lives in `src/lib/data-layer/dataManagement.service.ts` (and `dataManagement/` modules) and is invoked from `src/pages/SettingsPage.tsx` via `useDataImportExport`.
 - **Format**: JSON (V2 payload `{ version, transactions, recurring_transactions }`), with backward compatibility for V1.
 - **Validation**: Robust import validation uses Zod schema `ImportFileSchema` in `src/lib/data-layer/importSchemas.ts`.
 - **UI**: Uses a custom confirmation dialog (Shadcn AlertDialog) where possible; falls back to `window.confirm` if needed.
 - **Field Mapping**: Import normalizes legacy `camelCase` fields to `snake_case` and drops non-DB keys using `src/lib/data-layer/fieldMapping.ts`.
 - **Performance**: Web import uses batch inserts for speed.
 - **Pending/Future Improvements**:
-  - Option for data merging instead of complete overwrite during import (more complex).
+  - Optional duplicate detection when merging imports.
 
 ## Future Enhancements / Nice-to-Haves
 
