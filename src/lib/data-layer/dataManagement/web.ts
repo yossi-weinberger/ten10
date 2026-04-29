@@ -24,6 +24,7 @@ import {
   WEB_IMPORT_BATCH_SIZE,
   unpackImportTransactionItem,
   filterDuplicateImportTransactions,
+  TRANSACTION_DEDUPE_SELECT_FIELDS,
 } from "./importPrepare";
 
 async function fetchAllTransactionsForExportWeb(): Promise<
@@ -65,6 +66,31 @@ async function fetchAllTransactionsForExportWeb(): Promise<
     };
     return transaction;
   });
+}
+
+async function fetchExistingTransactionsForDedupe(): Promise<
+  Record<string, unknown>[]
+> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    logger.error("Web Import: User not authenticated for duplicate check.");
+    throw new Error("User not authenticated for web import.");
+  }
+
+  const { data, error } = await supabase
+    .from("transactions")
+    .select(TRANSACTION_DEDUPE_SELECT_FIELDS.join(","));
+
+  if (error) {
+    logger.error("Web Import: Supabase duplicate-check select error:", error);
+    throw error;
+  }
+
+  return (data || []) as unknown as Record<string, unknown>[];
 }
 
 async function fetchAllRecurringTransactionsForExportWeb(): Promise<
@@ -244,7 +270,8 @@ export const importDataWeb = async ({
           let skippedDuplicateCount = 0;
 
           if (importMode === "merge" && onDuplicatesFound) {
-            const existingTransactions = await fetchAllTransactionsForExportWeb();
+            const existingTransactions =
+              await fetchExistingTransactionsForDedupe();
             const duplicateResult = filterDuplicateImportTransactions(
               transactionsToImport,
               existingTransactions

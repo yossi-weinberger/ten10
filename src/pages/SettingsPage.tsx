@@ -300,7 +300,6 @@ export function SettingsPage() {
               : "import-confirm-closed"
           }
           open={!!importConfirmDialog}
-          platform={platform === "web" ? "web" : "desktop"}
           transactionsCount={importConfirmDialog?.transactions ?? 0}
           recurringCount={importConfirmDialog?.recurring ?? 0}
           onConfirm={handleImportConfirm}

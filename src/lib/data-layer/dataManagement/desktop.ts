@@ -32,6 +32,10 @@ async function fetchAllTransactionsForExportDesktop(): Promise<Transaction[]> {
   return transactions || [];
 }
 
+async function fetchExistingTransactionsForDedupe(): Promise<Transaction[]> {
+  return fetchAllTransactionsForExportDesktop();
+}
+
 async function fetchAllRecurringTransactionsForExportDesktop(): Promise<
   RecurringTransaction[]
 > {
@@ -180,7 +184,7 @@ export const importDataDesktop = async ({
       let skippedDuplicateCount = 0;
 
       if (importMode === "merge" && onDuplicatesFound) {
-        const existingTransactions = await fetchAllTransactionsForExportDesktop();
+        const existingTransactions = await fetchExistingTransactionsForDedupe();
         const duplicateResult = filterDuplicateImportTransactions(
           transactionsToImport,
           existingTransactions

@@ -12,7 +12,6 @@ import {
 } from "@/lib/data-layer/dataManagement.service";
 
 export interface ImportConfirmDialogState {
-  open: boolean;
   transactions: number;
   recurring: number;
   /** Increments on each open so the modal remounts even when counts match the previous import */
@@ -20,7 +19,6 @@ export interface ImportConfirmDialogState {
 }
 
 export interface ImportDuplicatesDialogState {
-  open: boolean;
   duplicates: number;
   unique: number;
   total: number;
@@ -78,7 +76,6 @@ export function useDataImportExport() {
         importConfirmResolveRef.current = resolve;
         importConfirmNonceRef.current += 1;
         setImportConfirmDialog({
-          open: true,
           transactions: counts.transactions,
           recurring: counts.recurring,
           nonce: importConfirmNonceRef.current,
@@ -95,7 +92,6 @@ export function useDataImportExport() {
         importDuplicatesResolveRef.current = resolve;
         importDuplicatesNonceRef.current += 1;
         setImportDuplicatesDialog({
-          open: true,
           duplicates: counts.duplicates,
           unique: counts.unique,
           total: counts.total,

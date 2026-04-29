@@ -70,6 +70,24 @@ export function isImportPayloadEmpty(
   return transactions.length === 0 && recurring.length === 0;
 }
 
+export const TRANSACTION_DEDUPE_SELECT_FIELDS = [
+  "date",
+  "amount",
+  "currency",
+  "type",
+  "category",
+  "description",
+  "recipient",
+  "payment_method",
+  "is_chomesh",
+  "original_amount",
+  "original_currency",
+  "conversion_rate",
+  "conversion_date",
+  "rate_source",
+  "occurrence_number",
+] as const;
+
 const TRANSACTION_FINGERPRINT_FIELDS = [
   ["date"],
   ["amount"],

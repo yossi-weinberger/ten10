@@ -26,7 +26,6 @@ import type { ImportMode } from "@/lib/data-layer/dataManagement.service";
 
 export interface ImportConfirmModalProps {
   open: boolean;
-  platform: "web" | "desktop";
   transactionsCount: number;
   recurringCount: number;
   onConfirm: (mode: ImportMode) => void;
@@ -61,25 +60,28 @@ export function ImportConfirmModal({
 
   const modesRadioLabel = t("importExport.importTitle");
   const modeBlock = (
-    <div
+    <fieldset
       className="mt-4 grid gap-3"
-      role="radiogroup"
-      aria-label={modesRadioLabel}
       dir={i18n.dir()}
     >
-      <button
-        type="button"
-        role="radio"
-        aria-checked={mode === "replace"}
-        onClick={() => setMode("replace")}
-        className={cn(
-          "rounded-xl border-2 px-4 py-3 text-start transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-          mode === "replace"
-            ? "border-primary bg-primary/5 shadow-sm ring-2 ring-primary/20"
-            : "border-border hover:border-primary/35 hover:bg-muted/40"
-        )}
-      >
-        <span className="flex items-start gap-3">
+      <legend className="sr-only">{modesRadioLabel}</legend>
+      <label className="block cursor-pointer">
+        <input
+          type="radio"
+          name="import-mode"
+          value="replace"
+          checked={mode === "replace"}
+          onChange={() => setMode("replace")}
+          className="peer sr-only"
+        />
+        <span
+          className={cn(
+            "flex items-start gap-3 rounded-xl border-2 px-4 py-3 text-start transition-colors",
+            "border-border hover:border-primary/35 hover:bg-muted/40",
+            "peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:shadow-sm peer-checked:ring-2 peer-checked:ring-primary/20",
+            "peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2"
+          )}
+        >
           <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
             <Trash2 className="size-4" aria-hidden="true" />
           </span>
@@ -92,20 +94,24 @@ export function ImportConfirmModal({
             </span>
           </span>
         </span>
-      </button>
-      <button
-        type="button"
-        role="radio"
-        aria-checked={mode === "merge"}
-        onClick={() => setMode("merge")}
-        className={cn(
-          "rounded-xl border-2 px-4 py-3 text-start transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-          mode === "merge"
-            ? "border-primary bg-primary/5 shadow-sm ring-2 ring-primary/20"
-            : "border-border hover:border-primary/35 hover:bg-muted/40"
-        )}
-      >
-        <span className="flex items-start gap-3">
+      </label>
+      <label className="block cursor-pointer">
+        <input
+          type="radio"
+          name="import-mode"
+          value="merge"
+          checked={mode === "merge"}
+          onChange={() => setMode("merge")}
+          className="peer sr-only"
+        />
+        <span
+          className={cn(
+            "flex items-start gap-3 rounded-xl border-2 px-4 py-3 text-start transition-colors",
+            "border-border hover:border-primary/35 hover:bg-muted/40",
+            "peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:shadow-sm peer-checked:ring-2 peer-checked:ring-primary/20",
+            "peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2"
+          )}
+        >
           <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
             <GitMerge className="size-4" aria-hidden="true" />
           </span>
@@ -118,8 +124,8 @@ export function ImportConfirmModal({
             </span>
           </span>
         </span>
-      </button>
-    </div>
+      </label>
+    </fieldset>
   );
 
   const cancelLabel = tCommon("actions.cancel");
