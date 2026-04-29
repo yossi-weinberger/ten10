@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   AlertDialog,
@@ -20,19 +20,20 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { cn } from "@/lib/utils";
+import { GitMerge, Trash2 } from "lucide-react";
+import type { ImportMode } from "@/lib/data-layer/dataManagement.service";
 
 export interface ImportConfirmModalProps {
   open: boolean;
-  platform: "web" | "desktop";
   transactionsCount: number;
   recurringCount: number;
-  onConfirm: () => void;
+  onConfirm: (mode: ImportMode) => void;
   onCancel: (open: boolean) => void;
 }
 
 export function ImportConfirmModal({
   open,
-  platform,
   transactionsCount,
   recurringCount,
   onConfirm,
@@ -40,19 +41,13 @@ export function ImportConfirmModal({
 }: ImportConfirmModalProps) {
   const { t, i18n } = useTranslation("settings");
   const { t: tCommon } = useTranslation("common");
+  const [mode, setMode] = useState<ImportMode>("replace");
 
   const isSmallNow = useMediaQuery("(max-width: 767px)");
-  const [useDrawer, setUseDrawer] = useState(isSmallNow);
-
-  useEffect(() => {
-    if (!open) setUseDrawer(isSmallNow);
-  }, [open, isSmallNow]);
+  /** Locked for this mount so keyboard resize does not swap Drawer/Dialog mid-flow */
+  const [useDrawer] = useState(isSmallNow);
 
   const title = t("importExport.importTitle");
-  const message =
-    platform === "web"
-      ? t("messages.importConfirmWeb")
-      : t("messages.importConfirm");
   const countsBlock = (
     <span className="mt-2 block font-medium text-foreground">
       {t("messages.importRecordCountTransactions", {
@@ -62,8 +57,81 @@ export function ImportConfirmModal({
       {t("messages.importRecordCountRecurring", { count: recurringCount })}
     </span>
   );
+
+  const modesRadioLabel = t("importExport.importTitle");
+  const modeBlock = (
+    <fieldset
+      className="mt-4 grid gap-3"
+      dir={i18n.dir()}
+    >
+      <legend className="sr-only">{modesRadioLabel}</legend>
+      <label className="block cursor-pointer">
+        <input
+          type="radio"
+          name="import-mode"
+          value="replace"
+          checked={mode === "replace"}
+          onChange={() => setMode("replace")}
+          className="peer sr-only"
+        />
+        <span
+          className={cn(
+            "flex items-start gap-3 rounded-xl border-2 px-4 py-3 text-start transition-colors",
+            "border-border hover:border-primary/35 hover:bg-muted/40",
+            "peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:shadow-sm peer-checked:ring-2 peer-checked:ring-primary/20",
+            "peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2"
+          )}
+        >
+          <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+            <Trash2 className="size-4" aria-hidden="true" />
+          </span>
+          <span>
+            <span className="block text-base font-semibold leading-snug text-foreground">
+              {t("messages.importModeReplace")}
+            </span>
+            <span className="text-muted-foreground mt-2 block text-sm font-normal leading-relaxed">
+              {t("messages.importModeReplaceHint")}
+            </span>
+          </span>
+        </span>
+      </label>
+      <label className="block cursor-pointer">
+        <input
+          type="radio"
+          name="import-mode"
+          value="merge"
+          checked={mode === "merge"}
+          onChange={() => setMode("merge")}
+          className="peer sr-only"
+        />
+        <span
+          className={cn(
+            "flex items-start gap-3 rounded-xl border-2 px-4 py-3 text-start transition-colors",
+            "border-border hover:border-primary/35 hover:bg-muted/40",
+            "peer-checked:border-primary peer-checked:bg-primary/5 peer-checked:shadow-sm peer-checked:ring-2 peer-checked:ring-primary/20",
+            "peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2"
+          )}
+        >
+          <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <GitMerge className="size-4" aria-hidden="true" />
+          </span>
+          <span>
+            <span className="block text-base font-semibold leading-snug text-foreground">
+              {t("messages.importModeMerge")}
+            </span>
+            <span className="text-muted-foreground mt-2 block text-sm font-normal leading-relaxed">
+              {t("messages.importModeMergeHint")}
+            </span>
+          </span>
+        </span>
+      </label>
+    </fieldset>
+  );
+
   const cancelLabel = tCommon("actions.cancel");
   const confirmLabel = t("importExport.importButton");
+  const cancelButtonClass =
+    "border-destructive/55 text-destructive hover:bg-destructive/10 hover:border-destructive hover:text-destructive";
 
   if (useDrawer) {
     return (
@@ -71,20 +139,23 @@ export function ImportConfirmModal({
         <DrawerContent dir={i18n.dir()} className="max-h-[90vh]">
           <DrawerHeader className="text-start">
             <DrawerTitle>{title}</DrawerTitle>
-            <DrawerDescription className="text-start">
-              {message}
-              {countsBlock}
+            <DrawerDescription className="sr-only">
+              {t("importExport.importDescription")}
             </DrawerDescription>
+            <div className="text-muted-foreground mt-2 grid gap-3 text-sm">
+              {countsBlock}
+              {modeBlock}
+            </div>
           </DrawerHeader>
           <DrawerFooter className="gap-2 pt-2">
             <Button
               variant="outline"
               onClick={() => onCancel(false)}
-              className="w-full"
+              className={cn("w-full", cancelButtonClass)}
             >
               {cancelLabel}
             </Button>
-            <Button onClick={onConfirm} className="w-full">
+            <Button onClick={() => onConfirm(mode)} className="w-full">
               {confirmLabel}
             </Button>
           </DrawerFooter>
@@ -98,16 +169,22 @@ export function ImportConfirmModal({
       <AlertDialogContent dir={i18n.dir()}>
         <AlertDialogHeader className="text-start">
           <AlertDialogTitle className="text-start">{title}</AlertDialogTitle>
-          <AlertDialogDescription className="text-start">
-            {message}
-            {countsBlock}
+          <AlertDialogDescription className="sr-only">
+            {t("importExport.importDescription")}
           </AlertDialogDescription>
         </AlertDialogHeader>
+        <div className="text-muted-foreground grid gap-3 text-sm">
+          {countsBlock}
+          {modeBlock}
+        </div>
         <AlertDialogFooter className="gap-2 sm:space-x-0">
-          <AlertDialogCancel onClick={() => onCancel(false)}>
+          <AlertDialogCancel
+            onClick={() => onCancel(false)}
+            className={cancelButtonClass}
+          >
             {cancelLabel}
           </AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>
+          <AlertDialogAction onClick={() => onConfirm(mode)}>
             {confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>

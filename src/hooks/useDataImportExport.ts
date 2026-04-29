@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import toast from "react-hot-toast";
 import { usePlatform } from "@/contexts/PlatformContext";
 import {
+  type DuplicateImportDecision,
+  type ImportMode,
   exportDataDesktop,
   exportDataWeb,
   importDataDesktop,
@@ -10,9 +12,18 @@ import {
 } from "@/lib/data-layer/dataManagement.service";
 
 export interface ImportConfirmDialogState {
-  open: boolean;
   transactions: number;
   recurring: number;
+  /** Increments on each open so the modal remounts even when counts match the previous import */
+  nonce: number;
+}
+
+export interface ImportDuplicatesDialogState {
+  duplicates: number;
+  unique: number;
+  total: number;
+  /** Increments on each open so the modal remounts even when counts match the previous import */
+  nonce: number;
 }
 
 export function useDataImportExport() {
@@ -32,11 +43,18 @@ export function useDataImportExport() {
   } | null>(null);
   const [importConfirmDialog, setImportConfirmDialog] =
     useState<ImportConfirmDialogState | null>(null);
+  const [importDuplicatesDialog, setImportDuplicatesDialog] =
+    useState<ImportDuplicatesDialogState | null>(null);
 
-  // Ref for the confirm promise
-  const importConfirmResolveRef = useRef<((value: boolean) => void) | null>(
-    null
-  );
+  // Ref for the confirm promise (ImportMode to proceed, null = cancelled)
+  const importConfirmResolveRef = useRef<
+    ((value: ImportMode | null) => void) | null
+  >(null);
+  const importDuplicatesResolveRef = useRef<
+    ((value: DuplicateImportDecision) => void) | null
+  >(null);
+  const importConfirmNonceRef = useRef(0);
+  const importDuplicatesNonceRef = useRef(0);
 
   // --- Export Logic ---
   const handleExportData = async () => {
@@ -54,12 +72,13 @@ export function useDataImportExport() {
   // Callback passed to the service: shows dialog and waits for user input
   const onImportConfirmNeeded = useCallback(
     (counts: { transactions: number; recurring: number }) => {
-      return new Promise<boolean>((resolve) => {
+      return new Promise<ImportMode | null>((resolve) => {
         importConfirmResolveRef.current = resolve;
+        importConfirmNonceRef.current += 1;
         setImportConfirmDialog({
-          open: true,
           transactions: counts.transactions,
           recurring: counts.recurring,
+          nonce: importConfirmNonceRef.current,
         });
         setImportCounts(counts);
       });
@@ -67,12 +86,28 @@ export function useDataImportExport() {
     []
   );
 
-  // Dialog Action: User Clicked Confirm
-  const handleImportConfirm = useCallback(() => {
+  const onDuplicatesFound = useCallback(
+    (counts: { duplicates: number; unique: number; total: number }) => {
+      return new Promise<DuplicateImportDecision>((resolve) => {
+        importDuplicatesResolveRef.current = resolve;
+        importDuplicatesNonceRef.current += 1;
+        setImportDuplicatesDialog({
+          duplicates: counts.duplicates,
+          unique: counts.unique,
+          total: counts.total,
+          nonce: importDuplicatesNonceRef.current,
+        });
+      });
+    },
+    []
+  );
+
+  // Dialog Action: User confirmed with chosen import mode
+  const handleImportConfirm = useCallback((mode: ImportMode) => {
     const resolve = importConfirmResolveRef.current;
     importConfirmResolveRef.current = null;
     setImportConfirmDialog(null);
-    resolve?.(true);
+    resolve?.(mode);
   }, []);
 
   // Dialog Action: User Clicked Cancel (or closed dialog)
@@ -81,9 +116,19 @@ export function useDataImportExport() {
       const resolve = importConfirmResolveRef.current;
       importConfirmResolveRef.current = null;
       setImportConfirmDialog(null);
-      resolve?.(false);
+      resolve?.(null);
     }
   }, []);
+
+  const handleDuplicatesDecision = useCallback(
+    (decision: DuplicateImportDecision) => {
+      const resolve = importDuplicatesResolveRef.current;
+      importDuplicatesResolveRef.current = null;
+      setImportDuplicatesDialog(null);
+      resolve?.(decision);
+    },
+    []
+  );
 
   const handleImportData = async () => {
     setImportProgress(null);
@@ -94,6 +139,7 @@ export function useDataImportExport() {
       onImportProgress: (current: number, total: number) =>
         setImportProgress({ current, total }),
       onConfirmNeeded: onImportConfirmNeeded,
+      onDuplicatesFound,
     };
 
     if (platform === "desktop") {
@@ -116,11 +162,13 @@ export function useDataImportExport() {
     importProgress,
     importCounts,
     importConfirmDialog,
+    importDuplicatesDialog,
     
     // Actions
     handleExportData,
     handleImportData,
     handleImportConfirm,
     handleImportCancel,
+    handleDuplicatesDecision,
   };
 }

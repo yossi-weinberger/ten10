@@ -1,4 +1,8 @@
-import { RecurringTransaction, Transaction } from "@/types/transaction";
+import {
+  RecurringTransaction,
+  Transaction,
+  TransactionForTable,
+} from "@/types/transaction";
 import { useDonationStore } from "../../store";
 import toast from "react-hot-toast";
 import { supabase } from "@/lib/supabaseClient";
@@ -10,14 +14,22 @@ import {
   TRANSACTION_CAMEL_TO_SNAKE,
   normalizeKeysToSnake,
 } from "../fieldMapping";
-import type { DataManagementOptions } from "./types";
-import {
-  parseImportFile,
-  normalizeTransactionRowForSupabase,
-} from "./importParse";
+import type { DataManagementOptions, ImportMode } from "./types";
+import { normalizeTransactionRowForSupabase } from "./importParse";
 import { clearAllData } from "./clear";
+import {
+  tryParseImportFileContents,
+  isImportPayloadEmpty,
+  getWebImportProgressTotal,
+  WEB_IMPORT_BATCH_SIZE,
+  unpackImportTransactionItem,
+  filterDuplicateImportTransactions,
+  TRANSACTION_DEDUPE_SELECT_FIELDS,
+} from "./importPrepare";
 
-async function fetchAllTransactionsForExportWeb(): Promise<Transaction[]> {
+async function fetchAllTransactionsForExportWeb(): Promise<
+  TransactionForTable[]
+> {
   const {
     data: { user },
     error: userError,
@@ -38,16 +50,47 @@ async function fetchAllTransactionsForExportWeb(): Promise<Transaction[]> {
     throw error;
   }
 
-  return (data || []).map((t_db: any) => {
-    const recurring_info = t_db.recurring_transactions;
-    delete t_db.recurring_transactions;
+  return (data || []).map((row: Record<string, unknown>) => {
+    const recurring_info = row.recurring_transactions;
+    const { recurring_transactions: _omit, ...rest } = row;
+    void _omit;
 
-    const transaction: Transaction = {
-      ...t_db,
-      recurring_info: recurring_info || undefined,
+    const transaction: TransactionForTable = {
+      ...(rest as unknown as Transaction),
+      recurring_info:
+        recurring_info &&
+        typeof recurring_info === "object" &&
+        recurring_info !== null
+          ? (recurring_info as TransactionForTable["recurring_info"])
+          : null,
     };
     return transaction;
   });
+}
+
+async function fetchExistingTransactionsForDedupe(): Promise<
+  Record<string, unknown>[]
+> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    logger.error("Web Import: User not authenticated for duplicate check.");
+    throw new Error("User not authenticated for web import.");
+  }
+
+  const { data, error } = await supabase
+    .from("transactions")
+    .select(TRANSACTION_DEDUPE_SELECT_FIELDS.join(","));
+
+  if (error) {
+    logger.error("Web Import: Supabase duplicate-check select error:", error);
+    throw error;
+  }
+
+  return (data || []) as unknown as Record<string, unknown>[];
 }
 
 async function fetchAllRecurringTransactionsForExportWeb(): Promise<
@@ -130,6 +173,7 @@ export const importDataWeb = async ({
   setIsLoading,
   onImportProgress,
   onConfirmNeeded,
+  onDuplicatesFound,
 }: DataManagementOptions): Promise<void> => {
   let fileWasSelected = false;
   let cancelCheckTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -173,28 +217,15 @@ export const importDataWeb = async ({
       reader.onload = async (e) => {
         try {
           const fileContents = e.target?.result as string;
-          let payload: {
-            transactions: Transaction[];
-            recurring: RecurringTransaction[];
-          } | null = null;
-
-          try {
-            payload = parseImportFile(fileContents);
-          } catch (error) {
-            if (
-              error instanceof Error &&
-              error.message === "invalid_structure"
-            ) {
-              toast.error(i18n.t("settings:messages.invalidStructure"));
-            } else {
-              toast.error(i18n.t("settings:messages.invalidJson"));
-            }
-            setIsLoading(false);
-            return;
-          }
-
-          if (!payload) {
-            toast.error(i18n.t("settings:messages.invalidStructure"));
+          const parsed = tryParseImportFileContents(fileContents);
+          if (!parsed.ok) {
+            toast.error(
+              i18n.t(
+                parsed.error === "invalid_structure"
+                  ? "settings:messages.invalidStructure"
+                  : "settings:messages.invalidJson"
+              )
+            );
             setIsLoading(false);
             return;
           }
@@ -202,25 +233,24 @@ export const importDataWeb = async ({
           const {
             transactions: transactionsToImport,
             recurring: recurringToImport,
-          } = payload;
+          } = parsed;
 
-          if (
-            transactionsToImport.length === 0 &&
-            recurringToImport.length === 0
-          ) {
+          if (isImportPayloadEmpty(transactionsToImport, recurringToImport)) {
             toast(i18n.t("settings:messages.emptyFile"));
             setIsLoading(false);
             return;
           }
 
-          const confirmed = onConfirmNeeded
+          const importMode: ImportMode | null = onConfirmNeeded
             ? await onConfirmNeeded({
                 transactions: transactionsToImport.length,
                 recurring: recurringToImport.length,
               })
-            : window.confirm(i18n.t("settings:messages.importConfirmWeb"));
+            : window.confirm(i18n.t("settings:messages.importConfirmWeb"))
+              ? "replace"
+              : null;
 
-          if (!confirmed) {
+          if (!importMode) {
             toast.error(i18n.t("settings:messages.importCancelled"));
             setIsLoading(false);
             return;
@@ -232,16 +262,58 @@ export const importDataWeb = async ({
           } = await supabase.auth.getUser();
           if (!user) throw new Error("User not authenticated for web import.");
 
-          await clearAllData();
-          // Currency lock state is automatically updated via store changes (lastDbFetchTimestamp)
+          if (importMode === "replace") {
+            await clearAllData();
+          }
+
+          let activeTransactionsToImport = transactionsToImport;
+          let skippedDuplicateCount = 0;
+
+          if (importMode === "merge" && onDuplicatesFound) {
+            const existingTransactions =
+              await fetchExistingTransactionsForDedupe();
+            const duplicateResult = filterDuplicateImportTransactions(
+              transactionsToImport,
+              existingTransactions
+            );
+
+            if (duplicateResult.duplicates.length > 0) {
+              const duplicateDecision = await onDuplicatesFound({
+                duplicates: duplicateResult.duplicates.length,
+                unique: duplicateResult.unique.length,
+                total: transactionsToImport.length,
+              });
+
+              if (duplicateDecision === "cancel") {
+                toast.error(i18n.t("settings:messages.importCancelled"));
+                setIsLoading(false);
+                return;
+              }
+
+              if (duplicateDecision === "skip") {
+                activeTransactionsToImport = duplicateResult.unique;
+                skippedDuplicateCount = duplicateResult.duplicates.length;
+              }
+            }
+          }
 
           const recurringIdMap = new Map<string, string>();
-          const total = transactionsToImport.length;
-          const totalProgressSteps = total * 2;
+          const total = activeTransactionsToImport.length;
+          const totalProgressSteps = getWebImportProgressTotal(
+            recurringToImport.length,
+            total
+          );
+          let progressStep = 0;
+          const reportProgress = () => {
+            if (totalProgressSteps > 0) {
+              progressStep = Math.min(progressStep + 1, totalProgressSteps);
+              onImportProgress?.(progressStep, totalProgressSteps);
+            }
+          };
 
           if (recurringToImport.length > 0) {
             for (const rec of recurringToImport) {
-              const oldId = (rec as any).id as string | undefined;
+              const oldId = rec.id;
               const normalized = normalizeKeysToSnake(
                 rec as unknown as Record<string, unknown>,
                 RECURRING_CAMEL_TO_SNAKE,
@@ -264,17 +336,16 @@ export const importDataWeb = async ({
               if (oldId && newDefinition?.id) {
                 recurringIdMap.set(oldId, newDefinition.id);
               }
+              reportProgress();
             }
           }
 
           // Pass 1: Create recurring definitions and build map; prepare all transaction rows for bulk insert
           const transactionRows: Record<string, unknown>[] = [];
           for (let i = 0; i < total; i++) {
-            const item = transactionsToImport[i];
-            const transaction = (item as any).transaction || item;
-            const recurringInfo = (item as any).recurring_info;
-            const oldRecurringId =
-              (transaction as any).source_recurring_id ?? recurringInfo?.id;
+            const item = activeTransactionsToImport[i];
+            const { transaction, recurringInfo, oldRecurringId } =
+              unpackImportTransactionItem(item);
 
             let webSourceRecurringId: string | undefined = undefined;
 
@@ -386,21 +457,20 @@ export const importDataWeb = async ({
               webSourceRecurringId ?? null
             );
             transactionRows.push(row);
-            if (totalProgressSteps > 0) {
-              onImportProgress?.(i + 1, totalProgressSteps);
-            }
+            reportProgress();
           }
 
           // Pass 2: Bulk insert transactions in batches (much faster than one-by-one)
-          const BATCH_SIZE = 100;
           let importCount = 0;
-          let progressSoFar = total;
           for (
             let offset = 0;
             offset < transactionRows.length;
-            offset += BATCH_SIZE
+            offset += WEB_IMPORT_BATCH_SIZE
           ) {
-            const batch = transactionRows.slice(offset, offset + BATCH_SIZE);
+            const batch = transactionRows.slice(
+              offset,
+              offset + WEB_IMPORT_BATCH_SIZE
+            );
             const { error: batchError } = await supabase
               .from("transactions")
               .insert(batch);
@@ -413,23 +483,45 @@ export const importDataWeb = async ({
               throw batchError;
             }
             importCount += batch.length;
-            progressSoFar += batch.length;
             if (totalProgressSteps > 0) {
-              onImportProgress?.(
-                Math.min(progressSoFar, totalProgressSteps),
+              progressStep = Math.min(
+                progressStep + batch.length,
                 totalProgressSteps
               );
+              onImportProgress?.(progressStep, totalProgressSteps);
             }
           }
 
           useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
 
-          toast.success(
-            i18n.t("settings:messages.importSuccessWithCountWeb", {
-              count: importCount,
-              total: transactionsToImport.length,
-            })
-          );
+          if (importMode === "merge") {
+            if (skippedDuplicateCount > 0) {
+              toast.success(
+                i18n.t(
+                  "settings:messages.importSuccessMergeSkippedWithCountWeb",
+                  {
+                    count: importCount,
+                    total: transactionsToImport.length,
+                    skipped: skippedDuplicateCount,
+                  }
+                )
+              );
+            } else {
+              toast.success(
+                i18n.t("settings:messages.importSuccessMergeWithCountWeb", {
+                  count: importCount,
+                  total: transactionsToImport.length,
+                })
+              );
+            }
+          } else {
+            toast.success(
+              i18n.t("settings:messages.importSuccessWithCountWeb", {
+                count: importCount,
+                total: transactionsToImport.length,
+              })
+            );
+          }
         } catch (importError) {
           logger.error(
             "Failed to import data (web) during processing:",

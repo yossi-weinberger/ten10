@@ -52,17 +52,11 @@ pub fn get_due_recurring_transactions_handler(
         .map_err(|e| format!("Failed to query due transactions: {}", e))
 }
 
-#[tauri::command]
-pub fn add_recurring_transaction_handler(
-    db_state: State<'_, DbState>,
-    rec_transaction: RecurringTransaction,
-) -> std::result::Result<(), String> {
-    println!("[RUST] add_recurring_transaction_handler called with: {:?}", rec_transaction);
-    let conn = db_state
-        .0
-        .lock()
-        .map_err(|e| format!("DB lock error: {}", e))?;
-
+/// Shared INSERT for `recurring_transactions` (used by handler and bulk import).
+pub(crate) fn insert_recurring_transaction_row(
+    conn: &Connection,
+    rec_transaction: &RecurringTransaction,
+) -> RusqliteResult<()> {
     conn.execute(
         "INSERT INTO recurring_transactions (id, user_id, status, start_date, next_due_date, frequency, day_of_month, total_occurrences, execution_count, description, amount, currency, type, category, is_chomesh, recipient, payment_method, created_at, updated_at, original_amount, original_currency, conversion_rate, conversion_date, rate_source)
          VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24)",
@@ -92,11 +86,29 @@ pub fn add_recurring_transaction_handler(
             rec_transaction.conversion_date,
             rec_transaction.rate_source,
         ],
-    )
-    .map_err(|e| format!("Failed to insert recurring transaction: {}", e))?;
-    
+    )?;
     Ok(())
-} 
+}
+
+#[tauri::command]
+pub fn add_recurring_transaction_handler(
+    db_state: State<'_, DbState>,
+    rec_transaction: RecurringTransaction,
+) -> std::result::Result<(), String> {
+    println!(
+        "[RUST] add_recurring_transaction_handler called with: {:?}",
+        rec_transaction
+    );
+    let conn = db_state
+        .0
+        .lock()
+        .map_err(|e| format!("DB lock error: {}", e))?;
+
+    insert_recurring_transaction_row(&conn, &rec_transaction)
+        .map_err(|e| format!("Failed to insert recurring transaction: {}", e))?;
+
+    Ok(())
+}
 
 #[tauri::command]
 pub fn get_recurring_transactions_handler(

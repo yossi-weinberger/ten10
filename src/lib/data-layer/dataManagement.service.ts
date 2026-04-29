@@ -3,7 +3,9 @@
  * so existing imports from this file keep working.
  */
 export {
+  type DuplicateImportDecision,
   type ImportProgress,
+  type ImportMode,
   clearAllData,
   exportDataDesktop,
   importDataDesktop,

@@ -23,6 +23,7 @@ import { VersionInfoCard } from "@/components/settings/VersionInfoCard";
 import { AppLockSettingsCard } from "@/components/settings/AppLockSettingsCard";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { ImportConfirmModal } from "@/components/settings/ImportConfirmModal";
+import { ImportDuplicatesModal } from "@/components/settings/ImportDuplicatesModal";
 import { logger } from "@/lib/logger";
 import { Transaction } from "@/types/transaction";
 import { CurrencyCode } from "@/lib/currencies";
@@ -49,10 +50,12 @@ export function SettingsPage() {
     importProgress,
     importCounts,
     importConfirmDialog,
+    importDuplicatesDialog,
     handleExportData,
     handleImportData,
     handleImportConfirm,
     handleImportCancel,
+    handleDuplicatesDecision,
   } = useDataImportExport();
 
   const [isOpeningBalanceModalOpen, setIsOpeningBalanceModalOpen] =
@@ -291,12 +294,29 @@ export function SettingsPage() {
         </div>
 
         <ImportConfirmModal
+          key={
+            importConfirmDialog
+              ? `import-confirm-${importConfirmDialog.nonce}`
+              : "import-confirm-closed"
+          }
           open={!!importConfirmDialog}
-          platform={platform === "web" ? "web" : "desktop"}
           transactionsCount={importConfirmDialog?.transactions ?? 0}
           recurringCount={importConfirmDialog?.recurring ?? 0}
           onConfirm={handleImportConfirm}
           onCancel={handleImportCancel}
+        />
+
+        <ImportDuplicatesModal
+          key={
+            importDuplicatesDialog
+              ? `import-duplicates-${importDuplicatesDialog.nonce}`
+              : "import-duplicates-closed"
+          }
+          open={!!importDuplicatesDialog}
+          duplicatesCount={importDuplicatesDialog?.duplicates ?? 0}
+          uniqueCount={importDuplicatesDialog?.unique ?? 0}
+          totalCount={importDuplicatesDialog?.total ?? 0}
+          onDecision={handleDuplicatesDecision}
         />
 
         <OpeningBalanceModal

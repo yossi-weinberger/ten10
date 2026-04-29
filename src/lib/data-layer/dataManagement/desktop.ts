@@ -9,8 +9,18 @@ import {
   RECURRING_KEYS_TO_DROP_ON_INSERT,
   normalizeKeysToSnake,
 } from "../fieldMapping";
-import type { DataManagementOptions, ExportFiltersPayload } from "./types";
-import { parseImportFile } from "./importParse";
+import type {
+  DataManagementOptions,
+  ExportFiltersPayload,
+  ImportMode,
+} from "./types";
+import {
+  tryParseImportFileContents,
+  isImportPayloadEmpty,
+  getDesktopImportProgressTotal,
+  unpackImportTransactionItem,
+  filterDuplicateImportTransactions,
+} from "./importPrepare";
 
 async function fetchAllTransactionsForExportDesktop(): Promise<Transaction[]> {
   const { invoke } = await import("@tauri-apps/api/core");
@@ -20,6 +30,10 @@ async function fetchAllTransactionsForExportDesktop(): Promise<Transaction[]> {
     { filters: emptyFilters }
   );
   return transactions || [];
+}
+
+async function fetchExistingTransactionsForDedupe(): Promise<Transaction[]> {
+  return fetchAllTransactionsForExportDesktop();
 }
 
 async function fetchAllRecurringTransactionsForExportDesktop(): Promise<
@@ -104,6 +118,7 @@ export const importDataDesktop = async ({
   setIsLoading,
   onImportProgress,
   onConfirmNeeded,
+  onDuplicatesFound,
 }: DataManagementOptions): Promise<void> => {
   try {
     // Dynamic imports for Tauri modules
@@ -125,25 +140,15 @@ export const importDataDesktop = async ({
 
     if (selectedPath && typeof selectedPath === "string") {
       const fileContents = await readTextFile(selectedPath);
-      let payload: {
-        transactions: Transaction[];
-        recurring: RecurringTransaction[];
-      } | null = null;
-
-      try {
-        payload = parseImportFile(fileContents);
-      } catch (error) {
-        if (error instanceof Error && error.message === "invalid_structure") {
-          toast.error(i18n.t("settings:messages.invalidStructure"));
-        } else {
-          toast.error(i18n.t("settings:messages.invalidJson"));
-        }
-        setIsLoading(false);
-        return;
-      }
-
-      if (!payload) {
-        toast.error(i18n.t("settings:messages.invalidStructure"));
+      const parsed = tryParseImportFileContents(fileContents);
+      if (!parsed.ok) {
+        toast.error(
+          i18n.t(
+            parsed.error === "invalid_structure"
+              ? "settings:messages.invalidStructure"
+              : "settings:messages.invalidJson"
+          )
+        );
         setIsLoading(false);
         return;
       }
@@ -151,33 +156,77 @@ export const importDataDesktop = async ({
       const {
         transactions: transactionsToImport,
         recurring: recurringToImport,
-      } = payload;
+      } = parsed;
 
-      if (transactionsToImport.length === 0 && recurringToImport.length === 0) {
+      if (isImportPayloadEmpty(transactionsToImport, recurringToImport)) {
         toast(i18n.t("settings:messages.emptyFile"));
         setIsLoading(false);
         return;
       }
 
-      const confirmed = onConfirmNeeded
+      const importMode: ImportMode | null = onConfirmNeeded
         ? await onConfirmNeeded({
             transactions: transactionsToImport.length,
             recurring: recurringToImport.length,
           })
-        : window.confirm(i18n.t("settings:messages.importConfirm"));
+        : window.confirm(i18n.t("settings:messages.importConfirm"))
+          ? "replace"
+          : null;
 
-      if (!confirmed) {
+      if (!importMode) {
         toast.error(i18n.t("settings:messages.importCancelled"));
         return;
       }
 
       setIsLoading(true);
-      await invoke("clear_all_data");
+
+      let activeTransactionsToImport = transactionsToImport;
+      let skippedDuplicateCount = 0;
+
+      if (importMode === "merge" && onDuplicatesFound) {
+        const existingTransactions = await fetchExistingTransactionsForDedupe();
+        const duplicateResult = filterDuplicateImportTransactions(
+          transactionsToImport,
+          existingTransactions
+        );
+
+        if (duplicateResult.duplicates.length > 0) {
+          const duplicateDecision = await onDuplicatesFound({
+            duplicates: duplicateResult.duplicates.length,
+            unique: duplicateResult.unique.length,
+            total: transactionsToImport.length,
+          });
+
+          if (duplicateDecision === "cancel") {
+            toast.error(i18n.t("settings:messages.importCancelled"));
+            return;
+          }
+
+          if (duplicateDecision === "skip") {
+            activeTransactionsToImport = duplicateResult.unique;
+            skippedDuplicateCount = duplicateResult.duplicates.length;
+          }
+        }
+      }
+
+      const totalProgressSteps = getDesktopImportProgressTotal(
+        recurringToImport.length,
+        activeTransactionsToImport.length
+      );
+      let progressStep = 0;
+      const reportProgress = () => {
+        if (totalProgressSteps > 0) {
+          progressStep = Math.min(progressStep + 1, totalProgressSteps);
+          onImportProgress?.(progressStep, totalProgressSteps);
+        }
+      };
 
       const recurringIdMap = new Map<string, string>();
+      const recurringPayload: RecurringTransaction[] = [];
+
       if (recurringToImport.length > 0) {
         for (const rec of recurringToImport) {
-          const oldId = (rec as any).id as string | undefined;
+          const oldId = rec.id;
           const normalized = normalizeKeysToSnake(
             rec as unknown as Record<string, unknown>,
             RECURRING_CAMEL_TO_SNAKE,
@@ -189,72 +238,92 @@ export const importDataDesktop = async ({
             id: newDesktopId,
             user_id: undefined,
           };
-          await invoke("add_recurring_transaction_handler", {
-            recTransaction: definitionToInsert,
-          });
+          recurringPayload.push(
+            definitionToInsert as unknown as RecurringTransaction
+          );
           if (oldId) {
             recurringIdMap.set(oldId, newDesktopId);
           }
+          reportProgress();
         }
       }
-      const total = transactionsToImport.length;
-      let importCount = 0;
+
+      const total = activeTransactionsToImport.length;
+      const transactionsPayload: Transaction[] = [];
+
       for (let i = 0; i < total; i++) {
-        const item = transactionsToImport[i];
+        const item = activeTransactionsToImport[i];
         try {
-          // The item from web export can be a complex object
-          const transaction = (item as any).transaction || item;
-          const recurringInfo = (item as any).recurring_info;
-          const oldRecurringId =
-            (transaction as any).source_recurring_id ?? recurringInfo?.id;
+          const { transaction, recurringInfo, oldRecurringId } =
+            unpackImportTransactionItem(item);
 
           let desktopSourceRecurringId: string | undefined = undefined;
 
           if (oldRecurringId && recurringIdMap.has(oldRecurringId)) {
             desktopSourceRecurringId = recurringIdMap.get(oldRecurringId);
           } else if (recurringInfo && oldRecurringId) {
-            // This is the first time we see this recurring definition.
-            // We need to create it in the desktop DB.
             const newDesktopId = nanoid();
             const definitionToInsert = {
-              // We construct a payload that matches what `add_recurring_transaction_handler` expects
-              // It's based on the Transaction object itself, which holds the details
               ...transaction,
               ...recurringInfo,
-              id: newDesktopId, // Let Rust generate a new ID
-              user_id: undefined, // Not needed for desktop
+              id: newDesktopId,
+              user_id: undefined,
             };
 
-            await invoke("add_recurring_transaction_handler", {
-              recTransaction: definitionToInsert,
-            });
+            recurringPayload.push(
+              definitionToInsert as unknown as RecurringTransaction
+            );
 
             desktopSourceRecurringId = newDesktopId;
             recurringIdMap.set(oldRecurringId, newDesktopId);
           }
 
-          // Now, add the individual transaction, linking it to the new recurring ID if it exists
           const transactionForRust = {
             ...transaction,
+            id: nanoid(),
             source_recurring_id: desktopSourceRecurringId,
-          };
+          } as unknown as Transaction;
 
-          await invoke("add_transaction", { transaction: transactionForRust });
-          onImportProgress?.(i + 1, total);
-          importCount += 1;
+          transactionsPayload.push(transactionForRust);
+          reportProgress();
         } catch (error) {
           logger.error("Error processing imported item:", item, error);
           throw error;
         }
       }
 
+      const importCount = transactionsPayload.length;
+
+      await invoke("import_desktop_data_bulk", {
+        mode: importMode,
+        recurring: recurringPayload,
+        transactions: transactionsPayload,
+      });
+
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
 
-      toast.success(
-        i18n.t("settings:messages.importSuccessWithCount", {
-          count: importCount,
-        })
-      );
+      if (importMode === "merge") {
+        if (skippedDuplicateCount > 0) {
+          toast.success(
+            i18n.t("settings:messages.importSuccessMergeSkippedWithCount", {
+              count: importCount,
+              skipped: skippedDuplicateCount,
+            })
+          );
+        } else {
+          toast.success(
+            i18n.t("settings:messages.importSuccessMergeWithCount", {
+              count: importCount,
+            })
+          );
+        }
+      } else {
+        toast.success(
+          i18n.t("settings:messages.importSuccessWithCount", {
+            count: importCount,
+          })
+        );
+      }
     } else {
       // User cancelled file picker or no path selected
       if (selectedPath !== null) {

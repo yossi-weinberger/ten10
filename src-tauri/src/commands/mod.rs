@@ -1,4 +1,5 @@
 pub mod transaction_commands;
+pub mod import_commands;
 pub mod income_commands;
 pub mod expense_commands;
 pub mod donation_commands;

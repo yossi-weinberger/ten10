@@ -205,15 +205,16 @@ The application supports exporting all transaction data to a JSON file and impor
     - Parses JSON and validates with `ImportFileSchema` in `src/lib/data-layer/importSchemas.ts`.
     - Supports **V1** (array of transactions) and **V2** (object with `transactions` + `recurring_transactions`) formats.
     - Logs detailed schema errors via `logger.error` and shows user-friendly toasts.
-7.  **User Confirmation**: A custom `AlertDialog` from `shadcn/ui` is used to warn the user that existing data will be overwritten and asks for confirmation.
-8.  **Clear Existing Data**: If confirmed, calls `clear_all_data` to wipe transactions + recurring data.
-9.  **Recurring Import (First)**: Creates recurring definitions first, maps old IDs → new IDs.
-10. **Transactions Import**: Inserts transactions and links to new `source_recurring_id` when applicable.
-11. **Field Normalization**:
+7.  **User Confirmation (replace vs merge)**: `ImportConfirmModal` prompts for **replace** or **merge** (via `useDataImportExport` → `DataManagementOptions`).
+8.  **Merge-only duplicates (transactions)**: Shared fingerprint helpers in `importPrepare.ts`; if duplicates vs existing/local file are suspected, `ImportDuplicatesModal` offers skip / import-all / cancel.
+9.  **Desktop bulk write**: The client builds recurring + transaction payloads then calls **`import_desktop_data_bulk`** (Rust): one SQLite transaction; **replace** deletes existing rows inside that transaction before inserts (`src-tauri/src/commands/import_commands.rs`).
+10. **Recurring mapping**: Recurring definitions are inserted first where needed; imported recurring rows get fresh ids; imported transactions bind `source_recurring_id` through the rebuilt map.
+11. **Transactions Import**: Transaction rows append with collision-safe ids where required; linkage to recurring uses the mapped ids above.
+12. **Field Normalization**:
     - Uses `fieldMapping.ts` to map `camelCase` → `snake_case`.
     - Drops keys that are not DB columns (e.g., derived recurring fields).
-12. **Store Update**: Signals data refresh with `setLastDbFetchTimestamp(Date.now())`.
-13. **Permissions**: Requires `dialog > open: true` and `fs > readFile: true` (or `fs > all: true`) in `tauri.conf.json` allowlist.
+13. **Store Update**: Signals data refresh with `setLastDbFetchTimestamp(Date.now())`.
+14. **Permissions**: Requires `dialog > open: true` and `fs > readFile: true` (or `fs > all: true`) in `tauri.conf.json` allowlist.
 
 ## 12. Transactions table export (CSV / Excel / PDF) on Desktop
 
