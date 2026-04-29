@@ -9,6 +9,10 @@
     "important": "Important"
   },
   "features": {
+    "platformImport": {
+      "title": "Move data between Web and Desktop",
+      "description": "Import a TEN10 backup file and choose whether to replace your data or merge it with what you already have. Duplicate detection was added, and import speed is improved, especially on Desktop."
+    },
     "analyticsPage": {
       "badge": "Brand new",
       "title": "Analytics Dashboard",
