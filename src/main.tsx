@@ -9,6 +9,8 @@ import { TWAProvider } from "./contexts/TWAContext";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider } from "./contexts/AuthContext";
+import posthog from "posthog-js";
+import { PostHogProvider } from "posthog-js/react";
 import "./index.css";
 import "./lib/i18n";
 import { unregisterServiceWorkersInTauri } from "./lib/utils/serviceWorkerUtils";
@@ -16,19 +18,31 @@ import { unregisterServiceWorkersInTauri } from "./lib/utils/serviceWorkerUtils"
 // Clean up any stale service workers in Tauri environment
 unregisterServiceWorkersInTauri();
 
+posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
+  api_host: import.meta.env.VITE_POSTHOG_HOST,
+  capture_pageview: false,
+  capture_pageleave: true,
+});
+
+router.subscribe("onResolved", () => {
+  posthog.capture("$pageview");
+});
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <ThemeProvider defaultTheme="system" storageKey="Ten10-ui-theme">
-      <PlatformProvider>
-        <TWAProvider>
-          <AuthProvider>
-            <RouterProvider router={router} />
-            <Toaster position="top-center" />
-            <SpeedInsights />
-            <Analytics />
-          </AuthProvider>
-        </TWAProvider>
-      </PlatformProvider>
-    </ThemeProvider>
+    <PostHogProvider client={posthog}>
+      <ThemeProvider defaultTheme="system" storageKey="Ten10-ui-theme">
+        <PlatformProvider>
+          <TWAProvider>
+            <AuthProvider>
+              <RouterProvider router={router} />
+              <Toaster position="top-center" />
+              <SpeedInsights />
+              <Analytics />
+            </AuthProvider>
+          </TWAProvider>
+        </PlatformProvider>
+      </ThemeProvider>
+    </PostHogProvider>
   </StrictMode>
 );
