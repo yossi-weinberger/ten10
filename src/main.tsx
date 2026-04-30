@@ -18,15 +18,19 @@ import { unregisterServiceWorkersInTauri } from "./lib/utils/serviceWorkerUtils"
 // Clean up any stale service workers in Tauri environment
 unregisterServiceWorkersInTauri();
 
-posthog.init(import.meta.env.VITE_POSTHOG_KEY, {
-  api_host: import.meta.env.VITE_POSTHOG_HOST,
-  capture_pageview: false,
-  capture_pageleave: true,
-});
+const posthogKey = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN;
 
-router.subscribe("onResolved", () => {
-  posthog.capture("$pageview");
-});
+if (posthogKey) {
+  posthog.init(posthogKey, {
+    api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
+    capture_pageview: false,
+    capture_pageleave: true,
+  });
+
+  router.subscribe("onResolved", () => {
+    posthog.capture("$pageview");
+  });
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
