@@ -177,7 +177,7 @@
 | `auth`         | התחברות ופרופיל         | auth.json         | ✅    | bundled |
 | `contact`      | טופס יצירת קשר          | contact.json      | ✅    | bundled |
 | `currency-features` | תכונות מטבע        | currency-features.json | ✅ | bundled |
-| `import`       | ייבוא עסקאות מגיליון    | import.json       | ✅    | **bundled** (נתיב ראשי) |
+| `import`       | ייבוא תנועות מגיליון    | import.json       | ✅    | **bundled** (נתיב ראשי) |
 | `data-tables`  | טבלאות ונתונים          | data-tables.json  | ✅    | lazy |
 | `settings`     | דף הגדרות               | settings.json     | ✅    | lazy |
 | `about`        | דפי אודות וניתוח נתונים | about.json        | ✅    | lazy |
