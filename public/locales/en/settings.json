@@ -97,7 +97,7 @@
   },
   "importExport": {
     "exportTitle": "Export Data",
-    "exportDescription": "Export all application data to a file",
+    "exportDescription": "Export all your data to a JSON file — useful for migrating between platforms (desktop ↔ web) or for a full backup.",
     "exportButton": "Export Data",
     "exporting": "Exporting data...",
     "importTitle": "Import Data",
