@@ -77,6 +77,10 @@ const AdminDashboardPage = lazyRouteComponent(
   () => import("./pages/AdminDashboardPage"),
   "AdminDashboardPage"
 );
+const TransactionImportPage = lazyRouteComponent(
+  () => import("./pages/TransactionImportPage"),
+  "TransactionImportPage"
+);
 
 const rootRoute = createRootRoute({
   component: App,
@@ -185,6 +189,12 @@ const recurringTransactionsRoute = createRoute({
   component: RecurringTransactionsTable,
 });
 
+const transactionImportRoute = createRoute({
+  getParentRoute: () => transactionsTableRoute,
+  path: "/import",
+  component: TransactionImportPage,
+});
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
@@ -260,7 +270,7 @@ const adminRoute = createRoute({
     try {
       const { error } = await supabase.rpc("get_admin_dashboard_stats");
       if (error) throw error;
-    } catch (error) {
+    } catch {
       // Redirect to home if not admin
       throw redirect({
         to: "/",
@@ -291,6 +301,7 @@ const routeTree = rootRoute.addChildren([
   transactionsTableRoute.addChildren([
     transactionsTableIndexRoute,
     recurringTransactionsRoute,
+    transactionImportRoute,
   ]),
 ]);
 
