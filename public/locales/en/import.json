@@ -1,0 +1,224 @@
+{
+  "title": "Import Transactions",
+  "subtitle": "Import transactions from a CSV or Excel file",
+  "entryButton": "Import Transactions",
+  "steps": {
+    "prepare": "Prepare",
+    "upload": "Upload",
+    "mapping": "Map Columns",
+    "review": "Review",
+    "result": "Done"
+  },
+  "prepare": {
+    "title": "Before You Import",
+    "description": "Import transactions from a CSV or Excel spreadsheet. Your file will be processed locally and nothing is saved until you approve.",
+    "templateTitle": "Ten10 Template",
+    "templateDescription": "Download the sample spreadsheet — it has all the columns Ten10 recognises. Fill it in, upload it here, and the system will auto-map the columns so you can go straight to reviewing the rows.",
+    "templateDownload": "Download Template",
+    "supported": "Supported",
+    "notSupported": "Not Supported",
+    "privacyNote": "File contents are processed locally in this session and are not saved before you approve.",
+    "mappingDescription": "In the next step you will link each column from your file to a Ten10 field. Date and Amount are required.",
+    "columns": {
+      "title": "Template Columns",
+      "date": "Date (required) – YYYY-MM-DD or DD/MM/YYYY",
+      "amount": "Amount (required) – positive or negative number",
+      "description": "Description – free text",
+      "currency": "Currency – defaults to your default currency if omitted",
+      "type": "Type – income, expense, or donation",
+      "category": "Category",
+      "payment_method": "Payment Method"
+    }
+  },
+  "upload": {
+    "title": "Upload File",
+    "dropzone": "Drop your file here, or click to select",
+    "dropzoneActive": "Drop the file to upload...",
+    "acceptedFormats": "CSV or Excel (.xlsx)",
+    "maxSize": "Max {{size}} MB, {{rows}} rows",
+    "selectedFile": "Selected: {{name}}",
+    "errors": {
+      "tooLarge": "File is too large (max {{size}} MB)",
+      "tooManyRows": "File has too many rows (max {{rows}} rows)",
+      "unsupportedFormat": "Unsupported file format. Use .csv or .xlsx",
+      "xlsNotSupported": ".xls files are not supported. Please save as .xlsx",
+      "parseError": "Could not read the file. Make sure it is a valid CSV or Excel file.",
+      "noData": "The file has no data rows",
+      "noHeaders": "Could not detect column headers"
+    },
+    "sheetSelect": {
+      "title": "Select Sheet",
+      "description": "This workbook has multiple sheets. Select the one to import.",
+      "confirm": "Use This Sheet"
+    }
+  },
+  "mapping": {
+    "title": "Map Columns",
+    "description": "Link each column from your file to a Ten10 field. Columns marked with * are required.",
+    "hint": "Ten10 suggested mappings automatically — review them and adjust if needed.",
+    "sourceColumn": "File Column",
+    "targetField": "Ten10 Field",
+    "sampleValues": "Sample Values",
+    "noMapping": "— Skip column —",
+    "ten10TemplateDetected": "Ten10 template detected. Columns were mapped automatically.",
+    "fields": {
+      "date": "Date",
+      "amount": "Amount",
+      "debit": "Debit",
+      "credit": "Credit",
+      "description": "Description",
+      "currency": "Currency",
+      "type": "Type",
+      "category": "Category",
+      "recipient": "Recipient",
+      "payment_method": "Payment Method"
+    },
+    "required": "Required",
+    "errors": {
+      "dateMissing": "You must map a Date column",
+      "amountMissing": "You must map an Amount column (or both Debit and Credit)",
+      "duplicateTarget": "Each Ten10 field can only be mapped once",
+      "amountAndDebitCredit": "Cannot map both Amount and Debit/Credit at the same time"
+    }
+  },
+  "review": {
+    "title": "Review Import",
+    "processing": "Processing rows…",
+    "summary": {
+      "title": "Summary",
+      "totalRows": "Total rows",
+      "readyRows": "Ready to import",
+      "invalidRows": "Invalid",
+      "needsReviewRows": "Needs review",
+      "needsReviewBreakdown": "incl. {{duplicates}} duplicates, {{recurring}} recurring",
+      "approvedRows": "Selected for import"
+    },
+    "financial": {
+      "title": "Financial Impact",
+      "dateRange": "Date range",
+      "totalIncome": "Total income",
+      "totalExpenses": "Total expenses",
+      "totalDonations": "Total donations"
+    },
+    "filters": {
+      "all": "All",
+      "ready": "Ready",
+      "needsReview": "Needs Review",
+      "invalid": "Invalid",
+      "warnings": "Warnings"
+    },
+    "actions": {
+      "selectAllReady": "Select all ready",
+      "clearSelection": "Clear all",
+      "showInvalidOnly": "Invalid only",
+      "showWarningsOnly": "Warnings only"
+    },
+    "columns": {
+      "select": "",
+      "status": "Status",
+      "row": "#",
+      "date": "Date",
+      "amount": "Amount",
+      "type": "Type",
+      "description": "Description",
+      "category": "Category",
+      "recipient": "Recipient",
+      "paymentMethod": "Payment",
+      "issues": "Issues"
+    },
+    "noRows": "No rows match the current filter.",
+    "editRow": "Edit",
+    "saveRow": "Save",
+    "cancelEdit": "Cancel",
+    "issuesAriaLabel": "{{count}} issues in row {{row}}"
+  },
+  "confirm": {
+    "title": "Confirm Import",
+    "description_one": "You are about to import {{count}} transaction.",
+    "description_other": "You are about to import {{count}} transactions.",
+    "riskyRows_one": "{{count}} row has warnings — review carefully.",
+    "riskyRows_other": "{{count}} rows have warnings — review carefully.",
+    "proceed": "Import Now",
+    "cancel": "Go Back"
+  },
+  "result": {
+    "title": "Import Complete",
+    "inserted_one": "{{count}} transaction imported",
+    "inserted_other": "{{count}} transactions imported",
+    "failed_one": "{{count}} row failed to import",
+    "failed_other": "{{count}} rows failed to import",
+    "skipped": "{{count}} rows were not selected",
+    "errorReport": "Download Error Report",
+    "viewTransactions": "View Transactions",
+    "importAnother": "Import Another File",
+    "noRowsImported": "No transactions were imported."
+  },
+  "status": {
+    "ready": "Ready",
+    "needs_review": "Review",
+    "invalid": "Invalid"
+  },
+  "issues": {
+    "missing_required_field": "Missing: {{field}}",
+    "invalid_date": "Invalid date",
+    "invalid_amount": "Invalid amount",
+    "zero_amount": "Amount cannot be zero",
+    "unsupported_currency": "Unsupported currency: {{currency}}",
+    "foreign_currency_not_supported": "Foreign-currency rows cannot be imported in this flow",
+    "invalid_type": "Invalid transaction type",
+    "donation_recipient_required": "Recipient is required for donations",
+    "possible_duplicate": "Possible duplicate",
+    "possible_recurring": "May match a recurring transaction",
+    "ambiguous_debit_credit": "Both debit and credit have values",
+    "formula_cell": "Cell contains a formula (value was used)"
+  },
+  "navigation": {
+    "back": "Back",
+    "next": "Next",
+    "cancel": "Cancel",
+    "startOver": "Start Over"
+  },
+  "settings": {
+    "entryTitle": "Import Transactions from Spreadsheet",
+    "entryDescription": "Add transactions from a CSV or Excel file. All rows are reviewed before anything is saved.",
+    "entryButton": "Import from File",
+    "note": "This imports transactions from external spreadsheets. To restore a Ten10 backup, use the backup section above."
+  },
+  "parsing": {
+    "typeAliases": {
+      "income":   ["income", "credit"],
+      "expense":  ["expense", "debit"],
+      "donation": ["donation", "charity", "tzedaka"]
+    },
+    "booleanTruthy": ["yes", "true", "1"],
+    "templateColumnLabels": {
+      "date":           "date",
+      "amount":         "amount",
+      "description":    "description",
+      "currency":       "currency",
+      "type":           "type",
+      "category":       "category",
+      "recipient":      "recipient",
+      "payment_method": "payment_method",
+      "is_chomesh":     "is_chomesh"
+    },
+    "columnAliases": {
+      "date":           ["date", "datum", "fecha", "data"],
+      "amount":         ["amount", "sum", "total", "value"],
+      "debit":          ["debit", "charge", "withdrawal", "deductions"],
+      "credit":         ["credit", "deposit", "income credit"],
+      "description":    ["description", "details", "note", "memo", "desc"],
+      "currency":       ["currency", "cur"],
+      "type":           ["type", "category type", "transaction type"],
+      "category":       ["category", "cat", "group"],
+      "recipient":      ["recipient", "payee", "beneficiary"],
+      "payment_method": ["payment", "method", "payment method"],
+      "is_chomesh":     ["is_chomesh", "chomesh", "chomesh?"]
+    },
+    "templateSamples": [
+      { "date": "2025-01-15", "amount": "5000",  "description": "Monthly salary",   "currency": "ILS", "type": "income",   "category": "salary", "recipient": "",               "payment_method": "bank_transfer", "is_chomesh": "no"  },
+      { "date": "2025-01-20", "amount": "-350",  "description": "Grocery shopping", "currency": "ILS", "type": "expense",  "category": "food",   "recipient": "",               "payment_method": "credit_card",   "is_chomesh": "no"  },
+      { "date": "2025-01-25", "amount": "500",   "description": "Tzedaka",          "currency": "ILS", "type": "donation", "category": "",       "recipient": "Local synagogue", "payment_method": "bank_transfer", "is_chomesh": "yes" }
+    ]
+  }
+}

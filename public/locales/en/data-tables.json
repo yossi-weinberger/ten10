@@ -112,7 +112,8 @@
     "recurringDeleteError": "Error deleting recurring transaction."
   },
   "buttons": {
-    "showRecurring": "Show Recurring"
+    "showRecurring": "Show Recurring",
+    "importTransactions": "Import Transactions"
   },
   "movementType": {
     "recurring": "Recurring",
