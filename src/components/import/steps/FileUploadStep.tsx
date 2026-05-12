@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useDropzone } from "react-dropzone";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { logger } from "@/lib/logger";
-import { Upload, FileSpreadsheet, AlertTriangle } from "lucide-react";
+import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -163,6 +163,7 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
 
   return (
     <div className="space-y-4">
+      {/* Dropzone */}
       <div
         {...getRootProps()}
         className={cn(
@@ -176,25 +177,30 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
       >
         <input {...getInputProps()} />
 
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-4">
           {isDragActive ? (
             <Upload className="h-10 w-10 text-primary" aria-hidden="true" />
           ) : (
             <FileSpreadsheet className="h-10 w-10 text-muted-foreground" aria-hidden="true" />
           )}
 
-          <div className="space-y-1">
-            <p className="text-sm font-medium">
+          <div className="space-y-3 text-center">
+            <p className="text-base font-semibold">
               {isDragActive
                 ? t("upload.dropzoneActive")
                 : t("upload.dropzone")}
             </p>
-            <p className="text-xs text-muted-foreground">
-              {t("upload.acceptedFormats")}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {t("upload.maxSize", { size: maxMb, rows: MAX_ROWS })}
-            </p>
+            <div className="flex flex-wrap justify-center gap-1.5">
+              <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-0.5 text-xs text-muted-foreground">
+                CSV / .XLSX
+              </span>
+              <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-0.5 text-xs text-muted-foreground">
+                {t("upload.limitSize", { size: maxMb })}
+              </span>
+              <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-0.5 text-xs text-muted-foreground">
+                {t("upload.limitRows", { rows: MAX_ROWS })}
+              </span>
+            </div>
           </div>
 
           {isLoading && (
@@ -202,14 +208,19 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
               {t("review.processing")}
             </p>
           )}
-
-          {pendingFile && !isLoading && (
-            <p className="text-xs text-muted-foreground">
-              {t("upload.selectedFile", { name: pendingFile.name })}
-            </p>
-          )}
         </div>
       </div>
+
+      {/* Selected file chip */}
+      {pendingFile && !isLoading && !availableSheets && (
+        <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/30 px-3 py-2.5">
+          <FileSpreadsheet className="h-4 w-4 text-primary shrink-0" aria-hidden="true" />
+          <span className="text-sm font-medium flex-1 min-w-0 truncate" dir="ltr">
+            {pendingFile.name}
+          </span>
+          <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0" aria-hidden="true" />
+        </div>
+      )}
 
       {/* Error */}
       {error && (

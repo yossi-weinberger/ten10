@@ -1,7 +1,9 @@
 {
-  "title": "ייבוא עסקאות",
-  "subtitle": "ייבוא עסקאות מקובץ CSV או Excel",
-  "entryButton": "ייבוא עסקאות",
+  "title": "ייבוא תנועות",
+  "subtitle": "ייבוא תנועות מקובץ CSV או Excel",
+  "entryButton": "ייבוא תנועות",
+  "newBadge": "חדש",
+  "addPageBanner": "יש לך קובץ תנועות? ייבא מגיליון CSV או Excel",
   "steps": {
     "prepare": "הכנה",
     "upload": "העלאה",
@@ -11,13 +13,24 @@
   },
   "prepare": {
     "title": "הכנה לייבוא",
-    "description": "ייבוא עסקאות מגיליון CSV או Excel. הקובץ מעובד מקומית ולא נשמר דבר עד שתאשר.",
-    "templateTitle": "תבנית Ten10",
-    "templateDescription": "הורד את הגיליון לדוגמה — הוא מכיל את כל העמודות שTen10 מזהה. אחרי שמלאת, העלה אותו כאן. המערכת תמפה אוטומטית את העמודות ותוכל לעבור ישר לסקירת השורות.",
+    "description": "ייבוא תנועות מגיליון CSV או Excel בכמה שלבים פשוטים.",
+    "templateTitle": "תבנית Ten10 (אופציונלי)",
+    "templateDescription": "הורד את הגיליון לדוגמה — הוא מכיל את כל העמודות שTen10 מזהה. אחרי שמלאת, העלה אותו כאן. המערכת תמפה אוטומטית את העמודות.",
     "templateDownload": "הורד תבנית",
     "supported": "נתמך",
     "notSupported": "לא נתמך",
     "privacyNote": "תוכן הקובץ מעובד מקומית בסשן זה ואינו נשמר לפני אישורך.",
+    "checklistTitle": "כמה דברים שכדאי לדעת לפני שמתחילים",
+    "checklistItem1": "הקובץ לא מועלה לשרת — הניתוח מתבצע בדפדפן, והנתונים נשמרים רק אחרי אישורך הסופי",
+    "checklistItem2": "לא נשמר דבר עד שתסקור את השורות ותאשר בעצמך",
+    "checklistItem3": "עמודות תאריך וסכום הן חובה — כל השאר אופציונלי",
+    "checklistItem4": "יש תבנית Ten10 מוכנה להורדה — לא חובה, כל CSV/XLSX עם כותרות ברורות יעבוד",
+    "formatsTitle": "פורמטים נתמכים",
+    "csvDesc": "כל קובץ CSV עם כותרות עמודות",
+    "xlsxDesc": "Excel חדש (.xlsx)",
+    "xlsDesc": "Excel ישן — שמור כ-.xlsx",
+    "pdfDesc": "קבצי PDF ותמונות",
+    "ownFileHint": "אין צורך בתבנית — אם לקובץ יש כותרות ברורות, המערכת תנסה למפות אוטומטית.",
     "columns": {
       "title": "עמודות התבנית",
       "date": "תאריך (חובה) – YYYY-MM-DD או DD/MM/YYYY",
@@ -32,10 +45,12 @@
   },
   "upload": {
     "title": "העלאת קובץ",
-    "dropzone": "גרור קובץ לכאן, או לחץ לבחירה",
+    "dropzone": "גרור קובץ לכאן, או לחץ להעלאה",
     "dropzoneActive": "שחרר את הקובץ לייבוא...",
     "acceptedFormats": "CSV או Excel (.xlsx)",
     "maxSize": "עד {{size}} MB, {{rows}} שורות",
+    "limitSize": "עד {{size}} MB",
+    "limitRows": "עד {{rows}} שורות",
     "selectedFile": "נבחר: {{name}}",
     "errors": {
       "tooLarge": "הקובץ גדול מדי (עד {{size}} MB)",
@@ -55,12 +70,15 @@
   "mapping": {
     "title": "מיפוי עמודות",
     "description": "קשר בין כל עמודה בקובץ שלך לשדה המתאים ב-Ten10. עמודות מסומנות בכוכבית הן חובה.",
+    "whatIsMapping": "כאן מחברים כל עמודה בקובץ לשדה המתאים ב-Ten10. בדוק את ההצעות ותקן לפי הצורך.",
     "hint": "Ten10 ניסה למפות אוטומטית — בדוק שהמיפוי נכון ותקן לפי הצורך.",
     "sourceColumn": "עמודה בקובץ",
     "targetField": "שדה Ten10",
+    "sampleLabel": "לדוגמה:",
+    "sampleColumnHeader": "מהקובץ",
     "sampleValues": "דוגמאות",
     "noMapping": "— דלג על עמודה —",
-    "ten10TemplateDetected": "זוהתה תבנית Ten10. העמודות מופו אוטומטית.",
+    "ten10TemplateDetected": "זוהתה תבנית Ten10 — עמודות מופו אוטומטית. בדוק ותקן לפי הצורך.",
     "fields": {
       "date": "תאריך",
       "amount": "סכום",
@@ -135,7 +153,7 @@
   "confirm": {
     "title": "אישור ייבוא",
     "description_one": "עומד לייבא עסקה {{count}} אחת.",
-    "description_other": "עומד לייבא {{count}} עסקאות.",
+    "description_other": "עומד לייבא {{count}} תנועות.",
     "riskyRows_one": "שורה {{count}} מכילה אזהרה — בדוק בעיון.",
     "riskyRows_other": "{{count}} שורות מכילות אזהרות — בדוק בעיון.",
     "proceed": "ייבא עכשיו",
@@ -144,14 +162,14 @@
   "result": {
     "title": "הייבוא הושלם",
     "inserted_one": "עסקה {{count}} יובאה בהצלחה",
-    "inserted_other": "{{count}} עסקאות יובאו בהצלחה",
+    "inserted_other": "{{count}} תנועות יובאו בהצלחה",
     "failed_one": "שורה {{count}} נכשלה בייבוא",
     "failed_other": "{{count}} שורות נכשלו בייבוא",
     "skipped": "{{count}} שורות לא נבחרו",
     "errorReport": "הורד דוח שגיאות",
-    "viewTransactions": "צפה בעסקאות",
+    "viewTransactions": "צפה בתנועות",
     "importAnother": "ייבוא קובץ נוסף",
-    "noRowsImported": "לא יובאו עסקאות."
+    "noRowsImported": "לא יובאו תנועות."
   },
   "status": {
     "ready": "מוכן",
@@ -179,10 +197,10 @@
     "startOver": "התחל מחדש"
   },
   "settings": {
-    "entryTitle": "ייבוא עסקאות מגיליון",
-    "entryDescription": "הוסף עסקאות מקובץ CSV או Excel. כל השורות נסקרות לפני שנשמר דבר.",
+    "entryTitle": "ייבוא תנועות מגיליון",
+    "entryDescription": "הוסף תנועות מקובץ CSV או Excel. כל השורות נסקרות לפני שנשמר דבר.",
     "entryButton": "ייבוא מקובץ",
-    "note": "זה מייבא עסקאות מגיליונות חיצוניים. לשחזור גיבוי Ten10, השתמש בחלק הגיבוי למעלה."
+    "note": "זה מייבא תנועות מגיליונות חיצוניים. לשחזור גיבוי Ten10, השתמש בחלק הגיבוי למעלה."
   },
   "parsing": {
     "typeAliases": {

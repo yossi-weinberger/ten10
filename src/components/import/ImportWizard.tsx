@@ -38,6 +38,7 @@ import { ColumnMappingStep } from "./steps/ColumnMappingStep";
 import { ImportReviewStep } from "./steps/ImportReviewStep";
 import { ImportResultStep } from "./steps/ImportResultStep";
 import { PrepareStep } from "./steps/PrepareStep";
+import { AnimatePresence, motion } from "framer-motion";
 
 // ---------------------------------------------------------------------------
 // State machine
@@ -473,44 +474,54 @@ export function ImportWizard() {
       {/* Step content */}
       <Card>
         <CardContent className="p-4 md:p-6">
-          {state.step === "prepare" && (
-            <PrepareStep onNext={() => dispatch({ type: "SET_STEP", step: "upload" })} />
-          )}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={state.step}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              {state.step === "prepare" && (
+                <PrepareStep onNext={() => dispatch({ type: "SET_STEP", step: "upload" })} />
+              )}
 
-          {state.step === "upload" && (
-            <FileUploadStep onFileParsed={handleFileParsed} />
-          )}
+              {state.step === "upload" && (
+                <FileUploadStep onFileParsed={handleFileParsed} />
+              )}
 
-          {state.step === "mapping" && state.parsedFile && (
-            <ColumnMappingStep
-              parsedFile={state.parsedFile}
-              mappings={state.columnMappings}
-              isTen10Template={state.isTen10Template}
-              validationErrors={state.mappingErrors}
-              onMappingChange={handleMappingChange}
-            />
-          )}
+              {state.step === "mapping" && state.parsedFile && (
+                <ColumnMappingStep
+                  parsedFile={state.parsedFile}
+                  mappings={state.columnMappings}
+                  isTen10Template={state.isTen10Template}
+                  validationErrors={state.mappingErrors}
+                  onMappingChange={handleMappingChange}
+                />
+              )}
 
-          {state.step === "review" && (
-            <ImportReviewStep
-              rows={state.previewRows}
-              summary={summary}
-              onToggleApproval={handleToggleApproval}
-              onBulkToggle={handleBulkToggle}
-              onToggleAllReady={handleToggleAllReady}
-              onClearSelection={handleClearSelection}
-              onUpdateRow={handleUpdateRow}
-              existingTransactions={state.existingTransactions}
-              recurringTransactions={[]}
-            />
-          )}
+              {state.step === "review" && (
+                <ImportReviewStep
+                  rows={state.previewRows}
+                  summary={summary}
+                  onToggleApproval={handleToggleApproval}
+                  onBulkToggle={handleBulkToggle}
+                  onToggleAllReady={handleToggleAllReady}
+                  onClearSelection={handleClearSelection}
+                  onUpdateRow={handleUpdateRow}
+                  existingTransactions={state.existingTransactions}
+                  recurringTransactions={[]}
+                />
+              )}
 
-          {state.step === "result" && state.importResult && (
-            <ImportResultStep
-              result={state.importResult}
-              onImportAnother={handleReset}
-            />
-          )}
+              {state.step === "result" && state.importResult && (
+                <ImportResultStep
+                  result={state.importResult}
+                  onImportAnother={handleReset}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
         </CardContent>
       </Card>
 

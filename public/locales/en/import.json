@@ -2,6 +2,8 @@
   "title": "Import Transactions",
   "subtitle": "Import transactions from a CSV or Excel file",
   "entryButton": "Import Transactions",
+  "newBadge": "New",
+  "addPageBanner": "Have a transactions file? Import from CSV or Excel",
   "steps": {
     "prepare": "Prepare",
     "upload": "Upload",
@@ -11,14 +13,24 @@
   },
   "prepare": {
     "title": "Before You Import",
-    "description": "Import transactions from a CSV or Excel spreadsheet. Your file will be processed locally and nothing is saved until you approve.",
-    "templateTitle": "Ten10 Template",
+    "description": "Import transactions from a CSV or Excel spreadsheet in a few simple steps.",
+    "templateTitle": "Ten10 Template (optional)",
     "templateDescription": "Download the sample spreadsheet — it has all the columns Ten10 recognises. Fill it in, upload it here, and the system will auto-map the columns so you can go straight to reviewing the rows.",
     "templateDownload": "Download Template",
     "supported": "Supported",
     "notSupported": "Not Supported",
     "privacyNote": "File contents are processed locally in this session and are not saved before you approve.",
-    "mappingDescription": "In the next step you will link each column from your file to a Ten10 field. Date and Amount are required.",
+    "checklistTitle": "Good to know before you start",
+    "checklistItem1": "Your file is never uploaded to a server — parsing happens in the browser, and data is only saved after your final approval",
+    "checklistItem2": "Nothing is saved until you review each row and approve it yourself",
+    "checklistItem3": "Date and amount columns are required — everything else is optional",
+    "checklistItem4": "Ten10 template available for download — not required, any CSV or XLSX with clear headers works",
+    "formatsTitle": "Supported formats",
+    "csvDesc": "Any CSV file with column headers",
+    "xlsxDesc": "Modern Excel (.xlsx)",
+    "xlsDesc": "Old Excel format — save as .xlsx",
+    "pdfDesc": "PDF files and images",
+    "ownFileHint": "No template needed — if your file has clear column headers, Ten10 will try to map them automatically.",
     "columns": {
       "title": "Template Columns",
       "date": "Date (required) – YYYY-MM-DD or DD/MM/YYYY",
@@ -28,14 +40,17 @@
       "type": "Type – income, expense, or donation",
       "category": "Category",
       "payment_method": "Payment Method"
-    }
+    },
+    "mappingDescription": "In the next step you will link each column from your file to a Ten10 field. Date and Amount are required."
   },
   "upload": {
     "title": "Upload File",
-    "dropzone": "Drop your file here, or click to select",
+    "dropzone": "Drop your file here, or click to upload",
     "dropzoneActive": "Drop the file to upload...",
     "acceptedFormats": "CSV or Excel (.xlsx)",
     "maxSize": "Max {{size}} MB, {{rows}} rows",
+    "limitSize": "Max {{size}} MB",
+    "limitRows": "Max {{rows}} rows",
     "selectedFile": "Selected: {{name}}",
     "errors": {
       "tooLarge": "File is too large (max {{size}} MB)",
@@ -55,12 +70,15 @@
   "mapping": {
     "title": "Map Columns",
     "description": "Link each column from your file to a Ten10 field. Columns marked with * are required.",
+    "whatIsMapping": "Connect each column in your file to the matching field in Ten10. Review the suggestions and adjust if needed.",
     "hint": "Ten10 suggested mappings automatically — review them and adjust if needed.",
     "sourceColumn": "File Column",
     "targetField": "Ten10 Field",
+    "sampleLabel": "e.g.:",
+    "sampleColumnHeader": "From File",
     "sampleValues": "Sample Values",
     "noMapping": "— Skip column —",
-    "ten10TemplateDetected": "Ten10 template detected. Columns were mapped automatically.",
+    "ten10TemplateDetected": "Ten10 template detected — columns were mapped automatically. Review and adjust if needed.",
     "fields": {
       "date": "Date",
       "amount": "Amount",

@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Download,
@@ -9,6 +10,7 @@ import {
   ArrowLeft,
   ArrowRight,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/index";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -18,6 +20,13 @@ import { logger } from "@/lib/logger";
 interface PrepareStepProps {
   onNext: () => void;
 }
+
+const CHECKLIST_KEYS = [
+  "checklistItem1",
+  "checklistItem2",
+  "checklistItem3",
+  "checklistItem4",
+] as const;
 
 export function PrepareStep({ onNext }: PrepareStepProps) {
   const { t, i18n } = useTranslation("import");
@@ -50,45 +59,90 @@ export function PrepareStep({ onNext }: PrepareStepProps) {
   const NextIcon = isRtl ? ArrowLeft : ArrowRight;
 
   return (
-    <div className="space-y-6 max-w-xl mx-auto">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.22, ease: "easeOut" }}
+      className="space-y-5 max-w-xl mx-auto"
+    >
       {/* Title */}
       <div>
-        <h2 className="text-lg font-semibold">{t("prepare.title")}</h2>
-        <p className="text-sm text-muted-foreground mt-1">{t("prepare.description")}</p>
+        <h2 className="text-xl font-bold">{t("prepare.title")}</h2>
+        <p className="text-base text-muted-foreground mt-1.5 leading-relaxed">
+          {t("prepare.description")}
+        </p>
       </div>
 
-      {/* Supported / unsupported formats — 2 clear boxes */}
-      <div className="grid grid-cols-2 gap-3">
-        {/* Supported */}
-        <div className="rounded-xl border-2 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20 p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400 shrink-0" />
-            <span className="text-sm font-semibold text-green-800 dark:text-green-300">
-              {t("prepare.supported")}
-            </span>
-          </div>
-          <div className="space-y-2">
-            <FormatItem icon={<FileText className="h-4 w-4" />} label=".CSV" color="green" />
-            <FormatItem icon={<FileSpreadsheet className="h-4 w-4" />} label=".XLSX" color="green" />
-          </div>
-        </div>
+      {/* Checklist */}
+      <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+        <p className="text-sm font-semibold">{t("prepare.checklistTitle")}</p>
+        <ul className="space-y-2.5">
+          {CHECKLIST_KEYS.map((key) => (
+            <li key={key} className="flex items-start gap-2.5 text-sm">
+              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0 mt-0.5" />
+              <span className="leading-snug">{t(`prepare.${key}`)}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
 
-        {/* Unsupported */}
-        <div className="rounded-xl border-2 border-border bg-muted/30 p-4 space-y-3">
-          <div className="flex items-center gap-2">
-            <XCircle className="h-5 w-5 text-muted-foreground shrink-0" />
-            <span className="text-sm font-semibold text-muted-foreground">
-              {t("prepare.notSupported")}
-            </span>
+      {/* Supported / unsupported formats */}
+      <div className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground px-0.5">
+          {t("prepare.formatsTitle")}
+        </p>
+        <div className="grid grid-cols-2 gap-3">
+          {/* Supported */}
+          <div className="rounded-xl border-2 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/20 p-4 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 shrink-0" />
+              <span className="text-sm font-semibold text-green-800 dark:text-green-300">
+                {t("prepare.supported")}
+              </span>
+            </div>
+            <div className="space-y-2">
+              <FormatItem
+                icon={<FileText className="h-4 w-4" />}
+                label=".CSV"
+                desc={t("prepare.csvDesc")}
+                color="green"
+              />
+              <FormatItem
+                icon={<FileSpreadsheet className="h-4 w-4" />}
+                label=".XLSX"
+                desc={t("prepare.xlsxDesc")}
+                color="green"
+              />
+            </div>
           </div>
-          <div className="space-y-2">
-            <FormatItem icon={<FileSpreadsheet className="h-4 w-4" />} label=".XLS" color="muted" />
-            <FormatItem icon={<FileText className="h-4 w-4" />} label="PDF / תמונות" color="muted" />
+
+          {/* Unsupported */}
+          <div className="rounded-xl border-2 border-border bg-muted/30 p-4 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <XCircle className="h-4 w-4 text-muted-foreground shrink-0" />
+              <span className="text-sm font-semibold text-muted-foreground">
+                {t("prepare.notSupported")}
+              </span>
+            </div>
+            <div className="space-y-2">
+              <FormatItem
+                icon={<FileSpreadsheet className="h-4 w-4" />}
+                label=".XLS"
+                desc={t("prepare.xlsDesc")}
+                color="muted"
+              />
+              <FormatItem
+                icon={<FileText className="h-4 w-4" />}
+                label="PDF"
+                desc={t("prepare.pdfDesc")}
+                color="muted"
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Template download with explanation */}
+      {/* Template download */}
       <div className="rounded-xl border border-border bg-card p-4 space-y-3">
         <div className="flex items-start gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 mt-0.5">
@@ -96,8 +150,11 @@ export function PrepareStep({ onNext }: PrepareStepProps) {
           </div>
           <div className="flex-1 min-w-0 space-y-1">
             <p className="text-sm font-semibold">{t("prepare.templateTitle")}</p>
-            <p className="text-xs text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               {t("prepare.templateDescription")}
+            </p>
+            <p className="text-xs text-muted-foreground italic mt-1">
+              {t("prepare.ownFileHint")}
             </p>
           </div>
         </div>
@@ -120,28 +177,34 @@ export function PrepareStep({ onNext }: PrepareStepProps) {
           <NextIcon className="h-4 w-4" />
         </Button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 interface FormatItemProps {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
+  desc: string;
   color: "green" | "muted";
 }
 
-function FormatItem({ icon, label, color }: FormatItemProps) {
+function FormatItem({ icon, label, desc, color }: FormatItemProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-2 text-xs font-medium",
+        "flex items-start gap-2",
         color === "green"
           ? "text-green-700 dark:text-green-400"
           : "text-muted-foreground"
       )}
     >
-      {icon}
-      <span>{label}</span>
+      <span className="shrink-0 mt-0.5">{icon}</span>
+      <div className="min-w-0">
+        <span className="text-xs font-bold">{label}</span>
+        {desc && (
+          <p className="text-xs leading-tight mt-0.5 opacity-80">{desc}</p>
+        )}
+      </div>
     </div>
   );
 }
