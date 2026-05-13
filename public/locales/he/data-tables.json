@@ -101,7 +101,7 @@
   },
   "buttons": {
     "showRecurring": "הצג הוראות קבע",
-    "importTransactions": "ייבוא עסקאות"
+    "importTransactions": "ייבוא תנועות"
   },
   "movementType": {
     "recurring": "הוראת קבע",
