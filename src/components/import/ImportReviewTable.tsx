@@ -8,10 +8,13 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { AlertTriangle } from "lucide-react";
 import type { ImportPreviewRow } from "@/lib/import/import-session.types";
-import type { Transaction, RecurringTransaction } from "@/types/transaction";
+import type { Transaction, RecurringTransaction, TransactionType } from "@/types/transaction";
+import { typeBadgeColors } from "@/types/transactionLabels";
+import { cn } from "@/lib/utils/index";
 import { ImportRowStatusBadge } from "./ImportRowStatusBadge";
 import { ImportRowEditModal } from "./ImportRowEditModal";
 
@@ -125,9 +128,14 @@ const ReviewTableRow = memo(function ReviewTableRow({
 
       {/* Type */}
       <TableCell className="whitespace-nowrap">
-        <span className="text-sm">
-          {row.normalized ? typeLabel(row.normalized.type) : "—"}
-        </span>
+        {row.normalized ? (
+          <Badge
+            variant="outline"
+            className={cn("border text-xs font-normal", typeBadgeColors[row.normalized.type as TransactionType])}
+          >
+            {typeLabel(row.normalized.type)}
+          </Badge>
+        ) : "—"}
       </TableCell>
 
       {/* Description */}

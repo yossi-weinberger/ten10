@@ -1,11 +1,13 @@
-import { useState, useCallback, useOptimistic } from "react";
+import { useState, useCallback, useOptimistic, startTransition, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { AlertTriangle, Pencil } from "lucide-react";
 import type { ImportPreviewRow } from "@/lib/import/import-session.types";
-import type { Transaction, RecurringTransaction } from "@/types/transaction";
+import type { Transaction, RecurringTransaction, TransactionType } from "@/types/transaction";
+import { typeBadgeColors } from "@/types/transactionLabels";
+import { cn } from "@/lib/utils/index";
 import { ImportRowStatusBadge } from "./ImportRowStatusBadge";
 import { ImportRowEditModal } from "./ImportRowEditModal";
 
@@ -31,6 +33,7 @@ function fmtDate(isoDate: string): string {
 interface ImportReviewCardsProps {
   rows: ImportPreviewRow[];
   onToggleApproval: (id: string, approved: boolean) => void;
+  onBulkToggle: (ids: string[], approved: boolean) => void;
   onUpdateRow: (id: string, updates: Partial<ImportPreviewRow>) => void;
   existingTransactions: Transaction[];
   recurringTransactions: RecurringTransaction[];
@@ -39,6 +42,7 @@ interface ImportReviewCardsProps {
 export function ImportReviewCards({
   rows,
   onToggleApproval,
+  onBulkToggle,
   onUpdateRow,
   existingTransactions,
   recurringTransactions,
@@ -63,6 +67,18 @@ export function ImportReviewCards({
   const typeLabel = (type: string) =>
     tTx(`transactionForm.transactionType.${type}`, { defaultValue: type });
 
+  const selectableRows = useMemo(() => rows.filter((r) => r.status !== "invalid"), [rows]);
+  const approvedCount = useMemo(() => selectableRows.filter((r) => r.approved).length, [selectableRows]);
+  const allSelected = selectableRows.length > 0 && approvedCount === selectableRows.length;
+  const someSelected = approvedCount > 0 && approvedCount < selectableRows.length;
+
+  const handleSelectAll = useCallback(() => {
+    const ids = selectableRows.map((r) => r.id);
+    startTransition(() => {
+      onBulkToggle(ids, !allSelected);
+    });
+  }, [selectableRows, allSelected, onBulkToggle]);
+
   if (rows.length === 0) {
     return (
       <p className="text-center text-muted-foreground py-8">{t("review.noRows")}</p>
@@ -71,7 +87,25 @@ export function ImportReviewCards({
 
   return (
     <>
-      <div className="space-y-3">
+      <div className="rounded-md border border-border overflow-hidden">
+        {/* Select-all header */}
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-muted/30">
+          <Checkbox
+            checked={someSelected ? "indeterminate" : allSelected}
+            onCheckedChange={handleSelectAll}
+            disabled={selectableRows.length === 0}
+            aria-label={t("review.actions.selectAllSelectable")}
+          />
+          <span className="text-xs text-muted-foreground flex-1">
+            {t("review.actions.selectAllSelectable")}
+          </span>
+          {approvedCount > 0 && (
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {approvedCount}/{selectableRows.length}
+            </span>
+          )}
+        </div>
+
         {rows.map((row) => (
           <RowCard
             key={row.id}
@@ -97,7 +131,7 @@ export function ImportReviewCards({
 }
 
 // ---------------------------------------------------------------------------
-// Individual card — memoized for performance
+// Individual row — compact single-line design, memoized for performance
 // ---------------------------------------------------------------------------
 interface RowCardProps {
   row: ImportPreviewRow;
@@ -116,101 +150,82 @@ function RowCard({ row, typeLabel, onToggleApproval, onRequestEdit, t }: RowCard
   const handleToggle = useCallback(
     (checked: boolean) => {
       setOptimisticApproved(checked);
-      onToggleApproval(row.id, checked);
+      startTransition(() => {
+        onToggleApproval(row.id, checked);
+      });
     },
     [row.id, onToggleApproval, setOptimisticApproved]
   );
 
   const isInvalid = row.status === "invalid";
+  const n = row.normalized;
 
   return (
-    <Card
-      className={`transition-colors ${
-        optimisticApproved ? "border-primary/40 bg-primary/5" : ""
+    <div
+      className={`flex items-center gap-2 px-3 py-2.5 border-b border-border last:border-b-0 transition-colors ${
+        optimisticApproved ? "bg-primary/5" : ""
       } ${isInvalid ? "opacity-60" : ""}`}
     >
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <Checkbox
-            checked={optimisticApproved}
-            disabled={isInvalid}
-            onCheckedChange={(checked) => handleToggle(!!checked)}
-            className="mt-1 shrink-0"
-            aria-label={`Select row ${row.rowNumber}`}
-          />
+      <Checkbox
+        checked={optimisticApproved}
+        disabled={isInvalid}
+        onCheckedChange={(checked) => handleToggle(!!checked)}
+        className="shrink-0"
+        aria-label={`Select row ${row.rowNumber}`}
+      />
 
-          <div className="flex-1 min-w-0 space-y-2">
-            {/* Header: row number + status + amount */}
-            <div className="flex items-center justify-between gap-2 flex-wrap">
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground" dir="ltr">
-                  #{row.rowNumber}
-                </span>
-                <ImportRowStatusBadge status={row.status} />
-              </div>
-              <span className="font-semibold tabular-nums" dir="ltr">
-                {row.normalized
-                  ? fmtAmount(row.normalized.amount, row.normalized.currency)
-                  : "—"}
-              </span>
-            </div>
-
-            {/* Fields summary */}
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-              {row.normalized?.date && (
-                <FieldValue label={t("review.columns.date")} value={fmtDate(row.normalized.date)} dir="ltr" />
-              )}
-              {row.normalized?.type && (
-                <FieldValue label={t("review.columns.type")} value={typeLabel(row.normalized.type)} />
-              )}
-              {row.normalized?.description && (
-                <FieldValue label={t("review.columns.description")} value={row.normalized.description} className="col-span-2 truncate" />
-              )}
-              {row.normalized?.recipient && (
-                <FieldValue label={t("review.columns.recipient")} value={row.normalized.recipient} />
-              )}
-              {row.normalized?.category && (
-                <FieldValue label={t("review.columns.category")} value={row.normalized.category} />
-              )}
-            </div>
-
-            {/* Issues */}
-            {row.issues.length > 0 && (
-              <div className="flex flex-col gap-0.5 mt-1">
-                {row.issues.map((issue, i) => (
-                  <span key={i} className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                    <AlertTriangle className="h-3 w-3 shrink-0" />
-                    {t(`issues.${issue.code}`, { field: issue.field ?? "", currency: issue.detail ?? "" })}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Edit button */}
-            {!isInvalid && (
-              <div className="pt-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => onRequestEdit(row.id)}
-                >
-                  {t("review.editRow")}
-                </Button>
-              </div>
-            )}
-          </div>
+      {/* Content: description + meta */}
+      <div className="flex-1 min-w-0">
+        {/* Description */}
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm font-medium leading-tight truncate">
+            {n?.description ?? <span className="text-muted-foreground">—</span>}
+          </span>
         </div>
-      </CardContent>
-    </Card>
-  );
-}
+        {/* Date · type · issues */}
+        <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+          {n?.date && (
+            <span className="text-xs text-muted-foreground" dir="ltr">
+              {fmtDate(n.date)}
+            </span>
+          )}
+          {n?.type && (
+            <Badge
+              variant="outline"
+              className={cn("border text-xs px-1.5 py-0 h-4 font-normal", typeBadgeColors[n.type as TransactionType])}
+            >
+              {typeLabel(n.type)}
+            </Badge>
+          )}
+          {row.issues.map((issue, i) => (
+            <span key={i} className="inline-flex items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="h-3 w-3 shrink-0" />
+              {t(`issues.${issue.code}`, { field: issue.field ?? "", currency: issue.detail ?? "" })}
+            </span>
+          ))}
+        </div>
+      </div>
 
-function FieldValue({ label, value, dir, className }: { label: string; value: string; dir?: string; className?: string }) {
-  return (
-    <div className={`flex flex-col ${className ?? ""}`}>
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <span dir={dir}>{value}</span>
+      {/* Trailing: amount + badge + edit */}
+      <div className="shrink-0 flex flex-col items-end gap-1">
+        <span className="text-sm font-semibold tabular-nums leading-tight" dir="ltr">
+          {n ? fmtAmount(n.amount, n.currency) : "—"}
+        </span>
+        <div className="flex items-center gap-1">
+          <ImportRowStatusBadge status={row.status} />
+          {!isInvalid && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5 text-muted-foreground hover:text-foreground"
+              onClick={() => onRequestEdit(row.id)}
+              aria-label={t("review.editRow")}
+            >
+              <Pencil className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

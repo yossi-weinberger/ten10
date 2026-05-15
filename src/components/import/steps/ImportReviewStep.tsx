@@ -118,6 +118,7 @@ export function ImportReviewStep({
         <ImportReviewCards
           rows={filteredRows}
           onToggleApproval={onToggleApproval}
+          onBulkToggle={onBulkToggle}
           onUpdateRow={onUpdateRow}
           existingTransactions={existingTransactions}
           recurringTransactions={recurringTransactions}

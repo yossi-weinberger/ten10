@@ -178,35 +178,39 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
         <input {...getInputProps()} />
 
         <div className="flex flex-col items-center gap-4">
-          {isDragActive ? (
-            <Upload className="h-10 w-10 text-primary" aria-hidden="true" />
+          {isLoading ? (
+            <>
+              <img
+                src="/logo/symbol.svg"
+                alt=""
+                aria-hidden="true"
+                className="h-10 w-10 animate-spin"
+              />
+              <p className="text-sm text-muted-foreground">{t("review.processing")}</p>
+            </>
+          ) : isDragActive ? (
+            <>
+              <Upload className="h-10 w-10 text-primary" aria-hidden="true" />
+              <p className="text-base font-semibold">{t("upload.dropzoneActive")}</p>
+            </>
           ) : (
-            <FileSpreadsheet className="h-10 w-10 text-muted-foreground" aria-hidden="true" />
-          )}
-
-          <div className="space-y-3 text-center">
-            <p className="text-base font-semibold">
-              {isDragActive
-                ? t("upload.dropzoneActive")
-                : t("upload.dropzone")}
-            </p>
-            <div className="flex flex-wrap justify-center gap-1.5">
-              <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-0.5 text-xs text-muted-foreground">
-                CSV / .XLSX
-              </span>
-              <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-0.5 text-xs text-muted-foreground">
-                {t("upload.limitSize", { size: maxMb })}
-              </span>
-              <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-0.5 text-xs text-muted-foreground">
-                {t("upload.limitRows", { rows: MAX_ROWS })}
-              </span>
-            </div>
-          </div>
-
-          {isLoading && (
-            <p className="text-sm text-muted-foreground animate-pulse">
-              {t("review.processing")}
-            </p>
+            <>
+              <FileSpreadsheet className="h-10 w-10 text-muted-foreground" aria-hidden="true" />
+              <div className="space-y-3 text-center">
+                <p className="text-base font-semibold">{t("upload.dropzone")}</p>
+                <div className="flex flex-wrap justify-center gap-1.5">
+                  <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-0.5 text-xs text-muted-foreground">
+                    CSV / .XLSX
+                  </span>
+                  <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-0.5 text-xs text-muted-foreground">
+                    {t("upload.limitSize", { size: maxMb })}
+                  </span>
+                  <span className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-0.5 text-xs text-muted-foreground">
+                    {t("upload.limitRows", { rows: MAX_ROWS })}
+                  </span>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>

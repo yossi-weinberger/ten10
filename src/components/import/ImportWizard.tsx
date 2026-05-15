@@ -704,9 +704,9 @@ export function ImportWizard() {
         </CardContent>
       </Card>
 
-      {/* Navigation footer */}
+      {/* Navigation footer — sticky so the import button stays visible while scrolling */}
       {state.step !== "result" && state.step !== "prepare" && (
-        <div className="flex justify-between gap-3">
+        <div className="sticky bottom-0 flex justify-between gap-3 bg-background/95 backdrop-blur-sm border-t border-border pt-3 pb-3 -mx-1 px-1 z-10">
           <Button
             variant="outline"
             onClick={handleBack}
