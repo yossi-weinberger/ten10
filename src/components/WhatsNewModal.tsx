@@ -21,72 +21,44 @@ import {
   DrawerDescription,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { PUBLIC_ROUTES } from "@/lib/constants";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { logger } from "@/lib/logger";
+import { CURRENT_WHATS_NEW_VERSION } from "@/lib/whats-new-history";
 import {
-  ArrowDownUp,
-  BarChart2,
-  Bug,
-  Mail,
-  PieChart,
-  Settings,
+  CheckCircle2,
+  ClipboardCheck,
+  FileSpreadsheet,
+  Sparkles,
+  TableProperties,
 } from "lucide-react";
-
-// CURRENT_WHATS_NEW_VERSION controls when the "What's New" modal is shown.
-// - Bump this version string (e.g. "0.5.1" -> "0.6.0") whenever you change
-//   the modal content in a way that users should see again.
-// - This version is persisted per user to avoid re-showing the same release notes.
-// - This is intentionally separate from package.json version (not every release has new features).
-const CURRENT_WHATS_NEW_VERSION = "0.6.4";
 
 interface FeatureItem {
   icon: React.ReactNode;
   titleKey: string;
   descriptionKey: string;
-  badgeKey?: string;
 }
 
-const iconClass = "h-4 w-4 text-primary flex-shrink-0";
+const iconClass = "h-5 w-5 text-primary flex-shrink-0";
 
-const newFeatures: FeatureItem[] = [
+const highlights: FeatureItem[] = [
   {
-    icon: <ArrowDownUp className={iconClass} />,
-    titleKey: "features.platformImport.title",
-    descriptionKey: "features.platformImport.description",
+    icon: <FileSpreadsheet className={iconClass} />,
+    titleKey: "featured.highlights.files.title",
+    descriptionKey: "featured.highlights.files.description",
   },
   {
-    icon: <PieChart className={iconClass} />,
-    titleKey: "features.analyticsPage.title",
-    descriptionKey: "features.analyticsPage.description",
-    badgeKey: "features.analyticsPage.badge",
+    icon: <TableProperties className={iconClass} />,
+    titleKey: "featured.highlights.mapping.title",
+    descriptionKey: "featured.highlights.mapping.description",
   },
   {
-    icon: <BarChart2 className={iconClass} />,
-    titleKey: "features.chomeshTracking.title",
-    descriptionKey: "features.chomeshTracking.description",
-    badgeKey: "features.chomeshTracking.badge",
+    icon: <ClipboardCheck className={iconClass} />,
+    titleKey: "featured.highlights.review.title",
+    descriptionKey: "featured.highlights.review.description",
   },
 ];
-
-const improvements: FeatureItem[] = [
-  {
-    icon: <Bug className={iconClass} />,
-    titleKey: "improvements.bugFixes.title",
-    descriptionKey: "improvements.bugFixes.description",
-  },
-];
-
-const webOnlyImprovements: FeatureItem[] = [
-  {
-    icon: <Settings className={iconClass} />,
-    titleKey: "improvements.settingsSync.title",
-    descriptionKey: "improvements.settingsSync.description",
-  },
-];
-
-const notices: FeatureItem[] = [];
 
 interface WhatsNewModalProps {
   /** Force open the modal (manual trigger) */
@@ -227,6 +199,8 @@ export function WhatsNewModal({
     userId,
     platform,
     isPublicPath,
+    isManuallyControlled,
+    isPartialManualMode,
     lastSeenVersion,
     forcedOpen,
     onForcedOpenChange,
@@ -309,68 +283,43 @@ export function WhatsNewModal({
   if (!isManualMode && !isOpen && !checkingStatus) return null;
   if (!isManualMode && checkingStatus) return null;
 
-  const visibleImprovements: FeatureItem[] =
-    platform === "web"
-      ? [...webOnlyImprovements, ...improvements]
-      : improvements;
-
-  // Filter notices based on platform - email privacy only for web
-  const visibleNotices: FeatureItem[] =
-    platform === "web"
-      ? [
-          ...notices,
-          {
-            icon: <Mail className={iconClass} />,
-            titleKey: "notices.emailPrivacy.title",
-            descriptionKey: "notices.emailPrivacy.description",
-          },
-        ]
-      : notices;
-
   const whatsNewContent = (
-    <div className="flex flex-col gap-6 text-start">
-      {/* New Features */}
-      <section>
-        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">
-          {t("sections.newFeatures")}
-        </h3>
-        <ul className="space-y-0 divide-y divide-border rounded-md border border-border bg-card">
-          {newFeatures.map((feature, index) => (
-            <li
-              key={index}
-              className="flex gap-3 px-3 py-2.5 first:pt-3 last:pb-3"
-            >
-              <span className="mt-0.5">{feature.icon}</span>
-              <div className="min-w-0">
-                {feature.badgeKey && (
-                  <span className="inline-flex items-center text-xs font-bold bg-amber-400/20 text-amber-700 dark:text-amber-400 border border-amber-400/50 rounded-full px-2.5 py-0.5 mb-1.5 shadow-sm">
-                    {t(feature.badgeKey)}
-                  </span>
-                )}
-                <p className="font-medium text-sm text-foreground">
-                  {t(feature.titleKey)}
-                </p>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  {t(feature.descriptionKey)}
+    <div className="flex flex-col gap-5 text-start">
+      <section className="relative overflow-hidden rounded-xl border border-border bg-gradient-to-br from-primary/10 via-card to-card p-4 shadow-sm">
+        <div className="absolute -top-12 end-0 h-28 w-28 rounded-full bg-primary/10 blur-2xl" />
+        <div className="relative space-y-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
+              <FileSpreadsheet className="h-6 w-6" />
+            </div>
+            <div className="min-w-0 space-y-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                {t("featured.badge")}
+              </span>
+              <div>
+                <h3 className="text-xl font-bold tracking-tight text-foreground">
+                  {t("featured.title")}
+                </h3>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                  {t("featured.description")}
                 </p>
               </div>
-            </li>
-          ))}
-        </ul>
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* Improvements */}
       <section>
-        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">
-          {t("sections.improvements")}
-        </h3>
-        <ul className="space-y-0 divide-y divide-border rounded-md border border-border bg-card">
-          {visibleImprovements.map((item, index) => (
+        <ul className="grid gap-3">
+          {highlights.map((item) => (
             <li
-              key={index}
-              className="flex gap-3 px-3 py-2.5 first:pt-3 last:pb-3"
+              key={item.titleKey}
+              className="group flex items-start gap-3 rounded-lg border border-border bg-card px-3 py-3 transition-colors hover:bg-muted/40"
             >
-              <span className="mt-0.5">{item.icon}</span>
+              <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-primary/10 transition-transform group-hover:scale-105">
+                {item.icon}
+              </span>
               <div className="min-w-0">
                 <p className="font-medium text-sm text-foreground">
                   {t(item.titleKey)}
@@ -383,33 +332,6 @@ export function WhatsNewModal({
           ))}
         </ul>
       </section>
-
-      {/* Important Notices */}
-      {visibleNotices.length > 0 && (
-        <section>
-          <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide mb-3">
-            {t("sections.important")}
-          </h3>
-          <ul className="space-y-2">
-            {visibleNotices.map((notice, index) => (
-              <li
-                key={index}
-                className="flex gap-3 rounded-md border border-border bg-muted/40 px-3 py-2.5 border-s-2 border-s-primary"
-              >
-                <span className="mt-0.5">{notice.icon}</span>
-                <div className="min-w-0">
-                  <p className="font-medium text-sm text-foreground">
-                    {t(notice.titleKey)}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    {t(notice.descriptionKey)}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
     </div>
   );
 
@@ -427,6 +349,16 @@ export function WhatsNewModal({
           </DialogHeader>
           {whatsNewContent}
           <DialogFooter className="sm:justify-center">
+            <Button
+              asChild
+              variant="outline"
+              className="w-full sm:w-auto min-w-[120px]"
+            >
+              <Link to="/changelog" onClick={handleDismiss}>
+                <Sparkles className="h-4 w-4" />
+                {t("historyButton")}
+              </Link>
+            </Button>
             <Button
               type="button"
               onClick={handleDismiss}
@@ -456,6 +388,16 @@ export function WhatsNewModal({
           {whatsNewContent}
         </div>
         <DrawerFooter className="pt-2">
+          <Button
+            asChild
+            variant="outline"
+            className="w-full sm:w-auto min-w-[120px]"
+          >
+            <Link to="/changelog" onClick={handleDismiss}>
+              <Sparkles className="h-4 w-4" />
+              {t("historyButton")}
+            </Link>
+          </Button>
           <Button
             type="button"
             onClick={handleDismiss}

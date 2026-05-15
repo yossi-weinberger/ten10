@@ -1,0 +1,227 @@
+{
+  "title": "Changelog",
+  "subtitle": "A timeline of TEN10 features, improvements, and fixes.",
+  "current": "Current",
+  "backToSettings": "Back to Settings",
+  "releases": {
+    "v070": {
+      "title": "Import Transactions from Excel",
+      "items": {
+        "spreadsheetImport": {
+          "title": "CSV and Excel import",
+          "description": "Added an import wizard that uploads CSV or Excel files and turns them into TEN10 transactions."
+        },
+        "guidedWizard": {
+          "title": "Guided wizard with column mapping",
+          "description": "The import flow includes preparation, upload, column mapping, review, and result steps, with automatic mapping suggestions and a Ten10 template."
+        },
+        "safeReview": {
+          "title": "Review and approve before saving",
+          "description": "Rows are grouped by ready, invalid, and needs review states, including possible duplicates, and nothing is saved until the user approves."
+        }
+      }
+    },
+    "v064": {
+      "title": "Move data between Web and Desktop",
+      "items": {
+        "backupImport": {
+          "title": "TEN10 backup import",
+          "description": "Import a backup file and choose whether to replace your existing data or merge it with what you already have."
+        },
+        "duplicateDetection": {
+          "title": "Duplicate detection and faster imports",
+          "description": "Added duplicate detection and improved import speed, especially on Desktop."
+        }
+      }
+    },
+    "v062": {
+      "title": "Analytics Dashboard",
+      "items": {
+        "financialDashboard": {
+          "title": "New financial dashboard",
+          "description": "Added insights, category breakdowns, payment methods, donation recipients, recurring vs. one-time charts, and an activity heatmap."
+        },
+        "pdfExport": {
+          "title": "PDF export",
+          "description": "Analytics can now be exported to PDF."
+        }
+      }
+    },
+    "v061": {
+      "title": "Separate Chomesh tracking",
+      "items": {
+        "separateChomesh": {
+          "title": "Separate Chomesh balance",
+          "description": "Track chomesh separately from maaser from Financial Settings."
+        },
+        "settingsSaving": {
+          "title": "Automatic settings saving",
+          "description": "Settings are saved and synced automatically."
+        },
+        "recurringFixes": {
+          "title": "Recurring transaction fixes",
+          "description": "Fixed several stability issues, including automatic recurring transaction execution."
+        }
+      }
+    },
+    "v057": {
+      "title": "Desktop and transaction improvements",
+      "items": {
+        "paymentMethod": {
+          "title": "Payment method field",
+          "description": "Added a payment method field for cash, card, transfer, and more."
+        },
+        "desktopLock": {
+          "title": "Desktop password lock",
+          "description": "Desktop users can set an app login password for better privacy."
+        },
+        "desktopImprovements": {
+          "title": "Installer, recurring transactions, and display fixes",
+          "description": "Improved desktop installation options, recurring transaction logic and UI, security updates, and PDF color/display issues."
+        }
+      }
+    },
+    "v054": {
+      "title": "Categories and manual What's New access",
+      "items": {
+        "categories": {
+          "title": "Transaction categories",
+          "description": "Organize income and expenses with predefined or custom categories."
+        },
+        "manualOpen": {
+          "title": "Manual What's New opening",
+          "description": "The modal can be opened manually from the app version area."
+        },
+        "responsiveLayout": {
+          "title": "Responsive layout improvements",
+          "description": "Improved modal layout on desktop and mobile, and limited email privacy notices to Web users."
+        }
+      }
+    },
+    "v051": {
+      "title": "Initial What's New release",
+      "items": {
+        "modal": {
+          "title": "What's New modal",
+          "description": "Added a multilingual modal that shows recent updates once per version."
+        },
+        "stability": {
+          "title": "Chomesh, performance, security, and stability",
+          "description": "Included updates for optional chomesh calculation, performance, security, and bug fixes."
+        }
+      }
+    },
+    "v050": {
+      "title": "Multi-currency Support & Conversion",
+      "items": {
+        "currencyConversion": {
+          "title": "Transactions in multiple currencies",
+          "description": "Added support for transactions in 12 currencies with automatic conversion to the user's default currency."
+        },
+        "defaultCurrency": {
+          "title": "Default currency setting",
+          "description": "Added a default currency preference and consistent amount display across the app."
+        },
+        "localizedFormatting": {
+          "title": "Localized amount formatting",
+          "description": "Improved currency display in Hebrew and English, including correct symbols and text direction."
+        }
+      }
+    },
+    "v049": {
+      "title": "Opening Balance and Chomesh Calculation",
+      "items": {
+        "openingBalance": {
+          "title": "Opening balance for maaser tracking",
+          "description": "Added the ability to set an initial debt or credit, so users can start using the app mid-year or after previous tracking."
+        },
+        "autoChomesh": {
+          "title": "Automatic chomesh calculation",
+          "description": "Added chomesh calculation support based on transaction type and user settings."
+        }
+      }
+    },
+    "v040": {
+      "title": "Bilingual Interface and New Landing Experience",
+      "items": {
+        "bilingualInterface": {
+          "title": "Hebrew and English across the app",
+          "description": "Added broad i18n infrastructure with RTL/LTR support and language switching."
+        },
+        "localizedDashboard": {
+          "title": "Localized dashboard and landing page",
+          "description": "Dashboard, home page, and core product copy were adapted for Hebrew and English."
+        }
+      }
+    },
+    "v030": {
+      "title": "Desktop Update System",
+      "items": {
+        "desktopUpdates": {
+          "title": "Update checks and installation",
+          "description": "Added the foundation for desktop updates, including version checks and update installation."
+        },
+        "releaseManagement": {
+          "title": "Structured release management",
+          "description": "Added release infrastructure with signing, installers, and version information for users."
+        }
+      }
+    },
+    "v029": {
+      "title": "Reminders and Notifications",
+      "items": {
+        "monthlyReminders": {
+          "title": "Monthly reminders",
+          "description": "Added the ability to receive monthly reminders about maaser status."
+        },
+        "desktopNotifications": {
+          "title": "Desktop notifications and autostart",
+          "description": "Desktop received system notification support and optional autostart behavior."
+        }
+      }
+    },
+    "v028": {
+      "title": "Halacha Library",
+      "items": {
+        "halachaLibrary": {
+          "title": "Built-in halacha page",
+          "description": "Added a dedicated halacha page with tabs, structured content, and easy navigation between topics."
+        },
+        "halachaContent": {
+          "title": "Expanded halacha content",
+          "description": "Added topic sections and common Q&A around maaser and chomesh."
+        }
+      }
+    },
+    "v026": {
+      "title": "Recurring Transactions",
+      "items": {
+        "recurringPage": {
+          "title": "Recurring transactions page",
+          "description": "Added a dedicated page for viewing, filtering, and managing recurring transactions."
+        },
+        "recurringEditing": {
+          "title": "Frequency and status management",
+          "description": "Added editing, status, and frequency controls for recurring transactions."
+        },
+        "recurringDesktop": {
+          "title": "Desktop support",
+          "description": "Recurring transactions were adapted for the local desktop app as well."
+        }
+      }
+    },
+    "v025": {
+      "title": "Desktop, Local Storage, and Backups",
+      "items": {
+        "desktopPersistence": {
+          "title": "Local SQLite persistence",
+          "description": "The desktop app gained a local storage layer for working without an internet connection."
+        },
+        "importExportBackup": {
+          "title": "Backup import and export",
+          "description": "Added backup export and import so data can move between environments and platforms."
+        }
+      }
+    }
+  }
+}

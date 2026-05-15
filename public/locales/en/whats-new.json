@@ -1,47 +1,26 @@
 {
   "title": "What's New in Version {{version}}",
-  "description": "Here are the recent improvements and new features we've added",
+  "description": "A highly requested TEN10 feature is here",
   "dismissButton": "Got it",
+  "historyButton": "Changelog",
   "dismissing": "Saving...",
-  "sections": {
-    "newFeatures": "New Features",
-    "improvements": "Improvements",
-    "important": "Important"
-  },
-  "features": {
-    "platformImport": {
-      "title": "Move data between Web and Desktop",
-      "description": "Import a TEN10 backup file and choose whether to replace your data or merge it with what you already have. Duplicate detection was added, and import speed is improved, especially on Desktop."
-    },
-    "analyticsPage": {
-      "badge": "Brand new",
-      "title": "Analytics Dashboard",
-      "description": "A new financial dashboard with insights, category breakdown, payment methods, donation recipients, recurring vs. one-time charts, and activity heatmap. Includes PDF export."
-    },
-    "analyticsPerformance": {
-      "title": "Faster Analytics Loading",
-      "description": "Analytics data loads significantly faster — changing date ranges feels much more instant"
-    },
-    "chomeshTracking": {
-      "badge": "By popular request",
-      "title": "Separate Chomesh Balance Tracking",
-      "description": "Track your chomesh balance separately from maaser. To enable: go to Settings → Financial Settings"
-    }
-  },
-  "improvements": {
-    "settingsSync": {
-      "title": "Automatic Settings Saving",
-      "description": "Settings are automatically saved and synced — no need to worry about losing them"
-    },
-    "bugFixes": {
-      "title": "Bug Fixes & Stability",
-      "description": "Fixed several bugs, including an issue with automatic recurring transactions"
-    }
-  },
-  "notices": {
-    "emailPrivacy": {
-      "title": "Your Email Privacy",
-      "description": "We never send emails without your consent. To receive updates and reminders, enable this in Settings. We promise not to spam or share your email with third parties"
+  "featured": {
+    "badge": "New in 0.7.0",
+    "title": "Import Transactions from Excel",
+    "description": "You can now import transactions from a CSV or Excel file with a guided flow: upload a file, map columns, review rows, and approve only what you want to save.",
+    "highlights": {
+      "files": {
+        "title": "CSV and Excel support",
+        "description": "Use the Ten10 template or upload your own spreadsheet with clear column headers."
+      },
+      "mapping": {
+        "title": "Smart column mapping",
+        "description": "Ten10 suggests mappings automatically, and you can adjust every column before continuing."
+      },
+      "review": {
+        "title": "Review before saving",
+        "description": "Nothing is saved until you review, select, and approve the rows for import."
+      }
     }
   }
 }

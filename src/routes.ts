@@ -83,6 +83,10 @@ const TransactionImportPage = lazyRouteComponent(
   () => import("./pages/TransactionImportPage"),
   "TransactionImportPage"
 );
+const ChangelogPage = lazyRouteComponent(
+  () => import("./pages/ChangelogPage"),
+  "ChangelogPage"
+);
 
 const rootRoute = createRootRoute({
   component: App,
@@ -159,6 +163,12 @@ const aboutRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/about",
   component: AboutPage,
+});
+
+const changelogRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/changelog",
+  component: ChangelogPage,
 });
 
 const profileRoute = createRoute({
@@ -288,6 +298,7 @@ const routeTree = rootRoute.addChildren([
   halachaRoute,
   settingsRoute,
   aboutRoute,
+  changelogRoute,
   profileRoute,
   analyticsRoute,
   loginRoute,

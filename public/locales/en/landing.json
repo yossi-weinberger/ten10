@@ -100,7 +100,7 @@
     "items": {
       "autoCalculation": {
         "title": "Automatic maaser & chomesh calculation",
-        "description": "Automatically calculates your maaser balance, with full support for chomesh (20%) — based on income, expenses, and donations"
+        "description": "Automatically calculates your maaser balance, with full chomesh (20%) support — including tracking chomesh separately from maaser"
       },
       "currencyConversion": {
         "title": "Multi-Currency Support & Conversion",
@@ -140,7 +140,7 @@
       },
       "dashboardInsights": {
         "title": "Dashboard & period insights",
-        "description": "A convenient dashboard to review transactions and summaries by week, month, or year"
+        "description": "Detailed breakdowns by category, payment method, and period — with charts, an activity heatmap, and PDF export"
       },
       "strictSecurity": {
         "title": "Strict security & privacy",
@@ -153,6 +153,14 @@
       "multiLanguage": {
         "title": "Hebrew & English Support",
         "description": "Full interface in both languages with easy switching between them"
+      },
+      "importSpreadsheet": {
+        "title": "Import from your bank or credit card",
+        "description": "Instead of entering transactions one by one — upload a CSV or Excel file from your bank, credit company, or the Ten10 template, and all transactions are created at once"
+      },
+      "backupRestore": {
+        "title": "Backup & restore your data",
+        "description": "Export all your data to a backup file and import it again — easily move between the web version and the desktop app"
       }
     }
   },
@@ -222,7 +230,7 @@
       },
       {
         "question": "Can I import existing data?",
-        "answer": "Yes! The system supports data export and import. You can export your data to a JSON file and import them between the computer software and website versions, so you can switch between them easily."
+        "answer": "Yes! You can import transactions directly from a CSV or Excel file using a guided wizard — upload, map columns, review, and approve. You can also export and import a JSON backup between the desktop and web versions."
       },
       {
         "question": "Can I use the system on mobile too?",
