@@ -95,7 +95,7 @@
     "required": "חובה",
     "errors": {
       "dateMissing": "יש למפות עמודת תאריך",
-      "amountMissing": "יש למפות עמודת סכום (או חיוב וזיכוי)",
+      "amountMissing": "יש למפות עמודת סכום, חיוב, או זיכוי",
       "duplicateTarget": "כל שדה Ten10 ניתן למיפוי פעם אחת בלבד",
       "amountAndDebitCredit": "לא ניתן למפות גם סכום וגם חיוב/זיכוי"
     }

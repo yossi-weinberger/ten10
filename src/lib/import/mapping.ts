@@ -114,8 +114,8 @@ export function validateMappings(
     errors.push("dateMissing");
   }
 
-  // amount or debit required
-  if (!hasAmount && !hasDebit) {
+  // amount, debit, or credit required (debit-only or credit-only files are valid)
+  if (!hasAmount && !hasDebit && !hasCredit) {
     errors.push("amountMissing");
   }
 

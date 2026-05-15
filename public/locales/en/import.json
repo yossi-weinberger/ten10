@@ -95,7 +95,7 @@
     "required": "Required",
     "errors": {
       "dateMissing": "You must map a Date column",
-      "amountMissing": "You must map an Amount column (or both Debit and Credit)",
+      "amountMissing": "You must map an Amount column, or a Debit column, or a Credit column",
       "duplicateTarget": "Each Ten10 field can only be mapped once",
       "amountAndDebitCredit": "Cannot map both Amount and Debit/Credit at the same time"
     }

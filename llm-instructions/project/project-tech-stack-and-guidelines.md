@@ -71,7 +71,7 @@ The application follows a clear strategy for handling text directionality:
   - **`recharts`**: Main charting library. Wrapped by shadcn/ui's `ChartContainer`/`ChartTooltipContent` in `src/components/ui/chart.tsx`. Supports area, bar, line, and pie charts.
 - **Unique IDs**:
   - **`nanoid`**: For generating unique identifiers (e.g., for transactions).
-- **Testing**: **Vitest** (`vitest`, `jsdom`) — unit tests for pure logic. Config: `vitest.config.ts`. Tests live in `__tests__/` subdirectories next to the code. Run: `npx vitest run`. Current tests cover `src/lib/import/` (parsers, normalize, validation).
+- **Testing**: **Vitest** (`vitest`, `jsdom`) — use for unit tests covering pure logic when test files are present in the branch. Run targeted tests with `npx vitest run <path>` or the full suite with `npx vitest run`. Verify the current branch's config and test layout before documenting specific test counts or paths.
 - **Linting**: **ESLint** - Configured in `eslint.config.js`. Ensure code adheres to the linting rules.
 - **Version Control**: **Git** - Project is managed using Git.
 

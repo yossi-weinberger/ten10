@@ -38,14 +38,8 @@ src/lib/import/
 ├── validation.ts                ← row status computation + donation rules
 ├── duplicate-detector.ts        ← fingerprint-based dedup (CSV-specific, not the JSON-backup deduper)
 ├── recurring-warning-detector.ts
-├── persist-approved-import.ts   ← Web (Supabase batch) + Desktop (Tauri) persistence
-│                                   also exports fetchExistingForDedup()
-└── __tests__/                   ← Vitest unit tests (147 tests across 5 files)
-    ├── parsers.test.ts
-    ├── normalize.test.ts        ← includes extended edge-case matrices for dates, amounts, currencies, types
-    ├── validation.test.ts
-    ├── pipeline-fixtures.test.ts ← end-to-end fixture tests (real CSV strings through full pipeline)
-    └── round-trip.test.ts       ← export → import round-trip integrity tests
+└── persist-approved-import.ts   ← Web (Supabase batch) + Desktop (Tauri) persistence
+                                    also exports import preview data fetch helpers
 
 src/components/import/
 ├── ImportWizard.tsx             ← 5-step wizard orchestrator (useReducer state machine)
@@ -243,9 +237,4 @@ Files: `public/locales/en/import.json`, `public/locales/he/import.json`
 
 ## Testing
 
-Vitest unit tests in `src/lib/import/__tests__/`:
-- `parsers.test.ts` — CSV parsing
-- `normalize.test.ts` — date/amount/currency normalization
-- `validation.test.ts` — status computation, donation rules
-
-Run: `npx vitest run src/lib/import/__tests__/`
+Use Vitest for pure import-pipeline logic when tests are present in the branch. Keep tests close to the import module and run the targeted suite with `npx vitest run <path-to-import-tests>`.

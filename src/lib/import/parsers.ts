@@ -143,7 +143,20 @@ async function inflateRaw(data: Uint8Array): Promise<Uint8Array> {
   return out;
 }
 
-/** Extract a named entry from a ZIP buffer; returns its text content or null. */
+/**
+ * Extract a named entry from a ZIP buffer; returns its text content or null.
+ *
+ * Limitation: this reader relies on the compressed size stored in the local
+ * file header (bytes 18–21). It does NOT handle the ZIP "data descriptor"
+ * case (general-purpose bit-flag bit 3 set), where those fields are zero and
+ * the real sizes appear after the data or in the central directory. Files
+ * created with streaming writers may trigger this path and return null.
+ * In practice, XLSX files produced by Excel, LibreOffice, or Google Sheets
+ * do not set this flag — they are generated non-streaming. This fallback
+ * path is only reached when exceljs itself is unavailable, so the risk is
+ * limited. If a user reports a valid XLSX that fails, parse the central
+ * directory to obtain the correct offsets/sizes instead.
+ */
 async function extractZipEntryText(bytes: Uint8Array, entryName: string): Promise<string | null> {
   let pos = 0;
   while (pos < bytes.length - 4) {
