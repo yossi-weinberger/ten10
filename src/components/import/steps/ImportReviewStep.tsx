@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, startTransition } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import type { ImportPreviewRow, ImportSummary } from "@/lib/import/import-session.types";
@@ -70,7 +70,7 @@ export function ImportReviewStep({
 
       {/* Bulk actions */}
       <div className="flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" onClick={onToggleAllReady}>
+        <Button variant="outline" size="sm" onClick={() => startTransition(onToggleAllReady)}>
           {t("review.actions.selectAllReady")}
         </Button>
         <Button variant="outline" size="sm" onClick={onClearSelection}>

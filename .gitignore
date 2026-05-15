@@ -66,6 +66,9 @@ android-build/local.properties
 *.jks
 android-build/android.keystore 
 
+# Import example files (local test data)
+import-example/
+
 .vercel
 .cursor/rules/charts-analytics/RULE.md
 .cursor/skills/ten10-financial-viz-architect/SKILL.md

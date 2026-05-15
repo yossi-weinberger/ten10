@@ -1,4 +1,4 @@
-import { useState, useCallback, memo, useOptimistic } from "react";
+import { useState, useCallback, memo, useOptimistic, startTransition, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
   TableBody,
@@ -15,17 +15,24 @@ import type { Transaction, RecurringTransaction } from "@/types/transaction";
 import { ImportRowStatusBadge } from "./ImportRowStatusBadge";
 import { ImportRowEditModal } from "./ImportRowEditModal";
 
+const fmtAmountCache = new Map<string, Intl.NumberFormat>();
+
 function fmtAmount(amount: number, currency: string): string {
-  try {
-    return new Intl.NumberFormat("he-IL", {
-      style: "currency",
-      currency,
-      maximumFractionDigits: 2,
-      minimumFractionDigits: 0,
-    }).format(amount);
-  } catch {
-    return `${currency} ${amount}`;
+  let fmt = fmtAmountCache.get(currency);
+  if (!fmt) {
+    try {
+      fmt = new Intl.NumberFormat("he-IL", {
+        style: "currency",
+        currency,
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 0,
+      });
+      fmtAmountCache.set(currency, fmt);
+    } catch {
+      return `${currency} ${amount}`;
+    }
   }
+  return fmt.format(amount);
 }
 
 function fmtDate(isoDate: string): string {
@@ -61,7 +68,9 @@ const ReviewTableRow = memo(function ReviewTableRow({
   const handleToggle = useCallback(
     (checked: boolean) => {
       setOptimisticApproved(checked);
-      onToggleApproval(row.id, checked);
+      startTransition(() => {
+        onToggleApproval(row.id, checked);
+      });
     },
     [row.id, onToggleApproval, setOptimisticApproved]
   );
@@ -78,26 +87,27 @@ const ReviewTableRow = memo(function ReviewTableRow({
     >
       {/* Checkbox */}
       <TableCell
-        className={`sticky start-0 text-center align-middle transition-colors shadow-[1px_0_0_0_hsl(var(--border))] ${
+        className={`sticky start-0 w-10 min-w-10 p-0 text-center align-middle transition-colors shadow-[1px_0_0_0_hsl(var(--border))] ${
           optimisticApproved ? "bg-primary/10" : "bg-background"
         }`}
       >
-        <Checkbox
-          checked={optimisticApproved}
-          disabled={isInvalid}
-          onCheckedChange={(checked) => handleToggle(!!checked)}
-          aria-label={`Row ${row.rowNumber}`}
-          className="block mx-auto"
-        />
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={optimisticApproved}
+            disabled={isInvalid}
+            onCheckedChange={(checked) => handleToggle(!!checked)}
+            aria-label={`Row ${row.rowNumber}`}
+          />
+        </div>
       </TableCell>
 
       {/* Row # */}
-      <TableCell className="text-muted-foreground text-xs tabular-nums" dir="ltr">
+      <TableCell className="text-center align-middle text-muted-foreground text-xs tabular-nums" dir="ltr">
         {row.rowNumber}
       </TableCell>
 
       {/* Status */}
-      <TableCell>
+      <TableCell className="text-center align-middle">
         <ImportRowStatusBadge status={row.status} />
       </TableCell>
 
@@ -107,7 +117,7 @@ const ReviewTableRow = memo(function ReviewTableRow({
       </TableCell>
 
       {/* Amount */}
-      <TableCell className="text-end whitespace-nowrap" dir="ltr">
+      <TableCell className="text-center align-middle whitespace-nowrap" dir="ltr">
         {row.normalized
           ? fmtAmount(row.normalized.amount, row.normalized.currency)
           : "—"}
@@ -151,11 +161,11 @@ const ReviewTableRow = memo(function ReviewTableRow({
       </TableCell>
 
       {/* Issues */}
-      <TableCell>
+      <TableCell className="text-center align-middle">
         {row.issues.length > 0 && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <button className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+              <button className="inline-flex items-center justify-center gap-1 text-xs text-amber-600 dark:text-amber-400">
                 <AlertTriangle className="h-3.5 w-3.5" />
                 {row.issues.length}
               </button>
@@ -177,12 +187,12 @@ const ReviewTableRow = memo(function ReviewTableRow({
       </TableCell>
 
       {/* Edit action */}
-      <TableCell>
+      <TableCell className="text-center align-middle">
         {!isInvalid && (
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="h-7 text-xs"
+            className="h-8 text-xs"
             onClick={() => onRequestEdit(row.id)}
           >
             {t("review.editRow")}
@@ -219,14 +229,22 @@ export function ImportReviewTable({
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
 
   // Select-all state: based on selectable (non-invalid) rows
-  const selectableRows = rows.filter((r) => r.status !== "invalid");
-  const approvedCount = selectableRows.filter((r) => r.approved).length;
+  const selectableRows = useMemo(
+    () => rows.filter((r) => r.status !== "invalid"),
+    [rows]
+  );
+  const approvedCount = useMemo(
+    () => selectableRows.filter((r) => r.approved).length,
+    [selectableRows]
+  );
   const allSelected = selectableRows.length > 0 && approvedCount === selectableRows.length;
   const someSelected = approvedCount > 0 && approvedCount < selectableRows.length;
 
   const handleSelectAll = useCallback(() => {
     const ids = selectableRows.map((r) => r.id);
-    onBulkToggle(ids, !allSelected);
+    startTransition(() => {
+      onBulkToggle(ids, !allSelected);
+    });
   }, [selectableRows, allSelected, onBulkToggle]);
   const editingRow = editingRowId
     ? (rows.find((r) => r.id === editingRowId) ?? null)
@@ -264,26 +282,26 @@ export function ImportReviewTable({
         >
           <thead className="sticky top-0 z-20 bg-background border-b-2 border-border [&_tr]:border-b">
             <tr>
-              <TableHead className="w-10 sticky start-0 bg-background z-30 text-center align-middle">
-                <Checkbox
-                  checked={allSelected}
-                  data-state={someSelected ? "indeterminate" : undefined}
-                  onCheckedChange={handleSelectAll}
-                  disabled={selectableRows.length === 0}
-                  aria-label={t("review.actions.selectAllReady")}
-                  className="block mx-auto"
-                />
+              <TableHead className="w-10 min-w-10 sticky start-0 bg-background z-30 p-0 text-center align-middle">
+                <div className="flex items-center justify-center">
+                  <Checkbox
+                    checked={someSelected ? "indeterminate" : allSelected}
+                    onCheckedChange={handleSelectAll}
+                    disabled={selectableRows.length === 0}
+                    aria-label={t("review.actions.selectAllSelectable")}
+                  />
+                </div>
               </TableHead>
-              <TableHead className="w-12 bg-background">
+              <TableHead className="w-12 bg-background text-center align-middle">
                 {t("review.columns.row")}
               </TableHead>
-              <TableHead className="bg-background">
+              <TableHead className="bg-background text-center align-middle">
                 {t("review.columns.status")}
               </TableHead>
               <TableHead className="bg-background">
                 {t("review.columns.date")}
               </TableHead>
-              <TableHead className="text-end bg-background">
+              <TableHead className="bg-background text-center align-middle">
                 {t("review.columns.amount")}
               </TableHead>
               <TableHead className="bg-background">
@@ -298,10 +316,10 @@ export function ImportReviewTable({
               <TableHead className="bg-background">
                 {t("review.columns.recipient")}
               </TableHead>
-              <TableHead className="bg-background">
+              <TableHead className="bg-background text-center align-middle">
                 {t("review.columns.issues")}
               </TableHead>
-              <TableHead className="w-24 bg-background" />
+              <TableHead className="w-24 bg-background text-center align-middle" />
             </tr>
           </thead>
 

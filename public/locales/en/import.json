@@ -89,7 +89,8 @@
       "type": "Type",
       "category": "Category",
       "recipient": "Recipient",
-      "payment_method": "Payment Method"
+      "payment_method": "Payment Method",
+      "is_chomesh": "Chomesh"
     },
     "required": "Required",
     "errors": {
@@ -99,9 +100,15 @@
       "amountAndDebitCredit": "Cannot map both Amount and Debit/Credit at the same time"
     }
   },
+  "importing": {
+    "loadingTitle": "Saving transactions",
+    "loadingDescription": "Writing approved rows to your account."
+  },
   "review": {
     "title": "Review Import",
     "processing": "Processing rows…",
+    "previewLoadingTitle": "Building import preview",
+    "previewLoadingDescription": "Checking duplicates, recurring matches, and row validation.",
     "summary": {
       "title": "Summary",
       "totalRows": "Total rows",
@@ -127,6 +134,7 @@
     },
     "actions": {
       "selectAllReady": "Select all ready",
+      "selectAllSelectable": "Select all selectable rows",
       "clearSelection": "Clear all",
       "showInvalidOnly": "Invalid only",
       "showWarningsOnly": "Warnings only"

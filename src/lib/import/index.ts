@@ -53,11 +53,26 @@ export async function buildPreviewRows(
   existingTransactions: Transaction[],
   recurringTransactions: RecurringTransaction[],
   onProgress?: (processed: number, total: number) => void
-): Promise<ImportPreviewRow[]> {
+): Promise<{ rows: ImportPreviewRow[]; dateRange: { from: string; to: string } | null }> {
   const existingFingerprints = buildExistingFingerprintSet(existingTransactions);
   const batchDeduper = buildBatchFingerprintSet();
+
+  // Pre-index recurring transactions by currency:type for O(1) lookup per row
+  const recurringIndex = new Map<string, RecurringTransaction[]>();
+  for (const rec of recurringTransactions) {
+    const key = `${rec.currency}:${rec.type}`;
+    const bucket = recurringIndex.get(key);
+    if (bucket) {
+      bucket.push(rec);
+    } else {
+      recurringIndex.set(key, [rec]);
+    }
+  }
+
   const results: ImportPreviewRow[] = [];
   const total = parsedFile.rows.length;
+  let dateFrom: string | null = null;
+  let dateTo: string | null = null;
 
   for (let offset = 0; offset < total; offset += BUILD_PREVIEW_CHUNK_SIZE) {
     const chunkEnd = Math.min(offset + BUILD_PREVIEW_CHUNK_SIZE, total);
@@ -77,8 +92,13 @@ export async function buildPreviewRows(
         const batchDupIssue = batchDeduper.check(normalized);
         if (batchDupIssue && !dupIssue) allIssues.push(batchDupIssue);
 
-        const recurringIssue = checkRecurringWarning(normalized, recurringTransactions);
+        const recurringCandidates = recurringIndex.get(`${normalized.currency}:${normalized.type}`) ?? [];
+        const recurringIssue = checkRecurringWarning(normalized, recurringCandidates);
         if (recurringIssue) allIssues.push(recurringIssue);
+
+        // Track date range for dedup scoping
+        if (!dateFrom || normalized.date < dateFrom) dateFrom = normalized.date;
+        if (!dateTo || normalized.date > dateTo) dateTo = normalized.date;
       }
 
       const status: ImportRowStatus = computeRowStatus({ normalized: normalized ?? undefined, issues: allIssues });
@@ -103,7 +123,10 @@ export async function buildPreviewRows(
     }
   }
 
-  return results;
+  return {
+    rows: results,
+    dateRange: dateFrom && dateTo ? { from: dateFrom, to: dateTo } : null,
+  };
 }
 
 /**

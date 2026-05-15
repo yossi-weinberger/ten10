@@ -32,6 +32,8 @@ export default defineConfig(() => {
       !isTauriBuild &&
         VitePWA({
           registerType: "autoUpdate",
+          // Disable SW in development — simpler debugging, no interception overhead.
+          devOptions: { enabled: false },
           // IMPORTANT:
           // We intentionally do NOT generate/inject a manifest here.
           // The app's single source of truth is the static `public/manifest.json`
@@ -55,6 +57,9 @@ export default defineConfig(() => {
                 handler: "NetworkOnly",
               },
             ],
+            // Ensure new SW takes control immediately on next load (no waiting).
+            skipWaiting: true,
+            clientsClaim: true,
           },
         }),
     ].filter(Boolean),

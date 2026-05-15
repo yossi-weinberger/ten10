@@ -1,8 +1,9 @@
-import { useReducer, useCallback, useMemo, useEffect } from "react";
+import { useReducer, useCallback, useMemo, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, ArrowRight, X, FileSpreadsheet, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils/index";
 import {
   Dialog,
@@ -14,6 +15,8 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useDonationStore } from "@/lib/store";
+import { clearCategoryCache } from "@/lib/data-layer/categories.service";
+import { clearPaymentMethodCache } from "@/lib/data-layer/paymentMethods.service";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import type {
   ColumnMapping,
@@ -23,7 +26,7 @@ import type {
   ParsedFile,
   MappingValidationError,
 } from "@/lib/import/import-session.types";
-import type { Transaction } from "@/types/transaction";
+import type { Transaction, RecurringTransaction } from "@/types/transaction";
 import {
   suggestMappings,
   validateMappings,
@@ -32,7 +35,10 @@ import {
   computeImportSummary,
   persistApprovedImport,
 } from "@/lib/import/index";
-import { fetchExistingForDedup } from "@/lib/import/persist-approved-import";
+import {
+  fetchExistingForDedup,
+  fetchRecurringForImport,
+} from "@/lib/import/persist-approved-import";
 import { FileUploadStep } from "./steps/FileUploadStep";
 import { ColumnMappingStep } from "./steps/ColumnMappingStep";
 import { ImportReviewStep } from "./steps/ImportReviewStep";
@@ -54,6 +60,7 @@ interface WizardState {
   mappingErrors: MappingValidationError[];
   previewRows: ImportPreviewRow[];
   existingTransactions: Transaction[];
+  recurringTransactions: RecurringTransaction[];
   isProcessingRows: boolean;
   isImporting: boolean;
   importResult: ImportResult | null;
@@ -66,6 +73,7 @@ type WizardAction =
   | { type: "UPDATE_MAPPING"; sourceColumn: string; targetField: ImportTargetField | null }
   | { type: "SET_MAPPING_ERRORS"; errors: MappingValidationError[] }
   | { type: "SET_EXISTING_TRANSACTIONS"; transactions: Transaction[] }
+  | { type: "SET_RECURRING_TRANSACTIONS"; transactions: RecurringTransaction[] }
   | { type: "SET_PREVIEW_ROWS"; rows: ImportPreviewRow[]; processing: boolean }
   | { type: "UPDATE_ROW"; id: string; updates: Partial<ImportPreviewRow> }
   | { type: "TOGGLE_APPROVAL"; id: string; approved: boolean }
@@ -86,6 +94,7 @@ const initialState: WizardState = {
   mappingErrors: [],
   previewRows: [],
   existingTransactions: [],
+  recurringTransactions: [],
   isProcessingRows: false,
   isImporting: false,
   importResult: null,
@@ -122,6 +131,9 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
     case "SET_EXISTING_TRANSACTIONS":
       return { ...state, existingTransactions: action.transactions };
 
+    case "SET_RECURRING_TRANSACTIONS":
+      return { ...state, recurringTransactions: action.transactions };
+
     case "SET_PREVIEW_ROWS":
       return {
         ...state,
@@ -151,7 +163,7 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
       return {
         ...state,
         previewRows: state.previewRows.map((r) =>
-          idSet.has(r.id) && r.status !== "invalid"
+          idSet.has(r.id) && r.status !== "invalid" && r.approved !== action.approved
             ? { ...r, approved: action.approved }
             : r
         ),
@@ -162,14 +174,16 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
       return {
         ...state,
         previewRows: state.previewRows.map((r) =>
-          r.status === "ready" ? { ...r, approved: true } : r
+          r.status === "ready" && !r.approved ? { ...r, approved: true } : r
         ),
       };
 
     case "CLEAR_SELECTION":
       return {
         ...state,
-        previewRows: state.previewRows.map((r) => ({ ...r, approved: false })),
+        previewRows: state.previewRows.map((r) =>
+          r.approved ? { ...r, approved: false } : r
+        ),
       };
 
     case "OPEN_CONFIRM":
@@ -200,6 +214,58 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
   }
 }
 
+interface ImportLoadingStateProps {
+  title: string;
+  description: string;
+  showSkeleton?: boolean;
+}
+
+function ImportLoadingState({ title, description, showSkeleton = true }: ImportLoadingStateProps) {
+  return (
+    <div
+      className="flex flex-col items-center justify-center gap-6 py-10"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <img
+        src="/logo/symbol.svg"
+        alt=""
+        aria-hidden="true"
+        className="h-12 w-12 animate-spin"
+      />
+      <div className="text-center space-y-1">
+        <p className="text-sm font-medium">{title}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+
+      {showSkeleton && (
+        <div className="w-full rounded-md border overflow-hidden">
+          <div className="grid grid-cols-[40px_48px_110px_1fr_110px_90px] gap-3 border-b bg-muted/40 px-3 py-2.5">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-4 w-full" />
+            ))}
+          </div>
+          <div className="divide-y">
+            {Array.from({ length: 5 }).map((_, rowIndex) => (
+              <div
+                key={rowIndex}
+                className="grid grid-cols-[40px_48px_110px_1fr_110px_90px] items-center gap-3 px-3 py-2.5"
+              >
+                <Skeleton className="h-4 w-4 justify-self-center" />
+                <Skeleton className="h-3.5 w-6 justify-self-center" />
+                <Skeleton className="h-6 w-20 justify-self-center rounded-full" />
+                <Skeleton className="h-3.5 w-full" />
+                <Skeleton className="h-3.5 w-16 justify-self-center" />
+                <Skeleton className="h-8 w-14 justify-self-center" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -213,6 +279,12 @@ export function ImportWizard() {
   const [state, dispatch] = useReducer(wizardReducer, initialState);
 
   const isRtl = i18n.dir() === "rtl";
+
+  // Preload the spinner logo so it is already cached when the loading state appears.
+  useEffect(() => {
+    const img = new Image();
+    img.src = "/logo/symbol.svg";
+  }, []);
 
   // Emit analytics on start
   useEffect(() => {
@@ -245,35 +317,88 @@ export function ImportWizard() {
     []
   );
 
-  const handleMappingNext = useCallback(async () => {
+  // Snapshot of params captured just before switching to the "processing" step.
+  // Using a ref avoids adding these to the useEffect dependency array since
+  // they don't change while the wizard is in the "processing" step.
+  const processingParamsRef = useRef<{
+    parsedFile: ParsedFile;
+    columnMappings: ColumnMapping[];
+    isTen10Template: boolean;
+    defaultCurrency: string;
+    platform: "web" | "desktop" | "loading";
+  } | null>(null);
+
+  const handleMappingNext = useCallback(() => {
     const validation = validateMappings(state.columnMappings);
     if (!validation.valid) {
       dispatch({ type: "SET_MAPPING_ERRORS", errors: validation.errors });
       return;
     }
 
-    dispatch({ type: "SET_MAPPING_ERRORS", errors: [] });
-    dispatch({ type: "SET_PREVIEW_ROWS", rows: [], processing: true });
-
-    trackProductEvent("transaction_import_mapping_completed", {
-      platform,
+    // Snapshot before the state change so the useEffect can read them safely.
+    processingParamsRef.current = {
+      parsedFile: state.parsedFile!,
+      columnMappings: state.columnMappings,
       isTen10Template: state.isTen10Template,
-    });
-
-    // Fetch existing transactions for duplicate detection
-    const existingTransactions = await fetchExistingForDedup(platform);
-    dispatch({ type: "SET_EXISTING_TRANSACTIONS", transactions: existingTransactions });
-
-    const rows = await buildPreviewRows(
-      state.parsedFile!,
-      state.columnMappings,
       defaultCurrency,
-      existingTransactions,
-      []
-    );
+      platform,
+    };
 
-    dispatch({ type: "SET_PREVIEW_ROWS", rows, processing: false });
+    dispatch({ type: "SET_MAPPING_ERRORS", errors: [] });
+    // isProcessingRows: true keeps step="mapping" and swaps the visible
+    // content to the loading skeleton. useEffect below does the heavy work
+    // AFTER the browser has painted the loading state.
+    dispatch({ type: "SET_PREVIEW_ROWS", rows: [], processing: true });
   }, [state.columnMappings, state.parsedFile, state.isTen10Template, defaultCurrency, platform]);
+
+  // Runs after isProcessingRows flips to true and the loading skeleton is
+  // painted. Heavy async work runs here so the browser has already rendered
+  // the loading state before anything blocks the JS thread.
+  useEffect(() => {
+    if (!state.isProcessingRows) return;
+    const params = processingParamsRef.current;
+    if (!params) return;
+
+    let cancelled = false;
+
+    async function runProcessing() {
+      const p = params!;
+
+      // Yield to the browser so the "processing" skeleton is painted before
+      // any synchronous blocking work begins.
+      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      if (cancelled) return;
+
+      trackProductEvent("transaction_import_mapping_completed", {
+        platform: p.platform,
+        isTen10Template: p.isTen10Template,
+      });
+
+      const [existingTransactions, recurringTransactions] = await Promise.all([
+        fetchExistingForDedup(p.platform, null),
+        fetchRecurringForImport(p.platform),
+      ]);
+
+      if (cancelled) return;
+      dispatch({ type: "SET_EXISTING_TRANSACTIONS", transactions: existingTransactions });
+      dispatch({ type: "SET_RECURRING_TRANSACTIONS", transactions: recurringTransactions });
+
+      const { rows } = await buildPreviewRows(
+        p.parsedFile,
+        p.columnMappings,
+        p.defaultCurrency as Parameters<typeof buildPreviewRows>[2],
+        existingTransactions,
+        recurringTransactions
+      );
+
+      if (cancelled) return;
+      processingParamsRef.current = null;
+      dispatch({ type: "SET_PREVIEW_ROWS", rows, processing: false });
+    }
+
+    runProcessing();
+    return () => { cancelled = true; };
+  }, [state.isProcessingRows]); // params are captured via ref — no other deps needed
 
   const handleToggleApproval = useCallback((id: string, approved: boolean) => {
     dispatch({ type: "TOGGLE_APPROVAL", id, approved });
@@ -313,6 +438,27 @@ export function ImportWizard() {
       );
 
       dispatch({ type: "IMPORT_DONE", result });
+
+      // Refresh data stores after successful import.
+      // Only setLastDbFetchTimestamp here — TransactionsTableDisplay calls
+      // fetchTransactions(true, platform) in its own useEffect on mount, which
+      // correctly uses the resolved platform from usePlatform(). Calling
+      // fetchTransactions here created a fire-and-forget race where a stale
+      // "web" platform value (PlatformContext OS-plugin fallback) could reach
+      // supabase.auth.getUser() on desktop, leaving an auth error in the store.
+      if (result.inserted > 0) {
+        useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
+
+        const hasNewCategories = state.previewRows.some(
+          (r) => r.approved && r.normalized?.category
+        );
+        if (hasNewCategories) clearCategoryCache();
+
+        const hasNewPaymentMethods = state.previewRows.some(
+          (r) => r.approved && r.normalized?.payment_method
+        );
+        if (hasNewPaymentMethods) clearPaymentMethodCache();
+      }
 
       trackProductEvent("transaction_import_completed", {
         platform,
@@ -357,14 +503,18 @@ export function ImportWizard() {
   );
 
   const approvedCount = summary.approved;
-  const riskyApproved = state.previewRows.filter(
-    (r) =>
-      r.approved &&
-      r.issues.some(
-        (i) =>
-          i.code === "possible_duplicate" || i.code === "possible_recurring"
-      )
-  ).length;
+  const riskyApproved = useMemo(
+    () =>
+      state.previewRows.filter(
+        (r) =>
+          r.approved &&
+          r.issues.some(
+            (i) =>
+              i.code === "possible_duplicate" || i.code === "possible_recurring"
+          )
+      ).length,
+    [state.previewRows]
+  );
 
   // ---------------------------------------------------------------------------
   // Step navigation helpers
@@ -372,7 +522,15 @@ export function ImportWizard() {
 
   const STEPS: WizardStep[] = ["prepare", "upload", "mapping", "review", "result"];
   const currentStepIndex = STEPS.indexOf(state.step);
-  const progressPercent = ((currentStepIndex) / (STEPS.length - 1)) * 100;
+  const progressPercent = (currentStepIndex / (STEPS.length - 1)) * 100;
+
+  // Separate animation keys so loaders get their own enter/exit, independent
+  // of the underlying step key — prevents re-rendering with stale state.
+  const animationKey = state.isProcessingRows
+    ? "__loading__"
+    : state.isImporting
+      ? "__importing__"
+      : state.step;
 
   function canGoBack() {
     return state.step !== "prepare" && state.step !== "result";
@@ -474,23 +632,29 @@ export function ImportWizard() {
       {/* Step content */}
       <Card>
         <CardContent className="p-4 md:p-6">
-          <AnimatePresence mode="wait">
+          {/*
+           * animationKey drives the fade-in of new content.
+           * No `exit` prop — exiting elements disappear immediately so they
+           * can never re-render with stale state and cause a white flash.
+           */}
+          <AnimatePresence>
             <motion.div
-              key={state.step}
-              initial={{ opacity: 0 }}
+              key={animationKey}
+              initial={animationKey === "__loading__" || animationKey === "__importing__"
+                ? { opacity: 1 }
+                : { opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
             >
-              {state.step === "prepare" && (
+              {animationKey === "prepare" && (
                 <PrepareStep onNext={() => dispatch({ type: "SET_STEP", step: "upload" })} />
               )}
 
-              {state.step === "upload" && (
+              {animationKey === "upload" && (
                 <FileUploadStep onFileParsed={handleFileParsed} />
               )}
 
-              {state.step === "mapping" && state.parsedFile && (
+              {animationKey === "mapping" && state.parsedFile && (
                 <ColumnMappingStep
                   parsedFile={state.parsedFile}
                   mappings={state.columnMappings}
@@ -500,7 +664,22 @@ export function ImportWizard() {
                 />
               )}
 
-              {state.step === "review" && (
+              {animationKey === "__loading__" && (
+                <ImportLoadingState
+                  title={t("review.previewLoadingTitle")}
+                  description={t("review.previewLoadingDescription")}
+                />
+              )}
+
+              {animationKey === "__importing__" && (
+                <ImportLoadingState
+                  title={t("importing.loadingTitle")}
+                  description={t("importing.loadingDescription")}
+                  showSkeleton={false}
+                />
+              )}
+
+              {animationKey === "review" && (
                 <ImportReviewStep
                   rows={state.previewRows}
                   summary={summary}
@@ -510,11 +689,11 @@ export function ImportWizard() {
                   onClearSelection={handleClearSelection}
                   onUpdateRow={handleUpdateRow}
                   existingTransactions={state.existingTransactions}
-                  recurringTransactions={[]}
+                  recurringTransactions={state.recurringTransactions}
                 />
               )}
 
-              {state.step === "result" && state.importResult && (
+              {animationKey === "result" && state.importResult && (
                 <ImportResultStep
                   result={state.importResult}
                   onImportAnother={handleReset}

@@ -1,10 +1,6 @@
 import type { ImportPreviewRow, ImportResult } from "./import-session.types";
 import type { Platform } from "@/contexts/PlatformContext";
-import type { Currency, Transaction } from "@/types/transaction";
-import { useDonationStore } from "@/lib/store";
-import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
-import { clearCategoryCache } from "@/lib/data-layer/categories.service";
-import { clearPaymentMethodCache } from "@/lib/data-layer/paymentMethods.service";
+import type { Currency, Transaction, RecurringTransaction } from "@/types/transaction";
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
 import { WEB_IMPORT_BATCH_SIZE } from "@/lib/data-layer/dataManagement/importPrepare";
@@ -13,27 +9,96 @@ import { nanoid } from "nanoid";
 /** Fields needed for deduplication — minimal fetch. */
 const DEDUP_FIELDS = "date,amount,currency,type,description,category";
 
+/** Fields needed for recurring-warning detection — minimal fetch. */
+const RECURRING_FIELDS = "id,status,currency,type,amount,frequency,day_of_month,description";
+
+type ImportDateRange = { from: string; to: string };
+
 /**
  * Fetch existing transactions with only the fields needed for duplicate detection.
  * Returns an empty array on any error so dedup degrades gracefully.
  */
-export async function fetchExistingForDedup(platform: Platform): Promise<Transaction[]> {
+export async function fetchExistingForDedup(
+  platform: Platform,
+  dateRange?: ImportDateRange | null
+): Promise<Transaction[]> {
   try {
     if (platform === "web") {
-      const { data, error } = await supabase
+      let query = supabase
         .from("transactions")
         .select(DEDUP_FIELDS);
+
+      if (dateRange) {
+        query = query.gte("date", dateRange.from).lte("date", dateRange.to);
+      }
+
+      // Limit to 5000 rows; Supabase default is 1000 which silently truncates.
+      // If the result hits this cap, dedup coverage is incomplete — log a warning.
+      const { data, error } = await query.limit(5000);
+      if (data && data.length >= 5000) {
+        logger.warn("fetchExistingForDedup: result may be truncated at 5000 rows — dedup coverage may be incomplete");
+      }
       if (error) throw error;
       return (data ?? []) as unknown as Transaction[];
     } else if (platform === "desktop") {
       const { invoke } = await import("@tauri-apps/api/core");
       const transactions = await invoke<Transaction[]>("export_transactions_handler", {
-        filters: {},
+        filters: {
+          search: null,
+          date_from: dateRange?.from ?? null,
+          date_to: dateRange?.to ?? null,
+          types: null,
+          payment_methods: null,
+          show_only: null,
+          recurring_statuses: null,
+          recurring_frequencies: null,
+        },
       });
       return transactions ?? [];
     }
   } catch (err) {
     logger.warn("fetchExistingForDedup: could not fetch existing transactions:", err);
+  }
+  return [];
+}
+
+/**
+ * Fetch recurring definitions that can trigger import review warnings.
+ * Returns an empty array on any error so recurring detection degrades gracefully.
+ */
+export async function fetchRecurringForImport(
+  platform: Platform
+): Promise<RecurringTransaction[]> {
+  try {
+    if (platform === "web") {
+      const { data, error } = await supabase
+        .from("recurring_transactions")
+        .select(RECURRING_FIELDS)
+        .in("status", ["active", "paused"]);
+      if (error) throw error;
+      return (data ?? []) as RecurringTransaction[];
+    } else if (platform === "desktop") {
+      const { invoke } = await import("@tauri-apps/api/core");
+      const recurring = await invoke<RecurringTransaction[]>(
+        "get_recurring_transactions_handler",
+        {
+          args: {
+            sorting: { field: "next_due_date", direction: "asc" },
+            filters: {
+              search: null,
+              statuses: ["active", "paused"],
+              types: null,
+              date_from: null,
+              date_to: null,
+              frequencies: null,
+            },
+          },
+        }
+      );
+      return recurring ?? [];
+    }
+  } catch (err) {
+    logger.warn("fetchRecurringForImport: could not fetch recurring transactions:", err);
   }
   return [];
 }
@@ -168,37 +233,6 @@ async function persistDesktop(rows: ImportPreviewRow[]): Promise<ImportResult> {
 }
 
 // ---------------------------------------------------------------------------
-// Post-import cache/store refresh
-// ---------------------------------------------------------------------------
-
-function refreshAfterImport(
-  platform: Platform,
-  rows: ImportPreviewRow[]
-): void {
-  // Trigger stats refresh
-  useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
-
-  // Refresh paginated transaction table
-  useTableTransactionsStore.getState().fetchTransactions(true, platform);
-
-  // Determine if any new categories were introduced
-  const hasNewCategories = rows.some(
-    (r) => r.approved && r.normalized?.category
-  );
-  if (hasNewCategories) {
-    clearCategoryCache();
-  }
-
-  // Determine if any new payment methods were introduced
-  const hasNewPaymentMethods = rows.some(
-    (r) => r.approved && r.normalized?.payment_method
-  );
-  if (hasNewPaymentMethods) {
-    clearPaymentMethodCache();
-  }
-}
-
-// ---------------------------------------------------------------------------
 // Main entry point
 // ---------------------------------------------------------------------------
 
@@ -215,10 +249,6 @@ export async function persistApprovedImport(
     result = await persistDesktop(rows);
   } else {
     throw new Error("Platform not ready");
-  }
-
-  if (result.inserted > 0) {
-    refreshAfterImport(platform, rows);
   }
 
   return result;

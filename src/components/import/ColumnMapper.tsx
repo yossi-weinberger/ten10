@@ -22,6 +22,7 @@ const TARGET_FIELDS: ImportTargetField[] = [
   "category",
   "recipient",
   "payment_method",
+  "is_chomesh",
 ];
 
 const NO_MAPPING_VALUE = "__none__";

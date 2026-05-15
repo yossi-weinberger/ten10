@@ -89,7 +89,8 @@
       "type": "סוג",
       "category": "קטגוריה",
       "recipient": "נמען",
-      "payment_method": "אמצעי תשלום"
+      "payment_method": "אמצעי תשלום",
+      "is_chomesh": "חומש"
     },
     "required": "חובה",
     "errors": {
@@ -99,9 +100,15 @@
       "amountAndDebitCredit": "לא ניתן למפות גם סכום וגם חיוב/זיכוי"
     }
   },
+  "importing": {
+    "loadingTitle": "שומר תנועות",
+    "loadingDescription": "כותב את השורות המאושרות לחשבון שלך."
+  },
   "review": {
     "title": "סקירת הייבוא",
     "processing": "מעבד שורות…",
+    "previewLoadingTitle": "בונה תצוגה מקדימה לייבוא",
+    "previewLoadingDescription": "בודק כפילויות, התאמות להוראות קבע ותקינות שורות.",
     "summary": {
       "title": "סיכום",
       "totalRows": "סה\"כ שורות",
@@ -127,6 +134,7 @@
     },
     "actions": {
       "selectAllReady": "בחר כל המוכנות",
+      "selectAllSelectable": "בחר את כל השורות שניתן לבחור",
       "clearSelection": "נקה הכל",
       "showInvalidOnly": "לא תקין בלבד",
       "showWarningsOnly": "אזהרות בלבד"
