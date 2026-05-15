@@ -128,8 +128,11 @@ async function inflateRaw(data: Uint8Array): Promise<Uint8Array> {
   const ds = new DecompressionStream("deflate-raw");
   const writer = ds.writable.getWriter();
   const reader = ds.readable.getReader();
-  writer.write(data);
-  writer.close();
+  // Cast required: Uint8Array generic is ArrayBufferLike in TS ≥5.7, but
+  // WritableStreamDefaultWriter.write() expects ArrayBufferView<ArrayBuffer>.
+  // In a browser/Tauri context the underlying buffer is always ArrayBuffer.
+  await writer.write(data as unknown as Uint8Array<ArrayBuffer>);
+  await writer.close();
   const chunks: Uint8Array[] = [];
   while (true) {
     const { done, value } = await reader.read();

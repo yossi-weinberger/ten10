@@ -749,7 +749,7 @@ export const TYPE_LOCALE_ALIASES: Record<string, TransactionType> = {
 export const BOOLEAN_TRUTHY_VALUES = ["yes", "true", "1", "כן"]; // Add: "oui", "ja", ...
 ```
 
-Column header aliases for new languages go in `FIELD_ALIASES` in `src/lib/import/mapping.ts`.
+Column header aliases for new languages go in `parsing.columnAliases` inside `public/locales/<lang>/import.json`. The `import-locale-aliases.ts` file aggregates them into `FIELD_ALIASES` automatically.
 
 See `llm-instructions/features/transactions/transaction-import-guide.md` → "Locale Aliases System" for full details.
 

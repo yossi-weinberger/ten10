@@ -112,7 +112,7 @@ Multi-sheet workbooks: returns `availableSheets`; UI asks user to select a sheet
 
 - `suggestMappings(headers)` — auto-detects English and Hebrew column names via aliases
 - `detectTen10Template(headers)` — if file matches Ten10 template, shows a "auto-mapped" banner
-- `validateMappings(mappings)` — errors: `date_missing`, `amount_missing`, `duplicate_target`, `amount_and_debit_credit`
+- `validateMappings(mappings)` — errors: `dateMissing`, `amountMissing`, `duplicateTarget`, `amountAndDebitCredit`
 - `date` and `amount` are **both required** (marked with `*` in UI)
 - Ten10 template headers (Hebrew & English) defined in `TEN10_TEMPLATE_HEADERS`
 
@@ -148,7 +148,7 @@ TYPE_LOCALE_ALIASES["הוצאה"] → "expense"
 ["yes", "true", "1", "כן"]
 ```
 
-**When adding a new language:** edit `import-locale-aliases.ts` only — `type-resolver.ts` and `normalize.ts` consume these arrays automatically. Column header aliases (for a new language) go in `FIELD_ALIASES` in `mapping.ts`.
+**When adding a new language:** add the locale's parsing strings to `public/locales/<lang>/import.json` under the `parsing` section. The `import-locale-aliases.ts` file builds `TYPE_LOCALE_ALIASES`, `BOOLEAN_TRUTHY_VALUES`, and `FIELD_ALIASES` (column header aliases) automatically from those locale files — `type-resolver.ts`, `normalize.ts`, and the mapping flow then consume them without any other code changes.
 
 ## Template Columns
 

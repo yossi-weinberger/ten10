@@ -52,7 +52,6 @@
     "@supabase/supabase-js": "^2.90.1",
     "@tanstack/react-router": "^1.147.3",
     "@tanstack/react-table": "^8.21.3",
-    "@tanstack/react-virtual": "^3.13.24",
     "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-autostart": "^2.5.1",
     "@tauri-apps/plugin-dialog": "^2.6.0",
