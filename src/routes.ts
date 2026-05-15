@@ -2,6 +2,8 @@ import {
   createRouter,
   createRootRoute,
   createRoute,
+  createHashHistory,
+  createBrowserHistory,
   redirect,
   lazyRouteComponent,
 } from "@tanstack/react-router";
@@ -305,7 +307,17 @@ const routeTree = rootRoute.addChildren([
   ]),
 ]);
 
-export const router = createRouter({ routeTree });
+// Use hash history on Tauri desktop so that refreshing on a nested route
+// (e.g. /transactions-table/import) always loads from tauri://localhost/
+// instead of triggering the MIME-type error caused by relative asset paths.
+// On web, browser history is used unchanged.
+const isTauri =
+  typeof window !== "undefined" &&
+  !!(window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__;
+
+const history = isTauri ? createHashHistory() : createBrowserHistory();
+
+export const router = createRouter({ routeTree, history });
 
 declare module "@tanstack/react-router" {
   interface Register {
