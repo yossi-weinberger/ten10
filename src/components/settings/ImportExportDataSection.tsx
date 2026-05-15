@@ -25,6 +25,7 @@ export function ImportExportDataSection({
 }: ImportExportDataSectionProps) {
   const { t } = useTranslation("settings");
   const { t: tCommon } = useTranslation("common");
+
   return (
     <Card className={className}>
       <CardHeader>
@@ -66,3 +67,4 @@ export function ImportExportDataSection({
     </Card>
   );
 }
+

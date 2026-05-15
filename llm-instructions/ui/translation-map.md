@@ -168,16 +168,21 @@
 
 ## סיכום מלא - Namespaces
 
-| Namespace      | תיאור                   | קבצים             | סטטוס |
-| :------------- | :---------------------- | :---------------- | :---- |
-| `common`       | טקסטים כלליים           | common.json       | ✅    |
-| `navigation`   | תפריט ניווט             | navigation.json   | ✅    |
-| `dashboard`    | דף הבית וסטטיסטיקות     | dashboard.json    | ✅    |
-| `transactions` | טפסי תנועות             | transactions.json | ✅    |
-| `data-tables`  | טבלאות ונתונים          | data-tables.json  | ✅    |
-| `settings`     | דף הגדרות               | settings.json     | ✅    |
-| `auth`         | התחברות ופרופיל         | auth.json         | ✅    |
-| `about`        | דפי אודות וניתוח נתונים | about.json        | ✅    |
-| `halacha-*`    | דף הלכות (6 קבצים)      | halacha-\*.json   | ✅    |
+| Namespace      | תיאור                   | קבצים             | סטטוס | טעינה |
+| :------------- | :---------------------- | :---------------- | :---- | :----- |
+| `common`       | טקסטים כלליים           | common.json       | ✅    | bundled |
+| `navigation`   | תפריט ניווט             | navigation.json   | ✅    | bundled |
+| `dashboard`    | דף הבית וסטטיסטיקות     | dashboard.json    | ✅    | bundled |
+| `transactions` | טפסי תנועות             | transactions.json | ✅    | bundled |
+| `auth`         | התחברות ופרופיל         | auth.json         | ✅    | bundled |
+| `contact`      | טופס יצירת קשר          | contact.json      | ✅    | bundled |
+| `currency-features` | תכונות מטבע        | currency-features.json | ✅ | bundled |
+| `import`       | ייבוא תנועות מגיליון    | import.json       | ✅    | **bundled** (נתיב ראשי) |
+| `data-tables`  | טבלאות ונתונים          | data-tables.json  | ✅    | lazy |
+| `settings`     | דף הגדרות               | settings.json     | ✅    | lazy |
+| `about`        | דפי אודות וניתוח נתונים | about.json        | ✅    | lazy |
+| `halacha-*`    | דף הלכות (6 קבצים)      | halacha-\*.json   | ✅    | lazy |
+
+**הערה**: Namespaces המסומנים **bundled** נטענים מיידית עם האפליקציה (מוגדרים ב-`src/lib/i18n.ts`). שאר הnamespaces נטענים lazily על ידי HTTP backend בעת הצורך.
 
 **🎉 המערכת מוכנה לחלוטין עם תמיכה דו-לשונית מלאה! 🎉**

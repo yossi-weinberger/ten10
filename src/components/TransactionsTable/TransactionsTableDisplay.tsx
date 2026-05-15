@@ -6,6 +6,7 @@ import { usePlatform } from "@/contexts/PlatformContext";
 import { Table, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { TransactionsFilters } from "./TransactionsFilters";
 import { ExportButton } from "./ExportButton";
+import { Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -39,6 +40,7 @@ type Transaction = import("@/types/transaction").Transaction;
 
 export function TransactionsTableDisplay() {
   const { t, i18n } = useTranslation("data-tables");
+  const { t: tImport } = useTranslation("import");
 
   // sortableColumns definition with translations
   const sortableColumns: { label: string; field: SortableField }[] = [
@@ -280,8 +282,21 @@ export function TransactionsTableDisplay() {
     <div className="space-y-4">
       <TransactionsFilters />
 
-      <div className="flex justify-between items-center gap-4 mb-4">
-        <ExportButton />
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportButton />
+          <Button
+            variant="outline"
+            onClick={() => navigate({ to: "/transactions-table/import" })}
+            className="gap-1.5"
+          >
+            <Upload className="h-4 w-4" />
+            {t("buttons.importTransactions")}
+            <span className="ms-0.5 inline-flex h-4 items-center rounded-full bg-primary px-1.5 text-[9px] font-bold uppercase leading-none text-primary-foreground">
+              {tImport("newBadge")}
+            </span>
+          </Button>
+        </div>
         <Button
           onClick={() =>
             navigate({ to: "/transactions-table/recurring-transactions" })

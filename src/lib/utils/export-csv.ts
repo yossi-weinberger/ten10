@@ -70,7 +70,7 @@ export async function exportTransactionsToCSV(
   ];
 
   const csvRows = [
-    headers.join(","), // Header row
+    headers.map(escapeCsvCell).join(","), // Header row
     ...transactions.map((transaction) => {
       // Use Transaction fields instead of recurring_info
       const isRecurring = !!(

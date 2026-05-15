@@ -731,6 +731,28 @@ The following sections detail necessary changes for specific components and page
   - [ ] Dates are displayed in the correct format for the selected language.
   - [ ] Currency is displayed in the correct format for the selected language/currency settings.
 
+## VI. Import Pipeline — Separate Locale Alias Registry
+
+The transaction import pipeline does **not** use i18n for parsing incoming files. It maintains its own locale-string registry in `src/lib/import/import-locale-aliases.ts`.
+
+**Why separate?** i18n translates keys → display strings (one direction). Import parsing needs the reverse: arbitrary strings from user files → internal values. These are different responsibilities and must remain decoupled.
+
+```typescript
+// import-locale-aliases.ts — the single place to edit when adding a language to import support
+export const TYPE_LOCALE_ALIASES: Record<string, TransactionType> = {
+  income: "income", הכנסה: "income", credit: "income",
+  expense: "expense", הוצאה: "expense", debit: "expense",
+  donation: "donation", תרומה: "donation", charity: "donation",
+  // Add new locale here: revenu: "income", dépense: "expense", ...
+};
+
+export const BOOLEAN_TRUTHY_VALUES = ["yes", "true", "1", "כן"]; // Add: "oui", "ja", ...
+```
+
+Column header aliases for new languages go in `parsing.columnAliases` inside `public/locales/<lang>/import.json`. The `import-locale-aliases.ts` file aggregates them into `FIELD_ALIASES` automatically.
+
+See `llm-instructions/features/transactions/transaction-import-guide.md` → "Locale Aliases System" for full details.
+
 ## VI. Documentation References
 
 - **i18next:** [https://www.i18next.com/](https://www.i18next.com/)

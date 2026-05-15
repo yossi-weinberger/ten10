@@ -43,6 +43,13 @@ interface TransactionFormProps {
   isEditMode?: boolean;
   onSubmitSuccess?: () => void; // Callback after successful submission
   onCancel?: () => void; // Callback for cancel action
+  /**
+   * When provided, replaces the DB save entirely.
+   * Called with the validated + currency-converted form values.
+   * The caller is responsible for closing the form/modal.
+   * All existing callers that do NOT pass this prop are unaffected.
+   */
+  onOverrideSubmit?: (data: TransactionFormValues) => void | Promise<void>;
 }
 
 const backgroundStyles: Record<TransactionType, string> = {
@@ -60,6 +67,7 @@ export function TransactionForm({
   isEditMode = false,
   onSubmitSuccess,
   onCancel,
+  onOverrideSubmit,
 }: TransactionFormProps) {
   const { t } = useTranslation("transactions");
   const { platform } = usePlatform();
@@ -249,6 +257,14 @@ export function TransactionForm({
         submissionValues.conversion_rate = null;
         submissionValues.conversion_date = null;
         submissionValues.rate_source = null;
+    }
+
+    // Override path: bypass all DB writes and hand data to the caller.
+    // All existing callers that don't pass onOverrideSubmit are unaffected.
+    if (onOverrideSubmit) {
+      await onOverrideSubmit(submissionValues);
+      onSubmitSuccess?.();
+      return;
     }
 
     if (isEditMode) {

@@ -97,7 +97,7 @@
   },
   "importExport": {
     "exportTitle": "ייצוא נתונים",
-    "exportDescription": "ייצא את כל נתוני האפליקציה לקובץ",
+    "exportDescription": "ייצא את כל נתוני האפליקציה לקובץ JSON — שימושי למעבר בין פלטפורמות (דסקטופ ↔ ווב) או לגיבוי מלא.",
     "exportButton": "ייצא נתונים",
     "exporting": "מייצא נתונים...",
     "importTitle": "ייבוא נתונים",

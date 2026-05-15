@@ -5,7 +5,7 @@ This document outlines the main technologies and conventions used in this projec
 ## Core Technologies
 
 - **Language**: **TypeScript** - All new code should be written in TypeScript.
-- **Frontend Library**: **React** (v18) - Utilize functional components and Hooks.
+- **Frontend Library**: **React** (v19) - Utilize functional components and Hooks. Includes `useOptimistic` and `useTransition` for optimistic UI patterns.
 - **Desktop Application**: **Tauri (v2)** - For building a cross-platform desktop application from the React codebase. Requires Rust knowledge for the backend part (`src-tauri`).
   - **Tauri Plugins Used**:
     - `@tauri-apps/plugin-os`: For platform detection.
@@ -62,7 +62,7 @@ The application follows a clear strategy for handling text directionality:
   - **`exceljs`**: For generating Excel files.
   - **`pdf-lib`** + **`@pdf-lib/fontkit`**: For generating PDF files with embedded fonts (Rubik). Used for both the Transactions Table PDF and the Analytics page PDF.
   - **`html-to-image`**: For capturing rendered React/Recharts DOM elements as PNG images, then embedding them in the Analytics PDF. Uses a double-call pattern to prime SVG/font cache before the actual capture.
-  - **`papaparse`**: For generating CSV files (where used; transactions CSV is built manually with BOM for Excel UTF-8).
+  - **`papaparse`**: **Not used** — the project does NOT use papaparse. Transaction CSV export is built manually with BOM for Excel UTF-8 compatibility. The transaction import CSV parser (`src/lib/import/parsers.ts`) is a custom lightweight implementation that handles quoted fields, multiple delimiters, and Hebrew text without any external library.
   - **Desktop save vs web download**: `src/lib/utils/save-export-file.ts` exports `saveOrDownloadExportedFile()`. On **`desktop`**, it uses `dialog.save()` + `fs.writeFile` so the user picks path and filename (same pattern as Analytics PDF). On **`web`**, it triggers a browser download via `Blob` + `<a download>`. Used by `export-csv.ts`, `export-excel.ts`, and `export-pdf.ts` (transactions report). Analytics PDF (`src/lib/analytics/export-pdf.ts`) uses the same Tauri APIs inline inside `generateAnalyticsPdf`.
 - **Animations**:
   - **`framer-motion`**: Used for entrance animations, tab content transitions (`AnimatePresence mode="wait"`), and animated counters support.
@@ -71,6 +71,7 @@ The application follows a clear strategy for handling text directionality:
   - **`recharts`**: Main charting library. Wrapped by shadcn/ui's `ChartContainer`/`ChartTooltipContent` in `src/components/ui/chart.tsx`. Supports area, bar, line, and pie charts.
 - **Unique IDs**:
   - **`nanoid`**: For generating unique identifiers (e.g., for transactions).
+- **Testing**: **Vitest** (`vitest`, `jsdom`) — use for unit tests covering pure logic when test files are present in the branch. Run targeted tests with `npx vitest run <path>` or the full suite with `npx vitest run`. Verify the current branch's config and test layout before documenting specific test counts or paths.
 - **Linting**: **ESLint** - Configured in `eslint.config.js`. Ensure code adheres to the linting rules.
 - **Version Control**: **Git** - Project is managed using Git.
 

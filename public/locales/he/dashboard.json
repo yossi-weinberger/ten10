@@ -149,14 +149,14 @@
       "topCategory": "הקטגוריה הגדולה ביותר: {{category}} — {{amount}} ({{percentage}}% מהוצאות)",
       "topCategoryExpense": "קטגוריית הוצאות מובילה: {{category}} — {{amount}} ({{percentage}}% מהוצאות)",
       "topCategoryIncome": "קטגוריית הכנסות מובילה: {{category}} — {{amount}} ({{percentage}}% מהכנסות)",
-      "noCategories": "הוסף קטגוריות לעסקאות לקבל תובנות מדויקות יותר",
+      "noCategories": "הוסף קטגוריות תנועות לקבל תובנות מדויקות יותר",
       "noData": "אין מספיק נתונים לתובנות בתקופה זו"
     },
     "insightsSummary": {
       "savingsRate": "שיעור חיסכון",
       "savingsRateTooltip": "כמה אחוז מהכנסות הטווח נשאר לאחר כל ההוצאות — 20% ומעלה נחשב חיסכון טוב",
       "recurringPct": "הוצאות קבועות",
-      "recurringPctTooltip": "סכום חודשי של הוראות הקבע הפעילות, מחולק בסך ההוצאות בטווח. שונה מהגרף 'קבוע מול חד-פעמי' שמציג כמה עסקאות בפועל נוצרו מהוראת קבע",
+      "recurringPctTooltip": "סכום חודשי של הוראות הקבע הפעילות, מחולק בסך ההוצאות בטווח. שונה מהגרף 'קבוע מול חד-פעמי' שמציג כמה תנועות בפועל נוצרו מהוראת קבע",
       "periodComparison": "שינוי הכנסות",
       "periodComparisonTooltip": "שינוי בהכנסות לעומת תקופה שווה שקדמה לטווח הנוכחי",
       "periodComparisonTooltipWithDates": "שינוי הכנסות לעומת התקופה הקודמת ({{prevStart}}–{{prevEnd}})",
@@ -172,11 +172,11 @@
       "recurringOf": "{{recurring}} מתוך {{total}} קבוע"
     },
       "heatmap": {
-      "title": "פעילות עסקאות",
-      "subtitle": "ריכוז עסקאות לפי יום לאורך ההיסטוריה",
+      "title": "פעילות תנועות",
+      "subtitle": "ריכוז תנועות לפי יום לאורך ההיסטוריה",
       "typeAll": "כל הסוגים",
-      "tooltip": "{{date}}: {{count}} עסקאות, {{amount}}",
-      "noData": "אין עסקאות בתקופה זו",
+      "tooltip": "{{date}}: {{count}} תנועות, {{amount}}",
+      "noData": "אין תנועות בתקופה זו",
       "legendLow": "פחות",
       "legendHigh": "יותר",
       "weekdays": ["א'", "ב'", "ג'", "ד'", "ה'", "ו'", "ש'"]

@@ -60,7 +60,7 @@ function App() {
   const desktopInitDone = useRef(false);
 
   const { platform } = usePlatform();
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const { isTWA } = useTWA();
   const { user } = useAuth();
   const { i18n, t } = useTranslation();
@@ -108,6 +108,19 @@ function App() {
       (i18n as any).changeLanguage(settings.language);
     }
   }, [_hasHydrated, settings.language, i18n]);
+
+  // Synchronize ThemeProvider with Zustand store after hydration.
+  // This handles the case where syncPreferences pulls a theme from the DB on login
+  // (e.g. first load in incognito / new browser) and updates Zustand, but the
+  // ThemeProvider still holds the browser-local default.
+  useEffect(() => {
+    if (_hasHydrated && settings.theme !== theme) {
+      logger.log(
+        `[theme-sync] Synchronizing theme: ThemeProvider=${theme}, Zustand=${settings.theme}`
+      );
+      setTheme(settings.theme);
+    }
+  }, [_hasHydrated, settings.theme, theme]); // setTheme omitted: not stable, changes only when theme changes (already in deps)
 
   useEffect(() => {
     document.documentElement.dir = i18n.dir();

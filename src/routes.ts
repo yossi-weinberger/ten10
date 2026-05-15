@@ -2,6 +2,8 @@ import {
   createRouter,
   createRootRoute,
   createRoute,
+  createHashHistory,
+  createBrowserHistory,
   redirect,
   lazyRouteComponent,
 } from "@tanstack/react-router";
@@ -76,6 +78,10 @@ const AccessibilityPage = lazyRouteComponent(
 const AdminDashboardPage = lazyRouteComponent(
   () => import("./pages/AdminDashboardPage"),
   "AdminDashboardPage"
+);
+const TransactionImportPage = lazyRouteComponent(
+  () => import("./pages/TransactionImportPage"),
+  "TransactionImportPage"
 );
 
 const rootRoute = createRootRoute({
@@ -185,6 +191,12 @@ const recurringTransactionsRoute = createRoute({
   component: RecurringTransactionsTable,
 });
 
+const transactionImportRoute = createRoute({
+  getParentRoute: () => transactionsTableRoute,
+  path: "/import",
+  component: TransactionImportPage,
+});
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
@@ -260,7 +272,7 @@ const adminRoute = createRoute({
     try {
       const { error } = await supabase.rpc("get_admin_dashboard_stats");
       if (error) throw error;
-    } catch (error) {
+    } catch {
       // Redirect to home if not admin
       throw redirect({
         to: "/",
@@ -291,10 +303,21 @@ const routeTree = rootRoute.addChildren([
   transactionsTableRoute.addChildren([
     transactionsTableIndexRoute,
     recurringTransactionsRoute,
+    transactionImportRoute,
   ]),
 ]);
 
-export const router = createRouter({ routeTree });
+// Use hash history on Tauri desktop so that refreshing on a nested route
+// (e.g. /transactions-table/import) always loads from tauri://localhost/
+// instead of triggering the MIME-type error caused by relative asset paths.
+// On web, browser history is used unchanged.
+const isTauri =
+  typeof window !== "undefined" &&
+  !!(window as Window & { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__;
+
+const history = isTauri ? createHashHistory() : createBrowserHistory();
+
+export const router = createRouter({ routeTree, history });
 
 declare module "@tanstack/react-router" {
   interface Register {

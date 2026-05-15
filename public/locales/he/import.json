@@ -1,0 +1,250 @@
+{
+  "title": "ייבוא תנועות",
+  "subtitle": "ייבוא תנועות מקובץ CSV או Excel",
+  "entryButton": "ייבוא תנועות",
+  "newBadge": "חדש",
+  "addPageBanner": "יש לך קובץ תנועות? ייבא מגיליון CSV או Excel",
+  "steps": {
+    "prepare": "הכנה",
+    "upload": "העלאה",
+    "mapping": "מיפוי עמודות",
+    "review": "סקירה",
+    "result": "סיום"
+  },
+  "prepare": {
+    "title": "הכנה לייבוא",
+    "description": "ייבוא תנועות מגיליון CSV או Excel בכמה שלבים פשוטים.",
+    "templateTitle": "תבנית Ten10 (אופציונלי)",
+    "templateDescription": "הורד את הגיליון לדוגמה — הוא מכיל את כל העמודות שTen10 מזהה. אחרי שמלאת, העלה אותו כאן. המערכת תמפה אוטומטית את העמודות.",
+    "templateDownload": "הורד תבנית",
+    "supported": "נתמך",
+    "notSupported": "לא נתמך",
+    "privacyNote": "תוכן הקובץ מעובד מקומית בסשן זה ואינו נשמר לפני אישורך.",
+    "checklistTitle": "כמה דברים שכדאי לדעת לפני שמתחילים",
+    "checklistItem1": "הקובץ לא מועלה לשרת — הניתוח מתבצע בדפדפן, והנתונים נשמרים רק אחרי אישורך הסופי",
+    "checklistItem2": "לא נשמר דבר עד שתסקור את השורות ותאשר בעצמך",
+    "checklistItem3": "עמודות תאריך וסכום הן חובה — כל השאר אופציונלי",
+    "checklistItem4": "יש תבנית Ten10 מוכנה להורדה — לא חובה, כל CSV/XLSX עם כותרות ברורות יעבוד",
+    "formatsTitle": "פורמטים נתמכים",
+    "csvDesc": "כל קובץ CSV עם כותרות עמודות",
+    "xlsxDesc": "Excel חדש (.xlsx)",
+    "xlsDesc": "Excel ישן — שמור כ-.xlsx",
+    "pdfDesc": "קבצי PDF ותמונות",
+    "ownFileHint": "אין צורך בתבנית — אם לקובץ יש כותרות ברורות, המערכת תנסה למפות אוטומטית.",
+    "columns": {
+      "title": "עמודות התבנית",
+      "date": "תאריך (חובה) – YYYY-MM-DD או DD/MM/YYYY",
+      "amount": "סכום (חובה) – מספר חיובי או שלילי",
+      "description": "תיאור – טקסט חופשי",
+      "currency": "מטבע – ברירת מחדל: המטבע שלך אם לא צוין",
+      "type": "סוג – income, expense, או donation",
+      "category": "קטגוריה",
+      "payment_method": "אמצעי תשלום"
+    },
+    "mappingDescription": "בשלב זה תוכל לקשר בין עמודות הקובץ שלך לבין שדות Ten10. תאריך וסכום הם חובה."
+  },
+  "upload": {
+    "title": "העלאת קובץ",
+    "dropzone": "גרור קובץ לכאן, או לחץ להעלאה",
+    "dropzoneActive": "שחרר את הקובץ לייבוא...",
+    "acceptedFormats": "CSV או Excel (.xlsx)",
+    "maxSize": "עד {{size}} MB, {{rows}} שורות",
+    "limitSize": "עד {{size}} MB",
+    "limitRows": "עד {{rows}} שורות",
+    "selectedFile": "נבחר: {{name}}",
+    "errors": {
+      "tooLarge": "הקובץ גדול מדי (עד {{size}} MB)",
+      "tooManyRows": "הקובץ מכיל יותר מדי שורות (עד {{rows}} שורות)",
+      "unsupportedFormat": "פורמט קובץ לא נתמך. השתמש ב-.csv או .xlsx",
+      "xlsNotSupported": "קבצי .xls אינם נתמכים. שמור כ-.xlsx",
+      "parseError": "לא ניתן לקרוא את הקובץ. ודא שהוא קובץ CSV או Excel תקין.",
+      "noData": "הקובץ אינו מכיל שורות נתונים",
+      "noHeaders": "לא ניתן לזהות כותרות עמודות"
+    },
+    "sheetSelect": {
+      "title": "בחר גיליון",
+      "description": "חוברת עבודה זו מכילה מספר גיליונות. בחר את הגיליון לייבוא.",
+      "confirm": "השתמש בגיליון זה"
+    }
+  },
+  "mapping": {
+    "title": "מיפוי עמודות",
+    "description": "קשר בין כל עמודה בקובץ שלך לשדה המתאים ב-Ten10. עמודות מסומנות בכוכבית הן חובה.",
+    "whatIsMapping": "כאן מחברים כל עמודה בקובץ לשדה המתאים ב-Ten10. בדוק את ההצעות ותקן לפי הצורך.",
+    "hint": "Ten10 ניסה למפות אוטומטית — בדוק שהמיפוי נכון ותקן לפי הצורך.",
+    "sourceColumn": "עמודה בקובץ",
+    "targetField": "שדה Ten10",
+    "sampleLabel": "לדוגמה:",
+    "sampleColumnHeader": "מהקובץ",
+    "sampleValues": "דוגמאות",
+    "noMapping": "— דלג על עמודה —",
+    "ten10TemplateDetected": "זוהתה תבנית Ten10 — עמודות מופו אוטומטית. בדוק ותקן לפי הצורך.",
+    "fields": {
+      "date": "תאריך",
+      "amount": "סכום",
+      "debit": "חיוב",
+      "credit": "זיכוי",
+      "description": "תיאור",
+      "currency": "מטבע",
+      "type": "סוג",
+      "category": "קטגוריה",
+      "recipient": "נמען",
+      "payment_method": "אמצעי תשלום",
+      "is_chomesh": "חומש"
+    },
+    "required": "חובה",
+    "errors": {
+      "dateMissing": "יש למפות עמודת תאריך",
+      "amountMissing": "יש למפות עמודת סכום, חיוב, או זיכוי",
+      "duplicateTarget": "כל שדה Ten10 ניתן למיפוי פעם אחת בלבד",
+      "amountAndDebitCredit": "לא ניתן למפות גם סכום וגם חיוב/זיכוי"
+    }
+  },
+  "importing": {
+    "loadingTitle": "שומר תנועות",
+    "loadingDescription": "כותב את השורות המאושרות לחשבון שלך."
+  },
+  "review": {
+    "title": "סקירת הייבוא",
+    "processing": "מעבד שורות…",
+    "previewLoadingTitle": "בונה תצוגה מקדימה לייבוא",
+    "previewLoadingDescription": "בודק כפילויות, התאמות להוראות קבע ותקינות שורות.",
+    "summary": {
+      "title": "סיכום",
+      "totalRows": "סה\"כ שורות",
+      "readyRows": "מוכן לייבוא",
+      "invalidRows": "לא תקין",
+      "needsReviewRows": "דורש בדיקה",
+      "needsReviewBreakdown": "מתוכם: {{duplicates}} כפילויות, {{recurring}} קבועות",
+      "approvedRows": "נבחר לייבוא"
+    },
+    "financial": {
+      "title": "השפעה כספית",
+      "dateRange": "טווח תאריכים",
+      "totalIncome": "סה\"כ הכנסות",
+      "totalExpenses": "סה\"כ הוצאות",
+      "totalDonations": "סה\"כ תרומות"
+    },
+    "filters": {
+      "all": "הכל",
+      "ready": "מוכן",
+      "needsReview": "דורש בדיקה",
+      "invalid": "לא תקין",
+      "warnings": "אזהרות"
+    },
+    "actions": {
+      "selectAllReady": "בחר כל המוכנות",
+      "selectAllSelectable": "בחר את כל השורות שניתן לבחור",
+      "clearSelection": "נקה הכל",
+      "showInvalidOnly": "לא תקין בלבד",
+      "showWarningsOnly": "אזהרות בלבד"
+    },
+    "columns": {
+      "select": "",
+      "status": "סטטוס",
+      "row": "#",
+      "date": "תאריך",
+      "amount": "סכום",
+      "type": "סוג",
+      "description": "תיאור",
+      "category": "קטגוריה",
+      "recipient": "נמען",
+      "paymentMethod": "תשלום",
+      "issues": "בעיות"
+    },
+    "noRows": "אין שורות התואמות את הסינון הנוכחי.",
+    "editRow": "עריכה",
+    "saveRow": "שמור",
+    "cancelEdit": "ביטול",
+    "issuesAriaLabel": "{{count}} בעיות בשורה {{row}}"
+  },
+  "confirm": {
+    "title": "אישור ייבוא",
+    "description_one": "עומד לייבא עסקה {{count}} אחת.",
+    "description_other": "עומד לייבא {{count}} תנועות.",
+    "riskyRows_one": "שורה {{count}} מכילה אזהרה — בדוק בעיון.",
+    "riskyRows_other": "{{count}} שורות מכילות אזהרות — בדוק בעיון.",
+    "proceed": "ייבא עכשיו",
+    "cancel": "חזור"
+  },
+  "result": {
+    "title": "הייבוא הושלם",
+    "inserted_one": "עסקה {{count}} יובאה בהצלחה",
+    "inserted_other": "{{count}} תנועות יובאו בהצלחה",
+    "failed_one": "שורה {{count}} נכשלה בייבוא",
+    "failed_other": "{{count}} שורות נכשלו בייבוא",
+    "skipped": "{{count}} שורות לא נבחרו",
+    "errorReport": "הורד דוח שגיאות",
+    "viewTransactions": "צפה בתנועות",
+    "importAnother": "ייבוא קובץ נוסף",
+    "noRowsImported": "לא יובאו תנועות."
+  },
+  "status": {
+    "ready": "מוכן",
+    "needs_review": "לבדיקה",
+    "invalid": "לא תקין"
+  },
+  "issues": {
+    "missing_required_field": "חסר: {{field}}",
+    "invalid_date": "תאריך לא תקין",
+    "invalid_amount": "סכום לא תקין",
+    "zero_amount": "הסכום לא יכול להיות אפס",
+    "unsupported_currency": "מטבע לא נתמך: {{currency}}",
+    "foreign_currency_not_supported": "לא ניתן לייבא שורות במטבע זר בתהליך זה",
+    "invalid_type": "סוג עסקה לא תקין",
+    "donation_recipient_required": "נדרש נמען עבור תרומות",
+    "possible_duplicate": "כפילות אפשרית",
+    "possible_recurring": "עשוי להתאים לעסקה קבועה",
+    "ambiguous_debit_credit": "גם חיוב וגם זיכוי מכילים ערכים",
+    "formula_cell": "התא מכיל נוסחה (הערך שימש)"
+  },
+  "navigation": {
+    "back": "חזור",
+    "next": "הבא",
+    "cancel": "ביטול",
+    "startOver": "התחל מחדש"
+  },
+  "settings": {
+    "entryTitle": "ייבוא תנועות מגיליון",
+    "entryDescription": "הוסף תנועות מקובץ CSV או Excel. כל השורות נסקרות לפני שנשמר דבר.",
+    "entryButton": "ייבוא מקובץ",
+    "note": "זה מייבא תנועות מגיליונות חיצוניים. לשחזור גיבוי Ten10, השתמש בחלק הגיבוי למעלה."
+  },
+  "parsing": {
+    "typeAliases": {
+      "income":   ["הכנסה", "זיכוי"],
+      "expense":  ["הוצאה", "חיוב"],
+      "donation": ["תרומה", "צדקה"]
+    },
+    "booleanTruthy": ["כן"],
+    "templateColumnLabels": {
+      "date":           "תאריך",
+      "amount":         "סכום",
+      "description":    "תיאור",
+      "currency":       "מטבע",
+      "type":           "סוג",
+      "category":       "קטגוריה",
+      "recipient":      "נמען/משלם",
+      "payment_method": "אמצעי תשלום",
+      "is_chomesh":     "חומש?"
+    },
+    "columnAliases": {
+      "date":           ["תאריך", "תאריך עסקה", "תאריך רכישה", "תאריך פעולה", "תאריך ערך"],
+      "amount":         ["סכום", "סה\"כ", "שווי", "סכום עסקה", "סכום בש\"ח"],
+      "debit":          ["חיוב", "חובה", "הוצאה", "סכום חיוב", "חיוב ₪", "משיכה"],
+      "credit":         ["זיכוי", "זכות", "הכנסה", "סכום זיכוי", "זיכוי ₪", "הפקדה"],
+      "description":    ["תיאור", "פרטים", "הערה", "שם", "הפעולה", "פעולה", "שם בית עסק", "שם בית העסק", "בית עסק", "מוטב", "נהנה", "תיאור הפעולה", "פרטי פעולה"],
+      "currency":       ["מטבע", "מטבע חיוב", "מטבע עסקה"],
+      "type":           ["סוג", "סוג עסקה"],
+      "category":       ["קטגוריה"],
+      "recipient":      ["נמען", "מוטב", "גוף", "לטובת", "עבור", "שם מוטב", "נמען/משלם"],
+      "payment_method": ["אמצעי תשלום", "תשלום", "אמצעי"],
+      "is_chomesh":     ["חומש", "חומש?"]
+    },
+    "templateSamples": [
+      { "date": "2025-01-15", "amount": "5000",  "description": "משכורת חודשית",  "currency": "ILS", "type": "income",   "category": "salary", "recipient": "",        "payment_method": "bank_transfer", "is_chomesh": "לא" },
+      { "date": "2025-01-20", "amount": "-350",  "description": "קניות סופרמרקט", "currency": "ILS", "type": "expense",  "category": "food",   "recipient": "",        "payment_method": "credit_card",   "is_chomesh": "לא" },
+      { "date": "2025-01-25", "amount": "500",   "description": "צדקה",            "currency": "ILS", "type": "donation", "category": "",       "recipient": "בית הכנסת", "payment_method": "bank_transfer", "is_chomesh": "כן"  }
+    ]
+  }
+}

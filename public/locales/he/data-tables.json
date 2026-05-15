@@ -100,7 +100,8 @@
     "recurringDeleteError": "שגיאה במחיקת הוראת הקבע."
   },
   "buttons": {
-    "showRecurring": "הצג הוראות קבע"
+    "showRecurring": "הצג הוראות קבע",
+    "importTransactions": "ייבוא תנועות"
   },
   "movementType": {
     "recurring": "הוראת קבע",
