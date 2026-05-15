@@ -108,14 +108,10 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-7xl mx-auto">
           <TooltipProvider>
             {features.map((feature, i) => {
-              // Center the last 2 items on large screens (14 items total, indices 12 and 13)
-              const isSecondToLast = i === features.length - 2;
-              const lastRowClass = isSecondToLast ? "lg:col-start-2" : "";
-
               return (
               <motion.div
                 key={i}
-                className={lastRowClass}
+                className=""
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}

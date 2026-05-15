@@ -13,6 +13,8 @@ import {
   Library,
   ArrowRightLeft,
   Languages,
+  FileUp,
+  HardDriveDownload,
 } from "lucide-react";
 
 export type PlatformAvailability = "web" | "desktop";
@@ -102,6 +104,20 @@ export const features: Feature[] = [
     descriptionKey: "features.items.dataExport.description",
     availability: ["web", "desktop"],
     imageSrc: "/features/export.webp",
+  },
+  {
+    icon: FileUp,
+    titleKey: "features.items.importSpreadsheet.title",
+    descriptionKey: "features.items.importSpreadsheet.description",
+    availability: ["web", "desktop"],
+    imageSrc: "/features/import.webp",
+  },
+  {
+    icon: HardDriveDownload,
+    titleKey: "features.items.backupRestore.title",
+    descriptionKey: "features.items.backupRestore.description",
+    availability: ["web", "desktop"],
+    imageSrc: "/features/backup.webp",
   },
   {
     icon: Library,
