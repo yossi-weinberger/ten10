@@ -188,9 +188,10 @@ function App() {
             logger.log("Desktop reminder check complete.");
             return checkForUpdates();
           })
-          .then((updateInfo) => {
+          .then(async (updateInfo) => {
             if (updateInfo) {
               logger.log(`Update available: ${updateInfo.version}`);
+              await i18n.loadNamespaces("settings");
               toast.success(
                 tRef.current("versionInfo.updateAvailable", {
                   version: updateInfo.version,

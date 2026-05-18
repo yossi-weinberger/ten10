@@ -4,7 +4,9 @@ declare module "tailwindcss-rtl";
 declare module "i18next" {
   interface i18n {
     dir(lng?: string): "ltr" | "rtl";
-    // Ensure TS knows about common properties we use
+    loadNamespaces(ns: string | readonly string[]): Promise<void>;
+    // Workaround: bundler moduleResolution doesn't resolve ./index.js imports
+    // inside index.d.mts, so these properties from index.d.ts are invisible
     t: import("i18next").TFunction;
     language: string;
   }
