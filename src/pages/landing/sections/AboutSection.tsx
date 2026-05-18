@@ -9,7 +9,7 @@ import {
 import { CheckCircle, ExternalLink } from "lucide-react";
 
 interface AboutSectionProps {
-  sectionRef: React.RefObject<HTMLElement>;
+  sectionRef: React.RefObject<HTMLElement | null>;
 }
 
 export const AboutSection: React.FC<AboutSectionProps> = ({ sectionRef }) => {

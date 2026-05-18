@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useEffect, useState, useRef } from "react";
 import { logger } from "@/lib/logger";
-import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { LanguageToggleFixed } from "./components/LanguageToggleFixed";
 import { FloatingNavigation } from "./components/FloatingNavigation";
 import { ScreenshotCarousel } from "./components/ScreenshotCarousel";

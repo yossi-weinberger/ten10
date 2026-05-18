@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/tooltip";
 
 interface FeaturesSectionProps {
-  sectionRef: React.RefObject<HTMLElement>;
+  sectionRef: React.RefObject<HTMLElement | null>;
 }
 
 const PlatformIcon = ({ type }: { type: PlatformAvailability }) => {
