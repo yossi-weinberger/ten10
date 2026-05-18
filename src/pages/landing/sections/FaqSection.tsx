@@ -12,7 +12,7 @@ import { faqs } from "../constants/faqs";
 const MotionAccordionItem = motion.create(AccordionItem);
 
 interface FaqSectionProps {
-  sectionRef: React.RefObject<HTMLElement>;
+  sectionRef: React.RefObject<HTMLElement | null>;
 }
 
 export const FaqSection: React.FC<FaqSectionProps> = ({ sectionRef }) => {

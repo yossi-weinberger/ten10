@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useEffect, useState, useRef } from "react";
 import { logger } from "@/lib/logger";
-import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { LanguageToggleFixed } from "./components/LanguageToggleFixed";
 import { FloatingNavigation } from "./components/FloatingNavigation";
 import { ScreenshotCarousel } from "./components/ScreenshotCarousel";
@@ -144,25 +143,24 @@ const LandingPage: React.FC = () => {
     };
   }, [i18n.language, t]);
 
-  // Google Analytics
+  // Google Analytics — load once on mount
   useEffect(() => {
     const gaId = import.meta.env.VITE_G_ANALYTICS_ID;
-
-    // Only load GA if we have an ID
     if (!gaId) {
       logger.log("Google Analytics ID not found in environment variables");
       return;
     }
 
+    // Guard: skip if already loaded (e.g. HMR re-mount)
+    if (document.querySelector('script[src*="googletagmanager"]')) return;
+
     logger.log("Loading Google Analytics with ID:", gaId);
 
-    // Add Google Analytics script
     const gaScript = document.createElement("script");
     gaScript.async = true;
     gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${gaId}`;
     document.head.appendChild(gaScript);
 
-    // Add GA configuration
     const gaConfigScript = document.createElement("script");
     gaConfigScript.textContent = `
       window.dataLayer = window.dataLayer || [];
@@ -170,28 +168,18 @@ const LandingPage: React.FC = () => {
       gtag('js', new Date());
       gtag('config', '${gaId}', {
         page_title: 'Ten10 Landing Page',
-        page_location: window.location.href,
-        language: '${i18n.language}'
+        page_location: window.location.href
       });
     `;
     document.head.appendChild(gaConfigScript);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Track page view
-    if (typeof window !== "undefined" && (window as any).gtag) {
-      (window as any).gtag("event", "page_view", {
-        page_title: "Ten10 Landing Page",
-        page_location: window.location.href,
-        language: i18n.language,
-      });
-    }
-
-    return () => {
-      // Cleanup scripts
-      const scripts = document.querySelectorAll(
-        'script[src*="googletagmanager"]'
-      );
-      scripts.forEach((script) => script.remove());
-    };
+  // Track language changes after GA is ready
+  useEffect(() => {
+    if (typeof window === "undefined" || !(window as any).gtag) return;
+    (window as any).gtag("event", "language_view", {
+      language: i18n.language,
+    });
   }, [i18n.language]);
 
   // Analytics tracking functions

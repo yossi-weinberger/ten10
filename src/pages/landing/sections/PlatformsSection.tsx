@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 interface PlatformsSectionProps {
-  sectionRef: React.RefObject<HTMLElement>;
+  sectionRef: React.RefObject<HTMLElement | null>;
 }
 
 export const PlatformsSection: React.FC<PlatformsSectionProps> = ({

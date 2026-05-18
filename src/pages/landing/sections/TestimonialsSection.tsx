@@ -6,7 +6,7 @@ import { Star, Users } from "lucide-react";
 import { testimonials } from "../constants/testimonials";
 
 interface TestimonialsSectionProps {
-  sectionRef: React.RefObject<HTMLElement>;
+  sectionRef: React.RefObject<HTMLElement | null>;
 }
 
 export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({

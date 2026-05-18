@@ -25,6 +25,6 @@ export function trackProductEvent(
 
   posthog.capture(event, {
     ...properties,
-    app_surface: "web",
+    app_surface: properties.platform === "desktop" ? "desktop" : "web",
   });
 }

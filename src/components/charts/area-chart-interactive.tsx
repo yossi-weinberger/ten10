@@ -111,7 +111,7 @@ export function AreaChartInteractive({
   const chart = (
     <ChartContainer
       config={chartConfig}
-      className={cn("aspect-auto h-full w-full", className)}
+      className={cn("aspect-auto w-full", className)}
     >
       <AreaChart
         accessibilityLayer

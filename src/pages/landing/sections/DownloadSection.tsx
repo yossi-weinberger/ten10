@@ -28,7 +28,7 @@ import {
 import { useLatestRelease, getVersionFromTag } from "@/hooks/useLatestRelease";
 
 interface DownloadSectionProps {
-  sectionRef: React.RefObject<HTMLElement>;
+  sectionRef: React.RefObject<HTMLElement | null>;
 }
 
 export const DownloadSection: React.FC<DownloadSectionProps> = ({

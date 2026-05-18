@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import {
   useScrollAnimation,
   fadeInUp,
@@ -17,7 +17,7 @@ import { AnimatedLogo } from "../components/AnimatedLogo";
 import { cn } from "@/lib/utils";
 
 interface HeroSectionProps {
-  sectionRef: React.RefObject<HTMLElement>;
+  sectionRef: React.RefObject<HTMLElement | null>;
   onDownloadClick: (platform: string) => void;
   onWebAppClick: () => void;
 }
@@ -32,6 +32,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   const heroY = useTransform(scrollY, [0, 500], [0, -100]);
   const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.8]);
   const heroRef = useScrollAnimation({ threshold: 0.2 });
+  const prefersReducedMotion = useReducedMotion();
 
   return (
     <motion.section
@@ -45,7 +46,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
       <motion.div
         className="absolute top-20 left-10 w-72 h-72 bg-emerald-200 dark:bg-emerald-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30"
-        animate={{
+        animate={prefersReducedMotion ? {} : {
           scale: [1, 1.2, 1],
           rotate: [0, 180, 360],
           opacity: [0.3, 0.6, 0.3],
@@ -59,7 +60,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
       <motion.div
         className="absolute bottom-20 right-10 w-72 h-72 bg-cyan-200 dark:bg-cyan-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30"
-        animate={{
+        animate={prefersReducedMotion ? {} : {
           scale: [1.2, 1, 1.2],
           rotate: [360, 180, 0],
           opacity: [0.6, 0.3, 0.6],
@@ -75,7 +76,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       {/* Additional floating elements for more "wow" */}
       <motion.div
         className="absolute top-1/2 left-1/4 w-32 h-32 bg-teal-200 dark:bg-teal-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-2xl opacity-20"
-        animate={{
+        animate={prefersReducedMotion ? {} : {
           y: [-20, 20, -20],
           x: [-10, 10, -10],
           scale: [0.8, 1.1, 0.8],
