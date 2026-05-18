@@ -136,7 +136,7 @@ const ScreenshotImage: React.FC<{
         style={{ opacity: isLoaded ? 1 : 0 }}
         onError={handleError}
         onLoad={handleLoad}
-        loading="eager"
+        loading="lazy"
       />
 
       {hasError && (
