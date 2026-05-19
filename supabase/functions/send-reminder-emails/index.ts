@@ -29,11 +29,22 @@ serve(async (req) => {
     return new Response("ok", { headers: getCorsHeaders(origin) });
   }
 
+  // Fail fast on missing secrets — before any createClient call that would give
+  // a misleading 403 "Invalid token" instead of a 500 "misconfiguration".
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const validServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const validAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+
+  if (!supabaseUrl || !validServiceKey) {
+    console.error("[REMINDER] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+    return new Response(JSON.stringify({ error: "Server misconfiguration" }), {
+      status: 500,
+      headers: { ...getCorsHeaders(origin), "Content-Type": "application/json" },
+    });
+  }
+
   // Security: Check for valid authorization
   const authorization = req.headers.get("Authorization");
-  const validAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  const validServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
 
   // Debug: Log what we have (without exposing full keys)
   console.log("[REMINDER] Auth check:", {
@@ -243,14 +254,7 @@ serve(async (req) => {
     }
 
     // Service-role client for logging run results to reminder_run_logs.
-    // Reuse already-resolved env values; missing secrets cause an early 500 below.
-    if (!supabaseUrl || !validServiceKey) {
-      console.error("[REMINDER] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
-      return new Response(JSON.stringify({ error: "Server misconfiguration" }), {
-        status: 500,
-        headers: { ...getCorsHeaders(origin), "Content-Type": "application/json" },
-      });
-    }
+    // supabaseUrl and validServiceKey are guaranteed non-null — checked at the top.
     const supabaseAdmin = createClient(supabaseUrl, validServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });

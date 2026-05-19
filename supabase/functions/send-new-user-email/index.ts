@@ -188,9 +188,11 @@ const buildEmailBodies = (args: {
   const wasReminderDay = reminderLogs.some((l) => l.was_reminder_day);
   const wasShabbatSkip = !wasReminderDay && reminderLogs.some((l) => l.was_shabbat);
   const reminderStatusLine = wasReminderDay
-    ? reminderSent > 0
-      ? `📧 Reminder emails: <strong style="color:#166534;">${reminderSent} sent</strong>${reminderFailed > 0 ? ` &nbsp;·&nbsp; <strong style="color:#dc2626;">${reminderFailed} failed</strong>` : ""}`
-      : `📧 Reminder emails: reminder day — <strong style="color:#6b7280;">no users configured</strong>`
+    ? reminderFailed > 0 && reminderSent === 0
+      ? `📧 Reminder emails: <strong style="color:#dc2626;">⚠️ ${reminderFailed} failed, 0 sent</strong>`
+      : reminderSent > 0
+        ? `📧 Reminder emails: <strong style="color:#166534;">${reminderSent} sent</strong>${reminderFailed > 0 ? ` &nbsp;·&nbsp; <strong style="color:#dc2626;">${reminderFailed} failed</strong>` : ""}`
+        : `📧 Reminder emails: reminder day — <strong style="color:#6b7280;">no users configured</strong>`
     : wasShabbatSkip
       ? `📧 Reminder emails: skipped (Shabbat)`
       : reminderFailed > 0
