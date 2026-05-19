@@ -26,7 +26,7 @@ function circularDist(a: number, b: number, len: number) {
 export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
   sectionRef,
 }) => {
-  const { t } = useTranslation("landing");
+  const { t, i18n } = useTranslation("landing");
   const headerRef = useScrollAnimation({ threshold: 0.1 });
 
   const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
@@ -94,7 +94,8 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
             setApi={setCarouselApi}
             className="w-full"
           >
-            <CarouselContent className="-ml-4">
+            {/* direction: "ltr" on content so Embla mechanics work correctly in RTL pages */}
+            <CarouselContent style={{ direction: "ltr" }}>
               {testimonials.map((testimonial, index) => {
                 const dist = circularDist(index, selectedIndex, testimonials.length);
                 const isCenter = dist === 0;
@@ -103,13 +104,14 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
                 return (
                   <CarouselItem
                     key={index}
-                    className="pl-4 basis-[85%] sm:basis-1/2 md:basis-1/3"
+                    className="basis-[85%] sm:basis-1/2 md:basis-1/3 px-3"
                   >
                     <motion.div
                       className="h-full py-4"
+                      dir={i18n.dir()}
                       animate={{
                         scale: isCenter ? 1.05 : isAdjacent ? 0.96 : 0.90,
-                        opacity: isCenter ? 1 : isAdjacent ? 0.72 : 0.42,
+                        opacity: isCenter ? 1 : isAdjacent ? 0.78 : 0.5,
                       }}
                       transition={{ type: "spring", damping: 28, stiffness: 280 }}
                     >
@@ -126,7 +128,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
                             className={`text-5xl font-serif leading-none mb-1 select-none ${
                               isCenter
                                 ? "text-blue-400 dark:text-blue-500"
-                                : "text-gray-200 dark:text-gray-700"
+                                : "text-gray-300 dark:text-gray-600"
                             }`}
                           >
                             &#8220;
@@ -147,7 +149,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
                             className={`flex-grow italic leading-relaxed mb-5 transition-colors duration-300 ${
                               isCenter
                                 ? "text-gray-800 dark:text-gray-100 text-base"
-                                : "text-gray-500 dark:text-gray-400 text-sm"
+                                : "text-gray-600 dark:text-gray-400 text-sm"
                             }`}
                           >
                             {t(testimonial.textKey)}
@@ -174,7 +176,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
                               className={`font-semibold transition-colors duration-300 ${
                                 isCenter
                                   ? "text-gray-900 dark:text-white"
-                                  : "text-gray-500 dark:text-gray-400"
+                                  : "text-gray-600 dark:text-gray-400"
                               }`}
                             >
                               {t(testimonial.nameKey)}
