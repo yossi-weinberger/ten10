@@ -24,18 +24,22 @@ export const PreferencesSyncService = {
    * Syncs the user preferences between local store and Supabase.
    * If DB has no preferences (null), local wins and is pushed to DB.
    * If DB has preferences, they are merged into local store.
+   * Also syncs dedicated profile columns (reminder_day_of_month, reminder_enabled,
+   * mailing_list_consent) which are excluded from client_preferences JSONB.
    */
   async syncPreferences(userId: string) {
     try {
       const { data: profile, error } = await supabase
         .from("profiles")
-        .select("client_preferences")
+        .select(
+          "client_preferences, reminder_day_of_month, reminder_enabled, mailing_list_consent",
+        )
         .eq("id", userId)
         .single();
 
       if (error) {
         logger.error(
-          "PreferencesSyncService: Failed to fetch client_preferences:",
+          "PreferencesSyncService: Failed to fetch preferences:",
           error,
         );
         return;
@@ -56,6 +60,27 @@ export const PreferencesSyncService = {
         // DB has preferences. Pull and merge into local.
         logger.log("PreferencesSyncService: Pulling preferences from DB.");
         useDonationStore.getState().updateSettings(dbPreferences);
+      }
+
+      // Always sync dedicated reminder columns from the profiles table.
+      // These are not stored in client_preferences, so they must be fetched separately.
+      const reminderUpdates: Partial<Settings> = {};
+      if (profile?.reminder_day_of_month != null) {
+        reminderUpdates.reminderDayOfMonth =
+          profile.reminder_day_of_month as Settings["reminderDayOfMonth"];
+      }
+      if (profile?.reminder_enabled != null) {
+        reminderUpdates.reminderEnabled = profile.reminder_enabled;
+      }
+      if (profile?.mailing_list_consent != null) {
+        reminderUpdates.mailingListConsent = profile.mailing_list_consent;
+      }
+      if (Object.keys(reminderUpdates).length > 0) {
+        logger.log(
+          "PreferencesSyncService: Syncing reminder settings from DB:",
+          reminderUpdates,
+        );
+        useDonationStore.getState().updateSettings(reminderUpdates);
       }
     } catch (err) {
       logger.error(
