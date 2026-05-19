@@ -49,6 +49,21 @@ export const PreferencesSyncService = {
         profile?.client_preferences as Partial<Settings> | null;
       const localSettings = useDonationStore.getState().settings;
 
+      // Build the dedicated-column overrides (reminder fields live in their own
+      // profiles columns, not in client_preferences, so they must be merged in
+      // separately regardless of the client_preferences sync path below).
+      const dedicatedColumnUpdates: Partial<Settings> = {};
+      if (profile?.reminder_day_of_month != null) {
+        dedicatedColumnUpdates.reminderDayOfMonth =
+          profile.reminder_day_of_month as Settings["reminderDayOfMonth"];
+      }
+      if (profile?.reminder_enabled != null) {
+        dedicatedColumnUpdates.reminderEnabled = profile.reminder_enabled;
+      }
+      if (profile?.mailing_list_consent != null) {
+        dedicatedColumnUpdates.mailingListConsent = profile.mailing_list_consent;
+      }
+
       if (!dbPreferences) {
         // DB is empty (null). Local wins. Push to DB.
         logger.log(
@@ -57,30 +72,23 @@ export const PreferencesSyncService = {
         const preferencesToPush = this.extractClientPreferences(localSettings);
         await this.pushPreferences(userId, preferencesToPush);
       } else {
-        // DB has preferences. Pull and merge into local.
+        // DB has preferences. Merge into local in one update call to avoid
+        // multiple re-renders: client_preferences first, dedicated columns on top.
         logger.log("PreferencesSyncService: Pulling preferences from DB.");
-        useDonationStore.getState().updateSettings(dbPreferences);
+        useDonationStore
+          .getState()
+          .updateSettings({ ...dbPreferences, ...dedicatedColumnUpdates });
+        return;
       }
 
-      // Always sync dedicated reminder columns from the profiles table.
-      // These are not stored in client_preferences, so they must be fetched separately.
-      const reminderUpdates: Partial<Settings> = {};
-      if (profile?.reminder_day_of_month != null) {
-        reminderUpdates.reminderDayOfMonth =
-          profile.reminder_day_of_month as Settings["reminderDayOfMonth"];
-      }
-      if (profile?.reminder_enabled != null) {
-        reminderUpdates.reminderEnabled = profile.reminder_enabled;
-      }
-      if (profile?.mailing_list_consent != null) {
-        reminderUpdates.mailingListConsent = profile.mailing_list_consent;
-      }
-      if (Object.keys(reminderUpdates).length > 0) {
+      // Reached only when dbPreferences was null (push path).
+      // Still apply dedicated-column values if present.
+      if (Object.keys(dedicatedColumnUpdates).length > 0) {
         logger.log(
-          "PreferencesSyncService: Syncing reminder settings from DB:",
-          reminderUpdates,
+          "PreferencesSyncService: Syncing dedicated reminder columns from DB:",
+          dedicatedColumnUpdates,
         );
-        useDonationStore.getState().updateSettings(reminderUpdates);
+        useDonationStore.getState().updateSettings(dedicatedColumnUpdates);
       }
     } catch (err) {
       logger.error(

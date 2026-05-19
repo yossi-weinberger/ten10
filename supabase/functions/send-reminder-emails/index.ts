@@ -4,6 +4,21 @@ import { UserService } from "./user-service.ts";
 import { SimpleEmailService } from "./simple-email-service.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
 
+async function logRun(supabase: ReturnType<typeof createClient>, entry: {
+  day_of_month: number;
+  was_reminder_day: boolean;
+  was_shabbat: boolean;
+  users_processed: number;
+  emails_sent: number;
+  emails_failed: number;
+  notes?: string;
+}) {
+  const { error } = await supabase.from("reminder_run_logs").insert(entry);
+  if (error) {
+    console.error("[REMINDER] Failed to log run:", error.message);
+  }
+}
+
 // Deployment trigger note: editing this file forces the GitHub workflow to redeploy the function.
 
 serve(async (req) => {
@@ -227,6 +242,13 @@ serve(async (req) => {
       }
     }
 
+    // Service-role client for logging run results to reminder_run_logs
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { autoRefreshToken: false, persistSession: false } },
+    );
+
     // Initialize services with error handling
     console.log("[REMINDER] Initializing services...");
     let userService: UserService;
@@ -253,48 +275,82 @@ serve(async (req) => {
       );
     }
 
-    // Get current date and check if it's a reminder day.
-    const currentDate = new Date();
-    const currentDay = currentDate.getDate();
-    const currentDayOfWeek = currentDate.getDay(); // 0 = Sunday, 6 = Saturday
+    // Get current date in ISRAEL timezone.
+    // The cron runs at 18:00 UTC = 20:00 IST (winter) / 21:00 IDT (summer).
+    // Using UTC here caused a critical bug: on Fridays the UTC day is 5 (Friday)
+    // but in Israel Shabbat has already started (sunset ~17:30-20:00). Using the
+    // Israel date ensures the Shabbat check is correct regardless of DST.
+    const nowUtc = new Date();
+    const israelDateStr = nowUtc.toLocaleDateString("en-CA", {
+      timeZone: "Asia/Jerusalem",
+    }); // "YYYY-MM-DD"
+    const israelDate = new Date(israelDateStr + "T12:00:00"); // noon = stable, no DST edge
+    const currentDay = israelDate.getDate();
+    const currentDayOfWeek = israelDate.getDay(); // 0=Sun, 5=Fri, 6=Sat
 
-    // Reminder days configuration:
-    // 1st, 5th, 10th, 15th, 20th, 25th - monthly reminder schedule
-    // 19th - special day for testing (can be removed in production)
+    // Reminder days configuration: 1st, 5th, 10th, 15th, 20th, 25th
     const reminderDays = [1, 5, 10, 15, 20, 25];
 
     let effectiveDay = currentDay;
+    let shabbatNote = "";
 
-    // In test mode, we'll use day 25 (testing day) regardless of actual day
-    // This will be set after we calculate effectiveDay
-
-    // If today is Saturday (6), skip sending emails (unless test mode)
+    // Saturday (Israel time) — Shabbat. Skip entirely; Sunday will handle makeup.
     if (!isTest && currentDayOfWeek === 6) {
+      await logRun(supabaseAdmin, {
+        day_of_month: currentDay,
+        was_reminder_day: false,
+        was_shabbat: true,
+        users_processed: 0,
+        emails_sent: 0,
+        emails_failed: 0,
+        notes: "Shabbat (Saturday Israel) - skipped",
+      });
       return new Response(
-        JSON.stringify({
-          message: `Today is Saturday. Email reminders are not sent on Shabbat.`,
-        }),
-        {
-          headers: {
-            ...getCorsHeaders(origin),
-            "Content-Type": "application/json",
-          },
-          status: 200,
-        },
+        JSON.stringify({ message: "Today is Shabbat (Saturday in Israel). Skipped." }),
+        { headers: { ...getCorsHeaders(origin), "Content-Type": "application/json" }, status: 200 },
       );
     }
 
-    // If today is Sunday (0), check if yesterday (Saturday) was a reminder day
-    if (!isTest && currentDayOfWeek === 0) {
-      const yesterday = new Date(currentDate);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayDay = yesterday.getDate();
+    // Friday (Israel time) — the cron fires AFTER sunset (Shabbat already started).
+    // Skip Friday sends. Thursday makeup below handles Friday reminder days.
+    if (!isTest && currentDayOfWeek === 5) {
+      await logRun(supabaseAdmin, {
+        day_of_month: currentDay,
+        was_reminder_day: false,
+        was_shabbat: true,
+        users_processed: 0,
+        emails_sent: 0,
+        emails_failed: 0,
+        notes: "Erev Shabbat (Friday Israel, cron after sunset) - skipped",
+      });
+      return new Response(
+        JSON.stringify({ message: "Today is Erev Shabbat in Israel (cron fires after sunset). Skipped." }),
+        { headers: { ...getCorsHeaders(origin), "Content-Type": "application/json" }, status: 200 },
+      );
+    }
 
-      if (reminderDays.includes(yesterdayDay)) {
-        effectiveDay = yesterdayDay; // Send reminders for yesterday's missed day
-        console.log(
-          `Sunday: Sending reminders for Saturday (day ${yesterdayDay}) that was skipped due to Shabbat`,
-        );
+    // Sunday (Israel time) — makeup for missed Saturday reminder days.
+    if (!isTest && currentDayOfWeek === 0) {
+      const saturdayDate = new Date(israelDate);
+      saturdayDate.setDate(saturdayDate.getDate() - 1);
+      const saturdayDay = saturdayDate.getDate();
+      if (reminderDays.includes(saturdayDay)) {
+        effectiveDay = saturdayDay;
+        shabbatNote = ` (Saturday makeup — day ${saturdayDay} sent on Sunday)`;
+        console.log(`Sunday makeup: sending reminders for Saturday day ${saturdayDay}`);
+      }
+    }
+
+    // Thursday (Israel time) — makeup for upcoming Friday reminder days.
+    // Since Friday sends are skipped, we send them a day early on Thursday.
+    if (!isTest && currentDayOfWeek === 4) {
+      const tomorrowDate = new Date(israelDate);
+      tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+      const tomorrowDay = tomorrowDate.getDate();
+      if (reminderDays.includes(tomorrowDay)) {
+        effectiveDay = tomorrowDay;
+        shabbatNote = ` (Friday makeup — day ${tomorrowDay} sent on Thursday before Shabbat)`;
+        console.log(`Thursday makeup: sending reminders for Friday day ${tomorrowDay}`);
       }
     }
 
@@ -302,6 +358,15 @@ serve(async (req) => {
     const finalTestDay = isTest ? 25 : effectiveDay;
 
     if (!isTest && !reminderDays.includes(effectiveDay)) {
+      await logRun(supabaseAdmin, {
+        day_of_month: currentDay,
+        was_reminder_day: false,
+        was_shabbat: false,
+        users_processed: 0,
+        emails_sent: 0,
+        emails_failed: 0,
+        notes: `Not a reminder day (days: ${reminderDays.join(", ")})`,
+      });
       return new Response(
         JSON.stringify({
           message: `Today (${currentDay}) is not a reminder day. Reminder days: ${reminderDays.join(
@@ -323,6 +388,15 @@ serve(async (req) => {
       await userService.getUsersWithTitheBalances(finalTestDay);
 
     if (usersWithBalances.length === 0) {
+      await logRun(supabaseAdmin, {
+        day_of_month: finalTestDay,
+        was_reminder_day: true,
+        was_shabbat: false,
+        users_processed: 0,
+        emails_sent: 0,
+        emails_failed: 0,
+        notes: `No users configured for day ${finalTestDay}${isTest ? " (TEST)" : ""}`,
+      });
       return new Response(
         JSON.stringify({
           message: `No users found with reminders enabled for day ${finalTestDay}${isTest ? " (TEST MODE)" : ""}`,
@@ -363,10 +437,17 @@ serve(async (req) => {
       }
     });
 
-    const sundayMessage =
-      !isTest && currentDayOfWeek === 0 && effectiveDay !== currentDay
-        ? ` (sending Saturday reminders on Sunday due to Shabbat)`
-        : "";
+    const sundayMessage = isTest ? "" : shabbatNote;
+
+    await logRun(supabaseAdmin, {
+      day_of_month: finalTestDay,
+      was_reminder_day: true,
+      was_shabbat: false,
+      users_processed: usersWithBalances.length,
+      emails_sent: sentCount,
+      emails_failed: failedCount,
+      notes: sundayMessage || (isTest ? "TEST MODE" : null),
+    });
 
     return new Response(
       JSON.stringify({
