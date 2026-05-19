@@ -197,19 +197,44 @@
     }
   },
   "testimonials": {
+    "eyebrow": "User Testimonials",
     "title": "What Users Say",
     "items": [
       {
-        "name": "Rabbi Yosef Zilber",
-        "text": "This system changed my life. Now I know exactly how much I need to donate and have no more doubts"
+        "name": "Dan H.K.",
+        "text": "I never used the previous program because it seemed too complicated — but this new one is pure joy. Thanks to you, I finally give maaser the right way."
       },
       {
-        "name": "Itzik Biton",
-        "text": "The computer software is perfect for offline work (without internet connection). My data is secure and always accessible"
+        "name": "Z.V.",
+        "text": "A blessed initiative and flawless execution. Ten10 sets a true precedent in this field, at the very highest level."
       },
       {
-        "name": "Sarah Goldberg",
-        "text": "The interface is simple and convenient, and the monthly alerts help me stay updated"
+        "name": "Shia S.",
+        "text": "A top-notch, user-friendly program — you have truly transformed my life."
+      },
+      {
+        "name": "Miriam T.",
+        "text": "A sophisticated and well-crafted program — a real breakthrough for the public."
+      },
+      {
+        "name": "M.R.H.",
+        "text": "I've been using it for several years now, and it provides tremendous value."
+      },
+      {
+        "name": "A. and R.",
+        "text": "Such an amazing program that it's hard to find anything to criticize."
+      },
+      {
+        "name": "Sarah A.",
+        "text": "Huge thanks. Finally, there's order in my maaser tracking — bringing me back to halachic balance."
+      },
+      {
+        "name": "Elchanan K.",
+        "text": "You are truly helping the Jewish people!"
+      },
+      {
+        "name": "Tzvi L.",
+        "text": "Simply excellent — very user-friendly and intuitive."
       }
     ]
   },
