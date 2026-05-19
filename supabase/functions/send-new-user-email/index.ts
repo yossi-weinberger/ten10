@@ -31,6 +31,25 @@ type SummaryRow = ProfileRecord & {
 const DEFAULT_TO = "dev@ten10-app.com";
 const DEFAULT_WINDOW_HOURS = 24;
 
+type ReminderRunLog = {
+  run_at: string;
+  day_of_month: number;
+  was_reminder_day: boolean;
+  was_shabbat: boolean;
+  users_processed: number;
+  emails_sent: number;
+  emails_failed: number;
+  notes: string | null;
+};
+
+type DownloadRequest = {
+  id: string;
+  created_at: string;
+  from_email: string;
+  status: string;
+  reason: string | null;
+};
+
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
@@ -91,76 +110,118 @@ const fetchAuthUser = async (
   };
 };
 
+
+const buildDownloadRequestsSection = (requests: DownloadRequest[], hours: number): { html: string; text: string } => {
+  if (requests.length === 0) {
+    return {
+      html: `<p style="color:#6b7280;font-size:13px;">No download requests in the last ${hours}h.</p>`,
+      text: `No download requests in the last ${hours}h.`,
+    };
+  }
+  const rowsHtml = requests.map((r) => {
+    const parts = formatDateParts(r.created_at);
+    const statusBadge = r.status === "sent"
+      ? `<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">✓ sent</span>`
+      : r.status === "blocked"
+        ? `<span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">blocked</span>`
+        : `<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">error</span>`;
+    return `<tr>
+      <td style="padding:8px;border-bottom:1px solid #f3f4f6;font-size:13px;color:#374151;">${escapeHtml(r.from_email)}</td>
+      <td style="padding:8px;border-bottom:1px solid #f3f4f6;font-size:13px;color:#374151;">${escapeHtml(parts.date)}</td>
+      <td style="padding:8px;border-bottom:1px solid #f3f4f6;font-size:13px;color:#374151;">${escapeHtml(parts.time)}</td>
+      <td style="padding:8px;border-bottom:1px solid #f3f4f6;">${statusBadge}</td>
+      <td style="padding:8px;border-bottom:1px solid #f3f4f6;font-size:12px;color:#9ca3af;">${escapeHtml(r.reason ?? "")}</td>
+    </tr>`;
+  }).join("");
+
+  return {
+    html: `<table style="width:100%;border-collapse:collapse;margin-top:8px;">
+      <thead><tr style="background:#f9fafb;">
+        <th style="padding:8px;text-align:left;font-size:12px;color:#6b7280;font-weight:600;">Email</th>
+        <th style="padding:8px;text-align:left;font-size:12px;color:#6b7280;font-weight:600;">Date</th>
+        <th style="padding:8px;text-align:left;font-size:12px;color:#6b7280;font-weight:600;">Time</th>
+        <th style="padding:8px;text-align:left;font-size:12px;color:#6b7280;font-weight:600;">Status</th>
+        <th style="padding:8px;text-align:left;font-size:12px;color:#6b7280;font-weight:600;">Reason</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>`,
+    text: requests.map((r) => {
+      const parts = formatDateParts(r.created_at);
+      return `  ${parts.date} ${parts.time} | ${r.from_email} | ${r.status}${r.reason ? ` (${r.reason})` : ""}`;
+    }).join("\n"),
+  };
+};
+
 const buildEmailBodies = (args: {
   rows: SummaryRow[];
   hours: number;
   downloadRequests: {
     windowCount: number;
     total: number;
+    details: DownloadRequest[];
   };
+  totalUsers: number;
+  reminderLogs: ReminderRunLog[];
+  github: { totalDownloads: number | null; last24h: number | null; latestVersion: string; latestDownloads: number | null };
 }) => {
-  const { rows, hours, downloadRequests } = args;
-  const { windowCount, total } = downloadRequests;
+  const { rows, hours, downloadRequests, totalUsers, reminderLogs, github } = args;
+  const { windowCount, total, details: downloadDetails } = downloadRequests;
   const windowLabel = `Last ${hours} hours`;
 
+  const downloadSection = buildDownloadRequestsSection(downloadDetails, hours);
+
   if (rows.length === 0 && windowCount === 0) {
-    const textBody = `${windowLabel}: No new profiles and no new download requests.`;
+    const textBody = `${windowLabel}: No new profiles and no new download requests.\nTotal users (all-time): ${totalUsers}`;
     const htmlBody = `<!DOCTYPE html>
     <html>
       <body style="font-family:Arial,sans-serif; background:#f8fafc; padding:24px;">
         <h2 style="margin:0 0 12px 0; color:#111827;">Daily Summary</h2>
-        <p style="margin:0; color:#374151;">${windowLabel}: No new profiles and no new download requests.</p>
+        <p style="margin:0 0 8px 0; color:#374151;">${windowLabel}: No new profiles and no new download requests.</p>
+        <p style="margin:0 0 24px 0; color:#6b7280;font-size:13px;">Total registered users (all-time): <strong>${totalUsers}</strong></p>
       </body>
     </html>`;
     return { htmlBody, textBody };
   }
 
-  const statsSectionHtml = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin: 0 0 24px 0;">
+  const reminderSent = reminderLogs.filter((l) => l.was_reminder_day).reduce((s, l) => s + l.emails_sent, 0);
+  const reminderFailed = reminderLogs.reduce((s, l) => s + l.emails_failed, 0);
+  const wasReminderDay = reminderLogs.some((l) => l.was_reminder_day);
+  const wasShabbatSkip = !wasReminderDay && reminderLogs.some((l) => l.was_shabbat);
+  const reminderStatusLine = wasReminderDay
+    ? reminderFailed > 0 && reminderSent === 0
+      ? `📧 Reminder emails: <strong style="color:#dc2626;">⚠️ ${reminderFailed} failed, 0 sent</strong>`
+      : reminderSent > 0
+        ? `📧 Reminder emails: <strong style="color:#166534;">${reminderSent} sent</strong>${reminderFailed > 0 ? ` &nbsp;·&nbsp; <strong style="color:#dc2626;">${reminderFailed} failed</strong>` : ""}`
+        : `📧 Reminder emails: reminder day — <strong style="color:#6b7280;">no users configured</strong>`
+    : wasShabbatSkip
+      ? `📧 Reminder emails: skipped (Shabbat)`
+      : reminderFailed > 0
+        ? `📧 Reminder emails: <strong style="color:#dc2626;">${reminderFailed} failed</strong>`
+        : `📧 Reminder emails: not a reminder day`;
+
+  const card = (bg: string, border: string, labelColor: string, icon: string, label: string, bigNum: string | number, footer: string) => `
+    <div style="background:${bg};border:1px solid ${border};border-radius:12px;padding:20px 12px;text-align:center;height:130px;box-sizing:border-box;">
+      <div style="font-size:11px;color:${labelColor};font-weight:800;text-transform:uppercase;letter-spacing:.06em;">${icon} ${label}</div>
+      <div style="margin-top:10px;font-size:40px;line-height:1.1;color:#111827;font-weight:900;">${bigNum}</div>
+      <div style="margin-top:12px;font-size:11px;color:#6b7280;">${footer}</div>
+    </div>`;
+
+  const statsSectionHtml = `
+  <div style="font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:10px;">${escapeHtml(windowLabel)}</div>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 4px 0;">
     <tr>
-      <td style="padding: 0 0 12px 0;">
-        <div style="font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;">
-          ${escapeHtml(windowLabel)}
-        </div>
+      <td width="33%" valign="top" style="padding:0 4px 0 0;">
+        ${card("#eff6ff","#bfdbfe","#1e3a8a","💻","Email downloads", windowCount, `All-time: <strong style="color:#374151;">${total}</strong>`)}
+      </td>
+      <td width="33%" valign="top" style="padding:0 4px;">
+        ${card("#ecfdf5","#bbf7d0","#065f46","🌐","New web users", rows.length, `All-time: <strong style="color:#374151;">${totalUsers}</strong>`)}
+      </td>
+      <td width="33%" valign="top" style="padding:0 0 0 4px;">
+        ${card("#fefce8","#fde68a","#92400e","📦","GitHub installs", github.last24h !== null ? `+${github.last24h}` : "—", github.totalDownloads !== null ? `All-time: <strong style="color:#374151;">${github.totalDownloads}</strong> &nbsp;·&nbsp; ${escapeHtml(github.latestVersion)}: ${github.latestDownloads ?? "—"}` : `GitHub unavailable`)}
       </td>
     </tr>
-    <tr>
-      <td>
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-          <tr>
-            <td width="50%" valign="top" style="padding: 0 8px 0 0;">
-              <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px;">
-                <div style="font-size: 12px; color: #1e3a8a; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">
-                  Download requests
-                </div>
-                <div style="margin-top: 8px; font-size: 34px; line-height: 1.1; color: #111827; font-weight: 900;">
-                  ${windowCount}
-                </div>
-                <div style="margin-top: 6px; font-size: 13px; color: #1f2937;">
-                  in the last ${hours} hours
-                </div>
-                <div style="margin-top: 12px; font-size: 12px; color: #6b7280;">
-                  All-time total: <strong style="color:#374151;">${total}</strong>
-                </div>
-              </div>
-            </td>
-            <td width="50%" valign="top" style="padding: 0 0 0 8px;">
-              <div style="background: #ecfdf5; border: 1px solid #bbf7d0; border-radius: 12px; padding: 16px;">
-                <div style="font-size: 12px; color: #065f46; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;">
-                  New users
-                </div>
-                <div style="margin-top: 8px; font-size: 34px; line-height: 1.1; color: #111827; font-weight: 900;">
-                  ${rows.length}
-                </div>
-                <div style="margin-top: 6px; font-size: 13px; color: #1f2937;">
-                  joined in the last ${hours} hours
-                </div>
-              </div>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>`;
+  </table>
+  <div style="padding:10px 14px;font-size:15px;color:#4b5563;margin-bottom:20px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;">${reminderStatusLine}</div>`;
 
   const rowsHtml = rows
     .map((r) => {
@@ -257,6 +318,9 @@ const buildEmailBodies = (args: {
           
           ${statsSectionHtml}
 
+          <h3 style="margin: 0 0 8px 0; color: #111827; font-size: 16px;">
+            🌐 Web Platform — New Users
+          </h3>
           <div style="overflow-x: auto;">
             <table>
               <thead>
@@ -275,6 +339,12 @@ const buildEmailBodies = (args: {
               </tbody>
             </table>
           </div>
+
+          <h3 style="margin: 32px 0 8px 0; color: #111827; font-size: 16px; border-top: 1px solid #e5e7eb; padding-top: 24px;">
+            💻 Desktop Platform — Download Requests
+          </h3>
+          ${downloadSection.html}
+
         </div>
       </div>
     </body>
@@ -283,23 +353,25 @@ const buildEmailBodies = (args: {
   const textBodyLines: string[] = [
     "Daily Summary",
     `${windowLabel}.`,
-    `Download requests (email) in the last ${hours}h: ${windowCount} (all-time total: ${total})`,
-    `New users in the last ${hours}h: ${rows.length}`,
+    "",
+    `🌐 Web users last ${hours}h: ${rows.length} (all-time: ${totalUsers})`,
+    `💻 Email downloads last ${hours}h: ${windowCount} (all-time: ${total})`,
+    `📧 Reminder emails: ${reminderSent} sent | ${reminderFailed} failed`,
+    `📦 GitHub installs — last ${hours}h: ${github.last24h !== null ? `+${github.last24h}` : "—"} | all-time: ${github.totalDownloads ?? "—"} | ${github.latestVersion}: ${github.latestDownloads ?? "—"}`,
     "",
   ];
 
   for (const r of rows) {
     const parts = formatDateParts(r.auth_created_at ?? r.updated_at ?? null);
     textBodyLines.push(
-      `- ${r.full_name ?? "Not provided"} | ${r.email ?? "unknown"} | ${
-        r.id
-      } | date=${parts.date} time=${
-        parts.time
-      } | mailing consent: ${formatBoolean(r.mailing_list_consent)} | avatar: ${
-        r.avatar_url ?? "N/A"
-      }`,
+      `  - ${r.full_name ?? "Not provided"} | ${r.email ?? "unknown"} | date=${parts.date} ${parts.time} | consent: ${formatBoolean(r.mailing_list_consent)}`,
     );
   }
+
+  textBodyLines.push("");
+  textBodyLines.push(`💻 Desktop Platform — Download requests last ${hours}h: ${windowCount} (all-time: ${total})`);
+  textBodyLines.push(downloadSection.text);
+
 
   return { htmlBody, textBody: textBodyLines.join("\n") };
 };
@@ -423,10 +495,13 @@ serve(async (req) => {
     });
   }
 
-  // Download requests stats (status=sent)
+  // Download requests — counts + row details, total user count, and GitHub releases — all in parallel
   const [
     { count: last24h, error: err24h },
     { count: totalDownloads, error: errTotal },
+    { data: downloadDetails, error: errDetails },
+    { count: totalUsersCount, error: errTotalUsers },
+    ghResult,
   ] = await Promise.all([
     supabaseAdmin
       .from("download_requests")
@@ -437,22 +512,97 @@ serve(async (req) => {
       .from("download_requests")
       .select("*", { count: "exact", head: true })
       .eq("status", "sent"),
+    supabaseAdmin
+      .from("download_requests")
+      .select("id, created_at, from_email, status, reason")
+      .gte("created_at", sinceIso)
+      .order("created_at", { ascending: false }),
+    supabaseAdmin
+      .from("profiles")
+      .select("*", { count: "exact", head: true }),
+    fetch("https://api.github.com/repos/yossi-weinberger/ten10/releases?per_page=100", {
+      headers: { "User-Agent": "ten10-summary-bot" },
+    })
+      .then((r) => (r.ok ? r.json() : Promise.resolve(null)))
+      .catch(() => null),
   ]);
 
-  if (err24h)
-    console.error("Failed to fetch download requests last24h:", err24h);
-  if (errTotal)
-    console.error("Failed to fetch download requests total:", errTotal);
+  if (err24h) console.error("Failed to fetch download requests last24h:", err24h);
+  if (errTotal) console.error("Failed to fetch download requests total:", errTotal);
+  if (errDetails) console.error("Failed to fetch download request details:", errDetails);
+  if (errTotalUsers) console.error("Failed to fetch total users count:", errTotalUsers);
+
+  // Parse GitHub release download counts
+  type GhRelease = { tag_name: string; published_at: string; assets: { name: string; download_count: number }[] };
+  const ghFetchOk = Array.isArray(ghResult);
+  const ghReleases: GhRelease[] = ghFetchOk ? ghResult : [];
+
+  // Count only real installer downloads — exclude update-check files (.json, .sig)
+  const isRealInstaller = (name: string) =>
+    !name.endsWith(".json") && !name.endsWith(".sig");
+
+  const ghTotalDownloads: number | null = ghFetchOk
+    ? ghReleases.reduce((sum, r) => sum + r.assets.filter((a) => isRealInstaller(a.name)).reduce((s, a) => s + a.download_count, 0), 0)
+    : null;
+  const ghLatest = ghFetchOk ? (ghReleases[0] ?? null) : null;
+  const ghLatestVersion = ghLatest?.tag_name ?? "—";
+  const ghLatestDownloads: number | null = ghLatest
+    ? ghLatest.assets.filter((a) => isRealInstaller(a.name)).reduce((s, a) => s + a.download_count, 0)
+    : null;
+
+  // Compute 24h GitHub download delta using yesterday's snapshot
+  const GH_SNAPSHOT_KEY = "github_total_downloads";
+  const { data: snapshotRow } = await supabaseAdmin
+    .from("app_kv_store")
+    .select("value_int")
+    .eq("key", GH_SNAPSHOT_KEY)
+    .single();
+
+  const yesterdayTotal = snapshotRow?.value_int ?? null;
+  const ghLast24h =
+    ghTotalDownloads !== null && yesterdayTotal !== null
+      ? Math.max(0, ghTotalDownloads - Number(yesterdayTotal))
+      : null;
+
+  // Upsert today's snapshot only when GitHub responded successfully (avoid overwriting with 0 on error)
+  if (ghFetchOk && ghTotalDownloads !== null) {
+    const { error: ghSnapshotError } = await supabaseAdmin
+      .from("app_kv_store")
+      .upsert({ key: GH_SNAPSHOT_KEY, value_int: ghTotalDownloads, updated_at: new Date().toISOString() });
+    if (ghSnapshotError) {
+      console.error("[GitHub] Failed to upsert download snapshot:", ghSnapshotError);
+    }
+  } else {
+    console.warn("[GitHub] Fetch failed — skipping snapshot update to preserve delta integrity.");
+  }
+
+  // Reminder run logs for the configured window (default 24 hours)
+  const { data: reminderLogs, error: reminderLogsError } = await supabaseAdmin
+    .from("reminder_run_logs")
+    .select(
+      "run_at, day_of_month, was_reminder_day, was_shabbat, users_processed, emails_sent, emails_failed, notes",
+    )
+    .gte("run_at", sinceIso)
+    .order("run_at", { ascending: false });
+
+  if (reminderLogsError) {
+    console.error("Failed to fetch reminder logs:", reminderLogsError);
+  }
+  const reminderRunLogs: ReminderRunLog[] = reminderLogs ?? [];
 
   const downloadRequests = {
     windowCount: last24h ?? 0,
     total: totalDownloads ?? 0,
+    details: (downloadDetails ?? []) as DownloadRequest[],
   };
 
   const { htmlBody, textBody } = buildEmailBodies({
     rows,
     hours,
     downloadRequests,
+    totalUsers: totalUsersCount ?? 0,
+    reminderLogs: reminderRunLogs,
+    github: { totalDownloads: ghTotalDownloads, last24h: ghLast24h, latestVersion: ghLatestVersion, latestDownloads: ghLatestDownloads },
   });
 
   if (rows.length === 0 && downloadRequests.windowCount === 0) {
@@ -473,7 +623,7 @@ serve(async (req) => {
     const emailService = new SimpleEmailService(fromUsers);
     await emailService.sendRawEmail({
       to: toEmail,
-      subject: `[Ten10] Daily Summary: ${rows.length} Users, ${downloadRequests.windowCount} Download Requests`,
+      subject: `[Ten10] Daily Summary: +${rows.length} users (${totalUsersCount ?? 0} total), ${downloadRequests.windowCount} downloads`,
       textBody,
       htmlBody,
     });
