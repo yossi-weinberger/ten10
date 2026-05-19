@@ -185,11 +185,17 @@ const buildEmailBodies = (args: {
 
   const reminderSent = reminderLogs.filter((l) => l.was_reminder_day).reduce((s, l) => s + l.emails_sent, 0);
   const reminderFailed = reminderLogs.reduce((s, l) => s + l.emails_failed, 0);
-  const reminderStatusLine = reminderSent > 0
-    ? `📧 Reminder emails: <strong style="color:#166534;">${reminderSent} sent</strong>${reminderFailed > 0 ? ` &nbsp;·&nbsp; <strong style="color:#dc2626;">${reminderFailed} failed</strong>` : ""}`
-    : reminderFailed > 0
-      ? `📧 Reminder emails: <strong style="color:#dc2626;">${reminderFailed} failed</strong>`
-      : `📧 Reminder emails: not a reminder day`;
+  const wasReminderDay = reminderLogs.some((l) => l.was_reminder_day);
+  const wasShabbatSkip = !wasReminderDay && reminderLogs.some((l) => l.was_shabbat || l.notes?.includes("Shabbat") || l.notes?.includes("Erev"));
+  const reminderStatusLine = wasReminderDay
+    ? reminderSent > 0
+      ? `📧 Reminder emails: <strong style="color:#166534;">${reminderSent} sent</strong>${reminderFailed > 0 ? ` &nbsp;·&nbsp; <strong style="color:#dc2626;">${reminderFailed} failed</strong>` : ""}`
+      : `📧 Reminder emails: reminder day — <strong style="color:#6b7280;">no users configured</strong>`
+    : wasShabbatSkip
+      ? `📧 Reminder emails: skipped (Shabbat)`
+      : reminderFailed > 0
+        ? `📧 Reminder emails: <strong style="color:#dc2626;">${reminderFailed} failed</strong>`
+        : `📧 Reminder emails: not a reminder day`;
 
   const card = (bg: string, border: string, labelColor: string, icon: string, label: string, bigNum: string | number, footer: string) => `
     <div style="background:${bg};border:1px solid ${border};border-radius:12px;padding:20px 12px;text-align:center;height:130px;box-sizing:border-box;">
@@ -349,7 +355,7 @@ const buildEmailBodies = (args: {
     `🌐 Web users last ${hours}h: ${rows.length} (all-time: ${totalUsers})`,
     `💻 Email downloads last ${hours}h: ${windowCount} (all-time: ${total})`,
     `📧 Reminder emails: ${reminderSent} sent | ${reminderFailed} failed`,
-    `📦 GitHub installs (real) — last ${hours}h: ${github.last24h !== null ? `+${github.last24h}` : "—"} | all-time: ${github.totalDownloads} | ${github.latestVersion}: ${github.latestDownloads}`,
+    `📦 GitHub installs — last ${hours}h: ${github.last24h !== null ? `+${github.last24h}` : "—"} | all-time: ${github.totalDownloads ?? "—"} | ${github.latestVersion}: ${github.latestDownloads ?? "—"}`,
     "",
   ];
 

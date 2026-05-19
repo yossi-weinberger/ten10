@@ -242,12 +242,18 @@ serve(async (req) => {
       }
     }
 
-    // Service-role client for logging run results to reminder_run_logs
-    const supabaseAdmin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { autoRefreshToken: false, persistSession: false } },
-    );
+    // Service-role client for logging run results to reminder_run_logs.
+    // Reuse already-resolved env values; missing secrets cause an early 500 below.
+    if (!supabaseUrl || !validServiceKey) {
+      console.error("[REMINDER] Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+      return new Response(JSON.stringify({ error: "Server misconfiguration" }), {
+        status: 500,
+        headers: { ...getCorsHeaders(origin), "Content-Type": "application/json" },
+      });
+    }
+    const supabaseAdmin = createClient(supabaseUrl, validServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
 
     // Initialize services with error handling
     console.log("[REMINDER] Initializing services...");
