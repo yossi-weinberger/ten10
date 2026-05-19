@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { useScrollAnimation } from "@/hooks/useScrollAnimation";
 import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Star } from "lucide-react";
 import {
   Carousel,
@@ -13,6 +14,204 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { testimonials } from "../constants/testimonials";
+
+interface TestimonialsSectionProps {
+  sectionRef: React.RefObject<HTMLElement | null>;
+}
+
+/** Circular distance between two indices in an array of given length. */
+function circularDist(a: number, b: number, len: number) {
+  return Math.min(Math.abs(a - b), len - Math.abs(a - b));
+}
+
+export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
+  sectionRef,
+}) => {
+  const { t, i18n } = useTranslation("landing");
+  const headerRef = useScrollAnimation({ threshold: 0.1 });
+
+  const [carouselApi, setCarouselApi] = useState<CarouselApi | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const autoplayRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const total = testimonials.length;
+  const progress = ((selectedIndex + 1) / total) * 100;
+
+  // Track selected index from embla
+  useEffect(() => {
+    if (!carouselApi) return;
+    const onSelect = () => setSelectedIndex(carouselApi.selectedScrollSnap());
+    carouselApi.on("select", onSelect);
+    onSelect();
+    return () => {
+      carouselApi.off("select", onSelect);
+    };
+  }, [carouselApi]);
+
+  // Auto-play — pauses on hover
+  useEffect(() => {
+    if (!carouselApi || isPaused) return;
+    autoplayRef.current = setInterval(() => carouselApi.scrollNext(), 5000);
+    return () => {
+      if (autoplayRef.current) clearInterval(autoplayRef.current);
+    };
+  }, [carouselApi, isPaused]);
+
+  return (
+    <section
+      id="testimonials"
+      ref={sectionRef}
+      className="py-20 px-4 bg-white dark:bg-gray-800"
+    >
+      <div className="container mx-auto max-w-6xl">
+        {/* Header — same pattern as FeaturesSection */}
+        <div className="text-center mb-12" ref={headerRef.ref}>
+          <motion.span
+            className="text-blue-600 dark:text-blue-400 font-semibold tracking-wider uppercase text-sm mb-2 block"
+            initial={{ opacity: 0, y: 10 }}
+            animate={headerRef.isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+          >
+            {t("testimonials.eyebrow")}
+          </motion.span>
+          <motion.h2
+            className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white"
+            initial={{ opacity: 0, y: 30 }}
+            animate={
+              headerRef.isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }
+            }
+            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+          >
+            {t("testimonials.title")}
+          </motion.h2>
+        </div>
+
+        {/* Carousel */}
+        <div
+          className="relative"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          <Carousel
+            opts={{ align: "center", loop: true, direction: "ltr" }}
+            setApi={setCarouselApi}
+            className="w-full"
+          >
+            {/* direction: "ltr" on content — required for correct layout in RTL pages */}
+            <CarouselContent style={{ direction: "ltr" }}>
+              {testimonials.map((testimonial, index) => {
+                const dist = circularDist(index, selectedIndex, total);
+                const isCenter = dist === 0;
+                const isAdjacent = dist === 1;
+
+                return (
+                  <CarouselItem
+                    key={index}
+                    className="basis-[85%] sm:basis-1/2 md:basis-1/3 px-3"
+                  >
+                    <motion.div
+                      className="h-full py-6"
+                      dir={i18n.dir()}
+                      animate={{
+                        scale: isCenter ? 1.05 : isAdjacent ? 0.96 : 0.90,
+                        opacity: isCenter ? 1 : isAdjacent ? 0.75 : 0.45,
+                      }}
+                      transition={{ type: "spring", damping: 28, stiffness: 280 }}
+                    >
+                      <Card
+                        className={`h-full flex flex-col transition-all duration-300 ${
+                          isCenter
+                            ? "shadow-lg border-blue-300 dark:border-blue-700"
+                            : "shadow-soft border-border"
+                        }`}
+                      >
+                        <CardContent className="pt-6 pb-5 px-6 flex flex-col h-full">
+                          {/* Decorative quote mark */}
+                          <div
+                            className={`text-5xl font-serif leading-none mb-2 select-none transition-colors duration-300 ${
+                              isCenter
+                                ? "text-blue-500 dark:text-blue-400"
+                                : "text-muted-foreground/30"
+                            }`}
+                          >
+                            &#8220;
+                          </div>
+
+                          {/* Stars */}
+                          <div className="flex gap-0.5 mb-4">
+                            {[...Array(testimonial.rating)].map((_, i) => (
+                              <Star
+                                key={i}
+                                className="h-4 w-4 fill-yellow-400 text-yellow-400"
+                              />
+                            ))}
+                          </div>
+
+                          {/* Quote text */}
+                          <p
+                            className={`flex-grow italic leading-relaxed mb-5 transition-colors duration-300 ${
+                              isCenter
+                                ? "text-foreground text-base"
+                                : "text-muted-foreground text-sm"
+                            }`}
+                          >
+                            {t(testimonial.textKey)}
+                          </p>
+
+                          {/* Author */}
+                          <div
+                            className={`flex items-center gap-3 pt-4 border-t transition-colors duration-300 ${
+                              isCenter ? "border-blue-100 dark:border-blue-900/50" : "border-border"
+                            }`}
+                          >
+                            <div
+                              className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-all duration-300 ${
+                                isCenter
+                                  ? "bg-gradient-to-br from-blue-500 to-teal-600 text-white"
+                                  : "bg-muted text-muted-foreground"
+                              }`}
+                            >
+                              {t(testimonial.nameKey)[0]}
+                            </div>
+                            <p
+                              className={`font-semibold transition-colors duration-300 ${
+                                isCenter ? "text-foreground" : "text-muted-foreground"
+                              }`}
+                            >
+                              {t(testimonial.nameKey)}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  </CarouselItem>
+                );
+              })}
+            </CarouselContent>
+
+            <CarouselPrevious
+              className="-left-4 md:-left-6 h-10 w-10 border-none bg-background/90 backdrop-blur shadow-soft hover:shadow-hover"
+              aria-label="Previous testimonial"
+            />
+            <CarouselNext
+              className="-right-4 md:-right-6 h-10 w-10 border-none bg-background/90 backdrop-blur shadow-soft hover:shadow-hover"
+              aria-label="Next testimonial"
+            />
+          </Carousel>
+        </div>
+
+        {/* Progress bar + counter — same style as ScreenshotCarousel */}
+        <div className="mt-6 max-w-xs mx-auto">
+          <Progress value={progress} className="h-1.5" />
+          <p className="text-center text-sm text-muted-foreground mt-2">
+            {selectedIndex + 1} {t("testimonials.progress")} {total}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 
 interface TestimonialsSectionProps {
   sectionRef: React.RefObject<HTMLElement | null>;

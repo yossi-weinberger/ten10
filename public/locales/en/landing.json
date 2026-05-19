@@ -199,43 +199,34 @@
   "testimonials": {
     "eyebrow": "User Testimonials",
     "title": "What Users Say",
+    "progress": "of",
     "items": [
-      {
-        "name": "Dan H.K.",
-        "text": "I never used the previous program because it seemed too complicated — but this new one is pure joy. Thanks to you, I finally give maaser the right way."
-      },
-      {
-        "name": "Z.V.",
-        "text": "A blessed initiative and flawless execution. Ten10 sets a true precedent in this field, at the very highest level."
-      },
-      {
-        "name": "Shia S.",
-        "text": "A top-notch, user-friendly program — you have truly transformed my life."
-      },
-      {
-        "name": "Miriam T.",
-        "text": "A sophisticated and well-crafted program — a real breakthrough for the public."
-      },
-      {
-        "name": "M.R.H.",
-        "text": "I've been using it for several years now, and it provides tremendous value."
-      },
-      {
-        "name": "A. and R.",
-        "text": "Such an amazing program that it's hard to find anything to criticize."
-      },
-      {
-        "name": "Sarah A.",
-        "text": "Huge thanks. Finally, there's order in my maaser tracking — bringing me back to halachic balance."
-      },
-      {
-        "name": "Elchanan K.",
-        "text": "You are truly helping the Jewish people!"
-      },
-      {
-        "name": "Tzvi L.",
-        "text": "Simply excellent — very user-friendly and intuitive."
-      }
+      { "name": "Dan H.K.", "text": "I never used the previous program because it seemed too complicated — but this new one is pure joy. Thanks to you, I finally give maaser the right way." },
+      { "name": "Sarah A.", "text": "Huge thanks for this wonderful program that finally brings order to my maaser tracking — restoring my halachic balance." },
+      { "name": "Shia S.", "text": "A top-notch, user-friendly program — you have really transformed my life." },
+      { "name": "Tzvi L.", "text": "Simply excellent — very user-friendly and intuitive." },
+      { "name": "Shalom S.", "text": "I enjoy using it so much and recommend it to many others." },
+      { "name": "Z.V.", "text": "A blessed initiative and flawless execution. This program truly sets a precedent in the field, at the very highest level." },
+      { "name": "Avigail Sh.", "text": "Simply wonderful. Amazing work — something that truly does the job." },
+      { "name": "Ben Tzion K.", "text": "Just installed the program — it's like a light in my eyes!" },
+      { "name": "Miriam T.", "text": "A sophisticated and well-crafted program — a true breakthrough for the public." },
+      { "name": "Nachman P.", "text": "No words — it's something wonderful and amazing, this program!" },
+      { "name": "Yoel B.", "text": "I stand in awe before this incredible creation." },
+      { "name": "Yisroel W.", "text": "The program makes it much easier to calculate." },
+      { "name": "B.R.", "text": "The amazing Ten10 — a very convenient interface, easy to operate." },
+      { "name": "Miriam T.", "text": "Thank you for this wonderful and useful program." },
+      { "name": "Zeev L.", "text": "Many thanks! This is an amazing program." },
+      { "name": "Libi H.", "text": "The program is truly wonderful and very, very useful." },
+      { "name": "Family Sh.", "text": "This wonderful program is so helpful for organizing income and tithes." },
+      { "name": "N.Sh.", "text": "The program is beautifully designed and looks very easy to use." },
+      { "name": "Shimon V.", "text": "Many thanks for this excellent system." },
+      { "name": "Elchanan K.", "text": "You are truly helping the Jewish people!" },
+      { "name": "Yisrael B.", "text": "Kol hakavod — a wonderful program." },
+      { "name": "Pinchas D.", "text": "Thanks again for this innovative program." },
+      { "name": "Yosef Chaim B.", "text": "Works excellently! Highly recommend to friends." },
+      { "name": "A. and R.", "text": "Such an amazing program that it's hard to find anything to criticize." },
+      { "name": "M.R.H.", "text": "I've been using it for several years now, and it provides tremendous value." },
+      { "name": "Y.M.A.", "text": "Tremendous yasher koach. Kol hakavod for your blessed work." }
     ]
   },
   "faq": {
