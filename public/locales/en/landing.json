@@ -57,7 +57,9 @@
       "transactionsList": "Historical tracking of all transactions and calculations",
       "recurring": "Manage standing orders and recurring payments",
       "printReport": "Generate organized printable reports",
-      "halacha": "Comprehensive halacha library with common Q&A"
+      "halacha": "Comprehensive halacha library with common Q&A",
+      "analytics": "Rich financial dashboard with charts and category breakdowns",
+      "import": "Import transactions directly from your bank or credit card file"
     }
   },
   "quotes": {

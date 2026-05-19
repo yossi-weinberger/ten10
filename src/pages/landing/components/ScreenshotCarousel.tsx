@@ -24,8 +24,12 @@ type ScreenshotItem = {
   key: string;
   titleKey: string;
   src: string;
+  srcByLang?: Partial<Record<"he" | "en", string>>;
   alt: string;
 };
+
+const getItemSrc = (item: ScreenshotItem, lang: string): string =>
+  item.srcByLang?.[lang as "he" | "en"] ?? item.src;
 
 type LightboxImage = {
   src: string;
@@ -38,31 +42,71 @@ const SCREENSHOTS: ScreenshotItem[] = [
     key: "dashboard",
     titleKey: "carousel.items.dashboard",
     src: "/screenshots/dashboard.webp",
+    srcByLang: {
+      he: "/screenshots/he/dashboard.webp",
+      en: "/screenshots/en/dashboard.webp",
+    },
     alt: "Ten10 Dashboard",
   },
   {
     key: "add-transaction",
     titleKey: "carousel.items.addTransaction",
     src: "/screenshots/add-transaction.webp",
+    srcByLang: {
+      he: "/screenshots/he/add-transaction.webp",
+      en: "/screenshots/en/add-transaction.webp",
+    },
     alt: "Add Transaction Screen",
   },
   {
     key: "transactions-list",
     titleKey: "carousel.items.transactionsList",
     src: "/screenshots/transactions-list.webp",
+    srcByLang: {
+      he: "/screenshots/he/transactions-list.webp",
+      en: "/screenshots/en/transactions-list.webp",
+    },
     alt: "Transactions List",
   },
   {
     key: "print-report",
     titleKey: "carousel.items.printReport",
     src: "/screenshots/print-report.webp",
+    srcByLang: {
+      he: "/screenshots/he/print-report.webp",
+      en: "/screenshots/en/print-report.webp",
+    },
     alt: "Printable Report",
   },
   {
     key: "halacha",
     titleKey: "carousel.items.halacha",
     src: "/screenshots/halacha.webp",
+    srcByLang: {
+      he: "/screenshots/he/halacha.webp",
+      en: "/screenshots/en/halacha.webp",
+    },
     alt: "Halacha Library",
+  },
+  {
+    key: "analytics",
+    titleKey: "carousel.items.analytics",
+    src: "/screenshots/analytics.webp",
+    srcByLang: {
+      he: "/screenshots/he/analytics.webp",
+      en: "/screenshots/en/analytics.webp",
+    },
+    alt: "Financial Dashboard",
+  },
+  {
+    key: "import",
+    titleKey: "carousel.items.import",
+    src: "/screenshots/import.webp",
+    srcByLang: {
+      he: "/screenshots/he/import.webp",
+      en: "/screenshots/en/import.webp",
+    },
+    alt: "Import from Bank",
   },
 ];
 
@@ -161,9 +205,9 @@ export const ScreenshotCarousel: React.FC = () => {
 
   // Handle opening lightbox
   const openLightbox = useCallback((item: ScreenshotItem) => {
-    setLightboxImage({ src: item.src, alt: item.alt });
+    setLightboxImage({ src: getItemSrc(item, i18n.language), alt: item.alt });
     setLightboxOpen(true);
-  }, []);
+  }, [i18n.language]);
 
   // Carousel progress tracking
   useEffect(() => {
@@ -262,7 +306,7 @@ export const ScreenshotCarousel: React.FC = () => {
                     }}
                     aria-label={`${t(item.titleKey)} - Click to enlarge`}
                   >
-                    <ScreenshotImage src={item.src} alt={item.alt} />
+                    <ScreenshotImage src={getItemSrc(item, i18n.language)} alt={item.alt} />
 
                     {/* Zoom icon overlay */}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-200 flex items-center justify-center pointer-events-none rounded-xl">
