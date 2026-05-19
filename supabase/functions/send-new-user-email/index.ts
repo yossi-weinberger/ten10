@@ -110,59 +110,6 @@ const fetchAuthUser = async (
   };
 };
 
-const buildReminderSection = (logs: ReminderRunLog[]): { html: string; text: string } => {
-  if (logs.length === 0) {
-    return {
-      html: `<p style="color:#6b7280;font-size:13px;">No reminder runs logged in this window.</p>`,
-      text: "Reminder emails: no runs logged in this window.",
-    };
-  }
-
-  const rows = logs
-    .map((log) => {
-      const time = new Date(log.run_at).toLocaleString("he-IL", { timeZone: "Asia/Jerusalem" });
-      let statusBadge: string;
-      if (log.was_shabbat) {
-        statusBadge = `<span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">שבת</span>`;
-      } else if (!log.was_reminder_day) {
-        statusBadge = `<span style="background:#f3f4f6;color:#6b7280;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">לא יום תזכורת</span>`;
-      } else if (log.emails_failed > 0) {
-        statusBadge = `<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">⚠️ ${log.emails_failed} נכשלו</span>`;
-      } else {
-        statusBadge = `<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">✓ ${log.emails_sent} נשלחו</span>`;
-      }
-      return `<tr>
-        <td style="padding:8px;border-bottom:1px solid #f3f4f6;font-size:13px;color:#374151;">${escapeHtml(time)}</td>
-        <td style="padding:8px;border-bottom:1px solid #f3f4f6;font-size:13px;color:#374151;text-align:center;">${log.day_of_month}</td>
-        <td style="padding:8px;border-bottom:1px solid #f3f4f6;">${statusBadge}</td>
-        <td style="padding:8px;border-bottom:1px solid #f3f4f6;font-size:13px;color:#6b7280;">${escapeHtml(log.notes ?? "")}</td>
-      </tr>`;
-    })
-    .join("");
-
-  const textLines = logs.map((log) => {
-    const time = new Date(log.run_at).toISOString();
-    if (log.was_shabbat) return `  ${time}: Shabbat - skipped`;
-    if (!log.was_reminder_day) return `  ${time}: Not a reminder day`;
-    return `  ${time}: day ${log.day_of_month} → ${log.emails_sent} sent, ${log.emails_failed} failed (${log.users_processed} users)`;
-  });
-
-  return {
-    html: `
-      <table style="width:100%;border-collapse:collapse;margin-top:8px;">
-        <thead>
-          <tr style="background:#f9fafb;">
-            <th style="padding:8px;text-align:left;font-size:12px;color:#6b7280;font-weight:600;">זמן (ישראל)</th>
-            <th style="padding:8px;text-align:center;font-size:12px;color:#6b7280;font-weight:600;">יום</th>
-            <th style="padding:8px;text-align:left;font-size:12px;color:#6b7280;font-weight:600;">סטטוס</th>
-            <th style="padding:8px;text-align:left;font-size:12px;color:#6b7280;font-weight:600;">הערות</th>
-          </tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>`,
-    text: textLines.join("\n"),
-  };
-};
 
 const buildDownloadRequestsSection = (requests: DownloadRequest[], hours: number): { html: string; text: string } => {
   if (requests.length === 0) {
@@ -215,7 +162,7 @@ const buildEmailBodies = (args: {
   };
   totalUsers: number;
   reminderLogs: ReminderRunLog[];
-  github: { totalDownloads: number; last24h: number | null; latestVersion: string; latestDownloads: number };
+  github: { totalDownloads: number | null; last24h: number | null; latestVersion: string; latestDownloads: number | null };
 }) => {
   const { rows, hours, downloadRequests, totalUsers, reminderLogs, github } = args;
   const { windowCount, total, details: downloadDetails } = downloadRequests;
@@ -262,7 +209,7 @@ const buildEmailBodies = (args: {
         ${card("#ecfdf5","#bbf7d0","#065f46","🌐","New web users", rows.length, `All-time: <strong style="color:#374151;">${totalUsers}</strong>`)}
       </td>
       <td width="33%" valign="top" style="padding:0 0 0 4px;">
-        ${card("#fefce8","#fde68a","#92400e","📦","GitHub installs", github.last24h !== null ? `+${github.last24h}` : "—", `All-time: <strong style="color:#374151;">${github.totalDownloads}</strong> &nbsp;·&nbsp; ${escapeHtml(github.latestVersion)}: ${github.latestDownloads}`)}
+        ${card("#fefce8","#fde68a","#92400e","📦","GitHub installs", github.last24h !== null ? `+${github.last24h}` : "—", github.totalDownloads !== null ? `All-time: <strong style="color:#374151;">${github.totalDownloads}</strong> &nbsp;·&nbsp; ${escapeHtml(github.latestVersion)}: ${github.latestDownloads ?? "—"}` : `GitHub unavailable`)}
       </td>
     </tr>
   </table>
@@ -586,13 +533,14 @@ serve(async (req) => {
   const isRealInstaller = (name: string) =>
     !name.endsWith(".json") && !name.endsWith(".sig");
 
-  const ghTotalDownloads = ghReleases.reduce(
-    (sum, r) => sum + r.assets.filter((a) => isRealInstaller(a.name)).reduce((s, a) => s + a.download_count, 0),
-    0,
-  );
-  const ghLatest = ghReleases[0] ?? null;
+  const ghTotalDownloads: number | null = ghFetchOk
+    ? ghReleases.reduce((sum, r) => sum + r.assets.filter((a) => isRealInstaller(a.name)).reduce((s, a) => s + a.download_count, 0), 0)
+    : null;
+  const ghLatest = ghFetchOk ? (ghReleases[0] ?? null) : null;
   const ghLatestVersion = ghLatest?.tag_name ?? "—";
-  const ghLatestDownloads = ghLatest?.assets.filter((a) => isRealInstaller(a.name)).reduce((s, a) => s + a.download_count, 0) ?? 0;
+  const ghLatestDownloads: number | null = ghLatest
+    ? ghLatest.assets.filter((a) => isRealInstaller(a.name)).reduce((s, a) => s + a.download_count, 0)
+    : null;
 
   // Compute 24h GitHub download delta using yesterday's snapshot
   const GH_SNAPSHOT_KEY = "github_total_downloads";
@@ -603,18 +551,21 @@ serve(async (req) => {
     .single();
 
   const yesterdayTotal = snapshotRow?.value_int ?? null;
-  const ghLast24h = yesterdayTotal !== null ? Math.max(0, ghTotalDownloads - Number(yesterdayTotal)) : null;
+  const ghLast24h =
+    ghTotalDownloads !== null && yesterdayTotal !== null
+      ? Math.max(0, ghTotalDownloads - Number(yesterdayTotal))
+      : null;
 
   // Upsert today's snapshot only when GitHub responded successfully (avoid overwriting with 0 on error)
-  if (ghFetchOk) {
+  if (ghFetchOk && ghTotalDownloads !== null) {
     await supabaseAdmin
       .from("app_kv_store")
       .upsert({ key: GH_SNAPSHOT_KEY, value_int: ghTotalDownloads, updated_at: new Date().toISOString() });
   } else {
-    console.warn("[GitHub] Fetch failed or returned non-array — skipping snapshot update to preserve delta integrity.");
+    console.warn("[GitHub] Fetch failed — skipping snapshot update to preserve delta integrity.");
   }
 
-  // Reminder run logs for the last 24 hours
+  // Reminder run logs for the configured window (default 24 hours)
   const { data: reminderLogs, error: reminderLogsError } = await supabaseAdmin
     .from("reminder_run_logs")
     .select(

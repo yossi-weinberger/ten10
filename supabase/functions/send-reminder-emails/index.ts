@@ -317,11 +317,11 @@ serve(async (req) => {
       await logRun(supabaseAdmin, {
         day_of_month: currentDay,
         was_reminder_day: false,
-        was_shabbat: true,
+        was_shabbat: false,
         users_processed: 0,
         emails_sent: 0,
         emails_failed: 0,
-        notes: "Erev Shabbat (Friday Israel, cron after sunset) - skipped",
+        notes: "Erev Shabbat (Friday Israel, cron fires after sunset) - skipped",
       });
       return new Response(
         JSON.stringify({ message: "Today is Erev Shabbat in Israel (cron fires after sunset). Skipped." }),

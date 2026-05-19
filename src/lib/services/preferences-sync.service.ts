@@ -65,7 +65,11 @@ export const PreferencesSyncService = {
       }
 
       if (!dbPreferences) {
-        // DB is empty (null). Local wins. Push to DB.
+        // DB is empty (null). Local wins. Push client_preferences to DB.
+        // Note: dedicated profile columns (reminder_day_of_month, reminder_enabled,
+        // mailing_list_consent) are intentionally NOT pushed here — they have
+        // sensible DB defaults and are written explicitly by SettingsPage when
+        // the user changes notification settings.
         logger.log(
           "PreferencesSyncService: DB preferences empty. Pushing local settings to DB.",
         );
