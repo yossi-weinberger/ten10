@@ -221,7 +221,6 @@ const buildEmailBodies = (args: {
   const { windowCount, total, details: downloadDetails } = downloadRequests;
   const windowLabel = `Last ${hours} hours`;
 
-  const reminderSection = buildReminderSection(reminderLogs);
   const downloadSection = buildDownloadRequestsSection(downloadDetails, hours);
 
   if (rows.length === 0 && windowCount === 0) {
@@ -569,8 +568,8 @@ serve(async (req) => {
     fetch("https://api.github.com/repos/yossi-weinberger/ten10/releases", {
       headers: { "User-Agent": "ten10-summary-bot" },
     })
-      .then((r) => r.json())
-      .catch(() => []),
+      .then((r) => (r.ok ? r.json() : Promise.resolve(null)))
+      .catch(() => null),
   ]);
 
   if (err24h) console.error("Failed to fetch download requests last24h:", err24h);
@@ -580,7 +579,8 @@ serve(async (req) => {
 
   // Parse GitHub release download counts
   type GhRelease = { tag_name: string; published_at: string; assets: { name: string; download_count: number }[] };
-  const ghReleases: GhRelease[] = Array.isArray(ghResult) ? ghResult : [];
+  const ghFetchOk = Array.isArray(ghResult);
+  const ghReleases: GhRelease[] = ghFetchOk ? ghResult : [];
 
   // Count only real installer downloads — exclude update-check files (.json, .sig)
   const isRealInstaller = (name: string) =>
@@ -605,10 +605,14 @@ serve(async (req) => {
   const yesterdayTotal = snapshotRow?.value_int ?? null;
   const ghLast24h = yesterdayTotal !== null ? Math.max(0, ghTotalDownloads - Number(yesterdayTotal)) : null;
 
-  // Upsert today's snapshot for tomorrow's delta
-  await supabaseAdmin
-    .from("app_kv_store")
-    .upsert({ key: GH_SNAPSHOT_KEY, value_int: ghTotalDownloads, updated_at: new Date().toISOString() });
+  // Upsert today's snapshot only when GitHub responded successfully (avoid overwriting with 0 on error)
+  if (ghFetchOk) {
+    await supabaseAdmin
+      .from("app_kv_store")
+      .upsert({ key: GH_SNAPSHOT_KEY, value_int: ghTotalDownloads, updated_at: new Date().toISOString() });
+  } else {
+    console.warn("[GitHub] Fetch failed or returned non-array — skipping snapshot update to preserve delta integrity.");
+  }
 
   // Reminder run logs for the last 24 hours
   const { data: reminderLogs, error: reminderLogsError } = await supabaseAdmin

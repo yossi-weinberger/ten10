@@ -446,7 +446,7 @@ serve(async (req) => {
       users_processed: usersWithBalances.length,
       emails_sent: sentCount,
       emails_failed: failedCount,
-      notes: sundayMessage || (isTest ? "TEST MODE" : null),
+      notes: sundayMessage || (isTest ? "TEST MODE" : undefined),
     });
 
     return new Response(
