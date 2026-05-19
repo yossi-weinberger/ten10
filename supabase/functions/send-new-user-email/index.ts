@@ -186,7 +186,7 @@ const buildEmailBodies = (args: {
   const reminderSent = reminderLogs.filter((l) => l.was_reminder_day).reduce((s, l) => s + l.emails_sent, 0);
   const reminderFailed = reminderLogs.reduce((s, l) => s + l.emails_failed, 0);
   const wasReminderDay = reminderLogs.some((l) => l.was_reminder_day);
-  const wasShabbatSkip = !wasReminderDay && reminderLogs.some((l) => l.was_shabbat || l.notes?.includes("Shabbat") || l.notes?.includes("Erev"));
+  const wasShabbatSkip = !wasReminderDay && reminderLogs.some((l) => l.was_shabbat);
   const reminderStatusLine = wasReminderDay
     ? reminderSent > 0
       ? `📧 Reminder emails: <strong style="color:#166534;">${reminderSent} sent</strong>${reminderFailed > 0 ? ` &nbsp;·&nbsp; <strong style="color:#dc2626;">${reminderFailed} failed</strong>` : ""}`
@@ -518,7 +518,7 @@ serve(async (req) => {
     supabaseAdmin
       .from("profiles")
       .select("*", { count: "exact", head: true }),
-    fetch("https://api.github.com/repos/yossi-weinberger/ten10/releases", {
+    fetch("https://api.github.com/repos/yossi-weinberger/ten10/releases?per_page=100", {
       headers: { "User-Agent": "ten10-summary-bot" },
     })
       .then((r) => (r.ok ? r.json() : Promise.resolve(null)))
@@ -564,9 +564,12 @@ serve(async (req) => {
 
   // Upsert today's snapshot only when GitHub responded successfully (avoid overwriting with 0 on error)
   if (ghFetchOk && ghTotalDownloads !== null) {
-    await supabaseAdmin
+    const { error: ghSnapshotError } = await supabaseAdmin
       .from("app_kv_store")
       .upsert({ key: GH_SNAPSHOT_KEY, value_int: ghTotalDownloads, updated_at: new Date().toISOString() });
+    if (ghSnapshotError) {
+      console.error("[GitHub] Failed to upsert download snapshot:", ghSnapshotError);
+    }
   } else {
     console.warn("[GitHub] Fetch failed — skipping snapshot update to preserve delta integrity.");
   }

@@ -323,7 +323,7 @@ serve(async (req) => {
       await logRun(supabaseAdmin, {
         day_of_month: currentDay,
         was_reminder_day: false,
-        was_shabbat: false,
+        was_shabbat: true, // cron fires at 21:00 IDT — after sunset, so Shabbat has started
         users_processed: 0,
         emails_sent: 0,
         emails_failed: 0,
