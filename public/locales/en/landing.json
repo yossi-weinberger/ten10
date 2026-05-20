@@ -197,19 +197,74 @@
     }
   },
   "testimonials": {
-    "title": "What Users Say",
+    "title": "What Our Users Say",
+    "prev": "Previous testimonial",
+    "next": "Next testimonial",
+    "swipeHint": "Swipe to see more",
     "items": [
       {
-        "name": "Rabbi Yosef Zilber",
-        "text": "This system changed my life. Now I know exactly how much I need to donate and have no more doubts"
+        "name": "Chaim K.",
+        "text": "I never used other apps because they seemed too complicated. The new one is simply a pleasure. Thanks to you, I finally give tithes properly."
       },
       {
-        "name": "Itzik Biton",
-        "text": "The computer software is perfect for offline work (without internet connection). My data is secure and always accessible"
+        "name": "Avigail S.",
+        "text": "Amazing work on something that truly delivers. The app is simply wonderful."
       },
       {
-        "name": "Sarah Goldberg",
-        "text": "The interface is simple and convenient, and the monthly alerts help me stay updated"
+        "name": "Z. V.",
+        "text": "A blessed initiative and flawless execution. This app is truly setting a new standard in this field."
+      },
+      {
+        "name": "A. M.",
+        "text": "Huge thanks for this wonderful app, which finally brings order to my tithes and restores halachic balance."
+      },
+      {
+        "name": "Tzvi L.",
+        "text": "The app is excellent, very easy and friendly to use."
+      },
+      {
+        "name": "Ben Tzion K.",
+        "text": "I just installed the app, and it's simply eye-opening!"
+      },
+      {
+        "name": "Miriam T.",
+        "text": "A highly sophisticated and polished app, truly a gift to the community."
+      },
+      {
+        "name": "Nachman P.",
+        "text": "Words can't describe it. This app is something truly wonderful and amazing."
+      },
+      {
+        "name": "Yoel B.",
+        "text": "I stand in awe before this remarkable creation."
+      },
+      {
+        "name": "Shia S.",
+        "text": "A top-notch, user-friendly program. You have really transformed my life."
+      },
+      {
+        "name": "Libi S.",
+        "text": "The app is truly wonderful and incredibly useful."
+      },
+      {
+        "name": "The S. Family",
+        "text": "This wonderful app is so helpful for organizing income and tithes."
+      },
+      {
+        "name": "Elchanan K.",
+        "text": "You are truly helping the Jewish people!"
+      },
+      {
+        "name": "Yisroel W.",
+        "text": "The program makes it much easier to calculate, and I've already shared it with friends."
+      },
+      {
+        "name": "M.R.H.",
+        "text": "I've been using it for several months now and it provides enormous benefit."
+      },
+      {
+        "name": "Y.M.A.",
+        "text": "Immense yasher koach. All the honor in the world for this blessed work."
       }
     ]
   },
