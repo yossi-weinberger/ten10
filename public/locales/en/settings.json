@@ -175,7 +175,10 @@
     "networkError": "No internet connection",
     "offlineHelp": "To receive an updated version without internet, please contact us: support@ten10-app.com",
     "webVersionNote": "Web version is always up to date. No manual updates needed.",
-    "whatsNewButton": "What's New"
+    "whatsNewButton": "What's New",
+    "blockedUsers": "Blocked access?",
+    "blockedUsersTitle": "Need a direct installer file?",
+    "blockedUsersDescription": "If update checks or automatic downloads are blocked for you, you can request an installer file by emailing maaser@ten10-app.com."
   },
   "balanceManagement": {
     "title": "Balance Management",
