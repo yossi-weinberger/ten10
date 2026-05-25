@@ -1,120 +1,167 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import {
-  useScrollAnimation,
-  fadeInUp,
-  staggerContainer,
-  staggerItem,
-} from "@/hooks/useScrollAnimation";
-import { CheckCircle, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CheckCircle, ExternalLink, Landmark, ScrollText } from "lucide-react";
 
 interface AboutSectionProps {
   sectionRef: React.RefObject<HTMLElement | null>;
 }
 
 export const AboutSection: React.FC<AboutSectionProps> = ({ sectionRef }) => {
-  const { t } = useTranslation("landing");
-  const aboutRef = useScrollAnimation({ threshold: 0.1 });
+  const { t, i18n } = useTranslation("landing");
+  const shouldReduceMotion = useReducedMotion();
+  const endorsementQuote = String(t("about.endorsements.quote1"));
+  const endorsementCharacters = Array.from(endorsementQuote);
 
   return (
     <section
       id="about"
       ref={sectionRef}
-      className="py-20 px-4 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900"
+      className="relative overflow-hidden bg-[#fdfbf7] px-4 py-16 text-gray-950 dark:bg-gray-950 dark:text-gray-50 md:py-20"
+      dir={i18n.dir()}
     >
-      <div className="container mx-auto max-w-6xl">
-        <motion.div
-          className="text-center mb-16"
-          ref={aboutRef.ref}
-          variants={staggerContainer}
-        >
-          <motion.h2
-            className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4"
-            variants={fadeInUp}
-          >
-            {t("about.title")}
-          </motion.h2>
-          <motion.p
-            className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
-            variants={fadeInUp}
-          >
-            {t("about.subtitle")}
-          </motion.p>
-        </motion.div>
+      <div className="absolute inset-0 bg-noise opacity-[0.06] dark:opacity-[0.04]" />
+      <div className="absolute inset-x-0 top-0 h-px bg-emerald-900/10 dark:bg-emerald-100/10" />
+      <div className="absolute inset-x-0 bottom-0 h-px bg-emerald-900/10 dark:bg-emerald-100/10" />
 
+      <div className="container relative mx-auto max-w-7xl">
         <motion.div
-          className="grid md:grid-cols-2 gap-12 items-stretch mb-16"
-          variants={staggerContainer}
+          className="mx-auto max-w-6xl"
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "0px 0px -80px 0px" }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
         >
-          <motion.div variants={staggerItem} className="flex flex-col">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              {t("about.partnership.title")}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed flex-grow">
-              {t("about.partnership.description")}
+          <div className="mx-auto mb-12 max-w-3xl text-center">
+            <h2 className="text-3xl font-bold leading-tight tracking-tight text-gray-950 dark:text-white md:text-5xl">
+              {t("about.title")}
+            </h2>
+
+            <p className="mt-5 text-lg leading-relaxed text-gray-600 dark:text-gray-300">
+              {t("about.subtitle")}
             </p>
-            <div className="flex items-center justify-between gap-3 p-4 bg-white dark:bg-gray-800 rounded-lg border">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
-                  <CheckCircle className="h-6 w-6 text-blue-600" />
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-2 lg:items-stretch">
+            <div className="border border-emerald-900/10 bg-white/80 p-6 shadow-sm dark:border-emerald-100/10 dark:bg-gray-900/55 md:p-8">
+              <div className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+                  <Landmark className="h-5 w-5" strokeWidth={1.7} />
                 </div>
-                <div>
-                  <p className="font-semibold text-gray-900 dark:text-white">
-                    {t("about.partnership.verified")}
+                <div className="min-w-0 text-start">
+                  <h3 className="text-xl font-bold text-gray-950 dark:text-white">
+                    {t("about.partnership.title")}
+                  </h3>
+                  <p className="mt-3 leading-relaxed text-gray-600 dark:text-gray-300">
+                    {t("about.partnership.description")}
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {t("about.partnership.institute")}
-                  </p>
+
+                  <div className="mt-6 flex flex-col gap-4 border-t border-emerald-900/10 pt-4 dark:border-emerald-100/10 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+                        <CheckCircle className="h-5 w-5" strokeWidth={1.8} />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-950 dark:text-white">
+                          {t("about.partnership.verified")}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {t("about.partnership.institute")}
+                        </p>
+                      </div>
+                    </div>
+
+                    <Button
+                      asChild
+                      className="h-11 min-w-[170px] border-none bg-golden-static px-5 text-base text-white shadow-[0_0_16px_rgba(218,165,32,0.28)] brightness-90 saturate-110 transition-all duration-300 hover:bg-golden-hover hover:brightness-95 hover:shadow-[0_0_22px_rgba(218,165,32,0.42)]"
+                    >
+                      <a
+                        href="https://veahavta-kamocha.org/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center"
+                      >
+                        {t("about.partnership.visitWebsite")}
+                        <ExternalLink className="ms-2 h-4 w-4" />
+                      </a>
+                    </Button>
+                  </div>
                 </div>
               </div>
-              <a
-                href="https://veahavta-kamocha.org/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-colors flex-shrink-0"
-              >
-                {t("about.partnership.visitWebsite")}
-                <ExternalLink className="h-4 w-4" />
-              </a>
             </div>
-          </motion.div>
 
-          <motion.div
-            className="bg-white dark:bg-gray-800 rounded-lg p-8 shadow-lg flex flex-col"
-            variants={staggerItem}
-          >
-            <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-6 text-center">
-              {t("about.endorsements.title")}
-            </h4>
-            <div className="space-y-6">
-              <div className="border-r-4 border-blue-500 pr-4">
-                <p className="text-gray-600 dark:text-gray-300 italic mb-2">
-                  "{t("about.endorsements.quote1")}"
-                </p>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+            <figure
+              className="relative flex min-h-[22rem] overflow-hidden border border-emerald-900/20 bg-emerald-950 p-6 text-white shadow-xl shadow-emerald-950/15 dark:border-emerald-100/10 md:p-8"
+            >
+              <img
+                src="/background.webp"
+                alt=""
+                aria-hidden="true"
+                className="absolute inset-0 h-full w-full object-cover opacity-45"
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/90 via-emerald-950/82 to-emerald-800/78" />
+              <div className="absolute inset-0 bg-noise opacity-10" />
+              <div className="pointer-events-none absolute inset-4 border border-amber-200/15" />
+              <div className="pointer-events-none absolute -start-10 top-8 h-40 w-40 rounded-full border border-amber-200/20" />
+              <div className="pointer-events-none absolute bottom-8 end-8 h-24 w-24 rounded-full border border-amber-200/10" />
+
+              <div className="relative flex w-full flex-col">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="text-start">
+                    <p className="text-sm font-semibold tracking-[0.16em] text-amber-100">
+                      {t("about.endorsements.title")}
+                    </p>
+                    <div className="mt-3 h-px w-24 bg-amber-200/45" />
+                  </div>
+
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-amber-200/40 bg-amber-100/10 text-amber-100">
+                    <ScrollText className="h-5 w-5" strokeWidth={1.7} />
+                  </div>
+                </div>
+
+                <span
+                  className="pointer-events-none absolute start-4 top-16 text-[7rem] font-bold leading-none text-amber-100/20"
+                  aria-hidden="true"
+                >
+                  ״
+                </span>
+
+                <blockquote className="relative my-auto px-2 py-10 text-center text-xl font-semibold leading-relaxed text-white md:px-8 md:text-2xl">
+                  <span aria-hidden="true">״</span>
+                  <span className="sr-only">{endorsementQuote}</span>
+                  <span aria-hidden="true">
+                    {shouldReduceMotion
+                      ? endorsementQuote
+                      : endorsementCharacters.map((character, index) => (
+                          <motion.span
+                            key={`${character}-${index}`}
+                            className="inline-block"
+                            initial={{ opacity: 0, y: 8 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{
+                              once: true,
+                              margin: "0px 0px -80px 0px",
+                            }}
+                            transition={{
+                              duration: 0.08,
+                              delay: 0.2 + index * 0.03,
+                              ease: [0.22, 1, 0.36, 1],
+                            }}
+                          >
+                            {character === " " ? "\u00A0" : character}
+                          </motion.span>
+                        ))}
+                  </span>
+                  <span aria-hidden="true">״</span>
+                </blockquote>
+
+                <figcaption className="relative border-t border-amber-100/20 pt-4 text-center text-base font-semibold text-amber-50 md:text-lg">
                   {t("about.endorsements.rabbi1")}
-                </p>
+                </figcaption>
               </div>
 
-              {/* <div className="border-r-4 border-green-500 pr-4">
-                <p className="text-gray-600 dark:text-gray-300 italic mb-2">
-                  "{t("about.endorsements.quote2")}"
-                </p>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                  {t("about.endorsements.rabbi2")}
-                </p>
-              </div> */}
-
-              {/* <div className="border-r-4 border-teal-500 pr-4">
-                <p className="text-gray-600 dark:text-gray-300 italic mb-2">
-                  "{t("about.endorsements.quote3")}"
-                </p>
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                  {t("about.endorsements.rabbi3")}
-                </p>
-              </div> */}
-            </div>
-          </motion.div>
+            </figure>
+          </div>
         </motion.div>
       </div>
     </section>

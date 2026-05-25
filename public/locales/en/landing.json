@@ -84,7 +84,7 @@
     "endorsements": {
       "title": "Rabbinical Endorsements",
       "quote1": "An excellent system for managing tithes with accuracy and ease. Highly recommended.",
-      "rabbi1": "Rabbi [Rabbi Name]",
+      "rabbi1": "Rabbi Tzvi Weinberger, Head of Torat Ha’adam La’adam Institute",
       "quote2": "An important and useful tool for every Jewish home. The calculations are accurate and the interface is convenient.",
       "rabbi2": "Rabbi [Rabbi Name]",
       "quote3": "A professional and reliable solution for tithe management. I recommend it to all my students.",
@@ -168,9 +168,13 @@
   },
   "platforms": {
     "title": "Choose the Right Version for You",
+    "subtitle": "Two ways to use the system, choose the one that fits how you work",
+    "transferNote": "You can move data between versions easily by exporting and importing a backup file",
+    "or": "or",
     "web": {
       "title": "Website Version",
       "subtitle": "Access anywhere with cloud sync",
+      "label": "For access from anywhere",
       "pwaNote": "Can be installed as app",
       "features": [
         "Access from any browser",
@@ -186,12 +190,15 @@
     "desktop": {
       "title": "Computer Software",
       "subtitle": "Offline work with maximum performance",
+      "label": "For fully local work",
       "badge": "Recommended",
       "features": [
         "Works without internet",
         "All data is saved on the computer itself",
         "Fast performance",
-        "System notifications"
+        "System notifications",
+        "Local data storage on your computer",
+        "No registration or sign-up required"
       ],
       "button": "Download Now"
     }
