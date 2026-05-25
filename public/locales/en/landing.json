@@ -12,6 +12,7 @@
     "downloadButton": "Free Download for Computer",
     "tryButton": "Try on Website"
   },
+  "backToTop": "Back to top",
   "problem": {
     "badge": "The Challenges We All Know",
     "title": "Managing Maaser Doesn't Have to Be Complicated",
@@ -327,6 +328,9 @@
     "optionWebView2": "Install with WebView2 (offline / when main fails)",
     "comingSoonWebView2": "Coming soon",
     "moreOptions": "More install options",
+    "blockedUsers": "Blocked access?",
+    "blockedUsersTitle": "Need a direct installer file?",
+    "blockedUsersDescription": "If download links are blocked for you, you can request an installer file by emailing maaser@ten10-app.com.",
     "webCard": {
       "title": "Website Version",
       "button": "Open Now"

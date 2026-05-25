@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { logger } from "@/lib/logger";
 import { LanguageToggleFixed } from "./components/LanguageToggleFixed";
 import { FloatingNavigation } from "./components/FloatingNavigation";
+import { BackToTopButton } from "./components/BackToTopButton";
 import { ScreenshotCarousel } from "./components/ScreenshotCarousel";
 import { HeroSection } from "./sections/HeroSection";
 import { StatsSection } from "./sections/StatsSection";
@@ -19,6 +20,7 @@ const LandingPage: React.FC = () => {
   const { t, i18n } = useTranslation("landing");
   const [activeSection, setActiveSection] = useState("hero");
   const [showNavigation, setShowNavigation] = useState(false);
+  const pageRef = useRef<HTMLDivElement>(null);
 
   // Section refs for intersection observer
   // Note: Only sections that appear in navigationItems should be tracked here
@@ -207,6 +209,7 @@ const LandingPage: React.FC = () => {
 
   return (
     <div
+      ref={pageRef}
       className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800"
       dir={i18n.dir()}
     >
@@ -218,6 +221,11 @@ const LandingPage: React.FC = () => {
         showNavigation={showNavigation}
         activeSection={activeSection}
         onNavigate={scrollToSection}
+      />
+
+      <BackToTopButton
+        pageRef={pageRef}
+        targetRef={sectionRefs.hero}
       />
 
       {/* Hero Section */}

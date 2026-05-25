@@ -12,6 +12,7 @@
     "downloadButton": "הורדה חינמית למחשב",
     "tryButton": "נסה באתר"
   },
+  "backToTop": "חזרה לראש הדף",
   "problem": {
     "badge": "האתגרים שכולנו מכירים",
     "title": "ניהול מעשרות לא צריך להיות מסובך",
@@ -327,6 +328,9 @@
     "optionWebView2": "התקנה עם WebView2 (אופליין / כשהראשית נכשלת)",
     "comingSoonWebView2": "בקרוב",
     "moreOptions": "אפשרויות התקנה נוספות",
+    "blockedUsers": "לחסומים",
+    "blockedUsersTitle": "זקוק לקובץ התקנה ישיר?",
+    "blockedUsersDescription": "אם קישורי ההורדה חסומים אצלך, אפשר לקבל קובץ התקנה בשליחת מייל לכתובת maaser@ten10-app.com.",
     "webCard": {
       "title": "גרסת אתר",
       "button": "פתח כעת"
