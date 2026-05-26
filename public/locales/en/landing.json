@@ -39,6 +39,7 @@
   },
   "nav": {
     "home": "Home",
+    "openNavigation": "Open navigation",
     "features": "Features",
     "screenshots": "Screenshots",
     "platforms": "Platforms",
