@@ -153,7 +153,11 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ sectionRef }) => {
                       : endorsementWords.map((word, wordIndex) => (
                           <span
                             key={`${word}-${wordIndex}`}
-                            className="inline-block"
+                            className={`inline-block ${
+                              wordIndex < endorsementWords.length - 1
+                                ? "me-[0.25em]"
+                                : ""
+                            }`}
                           >
                             {Array.from(word).map((character, charIndex) => (
                               <motion.span
@@ -171,7 +175,6 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ sectionRef }) => {
                                 {character}
                               </motion.span>
                             ))}
-                            {wordIndex < endorsementWords.length - 1 ? " " : ""}
                           </span>
                         ))}
                   </motion.span>
