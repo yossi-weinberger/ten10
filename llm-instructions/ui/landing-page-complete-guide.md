@@ -6,6 +6,21 @@
 
 **הערה על מבנה הקוד בפועל:** הקובץ `src/pages/LandingPage.tsx` הוא _רק_ `re-export` ל־`src/pages/landing/index.tsx` (שם נמצא המימוש של הדף). הראוטינג מוגדר ב־`src/routes.ts` על הנתיב `/landing`.
 
+## עדכון מצב נוכחי (מאי 2026)
+
+דף הנחיתה עבר רענון מקיף סביב שפה עיצובית קיימת של הפרויקט, ולא סביב מערכת עיצוב חדשה. בעת עריכת הדף יש להעדיף את ה־tokens הגלובליים מ־`src/index.css` ו־`tailwind.config.js`: `bg-background`, `bg-card`, `text-foreground`, `text-muted-foreground`, `border-border`, `primary`, `accent`, ו־`Button`/`Card`/`Popover`/`Dialog` הקיימים.
+
+עקרונות עדכניים:
+
+- **שפה חזותית:** אמון פיננסי־הלכתי, רגוע ומכובד. הרקעים צריכים להיות בהירים/חמים, עם שימוש עדין ב־primary/emerald/accent. אין להחזיר blue SaaS כצבע מוביל ללא סיבה.
+- **לא להמציא tokens חדשים:** צבעים קשיחים כמו `#fdfbf7` קיימים בכמה מקומות היסטוריים, אבל שינויים חדשים צריכים להעדיף tokens קיימים.
+- **רדיוס:** להשתמש בדפוסי הפרויקט: כפתורים `rounded-md`, פאנלים/כרטיסים `rounded-lg`/`rounded-xl`, pills/icons `rounded-full`. לא להוסיף רדיוסים שונים בלי צורך.
+- **Motion:** לשמור על אנימציות שיש להן ערך, כמו count-up בסטטיסטיקות והקלדת ההסכמה, אבל להימנע מ־glow אינסופי, text-shadow אינסופי, `transition-all`, או blobs חזקים מדי. במקומות משמעותיים יש לכבד `useReducedMotion`.
+- **תמונות פיצ׳רים:** `src/pages/landing/constants/features.ts` הוא מקור האמת ל־`imageSrc`. אין למחוק קישורים לתמונות גם אם קובץ חסר זמנית; יש להוסיף את ה־asset החסר או להשאיר fallback ויזואלי. מחיקת metadata שוברת את שפת המותג.
+- **ביצועים:** נתיב `/landing` lazy-loaded דרך `lazyRouteComponent` ב־`src/routes.ts`. אין להחזיר import סינכרוני של `LandingPage` ל־main bundle.
+- **GitHub Releases:** `useLatestRelease` תומך ב־`enabled` ו־cache ב־`sessionStorage`; בדף הנחיתה יש להפעיל אותו רק כשה־DownloadSection נכנס ל־viewport כדי לא לבצע קריאת רשת מוקדמת.
+- **ניווט:** הניווט הצף צריך לעבוד מול קונטיינר הגלילה הפנימי של האפליקציה, לא רק מול `window.scrollY`.
+
 ## ✨ תכונות עיקריות
 
 ### 🎨 עיצוב מודרני
@@ -22,7 +37,14 @@
 - **ניווט צף**: תפריט ניווט שמופיע בגלילה עם הדגשת הסקשן הנוכחי
 - **כפתור החלפת שפה**: מיקום קבוע בפינה העליונה
 
-הערה טכנית: בפועל הניווט הצף נשלט ע"י `showNavigation` שמופעל לפי `window.scrollY`. מאחר שבאפליקציה הגלילה מתבצעת לרוב בתוך קונטיינר פנימי (`overflow-y-auto`), ייתכן שתידרש התאמה אם הניווט הצף לא מופיע כפי שמצופה.
+הערה טכנית עדכנית: הגלילה באפליקציה מתבצעת לרוב בתוך קונטיינר פנימי (`overflow-y-auto`) ולא ב־`window`. לכן `src/pages/landing/index.tsx` משתמש ב־helper שמאתר את ה־scroll parent האמיתי. כל ניווט פנימי צריך להשתמש ב־`scrollToSection`/`smoothScrollToElement` במקום `document.getElementById(...).scrollIntoView(...)` מקומי בתוך סקשנים.
+
+התנהגות עדכנית:
+
+- בדסקטופ: ניווט צף אנכי עם אפקט זכוכית, לוגו רחב, וטקסטים מלאים לסקשנים.
+- במובייל/טאבלט: כפתור צף קטן שפותח `Popover` קומפקטי עם קישורי הסקשנים.
+- `screenshots` הוא סקשן ניווט מלא ומופיע ב־`navigationItems`.
+- בזמן גלילה שנגרמת מלחיצה, ה־IntersectionObserver מושתק זמנית כדי שהסימון הפעיל לא יקפוץ לסקשן ביניים.
 
 ### 🎠 קרוסלה מתקדמת
 
@@ -66,6 +88,9 @@
 - **Code splitting**: טעינה מותנית של סקריפטים
 - **Optimized animations**: אנימציות מותאמות לביצועים
 - **Responsive images**: תמונות מותאמות לגודל מסך
+- **Lazy route**: נתיב `/landing` נטען כ־lazy route דרך `lazyRouteComponent` כדי לא להגדיל את ה־main bundle.
+- **Release fetch deferred**: פרטי ה־GitHub release נטענים רק כאשר סקשן ההורדה נכנס למסך, עם cache ב־`sessionStorage`.
+- **Carousel listeners**: קרוסלת צילומי המסך לא מעדכנת React state על כל `scroll` של Embla; progress מתעדכן ב־`select`/`reInit`.
 
 ## 🏗️ מבנה הדף
 
@@ -78,18 +103,20 @@
 
 - כותרת דינמית לפי שפה
 - 2 כפתורי CTA עם tracking
-- קרוסלה עם 3 צילומי מסך + progress bar
+- לוגו מונפש ורספונסיבי (`AnimatedLogo`)
+- רקע ממותג ועדין בגווני `primary`/`accent`, ללא blue blobs כבדים
 
 ### 3. Stats Section
 
 - 2 סטטיסטיקות (מונה אנימטיבי): הורדות דסקטופ + משתמשי אתר
-- עיצוב gradient אטרקטיבי
+- עיצוב trust-strip שקט עם tokens גלובליים, ללא glow/text-shadow אינסופי
+- הספירה צריכה להתחיל כשהסקשן נכנס למסך, ולא מיד בטעינת הדף
 
 ### 4. Features Section (`#features`)
 
-- 12 תכונות (Grid בסגנון Bento + אינדיקציה לזמינות Web/Desktop)
-- אנימציות hover מתקדמות
-- אייקונים אינטראקטיביים
+- 16 תכונות ב־Bento/Grid עם תמונות פיצ׳ר (`imageSrc`) ואינדיקציה לזמינות Web/Desktop
+- תמונות הפיצ׳רים הן חלק משפת המותג; אין להסיר `imageSrc` כדי "למנוע 404". יש להוסיף assets חסרים או להשתמש ב־fallback icon.
+- צבעי Web/Desktop צריכים להישאר עקביים עם `primary`/emerald ולא לחזור ל־blue SaaS חזק.
 
 ### 5. Platform Comparison (`#platforms`)
 
@@ -99,27 +126,32 @@
 
 ### 6. Testimonials (`#testimonials`)
 
-- 3 המלצות משתמשים
-- דירוג כוכבים
-- עיצוב אמין
+- קרוסלת המלצות אופקית עם כרטיס מרכזי מודגש וכרטיסים צדדיים קטנים יותר
+- תוכן ההמלצות אמיתי ומאנונם. אין להחזיר שמות משפחה מלאים ללא אישור.
+- נקודות ניווט הן buttons רגילים עם `aria-current`, לא ARIA tabs.
+- אין דירוג כוכבים כרגע, לפי החלטת UX קודמת.
 
 ### 7. Torah Quotes Section
 
 - פסוק מרכזי מהתורה
 - 2 מאמרי חז"ל
-- עיצוב מיוחד עם borders צבעוניים
+- עיצוב source-sheet / paper, ללא כרטיסיות גנריות וללא side-stripe borders
+- להשתמש ב־`text-start` ו־`dir={i18n.dir()}` כדי לשמור RTL/LTR תקין
 
 ### 8. About & Endorsements (`#about`)
 
 - שיתוף עם מכון תורת האדם לאדם
-- 3 הסכמות רבנים (מוכן לעדכון)
-- אישור הלכתי מודגש
+- הסכמה אחת מוצגת כ־featured endorsement כהה ומכובד
+- בלוק ההסכמה משתמש ב־`/background.webp` כרקע עם overlay כהה לשמירת קריאות
+- אנימציית ההקלדה של ההסכמה היא חלק מהעיצוב; אם משנים אותה, לשמור על שבירת שורות תקינה ועל `useReducedMotion`
+- אין להוסיף טקסטים חדשים כמו "הסכמות נוספות יתווספו" ללא בקשת מוצר מפורשת
 
 ### 9. FAQ Section (`#faq`)
 
 - 5 שאלות נפוצות
 - תשובות מפורטות
-- עיצוב נקי
+- עיצוב מבוסס tokens (`bg-background`, `bg-card`, `border-border`)
+- להשתמש ב־`text-start`, לא `text-right`
 
 ### 10. Download Section (`#download`)
 
@@ -130,6 +162,9 @@
   3. **Offline / WebView2** - התקנה מלאה למחשבים ללא אינטרנט
 - כפתור לאפליקציית ווב
 - הדגשת האפשרויות השונות
+- כפתור "לחסומים" מופיע רק בסביבת `desktop` לפי החלטת מוצר. אל תשנה זאת ללא אישור מפורש.
+- כפתור גרסת האתר צריך להפנות ל־`https://ten10-app.com` כקישור חיצוני, לא ל־`/` בתוך אפליקציית הדסקטופ.
+- אין להציג את הערת `download.comingSoon` אם היא יוצרת עומס חזותי בסקשן.
 
 ### 11. Footer
 

@@ -43,6 +43,19 @@ This document provides comprehensive instructions for adapting the Ten10 applica
 - **Image & Media:** Ensure images and media are responsive (e.g., `max-w-full h-auto`).
 - **Font Sizes:** Adjust font sizes for readability on different screens (e.g., `text-base md:text-lg`).
 
+### Landing page navigation note (May 2026)
+
+The landing page is a full-screen route nested inside the app layout. In many runtime contexts, scrolling happens in the app's internal `overflow-y-auto` container, not on `window`.
+
+For landing page navigation:
+
+- Do not rely on `window.scrollY` for visibility or active-section state.
+- Use the helper pattern from `src/pages/landing/index.tsx` to find the real scroll parent.
+- Programmatic navigation should scroll the container with an eased `requestAnimationFrame` animation, following the pattern used by the Halacha page.
+- During programmatic scrolling, temporarily ignore the `IntersectionObserver` so the active navigation item does not jump to an intermediate section.
+- Desktop navigation may be vertical/side-mounted; mobile navigation should use a compact trigger + popover rather than a wide horizontal bar.
+- Directional placement must follow `i18n.dir()`: right side for Hebrew/RTL, left side for English/LTR.
+
 ## II. Setup and Initialization
 
 ### Critical: Language Synchronization Between i18n and Zustand
