@@ -1,4 +1,4 @@
-import type { ImportPreviewRow, ImportResult } from "./import-session.types";
+import type { ImportPreviewRow, ImportResult, ImportResultError } from "./import-session.types";
 import type { Platform } from "@/contexts/PlatformContext";
 import type { Currency, Transaction, RecurringTransaction } from "@/types/transaction";
 import { supabase } from "@/lib/supabaseClient";
@@ -124,12 +124,17 @@ async function persistWeb(
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    throw new Error("User not authenticated");
+    return {
+      inserted: 0,
+      failed: getApprovedRows(rows).length,
+      skipped: rows.length - getApprovedRows(rows).length,
+      errors: [{ code: "save_auth_failed", detail: userError?.message }],
+    };
   }
 
   const approved = getApprovedRows(rows);
   let inserted = 0;
-  const errors: string[] = [];
+  const errors: ImportResultError[] = [];
 
   // Build insert payloads
   const payloads = approved.map((row) => {
@@ -161,7 +166,7 @@ async function persistWeb(
 
     if (batchError) {
       logger.error("Import batch insert error:", batchError);
-      errors.push("Failed to save row");
+      errors.push({ code: "save_batch_failed", detail: batchError.message });
       // Report partial result
       return {
         inserted,
@@ -218,11 +223,24 @@ async function persistDesktop(rows: ImportPreviewRow[]): Promise<ImportResult> {
     };
   });
 
-  await invoke("import_desktop_data_bulk", {
-    mode: "merge",
-    recurring: [],
-    transactions,
-  });
+  try {
+    await invoke("import_desktop_data_bulk", {
+      mode: "merge",
+      recurring: [],
+      transactions,
+    });
+  } catch (err) {
+    logger.error("Desktop import failed:", err);
+    return {
+      inserted: 0,
+      failed: transactions.length,
+      skipped: rows.length - approved.length,
+      errors: [{
+        code: "save_desktop_failed",
+        detail: err instanceof Error ? err.message : String(err),
+      }],
+    };
+  }
 
   return {
     inserted: transactions.length,
@@ -248,7 +266,12 @@ export async function persistApprovedImport(
   } else if (platform === "desktop") {
     result = await persistDesktop(rows);
   } else {
-    throw new Error("Platform not ready");
+    return {
+      inserted: 0,
+      failed: rows.filter((r) => r.approved).length,
+      skipped: 0,
+      errors: [{ code: "platform_not_ready" }],
+    };
   }
 
   return result;

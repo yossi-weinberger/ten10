@@ -41,6 +41,9 @@ src/lib/import/
 └── persist-approved-import.ts   ← Web (Supabase batch) + Desktop (Tauri) persistence
                                     also exports import preview data fetch helpers
 
+src/lib/utils/
+└── with-timeout.ts              ← shared Promise timeout wrapper (used by ImportWizard + FileUploadStep)
+
 src/components/import/
 ├── ImportWizard.tsx             ← 5-step wizard orchestrator (useReducer state machine)
 ├── ImportRowEditModal.tsx       ← edit modal using TransactionForm with onOverrideSubmit
@@ -105,8 +108,11 @@ interface ImportNormalizedRow {
 ## Excel Parser
 
 Uses `exceljs` (already in dependencies). Called with `ArrayBuffer` — works in browser.
-Formula cells: cached result is used, a `formula_cell` issue is added (warning only, not fatal).
-Multi-sheet workbooks: returns `availableSheets`; UI asks user to select a sheet.
+Formula cells: cached result is used. A `formula_cell` issue is **not** generated when the cached value normalizes cleanly; the issue only appears if the cached value itself is invalid or missing.
+
+Multi-sheet workbooks: initial upload uses a fast ZIP/XML reader (`listExcelSheetNames`) to list visible sheet names **without loading cell data through ExcelJS**. This avoids timeouts on large workbooks. The dropzone is hidden and the user is shown a sheet-selection card with a "choose different file" escape. Once a sheet is selected, ExcelJS loads and parses only that sheet.
+
+Headerless files: when the first row looks like data (dates or amounts) rather than column headers, generic headers `Column 1`, `Column 2`, … are generated instead of blocking upload. A `generated_headers` diagnostic is surfaced in the mapping step so the user understands why column names are generic.
 
 ## Column Mapping
 
@@ -115,6 +121,8 @@ Multi-sheet workbooks: returns `availableSheets`; UI asks user to select a sheet
 - `validateMappings(mappings)` — errors: `dateMissing`, `amountMissing`, `duplicateTarget`, `amountAndDebitCredit`
 - `date` and `amount` are **both required** (marked with `*` in UI)
 - Ten10 template headers (Hebrew & English) defined in `TEN10_TEMPLATE_HEADERS`
+- `description` is the only composable target field: multiple source columns may map to it, and non-empty values are joined in source-column order. All critical fields (`date`, `amount`, `debit`, `credit`, `currency`, `type`) remain one-to-one.
+- `analyzeParsedFile(file, mappings)` returns advisory diagnostics for messy spreadsheets: duplicate/empty headers, many unmapped columns, multiple description candidates, amount + debit/credit ambiguity, and multi-sheet workbooks.
 
 ## Normalization Rules
 
@@ -122,6 +130,8 @@ Multi-sheet workbooks: returns `availableSheets`; UI asks user to select a sheet
 - **Amount**: handles `1,234.56`, `1.234,56`, `₪1,234`, `(123.45)` = negative, debit/credit columns, strips Bidi control characters
 - **Amount stored**: always positive; `type` carries direction (income/expense/donation)
 - **Type inference**: positive → income, negative → expense. Explicit type values from file are resolved via `TYPE_LOCALE_ALIASES` in `import-locale-aliases.ts`; unrecognized values fall through to sign inference
+- **Income keyword rescue**: strong locale-configured income terms in text fields can classify debit-looking rows as `income` and add an `income_keyword_match` review warning so the user sees why the type changed before approving.
+- **Recognized expenses**: explicit `recognized-expense` aliases are accepted from source type values, but the importer does not infer them silently from arbitrary text.
 - **is_chomesh**: parsed from the `חומש?` / `is_chomesh` column using `BOOLEAN_TRUTHY_VALUES` from `import-locale-aliases.ts`
 - **Foreign currency**: rows with a currency different from the user's default are marked `invalid` (not imported). No conversion, no auto-rates
 - **Category**: normalized through `normalizeCategoryValue()` (maps Hebrew/English labels to stable keys). Donations: `category = null`
@@ -218,10 +228,21 @@ Clicking "Edit" on a row opens `ImportRowEditModal` which wraps `TransactionForm
 `ImportWizard.tsx` uses `useReducer` with these actions:
 ```
 SET_STEP | FILE_PARSED | UPDATE_MAPPING | SET_MAPPING_ERRORS
-SET_PREVIEW_ROWS | UPDATE_ROW | TOGGLE_APPROVAL | BULK_TOGGLE
+SET_PREVIEW_ROWS | SET_PROCESSING_ERROR | UPDATE_ROW | TOGGLE_APPROVAL | BULK_TOGGLE
 TOGGLE_ALL_READY | CLEAR_SELECTION | OPEN_CONFIRM | CLOSE_CONFIRM
 IMPORT_START | IMPORT_DONE | RESET
 ```
+
+The mapping → preview transition intentionally avoids `AnimatePresence` around the mapping subtree. Radix `SelectContent` uses portals, and unmounting portal-heavy mapping UI through exit animation can trigger browser DOM errors such as `removeChild` races. Preview generation is wrapped in a typed failure envelope: if dedupe/recurring fetches or `buildPreviewRows()` fail, the wizard stops loading and shows retry / back-to-mapping / start-over actions without losing the parsed file.
+
+## Failure Handling
+
+- Upload errors are typed (`too_large`, `too_many_rows`, `unsupported_format`, `xls_not_supported`, `parse_error`, `no_data`, `no_headers`, `parse_timeout`) and displayed through localized copy.
+- Headerless files: instead of an error, generic `Column N` headers are generated and a `generated_headers` diagnostic is surfaced in the mapping step. The parser sets this diagnostic; the wizard merges it with mapping-analysis diagnostics from `analyzeParsedFile`.
+- Dropzone rejections (wrong format, file too large dragged in) are handled before parsing, so rejected files still produce an actionable message. On desktop, Tauri `onDragDropEvent` enter/over/leave events drive the drag-active visual state since Tauri's WebView intercepts native drag events before they reach the DOM.
+- Preview-building failures are represented by `ImportFlowError` codes and shown in a recovery state rather than leaving the user in an infinite loading state.
+- Persistence failures return typed `ImportResultError` entries. Error reports contain codes/details only and must not include raw descriptions, recipients, amounts, filenames, or account-like values.
+- Multi-sheet XLSX files prompt the user to choose a sheet before mapping, even if the first sheet is parseable.
 
 ## Performance
 
@@ -238,3 +259,5 @@ Files: `public/locales/en/import.json`, `public/locales/he/import.json`
 ## Testing
 
 Use Vitest for pure import-pipeline logic when tests are present in the branch. Keep tests close to the import module and run the targeted suite with `npx vitest run <path-to-import-tests>`.
+
+Current focused coverage lives under `src/lib/import/__tests__/` and should include parser edge cases, mapping validation, multi-description composition, diagnostics, classification hints, and preview generation behavior.

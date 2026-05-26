@@ -71,7 +71,7 @@ export const TYPE_LOCALE_ALIASES: Record<string, TransactionType | null> = {
   ...Object.fromEntries(
     ALL_PARSING.flatMap((p) =>
       Object.entries(p.typeAliases).flatMap(([type, aliases]) =>
-        aliases.map((alias) => [alias, type as TransactionType])
+        aliases.map((alias) => [alias.toLowerCase(), type as TransactionType])
       )
     )
   ),
@@ -79,6 +79,14 @@ export const TYPE_LOCALE_ALIASES: Record<string, TransactionType | null> = {
   // Keep hardcoded: it is a Ten10-internal term, not a locale string.
   רגילה: null,
 };
+
+export const INCOME_DESCRIPTION_KEYWORDS: readonly string[] = [
+  ...new Set(
+    ALL_PARSING.flatMap((p) => p.incomeDescriptionKeywords ?? []).map((keyword) =>
+      keyword.toLowerCase()
+    )
+  ),
+];
 
 // ---------------------------------------------------------------------------
 // Boolean truthy values  →  normalize.ts (is_chomesh and future bool fields)

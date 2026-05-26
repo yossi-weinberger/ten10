@@ -20,7 +20,15 @@ export function ImportResultStep({
   const hasErrors = result.errors.length > 0;
 
   const handleDownloadErrors = () => {
-    const content = result.errors.join("\n");
+    const content = result.errors
+      .map((error) =>
+        [
+          `code=${error.code}`,
+          error.rowNumber ? `row=${error.rowNumber}` : null,
+          error.detail ? `detail=${error.detail}` : null,
+        ].filter(Boolean).join(" ")
+      )
+      .join("\n");
     const blob = new Blob([content], { type: "text/plain;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -88,7 +96,11 @@ export function ImportResultStep({
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription className="space-y-2">
-            <p>{result.errors[0]}</p>
+            <p>
+              {t(`flowErrors.${result.errors[0].code}`, {
+                defaultValue: result.errors[0].detail ?? result.errors[0].code,
+              })}
+            </p>
             {result.errors.length > 1 && (
               <Button
                 variant="outline"

@@ -7,7 +7,7 @@ import type {
 } from "./import-session.types";
 import { normalizeCategoryValue } from "@/lib/category-registry";
 import { isPredefinedPaymentMethod } from "@/lib/payment-methods";
-import { resolveType } from "./type-resolver";
+import { resolveTypeWithIssues } from "./type-resolver";
 import { BOOLEAN_TRUTHY_VALUES } from "./import-locale-aliases";
 
 const MAX_DESCRIPTION_LENGTH = 500;
@@ -190,15 +190,6 @@ export function normalizeRow(
   const rawDebit = extractFormulaAwareValue(mapped.debit);
   const rawCredit = extractFormulaAwareValue(mapped.credit);
 
-  const hasFormula =
-    isFormulaCell(mapped.amount) ||
-    isFormulaCell(mapped.debit) ||
-    isFormulaCell(mapped.credit);
-
-  if (hasFormula) {
-    issues.push({ code: "formula_cell" });
-  }
-
   if (rawDebit !== null || rawCredit !== null) {
     fromDebitCredit = true;
     debitValue = rawDebit !== null ? parseAmount(rawDebit) : null;
@@ -270,6 +261,17 @@ export function normalizeRow(
     }
   }
 
+  // --- Description and other text fields used for conservative classification hints ---
+  const rawDesc = extractFormulaAwareValue(mapped.description);
+  let description: string | null = null;
+  if (rawDesc !== null && rawDesc !== undefined && rawDesc !== "") {
+    description = sanitizeText(String(rawDesc).trim()).slice(0, MAX_DESCRIPTION_LENGTH) || null;
+  }
+
+  const rawCategory = extractFormulaAwareValue(mapped.category);
+  const rawRecipient = extractFormulaAwareValue(mapped.recipient);
+  const rawPayment = extractFormulaAwareValue(mapped.payment_method);
+
   // --- Type ---
   const rawType = extractFormulaAwareValue(mapped.type);
   const rawTypeStr =
@@ -277,27 +279,25 @@ export function normalizeRow(
       ? String(rawType)
       : null;
 
-  const resolvedType = resolveType({
+  const resolvedTypeResult = resolveTypeWithIssues({
     amount,
     fromDebitCredit,
     debitValue,
     creditValue,
     rawType: rawTypeStr,
+    description,
+    category: rawCategory !== null && rawCategory !== undefined ? String(rawCategory) : null,
+    recipient: rawRecipient !== null && rawRecipient !== undefined ? String(rawRecipient) : null,
+    paymentMethod: rawPayment !== null && rawPayment !== undefined ? String(rawPayment) : null,
   });
+  const resolvedType = resolvedTypeResult.type;
+  issues.push(...resolvedTypeResult.issues);
 
   // Note: unrecognized type values (e.g. bank-specific Hebrew terms) are silently
   // ignored — the type is always inferred from the amount sign as a safe fallback.
   // We do NOT emit invalid_type for external files since it confuses users.
 
-  // --- Description ---
-  const rawDesc = extractFormulaAwareValue(mapped.description);
-  let description: string | null = null;
-  if (rawDesc !== null && rawDesc !== undefined && rawDesc !== "") {
-    description = sanitizeText(String(rawDesc).trim()).slice(0, MAX_DESCRIPTION_LENGTH) || null;
-  }
-
   // --- Category ---
-  const rawCategory = extractFormulaAwareValue(mapped.category);
   let category: string | null = null;
   if (rawCategory !== null && rawCategory !== undefined && rawCategory !== "") {
     const catStr = sanitizeText(String(rawCategory).trim()).slice(0, MAX_CATEGORY_LENGTH);
@@ -309,14 +309,12 @@ export function normalizeRow(
   }
 
   // --- Recipient ---
-  const rawRecipient = extractFormulaAwareValue(mapped.recipient);
   let recipient: string | null = null;
   if (rawRecipient !== null && rawRecipient !== undefined && rawRecipient !== "") {
     recipient = sanitizeText(String(rawRecipient).trim()).slice(0, MAX_RECIPIENT_LENGTH) || null;
   }
 
   // --- Payment method ---
-  const rawPayment = extractFormulaAwareValue(mapped.payment_method);
   let paymentMethod: string | null = null;
   if (rawPayment !== null && rawPayment !== undefined && rawPayment !== "") {
     const pmStr = sanitizeText(String(rawPayment).trim()).slice(0, MAX_PAYMENT_METHOD_LENGTH);
@@ -371,15 +369,6 @@ function extractFormulaAwareValue(value: unknown): unknown {
     return (value as { __formulaValue: unknown }).__formulaValue;
   }
   return value ?? null;
-}
-
-function isFormulaCell(value: unknown): boolean {
-  return (
-    value !== null &&
-    typeof value === "object" &&
-    "__isFormula" in (value as object) &&
-    (value as { __isFormula: boolean }).__isFormula === true
-  );
 }
 
 const SUPPORTED_CURRENCY_SET = new Set<string>(CURRENCIES.map((c) => c.code));

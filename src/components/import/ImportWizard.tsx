@@ -1,10 +1,11 @@
 import { useReducer, useCallback, useMemo, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, ArrowRight, X, FileSpreadsheet, Check } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, X, FileSpreadsheet, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils/index";
+import { withTimeout } from "@/lib/utils/with-timeout";
 import {
   Dialog,
   DialogContent,
@@ -18,8 +19,10 @@ import { useDonationStore } from "@/lib/store";
 import { clearCategoryCache } from "@/lib/data-layer/categories.service";
 import { clearPaymentMethodCache } from "@/lib/data-layer/paymentMethods.service";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { logger } from "@/lib/logger";
 import type {
   ColumnMapping,
+  ImportFlowError,
   ImportPreviewRow,
   ImportResult,
   ImportTargetField,
@@ -31,6 +34,7 @@ import {
   suggestMappings,
   validateMappings,
   detectTen10Template,
+  analyzeParsedFile,
   buildPreviewRows,
   computeImportSummary,
   persistApprovedImport,
@@ -44,7 +48,8 @@ import { ColumnMappingStep } from "./steps/ColumnMappingStep";
 import { ImportReviewStep } from "./steps/ImportReviewStep";
 import { ImportResultStep } from "./steps/ImportResultStep";
 import { PrepareStep } from "./steps/PrepareStep";
-import { AnimatePresence, motion } from "framer-motion";
+
+const IMPORT_PREVIEW_FETCH_TIMEOUT_MS = 15000;
 
 // ---------------------------------------------------------------------------
 // State machine
@@ -65,6 +70,7 @@ interface WizardState {
   isImporting: boolean;
   importResult: ImportResult | null;
   confirmOpen: boolean;
+  processingError: ImportFlowError | null;
 }
 
 type WizardAction =
@@ -75,6 +81,7 @@ type WizardAction =
   | { type: "SET_EXISTING_TRANSACTIONS"; transactions: Transaction[] }
   | { type: "SET_RECURRING_TRANSACTIONS"; transactions: RecurringTransaction[] }
   | { type: "SET_PREVIEW_ROWS"; rows: ImportPreviewRow[]; processing: boolean }
+  | { type: "SET_PROCESSING_ERROR"; error: ImportFlowError | null }
   | { type: "UPDATE_ROW"; id: string; updates: Partial<ImportPreviewRow> }
   | { type: "TOGGLE_APPROVAL"; id: string; approved: boolean }
   | { type: "BULK_TOGGLE"; ids: string[]; approved: boolean }
@@ -99,6 +106,7 @@ const initialState: WizardState = {
   isImporting: false,
   importResult: null,
   confirmOpen: false,
+  processingError: null,
 };
 
 function wizardReducer(state: WizardState, action: WizardAction): WizardState {
@@ -113,6 +121,7 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
         columnMappings: action.mappings,
         isTen10Template: action.isTen10,
         mappingErrors: [],
+        processingError: null,
         step: "mapping",
       };
 
@@ -139,7 +148,15 @@ function wizardReducer(state: WizardState, action: WizardAction): WizardState {
         ...state,
         previewRows: action.rows,
         isProcessingRows: action.processing,
+        processingError: null,
         step: action.processing ? state.step : "review",
+      };
+
+    case "SET_PROCESSING_ERROR":
+      return {
+        ...state,
+        isProcessingRows: false,
+        processingError: action.error,
       };
 
     case "UPDATE_ROW":
@@ -266,6 +283,47 @@ function ImportLoadingState({ title, description, showSkeleton = true }: ImportL
   );
 }
 
+interface ImportProcessingErrorStateProps {
+  error: ImportFlowError;
+  onRetry: () => void;
+  onBackToMapping: () => void;
+  onStartOver: () => void;
+}
+
+function ImportProcessingErrorState({
+  error,
+  onRetry,
+  onBackToMapping,
+  onStartOver,
+}: ImportProcessingErrorStateProps) {
+  const { t } = useTranslation("import");
+
+  return (
+    <div className="flex flex-col items-center justify-center gap-5 py-10 text-center" aria-live="assertive">
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+        <AlertTriangle className="h-6 w-6" aria-hidden="true" />
+      </div>
+      <div className="max-w-md space-y-2">
+        <h2 className="text-base font-semibold">{t("review.processingError.title")}</h2>
+        <p className="text-sm text-muted-foreground">
+          {t(`review.processingError.codes.${error.code}`, {
+            defaultValue: t("review.processingError.description"),
+          })}
+        </p>
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Button onClick={onRetry}>{t("review.processingError.retry")}</Button>
+        <Button variant="outline" onClick={onBackToMapping}>
+          {t("review.processingError.backToMapping")}
+        </Button>
+        <Button variant="ghost" onClick={onStartOver}>
+          {t("navigation.startOver")}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -300,9 +358,16 @@ export function ImportWizard() {
     (file: ParsedFile) => {
       const isTen10 = detectTen10Template(file.headers);
       const mappings = suggestMappings(file.headers);
+      const fileWithDiagnostics = {
+        ...file,
+        diagnostics: [
+          ...(file.diagnostics ?? []),
+          ...analyzeParsedFile(file, mappings),
+        ],
+      };
       dispatch({
         type: "FILE_PARSED",
-        file,
+        file: fileWithDiagnostics,
         mappings,
         isTen10,
       });
@@ -345,6 +410,7 @@ export function ImportWizard() {
     };
 
     dispatch({ type: "SET_MAPPING_ERRORS", errors: [] });
+    dispatch({ type: "SET_PROCESSING_ERROR", error: null });
     // isProcessingRows: true keeps step="mapping" and swaps the visible
     // content to the loading skeleton. useEffect below does the heavy work
     // AFTER the browser has painted the loading state.
@@ -357,7 +423,14 @@ export function ImportWizard() {
   useEffect(() => {
     if (!state.isProcessingRows) return;
     const params = processingParamsRef.current;
-    if (!params) return;
+    if (!params) {
+      logger.error("Import preview processing started without parameters");
+      dispatch({
+        type: "SET_PROCESSING_ERROR",
+        error: { code: "preview_failed", detail: "missing_processing_params" },
+      });
+      return;
+    }
 
     let cancelled = false;
 
@@ -369,31 +442,53 @@ export function ImportWizard() {
       await new Promise<void>((resolve) => setTimeout(resolve, 0));
       if (cancelled) return;
 
-      trackProductEvent("transaction_import_mapping_completed", {
-        platform: p.platform,
-        isTen10Template: p.isTen10Template,
-      });
+      try {
+        trackProductEvent("transaction_import_mapping_completed", {
+          platform: p.platform,
+          isTen10Template: p.isTen10Template,
+        });
 
-      const [existingTransactions, recurringTransactions] = await Promise.all([
-        fetchExistingForDedup(p.platform, null),
-        fetchRecurringForImport(p.platform),
-      ]);
+        logger.info("Import preview: fetching context", { platform: p.platform });
+        const [existingTransactions, recurringTransactions] = await withTimeout(
+          Promise.all([
+            fetchExistingForDedup(p.platform, null),
+            fetchRecurringForImport(p.platform),
+          ]),
+          IMPORT_PREVIEW_FETCH_TIMEOUT_MS,
+          "import_preview_context_timeout"
+        );
 
-      if (cancelled) return;
-      dispatch({ type: "SET_EXISTING_TRANSACTIONS", transactions: existingTransactions });
-      dispatch({ type: "SET_RECURRING_TRANSACTIONS", transactions: recurringTransactions });
+        if (cancelled) return;
+        dispatch({ type: "SET_EXISTING_TRANSACTIONS", transactions: existingTransactions });
+        dispatch({ type: "SET_RECURRING_TRANSACTIONS", transactions: recurringTransactions });
 
-      const { rows } = await buildPreviewRows(
-        p.parsedFile,
-        p.columnMappings,
-        p.defaultCurrency as Parameters<typeof buildPreviewRows>[2],
-        existingTransactions,
-        recurringTransactions
-      );
+        logger.info("Import preview: building rows", {
+          rowCount: p.parsedFile.rowCount,
+          mappedColumns: p.columnMappings.filter((mapping) => mapping.targetField).length,
+        });
+        const { rows } = await buildPreviewRows(
+          p.parsedFile,
+          p.columnMappings,
+          p.defaultCurrency as Parameters<typeof buildPreviewRows>[2],
+          existingTransactions,
+          recurringTransactions
+        );
 
-      if (cancelled) return;
-      processingParamsRef.current = null;
-      dispatch({ type: "SET_PREVIEW_ROWS", rows, processing: false });
+        if (cancelled) return;
+        processingParamsRef.current = null;
+        logger.info("Import preview: rows ready", { rowCount: rows.length });
+        dispatch({ type: "SET_PREVIEW_ROWS", rows, processing: false });
+      } catch (err) {
+        logger.error("Failed to build import preview:", err);
+        if (cancelled) return;
+        dispatch({
+          type: "SET_PROCESSING_ERROR",
+          error: {
+            code: "preview_failed",
+            detail: err instanceof Error ? err.message : String(err),
+          },
+        });
+      }
     }
 
     runProcessing();
@@ -483,7 +578,7 @@ export function ImportWizard() {
           inserted: 0,
           failed: state.previewRows.filter((r) => r.approved).length,
           skipped: 0,
-          errors: [errorMsg],
+          errors: [{ code: "unknown", detail: errorMsg }],
         },
       });
     }
@@ -491,6 +586,10 @@ export function ImportWizard() {
 
   const handleReset = useCallback(() => {
     dispatch({ type: "RESET" });
+  }, []);
+
+  const handleBackToMapping = useCallback(() => {
+    dispatch({ type: "SET_PROCESSING_ERROR", error: null });
   }, []);
 
   // ---------------------------------------------------------------------------
@@ -526,11 +625,13 @@ export function ImportWizard() {
 
   // Separate animation keys so loaders get their own enter/exit, independent
   // of the underlying step key — prevents re-rendering with stale state.
-  const animationKey = state.isProcessingRows
-    ? "__loading__"
-    : state.isImporting
-      ? "__importing__"
-      : state.step;
+  const animationKey = state.processingError
+    ? "__processing_error__"
+    : state.isProcessingRows
+      ? "__loading__"
+      : state.isImporting
+        ? "__importing__"
+        : state.step;
 
   function canGoBack() {
     return state.step !== "prepare" && state.step !== "result";
@@ -632,20 +733,7 @@ export function ImportWizard() {
       {/* Step content */}
       <Card>
         <CardContent className="p-4 md:p-6">
-          {/*
-           * animationKey drives the fade-in of new content.
-           * No `exit` prop — exiting elements disappear immediately so they
-           * can never re-render with stale state and cause a white flash.
-           */}
-          <AnimatePresence>
-            <motion.div
-              key={animationKey}
-              initial={animationKey === "__loading__" || animationKey === "__importing__"
-                ? { opacity: 1 }
-                : { opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.15 }}
-            >
+          <div key={animationKey}>
               {animationKey === "prepare" && (
                 <PrepareStep onNext={() => dispatch({ type: "SET_STEP", step: "upload" })} />
               )}
@@ -668,6 +756,15 @@ export function ImportWizard() {
                 <ImportLoadingState
                   title={t("review.previewLoadingTitle")}
                   description={t("review.previewLoadingDescription")}
+                />
+              )}
+
+              {animationKey === "__processing_error__" && state.processingError && (
+                <ImportProcessingErrorState
+                  error={state.processingError}
+                  onRetry={handleMappingNext}
+                  onBackToMapping={handleBackToMapping}
+                  onStartOver={handleReset}
                 />
               )}
 
@@ -699,13 +796,12 @@ export function ImportWizard() {
                   onImportAnother={handleReset}
                 />
               )}
-            </motion.div>
-          </AnimatePresence>
+          </div>
         </CardContent>
       </Card>
 
       {/* Navigation footer — sticky so the import button stays visible while scrolling */}
-      {state.step !== "result" && state.step !== "prepare" && (
+      {state.step !== "result" && state.step !== "prepare" && !state.processingError && (
         <div className="sticky bottom-0 flex justify-between gap-3 bg-background/95 backdrop-blur-sm border-t border-border pt-3 pb-3 -mx-1 px-1 z-10">
           <Button
             variant="outline"

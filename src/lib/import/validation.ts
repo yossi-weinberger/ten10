@@ -49,6 +49,7 @@ function isWarningIssue(issue: ImportRowIssue): boolean {
     "possible_recurring",
     "formula_cell",
     "invalid_type",
+    "income_keyword_match",
   ];
   return warnings.includes(issue.code);
 }

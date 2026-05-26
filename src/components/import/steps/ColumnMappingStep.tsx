@@ -3,10 +3,11 @@ import { CheckCircle, AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type {
   ColumnMapping,
-  ParsedFile,
+  ImportTargetField,
   MappingValidationError,
+  ParsedFile,
+  ParsedFileDiagnostic,
 } from "@/lib/import/import-session.types";
-import type { ImportTargetField } from "@/lib/import/import-session.types";
 import { ColumnMapper } from "../ColumnMapper";
 
 interface ColumnMappingStepProps {
@@ -41,6 +42,21 @@ export function ColumnMappingStep({
         <p className="text-sm text-foreground/80 leading-relaxed">
           {t("mapping.whatIsMapping")}
         </p>
+      )}
+
+      {parsedFile.diagnostics && parsedFile.diagnostics.length > 0 && (
+        <Alert className="border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+          <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+          <AlertDescription>
+            <ul className="list-disc list-inside space-y-0.5">
+              {parsedFile.diagnostics.map((diagnostic) => (
+                <li key={diagnostic.code}>
+                  {formatDiagnostic(t, diagnostic)}
+                </li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Unified header + mapper table */}
@@ -81,4 +97,14 @@ export function ColumnMappingStep({
       )}
     </div>
   );
+}
+
+function formatDiagnostic(
+  t: ReturnType<typeof useTranslation>["t"],
+  diagnostic: ParsedFileDiagnostic
+): string {
+  return t(`mapping.diagnostics.${diagnostic.code}`, {
+    count: diagnostic.count ?? 0,
+    columns: diagnostic.columns?.join(", ") ?? "",
+  });
 }
