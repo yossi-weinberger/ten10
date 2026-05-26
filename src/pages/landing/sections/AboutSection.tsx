@@ -11,7 +11,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ sectionRef }) => {
   const { t, i18n } = useTranslation("landing");
   const shouldReduceMotion = useReducedMotion();
   const endorsementQuote = String(t("about.endorsements.quote1"));
-  const endorsementCharacters = Array.from(endorsementQuote);
+  const endorsementWords = endorsementQuote.split(" ");
 
   return (
     <section
@@ -73,7 +73,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ sectionRef }) => {
 
                     <Button
                       asChild
-                      className="h-11 min-w-[170px] border-none bg-golden-static px-5 text-base text-white shadow-[0_0_16px_rgba(218,165,32,0.28)] brightness-90 saturate-110 transition-all duration-300 hover:bg-golden-hover hover:brightness-95 hover:shadow-[0_0_22px_rgba(218,165,32,0.42)]"
+                      className="h-11 min-w-[170px] border-none bg-golden-static px-5 text-base font-semibold text-accent-foreground shadow-[0_0_16px_rgba(218,165,32,0.24)] brightness-95 saturate-110 transition-all duration-300 hover:bg-golden-hover hover:brightness-100 hover:shadow-[0_0_22px_rgba(218,165,32,0.36)]"
                     >
                       <a
                         href="https://veahavta-kamocha.org/"
@@ -90,8 +90,9 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ sectionRef }) => {
               </div>
             </div>
 
-            <figure
+            <motion.figure
               className="relative flex min-h-[22rem] overflow-hidden border border-emerald-900/20 bg-emerald-950 p-6 text-white shadow-xl shadow-emerald-950/15 dark:border-emerald-100/10 md:p-8"
+              viewport={{ once: true, margin: "0px 0px -80px 0px" }}
             >
               <img
                 src="/background.webp"
@@ -129,29 +130,51 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ sectionRef }) => {
                 <blockquote className="relative my-auto px-2 py-10 text-center text-xl font-semibold leading-relaxed text-white md:px-8 md:text-2xl">
                   <span aria-hidden="true">״</span>
                   <span className="sr-only">{endorsementQuote}</span>
-                  <span aria-hidden="true">
+                  <motion.span
+                    aria-hidden="true"
+                    initial={shouldReduceMotion ? false : "hidden"}
+                    whileInView={shouldReduceMotion ? undefined : "visible"}
+                    viewport={{
+                      once: true,
+                      margin: "0px 0px -80px 0px",
+                    }}
+                    variants={{
+                      hidden: {},
+                      visible: {
+                        transition: {
+                          staggerChildren: 0.035,
+                          delayChildren: 0.2,
+                        },
+                      },
+                    }}
+                  >
                     {shouldReduceMotion
                       ? endorsementQuote
-                      : endorsementCharacters.map((character, index) => (
-                          <motion.span
-                            key={`${character}-${index}`}
+                      : endorsementWords.map((word, wordIndex) => (
+                          <span
+                            key={`${word}-${wordIndex}`}
                             className="inline-block"
-                            initial={{ opacity: 0, y: 8 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{
-                              once: true,
-                              margin: "0px 0px -80px 0px",
-                            }}
-                            transition={{
-                              duration: 0.08,
-                              delay: 0.2 + index * 0.03,
-                              ease: [0.22, 1, 0.36, 1],
-                            }}
                           >
-                            {character === " " ? "\u00A0" : character}
-                          </motion.span>
+                            {Array.from(word).map((character, charIndex) => (
+                              <motion.span
+                                key={`${character}-${wordIndex}-${charIndex}`}
+                                className="inline-block"
+                                variants={{
+                                  hidden: { opacity: 0, y: 8 },
+                                  visible: { opacity: 1, y: 0 },
+                                }}
+                                transition={{
+                                  duration: 0.08,
+                                  ease: [0.22, 1, 0.36, 1],
+                                }}
+                              >
+                                {character}
+                              </motion.span>
+                            ))}
+                            {wordIndex < endorsementWords.length - 1 ? " " : ""}
+                          </span>
                         ))}
-                  </span>
+                  </motion.span>
                   <span aria-hidden="true">״</span>
                 </blockquote>
 
@@ -160,7 +183,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ sectionRef }) => {
                 </figcaption>
               </div>
 
-            </figure>
+            </motion.figure>
           </div>
         </motion.div>
       </div>

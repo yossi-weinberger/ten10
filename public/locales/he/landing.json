@@ -40,6 +40,7 @@
   "nav": {
     "home": "בית",
     "features": "תכונות",
+    "screenshots": "צילומי מסך",
     "platforms": "גרסאות",
     "testimonials": "המלצות",
     "about": "אודות",
@@ -52,6 +53,7 @@
     "swipeHint": "החלק לצפייה בעוד צילומי מסך",
     "closeLightbox": "סגור",
     "lightboxDescription": "צפייה בצילום מסך בגודל מלא",
+    "enlargeLabel": "הגדל צילום מסך: {{title}}",
     "items": {
       "dashboard": "תצוגה כללית וברורה של המצב הפיננסי",
       "addTransaction": "הוספת תנועות חדשות בקלות ובמהירות",
@@ -99,6 +101,12 @@
     "legend": {
       "web": "זמין באתר",
       "desktop": "זמין בתוכנה"
+    },
+    "groups": {
+      "calculation": "חישוב וניהול מעשרות",
+      "finance": "ניהול פיננסי ודוחות",
+      "trust": "הלכה, אמון ושפה",
+      "platforms": "פלטפורמות, תזכורות וגיבוי"
     },
     "items": {
       "autoCalculation": {

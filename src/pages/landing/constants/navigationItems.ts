@@ -7,6 +7,7 @@ export interface NavigationItem {
 export const navigationItems: NavigationItem[] = [
   { id: "hero", labelKey: "nav.home", label: "Home" },
   { id: "features", labelKey: "nav.features", label: "Features" },
+  { id: "screenshots", labelKey: "nav.screenshots", label: "Screenshots" },
   { id: "platforms", labelKey: "nav.platforms", label: "Platforms" },
   { id: "testimonials", labelKey: "nav.testimonials", label: "Testimonials" },
   { id: "about", labelKey: "nav.about", label: "About" },

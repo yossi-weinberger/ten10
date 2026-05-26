@@ -29,7 +29,7 @@ export const AnimatedLogo = () => {
 
   return (
     <motion.div
-      className="inline-flex items-center justify-center p-3 sm:p-4 rounded-2xl bg-card/70 backdrop-blur-md border border-border/50 shadow-lg animate-pulse-glow"
+      className="inline-flex max-w-[calc(100vw-2rem)] items-center justify-center rounded-2xl border border-border/50 bg-card/70 p-2 shadow-lg backdrop-blur-md sm:p-4"
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
       whileHover={{ scale: 1.05 }}
@@ -38,7 +38,7 @@ export const AnimatedLogo = () => {
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="-57.474609375 -160.34271240234375 386.5818176269531 78.66902160644531"
-        className="h-16 sm:h-20 w-auto"
+        className="h-auto w-[min(18rem,calc(100vw-4rem))] sm:w-[22rem]"
       >
         <defs>
           <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">

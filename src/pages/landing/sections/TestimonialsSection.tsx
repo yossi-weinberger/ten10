@@ -108,7 +108,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
                         "flex flex-col h-full rounded-2xl border p-7",
                         // Only transition compositor-friendly properties, not layout.
                         "motion-safe:transition-[transform,opacity,box-shadow,border-color]",
-                        "motion-safe:duration-[400ms] motion-safe:ease-out",
+                        "motion-safe:duration-500 motion-safe:ease-out",
                         "will-change-transform",
                         isActive
                           ? "bg-white dark:bg-gray-900 border-emerald-200 dark:border-emerald-800 shadow-[0_8px_40px_-8px_rgba(16,185,129,0.22)] dark:shadow-[0_8px_40px_-8px_rgba(16,185,129,0.18)] scale-[1.03] opacity-100"

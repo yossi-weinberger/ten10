@@ -1,105 +1,86 @@
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  useScrollAnimation,
-  fadeInUp,
-  staggerContainer,
-  staggerItem,
-} from "@/hooks/useScrollAnimation";
-import { useCountUp } from "@/hooks/useCountUp";
 
 export const StatsSection: React.FC = () => {
   const { t } = useTranslation("landing");
-  const statsRef = useScrollAnimation({ threshold: 0.3 });
+  const [downloadsCount, setDownloadsCount] = useState(0);
+  const [websiteUsersCount, setWebsiteUsersCount] = useState(0);
 
-  // Animated counters for stats
-  const downloadsCount = useCountUp({ end: 1850, duration: 2500, delay: 500 });
-  const websiteUsersCount = useCountUp({
-    end: 2450,
-    duration: 2500,
-    delay: 700,
-  });
+  const animateCount = (
+    end: number,
+    setValue: React.Dispatch<React.SetStateAction<number>>,
+    delay = 0
+  ) => {
+    window.setTimeout(() => {
+      const duration = 1800;
+      const startTime = performance.now();
+
+      const animate = (time: number) => {
+        const progress = Math.min((time - startTime) / duration, 1);
+        const easedProgress = 1 - Math.pow(1 - progress, 3);
+        setValue(Math.floor(end * easedProgress));
+
+        if (progress < 1) requestAnimationFrame(animate);
+      };
+
+      requestAnimationFrame(animate);
+    }, delay);
+  };
+
+  useEffect(() => {
+    animateCount(1850, setDownloadsCount, 150);
+    animateCount(2450, setWebsiteUsersCount, 300);
+  }, []);
 
   return (
-    <motion.section
-      className="py-16 px-4 bg-gradient-to-r from-blue-600 to-teal-600 text-white relative overflow-hidden"
-      ref={statsRef.ref}
-      initial="hidden"
-      animate={statsRef.isInView ? "visible" : "hidden"}
-      variants={staggerContainer}
-    >
-      {/* Animated background elements */}
-      <motion.div
-        className="absolute top-0 left-0 w-full h-full opacity-10"
-        animate={{
-          backgroundPosition: ["0% 0%", "100% 100%"],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          repeatType: "reverse",
-        }}
-        style={{
-          backgroundImage:
-            "radial-gradient(circle, white 1px, transparent 1px)",
-          backgroundSize: "50px 50px",
-        }}
-      />
+    <section className="relative overflow-hidden border-y border-border bg-card/60 px-4 py-10 text-card-foreground dark:bg-card/40">
+      <div className="absolute inset-0 bg-noise opacity-[0.035] dark:opacity-[0.03]" />
 
-      <div className="container mx-auto max-w-4xl relative z-10">
+      <div className="container relative z-10 mx-auto max-w-4xl">
         <motion.div
-          className="grid md:grid-cols-2 gap-8 text-center"
-          variants={staggerContainer}
+          className="grid gap-6 text-center md:grid-cols-2"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "0px 0px -80px 0px" }}
+          variants={{
+            hidden: {},
+            visible: {
+              transition: { staggerChildren: 0.08 },
+            },
+          }}
         >
-          <motion.div variants={staggerItem}>
-            <motion.div
-              ref={downloadsCount.elementRef}
-              className="text-4xl font-bold mb-2"
-              whileHover={{ scale: 1.1 }}
-              animate={{
-                textShadow: [
-                  "0 0 10px rgba(255,255,255,0.5)",
-                  "0 0 20px rgba(255,255,255,0.8)",
-                  "0 0 10px rgba(255,255,255,0.5)",
-                ],
-              }}
-              transition={{
-                textShadow: { duration: 2, repeat: Infinity },
-                scale: { type: "spring", damping: 20, stiffness: 300 },
-              }}
-            >
-              {downloadsCount.count.toLocaleString()}+
-            </motion.div>
-            <motion.p className="text-blue-100" variants={fadeInUp}>
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 16 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="mb-2 text-4xl font-bold tabular-nums text-primary">
+              {downloadsCount.toLocaleString()}+
+            </div>
+            <p className="text-sm font-medium text-muted-foreground md:text-base">
               {t("stats.downloads")}
-            </motion.p>
+            </p>
           </motion.div>
 
-          <motion.div variants={staggerItem}>
-            <motion.div
-              ref={websiteUsersCount.elementRef}
-              className="text-4xl font-bold mb-2"
-              whileHover={{ scale: 1.1 }}
-              animate={{
-                textShadow: [
-                  "0 0 10px rgba(255,255,255,0.5)",
-                  "0 0 20px rgba(255,255,255,0.8)",
-                  "0 0 10px rgba(255,255,255,0.5)",
-                ],
-              }}
-              transition={{
-                textShadow: { duration: 2, repeat: Infinity, delay: 0.5 },
-                scale: { type: "spring", damping: 20, stiffness: 300 },
-              }}
-            >
-              {websiteUsersCount.count.toLocaleString()}+
-            </motion.div>
-            <motion.p className="text-blue-100" variants={fadeInUp}>
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 16 },
+              visible: { opacity: 1, y: 0 },
+            }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <div className="mb-2 text-4xl font-bold tabular-nums text-primary">
+              {websiteUsersCount.toLocaleString()}+
+            </div>
+            <p className="text-sm font-medium text-muted-foreground md:text-base">
               {t("stats.websiteUsers")}
-            </motion.p>
+            </p>
           </motion.div>
         </motion.div>
       </div>
-    </motion.section>
+    </section>
   );
 };

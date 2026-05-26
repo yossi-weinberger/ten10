@@ -40,6 +40,7 @@
   "nav": {
     "home": "Home",
     "features": "Features",
+    "screenshots": "Screenshots",
     "platforms": "Platforms",
     "testimonials": "Testimonials",
     "about": "About",
@@ -52,6 +53,7 @@
     "swipeHint": "Swipe to view more screenshots",
     "closeLightbox": "Close",
     "lightboxDescription": "View screenshot in full size",
+    "enlargeLabel": "Enlarge screenshot: {{title}}",
     "items": {
       "dashboard": "Clear overview of your financial status",
       "addTransaction": "Quickly and easily add new transactions",
@@ -99,6 +101,12 @@
     "legend": {
       "web": "Available on website",
       "desktop": "Available in desktop app"
+    },
+    "groups": {
+      "calculation": "Maaser calculation and tracking",
+      "finance": "Finance management and reports",
+      "trust": "Halacha, trust, and language",
+      "platforms": "Platforms, reminders, and backup"
     },
     "items": {
       "autoCalculation": {

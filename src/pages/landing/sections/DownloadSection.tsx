@@ -253,8 +253,8 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
             </div>
           </div>
 
-          <div className="flex h-full flex-col border border-emerald-900/10 bg-white/80 p-6 text-center shadow-sm transition-[border-color,box-shadow] duration-300 hover:border-green-500/30 hover:shadow-lg dark:border-emerald-100/10 dark:bg-gray-900/60">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/40 dark:text-green-300">
+          <div className="flex h-full flex-col border border-emerald-900/10 bg-white/80 p-6 text-center shadow-sm transition-[border-color,box-shadow] duration-300 hover:border-primary/30 hover:shadow-lg dark:border-emerald-100/10 dark:bg-gray-900/60">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary">
               <Globe className="h-7 w-7" strokeWidth={1.7} />
             </div>
 
@@ -263,7 +263,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
             </h3>
 
             <motion.div className="mt-5" whileHover={buttonHover} whileTap={buttonTap}>
-              <Button className="h-11 w-full bg-green-600 hover:bg-green-700" asChild>
+              <Button className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90" asChild>
                 <a
                   href="https://ten10-app.com"
                   target="_blank"
