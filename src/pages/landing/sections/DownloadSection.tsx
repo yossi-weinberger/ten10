@@ -30,7 +30,10 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
 }) => {
   const { t } = useTranslation("landing");
   const { platform } = usePlatform();
-  const { release, downloads, loading, error } = useLatestRelease();
+  const [releaseEnabled, setReleaseEnabled] = useState(false);
+  const { release, downloads, loading, error } = useLatestRelease({
+    enabled: releaseEnabled,
+  });
   const [moreOptionsOpen, setMoreOptionsOpen] = useState(false);
   const [blockedUsersOpen, setBlockedUsersOpen] = useState(false);
 
@@ -76,6 +79,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "0px 0px -80px 0px" }}
+          onViewportEnter={() => setReleaseEnabled(true)}
           transition={{ duration: 0.35, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="flex h-full flex-col border border-emerald-900/10 bg-[#fdfbf7]/80 p-6 text-center shadow-sm transition-[border-color,box-shadow] duration-300 hover:border-emerald-500/30 hover:shadow-lg dark:border-emerald-100/10 dark:bg-gray-900/60">

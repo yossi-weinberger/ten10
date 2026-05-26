@@ -24,7 +24,7 @@ export interface Feature {
   titleKey: string;
   descriptionKey: string;
   availability: PlatformAvailability[];
-  imageSrc: string; // Placeholder for image infrastructure
+  imageSrc: string; // Feature artwork path. Missing files should be added, not removed from metadata.
 }
 
 export const features: Feature[] = [

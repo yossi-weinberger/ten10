@@ -13,12 +13,15 @@ import { PUBLIC_ROUTES } from "./lib/constants";
 
 // Critical pages loaded synchronously (needed immediately)
 import { HomePage } from "./pages/HomePage";
-import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
 // Lazy-loaded pages for code splitting
+const LandingPage = lazyRouteComponent(
+  () => import("./pages/LandingPage"),
+  "default"
+);
 const AddTransactionPage = lazyRouteComponent(
   () => import("./pages/AddTransactionPage"),
   "AddTransactionPage"

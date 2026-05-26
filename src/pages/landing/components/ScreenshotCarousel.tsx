@@ -221,13 +221,13 @@ export const ScreenshotCarousel: React.FC = () => {
       setCarouselProgress(progress);
     };
 
-    carouselApi.on("scroll", updateProgress);
     carouselApi.on("select", updateProgress);
+    carouselApi.on("reInit", updateProgress);
     updateProgress();
 
     return () => {
-      carouselApi.off("scroll", updateProgress);
       carouselApi.off("select", updateProgress);
+      carouselApi.off("reInit", updateProgress);
     };
   }, [carouselApi]);
 

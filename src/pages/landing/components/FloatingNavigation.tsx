@@ -123,10 +123,10 @@ export const FloatingNavigation: React.FC<FloatingNavigationProps> = ({
               className="flex items-center justify-center rounded-xl px-2 py-2 text-primary transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <img
-                src="/logo/app-icon.svg"
+                src="/logo/logo-wide.svg"
                 alt=""
                 aria-hidden="true"
-                className="h-7 w-7"
+                className="h-7 w-auto max-w-[4.75rem]"
               />
             </button>
 

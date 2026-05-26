@@ -11,6 +11,7 @@ import {
   Globe,
   HardDrive,
   Mail,
+  MessageCircleQuestion,
   Monitor,
   Shield,
   Smartphone,
@@ -201,22 +202,28 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
     returnObjects: true,
   }) as string[];
 
-  const webFeatureIcons = [Globe, Cloud, Mail, Zap, Shield, Smartphone];
+  const webFeatureIcons = [
+    Globe,
+    Cloud,
+    Mail,
+    Zap,
+    MessageCircleQuestion,
+    Shield,
+    Smartphone,
+  ];
   const desktopFeatureIcons = [WifiOff, HardDrive, Zap, Bell, Shield, Check];
 
-  const webFeatureItems: PlatformFeature[] = webFeatures
-    .slice(0, webFeatureIcons.length)
-    .map((text, index) => ({
-      text,
-      icon: webFeatureIcons[index],
-    }));
+  const webFeatureItems: PlatformFeature[] = webFeatures.map((text, index) => ({
+    text,
+    icon: webFeatureIcons[index] ?? Check,
+  }));
 
-  const desktopFeatureItems: PlatformFeature[] = desktopFeatures
-    .slice(0, desktopFeatureIcons.length)
-    .map((text, index) => ({
+  const desktopFeatureItems: PlatformFeature[] = desktopFeatures.map(
+    (text, index) => ({
       text,
-      icon: desktopFeatureIcons[index],
-    }));
+      icon: desktopFeatureIcons[index] ?? Check,
+    })
+  );
 
   return (
     <section
