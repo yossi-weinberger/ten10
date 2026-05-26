@@ -108,7 +108,7 @@ interface ImportNormalizedRow {
 ## Excel Parser
 
 Uses `exceljs` (already in dependencies). Called with `ArrayBuffer` — works in browser.
-Formula cells: cached result is used. A `formula_cell` issue is **not** generated when the cached value normalizes cleanly; the issue only appears if the cached value itself is invalid or missing.
+Formula cells: cached result is used. The `formula_cell` issue is not currently emitted — formula metadata is tracked internally (via `__formula_*` flags) but no warning is surfaced to the user since cached values are treated as regular values.
 
 Multi-sheet workbooks: initial upload uses a fast ZIP/XML reader (`listExcelSheetNames`) to list visible sheet names **without loading cell data through ExcelJS**. This avoids timeouts on large workbooks. The dropzone is hidden and the user is shown a sheet-selection card with a "choose different file" escape. Once a sheet is selected, ExcelJS loads and parses only that sheet.
 
