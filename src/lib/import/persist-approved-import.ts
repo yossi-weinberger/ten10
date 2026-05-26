@@ -266,10 +266,11 @@ export async function persistApprovedImport(
   } else if (platform === "desktop") {
     result = await persistDesktop(rows);
   } else {
+    const approvedCount = rows.filter((r) => r.approved).length;
     return {
       inserted: 0,
-      failed: rows.filter((r) => r.approved).length,
-      skipped: 0,
+      failed: approvedCount,
+      skipped: rows.length - approvedCount,
       errors: [{ code: "platform_not_ready" }],
     };
   }

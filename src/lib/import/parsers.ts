@@ -27,6 +27,11 @@ function remapHeaderlessRows(
   rows: Record<string, unknown>[]
 ): { headers: string[]; rows: Record<string, unknown>[] } {
   const headers = buildGeneratedHeaders(originalHeaders.length);
+  // Known limitation: rows are already stored as objects keyed by the first-row values
+  // (which are treated as headers by the parser). If two cells in the first row share
+  // the same text (e.g. two identical amounts), one of them will have been silently
+  // overwritten at parse time — column alignment may be off for those duplicated values.
+  // This is an acceptable trade-off for an inherently ambiguous, non-standard file.
   const remappedRows = [
     Object.fromEntries(headers.map((header, index) => [header, originalHeaders[index] ?? ""])),
     ...rows.map((row) =>
@@ -227,9 +232,10 @@ async function extractZipEntryText(bytes: Uint8Array, entryName: string): Promis
       const name = new TextDecoder("utf-8").decode(bytes.slice(pos+30, pos+30+nameLen));
       const dataStart = pos + 30 + nameLen + extraLen;
       if (name === entryName) {
-        // compSize === 0 means the ZIP was written with a data-descriptor (streaming writer);
-        // real sizes come after the data, which we cannot locate without parsing the central
-        // directory. Skip rather than feeding 0 bytes to inflateRaw which would hang.
+        // compSize === 0 in the local file header means the ZIP was written with a
+        // data-descriptor (e.g. by a streaming writer); the real compressed/uncompressed
+        // sizes appear after the data block, so we cannot reliably locate this entry's
+        // payload from the local header alone without parsing the central directory.
         if (compSize === 0) return null;
         const compressed = bytes.slice(dataStart, dataStart + compSize);
         let raw: Uint8Array;
