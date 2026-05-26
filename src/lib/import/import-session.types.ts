@@ -27,7 +27,43 @@ export type ImportIssueCode =
   | "possible_duplicate"
   | "possible_recurring"
   | "ambiguous_debit_credit"
-  | "formula_cell";
+  | "formula_cell"
+  | "income_keyword_match";
+
+type ImportFlowErrorCode =
+  | "preview_failed"
+  | "dedup_fetch_failed"
+  | "recurring_fetch_failed"
+  | "save_auth_failed"
+  | "save_batch_failed"
+  | "save_desktop_failed"
+  | "platform_not_ready"
+  | "unknown";
+
+export interface ImportFlowError {
+  code: ImportFlowErrorCode;
+  /** Internal debug hint. Do not include financial row content here. */
+  detail?: string;
+}
+
+export interface ImportResultError extends ImportFlowError {
+  rowNumber?: number;
+}
+
+type ParsedFileDiagnosticCode =
+  | "duplicate_headers"
+  | "empty_headers"
+  | "many_unmapped_columns"
+  | "multiple_description_candidates"
+  | "amount_debit_credit_columns"
+  | "multi_sheet_workbook"
+  | "generated_headers";
+
+export interface ParsedFileDiagnostic {
+  code: ParsedFileDiagnosticCode;
+  columns?: string[];
+  count?: number;
+}
 
 export interface ImportRowIssue {
   code: ImportIssueCode;
@@ -98,6 +134,7 @@ export interface ParsedFile {
   sampleRows: Record<string, unknown>[];
   sheetName?: string;
   availableSheets?: string[];
+  diagnostics?: ParsedFileDiagnostic[];
   rowCount: number;
 }
 
@@ -127,7 +164,7 @@ export interface ImportResult {
   inserted: number;
   failed: number;
   skipped: number;
-  errors: string[];
+  errors: ImportResultError[];
 }
 
 export interface ImportSummary {

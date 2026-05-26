@@ -1,4 +1,11 @@
-import type { ColumnMapping, ImportTargetField, MappingValidationError } from "./import-session.types";
+import type {
+  ColumnMapping,
+  ImportMappedRow,
+  ImportTargetField,
+  MappingValidationError,
+  ParsedFile,
+  ParsedFileDiagnostic,
+} from "./import-session.types";
 import { TEN10_TEMPLATE_HEADERS } from "./ten10-template";
 import { normalizeHeaderName } from "./header-normalizer";
 import { FIELD_ALIASES, TEMPLATE_COLUMN_LABELS } from "./import-locale-aliases";
@@ -89,11 +96,12 @@ export function validateMappings(
 
   const targets = mapped.map((m) => m.targetField!);
 
-  // Check for duplicate targets
+  // Check for duplicate targets. Description is intentionally composable:
+  // many real bank exports split merchant/details/reference into separate columns.
   const seen = new Set<ImportTargetField>();
   for (const t of targets) {
     if (seen.has(t)) {
-      if (!errors.includes("duplicateTarget")) {
+      if (t !== "description" && !errors.includes("duplicateTarget")) {
         errors.push("duplicateTarget");
       }
     }
@@ -129,8 +137,9 @@ export function validateMappings(
 export function applyMappings(
   rawRow: Record<string, unknown>,
   mappings: ColumnMapping[]
-): import("./import-session.types").ImportMappedRow {
-  const result: import("./import-session.types").ImportMappedRow = {};
+): ImportMappedRow {
+  const result: ImportMappedRow = {};
+  const descriptionParts: unknown[] = [];
 
   for (const { sourceColumn, targetField } of mappings) {
     if (!targetField) continue;
@@ -141,10 +150,117 @@ export function applyMappings(
     // Check for formula flag from Excel parser
     const isFormula = rawRow[`__formula_${sourceColumn}`] === true;
 
-    result[targetField] = isFormula
+    const mappedValue = isFormula
       ? { __formulaValue: value, __isFormula: true }
       : value;
+
+    if (targetField === "description") {
+      descriptionParts.push(mappedValue);
+      continue;
+    }
+
+    result[targetField] = mappedValue;
+  }
+
+  if (descriptionParts.length > 0) {
+    result.description = combineDescriptionParts(descriptionParts);
   }
 
   return result;
+}
+
+function combineDescriptionParts(parts: unknown[]): string {
+  const normalized = parts
+    .map((part) => {
+      if (
+        part !== null &&
+        typeof part === "object" &&
+        "__formulaValue" in (part as object)
+      ) {
+        return (part as { __formulaValue: unknown }).__formulaValue;
+      }
+      return part;
+    })
+    .map((part) => String(part ?? "").trim())
+    .filter(Boolean);
+
+  if (normalized.length === 0) return "";
+  return normalized.join(" - ");
+}
+
+export function analyzeParsedFile(
+  file: ParsedFile,
+  mappings: ColumnMapping[] = suggestMappings(file.headers)
+): ParsedFileDiagnostic[] {
+  const diagnostics: ParsedFileDiagnostic[] = [];
+  const normalizedHeaders = file.headers.map(normalizeHeaderName);
+  const duplicateHeaders = findDuplicateHeaders(file.headers, normalizedHeaders);
+  const emptyHeaderCount = file.headers.filter((header) => header.trim() === "").length;
+
+  if (duplicateHeaders.length > 0) {
+    diagnostics.push({
+      code: "duplicate_headers",
+      columns: duplicateHeaders,
+      count: duplicateHeaders.length,
+    });
+  }
+
+  if (emptyHeaderCount > 0) {
+    diagnostics.push({ code: "empty_headers", count: emptyHeaderCount });
+  }
+
+  const descriptionCandidates = mappings
+    .filter((mapping) => mapping.targetField === "description")
+    .map((mapping) => mapping.sourceColumn);
+  if (descriptionCandidates.length > 1) {
+    diagnostics.push({
+      code: "multiple_description_candidates",
+      columns: descriptionCandidates,
+      count: descriptionCandidates.length,
+    });
+  }
+
+  const targets = mappings.map((mapping) => mapping.targetField);
+  if (
+    targets.includes("amount") &&
+    (targets.includes("debit") || targets.includes("credit"))
+  ) {
+    diagnostics.push({ code: "amount_debit_credit_columns" });
+  }
+
+  const unmappedCount = mappings.filter((mapping) => mapping.targetField === null).length;
+  if (file.headers.length > 0 && unmappedCount >= Math.max(4, file.headers.length / 2)) {
+    diagnostics.push({ code: "many_unmapped_columns", count: unmappedCount });
+  }
+
+  if ((file.availableSheets?.length ?? 0) > 1) {
+    diagnostics.push({
+      code: "multi_sheet_workbook",
+      columns: file.availableSheets,
+      count: file.availableSheets?.length,
+    });
+  }
+
+  return diagnostics;
+}
+
+function findDuplicateHeaders(
+  headers: string[],
+  normalizedHeaders: string[]
+): string[] {
+  const counts = new Map<string, { label: string; count: number }>();
+  for (let index = 0; index < normalizedHeaders.length; index++) {
+    const normalized = normalizedHeaders[index];
+    if (!normalized) continue;
+    const existing = counts.get(normalized);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      counts.set(normalized, { label: headers[index], count: 1 });
+    }
+  }
+
+  return Array.from(counts.values())
+    .filter((entry) => entry.count > 1)
+    .map((entry) => entry.label);
 }

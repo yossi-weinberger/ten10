@@ -5,6 +5,58 @@ export const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 export const MAX_ROWS = 5000;
 const SAMPLE_ROWS = 5;
 
+function looksLikeDataHeader(headers: string[]): boolean {
+  if (headers.length < 2) return false;
+
+  const meaningful = headers.map((header) => header.trim()).filter(Boolean);
+  if (meaningful.length < 2) return false;
+
+  const dataLikeCount = meaningful.filter((header) =>
+    isDateLikeText(header) || isAmountLikeText(header)
+  ).length;
+
+  return dataLikeCount >= 2 && dataLikeCount >= Math.ceil(meaningful.length / 2);
+}
+
+function buildGeneratedHeaders(count: number): string[] {
+  return Array.from({ length: count }, (_, index) => `Column ${index + 1}`);
+}
+
+function remapHeaderlessRows(
+  originalHeaders: string[],
+  rows: Record<string, unknown>[]
+): { headers: string[]; rows: Record<string, unknown>[] } {
+  const headers = buildGeneratedHeaders(originalHeaders.length);
+  // Known limitation: rows are already stored as objects keyed by the first-row values
+  // (which are treated as headers by the parser). If two cells in the first row share
+  // the same text (e.g. two identical amounts), one of them will have been silently
+  // overwritten at parse time — column alignment may be off for those duplicated values.
+  // This is an acceptable trade-off for an inherently ambiguous, non-standard file.
+  const remappedRows = [
+    Object.fromEntries(headers.map((header, index) => [header, originalHeaders[index] ?? ""])),
+    ...rows.map((row) =>
+      Object.fromEntries(headers.map((header, index) => [header, row[originalHeaders[index]] ?? ""]))
+    ),
+  ];
+
+  return { headers, rows: remappedRows };
+}
+
+function isDateLikeText(value: string): boolean {
+  return (
+    /^\d{4}-\d{1,2}-\d{1,2}$/.test(value) ||
+    /^\d{1,2}[./-]\d{1,2}[./-](\d{2}|\d{4})$/.test(value)
+  );
+}
+
+function isAmountLikeText(value: string): boolean {
+  const normalized = value
+    .replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, "")
+    .replace(/[₪$€£¥₩,\s]/g, "");
+
+  return /^-?\(?\d+(\.\d{1,2})?\)?$/.test(normalized);
+}
+
 // ---------------------------------------------------------------------------
 // CSV parser
 // ---------------------------------------------------------------------------
@@ -125,20 +177,29 @@ function parseCellRef(ref: string): { col: number; row: number } {
 
 /** Decompress a DEFLATE-raw compressed byte array using DecompressionStream. */
 async function inflateRaw(data: Uint8Array): Promise<Uint8Array> {
+  if (data.length === 0) return new Uint8Array(0);
   const ds = new DecompressionStream("deflate-raw");
   const writer = ds.writable.getWriter();
   const reader = ds.readable.getReader();
+
+  // Write and read concurrently — the serial pattern (write-all, then read-all)
+  // deadlocks when the internal buffer fills up before we start consuming.
+  const chunks: Uint8Array[] = [];
+  const readAll = (async () => {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+  })();
+
   // Cast required: Uint8Array generic is ArrayBufferLike in TS ≥5.7, but
   // WritableStreamDefaultWriter.write() expects ArrayBufferView<ArrayBuffer>.
   // In a browser/Tauri context the underlying buffer is always ArrayBuffer.
   await writer.write(data as unknown as Uint8Array<ArrayBuffer>);
   await writer.close();
-  const chunks: Uint8Array[] = [];
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    chunks.push(value);
-  }
+  await readAll;
+
   const total = chunks.reduce((s, c) => s + c.length, 0);
   const out = new Uint8Array(total);
   let off = 0;
@@ -171,12 +232,21 @@ async function extractZipEntryText(bytes: Uint8Array, entryName: string): Promis
       const name = new TextDecoder("utf-8").decode(bytes.slice(pos+30, pos+30+nameLen));
       const dataStart = pos + 30 + nameLen + extraLen;
       if (name === entryName) {
+        // compSize === 0 in the local file header means the ZIP was written with a
+        // data-descriptor (e.g. by a streaming writer); the real compressed/uncompressed
+        // sizes appear after the data block, so we cannot reliably locate this entry's
+        // payload from the local header alone without parsing the central directory.
+        if (compSize === 0) return null;
         const compressed = bytes.slice(dataStart, dataStart + compSize);
         let raw: Uint8Array;
         if (compMethod === 0) {
           raw = compressed;
         } else if (compMethod === 8 && typeof DecompressionStream !== "undefined") {
-          raw = await inflateRaw(compressed);
+          try {
+            raw = await inflateRaw(compressed);
+          } catch {
+            return null;
+          }
         } else {
           return null;
         }
@@ -233,6 +303,46 @@ function extractSheetNames(workbookXml: string): string[] {
     names.push(m[1]);
   }
   return names;
+}
+
+/** Decode the five predefined XML character entities in an attribute value. */
+function decodeXmlEntities(str: string): string {
+  return str
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'");
+}
+
+/**
+ * Extract only visible sheet names (excludes state="hidden" and state="veryHidden").
+ * Used for the sheet-selection UI so users never see hidden utility sheets.
+ * Also decodes XML character entities so sheet names like "Q&amp;A" render as "Q&A".
+ */
+function extractVisibleSheetNames(workbookXml: string): string[] {
+  const normalized = normalizeXmlNs(workbookXml);
+  const names: string[] = [];
+  for (const m of normalized.matchAll(/<sheet\b([^>]*?)\/?>/gi)) {
+    const attrs = m[1];
+    if (/\bstate\s*=\s*["'](hidden|veryHidden)["']/i.test(attrs)) continue;
+    const nameMatch = attrs.match(/\bname\s*=\s*"([^"]*)"/i);
+    if (nameMatch) names.push(decodeXmlEntities(nameMatch[1]));
+  }
+  return names;
+}
+
+/** Fast sheet-name discovery without loading the full workbook via ExcelJS. */
+async function listExcelSheetNames(buffer: ArrayBuffer): Promise<string[] | null> {
+  try {
+    const bytes = new Uint8Array(buffer);
+    const workbookXml = await extractZipEntryText(bytes, "xl/workbook.xml");
+    if (!workbookXml) return null;
+    const names = extractVisibleSheetNames(workbookXml);
+    return names.length > 0 ? names : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -511,7 +621,7 @@ export async function parseExcelBuffer(
   }
 
   return {
-    availableSheets: availableSheets.length > 1 ? availableSheets : availableSheets,
+    availableSheets,
     selected: { sheetName: sheet.name, headers, rows },
   };
 }
@@ -553,6 +663,20 @@ async function parseCSVFile(file: File): Promise<ParseFileResult> {
         : "No non-empty header row found",
     };
   }
+  if (looksLikeDataHeader(headers)) {
+    const headerless = remapHeaderlessRows(headers, rows);
+    if (headerless.rows.length > MAX_ROWS) return { ok: false, error: "too_many_rows", detail: String(MAX_ROWS) };
+    return {
+      ok: true,
+      file: {
+        headers: headerless.headers,
+        rows: headerless.rows,
+        sampleRows: headerless.rows.slice(0, SAMPLE_ROWS),
+        rowCount: headerless.rows.length,
+        diagnostics: [{ code: "generated_headers", count: headerless.headers.length }],
+      },
+    };
+  }
   if (rows.length === 0) {
     return {
       ok: false,
@@ -569,6 +693,25 @@ async function parseCSVFile(file: File): Promise<ParseFileResult> {
 
 async function parseExcelFile(file: File, selectedSheet?: string): Promise<ParseFileResult> {
   const buffer = await file.arrayBuffer();
+
+  // Multi-sheet workbooks: list sheet names first without parsing cell data.
+  if (!selectedSheet) {
+    const quickSheets = await listExcelSheetNames(buffer);
+    if (quickSheets && quickSheets.length > 1) {
+      return {
+        ok: true,
+        file: {
+          headers: [],
+          rows: [],
+          sampleRows: [],
+          rowCount: 0,
+          availableSheets: quickSheets,
+          sheetName: undefined,
+        },
+      };
+    }
+  }
+
   const result = await parseExcelBuffer(buffer, selectedSheet);
   const { availableSheets, selected } = result;
 
@@ -585,6 +728,22 @@ async function parseExcelFile(file: File, selectedSheet?: string): Promise<Parse
       diagnostic: availableSheets.length > 0
         ? `Sheets found: [${availableSheets.join(", ")}] but no header row identified in "${selected.sheetName}"`
         : "No sheets or headers found in workbook",
+    };
+  }
+  if (looksLikeDataHeader(selected.headers)) {
+    const headerless = remapHeaderlessRows(selected.headers, selected.rows);
+    if (headerless.rows.length > MAX_ROWS) return { ok: false, error: "too_many_rows", detail: String(MAX_ROWS) };
+    return {
+      ok: true,
+      file: {
+        headers: headerless.headers,
+        rows: headerless.rows,
+        sampleRows: headerless.rows.slice(0, SAMPLE_ROWS),
+        rowCount: headerless.rows.length,
+        sheetName: selected.sheetName,
+        availableSheets: availableSheets.length > 1 ? availableSheets : undefined,
+        diagnostics: [{ code: "generated_headers", count: headerless.headers.length }],
+      },
     };
   }
   if (selected.rows.length === 0) {

@@ -84,6 +84,9 @@ export function PrepareStep({ onNext }: PrepareStepProps) {
             <span className="leading-snug">{t("prepare.checklistItem3")}</span>
           </li>
         </ul>
+        <p className="text-xs text-muted-foreground leading-snug">
+          {t("prepare.toratMaaserUnsupported")}
+        </p>
       </div>
 
       {/* Supported formats — lightweight inline badge row */}

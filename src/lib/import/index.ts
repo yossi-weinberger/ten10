@@ -18,7 +18,7 @@ export type {
 } from "./import-session.types";
 
 export { parseFile, parseCSVText, parseExcelBuffer, MAX_FILE_SIZE_BYTES, MAX_ROWS } from "./parsers";
-export { suggestMappings, validateMappings, applyMappings, detectTen10Template } from "./mapping";
+export { suggestMappings, validateMappings, applyMappings, detectTen10Template, analyzeParsedFile } from "./mapping";
 export { TEN10_TEMPLATE_HEADERS, TEN10_TEMPLATE_COLUMNS, generateTemplateCsv, downloadTemplateCsv } from "./ten10-template";
 export { parseDate, parseAmount, normalizeRow } from "./normalize";
 export { resolveType } from "./type-resolver";

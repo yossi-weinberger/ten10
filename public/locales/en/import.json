@@ -20,6 +20,7 @@
     "supported": "Supported",
     "notSupported": "Not Supported",
     "privacyNote": "File contents are processed locally in this session and are not saved before you approve.",
+    "toratMaaserUnsupported": "Note: Ten10 does not currently support importing Excel spreadsheets from \"Torat Maaser\".",
     "checklistTitle": "Good to know before you start",
     "checklistItem1": "Your file is never uploaded to a server — parsing happens in the browser, and data is only saved after your final approval",
     "checklistItem2": "Nothing is saved until you review each row and approve it yourself",
@@ -58,13 +59,17 @@
       "unsupportedFormat": "Unsupported file format. Use .csv or .xlsx",
       "xlsNotSupported": ".xls files are not supported. Please save as .xlsx",
       "parseError": "Could not read the file. Make sure it is a valid CSV or Excel file.",
+      "parseTimeout": "Reading the file took too long. Try again, or save the sheet as a new file and upload it again.",
       "noData": "The file has no data rows",
-      "noHeaders": "Could not detect column headers"
+      "noHeaders": "Could not detect column headers",
+      "suspiciousHeaders": "The first row looks like transaction data, not column headers. Add a header row and try again.",
+      "tooManyFiles": "Upload one file at a time"
     },
     "sheetSelect": {
       "title": "Select Sheet",
       "description": "This workbook has multiple sheets. Select the one to import.",
-      "confirm": "Use This Sheet"
+      "confirm": "Use This Sheet",
+      "changeFile": "Choose a different file"
     }
   },
   "mapping": {
@@ -98,6 +103,15 @@
       "amountMissing": "You must map an Amount column, or a Debit column, or a Credit column",
       "duplicateTarget": "Each Ten10 field can only be mapped once",
       "amountAndDebitCredit": "Cannot map both Amount and Debit/Credit at the same time"
+    },
+    "diagnostics": {
+      "duplicate_headers": "Duplicate headers found: {{columns}}",
+      "empty_headers": "{{count}} columns have no header and will be skipped",
+      "many_unmapped_columns": "{{count}} columns are not mapped — check that no important data is missing",
+      "multiple_description_candidates": "Several description columns were found: {{columns}}. You can map more than one to Description.",
+      "amount_debit_credit_columns": "Amount and Debit/Credit columns were found — choose one amount strategy",
+      "multi_sheet_workbook": "This workbook has multiple sheets — make sure you selected the right one",
+      "generated_headers": "No header row was detected. Temporary column names were created — map them using the sample values."
     }
   },
   "importing": {
@@ -109,6 +123,17 @@
     "processing": "Processing rows…",
     "previewLoadingTitle": "Building import preview",
     "previewLoadingDescription": "Checking duplicates, recurring matches, and row validation.",
+    "processingError": {
+      "title": "We could not build the import preview",
+      "description": "Something went wrong while checking the rows. Nothing has been saved.",
+      "retry": "Try again",
+      "backToMapping": "Back to mapping",
+      "codes": {
+        "preview_failed": "We could not check the rows in this file. Try again or go back to mapping.",
+        "dedup_fetch_failed": "We could not check for existing duplicates. Try again.",
+        "recurring_fetch_failed": "We could not check recurring transaction matches. Try again."
+      }
+    },
     "summary": {
       "title": "Summary",
       "totalRows": "Total rows",
@@ -196,7 +221,18 @@
     "possible_duplicate": "Possible duplicate",
     "possible_recurring": "May match a recurring transaction",
     "ambiguous_debit_credit": "Both debit and credit have values",
-    "formula_cell": "Cell contains a formula (value was used)"
+    "formula_cell": "Cell contains a formula (value was used)",
+    "income_keyword_match": "Classified as income from description text"
+  },
+  "flowErrors": {
+    "preview_failed": "Could not build the import preview.",
+    "dedup_fetch_failed": "Could not check existing duplicates.",
+    "recurring_fetch_failed": "Could not check recurring transaction matches.",
+    "save_auth_failed": "Cannot save because the user is not signed in.",
+    "save_batch_failed": "Some rows could not be saved. Try again or import a smaller file.",
+    "save_desktop_failed": "Saving in the desktop app failed.",
+    "platform_not_ready": "The app is still detecting the platform. Try again in a moment.",
+    "unknown": "An unexpected import error occurred."
   },
   "navigation": {
     "back": "Back",
@@ -214,8 +250,10 @@
     "typeAliases": {
       "income":   ["income", "credit"],
       "expense":  ["expense", "debit"],
-      "donation": ["donation", "charity", "tzedaka"]
+      "donation": ["donation", "charity", "tzedaka"],
+      "recognized-expense": ["recognized expense", "business expense", "expense against income"]
     },
+    "incomeDescriptionKeywords": ["kollel", "national insurance", "bituach leumi", "salary", "work"],
     "booleanTruthy": ["yes", "true", "1"],
     "templateColumnLabels": {
       "date":           "date",

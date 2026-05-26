@@ -154,7 +154,9 @@ export function ColumnMapper({
                   </SelectItem>
                   {TARGET_FIELDS.map((field) => {
                     const alreadyUsed =
-                      usedTargets.has(field) && mapping.targetField !== field;
+                      field !== "description" &&
+                      usedTargets.has(field) &&
+                      mapping.targetField !== field;
                     return (
                       <SelectItem key={field} value={field} disabled={alreadyUsed}>
                         {t(`mapping.fields.${field}`)}
