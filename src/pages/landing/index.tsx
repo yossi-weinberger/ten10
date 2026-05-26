@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import { logger } from "@/lib/logger";
 import { LanguageToggleFixed } from "./components/LanguageToggleFixed";
 import { FloatingNavigation } from "./components/FloatingNavigation";
+import { BackToTopButton } from "./components/BackToTopButton";
 import { ScreenshotCarousel } from "./components/ScreenshotCarousel";
 import { HeroSection } from "./sections/HeroSection";
 import { StatsSection } from "./sections/StatsSection";
@@ -14,17 +15,61 @@ import { QuotesSection } from "./sections/QuotesSection";
 import { AboutSection } from "./sections/AboutSection";
 import { FaqSection } from "./sections/FaqSection";
 import { DownloadSection } from "./sections/DownloadSection";
+import {
+  getScrollableParent,
+  getScrollTop,
+  isWindowScrollTarget,
+} from "./utils/scroll";
+
+const smoothScrollToElement = (
+  element: HTMLElement,
+  pageElement: HTMLElement | null
+) => {
+  const scrollTarget = getScrollableParent(pageElement);
+
+  if (isWindowScrollTarget(scrollTarget)) {
+    element.scrollIntoView({ behavior: "smooth", block: "start" });
+    return;
+  }
+
+  const containerRect = scrollTarget.getBoundingClientRect();
+  const elementRect = element.getBoundingClientRect();
+  const targetScrollTop =
+    scrollTarget.scrollTop + (elementRect.top - containerRect.top) - 20;
+  const startPosition = scrollTarget.scrollTop;
+  const distance = targetScrollTop - startPosition;
+  const startTime = performance.now();
+  const duration = 800;
+
+  const animateScroll = (currentTime: number) => {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+
+    scrollTarget.scrollTop = startPosition + distance * easeOutCubic;
+
+    if (progress < 1) {
+      requestAnimationFrame(animateScroll);
+    }
+  };
+
+  requestAnimationFrame(animateScroll);
+};
 
 const LandingPage: React.FC = () => {
   const { t, i18n } = useTranslation("landing");
   const [activeSection, setActiveSection] = useState("hero");
   const [showNavigation, setShowNavigation] = useState(false);
+  const pageRef = useRef<HTMLDivElement>(null);
+  const isProgrammaticScrolling = useRef(false);
+  const programmaticScrollTimeout = useRef<number | null>(null);
 
   // Section refs for intersection observer
   // Note: Only sections that appear in navigationItems should be tracked here
   const sectionRefs = {
     hero: useRef<HTMLElement>(null),
     features: useRef<HTMLElement>(null),
+    screenshots: useRef<HTMLElement>(null),
     platforms: useRef<HTMLElement>(null),
     testimonials: useRef<HTMLElement>(null),
     about: useRef<HTMLElement>(null),
@@ -36,7 +81,17 @@ const LandingPage: React.FC = () => {
   const scrollToSection = (sectionId: string) => {
     const element = sectionRefs[sectionId as keyof typeof sectionRefs]?.current;
     if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
+      isProgrammaticScrolling.current = true;
+      setActiveSection(sectionId);
+      smoothScrollToElement(element, pageRef.current);
+
+      if (programmaticScrollTimeout.current) {
+        window.clearTimeout(programmaticScrollTimeout.current);
+      }
+
+      programmaticScrollTimeout.current = window.setTimeout(() => {
+        isProgrammaticScrolling.current = false;
+      }, 900);
     }
   };
 
@@ -49,6 +104,8 @@ const LandingPage: React.FC = () => {
     };
 
     const observerCallback = (entries: IntersectionObserverEntry[]) => {
+      if (isProgrammaticScrolling.current) return;
+
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           setActiveSection(entry.target.id);
@@ -67,16 +124,32 @@ const LandingPage: React.FC = () => {
       }
     });
 
-    // Show navigation after scroll
+    // Show navigation after scroll. The landing page scrolls inside App's
+    // overflow container, not always on window.
+    const scrollTarget = getScrollableParent(pageRef.current);
     const handleScroll = () => {
-      setShowNavigation(window.scrollY > 100);
+      const scrollTop = getScrollTop(scrollTarget);
+      setShowNavigation(scrollTop > 100);
+
+      const maxScroll =
+        isWindowScrollTarget(scrollTarget)
+          ? document.documentElement.scrollHeight - window.innerHeight
+          : scrollTarget.scrollHeight - scrollTarget.clientHeight;
+
+      if (maxScroll - scrollTop < 8) {
+        setActiveSection("download");
+      }
     };
 
-    window.addEventListener("scroll", handleScroll);
+    handleScroll();
+    scrollTarget.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
       observer.disconnect();
-      window.removeEventListener("scroll", handleScroll);
+      scrollTarget.removeEventListener("scroll", handleScroll);
+      if (programmaticScrollTimeout.current) {
+        window.clearTimeout(programmaticScrollTimeout.current);
+      }
     };
   }, []);
 
@@ -207,6 +280,7 @@ const LandingPage: React.FC = () => {
 
   return (
     <div
+      ref={pageRef}
       className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800"
       dir={i18n.dir()}
     >
@@ -218,6 +292,11 @@ const LandingPage: React.FC = () => {
         showNavigation={showNavigation}
         activeSection={activeSection}
         onNavigate={scrollToSection}
+      />
+
+      <BackToTopButton
+        pageRef={pageRef}
+        targetRef={sectionRefs.hero}
       />
 
       {/* Hero Section */}
@@ -236,8 +315,12 @@ const LandingPage: React.FC = () => {
       {/* Features Section */}
       <FeaturesSection sectionRef={sectionRefs.features} />
 
-      {/* Screenshots Section - Not tracked by intersection observer, so "Features" stays active until "Platforms" */}
-      <section id="screenshots" className="py-20 bg-white dark:bg-black">
+      {/* Screenshots Section */}
+      <section
+        id="screenshots"
+        ref={sectionRefs.screenshots}
+        className="bg-card/60 py-20 dark:bg-card/40"
+      >
         <ScreenshotCarousel />
       </section>
 

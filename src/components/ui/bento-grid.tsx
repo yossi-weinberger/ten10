@@ -44,10 +44,10 @@ export const BentoGridItem = ({
         <div className="flex items-center mb-2 mt-2 group-hover/bento:scale-110 origin-right transition duration-200 w-fit">
           {icon}
         </div>
-        <div className="font-sans font-bold text-neutral-600 dark:text-neutral-200 mb-2">
+        <div className="font-sans text-base font-bold text-neutral-700 dark:text-neutral-100 mb-2">
           {title}
         </div>
-        <div className="font-sans font-normal text-neutral-600 text-xs dark:text-neutral-300">
+        <div className="font-sans text-sm font-normal leading-relaxed text-neutral-600 dark:text-neutral-300">
           {description}
         </div>
       </div>

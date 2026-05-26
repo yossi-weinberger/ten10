@@ -18,8 +18,14 @@ import {
   Loader2,
   AlertCircle,
   Sparkles,
+  Mail,
 } from "lucide-react";
 import { usePlatform } from "@/contexts/PlatformContext";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   getCurrentVersion,
   checkForUpdates,
@@ -36,6 +42,23 @@ type CheckStatus =
   | "update-available"
   | "error";
 
+const NETWORK_ERROR_CODES = [
+  "ENOTFOUND",
+  "ECONNREFUSED",
+  "ECONNRESET",
+  "ETIMEDOUT",
+];
+
+function hasNetworkErrorCode(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof error.code === "string" &&
+    NETWORK_ERROR_CODES.includes(error.code)
+  );
+}
+
 export function VersionInfoCard() {
   const { t } = useTranslation("settings");
   const { platform } = usePlatform();
@@ -47,6 +70,7 @@ export function VersionInfoCard() {
   const [error, setError] = useState<string>("");
   const [isNetworkError, setIsNetworkError] = useState(false);
   const [showWhatsNew, setShowWhatsNew] = useState(false);
+  const [blockedUsersOpen, setBlockedUsersOpen] = useState(false);
 
   // Load version on mount
   useEffect(() => {
@@ -89,12 +113,7 @@ export function VersionInfoCard() {
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
       const isNetwork =
         err instanceof TypeError || // Network/fetch errors are typically TypeError
-        (typeof err === "object" &&
-          err !== null &&
-          "code" in err &&
-          ["ENOTFOUND", "ECONNREFUSED", "ECONNRESET", "ETIMEDOUT"].includes(
-            (err as any).code,
-          )) ||
+        hasNetworkErrorCode(err) ||
         errorMessage.toLowerCase().includes("could not fetch");
 
       setIsNetworkError(isNetwork);
@@ -246,6 +265,44 @@ export function VersionInfoCard() {
                   </>
                 )}
               </Button>
+
+              <Popover
+                open={blockedUsersOpen}
+                onOpenChange={setBlockedUsersOpen}
+              >
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    disabled={isInstalling}
+                  >
+                    <Mail className="mr-2 h-4 w-4" />
+                    {t("versionInfo.blockedUsers")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="center"
+                  side="bottom"
+                  sideOffset={8}
+                  className="w-80 max-w-[calc(100vw-2rem)] p-3"
+                >
+                  <div className="flex flex-col gap-2 border border-border px-3 py-2.5 text-start">
+                    <span className="flex items-center gap-2 text-sm font-medium">
+                      <Mail className="h-3.5 w-3.5" />
+                      {t("versionInfo.blockedUsersTitle")}
+                    </span>
+                    <p className="text-xs leading-relaxed text-muted-foreground">
+                      {t("versionInfo.blockedUsersDescription")}
+                    </p>
+                    <Button size="sm" variant="outline" asChild>
+                      <a href="mailto:maaser@ten10-app.com">
+                        <Mail className="mr-1.5 h-3 w-3" />
+                        maaser@ten10-app.com
+                      </a>
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
 
               {checkStatus === "update-available" && updateInfo && (
                 <Button

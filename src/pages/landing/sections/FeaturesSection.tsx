@@ -1,9 +1,8 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { useScrollAnimation } from "@/hooks/useScrollAnimation";
+import { features, PlatformAvailability } from "../constants/features";
 import { BentoGridItem } from "@/components/ui/bento-grid";
 import { Spotlight } from "@/components/ui/spotlight";
-import { features, PlatformAvailability } from "../constants/features";
 import { Globe, Monitor } from "lucide-react";
 import {
   Tooltip,
@@ -17,8 +16,9 @@ interface FeaturesSectionProps {
 }
 
 const PlatformIcon = ({ type }: { type: PlatformAvailability }) => {
-  if (type === "web") return <Globe className="w-4 h-4 text-blue-500" />;
-  if (type === "desktop") return <Monitor className="w-4 h-4 text-green-500" />;
+  if (type === "web") return <Globe className="h-4 w-4 text-primary" />;
+  if (type === "desktop")
+    return <Monitor className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />;
   return null;
 };
 
@@ -26,130 +26,114 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({
   sectionRef,
 }) => {
   const { t } = useTranslation("landing");
-  const featuresRef = useScrollAnimation({ threshold: 0.1 });
 
   return (
     <section
       id="features"
       ref={sectionRef}
-      className="py-24 px-4 bg-zinc-50 dark:bg-black relative overflow-hidden"
+      className="relative overflow-hidden bg-background px-4 py-20 text-foreground md:py-24"
     >
+      <div className="absolute inset-0 bg-noise opacity-[0.035] dark:opacity-[0.03]" />
       <Spotlight
         className="-top-40 left-0 md:left-60 md:-top-20"
-        fill="rgba(59, 130, 246, 0.5)"
+        fill="hsl(var(--primary) / 0.28)"
       />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,hsl(var(--accent)/0.08),transparent_30%)]" />
+      <div className="absolute inset-x-0 top-0 h-px bg-border" />
+      <div className="absolute inset-x-0 bottom-0 h-px bg-border" />
 
-      <div className="container mx-auto max-w-6xl relative z-10">
-        <div className="text-center mb-12" ref={featuresRef.ref}>
+      <div className="container relative z-10 mx-auto max-w-6xl">
+        <div className="mb-12 text-center">
           <motion.span
-            className="text-blue-600 dark:text-blue-400 font-semibold tracking-wider uppercase text-sm mb-2 block"
+            className="mb-2 block text-sm font-semibold uppercase tracking-wider text-primary"
             initial={{ opacity: 0, y: 10 }}
-            animate={
-              featuresRef.isInView
-                ? { opacity: 1, y: 0 }
-                : { opacity: 0, y: 10 }
-            }
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "0px 0px -80px 0px" }}
           >
             {t("features.eyebrow")}
           </motion.span>
           <motion.h2
-            className="text-4xl md:text-5xl font-bold text-neutral-800 dark:text-white mb-6"
+            className="mb-6 text-balance text-4xl font-bold text-foreground md:text-5xl"
             initial={{ opacity: 0, y: 30 }}
-            animate={
-              featuresRef.isInView
-                ? { opacity: 1, y: 0 }
-                : { opacity: 0, y: 30 }
-            }
-            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "0px 0px -80px 0px" }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           >
             {t("features.title")}
           </motion.h2>
           <motion.p
-            className="text-xl text-neutral-600 dark:text-neutral-300 max-w-2xl mx-auto"
+            className="mx-auto max-w-2xl text-xl leading-relaxed text-muted-foreground"
             initial={{ opacity: 0, y: 30 }}
-            animate={
-              featuresRef.isInView
-                ? { opacity: 1, y: 0 }
-                : { opacity: 0, y: 30 }
-            }
-            transition={{
-              delay: 0.1,
-              type: "spring",
-              damping: 20,
-              stiffness: 300,
-            }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "0px 0px -80px 0px" }}
+            transition={{ duration: 0.35, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
           >
             {t("features.subtitle")}
           </motion.p>
         </div>
 
-        {/* Legend */}
         <motion.div
           className="flex justify-center gap-6 mb-12"
           initial={{ opacity: 0 }}
-          animate={featuresRef.isInView ? { opacity: 1 } : { opacity: 0 }}
-          transition={{ delay: 0.3 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, margin: "0px 0px -80px 0px" }}
+          transition={{ delay: 0.2 }}
         >
-          <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 px-4 py-2 rounded-full shadow-sm border border-zinc-200 dark:border-zinc-800">
-            <Globe className="w-4 h-4 text-blue-500" />
-            <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">
+          <div className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 shadow-sm">
+            <Globe className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-muted-foreground">
               {t("features.legend.web")}
             </span>
           </div>
-          <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 px-4 py-2 rounded-full shadow-sm border border-zinc-200 dark:border-zinc-800">
-            <Monitor className="w-4 h-4 text-green-500" />
-            <span className="text-sm font-medium text-zinc-600 dark:text-zinc-300">
+          <div className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 shadow-sm">
+            <Monitor className="h-4 w-4 text-emerald-700 dark:text-emerald-300" />
+            <span className="text-sm font-medium text-muted-foreground">
               {t("features.legend.desktop")}
             </span>
           </div>
         </motion.div>
 
-        {/* Grid - 2 cols on mobile, 4 on large screens */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-7xl mx-auto">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
           <TooltipProvider>
-            {features.map((feature, i) => {
-              return (
+            {features.map((feature, index) => (
               <motion.div
-                key={i}
-                className=""
-                initial={{ opacity: 0, y: 30 }}
+                key={feature.titleKey}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{
-                  delay: i * 0.05,
-                  type: "spring",
-                  damping: 25,
-                  stiffness: 200,
+                  delay: index * 0.04,
+                  duration: 0.35,
+                  ease: [0.22, 1, 0.36, 1],
                 }}
               >
                 <BentoGridItem
                   title={t(feature.titleKey)}
                   description={t(feature.descriptionKey)}
-                  // Intentionally use the `header` slot as a visual/media area because BentoGridItem has no dedicated image prop; this lets us render a square image with a fallback icon while keeping the default content layout.
                   header={
-                    <div className="relative w-full aspect-square overflow-hidden bg-neutral-100 dark:bg-neutral-900 group rounded-t-xl">
-                      {/* Fallback Icon if image fails/missing - placed behind image */}
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <feature.icon className="w-12 h-12 text-neutral-500/20 dark:text-neutral-300/20" />
+                    <div className="group relative aspect-square w-full overflow-hidden rounded-t-xl bg-muted">
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                        <feature.icon className="h-12 w-12 text-primary/20" />
                       </div>
-                      {/* Image infrastructure - placed on top with absolute positioning to overlay fallback icon */}
                       <img
                         src={feature.imageSrc}
                         alt={t(feature.titleKey)}
-                        className="absolute inset-0 z-10 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
+                        className="absolute inset-0 z-10 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                        onError={(event) => {
+                          event.currentTarget.style.display = "none";
                         }}
                       />
                     </div>
                   }
-                  // Icon slot displays platform availability indicators
                   icon={
                     <div className="flex gap-2">
                       {feature.availability.map((type) => (
                         <Tooltip key={type}>
-                          <TooltipTrigger>
-                            <PlatformIcon type={type} />
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex">
+                              <PlatformIcon type={type} />
+                            </span>
                           </TooltipTrigger>
                           <TooltipContent>
                             <p>
@@ -162,11 +146,10 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({
                       ))}
                     </div>
                   }
-                  className="h-full min-h-[300px]" // Ensure height
+                  className="h-full min-h-[300px] border-border bg-card dark:bg-card"
                 />
               </motion.div>
-              );
-            })}
+            ))}
           </TooltipProvider>
         </div>
       </div>

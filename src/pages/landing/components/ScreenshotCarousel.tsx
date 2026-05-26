@@ -212,22 +212,33 @@ export const ScreenshotCarousel: React.FC = () => {
   // Carousel progress tracking
   useEffect(() => {
     if (!carouselApi) return;
+    let animationFrameId: number | null = null;
 
     const updateProgress = () => {
-      const progress = Math.max(
-        0,
-        Math.min(100, carouselApi.scrollProgress() * 100)
-      );
-      setCarouselProgress(progress);
+      if (animationFrameId !== null) return;
+
+      animationFrameId = requestAnimationFrame(() => {
+        animationFrameId = null;
+        const progress = Math.max(
+          0,
+          Math.min(100, carouselApi.scrollProgress() * 100)
+        );
+        setCarouselProgress(progress);
+      });
     };
 
     carouselApi.on("scroll", updateProgress);
     carouselApi.on("select", updateProgress);
+    carouselApi.on("reInit", updateProgress);
     updateProgress();
 
     return () => {
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
       carouselApi.off("scroll", updateProgress);
       carouselApi.off("select", updateProgress);
+      carouselApi.off("reInit", updateProgress);
     };
   }, [carouselApi]);
 
@@ -236,14 +247,14 @@ export const ScreenshotCarousel: React.FC = () => {
       {/* Section Header */}
       <div className="text-center mb-6">
         <motion.span
-          className="text-blue-600 dark:text-blue-400 font-semibold tracking-wider uppercase text-sm mb-2 block"
+          className="mb-2 block text-sm font-semibold uppercase tracking-wider text-primary"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
         >
           {t("carousel.eyebrow")}
         </motion.span>
         <motion.h2
-          className="text-3xl md:text-4xl font-bold text-neutral-800 dark:text-white"
+          className="text-3xl font-bold text-foreground md:text-4xl"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
@@ -288,7 +299,7 @@ export const ScreenshotCarousel: React.FC = () => {
 
                   {/* Image Container */}
                   <motion.div
-                    className="relative rounded-xl overflow-hidden shadow-lg border border-gray-200/50 dark:border-gray-700/50 bg-white dark:bg-gray-800 aspect-[16/10] group cursor-pointer"
+                    className="group relative aspect-[16/10] cursor-pointer overflow-hidden rounded-lg border border-border bg-background shadow-soft"
                     style={{
                       boxShadow:
                         "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
@@ -304,7 +315,9 @@ export const ScreenshotCarousel: React.FC = () => {
                         openLightbox(item);
                       }
                     }}
-                    aria-label={`${t(item.titleKey)} - Click to enlarge`}
+                    aria-label={t("carousel.enlargeLabel", {
+                      title: t(item.titleKey),
+                    })}
                   >
                     <ScreenshotImage src={getItemSrc(item, i18n.language)} alt={item.alt} />
 

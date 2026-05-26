@@ -175,7 +175,10 @@
     "networkError": "אין חיבור לאינטרנט",
     "offlineHelp": "לקבלת גרסה מעודכנת ללא חיבור לאינטרנט, אנא פנה אלינו במייל: support@ten10-app.com",
     "webVersionNote": "גרסת האתר מתעדכנת אוטומטית. אין צורך בעדכונים ידניים.",
-    "whatsNewButton": "מה חדש"
+    "whatsNewButton": "מה חדש",
+    "blockedUsers": "לחסומים",
+    "blockedUsersTitle": "זקוק לקובץ התקנה ישיר?",
+    "blockedUsersDescription": "אם בדיקת העדכונים או ההורדה האוטומטית חסומות אצלך, אפשר לקבל קובץ התקנה בשליחת מייל לכתובת maaser@ten10-app.com."
   },
   "balanceManagement": {
     "title": "ניהול יתרה",

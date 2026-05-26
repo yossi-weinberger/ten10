@@ -678,6 +678,22 @@ Certain navigation items, such as the "Support Us" (Donation) button, may requir
 3.  **Icon Sizing Exceptions:** While standard icons are `h-6 w-6`, special call-to-action buttons are permitted to use slightly larger icons (e.g., `h-7 w-7`) to draw attention, provided they maintain the correct `min-width` (e.g., `min-w-[28px]`) to prevent layout shifts during collapse.
 4.  **SVG Handling:** For custom SVG icons, ensure they handle Dark Mode correctly using Tailwind classes like `dark:invert` or `dark:text-white` depending on the SVG structure.
 
+### 10.5 Landing Page Floating Navigation
+
+_(Added May 2026)_
+
+The landing page uses a custom floating navigation, separate from the main application sidebar.
+
+Guidelines:
+
+1. **Scroll container awareness:** The landing page runs inside the app shell. Do not assume `window` is the scroll target. Reuse the scroll-parent detection logic in `src/pages/landing/index.tsx`.
+2. **Desktop navigation:** Use a vertical, side-mounted glass navigation with full text labels. It should sit near the top of the viewport rather than centered over the content.
+3. **Mobile navigation:** Do not use a wide bottom navigation with horizontal scrolling. Use a compact floating trigger that opens a small `Popover` with section links.
+4. **Language direction:** For Hebrew/RTL, floating controls belong on the right. For English/LTR, they belong on the left.
+5. **Logo behavior:** The desktop floating nav uses `logo-wide.svg`; the mobile trigger can use a menu icon, while the popover content uses the wide logo for brand consistency.
+6. **Active section state:** When a nav item is clicked, set the active section immediately and temporarily ignore observer updates during smooth scroll. Otherwise the active item can jump to an intermediate section near the bottom of the page.
+7. **Accessibility:** Every section item needs a translated visible label and/or `aria-label`. Dots-only navigation is not appropriate for landing page section navigation.
+
 ---
 
 ## 11. Responsive Modals: Dialog/Drawer Pattern

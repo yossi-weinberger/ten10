@@ -12,6 +12,7 @@
     "downloadButton": "Free Download for Computer",
     "tryButton": "Try on Website"
   },
+  "backToTop": "Back to top",
   "problem": {
     "badge": "The Challenges We All Know",
     "title": "Managing Maaser Doesn't Have to Be Complicated",
@@ -38,7 +39,9 @@
   },
   "nav": {
     "home": "Home",
+    "openNavigation": "Open navigation",
     "features": "Features",
+    "screenshots": "Screenshots",
     "platforms": "Platforms",
     "testimonials": "Testimonials",
     "about": "About",
@@ -51,6 +54,7 @@
     "swipeHint": "Swipe to view more screenshots",
     "closeLightbox": "Close",
     "lightboxDescription": "View screenshot in full size",
+    "enlargeLabel": "Enlarge screenshot: {{title}}",
     "items": {
       "dashboard": "Clear overview of your financial status",
       "addTransaction": "Quickly and easily add new transactions",
@@ -84,7 +88,7 @@
     "endorsements": {
       "title": "Rabbinical Endorsements",
       "quote1": "An excellent system for managing tithes with accuracy and ease. Highly recommended.",
-      "rabbi1": "Rabbi [Rabbi Name]",
+      "rabbi1": "Rabbi Tzvi Weinberger, Head of Torat Ha’adam La’adam Institute",
       "quote2": "An important and useful tool for every Jewish home. The calculations are accurate and the interface is convenient.",
       "rabbi2": "Rabbi [Rabbi Name]",
       "quote3": "A professional and reliable solution for tithe management. I recommend it to all my students.",
@@ -98,6 +102,12 @@
     "legend": {
       "web": "Available on website",
       "desktop": "Available in desktop app"
+    },
+    "groups": {
+      "calculation": "Maaser calculation and tracking",
+      "finance": "Finance management and reports",
+      "trust": "Halacha, trust, and language",
+      "platforms": "Platforms, reminders, and backup"
     },
     "items": {
       "autoCalculation": {
@@ -168,9 +178,13 @@
   },
   "platforms": {
     "title": "Choose the Right Version for You",
+    "subtitle": "Two ways to use the system, choose the one that fits how you work",
+    "transferNote": "You can move data between versions easily by exporting and importing a backup file",
+    "or": "or",
     "web": {
       "title": "Website Version",
       "subtitle": "Access anywhere with cloud sync",
+      "label": "For access from anywhere",
       "pwaNote": "Can be installed as app",
       "features": [
         "Access from any browser",
@@ -186,30 +200,88 @@
     "desktop": {
       "title": "Computer Software",
       "subtitle": "Offline work with maximum performance",
+      "label": "For fully local work",
       "badge": "Recommended",
       "features": [
         "Works without internet",
         "All data is saved on the computer itself",
         "Fast performance",
-        "System notifications"
+        "System notifications",
+        "Local data storage on your computer",
+        "No registration or sign-up required"
       ],
       "button": "Download Now"
     }
   },
   "testimonials": {
-    "title": "What Users Say",
+    "title": "What Our Users Say",
+    "prev": "Previous testimonial",
+    "next": "Next testimonial",
+    "swipeHint": "Swipe to see more",
     "items": [
       {
-        "name": "Rabbi Yosef Zilber",
-        "text": "This system changed my life. Now I know exactly how much I need to donate and have no more doubts"
+        "name": "Chaim K.",
+        "text": "I never used other apps because they seemed too complicated. The new one is simply a pleasure. Thanks to you, I finally give tithes properly."
       },
       {
-        "name": "Itzik Biton",
-        "text": "The computer software is perfect for offline work (without internet connection). My data is secure and always accessible"
+        "name": "Avigail S.",
+        "text": "Amazing work on something that truly delivers. The app is simply wonderful."
       },
       {
-        "name": "Sarah Goldberg",
-        "text": "The interface is simple and convenient, and the monthly alerts help me stay updated"
+        "name": "Z. V.",
+        "text": "A blessed initiative and flawless execution. This app is truly setting a new standard in this field."
+      },
+      {
+        "name": "A. M.",
+        "text": "Huge thanks for this wonderful app, which finally brings order to my tithes and restores halachic balance."
+      },
+      {
+        "name": "Tzvi L.",
+        "text": "The app is excellent, very easy and friendly to use."
+      },
+      {
+        "name": "Ben Tzion K.",
+        "text": "I just installed the app, and it's simply eye-opening!"
+      },
+      {
+        "name": "Miriam T.",
+        "text": "A highly sophisticated and polished app, truly a gift to the community."
+      },
+      {
+        "name": "Nachman P.",
+        "text": "Words can't describe it. This app is something truly wonderful and amazing."
+      },
+      {
+        "name": "Yoel B.",
+        "text": "I stand in awe before this remarkable creation."
+      },
+      {
+        "name": "Shia S.",
+        "text": "A top-notch, user-friendly program. You have really transformed my life."
+      },
+      {
+        "name": "Libi S.",
+        "text": "The app is truly wonderful and incredibly useful."
+      },
+      {
+        "name": "The S. Family",
+        "text": "This wonderful app is so helpful for organizing income and tithes."
+      },
+      {
+        "name": "Elchanan K.",
+        "text": "You are truly helping the Jewish people!"
+      },
+      {
+        "name": "Yisroel W.",
+        "text": "The program makes it much easier to calculate, and I've already shared it with friends."
+      },
+      {
+        "name": "M.R.H.",
+        "text": "I've been using it for several months now and it provides enormous benefit."
+      },
+      {
+        "name": "Y.M.A.",
+        "text": "Immense yasher koach. All the honor in the world for this blessed work."
       }
     ]
   },
@@ -265,6 +337,9 @@
     "optionWebView2": "Install with WebView2 (offline / when main fails)",
     "comingSoonWebView2": "Coming soon",
     "moreOptions": "More install options",
+    "blockedUsers": "Blocked access?",
+    "blockedUsersTitle": "Need a direct installer file?",
+    "blockedUsersDescription": "If download links are blocked for you, you can request an installer file by emailing maaser@ten10-app.com.",
     "webCard": {
       "title": "Website Version",
       "button": "Open Now"

@@ -1,8 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
-  useScrollAnimation,
   fadeInUp,
   scaleIn,
   staggerContainer,
@@ -10,11 +9,9 @@ import {
   buttonTap,
   buttonHover,
 } from "@/hooks/useScrollAnimation";
-import { FadeInWords } from "@/components/ui/animated-text";
 import { Button } from "@/components/ui/button";
 import { Download, Globe } from "lucide-react";
 import { AnimatedLogo } from "../components/AnimatedLogo";
-import { cn } from "@/lib/utils";
 
 interface HeroSectionProps {
   sectionRef: React.RefObject<HTMLElement | null>;
@@ -28,93 +25,56 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onWebAppClick,
 }) => {
   const { t } = useTranslation("landing");
-  const { scrollY } = useScroll();
-  const heroY = useTransform(scrollY, [0, 500], [0, -100]);
-  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.8]);
-  const heroRef = useScrollAnimation({ threshold: 0.2 });
-  const prefersReducedMotion = useReducedMotion();
+  const reduceMotion = useReducedMotion();
 
   return (
     <motion.section
       id="hero"
       ref={sectionRef}
-      style={{ y: heroY, opacity: heroOpacity }}
-      className="relative overflow-hidden py-20 px-4 parallax-container"
+      className="relative overflow-hidden bg-background px-4 pb-12 pt-20 text-foreground md:pb-16 md:pt-24"
+      initial="hidden"
+      animate="visible"
+      variants={staggerContainer}
     >
-      {/* Enhanced Background decoration - Restored Floating Blobs */}
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-emerald-900 opacity-50 animate-gradient"></div>
-
+      <div className="absolute inset-0 bg-noise opacity-[0.05] dark:opacity-[0.035]" />
+      <div className="absolute inset-x-0 top-0 h-px bg-border" />
+      <div className="absolute inset-x-0 bottom-0 h-px bg-border" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,hsl(var(--primary)/0.12),transparent_32%),radial-gradient(circle_at_bottom_right,hsl(var(--accent)/0.10),transparent_32%)]" />
       <motion.div
-        className="absolute top-20 left-10 w-72 h-72 bg-emerald-200 dark:bg-emerald-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30"
-        animate={prefersReducedMotion ? {} : {
-          scale: [1, 1.2, 1],
-          rotate: [0, 180, 360],
-          opacity: [0.3, 0.6, 0.3],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
+        className="absolute -start-24 top-12 h-72 w-72 rounded-full bg-primary/15 blur-3xl"
+        animate={reduceMotion ? undefined : { scale: [1, 1.08, 1], opacity: [0.55, 0.8, 0.55] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
       />
-
       <motion.div
-        className="absolute bottom-20 right-10 w-72 h-72 bg-cyan-200 dark:bg-cyan-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-xl opacity-30"
-        animate={prefersReducedMotion ? {} : {
-          scale: [1.2, 1, 1.2],
-          rotate: [360, 180, 0],
-          opacity: [0.6, 0.3, 0.6],
-        }}
-        transition={{
-          duration: 10,
-          repeat: Infinity,
-          ease: "easeInOut",
-          delay: 2,
-        }}
+        className="absolute -end-20 bottom-10 h-64 w-64 rounded-full bg-accent/20 blur-3xl"
+        animate={reduceMotion ? undefined : { y: [0, -12, 0], opacity: [0.4, 0.65, 0.4] }}
+        transition={{ duration: 11, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
       />
-
-      {/* Additional floating elements for more "wow" */}
-      <motion.div
-        className="absolute top-1/2 left-1/4 w-32 h-32 bg-teal-200 dark:bg-teal-800 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-2xl opacity-20"
-        animate={prefersReducedMotion ? {} : {
-          y: [-20, 20, -20],
-          x: [-10, 10, -10],
-          scale: [0.8, 1.1, 0.8],
-        }}
-        transition={{
-          duration: 6,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
-      />
+      <div className="absolute inset-x-10 top-[40%] h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
 
       <motion.div
-        className="container mx-auto max-w-6xl relative z-10"
-        ref={heroRef.ref}
-        initial="hidden"
-        animate="visible"
+        className="container relative z-10 mx-auto max-w-6xl"
         variants={staggerContainer}
       >
-        <div className="text-center mb-16">
-          {/* Logo */}
-          <motion.div className="mb-8" variants={scaleIn}>
+        <div className="text-center">
+          <motion.div className="mb-10" variants={scaleIn}>
             <AnimatedLogo />
           </motion.div>
 
           <motion.div
-            className="text-4xl md:text-6xl font-bold text-primary mb-6"
+            className="mb-6 text-balance text-4xl font-bold text-primary md:text-6xl"
             variants={fadeInUp}
             role="heading"
             aria-level={1}
           >
-            <FadeInWords delay={0.3}>{t("hero.tagline")}</FadeInWords>
+            {t("hero.tagline")}
           </motion.div>
 
           <motion.div
-            className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto"
+            className="mx-auto mb-8 max-w-3xl text-xl leading-relaxed text-muted-foreground"
             variants={fadeInUp}
           >
-            <FadeInWords delay={0.6}>{t("hero.subtitle")}</FadeInWords>
+            {t("hero.subtitle")}
           </motion.div>
 
           <motion.div
@@ -125,12 +85,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <motion.div whileHover={buttonHover} whileTap={buttonTap}>
                 <Button
                   size="lg"
-                  className={cn(
-                    "text-lg px-8 py-3 border-none min-w-[200px]",
-                    "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500",
-                    "shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]",
-                    "transition-shadow duration-300"
-                  )}
+                  className="min-w-[200px] border-none bg-primary px-8 py-3 text-lg text-primary-foreground shadow-soft hover:bg-primary/90"
                   onClick={() => {
                     onDownloadClick("hero");
                     document
@@ -148,12 +103,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <motion.div whileHover={buttonHover} whileTap={buttonTap}>
                 <Button
                   size="lg"
-                  className={cn(
-                    "text-lg px-8 py-3 border-none min-w-[200px]",
-                    "bg-gradient-to-r from-[hsl(220,64%,50%)] to-[hsl(220,64%,45%)] hover:from-[hsl(220,70%,55%)] hover:to-[hsl(220,70%,50%)]",
-                    "shadow-[0_0_20px_rgba(59,130,246,0.3)] hover:shadow-[0_0_30px_rgba(59,130,246,0.5)]",
-                    "transition-shadow duration-300"
-                  )}
+                  variant="outline"
+                  className="min-w-[200px] border-primary/20 px-8 py-3 text-lg text-primary hover:bg-primary/5"
                   onClick={onWebAppClick}
                   asChild
                 >

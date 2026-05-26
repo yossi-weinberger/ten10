@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { useScrollAnimation, fadeInUp } from "@/hooks/useScrollAnimation";
 import {
   Accordion,
   AccordionContent,
@@ -17,45 +16,51 @@ interface FaqSectionProps {
 
 export const FaqSection: React.FC<FaqSectionProps> = ({ sectionRef }) => {
   const { t } = useTranslation("landing");
-  const faqRef = useScrollAnimation({ threshold: 0.1 });
 
   return (
     <section
       id="faq"
       ref={sectionRef}
-      className="py-20 px-4 bg-gray-50 dark:bg-gray-900"
+      className="bg-background px-4 py-20 text-foreground"
     >
       <div className="container mx-auto max-w-4xl">
         <motion.div
           className="text-center mb-16"
-          ref={faqRef.ref}
-          variants={fadeInUp}
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "0px 0px -80px 0px" }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
         >
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="mb-4 text-3xl font-bold text-foreground md:text-4xl">
             {t("faq.title")}
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="mx-auto max-w-2xl text-muted-foreground">
             {t("faq.subtitle")}
           </p>
         </motion.div>
 
-        <motion.div variants={fadeInUp}>
+        <motion.div
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "0px 0px -80px 0px" }}
+          transition={{ duration: 0.35, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+        >
           <Accordion type="single" collapsible className="w-full grid gap-4">
             {faqs.map((faq, index) => (
               <MotionAccordionItem
                 key={index}
                 value={`item-${index}`}
-                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
+                className="overflow-hidden rounded-lg border border-border bg-card shadow-sm"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 viewport={{ once: true }}
               >
-                <AccordionTrigger className="px-6 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-lg font-semibold text-gray-900 dark:text-white text-right data-[state=open]:text-primary">
+                <AccordionTrigger className="px-6 py-4 text-start text-lg font-semibold text-card-foreground transition-colors hover:bg-muted data-[state=open]:text-primary">
                   {t(faq.questionKey)}
                 </AccordionTrigger>
                 <AccordionContent className="px-6 pb-6 pt-2">
-                  <p className="text-gray-600 dark:text-gray-300 text-right leading-relaxed">
+                  <p className="text-start leading-relaxed text-muted-foreground">
                     {t(faq.answerKey)}
                   </p>
                 </AccordionContent>
@@ -64,8 +69,14 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ sectionRef }) => {
           </Accordion>
         </motion.div>
 
-        <motion.div className="mt-12 text-center" variants={fadeInUp}>
-          <p className="text-gray-500 dark:text-gray-400">
+        <motion.div
+          className="mt-12 text-center"
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "0px 0px -80px 0px" }}
+          transition={{ duration: 0.35, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <p className="text-muted-foreground">
             {t("faq.moreQuestions")}{" "}
             <a
               href="mailto:support@ten10-app.com"
