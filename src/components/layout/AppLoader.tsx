@@ -28,10 +28,14 @@ const AppLoader: React.FC<AppLoaderProps> = ({
     <div
       className="fixed inset-0 flex flex-col items-center justify-center bg-background z-50"
       dir={i18n.dir()}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
     >
       <img
         src="/logo/symbol.svg"
-        alt="Ten10 loading"
+        alt=""
+        aria-hidden="true"
         className="h-14 w-14 animate-spin"
       />
       <h1 className="mt-4 text-2xl font-bold text-primary">Ten10</h1>
