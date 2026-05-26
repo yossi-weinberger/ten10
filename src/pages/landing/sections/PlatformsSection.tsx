@@ -96,6 +96,7 @@ const PlatformCard: React.FC<PlatformCardProps> = ({
 }) => {
   const styles = cardVariants[variant];
   const ButtonIcon = variant === "desktop" ? Download : Globe;
+  const renderAsLink = Boolean(buttonAsLink && linkTo);
 
   const buttonContent = (
     <>
@@ -169,12 +170,12 @@ const PlatformCard: React.FC<PlatformCardProps> = ({
             <Button
               variant={styles.buttonVariant}
               className={cn("w-full py-5 text-base font-medium", styles.button)}
-              onClick={buttonAsLink ? undefined : onButtonClick}
-              asChild={buttonAsLink}
+              onClick={renderAsLink ? undefined : onButtonClick}
+              asChild={renderAsLink}
             >
-              {buttonAsLink && linkTo ? (
+              {renderAsLink ? (
                 <Link
-                  to={linkTo}
+                  to={linkTo!}
                   className="inline-flex items-center justify-center"
                 >
                   {buttonContent}

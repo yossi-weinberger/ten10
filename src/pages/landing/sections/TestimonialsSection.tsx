@@ -34,14 +34,13 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
       setCount(api.scrollSnapList().length);
       setSelectedIndex(api.selectedScrollSnap());
     };
-
-    const onSelect = () => setSelectedIndex(api.selectedScrollSnap());
-
-    api.on("select", onSelect);
+    api.on("select", syncState);
+    api.on("reInit", syncState);
     syncState();
 
     return () => {
-      api.off("select", onSelect);
+      api.off("select", syncState);
+      api.off("reInit", syncState);
     };
   }, [api]);
 
@@ -181,14 +180,12 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
 
               <div
                 className="flex justify-center gap-1.5"
-                role="tablist"
                 aria-label={t("testimonials.title")}
               >
                 {Array.from({ length: count }).map((_, index) => (
                   <button
                     key={index}
-                    role="tab"
-                    aria-selected={index === selectedIndex}
+                    aria-current={index === selectedIndex ? "true" : undefined}
                     aria-label={`${index + 1}`}
                     onClick={() => scrollTo(index)}
                     className={cn(

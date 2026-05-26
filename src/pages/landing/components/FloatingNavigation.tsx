@@ -99,7 +99,7 @@ export const FloatingNavigation: React.FC<FloatingNavigationProps> = ({
               type="button"
               size="icon"
               className={`h-12 w-12 rounded-full text-primary ${navGlassClasses}`}
-              aria-label={t("nav.home")}
+              aria-label={t("nav.openNavigation")}
             >
               <Menu className="h-5 w-5" />
             </Button>

@@ -212,20 +212,31 @@ export const ScreenshotCarousel: React.FC = () => {
   // Carousel progress tracking
   useEffect(() => {
     if (!carouselApi) return;
+    let animationFrameId: number | null = null;
 
     const updateProgress = () => {
-      const progress = Math.max(
-        0,
-        Math.min(100, carouselApi.scrollProgress() * 100)
-      );
-      setCarouselProgress(progress);
+      if (animationFrameId !== null) return;
+
+      animationFrameId = requestAnimationFrame(() => {
+        animationFrameId = null;
+        const progress = Math.max(
+          0,
+          Math.min(100, carouselApi.scrollProgress() * 100)
+        );
+        setCarouselProgress(progress);
+      });
     };
 
+    carouselApi.on("scroll", updateProgress);
     carouselApi.on("select", updateProgress);
     carouselApi.on("reInit", updateProgress);
     updateProgress();
 
     return () => {
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
+      carouselApi.off("scroll", updateProgress);
       carouselApi.off("select", updateProgress);
       carouselApi.off("reInit", updateProgress);
     };

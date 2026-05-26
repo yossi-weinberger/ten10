@@ -107,18 +107,22 @@ export function useLatestRelease(
       setError(null);
 
       try {
-        const cached = sessionStorage.getItem(CACHE_KEY);
+        try {
+          const cached = sessionStorage.getItem(CACHE_KEY);
 
-        if (cached) {
-          const parsed = JSON.parse(cached) as CachedRelease;
-          const isFresh = Date.now() - parsed.timestamp < cacheTtlMs;
+          if (cached) {
+            const parsed = JSON.parse(cached) as CachedRelease;
+            const isFresh = Date.now() - parsed.timestamp < cacheTtlMs;
 
-          if (isFresh) {
-            setRelease(parsed.release);
-            setDownloads(parseDownloads(parsed.release));
-            setLoading(false);
-            return;
+            if (isFresh) {
+              setRelease(parsed.release);
+              setDownloads(parseDownloads(parsed.release));
+              setLoading(false);
+              return;
+            }
           }
+        } catch {
+          sessionStorage.removeItem(CACHE_KEY);
         }
 
         const response = await fetch(GITHUB_API_URL, {
