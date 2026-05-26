@@ -40,6 +40,7 @@
   },
   "labels": {
     "loading": "Loading...",
+    "appLoading": "Loading...",
     "noData": "No data",
     "error": "Error",
     "success": "Success",
