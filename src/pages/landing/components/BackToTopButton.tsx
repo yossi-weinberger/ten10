@@ -4,31 +4,12 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { getScrollableParent, getScrollTop } from "../utils/scroll";
 
 interface BackToTopButtonProps {
   pageRef: React.RefObject<HTMLElement | null>;
   targetRef: React.RefObject<HTMLElement | null>;
 }
-
-const getScrollableParent = (element: HTMLElement | null) => {
-  let parent = element?.parentElement ?? null;
-
-  while (parent) {
-    const { overflowY } = window.getComputedStyle(parent);
-    const canScroll = parent.scrollHeight > parent.clientHeight;
-
-    if (canScroll && (overflowY === "auto" || overflowY === "scroll")) {
-      return parent;
-    }
-
-    parent = parent.parentElement;
-  }
-
-  return window;
-};
-
-const getScrollTop = (scrollTarget: HTMLElement | Window) =>
-  scrollTarget === window ? window.scrollY : scrollTarget.scrollTop;
 
 export const BackToTopButton: React.FC<BackToTopButtonProps> = ({
   pageRef,

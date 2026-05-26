@@ -15,32 +15,11 @@ import { QuotesSection } from "./sections/QuotesSection";
 import { AboutSection } from "./sections/AboutSection";
 import { FaqSection } from "./sections/FaqSection";
 import { DownloadSection } from "./sections/DownloadSection";
-
-const getScrollableParent = (element: HTMLElement | null) => {
-  let parent = element?.parentElement ?? null;
-
-  while (parent) {
-    const { overflowY } = window.getComputedStyle(parent);
-    const canScroll = parent.scrollHeight > parent.clientHeight;
-
-    if (canScroll && (overflowY === "auto" || overflowY === "scroll")) {
-      return parent;
-    }
-
-    parent = parent.parentElement;
-  }
-
-  return window;
-};
-
-const isWindowScrollTarget = (
-  scrollTarget: HTMLElement | Window
-): scrollTarget is Window => scrollTarget === window;
-
-const getScrollTop = (scrollTarget: HTMLElement | Window) =>
-  isWindowScrollTarget(scrollTarget)
-    ? window.scrollY
-    : scrollTarget.scrollTop;
+import {
+  getScrollableParent,
+  getScrollTop,
+  isWindowScrollTarget,
+} from "./utils/scroll";
 
 const smoothScrollToElement = (
   element: HTMLElement,

@@ -140,10 +140,14 @@ export function useLatestRelease(
         const data: GitHubRelease = await response.json();
         setRelease(data);
         setDownloads(parseDownloads(data));
-        sessionStorage.setItem(
-          CACHE_KEY,
-          JSON.stringify({ timestamp: Date.now(), release: data })
-        );
+        try {
+          sessionStorage.setItem(
+            CACHE_KEY,
+            JSON.stringify({ timestamp: Date.now(), release: data })
+          );
+        } catch {
+          // Ignore cache write failures so successful fetches still work.
+        }
       } catch (err) {
         console.error("Failed to fetch latest release:", err);
         setError(err instanceof Error ? err : new Error("Unknown error"));
