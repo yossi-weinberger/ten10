@@ -58,7 +58,6 @@ export function isImportableType(value: string): boolean {
 export function isSpecialType(value: string): boolean {
   const special: TransactionType[] = [
     "exempt-income",
-    "recognized-expense",
     "non_tithe_donation",
     "initial_balance",
   ];

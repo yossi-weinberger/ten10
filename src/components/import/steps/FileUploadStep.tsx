@@ -57,9 +57,10 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
           rowCount: result.ok ? result.file.rowCount : null,
         });
       } catch (err) {
+        const isTimeout = err instanceof Error && err.message === "file_parse_timeout";
         logger.error("Import upload: parse timed out or failed:", err);
         setIsLoading(false);
-        setError(t("upload.errors.parseTimeout"));
+        setError(t(isTimeout ? "upload.errors.parseTimeout" : "upload.errors.parseError"));
         return;
       }
 
