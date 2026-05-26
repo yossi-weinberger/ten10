@@ -40,6 +40,7 @@
   },
   "labels": {
     "loading": "טוען...",
+    "appLoading": "טוען...",
     "noData": "אין נתונים",
     "error": "שגיאה",
     "success": "הצלחה",

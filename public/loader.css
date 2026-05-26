@@ -27,11 +27,12 @@
 }
 
 #pre-loader .text {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: bold;
   color: #f8fafc; /* Lighter text for the brand name */
 }
 
 #pre-loader p {
   margin-top: 1rem;
+  font-size: 1rem;
 }

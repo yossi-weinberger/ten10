@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Progress } from "@/components/ui/progress";
 
 interface AppLoaderProps {
-  /** Optional custom message; defaults to common "labels.loading" */
+  /** Optional custom message; defaults to the global app startup message. */
   message?: string;
   /** Optional progress for import/export: show progress bar and "current / total" */
   progress?: { current: number; total: number };
@@ -16,21 +16,29 @@ const AppLoader: React.FC<AppLoaderProps> = ({
   progress,
   details,
 }) => {
-  const { t } = useTranslation("common");
-  const displayMessage = message ?? t("labels.loading");
+  const { i18n, t } = useTranslation("common");
+  const displayMessage =
+    message ?? t("labels.appLoading", { defaultValue: t("labels.loading") });
   const progressPercent =
     progress && progress.total > 0
       ? Math.round((progress.current / progress.total) * 100)
       : 0;
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-background z-50">
+    <div
+      className="fixed inset-0 flex flex-col items-center justify-center bg-background z-50"
+      dir={i18n.dir()}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
       <img
         src="/logo/symbol.svg"
-        alt="Ten10 loading"
-        className="h-12 w-12 animate-spin"
+        alt=""
+        aria-hidden="true"
+        className="h-14 w-14 animate-spin"
       />
-      <h1 className="mt-3 text-2xl font-bold text-primary">Ten10</h1>
+      <h1 className="mt-4 text-2xl font-bold text-primary">Ten10</h1>
       <p className="mt-4 text-muted-foreground">{displayMessage}</p>
       {details && (
         <p className="mt-2 text-sm text-muted-foreground">{details}</p>

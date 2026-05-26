@@ -49,13 +49,71 @@
   </head>
   <body>
     <div id="root">
-      <div id="pre-loader">
-        <img class="brand-spinner" src="/logo/symbol.svg" alt="Ten10 loading" />
+      <div
+        id="pre-loader"
+        dir="rtl"
+        role="status"
+        aria-live="polite"
+        aria-busy="true"
+      >
+        <img
+          class="brand-spinner"
+          src="/logo/symbol.svg"
+          alt=""
+          aria-hidden="true"
+        />
         <div class="text">Ten10</div>
-        <p>טוען נתונים, אנא המתן</p>
+        <p data-loader-status>טוען...</p>
       </div>
     </div>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <script>
+      (function () {
+        function getStoredLanguage() {
+          try {
+            var i18nextLanguage = localStorage.getItem("i18nextLng");
+            if (i18nextLanguage === "en" || i18nextLanguage === "he") {
+              return i18nextLanguage;
+            }
+
+            var storedData = localStorage.getItem("Ten10-donation-store");
+            var parsedData = storedData ? JSON.parse(storedData) : null;
+            var language =
+              parsedData &&
+              parsedData.state &&
+              parsedData.state.settings &&
+              parsedData.state.settings.language;
+
+            if (language === "en" || language === "he") {
+              return language;
+            }
+          } catch (error) {
+            // Fall back to Hebrew, matching the app's i18n default.
+          }
+
+          return "he";
+        }
+
+        var language = getStoredLanguage();
+        var direction = language === "he" ? "rtl" : "ltr";
+        var loader = document.getElementById("pre-loader");
+        var loaderStatus = loader
+          ? loader.querySelector("[data-loader-status]")
+          : null;
+
+        document.documentElement.lang = language;
+        document.documentElement.dir = direction;
+
+        if (loader) {
+          loader.dir = direction;
+        }
+
+        if (loaderStatus) {
+          loaderStatus.textContent =
+            language === "he" ? "טוען..." : "Loading...";
+        }
+      })();
+    </script>
     <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>

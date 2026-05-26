@@ -324,7 +324,7 @@
     "orText": "Or start directly in your browser",
     "webAppButton": "Open Website",
     "downloadButton": "Download",
-    "loading": "Loading...",
+    "loading": "Checking latest version...",
     "notAvailable": "Not Available",
     "error": "Failed to load download links. Please try again later.",
     "comingSoon": "macOS and Linux versions coming soon",
