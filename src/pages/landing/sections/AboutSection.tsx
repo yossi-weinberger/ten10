@@ -11,6 +11,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ sectionRef }) => {
   const { t, i18n } = useTranslation("landing");
   const shouldReduceMotion = useReducedMotion();
   const endorsementQuote = String(t("about.endorsements.quote1"));
+  const quoteMark = "״";
   const endorsementWords = endorsementQuote.split(" ");
 
   return (
@@ -128,8 +129,11 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ sectionRef }) => {
                 </span>
 
                 <blockquote className="relative my-auto px-2 py-10 text-center text-xl font-semibold leading-relaxed text-white md:px-8 md:text-2xl">
-                  <span aria-hidden="true">״</span>
-                  <span className="sr-only">{endorsementQuote}</span>
+                  <span className="sr-only">
+                    {quoteMark}
+                    {endorsementQuote}
+                    {quoteMark}
+                  </span>
                   <motion.span
                     aria-hidden="true"
                     initial={shouldReduceMotion ? false : "hidden"}
@@ -149,33 +153,45 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ sectionRef }) => {
                     }}
                   >
                     {shouldReduceMotion
-                      ? endorsementQuote
-                      : endorsementWords.map((word, wordIndex) => (
-                          <span
-                            key={`${word}-${wordIndex}`}
-                            className="inline-block"
-                          >
-                            {Array.from(word).map((character, charIndex) => (
-                              <motion.span
-                                key={`${character}-${wordIndex}-${charIndex}`}
-                                className="inline-block"
-                                variants={{
-                                  hidden: { opacity: 0, y: 8 },
-                                  visible: { opacity: 1, y: 0 },
-                                }}
-                                transition={{
-                                  duration: 0.08,
-                                  ease: [0.22, 1, 0.36, 1],
-                                }}
-                              >
-                                {character}
-                              </motion.span>
-                            ))}
-                            {wordIndex < endorsementWords.length - 1 ? " " : ""}
-                          </span>
-                        ))}
+                      ? `${quoteMark}${endorsementQuote}${quoteMark}`
+                      : endorsementWords.map((word, wordIndex) => {
+                          const animatedWord = `${wordIndex === 0 ? quoteMark : ""}${word}${
+                            wordIndex === endorsementWords.length - 1
+                              ? quoteMark
+                              : ""
+                          }`;
+
+                          return (
+                            <span
+                              key={`${word}-${wordIndex}`}
+                              className={`inline-block ${
+                                wordIndex < endorsementWords.length - 1
+                                  ? "me-[0.25em]"
+                                  : ""
+                              }`}
+                            >
+                              {Array.from(animatedWord).map(
+                                (character, charIndex) => (
+                                  <motion.span
+                                    key={`${character}-${wordIndex}-${charIndex}`}
+                                    className="inline-block"
+                                    variants={{
+                                      hidden: { opacity: 0, y: 8 },
+                                      visible: { opacity: 1, y: 0 },
+                                    }}
+                                    transition={{
+                                      duration: 0.08,
+                                      ease: [0.22, 1, 0.36, 1],
+                                    }}
+                                  >
+                                    {character}
+                                  </motion.span>
+                                )
+                              )}
+                            </span>
+                          );
+                        })}
                   </motion.span>
-                  <span aria-hidden="true">״</span>
                 </blockquote>
 
                 <figcaption className="relative border-t border-amber-100/20 pt-4 text-center text-base font-semibold text-amber-50 md:text-lg">
