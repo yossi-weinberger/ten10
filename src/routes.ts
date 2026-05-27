@@ -90,6 +90,10 @@ const ChangelogPage = lazyRouteComponent(
   () => import("./pages/ChangelogPage"),
   "ChangelogPage"
 );
+const DesignPreviewPage = lazyRouteComponent(
+  () => import("./pages/landing/components/DesignPreview"),
+  "default"
+);
 
 const rootRoute = createRootRoute({
   component: App,
@@ -246,6 +250,12 @@ const landingRoute = createRoute({
   component: LandingPage,
 });
 
+const designPreviewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/design-preview",
+  component: DesignPreviewPage,
+});
+
 const privacyRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/privacy",
@@ -310,6 +320,7 @@ const routeTree = rootRoute.addChildren([
   resetPasswordRoute,
   unsubscribeRoute,
   landingRoute,
+  designPreviewRoute,
   privacyRoute,
   termsRoute,
   accessibilityRoute,

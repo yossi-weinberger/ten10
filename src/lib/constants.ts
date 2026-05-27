@@ -6,6 +6,7 @@ export const PUBLIC_ROUTES = [
   "/reset-password",
   "/unsubscribe",
   "/landing",
+  "/design-preview",
   "/privacy",
   "/terms",
   "/accessibility",
@@ -18,4 +19,5 @@ export const FULL_SCREEN_ROUTES = [
   "/forgot-password",
   "/reset-password",
   "/landing",
+  "/design-preview",
 ];
