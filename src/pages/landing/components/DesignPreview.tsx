@@ -223,7 +223,7 @@ const FeatureCardHover = ({
 // Main Preview Component
 export const DesignPreview = () => {
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <div className="min-h-screen bg-background overflow-y-auto" dir="rtl">
       {/* Navbar Preview */}
       <section className="border-b border-border bg-muted/30 px-4 py-12">
         <div className="mx-auto max-w-4xl">
