@@ -49,16 +49,7 @@ export function ThemeProvider({
 
     root.classList.remove("light", "dark");
 
-    let activeTheme = theme;
-
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-        .matches
-        ? "dark"
-        : "light";
-
-      activeTheme = systemTheme;
-    }
+    const activeTheme = resolveTheme(theme);
 
     root.classList.add(activeTheme);
     if (activeTheme === "light") {
