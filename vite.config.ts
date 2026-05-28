@@ -114,11 +114,9 @@ export default defineConfig(() => {
       },
     },
     server: {
-      host: true,
       allowedHosts: [".ngrok-free.app", ".ngrok.io", ".ngrok.app"],
     },
     preview: {
-      host: true,
       allowedHosts: [".ngrok-free.app", ".ngrok.io", ".ngrok.app"],
     },
   };
