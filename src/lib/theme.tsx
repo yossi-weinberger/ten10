@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 type Theme = "light" | "dark" | "system";
 
-export function resolveTheme(theme: Theme): "light" | "dark" {
+function resolveTheme(theme: Theme): "light" | "dark" {
   if (theme === "system") {
     return window.matchMedia("(prefers-color-scheme: dark)").matches
       ? "dark"
@@ -49,7 +49,16 @@ export function ThemeProvider({
 
     root.classList.remove("light", "dark");
 
-    const activeTheme = resolveTheme(theme);
+    let activeTheme = theme;
+
+    if (theme === "system") {
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
+        ? "dark"
+        : "light";
+
+      activeTheme = systemTheme;
+    }
 
     root.classList.add(activeTheme);
     if (activeTheme === "light") {

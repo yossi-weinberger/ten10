@@ -1,31 +1,36 @@
 import { motion, Variants } from "framer-motion";
 import { useState } from "react";
 
+const EASING = [0.4, 0, 0.2, 1] as const;
+const DURATION = 1.1;
+
+const emeraldVariants: Variants = {
+  idle:  { pathLength: 0, strokeOpacity: 0 },
+  hover: {
+    pathLength: 1,
+    strokeOpacity: 1,
+    transition: {
+      pathLength: { duration: DURATION, ease: EASING },
+      strokeOpacity: { duration: 0.05 },
+    },
+  },
+};
+
+const goldVariants: Variants = {
+  idle:  { pathLength: 0, strokeOpacity: 0 },
+  hover: {
+    pathLength: 1,
+    strokeOpacity: 1,
+    transition: {
+      pathLength: { duration: DURATION * 0.7, ease: EASING },
+      strokeOpacity: { duration: 0.05 },
+    },
+  },
+};
+
 export const AnimatedLogo = () => {
   const [isHovered, setIsHovered] = useState(false);
-
-  // SVG Paths from public/logo/logo-wide.svg
-  // We use the same viewbox: -57.474609375 -160.34271240234375 386.5818176269531 78.66902160644531
-
-  const pathVariants: Variants = {
-    hidden: { pathLength: 0, opacity: 0 },
-    visible: {
-      pathLength: 1,
-      opacity: 1,
-      transition: {
-        pathLength: { duration: 1.5, ease: "easeInOut" },
-        opacity: { duration: 0.5 },
-      },
-    },
-    hover: {
-      pathLength: [0, 1], // Redraw
-      opacity: 1,
-      transition: {
-        duration: 1.5,
-        ease: "easeInOut",
-      },
-    },
-  };
+  const animate = isHovered ? "hover" : "idle";
 
   return (
     <motion.div
@@ -40,22 +45,15 @@ export const AnimatedLogo = () => {
         viewBox="-57.474609375 -160.34271240234375 386.5818176269531 78.66902160644531"
         className="h-auto w-[min(18rem,calc(100vw-4rem))] sm:w-[22rem]"
       >
-        <defs>
-          <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#11676a" />
-            <stop offset="100%" stopColor="#11676a" />
-          </linearGradient>
-        </defs>
-
         {/* Letter T */}
         <motion.path
           d="M-24.77461,-150.74271h10.8c3.33333,0 5,1.66667 5,5v55.9c0,3.33333 -1.66667,5 -5,5h-10.8c-3.33333,0 -5,-1.66667 -5,-5v-55.9c0,-3.33333 1.66667,-5 5,-5zM-51.97461,-159.84271h68c3.33333,0 5,1.66667 5,5v8.4c0,3.33333 -1.66667,5 -5,5h-68c-3.33333,0 -5,-1.66667 -5,-5v-8.4c0,-3.33333 1.66667,-5 5,-5z"
           fill="#11676a"
           stroke="#11676a"
           strokeWidth="3"
-          variants={pathVariants}
-          initial="visible"
-          animate={isHovered ? "hover" : "visible"}
+          variants={emeraldVariants}
+          initial="idle"
+          animate={animate}
         />
 
         {/* Letter e */}
@@ -64,9 +62,9 @@ export const AnimatedLogo = () => {
           fill="#11676a"
           stroke="#11676a"
           strokeWidth="3"
-          variants={pathVariants}
-          initial="visible"
-          animate={isHovered ? "hover" : "visible"}
+          variants={emeraldVariants}
+          initial="idle"
+          animate={animate}
         />
 
         {/* Letter n */}
@@ -75,9 +73,9 @@ export const AnimatedLogo = () => {
           fill="#11676a"
           stroke="#11676a"
           strokeWidth="3"
-          variants={pathVariants}
-          initial="visible"
-          animate={isHovered ? "hover" : "visible"}
+          variants={emeraldVariants}
+          initial="idle"
+          animate={animate}
         />
 
         {/* Number 1 */}
@@ -86,9 +84,9 @@ export const AnimatedLogo = () => {
           fill="#11676a"
           stroke="#11676a"
           strokeWidth="3"
-          variants={pathVariants}
-          initial="visible"
-          animate={isHovered ? "hover" : "visible"}
+          variants={emeraldVariants}
+          initial="idle"
+          animate={animate}
         />
 
         {/* Number 0 */}
@@ -97,29 +95,20 @@ export const AnimatedLogo = () => {
           fill="#11676a"
           stroke="#11676a"
           strokeWidth="3"
-          variants={pathVariants}
-          initial="visible"
-          animate={isHovered ? "hover" : "visible"}
+          variants={emeraldVariants}
+          initial="idle"
+          animate={animate}
         />
 
-        {/* Crown/Gold part */}
+        {/* Crown / Gold accent */}
         <motion.path
           d="M301.31028,-128.16211c-0.43175,-0.46003 -2.32759,-2.50119 -2.78728,-2.92655c-1.53072,-1.38879 -2.77031,-2.26703 -1.54587,-4.61945l9.01306,-21.95482c0.76862,-1.68406 2.72423,-2.45695 4.43957,-1.76024c3.23775,1.32642 7.52368,3.30379 11.71833,8.0306c3.85522,4.3495 5.00069,7.15773 6.15109,10.05283c0.68139,1.72407 0.23756,3.67276 -1.38279,4.58677c0,0 -21.05398,8.80308 -21.29092,8.95616c-1.22058,0.75035 -2.9259,1.07316 -4.31519,-0.3653z"
           fill="#f0c000"
           stroke="#f0c000"
           strokeWidth="3"
-          variants={pathVariants}
-          initial="visible"
-          animate={isHovered ? "hover" : "visible"}
-        />
-
-        {/* Accent dot inside 0 */}
-        <motion.path
-          d="M305.77138,-128.09165"
-          fill="#11676a"
-          variants={pathVariants}
-          initial="visible"
-          animate={isHovered ? "hover" : "visible"}
+          variants={goldVariants}
+          initial="idle"
+          animate={animate}
         />
       </svg>
     </motion.div>
