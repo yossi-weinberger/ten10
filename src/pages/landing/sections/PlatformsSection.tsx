@@ -20,6 +20,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TextRoll } from "../components/TextRoll";
 
 interface PlatformsSectionProps {
   sectionRef: React.RefObject<HTMLElement | null>;
@@ -100,8 +101,10 @@ const PlatformCard: React.FC<PlatformCardProps> = ({
 
   const buttonContent = (
     <>
-      <ButtonIcon className="me-2 h-5 w-5" />
-      {buttonText}
+      <ButtonIcon className="me-2 h-5 w-5 shrink-0" />
+      <TextRoll className="h-[24px]" lineClassName="h-[24px] leading-[24px]">
+        {buttonText}
+      </TextRoll>
     </>
   );
 
@@ -169,7 +172,7 @@ const PlatformCard: React.FC<PlatformCardProps> = ({
           <motion.div whileHover={buttonHover} whileTap={buttonTap}>
             <Button
               variant={styles.buttonVariant}
-              className={cn("w-full py-5 text-base font-medium", styles.button)}
+              className={cn("group w-full py-5 text-base font-medium", styles.button)}
               onClick={renderAsLink ? undefined : onButtonClick}
               asChild={renderAsLink}
             >

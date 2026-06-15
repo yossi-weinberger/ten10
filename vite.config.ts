@@ -113,5 +113,11 @@ export default defineConfig(() => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    server: {
+      allowedHosts: [".ngrok-free.app", ".ngrok.io", ".ngrok.app"],
+    },
+    preview: {
+      allowedHosts: [".ngrok-free.app", ".ngrok.io", ".ngrok.app"],
+    },
   };
 });

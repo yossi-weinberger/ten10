@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Home, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/ui/language-toggle";
-import { useTheme } from "@/lib/theme";
+import { useTheme, getNextToggledTheme } from "@/lib/theme";
 import { useDonationStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -21,7 +21,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
   const { updateSettings } = useDonationStore();
 
   const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
+    const newTheme = getNextToggledTheme(theme);
     setTheme(newTheme);
     updateSettings({ theme: newTheme });
   };

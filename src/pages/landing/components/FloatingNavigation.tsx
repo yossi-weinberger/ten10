@@ -37,7 +37,7 @@ export const FloatingNavigation: React.FC<FloatingNavigationProps> = ({
       animate={{ x: 0, opacity: 1, scale: 1 }}
       exit={{ x: i18n.dir() === "rtl" ? 24 : -24, opacity: 0, scale: 0.98 }}
       transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-      className={`fixed top-24 z-40 hidden max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl p-2 no-scrollbar lg:block ${navGlassClasses} ${
+      className={`fixed top-24 z-40 hidden max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl p-2 no-scrollbar 2xl:block ${navGlassClasses} ${
         i18n.dir() === "rtl" ? "right-4" : "left-4"
       }`}
     >
@@ -87,7 +87,7 @@ export const FloatingNavigation: React.FC<FloatingNavigationProps> = ({
       <Popover open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <PopoverTrigger asChild>
           <motion.div
-            className={`fixed top-16 z-40 lg:hidden ${
+            className={`fixed top-16 z-40 2xl:hidden ${
               i18n.dir() === "rtl" ? "right-4" : "left-4"
             }`}
             initial={{ y: -16, opacity: 0, scale: 0.98 }}
