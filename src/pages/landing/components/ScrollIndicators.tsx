@@ -1,4 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 // Bars aligned from the top, tallest in center → silhouette reads as ▼
 const HEIGHTS = [5, 13, 24, 13, 5];
@@ -6,6 +7,7 @@ const DELAYS  = [0.28, 0.14, 0, 0.14, 0.28]; // ripple outward from center
 
 export function HeroScrollIndicator() {
   const rm = useReducedMotion();
+  const { t } = useTranslation("landing");
 
   return (
     <div
@@ -13,7 +15,7 @@ export function HeroScrollIndicator() {
       style={{ bottom: "max(2.5rem, calc(env(safe-area-inset-bottom, 0px) + 1.25rem))" }}
     >
       <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-primary/40">
-        גלול לגלות
+        {t("hero.scrollHint")}
       </p>
 
       <div className="flex items-start gap-[4px]" style={{ height: 24 }}>

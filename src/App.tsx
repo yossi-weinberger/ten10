@@ -345,15 +345,21 @@ function App() {
     <TooltipProvider>
       <div className="h-full w-full overflow-hidden bg-background flex">
         {!isFullScreenPage && (
-          <div
-            className={cn(
-              "hidden md:block transition-all duration-300 bg-card overflow-hidden h-full shadow-lg",
-              isSidebarExpanded ? "w-44" : "w-16"
-            )}
-            onMouseEnter={() => setIsSidebarExpanded(true)}
-            onMouseLeave={() => setIsSidebarExpanded(false)}
-          >
-            <Sidebar expanded={isSidebarExpanded} />
+          // Outer div holds its w-16 slot in the flex flow at all times so the
+          // content area never reflows when the sidebar expands on hover.
+          // The inner div grows absolutely, overlaying the content instead of
+          // pushing it — prevents layout thrash on small laptop screens.
+          <div className="relative hidden h-full w-16 shrink-0 md:block">
+            <div
+              className={cn(
+                "absolute inset-y-0 start-0 h-full overflow-hidden bg-card transition-all duration-300",
+                isSidebarExpanded ? "z-30 w-44 shadow-xl" : "z-10 w-16 shadow-lg"
+              )}
+              onMouseEnter={() => setIsSidebarExpanded(true)}
+              onMouseLeave={() => setIsSidebarExpanded(false)}
+            >
+              <Sidebar expanded={isSidebarExpanded} />
+            </div>
           </div>
         )}
 
