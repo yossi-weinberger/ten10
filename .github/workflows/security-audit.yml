@@ -29,8 +29,10 @@ jobs:
 
       - name: Check for known vulnerabilities
         run: |
-          echo "🔍 Checking for critical and high severity vulnerabilities..."
-          AUDIT_RESULT=$(npm audit --json 2>/dev/null || true)
+          echo "🔍 Checking for critical and high severity vulnerabilities (production deps only)..."
+          # --omit=dev excludes devDependencies (e.g. esbuild, vite) which are never
+          # deployed to production and whose CVEs are dev-server-only concerns.
+          AUDIT_RESULT=$(npm audit --omit=dev --json 2>/dev/null || true)
           
           HIGH_COUNT=$(echo "$AUDIT_RESULT" | jq '.metadata.vulnerabilities.high // 0')
           CRITICAL_COUNT=$(echo "$AUDIT_RESULT" | jq '.metadata.vulnerabilities.critical // 0')
