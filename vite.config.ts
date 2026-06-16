@@ -64,10 +64,8 @@ export default defineConfig(() => {
         }),
     ].filter(Boolean),
     optimizeDeps: {
+      exclude: ["lucide-react"],
       // Pre-bundle heavy dependencies to speed up dev mode startup
-      // Note: lucide-react was previously excluded here as a Vite 7 dev-server
-      // performance hint. In Vite 8 (Rolldown) that exclusion caused the CJS
-      // bundle to be used in production, breaking React forwardRef components.
       include: [
         "react",
         "react-dom",
@@ -111,9 +109,6 @@ export default defineConfig(() => {
       },
     },
     resolve: {
-      // Tell Rolldown (Vite 8) to prefer the ESM "module" field over CJS "main"
-      // for packages that lack a modern "exports" map (e.g. lucide-react, recharts).
-      mainFields: ["browser", "module", "jsnext:main", "jsnext"],
       alias: {
         "@": path.resolve(__dirname, "./src"),
       },
