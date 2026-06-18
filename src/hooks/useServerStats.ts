@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { useDonationStore } from "@/lib/store";
 import {
   fetchAnalyticsRangeStats,
@@ -15,79 +16,66 @@ export function useServerStats(
   user: User | null,
   platform: Platform | undefined
 ) {
-  const serverTotalIncome = useDonationStore(
-    (state) => state.serverCalculatedTotalIncome
+  // Consolidate all store selectors into a single subscription using useShallow.
+  // Previously 17 individual selectors caused re-renders on any unrelated store change.
+  const {
+    serverTotalIncome,
+    setServerTotalIncome,
+    serverChomeshAmount,
+    setServerChomeshAmount,
+    serverTotalExpenses,
+    setServerTotalExpenses,
+    serverTotalDonations,
+    setServerTotalDonations,
+    serverCalculatedDonationsData,
+    setServerCalculatedDonationsData,
+    serverTitheBalance,
+    setServerTitheBalance,
+    serverMaaserBalance,
+    setServerMaaserBalance,
+    serverChomeshBalance,
+    setServerChomeshBalance,
+    lastDbFetchTimestamp,
+  } = useDonationStore(
+    useShallow((state) => ({
+      serverTotalIncome: state.serverCalculatedTotalIncome,
+      setServerTotalIncome: state.setServerCalculatedTotalIncome,
+      serverChomeshAmount: state.serverCalculatedChomeshAmount,
+      setServerChomeshAmount: state.setServerCalculatedChomeshAmount,
+      serverTotalExpenses: state.serverCalculatedTotalExpenses,
+      setServerTotalExpenses: state.setServerCalculatedTotalExpenses,
+      serverTotalDonations: state.serverCalculatedTotalDonations,
+      setServerTotalDonations: state.setServerCalculatedTotalDonations,
+      serverCalculatedDonationsData: state.serverCalculatedDonationsData,
+      setServerCalculatedDonationsData: state.setServerCalculatedDonationsData,
+      serverTitheBalance: state.serverCalculatedTitheBalance,
+      setServerTitheBalance: state.setServerCalculatedTitheBalance,
+      serverMaaserBalance: state.serverCalculatedMaaserBalance,
+      setServerMaaserBalance: state.setServerCalculatedMaaserBalance,
+      serverChomeshBalance: state.serverCalculatedChomeshBalance,
+      setServerChomeshBalance: state.setServerCalculatedChomeshBalance,
+      lastDbFetchTimestamp: state.lastDbFetchTimestamp,
+    }))
   );
-  const setServerTotalIncome = useDonationStore(
-    (state) => state.setServerCalculatedTotalIncome
-  );
-  const serverChomeshAmount = useDonationStore(
-    (state) => state.serverCalculatedChomeshAmount
-  );
-  const setServerChomeshAmount = useDonationStore(
-    (state) => state.setServerCalculatedChomeshAmount
-  );
+
   const [isLoadingServerIncome, setIsLoadingServerIncome] = useState(false);
   const [serverIncomeError, setServerIncomeError] = useState<string | null>(
     null
   );
-
-  const serverTotalExpenses = useDonationStore(
-    (state) => state.serverCalculatedTotalExpenses
-  );
-  const setServerTotalExpenses = useDonationStore(
-    (state) => state.setServerCalculatedTotalExpenses
-  );
   const [isLoadingServerExpenses, setIsLoadingServerExpenses] = useState(false);
   const [serverExpensesError, setServerExpensesError] = useState<string | null>(
     null
-  );
-
-  const serverTotalDonations = useDonationStore(
-    (state) => state.serverCalculatedTotalDonations
-  );
-  const setServerTotalDonations = useDonationStore(
-    (state) => state.setServerCalculatedTotalDonations
-  );
-  const serverCalculatedDonationsData = useDonationStore(
-    (state) => state.serverCalculatedDonationsData
-  );
-  const setServerCalculatedDonationsData = useDonationStore(
-    (state) => state.setServerCalculatedDonationsData
   );
   const [isLoadingServerDonations, setIsLoadingServerDonations] =
     useState(false);
   const [serverDonationsError, setServerDonationsError] = useState<
     string | null
   >(null);
-
-  const serverTitheBalance = useDonationStore(
-    (state) => state.serverCalculatedTitheBalance
-  );
-  const setServerTitheBalance = useDonationStore(
-    (state) => state.setServerCalculatedTitheBalance
-  );
-  const serverMaaserBalance = useDonationStore(
-    (state) => state.serverCalculatedMaaserBalance
-  );
-  const setServerMaaserBalance = useDonationStore(
-    (state) => state.setServerCalculatedMaaserBalance
-  );
-  const serverChomeshBalance = useDonationStore(
-    (state) => state.serverCalculatedChomeshBalance
-  );
-  const setServerChomeshBalance = useDonationStore(
-    (state) => state.setServerCalculatedChomeshBalance
-  );
   const [isLoadingServerTitheBalance, setIsLoadingServerTitheBalance] =
     useState(false);
   const [serverTitheBalanceError, setServerTitheBalanceError] = useState<
     string | null
   >(null);
-
-  const lastDbFetchTimestamp = useDonationStore(
-    (state) => state.lastDbFetchTimestamp
-  );
 
   // ─── Range-dependent stats: income, expenses, donations ──────────────────
   // Re-fetches whenever the active date range, user, or DB changes.
