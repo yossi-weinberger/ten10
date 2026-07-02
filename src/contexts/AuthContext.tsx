@@ -14,6 +14,10 @@ import { logger } from "@/lib/logger";
 import { usePlatform } from "./PlatformContext"; // Import usePlatform to set platform for dataService
 import { CurrencySyncService } from "@/lib/services/currency-sync.service";
 import { PreferencesSyncService } from "@/lib/services/preferences-sync.service";
+import {
+  identifyPostHogUser,
+  resetPostHogUser,
+} from "@/lib/analytics/posthogClient";
 
 export type { SupabaseUser as User }; // Re-exporting the User type
 
@@ -109,6 +113,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setSession(initialSession);
         const initialUser = initialSession?.user ?? null;
         setUser(initialUser); // Trigger data loading useEffect if user exists
+        if (initialUser) {
+          identifyPostHogUser(initialUser, i18n.language);
+        }
         setLoading(false);
       })
       .catch((error) => {
@@ -127,6 +134,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setSession(newAuthStateSession);
         const newCurrentUser = newAuthStateSession?.user ?? null;
         setUser(newCurrentUser); // Update user state, triggering data loading useEffect
+
+        if (event === "SIGNED_OUT") {
+          resetPostHogUser();
+        } else if (
+          newCurrentUser &&
+          (event === "SIGNED_IN" || event === "INITIAL_SESSION")
+        ) {
+          identifyPostHogUser(newCurrentUser, i18n.language);
+        }
 
         // Loading state is now primarily managed by the initial getSession and data loading
         setLoading(false); // Set loading to false once auth state is determined

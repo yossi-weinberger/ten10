@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -25,6 +25,7 @@ import { useDonationStore } from "@/lib/store";
 import { generateAnalyticsPdf, computeRecurringTotals } from "@/lib/analytics/export-pdf";
 import { formatCurrency } from "@/lib/utils/currency";
 import { formatCategory } from "@/lib/category-registry";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 
 export function AnalyticsPage() {
   const { t, i18n } = useTranslation("dashboard");
@@ -34,6 +35,10 @@ export function AnalyticsPage() {
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
+  useEffect(() => {
+    trackProductEvent("analytics_opened");
+  }, []);
+
   const {
     dateRangeSelection,
     setDateRangeSelection,
@@ -42,6 +47,25 @@ export function AnalyticsPage() {
     customDateRange,
     setCustomDateRange,
   } = useDateControls();
+
+  const handleDateRangeSelection = useCallback(
+    (rangeKey: DateRangeSelectionType) => {
+      setDateRangeSelection(rangeKey);
+      trackProductEvent("analytics_date_range_changed", { preset: rangeKey });
+    },
+    [setDateRangeSelection]
+  );
+
+  const handleCustomDateRangeChange = useCallback(
+    (range: Parameters<typeof setCustomDateRange>[0]) => {
+      setCustomDateRange(range);
+      if (range?.from && range?.to) {
+        setDateRangeSelection("custom");
+        trackProductEvent("analytics_date_range_changed", { preset: "custom" });
+      }
+    },
+    [setCustomDateRange, setDateRangeSelection]
+  );
 
   const {
     serverTotalIncome,
@@ -167,6 +191,10 @@ export function AnalyticsPage() {
         prevIncome,
         textInsights: pdfInsights,
       });
+      trackProductEvent("analytics_pdf_exported", {
+        is_all_time: isAllTime,
+        chart_count: 4,
+      });
     } finally {
       setIsExportingPdf(false);
     }
@@ -191,7 +219,7 @@ export function AnalyticsPage() {
               key={rangeKey}
               variant={dateRangeSelection === rangeKey ? "default" : "outline"}
               size="sm"
-              onClick={() => setDateRangeSelection(rangeKey)}
+              onClick={() => handleDateRangeSelection(rangeKey)}
               className={
                 dateRangeSelection !== rangeKey
                   ? "bg-transparent text-foreground hover:bg-muted/50"
@@ -203,10 +231,7 @@ export function AnalyticsPage() {
           ))}
         <DatePickerWithRange
           date={customDateRange}
-          onDateChange={(range) => {
-            setCustomDateRange(range);
-            if (range?.from && range?.to) setDateRangeSelection("custom");
-          }}
+          onDateChange={handleCustomDateRangeChange}
           triggerButton={
             <Button
               variant={dateRangeSelection === "custom" ? "default" : "outline"}
