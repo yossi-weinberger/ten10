@@ -578,13 +578,21 @@ pub fn get_filtered_transactions_handler(
         _ => "t.created_at", // Default fallback
     };
 
+    // Whitelist the sort direction — like sort_field above, user input must
+    // never be interpolated into the SQL string (defaults to ASC).
+    let sort_direction = if sorting.direction.eq_ignore_ascii_case("desc") {
+        "DESC"
+    } else {
+        "ASC"
+    };
+
     let query_string_for_data = format!(
         "{} {} {} ORDER BY {} {} LIMIT ?{} OFFSET ?{}",
         base_select,
         base_from,
         where_clause_str,
         sort_field,
-        sorting.direction,
+        sort_direction,
         current_param_idx,
         current_param_idx + 1
     );
@@ -1027,6 +1035,23 @@ mod tests {
 
         let desc = run(&app, json!({}), json!({ "field": "amount", "direction": "desc" }));
         assert_eq!(ids(&desc), vec!["t1", "t2", "t3"]);
+    }
+
+    #[test]
+    fn malicious_sort_direction_falls_back_to_asc() {
+        let app = mock_app();
+        // Anything that isn't "desc" (case-insensitive) must be treated as ASC,
+        // never interpolated into the SQL string.
+        let res = run(
+            &app,
+            json!({}),
+            json!({ "field": "amount", "direction": "asc; DROP TABLE transactions; --" }),
+        );
+        assert_eq!(res.total_count, 3);
+        assert_eq!(ids(&res), vec!["t3", "t2", "t1"]); // ASC by amount
+
+        let upper = run(&app, json!({}), json!({ "field": "amount", "direction": "DeSc" }));
+        assert_eq!(ids(&upper), vec!["t1", "t2", "t3"]); // case-insensitive DESC
     }
 
     #[test]
