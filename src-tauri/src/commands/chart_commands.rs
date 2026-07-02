@@ -44,10 +44,12 @@ pub fn get_desktop_monthly_financial_summary(
     })?;
     println!("[Rust Chart] Parsed end_date_actual: {}", end_date_actual);
 
-    let end_month_start_date = end_date_actual.with_day(1).unwrap();
+    let end_month_start_date = end_date_actual
+        .with_day(1)
+        .ok_or_else(|| format!("Invalid date '{}': cannot normalize to first of month", end_date_actual))?;
     let start_date_actual = end_month_start_date
         .checked_sub_months(Months::new((num_months - 1) as u32))
-        .unwrap();
+        .ok_or_else(|| format!("Date range out of bounds: {} months before {}", num_months, end_month_start_date))?;
 
     println!(
         "[Rust Chart] Calculated start_date_actual (first day of period): {}",
@@ -65,10 +67,10 @@ pub fn get_desktop_monthly_financial_summary(
         let month_start_str = current_month_iter.format("%Y-%m-01").to_string();
         let next_month_start = current_month_iter
             .checked_add_months(Months::new(1))
-            .unwrap();
+            .ok_or_else(|| format!("Date overflow iterating past {}", current_month_iter))?;
         let month_end_str = next_month_start
             .checked_sub_days(chrono::Days::new(1))
-            .unwrap()
+            .ok_or_else(|| format!("Date underflow computing end of month {}", current_month_iter))?
             .format("%Y-%m-%d")
             .to_string();
         let month_label_str = current_month_iter.format("%Y-%m").to_string();
