@@ -58,8 +58,8 @@
   },
   "analytics": {
     "title": "Analytics",
-    "description": "We use Google Analytics to track usage on the landing page only. This helps us understand how users find and interact with the site.",
-    "note": "Google Analytics uses cookies and tracks activity. You can configure your browser to block tracking cookies if you wish. The application itself does not include analytics tracking."
+    "description": "Google Analytics (landing page) and PostHog (web app) for general usage tracking — no financial data. Desktop has no tracking.",
+    "note": "These tools use cookies. You can block tracking cookies in your browser."
   },
   "cookies": {
     "title": "Cookies",

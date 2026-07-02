@@ -14,6 +14,7 @@ import {
 import { clearCategoryCacheForType } from "./categories.service";
 import { clearPaymentMethodCache } from "./paymentMethods.service";
 import { logger } from "@/lib/logger";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 
 
 /**
@@ -113,6 +114,12 @@ export async function handleTransactionSubmit(
     };
     // The createRecurringTransaction function is platform-aware
     await createRecurringTransaction(definition);
+    trackProductEvent("recurring_obligation_created", {
+      type: finalType,
+      frequency: definition.frequency,
+      currency: definition.currency,
+      has_category: !!values.category,
+    });
   } else {
     // Logic for standard, non-recurring transactions
     const newTransaction: Transaction = {
@@ -137,6 +144,13 @@ export async function handleTransactionSubmit(
       rate_source: values.rate_source ?? null,
     };
     await addTransaction(newTransaction);
+    trackProductEvent("transaction_created", {
+      type: finalType,
+      currency: values.currency,
+      has_category: !!values.category,
+      is_chomesh: values.is_chomesh ?? false,
+      has_conversion: values.original_currency != null,
+    });
   }
 
   // Clear category cache for this transaction type if a category was provided
