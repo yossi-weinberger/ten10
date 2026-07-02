@@ -1,151 +1,150 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Calculator,
   Heart,
   ExternalLink,
   Mail,
-  Github,
   Users,
   Building2,
+  ArrowLeft,
   ArrowRight,
   Gift,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   useScrollAnimation,
-  fadeInUp,
   staggerContainer,
   staggerItem,
 } from "@/hooks/useScrollAnimation";
 
+const panelClass =
+  "relative flex h-full flex-col overflow-hidden border border-emerald-900/10 bg-white/80 p-6 shadow-sm transition-shadow duration-300 hover:border-emerald-900/20 hover:shadow-xl dark:border-emerald-100/10 dark:bg-gray-900/55 dark:hover:border-emerald-100/20 md:p-7";
+const iconBadgeClass =
+  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300";
+const panelFooterClass =
+  "mt-6 border-t border-emerald-900/10 pt-5 dark:border-emerald-100/10";
+const insetBoxClass =
+  "rounded-lg border border-emerald-900/10 bg-emerald-50/40 p-3 dark:border-emerald-100/10 dark:bg-emerald-950/15";
+const TEAM_EMAIL = "dev@ten10-app.com";
+
 export function AboutPage() {
   const { t, i18n } = useTranslation("about");
-  const headerRef = useScrollAnimation({ threshold: 0.1 });
+  const shouldReduceMotion = useReducedMotion();
   const cardsRef = useScrollAnimation({ threshold: 0.1 });
+  const isRtl = i18n.dir() === "rtl";
+  const LearnMoreIcon = isRtl ? ArrowLeft : ArrowRight;
 
   return (
-    <div className="min-h-screen " dir={i18n.dir()}>
-      <div className="container mx-auto max-w-6xl px-4 py-8">
-        {/* Header */}
-        <motion.div
-          className="text-center mb-12"
-          ref={headerRef.ref}
-          initial="hidden"
-          animate={headerRef.isInView ? "visible" : "hidden"}
-          variants={fadeInUp}
-        >
-          <motion.h1
-            className="text-4xl font-bold text-gray-900 dark:text-white mb-4"
-            variants={fadeInUp}
-          >
-            {t("title")}
-          </motion.h1>
-          <motion.p
-            className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto"
-            variants={fadeInUp}
-          >
-            {t("subtitle")}
-          </motion.p>
-        </motion.div>
+    <div className="grid gap-6" dir={i18n.dir()}>
+      <div className="grid gap-1">
+        <h2 className="text-2xl font-bold text-foreground">{t("title")}</h2>
+        <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
+      </div>
+
+      <section className="relative overflow-hidden rounded-xl border border-emerald-900/10 bg-[#fdfbf7] px-4 py-8 dark:border-emerald-100/10 dark:bg-gray-950 sm:px-6 md:py-10">
+        <div className="pointer-events-none absolute inset-0 bg-noise opacity-[0.06] dark:opacity-[0.04]" />
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-emerald-900/10 dark:bg-emerald-100/10" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-emerald-900/10 dark:bg-emerald-100/10" />
 
         <motion.div
-          className="grid lg:grid-cols-3 gap-8"
+          className="relative grid gap-6 lg:grid-cols-3 lg:items-stretch"
           ref={cardsRef.ref}
-          initial="hidden"
+          initial={shouldReduceMotion ? false : "hidden"}
           animate={cardsRef.isInView ? "visible" : "hidden"}
           variants={staggerContainer}
         >
           {/* אודות האפליקציה */}
-          <motion.div variants={staggerItem}>
-            <Card className="hover:shadow-xl transition-all duration-300 group h-full grid grid-rows-[auto_1fr_auto]">
-              <CardHeader className="text-center pb-4">
-                <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Calculator className="h-8 w-8 text-blue-600" />
+          <motion.div className="h-full" variants={staggerItem}>
+            <article className={panelClass}>
+              <div className="pointer-events-none absolute end-3 top-3 h-8 w-8 border-e border-t border-amber-700/25 dark:border-amber-300/25" />
+
+              <div className="flex items-center gap-4 text-start">
+                <div className={iconBadgeClass}>
+                  <Calculator className="h-5 w-5" strokeWidth={1.7} />
                 </div>
-                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {t("appInfo.title")}
-                </CardTitle>
-                <Badge variant="secondary" className="w-fit mx-auto">
-                  {t("appInfo.badge")}
-                </Badge>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-gray-600 dark:text-gray-300 text-center leading-relaxed">
+                <div className="min-w-0">
+                  <h3 className="text-xl font-bold leading-tight tracking-tight text-gray-950 dark:text-white">
+                    {t("appInfo.title")}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="mt-5 flex-1 space-y-4 text-start">
+                <p className="leading-relaxed text-gray-600 dark:text-gray-300">
                   {t("appInfo.description")}
                 </p>
 
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
                     {t("appInfo.feature1")}
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
                     {t("appInfo.feature2")}
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
                     {t("appInfo.feature3")}
                   </div>
                   <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
                     {t("appInfo.feature4")}
                   </div>
                 </div>
-              </CardContent>
-              <div className="p-6 pt-0">
+              </div>
+
+              <div className={panelFooterClass}>
                 <Link to="/landing">
-                  <Button className="w-full">
+                  <Button className="h-11 w-full">
                     {t("appInfo.learnMore")}
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <LearnMoreIcon className="ms-2 h-4 w-4" />
                   </Button>
                 </Link>
               </div>
-            </Card>
+            </article>
           </motion.div>
 
           {/* אודות מכון תורת האדם לאדם */}
-          <motion.div variants={staggerItem}>
-            <Card className="hover:shadow-xl transition-all duration-300 group h-full grid grid-rows-[auto_1fr_auto]">
-              <CardHeader className="text-center pb-4">
-                <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Building2 className="h-8 w-8 text-green-600" />
+          <motion.div className="h-full" variants={staggerItem}>
+            <article className={panelClass}>
+              <div className="pointer-events-none absolute end-3 top-3 h-8 w-8 border-e border-t border-amber-700/25 dark:border-amber-300/25" />
+
+              <div className="flex items-center gap-4 text-start">
+                <div className={iconBadgeClass}>
+                  <Building2 className="h-5 w-5" strokeWidth={1.7} />
                 </div>
-                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {t("institute.title")}
-                </CardTitle>
-                <Badge
-                  variant="secondary"
-                  className="w-fit mx-auto bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                >
-                  {t("institute.badge")}
-                </Badge>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-gray-600 dark:text-gray-300 text-center leading-relaxed">
+                <div className="min-w-0">
+                  <h3 className="text-xl font-bold leading-tight tracking-tight text-gray-950 dark:text-white">
+                    {t("institute.title")}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="mt-5 flex-1 space-y-4 text-start">
+                <p className="leading-relaxed text-gray-600 dark:text-gray-300">
                   {t("institute.description")}
                 </p>
 
-                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Heart className="h-5 w-5 text-green-600" />
-                    <span className="font-semibold text-green-800 dark:text-green-200">
+                <div className={`${insetBoxClass} p-4`}>
+                  <div className="mb-2 flex items-center gap-2">
+                    <Heart className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
+                    <span className="font-semibold text-gray-950 dark:text-white">
                       {t("institute.support")}
                     </span>
                   </div>
-                  <p className="text-sm text-green-700 dark:text-green-300">
+                  <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">
                     {t("institute.supportDescription")}
                   </p>
                 </div>
-              </CardContent>
-              <div className="p-6 pt-0 space-y-3">
+              </div>
+
+              <div className={`${panelFooterClass} space-y-3`}>
                 <Button
                   asChild
-                  className="w-full bg-green-600 hover:bg-green-700"
+                  className="h-11 w-full border-none text-yellow-950 brightness-90 saturate-110 shadow-[0_0_16px_rgba(218,165,32,0.28)] transition-all duration-300 hover:brightness-95 hover:shadow-[0_0_22px_rgba(218,165,32,0.42)] dark:text-yellow-900 bg-golden-static hover:bg-golden-hover dark:hover:bg-yellow-600 dark:hover:text-yellow-950"
                 >
                   <a
                     href="https://www.matara.pro/nedarimplus/online/?mosad=7007125&Avour=%D7%A2%D7%91%D7%95%D7%A8%20Ten10"
@@ -153,134 +152,80 @@ export function AboutPage() {
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center"
                   >
-                    <Gift className="mr-2 h-4 w-4" />
+                    <Gift className="me-2 h-4 w-4" />
                     {t("institute.donateButton")}
-                    <ExternalLink className="ml-2 h-4 w-4" />
+                    <ExternalLink className="ms-2 h-4 w-4" />
                   </a>
                 </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="w-full border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
-                >
+                <Button asChild variant="outline" className="h-11 w-full">
                   <a
                     href="https://veahavta-kamocha.org/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center justify-center"
                   >
-                    <Building2 className="mr-2 h-4 w-4" />
+                    <Building2 className="me-2 h-4 w-4" />
                     {t("institute.visitWebsite")}
-                    <ExternalLink className="ml-2 h-4 w-4" />
+                    <ExternalLink className="ms-2 h-4 w-4" />
                   </a>
                 </Button>
               </div>
-            </Card>
+            </article>
           </motion.div>
 
           {/* אודות צוות הפיתוח */}
-          <motion.div variants={staggerItem}>
-            <Card className="hover:shadow-xl transition-all duration-300 group h-full grid grid-rows-[auto_1fr_auto]">
-              <CardHeader className="text-center pb-4">
-                <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
-                  <Users className="h-8 w-8 text-purple-600" />
+          <motion.div className="h-full" variants={staggerItem}>
+            <article className={panelClass}>
+              <div className="pointer-events-none absolute end-3 top-3 h-8 w-8 border-e border-t border-amber-700/25 dark:border-amber-300/25" />
+
+              <div className="flex items-center gap-4 text-start">
+                <div className={iconBadgeClass}>
+                  <Users className="h-5 w-5" strokeWidth={1.7} />
                 </div>
-                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {t("team.title")}
-                </CardTitle>
-                <Badge
-                  variant="secondary"
-                  className="w-fit mx-auto bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-                >
-                  {t("team.badge")}
-                </Badge>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-gray-600 dark:text-gray-300 text-center leading-relaxed">
+                <div className="min-w-0">
+                  <h3 className="text-xl font-bold leading-tight tracking-tight text-gray-950 dark:text-white">
+                    {t("team.title")}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="mt-5 flex-1 space-y-4 text-start">
+                <p className="leading-relaxed text-gray-600 dark:text-gray-300">
                   {t("team.description")}
                 </p>
+              </div>
 
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <Mail className="h-5 w-5 text-purple-600" />
-                    <div>
-                      <p className="font-semibold text-gray-900 dark:text-white text-sm">
+              <div className={`${panelFooterClass} space-y-3`}>
+                <div className={`${insetBoxClass} w-full p-4`}>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-5 w-5 shrink-0 text-emerald-700 dark:text-emerald-300" />
+                      <span className="font-semibold text-gray-950 dark:text-white">
                         {t("team.contactEmail")}
-                      </p>
-                      <a
-                        href="mailto:contact@ten10-app.com"
-                        className="text-purple-600 hover:text-purple-700 text-sm"
-                      >
-                        contact@ten10-app.com
-                      </a>
+                      </span>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <Github className="h-5 w-5 text-purple-600" />
-                    <div>
-                      <p className="font-semibold text-gray-900 dark:text-white text-sm">
-                        {t("team.github")}
-                      </p>
-                      <a
-                        href="https://github.com/ten10-app"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-purple-600 hover:text-purple-700 text-sm inline-flex items-center gap-1"
-                      >
-                        github.com/ten10-app
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
+                    <a
+                      href={`mailto:${TEAM_EMAIL}`}
+                      className="shrink-0 text-sm text-primary hover:text-primary/80"
+                    >
+                      {TEAM_EMAIL}
+                    </a>
                   </div>
                 </div>
-              </CardContent>
-              <div className="p-6 pt-0">
-                <Button
-                  asChild
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                >
+                <Button asChild className="h-11 w-full">
                   <a
-                    href="mailto:contact@ten10-app.com"
+                    href={`mailto:${TEAM_EMAIL}`}
                     className="inline-flex items-center justify-center"
                   >
-                    <Mail className="mr-2 h-4 w-4" />
+                    <Mail className="me-2 h-4 w-4" />
                     {t("team.contactButton")}
                   </a>
                 </Button>
               </div>
-            </Card>
+            </article>
           </motion.div>
         </motion.div>
-
-        {/* Footer Section */}
-        <motion.div
-          className="mt-16 text-center"
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
-        >
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-8 shadow-lg">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              {t("footer.title")}
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
-              {t("footer.description")}
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild variant="outline">
-                <Link to="/landing">{t("footer.backToLanding")}</Link>
-              </Button>
-              <Button asChild variant="outline">
-                <a href="mailto:feedback@ten10-app.com">
-                  {t("footer.sendFeedback")}
-                </a>
-              </Button>
-            </div>
-          </div>
-        </motion.div>
-      </div>
+      </section>
     </div>
   );
 }
