@@ -819,3 +819,251 @@ pub fn get_distinct_payment_methods(
 
     Ok(methods)
 }
+
+// ---------------------------------------------------------------------------
+// Characterization tests for get_filtered_transactions_handler.
+// They pin the CURRENT filter/sort/pagination behavior against an in-memory
+// SQLite DB, as a safety net before any refactor of the WHERE-clause building.
+// Test-only code: compiled exclusively under `cargo test`.
+// ---------------------------------------------------------------------------
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rusqlite::Connection;
+    use serde_json::json;
+    use std::sync::Mutex;
+    use tauri::Manager;
+
+    fn test_db() -> Connection {
+        let conn = Connection::open_in_memory().expect("in-memory db");
+        conn.execute_batch(
+            "CREATE TABLE transactions (
+                id TEXT PRIMARY KEY, user_id TEXT, date TEXT NOT NULL, amount REAL NOT NULL,
+                currency TEXT NOT NULL, description TEXT, type TEXT NOT NULL, category TEXT,
+                is_chomesh INTEGER, recipient TEXT, payment_method TEXT, created_at TEXT,
+                updated_at TEXT, source_recurring_id TEXT, occurrence_number INTEGER,
+                original_amount REAL, original_currency TEXT, conversion_rate REAL,
+                conversion_date TEXT, rate_source TEXT
+            );
+            CREATE TABLE recurring_transactions (
+                id TEXT PRIMARY KEY, user_id TEXT, status TEXT NOT NULL DEFAULT 'active',
+                start_date TEXT NOT NULL, next_due_date TEXT NOT NULL,
+                frequency TEXT NOT NULL DEFAULT 'monthly', day_of_month INTEGER NOT NULL,
+                total_occurrences INTEGER, execution_count INTEGER NOT NULL DEFAULT 0,
+                description TEXT, amount REAL NOT NULL, currency TEXT NOT NULL,
+                type TEXT NOT NULL, category TEXT, is_chomesh INTEGER, recipient TEXT,
+                payment_method TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+                original_amount REAL, original_currency TEXT, conversion_rate REAL,
+                conversion_date TEXT, rate_source TEXT
+            );",
+        )
+        .expect("schema");
+
+        conn.execute_batch(
+            "INSERT INTO recurring_transactions
+                (id, status, start_date, next_due_date, frequency, day_of_month,
+                 execution_count, amount, currency, type, created_at, updated_at)
+             VALUES ('rec1', 'active', '2024-01-01', '2024-04-01', 'monthly', 1,
+                 3, 30.0, 'ILS', 'donation', '2024-01-01', '2024-01-01');
+
+             INSERT INTO transactions
+                (id, date, amount, currency, description, type, category, is_chomesh,
+                 payment_method, created_at)
+             VALUES ('t1', '2024-01-10', 100.0, 'ILS', 'משכורת ינואר', 'income', 'salary', 1,
+                 'cash', '2024-01-10T10:00:00Z');
+
+             INSERT INTO transactions
+                (id, date, amount, currency, description, type, category,
+                 payment_method, created_at)
+             VALUES ('t2', '2024-02-15', 50.0, 'ILS', 'מכולת שכונתית', 'expense', 'food',
+                 'credit', '2024-02-15T10:00:00Z');
+
+             INSERT INTO transactions
+                (id, date, amount, currency, description, type, recipient,
+                 payment_method, created_at, source_recurring_id)
+             VALUES ('t3', '2024-03-01', 30.0, 'ILS', 'תרומה חודשית', 'donation', 'ישיבה',
+                 'cash', '2024-03-01T10:00:00Z', 'rec1');",
+        )
+        .expect("seed");
+        conn
+    }
+
+    fn mock_app() -> tauri::App<tauri::test::MockRuntime> {
+        let app = tauri::test::mock_app();
+        app.manage(crate::DbState(Mutex::new(test_db())));
+        app
+    }
+
+    fn args(filters: serde_json::Value, sorting: serde_json::Value) -> GetFilteredTransactionsArgs {
+        serde_json::from_value(json!({
+            "filters": filters,
+            "pagination": { "page": 1, "limit": 50 },
+            "sorting": sorting,
+        }))
+        .expect("valid args")
+    }
+
+    fn run(
+        app: &tauri::App<tauri::test::MockRuntime>,
+        filters: serde_json::Value,
+        sorting: serde_json::Value,
+    ) -> PaginatedTransactionsResponse {
+        get_filtered_transactions_handler(app.state::<crate::DbState>(), args(filters, sorting))
+            .expect("handler ok")
+    }
+
+    fn default_sort() -> serde_json::Value {
+        json!({ "field": "date", "direction": "asc" })
+    }
+
+    fn ids(res: &PaginatedTransactionsResponse) -> Vec<String> {
+        res.transactions.iter().map(|t| t.transaction.id.clone()).collect()
+    }
+
+    #[test]
+    fn no_filters_returns_everything() {
+        let app = mock_app();
+        let res = run(&app, json!({}), default_sort());
+        assert_eq!(res.total_count, 3);
+        assert_eq!(ids(&res), vec!["t1", "t2", "t3"]);
+    }
+
+    #[test]
+    fn search_matches_description_and_recipient() {
+        let app = mock_app();
+        let by_desc = run(&app, json!({ "search": "מכולת" }), default_sort());
+        assert_eq!(ids(&by_desc), vec!["t2"]);
+
+        let by_recipient = run(&app, json!({ "search": "ישיבה" }), default_sort());
+        assert_eq!(ids(&by_recipient), vec!["t3"]);
+
+        let no_match = run(&app, json!({ "search": "לא-קיים" }), default_sort());
+        assert_eq!(no_match.total_count, 0);
+    }
+
+    #[test]
+    fn empty_search_is_ignored() {
+        let app = mock_app();
+        let res = run(&app, json!({ "search": "" }), default_sort());
+        assert_eq!(res.total_count, 3);
+    }
+
+    #[test]
+    fn date_range_filters_inclusively() {
+        let app = mock_app();
+        let from_feb = run(&app, json!({ "dateFrom": "2024-02-01" }), default_sort());
+        assert_eq!(ids(&from_feb), vec!["t2", "t3"]);
+
+        let feb_only = run(
+            &app,
+            json!({ "dateFrom": "2024-02-01", "dateTo": "2024-02-29" }),
+            default_sort(),
+        );
+        assert_eq!(ids(&feb_only), vec!["t2"]);
+
+        // boundaries are inclusive
+        let exact = run(
+            &app,
+            json!({ "dateFrom": "2024-01-10", "dateTo": "2024-01-10" }),
+            default_sort(),
+        );
+        assert_eq!(ids(&exact), vec!["t1"]);
+    }
+
+    #[test]
+    fn filters_by_types_and_payment_methods() {
+        let app = mock_app();
+        let types = run(&app, json!({ "types": ["income", "donation"] }), default_sort());
+        assert_eq!(ids(&types), vec!["t1", "t3"]);
+
+        let cash = run(&app, json!({ "paymentMethods": ["cash"] }), default_sort());
+        assert_eq!(ids(&cash), vec!["t1", "t3"]);
+
+        let combined = run(
+            &app,
+            json!({ "types": ["donation"], "paymentMethods": ["cash"] }),
+            default_sort(),
+        );
+        assert_eq!(ids(&combined), vec!["t3"]);
+    }
+
+    #[test]
+    fn show_only_recurring_vs_regular() {
+        let app = mock_app();
+        let recurring = run(&app, json!({ "showOnly": "recurring" }), default_sort());
+        assert_eq!(ids(&recurring), vec!["t3"]);
+        let info = recurring.transactions[0]
+            .recurring_info
+            .as_ref()
+            .expect("joined recurring info");
+        assert_eq!(info.frequency, "monthly");
+        assert_eq!(info.status, "active");
+
+        let regular = run(&app, json!({ "showOnly": "regular" }), default_sort());
+        assert_eq!(ids(&regular), vec!["t1", "t2"]);
+
+        let all = run(&app, json!({ "showOnly": "all" }), default_sort());
+        assert_eq!(all.total_count, 3);
+    }
+
+    #[test]
+    fn filters_by_recurring_status_and_frequency() {
+        let app = mock_app();
+        let active = run(&app, json!({ "recurringStatuses": ["active"] }), default_sort());
+        assert_eq!(ids(&active), vec!["t3"]);
+
+        let monthly = run(&app, json!({ "recurringFrequencies": ["monthly"] }), default_sort());
+        assert_eq!(ids(&monthly), vec!["t3"]);
+
+        let paused = run(&app, json!({ "recurringStatuses": ["paused"] }), default_sort());
+        assert_eq!(paused.total_count, 0);
+    }
+
+    #[test]
+    fn sorts_by_amount_both_directions() {
+        let app = mock_app();
+        let asc = run(&app, json!({}), json!({ "field": "amount", "direction": "asc" }));
+        assert_eq!(ids(&asc), vec!["t3", "t2", "t1"]);
+
+        let desc = run(&app, json!({}), json!({ "field": "amount", "direction": "desc" }));
+        assert_eq!(ids(&desc), vec!["t1", "t2", "t3"]);
+    }
+
+    #[test]
+    fn unknown_sort_field_falls_back_to_created_at() {
+        let app = mock_app();
+        let res = run(&app, json!({}), json!({ "field": "bogus", "direction": "asc" }));
+        assert_eq!(res.total_count, 3);
+        assert_eq!(ids(&res), vec!["t1", "t2", "t3"]); // created_at order
+    }
+
+    #[test]
+    fn paginates_with_correct_total_count() {
+        let app = mock_app();
+        let page1: PaginatedTransactionsResponse = get_filtered_transactions_handler(
+            app.state::<crate::DbState>(),
+            serde_json::from_value(json!({
+                "filters": {},
+                "pagination": { "page": 1, "limit": 2 },
+                "sorting": { "field": "date", "direction": "asc" },
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(page1.total_count, 3);
+        assert_eq!(ids(&page1), vec!["t1", "t2"]);
+
+        let page2: PaginatedTransactionsResponse = get_filtered_transactions_handler(
+            app.state::<crate::DbState>(),
+            serde_json::from_value(json!({
+                "filters": {},
+                "pagination": { "page": 2, "limit": 2 },
+                "sorting": { "field": "date", "direction": "asc" },
+            }))
+            .unwrap(),
+        )
+        .unwrap();
+        assert_eq!(page2.total_count, 3);
+        assert_eq!(ids(&page2), vec!["t3"]);
+    }
+}
