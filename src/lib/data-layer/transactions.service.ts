@@ -3,6 +3,7 @@ import { Transaction } from "@/types/transaction";
 import { getPlatform } from "../platformManager";
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import {
   invokeDesktopFilteredTransactions,
   invokeDesktopFilteredTransactionsAllPages,
@@ -445,4 +446,9 @@ export async function updateTransaction(
       "Cannot update transaction: Platform not initialized or unknown."
     );
   }
+
+  trackProductEvent("transaction_updated", {
+    fields_changed: Object.keys(sanitizedPayload),
+    type: sanitizedPayload.type,
+  });
 }

@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useEffect, useState, useRef } from "react";
 import { logger } from "@/lib/logger";
+import { capturePostHogEvent } from "@/lib/analytics/posthogClient";
 import { LanguageToggleFixed } from "./components/LanguageToggleFixed";
 import { FloatingNavigation } from "./components/FloatingNavigation";
 import { BackToTopButton } from "./components/BackToTopButton";
@@ -263,6 +264,10 @@ const LandingPage: React.FC = () => {
         ...parameters,
       });
     }
+    capturePostHogEvent(eventName, {
+      language: i18n.language,
+      ...parameters,
+    });
   };
 
   const trackDownloadClick = (platform: string) => {

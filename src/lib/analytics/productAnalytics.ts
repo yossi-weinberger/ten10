@@ -1,4 +1,5 @@
 import posthog from "posthog-js";
+import { isPostHogSupported } from "@/lib/analytics/posthogClient";
 
 type ProductAnalyticsEvent =
   | "transaction_created"
@@ -21,10 +22,10 @@ export function trackProductEvent(
   event: ProductAnalyticsEvent,
   properties: ProductAnalyticsProperties = {}
 ) {
-  if (!import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN) return;
+  if (!isPostHogSupported()) return;
 
   posthog.capture(event, {
+    platform: "web",
     ...properties,
-    app_surface: properties.platform === "desktop" ? "desktop" : "web",
   });
 }
