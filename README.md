@@ -17,7 +17,7 @@ Each user is expected to use only one platform; data synchronization between web
 ## Core Technologies
 
 - **Language**: TypeScript
-- **Frontend**: React (v18) with Vite
+- **Frontend**: React (v19) with Vite
 - **Desktop Framework**: Tauri
 - **UI Components**: shadcn/ui (built on Radix UI)
 - **Styling**: Tailwind CSS

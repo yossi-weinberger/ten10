@@ -2,6 +2,8 @@
 
 This document outlines the file and directory structure of the Ten10 project.
 
+> **Note:** The tree below predates several additions (e.g. `src/lib/import/`, `src/lib/analytics/`, `src/lib/security/`, `src/lib/data-layer/reminders/`, `src/lib/data-layer/dataManagement/`) and has not been fully resynced. Treat it as a rough map, not a byte-accurate listing; verify against the actual filesystem for anything load-bearing.
+
 ## Inter-Component Interactions and Data Flow
 
 This section details how the different parts of the project interact with each other:
@@ -275,7 +277,6 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── stats.service.ts
 │   │   │   ├── transactionForm.service.ts
 │   │   │   └── transactions.service.ts
-│   │   ├── dataService.ts
 │   │   ├── platformManager.ts
 │   │   ├── schemas.ts
 │   │   ├── store.ts
@@ -285,7 +286,6 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── tableTransactions.types.ts
 │   │   │   └── tableTransactionService.ts
 │   │   ├── theme.tsx
-│   │   ├── tithe-calculator.ts
 │   │   ├── utils/
 │   │   │   ├── currency.ts
 │   │   │   ├── export-csv.ts
