@@ -2,7 +2,7 @@ import ExcelJS from "exceljs";
 import type { Transaction } from "@/types/transaction";
 import i18n from "@/lib/i18n";
 import { formatPaymentMethod } from "@/lib/payment-methods";
-import { formatCategory } from "@/lib/category-registry";
+import { getRecurringExportInfo, getExportCategoryLabel } from "@/lib/utils/export-transaction-fields";
 import { saveOrDownloadExportedFile } from "@/lib/utils/save-export-file";
 
 export async function exportTransactionsToExcel(
@@ -117,23 +117,10 @@ export async function exportTransactionsToExcel(
 
   // Add rows with proper currency formatting
   transactions.forEach((transaction) => {
-    // Use Transaction fields instead of recurring_info
-    const isRecurring = !!(
-      transaction.source_recurring_id || transaction.recurring_frequency
+    const { isRecurring, frequencyText, progressText } = getRecurringExportInfo(
+      transaction,
+      currentLanguage
     );
-    const frequencyText = transaction.recurring_frequency
-      ? i18n.t(`pdf.frequencies.${transaction.recurring_frequency}`, {
-          lng: currentLanguage,
-          ns: "common",
-        }) || transaction.recurring_frequency
-      : "";
-
-    const progressText =
-      transaction.occurrence_number && transaction.total_occurrences
-        ? `${transaction.occurrence_number}/${transaction.total_occurrences}`
-        : transaction.occurrence_number
-        ? `${transaction.occurrence_number}/∞`
-        : "";
 
     const rowData = {
       date: new Date(transaction.date),
@@ -144,13 +131,7 @@ export async function exportTransactionsToExcel(
         }) || transaction.type,
       amount: transaction.amount,
       description: transaction.description || "",
-      category: formatCategory(
-        transaction.type === "income" || transaction.type === "exempt-income" ? "income"
-          : transaction.type === "expense" || transaction.type === "recognized-expense" ? "expense"
-          : undefined,
-        transaction.category,
-        currentLanguage
-      ),
+      category: getExportCategoryLabel(transaction, currentLanguage),
       payment_method: formatPaymentMethod(
         transaction.payment_method,
         currentLanguage
