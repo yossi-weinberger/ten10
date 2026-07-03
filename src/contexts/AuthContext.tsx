@@ -14,10 +14,8 @@ import { logger } from "@/lib/logger";
 import { usePlatform } from "./PlatformContext";
 import { CurrencySyncService } from "@/lib/services/currency-sync.service";
 import { PreferencesSyncService } from "@/lib/services/preferences-sync.service";
-import {
-  identifyPostHogUser,
-  resetPostHogUser,
-} from "@/lib/analytics/posthogClient";
+import { resetPostHogUser } from "@/lib/analytics/posthogClient";
+import { syncPostHogUserIdentity } from "@/lib/analytics/posthogIdentity.service";
 
 export type { SupabaseUser as User };
 
@@ -56,7 +54,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const initialUser = initialSession?.user ?? null;
         setUser(initialUser);
         if (initialUser) {
-          identifyPostHogUser(initialUser, i18n.language);
+          void syncPostHogUserIdentity(initialUser, i18n.language);
         }
         setLoading(false);
       })
@@ -81,7 +79,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           newCurrentUser &&
           (event === "SIGNED_IN" || event === "INITIAL_SESSION")
         ) {
-          identifyPostHogUser(newCurrentUser, i18n.language);
+          void syncPostHogUserIdentity(newCurrentUser, i18n.language);
         }
 
         setLoading(false);

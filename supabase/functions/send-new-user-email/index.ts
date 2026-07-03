@@ -200,24 +200,28 @@ const buildEmailBodies = (args: {
         : `📧 Reminder emails: not a reminder day`;
 
   const card = (bg: string, border: string, labelColor: string, icon: string, label: string, bigNum: string | number, footer: string) => `
-    <div style="background:${bg};border:1px solid ${border};border-radius:12px;padding:20px 12px;text-align:center;height:130px;box-sizing:border-box;">
-      <div style="font-size:11px;color:${labelColor};font-weight:800;text-transform:uppercase;letter-spacing:.06em;">${icon} ${label}</div>
-      <div style="margin-top:10px;font-size:40px;line-height:1.1;color:#111827;font-weight:900;">${bigNum}</div>
-      <div style="margin-top:12px;font-size:11px;color:#6b7280;">${footer}</div>
+    <div class="stat-card" style="background:${bg};border:1px solid ${border};border-radius:12px;padding:16px 10px;text-align:center;min-height:120px;box-sizing:border-box;">
+      <div style="font-size:11px;color:${labelColor};font-weight:800;text-transform:uppercase;letter-spacing:.06em;line-height:1.3;">${icon} ${label}</div>
+      <div style="margin-top:8px;font-size:36px;line-height:1.1;color:#111827;font-weight:900;">${bigNum}</div>
+      <div class="stat-footer" style="margin-top:10px;font-size:11px;line-height:1.45;color:#6b7280;word-wrap:break-word;overflow-wrap:anywhere;">${footer}</div>
     </div>`;
+
+  const githubFooter = github.totalDownloads !== null
+    ? `All-time: <strong style="color:#374151;">${github.totalDownloads}</strong><br><span style="font-size:10px;">${escapeHtml(github.latestVersion)}: ${github.latestDownloads ?? "—"}</span>`
+    : "GitHub unavailable";
 
   const statsSectionHtml = `
   <div style="font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:10px;">${escapeHtml(windowLabel)}</div>
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 4px 0;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" class="stats-grid" style="margin:0 0 4px 0;border-collapse:collapse;">
     <tr>
-      <td width="33%" valign="top" style="padding:0 4px 0 0;">
+      <td class="stat-col" width="33%" valign="top" style="padding:0 4px 8px 0;">
         ${card("#eff6ff","#bfdbfe","#1e3a8a","💻","Email downloads", windowCount, `All-time: <strong style="color:#374151;">${total}</strong>`)}
       </td>
-      <td width="33%" valign="top" style="padding:0 4px;">
+      <td class="stat-col" width="33%" valign="top" style="padding:0 4px 8px;">
         ${card("#ecfdf5","#bbf7d0","#065f46","🌐","New web users", rows.length, `All-time: <strong style="color:#374151;">${totalUsers}</strong>`)}
       </td>
-      <td width="33%" valign="top" style="padding:0 0 0 4px;">
-        ${card("#fefce8","#fde68a","#92400e","📦","GitHub installs", github.last24h !== null ? `+${github.last24h}` : "—", github.totalDownloads !== null ? `All-time: <strong style="color:#374151;">${github.totalDownloads}</strong> &nbsp;·&nbsp; ${escapeHtml(github.latestVersion)}: ${github.latestDownloads ?? "—"}` : `GitHub unavailable`)}
+      <td class="stat-col" width="33%" valign="top" style="padding:0 0 8px 4px;">
+        ${card("#fefce8","#fde68a","#92400e","📦","GitHub installs", github.last24h !== null ? `+${github.last24h}` : "—", githubFooter)}
       </td>
     </tr>
   </table>
@@ -308,6 +312,21 @@ const buildEmailBodies = (args: {
         .badge-no { background-color: ${EMAIL_THEME.colors.error.bg}; color: ${
           EMAIL_THEME.colors.error.text
         }; }
+        @media only screen and (max-width: 600px) {
+          .content { padding: 20px 16px !important; }
+          .stats-grid tr,
+          .stats-grid tbody,
+          .stats-grid { display: block !important; width: 100% !important; }
+          .stat-col {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 0 0 10px 0 !important;
+            box-sizing: border-box !important;
+          }
+          .stat-card { min-height: 0 !important; padding: 14px 12px !important; }
+          .stat-footer { font-size: 12px !important; line-height: 1.5 !important; }
+        }
       </style>
     </head>
     <body>
