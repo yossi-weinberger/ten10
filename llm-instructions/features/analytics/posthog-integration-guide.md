@@ -52,9 +52,11 @@ This document records the PostHog (PH) product analytics work on Ten10. Use it w
 | File | Change |
 |------|--------|
 | `src/lib/analytics/posthogClient.ts` | **New** — init, guards, pageview, identify/reset, generic capture |
+| `src/lib/analytics/posthogIdentity.service.ts` | **New** — resolves `name` + `email`, calls `identifyPostHogUser` |
 | `src/lib/analytics/productAnalytics.ts` | Web-only guard; removed desktop `app_surface` logic |
 | `src/main.tsx` | Uses `posthogClient`; conditional `PostHogProvider` |
-| `src/contexts/AuthContext.tsx` | `identifyPostHogUser` / `resetPostHogUser` |
+| `src/contexts/AuthContext.tsx` | `syncPostHogUserIdentity` / `resetPostHogUser` |
+| `src/pages/ProfilePage.tsx` | Re-identify after profile name/email save |
 | `src/lib/data-layer/transactionForm.service.ts` | `transaction_created`, `recurring_obligation_created` |
 | `src/lib/data-layer/transactions.service.ts` | `transaction_updated` (after successful update) |
 | `src/pages/AnalyticsPage.tsx` | `analytics_opened`, date range, PDF export events |
@@ -76,11 +78,11 @@ main.tsx (sync, before React render)
   └─ router.subscribe("onResolved", capturePostHogPageview)
   └─ PostHogProvider (web only)
 
-posthogClient.ts          productAnalytics.ts
-  ├─ initPostHog            └─ trackProductEvent (typed events)
-  ├─ capturePostHogPageview
+posthogClient.ts          posthogIdentity.service.ts    productAnalytics.ts
+  ├─ initPostHog            └─ syncPostHogUserIdentity     └─ trackProductEvent (typed events)
+  ├─ capturePostHogPageview       ← AuthContext, ProfilePage
   ├─ capturePostHogEvent    ← landing page
-  ├─ identifyPostHogUser    ← AuthContext
+  ├─ identifyPostHogUser
   └─ resetPostHogUser       ← AuthContext on SIGNED_OUT
 ```
 
@@ -123,25 +125,29 @@ Set in Vercel and local `.env` (not committed). Typed in `src/declarations.d.ts`
 
 ---
 
-## User Identity (`AuthContext.tsx`)
+## User Identity (`AuthContext.tsx`, `posthogIdentity.service.ts`)
 
 ```typescript
 // Third argument to identify() = $set_once (PostHog ignores if already set)
-identifyPostHogUser(user, i18n.language)
-// → posthog.identify(user.id, { language }, { first_login_at: ISO })
+await syncPostHogUserIdentity(user, i18n.language)
+// → resolves name (profiles.full_name → user_metadata.full_name)
+// → posthog.identify(user.id, { language, name?, email? }, { first_login_at: ISO })
 
 resetPostHogUser()  // only on event === "SIGNED_OUT"
 ```
 
 | Trigger | Action |
 |---------|--------|
-| Initial `getCachedSession()` with user | `identify` |
-| `INITIAL_SESSION` with user | `identify` |
-| `SIGNED_IN` | `identify` |
+| Initial `getCachedSession()` with user | `syncPostHogUserIdentity` |
+| `INITIAL_SESSION` with user | `syncPostHogUserIdentity` |
+| `SIGNED_IN` | `syncPostHogUserIdentity` |
+| Profile save (name or email) | `syncPostHogUserIdentity` |
 | `SIGNED_OUT` | `reset` |
 | `TOKEN_REFRESHED` | nothing |
 
-**Never send:** email, name, amounts, transaction descriptions.
+**PostHog UI:** Project settings → Person display name → add `name` and optionally `email` to `person_display_name_properties`.
+
+**Never send:** amounts, transaction descriptions, or other financial data.
 
 ---
 

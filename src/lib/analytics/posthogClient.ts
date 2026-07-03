@@ -48,12 +48,25 @@ export function capturePostHogEvent(
   });
 }
 
-export function identifyPostHogUser(user: User, language: string): void {
+type PostHogPersonTraits = {
+  name?: string;
+  email?: string;
+};
+
+export function identifyPostHogUser(
+  user: User,
+  language: string,
+  person: PostHogPersonTraits = {}
+): void {
   if (!isPostHogSupported()) return;
+
+  const setProps: Record<string, string> = { language };
+  if (person.name) setProps.name = person.name;
+  if (person.email) setProps.email = person.email;
 
   posthog.identify(
     user.id,
-    { language },
+    setProps,
     { first_login_at: new Date().toISOString() }
   );
 }
