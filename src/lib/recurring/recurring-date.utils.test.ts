@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { advanceMonthly, firstDueDate } from "./recurring-date.utils";
+import { advanceMonthly, firstDueDate, rescheduleBillingDayInMonth } from "./recurring-date.utils";
 
 describe("firstDueDate", () => {
   it("uses next month when billing day already passed in start month", () => {
@@ -16,6 +16,16 @@ describe("firstDueDate", () => {
 
   it("moves billing day within the same month when editing next due", () => {
     expect(firstDueDate("2026-02-15", 20)).toBe("2026-02-20");
+  });
+});
+
+describe("rescheduleBillingDayInMonth", () => {
+  it("keeps month when moving billing day earlier", () => {
+    expect(rescheduleBillingDayInMonth("2026-02-20", 15)).toBe("2026-02-15");
+  });
+
+  it("keeps month when moving billing day later", () => {
+    expect(rescheduleBillingDayInMonth("2026-02-15", 20)).toBe("2026-02-20");
   });
 });
 
