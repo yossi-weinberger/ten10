@@ -25,6 +25,20 @@ export function firstDueDate(startDate: string, dayOfMonth: number): string {
   return advanceMonthly(formatLocalDate(start), dayOfMonth);
 }
 
+/** When editing billing day, keep the same month/year and clamp the day. */
+export function rescheduleBillingDayInMonth(
+  nextDueDate: string,
+  dayOfMonth: number
+): string {
+  const current = parseLocalDate(nextDueDate);
+  const year = current.getFullYear();
+  const month = current.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  return formatLocalDate(
+    new Date(year, month, Math.min(dayOfMonth, daysInMonth))
+  );
+}
+
 /** Next monthly occurrence; avoids setMonth overflow (e.g. Jan 31 → Feb, not Mar). */
 export function advanceMonthly(currentDate: string, dayOfMonth: number): string {
   const current = parseLocalDate(currentDate);
