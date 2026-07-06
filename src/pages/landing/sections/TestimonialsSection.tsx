@@ -11,6 +11,8 @@ import { Quote, ArrowLeft, ArrowRight } from "lucide-react";
 import { testimonials } from "../constants/testimonials";
 import { cn } from "@/lib/utils";
 
+const INITIAL_TESTIMONIAL_INDEX = Math.floor(testimonials.length / 2);
+
 interface TestimonialsSectionProps {
   sectionRef: React.RefObject<HTMLElement | null>;
 }
@@ -24,7 +26,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
   const NextIcon = isRtl ? ArrowLeft : ArrowRight;
 
   const [api, setApi] = useState<CarouselApi | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(INITIAL_TESTIMONIAL_INDEX);
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -45,7 +47,9 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
   }, [api]);
 
   useEffect(() => {
-    api?.reInit();
+    if (!api) return;
+    api.reInit();
+    api.scrollTo(INITIAL_TESTIMONIAL_INDEX, true);
   }, [api, isRtl]);
 
   const scrollTo = useCallback(
@@ -87,6 +91,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
             opts={{
               align: "center",
               loop: true,
+              startIndex: INITIAL_TESTIMONIAL_INDEX,
               direction: isRtl ? "rtl" : "ltr",
             }}
             setApi={setApi}
