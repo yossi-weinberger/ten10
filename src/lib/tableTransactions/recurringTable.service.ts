@@ -6,6 +6,10 @@ import {
   RecurringTableFilters,
 } from "./recurringTable.store";
 import { logger } from "@/lib/logger";
+import {
+  firstDueDate,
+  formatLocalDate,
+} from "@/lib/recurring/recurring-date.utils";
 
 function activeFirst(
   recurring: RecurringTransaction[]
@@ -75,9 +79,22 @@ export async function fetchAllRecurring(
 
 export async function updateRecurringTransaction(
   id: string,
-  values: Partial<RecurringTransaction>
+  values: Partial<RecurringTransaction>,
+  existing?: RecurringTransaction
 ): Promise<RecurringTransaction> {
   const platform = getPlatform();
+  const updates = { ...values };
+
+  if (
+    existing &&
+    updates.day_of_month != null &&
+    updates.day_of_month !== existing.day_of_month
+  ) {
+    updates.next_due_date = firstDueDate(
+      formatLocalDate(new Date()),
+      updates.day_of_month
+    );
+  }
 
   if (platform === "web") {
     const {
@@ -91,19 +108,19 @@ export async function updateRecurringTransaction(
     const rpcParams = {
       p_id: id,
       p_user_id: user.id,
-      p_amount: values.amount,
-      p_currency: values.currency,
-      p_description: values.description,
-      p_status: values.status,
-      p_total_occurrences: values.total_occurrences ?? null,
-      p_day_of_month: values.day_of_month ?? null,
-      p_payment_method: values.payment_method ?? null,
-      // Currency conversion fields
-      p_original_amount: values.original_amount ?? null,
-      p_original_currency: values.original_currency ?? null,
-      p_conversion_rate: values.conversion_rate ?? null,
-      p_conversion_date: values.conversion_date ?? null,
-      p_rate_source: values.rate_source ?? null,
+      p_amount: updates.amount,
+      p_currency: updates.currency,
+      p_description: updates.description,
+      p_status: updates.status,
+      p_total_occurrences: updates.total_occurrences ?? null,
+      p_day_of_month: updates.day_of_month ?? null,
+      p_payment_method: updates.payment_method ?? null,
+      p_original_amount: updates.original_amount ?? null,
+      p_original_currency: updates.original_currency ?? null,
+      p_conversion_rate: updates.conversion_rate ?? null,
+      p_conversion_date: updates.conversion_date ?? null,
+      p_rate_source: updates.rate_source ?? null,
+      p_next_due_date: updates.next_due_date ?? null,
     };
 
     const { data, error } = await supabase
@@ -122,7 +139,7 @@ export async function updateRecurringTransaction(
       "update_recurring_transaction_handler",
       {
         id,
-        updates: values,
+        updates: updates,
       }
     );
     return updatedTransaction as RecurringTransaction;

@@ -8,6 +8,11 @@ import { logger } from "@/lib/logger";
 import { nanoid } from "nanoid";
 
 import { getPlatform } from "@/lib/platformManager";
+import {
+  advanceMonthly,
+  formatLocalDate,
+  parseLocalDate,
+} from "@/lib/recurring/recurring-date.utils";
 
 /**
  * Advances the due date based on frequency
@@ -17,16 +22,16 @@ function advanceDueDate(
   frequency: string,
   dayOfMonth?: number
 ): Date {
+  if (frequency === "monthly" && dayOfMonth) {
+    return parseLocalDate(
+      advanceMonthly(formatLocalDate(currentDate), dayOfMonth)
+    );
+  }
+
   const newDate = new Date(currentDate);
 
   if (frequency === "monthly") {
     newDate.setMonth(newDate.getMonth() + 1);
-    if (dayOfMonth) {
-      const year = newDate.getFullYear();
-      const month = newDate.getMonth();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      newDate.setDate(Math.min(dayOfMonth, daysInMonth));
-    }
   } else if (frequency === "weekly") {
     newDate.setDate(newDate.getDate() + 7);
   } else if (frequency === "yearly") {
@@ -80,12 +85,6 @@ export const RecurringTransactionsService = {
         return;
       }
 
-      // Helper to parse "YYYY-MM-DD" string to a Date object at local midnight
-      const parseLocal = (dateStr: string) => {
-        const [year, month, day] = dateStr.split("-").map(Number);
-        return new Date(year, month - 1, day); // Month is 0-indexed in JS Date
-      };
-
       const today = new Date();
       // Reset time part to ensure clean comparison
       today.setHours(0, 0, 0, 0);
@@ -93,7 +92,7 @@ export const RecurringTransactionsService = {
       for (const rec of dueTransactions) {
         try {
           // Use explicit parsing to avoid UTC vs Local timezone shifts
-          let currentDueDate = parseLocal(rec.next_due_date);
+          let currentDueDate = parseLocalDate(rec.next_due_date);
 
           let executionCount = rec.execution_count;
           let currentStatus = rec.status;

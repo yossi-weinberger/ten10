@@ -21,10 +21,12 @@ const FIELD_MESSAGE_SLOT_CLASS = "mt-1 min-h-5 text-sm leading-snug";
 
 interface AmountCurrencyDateFieldsProps {
   form: UseFormReturn<TransactionFormValues>;
+  isRecurring?: boolean;
 }
 
 export function AmountCurrencyDateFields({
   form,
+  isRecurring = false,
 }: AmountCurrencyDateFieldsProps) {
   const { t } = useTranslation("transactions");
   const defaultCurrency = useDonationStore((state) => state.settings.defaultCurrency);
@@ -104,7 +106,19 @@ export function AmountCurrencyDateFields({
           name="date"
           render={({ field }) => (
             <FormItem className="w-full min-w-0 md:w-auto md:flex-1">
-              <FormLabel>{t("transactionForm.date.label")} *</FormLabel>
+              <FormLabel>
+                {t(
+                  isRecurring
+                    ? "transactionForm.date.startLabel"
+                    : "transactionForm.date.label"
+                )}{" "}
+                *
+              </FormLabel>
+              {isRecurring && (
+                <p className="text-xs text-muted-foreground mb-1">
+                  {t("transactionForm.date.startHint")}
+                </p>
+              )}
               <FormControl>
                 <DatePicker
                   date={

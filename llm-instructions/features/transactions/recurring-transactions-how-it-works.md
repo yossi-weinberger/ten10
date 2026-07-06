@@ -69,6 +69,8 @@
   - **לוגיקה (Frontend):**
     - `transactionForm.service.ts` קובע את סוג התנועה הסופי.
     - **טיפול ביום החיוב:** אם המשתמש מזין `recurring_day_of_month` בטופס, ערך זה מקבל עדיפות. אחרת, המערכת גוזרת אותו מתאריך ההתחלה (`date`).
+    - **`next_due_date` ביצירה:** מחושב מ-`firstDueDate(start_date, day_of_month)` — לא מועתק ישירות מ"תאריך" בטופס. "תאריך" בהו"ק = תאריך התחלה בלבד.
+    - **עריכה:** שינוי `day_of_month` מסנכרן `next_due_date` אוטומטית (לא נוגע בתנועות קיימות).
     - אם recurring, בונה אובייקט `NewRecurringTransaction` וקורא ל-`createRecurringTransaction` מ-`recurringTransactions.service.ts`.
 - **פלטפורמות:**
   - **ווב:** מכניס ישירות ל-Supabase דרך `supabase.from("recurring_transactions").insert()`.

@@ -25,6 +25,8 @@
     },
     "date": {
       "label": "תאריך",
+      "startLabel": "תאריך התחלה",
+      "startHint": "מתי ההוראה נכנסת לתוקף — לא יום החיוב החודשי",
       "placeholder": "בחר תאריך"
     },
     "description": {
