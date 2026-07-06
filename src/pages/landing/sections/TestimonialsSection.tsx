@@ -55,7 +55,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
     <section
       id="testimonials"
       ref={sectionRef}
-      className="py-20 px-4 bg-white dark:bg-gray-800"
+      className="overflow-x-hidden py-20 px-4 bg-white dark:bg-gray-800"
     >
       <div className="container relative mx-auto max-w-7xl">
         {/* Section heading */}
@@ -79,7 +79,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
           transition={{ type: "spring", damping: 22, stiffness: 280, delay: 0.15 }}
         >
           <Carousel
-            className="w-full [&>div:first-child]:overflow-visible"
+            className="w-full"
             opts={{
               align: "center",
               loop: true,
