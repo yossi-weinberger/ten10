@@ -420,15 +420,10 @@ Deno.serve(async (req) => {
           executionCount++;
 
           // Calculate next date using Logic that respects day_of_month
-          if (rec.frequency === "monthly" && rec.day_of_month) {
-            const nextDueStr = advanceMonthly(
-              currentDueDateStr,
-              rec.day_of_month
-            );
+          if (rec.frequency === "monthly") {
+            const dom = rec.day_of_month ?? currentDueDateObj.getDate();
+            const nextDueStr = advanceMonthly(currentDueDateStr, dom);
             currentDueDateObj = parseLocalDate(nextDueStr);
-          } else if (rec.frequency === "monthly") {
-            const currentMonth = currentDueDateObj.getMonth();
-            currentDueDateObj.setMonth(currentMonth + 1);
           } else if (rec.frequency === "weekly") {
             currentDueDateObj.setDate(currentDueDateObj.getDate() + 7);
           } else if (rec.frequency === "yearly") {

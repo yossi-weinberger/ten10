@@ -22,17 +22,16 @@ function advanceDueDate(
   frequency: string,
   dayOfMonth?: number
 ): Date {
-  if (frequency === "monthly" && dayOfMonth) {
+  if (frequency === "monthly") {
+    const dom = dayOfMonth ?? currentDate.getDate();
     return parseLocalDate(
-      advanceMonthly(formatLocalDate(currentDate), dayOfMonth)
+      advanceMonthly(formatLocalDate(currentDate), dom)
     );
   }
 
   const newDate = new Date(currentDate);
 
-  if (frequency === "monthly") {
-    newDate.setMonth(newDate.getMonth() + 1);
-  } else if (frequency === "weekly") {
+  if (frequency === "weekly") {
     newDate.setDate(newDate.getDate() + 7);
   } else if (frequency === "yearly") {
     newDate.setFullYear(newDate.getFullYear() + 1);

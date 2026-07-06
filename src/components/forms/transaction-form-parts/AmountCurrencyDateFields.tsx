@@ -137,11 +137,8 @@ export function AmountCurrencyDateFields({
                         variant="ghost"
                         size="icon"
                         type="button"
+                        aria-label={t("transactionForm.date.startHint")}
                         className="h-4 w-4 shrink-0 p-0 text-muted-foreground/70 hover:bg-transparent hover:text-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }}
                       >
                         <HelpCircle className="h-3.5 w-3.5" />
                       </Button>
