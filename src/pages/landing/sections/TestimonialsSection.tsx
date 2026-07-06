@@ -70,100 +70,98 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
             {t("testimonials.title")}
           </motion.h2>
         </div>
-      </div>
 
-      {/* Full-width carousel so side cards can peek without hard clipping */}
-      <motion.div
-        initial={{ opacity: 0, y: 32 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "0px 0px -80px 0px" }}
-        transition={{ type: "spring", damping: 22, stiffness: 280, delay: 0.15 }}
-      >
-        <Carousel
-          className="w-full [&>div:first-child]:overflow-visible"
-          opts={{
-            align: "center",
-            loop: true,
-            // Keep Embla mechanics LTR, mirroring ScreenshotCarousel.
-            direction: "ltr",
-          }}
-          setApi={setApi}
+        {/* Carousel */}
+        <motion.div
+          initial={{ opacity: 0, y: 32 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "0px 0px -80px 0px" }}
+          transition={{ type: "spring", damping: 22, stiffness: 280, delay: 0.15 }}
         >
-          {/* py-8 gives vertical breathing room for the active card's shadow. */}
-          <CarouselContent
-            className="-ml-4 py-8"
-            style={{ direction: "ltr" }}
+          <Carousel
+            className="w-full [&>div:first-child]:overflow-visible"
+            opts={{
+              align: "center",
+              loop: true,
+              // Keep Embla mechanics LTR, mirroring ScreenshotCarousel.
+              direction: "ltr",
+            }}
+            setApi={setApi}
           >
-            {testimonials.map((testimonial, index) => {
-              const isActive = index === selectedIndex;
-              return (
-                // Fixed height prevents section height from jumping between cards.
-                <CarouselItem
-                  key={index}
-                  className="pl-4 basis-[85%] sm:basis-[60%] lg:basis-[38%] h-64 sm:h-60"
-                >
-                  <div
-                    dir={i18n.dir()}
-                    className={cn(
-                      "flex flex-col h-full rounded-2xl border p-7",
-                      // Only transition compositor-friendly properties, not layout.
-                      "motion-safe:transition-[transform,opacity,box-shadow,border-color]",
-                      "motion-safe:duration-500 motion-safe:ease-out",
-                      "will-change-transform",
-                      isActive
-                        ? "bg-white dark:bg-gray-900 border-emerald-200 dark:border-emerald-800 shadow-[0_8px_40px_-8px_rgba(16,185,129,0.22)] dark:shadow-[0_8px_40px_-8px_rgba(16,185,129,0.18)] scale-[1.03] opacity-100"
-                        : "bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 shadow-sm scale-[0.92] opacity-65"
-                    )}
+            {/* py-8 gives vertical breathing room for the active card's shadow. */}
+            <CarouselContent
+              className="-ml-4 py-8"
+              style={{ direction: "ltr" }}
+            >
+              {testimonials.map((testimonial, index) => {
+                const isActive = index === selectedIndex;
+                return (
+                  // Fixed height prevents section height from jumping between cards.
+                  <CarouselItem
+                    key={index}
+                    className="pl-4 basis-[85%] sm:basis-[60%] lg:basis-[38%] h-64 sm:h-60"
                   >
-                    {/* Quote icon */}
-                    <Quote
+                    <div
+                      dir={i18n.dir()}
                       className={cn(
-                        "w-6 h-6 mb-3 shrink-0",
-                        "motion-safe:transition-colors motion-safe:duration-300",
+                        "flex flex-col h-full rounded-2xl border p-7",
+                        // Only transition compositor-friendly properties, not layout.
+                        "motion-safe:transition-[transform,opacity,box-shadow,border-color]",
+                        "motion-safe:duration-500 motion-safe:ease-out",
+                        "will-change-transform",
                         isActive
-                          ? "text-emerald-500 dark:text-emerald-400"
-                          : "text-gray-300 dark:text-gray-700"
+                          ? "bg-white dark:bg-gray-900 border-emerald-200 dark:border-emerald-800 shadow-[0_8px_40px_-8px_rgba(16,185,129,0.22)] dark:shadow-[0_8px_40px_-8px_rgba(16,185,129,0.18)] scale-[1.03] opacity-100"
+                          : "bg-gray-50 dark:bg-gray-900/50 border-gray-200 dark:border-gray-800 shadow-sm scale-[0.92] opacity-65"
                       )}
-                      aria-hidden="true"
-                    />
-
-                    <div className="flex flex-1 items-center justify-center overflow-hidden">
-                      <p
+                    >
+                      {/* Quote icon */}
+                      <Quote
                         className={cn(
-                          "leading-relaxed text-center",
-                          "motion-safe:transition-[color,opacity] motion-safe:duration-300",
-                          isActive
-                            ? "text-gray-800 dark:text-gray-100 text-base md:text-lg opacity-100"
-                            : "text-gray-500 dark:text-gray-400 text-sm md:text-base opacity-80"
-                        )}
-                      >
-                        {t(testimonial.textKey)}
-                      </p>
-                    </div>
-
-                    {/* Name uses text-end: left in Hebrew, right in English, like a signature. */}
-                    <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
-                      <p
-                        className={cn(
-                          "text-end text-sm font-semibold",
+                          "w-6 h-6 mb-3 shrink-0",
                           "motion-safe:transition-colors motion-safe:duration-300",
                           isActive
-                            ? "text-gray-900 dark:text-white"
-                            : "text-gray-400 dark:text-gray-600"
+                            ? "text-emerald-500 dark:text-emerald-400"
+                            : "text-gray-300 dark:text-gray-700"
                         )}
-                      >
-                        {t(testimonial.nameKey)}
-                      </p>
-                    </div>
-                  </div>
-                </CarouselItem>
-              );
-            })}
-          </CarouselContent>
-        </Carousel>
-      </motion.div>
+                        aria-hidden="true"
+                      />
 
-      <div className="container relative mx-auto max-w-7xl">
+                      <div className="flex flex-1 items-center justify-center overflow-hidden">
+                        <p
+                          className={cn(
+                            "leading-relaxed text-center",
+                            "motion-safe:transition-[color,opacity] motion-safe:duration-300",
+                            isActive
+                              ? "text-gray-800 dark:text-gray-100 text-base md:text-lg opacity-100"
+                              : "text-gray-500 dark:text-gray-400 text-sm md:text-base opacity-80"
+                          )}
+                        >
+                          {t(testimonial.textKey)}
+                        </p>
+                      </div>
+
+                      {/* Name uses text-end: left in Hebrew, right in English, like a signature. */}
+                      <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                        <p
+                          className={cn(
+                            "text-end text-sm font-semibold",
+                            "motion-safe:transition-colors motion-safe:duration-300",
+                            isActive
+                              ? "text-gray-900 dark:text-white"
+                              : "text-gray-400 dark:text-gray-600"
+                          )}
+                        >
+                          {t(testimonial.nameKey)}
+                        </p>
+                      </div>
+                    </div>
+                  </CarouselItem>
+                );
+              })}
+            </CarouselContent>
+          </Carousel>
+        </motion.div>
+
         {/* Dot navigation */}
         {count > 0 && (
           <div className="flex flex-col items-center gap-2 mt-4">
