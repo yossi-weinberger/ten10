@@ -13,6 +13,12 @@ import { CurrencyCode } from "@/lib/currencies";
 import { TransactionFormValues } from "@/lib/schemas";
 import { DatePicker } from "@/components/ui/date-picker";
 import { format, parse } from "date-fns";
+import { HelpCircle } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useDonationStore } from "@/lib/store";
 import { CurrencyConversionSection } from "./CurrencyConversionSection";
 
@@ -106,19 +112,28 @@ export function AmountCurrencyDateFields({
           name="date"
           render={({ field }) => (
             <FormItem className="w-full min-w-0 md:w-auto md:flex-1">
-              <FormLabel>
-                {t(
-                  isRecurring
-                    ? "transactionForm.date.startLabel"
-                    : "transactionForm.date.label"
-                )}{" "}
-                *
+              <FormLabel className="flex items-center gap-1.5">
+                <span>
+                  {t(
+                    isRecurring
+                      ? "transactionForm.date.startLabel"
+                      : "transactionForm.date.label"
+                  )}{" "}
+                  *
+                </span>
+                {isRecurring && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/70 hover:text-foreground cursor-help transition-colors" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p className="text-sm">
+                        {t("transactionForm.date.startHint")}
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </FormLabel>
-              {isRecurring && (
-                <p className="text-xs text-muted-foreground mb-1">
-                  {t("transactionForm.date.startHint")}
-                </p>
-              )}
               <FormControl>
                 <DatePicker
                   date={
