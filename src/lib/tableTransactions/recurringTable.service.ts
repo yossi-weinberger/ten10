@@ -6,10 +6,7 @@ import {
   RecurringTableFilters,
 } from "./recurringTable.store";
 import { logger } from "@/lib/logger";
-import {
-  firstDueDate,
-  formatLocalDate,
-} from "@/lib/recurring/recurring-date.utils";
+import { firstDueDate } from "@/lib/recurring/recurring-date.utils";
 
 function activeFirst(
   recurring: RecurringTransaction[]
@@ -90,8 +87,10 @@ export async function updateRecurringTransaction(
     updates.day_of_month != null &&
     updates.day_of_month !== existing.day_of_month
   ) {
+    // Keep the scheduled month; only move billing day within that cycle.
+    // Cron catch-up still processes all missed months from this anchor.
     updates.next_due_date = firstDueDate(
-      formatLocalDate(new Date()),
+      existing.next_due_date,
       updates.day_of_month
     );
   }

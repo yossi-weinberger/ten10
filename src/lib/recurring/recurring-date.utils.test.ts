@@ -13,6 +13,10 @@ describe("firstDueDate", () => {
   it("uses same month when billing day is after start", () => {
     expect(firstDueDate("2026-01-10", 15)).toBe("2026-01-15");
   });
+
+  it("moves billing day within the same month when editing next due", () => {
+    expect(firstDueDate("2026-02-15", 20)).toBe("2026-02-20");
+  });
 });
 
 describe("advanceMonthly", () => {
