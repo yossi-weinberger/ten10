@@ -8,6 +8,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { CurrencyPicker } from "@/components/ui/CurrencyPicker";
 import { CurrencyCode } from "@/lib/currencies";
 import { TransactionFormValues } from "@/lib/schemas";
@@ -20,10 +21,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useDonationStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
 import { CurrencyConversionSection } from "./CurrencyConversionSection";
 
 /** Minimum space for one validation line; grows when text wraps on narrow viewports. */
 const FIELD_MESSAGE_SLOT_CLASS = "mt-1 min-h-5 text-sm leading-snug";
+/** Keeps amount/currency/date inputs aligned when recurring label text or tooltip changes. */
+const FIELD_LABEL_CLASS = "flex h-5 items-center gap-1.5";
 
 interface AmountCurrencyDateFieldsProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -52,7 +56,9 @@ export function AmountCurrencyDateFields({
             name="amount"
             render={({ field }) => (
               <FormItem className="min-w-0 flex-1">
-                <FormLabel>{t("transactionForm.amount.label")}</FormLabel>
+                <FormLabel className={FIELD_LABEL_CLASS}>
+                  {t("transactionForm.amount.label")}
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -77,7 +83,10 @@ export function AmountCurrencyDateFields({
             render={({ field }) => (
               <FormItem className="w-fit max-w-full shrink-0">
                 <FormLabel
-                  className="invisible pointer-events-none select-none"
+                  className={cn(
+                    FIELD_LABEL_CLASS,
+                    "invisible pointer-events-none select-none"
+                  )}
                   aria-hidden="true"
                 >
                   {t("transactionForm.currency.label")}
@@ -112,8 +121,8 @@ export function AmountCurrencyDateFields({
           name="date"
           render={({ field }) => (
             <FormItem className="w-full min-w-0 md:w-auto md:flex-1">
-              <FormLabel className="flex items-center gap-1.5">
-                <span>
+              <FormLabel className={FIELD_LABEL_CLASS}>
+                <span className="whitespace-nowrap">
                   {t(
                     isRecurring
                       ? "transactionForm.date.startLabel"
@@ -124,7 +133,18 @@ export function AmountCurrencyDateFields({
                 {isRecurring && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <HelpCircle className="h-3.5 w-3.5 text-muted-foreground/70 hover:text-foreground cursor-help transition-colors" />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        type="button"
+                        className="h-4 w-4 shrink-0 p-0 text-muted-foreground/70 hover:bg-transparent hover:text-foreground focus-visible:ring-0 focus-visible:ring-offset-0"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                      >
+                        <HelpCircle className="h-3.5 w-3.5" />
+                      </Button>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
                       <p className="text-sm">
