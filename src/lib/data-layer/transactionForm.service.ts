@@ -15,6 +15,7 @@ import { clearCategoryCacheForType } from "./categories.service";
 import { clearPaymentMethodCache } from "./paymentMethods.service";
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { firstDueDate } from "@/lib/recurring/recurring-date.utils";
 
 
 /**
@@ -92,7 +93,7 @@ export async function handleTransactionSubmit(
   if (values.is_recurring) {
     const definition: NewRecurringTransaction = {
       start_date: values.date,
-      next_due_date: values.date,
+      next_due_date: firstDueDate(values.date, dayOfMonth),
       frequency: values.frequency || "monthly",
       day_of_month: dayOfMonth,
       total_occurrences: values.recurringTotalCount,
