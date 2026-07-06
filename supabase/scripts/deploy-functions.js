@@ -94,6 +94,24 @@ try {
     }
   );
 
+  // Deploy get-monitoring-data function (admin dashboard)
+  console.log("Deploying get-monitoring-data function...");
+  execSync(
+    `npx supabase@latest functions deploy get-monitoring-data --project-ref ${projectRef}`,
+    {
+      stdio: "inherit",
+    }
+  );
+
+  // Deploy process-recurring-transactions function
+  console.log("Deploying process-recurring-transactions function...");
+  execSync(
+    `npx supabase@latest functions deploy process-recurring-transactions --project-ref ${projectRef}`,
+    {
+      stdio: "inherit",
+    }
+  );
+
   // Deploy process-email-request function (Cloudflare Email Routing)
   // IMPORTANT: Cloudflare authenticates with a shared secret (not a Supabase JWT),
   // so this function MUST be deployed with JWT verification disabled.
