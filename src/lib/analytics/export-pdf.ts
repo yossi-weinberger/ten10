@@ -7,7 +7,6 @@ import { CategoryBreakdownResponse } from "@/lib/data-layer/insights.service";
 import { PaymentMethodBreakdownResponse } from "@/lib/data-layer/insights.service";
 import { DonationRecipientsResponse } from "@/lib/data-layer/insights.service";
 import { RecurringTransaction } from "@/types/transaction";
-import { toast } from "sonner";
 
 export interface AnalyticsPdfParams {
   categoryData: CategoryBreakdownResponse;
@@ -20,8 +19,6 @@ export interface AnalyticsPdfParams {
   isRtl: boolean;
   displayRange: string;
   t: (key: string, opts?: Record<string, unknown>) => string;
-  toastSuccess: string;
-  toastExporting: string;
   serverTotalIncome?: number | null;
   serverTotalExpenses?: number | null;
   prevIncome?: number | null;
@@ -39,11 +36,12 @@ async function captureChart(
   return toPng(el, opts).catch(() => null);
 }
 
-export async function generateAnalyticsPdf(params: AnalyticsPdfParams): Promise<void> {
+/** Returns `false` when the user cancels the desktop save dialog, `true` once the file is written/downloaded. */
+export async function generateAnalyticsPdf(params: AnalyticsPdfParams): Promise<boolean> {
   const {
     categoryData, paymentMethodData, recipientsData,
     activeRecurring, recurringTotals,
-    defaultCurrency, language, isRtl, displayRange, t, toastSuccess,
+    defaultCurrency, language, isRtl, displayRange, t,
     serverTotalIncome, serverTotalExpenses, prevIncome, textInsights,
   } = params;
 
@@ -402,18 +400,20 @@ export async function generateAnalyticsPdf(params: AnalyticsPdfParams): Promise<
     const { save }      = await import("@tauri-apps/plugin-dialog");
     const { writeFile } = await import("@tauri-apps/plugin-fs");
     const savePath = await save({ defaultPath: filename, filters: [{ name: "PDF", extensions: ["pdf"] }] });
-    if (savePath) { await writeFile(savePath, pdfBytes); toast.success(toastSuccess); }
-  } else {
-    const blob = new Blob([pdfBytes as BlobPart], { type: "application/pdf" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
-    toast.success(toastSuccess);
+    if (!savePath) return false;
+    await writeFile(savePath, pdfBytes);
+    return true;
   }
+
+  const blob = new Blob([pdfBytes as BlobPart], { type: "application/pdf" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+  return true;
 }
 
 export function computeRecurringTotals(activeRecurring: RecurringTransaction[]): {

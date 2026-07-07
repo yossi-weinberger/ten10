@@ -71,7 +71,7 @@ const ContactFAB = () => {
       toast.success(t(`contact:desktop.copySuccess.${type}`));
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
-      toast.error("Failed to copy.");
+      toast.error(t("contact:desktop.copyError"));
     }
   };
 

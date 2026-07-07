@@ -18,7 +18,8 @@
     "copySuccess": {
       "email": "Email address copied!",
       "info": "Technical info copied!"
-    }
+    },
+    "copyError": "Failed to copy."
   },
   "forms": {
     "subject": {
@@ -44,6 +45,7 @@
     "submitting": "Sending...",
     "successToast": "Your message has been sent successfully!",
     "errorToast": "Failed to send message. Please try again.",
+    "ticketIdLabel": "Ticket ID",
     "captcha": {
       "error": "Please complete the CAPTCHA verification."
     },

@@ -32,7 +32,7 @@ import {
   downloadAndInstallUpdate,
   type UpdateInfo,
 } from "@/lib/data-layer/updater.service";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
 
 type CheckStatus =

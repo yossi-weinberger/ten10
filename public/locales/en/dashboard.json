@@ -134,6 +134,7 @@
     },
     "pdfExported": "PDF file downloaded successfully",
     "pdfGenerating": "Generating PDF...",
+    "pdfExportError": "Failed to export PDF",
     "chartTypeBar": "Bar chart",
     "chartTypePie": "Pie chart",
     "insights": {

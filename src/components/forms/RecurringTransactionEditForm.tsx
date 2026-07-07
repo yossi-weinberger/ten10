@@ -3,7 +3,7 @@ import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { logger } from "@/lib/logger";
 import { useTranslation } from "react-i18next";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import {
   Form,
   FormControl,
@@ -98,7 +98,7 @@ export function RecurringTransactionEditForm({
         logger.error(
           "Cannot submit: foreign currency selected but no conversion rate provided.",
         );
-        toast.error(t("transactionForm.errors.missingConversionRate"));
+        toast.warning(t("transactionForm.errors.missingConversionRate"));
         return;
       }
 

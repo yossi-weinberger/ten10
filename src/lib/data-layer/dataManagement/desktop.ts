@@ -1,6 +1,6 @@
 import { RecurringTransaction, Transaction } from "@/types/transaction";
 import { useDonationStore } from "../../store";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { nanoid } from "nanoid";
 import { logger } from "@/lib/logger";
 import i18n from "../../i18n";
@@ -174,7 +174,7 @@ export const importDataDesktop = async ({
           : null;
 
       if (!importMode) {
-        toast.error(i18n.t("settings:messages.importCancelled"));
+        toast(i18n.t("settings:messages.importCancelled"));
         return;
       }
 
@@ -198,7 +198,7 @@ export const importDataDesktop = async ({
           });
 
           if (duplicateDecision === "cancel") {
-            toast.error(i18n.t("settings:messages.importCancelled"));
+            toast(i18n.t("settings:messages.importCancelled"));
             return;
           }
 

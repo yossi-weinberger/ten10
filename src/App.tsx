@@ -23,7 +23,7 @@ import { checkAndSendDesktopReminder } from "./lib/data-layer/reminders";
 import { checkForUpdates } from "./lib/data-layer/updater.service";
 import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils/index";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import ContactFAB from "./components/layout/ContactFAB";
 import { TermsAcceptanceModal } from "./components/auth/TermsAcceptanceModal";
 import { WhatsNewModal } from "./components/WhatsNewModal";
@@ -192,12 +192,12 @@ function App() {
             if (updateInfo) {
               logger.log(`Update available: ${updateInfo.version}`);
               await i18n.loadNamespaces("settings");
-              toast.success(
+              toast.info(
                 tRef.current("versionInfo.updateAvailable", {
                   version: updateInfo.version,
                   ns: "settings",
                 }),
-                { duration: 5000, icon: "🔔" }
+                { duration: 5000 }
               );
             } else {
               logger.log("App is up to date");
@@ -415,7 +415,12 @@ function App() {
           </main>
           {shouldShowFooter && <Footer />}
         </div>
-        <Toaster richColors />
+        {/* Opposite corner from ContactFAB (which sits on the reading-start side) to avoid overlap in both directions. */}
+        <Toaster
+          richColors
+          closeButton
+          position={i18n.dir() === "rtl" ? "bottom-right" : "bottom-left"}
+        />
       </div>
       {shouldShowContactFab && <ContactFAB />}
       <TermsAcceptanceModal />

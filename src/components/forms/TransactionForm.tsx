@@ -28,7 +28,7 @@ import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransact
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useTransactionFormInitialization } from "@/hooks/useTransactionFormInitialization";
 import { logger } from "@/lib/logger";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 // Zod schema is now imported from "@/types/forms"
 
@@ -232,7 +232,7 @@ export function TransactionForm({
             // This should not happen if UI validation is working correctly
             // But as a safety net, prevent submission without a valid rate
             logger.error("Cannot submit transaction: foreign currency selected but no conversion rate provided.");
-            toast.error(t("transactionForm.errors.missingConversionRate"));
+            toast.warning(t("transactionForm.errors.missingConversionRate"));
             return;
         }
         

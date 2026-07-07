@@ -24,6 +24,7 @@ import { validatePasswordPair } from "@/lib/security/appLockPasswordSchema";
 import { clearAllData } from "@/lib/data-layer";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { logger } from "@/lib/logger";
+import { toast } from "sonner";
 import AppLoader from "@/components/layout/AppLoader";
 
 type ScreenMode =
@@ -188,6 +189,7 @@ export function DesktopLockScreen({
               onClick={async () => {
                 await navigator.clipboard.writeText(displayRecoveryKey);
                 setRecoveryKeyCopiedFeedback(true);
+                toast.success(t("keyCopied"));
                 setTimeout(() => setRecoveryKeyCopiedFeedback(false), 2000);
               }}
             >

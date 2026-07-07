@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "@tanstack/react-router";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -29,23 +29,30 @@ const ForgotPasswordPage: React.FC = () => {
   const handleSendResetEmail = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
-    try {
-      const isDevelopment = import.meta.env.DEV;
-      const baseUrl = isDevelopment
-        ? "http://localhost:5173"
-        : window.location.origin;
-      const redirectTo = `${baseUrl}/reset-password`;
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo,
+    const isDevelopment = import.meta.env.DEV;
+    const baseUrl = isDevelopment
+      ? "http://localhost:5173"
+      : window.location.origin;
+    const redirectTo = `${baseUrl}/reset-password`;
+
+    const request = supabase.auth
+      .resetPasswordForEmail(email, { redirectTo })
+      .then(({ error }) => {
+        if (error) throw error;
       });
-      if (error) throw error;
 
-      toast.success(t("forgotPassword.toasts.emailSent"));
+    toast.promise(request, {
+      loading: t("forgotPassword.sendButtonLoading"),
+      success: t("forgotPassword.toasts.emailSent"),
+      error: (error: any) => error?.message || t("forgotPassword.toasts.error"),
+    });
+
+    try {
+      await request;
       navigate({ to: "/login" });
-    } catch (error: any) {
+    } catch (error) {
       logger.error("Error sending password reset email:", error);
-      toast.error(error?.message || t("forgotPassword.toasts.error"));
     } finally {
       setLoading(false);
     }

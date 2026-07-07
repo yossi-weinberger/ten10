@@ -52,7 +52,7 @@ import {
 import { logger } from "@/lib/logger";
 import { useDonationStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 const AUTO_LOCK_OPTIONS = [
   { value: 0, labelKey: "autoLockOff" },
@@ -114,11 +114,11 @@ export function AppLockSettingsCard() {
       confirmPassword: enableConfirm,
     });
     if (!validation.success && validation.error === "too_short") {
-      toast.error(t("appLock.passwordMinLength"));
+      toast.warning(t("appLock.passwordMinLength"));
       return;
     }
     if (!validation.success && validation.error === "mismatch") {
-      toast.error(t("appLock.passwordsDoNotMatch"));
+      toast.warning(t("appLock.passwordsDoNotMatch"));
       return;
     }
     setLoading(true);
@@ -164,11 +164,11 @@ export function AppLockSettingsCard() {
       confirmNewPassword: changeNewPwConfirm,
     });
     if (!validation.success && validation.error === "too_short") {
-      toast.error(t("appLock.passwordMinLength"));
+      toast.warning(t("appLock.passwordMinLength"));
       return;
     }
     if (!validation.success && validation.error === "mismatch") {
-      toast.error(t("appLock.passwordsDoNotMatch"));
+      toast.warning(t("appLock.passwordsDoNotMatch"));
       return;
     }
     setLoading(true);

@@ -4,7 +4,7 @@ import { useTheme } from "@/lib/theme";
 import { useDonationStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { clearAllData } from "@/lib/data-layer";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";

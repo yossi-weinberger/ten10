@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, Link } from "@tanstack/react-router";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -87,30 +87,40 @@ const ResetPasswordPage: React.FC = () => {
     event.preventDefault();
 
     if (password.length < 6) {
-      toast.error(t("resetPassword.errors.passwordTooShort"));
+      toast.warning(t("resetPassword.errors.passwordTooShort"));
       return;
     }
     if (!passwordsMatch) {
-      toast.error(t("resetPassword.errors.passwordsDoNotMatch"));
+      toast.warning(t("resetPassword.errors.passwordsDoNotMatch"));
       return;
     }
 
     setLoading(true);
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      toast.error(t("resetPassword.errors.invalidOrExpiredLink"));
+      setLoading(false);
+      return;
+    }
+
+    const request = supabase.auth
+      .updateUser({ password })
+      .then(({ error }) => {
+        if (error) throw error;
+      });
+
+    toast.promise(request, {
+      loading: t("resetPassword.updateButtonLoading"),
+      success: t("resetPassword.toasts.success"),
+      error: (error: any) => error?.message || t("resetPassword.toasts.error"),
+    });
+
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) {
-        toast.error(t("resetPassword.errors.invalidOrExpiredLink"));
-        return;
-      }
-
-      const { error } = await supabase.auth.updateUser({ password });
-      if (error) throw error;
-
-      toast.success(t("resetPassword.toasts.success"));
+      await request;
       navigate({ to: "/" });
-    } catch (error: any) {
+    } catch (error) {
       logger.error("Error resetting password:", error);
-      toast.error(error?.message || t("resetPassword.toasts.error"));
     } finally {
       setLoading(false);
     }

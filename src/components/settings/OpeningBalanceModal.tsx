@@ -26,7 +26,7 @@ import {
   TransactionUpdatePayload,
 } from "@/lib/data-layer/transactions.service";
 import { useDonationStore } from "@/lib/store";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { logger } from "@/lib/logger";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { Transaction } from "@/types/transaction";

@@ -24,6 +24,8 @@ import { useDonationStore } from "@/lib/store";
 import { generateAnalyticsPdf, computeRecurringTotals } from "@/lib/analytics/export-pdf";
 import { formatCurrency } from "@/lib/utils/currency";
 import { formatCategory } from "@/lib/category-registry";
+import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 export function AnalyticsPage() {
   const { t, i18n } = useTranslation("dashboard");
@@ -105,6 +107,7 @@ export function AnalyticsPage() {
 
   const handleExportPdf = async () => {
     setIsExportingPdf(true);
+    const toastId = toast.loading(t("analytics.pdfGenerating"));
     try {
       const fmtDatePdf = (iso: string) => {
         const p = iso.split("-");
@@ -146,7 +149,7 @@ export function AnalyticsPage() {
         }
       }
 
-      await generateAnalyticsPdf({
+      const saved = await generateAnalyticsPdf({
         categoryData,
         paymentMethodData,
         recipientsData,
@@ -157,13 +160,21 @@ export function AnalyticsPage() {
         isRtl: i18n.language === "he",
         displayRange,
         t,
-        toastSuccess: t("analytics.pdfExported"),
-        toastExporting: t("analytics.pdfGenerating"),
         serverTotalIncome,
         serverTotalExpenses,
         prevIncome,
         textInsights: pdfInsights,
       });
+
+      if (saved) {
+        toast.success(t("analytics.pdfExported"), { id: toastId });
+      } else {
+        // Desktop save dialog closed without saving — not an error, dismiss silently.
+        toast.dismiss(toastId);
+      }
+    } catch (error) {
+      logger.error("Failed to export analytics PDF:", error);
+      toast.error(t("analytics.pdfExportError"), { id: toastId });
     } finally {
       setIsExportingPdf(false);
     }
@@ -232,14 +243,8 @@ export function AnalyticsPage() {
           disabled={isExportingPdf}
           className="ms-auto shrink-0 bg-transparent text-foreground hover:bg-muted/50"
         >
-          {isExportingPdf ? (
-            <span className="h-4 w-4 me-1 animate-spin inline-block border-2 border-current border-t-transparent rounded-full" />
-          ) : (
-            <Download className="h-4 w-4 me-1" />
-          )}
-          <span className="hidden sm:inline">
-            {isExportingPdf ? t("analytics.pdfGenerating") : t("analytics.exportPdf")}
-          </span>
+          <Download className="h-4 w-4 me-1" />
+          <span className="hidden sm:inline">{t("analytics.exportPdf")}</span>
         </Button>
       </div>
 

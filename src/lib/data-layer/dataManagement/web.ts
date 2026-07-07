@@ -4,7 +4,7 @@ import {
   TransactionForTable,
 } from "@/types/transaction";
 import { useDonationStore } from "../../store";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
 import i18n from "../../i18n";
@@ -251,7 +251,7 @@ export const importDataWeb = async ({
               : null;
 
           if (!importMode) {
-            toast.error(i18n.t("settings:messages.importCancelled"));
+            toast(i18n.t("settings:messages.importCancelled"));
             setIsLoading(false);
             return;
           }
@@ -285,7 +285,7 @@ export const importDataWeb = async ({
               });
 
               if (duplicateDecision === "cancel") {
-                toast.error(i18n.t("settings:messages.importCancelled"));
+                toast(i18n.t("settings:messages.importCancelled"));
                 setIsLoading(false);
                 return;
               }

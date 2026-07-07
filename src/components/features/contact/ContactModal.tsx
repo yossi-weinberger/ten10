@@ -59,9 +59,9 @@ export const ContactModal = ({ isOpen, onOpenChange }: ContactModalProps) => {
 
   const handleSubmit = async (values: ContactFormValues) => {
     setIsSubmitting(true);
-    try {
-      const isDevChannel = activeTab === "dev";
-      const result = await contactService.submitContactForm({
+    const isDevChannel = activeTab === "dev";
+    const request = contactService
+      .submitContactForm({
         channel: activeTab === "rabbi" ? "halacha" : "dev",
         subject: values.subject,
         body: values.body,
@@ -72,18 +72,24 @@ export const ContactModal = ({ isOpen, onOpenChange }: ContactModalProps) => {
         }),
         userName: user?.user_metadata.full_name,
         userEmail: user?.email,
+      })
+      .then((result) => {
+        if (!result.success) throw new Error(result.error || "Submission failed");
+        return result;
       });
 
-      if (result.success) {
-        toast.success(
-          `${t("forms.successToast")} Ticket ID: ${result.ticketId}`
-        );
-        handleOpenChange(false);
-      } else {
-        throw new Error(result.error || "Submission failed");
-      }
-    } catch (err) {
-      toast.error(t("forms.errorToast"));
+    toast.promise(request, {
+      loading: t("forms.submitting"),
+      success: (result) =>
+        `${t("forms.successToast")} ${t("forms.ticketIdLabel")}: ${result.ticketId}`,
+      error: t("forms.errorToast"),
+    });
+
+    try {
+      await request;
+      handleOpenChange(false);
+    } catch {
+      // Failure toast already shown by toast.promise above.
     } finally {
       setIsSubmitting(false);
     }

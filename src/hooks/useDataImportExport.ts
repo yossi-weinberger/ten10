@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { usePlatform } from "@/contexts/PlatformContext";
 import {
   type DuplicateImportDecision,
