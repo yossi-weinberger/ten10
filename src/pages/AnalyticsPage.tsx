@@ -20,7 +20,6 @@ import { TextInsightsCard } from "@/components/analytics/TextInsightsCard";
 import { TransactionHeatmap } from "@/components/analytics/TransactionHeatmap";
 import { format } from "date-fns";
 import { he, enUS } from "date-fns/locale";
-import { formatHebrewDate } from "@/lib/utils/hebrew-date";
 import { useDonationStore } from "@/lib/store";
 import { generateAnalyticsPdf, computeRecurringTotals } from "@/lib/analytics/export-pdf";
 import { formatCurrency } from "@/lib/utils/currency";
@@ -30,7 +29,6 @@ export function AnalyticsPage() {
   const { t, i18n } = useTranslation("dashboard");
   const { user } = useAuth();
   const { platform } = usePlatform();
-  const settings = useDonationStore((s) => s.settings);
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
@@ -92,11 +90,10 @@ export function AnalyticsPage() {
 
   const formatDate = useCallback(
     (date: Date) => {
-      if (settings.calendarType === "hebrew") return formatHebrewDate(date);
       const locale = i18n.language === "he" ? he : enUS;
       return format(date, "dd/MM/yyyy", { locale });
     },
-    [settings.calendarType, i18n.language]
+    [i18n.language]
   );
 
   const isAllTime = activeDateRangeObject.startDate === "1970-01-01";

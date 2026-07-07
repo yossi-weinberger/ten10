@@ -3,8 +3,6 @@ import { format, parse } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { he, enUS } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
-import { useDonationStore } from "@/lib/store";
-import { HDate } from "@hebcal/core";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -26,7 +24,6 @@ export function DatePicker({
   const [inputValue, setInputValue] = React.useState<string>("");
   const [month, setMonth] = React.useState<Date | undefined>(date);
   const { i18n } = useTranslation();
-  const settings = useDonationStore((state) => state.settings);
 
   React.useEffect(() => {
     if (date && isValidDate(date)) {
@@ -65,12 +62,6 @@ export function DatePicker({
   };
 
   const formatCaption = (date: Date) => {
-    if (settings.calendarType === "hebrew") {
-      const hDate = new HDate(date);
-      // Include month number with month name for Hebrew calendar
-      const monthNumber = hDate.getMonth(); // HDate months are 1-based (Nisan = 1)
-      return `${monthNumber}. ${hDate.getMonthName()} ${hDate.getFullYear()}`;
-    }
     // Use i18n language for locale selection
     const currentLocale = i18n.language === "he" ? he : enUS;
     // Format: "MonthName MonthNumber Year" (e.g., "January 1 2024" or "ינואר 1 2024")
@@ -81,30 +72,17 @@ export function DatePicker({
   };
 
   const formatWeekday = (date: Date) => {
-    if (settings.calendarType === "hebrew") {
-      const days = ["א", "ב", "ג", "ד", "ה", "ו", "ש"];
-      return days[date.getDay()];
-    }
     // Use i18n language for locale selection
     const currentLocale = i18n.language === "he" ? he : enUS;
     return format(date, "EEEEEE", { locale: currentLocale });
   };
 
   const formatDay = (date: Date) => {
-    if (settings.calendarType === "hebrew") {
-      const hDate = new HDate(date);
-      return String(hDate.getDate());
-    }
     return format(date, "d");
   };
 
   // Format month name for dropdown (used when captionLayout="dropdown")
   const formatMonthDropdown = (date: Date) => {
-    if (settings.calendarType === "hebrew") {
-      const hDate = new HDate(date);
-      const monthNumber = hDate.getMonth();
-      return `${monthNumber}. ${hDate.getMonthName()}`;
-    }
     // Use i18n language for locale selection
     const currentLocale = i18n.language === "he" ? he : enUS;
     const monthName = format(date, "LLLL", { locale: currentLocale });
