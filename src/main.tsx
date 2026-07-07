@@ -10,6 +10,11 @@ import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider } from "./contexts/AuthContext";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
+import {
+  capturePostHogPageview,
+  initPostHog,
+  isPostHogSupported,
+} from "./lib/analytics/posthogClient";
 import "./index.css";
 import "./lib/i18n";
 import { unregisterServiceWorkersInTauri } from "./lib/utils/serviceWorkerUtils";
@@ -17,34 +22,32 @@ import { unregisterServiceWorkersInTauri } from "./lib/utils/serviceWorkerUtils"
 // Clean up any stale service workers in Tauri environment
 unregisterServiceWorkersInTauri();
 
-const posthogKey = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN;
-
-if (posthogKey) {
-  posthog.init(posthogKey, {
-    api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
-    capture_pageview: false,
-    capture_pageleave: true,
-  });
-
-  router.subscribe("onResolved", () => {
-    posthog.capture("$pageview");
-  });
+if (isPostHogSupported()) {
+  initPostHog();
+  capturePostHogPageview();
+  router.subscribe("onResolved", capturePostHogPageview);
 }
+
+const appTree = (
+  <ThemeProvider defaultTheme="system" storageKey="Ten10-ui-theme">
+    <PlatformProvider>
+      <TWAProvider>
+        <AuthProvider>
+          <RouterProvider router={router} />
+          <SpeedInsights />
+          <Analytics />
+        </AuthProvider>
+      </TWAProvider>
+    </PlatformProvider>
+  </ThemeProvider>
+);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <PostHogProvider client={posthog}>
-      <ThemeProvider defaultTheme="system" storageKey="Ten10-ui-theme">
-        <PlatformProvider>
-          <TWAProvider>
-            <AuthProvider>
-              <RouterProvider router={router} />
-              <SpeedInsights />
-              <Analytics />
-            </AuthProvider>
-          </TWAProvider>
-        </PlatformProvider>
-      </ThemeProvider>
-    </PostHogProvider>
+    {isPostHogSupported() ? (
+      <PostHogProvider client={posthog}>{appTree}</PostHogProvider>
+    ) : (
+      appTree
+    )}
   </StrictMode>
 );

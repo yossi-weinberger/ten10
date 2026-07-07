@@ -75,9 +75,15 @@ const SignupPage: React.FC = () => {
     let signedUpUserId: string | undefined = undefined;
 
     try {
+      const trimmedFullName = fullName.trim();
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            full_name: trimmedFullName,
+          },
+        },
       });
 
       if (signUpError) throw signUpError;
@@ -89,7 +95,7 @@ const SignupPage: React.FC = () => {
         const { error: updateError } = await supabase
           .from("profiles")
           .update({
-            full_name: fullName,
+            full_name: trimmedFullName,
             mailing_list_consent: mailingListConsent,
           })
           .eq("id", signedUpUserId);

@@ -440,7 +440,7 @@ export function TransactionForm({
         />
 
         {/* Amount, currency and date fields */}
-        <AmountCurrencyDateFields form={form} />
+        <AmountCurrencyDateFields form={form} isRecurring={isRecurringChecked} />
 
         {/* Description and category/recipient fields */}
         <DescriptionCategoryFields form={form} selectedType={selectedType} />

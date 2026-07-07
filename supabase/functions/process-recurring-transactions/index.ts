@@ -7,6 +7,33 @@ const validServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
+// ponytail: mirror src/lib/recurring/recurring-date.utils.ts (advanceMonthly covered by vitest)
+function parseLocalDate(dateStr: string): Date {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function formatLocalDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function advanceMonthly(currentDate: string, dayOfMonth: number): string {
+  const current = parseLocalDate(currentDate);
+  let targetMonth = current.getMonth() + 1;
+  let targetYear = current.getFullYear();
+  if (targetMonth > 11) {
+    targetMonth = 0;
+    targetYear += 1;
+  }
+  const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+  return formatLocalDate(
+    new Date(targetYear, targetMonth, Math.min(dayOfMonth, daysInMonth))
+  );
+}
+
 // Multi-provider exchange rate fetching (same priority as frontend)
 interface RateProvider {
   name: string;
@@ -227,12 +254,6 @@ Deno.serve(async (req) => {
       return rate;
     };
 
-    // Helper to parse "YYYY-MM-DD" string to a Date object at local midnight
-    const parseLocal = (dateStr: string) => {
-      const [year, month, day] = dateStr.split("-").map(Number);
-      return new Date(year, month - 1, day); // Month is 0-indexed in JS Date
-    };
-
     const todayDateObj = new Date();
     todayDateObj.setHours(0, 0, 0, 0);
 
@@ -257,7 +278,7 @@ Deno.serve(async (req) => {
         const defaultCurrency = profile?.default_currency || "ILS";
 
         // Loop variables
-        let currentDueDateObj = parseLocal(rec.next_due_date);
+        let currentDueDateObj = parseLocalDate(rec.next_due_date);
         let executionCount = rec.execution_count;
         let currentStatus = rec.status;
         let processedOccurrences = 0;
@@ -400,16 +421,9 @@ Deno.serve(async (req) => {
 
           // Calculate next date using Logic that respects day_of_month
           if (rec.frequency === "monthly") {
-            const currentMonth = currentDueDateObj.getMonth();
-            currentDueDateObj.setMonth(currentMonth + 1);
-            if (rec.day_of_month) {
-              const y = currentDueDateObj.getFullYear();
-              const m = currentDueDateObj.getMonth();
-              const daysInMonth = new Date(y, m + 1, 0).getDate();
-              currentDueDateObj.setDate(
-                Math.min(rec.day_of_month, daysInMonth)
-              );
-            }
+            const dom = rec.day_of_month ?? currentDueDateObj.getDate();
+            const nextDueStr = advanceMonthly(currentDueDateStr, dom);
+            currentDueDateObj = parseLocalDate(nextDueStr);
           } else if (rec.frequency === "weekly") {
             currentDueDateObj.setDate(currentDueDateObj.getDate() + 7);
           } else if (rec.frequency === "yearly") {

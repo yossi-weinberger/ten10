@@ -11,6 +11,8 @@ import { Quote, ArrowLeft, ArrowRight } from "lucide-react";
 import { testimonials } from "../constants/testimonials";
 import { cn } from "@/lib/utils";
 
+const INITIAL_TESTIMONIAL_INDEX = Math.floor(testimonials.length / 2);
+
 interface TestimonialsSectionProps {
   sectionRef: React.RefObject<HTMLElement | null>;
 }
@@ -24,7 +26,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
   const NextIcon = isRtl ? ArrowLeft : ArrowRight;
 
   const [api, setApi] = useState<CarouselApi | null>(null);
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(INITIAL_TESTIMONIAL_INDEX);
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -43,6 +45,12 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
       api.off("reInit", syncState);
     };
   }, [api]);
+
+  useEffect(() => {
+    if (!api) return;
+    api.reInit();
+    api.scrollTo(INITIAL_TESTIMONIAL_INDEX, true);
+  }, [api, isRtl]);
 
   const scrollTo = useCallback(
     (index: number) => {
@@ -83,15 +91,15 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
             opts={{
               align: "center",
               loop: true,
-              // Keep Embla mechanics LTR, mirroring ScreenshotCarousel.
-              direction: "ltr",
+              startIndex: INITIAL_TESTIMONIAL_INDEX,
+              direction: isRtl ? "rtl" : "ltr",
             }}
             setApi={setApi}
           >
             {/* py-8 gives vertical breathing room for the active card's shadow. */}
             <CarouselContent
-              className="-ml-4 py-8"
-              style={{ direction: "ltr" }}
+              className="py-8 !-ms-4 !ml-0"
+              style={{ direction: isRtl ? "rtl" : "ltr" }}
             >
               {testimonials.map((testimonial, index) => {
                 const isActive = index === selectedIndex;
@@ -99,7 +107,7 @@ export const TestimonialsSection: React.FC<TestimonialsSectionProps> = ({
                   // Fixed height prevents section height from jumping between cards.
                   <CarouselItem
                     key={index}
-                    className="pl-4 basis-[85%] sm:basis-[60%] lg:basis-[38%] h-64 sm:h-60"
+                    className="!ps-4 !pl-0 basis-[85%] sm:basis-[60%] lg:basis-[38%] h-64 sm:h-60"
                   >
                     <div
                       dir={i18n.dir()}

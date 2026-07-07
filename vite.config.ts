@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { VitePWA } from "vite-plugin-pwa";
@@ -112,6 +112,9 @@ export default defineConfig(() => {
       alias: {
         "@": path.resolve(__dirname, "./src"),
       },
+    },
+    test: {
+      include: ["src/**/*.test.ts"],
     },
     server: {
       allowedHosts: [".ngrok-free.app", ".ngrok.io", ".ngrok.app"],

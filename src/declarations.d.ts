@@ -15,6 +15,8 @@ declare module "i18next" {
 // Vite environment variables
 interface ImportMetaEnv {
   readonly VITE_G_ANALYTICS_ID: string;
+  readonly VITE_PUBLIC_POSTHOG_PROJECT_TOKEN?: string;
+  readonly VITE_PUBLIC_POSTHOG_HOST?: string;
 }
 
 interface ImportMeta {

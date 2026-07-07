@@ -25,6 +25,8 @@
     },
     "date": {
       "label": "Date",
+      "startLabel": "Start date",
+      "startHint": "When the standing order takes effect — not the monthly billing day",
       "placeholder": "Select date"
     },
     "description": {

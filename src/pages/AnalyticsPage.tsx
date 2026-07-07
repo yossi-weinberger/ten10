@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -26,6 +26,7 @@ import { formatCurrency } from "@/lib/utils/currency";
 import { formatCategory } from "@/lib/category-registry";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 
 export function AnalyticsPage() {
   const { t, i18n } = useTranslation("dashboard");
@@ -33,6 +34,10 @@ export function AnalyticsPage() {
   const { platform } = usePlatform();
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  useEffect(() => {
+    trackProductEvent("analytics_opened");
+  }, []);
 
   const {
     dateRangeSelection,
@@ -42,6 +47,25 @@ export function AnalyticsPage() {
     customDateRange,
     setCustomDateRange,
   } = useDateControls();
+
+  const handleDateRangeSelection = useCallback(
+    (rangeKey: DateRangeSelectionType) => {
+      setDateRangeSelection(rangeKey);
+      trackProductEvent("analytics_date_range_changed", { preset: rangeKey });
+    },
+    [setDateRangeSelection]
+  );
+
+  const handleCustomDateRangeChange = useCallback(
+    (range: Parameters<typeof setCustomDateRange>[0]) => {
+      setCustomDateRange(range);
+      if (range?.from && range?.to) {
+        setDateRangeSelection("custom");
+        trackProductEvent("analytics_date_range_changed", { preset: "custom" });
+      }
+    },
+    [setCustomDateRange, setDateRangeSelection]
+  );
 
   const {
     serverTotalIncome,
@@ -168,6 +192,10 @@ export function AnalyticsPage() {
 
       if (saved) {
         toast.success(t("analytics.pdfExported"), { id: toastId });
+        trackProductEvent("analytics_pdf_exported", {
+          is_all_time: isAllTime,
+          chart_count: 4,
+        });
       } else {
         // Desktop save dialog closed without saving — not an error, dismiss silently.
         toast.dismiss(toastId);
@@ -199,7 +227,7 @@ export function AnalyticsPage() {
               key={rangeKey}
               variant={dateRangeSelection === rangeKey ? "default" : "outline"}
               size="sm"
-              onClick={() => setDateRangeSelection(rangeKey)}
+              onClick={() => handleDateRangeSelection(rangeKey)}
               className={
                 dateRangeSelection !== rangeKey
                   ? "bg-transparent text-foreground hover:bg-muted/50"
@@ -211,10 +239,7 @@ export function AnalyticsPage() {
           ))}
         <DatePickerWithRange
           date={customDateRange}
-          onDateChange={(range) => {
-            setCustomDateRange(range);
-            if (range?.from && range?.to) setDateRangeSelection("custom");
-          }}
+          onDateChange={handleCustomDateRangeChange}
           triggerButton={
             <Button
               variant={dateRangeSelection === "custom" ? "default" : "outline"}

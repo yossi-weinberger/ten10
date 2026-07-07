@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 import { logger } from "@/lib/logger";
 import { usePlatform } from "@/contexts/PlatformContext";
+import { syncPostHogUserIdentity } from "@/lib/analytics/posthogIdentity.service";
 
 export function ProfilePage() {
   const { t, i18n } = useTranslation(["auth", "common"]);
@@ -123,6 +124,7 @@ export function ProfilePage() {
       if (fullNameChanged || emailChanged) {
         toast.success(t("profile.personalDetails.saveSuccess"));
         setUserInfoRefreshKey((prev) => prev + 1);
+        void syncPostHogUserIdentity(user, i18n.language);
       }
     } catch (error: any) {
       logger.error("Error updating profile details:", error);

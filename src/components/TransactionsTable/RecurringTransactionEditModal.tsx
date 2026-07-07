@@ -53,7 +53,7 @@ export function RecurringTransactionEditModal({
         day_of_month: values.day_of_month ?? undefined,
         total_occurrences: values.total_occurrences ?? undefined,
       };
-      await updateRecurringTransaction(transaction!.id, updateValues);
+      await updateRecurringTransaction(transaction!.id, updateValues, transaction!);
 
       // Close modal first to avoid race condition with Portal cleanup
       onClose();

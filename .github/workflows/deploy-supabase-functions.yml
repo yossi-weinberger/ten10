@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - "supabase/functions/**"
+      - "supabase/config.toml"
+      - "supabase/scripts/deploy-changed-functions.sh"
+      - ".github/workflows/deploy-supabase-functions.yml"
 
 jobs:
   deploy:
@@ -13,24 +16,25 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
         with:
-          node-version: "24"
+          fetch-depth: 0
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.99.0
 
-      - name: Deploy Functions
-        run: |
-          # Deploy JWT-protected functions (default behavior: verify_jwt = true)
-          supabase functions deploy send-reminder-emails send-contact-email send-new-user-email verify-captcha verify-unsubscribe-token process-recurring-transactions --project-ref flpzqbvbymoluoeeeofg
-
-          # Cloudflare Email Routing authenticates via shared secret, not Supabase JWT
-          # This function MUST be deployed with verify_jwt disabled.
-          supabase functions deploy process-email-request --no-verify-jwt --project-ref flpzqbvbymoluoeeeofg
+      - name: Plan changed functions
+        id: plan
         env:
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: bash supabase/scripts/deploy-changed-functions.sh --plan-only
+
+      - name: Deploy changed functions
+        if: steps.plan.outputs.deploy == 'true'
+        env:
+          GITHUB_EVENT_BEFORE: ${{ github.event.before }}
+          GITHUB_SHA: ${{ github.sha }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: bash supabase/scripts/deploy-changed-functions.sh
