@@ -165,7 +165,6 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── PlatformIndicator.tsx
 │   │   │   └── Sidebar.tsx
 │   │   ├── settings/
-│   │   │   ├── CalendarSettingsCard.tsx
 │   │   │   ├── ClearDataSection.tsx
 │   │   │   ├── FinancialSettingsCard.tsx
 │   │   │   ├── ImportExportDataSection.tsx
@@ -293,7 +292,6 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── export-pdf.ts
 │   │   │   ├── save-export-file.ts            # Tauri save dialog vs web download for exports
 │   │   │   ├── formatting.tsx
-│   │   │   ├── hebrew-date.ts
 │   │   │   ├── index.ts
 │   │   │   └── pdf-helpers.ts               # Shared PDF utilities: drawRtlText, splitTextSegments
 │   │   └── utils.ts

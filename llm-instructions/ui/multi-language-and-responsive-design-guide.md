@@ -612,11 +612,10 @@ The following sections detail necessary changes for specific components and page
 
 - **Localization:**
   - **Month Names:** The component uses `formatMonthDropdown` and `formatYearDropdown` formatters to display localized month names in dropdowns:
-    - For Hebrew calendar: Shows Hebrew month names with month number (e.g., "1. טבת")
-    - For Gregorian calendar: Uses `date-fns` with `he` or `enUS` locale based on `i18n.language`
-    - Month dropdown format: `${monthNumber}. ${monthName}` (e.g., "1. January 2024" or "1. טבת 5785")
-  - **Date Formatting:** Uses `formatDate` helper that respects both calendar type (Hebrew/Gregorian) and language settings
-  - **Weekday Names:** Uses `formatWeekday` that respects calendar type and language
+    - Uses `date-fns` with `he` or `enUS` locale based on `i18n.language`
+    - Month dropdown format: `${monthNumber}. ${monthName}` (e.g., "1. January 2024")
+  - **Date Formatting:** Uses `formatDate` helper that respects the language setting
+  - **Weekday Names:** Uses `formatWeekday` that respects the language setting
   - **Default Text:** Uses translation key `t("datePicker.selectDateRange")` instead of hardcoded Hebrew text
 - **Range Selection Behavior:**
   - **Mode:** Uses `mode="range"` from `react-day-picker`
@@ -796,22 +795,10 @@ const getAuthErrorMessage = (error: any) => {
 
 ### 2. Localized Date Picker
 
-We enhanced `src/components/ui/date-picker.tsx` to fully support localization, including Hebrew calendar integration.
+We enhanced `src/components/ui/date-picker.tsx` to fully support localization.
 
 - **Format:** Displays dates as `DD/MM/YYYY`.
 - **Dropdowns:** Month and year selection dropdowns are localized.
-- **Hebrew Calendar:** When the app is set to Hebrew calendar mode, the date picker displays Hebrew months and days.
-
-```typescript
-// Example usage in DatePicker
-const formatCaption = (date: Date) => {
-  if (settings.calendarType === "hebrew") {
-    const hDate = new HDate(date);
-    return `${hDate.getMonthName()} ${hDate.getFullYear()}`;
-  }
-  // ... Gregorian fallback
-};
-```
 
 This guide provides a roadmap. Each step will require careful implementation and testing.
 
