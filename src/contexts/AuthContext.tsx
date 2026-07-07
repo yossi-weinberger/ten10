@@ -35,64 +35,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
-  // const [isDataLoading, setIsDataLoading] = useState(false); // REMOVE if loadAndSetTransactionsInternal is removed and not used otherwise
   const [initialForcedLoadDone, setInitialForcedLoadDone] = useState(false);
   const { platform } = usePlatform();
   const hasHydrated = useDonationStore((state) => state._hasHydrated);
   const lastDbFetchTimestampFromStore = useDonationStore(
     (state) => state.lastDbFetchTimestamp
   );
-
-  // REMOVE THE ENTIRE loadAndSetTransactionsInternal function block
-  /*
-  const loadAndSetTransactionsInternal = async (
-    userForLoad: SupabaseUser | null
-  ) => {
-    if (!userForLoad) {
-      logger.error(
-        "AuthContext: loadAndSetTransactionsInternal called with null user. Aborting."
-      );
-      useDonationStore.setState({
-        lastDbFetchTimestamp: null,
-      });
-      return;
-    }
-    if (platform === "loading") {
-      logger.warn(
-        "AuthContext: loadAndSetTransactionsInternal called while platform is loading. Aborting."
-      );
-      return;
-    }
-    // if (isDataLoading) { // This check would also be removed
-    //   logger.log(
-    //     "AuthContext: loadAndSetTransactionsInternal - prevented re-entry as isDataLoading is true"
-    //   );
-    //   return;
-    // }
-
-    logger.log(
-      "AuthContext: Initiating data load sequence for user:",
-      userForLoad.id
-    );
-    // setIsDataLoading(true); // REMOVE
-
-    try {
-      await loadTransactions(platform === "web" ? userForLoad.id : undefined); // loadTransactions itself will be removed from dataService
-
-      useDonationStore.setState({
-        lastDbFetchTimestamp: Date.now(),
-      });
-      logger.log(
-        "AuthContext: loadTransactions call completed and lastDbFetchTimestamp updated."
-      );
-    } catch (error) {
-      logger.error("AuthContext: Error during data loading sequence:", error);
-      toast.error(t("common.dataLoadError", "Error loading data."));
-    } finally {
-      // setIsDataLoading(false); // REMOVE
-    }
-  };
-  */
 
   // Effect for initial session check and onAuthStateChange listener setup
   useEffect(() => {
@@ -136,15 +84,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return () => {
       logger.log("AuthContext: Unsubscribing auth listener.");
       authListener?.subscription.unsubscribe();
-      // Cleanup realtime subscription on component unmount as well - REMOVED
-      // useTableTransactionsStore.getState().cleanupRealtimeSubscription();
     };
   }, []);
 
   // New useEffect for DATA LOADING AND REALTIME SUBSCRIPTION based on user and platform state
   useEffect(() => {
-    // const { setupRealtimeSubscription, cleanupRealtimeSubscription } = // REMOVED
-    //   useTableTransactionsStore.getState(); // REMOVED
     logger.log(
       `AuthContext: Data loading effect (Realtime REMOVED). User: ${!!user}, Platform: ${platform}, Hydrated: ${hasHydrated}, Timestamp: ${lastDbFetchTimestampFromStore}, InitialForcedLoadDone: ${initialForcedLoadDone}`
     );
@@ -156,57 +100,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Main data loading decision logic starts here
     if (user && hasHydrated) {
-      /* // START: TEMPORARILY COMMENT OUT ORIGINAL FRESHNESS LOGIC
-      const shouldForceFetchFromDb =
-        sessionStorage.getItem("forceDbFetchOnLoad") === "true";
-
-      if (shouldForceFetchFromDb) {
-        sessionStorage.removeItem("forceDbFetchOnLoad");
-        logger.log(
-          "AuthContext: 'forceDbFetchOnLoad' flag found (new login), initiating DB load."
-        );
-        loadAndSetTransactionsInternal(user);
-      } else {
-        // Not a new login, check timestamp
-        if (
-          lastDbFetchTimestampFromStore === null ||
-          typeof lastDbFetchTimestampFromStore === "undefined"
-        ) {
-          const currentTransactions = useDonationStore.getState().transactions;
-          if (currentTransactions.length === 0) {
-            logger.log(
-              "AuthContext: No timestamp from store hook YET OR it's genuinely null, AND no transactions. Attempting DB load as a precaution."
-            );
-            loadAndSetTransactionsInternal(user);
-          } else {
-            logger.log(
-              "AuthContext: No timestamp from store hook YET OR it's genuinely null, but transactions exist. Assuming fresh from persist, will re-eval if timestamp updates."
-            );
-          }
-          return; 
-        }
-
-        // Timestamp is available and is a number, proceed with staleness check
-        const oneDayInMillis = 24 * 60 * 60 * 1000; // 1 day
-        if (Date.now() - lastDbFetchTimestampFromStore > oneDayInMillis) {
-          logger.log(
-            "AuthContext: Data may be stale (older than 1 day based on store hook), initiating DB load."
-          );
-          loadAndSetTransactionsInternal(user);
-        } else {
-          logger.log(
-            "AuthContext: Data in Zustand is considered fresh enough (based on store hook), skipping DB load."
-          );
-        }
-      }
-      // END: TEMPORARILY COMMENT OUT ORIGINAL FRESHNESS LOGIC */
-
       // --- START: NEW TEMPORARY LOGIC TO FORCE LOAD (NOW MODIFIED) ---
       if (!initialForcedLoadDone) {
         logger.log(
           "AuthContext: Initial data load sequence (e.g., for settings or timestamp) - loadAndSetTransactionsInternal call REMOVED. Only setting initialForcedLoadDone."
         );
-        // loadAndSetTransactionsInternal(user); // REMOVE THIS CALL
         // If loadAndSetTransactionsInternal had other purposes like setting lastDbFetchTimestamp, that logic might need to be moved or called differently.
         // For now, we assume its primary goal (populating global transactions) is gone.
         // We might still want to update lastDbFetchTimestamp on login, but not necessarily by loading all transactions.
@@ -235,37 +133,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } else if (!user && platform === "web") {
       // User logged out or no user on web, ensure cleanup
       logger.log("AuthContext: No user on web. (Realtime cleanup REMOVED)");
-      // cleanupRealtimeSubscription(); // REMOVED
     }
-
-    // Setup realtime subscription if user is logged in on web - REMOVED
-    // if (user && platform === "web") {
-    //   logger.log(
-    //     "AuthContext: Setting up realtime subscription for user:",
-    //     user.id
-    //   );
-    //   // setupRealtimeSubscription(user.id);
-    // } else {
-    //   // Cleanup if not on web or no user (this might be redundant due to the above else if, but safe)
-    //   // cleanupRealtimeSubscription(); // REMOVED
-    // }
-
-    // Cleanup function for this useEffect - REMOVED Realtime part
-    // return () => {
-    //   if (platform === "web") {
-    //     // Only cleanup if it might have been set up
-    //     logger.log(
-    //       "AuthContext: useEffect cleanup for realtime subscription."
-    //     );
-    //     // cleanupRealtimeSubscription(); // REMOVED
-    //   }
-    // };
   }, [
     user,
     platform,
-    // isDataLoading, // Removed: Realtime setup should not depend on data loading state
     hasHydrated,
-    // lastDbFetchTimestampFromStore, // Removed: Realtime setup should not depend on data freshness timestamp
     initialForcedLoadDone,
   ]);
 
