@@ -411,10 +411,13 @@ function DebugTooltip() {
 
 ```tsx
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 function App() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const { i18n } = useTranslation();
 
   return (
     <TooltipProvider>
@@ -438,7 +441,12 @@ function App() {
           </main>
         </div>
 
-        <Toaster richColors />
+        {/* Opposite corner from ContactFAB (which sits on the reading-start side) to avoid overlap in both directions. */}
+        <Toaster
+          richColors
+          closeButton
+          position={i18n.dir() === "rtl" ? "bottom-right" : "bottom-left"}
+        />
       </div>
     </TooltipProvider>
   );

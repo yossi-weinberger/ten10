@@ -24,6 +24,10 @@ This document outlines the main technologies and conventions used in this projec
 - **UI Components**: **shadcn/ui** - This is the primary component library, built on top of Radix UI and styled with Tailwind CSS. Prefer using existing `shadcn/ui` components or building new ones following its patterns. Key dependencies include `@radix-ui/react-*`, `class-variance-authority`, `clsx`, `tailwind-merge`, and `tailwindcss-animate`.
 - **Styling**: **Tailwind CSS** - Utility-first CSS framework. Configuration is in `tailwind.config.js` and `postcss.config.js`. Use Tailwind utility classes for styling. The project leverages Tailwind's built-in support for `rtl:` variants, which are automatically active when the HTML `dir` attribute is set to `rtl`.
 - **Icons**: **Lucide Icons (`lucide-react`)** - Preferred icon library. Note the exclusion from Vite's `optimizeDeps` in `vite.config.ts`.
+- **Toast Notifications**: **`sonner`** (via the wrapper `src/components/ui/sonner.tsx`) - The single toast library used across the app. Do not add `react-hot-toast` or the unused Radix `toast`/`toaster` primitives back in; `sonner` was consolidated as the only toast implementation.
+  - Import with `import { toast } from "sonner"`.
+  - The global `<Toaster>` lives in `App.tsx`. Its `theme` prop is wired to the app's own `useTheme` (`@/lib/theme`), **not** `next-themes` (not installed/used). Its `position` is chosen dynamically based on `i18n.dir()` (`bottom-right` for RTL, `bottom-left` for LTR) so it never overlaps the `ContactFAB`, which sits in the opposite corner.
+  - Use the semantically correct call for the situation, not just `success`/`error`: `toast.warning` for client-side validation guards (e.g. password mismatch), `toast.info` for informational notices (e.g. "update available"), a bare `toast()` for neutral events like a user-initiated cancellation, and `toast.promise` (or a manual `toast.loading(...)` id updated to `success`/`error`) for async operations instead of a spinner baked into the button.
 
 ### RTL/LTR Implementation Strategy
 

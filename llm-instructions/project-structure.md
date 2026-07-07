@@ -244,8 +244,6 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── table.tsx
 │   │   │   ├── tabs.tsx
 │   │   │   ├── textarea.tsx
-│   │   │   ├── toast.tsx
-│   │   │   ├── toaster.tsx
 │   │   │   ├── toggle-group.tsx
 │   │   │   ├── toggle.tsx
 │   │   │   └── tooltip.tsx
