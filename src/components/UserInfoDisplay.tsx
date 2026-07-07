@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchUserProfileDisplay } from "@/lib/data-layer/profile.service";
+import { getErrorMessage } from "@/lib/utils/error-message";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -56,7 +57,7 @@ export function UserInfoDisplay() {
       } catch (err: unknown) {
         logger.error("Error fetching profile:", err);
         if (isMounted) {
-          setError(err instanceof Error ? err.message : t("profile.loadError"));
+          setError(getErrorMessage(err) ?? t("profile.loadError"));
         }
       } finally {
         if (isMounted) {
