@@ -32,6 +32,10 @@ tauri-plugin-updater = { version = "2.10", default-features = false, features = 
 tauri-plugin-clipboard-manager = "2.1.0"
 tauri-plugin-stronghold = "2.3.1"
 
+[dev-dependencies]
+# "test" feature enables tauri::test::mock_app for command-handler tests only
+tauri = { version = "2.10", features = ["test"] }
+
 [features]
 custom-protocol = ["tauri/custom-protocol"]
 

@@ -56,7 +56,6 @@ The application follows a clear strategy for handling text directionality:
 
 - **Date/Time**:
   - **`date-fns`**: For general date manipulations.
-  - **`@hebcal/core`**: For Hebrew calendar calculations.
   - **`react-day-picker`**: Used for date range selection (integrated via `shadcn/ui`).
 - **Data Export**:
   - **`exceljs`**: For generating Excel files.

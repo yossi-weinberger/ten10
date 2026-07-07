@@ -8,4 +8,3 @@ export function cn(...inputs: ClassValue[]) {
 export * from "./currency";
 export * from "./export-excel";
 export * from "./export-pdf";
-export * from "./hebrew-date";

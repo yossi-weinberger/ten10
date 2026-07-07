@@ -7,11 +7,9 @@ import { logger } from "./logger";
 
 export type { TransactionCurrency as Currency };
 
-export type CalendarType = "gregorian" | "hebrew";
 export type Language = "he" | "en";
 
 export interface Settings {
-  calendarType: CalendarType;
   theme: "light" | "dark" | "system";
   language: Language;
   defaultCurrency: TransactionCurrency;
@@ -69,7 +67,6 @@ export interface DonationState {
 }
 
 const defaultSettings: Settings = {
-  calendarType: "gregorian",
   theme: "system",
   language: "he",
   defaultCurrency: "ILS",

@@ -29,7 +29,6 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { he, enUS } from "date-fns/locale";
-import { formatHebrewDate } from "@/lib/utils/hebrew-date";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { useEffect, useMemo, useState } from "react";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
@@ -81,12 +80,7 @@ export function StatsCards({
     setCustomDateRange,
   } = useDateControls();
 
-  const settings = useDonationStore((state) => state.settings);
-
   const formatDate = (date: Date) => {
-    if (settings.calendarType === "hebrew") {
-      return formatHebrewDate(date);
-    }
     // Use i18n language for locale selection
     const currentLocale = i18n.language === "he" ? he : enUS;
     return format(date, "dd/MM/yyyy", { locale: currentLocale });

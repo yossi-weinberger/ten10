@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/lib/supabaseClient";
+import { fetchUserProfileDisplay } from "@/lib/data-layer/profile.service";
+import { getErrorMessage } from "@/lib/utils/error-message";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -46,47 +47,17 @@ export function UserInfoDisplay() {
 
     async function fetchProfile() {
       try {
-        const {
-          data,
-          error: fetchError,
-          status,
-        } = await supabase
-          .from("profiles")
-          .select(`full_name, avatar_url`)
-          .eq("id", session!.user.id)
-          .single();
-
-        if (fetchError && status !== 406) {
-          throw fetchError;
-        }
+        const { fullName, avatarUrl } = await fetchUserProfileDisplay(session!.user.id);
 
         if (isMounted) {
-          setFullName(data?.full_name || null);
+          setFullName(fullName);
           setAvatarError(false); // Reset error state
-
-          // Handle avatar_url - could be a full URL or a Storage path
-          if (data?.avatar_url) {
-            // If it's already a full URL (starts with http/https), use it directly
-            if (
-              data.avatar_url.startsWith("http://") ||
-              data.avatar_url.startsWith("https://")
-            ) {
-              setAvatarUrl(data.avatar_url);
-            } else {
-              // Otherwise, it's a Storage path - get public URL from 'avatars' bucket
-              const { data: urlData } = supabase.storage
-                .from("avatars")
-                .getPublicUrl(data.avatar_url);
-              setAvatarUrl(urlData.publicUrl);
-            }
-          } else {
-            setAvatarUrl(null);
-          }
+          setAvatarUrl(avatarUrl);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         logger.error("Error fetching profile:", err);
         if (isMounted) {
-          setError(err.message || t("profile.loadError"));
+          setError(getErrorMessage(err) ?? t("profile.loadError"));
         }
       } finally {
         if (isMounted) {

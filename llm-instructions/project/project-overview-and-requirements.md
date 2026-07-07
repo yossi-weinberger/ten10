@@ -45,7 +45,7 @@ In both platforms, data is loaded from the respective database (Supabase for web
   - Automatic conversion to the user's Default Currency (e.g., ILS) for aggregation and reporting.
   - Conversion rates are fetched from a live API (with manual fallback for offline/custom scenarios).
   - Original transaction details (amount, currency, rate) are preserved.
-- **Calendar**: Support for Gregorian and Hebrew calendars.
+- **Calendar**: Gregorian calendar.
 
 ## Pages / Views
 

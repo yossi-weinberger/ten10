@@ -3,6 +3,28 @@ import { getPlatform } from "../platformManager";
 import { logger } from "@/lib/logger";
 import { RecurringTransaction } from "@/types/transaction";
 
+/**
+ * Runs the web or desktop implementation for the current platform, with the
+ * shared error-logging/fallback shell every export in this file repeats.
+ * Deliberately does NOT touch the web/desktop bodies themselves — those
+ * differ by design (RLS-scoped RPC params vs local Tauri invoke args).
+ */
+async function fetchByPlatform<T>(
+  label: string,
+  handlers: { web: () => Promise<T>; desktop: () => Promise<T> },
+  fallback: T
+): Promise<T> {
+  const platform = getPlatform();
+  try {
+    if (platform === "web") return await handlers.web();
+    if (platform === "desktop") return await handlers.desktop();
+  } catch (err) {
+    logger.error(`InsightsService: ${label} failed:`, err);
+    throw err;
+  }
+  return fallback;
+}
+
 // ─── Active Recurring Transactions ───────────────────────────────────────────
 
 async function fetchActiveRecurringWeb(): Promise<RecurringTransaction[]> {
@@ -36,15 +58,11 @@ async function fetchActiveRecurringDesktop(): Promise<RecurringTransaction[]> {
 }
 
 export async function fetchActiveRecurring(): Promise<RecurringTransaction[]> {
-  const platform = getPlatform();
-  try {
-    if (platform === "web") return await fetchActiveRecurringWeb();
-    if (platform === "desktop") return await fetchActiveRecurringDesktop();
-  } catch (err) {
-    logger.error("InsightsService: fetchActiveRecurring failed:", err);
-    throw err;
-  }
-  return [];
+  return fetchByPlatform(
+    "fetchActiveRecurring",
+    { web: fetchActiveRecurringWeb, desktop: fetchActiveRecurringDesktop },
+    []
+  );
 }
 
 // ─── Combined breakdowns bundle ───────────────────────────────────────────────
@@ -92,15 +110,14 @@ export async function fetchAnalyticsBreakdowns(
   startDate: string,
   endDate: string
 ): Promise<AnalyticsBreakdownsBundle> {
-  const platform = getPlatform();
-  try {
-    if (platform === "web")     return await fetchAnalyticsBreakdownsWeb(startDate, endDate);
-    if (platform === "desktop") return await fetchAnalyticsBreakdownsDesktop(startDate, endDate);
-  } catch (err) {
-    logger.error("InsightsService: fetchAnalyticsBreakdowns failed:", err);
-    throw err;
-  }
-  return { payment_methods: [], recurring_vs_onetime: [], recipients: [] };
+  return fetchByPlatform(
+    "fetchAnalyticsBreakdowns",
+    {
+      web: () => fetchAnalyticsBreakdownsWeb(startDate, endDate),
+      desktop: () => fetchAnalyticsBreakdownsDesktop(startDate, endDate),
+    },
+    { payment_methods: [], recurring_vs_onetime: [], recipients: [] }
+  );
 }
 
 // ─── Heatmap ──────────────────────────────────────────────────────────────────
@@ -178,15 +195,14 @@ export async function fetchCategoryBreakdown(
   endDate: string,
   type: CategoryType
 ): Promise<CategoryBreakdownResponse> {
-  const platform = getPlatform();
-  try {
-    if (platform === "web")     return await fetchCategoryBreakdownWeb(startDate, endDate, type);
-    if (platform === "desktop") return await fetchCategoryBreakdownDesktop(startDate, endDate, type);
-  } catch (err) {
-    logger.error("InsightsService: fetchCategoryBreakdown failed:", err);
-    throw err;
-  }
-  return [];
+  return fetchByPlatform(
+    "fetchCategoryBreakdown",
+    {
+      web: () => fetchCategoryBreakdownWeb(startDate, endDate, type),
+      desktop: () => fetchCategoryBreakdownDesktop(startDate, endDate, type),
+    },
+    []
+  );
 }
 
 // ─── 3. Daily Transaction Heatmap ────────────────────────────────────────────
@@ -228,13 +244,12 @@ export async function fetchDailyHeatmap(
   endDate: string,
   typeGroup: HeatmapTypeGroup = "all"
 ): Promise<DailyHeatmapResponse> {
-  const platform = getPlatform();
-  try {
-    if (platform === "web")     return await fetchDailyHeatmapWeb(startDate, endDate, typeGroup);
-    if (platform === "desktop") return await fetchDailyHeatmapDesktop(startDate, endDate, typeGroup);
-  } catch (err) {
-    logger.error("InsightsService: fetchDailyHeatmap failed:", err);
-    throw err;
-  }
-  return [];
+  return fetchByPlatform(
+    "fetchDailyHeatmap",
+    {
+      web: () => fetchDailyHeatmapWeb(startDate, endDate, typeGroup),
+      desktop: () => fetchDailyHeatmapDesktop(startDate, endDate, typeGroup),
+    },
+    []
+  );
 }
