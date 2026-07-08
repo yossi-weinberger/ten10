@@ -194,9 +194,7 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── RecurringForecastInsight.tsx  # Active standing orders by type tab
 │   │   │   ├── RecurringRatioInsight.tsx     # % recurring vs one-time per type
 │   │   │   ├── TextInsightsCard.tsx          # Rule-based auto-generated text insights
-│   │   │   ├── TransactionHeatmap.tsx        # GitHub-style daily activity heatmap
-│   │   │   ├── CashFlowInsight.tsx           # (built, not currently used in AnalyticsPage)
-│   │   │   └── TitheSummaryInsight.tsx       # (built, not currently used in AnalyticsPage)
+│   │   │   └── TransactionHeatmap.tsx        # GitHub-style daily activity heatmap
 │   │   ├── ui/            # shadcn/ui components and other generic UI elements
 │   │   │   ├── accordion.tsx
 │   │   │   ├── alert-dialog.tsx
