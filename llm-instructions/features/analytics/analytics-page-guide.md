@@ -171,10 +171,6 @@ The actual prior-period dates are passed as `prevPeriodStart`/`prevPeriodEnd` to
 - Pie colors: yellow/amber gradient
 - `id="pdf-chart-donations"` for PDF capture
 
-### CashFlowInsight, TitheSummaryInsight
-
-These components exist in `src/components/analytics/` but are **not currently used** in `AnalyticsPage.tsx`. They were built as alternatives and may be reintroduced in future.
-
 ---
 
 ## Hooks

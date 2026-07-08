@@ -98,7 +98,7 @@ Output files will be in `src-tauri/target/release/bundle/`.
 - `src/`: Frontend React/TypeScript source code.
   - `components/`: Reusable UI components.
   - `contexts/`: React Context providers (e.g., `PlatformContext`).
-  - `lib/`: Utility functions, services (`dataService.ts`, `store.ts`), and core logic (`tithe-calculator.ts`).
+  - `lib/`: Utility functions, state (`store.ts`), and backend-access services (`data-layer/`).
   - `pages/`: Page-level components.
   - `types/`: TypeScript type definitions (e.g., `Transaction.ts`).
   - `main.tsx`: Application entry point.
@@ -126,15 +126,15 @@ All financial events (income, expenses, donations) are represented by a single `
 
 ### State Management
 
-Zustand (`src/lib/store.ts`) is used for global state management. The primary piece of state is the `transactions: Transaction[]` array, which holds all financial records. Key statistics and the required tithe balance are fetched from the server (Supabase RPC or Tauri/SQLite); client-side selectors such as `selectCalculatedBalance` remain available for fallback and compatibility.
+Zustand (`src/lib/store.ts`) is used for global state management: user settings and the server-calculated tithe/income/expense/donation figures. There is no client-side transactions array or client-side balance calculation — all financial totals are computed server-side (Supabase RPC for web, SQLite via Tauri commands for desktop) and read directly into the store.
 
 ### Data Flow
 
-Data is loaded from the respective database into the Zustand store on application startup (conditional on user authentication for the web version). UI interactions manipulate the Zustand store, and changes are persisted back to the database via `dataService.ts`.
+All backend reads and writes go through `src/lib/data-layer/` (a set of per-domain services, e.g. `transactions.service.ts`, `stats.service.ts`), which branch by platform to call either a Supabase RPC or a Tauri command. UI interactions call these services directly or update the Zustand store with the results.
 
 ### Data Import/Export (Desktop)
 
-The desktop application supports exporting all transaction data to a JSON file and importing data from such a file, overwriting existing data after user confirmation. This functionality is managed in `src/lib/dataManagement.ts` and accessible via the Settings page.
+The desktop application supports exporting all transaction data to a JSON file and importing data from such a file, overwriting existing data after user confirmation. This functionality is managed in `src/lib/data-layer/dataManagement/` and accessible via the Settings page.
 
 ## Multi-Language, Theming, and Responsiveness
 
