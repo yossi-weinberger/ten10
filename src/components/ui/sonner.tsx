@@ -32,14 +32,20 @@ const Toaster = ({ ...props }: ToasterProps) => {
             'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground',
           cancelButton:
             'group-[.toast]:bg-muted group-[.toast]:text-muted-foreground',
+          // `!` forces these to win over the base `toast` background/border above —
+          // both target the same properties with equal specificity, so without `!`
+          // the winner is undefined.
+          // `color-mix()` (not a plain `/10` opacity) so the result is a fully opaque
+          // solid color — a toast floats over arbitrary content, so a translucent
+          // background would let whatever's behind it bleed through.
           success:
-            'group-[.toaster]:bg-success/10 group-[.toaster]:border-success/25',
+            'group-[.toaster]:!bg-[color-mix(in_srgb,hsl(var(--success))_10%,hsl(var(--background)))] group-[.toaster]:!border-[color-mix(in_srgb,hsl(var(--success))_30%,hsl(var(--background)))]',
           error:
-            'group-[.toaster]:bg-destructive/10 group-[.toaster]:border-destructive/25',
+            'group-[.toaster]:!bg-[color-mix(in_srgb,hsl(var(--destructive))_10%,hsl(var(--background)))] group-[.toaster]:!border-[color-mix(in_srgb,hsl(var(--destructive))_30%,hsl(var(--background)))]',
           warning:
-            'group-[.toaster]:bg-warning/10 group-[.toaster]:border-warning/25',
+            'group-[.toaster]:!bg-[color-mix(in_srgb,hsl(var(--warning))_10%,hsl(var(--background)))] group-[.toaster]:!border-[color-mix(in_srgb,hsl(var(--warning))_30%,hsl(var(--background)))]',
           info:
-            'group-[.toaster]:bg-info/10 group-[.toaster]:border-info/25',
+            'group-[.toaster]:!bg-[color-mix(in_srgb,hsl(var(--info))_10%,hsl(var(--background)))] group-[.toaster]:!border-[color-mix(in_srgb,hsl(var(--info))_30%,hsl(var(--background)))]',
         },
       }}
       {...props}

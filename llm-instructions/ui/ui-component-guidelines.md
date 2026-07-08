@@ -414,9 +414,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 function App() {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const isDesktopSidebarVisible = useMediaQuery("(min-width: 768px)");
   const { i18n } = useTranslation();
 
   return (
@@ -441,11 +443,22 @@ function App() {
           </main>
         </div>
 
-        {/* Opposite corner from ContactFAB (which sits on the reading-start side) to avoid overlap in both directions.
+        {/* Same side as the persistent Sidebar (reading-start side: right in RTL, left in
+            LTR), shifted inward by the sidebar's actual current width (collapsed w-16 by
+            default, or expanded w-44 while hovered) so it never renders on top of it. 0 extra
+            clearance below `md`, where the sidebar doesn't exist (replaced by the mobile Sheet).
+            This also keeps it clear of ContactFAB, which sits on the opposite side.
             No `richColors` — success/error/warning/info are styled with the app's own brand tokens in components/ui/sonner.tsx. */}
         <Toaster
           closeButton
           position={i18n.dir() === "rtl" ? "bottom-right" : "bottom-left"}
+          offset={{
+            [i18n.dir() === "rtl" ? "right" : "left"]: !isDesktopSidebarVisible
+              ? "1.5rem"
+              : isSidebarExpanded
+                ? "12.5rem" // 1.5rem gap + w-44 (11rem)
+                : "5.5rem", // 1.5rem gap + w-16 (4rem)
+          }}
         />
       </div>
     </TooltipProvider>

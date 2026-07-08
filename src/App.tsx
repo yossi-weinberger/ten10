@@ -41,6 +41,7 @@ import {
 } from "./lib/security/appLock.service";
 import { DesktopLockScreen } from "./components/security/DesktopLockScreen";
 import { useSettingsSync } from "./hooks/useSettingsSync";
+import { useMediaQuery } from "./hooks/use-media-query";
 
 export type DesktopLockStatus =
   | null
@@ -49,6 +50,8 @@ export type DesktopLockStatus =
 function App() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  // Persistent desktop Sidebar is `hidden md:block` — below `md` it doesn't exist at all.
+  const isDesktopSidebarVisible = useMediaQuery("(min-width: 768px)");
   // Web is ready immediately (no DB init needed), desktop needs async initialization
   // @ts-expect-error __TAURI_INTERNALS__ is injected by Tauri
   const [isAppReady, setIsAppReady] = useState(() => !window.__TAURI_INTERNALS__);
@@ -415,11 +418,22 @@ function App() {
           </main>
           {shouldShowFooter && <Footer />}
         </div>
-        {/* Opposite corner from ContactFAB (which sits on the reading-start side) to avoid overlap in both directions.
+        {/* Same side as the persistent Sidebar (reading-start side: right in RTL, left in
+            LTR), shifted inward by the sidebar's actual current width (collapsed w-16 by
+            default, or expanded w-44 while hovered) so it never renders on top of it. 0 extra
+            clearance below `md`, where the sidebar doesn't exist (replaced by the mobile Sheet).
+            This also keeps it clear of ContactFAB, which sits on the opposite side.
             No `richColors` — success/error/warning/info are styled with the app's own brand tokens in components/ui/sonner.tsx. */}
         <Toaster
           closeButton
           position={i18n.dir() === "rtl" ? "bottom-right" : "bottom-left"}
+          offset={{
+            [i18n.dir() === "rtl" ? "right" : "left"]: !isDesktopSidebarVisible
+              ? "1.5rem"
+              : isSidebarExpanded
+                ? "12.5rem" // 1.5rem gap + w-44 (11rem)
+                : "5.5rem", // 1.5rem gap + w-16 (4rem)
+          }}
         />
       </div>
       {shouldShowContactFab && <ContactFAB />}
