@@ -14,7 +14,6 @@ import {
 } from "@/lib/schemas";
 import { TransactionType } from "@/types/transaction";
 import { Form } from "@/components/ui/form";
-// import { CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TransactionTypeSelector } from "./transaction-form-parts/TransactionTypeSelector";
 import { AmountCurrencyDateFields } from "./transaction-form-parts/AmountCurrencyDateFields";
@@ -29,14 +28,6 @@ import { usePlatform } from "@/contexts/PlatformContext";
 import { useTransactionFormInitialization } from "@/hooks/useTransactionFormInitialization";
 import { logger } from "@/lib/logger";
 import { toast } from "sonner";
-
-// Zod schema is now imported from "@/types/forms"
-
-// TODO: Use discriminatedUnion or refine schema for conditional requirements:
-// - is_chomesh: required if type is 'income'
-// - recipient: required if type is 'donation'
-// - category: perhaps more relevant for 'expense'/'recognized-expense'
-
 
 interface TransactionFormProps {
   initialData?: Transaction | null; // For editing
@@ -377,12 +368,14 @@ export function TransactionForm({
         try {
           await updateTransaction(initialData.id, updatePayload, platform);
           setIsSuccess(true);
+          toast.success(t("transactionForm.messages.success"));
           setTimeout(() => {
             setIsSuccess(false);
             if (onSubmitSuccess) onSubmitSuccess();
           }, 1500);
         } catch (error) {
           logger.error("Error updating transaction:", error);
+          toast.error(t("transactionForm.messages.error"));
         }
       } else {
         logger.log("No changes detected, skipping update.");
@@ -393,6 +386,7 @@ export function TransactionForm({
       try {
         await handleTransactionSubmit(submissionValues);
         setIsSuccess(true);
+        toast.success(t("transactionForm.messages.success"));
         setTimeout(() => {
           setIsSuccess(false);
           const nextType = form.getValues("type");
@@ -418,6 +412,7 @@ export function TransactionForm({
         }, 1500);
       } catch (error) {
         logger.error("Error creating transaction:", error);
+        toast.error(t("transactionForm.messages.error"));
       }
     }
   }
