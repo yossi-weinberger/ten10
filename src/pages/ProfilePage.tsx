@@ -11,7 +11,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 import { logger } from "@/lib/logger";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -137,11 +137,11 @@ export function ProfilePage() {
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      toast.error(t("profile.security.passwordsDoNotMatch"));
+      toast.warning(t("profile.security.passwordsDoNotMatch"));
       return;
     }
     if (newPassword.length < 6) {
-      toast.error(t("profile.security.passwordTooShort"));
+      toast.warning(t("profile.security.passwordTooShort"));
       return;
     }
 

@@ -3,7 +3,7 @@ import { useNavigate, Link } from "@tanstack/react-router";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { logger } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
@@ -98,21 +98,27 @@ const LoginPage: React.FC = () => {
   const handleLoginMagicLink = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoadingMagicLink(true);
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: emailMagicLink,
-        options: {},
-      });
+    const request = supabase.auth.signInWithOtp({
+      email: emailMagicLink,
+      options: {},
+    }).then(({ error }) => {
       if (error) throw error;
-      toast.success(t("login.toasts.magicLinkSent"));
-      setEmailMagicLink("");
-    } catch (error: any) {
+    });
+
+    toast.promise(request, {
+      loading: t("login.sendLinkButtonLoading"),
+      success: () => {
+        setEmailMagicLink("");
+        return t("login.toasts.magicLinkSent");
+      },
+      error: (error: any) =>
+        error?.error_description || error?.message || t("login.toasts.magicLinkError"),
+    });
+
+    try {
+      await request;
+    } catch (error) {
       logger.error("Error sending magic link:", error);
-      toast.error(
-        error.error_description ||
-          error.message ||
-          t("login.toasts.magicLinkError")
-      );
     } finally {
       setLoadingMagicLink(false);
     }

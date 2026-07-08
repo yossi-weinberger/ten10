@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Download, Loader2 } from "lucide-react"; // Added Loader2
+import { Download } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store"; // Updated path
 import { EXPORT_DESKTOP_SAVE_CANCELLED } from "@/lib/utils/save-export-file";
@@ -19,39 +19,32 @@ import { logger } from "@/lib/logger";
 
 export function ExportButton() {
   const { t } = useTranslation("data-tables");
-  const { exportTransactions, exportLoading, exportError } =
-    useTableTransactionsStore(
-      useShallow((state) => ({
-        exportTransactions: state.exportTransactions,
-        exportLoading: state.exportLoading,
-        exportError: state.exportError,
-      }))
-    );
+  const { exportTransactions, exportLoading } = useTableTransactionsStore(
+    useShallow((state) => ({
+      exportTransactions: state.exportTransactions,
+      exportLoading: state.exportLoading,
+    }))
+  );
   const { platform } = usePlatform();
-  const [prevExportLoading, setPrevExportLoading] = useState(false);
-
-  useEffect(() => {
-    if (prevExportLoading && !exportLoading) {
-      if (exportError === EXPORT_DESKTOP_SAVE_CANCELLED) {
-        // Desktop save dialog closed without saving
-      } else if (exportError) {
-        toast.error(t("export.error", { error: exportError }));
-      } else {
-        toast.success(t("export.success"));
-      }
-    }
-    setPrevExportLoading(exportLoading);
-  }, [exportLoading, exportError, prevExportLoading, t]);
 
   const handleExport = async (format: "csv" | "excel" | "pdf") => {
     if (exportLoading || platform === "loading") return;
+    const toastId = toast.loading(t("export.loading"));
     try {
       await exportTransactions(format, platform);
-      // Toast notifications are handled by useEffect
+      const { exportError } = useTableTransactionsStore.getState();
+      if (exportError === EXPORT_DESKTOP_SAVE_CANCELLED) {
+        // Desktop save dialog closed without saving — not an error, dismiss silently.
+        toast.dismiss(toastId);
+      } else if (exportError) {
+        toast.error(t("export.error", { error: exportError }), { id: toastId });
+      } else {
+        toast.success(t("export.success"), { id: toastId });
+      }
     } catch (error) {
       // This catch is more for unexpected errors not handled by the store's try/catch
       logger.error(`Unexpected error during export to ${format}:`, error);
-      toast.error(t("export.unexpectedError"));
+      toast.error(t("export.unexpectedError"), { id: toastId });
     }
   };
 
@@ -63,12 +56,8 @@ export function ExportButton() {
           disabled={exportLoading || platform === "loading"}
           className="bg-transparent text-foreground hover:bg-muted/50"
         >
-          {exportLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Download className="mr-2 h-4 w-4" />
-          )}
-          {exportLoading ? t("export.loading") : t("export.title")}
+          <Download className="mr-2 h-4 w-4" />
+          {t("export.title")}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

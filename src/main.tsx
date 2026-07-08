@@ -1,6 +1,5 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { Toaster } from "react-hot-toast";
 import { RouterProvider } from "@tanstack/react-router";
 import { router } from "./routes";
 import { ThemeProvider } from "./lib/theme";
@@ -35,7 +34,6 @@ const appTree = (
       <TWAProvider>
         <AuthProvider>
           <RouterProvider router={router} />
-          <Toaster position="top-center" />
           <SpeedInsights />
           <Analytics />
         </AuthProvider>

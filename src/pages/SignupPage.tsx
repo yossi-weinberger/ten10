@@ -3,7 +3,7 @@ import { useNavigate, Link } from "@tanstack/react-router";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { logger } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
@@ -68,7 +68,7 @@ const SignupPage: React.FC = () => {
   const handleSignup = async (event: React.FormEvent) => {
     event.preventDefault();
     if (password !== confirmPassword) {
-      toast.error(t("signup.toasts.passwordMismatch"));
+      toast.warning(t("signup.toasts.passwordMismatch"));
       return;
     }
     setLoading(true);

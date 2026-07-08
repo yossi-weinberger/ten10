@@ -134,8 +134,8 @@ This component allows the user to export the data currently displayed in the tab
   - Upon selecting an export format, the component calls the `exportTransactions(format, platform)` action from the global store. The current platform (`platform`) is taken from `PlatformContext`.
   - For PDF export, the store passes the current `sorting` configuration to `exportTransactionsToPDF` to enable month separators when sorting by date.
 - **Loading Indication and Error Handling:**
-  - Displays a visual loading indicator (spinning `Loader2` icon and "Exporting..." text) and controls the `disabled` state of the button and menu items while the export process is ongoing (based on the `exportLoading` flag from the store).
-  - Displays `toast` messages from the `sonner` library (success or error message) upon completion of the export operation. Message display is triggered by `useEffect` listening to changes in `exportLoading` and `exportError` flags from the store.
+  - Controls the `disabled` state of the button and menu items while the export process is ongoing (based on the `exportLoading` flag from the store); the button itself no longer shows a spinner.
+  - Loading feedback is the toast itself: `handleExport` opens a `toast.loading(...)` and keeps its id, then updates that same toast to `toast.success`/`toast.error` (or `toast.dismiss` if the user cancelled the desktop save dialog, via `EXPORT_DESKTOP_SAVE_CANCELLED`) once `exportTransactions` resolves. No `useEffect` is involved.
 
 ### 2.8. PDF Export with Month Separators (`src/lib/utils/export-pdf.ts`)
 

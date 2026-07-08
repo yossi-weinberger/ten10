@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { Session, User as SupabaseUser } from "@supabase/supabase-js";
 import { supabase, getCachedSession, invalidateSessionCache } from "@/lib/supabaseClient";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { useDonationStore } from "@/lib/store";
 import i18n from "@/lib/i18n";
 import { logger } from "@/lib/logger";

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useDonationStore } from "@/lib/store";
@@ -140,7 +141,7 @@ export function TermsAcceptanceModal() {
         // Update local store
         updateSettings({ termsAcceptedVersion: CURRENT_TERMS_VERSION });
         setIsOpen(false);
-        // toast.success(t("termsModal.success", "Terms accepted locally"));
+        toast.success(t("termsModal.success"));
       } else if (platform === "web" && user) {
         // Update Supabase with metadata
         const { error } = await supabase
@@ -159,11 +160,11 @@ export function TermsAcceptanceModal() {
         // Update local store for cache
         updateSettings({ termsAcceptedVersion: CURRENT_TERMS_VERSION });
         setIsOpen(false);
-        // toast.success(t("termsModal.success", "Terms accepted"));
+        toast.success(t("termsModal.success"));
       }
     } catch (error) {
       console.error("Failed to accept terms:", error);
-      // toast.error(t("termsModal.error", "Failed to accept terms. Please try again."));
+      toast.error(t("termsModal.error"));
     } finally {
       setIsLoading(false);
     }

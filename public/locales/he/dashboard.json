@@ -134,6 +134,7 @@
     },
     "pdfExported": "קובץ PDF הורד בהצלחה",
     "pdfGenerating": "מייצר PDF...",
+    "pdfExportError": "ייצוא ה-PDF נכשל",
     "chartTypeBar": "גרף עמודות",
     "chartTypePie": "גרף עוגה",
     "insights": {

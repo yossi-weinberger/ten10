@@ -14,13 +14,8 @@ import { exportTransactionsToPDF } from "../utils/export-pdf"; // Updated path
 import { exportTransactionsToExcel } from "../utils/export-excel"; // Updated path
 import { exportTransactionsToCSV } from "../utils/export-csv"; // Updated path
 import { EXPORT_DESKTOP_SAVE_CANCELLED } from "../utils/save-export-file";
-import { supabase } from "../supabaseClient"; // Updated path
 import i18n from "../i18n"; // For current language
 import { logger } from "@/lib/logger";
-import type {
-  RealtimeChannel,
-  RealtimePostgresChangesPayload,
-} from "@supabase/supabase-js";
 
 export interface TableTransactionsState {
   // State
@@ -246,8 +241,8 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         set({
           error: err.message || "Failed to update transaction.",
         });
-        // Optionally re-throw if the caller needs to handle it further
-        // throw err;
+        // Re-throw so callers (e.g. TransactionForm) can show error feedback instead of a false success.
+        throw err;
       }
     },
 
@@ -285,6 +280,8 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           pagination: originalPagination,
           error: err.message || "Failed to delete transaction.",
         });
+        // Re-throw so callers (e.g. TransactionsTableDisplay) can show error feedback instead of a false success.
+        throw err;
       }
     },
 
