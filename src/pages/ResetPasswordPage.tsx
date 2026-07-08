@@ -97,8 +97,18 @@ const ResetPasswordPage: React.FC = () => {
 
     setLoading(true);
 
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session) {
+    let hasValidSession: boolean;
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      hasValidSession = !!sessionData.session;
+    } catch (error) {
+      logger.error("Error checking session before password reset:", error);
+      toast.error(t("resetPassword.toasts.error"));
+      setLoading(false);
+      return;
+    }
+
+    if (!hasValidSession) {
       toast.error(t("resetPassword.errors.invalidOrExpiredLink"));
       setLoading(false);
       return;
