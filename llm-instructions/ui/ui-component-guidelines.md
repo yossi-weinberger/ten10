@@ -441,9 +441,9 @@ function App() {
           </main>
         </div>
 
-        {/* Opposite corner from ContactFAB (which sits on the reading-start side) to avoid overlap in both directions. */}
+        {/* Opposite corner from ContactFAB (which sits on the reading-start side) to avoid overlap in both directions.
+            No `richColors` — success/error/warning/info are styled with the app's own brand tokens in components/ui/sonner.tsx. */}
         <Toaster
-          richColors
           closeButton
           position={i18n.dir() === "rtl" ? "bottom-right" : "bottom-left"}
         />
