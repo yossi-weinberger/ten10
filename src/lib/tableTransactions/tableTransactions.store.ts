@@ -280,6 +280,8 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           pagination: originalPagination,
           error: err.message || "Failed to delete transaction.",
         });
+        // Re-throw so callers (e.g. TransactionsTableDisplay) can show error feedback instead of a false success.
+        throw err;
       }
     },
 
