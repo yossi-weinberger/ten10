@@ -27,7 +27,7 @@ import { Textarea } from "../ui/textarea";
 import { cn } from "@/lib/utils";
 
 const ContactFAB = () => {
-  const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation("contact");
   const { platform } = usePlatform();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDesktopChoiceOpen, setIsDesktopChoiceOpen] = useState(false);
@@ -68,10 +68,10 @@ const ContactFAB = () => {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
       await invoke("copy_to_clipboard", { text });
-      toast.success(t(`contact:desktop.copySuccess.${type}`));
+      toast.success(t(`desktop.copySuccess.${type}`));
     } catch (error) {
       console.error("Failed to copy to clipboard:", error);
-      toast.error(t("contact:desktop.copyError"));
+      toast.error(t("desktop.copyError"));
     }
   };
 
@@ -104,13 +104,13 @@ const ContactFAB = () => {
               size="icon"
               className="rounded-full w-14 h-14 shadow-lg"
               onClick={handleClick}
-              aria-label={t("contact:fabTooltip")}
+              aria-label={t("fabTooltip")}
             >
               <MessageSquarePlus className="w-6 h-6" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">
-            <p>{t("contact:fabTooltip")}</p>
+            <p>{t("fabTooltip")}</p>
           </TooltipContent>
         </Tooltip>
       </div>
@@ -126,19 +126,19 @@ const ContactFAB = () => {
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{t("contact:desktop.title")}</DialogTitle>
+              <DialogTitle>{t("desktop.title")}</DialogTitle>
               <DialogDescription>
-                {t("contact:desktop.description")}
+                {t("desktop.description")}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-6 pt-2">
               <div>
                 <h3 className="font-semibold text-lg flex items-center">
                   <Mail className="mr-2 h-5 w-5" />
-                  {t("contact:modal.tabs.rabbi")}
+                  {t("modal.tabs.rabbi")}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {t("contact:desktop.rabbiInstruction")}
+                  {t("desktop.rabbiInstruction")}
                 </p>
                 <div className="flex items-center space-x-2 mt-2">
                   <Input readOnly value="halacha@ten10-app.com" />
@@ -156,10 +156,10 @@ const ContactFAB = () => {
               <div className="border-t pt-6">
                 <h3 className="font-semibold text-lg flex items-center">
                   <Bug className="mr-2 h-5 w-5" />
-                  {t("contact:modal.tabs.dev")}
+                  {t("modal.tabs.dev")}
                 </h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {t("contact:desktop.devInstruction")}
+                  {t("desktop.devInstruction")}
                 </p>
                 <div className="flex items-center space-x-2 mt-2">
                   <Input readOnly value="dev@ten10-app.com" />
@@ -174,7 +174,7 @@ const ContactFAB = () => {
                   </Button>
                 </div>
                 <p className="text-sm text-muted-foreground mt-4 font-medium">
-                  {t("contact:desktop.includeInfo")}
+                  {t("desktop.includeInfo")}
                 </p>
                 <Textarea
                   readOnly
@@ -187,7 +187,7 @@ const ContactFAB = () => {
                   onClick={() => copyToClipboard(desktopInfo.body, "info")}
                 >
                   <ClipboardCopy className="mr-2 h-4 w-4" />
-                  {t("contact:desktop.copyInfoButton")}
+                  {t("desktop.copyInfoButton")}
                 </Button>
               </div>
             </div>
