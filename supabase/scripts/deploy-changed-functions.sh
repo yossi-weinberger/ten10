@@ -28,6 +28,7 @@ ALL_FUNCTIONS=(
   process-recurring-transactions
   process-email-request
   get-monitoring-data
+  get-posthog-analytics
   send-cron-alerts
 )
 
@@ -40,6 +41,7 @@ SHARED_DEPENDENT=(
   verify-unsubscribe-token
   process-email-request
   get-monitoring-data
+  get-posthog-analytics
   send-cron-alerts
 )
 

@@ -185,8 +185,10 @@ src/
 
 supabase/
 ├── functions/
-│   └── get-monitoring-data/
-│       └── index.ts                    # Monitoring Edge Function (NEW)
+│   ├── get-monitoring-data/
+│   │   └── index.ts                    # Monitoring Edge Function
+│   └── get-posthog-analytics/
+│       └── index.ts                    # PostHog Query API aggregates (admin-only)
 └── migrations/
     └── 20260112_add_monitoring_functions.sql  # PostgreSQL RPC functions (NEW)
 ```
@@ -204,15 +206,13 @@ Main page with tab-based navigation.
 3. **Trends** - Interactive charts with date range controls (chart fetches its own range)
 4. **Downloads** - Desktop download email requests + GitHub release download stats
 5. **Monitoring** - System health monitoring and observability
-6. **PostHog** - Live product analytics aggregates from PostHog Query API (Edge Function `get-posthog-analytics`)
+6. **PostHog** - Live product analytics aggregates (Edge Function `get-posthog-analytics`)
 
-**PostHog tab:** Lives on `feat/posthog-enhancement` (kept separate from this cleanup). When finishing that PR, apply:
+**PostHog tab notes** (merged via `#316`; details in `analytics/posthog-integration-guide.md`):
 
-- Rename misleading `wau30d` label to 30-day actives / MAU (query is 30d unique persons)
-- Show import started/completed or drop unused fields from the UI contract
-- Last-updated timestamp + one-line comparison note vs Users tab
-- i18n for Web Analytics / Surveys / Error Tracking button labels
-- Do not equate PostHog actives with DB `active_30d`
+- Field `wau30d` is 30-day unique persons (label as 30-day actives / MAU — not classic WAU)
+- Do not equate PostHog actives with DB `active_30d` on the Users tab
+- Must be listed in CI `ALL_FUNCTIONS` / `SHARED_DEPENDENT` or prod deploy is skipped (browser shows CORS on 404 preflight)
 
 **Features:**
 
@@ -269,6 +269,10 @@ Owns monthly-trends fetch for the selected date range (default: month). Avoids d
 #### AdminDownloadsSection
 
 Email download-request counts from admin RPC (zeros render as `0`, not N/A) plus optional GitHub release stats. Platform breakdown when present. Tab icon: `Download`.
+
+#### AdminPostHogSection
+
+Live PostHog aggregates via `posthogAdmin.service.ts` → Edge Function `get-posthog-analytics`. See `analytics/posthog-integration-guide.md` for secrets, CI allowlist, and troubleshooting (404 preflight ≠ CORS bug in function code).
 
 #### AdminMonitoringSection
 

@@ -13,13 +13,35 @@ This document records the PostHog (PH) product analytics work on Ten10. Use it w
 
 ## Key Decisions
 
-1. **Web only** — PostHog does not init when `window.__TAURI_INTERNALS__` exists (desktop).
-2. **Landing dual tracking** — Keep GA; add PostHog in the same `trackEvent()` helper.
-3. **No canvas recording** — Charts are Recharts (SVG).
-4. **No financial PII in events** — Never send amounts, descriptions, recipients in event properties.
-5. **Replay privacy: mask values, keep chrome** — Prefer `ph-mask` / `data-ph-mask` + `maskAllInputs` over `ph-no-capture` wrappers.
-6. **Surveys** — API survey + opt-in **button → dialog** on Home (no auto-open / no popover).
-7. **Admin** — Live aggregates via Edge Function `get-posthog-analytics` (Personal API key server-side only).
+1. **Web only** — PostHog does not init when `window.__TAURI_INTERNALS__` exists (desktop). Aligns with privacy policy: desktop financial data stays local.
+2. **Landing dual tracking** — Keep GA; add PostHog events in the same `trackEvent()` helper.
+3. **No canvas recording** — Charts on `/analytics` are Recharts (SVG). Standard session replay is enough; `captureCanvas` was intentionally omitted.
+4. **No financial PII in events** — Never send amounts, descriptions, recipients, or email.
+5. **Minimal privacy copy** — One `description` + one `note` in `privacy.json`; no bullet list in UI.
+6. **Admin aggregates** — Live Admin PostHog tab via Edge Function `get-posthog-analytics` (Personal API key server-side only; never in the client).
+
+---
+
+## Files Changed
+
+| File | Change |
+|------|--------|
+| `src/lib/analytics/posthogClient.ts` | **New** — init, guards, pageview, identify/reset, generic capture |
+| `src/lib/analytics/posthogIdentity.service.ts` | **New** — resolves `name` + `email`, calls `identifyPostHogUser` |
+| `src/lib/analytics/productAnalytics.ts` | Web-only guard; removed desktop `app_surface` logic |
+| `src/main.tsx` | Uses `posthogClient`; conditional `PostHogProvider` |
+| `src/contexts/AuthContext.tsx` | `syncPostHogUserIdentity` / `resetPostHogUser` |
+| `src/pages/ProfilePage.tsx` | Re-identify after profile name/email save |
+| `src/lib/data-layer/transactionForm.service.ts` | `transaction_created`, `recurring_obligation_created` |
+| `src/lib/data-layer/transactions.service.ts` | `transaction_updated` (after successful update) |
+| `src/pages/AnalyticsPage.tsx` | `analytics_opened`, date range, PDF export events |
+| `src/pages/landing/index.tsx` | `capturePostHogEvent` alongside GA |
+| `src/components/forms/transaction-form-parts/AmountCurrencyDateFields.tsx` | `ph-no-capture` class (replay privacy, no visual change) |
+| `src/components/forms/transaction-form-parts/DescriptionCategoryFields.tsx` | `ph-no-capture` class |
+| `src/declarations.d.ts` | `VITE_PUBLIC_POSTHOG_*` env types |
+| `public/locales/{he,en}/privacy.json` | Minimal PostHog mention |
+
+**Not changed:** Business logic, UI styling, routes, Supabase, desktop data flow, Vercel Analytics.
 
 ---
 
@@ -77,6 +99,23 @@ Deploy function:
 ```bash
 npx supabase functions deploy get-posthog-analytics
 ```
+
+**Edge Function secrets (Supabase):**
+
+```bash
+POSTHOG_PERSONAL_API_KEY=phx_...   # Query Read permission
+POSTHOG_PROJECT_ID=169449
+POSTHOG_HOST=https://eu.posthog.com
+```
+
+Deploy `get-posthog-analytics` (manual):
+
+```bash
+npx supabase functions deploy get-posthog-analytics --project-ref flpzqbvbymoluoeeeofg
+# Prefer --use-api if local Docker networking fails
+```
+
+**CI allowlist:** keep `get-posthog-analytics` in `ALL_FUNCTIONS` and `SHARED_DEPENDENT` inside `supabase/scripts/deploy-changed-functions.sh`. If missing, merge to `main` skips deploy; Admin tab then fails with a browser CORS error because `OPTIONS` hits a **404** (not a bad CORS header in the function code). See `backend/supabase-edge-functions-maintenance.md` §4.
 
 ---
 
@@ -149,6 +188,22 @@ Powered by existing `$pageview` captures. Open [Web Analytics](https://eu.postho
 - Shows aggregates only (DAU, pageviews, import success, exceptions, survey counts, top paths)
 - Links to Web Analytics / Surveys / Error Tracking
 
+### Admin tab CORS that is actually a missing deploy
+
+If `/admin` → PostHog shows `Failed to fetch` / CORS on preflight, first confirm the function exists in prod (`OPTIONS` → 200). A CI allowlist skip leaves the function undeployed; browsers report that as CORS because the 404 response has no CORS headers.
+
+---
+
+## Admin PostHog tab
+
+- Route: `/admin` → tab **PostHog**
+- UI: `AdminPostHogSection.tsx`
+- Service: `src/lib/data-layer/posthogAdmin.service.ts`
+- Backend: `supabase/functions/get-posthog-analytics` (admin JWT + `admin_emails`; PostHog Personal API key only in Edge secrets)
+- Aggregates only (DAU / 30d actives, pageviews, import success, exceptions, survey counts, top paths)
+- Do **not** equate PostHog actives with DB `active_30d` on the Users tab (different definitions)
+- Details also in `admin-dashboard-guide.md`
+
 ---
 
 ## How to Add a New Event
@@ -185,8 +240,33 @@ Powered by existing `$pageview` captures. Open [Web Analytics](https://eu.postho
 
 | Feature | Notes |
 |---------|-------|
-| Feature Flags | Ready when needed |
-| Experiments | Needs more traffic |
-| Workflows / alerts | Configure in PostHog UI |
-| CDP / warehouse | Out of scope |
-| PostHog on desktop | Explicitly excluded |
+| Feature flags | No flags in PH project yet |
+| Surveys / NPS | — |
+| `captureCanvas` | Only if canvas-based charts are added |
+| PostHog on desktop | Explicitly excluded by policy |
+| Replace GA on landing | Dual tracking chosen instead |
+| PostHog dashboards in code | Manual setup in PH UI |
+
+---
+
+## How to Add a New Event
+
+1. Add name to `ProductAnalyticsEvent` union in `productAnalytics.ts`
+2. Call `trackProductEvent("event_name", { ... })` after the user action succeeds
+3. Use only non-sensitive properties (see taxonomy rules above)
+4. Update this document
+
+For landing-only marketing events, use `capturePostHogEvent()` in `posthogClient.ts` instead.
+
+---
+
+## Verification Checklist
+
+- [ ] Web: Network tab shows requests to `eu.i.posthog.com`
+- [ ] Desktop (Tauri): **no** PostHog network requests
+- [ ] Login → PostHog Persons shows identified user with `language`
+- [ ] Logout → new anonymous session
+- [ ] `/analytics` loads without errors; events fire on date change and PDF export
+- [ ] Landing: GA + PostHog both receive `download_click`
+- [ ] Session replay: charts visible, amount inputs masked
+- [ ] Admin PostHog tab loads (after secrets + function deploy / CI allowlist)
