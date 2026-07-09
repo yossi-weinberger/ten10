@@ -23,44 +23,50 @@ import {
 import { MagicStatCard } from "@/components/dashboard/StatCards/MagicStatCard";
 import type { ServiceHealthStatus, Anomaly, Advisory } from "@/lib/data-layer/monitoring.types";
 
-// Color styles for different status types
+// Semantic status colors only (health state), on neutral card surfaces
 const statusColors = {
   healthy: {
-    bg: "bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900",
-    border: "border-green-200 dark:border-green-800",
+    bg: "bg-card",
+    border: "border-border",
     icon: "text-green-600 dark:text-green-400",
     badge: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-    gradient: "rgba(34, 197, 94, 0.3)",
+    gradient: "hsl(var(--primary) / 0.15)",
   },
   warning: {
-    bg: "bg-gradient-to-br from-yellow-50 to-amber-100 dark:from-yellow-950 dark:to-amber-900",
-    border: "border-yellow-200 dark:border-yellow-800",
+    bg: "bg-card",
+    border: "border-border",
     icon: "text-yellow-600 dark:text-yellow-400",
     badge:
       "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-    gradient: "rgba(234, 179, 8, 0.3)",
+    gradient: "hsl(var(--primary) / 0.15)",
   },
   error: {
-    bg: "bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950 dark:to-red-900",
-    border: "border-red-200 dark:border-red-800",
+    bg: "bg-card",
+    border: "border-border",
     icon: "text-red-600 dark:text-red-400",
     badge: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-    gradient: "rgba(239, 68, 68, 0.3)",
+    gradient: "hsl(var(--primary) / 0.15)",
   },
   unknown: {
-    bg: "bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950 dark:to-gray-900",
-    border: "border-gray-200 dark:border-gray-800",
-    icon: "text-gray-600 dark:text-gray-400",
-    badge: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
-    gradient: "rgba(107, 114, 128, 0.3)",
+    bg: "bg-card",
+    border: "border-border",
+    icon: "text-muted-foreground",
+    badge: "bg-muted text-muted-foreground",
+    gradient: "hsl(var(--primary) / 0.15)",
   },
 };
 
-const serviceIcons = {
-  Database: Database,
-  Authentication: Shield,
-  "Edge Functions": Zap,
-  Email: Mail,
+type ServiceIconKey =
+  | "database"
+  | "authentication"
+  | "edgeFunctions"
+  | "email";
+
+const serviceIcons: Record<ServiceIconKey, typeof Database> = {
+  database: Database,
+  authentication: Shield,
+  edgeFunctions: Zap,
+  email: Mail,
 };
 
 // Helper component for metric with tooltip
@@ -84,7 +90,7 @@ export function MetricWithTooltip({
       </TooltipTrigger>
       <TooltipContent
         side="top"
-        className={`max-w-xs ${isRtl ? "text-right" : "text-left"}`}
+        className={`max-w-xs ${isRtl ? "text-end" : "text-start"}`}
         dir={i18n.dir()}
       >
         <p>{tooltip}</p>
@@ -102,8 +108,12 @@ export function StatusIcon({ status }: { status: ServiceHealthStatus }) {
       return <AlertTriangle className={`h-5 w-5 ${colors.icon}`} />;
     case "error":
       return <AlertCircle className={`h-5 w-5 ${colors.icon}`} />;
-    default:
+    case "unknown":
       return <Activity className={`h-5 w-5 ${colors.icon}`} />;
+    default: {
+      const _exhaustive: never = status;
+      return _exhaustive;
+    }
   }
 }
 
@@ -112,6 +122,7 @@ interface ServiceHealthCardProps {
   status: ServiceHealthStatus;
   message?: string;
   tooltip?: string;
+  iconKey?: ServiceIconKey;
 }
 
 export function ServiceHealthCard({
@@ -119,9 +130,21 @@ export function ServiceHealthCard({
   status,
   message,
   tooltip,
+  iconKey,
 }: ServiceHealthCardProps) {
+  const { t, i18n } = useTranslation("admin");
   const colors = statusColors[status];
-  const Icon = serviceIcons[name as keyof typeof serviceIcons] || Server;
+  const Icon = (iconKey && serviceIcons[iconKey]) || Server;
+  const isRtl = i18n.dir() === "rtl";
+
+  const statusLabel =
+    status === "healthy"
+      ? t("monitoring.statusOk")
+      : status === "warning"
+        ? t("monitoring.statusWarning")
+        : status === "error"
+          ? t("monitoring.statusError")
+          : t("monitoring.statusUnknown");
 
   const card = (
     <MagicStatCard
@@ -141,15 +164,7 @@ export function ServiceHealthCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <Badge className={colors.badge}>
-          {status === "healthy"
-            ? "OK"
-            : status === "warning"
-            ? "Warning"
-            : status === "error"
-            ? "Error"
-            : "Unknown"}
-        </Badge>
+        <Badge className={colors.badge}>{statusLabel}</Badge>
         {message && (
           <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
             {message}
@@ -165,7 +180,11 @@ export function ServiceHealthCard({
         <TooltipTrigger asChild>
           <div className="cursor-help">{card}</div>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="max-w-xs text-right" dir="rtl">
+        <TooltipContent
+          side="bottom"
+          className={`max-w-xs ${isRtl ? "text-end" : "text-start"}`}
+          dir={i18n.dir()}
+        >
           <p>{tooltip}</p>
         </TooltipContent>
       </Tooltip>
@@ -188,7 +207,7 @@ export function AnomalyList({
   icon,
   emptyMessage,
 }: AnomalyListProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation("admin");
 
   return (
     <Card>
@@ -216,7 +235,8 @@ export function AnomalyList({
                     {anomaly.value !== undefined &&
                       anomaly.threshold !== undefined && (
                         <p className="text-xs text-muted-foreground">
-                          Value: {anomaly.value} (Threshold: {anomaly.threshold}
+                          {t("monitoring.stats.value")}: {anomaly.value} (
+                          {t("monitoring.stats.threshold")}: {anomaly.threshold}
                           )
                         </p>
                       )}

@@ -105,17 +105,28 @@ export function calculateSystemHealth(
     lastCheck: now,
   };
 
-  // Auth health
+  // Auth health — ignore failed-login anomalies (Supabase audit log does not record them).
   const authAnomalies = data.anomalies.filter((a) => a.type === "auth");
-  const authHasError = authAnomalies.some((a) => a.severity === "error");
-  const authHasWarning = authAnomalies.some((a) => a.severity === "warning");
+  const authAnomaliesMeaningful = authAnomalies.filter(
+    (a) => !/failed login/i.test(a.message)
+  );
+  const authHasErrorMeaningful = authAnomaliesMeaningful.some(
+    (a) => a.severity === "error"
+  );
+  const authHasWarningMeaningful = authAnomaliesMeaningful.some(
+    (a) => a.severity === "warning"
+  );
 
   const authHealth: ServiceHealth = {
     name: "Authentication",
-    status: authHasError ? "error" : authHasWarning ? "warning" : "healthy",
+    status: authHasErrorMeaningful
+      ? "error"
+      : authHasWarningMeaningful
+        ? "warning"
+        : "healthy",
     message:
-      data.auth.failedLogins24h > 0
-        ? `${data.auth.failedLogins24h} failed login(s) in 24h`
+      authAnomaliesMeaningful.length > 0
+        ? `${authAnomaliesMeaningful.length} issue(s) detected`
         : "All systems normal",
     lastCheck: now,
   };
@@ -197,15 +208,26 @@ export function calculateSystemHealth(
 /**
  * Get recent errors from monitoring data
  */
+function isFailedLoginNoise(anomaly: Anomaly): boolean {
+  return anomaly.type === "auth" && /failed login/i.test(anomaly.message);
+}
+
+/**
+ * Get recent errors from monitoring data
+ */
 export function getRecentErrors(data: MonitoringData): Anomaly[] {
-  return data.anomalies.filter((a) => a.severity === "error").slice(0, 10);
+  return data.anomalies
+    .filter((a) => a.severity === "error" && !isFailedLoginNoise(a))
+    .slice(0, 10);
 }
 
 /**
  * Get warnings from monitoring data
  */
 export function getWarnings(data: MonitoringData): Anomaly[] {
-  return data.anomalies.filter((a) => a.severity === "warning").slice(0, 10);
+  return data.anomalies
+    .filter((a) => a.severity === "warning" && !isFailedLoginNoise(a))
+    .slice(0, 10);
 }
 
 /**

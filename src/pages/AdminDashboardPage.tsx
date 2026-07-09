@@ -10,16 +10,15 @@ import {
   DollarSign,
   TrendingUp,
   Activity,
+  Download,
   Gauge,
   BarChart3,
 } from "lucide-react";
 import { usePlatform } from "@/contexts/PlatformContext";
 import {
   fetchAdminDashboardStats,
-  fetchAdminMonthlyTrends,
   fetchEarliestSystemDate,
   AdminDashboardStats,
-  MonthlyTrend,
 } from "@/lib/data-layer/admin.service";
 import { AdminUsersSection } from "@/components/admin/AdminUsersSection";
 import { AdminFinanceSection } from "@/components/admin/AdminFinanceSection";
@@ -35,8 +34,7 @@ export function AdminDashboardPage() {
   const { platform } = usePlatform();
   const navigate = useNavigate();
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
-  const [trends, setTrends] = useState<MonthlyTrend[] | null>(null);
-  const [earliestDate, setEarliestDate] = useState<string>("2008-01-01");
+  const [earliestDate, setEarliestDate] = useState<string>("2025-05-01");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,9 +56,8 @@ export function AdminDashboardPage() {
       setError(null);
 
       try {
-        const [statsData, trendsData, earliestDateData] = await Promise.all([
+        const [statsData, earliestDateData] = await Promise.all([
           fetchAdminDashboardStats(),
-          fetchAdminMonthlyTrends(), // Will use default 12 months
           fetchEarliestSystemDate(),
         ]);
 
@@ -69,7 +66,6 @@ export function AdminDashboardPage() {
         }
 
         setStats(statsData);
-        setTrends(trendsData);
         setEarliestDate(earliestDateData);
       } catch (err) {
         setError(err instanceof Error ? err.message : t("errors.loadFailed"));
@@ -179,7 +175,7 @@ export function AdminDashboardPage() {
               "sm:bg-transparent sm:data-[state=active]:bg-background sm:data-[state=active]:text-foreground"
             )}
           >
-            <Activity className="h-4 w-4 shrink-0" />
+            <Download className="h-4 w-4 shrink-0" />
             <span className="hidden sm:inline">{t("tabs.downloads")}</span>
             <span className="sm:hidden">{t("tabs.downloadsShort")}</span>
           </TabsTrigger>
@@ -227,19 +223,9 @@ export function AdminDashboardPage() {
           <AdminFinanceSection finance={stats.finance} />
         </TabsContent>
 
-        {/* Trends Tab */}
+        {/* Trends Tab — chart owns its own fetch (avoids page 12m + chart month double-fetch) */}
         <TabsContent value="trends" className="space-y-6">
-          {trends && trends.length > 0 ? (
-            <AdminTrendsChart
-              initialTrends={trends}
-              earliestDate={earliestDate}
-            />
-          ) : (
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{t("trends.noData")}</AlertDescription>
-            </Alert>
-          )}
+          <AdminTrendsChart earliestDate={earliestDate} />
         </TabsContent>
 
         {/* Downloads Tab */}

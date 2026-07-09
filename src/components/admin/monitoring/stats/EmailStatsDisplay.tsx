@@ -61,8 +61,8 @@ export function EmailStatsDisplay({ emailStats }: EmailStatsDisplayProps) {
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-xs text-right"
-                  dir="rtl"
+                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                 >
                   <p>{tooltipDescriptions.emailSends}</p>
                 </TooltipContent>
@@ -81,8 +81,8 @@ export function EmailStatsDisplay({ emailStats }: EmailStatsDisplayProps) {
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-xs text-right"
-                  dir="rtl"
+                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                 >
                   <p>{tooltipDescriptions.emailDeliveries}</p>
                 </TooltipContent>
@@ -105,8 +105,8 @@ export function EmailStatsDisplay({ emailStats }: EmailStatsDisplayProps) {
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-xs text-right"
-                  dir="rtl"
+                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                 >
                   <p>{tooltipDescriptions.emailBounces}</p>
                 </TooltipContent>
@@ -137,8 +137,8 @@ export function EmailStatsDisplay({ emailStats }: EmailStatsDisplayProps) {
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-xs text-right"
-                  dir="rtl"
+                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                 >
                   <p>{tooltipDescriptions.emailDeliveryRate}</p>
                 </TooltipContent>
@@ -165,8 +165,8 @@ export function EmailStatsDisplay({ emailStats }: EmailStatsDisplayProps) {
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-xs text-right"
-                  dir="rtl"
+                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                 >
                   <p>{tooltipDescriptions.emailBounceRate}</p>
                 </TooltipContent>
@@ -195,8 +195,8 @@ export function EmailStatsDisplay({ emailStats }: EmailStatsDisplayProps) {
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-xs text-right"
-                  dir="rtl"
+                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                 >
                   <p>{tooltipDescriptions.emailComplaints}</p>
                 </TooltipContent>

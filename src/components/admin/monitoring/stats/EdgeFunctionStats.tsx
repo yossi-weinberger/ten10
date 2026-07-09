@@ -32,7 +32,7 @@ export function EdgeFunctionStats({ data }: EdgeFunctionStatsProps) {
             <CardTitle className="flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <Zap className="h-5 w-5" />
-                Edge Functions
+                {t("monitoring.stats.edgeFunctions")}
               </span>
               <ChevronDown
                 className={`h-4 w-4 transition-transform ${
@@ -44,6 +44,9 @@ export function EdgeFunctionStats({ data }: EdgeFunctionStatsProps) {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <CardContent className="space-y-4" dir={i18n.dir()}>
+            <p className="text-xs text-muted-foreground">
+              {t("monitoring.edgeFunctionsDisclaimer")}
+            </p>
             <div className="grid grid-cols-3 gap-4">
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -52,15 +55,15 @@ export function EdgeFunctionStats({ data }: EdgeFunctionStatsProps) {
                       {data.edgeFunctions.invocations24h}
                     </p>
                     <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                      Invocations (24h)
+                      {t("monitoring.stats.invocations")}
                       <HelpCircle className="h-3 w-3" />
                     </p>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-xs text-right"
-                  dir="rtl"
+                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                 >
                   <p>{tooltipDescriptions.invocations}</p>
                 </TooltipContent>
@@ -72,15 +75,15 @@ export function EdgeFunctionStats({ data }: EdgeFunctionStatsProps) {
                       {data.edgeFunctions.errors24h}
                     </p>
                     <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                      Errors (24h)
+                      {t("monitoring.stats.errors24h")}
                       <HelpCircle className="h-3 w-3" />
                     </p>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-xs text-right"
-                  dir="rtl"
+                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                 >
                   <p>{tooltipDescriptions.errors}</p>
                 </TooltipContent>
@@ -98,15 +101,15 @@ export function EdgeFunctionStats({ data }: EdgeFunctionStatsProps) {
                       {data.edgeFunctions.errorRate}%
                     </p>
                     <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                      Error Rate
+                      {t("monitoring.stats.errorRate")}
                       <HelpCircle className="h-3 w-3" />
                     </p>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-xs text-right"
-                  dir="rtl"
+                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                 >
                   <p>{tooltipDescriptions.errorRate}</p>
                 </TooltipContent>

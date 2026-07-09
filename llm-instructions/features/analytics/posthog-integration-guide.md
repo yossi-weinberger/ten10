@@ -145,9 +145,12 @@ Powered by existing `$pageview` captures. Open [Web Analytics](https://eu.postho
 
 - Route: `/admin` → tab **PostHog**
 - UI: `AdminPostHogSection.tsx`
-- Backend: `supabase/functions/get-posthog-analytics`
-- Shows aggregates only (DAU, pageviews, import success, exceptions, survey counts, top paths)
+- Service: `src/lib/data-layer/posthogAdmin.service.ts`
+- Backend: `supabase/functions/get-posthog-analytics` (admin JWT + `admin_emails`; Personal API key only in Edge secrets)
+- Aggregates only (DAU / 30d actives, pageviews, import started/completed/success, exceptions, survey counts, top paths)
+- Label `wau30d` as 30-day actives / MAU (not classic WAU); do **not** equate with DB `active_30d`
 - Links to Web Analytics / Surveys / Error Tracking
+- **CI:** keep `get-posthog-analytics` in `ALL_FUNCTIONS` / `SHARED_DEPENDENT` (`deploy-changed-functions.sh`). Missing allowlist → prod 404 that browsers report as CORS on preflight. See `backend/supabase-edge-functions-maintenance.md` §4.
 
 ---
 

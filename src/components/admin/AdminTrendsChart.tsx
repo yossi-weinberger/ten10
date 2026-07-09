@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import {
+  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
 } from "@/components/ui/chart";
 import {
   LineChart,
@@ -17,7 +22,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { useTranslation } from "react-i18next";
-import { TrendingUp, Calendar as CalendarIcon } from "lucide-react";
+import { AlertCircle, TrendingUp, Calendar as CalendarIcon } from "lucide-react";
 import {
   MonthlyTrend,
   fetchAdminMonthlyTrends,
@@ -28,17 +33,23 @@ import {
 } from "@/hooks/useDateControls";
 
 interface AdminTrendsChartProps {
-  initialTrends: MonthlyTrend[];
   earliestDate: string;
 }
 
-export function AdminTrendsChart({
-  initialTrends,
-  earliestDate,
-}: AdminTrendsChartProps) {
+function formatCompactCurrency(value: number, locale: string): string {
+  if (!Number.isFinite(value)) return "";
+  const compact = new Intl.NumberFormat(locale, {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+  return `₪${compact}`;
+}
+
+export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
   const { t, i18n } = useTranslation("admin");
-  const [trends, setTrends] = useState<MonthlyTrend[]>(initialTrends);
-  const [loading, setLoading] = useState(false);
+  const [trends, setTrends] = useState<MonthlyTrend[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const {
     dateRangeSelection,
@@ -49,12 +60,11 @@ export function AdminTrendsChart({
     setCustomDateRange,
   } = useDateControls();
 
-  // Fetch trends when date range changes
   useEffect(() => {
     async function loadTrends() {
       setLoading(true);
+      setError(null);
       try {
-        // Override "all" to use earliest date instead of 1970
         const startDate =
           dateRangeSelection === "all"
             ? earliestDate
@@ -66,9 +76,14 @@ export function AdminTrendsChart({
         );
         if (data) {
           setTrends(data);
+        } else {
+          setTrends([]);
+          setError(t("trends.loadFailed"));
         }
-      } catch (error) {
-        console.error("Failed to fetch trends:", error);
+      } catch (err) {
+        console.error("Failed to fetch trends:", err);
+        setTrends([]);
+        setError(t("trends.loadFailed"));
       } finally {
         setLoading(false);
       }
@@ -79,15 +94,15 @@ export function AdminTrendsChart({
     activeDateRangeObject.endDate,
     dateRangeSelection,
     earliestDate,
+    t,
   ]);
 
-  // Chart configurations using the same colors as the main dashboard
   const userGrowthConfig = {
     new_users: {
       label: t("trends.newUsers"),
-      color: "hsl(262, 83%, 58%)", // purple-500 - vibrant purple
+      color: "hsl(var(--chart-teal))",
     },
-  };
+  } satisfies ChartConfig;
 
   const financialConfig = {
     total_income: {
@@ -102,28 +117,41 @@ export function AdminTrendsChart({
       label: t("finance.expenses"),
       color: "hsl(var(--chart-red))",
     },
-  };
+  } satisfies ChartConfig;
 
   const activityConfig = {
     transaction_count: {
       label: t("trends.transactionCount"),
-      color: "hsl(38, 92%, 50%)",
+      color: "hsl(var(--chart-orange))",
     },
     active_users: {
       label: t("trends.activeUsers"),
-      color: "hsl(262, 83%, 58%)",
+      color: "hsl(var(--chart-blue))",
     },
+  } satisfies ChartConfig;
+
+  const locale = i18n.language === "he" ? "he-IL" : "en-US";
+  const isDailyBuckets =
+    trends.length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(trends[0].month);
+
+  const formatBucketLabel = (value: string) => {
+    if (!isDailyBuckets) return value;
+    const parsed = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return value;
+    return parsed.toLocaleDateString(locale, {
+      day: "numeric",
+      month: "short",
+    });
   };
 
   return (
     <div className="space-y-4" dir={i18n.dir()}>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h2 className="text-2xl font-semibold flex items-center gap-2">
-          <TrendingUp className="h-6 w-6" />
+          <TrendingUp className="h-6 w-6 text-primary" />
           {t("trends.title")}
         </h2>
 
-        {/* Date Range Controls */}
         <div className="flex flex-wrap items-center gap-2">
           {(["month", "year", "all"] as DateRangeSelectionType[]).map(
             (type) => (
@@ -165,160 +193,237 @@ export function AdminTrendsChart({
         </div>
       </div>
 
-      {/* User Growth Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("trends.userGrowth")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer
-            config={userGrowthConfig}
-            className="h-[300px] w-full"
-          >
-            <AreaChart data={trends}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                className="text-muted-foreground"
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                className="text-muted-foreground"
-              />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Area
-                type="monotone"
-                dataKey="new_users"
-                stroke="var(--color-new_users)"
-                fill="var(--color-new_users)"
-                fillOpacity={0.6}
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-      {/* Financial Trends Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("trends.financialTrends")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={financialConfig} className="h-[400px] w-full">
-            <AreaChart data={trends}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                className="text-muted-foreground"
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                className="text-muted-foreground"
-              />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Area
-                type="monotone"
-                dataKey="total_income"
-                stroke="var(--color-total_income)"
-                fill="var(--color-total_income)"
-                fillOpacity={0.6}
-                strokeWidth={2}
-              />
-              <Area
-                type="monotone"
-                dataKey="total_donations"
-                stroke="var(--color-total_donations)"
-                fill="var(--color-total_donations)"
-                fillOpacity={0.6}
-                strokeWidth={2}
-              />
-              <Area
-                type="monotone"
-                dataKey="total_expenses"
-                stroke="var(--color-total_expenses)"
-                fill="var(--color-total_expenses)"
-                fillOpacity={0.6}
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+      {loading && (
+        <div className="space-y-4">
+          <Skeleton className="h-[300px] w-full" />
+          <Skeleton className="h-[400px] w-full" />
+          <Skeleton className="h-[300px] w-full" />
+        </div>
+      )}
 
-      {/* Transaction Activity Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("trends.activityTrends")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={activityConfig} className="h-[300px] w-full">
-            <LineChart data={trends}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                className="text-muted-foreground"
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                className="text-muted-foreground"
-              />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Line
-                type="monotone"
-                dataKey="transaction_count"
-                stroke="var(--color-transaction_count)"
-                strokeWidth={3}
-                dot={{
-                  fill: "hsl(var(--background))",
-                  stroke: "var(--color-transaction_count)",
-                  strokeWidth: 2,
-                  r: 5,
-                }}
-                activeDot={{
-                  r: 7,
-                  fill: "var(--color-transaction_count)",
-                  stroke: "hsl(var(--background))",
-                  strokeWidth: 2,
-                }}
-              />
-              <Line
-                type="monotone"
-                dataKey="active_users"
-                stroke="var(--color-active_users)"
-                strokeWidth={3}
-                dot={{
-                  fill: "hsl(var(--background))",
-                  stroke: "var(--color-active_users)",
-                  strokeWidth: 2,
-                  r: 5,
-                }}
-                activeDot={{
-                  r: 7,
-                  fill: "var(--color-active_users)",
-                  stroke: "hsl(var(--background))",
-                  strokeWidth: 2,
-                }}
-              />
-            </LineChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
+      {!loading && !error && trends.length === 0 && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{t("trends.noData")}</AlertDescription>
+        </Alert>
+      )}
+
+      {!loading && trends.length > 0 && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("trends.userGrowth")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer
+                config={userGrowthConfig}
+                className="h-[300px] w-full"
+              >
+                <AreaChart data={trends}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    className="stroke-muted"
+                  />
+                  <XAxis
+                    dataKey="month"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    minTickGap={isDailyBuckets ? 28 : 8}
+                    className="text-muted-foreground"
+                    tickFormatter={formatBucketLabel}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    className="text-muted-foreground"
+                    tickFormatter={(value) =>
+                      new Intl.NumberFormat(locale, {
+                        notation: "compact",
+                        maximumFractionDigits: 1,
+                      }).format(Number(value))
+                    }
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Area
+                    type="monotone"
+                    dataKey="new_users"
+                    stroke="var(--color-new_users)"
+                    fill="var(--color-new_users)"
+                    fillOpacity={0.4}
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("trends.financialTrends")}</CardTitle>
+              <p className="text-sm text-muted-foreground font-normal">
+                {t("trends.financialDisclaimer")}
+              </p>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer
+                config={financialConfig}
+                className="h-[400px] w-full"
+              >
+                <AreaChart data={trends}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    className="stroke-muted"
+                  />
+                  <XAxis
+                    dataKey="month"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    minTickGap={isDailyBuckets ? 28 : 8}
+                    className="text-muted-foreground"
+                    tickFormatter={formatBucketLabel}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    width={56}
+                    className="text-muted-foreground"
+                    tickFormatter={(value) =>
+                      formatCompactCurrency(Number(value), locale)
+                    }
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Area
+                    type="monotone"
+                    dataKey="total_income"
+                    stackId="finance"
+                    stroke="var(--color-total_income)"
+                    fill="var(--color-total_income)"
+                    fillOpacity={0.5}
+                    strokeWidth={2}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="total_donations"
+                    stackId="finance"
+                    stroke="var(--color-total_donations)"
+                    fill="var(--color-total_donations)"
+                    fillOpacity={0.5}
+                    strokeWidth={2}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="total_expenses"
+                    stackId="finance"
+                    stroke="var(--color-total_expenses)"
+                    fill="var(--color-total_expenses)"
+                    fillOpacity={0.5}
+                    strokeWidth={2}
+                  />
+                </AreaChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("trends.activityTrends")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer
+                config={activityConfig}
+                className="h-[300px] w-full"
+              >
+                <LineChart data={trends}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    className="stroke-muted"
+                  />
+                  <XAxis
+                    dataKey="month"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    minTickGap={isDailyBuckets ? 28 : 8}
+                    className="text-muted-foreground"
+                    tickFormatter={formatBucketLabel}
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    className="text-muted-foreground"
+                    tickFormatter={(value) =>
+                      new Intl.NumberFormat(locale, {
+                        notation: "compact",
+                        maximumFractionDigits: 1,
+                      }).format(Number(value))
+                    }
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <Line
+                    type="monotone"
+                    dataKey="transaction_count"
+                    stroke="var(--color-transaction_count)"
+                    strokeWidth={2}
+                    dot={
+                      isDailyBuckets
+                        ? false
+                        : {
+                            fill: "hsl(var(--background))",
+                            stroke: "var(--color-transaction_count)",
+                            strokeWidth: 2,
+                            r: 5,
+                          }
+                    }
+                    activeDot={{
+                      r: 6,
+                      fill: "var(--color-transaction_count)",
+                      stroke: "hsl(var(--background))",
+                      strokeWidth: 2,
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="active_users"
+                    stroke="var(--color-active_users)"
+                    strokeWidth={2}
+                    dot={
+                      isDailyBuckets
+                        ? false
+                        : {
+                            fill: "hsl(var(--background))",
+                            stroke: "var(--color-active_users)",
+                            strokeWidth: 2,
+                            r: 5,
+                          }
+                    }
+                    activeDot={{
+                      r: 6,
+                      fill: "var(--color-active_users)",
+                      stroke: "hsl(var(--background))",
+                      strokeWidth: 2,
+                    }}
+                  />
+                </LineChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }

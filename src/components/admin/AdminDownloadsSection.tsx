@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { AdminDownloadStats } from "@/lib/data-layer/admin.service";
 import { useGitHubReleaseDownloadStats } from "@/hooks/useGitHubReleaseDownloadStats";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AdminMetricCard } from "@/components/admin/AdminMetricCard";
 
 interface AdminDownloadsSectionProps {
   downloads: AdminDownloadStats;
@@ -28,62 +29,60 @@ export function AdminDownloadsSection({
     error: githubError,
   } = useGitHubReleaseDownloadStats();
 
-  const hasDownloadData =
-    downloads.total > 0 ||
-    (downloads.by_platform && Object.keys(downloads.by_platform).length > 0);
+  const platformEntries = Object.entries(downloads.by_platform ?? {});
 
   return (
     <div className="space-y-6" dir={i18n.dir()}>
-      {/* Email Download Requests */}
       <div className="space-y-4">
-        <h2 className="text-2xl font-semibold flex items-center gap-2">
-          <Download className="h-6 w-6" />
+        <h2 className="flex items-center gap-2 text-2xl font-semibold text-foreground">
+          <Download className="h-6 w-6 text-primary" />
           {t("downloads.title")}
         </h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {/* Total Requests */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {t("downloads.total")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {hasDownloadData ? downloads.total : "N/A"}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Requests Last 7 Days */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {t("downloads.last7d")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {hasDownloadData ? downloads.last_7d : "N/A"}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Requests Last 30 Days */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {t("downloads.last30d")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {hasDownloadData ? downloads.last_30d : "N/A"}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+          <AdminMetricCard
+            title={t("downloads.total")}
+            value={downloads.total}
+            icon={Download}
+          />
+          <AdminMetricCard
+            title={t("downloads.last7d")}
+            value={downloads.last_7d}
+            icon={Download}
+          />
+          <AdminMetricCard
+            title={t("downloads.last30d")}
+            value={downloads.last_30d}
+            icon={Download}
+          />
         </div>
+
+        {platformEntries.length > 0 && (
+          <Card className="border-border bg-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                {t("downloads.byPlatform")}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {platformEntries.map(([platform, count]) => (
+                <div
+                  key={platform}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span>
+                    {t(`downloads.platforms.${platform}`, {
+                      defaultValue: platform,
+                    })}
+                  </span>
+                  <span className="tabular-nums text-muted-foreground">
+                    {count}
+                  </span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
 
         <Alert>
           <Info className="h-4 w-4" />
@@ -91,16 +90,14 @@ export function AdminDownloadsSection({
         </Alert>
       </div>
 
-      {/* GitHub Release Downloads */}
       <div className="space-y-4">
-        <h3 className="text-xl font-semibold flex items-center gap-2">
-          <Github className="h-5 w-5" />
+        <h3 className="flex items-center gap-2 text-xl font-semibold text-foreground">
+          <Github className="h-5 w-5 text-primary" />
           {t("downloads.githubSection")}
         </h3>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {/* GitHub Installer Downloads - all versions */}
-          <Card>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <Card className="border-border bg-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {t("downloads.githubInstallerDownloads")}
@@ -114,15 +111,14 @@ export function AdminDownloadsSection({
                   {t("downloads.unavailable")}
                 </div>
               ) : (
-                <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-                  {githubStats?.installerDownloads ?? "—"}
+                <div className="text-3xl font-bold tabular-nums text-foreground">
+                  {githubStats?.installerDownloads ?? 0}
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* GitHub Installer Downloads - last 3 releases */}
-          <Card>
+          <Card className="border-border bg-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {t("downloads.githubInstallerDownloadsLast3")}
@@ -136,15 +132,14 @@ export function AdminDownloadsSection({
                   {t("downloads.unavailable")}
                 </div>
               ) : (
-                <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-                  {githubStats?.installerDownloadsLast3 ?? "—"}
+                <div className="text-3xl font-bold tabular-nums text-foreground">
+                  {githubStats?.installerDownloadsLast3 ?? 0}
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Update Checks - secondary, less prominent */}
-          <Card>
+          <Card className="border-border bg-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {t("downloads.githubUpdateChecks")}
@@ -158,32 +153,31 @@ export function AdminDownloadsSection({
                   {t("downloads.unavailable")}
                 </div>
               ) : (
-                <div className="text-2xl font-medium text-muted-foreground">
-                  {githubStats?.updateChecks ?? "—"}
+                <div className="text-2xl font-medium tabular-nums text-muted-foreground">
+                  {githubStats?.updateChecks ?? 0}
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Per-release breakdown table */}
         {githubStats?.byRelease && githubStats.byRelease.length > 0 && (
-          <Card>
+          <Card className="border-border bg-card">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {t("downloads.byVersionTable")}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border overflow-x-auto">
+              <div className="overflow-x-auto rounded-md border border-border">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t("downloads.tableVersion")}</TableHead>
-                      <TableHead className="text-right">
+                      <TableHead className="text-end">
                         {t("downloads.tableInstallers")}
                       </TableHead>
-                      <TableHead className="text-right">
+                      <TableHead className="text-end">
                         {t("downloads.tableUpdateChecks")}
                       </TableHead>
                     </TableRow>
@@ -194,10 +188,10 @@ export function AdminDownloadsSection({
                         <TableCell className="font-medium">
                           {row.tagName}
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-end tabular-nums">
                           {row.installerDownloads}
                         </TableCell>
-                        <TableCell className="text-right text-muted-foreground">
+                        <TableCell className="text-end tabular-nums text-muted-foreground">
                           {row.updateChecks}
                         </TableCell>
                       </TableRow>

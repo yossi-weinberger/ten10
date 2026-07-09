@@ -95,8 +95,8 @@ export function CloudflareStatsDisplay({ stats }: CloudflareStatsDisplayProps) {
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-xs text-right"
-                  dir="rtl"
+                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                 >
                   <p>{tooltipDescriptions.cfRequests}</p>
                 </TooltipContent>
@@ -119,8 +119,8 @@ export function CloudflareStatsDisplay({ stats }: CloudflareStatsDisplayProps) {
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-xs text-right"
-                  dir="rtl"
+                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                 >
                   <p>{tooltipDescriptions.cfErrors}</p>
                 </TooltipContent>
@@ -147,8 +147,8 @@ export function CloudflareStatsDisplay({ stats }: CloudflareStatsDisplayProps) {
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-xs text-right"
-                  dir="rtl"
+                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                 >
                   <p>{tooltipDescriptions.cfErrorRate}</p>
                 </TooltipContent>

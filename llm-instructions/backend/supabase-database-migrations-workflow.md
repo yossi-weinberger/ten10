@@ -141,6 +141,8 @@ npx supabase functions deploy <function-name> --project-ref ngtsnskyupageagcmqdp
 
 Production gets functions via GitHub Action (`deploy-supabase-functions.yml`) on push to `main` when `supabase/functions/**` changes.
 
+**CI allowlist:** `deploy-changed-functions.sh` only deploys names in `ALL_FUNCTIONS` (and redeploys `SHARED_DEPENDENT` when `_shared` changes). A new function that is not listed is skipped with a warning — CI can still be green while production returns **404** on that path (browsers often surface this as a CORS preflight failure). See `supabase-edge-functions-maintenance.md` §4.
+
 ---
 
 ## References

@@ -148,15 +148,16 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - Route: `/admin` (web-only, protected by `beforeLoad` check).
   - Page: `src/pages/AdminDashboardPage.tsx` with tabs-based navigation.
   - Components: `src/components/admin/` directory containing:
-    - `AdminUsersSection.tsx` - User statistics with StatCard components.
+    - `AdminUsersSection.tsx` - User statistics with StatCard / AdminMetricCard components.
     - `AdminFinanceSection.tsx` - Financial overview with currency breakdown.
     - `AdminEngagementSection.tsx` - Engagement and system metrics.
-    - `AdminDownloadsSection.tsx` - Desktop download tracking (placeholder).
+    - `AdminDownloadsSection.tsx` - Desktop download email requests + GitHub release stats.
     - `AdminTrendsChart.tsx` - Interactive charts with date range controls.
-  - Service: `src/lib/data-layer/admin.service.ts` for all admin-related API calls.
+    - `AdminPostHogSection.tsx` - PostHog product analytics aggregates.
+  - Service: `src/lib/data-layer/admin.service.ts` for admin RPCs; `posthogAdmin.service.ts` for PostHog Edge Function.
   - Translations: `public/locales/{he,en}/admin.json` namespace.
 - **Features:**
-  - Tab-based interface: Users, Finance, Trends, Downloads.
+  - Tab-based interface: Users, Finance, Trends, Downloads, Monitoring, PostHog.
   - Date range filtering (month, year, all time, custom) using `useDateControls` hook.
   - Interactive charts using shadcn/ui Charts (recharts).
   - Full i18n support with RTL/LTR.
@@ -168,6 +169,15 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - All data fetched via RPC functions with admin whitelist verification.
   - No sensitive information exposed in frontend code.
   - Cannot be accessed via F12 console or network inspection.
+
+### PostHog Admin Analytics
+
+- **Edge Function:** `get-posthog-analytics`
+  - Admin-only (JWT + `admin_emails`); calls PostHog Query API with `POSTHOG_PERSONAL_API_KEY` (server-side only)
+  - Secrets: `POSTHOG_PERSONAL_API_KEY`, `POSTHOG_PROJECT_ID`, `POSTHOG_HOST`
+  - Frontend: `AdminPostHogSection.tsx` + `posthogAdmin.service.ts`
+  - **CI:** Must remain in `ALL_FUNCTIONS` / `SHARED_DEPENDENT` in `deploy-changed-functions.sh` (missing allowlist → prod 404 that browsers report as CORS)
+  - Details: [`features/analytics/posthog-integration-guide.md`](../features/analytics/posthog-integration-guide.md)
 
 ### System Monitoring (Admin Dashboard - NEW)
 

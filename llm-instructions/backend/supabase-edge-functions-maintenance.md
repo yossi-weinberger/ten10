@@ -47,7 +47,28 @@ If you decide to update, follow this process:
     - Update the rule in `.cursor/rules/supabase-edge-functions.mdc`.
 4.  **Verify:** Run `npm run check-supabase-imports` to ensure no files were missed.
 
-## 4. Routine Maintenance (Optional)
+## 4. CI Deploy Allowlist (Required for New Functions)
+
+Production deploys run via `.github/workflows/deploy-supabase-functions.yml` → `supabase/scripts/deploy-changed-functions.sh`.
+
+That script only deploys functions listed in **`ALL_FUNCTIONS`**. Functions that import `_shared` must also be listed in **`SHARED_DEPENDENT`**.
+
+When adding a new Edge Function under `supabase/functions/<name>/`:
+
+1. Add `<name>` to `ALL_FUNCTIONS` in `deploy-changed-functions.sh`.
+2. If it imports `supabase/functions/_shared/**`, also add it to `SHARED_DEPENDENT`.
+3. Merge to `main` (or deploy manually once).
+
+If you skip the allowlist, CI may report success while **skipping** the new function. In the browser this often looks like a CORS failure: `OPTIONS` returns **404** (function missing), so the preflight has no CORS headers.
+
+Manual deploy (bypass CI):
+
+```bash
+npx supabase functions deploy <function-name> --project-ref flpzqbvbymoluoeeeofg
+# Prefer --use-api when local Docker networking fails
+```
+
+## 5. Routine Maintenance (Optional)
 
 **Frequency:** Every 6 months.
 
@@ -59,3 +80,5 @@ If you decide to update, follow this process:
 > "If it ain't broke, don't fix it."
 
 Stick to the pinned version (currently `2.39.0`) as long as it works. This guarantees that your cron jobs won't wake you up at 2 AM with errors.
+
+For **new** functions: pin deps **and** register them in the CI allowlist.

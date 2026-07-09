@@ -35,7 +35,7 @@ export function DatabaseStats({ data }: DatabaseStatsProps) {
             <CardTitle className="flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <Database className="h-5 w-5" />
-                Database Statistics
+                {t("monitoring.stats.database")}
               </span>
               <ChevronDown
                 className={`h-4 w-4 transition-transform ${
@@ -50,7 +50,7 @@ export function DatabaseStats({ data }: DatabaseStatsProps) {
             {/* Active Connections */}
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
               <MetricWithTooltip
-                label="Active Connections"
+                label={t("monitoring.stats.activeConnections")}
                 tooltip={tooltipDescriptions.activeConnections}
               />
               <Badge variant="secondary">
@@ -107,8 +107,8 @@ export function DatabaseStats({ data }: DatabaseStatsProps) {
                             </TooltipTrigger>
                             <TooltipContent
                               side="top"
-                              className="max-w-xs text-right"
-                              dir="rtl"
+                              className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                             >
                               <p>{tooltipDescriptions.rowCount}</p>
                             </TooltipContent>
@@ -124,8 +124,8 @@ export function DatabaseStats({ data }: DatabaseStatsProps) {
                             </TooltipTrigger>
                             <TooltipContent
                               side="top"
-                              className="max-w-xs text-right"
-                              dir="rtl"
+                              className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                             >
                               <p>{tooltipDescriptions.seqScans}</p>
                             </TooltipContent>
@@ -141,8 +141,8 @@ export function DatabaseStats({ data }: DatabaseStatsProps) {
                             </TooltipTrigger>
                             <TooltipContent
                               side="top"
-                              className="max-w-xs text-right"
-                              dir="rtl"
+                              className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                             >
                               <p>{tooltipDescriptions.indexScans}</p>
                             </TooltipContent>
@@ -158,8 +158,8 @@ export function DatabaseStats({ data }: DatabaseStatsProps) {
                             </TooltipTrigger>
                             <TooltipContent
                               side="top"
-                              className="max-w-xs text-right"
-                              dir="rtl"
+                              className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                             >
                               <p>{tooltipDescriptions.deadTuples}</p>
                             </TooltipContent>

@@ -157,9 +157,14 @@ export async function fetchEarliestSystemDate(): Promise<string> {
     }
 
     logger.log("AdminService: Earliest date fetched successfully", data);
-    return (data as any).earliest_date || "2008-01-01";
+    // Prefer first user signup; fall back to earliest_date from RPC
+    const payload = data as {
+      earliest_date?: string;
+      earliest_user?: string;
+    };
+    return payload.earliest_user || payload.earliest_date || "2025-05-01";
   } catch (error) {
     logger.error("AdminService: Failed to fetch earliest date:", error);
-    return "2008-01-01"; // Fallback
+    return "2025-05-01"; // Fallback: first production signups
   }
 }
