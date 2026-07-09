@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { contactService } from "@/lib/data-layer/contact.service";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import type {
   ContactDevFormValues,
   ContactRabbiFormValues,
@@ -87,6 +88,10 @@ export const ContactModal = ({ isOpen, onOpenChange }: ContactModalProps) => {
 
     try {
       await request;
+      trackProductEvent("contact_form_submitted", {
+        channel: activeTab === "rabbi" ? "halacha" : "dev",
+        has_attachment: (values.attachments?.length ?? 0) > 0,
+      });
       handleOpenChange(false);
     } catch {
       // Failure toast already shown by toast.promise above.

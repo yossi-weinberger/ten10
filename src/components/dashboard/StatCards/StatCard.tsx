@@ -159,7 +159,10 @@ export function StatCard({
                 {t("monthlyChart.error")}
               </p>
             ) : (
-              <span className={`text-2xl sm:text-3xl font-bold ${styles.text}`}>
+              <span
+                className={`ph-mask text-2xl sm:text-3xl font-bold ${styles.text}`}
+                data-ph-mask
+              >
                 <CountUp
                   start={startAnimateValue}
                   end={displayValue}

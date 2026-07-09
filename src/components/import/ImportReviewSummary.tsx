@@ -117,7 +117,11 @@ export function ImportReviewSummary({ summary }: ImportReviewSummaryProps) {
             {summary.approvedIncome > 0 && (
               <div className="flex justify-between gap-2">
                 <dt className="text-muted-foreground">{t("review.financial.totalIncome")}</dt>
-                <dd className="font-medium text-green-600 dark:text-green-400 text-end" dir="ltr">
+                <dd
+                  className="ph-mask font-medium text-green-600 dark:text-green-400 text-end"
+                  data-ph-mask
+                  dir="ltr"
+                >
                   {fmt(summary.approvedIncome)}
                 </dd>
               </div>
@@ -125,7 +129,11 @@ export function ImportReviewSummary({ summary }: ImportReviewSummaryProps) {
             {summary.approvedExpenses > 0 && (
               <div className="flex justify-between gap-2">
                 <dt className="text-muted-foreground">{t("review.financial.totalExpenses")}</dt>
-                <dd className="font-medium text-red-600 dark:text-red-400 text-end" dir="ltr">
+                <dd
+                  className="ph-mask font-medium text-red-600 dark:text-red-400 text-end"
+                  data-ph-mask
+                  dir="ltr"
+                >
                   {fmt(summary.approvedExpenses)}
                 </dd>
               </div>
@@ -133,7 +141,7 @@ export function ImportReviewSummary({ summary }: ImportReviewSummaryProps) {
             {summary.approvedDonations > 0 && (
               <div className="flex justify-between gap-2">
                 <dt className="text-muted-foreground">{t("review.financial.totalDonations")}</dt>
-                <dd className="font-medium text-end" dir="ltr">
+                <dd className="ph-mask font-medium text-end" data-ph-mask dir="ltr">
                   {fmt(summary.approvedDonations)}
                 </dd>
               </div>

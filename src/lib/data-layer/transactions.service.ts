@@ -315,6 +315,8 @@ export async function deleteTransaction(transactionId: string): Promise<void> {
       "Cannot delete transaction: Platform not initialized or unknown."
     );
   }
+
+  trackProductEvent("transaction_deleted");
 }
 
 export interface TransactionUpdatePayload {

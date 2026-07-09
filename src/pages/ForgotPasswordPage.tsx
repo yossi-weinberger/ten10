@@ -10,6 +10,7 @@ import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 
 const ForgotPasswordPage: React.FC = () => {
   const { platform } = usePlatform();
@@ -50,6 +51,7 @@ const ForgotPasswordPage: React.FC = () => {
 
     try {
       await request;
+      trackProductEvent("password_reset_requested");
       navigate({ to: "/login" });
     } catch (error) {
       logger.error("Error sending password reset email:", error);

@@ -16,6 +16,7 @@ import { CurrencySyncService } from "@/lib/services/currency-sync.service";
 import { PreferencesSyncService } from "@/lib/services/preferences-sync.service";
 import { resetPostHogUser } from "@/lib/analytics/posthogClient";
 import { syncPostHogUserIdentity } from "@/lib/analytics/posthogIdentity.service";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 
 export type { SupabaseUser as User };
 
@@ -74,11 +75,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(newCurrentUser);
 
         if (event === "SIGNED_OUT") {
+          trackProductEvent("logout_completed");
           resetPostHogUser();
         } else if (
           newCurrentUser &&
           (event === "SIGNED_IN" || event === "INITIAL_SESSION")
         ) {
+          if (event === "SIGNED_IN") {
+            const provider =
+              newAuthStateSession?.user?.app_metadata?.provider ?? "email";
+            trackProductEvent("login_completed", { method: String(provider) });
+          }
           void syncPostHogUserIdentity(newCurrentUser, i18n.language);
         }
 

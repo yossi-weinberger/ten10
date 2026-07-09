@@ -16,6 +16,7 @@ import { exportTransactionsToCSV } from "../utils/export-csv"; // Updated path
 import { EXPORT_DESKTOP_SAVE_CANCELLED } from "../utils/save-export-file";
 import i18n from "../i18n"; // For current language
 import { logger } from "@/lib/logger";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 
 export interface TableTransactionsState {
   // State
@@ -342,6 +343,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           set({ exportError: EXPORT_DESKTOP_SAVE_CANCELLED });
           return;
         }
+        trackProductEvent("transactions_exported", { format });
       } catch (err: any) {
         logger.error("Failed to export transactions:", err);
         set({ exportError: err.message || "Failed to export transactions." });

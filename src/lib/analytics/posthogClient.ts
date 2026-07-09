@@ -22,8 +22,19 @@ export function initPostHog(): void {
     person_profiles: "identified_only",
     capture_pageview: false,
     capture_pageleave: true,
+    capture_exceptions: true,
     session_recording: {
       maskAllInputs: true,
+      maskTextSelector: "[data-ph-mask], .ph-mask",
+      maskCapturedNetworkRequestFn: (request) => {
+        if (request.name) {
+          request.name = request.name.replace(
+            /([?&](token|access_token|refresh_token|code|auth|email|apikey)=)[^&]+/gi,
+            "$1[REDACTED]"
+          );
+        }
+        return request;
+      },
     },
   });
 }

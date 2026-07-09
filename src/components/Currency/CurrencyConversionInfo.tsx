@@ -94,11 +94,15 @@ export function CurrencyConversionInfo({
       originalAmount === amount ||
       originalCurrency === currency
     ) {
-      return <>{formatCurrency(amount, currency as CurrencyCode, i18n.language)}</>;
+      return (
+        <span className="ph-mask" data-ph-mask>
+          {formatCurrency(amount, currency as CurrencyCode, i18n.language)}
+        </span>
+      );
     }
 
     return (
-      <div className="flex items-center justify-center gap-1">
+      <div className="ph-mask flex items-center justify-center gap-1" data-ph-mask>
         {formatCurrency(amount, currency as CurrencyCode, i18n.language)}
         <TooltipProvider>
           <Tooltip delayDuration={300}>
@@ -165,11 +169,15 @@ export function CurrencyConversionInfo({
     // We want to display Converted (ILS)
     
     if (currency === defaultCurrency) {
-        return <>{formatCurrency(amount, currency as CurrencyCode, i18n.language)}</>;
+        return (
+          <span className="ph-mask" data-ph-mask>
+            {formatCurrency(amount, currency as CurrencyCode, i18n.language)}
+          </span>
+        );
     }
 
     return (
-      <div className="flex items-center justify-center gap-1">
+      <div className="ph-mask flex items-center justify-center gap-1" data-ph-mask>
         {isLoading ? (
             <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />
         ) : (

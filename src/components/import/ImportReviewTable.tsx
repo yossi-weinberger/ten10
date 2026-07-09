@@ -120,7 +120,11 @@ const ReviewTableRow = memo(function ReviewTableRow({
       </TableCell>
 
       {/* Amount */}
-      <TableCell className="text-center align-middle whitespace-nowrap" dir="ltr">
+      <TableCell
+        className="ph-mask text-center align-middle whitespace-nowrap"
+        data-ph-mask
+        dir="ltr"
+      >
         {row.normalized
           ? fmtAmount(row.normalized.amount, row.normalized.currency)
           : "—"}
