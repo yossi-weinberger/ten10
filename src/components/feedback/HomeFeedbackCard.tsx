@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { MessageSquareText } from "lucide-react";
+import { motion } from "framer-motion";
+import { Check, MessageSquareText } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { isPostHogSupported } from "@/lib/analytics/posthogClient";
 import {
@@ -158,7 +159,7 @@ export function HomeFeedbackCard({
       window.setTimeout(() => {
         setOpen(false);
         setCompleted(true);
-      }, 1200);
+      }, 2200);
     } finally {
       setSubmitting(false);
     }
@@ -246,9 +247,48 @@ export function HomeFeedbackCard({
           dir={i18n.dir()}
         >
           {submitted ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              {t("feedback.thanks")}
-            </div>
+            <motion.div
+              className="flex flex-col items-center justify-center gap-4 py-10 text-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.25 }}
+              role="status"
+              aria-live="polite"
+            >
+              <motion.div
+                className="relative flex h-16 w-16 items-center justify-center"
+                initial={{ scale: 0.6, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 320,
+                  damping: 18,
+                }}
+              >
+                <motion.span
+                  className="absolute inset-0 rounded-full bg-accent/20"
+                  initial={{ scale: 0.5, opacity: 0.8 }}
+                  animate={{ scale: 1.45, opacity: 0 }}
+                  transition={{ duration: 0.7, ease: "easeOut" }}
+                  aria-hidden
+                />
+                <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-accent/15 ring-1 ring-inset ring-accent/40">
+                  <Check
+                    className="h-7 w-7 text-accent-foreground"
+                    strokeWidth={2.5}
+                    aria-hidden
+                  />
+                </span>
+              </motion.div>
+              <motion.p
+                className="text-base font-semibold text-foreground"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12, duration: 0.3 }}
+              >
+                {t("feedback.thanks")}
+              </motion.p>
+            </motion.div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-5">
               <DialogHeader>
