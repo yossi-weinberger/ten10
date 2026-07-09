@@ -2,13 +2,25 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockSingle = vi.fn();
 const mockGetPublicUrl = vi.fn();
+const mockSelectEq = vi.fn();
+const mockUpdate = vi.fn();
+const mockUpdateEq = vi.fn();
 
 vi.mock("@/lib/supabaseClient", () => ({
   supabase: {
     from: () => ({
       select: () => ({
-        eq: () => ({ single: (...args: unknown[]) => mockSingle(...args) }),
+        eq: (...eqArgs: unknown[]) => {
+          mockSelectEq(...eqArgs);
+          return { single: (...args: unknown[]) => mockSingle(...args) };
+        },
       }),
+      update: (...args: unknown[]) => {
+        mockUpdate(...args);
+        return {
+          eq: (...eqArgs: unknown[]) => mockUpdateEq(...eqArgs),
+        };
+      },
     }),
     storage: {
       from: () => ({ getPublicUrl: (...args: unknown[]) => mockGetPublicUrl(...args) }),
@@ -16,7 +28,11 @@ vi.mock("@/lib/supabaseClient", () => ({
   },
 }));
 
-import { fetchUserProfileDisplay } from "./profile.service";
+import {
+  fetchUserProfileDisplay,
+  fetchProfileFullName,
+  updateProfileFullName,
+} from "./profile.service";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -61,5 +77,52 @@ describe("fetchUserProfileDisplay", () => {
   it("throws on a real fetch error (non-406)", async () => {
     mockSingle.mockResolvedValue({ data: null, error: { message: "network error" }, status: 500 });
     await expect(fetchUserProfileDisplay("u1")).rejects.toEqual({ message: "network error" });
+  });
+});
+
+describe("fetchProfileFullName", () => {
+  it("returns the full_name string from the profile row", async () => {
+    mockSingle.mockResolvedValue({
+      data: { full_name: "Yossi Weinberger" },
+      error: null,
+      status: 200,
+    });
+    await expect(fetchProfileFullName("u1")).resolves.toBe("Yossi Weinberger");
+    expect(mockSelectEq).toHaveBeenCalledWith("id", "u1");
+  });
+
+  it("returns an empty string when full_name is null", async () => {
+    mockSingle.mockResolvedValue({ data: { full_name: null }, error: null, status: 200 });
+    await expect(fetchProfileFullName("u1")).resolves.toBe("");
+  });
+
+  it("treats a 406 (no row) as an empty name", async () => {
+    mockSingle.mockResolvedValue({ data: null, error: { message: "no rows" }, status: 406 });
+    await expect(fetchProfileFullName("u1")).resolves.toBe("");
+  });
+
+  it("throws on a real fetch error (non-406)", async () => {
+    mockSingle.mockResolvedValue({ data: null, error: { message: "network error" }, status: 500 });
+    await expect(fetchProfileFullName("u1")).rejects.toEqual({ message: "network error" });
+  });
+});
+
+describe("updateProfileFullName", () => {
+  it("updates full_name and resolves when Supabase succeeds", async () => {
+    mockUpdateEq.mockResolvedValue({ error: null });
+    await expect(updateProfileFullName("u1", "New Name")).resolves.toBeUndefined();
+    expect(mockUpdate).toHaveBeenCalledWith({ full_name: "New Name" });
+    expect(mockUpdateEq).toHaveBeenCalledWith("id", "u1");
+  });
+
+  it("stores an empty name as null", async () => {
+    mockUpdateEq.mockResolvedValue({ error: null });
+    await updateProfileFullName("u1", "");
+    expect(mockUpdate).toHaveBeenCalledWith({ full_name: null });
+  });
+
+  it("throws when the update fails", async () => {
+    mockUpdateEq.mockResolvedValue({ error: { message: "rls denied" } });
+    await expect(updateProfileFullName("u1", "X")).rejects.toEqual({ message: "rls denied" });
   });
 });

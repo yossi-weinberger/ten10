@@ -34,3 +34,36 @@ export async function fetchUserProfileDisplay(userId: string): Promise<UserProfi
 
   return { fullName, avatarUrl };
 }
+
+/**
+ * Web-only: loads `full_name` for the profile edit form.
+ * Treats a missing row (406) as an empty name instead of throwing.
+ */
+export async function fetchProfileFullName(userId: string): Promise<string> {
+  const { data, error, status } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", userId)
+    .single();
+
+  if (error && status !== 406) {
+    throw error;
+  }
+
+  return data?.full_name ?? "";
+}
+
+/**
+ * Web-only: updates `full_name` on the `profiles` table.
+ * Pass an empty string to clear the name (stored as null).
+ */
+export async function updateProfileFullName(userId: string, fullName: string): Promise<void> {
+  const { error } = await supabase
+    .from("profiles")
+    .update({ full_name: fullName || null })
+    .eq("id", userId);
+
+  if (error) {
+    throw error;
+  }
+}
