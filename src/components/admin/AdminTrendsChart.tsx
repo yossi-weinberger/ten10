@@ -131,6 +131,18 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
   } satisfies ChartConfig;
 
   const locale = i18n.language === "he" ? "he-IL" : "en-US";
+  const isDailyBuckets =
+    trends.length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(trends[0].month);
+
+  const formatBucketLabel = (value: string) => {
+    if (!isDailyBuckets) return value;
+    const parsed = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return value;
+    return parsed.toLocaleDateString(locale, {
+      day: "numeric",
+      month: "short",
+    });
+  };
 
   return (
     <div className="space-y-4" dir={i18n.dir()}>
@@ -224,7 +236,9 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
+                    minTickGap={isDailyBuckets ? 28 : 8}
                     className="text-muted-foreground"
+                    tickFormatter={formatBucketLabel}
                   />
                   <YAxis
                     tickLine={false}
@@ -275,7 +289,9 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
+                    minTickGap={isDailyBuckets ? 28 : 8}
                     className="text-muted-foreground"
+                    tickFormatter={formatBucketLabel}
                   />
                   <YAxis
                     tickLine={false}
@@ -340,7 +356,9 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
+                    minTickGap={isDailyBuckets ? 28 : 8}
                     className="text-muted-foreground"
+                    tickFormatter={formatBucketLabel}
                   />
                   <YAxis
                     tickLine={false}
@@ -360,15 +378,19 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                     type="monotone"
                     dataKey="transaction_count"
                     stroke="var(--color-transaction_count)"
-                    strokeWidth={3}
-                    dot={{
-                      fill: "hsl(var(--background))",
-                      stroke: "var(--color-transaction_count)",
-                      strokeWidth: 2,
-                      r: 5,
-                    }}
+                    strokeWidth={2}
+                    dot={
+                      isDailyBuckets
+                        ? false
+                        : {
+                            fill: "hsl(var(--background))",
+                            stroke: "var(--color-transaction_count)",
+                            strokeWidth: 2,
+                            r: 5,
+                          }
+                    }
                     activeDot={{
-                      r: 7,
+                      r: 6,
                       fill: "var(--color-transaction_count)",
                       stroke: "hsl(var(--background))",
                       strokeWidth: 2,
@@ -378,15 +400,19 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                     type="monotone"
                     dataKey="active_users"
                     stroke="var(--color-active_users)"
-                    strokeWidth={3}
-                    dot={{
-                      fill: "hsl(var(--background))",
-                      stroke: "var(--color-active_users)",
-                      strokeWidth: 2,
-                      r: 5,
-                    }}
+                    strokeWidth={2}
+                    dot={
+                      isDailyBuckets
+                        ? false
+                        : {
+                            fill: "hsl(var(--background))",
+                            stroke: "var(--color-active_users)",
+                            strokeWidth: 2,
+                            r: 5,
+                          }
+                    }
                     activeDot={{
-                      r: 7,
+                      r: 6,
                       fill: "var(--color-active_users)",
                       stroke: "hsl(var(--background))",
                       strokeWidth: 2,

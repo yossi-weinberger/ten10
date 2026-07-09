@@ -109,18 +109,24 @@ Returns comprehensive dashboard statistics.
 
 #### 2. `get_admin_monthly_trends(p_start_date, p_end_date)`
 
-Returns monthly trends filtered by date range.
+Returns trend buckets filtered by date range (set-based aggregates; not per-month correlated subqueries).
 
 **Parameters:**
 
 - `p_start_date` (DATE, optional): Start date, defaults to 12 months ago
 - `p_end_date` (DATE, optional): End date, defaults to today
 
+**Behavior:**
+
+- Ranges ≤ 62 days → **daily** buckets (`YYYY-MM-DD`), including empty days (so "this month" is a series)
+- Longer ranges → **monthly** buckets (`YYYY-MM`), empty months omitted
+- Start dates before `2000-01-01` are clamped (avoids ~24k months from garbage tx dates like year 0002)
+
 **Returns:**
 
 ```typescript
 Array<{
-  month: string; // YYYY-MM format
+  month: string; // YYYY-MM or YYYY-MM-DD
   new_users: number;
   total_income: number;
   total_expenses: number;
@@ -130,11 +136,9 @@ Array<{
 }>;
 ```
 
-**Note:** Only returns months with actual data (filters out empty months).
-
 #### 3. `get_earliest_system_date()`
 
-Returns the earliest date in the system for dynamic "all time" ranges.
+Returns the earliest sane date for dynamic "all time" ranges (ignores transaction dates before 2000-01-01).
 
 **Returns:**
 
@@ -262,9 +266,9 @@ Engagement and system metrics with visual separation and tooltips.
 
 #### AdminTrendsChart
 
-Owns monthly-trends fetch for the selected date range (default: month). Avoids double-fetch with the page load.
+Owns trends fetch for the selected date range (default: month). Avoids double-fetch with the page load.
 
-**Charts:** legend via `ChartLegend`, stacked finance areas (`stackId`), compact `₪` Y-axis, `--chart-*` colors, loading/error UI.
+**Charts:** legend via `ChartLegend`, stacked finance areas (`stackId`), compact `₪` Y-axis, `--chart-*` colors, loading/error UI. Short ranges use daily buckets from the RPC; longer ranges use months.
 
 #### AdminDownloadsSection
 
