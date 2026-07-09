@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { useRouterState, Link } from "@tanstack/react-router";
 import { PUBLIC_ROUTES } from "@/lib/constants";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 
 // Constants
 const CURRENT_TERMS_VERSION = "v1.0"; // Update this when terms change significantly
@@ -161,6 +162,9 @@ export function TermsAcceptanceModal() {
         updateSettings({ termsAcceptedVersion: CURRENT_TERMS_VERSION });
         setIsOpen(false);
         toast.success(t("termsModal.success"));
+        trackProductEvent("terms_accepted", {
+          version: CURRENT_TERMS_VERSION,
+        });
       }
     } catch (error) {
       console.error("Failed to accept terms:", error);

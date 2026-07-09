@@ -45,7 +45,7 @@ export function AmountCurrencyDateFields({
   const amount = form.watch("amount");
   
   return (
-    <div className="ph-no-capture space-y-4">
+    <div className="space-y-4">
       {/* Amount + Currency + Date: responsive layout */}
       <div className="flex flex-wrap gap-4 items-start">
         {/* Amount + Currency group — controls share h-10; currency uses invisible label for same top rhythm as amount on all breakpoints */}

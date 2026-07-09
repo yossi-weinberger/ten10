@@ -3,6 +3,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useRef,
   ReactNode,
 } from "react";
 import { Session, User as SupabaseUser } from "@supabase/supabase-js";
@@ -16,6 +17,7 @@ import { CurrencySyncService } from "@/lib/services/currency-sync.service";
 import { PreferencesSyncService } from "@/lib/services/preferences-sync.service";
 import { resetPostHogUser } from "@/lib/analytics/posthogClient";
 import { syncPostHogUserIdentity } from "@/lib/analytics/posthogIdentity.service";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 
 export type { SupabaseUser as User };
 
@@ -39,6 +41,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [initialSetupDone, setInitialSetupDone] = useState(false);
   const { platform } = usePlatform();
   const hasHydrated = useDonationStore((state) => state._hasHydrated);
+  /** Last user id we already treated as signed-in (avoids refresh/focus noise). */
+  const lastAuthedUserIdRef = useRef<string | null>(null);
+  /** True after the first getCachedSession() settles — gates login analytics. */
+  const initialSessionResolvedRef = useRef(false);
 
   useEffect(() => {
     logger.log("AuthContext: Initializing auth state listener.");
@@ -53,6 +59,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setSession(initialSession);
         const initialUser = initialSession?.user ?? null;
         setUser(initialUser);
+        lastAuthedUserIdRef.current = initialUser?.id ?? null;
+        initialSessionResolvedRef.current = true;
         if (initialUser) {
           void syncPostHogUserIdentity(initialUser, i18n.language);
         }
@@ -60,6 +68,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       })
       .catch((error) => {
         logger.error("Error getting initial session:", error);
+        initialSessionResolvedRef.current = true;
         setLoading(false);
       });
 
@@ -74,12 +83,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(newCurrentUser);
 
         if (event === "SIGNED_OUT") {
-          resetPostHogUser();
+          if (lastAuthedUserIdRef.current != null) {
+            trackProductEvent("logout_completed");
+            resetPostHogUser();
+          }
+          lastAuthedUserIdRef.current = null;
         } else if (
           newCurrentUser &&
           (event === "SIGNED_IN" || event === "INITIAL_SESSION")
         ) {
-          void syncPostHogUserIdentity(newCurrentUser, i18n.language);
+          // Supabase may re-emit SIGNED_IN on tab focus / session restore.
+          // Count login only on a real transition into a (new) authenticated user.
+          const isFreshLogin =
+            event === "SIGNED_IN" &&
+            initialSessionResolvedRef.current &&
+            lastAuthedUserIdRef.current !== newCurrentUser.id;
+
+          if (isFreshLogin) {
+            const provider =
+              newAuthStateSession?.user?.app_metadata?.provider ?? "email";
+            trackProductEvent("login_completed", { method: String(provider) });
+          }
+
+          if (lastAuthedUserIdRef.current !== newCurrentUser.id) {
+            void syncPostHogUserIdentity(newCurrentUser, i18n.language);
+          }
+          lastAuthedUserIdRef.current = newCurrentUser.id;
         }
 
         setLoading(false);

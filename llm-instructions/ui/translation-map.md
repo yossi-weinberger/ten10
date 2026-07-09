@@ -21,6 +21,7 @@
 | `appName`               | Ten10        | Ten10            | ✅    |
 | `home`                  | דף הבית      | Home             | ✅    |
 | `addTransaction`        | הוסף תנועה   | Add Transaction  | ✅    |
+| `feedback`              | משוב         | Feedback         | ✅    |
 | `allTransactions`       | כל התנועות   | All Transactions | ✅    |
 | `recurringTransactions` | הוראות קבע   | Recurring        | ✅    |
 | `analytics`             | ניתוח נתונים | Analytics        | ✅    |
@@ -39,6 +40,7 @@
 | `cancel`   | ביטול        | Cancel          | ✅    |
 | `edit`     | ערוך         | Edit            | ✅    |
 | `delete`   | מחק          | Delete          | ✅    |
+| `feedback.*` | דיאלוג משוב PostHog | PostHog feedback dialog | ✅ |
 | `toasts.*` | הודעות מערכת | System messages | ✅    |
 
 ---

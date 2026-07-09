@@ -12,6 +12,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Check, ChevronsUpDown, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -169,6 +170,9 @@ export function CategoryCombobox({
     const newCategory = searchValue.trim();
     if (newCategory) {
       onChange(newCategory);
+      trackProductEvent("category_created", {
+        scope: validBaseType ?? "unknown",
+      });
       setOpen(false);
       setSearchValue("");
     }

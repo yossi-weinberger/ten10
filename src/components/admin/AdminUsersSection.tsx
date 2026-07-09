@@ -3,6 +3,7 @@ import { Users, UserCheck, UserPlus, Clock } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AdminUserStats } from "@/lib/data-layer/admin.service";
 import { MagicStatCard } from "@/components/dashboard/StatCards/MagicStatCard";
+import { MetricWithTooltip } from "@/components/admin/monitoring/AdminMonitoringComponents";
 
 interface AdminUsersSectionProps {
   stats: AdminUserStats;
@@ -48,12 +49,14 @@ export function AdminUsersSection({ stats }: AdminUsersSectionProps) {
 
   const StatCardNumber = ({
     title,
+    tooltip,
     value,
     icon: Icon,
     colorScheme,
     subtitle,
   }: {
     title: string;
+    tooltip: string;
     value: number;
     icon: any;
     colorScheme: keyof typeof colorStyles;
@@ -70,7 +73,7 @@ export function AdminUsersSection({ stats }: AdminUsersSectionProps) {
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="flex items-center gap-2 text-sm font-medium">
               <Icon className={`h-4 w-4 ${styles.icon}`} />
-              {title}
+              <MetricWithTooltip label={title} tooltip={tooltip} />
             </CardTitle>
             <Icon className={`h-5 w-5 ${styles.icon}`} />
           </CardHeader>
@@ -111,6 +114,7 @@ export function AdminUsersSection({ stats }: AdminUsersSectionProps) {
         {/* Total Users */}
         <StatCardNumber
           title={t("users.total")}
+          tooltip={t("users.tooltips.total")}
           value={stats.total}
           icon={Users}
           colorScheme="purple"
@@ -119,6 +123,7 @@ export function AdminUsersSection({ stats }: AdminUsersSectionProps) {
         {/* Active Users (30 days) */}
         <StatCardNumber
           title={t("users.active30d")}
+          tooltip={t("users.tooltips.active30d")}
           value={stats.active_30d}
           icon={UserCheck}
           colorScheme="green"
@@ -130,6 +135,7 @@ export function AdminUsersSection({ stats }: AdminUsersSectionProps) {
         {/* New Users (30 days) */}
         <StatCardNumber
           title={t("users.new30d")}
+          tooltip={t("users.tooltips.new30d")}
           value={stats.new_30d}
           icon={UserPlus}
           colorScheme="blue"
@@ -138,6 +144,7 @@ export function AdminUsersSection({ stats }: AdminUsersSectionProps) {
         {/* New Users (7 days) */}
         <StatCardNumber
           title={t("users.new7d")}
+          tooltip={t("users.tooltips.new7d")}
           value={stats.new_7d}
           icon={Clock}
           colorScheme="orange"

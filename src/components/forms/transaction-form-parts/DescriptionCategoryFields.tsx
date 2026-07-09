@@ -31,7 +31,7 @@ export function DescriptionCategoryFields({
   const showRecipientField = selectedType === "donation";
   
   return (
-    <div className="ph-no-capture grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
       {/* Description - start */}
       <FormField
         control={form.control}

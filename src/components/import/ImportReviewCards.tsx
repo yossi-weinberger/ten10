@@ -208,7 +208,11 @@ function RowCard({ row, typeLabel, onToggleApproval, onRequestEdit, t }: RowCard
 
       {/* Trailing: amount + badge + edit */}
       <div className="shrink-0 flex flex-col items-end gap-1">
-        <span className="text-sm font-semibold tabular-nums leading-tight" dir="ltr">
+        <span
+          className="ph-mask text-sm font-semibold tabular-nums leading-tight"
+          data-ph-mask
+          dir="ltr"
+        >
           {n ? fmtAmount(n.amount, n.currency) : "—"}
         </span>
         <div className="flex items-center gap-1">

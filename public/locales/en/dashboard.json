@@ -172,7 +172,7 @@
       "donations": "Donations",
       "recurringOf": "{{recurring}} of {{total}} recurring"
     },
-      "heatmap": {
+    "heatmap": {
       "title": "Transaction Activity",
       "subtitle": "Transaction density by day across all history",
       "typeAll": "All Types",
@@ -180,7 +180,15 @@
       "noData": "No transactions in this period",
       "legendLow": "Less",
       "legendHigh": "More",
-      "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+      "weekdays": [
+        "Sun",
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat"
+      ]
     }
   },
   "monthlyChart": {

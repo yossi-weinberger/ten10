@@ -19,6 +19,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { AuthLayout } from "@/components/layout/AuthLayout";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 
 const SignupPage: React.FC = () => {
   const { platform } = usePlatform();
@@ -106,9 +107,17 @@ const SignupPage: React.FC = () => {
         } else {
           toast.success(t("signup.toasts.signupSuccess"));
         }
+        trackProductEvent("signup_completed", {
+          method: "email",
+          requires_email_confirm: false,
+        });
         navigate({ to: "/" });
       } else if (data.user) {
         toast.success(t("signup.toasts.signupCompleteEmailConfirm"));
+        trackProductEvent("signup_completed", {
+          method: "email",
+          requires_email_confirm: true,
+        });
         setEmail("");
         setPassword("");
         setConfirmPassword("");

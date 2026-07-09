@@ -7,6 +7,7 @@ import {
 } from "./recurringTable.store";
 import { logger } from "@/lib/logger";
 import { rescheduleBillingDayInMonth } from "@/lib/recurring/recurring-date.utils";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 
 function activeFirst(
   recurring: RecurringTransaction[]
@@ -16,6 +17,36 @@ function activeFirst(
     const bPriority = b.status === "active" ? 0 : 1;
 
     return aPriority - bPriority;
+  });
+}
+
+function trackRecurringUpdateEvents(
+  existing: RecurringTransaction | undefined,
+  updates: Partial<RecurringTransaction>
+): void {
+  const fieldsChanged = Object.keys(updates).filter(
+    (key) => updates[key as keyof RecurringTransaction] !== undefined
+  );
+
+  if (
+    updates.status &&
+    existing?.status &&
+    updates.status !== existing.status
+  ) {
+    if (updates.status === "paused") {
+      trackProductEvent("recurring_obligation_paused", {
+        frequency: existing.frequency,
+      });
+    } else if (updates.status === "active") {
+      trackProductEvent("recurring_obligation_resumed", {
+        frequency: existing.frequency,
+      });
+    }
+  }
+
+  trackProductEvent("recurring_obligation_updated", {
+    fields_changed: fieldsChanged,
+    frequency: existing?.frequency ?? updates.frequency,
   });
 }
 
@@ -131,6 +162,7 @@ export async function updateRecurringTransaction(
       logger.error("Error updating recurring transaction via RPC:", error);
       throw error;
     }
+    trackRecurringUpdateEvents(existing, updates);
     return data as RecurringTransaction;
   } else if (platform === "desktop") {
     const { invoke } = await import("@tauri-apps/api/core");
@@ -165,6 +197,7 @@ export async function deleteRecurringTransaction(id: string): Promise<void> {
       logger.error("Error deleting recurring transaction via RPC:", error);
       throw error;
     }
+    trackProductEvent("recurring_obligation_deleted");
   } else if (platform === "desktop") {
     const { invoke } = await import("@tauri-apps/api/core");
     await invoke("delete_recurring_transaction_handler", { id });

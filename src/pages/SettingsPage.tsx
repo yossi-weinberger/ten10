@@ -29,6 +29,7 @@ import { Transaction } from "@/types/transaction";
 import { CurrencyCode } from "@/lib/currencies";
 
 import { useIsCurrencyLocked } from "@/hooks/useIsCurrencyLocked";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -98,6 +99,7 @@ export function SettingsPage() {
   const handleSetTheme = (newTheme: "light" | "dark" | "system") => {
     setTheme(newTheme);
     updateSettings({ theme: newTheme });
+    trackProductEvent("settings_changed", { setting_key: "theme" });
   };
 
   // Define components to reuse in both layouts
@@ -108,6 +110,9 @@ export function SettingsPage() {
       languageSettings={{ language: settings.language }}
       updateSettings={(newLangSettings) => {
         updateSettings(newLangSettings);
+        if (newLangSettings.language) {
+          trackProductEvent("settings_changed", { setting_key: "language" });
+        }
       }}
     />
   );
@@ -124,6 +129,10 @@ export function SettingsPage() {
       }}
       updateSettings={(newFinancialSettings) => {
         updateSettings(newFinancialSettings);
+
+        if (newFinancialSettings.defaultCurrency) {
+          trackProductEvent("settings_changed", { setting_key: "currency" });
+        }
 
         // Also update Supabase profile if on web
         if (
@@ -163,6 +172,12 @@ export function SettingsPage() {
       updateSettings={async (newNotificationSettings) => {
         // Update local settings immediately
         updateSettings(newNotificationSettings);
+
+        if (typeof newNotificationSettings.reminderEnabled === "boolean") {
+          trackProductEvent("reminder_preference_changed", {
+            enabled: newNotificationSettings.reminderEnabled,
+          });
+        }
 
         // Update Supabase for web users
         if (platform === "web" && user) {
