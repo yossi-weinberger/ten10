@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockSingle = vi.fn();
 const mockGetPublicUrl = vi.fn();
+const mockSelectEq = vi.fn();
 const mockUpdate = vi.fn();
 const mockUpdateEq = vi.fn();
 
@@ -9,7 +10,10 @@ vi.mock("@/lib/supabaseClient", () => ({
   supabase: {
     from: () => ({
       select: () => ({
-        eq: () => ({ single: (...args: unknown[]) => mockSingle(...args) }),
+        eq: (...eqArgs: unknown[]) => {
+          mockSelectEq(...eqArgs);
+          return { single: (...args: unknown[]) => mockSingle(...args) };
+        },
       }),
       update: (...args: unknown[]) => {
         mockUpdate(...args);
@@ -84,6 +88,7 @@ describe("fetchProfileFullName", () => {
       status: 200,
     });
     await expect(fetchProfileFullName("u1")).resolves.toBe("Yossi Weinberger");
+    expect(mockSelectEq).toHaveBeenCalledWith("id", "u1");
   });
 
   it("returns an empty string when full_name is null", async () => {
