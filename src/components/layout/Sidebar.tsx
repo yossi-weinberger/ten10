@@ -25,6 +25,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
+import { HomeFeedbackCard } from "@/components/feedback/HomeFeedbackCard";
 
 interface SidebarProps {
   expanded?: boolean;
@@ -422,6 +423,11 @@ export function Sidebar({
 
         {/* Divider spans the padded width */}
         <div className="my-2 h-px bg-border/20" />
+
+        {/* Feedback (above profile) — web + PostHog only; hides after submit */}
+        {platform === "web" && session?.user && (
+          <HomeFeedbackCard variant="sidebar" expanded={expanded} />
+        )}
 
         {/* Bottom-pinned Profile card (NOT inside the scroller) */}
         {platform === "web" && session?.user && (

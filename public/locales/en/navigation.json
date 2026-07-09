@@ -11,7 +11,8 @@
     "profile": "Profile",
     "logout": "Logout",
     "supportUs": "Donate to Institute",
-    "donateTooltip": "The donation to the institute and Ten10 can be from ma'aser funds"
+    "donateTooltip": "The donation to the institute and Ten10 can be from ma'aser funds",
+    "feedback": "Feedback"
   },
   "user": {
     "loading": "Loading...",

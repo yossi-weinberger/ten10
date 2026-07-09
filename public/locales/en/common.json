@@ -68,12 +68,12 @@
       "columns": {
         "date": "Date",
         "type": "Type",
-      "details": "Details",
-      "category": "Category",
-      "recipient": "Recipient",
-      "paymentMethod": "Payment Method",
-      "recurring": "Recurring",
-      "chomesh": "Tithe?",
+        "details": "Details",
+        "category": "Category",
+        "recipient": "Recipient",
+        "paymentMethod": "Payment Method",
+        "recurring": "Recurring",
+        "chomesh": "Tithe?",
         "amount": "Amount"
       },
       "frequencies": {
@@ -128,5 +128,28 @@
     "feature_home_screen": "Home screen icon",
     "feature_full_screen": "Full screen without address bar",
     "feature_offline_support": "Offline support"
+  },
+  "feedback": {
+    "title": "Help us improve",
+    "subtitle": "A few short questions — only if you want",
+    "sourceLabel": "Where did you hear about us?",
+    "sourceOtherPlaceholder": "Please specify…",
+    "satisfactionLabel": "How satisfied are you?",
+    "recommendLabel": "Would you recommend Ten10? (1–5)",
+    "suggestionsLabel": "Suggestions for improvement (optional)",
+    "suggestionsPlaceholder": "What could we improve?",
+    "submit": "Submit",
+    "later": "Later",
+    "dismiss": "Dismiss",
+    "thanks": "Thanks for your feedback!",
+    "sources": {
+      "friend_family": "Friend / family",
+      "groups": "WhatsApp / email group",
+      "google_search": "Google search",
+      "social_media": "Social media",
+      "mailing_list": "Mailing list",
+      "forums": "Forums",
+      "other": "Other"
+    }
   }
 }

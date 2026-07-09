@@ -68,12 +68,12 @@
       "columns": {
         "date": "תאריך",
         "type": "סוג",
-      "details": "פרטים",
-      "category": "קטגוריה",
-      "recipient": "נמען",
-      "paymentMethod": "אמצעי תשלום",
-      "recurring": "הוראת קבע",
-      "chomesh": "חומש?",
+        "details": "פרטים",
+        "category": "קטגוריה",
+        "recipient": "נמען",
+        "paymentMethod": "אמצעי תשלום",
+        "recurring": "הוראת קבע",
+        "chomesh": "חומש?",
         "amount": "סכום"
       },
       "frequencies": {
@@ -127,5 +127,28 @@
     "feature_home_screen": "אייקון במסך הבית",
     "feature_full_screen": "מסך מלא ללא סרגל כתובות",
     "feature_offline_support": "תמיכה במצב לא מקוון"
+  },
+  "feedback": {
+    "title": "עזרו לנו להשתפר",
+    "subtitle": "כמה שאלות קצרות",
+    "sourceLabel": "מהיכן שמעת עלינו?",
+    "sourceOtherPlaceholder": "פרט בקצרה…",
+    "satisfactionLabel": "עד כמה אתה מרוצה?",
+    "recommendLabel": "האם היית ממליץ לאחרים? (1–5)",
+    "suggestionsLabel": "הצעות לשיפור (אופציונלי)",
+    "suggestionsPlaceholder": "מה נוכל לשפר?",
+    "submit": "שליחה",
+    "later": "אחר כך",
+    "dismiss": "סגור",
+    "thanks": "תודה על המשוב!",
+    "sources": {
+      "friend_family": "חבר / משפחה",
+      "groups": "קבוצת וואטסאפ/מייל",
+      "google_search": "חיפוש בגוגל",
+      "social_media": "רשתות חברתיות",
+      "mailing_list": "רשימת תפוצה",
+      "forums": "פורומים",
+      "other": "אחר"
+    }
   }
 }
