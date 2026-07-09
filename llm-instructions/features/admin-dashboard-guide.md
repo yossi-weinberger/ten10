@@ -138,7 +138,7 @@ Array<{
 
 #### 3. `get_earliest_system_date()`
 
-Returns the earliest sane date for dynamic "all time" ranges (ignores transaction dates before 2000-01-01).
+Returns the earliest date for dynamic "all time" ranges: **first user signup** (`auth.users`), not the oldest `transactions.date` (imports often backdate years). `earliest_transaction` is still returned for reference.
 
 **Returns:**
 

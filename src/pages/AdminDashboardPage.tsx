@@ -34,7 +34,7 @@ export function AdminDashboardPage() {
   const { platform } = usePlatform();
   const navigate = useNavigate();
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
-  const [earliestDate, setEarliestDate] = useState<string>("2008-01-01");
+  const [earliestDate, setEarliestDate] = useState<string>("2025-05-01");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
