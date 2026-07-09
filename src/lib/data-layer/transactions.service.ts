@@ -159,36 +159,45 @@ export async function getInitialBalanceTransaction(): Promise<Transaction | null
 }
 
 /**
- * Checks if there are ANY transactions in the database.
- * Useful for determining if currency settings should be locked.
+ * Returns the number of transactions for the current user/platform.
+ * Web uses a head count query; desktop uses the Tauri count command.
  */
-export async function hasAnyTransaction(): Promise<boolean> {
+export async function getTransactionsCount(): Promise<number> {
   const currentPlatform = getPlatform();
 
   if (currentPlatform === "desktop") {
     try {
       const { invoke } = await import("@tauri-apps/api/core");
-      const count = await invoke<number>("get_transactions_count");
-      return count > 0;
+      return await invoke<number>("get_transactions_count");
     } catch (error) {
-      logger.error("Error checking for transactions (Desktop):", error);
-      return false;
+      logger.error("Error counting transactions (Desktop):", error);
+      return 0;
     }
-  } else if (currentPlatform === "web") {
+  }
+
+  if (currentPlatform === "web") {
     try {
-      // Use count with head: true to avoid fetching data
       const { count, error } = await supabase
         .from("transactions")
         .select("*", { count: "exact", head: true });
 
       if (error) throw error;
-      return (count || 0) > 0;
+      return count ?? 0;
     } catch (error) {
-      logger.error("Error checking for transactions (Web):", error);
-      return false;
+      logger.error("Error counting transactions (Web):", error);
+      return 0;
     }
   }
-  return false;
+
+  return 0;
+}
+
+/**
+ * Checks if there are ANY transactions in the database.
+ * Useful for determining if currency settings should be locked.
+ */
+export async function hasAnyTransaction(): Promise<boolean> {
+  return (await getTransactionsCount()) > 0;
 }
 
 /**

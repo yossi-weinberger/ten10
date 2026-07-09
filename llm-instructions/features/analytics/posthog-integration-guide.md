@@ -2,71 +2,24 @@
 
 This document records the PostHog (PH) product analytics work on Ten10. Use it when extending instrumentation, debugging events, or onboarding.
 
-**Related:** In-app financial analytics (`/analytics` page) is a separate feature — see `analytics-page-guide.md`. This doc covers **PostHog product analytics** only.
+**Related:**
+
+- In-app financial analytics (`/analytics` page) — see `analytics-page-guide.md`
+- Dashboard / PostHog AI brief — see `posthog-dashboard-brief.md` (paste into PostHog AI)
 
 **PostHog project:** `posthog-ten10` on `eu.posthog.com` (project id 169449)
 
 ---
 
-## Before vs After
-
-### Before
-
-| Area | State |
-|------|-------|
-| SDK | `posthog.init` inline in `main.tsx`; `$pageview` via TanStack Router |
-| Events wired | Only 4 import events in `ImportWizard.tsx` |
-| Events defined but unused | 6 events in `productAnalytics.ts` type union |
-| Identity | No `identify` / `reset` |
-| Session replay | Not configured in code |
-| Desktop | PostHog was active (import events were sent) |
-| Landing | Google Analytics only |
-| Privacy policy | Claimed "no analytics in the app" (incorrect) |
-
-### After
-
-| Area | State |
-|------|-------|
-| SDK | Centralized in `posthogClient.ts`; web-only gate |
-| Events | All 10 typed product events wired (see taxonomy below) |
-| Identity | `identify` on login/session; `reset` on `SIGNED_OUT` only |
-| Session replay | `maskAllInputs: true` in init (requires PH project settings) |
-| Desktop | **No PostHog** — `isPostHogSupported()` returns false |
-| Landing | Dual: GA + PostHog via `capturePostHogEvent` |
-| Privacy | Minimal update in `privacy.json` (he/en) |
-
----
-
 ## Key Decisions
 
-1. **Web only** — PostHog does not init when `window.__TAURI_INTERNALS__` exists (desktop). Aligns with privacy policy: desktop financial data stays local.
-2. **Landing dual tracking** — Keep GA; add PostHog events in the same `trackEvent()` helper.
-3. **No canvas recording** — Charts on `/analytics` are Recharts (SVG). Standard session replay is enough; `captureCanvas` was intentionally omitted.
-4. **No financial PII in events** — Never send amounts, descriptions, recipients, or email.
-5. **Minimal privacy copy** — One `description` + one `note` in `privacy.json`; no bullet list in UI.
-
----
-
-## Files Changed
-
-| File | Change |
-|------|--------|
-| `src/lib/analytics/posthogClient.ts` | **New** — init, guards, pageview, identify/reset, generic capture |
-| `src/lib/analytics/posthogIdentity.service.ts` | **New** — resolves `name` + `email`, calls `identifyPostHogUser` |
-| `src/lib/analytics/productAnalytics.ts` | Web-only guard; removed desktop `app_surface` logic |
-| `src/main.tsx` | Uses `posthogClient`; conditional `PostHogProvider` |
-| `src/contexts/AuthContext.tsx` | `syncPostHogUserIdentity` / `resetPostHogUser` |
-| `src/pages/ProfilePage.tsx` | Re-identify after profile name/email save |
-| `src/lib/data-layer/transactionForm.service.ts` | `transaction_created`, `recurring_obligation_created` |
-| `src/lib/data-layer/transactions.service.ts` | `transaction_updated` (after successful update) |
-| `src/pages/AnalyticsPage.tsx` | `analytics_opened`, date range, PDF export events |
-| `src/pages/landing/index.tsx` | `capturePostHogEvent` alongside GA |
-| `src/components/forms/transaction-form-parts/AmountCurrencyDateFields.tsx` | `ph-no-capture` class (replay privacy, no visual change) |
-| `src/components/forms/transaction-form-parts/DescriptionCategoryFields.tsx` | `ph-no-capture` class |
-| `src/declarations.d.ts` | `VITE_PUBLIC_POSTHOG_*` env types |
-| `public/locales/{he,en}/privacy.json` | Minimal PostHog mention |
-
-**Not changed:** Business logic, UI styling, routes, Supabase, desktop data flow, Vercel Analytics.
+1. **Web only** — PostHog does not init when `window.__TAURI_INTERNALS__` exists (desktop).
+2. **Landing dual tracking** — Keep GA; add PostHog in the same `trackEvent()` helper.
+3. **No canvas recording** — Charts are Recharts (SVG).
+4. **No financial PII in events** — Never send amounts, descriptions, recipients in event properties.
+5. **Replay privacy: mask values, keep chrome** — Prefer `ph-mask` / `data-ph-mask` + `maskAllInputs` over `ph-no-capture` wrappers.
+6. **Surveys** — API survey + opt-in **button → dialog** on Home (no auto-open / no popover).
+7. **Admin** — Live aggregates via Edge Function `get-posthog-analytics` (Personal API key server-side only).
 
 ---
 
@@ -79,11 +32,16 @@ main.tsx (sync, before React render)
   └─ PostHogProvider (web only)
 
 posthogClient.ts          posthogIdentity.service.ts    productAnalytics.ts
-  ├─ initPostHog            └─ syncPostHogUserIdentity     └─ trackProductEvent (typed events)
-  ├─ capturePostHogPageview       ← AuthContext, ProfilePage
-  ├─ capturePostHogEvent    ← landing page
+  ├─ initPostHog            └─ syncPostHogUserIdentity     └─ trackProductEvent
+  ├─ capturePostHogPageview
+  ├─ capturePostHogEvent    ← landing
   ├─ identifyPostHogUser
-  └─ resetPostHogUser       ← AuthContext on SIGNED_OUT
+  └─ resetPostHogUser
+
+posthogSurveys.ts         HomeFeedbackCard.tsx
+  └─ survey shown/sent/dismissed → PostHog survey 019f46de-…
+
+Admin: posthogAdmin.service.ts → Edge Function get-posthog-analytics → PostHog Query API
 ```
 
 ### Web-only gate
@@ -95,18 +53,30 @@ isPostHogSupported() =
   !!VITE_PUBLIC_POSTHOG_PROJECT_TOKEN
 ```
 
-If token is missing or platform is desktop, all PH calls no-op silently.
-
 ---
 
 ## Environment Variables
+
+**Client (Vercel / `.env`):**
 
 ```bash
 VITE_PUBLIC_POSTHOG_PROJECT_TOKEN=phc_...
 VITE_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 ```
 
-Set in Vercel and local `.env` (not committed). Typed in `src/declarations.d.ts`.
+**Edge Function secrets (Supabase):**
+
+```bash
+POSTHOG_PERSONAL_API_KEY=phx_...   # Query Read permission
+POSTHOG_PROJECT_ID=169449
+POSTHOG_HOST=https://eu.posthog.com
+```
+
+Deploy function:
+
+```bash
+npx supabase functions deploy get-posthog-analytics
+```
 
 ---
 
@@ -114,118 +84,100 @@ Set in Vercel and local `.env` (not committed). Typed in `src/declarations.d.ts`
 
 | Option | Value | Why |
 |--------|-------|-----|
-| `person_profiles` | `"identified_only"` | Person profiles only after `identify()` |
+| `person_profiles` | `"identified_only"` | Profiles only after identify |
 | `capture_pageview` | `false` | Manual SPA pageviews |
-| `capture_pageleave` | `true` | Scroll/time metrics |
-| `session_recording.maskAllInputs` | `true` | Mask form fields in replays |
+| `capture_pageleave` | `true` | Engagement metrics |
+| `capture_exceptions` | `true` | Error Tracking |
+| `session_recording.maskAllInputs` | `true` | Mask input values |
+| `session_recording.maskTextSelector` | `[data-ph-mask], .ph-mask` | Mask displayed amounts/text |
+| `maskCapturedNetworkRequestFn` | redacts token/email query params | Safer replays |
 
-**Manual pageviews:** `capturePostHogPageview()` runs once after init, then on every TanStack Router `onResolved`. Passes explicit `$current_url`.
-
-**Session replay:** Must also be enabled in [PostHog project settings](https://eu.posthog.com/project/169449/settings/project-replay).
+**Session replay** must also be enabled in [project settings](https://eu.posthog.com/project/169449/settings/project-replay).
 
 ---
 
-## User Identity (`AuthContext.tsx`, `posthogIdentity.service.ts`)
+## Session Replay Privacy Rules
 
-```typescript
-// Third argument to identify() = $set_once (PostHog ignores if already set)
-await syncPostHogUserIdentity(user, i18n.language)
-// → resolves name (profiles.full_name → user_metadata.full_name)
-// → posthog.identify(user.id, { language, name?, email? }, { first_login_at: ISO })
+| Do | Don't |
+|----|-------|
+| Put `ph-mask` / `data-ph-mask` on **values** (amounts in tables, KPIs) | Wrap entire form sections in `ph-no-capture` |
+| Rely on `maskAllInputs` for inputs | Block chart SVG containers |
+| Use `ph-no-capture` only for true blocks (e.g. PIN UI) | Send amounts in event properties |
 
-resetPostHogUser()  // only on event === "SIGNED_OUT"
-```
-
-| Trigger | Action |
-|---------|--------|
-| Initial `getCachedSession()` with user | `syncPostHogUserIdentity` |
-| `INITIAL_SESSION` with user | `syncPostHogUserIdentity` |
-| `SIGNED_IN` | `syncPostHogUserIdentity` |
-| Profile save (name or email) | `syncPostHogUserIdentity` |
-| `SIGNED_OUT` | `reset` |
-| `TOKEN_REFRESHED` | nothing |
-
-**PostHog UI:** Project settings → Person display name → add `name` and optionally `email` to `person_display_name_properties`.
-
-**Never send:** amounts, transaction descriptions, or other financial data.
+Applied on: `CurrencyConversionInfo`, import review amounts, dashboard StatCard values. Form inputs rely on `maskAllInputs`.
 
 ---
 
 ## Event Taxonomy
 
-All product events go through `trackProductEvent()` in `productAnalytics.ts`. Landing marketing events use `capturePostHogEvent()` directly.
+All product events go through `trackProductEvent()` in `productAnalytics.ts`. Full table for dashboards: **`posthog-dashboard-brief.md`**.
 
-| Event | File | Trigger | Properties |
-|-------|------|---------|------------|
-| `$pageview` | `posthogClient.ts` | Router navigation | `$current_url` |
-| `transaction_created` | `transactionForm.service.ts` | After `addTransaction` | `type`, `currency`, `has_category`, `is_chomesh`, `has_conversion` |
-| `transaction_updated` | `transactions.service.ts` | After successful `updateTransaction` | `fields_changed[]`, `type?` |
-| `recurring_obligation_created` | `transactionForm.service.ts` | After `createRecurringTransaction` | `type`, `frequency`, `currency`, `has_category` |
-| `analytics_opened` | `AnalyticsPage.tsx` | `useEffect` on mount | — |
-| `analytics_date_range_changed` | `AnalyticsPage.tsx` | Preset or custom date change | `preset` |
-| `analytics_pdf_exported` | `AnalyticsPage.tsx` | After PDF export success | `is_all_time`, `chart_count: 4` |
-| `transaction_import_started` | `ImportWizard.tsx` | Wizard mount | `platform` (legacy prop; web-only now) |
-| `transaction_import_mapping_completed` | `ImportWizard.tsx` | After mapping step | `platform`, `isTen10Template` |
-| `transaction_import_completed` | `ImportWizard.tsx` | Import success | counts, `fileType`, `isTen10Template` |
-| `transaction_import_failed` | `ImportWizard.tsx` | Import error | `platform`, `error` (truncated) |
-| `download_click` | `landing/index.tsx` | Hero download button | `language`, `platform`, `section` |
-| `web_app_click` | `landing/index.tsx` | Hero web app link | `language`, `section` |
-| `language_view` | `landing/index.tsx` | Language change | `language` |
+Highlights of expanded events:
 
-Every event includes `platform: "web"` when sent.
+- Auth: `signup_completed`, `login_completed`, `logout_completed`, `password_reset_requested`, `terms_accepted`
+- Transactions: `transaction_deleted`, recurring pause/resume/update/delete
+- Export: `transactions_exported`
+- Settings: `settings_changed`, `reminder_preference_changed`
+- Other: `category_created`, `contact_form_submitted`
 
 ---
 
-## Session Replay Privacy
+## Surveys (Home opt-in button → dialog)
 
-`ph-no-capture` CSS class on input wrappers (PostHog default block class):
-
-- `AmountCurrencyDateFields.tsx` — amount fields
-- `DescriptionCategoryFields.tsx` — description, recipient, category
-
-Do **not** add `ph-no-capture` to chart containers — Recharts SVG should remain visible in replays.
-
----
-
-## Privacy Policy Text
-
-`public/locales/he/privacy.json` and `en/privacy.json`, section `analytics`:
-
-- **description:** GA (landing) + PostHog (web), no financial data, no desktop tracking
-- **note:** cookies, can block in browser
-
-Cookies section unchanged (GA landing only in item3). `PrivacyPage.tsx` layout unchanged (description + note paragraphs only).
+- PostHog survey ID: `019f46de-28a2-0000-6426-155935ed61c6` (type **API**, launched)
+- UI: `src/components/feedback/HomeFeedbackCard.tsx` in `Sidebar` (above profile)
+- Helpers: `src/lib/analytics/posthogSurveys.ts`
+- Eligibility: identified web user + more than 10 transactions + survey not completed locally
+- UX: button opens dialog on click only (no auto-show)
+- Source answers store **stable English keys** (`friend_family`, `groups`, `mailing_list`, `forums`, …); labels via i18n
+- When source is `other`, free text is required and sent as event property `source_other_text`
+- i18n: sidebar label in `navigation.json` (`menu.feedback`); dialog copy in `common.json` (`feedback.*`)
 
 ---
 
-## Pitfalls / Lessons Learned
+## Web Analytics
 
-### AnalyticsPage hook order (fixed)
-
-`useCallback` handlers that call `setDateRangeSelection` must be declared **after** `useDateControls()`. Placing them before causes:
-
-```
-ReferenceError: Cannot access 'setDateRangeSelection' before initialization
-```
-
-### Do not reset on anonymous session
-
-`resetPostHogUser()` only on `SIGNED_OUT`, not on `INITIAL_SESSION` without a user — avoids clearing anonymous distinct IDs unnecessarily.
-
-### ImportWizard `platform` prop
-
-Still passes `platform` in event properties from `usePlatform()`. On web this is always `"web"`. Harmless legacy; desktop no longer sends these events.
+Powered by existing `$pageview` captures. Open [Web Analytics](https://eu.posthog.com/project/169449/web-analytics). GA on landing remains.
 
 ---
 
-## Manual PostHog Setup (not in code)
+## Admin PostHog tab
 
-1. Enable **Session Replay** in project settings
-2. Optionally enable **Exception autocapture**
-3. Create dashboards/funnels (suggested):
-   - Login → Dashboard → `transaction_created`
-   - Import funnel: `started` → `mapping_completed` → `completed`
-   - Analytics adoption: pageview `/analytics` → `analytics_pdf_exported`
+- Route: `/admin` → tab **PostHog**
+- UI: `AdminPostHogSection.tsx`
+- Backend: `supabase/functions/get-posthog-analytics`
+- Shows aggregates only (DAU, pageviews, import success, exceptions, survey counts, top paths)
+- Links to Web Analytics / Surveys / Error Tracking
+
+---
+
+## How to Add a New Event
+
+1. Add name to `ProductAnalyticsEvent` in `productAnalytics.ts`
+2. Call `trackProductEvent("event_name", { ... })` after success
+3. Non-sensitive properties only
+4. Update this guide + `posthog-dashboard-brief.md`
+
+---
+
+## Verification Checklist
+
+- [ ] Web: Network tab shows `eu.i.posthog.com`
+- [ ] Desktop: **no** PostHog network requests
+- [ ] Login → identified person; logout → reset
+- [ ] Replay: form chrome visible; amounts masked via `ph-mask`
+- [ ] Home feedback card on 2nd+ visit; dismiss hides it
+- [ ] Admin PostHog tab loads (after secrets + function deploy)
+- [ ] Exceptions appear in Error Tracking
+
+---
+
+## Manual PostHog Setup
+
+1. Session Replay enabled
+2. Exception autocapture / Error Tracking enabled
+3. Survey launched (done: Ten10 Home Feedback)
+4. Create dashboards from `posthog-dashboard-brief.md` (PostHog AI or MCP)
 
 ---
 
@@ -233,32 +185,8 @@ Still passes `platform` in event properties from `usePlatform()`. On web this is
 
 | Feature | Notes |
 |---------|-------|
-| Feature flags | No flags in PH project yet |
-| Surveys / NPS | — |
-| `captureCanvas` | Only if canvas-based charts are added |
-| PostHog on desktop | Explicitly excluded by policy |
-| Replace GA on landing | Dual tracking chosen instead |
-| PostHog dashboards in code | Manual setup in PH UI |
-
----
-
-## How to Add a New Event
-
-1. Add name to `ProductAnalyticsEvent` union in `productAnalytics.ts`
-2. Call `trackProductEvent("event_name", { ... })` after the user action succeeds
-3. Use only non-sensitive properties (see taxonomy rules above)
-4. Update this document
-
-For landing-only marketing events, use `capturePostHogEvent()` in `posthogClient.ts` instead.
-
----
-
-## Verification Checklist
-
-- [ ] Web: Network tab shows requests to `eu.i.posthog.com`
-- [ ] Desktop (Tauri): **no** PostHog network requests
-- [ ] Login → PostHog Persons shows identified user with `language`
-- [ ] Logout → new anonymous session
-- [ ] `/analytics` loads without errors; events fire on date change and PDF export
-- [ ] Landing: GA + PostHog both receive `download_click`
-- [ ] Session replay: charts visible, amount inputs masked
+| Feature Flags | Ready when needed |
+| Experiments | Needs more traffic |
+| Workflows / alerts | Configure in PostHog UI |
+| CDP / warehouse | Out of scope |
+| PostHog on desktop | Explicitly excluded |

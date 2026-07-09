@@ -72,6 +72,40 @@ function firstNumber(result: HogQLResult): number | null {
   return null;
 }
 
+function buildUnavailableResponse(
+  error: string,
+  links: PostHogAnalyticsResponse["links"]
+): PostHogAnalyticsResponse {
+  return {
+    available: false,
+    error,
+    dau7d: null,
+    wau30d: null,
+    pageviews7d: null,
+    signupCompleted7d: null,
+    transactionCreated7d: null,
+    importStarted7d: null,
+    importCompleted7d: null,
+    importSuccessRate7d: null,
+    exceptions7d: null,
+    surveyResponses30d: null,
+    topPaths7d: [],
+    eventCounts7d: [],
+    links,
+    timestamp: new Date().toISOString(),
+  };
+}
+
+function defaultLinks(host: string, projectId: string): PostHogAnalyticsResponse["links"] {
+  const base = `${host.replace(/\/$/, "")}/project/${projectId}`;
+  return {
+    project: base,
+    webAnalytics: `${base}/web-analytics`,
+    surveys: `${base}/surveys`,
+    errorTracking: `${base}/error_tracking`,
+  };
+}
+
 serve(async (req) => {
   const origin = req.headers.get("origin");
 
@@ -136,39 +170,23 @@ serve(async (req) => {
       Deno.env.get("POSTHOG_HOST") ?? "https://eu.posthog.com";
     const projectId = Deno.env.get("POSTHOG_PROJECT_ID") ?? "169449";
     const apiKey = Deno.env.get("POSTHOG_PERSONAL_API_KEY") ?? "";
-
-    const links = {
-      project: `${posthogHost}/project/${projectId}`,
-      webAnalytics: `${posthogHost}/project/${projectId}/web-analytics`,
-      surveys: `${posthogHost}/project/${projectId}/surveys`,
-      errorTracking: `${posthogHost}/project/${projectId}/error_tracking`,
-    };
+    const links = defaultLinks(posthogHost, projectId);
 
     if (!apiKey) {
-      const unavailable: PostHogAnalyticsResponse = {
-        available: false,
-        error: "POSTHOG_PERSONAL_API_KEY is not configured",
-        dau7d: null,
-        wau30d: null,
-        pageviews7d: null,
-        signupCompleted7d: null,
-        transactionCreated7d: null,
-        importStarted7d: null,
-        importCompleted7d: null,
-        importSuccessRate7d: null,
-        exceptions7d: null,
-        surveyResponses30d: null,
-        topPaths7d: [],
-        eventCounts7d: [],
-        links,
-        timestamp: new Date().toISOString(),
-      };
-      return new Response(JSON.stringify(unavailable), {
-        headers: {
-          ...getCorsHeaders(origin),
-          "Content-Type": "application/json",
-        },
-      });
+      return new Response(
+        JSON.stringify(
+          buildUnavailableResponse(
+            "POSTHOG_PERSONAL_API_KEY is not configured",
+            links
+          )
+        ),
+        {
+          headers: {
+            ...getCorsHeaders(origin),
+            "Content-Type": "application/json",
+          },
+        }
+      );
     }
 
     const [
@@ -330,18 +348,20 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("get-posthog-analytics error:", error);
-    return new Response(
-      JSON.stringify({
-        available: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      }),
-      {
-        status: 500,
-        headers: {
-          ...getCorsHeaders(origin),
-          "Content-Type": "application/json",
-        },
-      }
+    const posthogHost =
+      Deno.env.get("POSTHOG_HOST") ?? "https://eu.posthog.com";
+    const projectId = Deno.env.get("POSTHOG_PROJECT_ID") ?? "169449";
+    const unavailable = buildUnavailableResponse(
+      error instanceof Error ? error.message : "Unknown error",
+      defaultLinks(posthogHost, projectId)
     );
+    // Same full shape as the missing-key path so clients can render safely.
+    return new Response(JSON.stringify(unavailable), {
+      status: 200,
+      headers: {
+        ...getCorsHeaders(origin),
+        "Content-Type": "application/json",
+      },
+    });
   }
 });
