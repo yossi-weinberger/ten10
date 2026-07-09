@@ -23,9 +23,11 @@
     "unavailable": "PostHog is unavailable. Ensure Edge Function secrets are configured.",
     "loadFailed": "Failed to load PostHog analytics",
     "dau7d": "DAU (7 days)",
-    "wau30d": "WAU (30 days)",
+    "wau30d": "Active users (30 days)",
     "pageviews7d": "Pageviews (7 days)",
     "importSuccess": "Import success (7 days)",
+    "importStarted": "Imports started (7 days)",
+    "importCompleted": "Imports completed (7 days)",
     "signups7d": "Signups (7 days)",
     "transactions7d": "New transactions (7 days)",
     "exceptions7d": "Exceptions (7 days)",
@@ -36,11 +38,15 @@
     "topPaths": "Top paths (7 days)",
     "eventCounts": "Product events (7 days)",
     "noData": "No data yet",
+    "lastUpdated": "Last updated",
+    "usersCompareNote": "PostHog counts web product-event actives. The Users tab active_30d counts DB users with a transaction — different definitions.",
     "tooltips": {
       "dau7d": "Daily Active Users (here): unique users who sent at least one event in the last 7 days.",
-      "wau30d": "Weekly Active Users (here): unique users who sent at least one event in the last 30 days.",
+      "wau30d": "Unique persons who sent at least one event in the last 30 days (MAU-style; not classic 7-day WAU).",
       "pageviews7d": "How many $pageview events were recorded in the last 7 days.",
       "importSuccess": "Share of imports that completed successfully out of imports started in the last 7 days.",
+      "importStarted": "How many transaction_import_started events in the last 7 days.",
+      "importCompleted": "How many transaction_import_completed events in the last 7 days.",
       "signups7d": "How many signup_completed events in the last 7 days.",
       "transactions7d": "How many transaction_created events in the last 7 days.",
       "exceptions7d": "How many JavaScript exceptions were auto-captured in the last 7 days.",
@@ -59,7 +65,7 @@
     "activeNote": "Active = users who created a transaction in the last 30 days. Not the same as PostHog (web product events only).",
     "tooltips": {
       "total": "Accounts in auth.users that are not deleted.",
-      "active30d": "Distinct users who created at least one transaction in the last 30 days (by created_at).",
+      "active30d": "Distinct users who created at least one transaction in the last 30 days (by created_at). Not last_sign_in — and different from PostHog (web product events only).",
       "new30d": "Users who signed up in the last 30 days.",
       "new7d": "Users who signed up in the last 7 days."
     }

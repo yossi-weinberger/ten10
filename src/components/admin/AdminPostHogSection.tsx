@@ -109,10 +109,18 @@ export function AdminPostHogSection() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="flex items-center gap-2 text-xl font-semibold">
-            <BarChart3 className="h-5 w-5" />
+            <BarChart3 className="h-5 w-5 text-primary" />
             {t("posthog.title")}
           </h2>
           <p className="text-sm text-muted-foreground">{t("posthog.subtitle")}</p>
+          {data.timestamp && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {t("posthog.lastUpdated")}:{" "}
+              {new Date(data.timestamp).toLocaleString(
+                i18n.language === "he" ? "he-IL" : "en-US"
+              )}
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => void loadData()}>
@@ -137,6 +145,11 @@ export function AdminPostHogSection() {
         </Alert>
       )}
 
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>{t("posthog.usersCompareNote")}</AlertDescription>
+      </Alert>
+
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           label={t("posthog.dau7d")}
@@ -158,6 +171,16 @@ export function AdminPostHogSection() {
           tooltip={t("posthog.tooltips.importSuccess")}
           value={data.importSuccessRate7d}
           suffix="%"
+        />
+        <MetricCard
+          label={t("posthog.importStarted")}
+          tooltip={t("posthog.tooltips.importStarted")}
+          value={data.importStarted7d}
+        />
+        <MetricCard
+          label={t("posthog.importCompleted")}
+          tooltip={t("posthog.tooltips.importCompleted")}
+          value={data.importCompleted7d}
         />
         <MetricCard
           label={t("posthog.signups7d")}
