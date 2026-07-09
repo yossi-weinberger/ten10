@@ -1,8 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Heart, DollarSign } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  TrendingUp,
+  TrendingDown,
+  Heart,
+  DollarSign,
+  Info,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AdminFinanceStats } from "@/lib/data-layer/admin.service";
-import { StatCard } from "@/components/dashboard/StatCards/StatCard";
+import { AdminMetricCard } from "@/components/admin/AdminMetricCard";
 
 interface AdminFinanceSectionProps {
   finance: AdminFinanceStats;
@@ -15,122 +22,82 @@ export function AdminFinanceSection({ finance }: AdminFinanceSectionProps) {
     const locale = i18n.language === "he" ? "he-IL" : "en-US";
     return new Intl.NumberFormat(locale, {
       style: "currency",
-      currency: currency,
+      currency,
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
   };
 
+  // Sum of primary types only (not FX-converted across currencies).
   const totalManaged =
     finance.total_income + finance.total_expenses + finance.total_donations;
 
-  // Calculate percentages for exceptions
-  const exemptIncomePercentage =
-    finance.total_income > 0
-      ? ((finance.total_exempt_income / finance.total_income) * 100).toFixed(1)
-      : "0.0";
-
-  const recognizedExpensesPercentage =
-    finance.total_expenses > 0
-      ? (
-          (finance.total_recognized_expenses / finance.total_expenses) *
-          100
-        ).toFixed(1)
-      : "0.0";
-
-  const nonTitheDonationPercentage =
-    finance.total_donations > 0
-      ? (
-          (finance.total_non_tithe_donation / finance.total_donations) *
-          100
-        ).toFixed(1)
-      : "0.0";
-
   return (
     <div className="space-y-4" dir={i18n.dir()}>
-      <h2 className="text-2xl font-semibold flex items-center gap-2">
-        <DollarSign className="h-6 w-6" />
+      <h2 className="flex items-center gap-2 text-2xl font-semibold text-foreground">
+        <DollarSign className="h-6 w-6 text-primary" />
         {t("finance.title")}
       </h2>
 
-      {/* Total Managed - Highlighted Card */}
-      <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200 dark:border-green-800">
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>{t("finance.disclaimer")}</AlertDescription>
+      </Alert>
+
+      <Card className="border-border bg-card">
         <CardHeader className="text-center">
-          <CardTitle className="text-xl sm:text-2xl">
+          <CardTitle className="text-xl text-muted-foreground sm:text-2xl">
             {t("finance.totalManaged")}
           </CardTitle>
         </CardHeader>
         <CardContent className="text-center">
-          <div className="text-4xl sm:text-5xl md:text-6xl font-bold text-green-700 dark:text-green-400">
-            {formatCurrency(totalManaged)}
+          <div className="text-4xl font-bold tabular-nums text-primary sm:text-5xl md:text-6xl">
+            {formatCurrency(totalManaged, "ILS")}
           </div>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {t("finance.totalManagedHint")}
+          </p>
         </CardContent>
       </Card>
 
-      {/* Main Categories using StatCard */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Total Income */}
-        <StatCard
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <AdminMetricCard
           title={t("finance.totalIncome")}
-          value={finance.total_income}
-          isLoading={false}
-          error={null}
+          tooltip={t("finance.tooltips.totalIncome")}
+          value={formatCurrency(finance.total_income, "ILS")}
           icon={TrendingUp}
-          titleIcon={TrendingUp}
-          colorScheme="green"
-          subtitleContent={
-            finance.total_exempt_income > 0 ? (
-              <span className="text-xs text-muted-foreground">
-                {formatCurrency(finance.total_exempt_income)}{" "}
-                {t("finance.exemptIncome")} ({exemptIncomePercentage}%)
-              </span>
-            ) : null
+          subtitle={
+            finance.total_exempt_income > 0
+              ? `${formatCurrency(finance.total_exempt_income, "ILS")} ${t("finance.exemptIncome")}`
+              : undefined
           }
         />
-
-        {/* Total Expenses */}
-        <StatCard
+        <AdminMetricCard
           title={t("finance.totalExpenses")}
-          value={finance.total_expenses}
-          isLoading={false}
-          error={null}
+          tooltip={t("finance.tooltips.totalExpenses")}
+          value={formatCurrency(finance.total_expenses, "ILS")}
           icon={TrendingDown}
-          titleIcon={TrendingDown}
-          colorScheme="red"
-          subtitleContent={
-            finance.total_recognized_expenses > 0 ? (
-              <span className="text-xs text-muted-foreground">
-                {formatCurrency(finance.total_recognized_expenses)}{" "}
-                {t("finance.recognizedExpenses")} (
-                {recognizedExpensesPercentage}%)
-              </span>
-            ) : null
+          subtitle={
+            finance.total_recognized_expenses > 0
+              ? `${formatCurrency(finance.total_recognized_expenses, "ILS")} ${t("finance.recognizedExpenses")}`
+              : undefined
           }
         />
-
-        {/* Total Donations */}
-        <StatCard
+        <AdminMetricCard
           title={t("finance.totalDonations")}
-          value={finance.total_donations}
-          isLoading={false}
-          error={null}
+          tooltip={t("finance.tooltips.totalDonations")}
+          value={formatCurrency(finance.total_donations, "ILS")}
           icon={Heart}
-          titleIcon={Heart}
-          colorScheme="yellow"
-          subtitleContent={
-            finance.total_non_tithe_donation > 0 ? (
-              <span className="text-xs text-muted-foreground">
-                {formatCurrency(finance.total_non_tithe_donation)}{" "}
-                {t("finance.nonTitheDonation")} ({nonTitheDonationPercentage}%)
-              </span>
-            ) : null
+          subtitle={
+            finance.total_non_tithe_donation > 0
+              ? `${formatCurrency(finance.total_non_tithe_donation, "ILS")} ${t("finance.nonTitheDonation")}`
+              : undefined
           }
         />
       </div>
 
-      {/* By Currency - Detailed Breakdown */}
       {Object.keys(finance.by_currency).length > 0 && (
-        <Card>
+        <Card className="border-border bg-card">
           <CardHeader>
             <CardTitle>{t("finance.byCurrency")}</CardTitle>
           </CardHeader>
@@ -138,7 +105,6 @@ export function AdminFinanceSection({ finance }: AdminFinanceSectionProps) {
             <div className="space-y-4">
               {Object.entries(finance.by_currency)
                 .sort(([currencyA], [currencyB]) => {
-                  // Sort: ILS first, then USD, then others alphabetically
                   if (currencyA === "ILS") return -1;
                   if (currencyB === "ILS") return 1;
                   if (currencyA === "USD") return -1;
@@ -148,15 +114,15 @@ export function AdminFinanceSection({ finance }: AdminFinanceSectionProps) {
                 .map(([currency, amounts]) => (
                   <div
                     key={currency}
-                    className="border-b pb-4 last:border-b-0 dark:border-border"
+                    className="border-b border-border pb-4 last:border-b-0"
                   >
-                    <h3 className="font-semibold mb-2">{currency}</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <h3 className="mb-2 font-semibold">{currency}</h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
                       <div>
                         <span className="text-muted-foreground">
                           {t("finance.income")}:{" "}
                         </span>
-                        <span className="font-medium">
+                        <span className="font-medium tabular-nums">
                           {formatCurrency(amounts.income, currency)}
                         </span>
                       </div>
@@ -164,7 +130,7 @@ export function AdminFinanceSection({ finance }: AdminFinanceSectionProps) {
                         <span className="text-muted-foreground">
                           {t("finance.expenses")}:{" "}
                         </span>
-                        <span className="font-medium">
+                        <span className="font-medium tabular-nums">
                           {formatCurrency(amounts.expenses, currency)}
                         </span>
                       </div>
@@ -172,7 +138,7 @@ export function AdminFinanceSection({ finance }: AdminFinanceSectionProps) {
                         <span className="text-muted-foreground">
                           {t("finance.donations")}:{" "}
                         </span>
-                        <span className="font-medium">
+                        <span className="font-medium tabular-nums">
                           {formatCurrency(amounts.donations, currency)}
                         </span>
                       </div>
@@ -180,7 +146,7 @@ export function AdminFinanceSection({ finance }: AdminFinanceSectionProps) {
                         <span className="text-muted-foreground">
                           {t("finance.total")}:{" "}
                         </span>
-                        <span className="font-bold">
+                        <span className="font-bold tabular-nums">
                           {formatCurrency(amounts.total_managed, currency)}
                         </span>
                       </div>

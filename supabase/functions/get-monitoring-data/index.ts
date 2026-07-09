@@ -111,7 +111,6 @@ interface Anomaly {
 
 // Anomaly thresholds
 const THRESHOLDS = {
-  authFailures: { warning: 10, error: 50 },
   edgeFunctionErrorRate: { warning: 5, error: 20 },
   slowQueries: { warning: 5, error: 20 },
   deadTuples: { warning: 1000, error: 10000 },
@@ -818,24 +817,8 @@ function detectAnomalies(
 ): Anomaly[] {
   const anomalies: Anomaly[] = [];
 
-  // Check auth failures
-  if (authStats.failedLogins24h > THRESHOLDS.authFailures.error) {
-    anomalies.push({
-      type: "auth",
-      severity: "error",
-      message: `High number of failed login attempts: ${authStats.failedLogins24h} in last 24h`,
-      value: authStats.failedLogins24h,
-      threshold: THRESHOLDS.authFailures.error,
-    });
-  } else if (authStats.failedLogins24h > THRESHOLDS.authFailures.warning) {
-    anomalies.push({
-      type: "auth",
-      severity: "warning",
-      message: `Elevated failed login attempts: ${authStats.failedLogins24h} in last 24h`,
-      value: authStats.failedLogins24h,
-      threshold: THRESHOLDS.authFailures.warning,
-    });
-  }
+  // Skip failed-login anomalies: Supabase audit log does not record password failures
+  // (metric is always 0 / misleading without Password Verification Hook).
 
   // Check edge function error rate
   if (edgeFunctionStats.errorRate > THRESHOLDS.edgeFunctionErrorRate.error) {

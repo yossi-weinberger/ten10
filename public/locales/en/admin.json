@@ -9,7 +9,7 @@
     "trends": "Trends",
     "trendsShort": "Trends",
     "downloads": "Download Requests",
-    "downloadsShort": "Requests",
+    "downloadsShort": "Downloads",
     "monitoring": "Monitoring",
     "monitoringShort": "Monitor",
     "posthog": "PostHog",
@@ -55,10 +55,11 @@
     "active30d": "Active (30 days)",
     "new30d": "New (30 days)",
     "new7d": "New (7 days)",
-    "activePercentage": "{{percentage}}% of users",
+    "activePercentage": "{{percentage}}% of all users (coarse)",
+    "activeNote": "Active = users who created a transaction in the last 30 days. Not the same as PostHog (web product events only).",
     "tooltips": {
       "total": "Accounts in auth.users that are not deleted.",
-      "active30d": "Distinct users who created at least one transaction in the last 30 days (by created_at). Not last_sign_in — and different from PostHog (web product events only).",
+      "active30d": "Distinct users who created at least one transaction in the last 30 days (by created_at).",
       "new30d": "Users who signed up in the last 30 days.",
       "new7d": "Users who signed up in the last 7 days."
     }
@@ -66,6 +67,8 @@
   "finance": {
     "title": "Financial Statistics",
     "totalManaged": "Total Money Managed in System",
+    "totalManagedHint": "Income + expenses + donations (no FX conversion)",
+    "disclaimer": "Amounts are shown as stored in the database, without converting between currencies. Per-currency breakdown is below.",
     "totalIncome": "Total Income",
     "totalExpenses": "Total Expenses",
     "totalDonations": "Total Donations",
@@ -76,13 +79,19 @@
     "income": "Income",
     "expenses": "Expenses",
     "donations": "Donations",
-    "total": "Total"
+    "total": "Total",
+    "tooltips": {
+      "totalIncome": "Sum of income-type transactions only (excludes exempt income).",
+      "totalExpenses": "Sum of expense-type transactions only (excludes recognized expenses).",
+      "totalDonations": "Sum of donation-type transactions only (excludes non-tithe donations)."
+    }
   },
   "downloads": {
     "title": "Desktop Download Requests (Email)",
     "total": "Total Requests",
     "last7d": "Requests (7 days)",
     "last30d": "Requests (30 days)",
+    "byPlatform": "By platform",
     "noData": "No download request data available",
     "note": "Counts are based on successful email replies (status=sent). Currently all requests are for Windows.",
     "platforms": {
@@ -104,12 +113,21 @@
     "title": "Engagement Metrics",
     "avgTransactions": "Average Transactions per User",
     "totalTransactions": "Total Transactions",
-    "usersWithTransactions": "Users with Transactions"
+    "usersWithTransactions": "Users with Transactions",
+    "tooltips": {
+      "avgTransactions": "Average transaction count per user who has at least one transaction (all time).",
+      "totalTransactions": "Total transactions in the system.",
+      "usersWithTransactions": "Distinct users with at least one transaction (all time)."
+    }
   },
   "system": {
     "title": "System Information",
     "totalRecurring": "Total Recurring Transactions",
-    "activeRecurring": "Active Recurring Transactions"
+    "activeRecurring": "Active Recurring Transactions",
+    "tooltips": {
+      "totalRecurring": "Number of recurring instructions (all statuses).",
+      "activeRecurring": "Recurring instructions with status active."
+    }
   },
   "trends": {
     "title": "Trends Over Time",
@@ -119,13 +137,22 @@
     "newUsers": "New Users",
     "transactionCount": "Transaction Count",
     "activeUsers": "Active Users",
-    "noData": "No trend data available"
+    "noData": "No trend data available",
+    "loadFailed": "Failed to load trends",
+    "financialDisclaimer": "Monthly amounts without FX conversion (raw sum)."
   },
   "monitoring": {
     "title": "System Monitoring",
     "healthOverview": "System Health",
     "lastRefresh": "Last updated",
     "refresh": "Refresh",
+    "retry": "Retry",
+    "error": "Error",
+    "statusOk": "OK",
+    "statusWarning": "Warning",
+    "statusError": "Error",
+    "statusUnknown": "Unknown",
+    "edgeFunctionsDisclaimer": "Edge Function metrics here are mainly download-email scoped, not all functions.",
     "recentErrors": "Recent Errors",
     "warnings": "Warnings",
     "securityAdvisories": "Security Advisories",
@@ -135,10 +162,36 @@
     "noWarnings": "No warnings",
     "noSecurityIssues": "No security issues detected",
     "noPerformanceIssues": "No performance issues detected",
+    "services": {
+      "database": "Database",
+      "authentication": "Authentication",
+      "edgeFunctions": "Edge Functions",
+      "email": "Email"
+    },
+    "stats": {
+      "database": "Database",
+      "auth": "Authentication",
+      "edgeFunctions": "Edge Functions",
+      "email": "Email",
+      "emailNotConfigured": "Not configured",
+      "emailRequiresDeploy": "Requires deploy",
+      "value": "Value",
+      "threshold": "Threshold",
+      "activeConnections": "Active Connections",
+      "slowQueries": "Slow Queries",
+      "failedLogins": "Failed Logins (24h)",
+      "signups": "Signups (24h)",
+      "passwordResets": "Password Resets (24h)",
+      "recentEvents": "Recent Events",
+      "invocations": "Invocations (24h)",
+      "errors24h": "Errors (24h)",
+      "errorRate": "Error Rate",
+      "notAvailable": "N/A"
+    },
     "tooltips": {
       "database": "Database status - checks connections, slow queries, and tables without RLS",
       "auth": "Authentication system status - checks login failures and suspicious attempts",
-      "edgeFunctions": "Edge Functions status - checks error rate and invocations",
+      "edgeFunctions": "Metrics mainly for the download-email Edge Function (not all Edge Functions)",
       "email": "Email sending status - bounce rate and alerts",
       "activeConnections": "Number of active connections to the database. High values may indicate an issue",
       "slowQueries": "Queries taking more than 1 second on average. Consider optimization or adding indexes",

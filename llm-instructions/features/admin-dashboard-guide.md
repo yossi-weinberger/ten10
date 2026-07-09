@@ -156,11 +156,12 @@ src/
 │   └── AdminDashboardPage.tsx          # Main admin dashboard page
 ├── components/
 │   └── admin/
+│       ├── AdminMetricCard.tsx         # Shared neutral metric card (theme tokens)
 │       ├── AdminUsersSection.tsx       # User statistics
-│       ├── AdminFinanceSection.tsx     # Financial overview
+│       ├── AdminFinanceSection.tsx     # Financial overview (explicit ILS formatting)
 │       ├── AdminEngagementSection.tsx  # Engagement metrics
-│       ├── AdminDownloadsSection.tsx   # Download tracking (placeholder)
-│       ├── AdminTrendsChart.tsx        # Interactive charts
+│       ├── AdminDownloadsSection.tsx   # Email download requests + GitHub release stats
+│       ├── AdminTrendsChart.tsx        # Interactive charts (owns its own date-range fetch)
 │       ├── AdminMonitoringSection.tsx  # System monitoring main component
 │       ├── AdminPostHogSection.tsx     # PostHog product analytics tab
 │       └── monitoring/                 # Monitoring components (organized)
@@ -200,10 +201,18 @@ Main page with tab-based navigation.
 
 1. **Users** - User statistics + engagement + system info
 2. **Finance** - Financial overview with currency breakdown
-3. **Trends** - Interactive charts with date range controls
-4. **Downloads** - Desktop download tracking (placeholder)
+3. **Trends** - Interactive charts with date range controls (chart fetches its own range)
+4. **Downloads** - Desktop download email requests + GitHub release download stats
 5. **Monitoring** - System health monitoring and observability
 6. **PostHog** - Live product analytics aggregates from PostHog Query API (Edge Function `get-posthog-analytics`)
+
+**PostHog tab:** Lives on `feat/posthog-enhancement` (kept separate from this cleanup). When finishing that PR, apply:
+
+- Rename misleading `wau30d` label to 30-day actives / MAU (query is 30d unique persons)
+- Show import started/completed or drop unused fields from the UI contract
+- Last-updated timestamp + one-line comparison note vs Users tab
+- i18n for Web Analytics / Surveys / Error Tracking button labels
+- Do not equate PostHog actives with DB `active_30d`
 
 **Features:**
 
@@ -212,19 +221,20 @@ Main page with tab-based navigation.
 - Error handling with alerts
 - Full i18n support (admin namespace)
 - Responsive design
+- Theme-aligned cards (`AdminMetricCard`: `bg-card`, primary icon accent — no rainbow palettes)
 
 #### AdminUsersSection
 
-Displays user statistics using StatCard components.
+Displays user statistics using `AdminMetricCard` with tooltips.
 
 **Metrics:**
 
 - Total users
-- Active users (30 days) with percentage
+- Active users (30 days) with coarse percentage — distinct users with a transaction in last 30d (not `last_sign_in_at`)
 - New users (30 days)
 - New users (7 days)
 
-**Color schemes:** purple, green, blue, orange
+**Note:** UI clarifies DB active ≠ PostHog product-event actives.
 
 #### AdminFinanceSection
 
@@ -232,16 +242,15 @@ Financial overview with highlighted total and breakdown.
 
 **Features:**
 
-- Large centered "Total Managed" card
-- Three main categories (Income, Expenses, Donations)
-- Shows exceptions as subtitles (exempt income, recognized expenses, non-tithe donations)
+- Large centered "Total Managed" card (primary/muted, not green gradient)
+- Formats amounts explicitly as currency (default ILS) — does **not** use dashboard `StatCard` / user `defaultCurrency`
+- Disclaimer: amounts are **not FX-converted** across currencies
+- Three main categories (Income, Expenses, Donations) with absolute subtitles for related types (not misleading %)
 - Currency breakdown sorted by: ILS, USD, then alphabetically
-
-**Color schemes:** green (income), red (expenses), yellow (donations)
 
 #### AdminEngagementSection
 
-Engagement and system metrics.
+Engagement and system metrics with visual separation and tooltips.
 
 **Metrics:**
 
@@ -251,11 +260,15 @@ Engagement and system metrics.
 - Total recurring transactions
 - Active recurring transactions
 
+#### AdminTrendsChart
+
+Owns monthly-trends fetch for the selected date range (default: month). Avoids double-fetch with the page load.
+
+**Charts:** legend via `ChartLegend`, stacked finance areas (`stackId`), compact `₪` Y-axis, `--chart-*` colors, loading/error UI.
+
 #### AdminDownloadsSection
 
-Placeholder for download tracking.
-
-**Note:** Currently returns placeholder data (0). Can be implemented in the future with:
+Email download-request counts from admin RPC (zeros render as `0`, not N/A) plus optional GitHub release stats. Platform breakdown when present. Tab icon: `Download`.
 
 #### AdminMonitoringSection
 
@@ -435,22 +448,18 @@ All TypeScript interfaces are exported from `monitoring.types.ts`:
 
 ### Design Principles
 
-- Uses existing StatCard and MagicStatCard components for consistency
-- Follows project's color scheme and theming
+- Admin metric cards use shared `AdminMetricCard` (neutral `bg-card` / `border-border`, primary teal icon chip)
+- Monitoring health cards keep semantic green/amber/red for status only
+- Charts use CSS `--chart-*` tokens (`chart-teal`, `chart-green`, `chart-yellow`, `chart-red`, `chart-blue`, `chart-orange`)
 - Full dark mode support
-- RTL/LTR support with `dir={i18n.dir()}`
+- RTL/LTR support with `dir={i18n.dir()}` and logical classes (`text-end`, `me-2`)
 - Responsive design for all screen sizes
 
 ### Color Schemes
 
-Reuses project's established color schemes:
-
-- **Purple:** User-related metrics
-- **Green:** Income, active items, positive metrics
-- **Red:** Expenses, negative metrics
-- **Blue:** Donations (special case - uses yellow for main card)
-- **Orange:** System metrics, time-based metrics
-- **Yellow:** Donations (gold color)
+- **Primary / muted:** decorative admin metrics (no per-metric rainbow)
+- **Chart tokens:** trends series colors
+- **Status only:** Monitoring OK / Warning / Error
 
 ### Responsive Breakpoints
 

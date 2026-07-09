@@ -9,7 +9,7 @@
     "trends": "מגמות",
     "trendsShort": "מגמות",
     "downloads": "בקשות הורדה",
-    "downloadsShort": "בקשות",
+    "downloadsShort": "הורדות",
     "monitoring": "ניטור",
     "monitoringShort": "ניטור",
     "posthog": "PostHog",
@@ -55,10 +55,11 @@
     "active30d": "פעילים (30 יום)",
     "new30d": "חדשים (30 יום)",
     "new7d": "חדשים (7 ימים)",
-    "activePercentage": "{{percentage}}% מהמשתמשים",
+    "activePercentage": "{{percentage}}% מכלל המשתמשים (קירוב גס)",
+    "activeNote": "פעילים = משתמשים שיצרו תנועה ב־30 הימים האחרונים. זה לא אותו מדד כמו PostHog (אירועי מוצר ב־web בלבד).",
     "tooltips": {
       "total": "מספר חשבונות ב־auth.users שלא נמחקו.",
-      "active30d": "משתמשים ייחודיים שיצרו לפחות תנועה אחת ב־30 הימים האחרונים (לפי created_at). לא לפי last_sign_in — ושונה מ־PostHog (אירועי מוצר ב־web בלבד).",
+      "active30d": "משתמשים ייחודיים שיצרו לפחות תנועה אחת ב־30 הימים האחרונים (לפי created_at).",
       "new30d": "משתמשים שנרשמו ב־30 הימים האחרונים.",
       "new7d": "משתמשים שנרשמו ב־7 הימים האחרונים."
     }
@@ -66,6 +67,8 @@
   "finance": {
     "title": "סטטיסטיקות כספיות",
     "totalManaged": "סך כל הכסף המנוהל במערכת",
+    "totalManagedHint": "סכום הכנסות + הוצאות + תרומות (ללא המרת מטבע)",
+    "disclaimer": "הסכומים מוצגים כפי שנשמרו במסד הנתונים, ללא המרה בין מטבעות. פירוט לפי מטבע מופיע למטה.",
     "totalIncome": "סך כל ההכנסות",
     "totalExpenses": "סך כל ההוצאות",
     "totalDonations": "סך כל התרומות",
@@ -76,13 +79,19 @@
     "income": "הכנסות",
     "expenses": "הוצאות",
     "donations": "תרומות",
-    "total": "סה\"כ"
+    "total": "סה\"כ",
+    "tooltips": {
+      "totalIncome": "סכום תנועות מסוג income בלבד (לא כולל הכנסות פטורות).",
+      "totalExpenses": "סכום תנועות מסוג expense בלבד (לא כולל הוצאות מוכרות).",
+      "totalDonations": "סכום תנועות מסוג donation בלבד (לא כולל תרומות לא ממעשר)."
+    }
   },
   "downloads": {
     "title": "בקשות הורדה לתוכנת Desktop (אימייל)",
     "total": "סך כל הבקשות",
     "last7d": "בקשות (7 ימים)",
     "last30d": "בקשות (30 יום)",
+    "byPlatform": "לפי פלטפורמה",
     "noData": "אין נתוני בקשות הורדה זמינים",
     "note": "הספירה מבוססת על תשובות אימייל מוצלחות (status=sent). כרגע כל הבקשות הן עבור Windows.",
     "platforms": {
@@ -104,12 +113,21 @@
     "title": "מדדי מעורבות",
     "avgTransactions": "ממוצע טרנזקציות למשתמש",
     "totalTransactions": "סך כל הטרנזקציות",
-    "usersWithTransactions": "משתמשים עם טרנזקציות"
+    "usersWithTransactions": "משתמשים עם טרנזקציות",
+    "tooltips": {
+      "avgTransactions": "ממוצע מספר התנועות למשתמש שיש לו לפחות תנועה אחת (כל הזמנים).",
+      "totalTransactions": "סך כל התנועות במערכת.",
+      "usersWithTransactions": "משתמשים ייחודיים עם לפחות תנועה אחת (כל הזמנים)."
+    }
   },
   "system": {
     "title": "מידע מערכת",
     "totalRecurring": "סך טרנזקציות חוזרות",
-    "activeRecurring": "טרנזקציות חוזרות פעילות"
+    "activeRecurring": "טרנזקציות חוזרות פעילות",
+    "tooltips": {
+      "totalRecurring": "מספר הוראות הקבע במערכת (כל הסטטוסים).",
+      "activeRecurring": "הוראות קבע בסטטוס active."
+    }
   },
   "trends": {
     "title": "מגמות לאורך זמן",
@@ -119,13 +137,22 @@
     "newUsers": "משתמשים חדשים",
     "transactionCount": "מספר טרנזקציות",
     "activeUsers": "משתמשים פעילים",
-    "noData": "אין נתוני מגמות זמינים"
+    "noData": "אין נתוני מגמות זמינים",
+    "loadFailed": "טעינת מגמות נכשלה",
+    "financialDisclaimer": "סכומים חודשיים ללא המרת מטבע (סכימה גולמית)."
   },
   "monitoring": {
     "title": "ניטור מערכת",
     "healthOverview": "מצב המערכת",
     "lastRefresh": "עדכון אחרון",
     "refresh": "רענן",
+    "retry": "נסה שוב",
+    "error": "שגיאה",
+    "statusOk": "תקין",
+    "statusWarning": "אזהרה",
+    "statusError": "שגיאה",
+    "statusUnknown": "לא ידוע",
+    "edgeFunctionsDisclaimer": "מדדי Edge Functions כאן מבוססים בעיקר על בקשות הורדה באימייל, לא על כל הפונקציות.",
     "recentErrors": "שגיאות אחרונות",
     "warnings": "אזהרות",
     "securityAdvisories": "התראות אבטחה",
@@ -135,10 +162,36 @@
     "noWarnings": "אין אזהרות",
     "noSecurityIssues": "לא זוהו בעיות אבטחה",
     "noPerformanceIssues": "לא זוהו בעיות ביצועים",
+    "services": {
+      "database": "מסד נתונים",
+      "authentication": "אימות",
+      "edgeFunctions": "Edge Functions",
+      "email": "אימייל"
+    },
+    "stats": {
+      "database": "מסד נתונים",
+      "auth": "אימות",
+      "edgeFunctions": "Edge Functions",
+      "email": "אימייל",
+      "emailNotConfigured": "לא מוגדר",
+      "emailRequiresDeploy": "דורש פריסה",
+      "value": "ערך",
+      "threshold": "סף",
+      "activeConnections": "חיבורים פעילים",
+      "slowQueries": "שאילתות איטיות",
+      "failedLogins": "כשלונות התחברות (24ש)",
+      "signups": "הרשמות (24ש)",
+      "passwordResets": "איפוסי סיסמה (24ש)",
+      "recentEvents": "אירועים אחרונים",
+      "invocations": "הפעלות (24ש)",
+      "errors24h": "שגיאות (24ש)",
+      "errorRate": "אחוז שגיאות",
+      "notAvailable": "לא זמין"
+    },
     "tooltips": {
       "database": "מצב בסיס הנתונים - בודק חיבורים, שאילתות איטיות, וטבלאות ללא RLS",
       "auth": "מצב מערכת האימות - בודק כשלונות התחברות וניסיונות חשודים",
-      "edgeFunctions": "מצב פונקציות Edge - בודק אחוז שגיאות והפעלות",
+      "edgeFunctions": "מדדים הקשורים בעיקר לפונקציית הורדות באימייל (לא כל ה-Edge Functions)",
       "email": "מצב שליחת אימיילים - bounce rate והתראות",
       "activeConnections": "מספר החיבורים הפעילים כרגע לבסיס הנתונים. ערך גבוה מדי עלול להעיד על בעיה",
       "slowQueries": "שאילתות שלוקחות יותר משנייה בממוצע. יש לשקול אופטימיזציה או הוספת אינדקסים",

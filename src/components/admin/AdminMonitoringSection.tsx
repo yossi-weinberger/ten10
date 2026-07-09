@@ -57,18 +57,18 @@ export function AdminMonitoringSection() {
       const monitoringData = await fetchMonitoringData();
 
       if (!monitoringData) {
-        throw new Error("Failed to fetch monitoring data");
+        throw new Error(t("errors.loadFailed"));
       }
 
       setData(monitoringData);
       setHealth(calculateSystemHealth(monitoringData));
       setLastRefresh(new Date());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(err instanceof Error ? err.message : t("errors.loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     loadData();
@@ -99,12 +99,12 @@ export function AdminMonitoringSection() {
       <div className="space-y-6" dir={i18n.dir()}>
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
+          <AlertTitle>{t("monitoring.error")}</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
         <Button onClick={loadData} variant="outline">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Retry
+          <RefreshCw className="h-4 w-4 me-2" />
+          {t("monitoring.retry")}
         </Button>
       </div>
     );
@@ -137,43 +137,53 @@ export function AdminMonitoringSection() {
         </div>
         <Button onClick={loadData} variant="outline" disabled={loading}>
           <RefreshCw
-            className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+            className={`h-4 w-4 me-2 ${loading ? "animate-spin" : ""}`}
           />
-          {t("monitoring.refresh", "Refresh")}
+          {t("monitoring.refresh")}
         </Button>
       </div>
 
       {/* System Health Overview */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">
-          {t("monitoring.healthOverview", "System Health")}
+          {t("monitoring.healthOverview")}
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <ServiceHealthCard
-            name={health.database.name}
+            name={t("monitoring.services.database")}
+            iconKey="database"
             status={health.database.status}
             message={health.database.message}
             tooltip={tooltipDescriptions.database}
           />
           <ServiceHealthCard
-            name={health.auth.name}
+            name={t("monitoring.services.authentication")}
+            iconKey="authentication"
             status={health.auth.status}
             message={health.auth.message}
             tooltip={tooltipDescriptions.auth}
           />
           <ServiceHealthCard
-            name={health.edgeFunctions.name}
+            name={t("monitoring.services.edgeFunctions")}
+            iconKey="edgeFunctions"
             status={health.edgeFunctions.status}
             message={health.edgeFunctions.message}
             tooltip={tooltipDescriptions.edgeFunctions}
           />
           <ServiceHealthCard
-            name={health.email.name}
+            name={t("monitoring.services.email")}
+            iconKey="email"
             status={health.email.status}
             message={health.email.message}
             tooltip={tooltipDescriptions.email}
           />
         </div>
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {t("monitoring.edgeFunctionsDisclaimer")}
+          </AlertDescription>
+        </Alert>
       </div>
 
       {/* Errors and Warnings */}
@@ -197,30 +207,21 @@ export function AdminMonitoringSection() {
         <AdvisoryList
           advisories={securityAdvisories}
           title={t("monitoring.securityAdvisories", "Security Advisories")}
-          icon={<Lock className="h-5 w-5 text-purple-500" />}
-          emptyMessage={t(
-            "monitoring.noSecurityIssues",
-            "No security issues detected"
-          )}
+          icon={<Lock className="h-5 w-5 text-primary" />}
+          emptyMessage={t("monitoring.noSecurityIssues")}
         />
         <AdvisoryList
           advisories={performanceAdvisories}
-          title={t(
-            "monitoring.performanceAdvisories",
-            "Performance Advisories"
-          )}
-          icon={<TrendingUp className="h-5 w-5 text-blue-500" />}
-          emptyMessage={t(
-            "monitoring.noPerformanceIssues",
-            "No performance issues detected"
-          )}
+          title={t("monitoring.performanceAdvisories")}
+          icon={<TrendingUp className="h-5 w-5 text-primary" />}
+          emptyMessage={t("monitoring.noPerformanceIssues")}
         />
       </div>
 
       {/* Detailed Stats (Collapsible) */}
       <div className="space-y-4">
         <h3 className="text-lg font-medium">
-          {t("monitoring.detailedStats", "Detailed Statistics")}
+          {t("monitoring.detailedStats")}
         </h3>
         <div className="space-y-4">
           <DatabaseStats data={data} />
@@ -233,11 +234,11 @@ export function AdminMonitoringSection() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-muted-foreground">
                   <Mail className="h-5 w-5" />
-                  Email Statistics
-                  <Badge variant="outline" className="ml-2">
+                  {t("monitoring.stats.email")}
+                  <Badge variant="outline" className="ms-2">
                     {data.email.error
-                      ? "Not Configured"
-                      : "Requires Deployment"}
+                      ? t("monitoring.stats.emailNotConfigured")
+                      : t("monitoring.stats.emailRequiresDeploy")}
                   </Badge>
                 </CardTitle>
               </CardHeader>

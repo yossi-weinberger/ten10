@@ -33,7 +33,7 @@ export function AuthStats({ data }: AuthStatsProps) {
             <CardTitle className="flex items-center justify-between">
               <span className="flex items-center gap-2">
                 <Shield className="h-5 w-5" />
-                Authentication Events
+                {t("monitoring.stats.auth")}
               </span>
               <ChevronDown
                 className={`h-4 w-4 transition-transform ${
@@ -51,18 +51,18 @@ export function AuthStats({ data }: AuthStatsProps) {
                 <TooltipTrigger asChild>
                   <div className="p-3 rounded-lg bg-muted/50 text-center cursor-help border border-dashed border-muted-foreground/30">
                     <p className="text-2xl font-bold text-muted-foreground">
-                      N/A
+                      {t("monitoring.stats.notAvailable")}
                     </p>
                     <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                      Failed Logins (24h)
+                      {t("monitoring.stats.failedLogins")}
                       <HelpCircle className="h-3 w-3 text-yellow-500" />
                     </p>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-xs text-right"
-                  dir="rtl"
+                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                 >
                   <p>{tooltipDescriptions.failedLogins}</p>
                 </TooltipContent>
@@ -72,15 +72,15 @@ export function AuthStats({ data }: AuthStatsProps) {
                   <div className="p-3 rounded-lg bg-muted/50 text-center cursor-help">
                     <p className="text-2xl font-bold">{data.auth.signups24h}</p>
                     <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                      Signups (24h)
+                      {t("monitoring.stats.signups")}
                       <HelpCircle className="h-3 w-3" />
                     </p>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-xs text-right"
-                  dir="rtl"
+                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                 >
                   <p>{tooltipDescriptions.signups}</p>
                 </TooltipContent>
@@ -92,15 +92,15 @@ export function AuthStats({ data }: AuthStatsProps) {
                       {data.auth.passwordResets24h}
                     </p>
                     <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                      Password Resets (24h)
+                      {t("monitoring.stats.passwordResets")}
                       <HelpCircle className="h-3 w-3" />
                     </p>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
-                  className="max-w-xs text-right"
-                  dir="rtl"
+                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
+                  dir={i18n.dir()}
                 >
                   <p>{tooltipDescriptions.passwordResets}</p>
                 </TooltipContent>
@@ -112,7 +112,7 @@ export function AuthStats({ data }: AuthStatsProps) {
               <div className="space-y-2">
                 <h4 className="text-sm font-semibold flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Recent Events
+                  {t("monitoring.stats.recentEvents")}
                 </h4>
                 <div className="space-y-1 max-h-60 overflow-y-auto">
                   {data.auth.recentEvents.slice(0, 10).map((event) => (
