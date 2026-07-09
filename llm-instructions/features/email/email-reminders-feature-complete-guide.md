@@ -522,7 +522,7 @@ SELECT cron.schedule(
   '0 18 * * *', -- Daily at 18:00 UTC (20:00 Israel time)
   'SELECT net.http_post(
     url:=''https://flpzqbvbymoluoeeeofg.supabase.co/functions/v1/send-reminder-emails'',
-    headers:=''{"Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZscHpxYnZieW1vbHVvZWVlb2ZnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU3NTk2NDQsImV4cCI6MjA2MTMzNTY0NH0.wSymW37g5ekcgZec1RkPbufTp60pokmUQF3V6L663Wo"}'',
+    headers:=''{"Authorization": "Bearer YOUR_ANON_KEY"}'',
     body:=''{}''
   );'
 );

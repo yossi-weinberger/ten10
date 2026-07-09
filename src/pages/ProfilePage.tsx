@@ -12,10 +12,14 @@ import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
+import { useAuth } from "@/contexts/AuthContext";
 import { logger } from "@/lib/logger";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { syncPostHogUserIdentity } from "@/lib/analytics/posthogIdentity.service";
+import {
+  fetchProfileFullName,
+  updateProfileFullName,
+} from "@/lib/data-layer/profile.service";
 
 export function ProfilePage() {
   const { t, i18n } = useTranslation(["auth", "common"]);
@@ -48,22 +52,13 @@ export function ProfilePage() {
 
     const fetchProfile = async () => {
       try {
-        const { data, error, status } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("id", user.id)
-          .single();
-
-        if (error && status !== 406) {
-          throw error;
-        }
+        const fetchedFullName = await fetchProfileFullName(user.id);
 
         if (isMounted) {
-          const fetchedFullName = data?.full_name ?? "";
           setFullName(fetchedFullName);
           setInitialFullName(fetchedFullName);
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         logger.error("Error loading profile details:", error);
         if (isMounted) {
           toast.error(t("profile.loadError"));
@@ -103,12 +98,7 @@ export function ProfilePage() {
 
     try {
       if (fullNameChanged) {
-        const { error } = await supabase
-          .from("profiles")
-          .update({ full_name: trimmedFullName || null })
-          .eq("id", user.id);
-
-        if (error) throw error;
+        await updateProfileFullName(user.id, trimmedFullName);
         setInitialFullName(trimmedFullName);
       }
 
@@ -126,7 +116,7 @@ export function ProfilePage() {
         setUserInfoRefreshKey((prev) => prev + 1);
         void syncPostHogUserIdentity(user, i18n.language);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error("Error updating profile details:", error);
       toast.error(t("profile.personalDetails.saveError"));
     } finally {
