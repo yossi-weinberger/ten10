@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Activity,
   Gauge,
+  BarChart3,
 } from "lucide-react";
 import { usePlatform } from "@/contexts/PlatformContext";
 import {
@@ -26,6 +27,7 @@ import { AdminDownloadsSection } from "@/components/admin/AdminDownloadsSection"
 import { AdminEngagementSection } from "@/components/admin/AdminEngagementSection";
 import { AdminTrendsChart } from "@/components/admin/AdminTrendsChart";
 import { AdminMonitoringSection } from "@/components/admin/AdminMonitoringSection";
+import { AdminPostHogSection } from "@/components/admin/AdminPostHogSection";
 import { cn } from "@/lib/utils";
 
 export function AdminDashboardPage() {
@@ -129,7 +131,7 @@ export function AdminDashboardPage() {
           className={cn(
             "grid w-full grid-cols-2 gap-2 p-2 h-auto",
             "rounded-lg border bg-card",
-            "sm:grid-cols-5 sm:gap-0 sm:p-1 sm:rounded-md sm:border-0 sm:bg-muted",
+            "sm:grid-cols-6 sm:gap-0 sm:p-1 sm:rounded-md sm:border-0 sm:bg-muted",
             "lg:inline-flex lg:w-auto"
           )}
         >
@@ -197,6 +199,18 @@ export function AdminDashboardPage() {
               {t("tabs.monitoringShort", "Monitor")}
             </span>
           </TabsTrigger>
+          <TabsTrigger
+            value="posthog"
+            className={cn(
+              "gap-2 rounded-md px-3 py-2.5 h-auto",
+              "bg-muted data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+              "sm:bg-transparent sm:data-[state=active]:bg-background sm:data-[state=active]:text-foreground"
+            )}
+          >
+            <BarChart3 className="h-4 w-4 shrink-0" />
+            <span className="hidden sm:inline">{t("tabs.posthog")}</span>
+            <span className="sm:hidden">{t("tabs.posthogShort")}</span>
+          </TabsTrigger>
         </TabsList>
 
         {/* Users Tab */}
@@ -236,6 +250,11 @@ export function AdminDashboardPage() {
         {/* Monitoring Tab */}
         <TabsContent value="monitoring" className="space-y-6">
           <AdminMonitoringSection />
+        </TabsContent>
+
+        {/* PostHog Analytics Tab */}
+        <TabsContent value="posthog" className="space-y-6">
+          <AdminPostHogSection />
         </TabsContent>
       </Tabs>
     </div>

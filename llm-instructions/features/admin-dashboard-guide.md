@@ -160,6 +160,7 @@ src/
 │       ├── AdminDownloadsSection.tsx   # Download tracking (placeholder)
 │       ├── AdminTrendsChart.tsx        # Interactive charts
 │       ├── AdminMonitoringSection.tsx  # System monitoring main component
+│       ├── AdminPostHogSection.tsx     # PostHog product analytics tab
 │       └── monitoring/                 # Monitoring components (organized)
 │           ├── AdminMonitoringComponents.tsx  # Shared components (StatusIcon, ServiceHealthCard, etc.)
 │           ├── monitoringUtils.ts      # Shared utilities (getTooltipDescriptions)
@@ -175,7 +176,8 @@ src/
 │   └── data-layer/
 │       ├── admin.service.ts            # Admin API service
 │       ├── monitoring.service.ts       # Monitoring API service functions
-│       └── monitoring.types.ts         # Monitoring TypeScript types/interfaces
+│       ├── monitoring.types.ts         # Monitoring TypeScript types/interfaces
+│       └── posthogAdmin.service.ts     # PostHog admin analytics fetch
 └── routes.ts                           # Route definition with protection
 
 supabase/
@@ -199,6 +201,7 @@ Main page with tab-based navigation.
 3. **Trends** - Interactive charts with date range controls
 4. **Downloads** - Desktop download tracking (placeholder)
 5. **Monitoring** - System health monitoring and observability
+6. **PostHog** - Live product analytics aggregates from PostHog Query API (Edge Function `get-posthog-analytics`)
 
 **Features:**
 

@@ -71,6 +71,9 @@ export function MetricWithTooltip({
   label: string;
   tooltip: string;
 }) {
+  const { i18n } = useTranslation();
+  const isRtl = i18n.dir() === "rtl";
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -79,7 +82,11 @@ export function MetricWithTooltip({
           <HelpCircle className="h-3 w-3 text-muted-foreground" />
         </div>
       </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs text-right" dir="rtl">
+      <TooltipContent
+        side="top"
+        className={`max-w-xs ${isRtl ? "text-right" : "text-left"}`}
+        dir={i18n.dir()}
+      >
         <p>{tooltip}</p>
       </TooltipContent>
     </Tooltip>
