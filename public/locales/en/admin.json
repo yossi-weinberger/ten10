@@ -55,7 +55,13 @@
     "active30d": "Active (30 days)",
     "new30d": "New (30 days)",
     "new7d": "New (7 days)",
-    "activePercentage": "{{percentage}}% of users"
+    "activePercentage": "{{percentage}}% of users",
+    "tooltips": {
+      "total": "Accounts in auth.users that are not deleted.",
+      "active30d": "Distinct users who created at least one transaction in the last 30 days (by created_at). Not last_sign_in — and different from PostHog (web product events only).",
+      "new30d": "Users who signed up in the last 30 days.",
+      "new7d": "Users who signed up in the last 7 days."
+    }
   },
   "finance": {
     "title": "Financial Statistics",

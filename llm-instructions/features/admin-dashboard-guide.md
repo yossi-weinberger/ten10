@@ -67,6 +67,8 @@ Returns comprehensive dashboard statistics.
 {
   users: {
     total: number;
+    // Distinct users with ≥1 transaction created in last 30 days
+    // (not auth.users.last_sign_in_at — that field is often stale)
     active_30d: number;
     new_30d: number;
     new_7d: number;
