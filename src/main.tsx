@@ -18,7 +18,6 @@ import {
 import { registerSW } from "virtual:pwa-register";
 import "./index.css";
 import "./lib/i18n";
-import { logger } from "./lib/logger";
 import { unregisterServiceWorkersInTauri } from "./lib/utils/serviceWorkerUtils";
 
 // Clean up any stale service workers in Tauri environment
@@ -29,10 +28,12 @@ unregisterServiceWorkersInTauri();
 // bare "Error: Rejected". The SW is non-load-bearing on web (no precaching;
 // offline is desktop-only via SQLite), so we log and swallow the rejection instead
 // of letting it surface as an uncaught exception in error tracking.
+// Use console.warn (not logger.warn, which is a no-op in production) so the failure
+// still leaves a lightweight breadcrumb in prod without re-throwing.
 // Note: in Tauri builds the PWA plugin is disabled, so registerSW is a no-op.
 registerSW({
   onRegisterError(error) {
-    logger.warn("[PWA] Service worker registration failed:", error);
+    console.warn("[PWA] Service worker registration failed:", error);
   },
 });
 
