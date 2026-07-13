@@ -8,7 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Download, Info, Github } from "lucide-react";
+import { Download, Info, GitBranch } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { AdminDownloadStats } from "@/lib/data-layer/admin.service";
 import { useGitHubReleaseDownloadStats } from "@/hooks/useGitHubReleaseDownloadStats";
@@ -92,7 +92,7 @@ export function AdminDownloadsSection({
 
       <div className="space-y-4">
         <h3 className="flex items-center gap-2 text-xl font-semibold text-foreground">
-          <Github className="h-5 w-5 text-primary" />
+          <GitBranch className="h-5 w-5 text-primary" />
           {t("downloads.githubSection")}
         </h3>
 
