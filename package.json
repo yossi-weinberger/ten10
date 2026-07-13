@@ -76,7 +76,7 @@
     "i18next-http-backend": "^4.0.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^1.24.0",
-    "nanoid": "^5.1.6",
+    "nanoid": "^6.0.0",
     "pdf-lib": "^1.17.1",
     "posthog-js": "^1.399.2",
     "react": "^19.2.7",
