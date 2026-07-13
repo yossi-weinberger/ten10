@@ -17,6 +17,7 @@ import {
   Library,
   Lock,
   Megaphone,
+  MessageSquare,
   MonitorCog,
   MousePointerClick,
   PieChart,
@@ -39,6 +40,11 @@ import {
 } from "@/lib/whats-new-history";
 
 const itemIcons: Record<string, LucideIcon> = {
+  recurringBillingDay: Repeat,
+  homeFeedback: MessageSquare,
+  toastRefresh: Megaphone,
+  landingPolish: LayoutDashboard,
+  signupNameTrim: CheckCircle2,
   spreadsheetImport: FileSpreadsheet,
   guidedWizard: TableProperties,
   safeReview: ClipboardCheck,

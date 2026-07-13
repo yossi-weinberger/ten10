@@ -12,6 +12,19 @@ export interface WhatsNewHistoryRelease {
 
 export const whatsNewHistory: WhatsNewHistoryRelease[] = [
   {
+    // Listed on Changelog page only — CURRENT_WHATS_NEW_VERSION stays 0.7.0 (no popup).
+    version: "0.7.3",
+    date: "2026-07-13",
+    translationKey: "v073",
+    itemKeys: [
+      "recurringBillingDay",
+      "homeFeedback",
+      "toastRefresh",
+      "landingPolish",
+      "signupNameTrim",
+    ],
+  },
+  {
     version: "0.7.0",
     date: "2026-05-13",
     translationKey: "v070",
