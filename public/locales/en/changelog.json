@@ -21,11 +21,7 @@
         },
         "landingPolish": {
           "title": "Landing page polish",
-          "description": "Fixed the testimonials carousel and improved hero animations and backgrounds."
-        },
-        "signupNameTrim": {
-          "title": "Trim full name on signup",
-          "description": "Extra spaces are removed from the full name during signup."
+          "description": "Design and display improvements on the landing page."
         }
       }
     },

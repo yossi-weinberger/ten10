@@ -21,7 +21,6 @@ export const whatsNewHistory: WhatsNewHistoryRelease[] = [
       "homeFeedback",
       "toastRefresh",
       "landingPolish",
-      "signupNameTrim",
     ],
   },
   {

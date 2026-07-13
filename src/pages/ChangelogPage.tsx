@@ -44,7 +44,6 @@ const itemIcons: Record<string, LucideIcon> = {
   homeFeedback: MessageSquare,
   toastRefresh: Megaphone,
   landingPolish: LayoutDashboard,
-  signupNameTrim: CheckCircle2,
   spreadsheetImport: FileSpreadsheet,
   guidedWizard: TableProperties,
   safeReview: ClipboardCheck,
