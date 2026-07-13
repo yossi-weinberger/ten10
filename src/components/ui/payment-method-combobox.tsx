@@ -192,76 +192,78 @@ export function PaymentMethodCombobox({
             onValueChange={setSearchValue}
           />
           <CommandList>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-6">
+            {/* Predefined methods are available synchronously, so render the list
+                immediately. Only the user's saved methods need the async fetch;
+                surface that with an unobtrusive inline row rather than replacing
+                the whole list with a spinner (which made the control feel
+                unresponsive on open). */}
+            <CommandEmpty>
+              {isNewValue ? (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    handleCreateNew();
+                  }}
+                  className="flex w-full items-center justify-center gap-2 px-2 py-1.5 text-sm hover:bg-accent rounded-sm cursor-pointer"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>
+                    {t(
+                      "transactionForm.paymentMethod.createNew",
+                      "צור אפשרות חדשה"
+                    )}
+                    : <strong>"{searchValue.trim()}"</strong>
+                  </span>
+                </button>
+              ) : (
+                t(
+                  "transactionForm.paymentMethod.noResults",
+                  "לא נמצאו אפשרויות"
+                )
+              )}
+            </CommandEmpty>
+            <CommandGroup>
+              {allMethods.map((method) => (
+                <CommandItem
+                  key={method.value}
+                  value={method.label}
+                  onSelect={() => handleSelect(method.value)}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2",
+                      value === method.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {method.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            {isLoading && (
+              <div className="flex items-center justify-center py-2">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 <span className="ml-2 rtl:ml-0 rtl:mr-2 text-sm text-muted-foreground">
                   {t("transactionForm.paymentMethod.loading", "טוען...")}
                 </span>
               </div>
-            ) : (
+            )}
+            {isNewValue && allMethods.length > 0 && (
               <>
-                <CommandEmpty>
-                  {isNewValue ? (
-                    <button
-                      type="button"
-                      onClick={(event) => {
-                        event.preventDefault();
-                        handleCreateNew();
-                      }}
-                      className="flex w-full items-center justify-center gap-2 px-2 py-1.5 text-sm hover:bg-accent rounded-sm cursor-pointer"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span>
-                        {t(
-                          "transactionForm.paymentMethod.createNew",
-                          "צור אפשרות חדשה"
-                        )}
-                        : <strong>"{searchValue.trim()}"</strong>
-                      </span>
-                    </button>
-                  ) : (
-                    t(
-                      "transactionForm.paymentMethod.noResults",
-                      "לא נמצאו אפשרויות"
-                    )
-                  )}
-                </CommandEmpty>
+                <CommandSeparator />
                 <CommandGroup>
-                  {allMethods.map((method) => (
-                    <CommandItem
-                      key={method.value}
-                      value={method.label}
-                      onSelect={() => handleSelect(method.value)}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2",
-                          value === method.value ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {method.label}
-                    </CommandItem>
-                  ))}
+                  <CommandItem onSelect={handleCreateNew}>
+                    <Plus className="mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2" />
+                    {t(
+                      "transactionForm.paymentMethod.createNew",
+                      "צור אפשרות חדשה"
+                    )}
+                    :{" "}
+                    <strong className="ml-1 rtl:ml-0 rtl:mr-1">
+                      "{searchValue.trim()}"
+                    </strong>
+                  </CommandItem>
                 </CommandGroup>
-                {isNewValue && allMethods.length > 0 && (
-                  <>
-                    <CommandSeparator />
-                    <CommandGroup>
-                      <CommandItem onSelect={handleCreateNew}>
-                        <Plus className="mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2" />
-                        {t(
-                          "transactionForm.paymentMethod.createNew",
-                          "צור אפשרות חדשה"
-                        )}
-                        :{" "}
-                        <strong className="ml-1 rtl:ml-0 rtl:mr-1">
-                          "{searchValue.trim()}"
-                        </strong>
-                      </CommandItem>
-                    </CommandGroup>
-                  </>
-                )}
               </>
             )}
           </CommandList>

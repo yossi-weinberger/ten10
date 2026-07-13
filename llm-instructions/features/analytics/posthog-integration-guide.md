@@ -115,6 +115,7 @@ All product events go through `trackProductEvent()` in `productAnalytics.ts`. Fu
 Highlights of expanded events:
 
 - Auth: `signup_completed`, `login_completed`, `logout_completed`, `password_reset_requested`, `terms_accepted`
+- Transaction entry flow (create mode only, all carry `type`): `transaction_form_opened` (form mounted), `transaction_form_started` (first edit of a fresh, unsubmitted form), `transaction_form_abandoned` (a started-but-unsubmitted form was navigated away from). A successful create clears the "started" flag, so the intended reset-in-place form is **not** counted as an abandonment — this lets us tell benign resets from genuine drop-off in analytics rather than relying on replay inference.
 - Transactions: `transaction_deleted`, recurring pause/resume/update/delete
 - Export: `transactions_exported`
 - Settings: `settings_changed`, `reminder_preference_changed`
