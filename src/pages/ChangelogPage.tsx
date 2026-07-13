@@ -35,7 +35,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  CURRENT_WHATS_NEW_VERSION,
   whatsNewHistory,
 } from "@/lib/whats-new-history";
 
@@ -91,6 +90,7 @@ function formatReleaseDate(date: string) {
 
 export function ChangelogPage() {
   const { t, i18n } = useTranslation("changelog");
+  const latestChangelogVersion = whatsNewHistory[0]?.version;
 
   return (
     <div className="grid gap-6" dir={i18n.dir()}>
@@ -107,7 +107,7 @@ export function ChangelogPage() {
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="secondary">v{release.version}</Badge>
-                    {release.version === CURRENT_WHATS_NEW_VERSION && (
+                    {release.version === latestChangelogVersion && (
                       <Badge>{t("current")}</Badge>
                     )}
                   </div>
