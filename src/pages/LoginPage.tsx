@@ -174,9 +174,9 @@ const LoginPage: React.FC = () => {
             <Label htmlFor="email-password">{t("login.emailLabel")}</Label>
             <Input
               id="email-password"
-              name="email-password"
+              name="username"
               type="email"
-              autoComplete="email"
+              autoComplete="username"
               required
               value={emailPassword}
               onChange={(e) => setEmailPassword(e.target.value)}
@@ -260,7 +260,7 @@ const LoginPage: React.FC = () => {
 
         {/* Link to Signup page */}
         <div className="text-center text-sm text-muted-foreground mt-8">
-          {t("login.noAccount")}{" "}
+          {t("login.noAccount")} {" "}
           <Link
             to="/signup"
             className="font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
