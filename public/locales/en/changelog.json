@@ -4,6 +4,27 @@
   "current": "Current",
   "backToSettings": "Back to Settings",
   "releases": {
+    "v073": {
+      "title": "Improvements and fixes",
+      "items": {
+        "recurringBillingDay": {
+          "title": "Recurring charges follow billing day",
+          "description": "Recurring charges are scheduled by billing day of month, including a fix when editing to an earlier day in the same month."
+        },
+        "homeFeedback": {
+          "title": "Home feedback card",
+          "description": "Send feedback directly from the home screen."
+        },
+        "toastRefresh": {
+          "title": "Refreshed toast notifications",
+          "description": "System notifications have updated styling and placement."
+        },
+        "landingPolish": {
+          "title": "Landing page polish",
+          "description": "Design and display improvements on the landing page."
+        }
+      }
+    },
     "v070": {
       "title": "Import Transactions from Excel",
       "items": {
