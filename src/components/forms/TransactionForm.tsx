@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -27,6 +27,7 @@ import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransact
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useTransactionFormInitialization } from "@/hooks/useTransactionFormInitialization";
 import { logger } from "@/lib/logger";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { toast } from "sonner";
 
 interface TransactionFormProps {
@@ -91,6 +92,17 @@ export function TransactionForm({
 
   // State for success animation
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Entry-flow analytics (create mode only). These let us tell benign behavior
+  // (open the page, look, leave; or the intended reset-in-place after a save)
+  // apart from a genuine drop-off, which session replay alone can't distinguish.
+  // - opened: the empty form was mounted.
+  // - started: the user made the first edit to a fresh, unsubmitted form.
+  // - abandoned: a started-but-unsubmitted form was left (navigated away).
+  // A successful create clears the "started" flag, so the reset-in-place form
+  // that stays on the page is NOT counted as abandonment.
+  const hasOpenedRef = useRef(false);
+  const hasStartedRef = useRef(false);
 
   const transactionSchema = useMemo(() => createTransactionFormSchema(t), [t]);
 
@@ -201,6 +213,40 @@ export function TransactionForm({
       logger.log("Form errors:", errors);
     }
   }, [form.formState.errors]);
+
+  const isDirty = form.formState.isDirty;
+
+  // Fire "form opened" once when the create form mounts.
+  useEffect(() => {
+    if (isEditMode || hasOpenedRef.current) return;
+    hasOpenedRef.current = true;
+    trackProductEvent("transaction_form_opened", {
+      type: form.getValues("type"),
+    });
+  }, [isEditMode, form]);
+
+  // Fire "form started" on the first edit of a fresh, unsubmitted form.
+  useEffect(() => {
+    if (isEditMode || !isDirty || hasStartedRef.current) return;
+    hasStartedRef.current = true;
+    trackProductEvent("transaction_form_started", {
+      type: form.getValues("type"),
+    });
+  }, [isEditMode, isDirty, form]);
+
+  // Fire "form abandoned" when a started-but-unsubmitted form is left.
+  // A successful create resets hasStartedRef, so the intended reset-in-place
+  // form does not register as an abandonment.
+  useEffect(() => {
+    if (isEditMode) return;
+    return () => {
+      if (hasStartedRef.current) {
+        trackProductEvent("transaction_form_abandoned", {
+          type: form.getValues("type"),
+        });
+      }
+    };
+  }, [isEditMode, form]);
 
   const selectedType = form.watch("type");
   const isExemptChecked = form.watch("isExempt");
@@ -385,6 +431,10 @@ export function TransactionForm({
       // Logic for creating a new transaction
       try {
         await handleTransactionSubmit(submissionValues);
+        // The transaction was saved, so this fill-cycle is completed rather than
+        // abandoned. The form then resets in place; a later edit re-arms
+        // "started" via the isDirty effect above.
+        hasStartedRef.current = false;
         setIsSuccess(true);
         toast.success(t("transactionForm.messages.success"));
         setTimeout(() => {
