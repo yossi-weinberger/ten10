@@ -75,7 +75,7 @@
     "i18next-browser-languagedetector": "^8.2.0",
     "i18next-http-backend": "^3.0.2",
     "input-otp": "^1.4.2",
-    "lucide-react": "^0.562.0",
+    "lucide-react": "^1.24.0",
     "nanoid": "^5.1.6",
     "pdf-lib": "^1.17.1",
     "posthog-js": "^1.372.5",
