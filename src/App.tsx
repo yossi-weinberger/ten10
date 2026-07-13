@@ -20,10 +20,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { setPlatform as setGlobalPlatform } from "./lib/platformManager";
 import { useDonationStore } from "./lib/store";
 import { checkAndSendDesktopReminder } from "./lib/data-layer/reminders";
-import { checkForUpdates } from "./lib/data-layer/updater.service";
 import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils/index";
-import { toast } from "sonner";
 import ContactFAB from "./components/layout/ContactFAB";
 import { TermsAcceptanceModal } from "./components/auth/TermsAcceptanceModal";
 import { WhatsNewModal } from "./components/WhatsNewModal";
@@ -41,6 +39,7 @@ import {
 } from "./lib/security/appLock.service";
 import { DesktopLockScreen } from "./components/security/DesktopLockScreen";
 import { useSettingsSync } from "./hooks/useSettingsSync";
+import { useDesktopUpdateCheck } from "./hooks/useDesktopUpdateCheck";
 import { useMediaQuery } from "./hooks/use-media-query";
 
 export type DesktopLockStatus =
@@ -189,22 +188,6 @@ function App() {
           })
           .then(() => {
             logger.log("Desktop reminder check complete.");
-            return checkForUpdates();
-          })
-          .then(async (updateInfo) => {
-            if (updateInfo) {
-              logger.log(`Update available: ${updateInfo.version}`);
-              await i18n.loadNamespaces("settings");
-              toast.info(
-                tRef.current("versionInfo.updateAvailable", {
-                  version: updateInfo.version,
-                  ns: "settings",
-                }),
-                { duration: 5000 }
-              );
-            } else {
-              logger.log("App is up to date");
-            }
           })
           .catch((error) =>
             logger.error("Error during desktop initialization sequence:", error)
@@ -218,6 +201,8 @@ function App() {
         setDesktopInitComplete(true);
       });
   }, [platform, desktopLockStatus]);
+
+  useDesktopUpdateCheck(platform, desktopInitComplete);
 
   // Desktop: auto-lock after real user inactivity (mouse/keyboard/touch/etc.)
   useEffect(() => {
