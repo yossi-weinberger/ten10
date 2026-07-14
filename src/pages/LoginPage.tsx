@@ -171,12 +171,12 @@ const LoginPage: React.FC = () => {
         {/* Email/Password Form */}
         <form onSubmit={handleLoginPassword} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email-password">{t("login.emailLabel")}</Label>
+            <Label htmlFor="login-username">{t("login.emailLabel")}</Label>
             <Input
-              id="email-password"
-              name="email-password"
+              id="login-username"
+              name="username"
               type="email"
-              autoComplete="email"
+              autoComplete="username"
               required
               value={emailPassword}
               onChange={(e) => setEmailPassword(e.target.value)}
