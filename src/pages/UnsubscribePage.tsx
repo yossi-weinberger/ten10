@@ -2,16 +2,12 @@ import { useEffect, useState } from "react";
 import { useSearch } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/lib/supabaseClient";
+import { logger } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 
-interface UnsubscribePayload {
-  userId: string;
-  email: string;
-  type: "reminder" | "all";
-  exp: number;
-}
+type UnsubscribeType = "reminder" | "all";
 
 export default function UnsubscribePage() {
   const { t } = useTranslation("auth");
@@ -25,7 +21,7 @@ export default function UnsubscribePage() {
   useEffect(() => {
     const searchParams = search as { token?: string; type?: string };
     const token = searchParams.token;
-    const type = searchParams.type || "all";
+    const type = (searchParams.type || "all") as UnsubscribeType;
 
     if (!token) {
       setStatus("error");
@@ -34,39 +30,44 @@ export default function UnsubscribePage() {
       return;
     }
 
-    handleUnsubscribe(token, type as "reminder" | "all");
+    handleUnsubscribe(token, type);
   }, [search, t]);
 
-  const handleUnsubscribe = async (token: string, type: "reminder" | "all") => {
+  const handleUnsubscribe = async (
+    token: string,
+    type: UnsubscribeType
+  ) => {
     try {
-      // Verify and decode JWT token
-      const payload = await verifyToken(token);
+      // Single call: Edge Function verifies the JWT and updates preferences
+      // with service_role. Browser never sends p_user_id to a public RPC.
+      const { data, error } = await supabase.functions.invoke(
+        "verify-unsubscribe-token",
+        {
+          body: { token, type },
+        }
+      );
 
-      if (!payload) {
+      if (error || data?.error || !data?.success) {
+        logger.error("Unsubscribe failed:", error ?? data?.error);
         setStatus("error");
-        setTitle(t("unsubscribe.error.expiredToken.title"));
-        setMessage(t("unsubscribe.error.expiredToken.message"));
+        const looksExpired =
+          typeof data?.error === "string" &&
+          data.error.toLowerCase().includes("expired");
+        if (looksExpired || error?.message?.toLowerCase().includes("401")) {
+          setTitle(t("unsubscribe.error.expiredToken.title"));
+          setMessage(t("unsubscribe.error.expiredToken.message"));
+        } else {
+          setTitle(t("unsubscribe.error.updateFailed.title"));
+          setMessage(t("unsubscribe.error.updateFailed.message"));
+        }
         return;
       }
 
-      // Update user preferences
-      const { error } = await supabase.rpc("update_user_preferences", {
-        p_user_id: payload.userId,
-        p_reminder_enabled: type === "reminder" ? false : null,
-        p_mailing_list_consent: type === "all" ? false : null,
-      });
+      const resolvedType: UnsubscribeType =
+        data.type === "reminder" || data.type === "all" ? data.type : type;
 
-      if (error) {
-        logger.error("Error updating preferences:", error);
-        setStatus("error");
-        setTitle(t("unsubscribe.error.updateFailed.title"));
-        setMessage(t("unsubscribe.error.updateFailed.message"));
-        return;
-      }
-
-      // Success
       setStatus("success");
-      if (type === "reminder") {
+      if (resolvedType === "reminder") {
         setTitle(t("unsubscribe.success.reminder.title"));
         setMessage(t("unsubscribe.success.reminder.message"));
       } else {
@@ -78,30 +79,6 @@ export default function UnsubscribePage() {
       setStatus("error");
       setTitle(t("unsubscribe.error.general.title"));
       setMessage(t("unsubscribe.error.general.message"));
-    }
-  };
-
-  const verifyToken = async (
-    token: string
-  ): Promise<UnsubscribePayload | null> => {
-    try {
-      // Call Supabase function to verify the JWT token with proper signature validation
-      const { data, error } = await supabase.functions.invoke(
-        "verify-unsubscribe-token",
-        {
-          body: { token },
-        }
-      );
-
-      if (error) {
-        logger.error("Token verification error:", error);
-        return null;
-      }
-
-      return data?.payload || null;
-    } catch (error) {
-      logger.error("Token verification error:", error);
-      return null;
     }
   };
 

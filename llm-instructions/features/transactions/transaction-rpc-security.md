@@ -70,9 +70,9 @@ Authorization model (not `SECURITY INVOKER`):
 Web callers: `src/lib/data-layer/analytics.service.ts`, `src/lib/data-layer/stats.service.ts`.
 Server caller: `supabase/functions/send-reminder-emails/user-service.ts`.
 
-## Still excluded (separate flow)
+## Still excluded (separate flow — Phase 2)
 
-- `update_user_preferences(uuid, boolean, boolean)`: used by the unauthenticated unsubscribe flow after an Edge Function verifies the unsubscribe token. Needs a dedicated design (Edge Function should apply the update with `service_role`; browser must not call a public RPC that accepts arbitrary `user_id`).
+- `update_user_preferences(uuid, boolean, boolean)`: Phase 1 moves apply into `verify-unsubscribe-token` (service_role). Grants stay open until a follow-up migration locks the RPC to `service_role` only after the new frontend + Edge Function are live on production.
 
 ## Testing after deployment
 
