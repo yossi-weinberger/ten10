@@ -56,10 +56,10 @@ These require individual review. A privileged function must authenticate or vali
 
 Do not convert such functions to `SECURITY INVOKER` without checking all anonymous and server-side call paths.
 
-### Unsubscribe (Phase 1 / Phase 2)
+### Unsubscribe
 
-- **Phase 1:** `verify-unsubscribe-token` verifies the unsubscribe JWT and calls `update_user_preferences` with `service_role`. The browser must not call that RPC with a client-supplied `p_user_id`.
-- **Phase 2:** lock `update_user_preferences` grants to `service_role` only (after the Phase 1 frontend + Edge Function are live).
+- `verify-unsubscribe-token` verifies the unsubscribe JWT and calls `update_user_preferences` with `service_role`.
+- `update_user_preferences` grants are locked to `service_role` only (Phase 2). The browser must not call that RPC.
 
 ## Migration requirements
 
