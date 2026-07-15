@@ -7,22 +7,21 @@
 ## ארכיטקטורה כללית
 
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Email         │    │   Edge Function  │    │   Database      │
-│   (With Buttons)│───▶│   /unsubscribe   │───▶│   (profiles)    │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-        │                       │                       │
-        │              ┌─────────▼────────┐             │
-        │              │  JWT Validation  │             │
-        │              │  & Token Verify  │             │
-        │              └──────────────────┘             │
-        │                       │                       │
-        ▼              ┌─────────▼────────┐             ▼
-┌─────────────────┐    │  Success/Error   │    ┌─────────────────┐
-│   User Clicks   │    │  HTML Pages      │    │   Update User   │
-│   Unsubscribe   │    │  (Hebrew RTL)    │    │   Preferences   │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+┌─────────────────┐    ┌──────────────────────────────┐    ┌─────────────────┐
+│   Email link    │    │  Edge Function               │    │   Database      │
+│   /unsubscribe  │───▶│  verify-unsubscribe-token    │───▶│   profiles      │
+│   ?token=&type= │    │  (verify JWT + service_role  │    │                 │
+└─────────────────┘    │   update_user_preferences)   │    └─────────────────┘
+        │              └──────────────────────────────┘
+        ▼
+┌─────────────────┐
+│ UnsubscribePage │  single functions.invoke — no browser RPC with p_user_id
+└─────────────────┘
 ```
+
+**Phase 1 (current):** browser calls only the Edge Function; RPC remains callable until Phase 2 locks grants to `service_role`.
+
+**Phase 2 (follow-up):** revoke `EXECUTE` on `update_user_preferences` from `anon` / `authenticated`.
 
 ## רכיבי המערכת
 
@@ -121,7 +120,7 @@ mailing_list_consent BOOLEAN DEFAULT false  -- ביטול הרשמה מוחלט
 - **`update_user_preferences`**: עדכון העדפות משתמש
 
   - פרמטרים: `p_user_id`, `p_reminder_enabled`, `p_mailing_list_consent`
-  - אבטחה: SECURITY DEFINER
+  - אבטחה: SECURITY DEFINER; after Phase 1 only the Edge Function should call it
   - לוגיקה: עדכון רק השדות שסופקו (COALESCE)
 
 - **`get_reminder_users_with_emails`**: שליפת משתמשים לתזכורות
@@ -191,12 +190,12 @@ mailing_list_consent = false →
 
 ### 2. Unsubscribe Handling
 
-- `src/pages/UnsubscribePage.tsx` - דף unsubscribe ב-React
-- `supabase/functions/verify-unsubscribe-token/index.ts` - אימות JWT מאובטח
+- `src/pages/UnsubscribePage.tsx` - React page; one `functions.invoke("verify-unsubscribe-token")`
+- `supabase/functions/verify-unsubscribe-token/index.ts` - verifies JWT and applies preference update with `SUPABASE_SERVICE_ROLE_KEY`
 
 ### 3. Database Functions
 
-- `update_user_preferences()` - עדכון העדפות
+- `update_user_preferences()` - called by the Edge Function (service_role); must not be called from the browser after Phase 1
 - `get_reminder_users_with_emails()` - שליפת משתמשים
 
 ### 4. Deployment
