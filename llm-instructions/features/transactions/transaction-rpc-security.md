@@ -62,9 +62,10 @@ Migration `20260715190000_harden_calculate_user_tithe_balance.sql` hardens `calc
 Authorization model (not `SECURITY INVOKER`):
 
 - Remains `SECURITY DEFINER` because the reminder Edge Function must compute balances for many users with `service_role`.
-- Authenticated callers may only pass their own `auth.uid()` as `p_user_id`; otherwise the function raises `Access denied`.
+- Non-`service_role` callers may only pass their own `auth.uid()` as `p_user_id`; otherwise the function raises `Access denied`.
 - `service_role` may pass any `p_user_id` (used by `send-reminder-emails`).
 - `EXECUTE` is granted to `authenticated` and `service_role` only (`PUBLIC` / `anon` revoked).
+- Role check uses `coalesce(auth.role(), '')` (see `20260715203000_fix_tithe_balance_null_safe_role_guard.sql`).
 
 Web callers: `src/lib/data-layer/analytics.service.ts`, `src/lib/data-layer/stats.service.ts`.
 Server caller: `supabase/functions/send-reminder-emails/user-service.ts`.

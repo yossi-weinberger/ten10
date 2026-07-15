@@ -88,13 +88,15 @@ The migration intentionally preserves the existing public signatures to avoid a 
 Some functions are called both by an authenticated browser session and by a `service_role` Edge Function. Prefer an in-function guard over splitting signatures when the public API must stay stable:
 
 ```sql
-IF auth.role() <> 'service_role'
+IF coalesce(auth.role(), '') <> 'service_role'
    AND auth.uid() IS DISTINCT FROM p_user_id THEN
   RAISE EXCEPTION 'Access denied';
 END IF;
 ```
 
-Migration `20260715190000_harden_calculate_user_tithe_balance.sql` applies this pattern to `calculate_user_tithe_balance(uuid)` while keeping `SECURITY DEFINER`, revoking `anon`, and granting `authenticated` + `service_role`.
+Use `coalesce` so a missing role does not make the comparison `NULL` and skip the guard.
+
+Migration `20260715190000_harden_calculate_user_tithe_balance.sql` applied this pattern to `calculate_user_tithe_balance(uuid)` (keeping `SECURITY DEFINER`, revoking `anon`, granting `authenticated` + `service_role`). Migration `20260715203000_fix_tithe_balance_null_safe_role_guard.sql` makes the role check NULL-safe.
 
 ## Review checklist for future RPC changes
 
