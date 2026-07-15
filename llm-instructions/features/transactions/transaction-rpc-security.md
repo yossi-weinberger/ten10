@@ -55,14 +55,24 @@ Do not assume the client-provided ID is itself an authorization control. Authori
 
 `service_role` retains `EXECUTE` and bypasses RLS for legitimate backend workflows. Before changing or removing a signature, search both `src/` and `supabase/functions/` for callers.
 
-## Functions excluded from this migration
+## Tithe balance RPC
 
-The following require separate designs and must not be bundled into the transaction-table hardening migration:
+Migration `20260715190000_harden_calculate_user_tithe_balance.sql` hardens `calculate_user_tithe_balance(uuid)` without changing its signature.
 
-- `calculate_user_tithe_balance(uuid)`: called by both the authenticated frontend and the reminder Edge Function using `service_role`.
-- `update_user_preferences(uuid, boolean, boolean)`: used by the unauthenticated unsubscribe flow after an Edge Function verifies the unsubscribe token.
+Authorization model (not `SECURITY INVOKER`):
 
-These functions need separate public and service-only interfaces, or another explicit authorization mechanism.
+- Remains `SECURITY DEFINER` because the reminder Edge Function must compute balances for many users with `service_role`.
+- Non-`service_role` callers may only pass their own `auth.uid()` as `p_user_id`; otherwise the function raises `Access denied`.
+- `service_role` may pass any `p_user_id` (used by `send-reminder-emails`).
+- `EXECUTE` is granted to `authenticated` and `service_role` only (`PUBLIC` / `anon` revoked).
+- Role check uses `coalesce(auth.role(), '')` (see `20260715203000_fix_tithe_balance_null_safe_role_guard.sql`).
+
+Web callers: `src/lib/data-layer/analytics.service.ts`, `src/lib/data-layer/stats.service.ts`.
+Server caller: `supabase/functions/send-reminder-emails/user-service.ts`.
+
+## Still excluded (separate flow)
+
+- `update_user_preferences(uuid, boolean, boolean)`: used by the unauthenticated unsubscribe flow after an Edge Function verifies the unsubscribe token. Needs a dedicated design (Edge Function should apply the update with `service_role`; browser must not call a public RPC that accepts arbitrary `user_id`).
 
 ## Testing after deployment
 

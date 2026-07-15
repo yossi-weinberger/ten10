@@ -83,6 +83,21 @@ Migration `20260715090000_harden_user_transaction_rpcs.sql` changes the active t
 
 The migration intentionally preserves the existing public signatures to avoid a coordinated frontend deployment.
 
+## Dual-caller privileged RPCs
+
+Some functions are called both by an authenticated browser session and by a `service_role` Edge Function. Prefer an in-function guard over splitting signatures when the public API must stay stable:
+
+```sql
+IF coalesce(auth.role(), '') <> 'service_role'
+   AND auth.uid() IS DISTINCT FROM p_user_id THEN
+  RAISE EXCEPTION 'Access denied';
+END IF;
+```
+
+Use `coalesce` so a missing role does not make the comparison `NULL` and skip the guard.
+
+Migration `20260715190000_harden_calculate_user_tithe_balance.sql` applied this pattern to `calculate_user_tithe_balance(uuid)` (keeping `SECURITY DEFINER`, revoking `anon`, granting `authenticated` + `service_role`). Migration `20260715203000_fix_tithe_balance_null_safe_role_guard.sql` makes the role check NULL-safe.
+
 ## Review checklist for future RPC changes
 
 Before creating or modifying an RPC, determine:
