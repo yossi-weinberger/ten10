@@ -1,157 +1,236 @@
 # Supabase Integration Status
 
-This document is the current operational status of the Supabase-backed web platform.
-For RPC authorization rules, read [`supabase-rpc-security-model.md`](./supabase-rpc-security-model.md).
+This document tracks the progress of integrating Supabase into the Ten10 project (primarily for the web version).
 
-## Platform boundary
+## Completed Tasks
 
-- Web uses Supabase Auth, PostgreSQL, RLS, RPCs and Edge Functions.
-- Desktop uses Tauri 2 and local SQLite.
-- There is no automatic synchronization between platforms.
-- Manual JSON import and export is the only cross-platform transfer mechanism.
+### Authentication
 
-## Authentication
+- **Project Setup:**
+  - Configured Supabase client (`@supabase/supabase-js`).
+  - Set up environment variables for Supabase URL and Anon Key.
+  - Fixed TypeScript config for Vite env variables.
+- **Authentication State Management:**
+  - Created `AuthContext` with `onAuthStateChange` listener.
+  - Wrapped application with `AuthProvider`.
+  - **AuthContext now handles clearing the `transactions` state (Zustand) on sign-out. Data loading logic has been enhanced to be conditional (see Optimized Data Fetching below).**
+- **Platform-Specific UI:**
+  - Created Login (`LoginPage.tsx`) and Signup (`SignupPage.tsx`) pages, displayed only on the web platform.
+  - Utilized `PlatformContext` for conditional rendering.
+  - Translated forms to Hebrew.
+- **Login Methods Implemented:**
+  - Email/Password (`signInWithPassword`).
+  - Google Sign-In (`signInWithOAuth`) - UI added, requires manual setup in dashboards.
+  - Magic Link (`signInWithOtp`) - UI added, enabled by default in Supabase.
+- **User Profiles & RLS:**
+  - Created `public.profiles` table (`id`, `updated_at`, `full_name`, `avatar_url`, `mailing_list_consent`, `client_preferences`).
+  - Added `client_preferences` (JSONB) to hold general user settings (language, theme, tracking preferences) dynamically.
+  - Established Foreign Key to `auth.users`.
+  - Enabled RLS on `profiles` table.
+  - Added basic RLS policies (select/insert/update own profile).
+  - Added trigger to create profile on new user signup.
+  - Added trigger to update `updated_at` automatically.
+  - **Terms of Service Acceptance:**
+    - Added columns `terms_accepted_at` (TIMESTAMPTZ) and `terms_version` (TEXT) to `profiles` table.
+    - Added `terms_accepted_metadata` (JSONB) for legal audit trail (IP, User Agent, Timestamp).
+    - Implemented a "Gatekeeper Modal" that forces users to accept terms on login/signup if they haven't already.
+- **Signup Enhancements:**
+  - Added Full Name and Mailing List Consent fields to the signup form.
+  - Updated signup logic to attempt profile update if session is immediately available.
+  - **Removed Checkbox:** The "I agree to Terms" checkbox was removed from the signup form in favor of the post-login Gatekeeper Modal, ensuring better UX and consistent legal coverage for Google Login users.
+- **Protected Routes (Web):**
+  - Implemented route protection via `beforeLoad` on the root route in `src/routes.ts`.
+  - Logic correctly differentiates between web (protected) and desktop (open). Redirects unauthenticated web users to `/login`.
+- **Logout:**
+  - Logout button in `Sidebar.tsx` triggers `signOut` and navigates user to `/login`.
+  - Logout button styled in red.
+- **Manual Setup:**
+  - Completed Google Sign-In setup in Google Cloud Console and Supabase Dashboard (added Client ID/Secret).
+  - Verified Supabase URL Configuration (`Site URL`, `Additional Redirect URLs`) for Magic Link and OAuth.
+- **State Synchronization:**
+  - Transaction data fetched via `dataService` is loaded into the Zustand store (`useDonationStore`), triggered by authentication events and data freshness checks managed in `AuthContext`.
+  - **Optimized Data Fetching:** Implemented conditional data loading from the database to avoid fetching on every page refresh. Data is fetched upon user login (via a `forceDbFetchOnLoad` flag in `sessionStorage`), or if existing data in Zustand is stale (e.g., older than 1 day, based on `lastDbFetchTimestamp` in Zustand). `AuthContext` manages this, including Zustand store rehydration (`_hasHydrated`). `LoginPage.tsx` and `SignupPage.tsx` set the `forceDbFetchOnLoad` flag.
 
-Implemented:
+### Email Notifications - New Users Summary (Daily)
 
-- Email/password authentication.
-- Google OAuth.
-- Magic link authentication.
-- Protected web routes.
-- Web-only authentication; desktop remains local and does not have users.
-- Profile creation trigger for new Supabase Auth users.
-- Terms acceptance gate with timestamp, version and metadata.
-- Logout clears user-scoped Zustand transaction state.
+- **Edge Function:** `send-new-user-email` sends a daily summary (table + text) of new users only (filtered by `auth.users.created_at`).
+- **Data Source:** Uses Auth Admin API (`auth.admin.listUsers`) with a default 24h window; fetches matching `profiles` for `full_name`, `avatar_url`, `mailing_list_consent`, `reminder_enabled/day`.
+- **Email Format:** Table includes Avatar/Name/Email/User ID + Date (DD/MM/YYYY) + Time (HH:MM) + Mailing consent; text body mirrors the same info. If no new users are found, returns 200 with `sent:false` and does not send an email.
+- **Sender/SES:** Uses `SES_FROM_USERS` (recommended) and falls back to `users-update@ten10-app.com` by default (SES verified). This sender is intentionally isolated from the global `SES_FROM` used by reminder emails. Requires `AWS_ACCESS_KEY_ID/SECRET/REGION`.
+- **Security:** Function uses Service Role Key; the cron job must use a Service Role Bearer, not anon.
+- **Cron:** Daily pg_cron at `0 19 * * *` (21:00 Israel) via `net.http_post` to `/functions/v1/send-new-user-email` with Service Role authorization.
 
-Remaining profile work:
+### Email Notifications - Desktop Download Requests (Email Routing)
 
-- Complete editing of profile fields.
-- Add password update UI.
+- **Flow:** Cloudflare Email Routing → Worker → Supabase Edge Function `process-email-request` → AWS SES → user.
+- **Important:** `process-email-request` must run with JWT verification disabled (Cloudflare authenticates via a shared secret header, not a Supabase JWT).
+- **Repo enforcement:** `supabase/config.toml` includes:
+  ```toml
+  [functions.process-email-request]
+  verify_jwt = false
+  ```
 
-## Profiles and RLS
+### Database (Transactions - Web Version)
 
-`public.profiles` is linked to `auth.users` and has RLS enabled.
-Users may select, insert and update only their own profile using `auth.uid()` ownership checks.
+- **Project Identified:** Confirmed Supabase project `Ten10` (ID: `flpzqbvbymoluoeeeofg`).
+- **`transactions` Table Created:** Added the `public.transactions` table based on the defined schema.
+  - **Note on Naming Convention:** Column names in the `transactions` table in Supabase, as well as in the corresponding TypeScript `Transaction` type, now consistently use **`snake_case`** (e.g., `is_chomesh`, `created_at`, `updated_at`). This includes `id` and `user_id` which were already `snake_case`. This change was made to improve consistency and maintainability across the codebase.
+  - **Primary Key:** `id` column is of type `uuid` and generated by the database (`DEFAULT gen_random_uuid()`).
+- **Row Level Security (RLS) Enabled:** RLS has been activated for the `transactions` table.
+- **RLS Policies Applied:** Created and verified policies (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) ensuring users can only access their own data (`USING (auth.uid() = user_id)`).
+- **`updated_at` Trigger:** Configured a trigger using the shared `handle_updated_at` function to automatically update the `updated_at` column on changes (this function expects the column to be named `updated_at`).
+- \*\*Service Layer Integration (`dataService.ts` and `transactionService.ts`):
+  - `dataService.ts` (General Operations): Original integration for basic `loadTransactions` and `addTransaction` with the Supabase `transactions` table for the web platform. This service handles general data loading into `useDonationStore`.
+  - `transactionService.ts` (Table-Specific Operations): This service (`TableTransactionsService`) is now the primary interface for the interactive transactions table when running on the web platform. It uses Supabase RPC functions for:
+    - `fetchTransactions`: Calls a Supabase RPC like `get_paginated_transactions` to fetch filtered, sorted, and paginated data.
+    - `updateTransaction`: Calls a Supabase RPC (e.g., `update_user_transaction`) to update a specific transaction.
+    - `deleteTransaction`: Calls a Supabase RPC (e.g., `delete_user_transaction`) to delete a transaction.
+    - `exportTransactions`: Calls a Supabase RPC (e.g., `export_user_transactions`) to fetch all relevant data for export, respecting filters and sorting.
+  - `categories.service.ts` (Category Operations): Provides category-related functionality:
+    - `getUserCategories`: Calls `get_user_categories` RPC to fetch distinct categories for a transaction type. See `category-selection-guide.md`.
+  - Both services fetch user data using the Anon Key (RLS enforced) and let the database generate the `id` (UUID).
+  - Data is handled consistently using `snake_case` for both TypeScript objects and database interactions.
+  - **State Synchronization:**
+    - General transaction data (for `useDonationStore`) is loaded via `dataService.ts` as triggered by `AuthContext`.
+    - The interactive transactions table (`useTableTransactionsStore`) fetches and manages its own data subset via `transactionService.ts`.
 
-Important:
+## Known Issues & Workarounds
 
-- Browser-supplied user IDs are not an authorization boundary.
-- Public RPCs must use `SECURITY INVOKER` when table RLS is expected to enforce ownership.
-- Exceptions require a documented trust boundary and explicit grants.
+### update_recurring_transaction RPC 404 Error
 
-## Transactions
+- **Issue Description:** The `update_recurring_transaction` RPC function was returning 404 errors when attempting to edit recurring transactions. The error message indicated that the function signature in the database schema cache didn't match the parameters sent from the frontend.
+- **Root Cause:** The function was not defined in any migration file in the repository. It was likely created manually in the database at some point, but the version in production was missing the currency conversion parameters (`p_original_amount`, `p_original_currency`, `p_conversion_rate`, `p_conversion_date`, `p_rate_source`) that were added in January 2026.
+- **Solution:** Recreated `update_recurring_transaction` with the full 14-parameter signature the frontend expects, including currency conversion fields (`p_original_amount`, `p_original_currency`, `p_conversion_rate`, `p_conversion_date`, `p_rate_source`). Switched to `RETURNS SETOF recurring_transactions` + `UPDATE ... RETURNING *` to avoid ambiguous column name errors. The frontend continues to call `update_recurring_transaction`.
+- **Root cause of original bug:** `p_total_occurrences: values.total_occurrences` — when `undefined`, JavaScript strips the key from JSON, so PostgREST received 13 params and couldn't match the 14-param function. Fixed with `?? null`.
+- **Migration:** `20260423120000_fix_update_recurring_transaction_rpc.sql` (re)creates the function; `20260423130000_cleanup_unnecessary_rpc_functions.sql` drops the temporary `edit_recurring_transaction` and `update_recurring_v2` functions that were created during debugging.
+- **Status:** Fixed on staging and production.
 
-The web platform uses:
+### Supabase Client Hangs After Refresh (Chrome/Vite/React)
 
-- `public.transactions`
-- `public.recurring_transactions`
-- Supabase RPCs for filtered table reads and CRUD operations.
-- Direct inserts where the table RLS policy validates `user_id = auth.uid()`.
+- **Issue Description:** A significant issue was identified where the `@supabase/supabase-js` client becomes unresponsive to network requests (both `select` and `rpc` calls) after a page refresh when a session is restored from localStorage (`persistSession: true`). The `onAuthStateChange` event fires correctly, indicating a valid session and user, but subsequent attempts to use the client for network operations hang indefinitely without sending a request or throwing a network error. This issue primarily affects Chrome-based browsers in the Vite/React development environment.
+- **Root Cause Analysis:** The problem appears to be a race condition or an internal state inconsistency within the Supabase client during the session recovery process from localStorage after a page refresh. Attempting network requests immediately within the `onAuthStateChange` callback triggers this hung state.
+- **Related GitHub Issue:** This behavior is similar or identical to issues reported by other users: [https://github.com/supabase/supabase-js/issues/1401](https://github.com/supabase/supabase-js/issues/1401)
+- **Workaround Implemented:** To resolve this, the data loading logic was decoupled from the `onAuthStateChange` listener in `AuthContext.tsx`:
+  1.  `onAuthStateChange` now only updates the `session` and `user` state variables.
+  2.  A separate `useEffect` hook was added, dependent on the `user` and `platform` state variables.
+  3.  This `useEffect` initiates the data loading (`loadAndSetTransactions`) only when a valid `user` exists and the `platform` is determined.
+  4.  This separation allows the Supabase client sufficient time to stabilize after session recovery before network requests are initiated, preventing the hang.
+- **Impact:** This workaround successfully resolves the refresh issue and allows the application to function correctly. However, it highlights a potential instability in the current version of `@supabase/supabase-js` under these specific conditions.
 
-Both tables have ownership RLS based on `auth.uid()`.
+## Remaining Tasks / Next Steps
 
-### Transaction RPC security
+### Authentication
 
-Migration `20260715090000_harden_user_transaction_rpcs.sql` hardened the active transaction and recurring-transaction RPC overloads:
+- **Profile Management:**
+  - Implement the actual Profile page (`/profile`) allowing users to view/update `full_name`, `avatar_url`, etc. (Partially done - display exists, update form needs completion).
+  - Implement password update functionality on the Profile page.
 
-- `get_user_transactions`
-- `update_user_transaction`
-- `delete_user_transaction`
-- `get_user_recurring_transactions`
-- `update_recurring_transaction`
-- `delete_recurring_transaction`
+### Database & Services (Web - Supabase)
 
-Current authorization model:
+- **RPC inventory (audit, project-wide):** [`supabase-rpc-inventory.md`](supabase-rpc-inventory.md) — full `public` routine list (staging snapshot), every `supabase.rpc` use in `src/` and Edge Functions, direct `.from()` table access, Edge↔table/RPC matrix, orphan candidates, and the `get_cron_job_failures` gap. Also verifies analytics cleanup migration `20260330000000_cleanup_unused_analytics_rpcs` on staging/production.
+- **RPC Function Implementation & Verification:** Ensure all Supabase RPC functions used by the table service layer (e.g., `get_user_transactions`, `update_user_transaction`, `delete_user_transaction`) are fully implemented, tested, and secured with appropriate RLS-aware logic within the SQL functions themselves (e.g., checking `auth.uid()`).
+- **`transactionService.ts` Completeness:** Confirm that all methods in `transactionService.ts` for the web platform correctly map to and handle responses from their respective Supabase RPCs, including error handling.
+- **Data Synchronization/Migration:** Define a strategy for potential data sync or migration between Desktop (SQLite) and Web (Supabase) if needed in the future.
+- **Naming Convention Alignment:** Alignment to `snake_case` for the `Transaction` TypeScript type and the Supabase database schema has been completed, enhancing consistency.
 
-- The public signatures remain unchanged for frontend compatibility.
-- The functions execute as `SECURITY INVOKER`.
-- Existing RLS policies are authoritative.
-- `anon` cannot execute them.
-- `authenticated` and `service_role` retain execute permission.
-- A forged `p_user_id` cannot grant access to another user's rows because the caller remains subject to RLS.
+### Admin Dashboard (Web Only)
 
-See [`../features/transactions/transaction-rpc-security.md`](../features/transactions/transaction-rpc-security.md).
+- **Admin Access Control:**
+  - Created `admin_emails` table with RLS for email-based whitelist access control.
+  - Admin email: `<admin-email@example.com>` configured as initial admin.
+  - All admin operations secured at database level - cannot be bypassed from frontend.
+- **Admin RPC Functions:**
+  - `get_admin_dashboard_stats()` - Returns comprehensive statistics (users, finance, downloads, engagement, system).
+  - `get_admin_monthly_trends(p_start_date, p_end_date)` - Returns monthly trends with date range filtering, excludes empty months.
+  - `get_earliest_system_date()` - Returns the earliest date in the system (transactions or users) for dynamic "all time" ranges.
+  - All functions include admin email whitelist verification using `SECURITY DEFINER`.
+- **Frontend Implementation:**
+  - Route: `/admin` (web-only, protected by `beforeLoad` check).
+  - Page: `src/pages/AdminDashboardPage.tsx` with tabs-based navigation.
+  - Components: `src/components/admin/` directory containing:
+    - `AdminUsersSection.tsx` - User statistics with StatCard / AdminMetricCard components.
+    - `AdminFinanceSection.tsx` - Financial overview with currency breakdown.
+    - `AdminEngagementSection.tsx` - Engagement and system metrics.
+    - `AdminDownloadsSection.tsx` - Desktop download email requests + GitHub release stats.
+    - `AdminTrendsChart.tsx` - Interactive charts with date range controls.
+    - `AdminPostHogSection.tsx` - PostHog product analytics aggregates.
+  - Service: `src/lib/data-layer/admin.service.ts` for admin RPCs; `posthogAdmin.service.ts` for PostHog Edge Function.
+  - Translations: `public/locales/{he,en}/admin.json` namespace.
+- **Features:**
+  - Tab-based interface: Users, Finance, Trends, Downloads, Monitoring, PostHog.
+  - Date range filtering (month, year, all time, custom) using `useDateControls` hook.
+  - Interactive charts using shadcn/ui Charts (recharts).
+  - Full i18n support with RTL/LTR.
+  - Responsive design for all screen sizes.
+  - Dark mode support.
+  - Platform detection - redirects desktop users to home.
+- **Security:**
+  - Double protection: `beforeLoad` route guard + component-level platform check.
+  - All data fetched via RPC functions with admin whitelist verification.
+  - No sensitive information exposed in frontend code.
+  - Cannot be accessed via F12 console or network inspection.
 
-## Analytics RPCs
+### PostHog Admin Analytics
 
-User-scoped analytics RPCs that derive ownership from `auth.uid()` may remain `SECURITY DEFINER` only when there is a specific need to bypass another restriction and the body cannot select another user's data.
-Prefer `SECURITY INVOKER` when ordinary RLS is sufficient.
+- **Edge Function:** `get-posthog-analytics`
+  - Admin-only (JWT + `admin_emails`); calls PostHog Query API with `POSTHOG_PERSONAL_API_KEY` (server-side only)
+  - Secrets: `POSTHOG_PERSONAL_API_KEY`, `POSTHOG_PROJECT_ID`, `POSTHOG_HOST`
+  - Frontend: `AdminPostHogSection.tsx` + `posthogAdmin.service.ts`
+  - **CI:** Must remain in `ALL_FUNCTIONS` / `SHARED_DEPENDENT` in `deploy-changed-functions.sh` (missing allowlist → prod 404 that browsers report as CORS)
+  - Details: [`features/analytics/posthog-integration-guide.md`](../features/analytics/posthog-integration-guide.md)
 
-RPCs accepting `p_user_id` require individual review even when currently `SECURITY INVOKER`.
+### System Monitoring (Admin Dashboard - NEW)
 
-## Mixed-context RPCs requiring separate designs
+- **Edge Function:** `get-monitoring-data`
+  - Fetches system health data from multiple sources
+  - Admin-only access (verified via admin_emails table)
+  - Graceful degradation when external APIs not configured
+- **PostgreSQL RPC Functions (Migration: `20260112_add_monitoring_functions.sql`):**
+  - `is_admin_user()` - Helper function to check if current user is admin (checks admin_emails table)
+  - `get_active_connections()` - Current database connections (requires admin privileges)
+  - `get_slow_queries()` - Queries with mean_exec_time > 1000ms (requires admin privileges)
+  - `get_table_stats()` - Row counts, seq scans, index scans, dead tuples (requires admin privileges)
+  - `get_tables_without_rls()` - Security check for RLS policies (requires admin privileges)
+  - `get_missing_indexes()` - Performance check for high seq scan ratio (requires admin privileges)
+  - **Security:** All functions include admin access verification at SQL level. Functions skip admin check when called by `service_role` (Edge Function context), but require admin privileges for direct calls by authenticated users.
+- **External Integrations:**
+  - AWS SES - Email send statistics via GetSendStatistics API (requires AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+  - Cloudflare - Worker analytics via GraphQL API (requires CLOUDFLARE_API_TOKEN)
+  - Vercel - Deployment status via REST API (requires VERCEL_API_TOKEN)
+- **Frontend:**
+  - `AdminMonitoringSection.tsx` - Main React component orchestrating monitoring displays
+  - `monitoring/AdminMonitoringComponents.tsx` - Shared UI components (StatusIcon, ServiceHealthCard, AnomalyList, AdvisoryList)
+  - `monitoring/monitoringUtils.ts` - Shared utility functions (getTooltipDescriptions)
+  - `monitoring/stats/` - Individual statistics components (DatabaseStats, AuthStats, EdgeFunctionStats, EmailStatsDisplay, CloudflareStatsDisplay, VercelStatsDisplay)
+  - `monitoring.service.ts` - Service layer functions for fetching and processing monitoring data
+  - `monitoring.types.ts` - TypeScript types and interfaces for monitoring data
+- **Anomaly Detection:**
+  - Auth failures threshold
+  - Edge function error rate
+  - Database slow queries
+  - Dead tuples (VACUUM needed)
+  - Email bounce rate
+  - Email complaints
 
-Do not apply the transaction-RPC migration pattern blindly to these functions:
+### Security Hardening (January 2026)
 
-### `calculate_user_tithe_balance`
+> **See:** [security-hardening-jan-2026.md](./security-hardening-jan-2026.md) for complete details.
 
-It is used by both:
+**Summary of Security Improvements:**
+- ✅ **CORS**: Restricted Edge Functions from `*` to whitelist of allowed origins
+- ✅ **RLS Policies**: Added policies for `download_rate_limits` and `download_requests` tables
+- ✅ **SQL Functions**: Fixed mutable `search_path` vulnerability in 27 functions
+- ✅ **RLS Optimization**: Wrapped `auth.uid()` in `(select ...)` for 10 policies (performance)
+- ✅ **Database**: Updated to PostgreSQL 17.6.1.063
+- ✅ **Auth**: Enabled leaked password protection (HaveIBeenPwned)
 
-- the authenticated frontend for the current user; and
-- reminder processing through a service-role Edge Function for multiple users.
+### Database migrations workflow and Branching
 
-The intended future design is separate user-scoped and service-only entry points.
+- **Workflow:** All schema/RPC/cron changes go into versioned migration files in `supabase/migrations/`. Apply to staging manually (MCP or Dashboard), verify, then open PR; GitHub Action `deploy-supabase-migrations.yml` runs `db push` on production when PR is opened (so you can test Vercel preview before merge). See `llm-instructions/backend/supabase-database-migrations-workflow.md`.
+- **Recurring-transactions cron (pg_cron):** The daily job `daily-recurring-executor` calls the Edge Function `process-recurring-transactions`. Its base URL is read from Supabase Vault (secret name `functions_base_url`) so the same migration works on production and on Supabase branches. Migration: `20260225100000_cron_use_vault_for_functions_url.sql`. After applying that migration, create the Vault secret once per environment; see `supabase/MIGRATION_VAULT_SETUP.md` and `supabase/CRON_VAULT_APPLY_STEP_BY_STEP.md`.
+- **Branches and CI/CD:** Staging: apply migrations manually (MCP or Dashboard). Production: migrations via `deploy-supabase-migrations.yml` on **PR open** (and push to main); functions via `deploy-supabase-functions.yml` on push to `main`. See `llm-instructions/backend/supabase-database-migrations-workflow.md`.
 
-### `update_user_preferences`
+### General
 
-It is used by the token-based unsubscribe flow, where no authenticated user session is required.
-The intended future design is to perform the mutation inside the token-verifying Edge Function rather than expose a browser-callable arbitrary-user RPC.
-
-## Edge Functions
-
-Notable flows:
-
-- `send-new-user-email`: daily new-user summary using service role and AWS SES.
-- `send-reminder-emails`: reminder-user lookup and tithe calculations using service role.
-- `process-email-request`: Cloudflare Email Routing to Supabase Edge Function to AWS SES.
-- `verify-unsubscribe-token`: validates signed unsubscribe tokens.
-- `get-monitoring-data`: admin monitoring aggregator.
-- `get-posthog-analytics`: admin-only PostHog analytics proxy.
-
-Functions that are intentionally called without a Supabase JWT must be explicitly configured in `supabase/config.toml` and must authenticate by another documented mechanism.
-
-## Admin access
-
-Admin features are web-only.
-Admin authorization must be enforced server-side through the `admin_emails` whitelist or a service-only Edge Function.
-Frontend route guards are usability controls, not the security boundary.
-
-Admin and internal monitoring RPCs must have exact grants reviewed separately from user RPCs.
-
-## Database migrations workflow
-
-- All schema, RPC, grant and cron changes belong in versioned files under `supabase/migrations/`.
-- Migrations must contain exact function signatures when altering overloaded functions.
-- Security migrations should include preconditions and postconditions.
-- Production migrations are deployed by the GitHub workflow associated with the PR.
-- Staging must not be treated as a trustworthy baseline while its migration chain is in a failed state.
-
-See [`supabase-database-migrations-workflow.md`](./supabase-database-migrations-workflow.md).
-
-## Cron and Vault
-
-Cron jobs calling Edge Functions must not embed reusable service-role JWTs directly in migration SQL or visible command text.
-Store environment-specific URLs and credentials in Supabase Vault where supported, and rotate any key that was previously exposed.
-
-## Required checks for future database work
-
-For every Supabase change:
-
-1. Inventory every overload by exact signature.
-2. Identify all frontend and Edge Function callers.
-3. Decide whether authorization comes from RLS, an internal SQL check, a signed token or `service_role`.
-4. Revoke default `PUBLIC` execution unless it is intentionally needed.
-5. Grant only the minimum roles.
-6. Test same-user and cross-user access.
-7. Check whether `llm-instructions` documentation must be updated.
-
-## Remaining security work
-
-- Redesign `update_user_preferences` and unsubscribe mutation ownership.
-- Split user and service access for `calculate_user_tithe_balance`.
-- Audit remaining `SECURITY DEFINER` functions and grants.
-- Move remaining cron secrets to Vault and rotate exposed credentials.
-- Repair the staging migration chain.
-- Add CI checks for unsafe function grants and ownership patterns.
-
-**Last updated:** July 2026
+- **Testing:** Thoroughly test all CRUD operations and RLS rules on the web platform.
+- **Error Handling:** Enhance error handling and user feedback for database operations.
