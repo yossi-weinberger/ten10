@@ -140,6 +140,10 @@ BEGIN
   FOREACH required_signature IN ARRAY required_signatures LOOP
     function_oid := to_regprocedure(required_signature);
 
+    IF function_oid IS NULL THEN
+      RAISE EXCEPTION 'Required function is missing: %', required_signature;
+    END IF;
+
     IF EXISTS (
       SELECT 1 FROM pg_proc WHERE oid = function_oid AND prosecdef
     ) THEN
