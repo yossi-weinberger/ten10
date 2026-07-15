@@ -98,7 +98,7 @@ interface UnsubscribeTokenPayload {
 2. **אימות Token**: בדיקת חתימה HMAC ותפוגה
 3. **קביעת סוג**: מעדיפים את `type` החתום ב־JWT; `body.type` רק כ־fallback
 4. **עדכון העדפות**: RPC `update_user_preferences` דרך service_role
-5. **תגובה**: JSON `{ success, type, payload }` — הדף מציג הצלחה/שגיאה ב־UI
+5. **תגובה**: JSON `{ success, type }` — בלי `userId`/`email` בדפדפן; הדף מציג הצלחה/שגיאה ב־UI
 
 #### 3.3 דף התגובה (Frontend)
 
