@@ -1,424 +1,215 @@
 # Transactions Table Implementation Status and Reference
 
-## Overview
+This document is the current implementation reference for the Ten10 transactions table.
+For the detailed authorization model, read [`transaction-rpc-security.md`](./transaction-rpc-security.md).
 
-This document provides a historical reference and status overview of the Transactions Table implementation in the Ten10 application. It includes implementation checklists, RPC function definitions, database indexes, and RLS policies.
+## Current status
 
-**Note**: For detailed technical implementation, see `transactions-table-technical-overview.md`.
+Implemented:
 
-**General Status**: All core features (display, filtering, sorting, editing, deletion, load more, export) are implemented. Real-time updates were removed. Additional UI/UX improvements and advanced optimizations remain.
+- Display of regular and recurring transactions.
+- Server-side filtering and sorting.
+- Pagination with load more.
+- Editing and deletion with optimistic UI updates and rollback on failure.
+- CSV, Excel and PDF export.
+- CSV and Excel import through a review wizard.
+- Month separators in the table and PDF export when sorting by date.
+- Shared service and store interfaces for web and desktop.
 
-## Implementation Status
+Removed:
 
-### Core Features ✅
+- Realtime subscriptions. The table relies on optimistic updates and explicit refreshes.
 
-- ✅ **Display**: Transaction table with all columns
-- ✅ **Filtering**: Date range, transaction types, payment methods (multi-select, exact match), free text search, recurring status, recurring statuses, recurring frequencies
-- ✅ **Sorting**: Dynamic sorting by columns
-- ✅ **Editing**: Modal-based editing with form validation
-- ✅ **Deletion**: Confirmation dialog with optimistic updates
-- ✅ **Load More**: Pagination with "Load More" button
-- ✅ **Export**: CSV, Excel, and PDF export
-- ✅ **Import**: CSV/Excel import via review wizard — see `transaction-import-guide.md` (with month separators in PDF when sorting by date). On **desktop**, save uses `src/lib/utils/save-export-file.ts` (`dialog.save` + `writeFile`); cancelling the dialog sets `EXPORT_DESKTOP_SAVE_CANCELLED` (no success toast).
-- ❌ **Real-time Updates**: Removed (rely on optimistic updates and manual refresh)
+## Main files
 
-### Architecture Status
-
-**File Structure**: Implemented. `TransactionsTable.tsx` is in `src/pages/`.
-
-```
-src/
-├── pages/
-│   └── TransactionsTable.tsx                  # Main page component
-├── components/
-│   ├── TransactionsTable/
-│   │   ├── TransactionsTableDisplay.tsx       # Core table component
-│   │   ├── TransactionsFilters.tsx            # Filter component
-│   │   ├── TransactionRow.tsx                # Single row component
-│   │   ├── TransactionEditModal.tsx          # Edit modal
-│   │   ├── RecurringTransactionEditModal.tsx  # Recurring transaction edit modal
-│   │   ├── TransactionsTableHeader.tsx        # Table header with sorting
-│   │   ├── TransactionsTableFooter.tsx        # Table footer with load more
-│   │   └── ExportButton.tsx                   # Export button
-├── lib/
-│   └── tableTransactions/
-│       ├── tableTransactionService.ts          # API services (note: singular "transaction")
-│       ├── tableTransactions.store.ts          # Zustand store
-│       └── tableTransactions.types.ts         # Table TypeScript types
-├── types/
-│   └── transaction.ts                         # Main Transaction type
-└── utils/
-    ├── export-csv.ts                          # CSV export helper
-    ├── export-excel.ts                        # Excel export helper
-    ├── export-pdf.ts                          # PDF export helper (transactions table)
-    └── save-export-file.ts                    # Desktop save dialog + web download; cancel sentinel
+```text
+src/pages/TransactionsTable.tsx
+src/components/TransactionsTable/
+src/lib/tableTransactions/tableTransactionService.ts
+src/lib/tableTransactions/recurringTable.service.ts
+src/lib/tableTransactions/tableTransactions.store.ts
+src/lib/tableTransactions/tableTransactions.types.ts
+src/types/transaction.ts
 ```
 
-## TypeScript Types
+Platform-specific backends:
 
-**Status**: Implemented. Relevant files: `src/types/transaction.ts`, `src/lib/tableTransactions/tableTransactions.types.ts`.
+- Web: Supabase RPCs and PostgreSQL RLS.
+- Desktop: Tauri commands and local SQLite.
 
-### Transaction Type
+## Data model
 
-```typescript
-interface Transaction {
-  id: string;
-  user_id: string | null;
-  date: string; // ISO 8601 date string (e.g., "2023-10-27")
-  amount: number;
-  currency: "ILS" | "USD" | "EUR";
-  description: string | null;
-  type:
-    | "income"
-    | "donation"
-    | "expense"
-    | "exempt-income"
-    | "recognized-expense"
-    | "non_tithe_donation";
-  category: string | null;
-  is_chomesh: boolean | null;
-  recipient: string | null;
-  payment_method: string | null;
-  created_at: string;
-  updated_at: string;
-  // Recurring transaction fields
-  source_recurring_id?: string | null; // UUID linking to recurring_transactions table
-  execution_count?: number | null; // e.g., 3 (for the 3rd payment)
-  total_occurrences?: number | null; // e.g., 12 (for a total of 12 payments)
-  recurring_status?: "active" | "paused" | "completed" | "cancelled" | null;
-  recurring_frequency?: string | null;
-  occurrence_number?: number | null;
-}
+The common `Transaction` model uses database-style `snake_case` fields, including:
 
-interface TransactionForTable extends Transaction {
-  recurring_info: RecurringInfo | null;
-}
-```
+- `id`
+- `user_id`
+- `date`
+- `amount`
+- `currency`
+- `description`
+- `type`
+- `category`
+- `is_chomesh`
+- `recipient`
+- `payment_method`
+- `source_recurring_id`
+- recurring execution metadata
 
-### Filter and Sort Types
+The table-specific model may include derived recurring information used only for display and filtering.
 
-```typescript
-type IsRecurringFilter = "all" | "recurring" | "non-recurring";
+## Filtering and sorting
 
-interface TableTransactionFilters {
-  dateRange: {
-    from: string | null; // ISO date string, not Date object
-    to: string | null; // ISO date string, not Date object
-  };
-  types: string[]; // Array of TransactionType strings
-  search: string; // For category, description, recipient, or payment method
-  paymentMethods: string[]; // Multi-select payment methods (exact match)
-  isRecurring: IsRecurringFilter; // Filter by recurring status
-  recurringStatuses: string[]; // Filter by specific recurring statuses
-  recurringFrequencies: string[]; // Filter by recurring frequencies
-}
+The web RPC supports:
 
-interface TableSortConfig {
-  field: keyof Transaction | string; // Allow string for flexibility
-  direction: "asc" | "desc";
-}
+- Date range.
+- Transaction types.
+- Text search.
+- Sort field and direction.
+- Recurring versus non-recurring.
+- Recurring statuses.
+- Recurring frequencies.
+- Payment methods.
 
-interface TablePaginationState {
-  currentPage: number;
-  itemsPerPage: number; // Default: 20
-  totalCount: number;
-  hasMore: boolean;
-}
-```
+The desktop command accepts an equivalent filter payload.
 
-## Zustand Store
+All table filtering and sorting are performed by the backend for both platforms.
 
-**Status**: Implemented in `src/lib/tableTransactions/tableTransactions.store.ts`.
+## Web RPCs
 
-### Store Structure
+The active transaction-table RPC family includes:
 
-```typescript
-interface TableTransactionsState {
-  // State
-  transactions: Transaction[];
-  filters: TableTransactionFilters;
-  sorting: TableSortConfig;
-  pagination: TablePaginationState;
-  loading: boolean; // General loading for fetching transactions
-  error: string | null; // General error for fetching transactions
-  exportLoading: boolean; // Specific loading for export action
-  exportError: string | null; // Specific error for export action
-  totalCount: number; // Total count of transactions matching filters
+- `get_user_transactions` overloads.
+- `update_user_transaction`.
+- `delete_user_transaction`.
+- `get_user_recurring_transactions` overloads.
+- `update_recurring_transaction`.
+- `delete_recurring_transaction`.
 
-  // Actions
-  fetchTransactions: (reset?: boolean, platform?: Platform) => Promise<void>;
-  setLoadMorePagination: () => void;
-  setFilters: (filters: Partial<TableTransactionFilters>) => void;
-  setSorting: (newSortField: keyof Transaction | string) => void;
-  updateTransactionState: (id: string, updates: Partial<Transaction>) => void;
-  deleteTransactionState: (id: string) => void;
-  updateTransaction: (
-    id: string,
-    updates: Partial<Transaction>,
-    platform: Platform
-  ) => Promise<void>;
-  deleteTransaction: (id: string, platform: Platform) => Promise<void>;
-  exportTransactions: (
-    format: "csv" | "excel" | "pdf",
-    platform: Platform
-  ) => Promise<void>;
+The frontend currently passes `p_user_id` for compatibility with the existing signatures.
+That value is not trusted as authorization.
 
-  // Reset functions
-  resetFiltersState: () => void;
-  resetStore: () => void;
-}
-```
+### Current security mode
 
-### Optimistic Updates
+Migration `20260715090000_harden_user_transaction_rpcs.sql` changed the active overloads to `SECURITY INVOKER`.
 
-**Status**: Implemented for editing and deletion.
+This means:
 
-- Immediate state update during edit/delete
-- Backup of original data (within async operation)
-- Rollback on failure (within async operation)
+- Calls execute with the database role of the caller.
+- Authenticated browser calls remain subject to table RLS.
+- A forged `p_user_id` cannot expose or mutate another user's rows.
+- `anon` does not have execute permission.
+- `authenticated` and `service_role` have explicit execute permission.
+- RPC names and parameter signatures remain unchanged.
 
-## Supabase RPC Functions
+Do not document these functions as `SECURITY DEFINER` unless a later migration deliberately changes the model.
 
-**Status**: All functions listed below are created and in use.
+## RLS ownership rules
 
-### Get Transactions with Filtering and Sorting
+`public.transactions` has user-ownership policies for:
+
+- `SELECT`
+- `INSERT`
+- `UPDATE`
+- `DELETE`
+
+`public.recurring_transactions` has an ownership policy covering user operations.
+
+The policy condition is based on the authenticated identity, conceptually:
 
 ```sql
-CREATE OR REPLACE FUNCTION get_user_transactions(
-  p_user_id UUID,
-  p_offset INTEGER DEFAULT 0,
-  p_limit INTEGER DEFAULT 20,
-  p_date_from TEXT DEFAULT NULL,
-  p_date_to TEXT DEFAULT NULL,
-  p_types TEXT[] DEFAULT NULL,
-  p_search TEXT DEFAULT NULL,
-  p_sort_field TEXT DEFAULT 'date',
-  p_sort_direction TEXT DEFAULT 'desc',
-  p_is_recurring BOOLEAN DEFAULT NULL, -- Filter by recurring status (true/false/null for all)
-  p_recurring_statuses TEXT[] DEFAULT NULL, -- Filter by specific recurring statuses
-  p_recurring_frequencies TEXT[] DEFAULT NULL, -- Filter by recurring frequencies
-  p_payment_methods TEXT[] DEFAULT NULL -- Filter by payment methods
-)
-RETURNS TABLE (
-  transactions JSONB,
-  total_count INTEGER
-);
+user_id = (SELECT auth.uid())
 ```
 
-### Delete Transaction
+The browser's `p_user_id` argument does not replace this check.
 
-```sql
-CREATE OR REPLACE FUNCTION delete_user_transaction(
-  p_transaction_id UUID,
-  p_user_id UUID
-)
-RETURNS VOID AS $$ ... $$ LANGUAGE plpgsql SECURITY DEFINER;
-```
+## Transaction fetch
 
-### Update Transaction
+`tableTransactionService.ts` calls `get_user_transactions` with pagination, filters and sorting.
+The RPC returns the matching rows and total count required by the store.
 
-```sql
-CREATE OR REPLACE FUNCTION update_user_transaction(
-  p_transaction_id UUID,
-  p_user_id UUID,
-  p_updates JSONB
-)
-RETURNS SETOF transactions AS $$ ... $$ LANGUAGE plpgsql SECURITY DEFINER;
-```
+Export reuses the same fetch path with a high limit rather than a separate export RPC.
 
-### Export Transactions
+## Transaction update and delete
 
-**Note**: Export does not use a separate RPC function. Instead, the service layer uses `getDataForExport()` which calls `fetchTransactions()` with a high limit (10000) to retrieve all matching transactions for export.
+Web operations call:
 
-## Service Layer
+- `update_user_transaction`
+- `delete_user_transaction`
 
-**Status**: Implemented in `src/lib/tableTransactions/tableTransactionService.ts` (note: singular "transaction" in filename).
+Desktop operations call their Tauri equivalents.
 
-```typescript
-class TableTransactionsService {
-  static async fetchTransactions(params: {
-    offset: number;
-    limit: number;
-    filters: TableTransactionFilters;
-    sorting: TableSortConfig;
-    platform: Platform;
-  }): Promise<{ data: Transaction[]; totalCount: number }>;
+The store applies optimistic updates and restores the previous state when the backend operation fails.
 
-  static async updateTransaction(
-    id: string,
-    updates: Partial<Transaction>,
-    platform: Platform
-  ): Promise<void>; // Returns void, delegates to dataService
+## Recurring transactions
 
-  static async deleteTransaction(id: string, platform: Platform): Promise<void>; // Returns void, delegates to dataService
+`recurringTable.service.ts` handles:
 
-  static async getDataForExport(
-    filters: TableTransactionFilters,
-    platform: Platform
-  ): Promise<{ transactions: Transaction[]; totalCount: number }>;
-  // Uses fetchTransactions with high limit (10000) instead of separate RPC
-}
-```
+- filtered recurring-transaction reads;
+- updates, including billing-day rescheduling;
+- deletion;
+- active-first display ordering.
 
-**Implementation Notes**:
+The recurring RPCs use the same `SECURITY INVOKER` and RLS authorization model as regular transaction RPCs.
 
-- `updateTransaction` and `deleteTransaction` delegate to `dataService` (data-layer) which handles platform-specific logic
-- `getDataForExport` calls `fetchTransactions` with `limit: 10000` to retrieve all matching transactions
-- Web platform uses Supabase RPC `get_user_transactions` with all filter parameters
-- Desktop platform uses Tauri command `get_filtered_transactions_handler`
+## Export
 
-## Database Indexes
+Export behavior:
 
-**Status**: Unknown if implemented. Should be checked against the database.
+1. Fetch all matching rows using the existing table query path.
+2. Generate CSV, Excel or PDF on the client.
+3. Web downloads through the browser.
+4. Desktop uses the native save dialog through `saveOrDownloadExportedFile`.
+5. Cancelling the desktop dialog must not show a success notification.
 
-```sql
--- Indexes for better performance
-CREATE INDEX idx_transactions_user_date ON transactions (user_id, date DESC);
-CREATE INDEX idx_transactions_user_type ON transactions (user_id, type);
-CREATE INDEX idx_transactions_user_created ON transactions (user_id, created_at DESC);
-CREATE INDEX idx_transactions_description_gin ON transactions USING gin(to_tsvector('english', description));
-CREATE INDEX idx_transactions_category_gin ON transactions USING gin(to_tsvector('english', category));
-```
+## Import
 
-## RLS Policies
+CSV and Excel imports use a review workflow before writing transactions.
+Imports must still comply with the same ownership rules as ordinary inserts.
 
-**Status**: Basic policies are assumed to exist. Should verify that the policies detailed here are implemented.
+## UI behavior
 
-```sql
--- Ensure appropriate policies exist
-CREATE POLICY "Users can view own transactions"
-ON transactions FOR SELECT
-USING (auth.uid() = user_id);
+- Separate edit experiences exist for regular and recurring transactions.
+- Responsive Dialog/Drawer switching uses the variant-locking pattern.
+- Month separators are shown when consecutive rows cross a calendar month while sorted by date.
+- PDF month separators mirror the table grouping.
 
-CREATE POLICY "Users can update own transactions"
-ON transactions FOR UPDATE
-USING (auth.uid() = user_id);
+## Important implementation principles
 
-CREATE POLICY "Users can delete own transactions"
-ON transactions FOR DELETE
-USING (auth.uid() = user_id);
+- Keep web and desktop behavior aligned behind the shared service interface.
+- Keep filtering server-side.
+- Preserve optimistic-update rollback behavior.
+- Never authorize by trusting a browser-supplied user ID.
+- Do not convert user-facing RPCs back to `SECURITY DEFINER` merely to bypass an RLS error.
+- When changing an overloaded RPC, update every exact signature intentionally.
+- Review `llm-instructions` whenever RPC signatures, grants, RLS or data flow change.
 
--- INSERT policy (not mentioned in original but important)
-CREATE POLICY "Users can insert their own transactions"
-ON transactions FOR INSERT
-WITH CHECK (auth.uid() = user_id);
-```
+## Validation required for RPC changes
 
-## Implementation Checklist
+Before merging a change to transaction RPCs:
 
-### Completed ✅
+1. Verify exact production signatures.
+2. Identify frontend and Edge Function callers.
+3. Test normal read, update and delete operations.
+4. Test a cross-user UUID or `p_user_id` attempt.
+5. Verify `anon` cannot execute user RPCs.
+6. Verify authenticated users retain normal access.
+7. Verify service-role workflows remain compatible where applicable.
+8. Update this document and `transaction-rpc-security.md` when the model changes.
 
-1. ✅ Type definitions and interfaces
-2. ✅ RPC functions in Supabase (`get_user_transactions` with recurring filters, `delete_user_transaction`, `update_user_transaction`)
-3. ✅ Service layer (`tableTransactionService.ts` - note singular)
-4. ✅ Zustand store (with `totalCount` state)
-5. ✅ Basic table component
-6. ✅ Filters and search (including recurring transaction filters)
-7. ✅ Load More implementation
-8. ✅ Edit and delete (Undo removed)
-9. ✅ Export implementation (via `getDataForExport` using high-limit fetch)
-10. ❌ Real-time updates (removed)
+## Known follow-up work
 
-### Partially Completed
+- Add automated integration tests for cross-user RPC attempts.
+- Add CI checks for unsafe `SECURITY DEFINER` grants.
+- Continue auditing related calculation and preference RPCs in separate PRs.
+- Improve request cancellation, retries and error boundaries.
+- Continue accessibility and mobile testing.
 
-11. ⚠️ Performance optimizations (partially implemented - Skeleton, pagination info, React.memo for rows, Toast notifications)
+## Related documentation
 
-### Recently Added (v0.3.8)
+- [`transaction-rpc-security.md`](./transaction-rpc-security.md)
+- [`transactions-table-technical-overview.md`](./transactions-table-technical-overview.md)
+- [`transaction-data-model-and-calculations.md`](./transaction-data-model-and-calculations.md)
+- [`../../backend/supabase-rpc-security-model.md`](../../backend/supabase-rpc-security-model.md)
+- [`../../backend/data-flow-server-calculations-and-cleanup.md`](../../backend/data-flow-server-calculations-and-cleanup.md)
 
-12. ✅ **Month Separators**: Visual month separators in table when sorting by date (subtle thicker border line with month label)
-13. ✅ **PDF Month Separators**: Month separators in PDF export matching table UI when sorting by date
-14. ✅ **Code Quality**: Extracted `TOTAL_TABLE_COLUMNS` constant to avoid magic numbers and ensure consistency
-15. ✅ **UI Improvements**: Increased spacing between "Load More" button and transaction count text (`gap-6`)
-
-### Not Yet Implemented
-
-- Error boundaries in components
-- Retry mechanism for failed operations
-- Fallback UI for critical errors
-- useMemo for heavy calculations
-- useCallback for functions
-- Request cancellation
-- Caching of results
-- Virtual scrolling (optional for future)
-- Unit tests
-- Integration tests
-- Mobile responsive improvements
-- Accessibility improvements (screen readers)
-
-## Important Principles
-
-- **Server-side filtering**: All filters and sorting on server - ✅ Implemented
-- **Optimistic updates**: Immediate UI update - ✅ Implemented
-- **Error resilience**: Full error handling - ⚠️ Basic handling exists, can be extended
-- **Progressive enhancement**: Basic functionality always works - ✅ Mostly correct
-- **Accessibility**: Full screen reader support - ⚠️ Requires testing and specific improvements
-- **Mobile responsive**: Good mobile experience - ⚠️ Requires testing and specific improvements
-
-## Code Style
-
-- TypeScript strict mode - ✅ Maintained
-- ESLint + Prettier - ✅ Assumed configured in project
-- Conventional commits - ✅ Maintained
-- Component composition over inheritance - ✅ Maintained
-- Pure functions in services - ✅ Maintained as much as possible
-
-## Related Documentation
-
-- **Technical Overview**: `transactions-table-technical-overview.md` - Detailed technical implementation
-- **Data Model**: `transaction-data-model-and-calculations.md` - Transaction data model and calculations
-- **Data Flow**: `../../backend/data-flow-server-calculations-and-cleanup.md` - Server-side calculations and data flow
-
----
-
-**Last Updated**: January 2026  
-**Author**: Ten10 Development Team
-
-## Recent Updates (v0.3.8)
-
-### Month Separators Feature
-
-- **Table UI**: Added visual month separators when sorting by date. Separators appear as a subtle thicker border line (`border-t-2`) with a small month label positioned on the side (left for LTR, right for RTL). The label has a white background for better visibility.
-- **PDF Export**: Month separators are now included in PDF exports when sorting by date, matching the table UI for consistency. The separator consists of a thicker horizontal line (1.5px) with a small month label on the side.
-- **Implementation**: Uses `transactionsWithSeparators` memoized array that contains either transaction items or separator items. Separators only appear when there's a month change between consecutive transactions (not before the first transaction).
-- **Code Quality**: Extracted `TOTAL_TABLE_COLUMNS` constant (`sortableColumns.length + 3`) to replace magic numbers throughout the component, ensuring consistency in skeleton loading, empty states, and month separators.
-
-### UI Improvements
-
-- **Footer Spacing**: Increased spacing between "Load More" button and transaction count text from `space-x-4` (16px) to `gap-6` (24px) for better visual separation.
-
----
-
-## Key Implementation Details
-
-### Recurring Transactions Support
-
-The table fully supports filtering and displaying recurring transactions:
-
-- **Filtering**: Users can filter by `isRecurring` (all/recurring/non-recurring), specific recurring statuses, and frequencies
-- **Display**: Transactions show recurring information via `TransactionForTable` interface with `recurring_info`
-- **Editing**: Separate modals for regular transactions (`TransactionEditModal`) and recurring transactions (`RecurringTransactionEditModal`)
-
-### Platform Support
-
-- **Web**: Uses Supabase RPC `get_user_transactions` with all filter parameters
-- **Desktop**: Uses Tauri command `get_filtered_transactions_handler` with equivalent filter payload
-- Both platforms share the same service interface and store logic
-
-### Mobile UI Patterns (January 2026)
-
-The edit modals (`TransactionEditModal`, `RecurringTransactionEditModal`) implement the **Variant Locking Pattern** to prevent DOM errors on mobile:
-
-1. **Dialog/Drawer Switch**: Desktop uses `Dialog`, mobile uses `Drawer`
-2. **Variant Locking**: The modal type is locked when opened, preventing mid-session switches that cause Portal cleanup errors
-3. **requestAnimationFrame**: Used for dropdown menu actions and post-save refreshes to avoid race conditions with Portal cleanup
-
-See `ui-component-guidelines.md` section 11 for detailed implementation.
-
-### Export Implementation
-
-Export functionality does not use a dedicated RPC function. Instead:
-
-1. `exportTransactions` in the store calls `getDataForExport` from the service
-2. `getDataForExport` calls `fetchTransactions` with `limit: 10000` to get all matching records
-3. Export formats (CSV, Excel, PDF) are generated client-side using the fetched data
-4. On **desktop**, writing the file goes through `saveOrDownloadExportedFile` (`src/lib/utils/save-export-file.ts`): native save dialog, not silent download to Downloads
+**Last updated:** July 2026
