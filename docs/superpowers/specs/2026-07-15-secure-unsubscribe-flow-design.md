@@ -18,7 +18,7 @@ Browser never chooses `user_id`. One Edge Function verifies the JWT and applies 
 1. Extend `verify-unsubscribe-token` to:
    - verify HMAC JWT (`JWT_SECRET`)
    - apply preference update via Supabase client with `SUPABASE_SERVICE_ROLE_KEY`
-   - accept optional `type` override from body only when it matches token intent rules (prefer token `type`; allow URL `type` if token type matches or as today)
+   - resolve unsubscribe `type` from the **signed token payload first**; use body/URL `type` only as fallback
 2. Change `UnsubscribePage` to a single `functions.invoke("verify-unsubscribe-token", { token, type })`.
 3. Do **not** revoke RPC grants in this PR.
 
@@ -28,12 +28,16 @@ Why phase 1 has no migration: migrations auto-push to production on PR open, whi
 
 Migration: `REVOKE` `update_user_preferences` from `PUBLIC` / `anon` / `authenticated`; `GRANT` to `service_role` only.
 
-## Token / type semantics (preserve current behavior)
+Optional cleanup after Phase 2: stop returning `userId` / `email` in the Edge Function JSON (kept in Phase 1 for compatibility with any transitional clients).
 
-- Email links include `token` and `type` (`reminder` | `all`).
-- Page currently uses URL `type` for which flags to clear.
-- Token payload also carries `type`.
-- Implementation: use body `type` if `reminder` | `all`, else fall back to payload `type`, else `all`. Update:
+## Token / type semantics
+
+- Email links include `token` and `type` (`reminder` | `all`); each link uses a token minted for that same type.
+- Implementation priority for apply logic:
+  1. signed payload `type` if `reminder` | `all`
+  2. else body `type` if `reminder` | `all`
+  3. else `all`
+- Updates:
   - `reminder` → `reminder_enabled = false`
   - `all` → `mailing_list_consent = false`
 

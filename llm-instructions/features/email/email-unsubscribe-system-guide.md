@@ -79,31 +79,32 @@ interface UnsubscribeTokenPayload {
 #### 2.2 יצירת קישורים מאובטחים
 
 - קישור נפרד לכל סוג ביטול הרשמה
-- בסיס URL: `${SUPABASE_URL}/functions/v1/unsubscribe`
-- פרמטרים: `token` (JWT מוצפן) + `type` (reminder/all)
+- בסיס URL באפליקציה: `https://ten10-app.com/unsubscribe` (דף React, לא Edge Function)
+- פרמטרים: `token` (JWT חתום) + `type` (reminder/all)
+- הדף קורא ל־`verify-unsubscribe-token` עם `functions.invoke`
 
 ### 3. Edge Function לטיפול בביטול הרשמה
 
 #### 3.1 מיקום ותכונות
 
-- **מיקום**: `supabase/functions/unsubscribe/index.ts`
-- **הגדרה**: `--no-verify-jwt` (גישה ציבורית)
-- **תמיכה**: GET (דף רגיל) + POST (One-Click unsubscribe)
+- **מיקום**: `supabase/functions/verify-unsubscribe-token/index.ts`
+- **תפקיד**: אימות JWT (`JWT_SECRET`) + עדכון העדפות עם `SUPABASE_SERVICE_ROLE_KEY`
+- **קריאה**: POST מ־`UnsubscribePage` (גוף: `{ token, type? }`)
+- **הערה**: אין פונקציית `unsubscribe` נפרדת בריפו; ה־UI הוא React, לא HTML שמוחזר מה־Edge Function
 
 #### 3.2 זרימת העבודה
 
-1. **קבלת בקשה**: GET/POST עם JWT token
-2. **אימות Token**: בדיקת תקינות וחתימה
-3. **בדיקת תפוגה**: וידוא שהטוקן לא פג תוקף
-4. **עדכון העדפות**: קריאה ל-RPC function
-5. **תגובה**: דף הצלחה/שגיאה בעברית
+1. **קבלת בקשה**: POST עם JWT token (ואופציונלית `type`)
+2. **אימות Token**: בדיקת חתימה HMAC ותפוגה
+3. **קביעת סוג**: מעדיפים את `type` החתום ב־JWT; `body.type` רק כ־fallback
+4. **עדכון העדפות**: RPC `update_user_preferences` דרך service_role
+5. **תגובה**: JSON `{ success, type, payload }` — הדף מציג הצלחה/שגיאה ב־UI
 
-#### 3.3 דפי תגובה
+#### 3.3 דף התגובה (Frontend)
 
-- **דף הצלחה**: עיצוב gradient כחול, אייקון ✅
-- **דף שגיאה**: עיצוב gradient אדום, אייקון ❌
-- **RTL מלא**: תמיכה בעברית עם `dir="rtl"`
-- **responsive**: מותאם למובייל וטאבלט
+- `src/pages/UnsubscribePage.tsx`
+- מצבי loading / success / error עם i18n (`auth` namespace)
+- RTL דרך כיוון האפליקציה הכללי
 
 ### 4. מסד הנתונים
 
@@ -224,21 +225,20 @@ SUPABASE_SERVICE_ROLE_KEY="..."
 # פריסה אוטומטית של כל הפונקציות
 npm run deploy-supabase
 
-# פריסה ידנית של פונקציה ספציפית
-npx supabase@latest functions deploy unsubscribe --no-verify-jwt --project-ref PROJECT_ID
+# פריסה ידנית של פונקציית האימות/עדכון
+npx supabase@latest functions deploy verify-unsubscribe-token --project-ref PROJECT_ID
 ```
 
 ### 2. הגדרות פונקציות
 
 - **send-reminder-emails**: עם JWT verification (רגיל)
-- **unsubscribe**: ללא JWT verification (`--no-verify-jwt`)
+- **verify-unsubscribe-token**: נקראת מ־`functions.invoke` (anon/session key ב־gateway); האימות העסקי הוא JWT של unsubscribe (`JWT_SECRET`)
 - **process-email-request**: ללא JWT verification (Cloudflare uses shared secret, not Supabase JWT)
   - Recommended: enforce via `supabase/config.toml`:
     ```toml
     [functions.process-email-request]
     verify_jwt = false
     ```
-
 ## בדיקות ומוניטורינג
 
 ### 1. בדיקת פונקציונליות
@@ -250,9 +250,11 @@ curl -X POST "URL/functions/v1/send-reminder-emails" \
   -d '{"test": true}'
 
 # בדיקת unsubscribe (עם טוקן אמיתי)
-curl "URL/functions/v1/unsubscribe?token=JWT_TOKEN&type=all"
+curl -X POST "URL/functions/v1/verify-unsubscribe-token" \
+  -H "Authorization: Bearer ANON_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"token":"JWT_TOKEN","type":"all"}'
 ```
-
 ### 2. מוניטורינג
 
 ```sql
@@ -278,7 +280,8 @@ ORDER BY updated_at DESC;
 ```bash
 # בדיקת לוגי פונקציות
 supabase functions logs send-reminder-emails
-supabase functions logs unsubscribe
+supabase functions logs verify-unsubscribe-token
+supabase functions logs send-reminder-emails
 ```
 
 ## בעיות ידועות ופתרונות
@@ -372,22 +375,19 @@ MessageHeaders: [
 
 ## קבצים שנוצרו/עודכנו
 
-### קבצים חדשים:
+### קבצים מרכזיים (מצב נוכחי):
 
-- `supabase/functions/unsubscribe/index.ts`
+- `src/pages/UnsubscribePage.tsx`
+- `supabase/functions/verify-unsubscribe-token/index.ts`
 - `supabase/functions/send-reminder-emails/jwt-utils.ts`
 - `supabase/functions/send-reminder-emails/simple-email-service.ts`
-
-### קבצים שעודכנו:
-
 - `supabase/functions/send-reminder-emails/email-templates.ts`
-- `supabase/functions/send-reminder-emails/email-service.ts`
-- `supabase/scripts/deploy-functions.js`
+- `docs/superpowers/specs/2026-07-15-secure-unsubscribe-flow-design.md`
 
-### פונקציות DB שנוצרו:
+### פונקציות DB:
 
-- `update_user_preferences(p_user_id, p_reminder_enabled, p_mailing_list_consent)`
-- `get_reminder_users_with_emails(reminder_day)` (עודכן)
+- `update_user_preferences(p_user_id, p_reminder_enabled, p_mailing_list_consent)` — נקראת מ־Edge Function (service_role); Phase 2 יינעל ל־service_role בלבד
+- `get_reminder_users_with_emails(reminder_day)`
 
 ## הוראות תחזוקה
 
@@ -400,18 +400,15 @@ MessageHeaders: [
 ### 2. שינוי הגדרות אבטחה
 
 1. עדכן JWT_SECRET ב-Supabase secrets
-2. עדכן `deploy-functions.js`
-3. פרוס מחדש
+2. פרוס מחדש את `verify-unsubscribe-token` ו־`send-reminder-emails`
 
 ### 3. הוספת שפות חדשות
 
-1. הוסף זיהוי שפה ב-`profiles` table
-2. עדכן `email-templates.ts` לתמיכה רב-לשונית
-3. עדכן `unsubscribe/index.ts` לדפים מותאמי שפה
+1. הוסף מפתחות ב־`public/locales/*/auth.json` תחת `unsubscribe`
+2. עדכן `email-templates.ts` לתמיכה רב-לשונית במיילים
 
 ---
 
-**סטטוס**: ✅ **מערכת פעילה ומוכנה לשימוש**
-**תאריך עדכון אחרון**: ינואר 2025
-**גרסה**: 1.0 - יציבה
-**נבדק על**: שליחת מיילים + unsubscribe מלא
+**סטטוס**: ✅ **מערכת פעילה** — Phase 1 (verify+apply ב־EF); Phase 2 (lockdown grants) ממתין אחרי smoke  
+**תאריך עדכון אחרון**: יולי 2026  
+**נבדק על**: שליחת מיילים + זרימת unsubscribe דרך `verify-unsubscribe-token`
