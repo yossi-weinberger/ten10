@@ -172,6 +172,16 @@ mailing_list_consent = false →
 "הוסרת מרשימת התפוצה שלנו"
 ```
 
+### 2.1 סנכרון טוגל ההגדרות אחרי unsubscribe
+
+Unsubscribe מעדכן רק עמודות ייעודיות ב־`profiles` (`reminder_enabled` / `mailing_list_consent`), לא את `client_preferences.notifications`.
+
+כדי שהטוגל בהגדרות ישקף את מצב המייל האמיתי:
+
+- **תצוגה**: `NotificationSettingsCard` מציג ON רק כש־`reminderEnabled && mailingListConsent`
+- **סנכרון**: `PreferencesSyncService` גוזר `notifications` מאותו AND אחרי טעינת העמודות מה־DB
+- **כתיבה**: הפעלת הטוגל כותבת גם `reminder_enabled` וגם `mailing_list_consent` (רק השדות שהשתנו)
+
 ### 3. One-Click Unsubscribe (עתידי)
 
 ```
@@ -193,6 +203,8 @@ mailing_list_consent = false →
 
 - `src/pages/UnsubscribePage.tsx` - React page; one `functions.invoke("verify-unsubscribe-token")`
 - `supabase/functions/verify-unsubscribe-token/index.ts` - verifies JWT and applies preference update with `SUPABASE_SERVICE_ROLE_KEY`
+- `src/components/settings/NotificationSettingsCard.tsx` - toggle ON iff `reminderEnabled && mailingListConsent`
+- `src/lib/services/preferences-sync.service.ts` - derives local `notifications` from those columns on sync
 
 ### 3. Database Functions
 

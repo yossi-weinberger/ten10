@@ -64,6 +64,26 @@ export const PreferencesSyncService = {
         dedicatedColumnUpdates.mailingListConsent = profile.mailing_list_consent;
       }
 
+      // Keep the settings toggle in sync with the real email gate: both
+      // reminder_enabled and mailing_list_consent must be true (unsubscribe
+      // can clear either column without touching client_preferences.notifications).
+      if (
+        profile?.reminder_enabled != null ||
+        profile?.mailing_list_consent != null
+      ) {
+        const effectiveReminder =
+          dedicatedColumnUpdates.reminderEnabled ??
+          localSettings.reminderEnabled ??
+          false;
+        const effectiveConsent =
+          dedicatedColumnUpdates.mailingListConsent ??
+          localSettings.mailingListConsent ??
+          false;
+        dedicatedColumnUpdates.notifications = Boolean(
+          effectiveReminder && effectiveConsent,
+        );
+      }
+
       if (!dbPreferences) {
         // DB is empty (null). Local wins. Push client_preferences to DB.
         // Note: dedicated profile columns (reminder_day_of_month, reminder_enabled,

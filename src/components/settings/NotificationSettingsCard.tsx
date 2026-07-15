@@ -66,6 +66,12 @@ export function NotificationSettingsCard({
     setAutostartStatus(enabled);
   };
 
+  // Emails only go out when both columns are true; unsubscribe may clear either.
+  const emailNotificationsOn = Boolean(
+    notificationSettings.reminderEnabled &&
+      notificationSettings.mailingListConsent,
+  );
+
   return (
     <Card className={disabled ? "opacity-50 pointer-events-none" : ""}>
       <CardHeader>
@@ -108,7 +114,7 @@ export function NotificationSettingsCard({
             </div>
           </div>
           <Switch
-            checked={notificationSettings.notifications}
+            checked={emailNotificationsOn}
             onCheckedChange={(checked) =>
               updateSettings({
                 notifications: checked,
@@ -130,7 +136,7 @@ export function NotificationSettingsCard({
               <button
                 key={day}
                 onClick={() => handleDayChange(day)}
-                disabled={disabled || !notificationSettings.notifications}
+                disabled={disabled || !emailNotificationsOn}
                 className={`
                   px-2 py-2 text-xs sm:text-sm font-medium rounded-md border transition-colors
                   ${
@@ -139,7 +145,7 @@ export function NotificationSettingsCard({
                       : "bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground"
                   }
                   ${
-                    disabled || !notificationSettings.notifications
+                    disabled || !emailNotificationsOn
                       ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer"
                   }
