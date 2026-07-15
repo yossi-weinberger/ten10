@@ -19,9 +19,9 @@
 └─────────────────┘
 ```
 
-**Phase 1 (current):** browser calls only the Edge Function; RPC remains callable until Phase 2 locks grants to `service_role`.
+**Phase 1:** browser calls only the Edge Function; apply runs with `service_role`.
 
-**Phase 2 (follow-up):** revoke `EXECUTE` on `update_user_preferences` from `anon` / `authenticated`.
+**Phase 2 (current):** `EXECUTE` on `update_user_preferences` is granted to `service_role` only (`anon` / `authenticated` revoked).
 
 ## רכיבי המערכת
 
@@ -121,7 +121,7 @@ mailing_list_consent BOOLEAN DEFAULT false  -- ביטול הרשמה מוחלט
 - **`update_user_preferences`**: עדכון העדפות משתמש
 
   - פרמטרים: `p_user_id`, `p_reminder_enabled`, `p_mailing_list_consent`
-  - אבטחה: SECURITY DEFINER; after Phase 1 only the Edge Function should call it
+  - אבטחה: SECURITY DEFINER; EXECUTE for `service_role` only (Phase 2)
   - לוגיקה: עדכון רק השדות שסופקו (COALESCE)
 
 - **`get_reminder_users_with_emails`**: שליפת משתמשים לתזכורות
@@ -209,7 +209,7 @@ Unsubscribe מעדכן רק עמודות ייעודיות ב־`profiles` (`remin
 
 ### 3. Database Functions
 
-- `update_user_preferences()` - called by the Edge Function (service_role); must not be called from the browser after Phase 1
+- `update_user_preferences()` - called by the Edge Function (service_role only; anon/authenticated cannot EXECUTE)
 - `get_reminder_users_with_emails()` - שליפת משתמשים
 
 ### 4. Deployment
@@ -399,7 +399,7 @@ MessageHeaders: [
 
 ### פונקציות DB:
 
-- `update_user_preferences(p_user_id, p_reminder_enabled, p_mailing_list_consent)` — נקראת מ־Edge Function (service_role); Phase 2 יינעל ל־service_role בלבד
+- `update_user_preferences(p_user_id, p_reminder_enabled, p_mailing_list_consent)` — Edge Function only (`service_role`); grants locked in Phase 2
 - `get_reminder_users_with_emails(reminder_day)`
 
 ## הוראות תחזוקה
@@ -422,6 +422,6 @@ MessageHeaders: [
 
 ---
 
-**סטטוס**: ✅ **מערכת פעילה** — Phase 1 (verify+apply ב־EF); Phase 2 (lockdown grants) ממתין אחרי smoke  
+**סטטוס**: ✅ **מערכת פעילה** — Phase 1 (verify+apply ב־EF) + Phase 2 (grants ל־service_role בלבד)  
 **תאריך עדכון אחרון**: יולי 2026  
 **נבדק על**: שליחת מיילים + זרימת unsubscribe דרך `verify-unsubscribe-token`
