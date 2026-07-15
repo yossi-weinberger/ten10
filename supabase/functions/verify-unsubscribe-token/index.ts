@@ -125,12 +125,6 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         type: unsubscribeType,
-        payload: {
-          userId: payload.userId,
-          email: payload.email,
-          type: unsubscribeType,
-          exp: payload.exp,
-        },
       }),
       {
         headers: {

@@ -1,7 +1,7 @@
 # Secure Unsubscribe Flow Design
 
 Date: 2026-07-15  
-Status: Phase 1 live; Phase 2 grants lockdown implemented
+Status: Complete (Phase 1 + Phase 2 + response PII cleanup)
 
 ## Problem
 
@@ -27,6 +27,10 @@ Browser never chooses `user_id`. One Edge Function verifies the JWT and applies 
 Migration: `REVOKE` `update_user_preferences` from `PUBLIC` / `anon` / `authenticated`; `GRANT` to `service_role` only.
 
 Optional later cleanup: stop returning `userId` / `email` in the Edge Function JSON (kept for transitional clients).
+
+### Response cleanup — done
+
+Success response is `{ success: true, type }` only — no `userId` / `email` echoed to the browser.
 
 ## Token / type semantics
 
