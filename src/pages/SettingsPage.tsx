@@ -168,6 +168,7 @@ export function SettingsPage() {
         recurringDonations: settings.recurringDonations,
         reminderEnabled: settings.reminderEnabled,
         reminderDayOfMonth: settings.reminderDayOfMonth,
+        mailingListConsent: settings.mailingListConsent,
       }}
       updateSettings={async (newNotificationSettings) => {
         // Update local settings immediately
@@ -179,18 +180,37 @@ export function SettingsPage() {
           });
         }
 
-        // Update Supabase for web users
+        // Update Supabase for web users — only fields present in this change
         if (platform === "web" && user) {
           try {
-            await supabase
-              .from("profiles")
-              .update({
-                reminder_enabled: newNotificationSettings.reminderEnabled,
-                mailing_list_consent: newNotificationSettings.reminderEnabled, // Also update mailing list consent
-                reminder_day_of_month:
-                  newNotificationSettings.reminderDayOfMonth,
-              })
-              .eq("id", user.id);
+            const profileUpdate: {
+              reminder_enabled?: boolean;
+              mailing_list_consent?: boolean;
+              reminder_day_of_month?: 1 | 5 | 10 | 15 | 20 | 25;
+            } = {};
+            if (typeof newNotificationSettings.reminderEnabled === "boolean") {
+              profileUpdate.reminder_enabled =
+                newNotificationSettings.reminderEnabled;
+            }
+            if (
+              typeof newNotificationSettings.mailingListConsent === "boolean"
+            ) {
+              profileUpdate.mailing_list_consent =
+                newNotificationSettings.mailingListConsent;
+            }
+            if (newNotificationSettings.reminderDayOfMonth != null) {
+              profileUpdate.reminder_day_of_month =
+                newNotificationSettings.reminderDayOfMonth;
+            }
+            if (Object.keys(profileUpdate).length > 0) {
+              const { error } = await supabase
+                .from("profiles")
+                .update(profileUpdate)
+                .eq("id", user.id);
+              if (error) {
+                throw error;
+              }
+            }
           } catch (error) {
             logger.error(
               "Failed to update reminder settings in Supabase:",

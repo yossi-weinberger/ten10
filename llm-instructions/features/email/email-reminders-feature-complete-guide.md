@@ -119,41 +119,26 @@ The reminder settings are integrated into the existing settings page:
 **File**: `src/components/settings/NotificationSettingsCard.tsx`
 
 ```typescript
-interface NotificationSettingsCardProps {
-  reminderEnabled: boolean;
-  reminderDayOfMonth: number;
-  onReminderEnabledChange: (enabled: boolean) => void;
-  onReminderDayChange: (day: number) => void;
-}
-
-// Key features:
-// - Toggle switch for enabling/disabling reminders
-// - When enabled/disabled, it syncs both `reminder_enabled` and `mailing_list_consent` in the database (for web users)
-// - Day selector with 4 preset options
-// - Platform-specific messaging (web vs desktop)
-// - RTL/LTR support for Hebrew/English
+// Key behavior:
+// - Web: toggle ON only when reminderEnabled && mailingListConsent
+//   (unsubscribe may clear either column without updating client_preferences.notifications)
+// - Desktop: toggle follows reminderEnabled only (local reminders ignore mailing consent)
+// - Turning the toggle on/off writes both reminder_enabled and mailing_list_consent (web DB)
+// - Day selector uses the same platform-specific ON state
+// - Platform-specific messaging (web email vs desktop notifications)
 ```
+
+**Related files**:
+
+- `src/pages/SettingsPage.tsx` — writes only changed profile columns on toggle/day change
+- `src/lib/services/preferences-sync.service.ts` — on login sync, sets local `notifications` from `reminder_enabled && mailing_list_consent`
 
 ### State Management
 
-The reminder settings are managed through the Zustand store:
+The reminder settings are managed through the Zustand store (`src/lib/store.ts`) as flat fields on `Settings`:
 
-**File**: `src/lib/store.ts`
-
-```typescript
-interface Settings {
-  // ... existing settings
-  reminderSettings: {
-    enabled: boolean;
-    dayOfMonth: 1 | 10 | 15 | 20;
-  };
-}
-
-// Actions:
-// - setReminderEnabled(enabled: boolean)
-// - setReminderDayOfMonth(day: number)
-// - saveSettings() // Persists to localStorage and Supabase
-```
+- `reminderEnabled`, `reminderDayOfMonth`, `mailingListConsent`
+- `notifications` — UI/local mirror; for email, treat the dedicated columns as source of truth after sync
 
 ### Translation Support
 
