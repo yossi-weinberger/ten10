@@ -66,11 +66,13 @@ export function NotificationSettingsCard({
     setAutostartStatus(enabled);
   };
 
-  // Emails only go out when both columns are true; unsubscribe may clear either.
-  const emailNotificationsOn = Boolean(
-    notificationSettings.reminderEnabled &&
-      notificationSettings.mailingListConsent,
-  );
+  // Web email needs both columns; desktop reminders only check reminderEnabled.
+  const emailNotificationsOn = isWeb
+    ? Boolean(
+        notificationSettings.reminderEnabled &&
+          notificationSettings.mailingListConsent,
+      )
+    : Boolean(notificationSettings.reminderEnabled);
 
   return (
     <Card className={disabled ? "opacity-50 pointer-events-none" : ""}>

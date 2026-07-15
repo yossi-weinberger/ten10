@@ -178,7 +178,8 @@ Unsubscribe מעדכן רק עמודות ייעודיות ב־`profiles` (`remin
 
 כדי שהטוגל בהגדרות ישקף את מצב המייל האמיתי:
 
-- **תצוגה**: `NotificationSettingsCard` מציג ON רק כש־`reminderEnabled && mailingListConsent`
+- **תצוגה (web)**: `NotificationSettingsCard` מציג ON רק כש־`reminderEnabled && mailingListConsent`
+- **תצוגה (desktop)**: הטוגל מבוסס על `reminderEnabled` בלבד (תזכורות מקומיות לא תלויות ב־mailing consent)
 - **סנכרון**: `PreferencesSyncService` גוזר `notifications` מאותו AND אחרי טעינת העמודות מה־DB
 - **כתיבה**: הפעלת הטוגל כותבת גם `reminder_enabled` וגם `mailing_list_consent` (רק השדות שהשתנו)
 
@@ -203,7 +204,7 @@ Unsubscribe מעדכן רק עמודות ייעודיות ב־`profiles` (`remin
 
 - `src/pages/UnsubscribePage.tsx` - React page; one `functions.invoke("verify-unsubscribe-token")`
 - `supabase/functions/verify-unsubscribe-token/index.ts` - verifies JWT and applies preference update with `SUPABASE_SERVICE_ROLE_KEY`
-- `src/components/settings/NotificationSettingsCard.tsx` - toggle ON iff `reminderEnabled && mailingListConsent`
+- `src/components/settings/NotificationSettingsCard.tsx` - web: ON iff both columns; desktop: `reminderEnabled` only
 - `src/lib/services/preferences-sync.service.ts` - derives local `notifications` from those columns on sync
 
 ### 3. Database Functions

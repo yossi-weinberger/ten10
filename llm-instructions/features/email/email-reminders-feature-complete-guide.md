@@ -120,10 +120,11 @@ The reminder settings are integrated into the existing settings page:
 
 ```typescript
 // Key behavior:
-// - Toggle ON only when reminderEnabled && mailingListConsent
+// - Web: toggle ON only when reminderEnabled && mailingListConsent
 //   (unsubscribe may clear either column without updating client_preferences.notifications)
-// - Turning the toggle on/off writes both reminder_enabled and mailing_list_consent (web)
-// - Day selector uses the same AND for enabled/disabled state
+// - Desktop: toggle follows reminderEnabled only (local reminders ignore mailing consent)
+// - Turning the toggle on/off writes both reminder_enabled and mailing_list_consent (web DB)
+// - Day selector uses the same platform-specific ON state
 // - Platform-specific messaging (web email vs desktop notifications)
 ```
 

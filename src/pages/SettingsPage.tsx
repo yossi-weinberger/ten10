@@ -203,10 +203,13 @@ export function SettingsPage() {
                 newNotificationSettings.reminderDayOfMonth;
             }
             if (Object.keys(profileUpdate).length > 0) {
-              await supabase
+              const { error } = await supabase
                 .from("profiles")
                 .update(profileUpdate)
                 .eq("id", user.id);
+              if (error) {
+                throw error;
+              }
             }
           } catch (error) {
             logger.error(
