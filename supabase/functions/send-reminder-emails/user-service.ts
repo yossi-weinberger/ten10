@@ -4,13 +4,12 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+import {
+  normalizeReminderUserRows,
+  type ReminderUser,
+} from "./reminder-user.ts";
 
-export interface ReminderUser {
-  id: string;
-  email: string;
-  reminder_enabled: boolean;
-  reminder_day_of_month: number;
-}
+export type { ReminderUser } from "./reminder-user.ts";
 
 export interface UserWithTitheBalance extends ReminderUser {
   titheBalance: number;
@@ -39,7 +38,7 @@ export class UserService {
       throw new Error(`Error fetching users: ${error.message}`);
     }
 
-    return users || [];
+    return normalizeReminderUserRows(users);
   }
 
   async calculateUserTitheBalance(

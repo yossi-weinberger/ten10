@@ -1,317 +1,150 @@
-# משימות עתידיות למערכת המיילים - TODO List
+# Email System Future Improvements
 
-מסמך זה מרכז את כל המשימות והשיפורים המתוכננים למערכת התזכורות והunsubscribe.
+This document tracks genuine follow-up work for reminder emails and the
+unsubscribe system. Completed foundations are retained only where they clarify
+the remaining backlog.
 
-## 🎨 שיפורי עיצוב ו-UX
+## Implemented on Branch (Deployment Pending)
 
-### 1. שיפור עיצוב המיילים
+- [x] Localized reminder subject, HTML, and plain-text bodies in Hebrew and
+  English (locally verified)
+- [x] Language selection from `profiles.client_preferences.language`, with
+  Hebrew fallback (locally verified)
+- [x] Dynamic RTL/LTR rendering (locally verified)
+- [x] Twelve monthly encouragement entries per locale, selected using the
+  current month in `Asia/Jerusalem` (locally verified)
+- [x] Optional first-name greeting from `full_name` (locally verified)
+- [x] Branded header asset with cream fallback (implemented locally)
+- [x] Basic responsive, table-based reminder template (implemented locally)
+- [x] Signed unsubscribe links
+- [x] `List-Unsubscribe` and `List-Unsubscribe-Post` headers via SES Raw MIME
 
-- [ ] **תבנית מייל מתקדמת**
+The legacy reminder pipeline remains operational in production. The localized
+redesign items above are not production claims: the RPC migration, Edge
+Function deployment, static asset deployment, and manual email/client
+verification are still pending.
 
-  - הוספת תמונות/לוגו
-  - שיפור typography ו-spacing
-  - הוספת call-to-action buttons מעוצבים יותר
-  - תמיכה ב-dark mode במיילים
+No separate profile language column is planned. The existing
+`client_preferences.language` value is the source of truth.
 
-- [ ] **עיצוב responsive מתקדם**
+## Localized Reminder Go/No-Go Gate
 
-  - אופטימיזציה למובייל
-  - תמיכה בכל ספקי המייל (Gmail, Outlook, Apple Mail)
-  - בדיקות cross-client compatibility
+- Product approver: **pending**
+- Rabbinic approver: **pending**
+- Approval date: **pending**
+- Production rollout is **forbidden until both approvers approve all 24
+  localized encouragement items**.
 
-- [ ] **שיפור כפתורי unsubscribe**
-  - עיצוב מתקדם יותר
-  - הוספת אייקונים
-  - שיפור contrast ו-accessibility
+The required safe order is: deploy the static header asset, apply the recipient
+RPC migration, verify its return shape and privileges, deploy the Edge
+Function, perform controlled sends, then consider production only after both
+editorial approvals. Migration privilege verification and Gmail, Outlook, and
+Apple Mail checks remain **pending**, so readiness remains conditional.
 
-### 2. שיפור דפי Unsubscribe
+## Design and User Experience
 
-- [ ] **עיצוב מתקדם**
+### Email Client Compatibility
 
-  - אנימציות CSS
-  - מעברים חלקים
-  - עיצוב מותאם למותג Ten10
+- [ ] Test reminder rendering in Gmail, Outlook, Apple Mail, and major mobile
+  clients
+- [ ] Verify accessibility, contrast, image blocking, and plain-text fallback
+- [ ] Evaluate dark-mode behavior without compromising unsupported clients
 
-- [ ] **תכונות נוספות**
+### Unsubscribe Pages
 
-  - אפשרות לשנות העדפות במקום ביטול מוחלט
-  - feedback form למשתמשים שמבטלים
-  - הצעות חלופיות (פחות מיילים במקום ביטול)
+- [ ] Improve brand alignment and responsive layout
+- [ ] Offer preference changes or reduced frequency before full unsubscribe
+- [ ] Add an optional cancellation feedback form
+- [ ] Improve success and error messages
 
-- [ ] **שיפור UX**
-  - הוספת breadcrumbs
-  - כפתורי חזרה ברורים יותר
-  - הודעות הצלחה מפורטות יותר
+### Unsubscribe Localization
 
-## 🌍 תמיכה רב-לשונית (i18n)
+- [ ] Include language in the unsubscribe token or derive it safely
+- [ ] Localize response pages, errors, and controls in Hebrew and English
+- [ ] Apply RTL/LTR direction automatically
 
-### 1. זיהוי שפת משתמש
+## Analytics and Monitoring
 
-- [ ] **הוספת עמודת שפה לprofiles**
+### Delivery and Engagement
 
-  ```sql
-  ALTER TABLE profiles
-  ADD COLUMN preferred_language VARCHAR(5) DEFAULT 'he';
-  ```
+- [ ] Track delivery, bounce, and complaint rates
+- [ ] Track unsubscribe rates
+- [ ] Evaluate privacy-conscious open and click tracking
+- [ ] Measure return-to-application conversions from reminder emails
+- [ ] Add dashboards and alerts for meaningful changes
 
-- [ ] **עדכון הגדרות משתמש**
-  - הוספת בורר שפה בהגדרות
-  - שמירת העדפת שפה
-  - סנכרון עם i18n הקיים
+### Operational Monitoring
 
-### 2. מיילים מותאמי שפה
+- [ ] Alert on Edge Function failures and sustained SES delivery issues
+- [ ] Monitor reminder run logs and database performance
+- [ ] Define retention for email and unsubscribe audit data
 
-- [ ] **תבניות מייל דו-לשוניות**
+## Security and Compliance
 
-  - קבצי תרגום למיילים (`email-he.json`, `email-en.json`)
-  - לוגיקה לבחירת שפה ב-`email-templates.ts`
-  - תמיכה ב-RTL/LTR דינמי
+- [ ] Add rate limiting for unsubscribe requests where needed
+- [ ] Add audit logging without retaining unnecessary personal data
+- [ ] Detect suspicious automated unsubscribe activity
+- [ ] Review GDPR and CAN-SPAM documentation and retention requirements
 
-- [ ] **נושאי מייל מתורגמים**
-  - subjects בעברית ואנגלית
-  - תאריכים מעוצבים לפי locale
-  - מטבעות מעוצבים לפי locale
+## Email Content and Scheduling
 
-### 3. דפי Unsubscribe מותאמי שפה
+### Content Experiments
 
-- [ ] **זיהוי שפה מהטוקן**
+- [ ] Add A/B testing only after analytics can measure outcomes
+- [ ] Evaluate activity-based recommendations and relevant educational content
+- [ ] Keep personalized content deterministic and reviewable
 
-  - הוספת `language` ל-JWT payload
-  - דפי תגובה בשפה המתאימה
-  - כיוון RTL/LTR אוטומטי
+### Scheduling
 
-- [ ] **תרגום דפי תגובה**
-  - תבניות HTML בעברית ואנגלית
-  - הודעות שגיאה מתורגמות
-  - כפתורים מתורגמים
+- [ ] Support user-specific send times and time zones
+- [ ] Evaluate weekly, biweekly, and snooze options
+- [ ] Preserve explicit opt-in and opt-out behavior for every frequency
 
-## 🔧 תכונות טכניות מתקדמות
+## Broader Email Localization
 
-### 1. List-Unsubscribe Headers
+- [ ] Localize other transactional emails, including contact and new-user
+  summary emails
+- [ ] Reuse the reminder copy approach where appropriate without coupling Edge
+  Functions to frontend translation hooks
+- [ ] Keep sender-specific templates and environment variables isolated
 
-- [ ] **שילוב מלא עם SES**
+## Testing
 
-  - מעבר ל-Raw MIME אם נדרש
-  - הוספת headers מתקדמים
-  - תמיכה ב-One-Click native
+### Automated
 
-- [ ] **תמיכה בספקי מייל**
-  - בדיקת תאימות Gmail
-  - בדיקת תאימות Outlook
-  - בדיקת תאימות Apple Mail
+- [ ] Expand unit coverage for JWT creation and verification
+- [ ] Expand template tests for escaping, locale direction, and fallbacks
+- [ ] Add integration coverage for recipient RPC, MIME generation, and
+  unsubscribe behavior
 
-### 2. Analytics ומעקב
+### Manual
 
-- [ ] **מעקב אחר unsubscribe rates**
+- [ ] Test the full reminder-to-unsubscribe flow in both locales
+- [ ] Test invalid, expired, and replayed unsubscribe tokens
+- [ ] Verify email client rendering and accessibility
 
-  - טבלת analytics במסד הנתונים
-  - דאשבורד למעקב
-  - התראות על rates גבוהים
+## Longer-Term Ideas
 
-- [ ] **מעקב אחר engagement**
-  - click-through rates
-  - open rates (אם אפשרי)
-  - conversion rates לאפליקציה
+- [ ] SMS reminders with explicit consent management
+- [ ] PWA or native push notifications
+- [ ] AI-assisted content only with editorial controls and measurable value
+- [ ] Educational email series based on reviewed halachic sources
 
-### 3. שיפורי אבטחה
+## Priorities
 
-- [ ] **Rate limiting מתקדם**
+### High
 
-  - הגבלת unsubscribe requests per IP
-  - הגנה מפני bot attacks
-  - captcha אופציונלי
+1. Unsubscribe page improvements and localization
+2. Analytics and operational alerting
+3. Cross-client rendering and accessibility testing
 
-- [ ] **Audit logging**
-  - רישום כל פעולות unsubscribe
-  - מעקב אחר IP addresses
-  - זיהוי דפוסים חשודים
+### Medium
 
-## 📧 שיפורי מערכת המיילים
+4. Broader transactional-email localization
+5. Security audit logging and rate limiting
+6. A/B testing after measurement infrastructure exists
 
-### 1. תבניות מתקדמות
+### Low
 
-- [ ] **A/B Testing**
-
-  - תבניות מרובות
-  - בדיקת effectiveness
-  - אופטימיזציה אוטומטית
-
-- [ ] **תוכן דינמי**
-  - המלצות אישיות
-  - תזכורות מותאמות לפעילות
-  - tips הלכתיים רלוונטיים
-
-### 2. תזמון מתקדם
-
-- [ ] **אזורי זמן אישיים**
-
-  - שליחה בזמן מקומי
-  - התחשבות בהעדפות משתמש
-  - אופטימיזציה לopen rates
-
-- [ ] **תדירות גמישה**
-  - אפשרויות נוספות (שבועי, דו-שבועי)
-  - תזכורות מותאמות אישית
-  - snooze functionality
-
-## 🔄 שילובים עם המערכת הקיימת
-
-### 1. שילוב עם i18n
-
-- [ ] **שימוש בnamespaces קיימים**
-  - הוספת `email.json` namespace
-  - שימוש ב-`useTranslation` ב-Edge Functions
-  - סנכרון עם הגדרות שפה של המשתמש
-
-### 2. שילוב עם theme system
-
-- [ ] **מיילים מותאמי theme**
-  - light/dark mode במיילים
-  - צבעים מותאמים למותג
-  - consistency עם האפליקציה
-
-### 3. שילוב עם notification system
-
-- [ ] **התראות desktop על unsubscribe**
-  - הודעה כשמישהו מבטל הרשמה
-  - סנכרון עם העדפות desktop
-  - unified notification center
-
-## 🧪 בדיקות ואימות
-
-### 1. בדיקות אוטומטיות
-
-- [ ] **Unit tests לפונקציות**
-
-  - בדיקת JWT creation/verification
-  - בדיקת email template generation
-  - בדיקת database operations
-
-- [ ] **Integration tests**
-  - בדיקת זרימה מלאה end-to-end
-  - בדיקת cross-platform compatibility
-  - בדיקת error handling
-
-### 2. בדיקות ידניות
-
-- [ ] **Email client testing**
-
-  - בדיקה בכל ספקי המייל הראשיים
-  - בדיקת mobile email clients
-  - בדיקת accessibility
-
-- [ ] **User experience testing**
-  - בדיקת זרימת unsubscribe מלאה
-  - בדיקת הבנת המשתמש
-  - בדיקת error scenarios
-
-## 📊 מדדים והצלחה
-
-### 1. KPIs למעקב
-
-- [ ] **Email metrics**
-
-  - Delivery rate
-  - Open rate
-  - Click-through rate
-  - Unsubscribe rate
-
-- [ ] **User engagement**
-  - Return to app rate מתוך מיילים
-  - Feature usage אחרי תזכורות
-  - User satisfaction scores
-
-### 2. Monitoring ו-alerting
-
-- [ ] **Real-time monitoring**
-
-  - פונקציות Edge Functions health
-  - SES delivery status
-  - Database performance
-
-- [ ] **Automated alerts**
-  - כשלים בשליחת מיילים
-  - spike ב-unsubscribe rates
-  - שגיאות במערכת
-
-## 🚀 תכונות עתידיות
-
-### 1. Personalization מתקדמת
-
-- [ ] **AI-powered content**
-  - תוכן מותאם לפעילות המשתמש
-  - המלצות אישיות
-  - אופטימיזציה אוטומטית
-
-### 2. Multi-channel notifications
-
-- [ ] **SMS reminders**
-
-  - אינטגרציה עם Twilio/similar
-  - תמיכה בשפות מרובות
-  - opt-in/opt-out management
-
-- [ ] **Push notifications**
-  - תמיכה ב-PWA
-  - native mobile apps (עתידי)
-  - cross-device synchronization
-
-## 💡 רעיונות נוספים
-
-### 1. Community features
-
-- [ ] **Sharing insights**
-  - שיתוף הישגים
-  - community challenges
-  - social features
-
-### 2. Educational content
-
-- [ ] **הלכה במיילים**
-  - tip of the month
-  - Q&A מותאמים
-  - educational series
-
----
-
-## 📋 סיכום משימות מיידיות לסשן הבא
-
-### 🎯 **עדיפות גבוהה**:
-
-1. **שיפור עיצוב מיילים** - תבנית יותר מקצועית
-2. **הוספת תמיכה רב-לשונית** - זיהוי שפת משתמש ומיילים מותאמים
-3. **שילוב List-Unsubscribe headers** - כפתור native בספקי מייל
-4. **שיפור דפי unsubscribe** - עיצוב מתקדם יותר
-
-### 🎨 **עדיפות בינונית**:
-
-5. **הוספת אנליטיקס** - מעקב אחר unsubscribe rates
-6. **A/B testing** - אופטימיזציה של תבניות מייל
-7. **שיפור אבטחה** - rate limiting ו-audit logs
-
-### 🔮 **עדיפות נמוכה**:
-
-8. **תכונות מתקדמות** - AI personalization
-9. **Multi-channel** - SMS ו-push notifications
-10. **Community features** - שיתוף ו-social
-
----
-
-**שכחת משהו?** 🤔
-
-לפי הניתוח שלי, כיסיתי את העיקר:
-
-- ✅ תיעוד מלא של המערכת הקיימת
-- ✅ משימות לשיפור עיצוב
-- ✅ תכנון תמיכה רב-לשונית
-- ✅ רעיונות לתכונות מתקדמות
-- ✅ תכנון אבטחה ומוניטורינג
-
-**אבל אולי חסר:**
-
-- **Email templates variations** - תבניות שונות לאירועים שונים?
-- **Webhook integration** - התראות לadmin על unsubscribes?
-- **Data retention policies** - כמה זמן לשמור unsubscribe logs?
-- **Compliance documentation** - תיעוד לGDPR/CAN-SPAM?
-
-**מה דעתך? יש משהו ספציפי שחשוב לך להוסיף?** 🎯
+7. Flexible scheduling and additional channels
+8. Advanced personalization and educational series

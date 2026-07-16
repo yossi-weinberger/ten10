@@ -51,6 +51,36 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - Transaction data fetched via `dataService` is loaded into the Zustand store (`useDonationStore`), triggered by authentication events and data freshness checks managed in `AuthContext`.
   - **Optimized Data Fetching:** Implemented conditional data loading from the database to avoid fetching on every page refresh. Data is fetched upon user login (via a `forceDbFetchOnLoad` flag in `sessionStorage`), or if existing data in Zustand is stale (e.g., older than 1 day, based on `lastDbFetchTimestamp` in Zustand). `AuthContext` manages this, including Zustand store rehydration (`_hasHydrated`). `LoginPage.tsx` and `SignupPage.tsx` set the `forceDbFetchOnLoad` flag.
 
+### Email Notifications - Reminder Emails (Monthly)
+
+- **Production:** The legacy reminder pipeline is operational; daily pg_cron
+  invokes the currently deployed function at `0 18 * * *`.
+- **Localized redesign status:** Implemented and locally verified on this
+  branch, but not yet deployed.
+- **Safe pending handoff order:** Deploy the static blur asset, apply the
+  expanded recipient RPC migration, verify its return shape and privileges,
+  deploy `send-reminder-emails`, then complete controlled sends and
+  Gmail/Outlook/Apple Mail verification.
+- **Editorial Go/No-Go:** Product approver **pending**; rabbinic approver
+  **pending**; approval date **pending**. Production rollout is **forbidden
+  until both approve all 24 localized encouragement items**.
+- **Readiness:** Migration shape/privilege verification and Gmail, Outlook, and
+  Apple Mail checks remain **pending**. Local automated checks alone do not
+  establish staging acceptance or production readiness.
+- **Branch implementation:** `email-copy.ts` provides Hebrew/English copy;
+  `email-templates.ts` adds localized subject, HTML, and plain text,
+  first-name greeting, monthly encouragement, and dynamic RTL/LTR;
+  `simple-email-service.ts` handles delivery.
+- **Branch localization source:** The expanded RPC reads
+  `profiles.client_preferences.language`, defaults to Hebrew, returns
+  `full_name`, and rotates 12 encouragement items by the current month in
+  `Asia/Jerusalem`.
+- **Existing scheduling:** The production cron and reminder-day/Shabbat
+  scheduling behavior are operational; only localization/redesign deployment
+  is pending.
+- **Security:** Test mode (`{"test": true}`) is service-role only; cron uses
+  Vault `service_role_key`.
+
 ### Email Notifications - New Users Summary (Daily)
 
 - **Edge Function:** `send-new-user-email` sends a daily summary (table + text) of new users only (filtered by `auth.users.created_at`).

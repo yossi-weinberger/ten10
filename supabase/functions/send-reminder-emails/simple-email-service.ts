@@ -10,8 +10,13 @@
 import {
   generateReminderEmailHTML,
   generateReminderEmailSubject,
+  generateReminderEmailText,
   EmailTemplateData,
 } from "./email-templates.ts";
+import {
+  getIsraelMonth,
+  ReminderLanguage,
+} from "./email-copy.ts";
 import { generateUnsubscribeUrls } from "./jwt-utils.ts";
 
 export interface EmailResult {
@@ -70,8 +75,11 @@ export class SimpleEmailService {
     userEmail: string,
     userId: string,
     titheBalance: number,
-    maaserBalance?: number,
-    chomeshBalance?: number,
+    maaserBalance: number | undefined,
+    chomeshBalance: number | undefined,
+    language: ReminderLanguage,
+    fullName: string | null,
+    currency?: string | null,
   ): Promise<EmailResult> {
     try {
       console.log(`[EMAIL] Starting to send reminder email to ${userEmail}`);
@@ -93,16 +101,15 @@ export class SimpleEmailService {
         titheBalance,
         maaserBalance,
         chomeshBalance,
-        isPositive: titheBalance > 0,
-        isNegative: titheBalance < 0,
+        language,
+        fullName,
+        currency,
+        israelMonth: getIsraelMonth(),
         unsubscribeUrls,
       };
       const subject = generateReminderEmailSubject(templateData);
       const htmlBody = generateReminderEmailHTML(templateData);
-      const textBody =
-        `Monthly reminder\n\n` +
-        `Balance: ${titheBalance}\n\n` +
-        `Unsubscribe (one-click): ${unsubscribeUrls.allUrl}\n`;
+      const textBody = generateReminderEmailText(templateData);
 
       // 2) Build Raw MIME with List-Unsubscribe headers
       const mimeBytes = await this.buildRawMime({
@@ -192,6 +199,9 @@ export class SimpleEmailService {
       titheBalance: number;
       maaserBalance?: number;
       chomeshBalance?: number;
+      language: ReminderLanguage;
+      full_name: string | null;
+      default_currency?: string | null;
     }>,
   ): Promise<EmailResult[]> {
     const results: EmailResult[] = [];
@@ -203,6 +213,9 @@ export class SimpleEmailService {
         u.titheBalance,
         u.maaserBalance,
         u.chomeshBalance,
+        u.language,
+        u.full_name,
+        u.default_currency,
       );
       results.push(r);
       await this.sleep(100);
@@ -242,8 +255,12 @@ export class SimpleEmailService {
     const boundary = `=_ten10_${cryptoRandomString(24)}`;
 
     // Each part will be base64-encoded (safe for UTF-8 content)
-    const textBase64 = this.base64Encode(new TextEncoder().encode(textBody));
-    const htmlBase64 = this.base64Encode(new TextEncoder().encode(htmlBody));
+    const textBase64 = this.foldBase64(
+      this.base64Encode(new TextEncoder().encode(textBody)),
+    );
+    const htmlBase64 = this.foldBase64(
+      this.base64Encode(new TextEncoder().encode(htmlBody)),
+    );
 
     // Build headers and body with CRLF per RFC 5322
     const headers: string[] = [
@@ -424,6 +441,10 @@ export class SimpleEmailService {
     }
     // btoa expects Latin1; our input is raw bytes we just constructed
     return btoa(bin);
+  }
+
+  private foldBase64(value: string): string {
+    return value.match(/.{1,76}/g)?.join("\r\n") ?? "";
   }
 
   private sleep(ms: number): Promise<void> {
