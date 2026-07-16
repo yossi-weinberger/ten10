@@ -216,7 +216,8 @@ CREATE TABLE contact_messages (
 - **Process**:
   1. Receives webhook payload with inserted record
   2. Generates signed URLs for attachments (7-day validity)
-  3. Formats HTML email using the shared **Email Design System** (`_shared/email-design.ts`)
+  3. Formats HTML via `send-contact-email/email-template.ts` using the shared
+     **admin email shell** (`_shared/email-layout-admin.ts` + `email-tokens.ts`)
   4. Supports localized templates (Hebrew/RTL for Rabbi, English/LTR for Dev) with explicit styling for correct rendering
   5. Sends email via AWS SES using `SimpleEmailService` class
   6. Includes Reply-To header with user's email

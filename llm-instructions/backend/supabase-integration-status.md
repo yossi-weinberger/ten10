@@ -53,42 +53,47 @@ This document tracks the progress of integrating Supabase into the Ten10 project
 
 ### Email Notifications - Reminder Emails (Monthly)
 
-- **Production:** The legacy reminder pipeline is operational; daily pg_cron
-  invokes the currently deployed function at `0 18 * * *`.
-- **Localized redesign status:** Implemented and locally verified on this
-  branch, but not yet deployed.
-- **Safe pending handoff order:** Deploy the static blur asset, apply the
-  expanded recipient RPC migration, verify its return shape and privileges,
-  deploy `send-reminder-emails`, then complete controlled sends and
-  Gmail/Outlook/Apple Mail verification.
-- **Editorial Go/No-Go:** Product approver **pending**; rabbinic approver
-  **pending**; approval date **pending**. Production rollout is **forbidden
-  until both approve all 24 localized encouragement items**.
-- **Readiness:** Migration shape/privilege verification and Gmail, Outlook, and
-  Apple Mail checks remain **pending**. Local automated checks alone do not
-  establish staging acceptance or production readiness.
-- **Branch implementation:** `email-copy.ts` provides Hebrew/English copy;
-  `email-templates.ts` adds localized subject, HTML, and plain text,
-  first-name greeting, monthly encouragement, and dynamic RTL/LTR;
-  `simple-email-service.ts` handles delivery.
-- **Branch localization source:** The expanded RPC reads
-  `profiles.client_preferences.language`, defaults to Hebrew, returns
-  `full_name`, and rotates 12 encouragement items by the current month in
-  `Asia/Jerusalem`.
-- **Existing scheduling:** The production cron and reminder-day/Shabbat
-  scheduling behavior are operational; only localization/redesign deployment
-  is pending.
+- **Production:** Deployed on `main` (PR #347). Daily pg_cron at `0 18 * * *`
+  invokes `send-reminder-emails` via Vault (`functions_base_url` +
+  `service_role_key`).
+- **Localized redesign:** Live. Hebrew/English copy, RTL/LTR, first-name
+  greeting, 12 monthly encouragements (`Asia/Jerusalem`), dynamic
+  `default_currency`, user email shell + shared tokens.
+- **RPC:** `get_reminder_users_with_emails` returns `language` (from
+  `client_preferences.language`, Hebrew fallback), `full_name`, and
+  `default_currency` (ILS fallback).
+- **Shared design:** User/admin shells in
+  `supabase/functions/_shared/email-layout-*.ts` + `email-tokens.ts`
+  (see reminders guide). Legacy `_shared/email-design.ts` is unused.
+- **Static asset:** `https://ten10-app.com/email/reminder-header-blur.png`
+  (cream gradient fallback when images are blocked).
+- **Still manual / pending:** Controlled client checks (Gmail / Outlook /
+  Apple Mail); Auth Dashboard templates from
+  `supabase/auth-email-templates.md` (not CI-deployed); editorial review of
+  the 24 encouragement strings if product still requires a formal sign-off.
 - **Security:** Test mode (`{"test": true}`) is service-role only; cron uses
   Vault `service_role_key`.
 
 ### Email Notifications - New Users Summary (Daily)
 
-- **Edge Function:** `send-new-user-email` sends a daily summary (table + text) of new users only (filtered by `auth.users.created_at`).
-- **Data Source:** Uses Auth Admin API (`auth.admin.listUsers`) with a default 24h window; fetches matching `profiles` for `full_name`, `avatar_url`, `mailing_list_consent`, `reminder_enabled/day`.
-- **Email Format:** Table includes Avatar/Name/Email/User ID + Date (DD/MM/YYYY) + Time (HH:MM, `Asia/Jerusalem`) + Mailing consent; text body mirrors the same info. If no new users are found, returns 200 with `sent:false` and does not send an email.
-- **Sender/SES:** Uses `SES_FROM_USERS` (recommended) and falls back to `users-update@ten10-app.com` by default (SES verified). This sender is intentionally isolated from the global `SES_FROM` used by reminder emails. Requires `AWS_ACCESS_KEY_ID/SECRET/REGION`.
-- **Security:** Function uses Service Role Key; the cron job must use a Service Role Bearer, not anon.
-- **Cron:** Daily pg_cron at `0 19 * * *` (21:00 Israel) via `net.http_post` to `/functions/v1/send-new-user-email` with Service Role authorization.
+- **Edge Function:** `send-new-user-email` sends an admin daily product summary
+  (new users + download requests + reminder-run metrics) via the **admin**
+  email shell (`Ten10 Operations`).
+- **Data Source:** Auth Admin API (`auth.admin.listUsers`) with a default 24h
+  window; matching `profiles`; download_requests; reminder_run_logs; optional
+  GitHub download snapshot.
+- **Email Format:** Admin chrome (800px, gold accent bar). User table includes
+  Avatar/Name/Email/User ID + Date (DD/MM/YYYY) + Time (HH:MM,
+  `Asia/Jerusalem`) + Mailing consent. Skips send (200 `sent:false`) when the
+  window has neither new profiles nor download requests.
+- **Recipient:** `NEW_USERS_SUMMARY_TO` or default `dev@ten10-app.com`.
+- **Sender/SES:** Uses `SES_FROM_USERS` (recommended) and falls back to
+  `users-update@ten10-app.com` by default (SES verified). Isolated from
+  reminder `SES_FROM`. Requires `AWS_ACCESS_KEY_ID/SECRET/REGION`.
+- **Security:** Function uses Service Role Key; the cron job must use a
+  Service Role Bearer, not anon.
+- **Cron:** Daily pg_cron at `0 19 * * *` (21:00 Israel) via `net.http_post`
+  to `/functions/v1/send-new-user-email` with Service Role authorization.
 
 ### Email Notifications - Desktop Download Requests (Email Routing)
 

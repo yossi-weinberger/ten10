@@ -4,42 +4,35 @@ This document tracks genuine follow-up work for reminder emails and the
 unsubscribe system. Completed foundations are retained only where they clarify
 the remaining backlog.
 
-## Implemented on Branch (Deployment Pending)
+## Deployed on Production (PR #347)
 
 - [x] Localized reminder subject, HTML, and plain-text bodies in Hebrew and
-  English (locally verified)
+  English
 - [x] Language selection from `profiles.client_preferences.language`, with
-  Hebrew fallback (locally verified)
-- [x] Dynamic RTL/LTR rendering (locally verified)
+  Hebrew fallback
+- [x] Dynamic RTL/LTR rendering
 - [x] Twelve monthly encouragement entries per locale, selected using the
-  current month in `Asia/Jerusalem` (locally verified)
-- [x] Optional first-name greeting from `full_name` (locally verified)
-- [x] Branded header asset with cream fallback (implemented locally)
-- [x] Basic responsive, table-based reminder template (implemented locally)
+  current month in `Asia/Jerusalem`
+- [x] Optional first-name greeting from `full_name`
+- [x] Branded header asset with cream fallback
+  (`/email/reminder-header-blur.png`)
+- [x] Shared user/admin email shells + tokens (`email-tokens`,
+  `email-layout-user`, `email-layout-admin`, `email-admin-primitives`)
+- [x] Dynamic tithe balance currency from `profiles.default_currency`
+- [x] Admin restyle for contact, daily summary, and cron alerts
 - [x] Signed unsubscribe links
 - [x] `List-Unsubscribe` and `List-Unsubscribe-Post` headers via SES Raw MIME
-
-The legacy reminder pipeline remains operational in production. The localized
-redesign items above are not production claims: the RPC migration, Edge
-Function deployment, static asset deployment, and manual email/client
-verification are still pending.
 
 No separate profile language column is planned. The existing
 `client_preferences.language` value is the source of truth.
 
-## Localized Reminder Go/No-Go Gate
+## Remaining Manual / Editorial
 
-- Product approver: **pending**
-- Rabbinic approver: **pending**
-- Approval date: **pending**
-- Production rollout is **forbidden until both approvers approve all 24
-  localized encouragement items**.
-
-The required safe order is: deploy the static header asset, apply the recipient
-RPC migration, verify its return shape and privileges, deploy the Edge
-Function, perform controlled sends, then consider production only after both
-editorial approvals. Migration privilege verification and Gmail, Outlook, and
-Apple Mail checks remain **pending**, so readiness remains conditional.
+- [ ] Controlled visual checks in Gmail, Outlook, Apple Mail (and image-blocked)
+- [ ] Copy Auth templates from `supabase/auth-email-templates.md` into the
+  Supabase Dashboard (not CI-deployed)
+- [ ] Formal product/rabbinic sign-off on the 24 encouragement strings, if
+  still required by process (code is already live)
 
 ## Design and User Experience
 
@@ -52,7 +45,6 @@ Apple Mail checks remain **pending**, so readiness remains conditional.
 
 ### Unsubscribe Pages
 
-- [ ] Improve brand alignment and responsive layout
 - [ ] Offer preference changes or reduced frequency before full unsubscribe
 - [ ] Add an optional cancellation feedback form
 - [ ] Improve success and error messages
@@ -102,18 +94,19 @@ Apple Mail checks remain **pending**, so readiness remains conditional.
 
 ## Broader Email Localization
 
-- [ ] Localize other transactional emails, including contact and new-user
-  summary emails
-- [ ] Reuse the reminder copy approach where appropriate without coupling Edge
-  Functions to frontend translation hooks
+- [x] Shared admin/user design system applied to contact, daily summary, cron,
+  and download emails (English ops copy for admin; contact already HE/EN by
+  channel)
+- [ ] Further localize remaining admin/ops copy where product wants Hebrew
 - [ ] Keep sender-specific templates and environment variables isolated
 
 ## Testing
 
 ### Automated
 
+- [x] Shared layout/token contracts + reminder/contact/cron/download/daily
+  summary template tests and local HTML preview harness
 - [ ] Expand unit coverage for JWT creation and verification
-- [ ] Expand template tests for escaping, locale direction, and fallbacks
 - [ ] Add integration coverage for recipient RPC, MIME generation, and
   unsubscribe behavior
 
