@@ -36,6 +36,9 @@ The `service_role` JWT used to authenticate cron job requests to Edge Functions.
 | Job name | Secrets used |
 |----------|-------------|
 | `daily-recurring-executor` | `functions_base_url`, `service_role_key` |
+| `send-reminder-emails` | `functions_base_url`, `service_role_key` |
+| `send-new-user-email-daily` | `functions_base_url`, `service_role_key` |
+| `monitor-cron-failures` | `functions_base_url`, `service_role_key` |
 
 ---
 
