@@ -250,27 +250,46 @@ supabase/functions/send-reminder-emails/
 └── jwt-utils.ts             # Unsubscribe JWT URL generation
 ```
 
-**Shared utilities** (other email functions):
+**Shared email design system** (all transactional / ops emails):
 
 ```
 supabase/functions/
 ├── _shared/
-│   ├── cors.ts               # CORS headers utility
-│   └── email-design.ts       # Shared design system (contact/new-user emails)
-├── send-contact-email/
-├── send-new-user-email/
+│   ├── email-tokens.ts            # Colors, fonts, widths, header gradients, logo URL
+│   ├── email-layout-user.ts       # Warm cream user shell (600px) — reminders, download
+│   ├── email-layout-admin.ts      # Compact ops shell (800px, gold bar) — contact, daily summary, cron
+│   ├── email-admin-primitives.ts  # Badges, table th/td, gold accent callout
+│   ├── escape-html.ts             # Shared HTML escaping
+│   ├── simple-email-service.ts    # AWS SES helper (also used outside reminders)
+│   └── email-design.ts            # LEGACY unused — do not import; superseded by tokens/layouts
+├── send-contact-email/            # Admin shell
+├── send-new-user-email/           # Admin shell (daily product summary)
+├── send-cron-alerts/              # Admin shell
+├── process-email-request/         # User shell (download link)
 └── verify-captcha/
 ```
 
+**Local previews:** from repo root,
+`WRITE_EMAIL_PREVIEWS=1 npm test -- supabase/functions/_tests/email-previews.test.ts`
+writes HTML under `tmp/email-previews/` (gitignored). Serve that folder locally to inspect.
+
+**Auth templates (manual):** copy HTML/subjects from
+`supabase/auth-email-templates.md` into Supabase Dashboard → Authentication →
+Email Templates. Not deployed by CI.
+
 ### Localization Pipeline
 
-1. `get_reminder_users_with_emails` returns `language` from `client_preferences.language` (Hebrew fallback).
+1. `get_reminder_users_with_emails` returns `language` from
+   `client_preferences.language` (Hebrew fallback) and `default_currency`
+   (ILS fallback).
 2. `UserService` maps every RPC row, normalizes missing/invalid language to
    Hebrew and non-string `full_name` to `null`, then passes recipient data and
    tithe balances to `SimpleEmailService`.
 3. `email-copy.ts` provides locale-specific copy and 12 monthly encouragement entries.
 4. `getIsraelMonth()` selects the encouragement index using `Asia/Jerusalem`.
-5. `email-templates.ts` generates localized subject, HTML, and plain text.
+5. `email-templates.ts` generates localized subject, HTML, and plain text via
+   `renderUserEmailShell`, formats the balance with the user's currency, and
+   builds unsubscribe footer HTML.
 6. `extractFirstName(full_name)` adds an optional first-name greeting.
 7. `simple-email-service.ts` sends multipart MIME with `List-Unsubscribe` headers.
 
