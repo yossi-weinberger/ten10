@@ -71,6 +71,8 @@ const escapeHtml = (value: string) =>
 const formatBoolean = (value: boolean | null | undefined) =>
   value === true ? "Yes" : value === false ? "No" : "Unknown";
 
+const ISRAEL_TZ = "Asia/Jerusalem";
+
 const formatDateParts = (value: string | null | undefined) => {
   if (!value) {
     return { date: "Unknown", time: "Unknown" };
@@ -79,13 +81,20 @@ const formatDateParts = (value: string | null | undefined) => {
   if (isNaN(d.getTime())) {
     return { date: value, time: value };
   }
-  const toLocal = new Date(d.getTime());
-  const y = toLocal.getUTCFullYear();
-  const m = String(toLocal.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(toLocal.getUTCDate()).padStart(2, "0");
-  const hh = String(toLocal.getUTCHours()).padStart(2, "0");
-  const mm = String(toLocal.getUTCMinutes()).padStart(2, "0");
-  return { date: `${day}/${m}/${y}`, time: `${hh}:${mm}` };
+  // Display times in Israel local time (handles DST), not UTC.
+  const date = new Intl.DateTimeFormat("en-GB", {
+    timeZone: ISRAEL_TZ,
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(d);
+  const time = new Intl.DateTimeFormat("en-GB", {
+    timeZone: ISRAEL_TZ,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(d);
+  return { date, time };
 };
 
 const fetchAuthUser = async (
