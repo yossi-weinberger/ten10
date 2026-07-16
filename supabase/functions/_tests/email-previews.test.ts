@@ -9,6 +9,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { EMAIL_TOKENS } from "../_shared/email-tokens.ts";
+import { escapeHtml } from "../_shared/escape-html.ts";
 import { renderDownloadEmail } from "../process-email-request/email-template.ts";
 import {
   renderContactAttachmentListItem,
@@ -509,15 +510,6 @@ function buildPreviewDefinitions(): PreviewDefinition[] {
 function metadataFor(preview: PreviewDefinition): PreviewMetadata {
   const { audience, filename, language, name, subject, variant } = preview;
   return { audience, filename, language, name, subject, variant };
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
 }
 
 function remoteImagesDisabled(html: string): string {

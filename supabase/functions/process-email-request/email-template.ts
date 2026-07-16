@@ -1,3 +1,5 @@
+import { renderGoldAccentCallout } from "../_shared/email-admin-primitives.ts";
+import { escapeHtml } from "../_shared/escape-html.ts";
 import { EMAIL_TOKENS } from "../_shared/email-tokens.ts";
 import { renderUserEmailShell } from "../_shared/email-layout-user.ts";
 
@@ -12,22 +14,10 @@ export interface RenderedEmail {
   textBody: string;
 }
 
-const HTML_ESCAPE_MAP: Record<string, string> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
-};
-
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => HTML_ESCAPE_MAP[character]);
-}
-
 const { colors, fontFamily } = EMAIL_TOKENS;
 
 const downloadButtonStyle =
-  `display: block; background-color: ${colors.teal}; color: #fffdf8 !important; border-radius: 8px; padding: 15px 22px; text-decoration: none; font-family: ${fontFamily}; font-size: 15px; font-weight: 700; line-height: 20px; text-align: center;`;
+  `display: block; background-color: ${colors.teal}; color: ${colors.buttonText} !important; border-radius: 8px; padding: 15px 22px; text-decoration: none; font-family: ${fontFamily}; font-size: 15px; font-weight: 700; line-height: 20px; text-align: center;`;
 
 const tertiaryButtonStyle =
   `display: block; background-color: transparent; color: ${colors.teal}; border: 1px solid #cfc9b8; border-radius: 8px; padding: 12px 20px; text-decoration: none; font-family: ${fontFamily}; font-size: 14px; font-weight: 600; line-height: 20px; text-align: center;`;
@@ -69,13 +59,18 @@ ${directDownloadLink}`
       </tr>`
     : "";
 
+  const noteCallout = renderGoldAccentCallout(
+    `<strong style="color: ${colors.teal};">שים לב:</strong> אם הקישור לא נפתח (למשל בנטפרי/אתרוג), ייתכן שצריך לבקש אישור מיוחד מהסינון שלך עבור הקישור הספציפי הזה.`,
+    { accentSide: "right", textAlign: "right" },
+  );
+
   const bodyHtml = `
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse; direction: rtl; text-align: right;">
       <tr>
         <td style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 17px; font-weight: 500; line-height: 26px; padding: 0 0 7px 0;">שלום,</td>
       </tr>
       <tr>
-        <td style="color: #4a5955; font-family: ${fontFamily}; font-size: 14px; line-height: 24px; padding: 0 0 26px 0;">לבקשתך, הנה הקישורים להורדת תוכנת Ten10 לניהול מעשרות:</td>
+        <td style="color: ${colors.bodyMuted}; font-family: ${fontFamily}; font-size: 14px; line-height: 24px; padding: 0 0 26px 0;">לבקשתך, הנה הקישורים להורדת תוכנת Ten10 לניהול מעשרות:</td>
       </tr>
       <tr>
         <td style="padding: 0 0 10px 0;">
@@ -83,23 +78,15 @@ ${directDownloadLink}`
         </td>
       </tr>
       <tr>
-        <td align="center" style="color: #6b7471; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; padding: 0 0 8px 0; text-align: center;">למי שחסום לו הגלישה ויש לו מייל בלבד</td>
+        <td align="center" style="color: ${colors.bodyLight}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; padding: 0 0 8px 0; text-align: center;">למי שחסום לו הגלישה ויש לו מייל בלבד</td>
       </tr>
       <tr>
-        <td align="center" style="color: #4a5955; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; padding: 0 0 26px 0; text-align: center;">
+        <td align="center" style="color: ${colors.bodyMuted}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; padding: 0 0 26px 0; text-align: center;">
           או לחץ על הקישור: <a href="${escapedJumboMailLink}" style="color: ${colors.teal}; word-break: break-all; text-decoration: underline;">${escapedJumboMailLink}</a>
         </td>
       </tr>${directDownloadBlock}
       <tr>
-        <td style="padding: 0 0 22px 0;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${colors.cream}" style="background-color: ${colors.cream}; border-collapse: collapse; border-radius: 8px;">
-            <tr>
-              <td style="padding: 14px 16px; color: ${colors.text}; font-family: ${fontFamily}; font-size: 13px; line-height: 22px; text-align: right; border-right: 4px solid ${colors.gold};">
-                <strong style="color: ${colors.teal};">שים לב:</strong> אם הקישור לא נפתח (למשל בנטפרי/אתרוג), ייתכן שצריך לבקש אישור מיוחד מהסינון שלך עבור הקישור הספציפי הזה.
-              </td>
-            </tr>
-          </table>
-        </td>
+        <td style="padding: 0 0 22px 0;">${noteCallout}</td>
       </tr>
       <tr>
         <td style="padding: 0 0 28px 0;">
@@ -110,7 +97,7 @@ ${directDownloadLink}`
         <td align="left" style="padding: 0; text-align: left;">
           <table role="presentation" align="left" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse; margin: 0; text-align: left;">
             <tr>
-              <td dir="rtl" style="color: #4a5955; font-family: ${fontFamily}; font-size: 14px; line-height: 22px; text-align: left; direction: rtl;">בברכה,<br>צוות Ten10</td>
+              <td dir="rtl" style="color: ${colors.bodyMuted}; font-family: ${fontFamily}; font-size: 14px; line-height: 22px; text-align: left; direction: rtl;">בברכה,<br>צוות Ten10</td>
             </tr>
           </table>
         </td>

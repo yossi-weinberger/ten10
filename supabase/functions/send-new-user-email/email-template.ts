@@ -1,4 +1,9 @@
+import {
+  renderAdminBadge,
+  renderAdminTh,
+} from "../_shared/email-admin-primitives.ts";
 import { renderAdminEmailShell } from "../_shared/email-layout-admin.ts";
+import { escapeHtml } from "../_shared/escape-html.ts";
 import { EMAIL_TOKENS } from "../_shared/email-tokens.ts";
 
 export interface SummaryRow {
@@ -57,26 +62,13 @@ export interface EmailBodies {
 }
 
 const ISRAEL_TZ = "Asia/Jerusalem";
-const TITLE_COLOR = "#173e3e";
-const LABEL_COLOR = "#43514d";
-const MUTED_COLOR = "#75807c";
-const VALUE_COLOR = "#53615e";
-const ROW_BORDER = "#e0ddd2";
-const METRIC_BORDER = "#d6d9d1";
-const HTML_ESCAPE_MAP: Record<string, string> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
-};
-
-function escapeHtml(value: string): string {
-  return value.replace(
-    /[&<>"']/g,
-    (character) => HTML_ESCAPE_MAP[character],
-  );
-}
+const { colors } = EMAIL_TOKENS;
+const TITLE_COLOR = colors.adminTitle;
+const LABEL_COLOR = colors.adminLabel;
+const MUTED_COLOR = colors.bodyLight;
+const VALUE_COLOR = colors.adminValue;
+const ROW_BORDER = colors.adminRowBorder;
+const METRIC_BORDER = colors.adminMetricBorder;
 
 function formatBoolean(value: boolean | null | undefined): string {
   return value === true ? "Yes" : value === false ? "No" : "Unknown";
@@ -127,10 +119,10 @@ function buildDownloadRequestsSection(
       const parts = formatDateParts(request.created_at);
       const statusBadge =
         request.status === "sent"
-          ? `<span style="display: inline-block; background: #e0eee9; color: #11676a; padding: 2px 7px; border-radius: 8px; font-size: 9px; font-weight: 700;">✓ sent</span>`
+          ? renderAdminBadge("✓ sent", "ok")
           : request.status === "blocked"
-            ? `<span style="display: inline-block; background: #fef3c7; color: #92400e; padding: 2px 7px; border-radius: 8px; font-size: 9px; font-weight: 700;">blocked</span>`
-            : `<span style="display: inline-block; background: #fee2e2; color: #991b1b; padding: 2px 7px; border-radius: 8px; font-size: 9px; font-weight: 700;">error</span>`;
+            ? renderAdminBadge("blocked", "warn")
+            : renderAdminBadge("error", "error");
 
       return `<tr>
       <td style="padding: 10px 9px; border-bottom: 1px solid ${ROW_BORDER}; font-size: 11px; color: #213632; font-weight: 700; line-height: 16px;">${escapeHtml(request.from_email)}</td>
@@ -145,11 +137,11 @@ function buildDownloadRequestsSection(
   return {
     htmlBody: `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${EMAIL_TOKENS.colors.surface}" style="width: 100%; background-color: ${EMAIL_TOKENS.colors.surface}; border-collapse: collapse;">
       <thead><tr>
-        <th style="padding: 10px 9px; text-align: left; border-bottom: 2px solid ${EMAIL_TOKENS.colors.teal}; font-size: 11px; color: ${LABEL_COLOR}; font-weight: 700;">Email</th>
-        <th style="padding: 10px 9px; text-align: left; border-bottom: 2px solid ${EMAIL_TOKENS.colors.teal}; font-size: 11px; color: ${LABEL_COLOR}; font-weight: 700;">Date</th>
-        <th style="padding: 10px 9px; text-align: left; border-bottom: 2px solid ${EMAIL_TOKENS.colors.teal}; font-size: 11px; color: ${LABEL_COLOR}; font-weight: 700;">Time</th>
-        <th style="padding: 10px 9px; text-align: left; border-bottom: 2px solid ${EMAIL_TOKENS.colors.teal}; font-size: 11px; color: ${LABEL_COLOR}; font-weight: 700;">Status</th>
-        <th style="padding: 10px 9px; text-align: left; border-bottom: 2px solid ${EMAIL_TOKENS.colors.teal}; font-size: 11px; color: ${LABEL_COLOR}; font-weight: 700;">Reason</th>
+        ${renderAdminTh("Email")}
+        ${renderAdminTh("Date")}
+        ${renderAdminTh("Time")}
+        ${renderAdminTh("Status")}
+        ${renderAdminTh("Reason")}
       </tr></thead>
       <tbody>${rowsHtml}</tbody>
     </table>`,
@@ -282,10 +274,10 @@ export function buildEmailBodies(
         : `<div style="width: 28px; height: 28px; border-radius: 50%; background-color: ${ROW_BORDER}; color: ${MUTED_COLOR}; font-size: 10px; line-height: 28px; text-align: center;">N/A</div>`;
       const consentBadge =
         row.mailing_list_consent === true
-          ? '<span style="display: inline-block; padding: 2px 7px; border-radius: 8px; font-size: 9px; font-weight: 700; background-color: #e0eee9; color: #11676a;">Yes</span>'
+          ? renderAdminBadge("Yes", "ok")
           : row.mailing_list_consent === false
-            ? '<span style="display: inline-block; padding: 2px 7px; border-radius: 8px; font-size: 9px; font-weight: 700; background-color: #fee2e2; color: #991b1b;">No</span>'
-            : `<span style="display: inline-block; padding: 2px 7px; border-radius: 8px; font-size: 9px; font-weight: 700; background-color: ${EMAIL_TOKENS.colors.cream}; color: ${MUTED_COLOR};">Unknown</span>`;
+            ? renderAdminBadge("No", "error")
+            : renderAdminBadge("Unknown", "neutral");
       const parts = formatDateParts(
         row.auth_created_at ?? row.updated_at ?? null,
       );
@@ -317,13 +309,13 @@ export function buildEmailBodies(
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${EMAIL_TOKENS.colors.surface}" style="width: 100%; background-color: ${EMAIL_TOKENS.colors.surface}; border-collapse: collapse;">
         <thead>
           <tr>
-            <th style="padding: 10px 9px; text-align: left; border-bottom: 2px solid ${EMAIL_TOKENS.colors.teal}; color: ${LABEL_COLOR}; font-size: 11px; font-weight: 700;">Avatar</th>
-            <th style="padding: 10px 9px; text-align: left; border-bottom: 2px solid ${EMAIL_TOKENS.colors.teal}; color: ${LABEL_COLOR}; font-size: 11px; font-weight: 700;">Full Name</th>
-            <th style="padding: 10px 9px; text-align: left; border-bottom: 2px solid ${EMAIL_TOKENS.colors.teal}; color: ${LABEL_COLOR}; font-size: 11px; font-weight: 700;">Email</th>
-            <th style="padding: 10px 9px; text-align: left; border-bottom: 2px solid ${EMAIL_TOKENS.colors.teal}; color: ${LABEL_COLOR}; font-size: 11px; font-weight: 700;">User ID</th>
-            <th style="padding: 10px 9px; text-align: left; border-bottom: 2px solid ${EMAIL_TOKENS.colors.teal}; color: ${LABEL_COLOR}; font-size: 11px; font-weight: 700;">Date</th>
-            <th style="padding: 10px 9px; text-align: left; border-bottom: 2px solid ${EMAIL_TOKENS.colors.teal}; color: ${LABEL_COLOR}; font-size: 11px; font-weight: 700;">Time</th>
-            <th style="padding: 10px 9px; text-align: left; border-bottom: 2px solid ${EMAIL_TOKENS.colors.teal}; color: ${LABEL_COLOR}; font-size: 11px; font-weight: 700;">Consent</th>
+            ${renderAdminTh("Avatar")}
+            ${renderAdminTh("Full Name")}
+            ${renderAdminTh("Email")}
+            ${renderAdminTh("User ID")}
+            ${renderAdminTh("Date")}
+            ${renderAdminTh("Time")}
+            ${renderAdminTh("Consent")}
           </tr>
         </thead>
         <tbody>${rowsHtml}</tbody>

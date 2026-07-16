@@ -1,4 +1,5 @@
 import { renderAdminEmailShell } from "../_shared/email-layout-admin.ts";
+import { escapeHtml } from "../_shared/escape-html.ts";
 import { EMAIL_TOKENS } from "../_shared/email-tokens.ts";
 
 export interface ContactMessageRecord {
@@ -27,13 +28,7 @@ export interface ContactEmailTemplateInput {
   attachmentLinksHtml: string;
 }
 
-const HTML_ESCAPE_MAP: Record<string, string> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
-};
+const { colors } = EMAIL_TOKENS;
 
 const HEBREW_SEVERITY_LABELS: Record<
   NonNullable<ContactMessageRecord["severity"]>,
@@ -57,19 +52,15 @@ const SEVERITY_STYLES: Record<
   NonNullable<ContactMessageRecord["severity"]>,
   { backgroundColor: string; textColor: string }
 > = {
-  high: { backgroundColor: "#fee2e2", textColor: "#991b1b" },
-  low: { backgroundColor: "#e0eee9", textColor: "#11676a" },
-  med: { backgroundColor: "#fef3c7", textColor: "#92400e" },
+  high: { backgroundColor: colors.dangerSurface, textColor: colors.dangerText },
+  low: { backgroundColor: colors.successSurface, textColor: colors.teal },
+  med: { backgroundColor: colors.warnSurface, textColor: colors.warnText },
 };
 
-const TITLE_COLOR = "#173e3e";
-const LABEL_COLOR = "#697470";
-const VALUE_COLOR = "#53615e";
-const ROW_BORDER = "#e0ddd2";
-
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => HTML_ESCAPE_MAP[character]);
-}
+const TITLE_COLOR = colors.adminTitle;
+const LABEL_COLOR = colors.adminMeta;
+const VALUE_COLOR = colors.adminValue;
+const ROW_BORDER = colors.adminRowBorder;
 
 export function renderContactAttachmentListItem(
   label: string,

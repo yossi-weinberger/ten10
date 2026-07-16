@@ -1,32 +1,20 @@
+import { escapeHtml } from "./escape-html.ts";
 import { EMAIL_TOKENS, type EmailShellInput } from "./email-tokens.ts";
 
-const HTML_ESCAPE_MAP: Record<string, string> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
-};
-
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>"']/g, (character) => HTML_ESCAPE_MAP[character]);
-}
-
-/** Soft teal/gold washes from the approved user-variant demo (cream bgcolor is the solid fallback). */
-const USER_HEADER_BACKGROUND_IMAGE =
-  "radial-gradient(circle at 105% -10%, rgba(17,103,106,.26), transparent 46%), radial-gradient(circle at -5% 115%, rgba(240,192,0,.31), transparent 42%)";
-
-const USER_CARD_BACKGROUND = "#f7f3e7";
-const USER_FOOTER_BACKGROUND = "#efebdf";
+const { colors, fontFamily, logoUrl: LOGO_URL, userHeaderBackgroundImage } =
+  EMAIL_TOKENS;
 
 export function renderUserEmailShell(input: EmailShellInput): string {
-  const logoUrl = escapeHtml(EMAIL_TOKENS.logoUrl);
+  const logoUrl = escapeHtml(LOGO_URL);
   const headerSlogan = escapeHtml(input.headerSlogan);
   const maxWidth = input.maxWidth ?? EMAIL_TOKENS.userWidth;
+  const titleTag = input.title
+    ? `\n    <title>${escapeHtml(input.title)}</title>`
+    : "";
   const footerRow = input.footerHtml
     ? `
             <tr>
-              <td bgcolor="${USER_FOOTER_BACKGROUND}" style="background-color: ${USER_FOOTER_BACKGROUND}; border-top: 1px solid ${EMAIL_TOKENS.colors.border}; padding: 19px 24px; color: #6b7471; direction: ${input.dir}; font-family: ${EMAIL_TOKENS.fontFamily}; font-size: 11px; line-height: 18px; text-align: center;">
+              <td bgcolor="${colors.userFooter}" style="background-color: ${colors.userFooter}; border-top: 1px solid ${colors.border}; padding: 19px 24px; color: ${colors.bodyLight}; direction: ${input.dir}; font-family: ${fontFamily}; font-size: 11px; line-height: 18px; text-align: center;">
                 ${input.footerHtml}
               </td>
             </tr>`
@@ -36,15 +24,16 @@ export function renderUserEmailShell(input: EmailShellInput): string {
 <html lang="${input.lang}" dir="${input.dir}">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">${titleTag}
+    ${input.headHtml ?? ""}
   </head>
-  <body style="margin: 0; padding: 0; background-color: #e9e7df; direction: ${input.dir}; font-family: ${EMAIL_TOKENS.fontFamily};">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#e9e7df" style="width: 100%; margin: 0; padding: 0; background-color: #e9e7df; border-collapse: collapse;">
+  <body style="margin: 0; padding: 0; background-color: ${colors.userPage}; direction: ${input.dir}; font-family: ${fontFamily};">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${colors.userPage}" style="width: 100%; margin: 0; padding: 0; background-color: ${colors.userPage}; border-collapse: collapse;">
       <tr>
         <td align="center" style="padding: 24px 12px;">
-          <table role="presentation" width="${maxWidth}" cellspacing="0" cellpadding="0" border="0" bgcolor="${USER_CARD_BACKGROUND}" style="width: 100%; max-width: ${maxWidth}px; background-color: ${USER_CARD_BACKGROUND}; border-collapse: collapse; border: 1px solid #d4d0c3;">
+          <table role="presentation" width="${maxWidth}" cellspacing="0" cellpadding="0" border="0" bgcolor="${colors.userCard}" style="width: 100%; max-width: ${maxWidth}px; background-color: ${colors.userCard}; border-collapse: collapse; border: 1px solid ${colors.userCardBorder};">
             <tr>
-              <td align="center" bgcolor="${EMAIL_TOKENS.colors.cream}" style="padding: 29px 28px 22px 28px; background-color: ${EMAIL_TOKENS.colors.cream}; background-image: ${USER_HEADER_BACKGROUND_IMAGE}; background-repeat: no-repeat; border-bottom: 1px solid ${EMAIL_TOKENS.colors.border}; text-align: center;">
+              <td align="center" bgcolor="${colors.cream}" style="padding: 29px 28px 22px 28px; background-color: ${colors.cream}; background-image: ${userHeaderBackgroundImage}; background-repeat: no-repeat; border-bottom: 1px solid ${colors.border}; text-align: center;">
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse;">
                   <tr>
                     <td align="center" style="padding: 0;">
@@ -55,19 +44,19 @@ export function renderUserEmailShell(input: EmailShellInput): string {
                     <td align="center" style="padding: 13px 0 9px 0;">
                       <table role="presentation" width="142" cellspacing="0" cellpadding="0" border="0" style="width: 142px; border-collapse: collapse;">
                         <tr>
-                          <td bgcolor="${EMAIL_TOKENS.colors.gold}" height="4" style="height: 4px; line-height: 4px; font-size: 0; background-color: ${EMAIL_TOKENS.colors.gold};">&nbsp;</td>
+                          <td bgcolor="${colors.gold}" height="4" style="height: 4px; line-height: 4px; font-size: 0; background-color: ${colors.gold};">&nbsp;</td>
                         </tr>
                       </table>
                     </td>
                   </tr>
                   <tr>
-                    <td align="center" style="color: ${EMAIL_TOKENS.colors.teal}; font-family: ${EMAIL_TOKENS.fontFamily}; font-size: 12px; font-weight: 600; line-height: 18px; padding: 0;">${headerSlogan}</td>
+                    <td align="center" style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 12px; font-weight: 600; line-height: 18px; padding: 0;">${headerSlogan}</td>
                   </tr>
                 </table>
               </td>
             </tr>
             <tr>
-              <td style="padding: 31px 32px 28px 32px; color: ${EMAIL_TOKENS.colors.text}; direction: ${input.dir}; font-family: ${EMAIL_TOKENS.fontFamily}; background-color: ${USER_CARD_BACKGROUND};">
+              <td style="padding: 31px 32px 28px 32px; color: ${colors.text}; direction: ${input.dir}; font-family: ${fontFamily}; background-color: ${colors.userCard};">
                 ${input.bodyHtml}
               </td>
             </tr>${footerRow}
