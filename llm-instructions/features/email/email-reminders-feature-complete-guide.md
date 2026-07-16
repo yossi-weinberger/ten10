@@ -497,32 +497,36 @@ curl -X POST "https://flpzqbvbymoluoeeeofg.supabase.co/functions/v1/send-reminde
 ### Cron Job Setup
 
 **Status**: ✅ **IMPLEMENTED AND ACTIVE**
-**Schedule**: Daily execution at 18:00 UTC (20:00 Israel time)
+**Schedule**: Daily execution at 18:00 UTC (20:00 Israel in winter / 21:00 in summer)
 **Trigger**: Supabase scheduled function via pg_cron extension
+**Auth**: Vault secrets `functions_base_url` + `service_role_key` (no hardcoded JWT)
 
 ```sql
--- Active cron job setup
+-- Active pattern (see migration 20260716100000_cron_jobs_use_vault_secrets.sql)
 SELECT cron.schedule(
   'send-reminder-emails',
-  '0 18 * * *', -- Daily at 18:00 UTC (20:00 Israel time)
-  'SELECT net.http_post(
-    url:=''https://flpzqbvbymoluoeeeofg.supabase.co/functions/v1/send-reminder-emails'',
-    headers:=''{"Authorization": "Bearer YOUR_ANON_KEY"}'',
-    body:=''{}''
-  );'
+  '0 18 * * *', -- Daily at 18:00 UTC (20:00 Israel in winter / 21:00 in summer)
+  $$
+    SELECT net.http_post(
+      url := (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'functions_base_url' LIMIT 1) || '/functions/v1/send-reminder-emails',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key' LIMIT 1)
+      ),
+      body := '{}'::jsonb
+    );
+  $$
 );
 ```
 
 **Job Details**:
 
-- **Job ID**: 3
 - **Status**: Active
 - **Schedule**: `0 18 * * *` (18:00 UTC daily)
 - **Local Times**:
-  - 🇮🇱 Israel: 20:00 (8 PM)
-  - 🇺🇸 New York: 13:00 (1 PM)
-  - 🇬🇧 London: 18:00 (6 PM)
-  - 🇦🇺 Sydney: 05:00+1 (5 AM next day)
+  - 🇮🇱 Israel: 20:00 (8 PM) in winter / 21:00 (9 PM) in summer
+  - 🇺🇸 New York: 14:00 (2 PM) / 13:00 when EST
+  - 🇬🇧 London: 19:00 (7 PM) / 18:00 when GMT
 
 **Monitoring**:
 
