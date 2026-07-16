@@ -26,6 +26,7 @@ export interface ReminderLocaleCopy {
   greeting: string;
   reminder: string;
   balance: BalanceCopy;
+  creditBadge: string;
   verification: string;
   importHintPrefix: string;
   importHintEmphasis: string;
@@ -151,6 +152,7 @@ export const REMINDER_COPY = {
       credit: "הינך נמצא בזכות של",
       settled: "יתרת המעשר שלך מאוזנת",
     },
+    creditBadge: "זכות",
     verification:
       "כדאי לוודא שהוספת את ההכנסות, ההוצאות והתרומות האחרונות.",
     importHintPrefix: "יש לך כמה פעולות לעדכן?",
@@ -180,6 +182,7 @@ export const REMINDER_COPY = {
       credit: "You currently have a credit of",
       settled: "Your tithe balance is settled",
     },
+    creditBadge: "Credit",
     verification:
       "Make sure you have added your latest income, expenses, and donations.",
     importHintPrefix: "Several transactions to update?",

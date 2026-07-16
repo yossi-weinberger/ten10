@@ -2,6 +2,10 @@ import {
   normalizeReminderLanguage,
   type ReminderLanguage,
 } from "./email-copy.ts";
+import {
+  normalizeReminderCurrencyCode,
+  type ReminderCurrencyCode,
+} from "./currency.ts";
 
 export interface ReminderUser {
   id: string;
@@ -10,6 +14,7 @@ export interface ReminderUser {
   reminder_day_of_month: number;
   full_name: string | null;
   language: ReminderLanguage;
+  default_currency: ReminderCurrencyCode;
 }
 
 export interface ReminderUserRpcRow {
@@ -19,6 +24,7 @@ export interface ReminderUserRpcRow {
   reminder_day_of_month: number;
   full_name?: unknown;
   language?: unknown;
+  default_currency?: unknown;
 }
 
 export function normalizeReminderUserRow(
@@ -31,6 +37,7 @@ export function normalizeReminderUserRow(
     reminder_day_of_month: row.reminder_day_of_month,
     full_name: typeof row.full_name === "string" ? row.full_name : null,
     language: normalizeReminderLanguage(row.language),
+    default_currency: normalizeReminderCurrencyCode(row.default_currency),
   };
 }
 

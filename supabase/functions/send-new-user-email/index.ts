@@ -10,7 +10,13 @@ import {
 } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
-import { EMAIL_THEME, getEmailHeader } from "../_shared/email-design.ts";
+import {
+  buildEmailBodies,
+  generateDailySummarySubject,
+  type DownloadRequest,
+  type ReminderRunLog,
+  type SummaryRow,
+} from "./email-template.ts";
 
 type ProfileRecord = {
   id: string;
@@ -22,33 +28,8 @@ type ProfileRecord = {
   created_at?: string | null;
 };
 
-type SummaryRow = ProfileRecord & {
-  email: string | null;
-  auth_created_at: string | null;
-  avatar_url?: string | null;
-};
-
 const DEFAULT_TO = "dev@ten10-app.com";
 const DEFAULT_WINDOW_HOURS = 24;
-
-type ReminderRunLog = {
-  run_at: string;
-  day_of_month: number;
-  was_reminder_day: boolean;
-  was_shabbat: boolean;
-  users_processed: number;
-  emails_sent: number;
-  emails_failed: number;
-  notes: string | null;
-};
-
-type DownloadRequest = {
-  id: string;
-  created_at: string;
-  from_email: string;
-  status: string;
-  reason: string | null;
-};
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -59,43 +40,6 @@ const jsonResponse = (body: unknown, status = 200) =>
     // Scheduled task, no specific origin
     headers: { ...getCorsHeaders(null), "Content-Type": "application/json" },
   });
-
-const escapeHtml = (value: string) =>
-  value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-
-const formatBoolean = (value: boolean | null | undefined) =>
-  value === true ? "Yes" : value === false ? "No" : "Unknown";
-
-const ISRAEL_TZ = "Asia/Jerusalem";
-
-const formatDateParts = (value: string | null | undefined) => {
-  if (!value) {
-    return { date: "Unknown", time: "Unknown" };
-  }
-  const d = new Date(value);
-  if (isNaN(d.getTime())) {
-    return { date: value, time: value };
-  }
-  // Display times in Israel local time (handles DST), not UTC.
-  const date = new Intl.DateTimeFormat("en-GB", {
-    timeZone: ISRAEL_TZ,
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(d);
-  const time = new Intl.DateTimeFormat("en-GB", {
-    timeZone: ISRAEL_TZ,
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(d);
-  return { date, time };
-};
 
 const fetchAuthUser = async (
   client: SupabaseClient,
@@ -119,290 +63,6 @@ const fetchAuthUser = async (
   };
 };
 
-
-const buildDownloadRequestsSection = (requests: DownloadRequest[], hours: number): { html: string; text: string } => {
-  if (requests.length === 0) {
-    return {
-      html: `<p style="color:#6b7280;font-size:13px;">No download requests in the last ${hours}h.</p>`,
-      text: `No download requests in the last ${hours}h.`,
-    };
-  }
-  const rowsHtml = requests.map((r) => {
-    const parts = formatDateParts(r.created_at);
-    const statusBadge = r.status === "sent"
-      ? `<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">✓ sent</span>`
-      : r.status === "blocked"
-        ? `<span style="background:#fef9c3;color:#92400e;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">blocked</span>`
-        : `<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;">error</span>`;
-    return `<tr>
-      <td style="padding:8px;border-bottom:1px solid #f3f4f6;font-size:13px;color:#374151;">${escapeHtml(r.from_email)}</td>
-      <td style="padding:8px;border-bottom:1px solid #f3f4f6;font-size:13px;color:#374151;">${escapeHtml(parts.date)}</td>
-      <td style="padding:8px;border-bottom:1px solid #f3f4f6;font-size:13px;color:#374151;">${escapeHtml(parts.time)}</td>
-      <td style="padding:8px;border-bottom:1px solid #f3f4f6;">${statusBadge}</td>
-      <td style="padding:8px;border-bottom:1px solid #f3f4f6;font-size:12px;color:#9ca3af;">${escapeHtml(r.reason ?? "")}</td>
-    </tr>`;
-  }).join("");
-
-  return {
-    html: `<table style="width:100%;border-collapse:collapse;margin-top:8px;">
-      <thead><tr style="background:#f9fafb;">
-        <th style="padding:8px;text-align:left;font-size:12px;color:#6b7280;font-weight:600;">Email</th>
-        <th style="padding:8px;text-align:left;font-size:12px;color:#6b7280;font-weight:600;">Date</th>
-        <th style="padding:8px;text-align:left;font-size:12px;color:#6b7280;font-weight:600;">Time</th>
-        <th style="padding:8px;text-align:left;font-size:12px;color:#6b7280;font-weight:600;">Status</th>
-        <th style="padding:8px;text-align:left;font-size:12px;color:#6b7280;font-weight:600;">Reason</th>
-      </tr></thead>
-      <tbody>${rowsHtml}</tbody>
-    </table>`,
-    text: requests.map((r) => {
-      const parts = formatDateParts(r.created_at);
-      return `  ${parts.date} ${parts.time} | ${r.from_email} | ${r.status}${r.reason ? ` (${r.reason})` : ""}`;
-    }).join("\n"),
-  };
-};
-
-const buildEmailBodies = (args: {
-  rows: SummaryRow[];
-  hours: number;
-  downloadRequests: {
-    windowCount: number;
-    total: number;
-    details: DownloadRequest[];
-  };
-  totalUsers: number;
-  reminderLogs: ReminderRunLog[];
-  github: { totalDownloads: number | null; last24h: number | null; latestVersion: string; latestDownloads: number | null };
-}) => {
-  const { rows, hours, downloadRequests, totalUsers, reminderLogs, github } = args;
-  const { windowCount, total, details: downloadDetails } = downloadRequests;
-  const windowLabel = `Last ${hours} hours`;
-
-  const downloadSection = buildDownloadRequestsSection(downloadDetails, hours);
-
-  if (rows.length === 0 && windowCount === 0) {
-    const textBody = `${windowLabel}: No new profiles and no new download requests.\nTotal users (all-time): ${totalUsers}`;
-    const htmlBody = `<!DOCTYPE html>
-    <html>
-      <body style="font-family:Arial,sans-serif; background:#f8fafc; padding:24px;">
-        <h2 style="margin:0 0 12px 0; color:#111827;">Daily Summary</h2>
-        <p style="margin:0 0 8px 0; color:#374151;">${windowLabel}: No new profiles and no new download requests.</p>
-        <p style="margin:0 0 24px 0; color:#6b7280;font-size:13px;">Total registered users (all-time): <strong>${totalUsers}</strong></p>
-      </body>
-    </html>`;
-    return { htmlBody, textBody };
-  }
-
-  const reminderSent = reminderLogs.filter((l) => l.was_reminder_day).reduce((s, l) => s + l.emails_sent, 0);
-  const reminderFailed = reminderLogs.reduce((s, l) => s + l.emails_failed, 0);
-  const wasReminderDay = reminderLogs.some((l) => l.was_reminder_day);
-  const wasShabbatSkip = !wasReminderDay && reminderLogs.some((l) => l.was_shabbat);
-  const reminderStatusLine = wasReminderDay
-    ? reminderFailed > 0 && reminderSent === 0
-      ? `📧 Reminder emails: <strong style="color:#dc2626;">⚠️ ${reminderFailed} failed, 0 sent</strong>`
-      : reminderSent > 0
-        ? `📧 Reminder emails: <strong style="color:#166534;">${reminderSent} sent</strong>${reminderFailed > 0 ? ` &nbsp;·&nbsp; <strong style="color:#dc2626;">${reminderFailed} failed</strong>` : ""}`
-        : `📧 Reminder emails: reminder day — <strong style="color:#6b7280;">no users configured</strong>`
-    : wasShabbatSkip
-      ? `📧 Reminder emails: skipped (Shabbat)`
-      : reminderFailed > 0
-        ? `📧 Reminder emails: <strong style="color:#dc2626;">${reminderFailed} failed</strong>`
-        : `📧 Reminder emails: not a reminder day`;
-
-  const card = (bg: string, border: string, labelColor: string, icon: string, label: string, bigNum: string | number, footer: string) => `
-    <div class="stat-card" style="background:${bg};border:1px solid ${border};border-radius:12px;padding:16px 10px;text-align:center;min-height:120px;box-sizing:border-box;">
-      <div style="font-size:11px;color:${labelColor};font-weight:800;text-transform:uppercase;letter-spacing:.06em;line-height:1.3;">${icon} ${label}</div>
-      <div style="margin-top:8px;font-size:36px;line-height:1.1;color:#111827;font-weight:900;">${bigNum}</div>
-      <div class="stat-footer" style="margin-top:10px;font-size:11px;line-height:1.45;color:#6b7280;word-wrap:break-word;overflow-wrap:anywhere;">${footer}</div>
-    </div>`;
-
-  const githubFooter = github.totalDownloads !== null
-    ? `All-time: <strong style="color:#374151;">${github.totalDownloads}</strong><br><span style="font-size:10px;">${escapeHtml(github.latestVersion)}: ${github.latestDownloads ?? "—"}</span>`
-    : "GitHub unavailable";
-
-  const statsSectionHtml = `
-  <div style="font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-bottom:10px;">${escapeHtml(windowLabel)}</div>
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" class="stats-grid" style="margin:0 0 4px 0;border-collapse:collapse;">
-    <tr>
-      <td class="stat-col" width="33%" valign="top" style="padding:0 4px 8px 0;">
-        ${card("#eff6ff","#bfdbfe","#1e3a8a","💻","Email downloads", windowCount, `All-time: <strong style="color:#374151;">${total}</strong>`)}
-      </td>
-      <td class="stat-col" width="33%" valign="top" style="padding:0 4px 8px;">
-        ${card("#ecfdf5","#bbf7d0","#065f46","🌐","New web users", rows.length, `All-time: <strong style="color:#374151;">${totalUsers}</strong>`)}
-      </td>
-      <td class="stat-col" width="33%" valign="top" style="padding:0 0 8px 4px;">
-        ${card("#fefce8","#fde68a","#92400e","📦","GitHub installs", github.last24h !== null ? `+${github.last24h}` : "—", githubFooter)}
-      </td>
-    </tr>
-  </table>
-  <div style="padding:10px 14px;font-size:15px;color:#4b5563;margin-bottom:20px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb;">${reminderStatusLine}</div>`;
-
-  const rowsHtml = rows
-    .map((r) => {
-      const avatarCell = r.avatar_url
-        ? `<img src="${escapeHtml(
-            r.avatar_url,
-          )}" alt="avatar" class="avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid #e5e7eb;" />`
-        : `<div class="avatar-placeholder" style="width:36px;height:36px;border-radius:50%;background:#e5e7eb;display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:12px;">N/A</div>`;
-
-      const consentBadge =
-        r.mailing_list_consent === true
-          ? `<span class="badge badge-yes" style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background-color:#dcfce7;color:#166534;">Yes</span>`
-          : r.mailing_list_consent === false
-            ? `<span class="badge badge-no" style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background-color:#fee2e2;color:#991b1b;">No</span>`
-            : `<span class="badge" style="display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;background-color:#f3f4f6;color:#6b7280;">Unknown</span>`;
-
-      return `
-      <tr>
-        <td>${avatarCell}</td>
-        <td><strong>${escapeHtml(r.full_name ?? "Not provided")}</strong></td>
-        <td>${escapeHtml(r.email ?? "unknown")}</td>
-        <td style="font-family: monospace; color: #6b7280;">${escapeHtml(
-          r.id.substring(0, 8),
-        )}...</td>
-        <td>${escapeHtml(
-          formatDateParts(r.auth_created_at ?? r.updated_at ?? null).date,
-        )}</td>
-        <td>${escapeHtml(
-          formatDateParts(r.auth_created_at ?? r.updated_at ?? null).time,
-        )}</td>
-        <td>${consentBadge}</td>
-      </tr>`;
-    })
-    .join("");
-
-  const htmlBody = `<!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>New users summary</title>
-      <style>
-        body { font-family: ${EMAIL_THEME.fonts.main}; background-color: ${
-          EMAIL_THEME.colors.background
-        }; margin: 0; padding: 0; }
-        .container { max-width: 800px; margin: 40px auto; background: ${
-          EMAIL_THEME.colors.cardBackground
-        }; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); overflow: hidden; border-top: 6px solid ${
-          EMAIL_THEME.colors.primary
-        }; }
-        /* Header styles are inline */
-        .content { padding: 32px; }
-        .summary-box { background-color: ${
-          EMAIL_THEME.colors.success.bg
-        }; border: 1px solid ${
-          EMAIL_THEME.colors.success.border
-        }; border-radius: 8px; padding: 16px; margin-bottom: 24px; color: ${
-          EMAIL_THEME.colors.success.text
-        }; font-weight: 500; }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 12px; border-bottom: 2px solid ${
-          EMAIL_THEME.colors.border
-        }; color: ${
-          EMAIL_THEME.colors.textSecondary
-        }; font-weight: 600; font-size: 14px; }
-        td { padding: 12px; border-bottom: 1px solid ${
-          EMAIL_THEME.colors.background
-        }; color: ${
-          EMAIL_THEME.colors.textMain
-        }; font-size: 14px; vertical-align: middle; }
-        tr:last-child td { border-bottom: none; }
-        .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid ${
-          EMAIL_THEME.colors.border
-        }; }
-        .avatar-placeholder { width: 36px; height: 36px; border-radius: 50%; background: ${
-          EMAIL_THEME.colors.border
-        }; display: flex; align-items: center; justify-content: center; color: ${
-          EMAIL_THEME.colors.textLight
-        }; font-size: 12px; }
-        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-        .badge-yes { background-color: ${
-          EMAIL_THEME.colors.success.bg
-        }; color: ${EMAIL_THEME.colors.success.text}; }
-        .badge-no { background-color: ${EMAIL_THEME.colors.error.bg}; color: ${
-          EMAIL_THEME.colors.error.text
-        }; }
-        @media only screen and (max-width: 600px) {
-          .content { padding: 20px 16px !important; }
-          .stats-grid tr,
-          .stats-grid tbody,
-          .stats-grid { display: block !important; width: 100% !important; }
-          .stat-col {
-            display: block !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            padding: 0 0 10px 0 !important;
-            box-sizing: border-box !important;
-          }
-          .stat-card { min-height: 0 !important; padding: 14px 12px !important; }
-          .stat-footer { font-size: 12px !important; line-height: 1.5 !important; }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        ${getEmailHeader("en")}
-        <div class="content">
-          <h2 style="margin: 0 0 16px 0; color: #111827; font-size: 24px;">Daily Summary</h2>
-          
-          ${statsSectionHtml}
-
-          <h3 style="margin: 0 0 8px 0; color: #111827; font-size: 16px;">
-            🌐 Web Platform — New Users
-          </h3>
-          <div style="overflow-x: auto;">
-            <table>
-              <thead>
-                <tr>
-                  <th>Avatar</th>
-                  <th>Full Name</th>
-                  <th>Email</th>
-                  <th>User ID</th>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th>Consent</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rowsHtml}
-              </tbody>
-            </table>
-          </div>
-
-          <h3 style="margin: 32px 0 8px 0; color: #111827; font-size: 16px; border-top: 1px solid #e5e7eb; padding-top: 24px;">
-            💻 Desktop Platform — Download Requests
-          </h3>
-          ${downloadSection.html}
-
-        </div>
-      </div>
-    </body>
-  </html>`;
-
-  const textBodyLines: string[] = [
-    "Daily Summary",
-    `${windowLabel}.`,
-    "",
-    `🌐 Web users last ${hours}h: ${rows.length} (all-time: ${totalUsers})`,
-    `💻 Email downloads last ${hours}h: ${windowCount} (all-time: ${total})`,
-    `📧 Reminder emails: ${reminderSent} sent | ${reminderFailed} failed`,
-    `📦 GitHub installs — last ${hours}h: ${github.last24h !== null ? `+${github.last24h}` : "—"} | all-time: ${github.totalDownloads ?? "—"} | ${github.latestVersion}: ${github.latestDownloads ?? "—"}`,
-    "",
-  ];
-
-  for (const r of rows) {
-    const parts = formatDateParts(r.auth_created_at ?? r.updated_at ?? null);
-    textBodyLines.push(
-      `  - ${r.full_name ?? "Not provided"} | ${r.email ?? "unknown"} | date=${parts.date} ${parts.time} | consent: ${formatBoolean(r.mailing_list_consent)}`,
-    );
-  }
-
-  textBodyLines.push("");
-  textBodyLines.push(`💻 Desktop Platform — Download requests last ${hours}h: ${windowCount} (all-time: ${total})`);
-  textBodyLines.push(downloadSection.text);
-
-
-  return { htmlBody, textBody: textBodyLines.join("\n") };
-};
 
 serve(async (req) => {
   const origin = req.headers.get("origin");
@@ -624,14 +284,15 @@ serve(async (req) => {
     details: (downloadDetails ?? []) as DownloadRequest[],
   };
 
-  const { htmlBody, textBody } = buildEmailBodies({
+  const emailInput = {
     rows,
     hours,
     downloadRequests,
     totalUsers: totalUsersCount ?? 0,
     reminderLogs: reminderRunLogs,
     github: { totalDownloads: ghTotalDownloads, last24h: ghLast24h, latestVersion: ghLatestVersion, latestDownloads: ghLatestDownloads },
-  });
+  };
+  const { htmlBody, textBody } = buildEmailBodies(emailInput);
 
   if (rows.length === 0 && downloadRequests.windowCount === 0) {
     // No new users AND no downloads: still return 200, avoid sending an empty email
@@ -651,7 +312,7 @@ serve(async (req) => {
     const emailService = new SimpleEmailService(fromUsers);
     await emailService.sendRawEmail({
       to: toEmail,
-      subject: `[Ten10] Daily Summary: +${rows.length} users (${totalUsersCount ?? 0} total), ${downloadRequests.windowCount} downloads`,
+      subject: generateDailySummarySubject(emailInput),
       textBody,
       htmlBody,
     });

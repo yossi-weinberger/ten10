@@ -79,6 +79,7 @@ export class SimpleEmailService {
     chomeshBalance: number | undefined,
     language: ReminderLanguage,
     fullName: string | null,
+    currency?: string | null,
   ): Promise<EmailResult> {
     try {
       console.log(`[EMAIL] Starting to send reminder email to ${userEmail}`);
@@ -102,6 +103,7 @@ export class SimpleEmailService {
         chomeshBalance,
         language,
         fullName,
+        currency,
         israelMonth: getIsraelMonth(),
         unsubscribeUrls,
       };
@@ -199,6 +201,7 @@ export class SimpleEmailService {
       chomeshBalance?: number;
       language: ReminderLanguage;
       full_name: string | null;
+      default_currency?: string | null;
     }>,
   ): Promise<EmailResult[]> {
     const results: EmailResult[] = [];
@@ -212,6 +215,7 @@ export class SimpleEmailService {
         u.chomeshBalance,
         u.language,
         u.full_name,
+        u.default_currency,
       );
       results.push(r);
       await this.sleep(100);

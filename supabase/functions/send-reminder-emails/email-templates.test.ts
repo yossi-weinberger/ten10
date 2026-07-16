@@ -1,6 +1,5 @@
-import { mkdirSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { EMAIL_TOKENS } from "../_shared/email-tokens.ts";
 import {
   extractFirstName,
   generateReminderEmailHTML,
@@ -21,11 +20,6 @@ const baseData = {
     allUrl: "https://ten10-app.com/unsubscribe?type=all",
   },
 };
-const hostedHeaderAssetUrl =
-  "https://ten10-app.com/email/reminder-header-blur.png";
-const invalidHeaderAssetUrl =
-  "https://invalid.example.test/email/reminder-header-blur.png";
-
 describe("reminder email templates", () => {
   it("classifies all balance states", () => {
     expect(getBalanceState(1)).toBe("outstanding");
@@ -45,19 +39,42 @@ describe("reminder email templates", () => {
     expect(html).toContain('dir="rtl"');
     expect(html).toContain("ערב טוב, יוסי");
     expect(html).toContain("יתרת המעשר שלך לתרומה היא");
-    expect(html).toContain("384.70");
+    expect(html).toContain("384.70 ₪");
     expect(html).toContain("כדאי לוודא שהוספת");
     expect(html).toContain("פינת החיזוק");
+    expect(html).toContain("border-right: 4px solid");
+    expect(html).toContain("אפשר לייבא אותן בקלות מקובץ Excel");
+    expect(html).not.toContain("#e8f3ee");
+    expect(html).not.toContain("#d7ebe2");
   });
 
-  it("renders credit without a minus sign", () => {
+  it("formats amounts with the user's default currency", () => {
+    const html = generateReminderEmailHTML({
+      ...baseData,
+      currency: "USD",
+    });
+    expect(html).toContain("384.70 $");
+    expect(html).not.toContain("₪");
+    expect(
+      generateReminderEmailSubject({
+        ...baseData,
+        language: "en",
+        currency: "EUR",
+      }),
+    ).toContain("€384.70");
+  });
+
+  it("renders credit without a minus sign and with A+B emphasis", () => {
     const html = generateReminderEmailHTML({
       ...baseData,
       titheBalance: -384.7,
     });
     expect(html).toContain("הינך נמצא בזכות של");
-    expect(html).toContain("384.70");
+    expect(html).toContain("384.70 ₪");
     expect(html).not.toContain("-384.70");
+    expect(html).toContain(">זכות</span>");
+    expect(html).toContain("#e8f3ee");
+    expect(html).toContain("#d7ebe2");
   });
 
   it("renders the settled state", () => {
@@ -81,8 +98,23 @@ describe("reminder email templates", () => {
     expect(html).toContain('dir="ltr"');
     expect(html).toContain("Good evening, Yossi");
     expect(html).toContain("Your remaining tithe balance is");
+    expect(html).toContain("₪384.70");
+    expect(html).toContain("border-left: 4px solid");
     expect(text).toContain("Good evening, Yossi");
     expect(text).toContain("Stop monthly reminders");
+  });
+
+  it("renders English credit badge", () => {
+    const html = generateReminderEmailHTML({
+      ...baseData,
+      language: "en",
+      fullName: "Yossi Weinberger",
+      titheBalance: -50,
+      currency: "USD",
+    });
+    expect(html).toContain(">Credit</span>");
+    expect(html).toContain("$50.00");
+    expect(html).toContain("#e8f3ee");
   });
 
   it("renders complete HTML and plain text without a name", () => {
@@ -125,12 +157,12 @@ describe("reminder email templates", () => {
     expect(html).not.toContain("next=<script>");
   });
 
-  it("contains the hosted header asset and cream fallback", () => {
+  it("uses the shared user-header gradient with cream fallback", () => {
     const html = generateReminderEmailHTML(baseData);
-    expect(html).toContain(
-      "https://ten10-app.com/email/reminder-header-blur.png",
-    );
+    expect(html).toContain("radial-gradient(circle at 105% -10%");
+    expect(html).toContain("radial-gradient(circle at -5% 115%");
     expect(html).toContain("#f9f6eb");
+    expect(html).not.toContain(EMAIL_TOKENS.headerBackgroundUrl);
   });
 
   it("uses the approved deep Ten10 teal", () => {
@@ -141,17 +173,23 @@ describe("reminder email templates", () => {
 
   it("uses the exact approved design tokens", () => {
     const html = generateReminderEmailHTML(baseData);
-    const fontStack =
-      "font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif";
+    const fontStack = `font-family: ${EMAIL_TOKENS.fontFamily}`;
 
-    expect(html).toContain("#11676a");
-    expect(html).toContain("#f0c000");
+    expect(html).toContain(EMAIL_TOKENS.colors.teal);
+    expect(html).toContain(EMAIL_TOKENS.colors.gold);
+    expect(html).toContain(EMAIL_TOKENS.colors.cream);
+    expect(html).toContain(EMAIL_TOKENS.colors.border);
+    expect(html).toContain(EMAIL_TOKENS.logoUrl);
+    expect(html).toContain("#f7f3e7");
+    expect(html).toContain("#e9e7df");
+    expect(html).toContain("border-radius: 8px");
     expect(html).not.toContain("#d9a441");
     expect(html).toContain(fontStack);
     expect(html).not.toContain("font-family: Arial, Helvetica, sans-serif");
     expect(html).toMatch(
-      /border-bottom: 1px solid #[0-9a-f]{6}[^>]*background-image:/,
+      /background-image: radial-gradient\([^>]*>/,
     );
+    expect(html).toContain(`border-bottom: 1px solid ${EMAIL_TOKENS.colors.border}`);
     expect(html).toMatch(
       /color: #11676a;[^>]*font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif;[^>]*font-size: 24px; font-weight: 500;[^>]*>ערב טוב, יוסי<\/td>/,
     );
@@ -176,57 +214,3 @@ describe("reminder email templates", () => {
   });
 
 });
-
-if (process.env.WRITE_EMAIL_PREVIEWS === "1") {
-  it("writes the manual inspection fixture matrix", () => {
-    const outputDirectory = resolve("tmp/reminder-email-previews");
-    mkdirSync(outputDirectory, { recursive: true });
-
-    const fixtures = [
-      ["reminder-he-outstanding.html", baseData],
-      ["reminder-he-credit.html", { ...baseData, titheBalance: -384.7 }],
-      ["reminder-he-settled.html", { ...baseData, titheBalance: 0 }],
-      [
-        "reminder-en-outstanding.html",
-        { ...baseData, language: "en" as const, fullName: "Yossi Weinberger" },
-      ],
-      ["reminder-no-name.html", { ...baseData, fullName: null }],
-      [
-        "reminder-long-name.html",
-        {
-          ...baseData,
-          language: "en" as const,
-          fullName:
-            "Alexandria-Cassandra Montgomery-Worthington the Third",
-        },
-      ],
-    ] as const;
-
-    for (const [filename, data] of fixtures) {
-      writeFileSync(
-        resolve(outputDirectory, filename),
-        generateReminderEmailHTML(data),
-        "utf8",
-      );
-    }
-  });
-
-  it("writes the image fallback fixture while narrow viewport inspection remains manual", () => {
-    const outputDirectory = resolve("tmp/reminder-email-previews");
-    mkdirSync(outputDirectory, { recursive: true });
-    const fixtureHtml = generateReminderEmailHTML({
-      ...baseData,
-      fullName: null,
-    }).replaceAll(hostedHeaderAssetUrl, invalidHeaderAssetUrl);
-
-    expect(fixtureHtml).toContain(invalidHeaderAssetUrl);
-    expect(fixtureHtml).not.toContain(hostedHeaderAssetUrl);
-    expect(fixtureHtml).toContain("#f9f6eb");
-
-    writeFileSync(
-      resolve(outputDirectory, "reminder-image-fallback-mobile.html"),
-      fixtureHtml,
-      "utf8",
-    );
-  });
-}

@@ -24,7 +24,12 @@ describe("reminder user RPC normalization", () => {
   it("normalizes every row in a valid RPC array", () => {
     expect(
       normalizeReminderUserRows([
-        { ...baseRow, language: "en", full_name: "Yossi Weinberger" },
+        {
+          ...baseRow,
+          language: "en",
+          full_name: "Yossi Weinberger",
+          default_currency: "usd",
+        },
         { ...baseRow, id: "user-456", language: null, full_name: 42 },
       ]),
     ).toEqual([
@@ -32,14 +37,33 @@ describe("reminder user RPC normalization", () => {
         ...baseRow,
         language: "en",
         full_name: "Yossi Weinberger",
+        default_currency: "USD",
       },
       {
         ...baseRow,
         id: "user-456",
         language: "he",
         full_name: null,
+        default_currency: "ILS",
       },
     ]);
+  });
+
+  it.each([undefined, null, "", "btc"])(
+    "falls back to ILS for invalid or missing currency %s",
+    (default_currency) => {
+      expect(
+        normalizeReminderUserRow({ ...baseRow, default_currency })
+          .default_currency,
+      ).toBe("ILS");
+    },
+  );
+
+  it("preserves a supported currency code", () => {
+    expect(
+      normalizeReminderUserRow({ ...baseRow, default_currency: "eur" })
+        .default_currency,
+    ).toBe("EUR");
   });
 
   it.each([undefined, null, "", "fr"])(

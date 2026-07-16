@@ -14,104 +14,75 @@ Copy the HTML and paste it into the Supabase Dashboard under:
 
 ```html
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he" dir="rtl">
   <head>
-    <meta charset="UTF-8" />
-    <style>
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f8fafc;
-        margin: 0;
-        padding: 0;
-        direction: rtl;
-        text-align: right;
-      }
-      .container {
-        max-width: 600px;
-        margin: 40px auto;
-        background-color: #ffffff;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        border-top: 6px solid #0d9488;
-      }
-      .header {
-        background-color: #ffffff;
-        padding: 40px 20px;
-        text-align: center;
-        border-bottom: 1px solid #e5e7eb;
-      }
-      .logo {
-        height: 60px;
-        width: auto;
-        margin-bottom: 10px;
-      }
-      .slogan {
-        color: #0d9488;
-        font-size: 14px;
-        margin: 0;
-        font-weight: 500;
-      }
-      .content {
-        padding: 40px 30px;
-        color: #374151;
-        font-size: 16px;
-        line-height: 1.6;
-      }
-      .title {
-        color: #111827;
-        font-size: 24px;
-        font-weight: 700;
-        margin-top: 0;
-        margin-bottom: 20px;
-      }
-      .button {
-        background-color: #0d9488;
-        color: #ffffff;
-        padding: 14px 32px;
-        text-decoration: none;
-        border-radius: 8px;
-        display: inline-block;
-        font-weight: 600;
-        font-size: 16px;
-        margin: 20px 0;
-      }
-      .footer {
-        background-color: #f9fafb;
-        padding: 30px;
-        text-align: center;
-        border-top: 1px solid #e5e7eb;
-        font-size: 12px;
-        color: #6b7280;
-      }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <img
-          src="https://ten10-app.com/logo/logo-wide.png"
-          alt="Ten10 Logo"
-          class="logo"
-        />
-        <p class="slogan">ניהול מעשרות ותקציב פיננסי פשוט ומדויק</p>
-      </div>
-      <div class="content">
-        <h2 class="title">ברוכים הבאים ל-Ten10!</h2>
-        <p>שמחים שהצטרפת אלינו.</p>
-        <p>
-          כדי להתחיל להשתמש במערכת, אנא אשר את כתובת האימייל שלך על ידי לחיצה על
-          הכפתור למטה:
-        </p>
-        <div style="text-align: center;">
-          <a href="{{ .ConfirmationURL }}" class="button">אשר הרשמה</a>
-        </div>
-        <p>אם לא נרשמת ל-Ten10, ניתן להתעלם ממייל זה.</p>
-      </div>
-      <div class="footer">
-        <p>© 2025 Ten10. כל הזכויות שמורות.</p>
-      </div>
-    </div>
+  <body style="margin: 0; padding: 0; background-color: #e9e7df; direction: rtl; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#e9e7df" style="width: 100%; margin: 0; padding: 0; background-color: #e9e7df; border-collapse: collapse;">
+      <tr>
+        <td align="center" style="padding: 24px 12px;">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" bgcolor="#f7f3e7" style="width: 100%; max-width: 600px; background-color: #f7f3e7; border-collapse: collapse; border: 1px solid #d4d0c3;">
+            <tr>
+              <td align="center" bgcolor="#f9f6eb" style="padding: 29px 28px 22px 28px; background-color: #f9f6eb; background-image: radial-gradient(circle at 105% -10%, rgba(17,103,106,.26), transparent 46%), radial-gradient(circle at -5% 115%, rgba(240,192,0,.31), transparent 42%); background-repeat: no-repeat; border-bottom: 1px solid #ded9ca; text-align: center;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse;">
+                  <tr>
+                    <td align="center" style="padding: 0;">
+                      <img src="https://ten10-app.com/logo/logo-wide.png" width="142" alt="Ten10" style="display: block; width: 142px; max-width: 142px; height: auto; margin: 0 auto; border: 0; outline: none; text-decoration: none;">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding: 13px 0 9px 0;">
+                      <table role="presentation" width="142" cellspacing="0" cellpadding="0" border="0" style="width: 142px; border-collapse: collapse;">
+                        <tr>
+                          <td bgcolor="#f0c000" height="4" style="height: 4px; line-height: 4px; font-size: 0; background-color: #f0c000;">&nbsp;</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="color: #11676a; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 12px; font-weight: 600; line-height: 18px; padding: 0;">ניהול מעשרות ותקציב פיננסי פשוט ומדויק</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 31px 32px 28px 32px; color: #243834; direction: rtl; text-align: right; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; background-color: #f7f3e7;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 0 0 8px 0; color: #11676a; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 24px; font-weight: 700; line-height: 34px;">ברוכים הבאים ל-Ten10!</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0 0 12px 0; color: #4a5955; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 24px;">שמחים שהצטרפת אלינו.</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0 0 24px 0; color: #4a5955; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 24px;">כדי להתחיל להשתמש במערכת, אנא אשר את כתובת האימייל שלך על ידי לחיצה על הכפתור למטה:</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0 0 22px 0;">
+                      <a href="{{ .ConfirmationURL }}" style="display: block; background-color: #11676a; color: #fffdf8 !important; border-radius: 8px; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 15px; font-weight: 700; line-height: 20px; padding: 15px 22px; text-align: center; text-decoration: none;">אשר הרשמה</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0;">
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f9f6eb" style="background-color: #f9f6eb; border-collapse: collapse; border-radius: 8px;">
+                        <tr>
+                          <td style="padding: 14px 16px; color: #4a5955; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 13px; line-height: 22px; text-align: right; border-right: 4px solid #f0c000;">אם לא נרשמת ל-Ten10, ניתן להתעלם ממייל זה.</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" bgcolor="#efebdf" style="padding: 19px 24px; background-color: #efebdf; border-top: 1px solid #ded9ca; color: #6b7471; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 11px; line-height: 18px;">© 2025 Ten10. כל הזכויות שמורות.</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>
 ```
@@ -126,101 +97,75 @@ Copy the HTML and paste it into the Supabase Dashboard under:
 
 ```html
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he" dir="rtl">
   <head>
-    <meta charset="UTF-8" />
-    <style>
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f8fafc;
-        margin: 0;
-        padding: 0;
-        direction: rtl;
-        text-align: right;
-      }
-      .container {
-        max-width: 600px;
-        margin: 40px auto;
-        background-color: #ffffff;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        border-top: 6px solid #0d9488;
-      }
-      .header {
-        background-color: #ffffff;
-        padding: 40px 20px;
-        text-align: center;
-        border-bottom: 1px solid #e5e7eb;
-      }
-      .logo {
-        height: 60px;
-        width: auto;
-        margin-bottom: 10px;
-      }
-      .slogan {
-        color: #0d9488;
-        font-size: 14px;
-        margin: 0;
-        font-weight: 500;
-      }
-      .content {
-        padding: 40px 30px;
-        color: #374151;
-        font-size: 16px;
-        line-height: 1.6;
-      }
-      .title {
-        color: #111827;
-        font-size: 24px;
-        font-weight: 700;
-        margin-top: 0;
-        margin-bottom: 20px;
-      }
-      .button {
-        background-color: #0d9488;
-        color: #ffffff;
-        padding: 14px 32px;
-        text-decoration: none;
-        border-radius: 8px;
-        display: inline-block;
-        font-weight: 600;
-        font-size: 16px;
-        margin: 20px 0;
-      }
-      .footer {
-        background-color: #f9fafb;
-        padding: 30px;
-        text-align: center;
-        border-top: 1px solid #e5e7eb;
-        font-size: 12px;
-        color: #6b7280;
-      }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <img
-          src="https://ten10-app.com/logo/logo-wide.png"
-          alt="Ten10 Logo"
-          class="logo"
-        />
-        <p class="slogan">ניהול מעשרות ותקציב פיננסי פשוט ומדויק</p>
-      </div>
-      <div class="content">
-        <h2 class="title">איפוס סיסמה</h2>
-        <p>קיבלנו בקשה לאיפוס הסיסמה שלך.</p>
-        <p>לחץ על הכפתור למטה כדי לבחור סיסמה חדשה:</p>
-        <div style="text-align: center;">
-          <a href="{{ .ConfirmationURL }}" class="button">אפס סיסמה</a>
-        </div>
-        <p>אם לא ביקשת לאפס את הסיסמה, ניתן להתעלם ממייל זה בבטחה.</p>
-      </div>
-      <div class="footer">
-        <p>© 2025 Ten10. כל הזכויות שמורות.</p>
-      </div>
-    </div>
+  <body style="margin: 0; padding: 0; background-color: #e9e7df; direction: rtl; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#e9e7df" style="width: 100%; margin: 0; padding: 0; background-color: #e9e7df; border-collapse: collapse;">
+      <tr>
+        <td align="center" style="padding: 24px 12px;">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" bgcolor="#f7f3e7" style="width: 100%; max-width: 600px; background-color: #f7f3e7; border-collapse: collapse; border: 1px solid #d4d0c3;">
+            <tr>
+              <td align="center" bgcolor="#f9f6eb" style="padding: 29px 28px 22px 28px; background-color: #f9f6eb; background-image: radial-gradient(circle at 105% -10%, rgba(17,103,106,.26), transparent 46%), radial-gradient(circle at -5% 115%, rgba(240,192,0,.31), transparent 42%); background-repeat: no-repeat; border-bottom: 1px solid #ded9ca; text-align: center;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse;">
+                  <tr>
+                    <td align="center" style="padding: 0;">
+                      <img src="https://ten10-app.com/logo/logo-wide.png" width="142" alt="Ten10" style="display: block; width: 142px; max-width: 142px; height: auto; margin: 0 auto; border: 0; outline: none; text-decoration: none;">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding: 13px 0 9px 0;">
+                      <table role="presentation" width="142" cellspacing="0" cellpadding="0" border="0" style="width: 142px; border-collapse: collapse;">
+                        <tr>
+                          <td bgcolor="#f0c000" height="4" style="height: 4px; line-height: 4px; font-size: 0; background-color: #f0c000;">&nbsp;</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="color: #11676a; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 12px; font-weight: 600; line-height: 18px; padding: 0;">ניהול מעשרות ותקציב פיננסי פשוט ומדויק</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 31px 32px 28px 32px; color: #243834; direction: rtl; text-align: right; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; background-color: #f7f3e7;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 0 0 8px 0; color: #11676a; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 24px; font-weight: 700; line-height: 34px;">איפוס סיסמה</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0 0 12px 0; color: #4a5955; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 24px;">קיבלנו בקשה לאיפוס הסיסמה שלך.</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0 0 24px 0; color: #4a5955; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 24px;">לחץ על הכפתור למטה כדי לבחור סיסמה חדשה:</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0 0 22px 0;">
+                      <a href="{{ .ConfirmationURL }}" style="display: block; background-color: #11676a; color: #fffdf8 !important; border-radius: 8px; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 15px; font-weight: 700; line-height: 20px; padding: 15px 22px; text-align: center; text-decoration: none;">אפס סיסמה</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0;">
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f9f6eb" style="background-color: #f9f6eb; border-collapse: collapse; border-radius: 8px;">
+                        <tr>
+                          <td style="padding: 14px 16px; color: #4a5955; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 13px; line-height: 22px; text-align: right; border-right: 4px solid #f0c000;">אם לא ביקשת לאפס את הסיסמה, ניתן להתעלם ממייל זה בבטחה.</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" bgcolor="#efebdf" style="padding: 19px 24px; background-color: #efebdf; border-top: 1px solid #ded9ca; color: #6b7471; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 11px; line-height: 18px;">© 2025 Ten10. כל הזכויות שמורות.</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>
 ```
@@ -235,101 +180,75 @@ Copy the HTML and paste it into the Supabase Dashboard under:
 
 ```html
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he" dir="rtl">
   <head>
-    <meta charset="UTF-8" />
-    <style>
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f8fafc;
-        margin: 0;
-        padding: 0;
-        direction: rtl;
-        text-align: right;
-      }
-      .container {
-        max-width: 600px;
-        margin: 40px auto;
-        background-color: #ffffff;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        border-top: 6px solid #0d9488;
-      }
-      .header {
-        background-color: #ffffff;
-        padding: 40px 20px;
-        text-align: center;
-        border-bottom: 1px solid #e5e7eb;
-      }
-      .logo {
-        height: 60px;
-        width: auto;
-        margin-bottom: 10px;
-      }
-      .slogan {
-        color: #0d9488;
-        font-size: 14px;
-        margin: 0;
-        font-weight: 500;
-      }
-      .content {
-        padding: 40px 30px;
-        color: #374151;
-        font-size: 16px;
-        line-height: 1.6;
-      }
-      .title {
-        color: #111827;
-        font-size: 24px;
-        font-weight: 700;
-        margin-top: 0;
-        margin-bottom: 20px;
-      }
-      .button {
-        background-color: #0d9488;
-        color: #ffffff;
-        padding: 14px 32px;
-        text-decoration: none;
-        border-radius: 8px;
-        display: inline-block;
-        font-weight: 600;
-        font-size: 16px;
-        margin: 20px 0;
-      }
-      .footer {
-        background-color: #f9fafb;
-        padding: 30px;
-        text-align: center;
-        border-top: 1px solid #e5e7eb;
-        font-size: 12px;
-        color: #6b7280;
-      }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <img
-          src="https://ten10-app.com/logo/logo-wide.png"
-          alt="Ten10 Logo"
-          class="logo"
-        />
-        <p class="slogan">ניהול מעשרות ותקציב פיננסי פשוט ומדויק</p>
-      </div>
-      <div class="content">
-        <h2 class="title">התחברות ל-Ten10</h2>
-        <p>ביקשת להיכנס למערכת באמצעות קישור קסם.</p>
-        <p>לחץ על הכפתור למטה כדי להתחבר מיד:</p>
-        <div style="text-align: center;">
-          <a href="{{ .ConfirmationURL }}" class="button">התחבר עכשיו</a>
-        </div>
-        <p>אם לא ביקשת להתחבר, ניתן להתעלם ממייל זה.</p>
-      </div>
-      <div class="footer">
-        <p>© 2025 Ten10. כל הזכויות שמורות.</p>
-      </div>
-    </div>
+  <body style="margin: 0; padding: 0; background-color: #e9e7df; direction: rtl; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#e9e7df" style="width: 100%; margin: 0; padding: 0; background-color: #e9e7df; border-collapse: collapse;">
+      <tr>
+        <td align="center" style="padding: 24px 12px;">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" bgcolor="#f7f3e7" style="width: 100%; max-width: 600px; background-color: #f7f3e7; border-collapse: collapse; border: 1px solid #d4d0c3;">
+            <tr>
+              <td align="center" bgcolor="#f9f6eb" style="padding: 29px 28px 22px 28px; background-color: #f9f6eb; background-image: radial-gradient(circle at 105% -10%, rgba(17,103,106,.26), transparent 46%), radial-gradient(circle at -5% 115%, rgba(240,192,0,.31), transparent 42%); background-repeat: no-repeat; border-bottom: 1px solid #ded9ca; text-align: center;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse;">
+                  <tr>
+                    <td align="center" style="padding: 0;">
+                      <img src="https://ten10-app.com/logo/logo-wide.png" width="142" alt="Ten10" style="display: block; width: 142px; max-width: 142px; height: auto; margin: 0 auto; border: 0; outline: none; text-decoration: none;">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding: 13px 0 9px 0;">
+                      <table role="presentation" width="142" cellspacing="0" cellpadding="0" border="0" style="width: 142px; border-collapse: collapse;">
+                        <tr>
+                          <td bgcolor="#f0c000" height="4" style="height: 4px; line-height: 4px; font-size: 0; background-color: #f0c000;">&nbsp;</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="color: #11676a; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 12px; font-weight: 600; line-height: 18px; padding: 0;">ניהול מעשרות ותקציב פיננסי פשוט ומדויק</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 31px 32px 28px 32px; color: #243834; direction: rtl; text-align: right; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; background-color: #f7f3e7;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 0 0 8px 0; color: #11676a; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 24px; font-weight: 700; line-height: 34px;">התחברות ל-Ten10</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0 0 12px 0; color: #4a5955; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 24px;">ביקשת להיכנס למערכת באמצעות קישור קסם.</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0 0 24px 0; color: #4a5955; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 24px;">לחץ על הכפתור למטה כדי להתחבר מיד:</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0 0 22px 0;">
+                      <a href="{{ .ConfirmationURL }}" style="display: block; background-color: #11676a; color: #fffdf8 !important; border-radius: 8px; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 15px; font-weight: 700; line-height: 20px; padding: 15px 22px; text-align: center; text-decoration: none;">התחבר עכשיו</a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0;">
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f9f6eb" style="background-color: #f9f6eb; border-collapse: collapse; border-radius: 8px;">
+                        <tr>
+                          <td style="padding: 14px 16px; color: #4a5955; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 13px; line-height: 22px; text-align: right; border-right: 4px solid #f0c000;">אם לא ביקשת להתחבר, ניתן להתעלם ממייל זה.</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" bgcolor="#efebdf" style="padding: 19px 24px; background-color: #efebdf; border-top: 1px solid #ded9ca; color: #6b7471; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 11px; line-height: 18px;">© 2025 Ten10. כל הזכויות שמורות.</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>
 ```
@@ -344,100 +263,66 @@ Copy the HTML and paste it into the Supabase Dashboard under:
 
 ```html
 <!DOCTYPE html>
-<html dir="rtl" lang="he">
+<html lang="he" dir="rtl">
   <head>
-    <meta charset="UTF-8" />
-    <style>
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f8fafc;
-        margin: 0;
-        padding: 0;
-        direction: rtl;
-        text-align: right;
-      }
-      .container {
-        max-width: 600px;
-        margin: 40px auto;
-        background-color: #ffffff;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        border-top: 6px solid #0d9488;
-      }
-      .header {
-        background-color: #ffffff;
-        padding: 40px 20px;
-        text-align: center;
-        border-bottom: 1px solid #e5e7eb;
-      }
-      .logo {
-        height: 60px;
-        width: auto;
-        margin-bottom: 10px;
-      }
-      .slogan {
-        color: #0d9488;
-        font-size: 14px;
-        margin: 0;
-        font-weight: 500;
-      }
-      .content {
-        padding: 40px 30px;
-        color: #374151;
-        font-size: 16px;
-        line-height: 1.6;
-      }
-      .title {
-        color: #111827;
-        font-size: 24px;
-        font-weight: 700;
-        margin-top: 0;
-        margin-bottom: 20px;
-      }
-      .button {
-        background-color: #0d9488;
-        color: #ffffff;
-        padding: 14px 32px;
-        text-decoration: none;
-        border-radius: 8px;
-        display: inline-block;
-        font-weight: 600;
-        font-size: 16px;
-        margin: 20px 0;
-      }
-      .footer {
-        background-color: #f9fafb;
-        padding: 30px;
-        text-align: center;
-        border-top: 1px solid #e5e7eb;
-        font-size: 12px;
-        color: #6b7280;
-      }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
-  <body>
-    <div class="container">
-      <div class="header">
-        <img
-          src="https://ten10-app.com/logo/logo-wide.png"
-          alt="Ten10 Logo"
-          class="logo"
-        />
-        <p class="slogan">ניהול מעשרות ותקציב פיננסי פשוט ומדויק</p>
-      </div>
-      <div class="content">
-        <h2 class="title">הוזמנת ל-Ten10!</h2>
-        <p>הוזמנת להצטרף לניהול המעשרות והתקציב ב-Ten10.</p>
-        <p>לחץ על הכפתור למטה כדי לקבל את ההזמנה וליצור את החשבון שלך:</p>
-        <div style="text-align: center;">
-          <a href="{{ .ConfirmationURL }}" class="button">קבל הזמנה</a>
-        </div>
-      </div>
-      <div class="footer">
-        <p>© 2025 Ten10. כל הזכויות שמורות.</p>
-      </div>
-    </div>
+  <body style="margin: 0; padding: 0; background-color: #e9e7df; direction: rtl; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#e9e7df" style="width: 100%; margin: 0; padding: 0; background-color: #e9e7df; border-collapse: collapse;">
+      <tr>
+        <td align="center" style="padding: 24px 12px;">
+          <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" bgcolor="#f7f3e7" style="width: 100%; max-width: 600px; background-color: #f7f3e7; border-collapse: collapse; border: 1px solid #d4d0c3;">
+            <tr>
+              <td align="center" bgcolor="#f9f6eb" style="padding: 29px 28px 22px 28px; background-color: #f9f6eb; background-image: radial-gradient(circle at 105% -10%, rgba(17,103,106,.26), transparent 46%), radial-gradient(circle at -5% 115%, rgba(240,192,0,.31), transparent 42%); background-repeat: no-repeat; border-bottom: 1px solid #ded9ca; text-align: center;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse;">
+                  <tr>
+                    <td align="center" style="padding: 0;">
+                      <img src="https://ten10-app.com/logo/logo-wide.png" width="142" alt="Ten10" style="display: block; width: 142px; max-width: 142px; height: auto; margin: 0 auto; border: 0; outline: none; text-decoration: none;">
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding: 13px 0 9px 0;">
+                      <table role="presentation" width="142" cellspacing="0" cellpadding="0" border="0" style="width: 142px; border-collapse: collapse;">
+                        <tr>
+                          <td bgcolor="#f0c000" height="4" style="height: 4px; line-height: 4px; font-size: 0; background-color: #f0c000;">&nbsp;</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="color: #11676a; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 12px; font-weight: 600; line-height: 18px; padding: 0;">ניהול מעשרות ותקציב פיננסי פשוט ומדויק</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 31px 32px 28px 32px; color: #243834; direction: rtl; text-align: right; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; background-color: #f7f3e7;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 0 0 8px 0; color: #11676a; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 24px; font-weight: 700; line-height: 34px;">הוזמנת ל-Ten10!</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0 0 12px 0; color: #4a5955; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 24px;">הוזמנת להצטרף לניהול המעשרות והתקציב ב-Ten10.</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0 0 24px 0; color: #4a5955; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 15px; line-height: 24px;">לחץ על הכפתור למטה כדי לקבל את ההזמנה וליצור את החשבון שלך:</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 0;">
+                      <a href="{{ .ConfirmationURL }}" style="display: block; background-color: #11676a; color: #fffdf8 !important; border-radius: 8px; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 15px; font-weight: 700; line-height: 20px; padding: 15px 22px; text-align: center; text-decoration: none;">קבל הזמנה</a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" bgcolor="#efebdf" style="padding: 19px 24px; background-color: #efebdf; border-top: 1px solid #ded9ca; color: #6b7471; font-family: Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif; font-size: 11px; line-height: 18px;">© 2025 Ten10. כל הזכויות שמורות.</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   </body>
 </html>
 ```
