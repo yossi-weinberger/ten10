@@ -4,6 +4,25 @@
 
 This document provides a comprehensive guide to the email reminders feature implementation in the Ten10 application. The feature allows users to receive monthly email reminders about their tithe obligations, with personalized content based on their current tithe balance.
 
+### Deployment Status
+
+The legacy reminder pipeline is operational in production. The localized
+redesign documented here is implemented and locally verified on this branch,
+but it is not yet deployed production behavior. Applying the recipient RPC
+migration, deploying the Edge Function and static blur asset, and completing
+manual email/client verification are pending.
+
+**Editorial Go/No-Go gate**:
+
+- Product approver: **pending**
+- Rabbinic approver: **pending**
+- Approval date: **pending**
+- Production rollout is **forbidden** until both approvers approve all 24
+  localized encouragement items.
+
+The content is not editorially approved merely because the implementation and
+automated tests are complete.
+
 ## Table of Contents
 
 1. [Feature Overview](#feature-overview)
@@ -25,10 +44,11 @@ The email reminders feature sends personalized monthly reminders to users about 
 
 ### Key Features
 
-- **User-configurable reminder days**: Users can choose from 4 preset days (1st, 10th, 15th, 20th of each month)
-- **Personalized content**: Emails include the user's current tithe balance and personalized messaging
-- **Hebrew RTL support**: Full right-to-left layout support for Hebrew content
-- **Platform-specific implementation**: Web users receive email reminders, desktop users will receive local notifications (future feature)
+- **Existing reminder schedule**: The frontend and Edge Function support 6 preset days (1st, 5th, 10th, 15th, 20th, 25th of each month)
+- **Localized redesign (pending deployment)**: The branch implementation adds an optional first-name greeting and monthly encouragement
+- **Localized copy (pending deployment)**: Subject, HTML, and plain-text bodies use Hebrew or English based on `profiles.client_preferences.language` (Hebrew fallback)
+- **Direction support (pending deployment)**: Dynamic Hebrew RTL / English LTR layout
+- **Platform-specific implementation**: Web users receive email reminders; desktop users receive native system notifications
 
 ### User Flow
 
@@ -42,16 +62,11 @@ The email reminders feature sends personalized monthly reminders to users about 
 ### High-Level Architecture
 
 ```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   Supabase       │    │   AWS SES       │
-│   (Settings)    │───▶│   (Database)     │───▶│   (Email)       │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-                              │
-                              ▼
-                       ┌──────────────────┐
-                       │  Edge Function   │
-                       │  (Cron Job)      │
-                       └──────────────────┘
+Frontend settings ──write preferences──▶ Supabase profiles
+                                             │
+                                             │ read recipients and balances
+                                             ▼
+Cron ──invoke with service role──▶ Reminder Edge Function ──send──▶ AWS SES
 ```
 
 ### Components
@@ -64,21 +79,17 @@ The email reminders feature sends personalized monthly reminders to users about 
 
 ## Database Schema
 
-### Profiles Table Updates
+### Profile Reminder Fields
 
-The `profiles` table was extended with reminder-related columns:
+The running application uses `profiles.reminder_enabled`,
+`profiles.reminder_day_of_month`, `profiles.mailing_list_consent`,
+`profiles.full_name`, and `profiles.client_preferences`.
 
-```sql
--- Added columns to profiles table
-ALTER TABLE public.profiles
-ADD COLUMN reminder_enabled BOOLEAN DEFAULT false,
-ADD COLUMN reminder_day_of_month INTEGER DEFAULT 1;
-
--- Constraint for valid reminder days
-ALTER TABLE public.profiles
-ADD CONSTRAINT check_reminder_day_of_month
-CHECK (reminder_day_of_month = ANY (ARRAY[1, 7, 10, 15, 20]));
-```
+The frontend and Edge Function currently support reminder days
+`1, 5, 10, 15, 20, 25`. The localized-reminder feature migration in this
+repository versions the recipient RPC only; it does not add or alter a
+database constraint for these day values. Do not infer constraint migration
+coverage from this guide.
 
 ### RPC Function for User Retrieval
 
@@ -88,27 +99,43 @@ A dedicated RPC function was created to efficiently retrieve users with their em
 CREATE OR REPLACE FUNCTION get_reminder_users_with_emails(reminder_day INTEGER)
 RETURNS TABLE (
   id UUID,
-  email VARCHAR(255),
+  email VARCHAR,
   reminder_enabled BOOLEAN,
-  reminder_day_of_month INTEGER
+  reminder_day_of_month INTEGER,
+  full_name TEXT,
+  language TEXT
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = public
 AS $$
 BEGIN
   RETURN QUERY
   SELECT
     p.id,
-    u.email,
+    u.email::varchar,
     p.reminder_enabled,
-    p.reminder_day_of_month
-  FROM profiles p
+    p.reminder_day_of_month,
+    p.full_name,
+    CASE
+      WHEN p.client_preferences->>'language' = 'en' THEN 'en'
+      ELSE 'he'
+    END::text AS language
+  FROM public.profiles p
   JOIN auth.users u ON p.id = u.id
   WHERE p.reminder_enabled = true
-  AND p.reminder_day_of_month = reminder_day;
+    AND p.reminder_day_of_month = reminder_day
+    AND coalesce(p.mailing_list_consent, false) = true
+    AND u.email IS NOT NULL;
 END;
 $$;
 ```
+
+**RPC return fields**: `id`, `email`, `reminder_enabled`, `reminder_day_of_month`, `full_name`, `language`
+
+**Language normalization**: The RPC reads `profiles.client_preferences.language`. Only `'en'` maps to English; all other values (including `NULL`) resolve to Hebrew. The Edge Function applies the same rule via `normalizeReminderLanguage()` in `email-copy.ts`.
+
+**Access control**: Callable by `service_role` only (revoked from `anon` and `authenticated`).
 
 ## Frontend Implementation
 
@@ -208,232 +235,178 @@ TXT: v=DMARC1; p=quarantine; rua=mailto:dmarc@ten10-app.com
 
 ### Modular Architecture
 
-The Edge Function has been refactored into a clean, modular architecture for better maintainability:
+The Edge Function uses a clean, modular architecture:
 
-**File Structure**:
+**File Structure** (reminder function):
+
+```
+supabase/functions/send-reminder-emails/
+├── index.ts                 # Entry point, auth, Israel/Shabbat scheduling
+├── user-service.ts          # RPC calls for users and tithe balances
+├── reminder-user.ts         # Runtime normalization for recipient RPC rows
+├── email-copy.ts            # Localized strings, 12 monthly encouragements
+├── email-templates.ts       # HTML, plain-text, and subject generation
+├── simple-email-service.ts  # AWS SES Raw MIME (List-Unsubscribe headers)
+└── jwt-utils.ts             # Unsubscribe JWT URL generation
+```
+
+**Shared utilities** (other email functions):
 
 ```
 supabase/functions/
 ├── _shared/
 │   ├── cors.ts               # CORS headers utility
-│   ├── email-design.ts       # Shared email design system (Theme, Header, Styles)
-│   └── simple-email-service.ts # AWS SES email sending utility
-├── send-reminder-emails/
-│   ├── index.ts              # Main function entry point
-│   ├── email-templates.ts    # Email HTML templates (uses _shared/email-design.ts)
-│   ├── user-service.ts       # User data fetching and tithe calculations
-│   └── jwt-utils.ts          # JWT handling
-├── send-contact-email/       # Contact form emails (uses _shared/email-design.ts)
-├── send-new-user-email/      # Daily new user summary (uses _shared/email-design.ts)
-└── verify-captcha/           # Cloudflare Turnstile verification
+│   └── email-design.ts       # Shared design system (contact/new-user emails)
+├── send-contact-email/
+├── send-new-user-email/
+└── verify-captcha/
 ```
 
-### Shared Design System
+### Localization Pipeline
 
-All email functions now use a shared design system defined in `supabase/functions/_shared/email-design.ts`. This ensures consistency across all transactional emails.
+1. `get_reminder_users_with_emails` returns `language` from `client_preferences.language` (Hebrew fallback).
+2. `UserService` maps every RPC row, normalizes missing/invalid language to
+   Hebrew and non-string `full_name` to `null`, then passes recipient data and
+   tithe balances to `SimpleEmailService`.
+3. `email-copy.ts` provides locale-specific copy and 12 monthly encouragement entries.
+4. `getIsraelMonth()` selects the encouragement index using `Asia/Jerusalem`.
+5. `email-templates.ts` generates localized subject, HTML, and plain text.
+6. `extractFirstName(full_name)` adds an optional first-name greeting.
+7. `simple-email-service.ts` sends multipart MIME with `List-Unsubscribe` headers.
 
-**Key features of the shared design:**
-
-- **Centralized Theme**: Colors, fonts, and logo URL are defined in one place.
-- **Consistent Header**: A `getEmailHeader()` function generates the same branded header for all emails.
-- **RTL Support**: Explicit styles for Right-to-Left languages (Hebrew).
-- **Brand Identity**: Prominent logo and teal/gold color scheme.
-
-### Main Function (Simplified)
+### Main Function (Overview)
 
 **File**: `supabase/functions/send-reminder-emails/index.ts`
 
+Key behaviors:
+
+- Authorization accepts service role keys or valid JWTs; test mode requires service role.
+- Day-of-month and day-of-week use `Asia/Jerusalem` (not UTC).
+- Reminder days: `[1, 5, 10, 15, 20, 25]`.
+- Test mode (`{"test": true}`) processes day **25** users and bypasses the day check.
+- Shabbat handling: skips Friday/Saturday (Israel), with Thursday/Sunday makeup sends.
+- Orchestrates `UserService` and `SimpleEmailService`; logs runs to `reminder_run_logs`.
+
 ```typescript
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { EmailService } from "./email-service.ts";
 import { UserService } from "./user-service.ts";
+import { SimpleEmailService } from "./simple-email-service.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+const reminderDays = [1, 5, 10, 15, 20, 25];
+const finalTestDay = isTest ? 25 : effectiveDay;
 
-serve(async (req) => {
-  // CORS handling
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
-  try {
-    // Initialize services
-    const userService = new UserService();
-    const emailService = new EmailService();
-
-    // Get current date and check if it's a reminder day
-    const currentDay = new Date().getDate();
-    const reminderDays = [1, 7, 10, 15, 20]; // 7 added for testing
-
-    // Test mode support
-    const body = await req.json().catch(() => ({}));
-    const isTest = body.test === true;
-
-    if (!reminderDays.includes(currentDay) && !isTest) {
-      return new Response(
-        JSON.stringify({
-          message: `Today (${currentDay}) is not a reminder day. Reminder days: ${reminderDays.join(
-            ", "
-          )}`,
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        }
-      );
-    }
-
-    // Get users with tithe balances
-    const testDay = isTest ? 7 : currentDay;
-    const usersWithBalances = await userService.getUsersWithTitheBalances(
-      testDay
-    );
-
-    if (usersWithBalances.length === 0) {
-      return new Response(
-        JSON.stringify({
-          message: `No users found with reminders enabled for day ${testDay}`,
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        }
-      );
-    }
-
-    // Send bulk reminder emails
-    const results = await emailService.sendBulkReminders(usersWithBalances);
-
-    return new Response(
-      JSON.stringify({
-        message: `Processed ${
-          usersWithBalances.length
-        } users for day ${testDay}${isTest ? " (TEST MODE)" : ""}`,
-        results,
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      }
-    );
-  } catch (error) {
-    console.error("Error in send-reminder-emails function:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
-  }
-});
+const usersWithBalances =
+  await userService.getUsersWithTitheBalances(finalTestDay);
+const results = await emailService.sendBulkReminders(usersWithBalances);
 ```
 
 ### Modular Components
+
+#### Email Copy Module
+
+**File**: `supabase/functions/send-reminder-emails/email-copy.ts`
+
+```typescript
+export type ReminderLanguage = "he" | "en";
+
+export function normalizeReminderLanguage(value: unknown): ReminderLanguage {
+  return value === "en" ? "en" : "he";
+}
+
+export function getMonthlyEncouragement(
+  language: ReminderLanguage,
+  month: number,
+): MonthlyEncouragement {
+  return REMINDER_COPY[language].monthlyEncouragements[month - 1];
+}
+
+export function getIsraelMonth(date = new Date()): number {
+  return Number(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Jerusalem",
+      month: "numeric",
+    }).format(date),
+  );
+}
+```
+
+Each locale in `REMINDER_COPY` contains 12 `monthlyEncouragements` entries (Hebrew and English).
 
 #### Email Templates Module
 
 **File**: `supabase/functions/send-reminder-emails/email-templates.ts`
 
 ```typescript
-import { EMAIL_THEME, getEmailHeader } from "../_shared/email-design.ts";
+import { REMINDER_COPY, getMonthlyEncouragement } from "./email-copy.ts";
 
 export interface EmailTemplateData {
   titheBalance: number;
-  isPositive: boolean;
-  isNegative: boolean;
-  userName?: string;
-  unsubscribeUrls?: {
-    reminderUrl: string;
-    allUrl: string;
-  };
+  language: ReminderLanguage;
+  fullName?: string | null;
+  israelMonth: number;
+  unsubscribeUrls?: { reminderUrl: string; allUrl: string };
 }
 
-export function generateReminderEmailHTML(data: EmailTemplateData): string {
-  // Uses EMAIL_THEME for colors and fonts
-  // Uses getEmailHeader("he") for the branded header
-  // Includes explicit direction: rtl and text-align: right styles
-  // ...
+const HEADER_ASSET_URL =
+  "https://ten10-app.com/email/reminder-header-blur.png";
+const CREAM = "#f9f6eb";
+
+export function extractFirstName(fullName: string | null | undefined): string | undefined {
+  const firstName = fullName?.trim().split(/\s+/)[0];
+  return firstName || undefined;
 }
+
+export function generateReminderEmailHTML(data: EmailTemplateData): string { /* ... */ }
+export function generateReminderEmailText(data: EmailTemplateData): string { /* ... */ }
+export function generateReminderEmailSubject(data: EmailTemplateData): string { /* ... */ }
 ```
+
+Balance amounts use brand teal (`#11676a`) for all states — outstanding,
+credit, and settled. The header uses `HEADER_ASSET_URL` with cream (`#f9f6eb`)
+fallback.
 
 #### Email Service Module
 
-**File**: `supabase/functions/send-reminder-emails/email-service.ts`
+**File**: `supabase/functions/send-reminder-emails/simple-email-service.ts`
 
 ```typescript
-export class EmailService {
-  private sesClient: SESv2Client;
-  private fromEmail: string;
-
-  constructor() {
-    this.sesClient = new SESv2Client({
-      region: Deno.env.get("AWS_REGION") ?? "eu-central-1",
-      credentials: {
-        accessKeyId: Deno.env.get("AWS_ACCESS_KEY_ID") ?? "",
-        secretAccessKey: Deno.env.get("AWS_SECRET_ACCESS_KEY") ?? "",
-      },
-    });
-
-    this.fromEmail =
-      Deno.env.get("SES_FROM") ?? "reminder-noreply@ten10-app.com";
-  }
-
-  async sendBulkReminders(
-    users: Array<{ id: string; email: string; titheBalance: number }>
-  ): Promise<EmailResult[]> {
-    const results: EmailResult[] = [];
-
-    // Process emails sequentially to avoid rate limiting
+export class SimpleEmailService {
+  async sendBulkReminders(users: UserWithTitheBalance[]): Promise<EmailResult[]> {
     for (const user of users) {
-      const result = await this.sendReminderEmail(
+      await this.sendReminderEmail(
         user.email,
         user.id,
-        user.titheBalance
+        user.titheBalance,
+        user.maaserBalance,
+        user.chomeshBalance,
+        user.language,
+        user.full_name,
       );
-      results.push(result);
-
-      // Small delay between emails to be respectful to SES
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
-
-    return results;
   }
 }
 ```
+
+Sends Raw MIME via SES v2 with `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Both plain-text and HTML parts are localized.
 
 #### User Service Module
 
 **File**: `supabase/functions/send-reminder-emails/user-service.ts`
 
 ```typescript
+export interface ReminderUser {
+  id: string;
+  email: string;
+  reminder_enabled: boolean;
+  reminder_day_of_month: number;
+  full_name: string | null;
+  language: ReminderLanguage;
+}
+
 export class UserService {
-  private supabaseClient: any;
-
-  constructor() {
-    this.supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
-  }
-
-  async getUsersWithTitheBalances(
-    reminderDay: number
-  ): Promise<UserWithTitheBalance[]> {
+  async getUsersWithTitheBalances(reminderDay: number): Promise<UserWithTitheBalance[]> {
     const users = await this.getReminderUsers(reminderDay);
-    const usersWithBalances: UserWithTitheBalance[] = [];
-
-    for (const user of users) {
-      const titheBalance = await this.calculateUserTitheBalance(user.id);
-      usersWithBalances.push({
-        ...user,
-        titheBalance,
-      });
-    }
-
-    return usersWithBalances;
+    // ... calculates tithe balance per user via calculate_user_tithe_balance RPC
   }
 }
 ```
@@ -442,33 +415,23 @@ export class UserService {
 
 ### Development Workflow
 
-The function integrates seamlessly with your existing development workflow:
-
-```bash
-# 1. Develop locally (runs with your existing tauri dev)
-npm run tauri dev
-
-# 2. Make changes to email templates
-# Edit: supabase/functions/send-reminder-emails/email-templates.ts
-
-# 3. Deploy automatically
-git add .
-git commit -m "Update email template"
-git push origin main  # GitHub Action deploys Supabase functions
-```
+Develop and verify locally first. A branch push does not satisfy the required
+asset, migration, SQL verification, controlled-send, client, or editorial
+gates described below.
 
 ### Manual Testing
 
+Test mode requires a **service role** Bearer token. Anon keys cannot enable test mode.
+
 ```bash
-# Test the deployed function
 curl -X POST "https://flpzqbvbymoluoeeeofg.supabase.co/functions/v1/send-reminder-emails" \
-  -H "Authorization: Bearer YOUR_ANON_KEY" \
+  -H "Authorization: Bearer YOUR_SERVICE_ROLE_KEY" \
   -H "Content-Type: application/json" \
   -d '{"test": true}'
 
-# Expected response:
+# Expected response (example):
 {
-  "message": "Processed 2 users for day 7 (TEST MODE)",
+  "message": "Processed 2 users for day 25 (TEST MODE). Sent: 2, Failed: 0",
   "results": [
     {
       "userId": "c0548835-d89a-4913-a561-4978543e8e81",
@@ -481,11 +444,36 @@ curl -X POST "https://flpzqbvbymoluoeeeofg.supabase.co/functions/v1/send-reminde
 }
 ```
 
+Test mode processes users configured for reminder day **25**.
+
 ### CI/CD Integration
 
-**GitHub Actions**: Automatically deploys when `supabase/functions/**` files change
-**Vercel**: Handles frontend deployment separately
-**No Manual Steps**: Everything happens automatically on `git push origin main`
+- **Edge Function**: GitHub Actions deploys changed
+  `supabase/functions/**` files after the branch is shipped.
+- **Static asset**: The reminder header image requires the application/static
+  asset deployment.
+- **Database**: The recipient RPC migration must be applied through the
+  repository migration workflow.
+- **Manual verification**: Send tests and email-client checks remain required.
+
+### Safe Localized-Redesign Deployment Order
+
+Do not reorder these steps:
+
+1. Deploy `public/email/reminder-header-blur.png`.
+2. Apply the recipient RPC migration in the target non-production environment.
+3. Verify the RPC return shape, normalized language values, unchanged
+   consent/day filters, and function privileges (`anon = false`,
+   `authenticated = false`, `service_role = true`).
+4. Deploy the `send-reminder-emails` Edge Function.
+5. Perform controlled Hebrew and English sends and validate unsubscribe
+   behavior plus Gmail, Outlook, and Apple Mail rendering.
+6. Roll out to production only after both the product and rabbinic approvers
+   approve all 24 localized items and the approval date is recorded.
+
+Migration shape/privilege verification and Gmail, Outlook, and Apple Mail
+checks remain **pending**. Readiness is conditional on those checks and both
+editorial approvals.
 
 ### Sender Address Notes (SES)
 
@@ -496,7 +484,8 @@ curl -X POST "https://flpzqbvbymoluoeeeofg.supabase.co/functions/v1/send-reminde
 
 ### Cron Job Setup
 
-**Status**: ✅ **IMPLEMENTED AND ACTIVE**
+**Legacy production status**: ✅ **ACTIVE**
+**Localized redesign status**: ⏳ **PENDING SAFE DEPLOYMENT SEQUENCE**
 **Schedule**: Daily execution at 18:00 UTC (20:00 Israel in winter / 21:00 in summer)
 **Trigger**: Supabase scheduled function via pg_cron extension
 **Auth**: Vault secrets `functions_base_url` + `service_role_key` (no hardcoded JWT)
@@ -573,13 +562,10 @@ LIMIT 10;
 #### 4. "Check constraint violation" Error
 
 **Cause**: Invalid `reminder_day_of_month` value
-**Solution**: Update constraint to include all valid days
-
-```sql
-ALTER TABLE profiles DROP CONSTRAINT check_reminder_day_of_month;
-ALTER TABLE profiles ADD CONSTRAINT check_reminder_day_of_month
-CHECK (reminder_day_of_month = ANY (ARRAY[1, 7, 10, 15, 20]));
-```
+**Solution**: Confirm the deployed database accepts the six values used by
+the frontend and Edge Function (`1, 5, 10, 15, 20, 25`). Any schema correction
+must be implemented and reviewed as a separate database migration; this
+documentation task does not add one.
 
 ### Debugging Steps
 
@@ -601,7 +587,7 @@ CHECK (reminder_day_of_month = ANY (ARRAY[1, 7, 10, 15, 20]));
 3. **Test RPC Function**:
 
    ```sql
-   SELECT * FROM get_reminder_users_with_emails(7);
+   SELECT * FROM get_reminder_users_with_emails(25);
    ```
 
 4. **Verify Secrets**:
@@ -613,11 +599,11 @@ CHECK (reminder_day_of_month = ANY (ARRAY[1, 7, 10, 15, 20]));
 
 ### Planned Features
 
-1. **Cron Job Implementation** ✅ **COMPLETED**
+1. **Legacy Cron Job** ✅ **ACTIVE IN PRODUCTION**
 
    - ✅ Daily automated execution at 18:00 UTC
-   - ✅ Error handling and retry logic
    - ✅ Monitoring and alerting via pg_cron
+   - ✅ Existing day-selection and Shabbat handling remain active behavior
 
 2. **Modular Architecture** ✅ **COMPLETED**
 
@@ -626,17 +612,19 @@ CHECK (reminder_day_of_month = ANY (ARRAY[1, 7, 10, 15, 20]));
    - ✅ Type-safe interfaces
    - ✅ Reusable components
 
-3. **CI/CD Integration** ✅ **COMPLETED**
+3. **CI/CD Integration** ✅ **FUNCTION AUTOMATION AVAILABLE**
 
    - ✅ Automatic deployment via GitHub Actions
    - ✅ Seamless development workflow
-   - ✅ No manual deployment steps
+   - ⏳ RPC migration, static asset deployment, and manual email/client checks
+     remain part of the localized-redesign handoff
 
-4. **Email Templates**
+4. **Email Templates** ✅ **IMPLEMENTED ON BRANCH; DEPLOYMENT PENDING**
 
-   - Multiple template options
-   - A/B testing capabilities
-   - Dynamic content based on user preferences
+   - Hebrew and English subject, HTML, and plain-text bodies
+   - 12 monthly encouragement entries per locale
+   - Header asset with cream fallback
+   - Optional first-name greeting from `full_name`
 
 5. **Advanced Scheduling**
 
@@ -675,7 +663,9 @@ CHECK (reminder_day_of_month = ANY (ARRAY[1, 7, 10, 15, 20]));
    - ✅ Email content sanitization in templates
    - ✅ Rate limiting between email sends
    - ✅ Secure credential management
-   - ✅ **Unsubscribe functionality** (COMPLETED - see `email-unsubscribe-system-guide.md`)
+   - ✅ Service-role-only test mode
+   - ✅ **Unsubscribe functionality** (COMPLETED — see `email-unsubscribe-system-guide.md`)
+   - ✅ **List-Unsubscribe headers** via Raw MIME in `simple-email-service.ts`
 
 4. **Monitoring and Observability**
    - ✅ Function performance metrics
@@ -685,18 +675,19 @@ CHECK (reminder_day_of_month = ANY (ARRAY[1, 7, 10, 15, 20]));
 
 ## Conclusion
 
-The email reminders feature provides a comprehensive solution for helping users stay on track with their tithe obligations. The implementation follows best practices for security, scalability, and user experience, with full support for Hebrew RTL content and personalized messaging.
+The legacy reminder pipeline remains operational in production. This branch
+adds the maintainable localized redesign described in this guide:
 
-The feature is now **fully operational in production** with:
+- ✅ **Implemented and locally verified**: Modular copy/templates, service-role
+  test mode, Hebrew/English subject/HTML/plain text, first-name greeting,
+  monthly encouragement, dynamic RTL/LTR, expanded recipient RPC, and Raw MIME
+  unsubscribe headers
+- ⏳ **Pending**: Static blur asset deployment, database migration and SQL
+  privilege verification, Edge Function deployment, controlled sends,
+  Gmail/Outlook/Apple Mail checks, and both editorial approvals
 
-- ✅ **Modular Architecture**: Clean, maintainable code structure
-- ✅ **Automated Deployment**: CI/CD integration with GitHub Actions
-- ✅ **Automated Daily Email Sending**: Cron Job at 18:00 UTC
-- ✅ **Manual Testing Capabilities**: Easy debugging and testing
-- ✅ **Personalized Content**: Based on user tithe balance
-- ✅ **Hebrew RTL Support**: Beautiful, responsive email templates
-- ✅ **Robust Error Handling**: Comprehensive monitoring and logging
-- ✅ **Seamless Development**: Integrates with existing workflow
+The localized behavior must not be treated as production behavior until those
+handoff steps complete.
 
 ### Desktop Notifications (Completed)
 
@@ -714,7 +705,8 @@ As a counterpart to email reminders for web users, the application now implement
 
 1. **Maintainability**: Each module has a single responsibility
 2. **Scalability**: Easy to add new features and templates
-3. **Developer Experience**: No manual deployment steps required
+3. **Developer Experience**: Clear migration, deployment, and manual
+   verification handoff
 4. **Type Safety**: Full TypeScript support with interfaces
 5. **Performance**: Optimized database queries and email processing
 
@@ -722,12 +714,14 @@ As a counterpart to email reminders for web users, the application now implement
 
 ---
 
-**Last Updated**: January 2025
-**Status**: ✅ **FULLY OPERATIONAL IN PRODUCTION**
-**Architecture**: ✅ **MODULAR AND MAINTAINABLE**
-**Cron Job**: Active (18:00 UTC daily)
-**CI/CD**: ✅ **AUTOMATED DEPLOYMENT**
+**Last Updated**: July 2026
+**Legacy production pipeline**: ✅ **OPERATIONAL**
+**Localized redesign**: ✅ **IMPLEMENTED AND LOCALLY VERIFIED; DEPLOYMENT PENDING**
+**Localization**: ⏳ **HEBREW AND ENGLISH IMPLEMENTED ON BRANCH, NOT YET DEPLOYED**
+**Cron Job**: Existing production cron and scheduling behavior are active at 18:00 UTC
+**Handoff pending**: Static asset deploy, RPC migration and privilege checks, Edge Function deploy, controlled sends, client checks, and editorial approvals
 **Desktop Notifications**: ✅ **OPERATIONAL**
 **Unsubscribe System**: ✅ **FULLY IMPLEMENTED WITH ENHANCED SECURITY**
+**List-Unsubscribe**: ✅ **IMPLEMENTED VIA RAW MIME**
 **JWT Security**: ✅ **HARDENED - NO FALLBACK SECRETS, FULL SIGNATURE VERIFICATION**
-**Next Phase**: Feature Enhancement and Analytics
+**Next Phase**: Analytics and broader transactional-email localization
