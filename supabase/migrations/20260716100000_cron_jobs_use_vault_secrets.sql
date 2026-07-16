@@ -65,7 +65,7 @@ SELECT cron.schedule(
         'Authorization', 'Bearer ' || (SELECT decrypted_secret FROM vault.decrypted_secrets WHERE name = 'service_role_key' LIMIT 1)
       ),
       body := '{}'::jsonb,
-      timeout_milliseconds := 1000
+      timeout_milliseconds := 30000
     );
   $$
 );
