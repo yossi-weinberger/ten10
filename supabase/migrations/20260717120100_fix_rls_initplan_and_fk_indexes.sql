@@ -93,6 +93,7 @@ BEGIN
     RAISE EXCEPTION 'Missing index idx_recurring_transactions_user_id';
   END IF;
 
+  -- pg_policies rewrites (SELECT auth.fn()) to ( SELECT auth.fn() AS ... )
   SELECT qual INTO policy_def
   FROM pg_policies
   WHERE schemaname = 'public'
@@ -100,11 +101,9 @@ BEGIN
     AND policyname = 'Admins can view admin_emails';
 
   IF policy_def IS NULL
-     OR (
-       position('(SELECT auth.email())' in policy_def) = 0
-       AND position('(select auth.email())' in policy_def) = 0
-     ) THEN
-    RAISE EXCEPTION 'admin_emails view policy missing (select auth.email()) wrapper';
+     OR position('SELECT auth.email()' in policy_def) = 0 THEN
+    RAISE EXCEPTION 'admin_emails view policy missing SELECT auth.email() wrapper: %',
+      policy_def;
   END IF;
 
   SELECT qual INTO policy_def
@@ -114,11 +113,9 @@ BEGIN
     AND policyname = 'Service role only';
 
   IF policy_def IS NULL
-     OR (
-       position('(SELECT auth.role())' in policy_def) = 0
-       AND position('(select auth.role())' in policy_def) = 0
-     ) THEN
-    RAISE EXCEPTION 'download_rate_limits policy missing (select auth.role()) wrapper';
+     OR position('SELECT auth.role()' in policy_def) = 0 THEN
+    RAISE EXCEPTION 'download_rate_limits policy missing SELECT auth.role() wrapper: %',
+      policy_def;
   END IF;
 END;
 $asserts$;
