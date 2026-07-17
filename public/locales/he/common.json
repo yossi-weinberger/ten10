@@ -2,6 +2,11 @@
   "errors": {
     "invalidMonth": "חודש לא תקין"
   },
+  "errorBoundary": {
+    "title": "משהו השתבש",
+    "description": "טעינת החלק הזה נכשלה. אפשר לנסות שוב.",
+    "retry": "נסה שוב"
+  },
   "toast": {
     "settings": {
       "saveSuccess": "ההגדרות נשמרו בהצלחה",

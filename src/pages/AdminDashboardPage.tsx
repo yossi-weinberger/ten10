@@ -27,6 +27,7 @@ import { AdminEngagementSection } from "@/components/admin/AdminEngagementSectio
 import { AdminTrendsChart } from "@/components/admin/AdminTrendsChart";
 import { AdminMonitoringSection } from "@/components/admin/AdminMonitoringSection";
 import { AdminPostHogSection } from "@/components/admin/AdminPostHogSection";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { cn } from "@/lib/utils";
 
 export function AdminDashboardPage() {
@@ -211,36 +212,48 @@ export function AdminDashboardPage() {
 
         {/* Users Tab */}
         <TabsContent value="users" className="space-y-6">
-          <AdminUsersSection stats={stats.users} />
-          <AdminEngagementSection
-            engagement={stats.engagement}
-            system={stats.system}
-          />
+          <ErrorBoundary boundaryName="admin-users">
+            <AdminUsersSection stats={stats.users} />
+            <AdminEngagementSection
+              engagement={stats.engagement}
+              system={stats.system}
+            />
+          </ErrorBoundary>
         </TabsContent>
 
         {/* Finance Tab */}
         <TabsContent value="finance" className="space-y-6">
-          <AdminFinanceSection finance={stats.finance} />
+          <ErrorBoundary boundaryName="admin-finance">
+            <AdminFinanceSection finance={stats.finance} />
+          </ErrorBoundary>
         </TabsContent>
 
         {/* Trends Tab — chart owns its own fetch (avoids page 12m + chart month double-fetch) */}
         <TabsContent value="trends" className="space-y-6">
-          <AdminTrendsChart earliestDate={earliestDate} />
+          <ErrorBoundary boundaryName="admin-trends">
+            <AdminTrendsChart earliestDate={earliestDate} />
+          </ErrorBoundary>
         </TabsContent>
 
         {/* Downloads Tab */}
         <TabsContent value="downloads" className="space-y-6">
-          <AdminDownloadsSection downloads={stats.downloads} />
+          <ErrorBoundary boundaryName="admin-downloads">
+            <AdminDownloadsSection downloads={stats.downloads} />
+          </ErrorBoundary>
         </TabsContent>
 
         {/* Monitoring Tab */}
         <TabsContent value="monitoring" className="space-y-6">
-          <AdminMonitoringSection />
+          <ErrorBoundary boundaryName="admin-monitoring">
+            <AdminMonitoringSection />
+          </ErrorBoundary>
         </TabsContent>
 
         {/* PostHog Analytics Tab */}
         <TabsContent value="posthog" className="space-y-6">
-          <AdminPostHogSection />
+          <ErrorBoundary boundaryName="admin-posthog">
+            <AdminPostHogSection />
+          </ErrorBoundary>
         </TabsContent>
       </Tabs>
     </div>

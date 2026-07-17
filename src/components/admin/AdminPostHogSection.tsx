@@ -102,7 +102,20 @@ export function AdminPostHogSection() {
     );
   }
 
-  if (!data) return null;
+  if (!data) {
+    return (
+      <Alert dir={i18n.dir()}>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription className="flex items-center justify-between gap-4">
+          <span>{t("posthog.empty")}</span>
+          <Button variant="outline" size="sm" onClick={() => void loadData()}>
+            <RefreshCw className="me-2 h-4 w-4" />
+            {t("posthog.refresh")}
+          </Button>
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-6" dir={i18n.dir()}>
