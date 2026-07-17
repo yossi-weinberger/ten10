@@ -10,14 +10,16 @@ alwaysApply: false
 
 | Environment | Project ID (MCP) | Role |
 |-------------|------------------|------|
-| Staging | `ngtsnskyupageagcmqdp` | Test migrations first |
-| Production | `flpzqbvbymoluoeeeofg` | Updated via merge to main |
+| Production | `flpzqbvbymoluoeeeofg` | Updated via PR / merge to main (GitHub Action `db push`) |
+| Staging | *none — deleted* | Recreate on demand if you need a pre-prod DB |
+
+**Staging note:** The former staging project (`ngtsnskyupageagcmqdp`) was deleted to avoid idle cost. Do not call that ref. If staging is needed, create a new Supabase project, update this rule + `llm-instructions/backend/supabase-database-migrations-workflow.md` with the new ref, push migrations, set Vault secrets, then test. See that workflow doc § “Recreate staging”.
 
 ## Workflow (always follow)
 
 1. Create migration file: `supabase/migrations/YYYYMMDDHHMMSS_description.sql` (full timestamp).
-2. Apply to staging: MCP `apply_migration(project_id=ngtsnskyupageagcmqdp, name, query)`.
-3. Verify: `.env` → staging, `npm run dev`, test.
+2. **If staging exists:** apply via MCP `apply_migration(project_id=<staging-ref>, name, query)`, verify with `.env` → staging.
+3. **If no staging (current default):** proceed with careful review; opening a PR pushes to **production** via CI.
 4. Open PR → GitHub Action pushes to **production** (Vercel preview works).
 5. Merge to main.
 
@@ -25,20 +27,10 @@ alwaysApply: false
 
 | MCP server | Connected to | Use for |
 |---|---|---|
-| `plugin-supabase-supabase` | requires `project_id` param | ✅ staging migrations |
-| `user-supabase` | **PRODUCTION** hardcoded | ❌ never for migrations |
+| `plugin-supabase-supabase` | requires `project_id` param | staging (only after recreate) |
+| `user-supabase` / `user-supabase ten10` | **PRODUCTION** | ❌ never for migrations |
 
-**CRITICAL**: `user-supabase` MCP is hardwired to production (`flpzqbvbymoluoeeeofg`).  
-**Always use `plugin-supabase-supabase` with `project_id: "ngtsnskyupageagcmqdp"` for staging.**
-
-### Correct apply_migration call:
-```
-plugin-supabase-supabase › apply_migration({
-  project_id: "ngtsnskyupageagcmqdp",
-  name: "description_snake_case",
-  query: "..."
-})
-```
+**CRITICAL**: Production MCP is hardwired to `flpzqbvbymoluoeeeofg`. Never use it to apply migrations.
 
 ### After apply_migration (fix auto-timestamp):
 MCP generates its own timestamp → mismatches the file. Fix:
@@ -52,7 +44,7 @@ VALUES ('20260423120000', 'migration_name', ARRAY['...']) ON CONFLICT DO NOTHING
 
 | Target | Command | Who triggers |
 |--------|---------|-------------|
-| Staging (test) | `npx supabase functions deploy <name> --project-ref ngtsnskyupageagcmqdp` | Agent / developer manually |
+| Staging (only if recreated) | `npx supabase functions deploy <name> --project-ref <new-staging-ref>` | Agent / developer manually |
 | Production | **Never manually** | GitHub Action on push to `main` |
 
 ⚠️ **`process-email-request` must always use `--no-verify-jwt`** — omitting it breaks Cloudflare email routing. The GitHub Action already handles this. Never redeploy it manually without the flag.
@@ -61,7 +53,8 @@ The GitHub Action (`deploy-supabase-functions.yml`) triggers on push to `main` w
 
 ## Do not
 
-- Use `user-supabase` MCP for any migration (it goes to production).
+- Use production MCP for any migration.
+- Assume staging ref `ngtsnskyupageagcmqdp` still exists.
 - Run ad-hoc SQL on production without a migration file in Git.
 - Edit or delete migration files already applied on production.
 - Run `supabase db reset` on production.

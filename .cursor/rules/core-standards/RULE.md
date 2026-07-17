@@ -20,8 +20,8 @@ alwaysApply: true
 
 When changing Supabase schema, RPC, cron, or permissions:
 
-1. **Staging first** – Apply via MCP (`project_id=ngtsnskyupageagcmqdp`) or Dashboard. Verify locally.
-2. **File in repo** – Create `supabase/migrations/YYYYMMDDHHMMSS_description.sql` before applying.
+1. **File in repo** – Create `supabase/migrations/YYYYMMDDHHMMSS_description.sql` before applying.
+2. **Staging is optional** – There is no always-on staging project (former `ngtsnskyupageagcmqdp` was deleted). Recreate staging only when needed; otherwise open a PR carefully (CI `db push` hits production on PR open).
 3. **Open PR** – GitHub Action runs `db push` on production (so you can test Vercel preview before merge).
 4. **Never** run ad-hoc SQL on production without a migration file in Git.
 
