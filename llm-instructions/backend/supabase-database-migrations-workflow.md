@@ -4,9 +4,9 @@ This document describes the full process for applying database changes (schema, 
 
 ## Overview
 
-- **DEV**: Create migration file, push to staging via MCP, verify.
+- **DEV**: Create a versioned migration file in git.
 - **PR**: Opening a PR triggers GitHub Action → `db push` to **production** (so you can test Vercel preview before merge).
-- **Staging**: MCP only (manual). No double push – staging gets it once via MCP.
+- **Staging (optional):** There is **no always-on staging project**. The previous staging project was deleted to avoid idle compute cost. If you need a staging DB, recreate one first (see below), then apply there before opening the PR.
 - **Only new migrations**: Do not modify history, legacy files, or applied migrations.
 
 ---
@@ -15,8 +15,26 @@ This document describes the full process for applying database changes (schema, 
 
 | Environment | Project Ref | Use |
 |-------------|-------------|-----|
-| **Production** | `flpzqbvbymoluoeeeofg` | Live app – updated via GitHub Action on merge |
-| **Staging** | `ngtsnskyupageagcmqdp` | Test migrations before production |
+| **Production** | `flpzqbvbymoluoeeeofg` | Live app – updated via GitHub Action on PR / push to main |
+| **Staging** | *none (deleted)* | Recreate on demand when you need a safe pre-prod DB |
+
+### Staging status (important)
+
+- Former staging ref `ngtsnskyupageagcmqdp` is **gone** (project deleted).
+- Do **not** assume staging MCP / that project ref still works.
+- Default path today: write migration → open PR → production `db push` via CI → smoke on Vercel preview / production carefully.
+- Prefer low-risk migrations (grants, indexes, additive DDL). For destructive or hard-to-revert changes, recreate staging first.
+
+### Recreate staging (when needed)
+
+1. Create a new Supabase project (same region as prod if possible).
+2. Record the new project ref; update this doc, `.cursor/rules/supabase-database-migrations.mdc`, `.env` staging vars, and any staging MCP config.
+3. Link CLI / push schema history: `supabase db push` (or apply migrations) against the new project.
+4. Set Vault secrets (`functions_base_url`, `service_role_key`) for that project — see `supabase/MIGRATION_VAULT_SETUP.md`.
+5. Deploy needed Edge Functions to the new ref for smoke tests.
+6. Point local `.env` at staging URL/keys, run `npm run dev`, verify, then open the production PR as usual.
+
+Pause or delete staging again when finished if you want to avoid ongoing cost.
 
 ---
 
@@ -38,14 +56,13 @@ ADD COLUMN IF NOT EXISTS payment_notes TEXT;
 - Use snake_case: `add_payment_notes`, not `addPaymentNotes`
 - Never edit or delete migrations already applied on production
 
-### 2. Apply to staging
+### 2. Optional: apply to staging (only if a staging project exists)
+
+If you recreated staging, apply there first with MCP or Dashboard.
 
 **Option A – MCP (recommended from Cursor)**
 
-Use `plugin-supabase-supabase` with `project_id`:
-
-- Staging: `ngtsnskyupageagcmqdp`
-- Production: `flpzqbvbymoluoeeeofg`
+Use `plugin-supabase-supabase` with the **current** staging `project_id` (after recreate). Never use production MCP (`user-supabase` / `flpzqbvbymoluoeeeofg`) to apply migrations.
 
 ```
 apply_migration(project_id, name, query)  → Runs SQL + registers in schema_migrations
@@ -71,11 +88,10 @@ VALUES ('<file-timestamp>', '<file-timestamp>_<name>', ARRAY[]::text[]);
    ON CONFLICT (version) DO NOTHING;
    ```
 
-### 3. Verify on staging
+### 3. Verify
 
-- Point `.env` to staging (uncomment staging vars, comment production)
-- Run `npm run dev` and test the change
-- If the migration involves Edge Functions: deploy to staging (`npx supabase functions deploy <name> --project-ref ngtsnskyupageagcmqdp`)
+- With staging: point `.env` to staging, `npm run dev`, test.
+- Without staging: rely on careful review + Vercel preview after PR open (production already received `db push` from CI).
 
 ### 4. Open PR
 
@@ -99,6 +115,7 @@ Merge. Production already has the migration from step 4. Push to main triggers t
 - Do **not** edit or delete migration files already applied on production
 - Do **not** run `supabase db reset` on production
 - Do **not** run files under `supabase/migrations/rollback/` on production unless you know why
+- Do **not** call staging project ref `ngtsnskyupageagcmqdp` — it no longer exists
 
 ---
 
@@ -108,10 +125,10 @@ Some migrations (e.g. cron jobs) use `vault.decrypted_secrets`. Secrets must be 
 
 ### Required Vault Secrets
 
-| Name | Production | Staging |
-|------|-----------|---------|
-| `functions_base_url` | `https://flpzqbvbymoluoeeeofg.supabase.co` | `https://ngtsnskyupageagcmqdp.supabase.co` |
-| `service_role_key` | service_role JWT from Project Settings → API | service_role JWT from Project Settings → API |
+| Name | Production | Staging (if recreated) |
+|------|-----------|-------------------------|
+| `functions_base_url` | `https://flpzqbvbymoluoeeeofg.supabase.co` | `https://<new-staging-ref>.supabase.co` |
+| `service_role_key` | service_role JWT from Project Settings → API | service_role JWT from that project's API settings |
 
 ### How to Add
 
@@ -131,15 +148,15 @@ SELECT vault.create_secret('<value>', '<name>', '<description>');
 
 ---
 
-## Edge Functions and Staging
-
-Edge Functions are deployed per project. To test a function on staging:
-
-```bash
-npx supabase functions deploy <function-name> --project-ref ngtsnskyupageagcmqdp
-```
+## Edge Functions
 
 Production gets functions via GitHub Action (`deploy-supabase-functions.yml`) on push to `main` when `supabase/functions/**` changes.
+
+If you recreated staging and need to test a function there:
+
+```bash
+npx supabase functions deploy <function-name> --project-ref <new-staging-ref>
+```
 
 **CI allowlist:** `deploy-changed-functions.sh` only deploys names in `ALL_FUNCTIONS` (and redeploys `SHARED_DEPENDENT` when `_shared` changes). A new function that is not listed is skipped with a warning — CI can still be green while production returns **404** on that path (browsers often surface this as a CORS preflight failure). See `supabase-edge-functions-maintenance.md` §4.
 

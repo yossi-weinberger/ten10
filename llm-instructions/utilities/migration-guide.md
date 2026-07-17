@@ -217,8 +217,8 @@ When you (the user) request a schema change (e.g., "add a 'priority' field to tr
 
 For the **web (Supabase)** project:
 
-1. **Apply to staging first** – Use MCP (`plugin-supabase-supabase`, `project_id=ngtsnskyupageagcmqdp`) or Dashboard SQL Editor. Verify with `npm run dev` pointing to staging.
-2. **Create** the migration file in `supabase/migrations/` (e.g. `YYYYMMDDHHMMSS_description.sql`) and **commit to Git**.
+1. **Create** the migration file in `supabase/migrations/` (e.g. `YYYYMMDDHHMMSS_description.sql`) and **commit to Git**.
+2. **Staging (optional)** – There is no always-on staging project (former ref deleted). Recreate staging only when needed; see `supabase-database-migrations-workflow.md`.
 3. **Open PR** – GitHub Action `deploy-supabase-migrations.yml` runs `db push` on production (so you can test Vercel preview before merge).
 
 **References:** See **`llm-instructions/backend/supabase-database-migrations-workflow.md`** for the full step-by-step workflow, MCP usage, and staging/production flow.
