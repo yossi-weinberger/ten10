@@ -53,7 +53,8 @@
       "surveys30d": "כמה תשובות לסקר המשוב התקבלו ב־30 הימים האחרונים.",
       "topPaths": "אילו נתיבי עמוד נצפו הכי הרבה ב־7 הימים האחרונים.",
       "eventCounts": "כמה פעמים נשלח כל אירוע מוצר ב־7 הימים האחרונים."
-    }
+    },
+    "empty": "עדיין אין נתוני אנליטיקה זמינים."
   },
   "users": {
     "title": "סטטיסטיקות משתמשים",
@@ -238,7 +239,8 @@
       "problematic": "בעייתי"
     },
     "requiresDeployment": "יש לפרוס את ה-Edge Function המעודכן:",
-    "addAwsKeys": "הוסף AWS_ACCESS_KEY_ID ו-AWS_SECRET_ACCESS_KEY ל-Supabase Secrets"
+    "addAwsKeys": "הוסף AWS_ACCESS_KEY_ID ו-AWS_SECRET_ACCESS_KEY ל-Supabase Secrets",
+    "empty": "עדיין אין נתוני ניטור זמינים."
   },
   "errors": {
     "loadFailed": "שגיאה בטעינת נתוני הניהול",

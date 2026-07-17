@@ -47,6 +47,20 @@ export function capturePostHogPageview(): void {
   });
 }
 
+export function capturePostHogException(
+  error: unknown,
+  properties: PostHogEventProperties = {}
+): void {
+  if (!isPostHogSupported()) return;
+
+  const normalized =
+    error instanceof Error ? error : new Error(String(error));
+  posthog.captureException(normalized, {
+    platform: "web",
+    ...properties,
+  });
+}
+
 export function capturePostHogEvent(
   event: string,
   properties: PostHogEventProperties = {}

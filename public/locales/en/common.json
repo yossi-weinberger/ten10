@@ -2,6 +2,11 @@
   "errors": {
     "invalidMonth": "Invalid month"
   },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "description": "This section failed to load. You can try again.",
+    "retry": "Try again"
+  },
   "toast": {
     "settings": {
       "saveSuccess": "Settings saved successfully",
