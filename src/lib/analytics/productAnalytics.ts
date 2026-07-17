@@ -2,6 +2,9 @@ import posthog from "posthog-js";
 import { isPostHogSupported } from "@/lib/analytics/posthogClient";
 
 export type ProductAnalyticsEvent =
+  | "transaction_form_opened"
+  | "transaction_form_started"
+  | "transaction_form_abandoned"
   | "transaction_created"
   | "transaction_updated"
   | "transaction_deleted"
