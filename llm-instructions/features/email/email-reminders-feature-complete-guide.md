@@ -6,22 +6,20 @@ This document provides a comprehensive guide to the email reminders feature impl
 
 ### Deployment Status
 
-The legacy reminder pipeline is operational in production. The localized
-redesign documented here is implemented and locally verified on this branch,
-but it is not yet deployed production behavior. Applying the recipient RPC
-migration, deploying the Edge Function and static blur asset, and completing
-manual email/client verification are pending.
+**Live on production** (merged PR #347, July 2026): localized HE/EN subjects and
+bodies, RTL/LTR, first-name greeting, monthly encouragements, currency from
+`profiles.default_currency`, Raw MIME `List-Unsubscribe` headers, shared
+user/admin email shells, and static header
+`https://ten10-app.com/email/reminder-header-blur.png`.
 
-**Editorial Go/No-Go gate**:
+**Still open (process / QA, not deploy blockers for the code path):**
 
-- Product approver: **pending**
-- Rabbinic approver: **pending**
-- Approval date: **pending**
-- Production rollout is **forbidden** until both approvers approve all 24
-  localized encouragement items.
+- Controlled visual checks in Gmail, Outlook, Apple Mail (and image-blocked)
+- Formal product/rabbinic sign-off on the 24 encouragement strings, if still
+  required by editorial process (strings are already live in
+  `locales/email-*.json`)
 
-The content is not editorially approved merely because the implementation and
-automated tests are complete.
+See also `email-system-future-improvements.md` for the remaining backlog.
 
 ## Table of Contents
 
@@ -45,9 +43,9 @@ The email reminders feature sends personalized monthly reminders to users about 
 ### Key Features
 
 - **Existing reminder schedule**: The frontend and Edge Function support 6 preset days (1st, 5th, 10th, 15th, 20th, 25th of each month)
-- **Localized redesign (pending deployment)**: The branch implementation adds an optional first-name greeting and monthly encouragement
-- **Localized copy (pending deployment)**: Subject, HTML, and plain-text bodies use Hebrew or English based on `profiles.client_preferences.language` (Hebrew fallback)
-- **Direction support (pending deployment)**: Dynamic Hebrew RTL / English LTR layout
+- **Localized redesign (live)**: Optional first-name greeting and monthly encouragement
+- **Localized copy (live)**: Subject, HTML, and plain-text bodies use Hebrew or English based on `profiles.client_preferences.language` (Hebrew fallback)
+- **Direction support (live)**: Dynamic Hebrew RTL / English LTR layout
 - **Platform-specific implementation**: Web users receive email reminders; desktop users receive native system notifications
 
 ### User Flow
@@ -77,6 +75,41 @@ Cron ──invoke with service role──▶ Reminder Edge Function ──send�
 - **AWS SES**: Email delivery service
 - **Cron Job**: Scheduled execution
 
+### Architecture invariants (code-verified)
+
+1. **Two SES transports — keep separate until deliberately unified**
+   - Reminders: `send-reminder-emails/simple-email-service.ts` (List-Unsubscribe
+     headers, SES tags/config, `foldBase64` at 76 chars; tests assert every MIME
+     line ≤ 998).
+   - Other Edge Functions: `_shared/simple-email-service.ts` (no List-Unsubscribe;
+     **does not** fold Base64 today). Used by `send-contact-email`,
+     `send-new-user-email`, `send-cron-alerts`, `process-email-request`.
+   - Do not merge these implementations without behavioral tests covering
+     unsubscribe headers and MIME line limits for every consumer.
+
+2. **Email copy stays Edge-local**
+   - Reminder strings live in `send-reminder-emails/locales/email-*.json` loaded
+     by `email-copy.ts`.
+   - Do **not** import browser i18next or `public/locales` into Deno Edge
+     Functions. Editorial source library (optional): `content/library/` — see
+     `features/content/content-library-guide.md`.
+
+3. **`_shared/email-*` blast radius**
+   - Edits to `email-tokens.ts`, `email-layout-*.ts`, `email-admin-primitives.ts`,
+     or `_shared/simple-email-service.ts` affect multiple functions. Migrate
+     incrementally and re-run the email preview / layout tests.
+
+4. **Credit balance display**
+   - Amounts preserve the sign from `titheBalance` (`currency.ts`), so credit
+     amounts render with a leading minus sign.
+
+5. **Changing `RETURNS TABLE` shape**
+   - Postgres cannot alter return columns via `CREATE OR REPLACE`. Migrations must
+     `DROP FUNCTION` then `CREATE FUNCTION` in one transaction, then restore
+     comments, `REVOKE`/`GRANT`, and privilege assertions (see
+     `20260716144840_localize_reminder_email_context.sql` and
+     `20260717010000_reminder_users_include_default_currency.sql`).
+
 ## Database Schema
 
 ### Profile Reminder Fields
@@ -93,22 +126,28 @@ coverage from this guide.
 
 ### RPC Function for User Retrieval
 
-A dedicated RPC function was created to efficiently retrieve users with their email addresses:
+Recipient RPC (current shape includes `default_currency`). When changing the
+`RETURNS TABLE` columns, use **DROP + CREATE** (not `CREATE OR REPLACE`):
 
 ```sql
-CREATE OR REPLACE FUNCTION get_reminder_users_with_emails(reminder_day INTEGER)
+BEGIN;
+
+DROP FUNCTION IF EXISTS public.get_reminder_users_with_emails(integer);
+
+CREATE FUNCTION public.get_reminder_users_with_emails(reminder_day integer)
 RETURNS TABLE (
-  id UUID,
-  email VARCHAR,
-  reminder_enabled BOOLEAN,
-  reminder_day_of_month INTEGER,
-  full_name TEXT,
-  language TEXT
+  id uuid,
+  email varchar,
+  reminder_enabled boolean,
+  reminder_day_of_month integer,
+  full_name text,
+  language text,
+  default_currency text
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
-AS $$
+AS $function$
 BEGIN
   RETURN QUERY
   SELECT
@@ -120,7 +159,9 @@ BEGIN
     CASE
       WHEN p.client_preferences->>'language' = 'en' THEN 'en'
       ELSE 'he'
-    END::text AS language
+    END::text AS language,
+    coalesce(nullif(upper(trim(p.default_currency)), ''), 'ILS')::text
+      AS default_currency
   FROM public.profiles p
   JOIN auth.users u ON p.id = u.id
   WHERE p.reminder_enabled = true
@@ -128,10 +169,15 @@ BEGIN
     AND coalesce(p.mailing_list_consent, false) = true
     AND u.email IS NOT NULL;
 END;
-$$;
+$function$;
+
+-- Then: COMMENT, REVOKE from public/anon/authenticated, GRANT to service_role,
+-- and privilege assertions (see migrations above).
+
+COMMIT;
 ```
 
-**RPC return fields**: `id`, `email`, `reminder_enabled`, `reminder_day_of_month`, `full_name`, `language`
+**RPC return fields**: `id`, `email`, `reminder_enabled`, `reminder_day_of_month`, `full_name`, `language`, `default_currency`
 
 **Language normalization**: The RPC reads `profiles.client_preferences.language`. Only `'en'` maps to English; all other values (including `NULL`) resolve to Hebrew. The Edge Function applies the same rule via `normalizeReminderLanguage()` in `email-copy.ts`.
 
@@ -244,9 +290,13 @@ supabase/functions/send-reminder-emails/
 ├── index.ts                 # Entry point, auth, Israel/Shabbat scheduling
 ├── user-service.ts          # RPC calls for users and tithe balances
 ├── reminder-user.ts         # Runtime normalization for recipient RPC rows
-├── email-copy.ts            # Localized strings, 12 monthly encouragements
+├── email-copy.ts            # Loads locales JSON, hydration, month helpers
+├── locales/
+│   ├── email-he.json        # Hebrew reminder strings + 12 encouragements
+│   └── email-en.json        # English reminder strings + 12 encouragements
 ├── email-templates.ts       # HTML, plain-text, and subject generation
-├── simple-email-service.ts  # AWS SES Raw MIME (List-Unsubscribe headers)
+├── simple-email-service.ts  # Reminder SES Raw MIME (List-Unsubscribe + MIME fold)
+├── currency.ts              # Balance formatting (preserves sign for credits)
 └── jwt-utils.ts             # Unsubscribe JWT URL generation
 ```
 
@@ -285,7 +335,8 @@ Email Templates. Not deployed by CI.
 2. `UserService` maps every RPC row, normalizes missing/invalid language to
    Hebrew and non-string `full_name` to `null`, then passes recipient data and
    tithe balances to `SimpleEmailService`.
-3. `email-copy.ts` provides locale-specific copy and 12 monthly encouragement entries.
+3. `email-copy.ts` loads Edge-local `locales/email-*.json` (not `public/locales`)
+   and provides 12 monthly encouragement entries.
 4. `getIsraelMonth()` selects the encouragement index using `Asia/Jerusalem`.
 5. `email-templates.ts` generates localized subject, HTML, and plain text via
    `renderUserEmailShell`, formats the balance with the user's currency, and
@@ -350,6 +401,8 @@ export function getIsraelMonth(date = new Date()): number {
 
 Each locale in `REMINDER_COPY` contains 12 `monthlyEncouragements` entries (Hebrew and English).
 
+For selecting new editorial snippets from the shared content library (index-first, stable `TN10-XXXX` ids), see `features/content/content-library-guide.md`. Do not read the whole master file; publish chosen records into `locales/email-*.json`.
+
 #### Email Templates Module
 
 **File**: `supabase/functions/send-reminder-emails/email-templates.ts`
@@ -406,7 +459,11 @@ export class SimpleEmailService {
 }
 ```
 
-Sends Raw MIME via SES v2 with `List-Unsubscribe` and `List-Unsubscribe-Post` headers. Both plain-text and HTML parts are localized.
+Sends Raw MIME via SES v2 with `List-Unsubscribe` and `List-Unsubscribe-Post`
+headers. Both plain-text and HTML parts are localized. Reminder MIME folds
+Base64 body parts at 76 characters and keeps physical lines ≤ 998 (tested in
+`simple-email-service.test.ts`). This is the **reminder** transport — not
+`_shared/simple-email-service.ts`.
 
 #### User Service Module
 
@@ -468,31 +525,30 @@ Test mode processes users configured for reminder day **25**.
 ### CI/CD Integration
 
 - **Edge Function**: GitHub Actions deploys changed
-  `supabase/functions/**` files after the branch is shipped.
-- **Static asset**: The reminder header image requires the application/static
-  asset deployment.
-- **Database**: The recipient RPC migration must be applied through the
-  repository migration workflow.
-- **Manual verification**: Send tests and email-client checks remain required.
+  `supabase/functions/**` on push to `main`.
+- **Static asset**: Header image ships with the app static deploy
+  (`public/email/reminder-header-blur.png`).
+- **Database**: Recipient RPC changes go through the repository migration
+  workflow (DROP + CREATE when return shape changes).
+- **Manual verification**: Controlled sends and email-client checks remain
+  recommended after email-template changes.
 
-### Safe Localized-Redesign Deployment Order
+### Localized-Redesign Deployment Order (completed for PR #347)
 
-Do not reorder these steps:
+Historical safe order (reuse for similar email migrations):
 
 1. Deploy `public/email/reminder-header-blur.png`.
-2. Apply the recipient RPC migration in the target non-production environment.
+2. Apply the recipient RPC migration (DROP + CREATE when return shape changes).
 3. Verify the RPC return shape, normalized language values, unchanged
    consent/day filters, and function privileges (`anon = false`,
    `authenticated = false`, `service_role = true`).
 4. Deploy the `send-reminder-emails` Edge Function.
 5. Perform controlled Hebrew and English sends and validate unsubscribe
    behavior plus Gmail, Outlook, and Apple Mail rendering.
-6. Roll out to production only after both the product and rabbinic approvers
-   approve all 24 localized items and the approval date is recorded.
 
-Migration shape/privilege verification and Gmail, Outlook, and Apple Mail
-checks remain **pending**. Readiness is conditional on those checks and both
-editorial approvals.
+**PR #347 status:** code + migrations + asset are live. Remaining open items
+are controlled client visual checks and optional formal editorial sign-off on
+encouragement strings (see `email-system-future-improvements.md`).
 
 ### Sender Address Notes (SES)
 
@@ -503,8 +559,7 @@ editorial approvals.
 
 ### Cron Job Setup
 
-**Legacy production status**: ✅ **ACTIVE**
-**Localized redesign status**: ⏳ **PENDING SAFE DEPLOYMENT SEQUENCE**
+**Production status**: ✅ **ACTIVE (localized redesign live)**
 **Schedule**: Daily execution at 18:00 UTC (20:00 Israel in winter / 21:00 in summer)
 **Trigger**: Supabase scheduled function via pg_cron extension
 **Auth**: Vault secrets `functions_base_url` + `service_role_key` (no hardcoded JWT)
@@ -635,12 +690,12 @@ documentation task does not add one.
 
    - ✅ Automatic deployment via GitHub Actions
    - ✅ Seamless development workflow
-   - ⏳ RPC migration, static asset deployment, and manual email/client checks
-     remain part of the localized-redesign handoff
+   - ⏳ Manual email/client visual checks remain on the backlog
 
-4. **Email Templates** ✅ **IMPLEMENTED ON BRANCH; DEPLOYMENT PENDING**
+4. **Email Templates** ✅ **LIVE ON PRODUCTION**
 
    - Hebrew and English subject, HTML, and plain-text bodies
+     (`locales/email-*.json`)
    - 12 monthly encouragement entries per locale
    - Header asset with cream fallback
    - Optional first-name greeting from `full_name`
@@ -694,19 +749,15 @@ documentation task does not add one.
 
 ## Conclusion
 
-The legacy reminder pipeline remains operational in production. This branch
-adds the maintainable localized redesign described in this guide:
+The localized reminder pipeline is **live on production** (PR #347):
 
-- ✅ **Implemented and locally verified**: Modular copy/templates, service-role
+- ✅ **Deployed**: Modular copy/templates (`locales/email-*.json`), service-role
   test mode, Hebrew/English subject/HTML/plain text, first-name greeting,
-  monthly encouragement, dynamic RTL/LTR, expanded recipient RPC, and Raw MIME
-  unsubscribe headers
-- ⏳ **Pending**: Static blur asset deployment, database migration and SQL
-  privilege verification, Edge Function deployment, controlled sends,
-  Gmail/Outlook/Apple Mail checks, and both editorial approvals
-
-The localized behavior must not be treated as production behavior until those
-handoff steps complete.
+  monthly encouragement, dynamic RTL/LTR, recipient RPC with language +
+  `default_currency`, Raw MIME unsubscribe headers, shared shells/tokens
+- ⏳ **Remaining process/QA**: Controlled client checks and optional formal
+  editorial sign-off on encouragement strings (see
+  `email-system-future-improvements.md`)
 
 ### Desktop Notifications (Completed)
 
@@ -734,13 +785,12 @@ As a counterpart to email reminders for web users, the application now implement
 ---
 
 **Last Updated**: July 2026
-**Legacy production pipeline**: ✅ **OPERATIONAL**
-**Localized redesign**: ✅ **IMPLEMENTED AND LOCALLY VERIFIED; DEPLOYMENT PENDING**
-**Localization**: ⏳ **HEBREW AND ENGLISH IMPLEMENTED ON BRANCH, NOT YET DEPLOYED**
-**Cron Job**: Existing production cron and scheduling behavior are active at 18:00 UTC
-**Handoff pending**: Static asset deploy, RPC migration and privilege checks, Edge Function deploy, controlled sends, client checks, and editorial approvals
+**Localized redesign**: ✅ **LIVE ON PRODUCTION (PR #347)**
+**Localization**: ✅ **HEBREW AND ENGLISH LIVE**
+**Cron Job**: Production cron active at 18:00 UTC
+**Remaining**: Client visual checks + optional editorial sign-off on encouragements
 **Desktop Notifications**: ✅ **OPERATIONAL**
 **Unsubscribe System**: ✅ **FULLY IMPLEMENTED WITH ENHANCED SECURITY**
-**List-Unsubscribe**: ✅ **IMPLEMENTED VIA RAW MIME**
+**List-Unsubscribe**: ✅ **IMPLEMENTED VIA RAW MIME (reminder transport)**
 **JWT Security**: ✅ **HARDENED - NO FALLBACK SECRETS, FULL SIGNATURE VERIFICATION**
 **Next Phase**: Analytics and broader transactional-email localization

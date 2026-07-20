@@ -1,0 +1,93 @@
+{
+  "htmlLang": "en",
+  "direction": "ltr",
+  "locale": "en-US",
+  "slogan": "Simple and Accurate Tithe and Financial Budget Management",
+  "greeting": "Good evening",
+  "reminder": "A quick reminder to update your tithes and keep your balance accurate.",
+  "balance": {
+    "outstanding": "Your remaining tithe balance is",
+    "credit": "You currently have a credit of",
+    "settled": "Your tithe balance is settled"
+  },
+  "balanceBadge": {
+    "outstanding": "Due to give",
+    "credit": "Credit",
+    "settled": "Settled"
+  },
+  "verification": "Make sure you have added your latest income, expenses, and donations.",
+  "importHintPrefix": "Several transactions to update?",
+  "importHintEmphasis": "You can easily import them from an Excel file.",
+  "cta": "Update your tithes in Ten10",
+  "encouragementLabel": "Encouragement Corner",
+  "footerPreferenceNote": "Sent according to the reminder preferences you selected",
+  "unsubscribeReminder": "Stop monthly reminders",
+  "unsubscribeAll": "Unsubscribe",
+  "subject": {
+    "outstanding": "Tithe reminder - {{amount}} remaining",
+    "credit": "Tithe reminder - {{amount}} credit",
+    "settled": "Tithe reminder - your balance is settled"
+  },
+  "monthlyEncouragements": [
+    {
+      "contentId": "TN10-0002",
+      "body": "Bring the full tithe into the storehouse, that there may be food in My house, and test Me now in this, says the Lord of Hosts — if I will not open for you the windows of heaven and pour out for you a blessing without end.\n\nThe one verse where God says explicitly: come and test Me. With ma'aser.",
+      "source": "Malachi 3:10"
+    },
+    {
+      "contentId": "TN10-0003",
+      "body": "\"Aser te'aser\" — our Sages taught: give ma'aser so that you will prosper.\n\nThey asked: From where do you know this? He said: Go and test it — as it says, \"Test Me now in this.\"\n\nAnd what is \"without end\"? Until your lips wear out from saying \"enough.\"",
+      "source": "Taanit 9a"
+    },
+    {
+      "contentId": "TN10-0005",
+      "body": "The salt of money is chaser — reduction. And some say: chesed — kindness.\n\nRashi: one who wants to \"salt\" his money — that is, cause it to last — should continually reduce it for tzedakah; and that reduction is its preservation. And those who say chesed: turn it into kindness.\n\nLike salt that preserves food: a little \"reduction\" for tzedakah is what keeps the money lasting.",
+      "source": "Ketubot 66b"
+    },
+    {
+      "contentId": "TN10-0006",
+      "body": "If a person sees that their provisions are limited — they should give tzedakah from them, and all the more so when they are plentiful. Whoever \"shears\" from their assets and gives tzedakah is saved from the judgment of Gehinnom.\n\nA parable of two ewes crossing water: one shorn and one not. The shorn one crossed; the unshorn one got stuck in its soaked wool.\n\nSometimes what we \"shear away\" is exactly what lets us get across.",
+      "source": "Gittin 7a"
+    },
+    {
+      "contentId": "TN10-0014",
+      "body": "A new immigrant came to the Chazon Ish with a medical problem. The rabbi blessed him and asked him to accept ma'aser from his profits.\n\nAfter leaving he returned: \"I have many expenses — I will tithe only when my situation improves.\" The Chazon Ish replied: \"Already the yetzer is beginning… That is not the way. Accept upon yourself from now to set aside ma'aser properly.\"\n\nHe accepted and was helped. In time he became a major contractor and donor to Torah institutions. When he later stopped tithing — he declined.",
+      "source": "Orchot Ish"
+    },
+    {
+      "contentId": "TN10-0024",
+      "body": "King Monobaz spent his treasures and his fathers' treasures in years of famine. His brothers gathered against him: your fathers stored and added — and you waste!\n\nHe said: My fathers stored below, and I stored above. They stored money, and I stored lives. They stored for this world, and I stored for the World to Come.\n\nIn short: he wasn't wasting. He was transferring to the right account.",
+      "source": "Bava Batra 11a"
+    },
+    {
+      "contentId": "TN10-0015",
+      "body": "The Satmar Rebbe, R. Yoel Teitelbaum zt\"l, strongly urged charity — and especially setting aside ma'aser without compromise.\n\nOnce at a yeshiva appeal a wealthy man announced: I am giving ten times \"chai\" — $180. The Rebbe replied: If you had given one \"mem-tav\" — $440 — you would have a greater mitzvah!\n\nSometimes the small numbers sound impressive… and the real number is simply bigger.",
+      "source": "Story of the Satmar Rebbe"
+    },
+    {
+      "contentId": "TN10-0053",
+      "body": "Just as a person's livelihood is allotted from Rosh Hashanah — so are their losses. If worthy: they give it to tzedakah. If not: others take by force — and even that can count as tzedakah.\n\nRabban Yochanan ben Zakkai dreamed that relatives would lose 700 dinars. Over the year he drew 683 from them for charity. Seventeen remained — and on Erev Yom Kippur the king's men took exactly that.\n\nThey asked: why didn't you tell us sooner? We would have given it all! He said: I wanted you to give for its own sake.",
+      "source": "Bava Batra 9–10"
+    },
+    {
+      "contentId": "TN10-0008",
+      "body": "Reuven and Shimon were neighbors. Both became wealthy — each from a different remedy.\n\nReuven heard: honor your wives and you will prosper — he honored his wife with fine clothes and jewelry, and grew rich. Shimon heard: give ma'aser so that you will prosper — he tithed from every profit, and grew rich too.\n\nWhen Shimon saw that Reuven's spending stayed in his home, while charity money went to the poor — he complained to the sage. The sage answered: don't envy him. Your neighbor merited wealth in this world; you also merited reward in the World to Come. What is given to tzedakah continues with you.",
+      "source": "Niflaim Ma'asecha, Ben Ish Chai"
+    },
+    {
+      "contentId": "TN10-0009",
+      "body": "Of Rabbi Shalom Aharon Lopes zt\"l of Acre they said: \"Rabbi Lopes lives on ma'aser.\"\n\nMeaning? Often, instead of giving a tenth to tzedakah, only a tenth of his salary remained for himself — and he gave the rest to those in need.\n\nOnce people approached him as if he managed a charity fund. He smiled: \"Which fund do I manage? The only fund I have is the one of which it is said: and the principal remains for him for the World to Come.\"",
+      "source": "Story of Rabbi Lopes"
+    },
+    {
+      "contentId": "TN10-0056",
+      "body": "In the home of R. Isser Zalman Meltzer zt\"l, a cup fell from the rebbitzin's hand and broke. The rav asked her: perhaps a poor person asked for tzedakah today and you didn't give?\n\nShe was astonished — that is exactly what happened in the store: the poor man had no change, and by the time she broke a larger coin he had disappeared.\n\n\"I knew it!\" declared R. Isser Zalman. \"A cup does not break unless it has a good reason.\"",
+      "source": "Story of R. Isser Zalman Meltzer"
+    },
+    {
+      "contentId": "TN10-0076",
+      "body": "They asked the Baal Shem Tov: why do you disperse more than a chomesh — didn't the Sages say \"one who wastes should not waste more than a fifth\"?\n\nHe answered: the word \"wastes\" (mevazbez) implies plunder — giving without joy, as if robbed. For that, the Sages set a limit. But one who gives with joy and finds pleasure in it — has no limit.\n\nIn short: if it feels like waste — keep to a chomesh. If it feels like eternal savings — your heart is already in the right place.",
+      "source": "Attributed to the Baal Shem Tov"
+    }
+  ]
+}

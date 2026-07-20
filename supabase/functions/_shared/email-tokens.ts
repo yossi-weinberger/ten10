@@ -27,10 +27,20 @@ export const EMAIL_TOKENS = {
     bodyMuted: "#4a5955",
     /** Secondary/footer muted */
     bodyLight: "#6b7471",
-    userPage: "#e9e7df",
-    userCard: "#f7f3e7",
-    userFooter: "#efebdf",
-    userCardBorder: "#d4d0c3",
+    /** Closer to app `--background` (48 79% 98%) */
+    userPage: "#fdfbf4",
+    /** Closer to app `--card` (48 50% 96%) — outer shell / framing */
+    userCard: "#f6f3ea",
+    /** Reminder/user body surface — near-white cream, lighter than header/footer */
+    userBody: "#fffcf7",
+    userFooter: "#f0ebe0",
+    userCardBorder: "#e4dfd2",
+    /** Soft mint near app `--secondary` — encouragement + credit calm state */
+    encouragementSurface: "#edf4f0",
+    /** Brand logo gold for outstanding / "חובה לתרומה" */
+    outstandingBadge: "#f0c000",
+    outstandingBadgeText: "#243834",
+    balanceCard: "#ffffff",
     adminPage: "#f4f3ed",
     adminFooter: "#e9eae4",
     adminMeta: "#68736f",
@@ -51,6 +61,10 @@ export const EMAIL_TOKENS = {
     buttonText: "#fffdf8",
   },
   fontFamily: "Assistant, 'Arial Hebrew', 'Segoe UI', Arial, sans-serif",
+  /** Soft depth for reminder cards (best-effort; some clients strip) */
+  cardShadow: "0 2px 10px rgba(36, 56, 52, 0.07)",
+  /** Slightly stronger teal-tinted lift for primary CTA */
+  buttonShadow: "0 4px 14px rgba(17, 103, 106, 0.28)",
   logoUrl: "https://ten10-app.com/logo/logo-wide.png",
   headerBackgroundUrl:
     "https://ten10-app.com/email/reminder-header-blur.png",

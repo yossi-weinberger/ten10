@@ -110,7 +110,7 @@ describe("SimpleEmailService", () => {
     expect(htmlBody).toContain('lang="he"');
     expect(htmlBody).toContain('dir="rtl"');
     expect(htmlBody).toContain("ערב טוב, יוסי");
-    expect(htmlBody).toContain("יתרת המעשר שלך לתרומה היא");
+    expect(htmlBody).toContain("יתרה לתרומה");
     expect(htmlBody).toContain(reminderUrl.replaceAll("&", "&amp;"));
     expect(htmlBody).toContain(allUrl.replaceAll("&", "&amp;"));
     expect(

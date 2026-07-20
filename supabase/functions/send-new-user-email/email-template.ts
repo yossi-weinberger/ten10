@@ -1,7 +1,4 @@
-import {
-  renderAdminBadge,
-  renderAdminTh,
-} from "../_shared/email-admin-primitives.ts";
+import { renderAdminBadge } from "../_shared/email-admin-primitives.ts";
 import { renderAdminEmailShell } from "../_shared/email-layout-admin.ts";
 import { escapeHtml } from "../_shared/escape-html.ts";
 import { EMAIL_TOKENS } from "../_shared/email-tokens.ts";
@@ -64,7 +61,6 @@ export interface EmailBodies {
 const ISRAEL_TZ = "Asia/Jerusalem";
 const { colors } = EMAIL_TOKENS;
 const TITLE_COLOR = colors.adminTitle;
-const LABEL_COLOR = colors.adminLabel;
 const MUTED_COLOR = colors.bodyLight;
 const VALUE_COLOR = colors.adminValue;
 const ROW_BORDER = colors.adminRowBorder;
@@ -103,6 +99,48 @@ function formatDateParts(value: string | null | undefined): {
   return { date, time };
 }
 
+function renderStackedCards(cardsHtml: string): string {
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="width: 100%; border-collapse: collapse;">
+  ${cardsHtml}
+</table>`;
+}
+
+function renderDownloadCard(request: DownloadRequest): string {
+  const parts = formatDateParts(request.created_at);
+  const statusBadge =
+    request.status === "sent"
+      ? renderAdminBadge("✓ sent", "ok")
+      : request.status === "blocked"
+        ? renderAdminBadge("blocked", "warn")
+        : renderAdminBadge("error", "error");
+  const reasonRow = request.reason
+    ? `<tr>
+              <td style="padding: 0; color: ${MUTED_COLOR}; font-size: 12px; line-height: 18px;">${escapeHtml(request.reason)}</td>
+            </tr>`
+    : "";
+
+  return `<tr>
+    <td style="padding: 0 0 10px 0;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${EMAIL_TOKENS.colors.surface}" style="width: 100%; background-color: ${EMAIL_TOKENS.colors.surface}; border-collapse: collapse; border: 1px solid ${ROW_BORDER}; border-radius: 8px;">
+        <tr>
+          <td style="padding: 12px 14px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse;">
+              <tr>
+                <td style="padding: 0 0 6px 0; color: #213632; font-size: 13px; font-weight: 700; line-height: 18px; word-break: break-word;">${escapeHtml(request.from_email)}</td>
+                <td align="right" valign="top" style="padding: 0 0 6px 10px; white-space: nowrap;">${statusBadge}</td>
+              </tr>
+              <tr>
+                <td colspan="2" style="padding: 0 0 ${request.reason ? "6px" : "0"} 0; color: ${VALUE_COLOR}; font-size: 12px; line-height: 18px;">${escapeHtml(parts.date)} · ${escapeHtml(parts.time)}</td>
+              </tr>
+              ${reasonRow}
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>`;
+}
+
 function buildDownloadRequestsSection(
   requests: DownloadRequest[],
   hours: number,
@@ -114,37 +152,8 @@ function buildDownloadRequestsSection(
     };
   }
 
-  const rowsHtml = requests
-    .map((request) => {
-      const parts = formatDateParts(request.created_at);
-      const statusBadge =
-        request.status === "sent"
-          ? renderAdminBadge("✓ sent", "ok")
-          : request.status === "blocked"
-            ? renderAdminBadge("blocked", "warn")
-            : renderAdminBadge("error", "error");
-
-      return `<tr>
-      <td style="padding: 10px 9px; border-bottom: 1px solid ${ROW_BORDER}; font-size: 11px; color: #213632; font-weight: 700; line-height: 16px;">${escapeHtml(request.from_email)}</td>
-      <td style="padding: 10px 9px; border-bottom: 1px solid ${ROW_BORDER}; font-size: 11px; color: ${VALUE_COLOR}; line-height: 16px;">${escapeHtml(parts.date)}</td>
-      <td style="padding: 10px 9px; border-bottom: 1px solid ${ROW_BORDER}; font-size: 11px; color: ${VALUE_COLOR}; line-height: 16px;">${escapeHtml(parts.time)}</td>
-      <td style="padding: 10px 9px; border-bottom: 1px solid ${ROW_BORDER};">${statusBadge}</td>
-      <td style="padding: 10px 9px; border-bottom: 1px solid ${ROW_BORDER}; font-size: 11px; color: ${MUTED_COLOR}; line-height: 16px;">${escapeHtml(request.reason ?? "")}</td>
-    </tr>`;
-    })
-    .join("");
-
   return {
-    htmlBody: `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${EMAIL_TOKENS.colors.surface}" style="width: 100%; background-color: ${EMAIL_TOKENS.colors.surface}; border-collapse: collapse;">
-      <thead><tr>
-        ${renderAdminTh("Email")}
-        ${renderAdminTh("Date")}
-        ${renderAdminTh("Time")}
-        ${renderAdminTh("Status")}
-        ${renderAdminTh("Reason")}
-      </tr></thead>
-      <tbody>${rowsHtml}</tbody>
-    </table>`,
+    htmlBody: renderStackedCards(requests.map(renderDownloadCard).join("")),
     textBody: requests
       .map((request) => {
         const parts = formatDateParts(request.created_at);
@@ -152,6 +161,44 @@ function buildDownloadRequestsSection(
       })
       .join("\n"),
   };
+}
+
+function renderUserCard(row: SummaryRow): string {
+  const avatarCell = row.avatar_url
+    ? `<img src="${escapeHtml(row.avatar_url)}" alt="avatar" width="36" height="36" style="display: block; width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid ${ROW_BORDER};">`
+    : `<div style="width: 36px; height: 36px; border-radius: 50%; background-color: ${ROW_BORDER}; color: ${MUTED_COLOR}; font-size: 10px; line-height: 36px; text-align: center;">N/A</div>`;
+  const consentBadge =
+    row.mailing_list_consent === true
+      ? renderAdminBadge("Yes", "ok")
+      : row.mailing_list_consent === false
+        ? renderAdminBadge("No", "error")
+        : renderAdminBadge("Unknown", "neutral");
+  const parts = formatDateParts(row.auth_created_at ?? row.updated_at ?? null);
+  const shortId = `${row.id.substring(0, 8)}...`;
+
+  return `<tr>
+    <td style="padding: 0 0 10px 0;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${EMAIL_TOKENS.colors.surface}" style="width: 100%; background-color: ${EMAIL_TOKENS.colors.surface}; border-collapse: collapse; border: 1px solid ${ROW_BORDER}; border-radius: 8px;">
+        <tr>
+          <td width="52" valign="top" style="width: 52px; padding: 12px 0 12px 12px;">${avatarCell}</td>
+          <td style="padding: 12px 14px 12px 10px;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse;">
+              <tr>
+                <td style="padding: 0 0 4px 0; color: #213632; font-size: 14px; font-weight: 700; line-height: 20px; word-break: break-word;">${escapeHtml(row.full_name ?? "Not provided")}</td>
+                <td align="right" valign="top" style="padding: 0 0 4px 10px; white-space: nowrap;">${consentBadge}</td>
+              </tr>
+              <tr>
+                <td colspan="2" style="padding: 0 0 4px 0; color: ${VALUE_COLOR}; font-size: 12px; line-height: 18px; word-break: break-word;">${escapeHtml(row.email ?? "unknown")}</td>
+              </tr>
+              <tr>
+                <td colspan="2" style="padding: 0; color: ${MUTED_COLOR}; font-size: 11px; line-height: 16px;">${escapeHtml(parts.date)} · ${escapeHtml(parts.time)} · ${escapeHtml(shortId)}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>`;
 }
 
 function renderMetric(
@@ -267,32 +314,10 @@ export function buildEmailBodies(
 </table>
 <div style="margin: 0 0 18px; padding: 10px 12px; border-top: 1px solid ${METRIC_BORDER}; border-bottom: 1px solid ${METRIC_BORDER}; color: ${VALUE_COLOR}; font-size: 12px; line-height: 18px;">${reminderStatusLine}</div>`;
 
-  const rowsHtml = rows
-    .map((row) => {
-      const avatarCell = row.avatar_url
-        ? `<img src="${escapeHtml(row.avatar_url)}" alt="avatar" width="28" height="28" style="display: block; width: 28px; height: 28px; border-radius: 50%; object-fit: cover; border: 1px solid ${ROW_BORDER};">`
-        : `<div style="width: 28px; height: 28px; border-radius: 50%; background-color: ${ROW_BORDER}; color: ${MUTED_COLOR}; font-size: 10px; line-height: 28px; text-align: center;">N/A</div>`;
-      const consentBadge =
-        row.mailing_list_consent === true
-          ? renderAdminBadge("Yes", "ok")
-          : row.mailing_list_consent === false
-            ? renderAdminBadge("No", "error")
-            : renderAdminBadge("Unknown", "neutral");
-      const parts = formatDateParts(
-        row.auth_created_at ?? row.updated_at ?? null,
-      );
-
-      return `<tr>
-        <td style="padding: 10px 9px; border-bottom: 1px solid ${ROW_BORDER}; vertical-align: middle;">${avatarCell}</td>
-        <td style="padding: 10px 9px; border-bottom: 1px solid ${ROW_BORDER}; color: #213632; font-size: 11px; font-weight: 700; line-height: 16px; vertical-align: middle;">${escapeHtml(row.full_name ?? "Not provided")}</td>
-        <td style="padding: 10px 9px; border-bottom: 1px solid ${ROW_BORDER}; color: ${VALUE_COLOR}; font-size: 11px; line-height: 16px; vertical-align: middle;">${escapeHtml(row.email ?? "unknown")}</td>
-        <td style="padding: 10px 9px; border-bottom: 1px solid ${ROW_BORDER}; color: ${MUTED_COLOR}; font-family: monospace; font-size: 11px; line-height: 16px; vertical-align: middle;">${escapeHtml(row.id.substring(0, 8))}...</td>
-        <td style="padding: 10px 9px; border-bottom: 1px solid ${ROW_BORDER}; color: ${VALUE_COLOR}; font-size: 11px; line-height: 16px; vertical-align: middle;">${escapeHtml(parts.date)}</td>
-        <td style="padding: 10px 9px; border-bottom: 1px solid ${ROW_BORDER}; color: ${VALUE_COLOR}; font-size: 11px; line-height: 16px; vertical-align: middle;">${escapeHtml(parts.time)}</td>
-        <td style="padding: 10px 9px; border-bottom: 1px solid ${ROW_BORDER}; vertical-align: middle;">${consentBadge}</td>
-      </tr>`;
-    })
-    .join("");
+  const usersSectionHtml =
+    rows.length === 0
+      ? `<p style="margin: 0; color: ${MUTED_COLOR}; font-size: 12px; line-height: 18px;">No new web users in the last ${hours}h.</p>`
+      : renderStackedCards(rows.map(renderUserCard).join(""));
 
   const bodyHtml = `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse;">
   <tr>
@@ -305,22 +330,7 @@ export function buildEmailBodies(
     <td style="padding: 0 0 8px 0; color: ${TITLE_COLOR}; font-size: 13px; font-weight: 700; line-height: 18px;">🌐 Web Platform — New Users</td>
   </tr>
   <tr>
-    <td style="padding: 0 0 18px 0;">
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${EMAIL_TOKENS.colors.surface}" style="width: 100%; background-color: ${EMAIL_TOKENS.colors.surface}; border-collapse: collapse;">
-        <thead>
-          <tr>
-            ${renderAdminTh("Avatar")}
-            ${renderAdminTh("Full Name")}
-            ${renderAdminTh("Email")}
-            ${renderAdminTh("User ID")}
-            ${renderAdminTh("Date")}
-            ${renderAdminTh("Time")}
-            ${renderAdminTh("Consent")}
-          </tr>
-        </thead>
-        <tbody>${rowsHtml}</tbody>
-      </table>
-    </td>
+    <td style="padding: 0 0 18px 0;">${usersSectionHtml}</td>
   </tr>
   <tr>
     <td style="padding: 0 0 8px 0; border-top: 1px solid ${ROW_BORDER}; color: ${TITLE_COLOR}; font-size: 13px; font-weight: 700; line-height: 18px; padding-top: 16px;">💻 Desktop Platform — Download Requests</td>

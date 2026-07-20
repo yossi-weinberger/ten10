@@ -26,6 +26,28 @@ the remaining backlog.
 No separate profile language column is planned. The existing
 `client_preferences.language` value is the source of truth.
 
+## Architecture invariants (do not regress)
+
+Verified against current code — keep these true unless an intentional migration
+lands with tests:
+
+1. **Two SES classes**: reminder
+   (`send-reminder-emails/simple-email-service.ts`) vs shared
+   (`_shared/simple-email-service.ts`). Reminder has List-Unsubscribe +
+   `foldBase64` (76 / line ≤ 998). Shared has neither today — do not claim
+   shared MIME is folded.
+2. **Reminder copy is Edge-local** (`locales/email-*.json`). Never pull
+   `public/locales` / i18next into the reminder Edge Function.
+3. **`_shared/email-*` changes redeploy impact** multiple functions
+   (reminders, contact, cron, new-user, download).
+4. **Unsubscribe `type` resolution**: JWT → body → default `"all"`
+   (`verify-unsubscribe-token`).
+5. **RPC return-shape changes** for `get_reminder_users_with_emails`: DROP +
+   CREATE + restore grants/assertions (not `CREATE OR REPLACE`).
+
+Full narrative: `email-reminders-feature-complete-guide.md` § Architecture
+invariants and `email-unsubscribe-system-guide.md`.
+
 ## Remaining Manual / Editorial
 
 - [ ] Controlled visual checks in Gmail, Outlook, Apple Mail (and image-blocked)

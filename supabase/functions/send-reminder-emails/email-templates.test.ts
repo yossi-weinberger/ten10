@@ -1,5 +1,9 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { EMAIL_TOKENS } from "../_shared/email-tokens.ts";
+import { escapeHtml } from "../_shared/escape-html.ts";
+import { getMonthlyEncouragement } from "./email-copy.ts";
 import {
   extractFirstName,
   generateReminderEmailHTML,
@@ -38,14 +42,19 @@ describe("reminder email templates", () => {
     expect(html).toContain('lang="he"');
     expect(html).toContain('dir="rtl"');
     expect(html).toContain("ערב טוב, יוסי");
-    expect(html).toContain("יתרת המעשר שלך לתרומה היא");
+    expect(html).toContain("יתרה לתרומה");
     expect(html).toContain("384.70 ₪");
     expect(html).toContain("כדאי לוודא שהוספת");
     expect(html).toContain("פינת החיזוק");
-    expect(html).toContain("border-right: 4px solid");
+    expect(html).toContain("הביאו את כל המעשר אל בית האוצר");
+    expect(html).toContain("מלאכי ג, י");
+    expect(html).toContain('text-align: left;">מלאכי ג, י');
+    expect(html).not.toContain("TN10-");
+    expect(html).toContain("בואו תנסו אותי");
+    expect(html).toContain(EMAIL_TOKENS.colors.outstandingBadge);
+    expect(html).toContain(EMAIL_TOKENS.colors.encouragementSurface);
     expect(html).toContain("אפשר לייבא אותן בקלות מקובץ Excel");
-    expect(html).not.toContain("#e8f3ee");
-    expect(html).not.toContain("#d7ebe2");
+    expect(html).not.toContain("border-right: 4px solid");
   });
 
   it("formats amounts with the user's default currency", () => {
@@ -64,17 +73,15 @@ describe("reminder email templates", () => {
     ).toContain("€384.70");
   });
 
-  it("renders credit without a minus sign and with A+B emphasis", () => {
+  it("renders credit with a minus sign and calm mint emphasis", () => {
     const html = generateReminderEmailHTML({
       ...baseData,
       titheBalance: -384.7,
     });
-    expect(html).toContain("הינך נמצא בזכות של");
-    expect(html).toContain("384.70 ₪");
-    expect(html).not.toContain("-384.70");
     expect(html).toContain(">זכות</span>");
-    expect(html).toContain("#e8f3ee");
-    expect(html).toContain("#d7ebe2");
+    expect(html).toContain("-384.70 ₪");
+    expect(html).toContain(EMAIL_TOKENS.colors.creditSurface);
+    expect(html).toContain(EMAIL_TOKENS.colors.creditBadge);
   });
 
   it("renders the settled state", () => {
@@ -82,7 +89,7 @@ describe("reminder email templates", () => {
       ...baseData,
       titheBalance: 0,
     });
-    expect(html).toContain("יתרת המעשר שלך מאוזנת");
+    expect(html).toContain(">מאוזן</span>");
     expect(html).toContain("0.00");
   });
 
@@ -97,9 +104,9 @@ describe("reminder email templates", () => {
     expect(html).toContain('lang="en"');
     expect(html).toContain('dir="ltr"');
     expect(html).toContain("Good evening, Yossi");
-    expect(html).toContain("Your remaining tithe balance is");
+    expect(html).toContain("Due to give");
     expect(html).toContain("₪384.70");
-    expect(html).toContain("border-left: 4px solid");
+    expect(html).toContain('text-align: right;">Malachi 3:10');
     expect(text).toContain("Good evening, Yossi");
     expect(text).toContain("Stop monthly reminders");
   });
@@ -113,8 +120,8 @@ describe("reminder email templates", () => {
       currency: "USD",
     });
     expect(html).toContain(">Credit</span>");
-    expect(html).toContain("$50.00");
-    expect(html).toContain("#e8f3ee");
+    expect(html).toContain("-$50.00");
+    expect(html).toContain(EMAIL_TOKENS.colors.creditSurface);
   });
 
   it("renders complete HTML and plain text without a name", () => {
@@ -127,7 +134,7 @@ describe("reminder email templates", () => {
 
     expect(html).toContain(">ערב טוב</td>");
     expect(html).not.toContain("ערב טוב,");
-    expect(html).toContain("יתרת המעשר שלך לתרומה היא");
+    expect(html).toContain("יתרה לתרומה");
     expect(html).toContain("פינת החיזוק");
     expect(text).toContain("ערב טוב");
     expect(text).not.toContain("ערב טוב,");
@@ -180,9 +187,11 @@ describe("reminder email templates", () => {
     expect(html).toContain(EMAIL_TOKENS.colors.cream);
     expect(html).toContain(EMAIL_TOKENS.colors.border);
     expect(html).toContain(EMAIL_TOKENS.logoUrl);
-    expect(html).toContain("#f7f3e7");
-    expect(html).toContain("#e9e7df");
-    expect(html).toContain("border-radius: 8px");
+    expect(html).toContain(EMAIL_TOKENS.colors.userCard);
+    expect(html).toContain(EMAIL_TOKENS.colors.userPage);
+    expect(html).toContain("border-radius: 12px");
+    expect(html).toContain(`box-shadow: ${EMAIL_TOKENS.cardShadow}`);
+    expect(html).toContain(`box-shadow: ${EMAIL_TOKENS.buttonShadow}`);
     expect(html).not.toContain("#d9a441");
     expect(html).toContain(fontStack);
     expect(html).not.toContain("font-family: Arial, Helvetica, sans-serif");
@@ -200,7 +209,7 @@ describe("reminder email templates", () => {
     expect(html).toContain(baseData.unsubscribeUrls.reminderUrl);
     expect(html).toContain(baseData.unsubscribeUrls.allUrl);
     expect(html).toContain("הפסקת תזכורות חודשיות");
-    expect(html).toContain("ביטול הרשמה מכל המיילים");
+    expect(html).toContain("ביטול הרשמה");
   });
 
   it("localizes subject lines", () => {
@@ -213,4 +222,108 @@ describe("reminder email templates", () => {
     ).toContain("Tithe reminder");
   });
 
+  it("writes state and monthly previews when enabled", () => {
+    if (process.env.WRITE_EMAIL_PREVIEWS !== "1") return;
+
+    const outputDirectory = resolve("tmp/reminder-encouragement-previews");
+    mkdirSync(outputDirectory, { recursive: true });
+
+    const states = [
+      { key: "outstanding", titheBalance: 384.7 },
+      { key: "credit", titheBalance: -384.7 },
+      { key: "settled", titheBalance: 0 },
+    ] as const;
+
+    for (const state of states) {
+      writeFileSync(
+        resolve(outputDirectory, `reminder-he-${state.key}.html`),
+        `${generateReminderEmailHTML({
+          ...baseData,
+          titheBalance: state.titheBalance,
+          israelMonth: 7,
+        })}\n`,
+        "utf8",
+      );
+      writeFileSync(
+        resolve(outputDirectory, `reminder-en-${state.key}.html`),
+        `${generateReminderEmailHTML({
+          ...baseData,
+          language: "en",
+          fullName: "Yossi Weinberger",
+          titheBalance: state.titheBalance,
+          israelMonth: 7,
+        })}\n`,
+        "utf8",
+      );
+    }
+
+    const monthLinks: string[] = [];
+
+    for (let month = 1; month <= 12; month += 1) {
+      const heEncouragement = getMonthlyEncouragement("he", month);
+      const heHtml = generateReminderEmailHTML({
+        ...baseData,
+        israelMonth: month,
+      });
+      const enHtml = generateReminderEmailHTML({
+        ...baseData,
+        language: "en",
+        fullName: "Yossi Weinberger",
+        israelMonth: month,
+      });
+      const heFile = `reminder-he-m${String(month).padStart(2, "0")}.html`;
+      const enFile = `reminder-en-m${String(month).padStart(2, "0")}.html`;
+      writeFileSync(resolve(outputDirectory, heFile), `${heHtml}\n`, "utf8");
+      writeFileSync(resolve(outputDirectory, enFile), `${enHtml}\n`, "utf8");
+      monthLinks.push(`<tr>
+        <td>${month}</td>
+        <td><code>${escapeHtml(heEncouragement.contentId ?? "")}</code></td>
+        <td><a href="${heFile}">עברית</a></td>
+        <td><a href="${enFile}">English</a></td>
+        <td dir="auto">${escapeHtml(heEncouragement.body.slice(0, 80))}…</td>
+      </tr>`);
+    }
+
+    const indexHtml = `<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ten10 reminder email redesign previews</title>
+  <style>
+    body { font-family: Assistant, "Segoe UI", Arial, sans-serif; margin: 32px; background: #fdfbf4; color: #243834; }
+    h1, h2 { color: #11676a; }
+    table { width: 100%; border-collapse: collapse; background: #fff; margin-bottom: 28px; }
+    th, td { border-bottom: 1px solid #e4dfd2; padding: 10px 12px; text-align: right; vertical-align: top; }
+    th { color: #43514d; font-size: 13px; }
+    a { color: #11676a; font-weight: 700; }
+    code { font-size: 12px; }
+    p { color: #596662; max-width: 720px; }
+  </style>
+</head>
+<body>
+  <h1>מייל תזכורת — תצוגה מקדימה</h1>
+  <h2>מצבי יתרה</h2>
+  <p>
+    <a href="reminder-he-outstanding.html">חובה HE</a> ·
+    <a href="reminder-he-credit.html">זכות HE</a> ·
+    <a href="reminder-he-settled.html">מאוזן HE</a><br />
+    <a href="reminder-en-outstanding.html">Due EN</a> ·
+    <a href="reminder-en-credit.html">Credit EN</a> ·
+    <a href="reminder-en-settled.html">Settled EN</a>
+  </p>
+  <h2>12 חודשי חיזוק</h2>
+  <table>
+    <thead>
+      <tr><th>חודש</th><th>contentId</th><th>HE</th><th>EN</th><th>תחילת הטקסט</th></tr>
+    </thead>
+    <tbody>
+      ${monthLinks.join("\n")}
+    </tbody>
+  </table>
+</body>
+</html>
+`;
+    writeFileSync(resolve(outputDirectory, "index.html"), indexHtml, "utf8");
+    expect(monthLinks).toHaveLength(12);
+  });
 });

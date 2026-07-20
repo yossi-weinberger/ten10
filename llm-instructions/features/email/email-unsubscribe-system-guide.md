@@ -50,9 +50,11 @@ unsubscribeUrls?: {
 #### 1.2 שירות שליחת המיילים (`simple-email-service.ts`)
 
 - **מיקום**: `supabase/functions/send-reminder-emails/simple-email-service.ts`
+  (reminder transport — not `_shared/simple-email-service.ts`)
 - **תכונות**:
   - יצירת JWT tokens מאובטחים לכל מייל
-  - הוספת List-Unsubscribe headers (תמיכה עתידית)
+  - `List-Unsubscribe` + `List-Unsubscribe-Post` ב-Raw MIME (מיושם בפרודקשן)
+  - קיפול Base64 ב־76 תווים; בדיקות לשורת MIME ≤ 998
   - שליחה דרך AWS SES REST API
   - טיפול בשגיאות ו-rate limiting
 
@@ -96,9 +98,19 @@ interface UnsubscribeTokenPayload {
 
 1. **קבלת בקשה**: POST עם JWT token (ואופציונלית `type`)
 2. **אימות Token**: בדיקת חתימה HMAC ותפוגה
-3. **קביעת סוג**: מעדיפים את `type` החתום ב־JWT; `body.type` רק כ־fallback
+3. **קביעת סוג** (`resolveUnsubscribeType` בקוד):
+   1. `type` החתום ב־JWT אם `"reminder"` | `"all"`
+   2. אחרת `body.type` אם תקין
+   3. אחרת ברירת מחדל **`"all"`**
 4. **עדכון העדפות**: RPC `update_user_preferences` דרך service_role
 5. **תגובה**: JSON `{ success, type }` — בלי `userId`/`email` בדפדפן; הדף מציג הצלחה/שגיאה ב־UI
+
+**Deploy sequencing (Phase 1 → Phase 2):** Phase 1 moved verify+apply into the
+Edge Function without revoking RPC grants in the same change (EF deploy can lag
+FE/migrations). Phase 2 (`20260715223000_lock_update_user_preferences_service_role.sql`)
+locked `EXECUTE` to `service_role` only after Phase 1 was live. Do not revoke
+grants before the Edge Function that applies preferences with the service role
+is deployed.
 
 #### 3.3 דף התגובה (Frontend)
 
@@ -146,7 +158,7 @@ mailing_list_consent BOOLEAN DEFAULT false  -- ביטול הרשמה מוחלט
 
 ### 3. תאימות לתקנות
 
-- **CAN-SPAM Act**: List-Unsubscribe headers (תמיכה עתידית)
+- **CAN-SPAM Act**: List-Unsubscribe headers במיילי תזכורות (מיושם ב-Raw MIME)
 - **GDPR**: זכות למחיקת נתונים
 - **RFC 8058**: One-Click unsubscribe support
 
@@ -340,21 +352,11 @@ supabase functions logs send-reminder-emails
 - קישורים מוצפנים דרך AWS
 - מעקב אחר לחיצות למטרות analytics
 
-### 3. Security Headers (עתידי)
+### 3. List-Unsubscribe headers (מיושם)
 
-```typescript
-// מוכן להוספה כאשר AWS SDK יתמוך
-MessageHeaders: [
-  {
-    Name: "List-Unsubscribe",
-    Value: `<${unsubscribeUrls.allUrl}>`,
-  },
-  {
-    Name: "List-Unsubscribe-Post",
-    Value: "List-Unsubscribe=One-Click",
-  },
-];
-```
+במיילי תזכורות, הכותרות מתווספות ב-Raw MIME ב־
+`send-reminder-emails/simple-email-service.ts` (לא דרך MessageHeaders של
+SDK ישן). `_shared/simple-email-service.ts` אינו מוסיף כותרות אלה.
 
 ## משימות לשיפור (Future Tasks)
 
@@ -367,14 +369,13 @@ MessageHeaders: [
 
 ### 2. תמיכה רב-לשונית
 
-- [ ] זיהוי שפת משתמש מהדאטהבייס
-- [ ] מיילים מותאמי שפה (עברית/אנגלית)
-- [ ] דפי unsubscribe מותאמי שפה
-- [ ] שילוב עם מערכת i18n הקיימת
+- [x] מיילי תזכורות מותאמי שפה (עברית/אנגלית מ־`client_preferences.language`)
+- [ ] דפי unsubscribe מותאמי שפה (כולל כיוון RTL/LTR מהטוקן או מהפרופיל)
+- [ ] שילוב מלא עם מערכת i18n הקיימת בדפי unsubscribe
 
 ### 3. תכונות מתקדמות
 
-- [ ] הוספת List-Unsubscribe headers ל-SES
+- [x] List-Unsubscribe headers למיילי תזכורות (Raw MIME)
 - [ ] אנליטיקס על unsubscribe rates
 - [ ] A/B testing למיילים
 - [ ] תבניות מייל מרובות
