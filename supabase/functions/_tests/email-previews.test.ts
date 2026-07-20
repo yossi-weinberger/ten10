@@ -137,7 +137,7 @@ const EXPECTED_METADATA: PreviewMetadata[] = [
     filename: "daily-summary-en.html",
     language: "English",
     name: "Daily summary",
-    subject: "[Ten10] Daily Summary: +2 users (42 total), 2 downloads",
+    subject: "[Ten10] Daily Summary: +3 users (42 total), 2 downloads",
     variant: "Operational summary",
   },
   {
@@ -264,9 +264,17 @@ const dailySummaryInput: BuildEmailBodiesInput = {
     {
       auth_created_at: "2026-07-16T10:30:00.000Z",
       avatar_url: "https://assets.example.test/synthetic-avatar.png",
+      email: "avrohom.yitzchok.markowitz@example.test",
+      full_name: "Avrohom Yitzchok Markowitz",
+      id: "12345678-aaaa-bbbb-cccc-123456789012",
+      mailing_list_consent: false,
+    },
+    {
+      auth_created_at: "2026-07-16T10:45:00.000Z",
+      avatar_url: "https://assets.example.test/synthetic-avatar-2.png",
       email: "new-preview@example.test",
       full_name: "Synthetic New User",
-      id: "12345678-aaaa-bbbb-cccc-123456789012",
+      id: "22345678-aaaa-bbbb-cccc-123456789012",
       mailing_list_consent: true,
     },
     {
