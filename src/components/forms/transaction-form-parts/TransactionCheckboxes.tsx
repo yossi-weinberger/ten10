@@ -2,7 +2,12 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import { motion } from "framer-motion";
-import { FormField, FormItem, FormControl } from "@/components/ui/form";
+import {
+  FormField,
+  FormItem,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Tooltip,
   TooltipContent,
@@ -215,6 +220,9 @@ export function TransactionCheckboxes({
                 </span>
               </motion.div>
             </FormControl>
+            {/* Surface Zod refinement errors (e.g. is_chomesh combinations)
+                so a blocked save is no longer silent. */}
+            <FormMessage className="text-center text-xs" />
           </FormItem>
         );
       }}

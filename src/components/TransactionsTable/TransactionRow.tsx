@@ -4,6 +4,12 @@ import { Transaction, TransactionForTable, TransactionType } from "@/types/trans
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -62,15 +68,26 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
         />
       </TableCell>
       <TableCell className="text-center whitespace-nowrap">
-        <Badge
-          variant="outline"
-          className={cn(
-            "border",
-            typeBadgeColors[transaction.type as TransactionType]
-          )}
-        >
-          {t(`types.${transaction.type}`, transaction.type)}
-        </Badge>
+        {/* Informational badge: give it a real hover affordance (tooltip) and a
+            default cursor so it no longer reads as a dead clickable control. */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Badge
+                variant="outline"
+                className={cn(
+                  "border cursor-default",
+                  typeBadgeColors[transaction.type as TransactionType]
+                )}
+              >
+                {t(`types.${transaction.type}`, transaction.type)}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="max-w-xs">{t("columns.typeTooltip")}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </TableCell>
       <TableCell className="text-center">
         {formatCategory(
