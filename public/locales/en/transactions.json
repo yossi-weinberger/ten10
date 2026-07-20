@@ -153,7 +153,8 @@
       "error": "Error adding transaction",
       "invalidAmount": "Invalid amount",
       "invalidDate": "Invalid date",
-      "requiredField": "Required field"
+      "requiredField": "Required field",
+      "validationFailed": "Please fix the highlighted errors before saving"
     },
     "errors": {
       "missingConversionRate": "Missing conversion rate - please select a rate"
