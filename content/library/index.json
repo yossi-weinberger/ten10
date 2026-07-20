@@ -1,0 +1,1373 @@
+{
+  "version": 1,
+  "description": "Catalog of Ten10 editorial content records. Metadata only — full text lives in ten10-content-master.md.",
+  "source_file": "ten10-content-master.md",
+  "count": 83,
+  "types": [
+    "commentary",
+    "custom",
+    "halakha",
+    "humor",
+    "kabbalah",
+    "responsa",
+    "story",
+    "talmud",
+    "teaching",
+    "testimony",
+    "verse",
+    "will"
+  ],
+  "topics": [
+    "אהבת ישראל",
+    "אחריות",
+    "אלמנה",
+    "אלמנות",
+    "אמונה",
+    "אריכות ימים",
+    "בזבוז",
+    "ביטול גזרות",
+    "ביטחון",
+    "ביקורת חברתית",
+    "ברכה",
+    "גאולה",
+    "גבול הנתינה",
+    "גיוס תרומות",
+    "גמילות חסדים",
+    "גמ״ח",
+    "גניבה",
+    "דיוק",
+    "דן לכף זכות",
+    "הבטחה",
+    "הבעל שם טוב",
+    "הגנה",
+    "הומור",
+    "החפץ חיים",
+    "הכנסת אורחים",
+    "הכרת הטוב",
+    "הסתפקות",
+    "הפסד",
+    "הפצה",
+    "הפרשה",
+    "הפרשה בפועל",
+    "הפרשה מיידית",
+    "הצלה",
+    "הצלחה",
+    "הצלת נפשות",
+    "הרב מפוניבז׳",
+    "הרבי מסאטמר",
+    "הרבי מקפישניץ",
+    "השגחה",
+    "השגחה פרטית",
+    "השפעה",
+    "השקעה",
+    "וותרנות",
+    "זהירות",
+    "זיכוי הרבים",
+    "זמן",
+    "זרע אברהם",
+    "חבלי משיח",
+    "חובות",
+    "חומש",
+    "חינוך",
+    "חסד",
+    "חסד בגוף",
+    "יגיע כפיים",
+    "ייסורים",
+    "יצר הרע",
+    "ישועה",
+    "ישראל",
+    "יתומים",
+    "כבוד האישה",
+    "כבוד העני",
+    "כילות",
+    "כספי ציבור",
+    "כפרה",
+    "לומדי תורה",
+    "לידה",
+    "לימוד תורה",
+    "ממון",
+    "מנהג",
+    "מסחר",
+    "מסירות",
+    "מסירות נפש",
+    "מעלות הצדקה",
+    "מעשר",
+    "מעשר כספים",
+    "מצות",
+    "מקור הלכתי",
+    "משא ומתן",
+    "מתן בסתר",
+    "מתנות לאביונים",
+    "נדיבות",
+    "נדר",
+    "ניסיון",
+    "נתינה",
+    "נתינה גדולה",
+    "נתינה לפי היכולת",
+    "עבודה",
+    "עבודה זרה",
+    "עולם הבא",
+    "עושר",
+    "עושר אמיתי",
+    "עזרה למשפחה",
+    "עידוד",
+    "עין יפה",
+    "עניות",
+    "פורים",
+    "פיקדון",
+    "פסח",
+    "פרנסה",
+    "פתיחת היד",
+    "צדקה",
+    "צוואה",
+    "צפת",
+    "צרכנות",
+    "קבלה",
+    "קבלה טובה",
+    "קהילה",
+    "קליפות",
+    "קמצנות",
+    "קרבנות",
+    "קרן",
+    "רבי איסר זלמן מלצר",
+    "רבי אריה לוין",
+    "רבי ישראל סלנטר",
+    "רבי כלפון הכהן",
+    "רבי לוי יצחק מברדיטשוב",
+    "רבי מרדכי מנדבורנא",
+    "רבי נחום מטשרנוביל",
+    "רבי שלמה זלמן אוירבך",
+    "רבי שמואל מסלנט",
+    "רווחים",
+    "רחמים",
+    "רפואה",
+    "שיעור נתינה",
+    "שיר השירים",
+    "שכינה",
+    "שכר",
+    "שכר בעולם הבא",
+    "שמחה",
+    "שמירה",
+    "שמירת הממון",
+    "שפע",
+    "שרה שנירר",
+    "תהילים",
+    "תורה",
+    "תלמידי חכמים",
+    "תמיכה",
+    "תעסוקה",
+    "תפילה"
+  ],
+  "records": [
+    {
+      "id": "TN10-0001",
+      "type": "verse",
+      "title": "נתון תיתן לו — ברכת הצדקה",
+      "topics": [
+        "צדקה",
+        "נתינה",
+        "ברכה",
+        "פתיחת היד"
+      ],
+      "source": "דברים טו, י–יא; רש״י על דברים טו, יא, ד״ה \"לאמר\"",
+      "text_status": "direct_source",
+      "verification_status": "verified",
+      "original_location": "שורות 1–2"
+    },
+    {
+      "id": "TN10-0002",
+      "type": "verse",
+      "title": "ובחנוני נא בזאת",
+      "topics": [
+        "מעשר",
+        "ברכה",
+        "ניסיון",
+        "שפע"
+      ],
+      "source": "מלאכי ג, י",
+      "text_status": "direct_source",
+      "verification_status": "verified",
+      "original_location": "שורות 3–4"
+    },
+    {
+      "id": "TN10-0003",
+      "type": "talmud",
+      "title": "עשר בשביל שתתעשר",
+      "topics": [
+        "מעשר",
+        "עושר",
+        "ברכה",
+        "ניסיון"
+      ],
+      "source": "על פי מסכת תענית ט ע״א",
+      "text_status": "adapted_from_source",
+      "verification_status": "verified_reference",
+      "original_location": "שורה 5"
+    },
+    {
+      "id": "TN10-0004",
+      "type": "commentary",
+      "title": "מעשר מכל הרווחים",
+      "topics": [
+        "מעשר כספים",
+        "רווחים",
+        "מסחר",
+        "מקור הלכתי"
+      ],
+      "source": "תוספות על מסכת תענית ט ע״א, ד״ה \"עשר תעשר\"",
+      "text_status": "direct_excerpt",
+      "verification_status": "verified",
+      "original_location": "שורות 6–7"
+    },
+    {
+      "id": "TN10-0005",
+      "type": "talmud",
+      "title": "מלח ממון — חסר",
+      "topics": [
+        "צדקה",
+        "שמירת הממון",
+        "חסד",
+        "נתינה"
+      ],
+      "source": "מסכת כתובות סו ע״ב",
+      "text_status": "direct_excerpt",
+      "verification_status": "verified_reference",
+      "original_location": "שורות 8–9"
+    },
+    {
+      "id": "TN10-0006",
+      "type": "talmud",
+      "title": "צדקה גם כשהמזונות מצומצמים",
+      "topics": [
+        "צדקה",
+        "פרנסה",
+        "עניות",
+        "הגנה"
+      ],
+      "source": "על פי מסכת גיטין ז ע״א",
+      "text_status": "adapted_from_source",
+      "verification_status": "verified_reference",
+      "original_location": "שורות 10–11"
+    },
+    {
+      "id": "TN10-0007",
+      "type": "commentary",
+      "title": "כבד את ה׳ מהונך — נתינה מתוך ביטחון",
+      "topics": [
+        "צדקה",
+        "ביטחון",
+        "ברכה",
+        "ממון"
+      ],
+      "source": "רבינו יונה על משלי ג, ט",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 12–13"
+    },
+    {
+      "id": "TN10-0008",
+      "type": "story",
+      "title": "שתי דרכים לעושר — כבוד האישה ומעשר כספים",
+      "topics": [
+        "מעשר כספים",
+        "כבוד האישה",
+        "עושר",
+        "שכר בעולם הבא"
+      ],
+      "source": "על פי הספר \"נפלאים מעשיך\", לבעל בן איש חי, פרק קנ״ה",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 14–16"
+    },
+    {
+      "id": "TN10-0009",
+      "type": "story",
+      "title": "הרב שחי על מעשר",
+      "topics": [
+        "צדקה",
+        "מסירות",
+        "נתינה",
+        "מעשר"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "edited_story",
+      "verification_status": "missing_source",
+      "original_location": "שורה 17"
+    },
+    {
+      "id": "TN10-0010",
+      "type": "story",
+      "title": "חבילת קש לאלמנה כקרבן לפני ה׳",
+      "topics": [
+        "צדקה",
+        "אלמנה",
+        "חסד בגוף",
+        "כבוד העני"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "edited_story",
+      "verification_status": "missing_source",
+      "original_location": "שורה 18"
+    },
+    {
+      "id": "TN10-0011",
+      "type": "halakha",
+      "title": "לעולם אין אדם מעני מן הצדקה",
+      "topics": [
+        "צדקה",
+        "רחמים",
+        "ישראל",
+        "הבטחה"
+      ],
+      "source": "רמב״ם, הלכות מתנות עניים, פרק י, הלכה ב",
+      "text_status": "direct_source",
+      "verification_status": "verified",
+      "original_location": "שורות 26–28"
+    },
+    {
+      "id": "TN10-0012",
+      "type": "commentary",
+      "title": "הנדיבות היא חלק מן הברכה",
+      "topics": [
+        "צדקה",
+        "נדיבות",
+        "ברכה",
+        "כילות"
+      ],
+      "source": "ספר החינוך, פרשת ראה, מצווה ת״פ",
+      "text_status": "direct_excerpt",
+      "verification_status": "verified_reference",
+      "original_location": "שורות 29–30"
+    },
+    {
+      "id": "TN10-0013",
+      "type": "commentary",
+      "title": "מעשרות סייג לעושר",
+      "topics": [
+        "מעשר כספים",
+        "צדקה",
+        "עושר",
+        "נתינה לפי היכולת"
+      ],
+      "source": "ביאור רבינו יונה לאבות ג, יג",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 31–34"
+    },
+    {
+      "id": "TN10-0014",
+      "type": "story",
+      "title": "החזון איש ומעשר כספים",
+      "topics": [
+        "מעשר כספים",
+        "ברכה",
+        "קבלה טובה"
+      ],
+      "source": "אורחות איש, חלק א, עמ׳ קמ״ג–קמ״ד",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 35–37"
+    },
+    {
+      "id": "TN10-0015",
+      "type": "story",
+      "title": "פעם אחת \"מת\" במקום עשר פעמים \"חי\"",
+      "topics": [
+        "צדקה",
+        "נתינה גדולה",
+        "הרבי מסאטמר"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "edited_story",
+      "verification_status": "missing_source",
+      "original_location": "שורה 38"
+    },
+    {
+      "id": "TN10-0016",
+      "type": "story",
+      "title": "הגימטרייה של \"יואליש\"",
+      "topics": [
+        "צדקה",
+        "נדר",
+        "הרבי מסאטמר"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "edited_story",
+      "verification_status": "missing_source",
+      "original_location": "שורות 39–40"
+    },
+    {
+      "id": "TN10-0017",
+      "type": "story",
+      "title": "חובות שנלקחו למען צדקה",
+      "topics": [
+        "צדקה",
+        "חובות",
+        "מסירות"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "edited_story",
+      "verification_status": "missing_source",
+      "original_location": "שורה 41"
+    },
+    {
+      "id": "TN10-0018",
+      "type": "halakha",
+      "title": "שיעורי נתינת צדקה",
+      "topics": [
+        "צדקה",
+        "מעשר",
+        "חומש",
+        "שיעור נתינה"
+      ],
+      "source": "רמב״ם, הלכות מתנות עניים ז, ה; שולחן ערוך, יורה דעה רמט, א",
+      "text_status": "adapted_from_sources",
+      "verification_status": "verified_reference",
+      "original_location": "שורות 46–47"
+    },
+    {
+      "id": "TN10-0019",
+      "type": "commentary",
+      "title": "מנהג מעשר כספים וייעודו",
+      "topics": [
+        "מעשר כספים",
+        "רווחים",
+        "לומדי תורה"
+      ],
+      "source": "על פי דרך אמונה על רמב״ם, הלכות מתנות עניים ז",
+      "text_status": "adapted_from_source",
+      "verification_status": "not_checked",
+      "original_location": "שורות 48–50"
+    },
+    {
+      "id": "TN10-0020",
+      "type": "halakha",
+      "title": "המזכה אחרים בצדקה",
+      "topics": [
+        "צדקה",
+        "זיכוי הרבים",
+        "שכר"
+      ],
+      "source": "שולחן ערוך, יורה דעה רמט, ה",
+      "text_status": "direct_excerpt",
+      "verification_status": "verified",
+      "original_location": "שורה 51"
+    },
+    {
+      "id": "TN10-0021",
+      "type": "halakha",
+      "title": "שמונה מעלות הצדקה",
+      "topics": [
+        "צדקה",
+        "מעלות הצדקה",
+        "מתן בסתר",
+        "תעסוקה"
+      ],
+      "source": "רמב״ם, הלכות מתנות עניים י, ז–יד; שולחן ערוך, יורה דעה רמט, ו",
+      "text_status": "adapted_from_sources",
+      "verification_status": "verified_reference",
+      "original_location": "שורות 52–54"
+    },
+    {
+      "id": "TN10-0022",
+      "type": "story",
+      "title": "הכסף של הרבי מסלונים",
+      "topics": [
+        "צדקה",
+        "כספי ציבור",
+        "דן לכף זכות"
+      ],
+      "source": "עדות הרב אליעזר אייכלר בשם רבי שלום נח מסלונים; הובאה בספר אוצר הצדקה",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 55–57"
+    },
+    {
+      "id": "TN10-0023",
+      "type": "story",
+      "title": "ברשות כהנים — מגבית לישיבה",
+      "topics": [
+        "צדקה",
+        "גיוס תרומות",
+        "הרב מפוניבז׳"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "edited_story",
+      "verification_status": "missing_source",
+      "original_location": "שורה 58"
+    },
+    {
+      "id": "TN10-0024",
+      "type": "talmud",
+      "title": "מונבז המלך — גנזתי למעלה",
+      "topics": [
+        "צדקה",
+        "עולם הבא",
+        "הצלת נפשות"
+      ],
+      "source": "מסכת בבא בתרא יא ע״א; וראו ירושלמי פאה א",
+      "text_status": "adapted_from_source",
+      "verification_status": "verified_reference",
+      "original_location": "שורה 63"
+    },
+    {
+      "id": "TN10-0025",
+      "type": "halakha",
+      "title": "להיזהר בצדקה יותר מכל מצוות עשה",
+      "topics": [
+        "צדקה",
+        "גאולה",
+        "זרע אברהם"
+      ],
+      "source": "רמב״ם, הלכות מתנות עניים י, א",
+      "text_status": "direct_excerpt",
+      "verification_status": "verified",
+      "original_location": "שורות 64–65"
+    },
+    {
+      "id": "TN10-0026",
+      "type": "halakha",
+      "title": "גדולה צדקה מכל הקרבנות",
+      "topics": [
+        "צדקה",
+        "רחמים",
+        "תפילה",
+        "קרבנות"
+      ],
+      "source": "טור, יורה דעה, הלכות צדקה, סימן רמז",
+      "text_status": "direct_excerpt",
+      "verification_status": "verified_reference",
+      "original_location": "שורות 66–67"
+    },
+    {
+      "id": "TN10-0027",
+      "type": "story",
+      "title": "העוף שניתן לצדקה והציל ילד",
+      "topics": [
+        "צדקה",
+        "הצלה",
+        "השגחה פרטית"
+      ],
+      "source": "טובך יביעו, חלק ב, עמ׳ שח",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 68–72"
+    },
+    {
+      "id": "TN10-0028",
+      "type": "story",
+      "title": "ככל שהדירה גדלה, המקום לאורח הצטמצם",
+      "topics": [
+        "הכנסת אורחים",
+        "הסתפקות",
+        "רבי אריה לוין"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "edited_story",
+      "verification_status": "missing_source",
+      "original_location": "שורה 73"
+    },
+    {
+      "id": "TN10-0029",
+      "type": "story",
+      "title": "הרבי העשיר שכספו אינו שולט בו",
+      "topics": [
+        "צדקה",
+        "עושר",
+        "נתינה",
+        "הרבי מקפישניץ"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "edited_story",
+      "verification_status": "missing_source",
+      "original_location": "שורה 74"
+    },
+    {
+      "id": "TN10-0030",
+      "type": "halakha",
+      "title": "הממון הוא פיקדון לצורך צדקה",
+      "topics": [
+        "צדקה",
+        "פיקדון",
+        "ברכה",
+        "ביטול גזרות"
+      ],
+      "source": "טור, יורה דעה, הלכות צדקה, סימן רמז",
+      "text_status": "direct_excerpt",
+      "verification_status": "verified_reference",
+      "original_location": "שורות 77–79"
+    },
+    {
+      "id": "TN10-0031",
+      "type": "story",
+      "title": "הפקדת כסף בגמ״ח כהשקעה",
+      "topics": [
+        "גמ״ח",
+        "השקעה",
+        "מעשר כספים",
+        "רבי שלמה זלמן אוירבך"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "adapted_story",
+      "verification_status": "missing_source",
+      "original_location": "שורות 80–81"
+    },
+    {
+      "id": "TN10-0032",
+      "type": "story",
+      "title": "הפקדה בגמ״ח לזכותו של מיטיב",
+      "topics": [
+        "גמ״ח",
+        "הכרת הטוב",
+        "צדקה"
+      ],
+      "source": "על פי חסדי ישראל, עמ׳ רחצ–רצט",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 82–83"
+    },
+    {
+      "id": "TN10-0033",
+      "type": "story",
+      "title": "התאווה להשיב נפש יהודי",
+      "topics": [
+        "צדקה",
+        "אהבת ישראל",
+        "רבי מרדכי מנדבורנא"
+      ],
+      "source": "תפארת מרדכי",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 84–85"
+    },
+    {
+      "id": "TN10-0034",
+      "type": "kabbalah",
+      "title": "המעשר דוחה את הקליפה",
+      "topics": [
+        "מעשר",
+        "קבלה",
+        "שמירה"
+      ],
+      "source": "ספר קרניים, לרבי אהרן מקרדיניאה",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 89–90"
+    },
+    {
+      "id": "TN10-0035",
+      "type": "kabbalah",
+      "title": "גדול כוחו של המעשר",
+      "topics": [
+        "מעשר",
+        "קבלה",
+        "קליפות"
+      ],
+      "source": "רבי שמשון מאוסטרופולי, דן ידין על ספר קרניים",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 91–92"
+    },
+    {
+      "id": "TN10-0036",
+      "type": "responsa",
+      "title": "להפריש מעשר בתחילת הרווח",
+      "topics": [
+        "מעשר כספים",
+        "הפרשה",
+        "ברכה"
+      ],
+      "source": "שו״ת אבקת רוכל, סימן ג; לפי המקור המיובא, יש המייחסים את התשובה לגדולים אחרים",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 93–94"
+    },
+    {
+      "id": "TN10-0037",
+      "type": "commentary",
+      "title": "הפרשת מעשר מדויקת והבטחת השמירה",
+      "topics": [
+        "מעשר כספים",
+        "חומש",
+        "הבטחה",
+        "ביטחון"
+      ],
+      "source": "אהבת חסד; כתר ראש בשם הגר״א; דרך אמונה על הלכות מתנות עניים ז",
+      "text_status": "adapted_from_sources",
+      "verification_status": "not_checked",
+      "original_location": "שורות 95–99"
+    },
+    {
+      "id": "TN10-0038",
+      "type": "story",
+      "title": "רבי ישראל סלנטר הציל אישה מייאוש",
+      "topics": [
+        "צדקה",
+        "הצלת נפשות",
+        "אחריות",
+        "רבי ישראל סלנטר"
+      ],
+      "source": "סדרת תיקון המידות, חלק ח, עולם חסד יבנה, עמ׳ סז",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 100–103"
+    },
+    {
+      "id": "TN10-0039",
+      "type": "story",
+      "title": "רבי כלפון הכהן ותעמולת המעשר",
+      "topics": [
+        "מעשר כספים",
+        "הפצה",
+        "רבי כלפון הכהן"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "edited_story",
+      "verification_status": "missing_source",
+      "original_location": "שורה 104"
+    },
+    {
+      "id": "TN10-0040",
+      "type": "story",
+      "title": "שרה שנירר נתנה את מיטתה",
+      "topics": [
+        "צדקה",
+        "הכנסת אורחים",
+        "מסירות",
+        "שרה שנירר"
+      ],
+      "source": "חסדי ישראל, עמ׳ ל, בשם עולם חסד יבנה",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 105–107"
+    },
+    {
+      "id": "TN10-0041",
+      "type": "story",
+      "title": "מעשר שרושמים אך עדיין לא נותנים",
+      "topics": [
+        "מעשר כספים",
+        "הפרשה בפועל",
+        "גניבה"
+      ],
+      "source": "עלון השגחה פרטית, פרשת כי תשא תשפ״ג",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 108–110"
+    },
+    {
+      "id": "TN10-0042",
+      "type": "commentary",
+      "title": "האיסור לנסות את ה׳ והחריג של צדקה",
+      "topics": [
+        "ניסיון",
+        "צדקה",
+        "מעשר",
+        "ביטחון"
+      ],
+      "source": "ספר החינוך, פרשת ואתחנן, מצווה תכד",
+      "text_status": "direct_excerpt",
+      "verification_status": "verified_reference",
+      "original_location": "שורות 113–115"
+    },
+    {
+      "id": "TN10-0043",
+      "type": "commentary",
+      "title": "ניסיון הצדקה שהותר",
+      "topics": [
+        "צדקה",
+        "ניסיון",
+        "עושר",
+        "ביטחון"
+      ],
+      "source": "שערי תשובה, שער ג, אות ל",
+      "text_status": "direct_excerpt",
+      "verification_status": "verified_reference",
+      "original_location": "שורות 116–118"
+    },
+    {
+      "id": "TN10-0044",
+      "type": "commentary",
+      "title": "להפריש מעשר בצמצום ובעין יפה",
+      "topics": [
+        "מעשר כספים",
+        "דיוק",
+        "עין יפה",
+        "יצר הרע"
+      ],
+      "source": "פלא יועץ, ערכים \"מעשר\" ו\"צדקה\"",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 119–120"
+    },
+    {
+      "id": "TN10-0045",
+      "type": "story",
+      "title": "הסוחר שמימן שני תלמידים מכספי מעשר",
+      "topics": [
+        "מעשר כספים",
+        "לימוד תורה",
+        "חינוך",
+        "תמיכה"
+      ],
+      "source": "הקדמה לספר מעשר כספים",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 121–123"
+    },
+    {
+      "id": "TN10-0046",
+      "type": "story",
+      "title": "אמירת תהילים או עזרה לאלמנה",
+      "topics": [
+        "צדקה",
+        "חסד",
+        "תהילים",
+        "רבי לוי יצחק מברדיטשוב"
+      ],
+      "source": "ליקוטים נחמדים מפז",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 124–126"
+    },
+    {
+      "id": "TN10-0047",
+      "type": "commentary",
+      "title": "להפריש מעשר מיד עם קבלת הרווח",
+      "topics": [
+        "מעשר כספים",
+        "הפרשה מיידית",
+        "משא ומתן"
+      ],
+      "source": "של״ה, חלק א, מסכת חולין, עניין משא ומתן באמונה",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 132–134"
+    },
+    {
+      "id": "TN10-0048",
+      "type": "will",
+      "title": "צוואה להחזיק במצוות המעשר",
+      "topics": [
+        "מעשר כספים",
+        "צוואה",
+        "ברכה",
+        "פרנסה"
+      ],
+      "source": "רבי שעפטיל, בן השל״ה, צוואה, סימן י",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 136–137"
+    },
+    {
+      "id": "TN10-0049",
+      "type": "commentary",
+      "title": "קהילות המקפידות על מעשר מתעשרות",
+      "topics": [
+        "מעשר כספים",
+        "קהילה",
+        "עושר",
+        "ניסיון"
+      ],
+      "source": "רבי יעקב, אחי השל״ה, הגהות לצוואת יש נוחלין, אזהרות הצדקה",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 139–141"
+    },
+    {
+      "id": "TN10-0050",
+      "type": "story",
+      "title": "הכנסת האורחים של ר׳ ברוך מרדכי",
+      "topics": [
+        "הכנסת אורחים",
+        "צדקה",
+        "אמונה"
+      ],
+      "source": "סדרת המידות, עולם חסד יבנה",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 143–144"
+    },
+    {
+      "id": "TN10-0051",
+      "type": "story",
+      "title": "האדמו״ר מסקולען והמצות לפסח",
+      "topics": [
+        "צדקה",
+        "פסח",
+        "מצות",
+        "מסירות"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "edited_story",
+      "verification_status": "missing_source",
+      "original_location": "שורה 145"
+    },
+    {
+      "id": "TN10-0052",
+      "type": "verse",
+      "title": "הלא פרוס לרעב לחמך",
+      "topics": [
+        "צדקה",
+        "ברכה",
+        "רפואה",
+        "ישועה"
+      ],
+      "source": "ישעיהו נח, ז–יב",
+      "text_status": "direct_source",
+      "verification_status": "verified",
+      "original_location": "שורות 147–153"
+    },
+    {
+      "id": "TN10-0053",
+      "type": "talmud",
+      "title": "חסרונותיו של אדם קצובים — זכה לצדקה",
+      "topics": [
+        "צדקה",
+        "הפסד",
+        "כפרה",
+        "השגחה"
+      ],
+      "source": "על פי מסכת בבא בתרא ט ע״א–י ע״א",
+      "text_status": "adapted_from_source",
+      "verification_status": "verified_reference",
+      "original_location": "שורות 155–159"
+    },
+    {
+      "id": "TN10-0054",
+      "type": "talmud",
+      "title": "להינצל מחבלי משיח",
+      "topics": [
+        "גמילות חסדים",
+        "תורה",
+        "חבלי משיח"
+      ],
+      "source": "מסכת סנהדרין צח ע״ב",
+      "text_status": "direct_excerpt",
+      "verification_status": "verified",
+      "original_location": "שורות 160–161"
+    },
+    {
+      "id": "TN10-0055",
+      "type": "commentary",
+      "title": "צדקה וחסד מעוררים רחמים",
+      "topics": [
+        "צדקה",
+        "חסד",
+        "רחמים",
+        "גאולה"
+      ],
+      "source": "החפץ חיים, אהבת חסד, חתימת הספר, אות ג",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 162–163"
+    },
+    {
+      "id": "TN10-0056",
+      "type": "story",
+      "title": "לא להפסיק מחשבת חסד בגלל כוס שנשברה",
+      "topics": [
+        "חסד",
+        "זהירות",
+        "רבי איסר זלמן מלצר"
+      ],
+      "source": "סדרת תיקון המידות",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 164–167"
+    },
+    {
+      "id": "TN10-0057",
+      "type": "story",
+      "title": "השנים שלאחר גיל שישים הן מתנה",
+      "topics": [
+        "חסד",
+        "זמן",
+        "אריכות ימים",
+        "רבי איסר זלמן מלצר"
+      ],
+      "source": "סדרת תיקון המידות",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורה 165"
+    },
+    {
+      "id": "TN10-0058",
+      "type": "story",
+      "title": "מסירות נפש להרבצת תורה",
+      "topics": [
+        "צדקה",
+        "תורה",
+        "מסירות נפש",
+        "רבי איסר זלמן מלצר"
+      ],
+      "source": "סדרת תיקון המידות",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורה 166"
+    },
+    {
+      "id": "TN10-0059",
+      "type": "story",
+      "title": "הקשר עם הגביר מריאנפולסקי",
+      "topics": [
+        "צדקה",
+        "גיוס תרומות",
+        "הרב מפוניבז׳"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "edited_story",
+      "verification_status": "missing_source",
+      "original_location": "שורה 168"
+    },
+    {
+      "id": "TN10-0060",
+      "type": "halakha",
+      "title": "מנהג הפרשת חומש וחומש חלקי",
+      "topics": [
+        "חומש",
+        "צדקה",
+        "גמילות חסדים"
+      ],
+      "source": "על פי פירוש רבי עובדיה מברטנורא, פאה א, א; לפי המקור המיובא, דבריו הובאו בכמה מפרשים",
+      "text_status": "adapted_from_source",
+      "verification_status": "not_checked",
+      "original_location": "שורות 171–172"
+    },
+    {
+      "id": "TN10-0061",
+      "type": "commentary",
+      "title": "המדקדק בחומש מובטח שיצליח",
+      "topics": [
+        "חומש",
+        "הצלחה",
+        "צדקה"
+      ],
+      "source": "שיטה מקובצת, כתובות נ ע״א",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 174–175"
+    },
+    {
+      "id": "TN10-0062",
+      "type": "custom",
+      "title": "מנהג החומש בצפת",
+      "topics": [
+        "חומש",
+        "צפת",
+        "מנהג",
+        "צדקה"
+      ],
+      "source": "רבי אברהם גאלנטי, ליקוטי שושנים, כתב יד, סימן כז",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 176–177"
+    },
+    {
+      "id": "TN10-0063",
+      "type": "custom",
+      "title": "חומש מן הקרן ומעשר מן הרווחים",
+      "topics": [
+        "חומש",
+        "מעשר כספים",
+        "קרן",
+        "רווחים"
+      ],
+      "source": "תורת המגיד, חלק א; הנהגות ישרות",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 179–181"
+    },
+    {
+      "id": "TN10-0064",
+      "type": "commentary",
+      "title": "חומש הוא עיקר מצוות הצדקה",
+      "topics": [
+        "חומש",
+        "צדקה",
+        "רבי נחום מטשרנוביל"
+      ],
+      "source": "מאור עיניים, ליקוטים ובפרשת ואתחנן",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 183–184"
+    },
+    {
+      "id": "TN10-0065",
+      "type": "commentary",
+      "title": "הצדקה מיגיעו עושה את היום משכן לשכינה",
+      "topics": [
+        "צדקה",
+        "עבודה",
+        "יגיע כפיים",
+        "שכינה"
+      ],
+      "source": "תניא, ליקוטי אמרים, פרק לד",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 187–188"
+    },
+    {
+      "id": "TN10-0066",
+      "type": "commentary",
+      "title": "האלף לך שלמה ומאתיים לנוטרים",
+      "topics": [
+        "חומש",
+        "צדקה",
+        "שיר השירים"
+      ],
+      "source": "שפתי צדיקים, כתובים",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 190–191"
+    },
+    {
+      "id": "TN10-0067",
+      "type": "testimony",
+      "title": "עדויות על ברכת החומש",
+      "topics": [
+        "חומש",
+        "ברכה",
+        "ניסיון"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "editorial_testimony",
+      "verification_status": "missing_source",
+      "original_location": "שורות 192–193"
+    },
+    {
+      "id": "TN10-0068",
+      "type": "story",
+      "title": "רבי שמואל מסלנט ונתינת חומש",
+      "topics": [
+        "חומש",
+        "צדקה",
+        "רבי שמואל מסלנט"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "edited_story",
+      "verification_status": "missing_source",
+      "original_location": "שורה 194"
+    },
+    {
+      "id": "TN10-0069",
+      "type": "testimony",
+      "title": "מרים, החומש והמשרה החדשה",
+      "topics": [
+        "חומש",
+        "מעשר כספים",
+        "פרנסה",
+        "לידה",
+        "עזרה למשפחה"
+      ],
+      "source": "סיפור שפורסם בעלון; שם העלון לא צוין במקור המיובא",
+      "text_status": "adapted_testimony",
+      "verification_status": "missing_source",
+      "original_location": "שורות 195–203"
+    },
+    {
+      "id": "TN10-0070",
+      "type": "commentary",
+      "title": "מוסר ה׳ בני אל תמאס",
+      "topics": [
+        "ביטחון",
+        "ייסורים",
+        "צדקה",
+        "עולם הבא"
+      ],
+      "source": "רבינו יונה על משלי ג, יא",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 208–209"
+    },
+    {
+      "id": "TN10-0071",
+      "type": "commentary",
+      "title": "רדיפת הממון קרובה לעבודה זרה",
+      "topics": [
+        "ממון",
+        "עבודה זרה",
+        "חומש",
+        "וותרנות"
+      ],
+      "source": "נועם אלימלך, אגרת הקודש מאת רבי אלעזר, בן המחבר",
+      "text_status": "direct_excerpt",
+      "verification_status": "not_checked",
+      "original_location": "שורות 210–212"
+    },
+    {
+      "id": "TN10-0072",
+      "type": "story",
+      "title": "העושר שאיש אינו יכול לקחת",
+      "topics": [
+        "צדקה",
+        "עושר אמיתי",
+        "עידוד"
+      ],
+      "source": "תולדות יעקב, עמ׳ קס",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 214–215"
+    },
+    {
+      "id": "TN10-0073",
+      "type": "story",
+      "title": "מעיל הפרווה של החפץ חיים",
+      "topics": [
+        "חסד",
+        "החפץ חיים",
+        "השפעה",
+        "אהבת ישראל"
+      ],
+      "source": "חסדי ישראל, עמ׳ קנד, בשם לב אליהו",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 216–217"
+    },
+    {
+      "id": "TN10-0074",
+      "type": "story",
+      "title": "פנקס הצדקות הוא הספר שלי",
+      "topics": [
+        "צדקה",
+        "תלמידי חכמים",
+        "אלמנות",
+        "יתומים"
+      ],
+      "source": "על פי טובך יביעו, חלק א, ועוד",
+      "text_status": "adapted_story",
+      "verification_status": "not_checked",
+      "original_location": "שורות 218–219"
+    },
+    {
+      "id": "TN10-0075",
+      "type": "talmud",
+      "title": "אל יבזבז יותר מחומש",
+      "topics": [
+        "חומש",
+        "גבול הנתינה",
+        "צדקה"
+      ],
+      "source": "מסכת כתובות נ ע״א",
+      "text_status": "direct_excerpt",
+      "verification_status": "verified",
+      "original_location": "שורות 224–225"
+    },
+    {
+      "id": "TN10-0076",
+      "type": "commentary",
+      "title": "נתינה של יותר מחומש מתוך שמחה",
+      "topics": [
+        "חומש",
+        "שמחה",
+        "נתינה",
+        "הבעל שם טוב"
+      ],
+      "source": "מיוחס לבעל שם טוב ולצדיקים; לעיון הלכתי: אהבת חסד ודרך אמונה",
+      "text_status": "attributed_teaching",
+      "verification_status": "not_checked",
+      "original_location": "שורות 226–228"
+    },
+    {
+      "id": "TN10-0077",
+      "type": "commentary",
+      "title": "אם מגבילים צדקה — קל וחומר הוצאות של הבל",
+      "topics": [
+        "חומש",
+        "בזבוז",
+        "צרכנות",
+        "צדקה"
+      ],
+      "source": "החפץ חיים, אהבת חסד, חלק ב, פרק כ, אות ה",
+      "text_status": "direct_excerpt",
+      "verification_status": "verified_reference",
+      "original_location": "שורות 229–230"
+    },
+    {
+      "id": "TN10-0078",
+      "type": "teaching",
+      "title": "תחפושות פורים ומתן בסתר",
+      "topics": [
+        "פורים",
+        "מתנות לאביונים",
+        "מתן בסתר"
+      ],
+      "source": "מיוחס לבעל שם טוב; מקור מדויק לא צוין",
+      "text_status": "attributed_teaching",
+      "verification_status": "missing_source",
+      "original_location": "שורה 232"
+    },
+    {
+      "id": "TN10-0079",
+      "type": "humor",
+      "title": "המן נותן ופרעה לוקח",
+      "topics": [
+        "פורים",
+        "פסח",
+        "מתנות לאביונים",
+        "הומור"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "humor",
+      "verification_status": "missing_source",
+      "original_location": "שורות 234–235"
+    },
+    {
+      "id": "TN10-0080",
+      "type": "humor",
+      "title": "אביון מהודר לשנה הבאה",
+      "topics": [
+        "פורים",
+        "מתנות לאביונים",
+        "הומור"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "humor",
+      "verification_status": "missing_source",
+      "original_location": "שורה 236"
+    },
+    {
+      "id": "TN10-0081",
+      "type": "humor",
+      "title": "כמה מצוות בעוף מקולקל אחד",
+      "topics": [
+        "צדקה",
+        "קמצנות",
+        "הומור"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "humor",
+      "verification_status": "missing_source",
+      "original_location": "שורה 237"
+    },
+    {
+      "id": "TN10-0082",
+      "type": "humor",
+      "title": "להזמין אביון עם רכב",
+      "topics": [
+        "פורים",
+        "מתנות לאביונים",
+        "הומור"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "humor",
+      "verification_status": "missing_source",
+      "original_location": "שורה 238"
+    },
+    {
+      "id": "TN10-0083",
+      "type": "humor",
+      "title": "לייצר לבד את האביונים",
+      "topics": [
+        "פורים",
+        "מתנות לאביונים",
+        "הומור",
+        "ביקורת חברתית"
+      ],
+      "source": "לא צוין במקור המיובא",
+      "text_status": "humor",
+      "verification_status": "missing_source",
+      "original_location": "שורה 239"
+    }
+  ]
+}
