@@ -5,6 +5,7 @@ export type ProductAnalyticsEvent =
   | "transaction_created"
   | "transaction_updated"
   | "transaction_deleted"
+  | "transaction_validation_failed"
   | "recurring_obligation_created"
   | "recurring_obligation_updated"
   | "recurring_obligation_paused"

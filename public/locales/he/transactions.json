@@ -156,7 +156,8 @@
       "error": "שגיאה בהוספת התנועה",
       "invalidAmount": "סכום לא חוקי",
       "invalidDate": "תאריך לא חוקי",
-      "requiredField": "שדה חובה"
+      "requiredField": "שדה חובה",
+      "validationFailed": "יש לתקן את השגיאות המסומנות לפני השמירה"
     },
     "errors": {
       "missingConversionRate": "חסר שער המרה - נא לבחור שער"
