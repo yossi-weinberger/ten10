@@ -166,9 +166,15 @@ export function generateReminderEmailHTML(data: EmailTemplateData): string {
     buildViewModel(data);
   const direction = copy.direction;
   const textAlign = direction === "rtl" ? "right" : "left";
+  // Source reads like a signature: opposite edge from the body text.
+  const sourceAlign = direction === "rtl" ? "left" : "right";
   const accentSide = direction === "rtl" ? "right" : "left";
+  const encouragementBodyHtml = escapeHtml(encouragement.body).replaceAll(
+    "\n",
+    "<br>",
+  );
   const encouragementSource = encouragement.source
-    ? `<div style="color: ${colors.bodyLight}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; margin-top: 8px;">${escapeHtml(encouragement.source)}</div>`
+    ? `<div style="color: ${colors.bodyLight}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; margin-top: 10px; text-align: ${sourceAlign};">${escapeHtml(encouragement.source)}</div>`
     : "";
   const importHintHtml = renderGoldAccentCallout(
     `${escapeHtml(copy.importHintPrefix)} <strong style="color: ${colors.text};">${escapeHtml(copy.importHintEmphasis)}</strong>`,
@@ -212,9 +218,9 @@ export function generateReminderEmailHTML(data: EmailTemplateData): string {
         </td>
       </tr>
       <tr>
-        <td style="padding: 0; text-align: center;">
-          <div style="color: ${colors.gold}; font-family: ${fontFamily}; font-size: 14px; font-weight: 700; line-height: 20px; margin-bottom: 10px;">${escapeHtml(copy.encouragementLabel)}</div>
-          <div style="color: ${colors.text}; font-family: ${fontFamily}; font-size: 16px; line-height: 26px;">${escapeHtml(encouragement.body)}</div>
+        <td style="padding: 0; text-align: ${textAlign};">
+          <div style="color: ${colors.gold}; font-family: ${fontFamily}; font-size: 14px; font-weight: 700; line-height: 20px; margin-bottom: 12px; text-align: center;">${escapeHtml(copy.encouragementLabel)}</div>
+          <div style="color: ${colors.text}; font-family: ${fontFamily}; font-size: 16px; line-height: 26px; text-align: ${textAlign};">${encouragementBodyHtml}</div>
           ${encouragementSource}
         </td>
       </tr>

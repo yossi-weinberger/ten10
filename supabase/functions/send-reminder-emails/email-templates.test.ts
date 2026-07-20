@@ -1,5 +1,9 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { EMAIL_TOKENS } from "../_shared/email-tokens.ts";
+import { escapeHtml } from "../_shared/escape-html.ts";
+import { getMonthlyEncouragement } from "./email-copy.ts";
 import {
   extractFirstName,
   generateReminderEmailHTML,
@@ -42,6 +46,11 @@ describe("reminder email templates", () => {
     expect(html).toContain("384.70 ₪");
     expect(html).toContain("כדאי לוודא שהוספת");
     expect(html).toContain("פינת החיזוק");
+    expect(html).toContain("הביאו את כל המעשר אל בית האוצר");
+    expect(html).toContain("מלאכי ג, י");
+    expect(html).toContain('text-align: left;">מלאכי ג, י');
+    expect(html).not.toContain("TN10-");
+    expect(html).toContain("<br>");
     expect(html).toContain("border-right: 4px solid");
     expect(html).toContain("אפשר לייבא אותן בקלות מקובץ Excel");
     expect(html).not.toContain("#e8f3ee");
@@ -100,6 +109,7 @@ describe("reminder email templates", () => {
     expect(html).toContain("Your remaining tithe balance is");
     expect(html).toContain("₪384.70");
     expect(html).toContain("border-left: 4px solid");
+    expect(html).toContain('text-align: right;">Malachi 3:10');
     expect(text).toContain("Good evening, Yossi");
     expect(text).toContain("Stop monthly reminders");
   });
@@ -213,4 +223,71 @@ describe("reminder email templates", () => {
     ).toContain("Tithe reminder");
   });
 
+  it("writes Hebrew and English monthly encouragement previews when enabled", () => {
+    if (process.env.WRITE_EMAIL_PREVIEWS !== "1") return;
+
+    const outputDirectory = resolve("tmp/reminder-encouragement-previews");
+    mkdirSync(outputDirectory, { recursive: true });
+
+    const monthLinks: string[] = [];
+
+    for (let month = 1; month <= 12; month += 1) {
+      const heEncouragement = getMonthlyEncouragement("he", month);
+      const enEncouragement = getMonthlyEncouragement("en", month);
+      const heHtml = generateReminderEmailHTML({
+        ...baseData,
+        israelMonth: month,
+      });
+      const enHtml = generateReminderEmailHTML({
+        ...baseData,
+        language: "en",
+        fullName: "Yossi Weinberger",
+        israelMonth: month,
+      });
+      const heFile = `reminder-he-m${String(month).padStart(2, "0")}.html`;
+      const enFile = `reminder-en-m${String(month).padStart(2, "0")}.html`;
+      writeFileSync(resolve(outputDirectory, heFile), `${heHtml}\n`, "utf8");
+      writeFileSync(resolve(outputDirectory, enFile), `${enHtml}\n`, "utf8");
+      monthLinks.push(`<tr>
+        <td>${month}</td>
+        <td><code>${escapeHtml(heEncouragement.contentId ?? "")}</code></td>
+        <td><a href="${heFile}">עברית</a></td>
+        <td><a href="${enFile}">English</a></td>
+        <td dir="auto">${escapeHtml(heEncouragement.body.slice(0, 80))}…</td>
+      </tr>`);
+    }
+
+    const indexHtml = `<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ten10 reminder encouragement previews</title>
+  <style>
+    body { font-family: Assistant, "Segoe UI", Arial, sans-serif; margin: 32px; background: #f4f3ed; color: #243834; }
+    h1 { color: #11676a; }
+    table { width: 100%; border-collapse: collapse; background: #fffdf8; }
+    th, td { border-bottom: 1px solid #ded9ca; padding: 10px 12px; text-align: right; vertical-align: top; }
+    th { color: #43514d; font-size: 13px; }
+    a { color: #11676a; font-weight: 700; }
+    code { font-size: 12px; }
+    p { color: #596662; max-width: 720px; }
+  </style>
+</head>
+<body>
+  <h1>פינת החיזוק — תצוגה מקדימה למייל תזכורת</h1>
+  <p>12 חודשים × עברית + אנגלית. לחץ על השפה כדי לפתוח את מייל התזכורת המלא עם החיזוק של אותו חודש.</p>
+  <table>
+    <thead>
+      <tr><th>חודש</th><th>contentId</th><th>HE</th><th>EN</th><th>תחילת הטקסט</th></tr>
+    </thead>
+    <tbody>
+      ${monthLinks.join("\n")}
+    </tbody>
+  </table>
+</body>
+</html>
+`;
+    writeFileSync(resolve(outputDirectory, "index.html"), indexHtml, "utf8");
+    expect(monthLinks).toHaveLength(12);
+  });
 });

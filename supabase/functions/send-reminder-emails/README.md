@@ -38,7 +38,10 @@ send-reminder-emails/
 ├── index.ts                 # Main entry point, auth, scheduling, Shabbat logic
 ├── user-service.ts          # User data fetching and tithe calculations
 ├── reminder-user.ts         # Runtime normalization for recipient RPC rows
-├── email-copy.ts            # Localized copy, 12 monthly encouragement entries
+├── email-copy.ts            # Loads locale JSON, hydration, month helpers
+├── locales/
+│   ├── email-he.json        # Hebrew reminder strings + 12 encouragements
+│   └── email-en.json        # English reminder strings + 12 encouragements
 ├── email-templates.ts       # HTML, plain-text, and subject generation
 ├── simple-email-service.ts  # AWS SES Raw MIME sending (List-Unsubscribe)
 ├── jwt-utils.ts             # Unsubscribe JWT URL generation
@@ -70,8 +73,10 @@ send-reminder-emails/
 
 - **Purpose**: All user-facing reminder strings
 - **Responsibilities**:
-  - Hebrew (`he`) and English (`en`) locale objects in `REMINDER_COPY`
+  - Loads `locales/email-he.json` / `locales/email-en.json` into `REMINDER_COPY`
+    (Edge-local JSON — not frontend i18next / `public/locales`)
   - 12 monthly encouragement entries per language (rotated by Israel month)
+  - Subject lines use `{{amount}}` placeholders in JSON
   - `normalizeReminderLanguage()` — maps RPC `language` to `"he"` or `"en"`, defaulting to Hebrew
   - `getIsraelMonth()` — current month in `Asia/Jerusalem` for encouragement rotation
 
@@ -204,7 +209,7 @@ LIMIT 10;
 
 ### Adding New Copy or Locales
 
-1. Edit `email-copy.ts` — add or update strings in `REMINDER_COPY`
+1. Edit `locales/email-he.json` and/or `locales/email-en.json`
 2. Update `email-templates.ts` if layout changes are needed
 3. Add tests in `email-copy.test.ts` / `email-templates.test.ts`
 
