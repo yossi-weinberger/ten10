@@ -10,7 +10,11 @@
     "credit": "You currently have a credit of",
     "settled": "Your tithe balance is settled"
   },
-  "creditBadge": "Credit",
+  "balanceBadge": {
+    "outstanding": "Due to give",
+    "credit": "Credit",
+    "settled": "Settled"
+  },
   "verification": "Make sure you have added your latest income, expenses, and donations.",
   "importHintPrefix": "Several transactions to update?",
   "importHintEmphasis": "You can easily import them from an Excel file.",
@@ -18,7 +22,7 @@
   "encouragementLabel": "Encouragement Corner",
   "footerPreferenceNote": "Sent according to the reminder preferences you selected",
   "unsubscribeReminder": "Stop monthly reminders",
-  "unsubscribeAll": "Unsubscribe from all emails",
+  "unsubscribeAll": "Unsubscribe",
   "subject": {
     "outstanding": "Tithe reminder - {{amount}} remaining",
     "credit": "Tithe reminder - {{amount}} credit",

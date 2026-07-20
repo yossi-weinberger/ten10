@@ -17,6 +17,12 @@ interface BalanceCopy {
   settled: string;
 }
 
+interface BalanceBadgeCopy {
+  outstanding: string;
+  credit: string;
+  settled: string;
+}
+
 interface SubjectCopy {
   outstanding: (amount: string) => string;
   credit: (amount: string) => string;
@@ -32,7 +38,7 @@ interface ReminderLocaleJson {
   greeting: string;
   reminder: string;
   balance: BalanceCopy;
-  creditBadge: string;
+  balanceBadge: BalanceBadgeCopy;
   verification: string;
   importHintPrefix: string;
   importHintEmphasis: string;
@@ -57,7 +63,7 @@ export interface ReminderLocaleCopy {
   greeting: string;
   reminder: string;
   balance: BalanceCopy;
-  creditBadge: string;
+  balanceBadge: BalanceBadgeCopy;
   verification: string;
   importHintPrefix: string;
   importHintEmphasis: string;
@@ -89,7 +95,7 @@ function hydrateLocale(raw: ReminderLocaleJson): ReminderLocaleCopy {
     greeting: raw.greeting,
     reminder: raw.reminder,
     balance: raw.balance,
-    creditBadge: raw.creditBadge,
+    balanceBadge: raw.balanceBadge,
     verification: raw.verification,
     importHintPrefix: raw.importHintPrefix,
     importHintEmphasis: raw.importHintEmphasis,

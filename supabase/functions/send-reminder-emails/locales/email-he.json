@@ -10,7 +10,11 @@
     "credit": "הינך נמצא בזכות של",
     "settled": "יתרת המעשר שלך מאוזנת"
   },
-  "creditBadge": "זכות",
+  "balanceBadge": {
+    "outstanding": "יתרה לתרומה",
+    "credit": "זכות",
+    "settled": "מאוזן"
+  },
   "verification": "כדאי לוודא שהוספת את ההכנסות, ההוצאות והתרומות האחרונות.",
   "importHintPrefix": "יש לך כמה פעולות לעדכן?",
   "importHintEmphasis": "אפשר לייבא אותן בקלות מקובץ Excel.",
@@ -18,7 +22,7 @@
   "encouragementLabel": "פינת החיזוק",
   "footerPreferenceNote": "נשלח אליך לפי העדפות התזכורת שבחרת",
   "unsubscribeReminder": "הפסקת תזכורות חודשיות",
-  "unsubscribeAll": "ביטול הרשמה מכל המיילים",
+  "unsubscribeAll": "ביטול הרשמה",
   "subject": {
     "outstanding": "תזכורת מעשר - נותרו {{amount}} לתרומה",
     "credit": "תזכורת מעשר - הינך בזכות של {{amount}}",

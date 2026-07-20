@@ -56,7 +56,7 @@ export function renderUserEmailShell(input: EmailShellInput): string {
               </td>
             </tr>
             <tr>
-              <td style="padding: 31px 32px 28px 32px; color: ${colors.text}; direction: ${input.dir}; font-family: ${fontFamily}; background-color: ${colors.userCard};">
+              <td bgcolor="${colors.userBody}" style="padding: 31px 32px 28px 32px; color: ${colors.text}; direction: ${input.dir}; font-family: ${fontFamily}; background-color: ${colors.userBody};">
                 ${input.bodyHtml}
               </td>
             </tr>${footerRow}

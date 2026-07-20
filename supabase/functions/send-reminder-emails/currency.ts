@@ -30,8 +30,9 @@ export function normalizeReminderCurrencyCode(
 }
 
 /**
- * Format an absolute amount with the user's currency.
- * Keeps the historical ILS layout: `384.70 ₪` (he) / `₪384.70` (en).
+ * Format the amount with the user's currency, preserving the sign as received
+ * (credit / זכות stays negative).
+ * ILS layout: `384.70 ₪` / `-384.70 ₪` (he) and `₪384.70` / `-₪384.70` (en).
  */
 export function formatReminderAmount(
   amount: number,
@@ -39,24 +40,26 @@ export function formatReminderAmount(
   currencyCode: unknown = "ILS",
 ): string {
   const code = normalizeReminderCurrencyCode(currencyCode);
+  const absolute = Math.abs(amount);
   const formatted = new Intl.NumberFormat(
     language === "he" ? "he-IL" : "en-US",
     {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     },
-  ).format(Math.abs(amount));
+  ).format(absolute);
 
   const symbol = CURRENCY_SYMBOLS[code];
+  const sign = amount < 0 ? "-" : "";
 
   if (language === "he") {
-    return `${formatted} ${symbol}`;
+    return `${sign}${formatted} ${symbol}`;
   }
 
   // Latin currencies that conventionally prefix the symbol.
   if (code === "ILS" || code === "USD" || code === "EUR" || code === "GBP") {
-    return `${symbol}${formatted}`;
+    return `${sign}${symbol}${formatted}`;
   }
 
-  return `${symbol}${formatted}`;
+  return `${sign}${symbol}${formatted}`;
 }

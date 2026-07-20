@@ -3,7 +3,6 @@ import {
   REMINDER_COPY,
   type ReminderLanguage,
 } from "./email-copy.ts";
-import { renderGoldAccentCallout } from "../_shared/email-admin-primitives.ts";
 import { escapeHtml } from "../_shared/escape-html.ts";
 import { renderUserEmailShell } from "../_shared/email-layout-user.ts";
 import { EMAIL_TOKENS } from "../_shared/email-tokens.ts";
@@ -30,7 +29,7 @@ export interface EmailTemplateData {
 }
 
 const APP_URL = "https://ten10-app.com";
-const { colors, fontFamily } = EMAIL_TOKENS;
+const { buttonShadow, cardShadow, colors, fontFamily } = EMAIL_TOKENS;
 
 export function getBalanceState(balance: number): BalanceState {
   if (balance > 0) return "outstanding";
@@ -55,6 +54,26 @@ function getBalanceLabel(language: ReminderLanguage, state: BalanceState): strin
       return copy.credit;
     case "settled":
       return copy.settled;
+    default: {
+      const exhaustiveState: never = state;
+      return exhaustiveState;
+    }
+  }
+}
+
+function getBalanceBadge(
+  language: ReminderLanguage,
+  state: BalanceState,
+): string {
+  const badges = REMINDER_COPY[language].balanceBadge;
+
+  switch (state) {
+    case "outstanding":
+      return badges.outstanding;
+    case "credit":
+      return badges.credit;
+    case "settled":
+      return badges.settled;
     default: {
       const exhaustiveState: never = state;
       return exhaustiveState;
@@ -101,6 +120,7 @@ function buildViewModel(data: EmailTemplateData) {
 
   return {
     amount,
+    balanceBadge: getBalanceBadge(data.language, state),
     balanceLabel: getBalanceLabel(data.language, state),
     copy,
     encouragement,
@@ -110,35 +130,125 @@ function buildViewModel(data: EmailTemplateData) {
   };
 }
 
+function splitEncouragementBody(body: string): {
+  storyHtml: string;
+  takeawayHtml?: string;
+} {
+  const parts = body
+    .split(/\n\n+/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length <= 1) {
+    return {
+      storyHtml: escapeHtml(body).replaceAll("\n", "<br>"),
+    };
+  }
+
+  const takeaway = parts[parts.length - 1];
+  const story = parts.slice(0, -1).join("\n\n");
+  return {
+    storyHtml: escapeHtml(story).replaceAll("\n", "<br>"),
+    takeawayHtml: escapeHtml(takeaway).replaceAll("\n", "<br>"),
+  };
+}
+
+function badgeStyles(state: BalanceState): {
+  background: string;
+  color: string;
+} {
+  switch (state) {
+    case "outstanding":
+      return {
+        background: colors.outstandingBadge,
+        color: colors.outstandingBadgeText,
+      };
+    case "credit":
+      return {
+        background: colors.creditBadge,
+        color: colors.teal,
+      };
+    case "settled":
+      return {
+        background: colors.border,
+        color: colors.bodyMuted,
+      };
+    default: {
+      const exhaustiveState: never = state;
+      return exhaustiveState;
+    }
+  }
+}
+
 function renderBalancePanel(
   amount: string,
-  balanceLabel: string,
+  balanceBadge: string,
   state: BalanceState,
-  copy: (typeof REMINDER_COPY)[ReminderLanguage],
+  verification: string,
 ): string {
   const isCredit = state === "credit";
-  const panelBg = isCredit ? colors.creditSurface : colors.cream;
+  const panelBg = isCredit ? colors.creditSurface : colors.balanceCard;
   const panelBorder = isCredit
     ? `border: 1px solid ${colors.creditBorder};`
-    : "";
-  const badgeHtml = isCredit
-    ? `<tr>
-                    <td align="center" style="padding: 18px 20px 0 20px;">
-                      <span style="display: inline-block; background-color: ${colors.creditBadge}; color: ${colors.teal}; font-family: ${fontFamily}; font-size: 12px; font-weight: 700; line-height: 18px; padding: 4px 12px; border-radius: 8px;">${escapeHtml(copy.creditBadge)}</span>
-                    </td>
-                  </tr>`
-    : "";
-  const labelPadding = isCredit ? "12px 20px 10px 20px" : "28px 20px 10px 20px";
+    : `border: 1px solid ${colors.border};`;
+  const badge = badgeStyles(state);
 
-  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${panelBg}" style="background-color: ${panelBg}; border-collapse: collapse; border-radius: 8px; ${panelBorder}">
-                  ${badgeHtml}
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${panelBg}" style="background-color: ${panelBg}; border-collapse: separate; border-radius: 12px; box-shadow: ${cardShadow}; ${panelBorder}">
                   <tr>
-                    <td align="center" style="padding: ${labelPadding}; color: ${colors.bodyMuted}; font-family: ${fontFamily}; font-size: 16px; line-height: 24px;">${escapeHtml(balanceLabel)}</td>
+                    <td align="center" style="padding: 22px 20px 0 20px;">
+                      <span style="display: inline-block; background-color: ${badge.background}; color: ${badge.color}; font-family: ${fontFamily}; font-size: 12px; font-weight: 700; line-height: 18px; padding: 5px 14px; border-radius: 999px;">${escapeHtml(balanceBadge)}</span>
+                    </td>
                   </tr>
                   <tr>
-                    <td align="center" style="padding: 0 20px 28px 20px; color: ${colors.teal}; font-family: ${fontFamily}; font-size: 34px; font-weight: 700; line-height: 42px;">${escapeHtml(amount)}</td>
+                    <td align="center" style="padding: 14px 20px 8px 20px; color: ${colors.teal}; font-family: ${fontFamily}; font-size: 34px; font-weight: 700; line-height: 42px;">${escapeHtml(amount)}</td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding: 0 24px 22px 24px; color: ${colors.bodyLight}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px;">${escapeHtml(verification)}</td>
                   </tr>
                 </table>`;
+}
+
+function renderImportHint(
+  prefix: string,
+  emphasis: string,
+  textAlign: "left" | "right",
+): string {
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${colors.cream}" style="background-color: ${colors.cream}; border-collapse: separate; border-radius: 12px; box-shadow: ${cardShadow};">
+            <tr>
+              <td style="padding: 16px 18px; color: ${colors.bodyMuted}; font-family: ${fontFamily}; font-size: 15px; line-height: 24px; text-align: ${textAlign};">
+                ${escapeHtml(prefix)}
+                <strong style="color: ${colors.teal}; font-weight: 700;"> ${escapeHtml(emphasis)}</strong>
+              </td>
+            </tr>
+          </table>`;
+}
+
+function renderEncouragementCard(
+  label: string,
+  body: string,
+  source: string | undefined,
+  textAlign: "left" | "right",
+  sourceAlign: "left" | "right",
+): string {
+  const { storyHtml, takeawayHtml } = splitEncouragementBody(body);
+  const sourceHtml = source
+    ? `<div style="color: ${colors.bodyLight}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; margin-top: 14px; text-align: ${sourceAlign};">${escapeHtml(source)}</div>`
+    : "";
+  const takeawayBlock = takeawayHtml
+    ? `<div style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 16px; font-weight: 700; line-height: 26px; margin-top: 14px; text-align: ${textAlign};">${takeawayHtml}</div>`
+    : "";
+
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="${colors.encouragementSurface}" style="background-color: ${colors.encouragementSurface}; border-collapse: separate; border-radius: 12px; box-shadow: ${cardShadow};">
+            <tr>
+              <td style="padding: 22px 22px 20px 22px;">
+                <div style="color: ${colors.gold}; font-family: ${fontFamily}; font-size: 42px; font-weight: 700; line-height: 36px; text-align: left; margin: 0 0 4px 0;">&ldquo;</div>
+                <div style="color: ${colors.gold}; font-family: ${fontFamily}; font-size: 14px; font-weight: 700; line-height: 20px; margin-bottom: 12px; text-align: ${textAlign};">— ${escapeHtml(label)}</div>
+                <div style="color: ${colors.bodyMuted}; font-family: ${fontFamily}; font-size: 15px; line-height: 25px; text-align: ${textAlign};">${storyHtml}</div>
+                ${takeawayBlock}
+                ${sourceHtml}
+              </td>
+            </tr>
+          </table>`;
 }
 
 function renderUnsubscribeFooter(
@@ -146,11 +256,10 @@ function renderUnsubscribeFooter(
   copy: (typeof REMINDER_COPY)[ReminderLanguage],
 ): string {
   const links = data.unsubscribeUrls
-    ? `<div style="margin-top: 14px;">
-        <a href="${escapeHtml(data.unsubscribeUrls.reminderUrl)}" style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 14px; line-height: 20px; text-decoration: underline;">${copy.unsubscribeReminder}</a>
-      </div>
-      <div style="margin-top: 8px;">
-        <a href="${escapeHtml(data.unsubscribeUrls.allUrl)}" style="color: ${colors.bodyLight}; font-family: ${fontFamily}; font-size: 12px; line-height: 18px; text-decoration: underline;">${copy.unsubscribeAll}</a>
+    ? `<div style="margin-top: 12px;">
+        <a href="${escapeHtml(data.unsubscribeUrls.reminderUrl)}" style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; text-decoration: underline;">${escapeHtml(copy.unsubscribeReminder)}</a>
+        <span style="color: ${colors.bodyLight}; padding: 0 8px;">·</span>
+        <a href="${escapeHtml(data.unsubscribeUrls.allUrl)}" style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; text-decoration: underline;">${escapeHtml(copy.unsubscribeAll)}</a>
       </div>`
     : "";
 
@@ -162,66 +271,53 @@ export function generateReminderEmailSubject(data: EmailTemplateData): string {
 }
 
 export function generateReminderEmailHTML(data: EmailTemplateData): string {
-  const { amount, balanceLabel, copy, encouragement, greeting, state } =
-    buildViewModel(data);
+  const {
+    amount,
+    balanceBadge,
+    copy,
+    encouragement,
+    greeting,
+    state,
+  } = buildViewModel(data);
   const direction = copy.direction;
   const textAlign = direction === "rtl" ? "right" : "left";
-  // Source reads like a signature: opposite edge from the body text.
   const sourceAlign = direction === "rtl" ? "left" : "right";
-  const accentSide = direction === "rtl" ? "right" : "left";
-  const encouragementBodyHtml = escapeHtml(encouragement.body).replaceAll(
-    "\n",
-    "<br>",
-  );
-  const encouragementSource = encouragement.source
-    ? `<div style="color: ${colors.bodyLight}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; margin-top: 10px; text-align: ${sourceAlign};">${escapeHtml(encouragement.source)}</div>`
-    : "";
-  const importHintHtml = renderGoldAccentCallout(
-    `${escapeHtml(copy.importHintPrefix)} <strong style="color: ${colors.text};">${escapeHtml(copy.importHintEmphasis)}</strong>`,
-    {
-      accentSide,
-      textAlign: "center",
-      fontSize: 15,
-      lineHeight: 24,
-    },
-  );
+  const ctaArrow = direction === "rtl" ? " ←" : " →";
 
   const bodyHtml = `
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: collapse; direction: ${direction}; text-align: ${textAlign};">
       <tr>
-        <td style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 24px; font-weight: 500; line-height: 32px; padding: 0 0 14px 0; text-align: ${textAlign};">${escapeHtml(greeting)}</td>
+        <td style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 24px; font-weight: 500; line-height: 32px; padding: 0 0 10px 0; text-align: ${textAlign};">${escapeHtml(greeting)}</td>
       </tr>
       <tr>
-        <td style="color: ${colors.bodyMuted}; font-family: ${fontFamily}; font-size: 16px; line-height: 26px; padding: 0 0 28px 0; text-align: ${textAlign};">${escapeHtml(copy.reminder)}</td>
+        <td style="color: ${colors.bodyMuted}; font-family: ${fontFamily}; font-size: 16px; line-height: 26px; padding: 0 0 24px 0; text-align: ${textAlign};">${escapeHtml(copy.reminder)}</td>
       </tr>
       <tr>
-        <td align="center" style="padding: 0 0 28px 0;">${renderBalancePanel(amount, balanceLabel, state, copy)}</td>
+        <td style="padding: 0 0 16px 0;">${renderBalancePanel(amount, balanceBadge, state, copy.verification)}</td>
       </tr>
       <tr>
-        <td style="color: ${colors.bodyMuted}; font-family: ${fontFamily}; font-size: 16px; line-height: 26px; padding: 0 0 18px 0; text-align: center;">${escapeHtml(copy.verification)}</td>
+        <td style="padding: 0 0 18px 0;">${renderImportHint(copy.importHintPrefix, copy.importHintEmphasis, textAlign)}</td>
       </tr>
       <tr>
-        <td style="padding: 0 0 30px 0;">${importHintHtml}</td>
-      </tr>
-      <tr>
-        <td align="center" style="padding: 0 0 34px 0;">
-          <a href="${APP_URL}" style="display: inline-block; background-color: ${colors.teal}; color: ${colors.buttonText} !important; border-radius: 8px; font-family: ${fontFamily}; font-size: 16px; font-weight: 700; line-height: 20px; padding: 15px 28px; text-align: center; text-decoration: none;">${escapeHtml(copy.cta)}</a>
-        </td>
-      </tr>
-      <tr>
-        <td align="center" style="padding: 0 0 28px 0;">
-          <table role="presentation" width="142" cellspacing="0" cellpadding="0" border="0" style="width: 142px; border-collapse: collapse;">
+        <td style="padding: 0 0 28px 0;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="border-collapse: separate; border-radius: 10px; box-shadow: ${buttonShadow};">
             <tr>
-              <td bgcolor="${colors.gold}" height="2" style="height: 2px; line-height: 2px; font-size: 0; background-color: ${colors.gold};">&nbsp;</td>
+              <td align="center" bgcolor="${colors.teal}" style="background-color: ${colors.teal}; border-radius: 10px;">
+                <a href="${APP_URL}" style="display: block; background-color: ${colors.teal}; color: ${colors.buttonText} !important; border-radius: 10px; font-family: ${fontFamily}; font-size: 16px; font-weight: 700; line-height: 20px; padding: 16px 24px; text-align: center; text-decoration: none;">${escapeHtml(copy.cta)}${ctaArrow}</a>
+              </td>
             </tr>
           </table>
         </td>
       </tr>
       <tr>
-        <td style="padding: 0; text-align: ${textAlign};">
-          <div style="color: ${colors.gold}; font-family: ${fontFamily}; font-size: 14px; font-weight: 700; line-height: 20px; margin-bottom: 12px; text-align: center;">${escapeHtml(copy.encouragementLabel)}</div>
-          <div style="color: ${colors.text}; font-family: ${fontFamily}; font-size: 16px; line-height: 26px; text-align: ${textAlign};">${encouragementBodyHtml}</div>
-          ${encouragementSource}
+        <td style="padding: 0;">
+          ${renderEncouragementCard(
+            copy.encouragementLabel,
+            encouragement.body,
+            encouragement.source,
+            textAlign,
+            sourceAlign,
+          )}
         </td>
       </tr>
     </table>
