@@ -100,8 +100,8 @@ Cron ──invoke with service role──▶ Reminder Edge Function ──send�
      incrementally and re-run the email preview / layout tests.
 
 4. **Credit balance display**
-   - Amounts are formatted with `Math.abs` (`currency.ts`); credit copy does not
-     show a minus sign.
+   - Amounts preserve the sign from `titheBalance` (`currency.ts`), so credit
+     amounts render with a leading minus sign.
 
 5. **Changing `RETURNS TABLE` shape**
    - Postgres cannot alter return columns via `CREATE OR REPLACE`. Migrations must
@@ -296,7 +296,7 @@ supabase/functions/send-reminder-emails/
 │   └── email-en.json        # English reminder strings + 12 encouragements
 ├── email-templates.ts       # HTML, plain-text, and subject generation
 ├── simple-email-service.ts  # Reminder SES Raw MIME (List-Unsubscribe + MIME fold)
-├── currency.ts              # Balance formatting (Math.abs for display)
+├── currency.ts              # Balance formatting (preserves sign for credits)
 └── jwt-utils.ts             # Unsubscribe JWT URL generation
 ```
 

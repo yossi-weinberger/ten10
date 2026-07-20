@@ -17,7 +17,7 @@ describe("reminder currency helpers", () => {
     expect(formatReminderAmount(384.7, "en", "ILS")).toBe("₪384.70");
   });
 
-  it("formats USD and EUR without a minus for absolute amounts", () => {
+  it("formats USD and EUR preserving the sign for credits", () => {
     expect(formatReminderAmount(-50, "he", "USD")).toBe("-50.00 $");
     expect(formatReminderAmount(-50, "en", "USD")).toBe("-$50.00");
     expect(formatReminderAmount(50, "en", "USD")).toBe("$50.00");
