@@ -111,7 +111,19 @@ export function AdminMonitoringSection() {
   }
 
   if (!data || !health) {
-    return null;
+    return (
+      <div className="space-y-6" dir={i18n.dir()}>
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>{t("monitoring.title", "System Monitoring")}</AlertTitle>
+          <AlertDescription>{t("monitoring.empty")}</AlertDescription>
+        </Alert>
+        <Button onClick={loadData} variant="outline">
+          <RefreshCw className="h-4 w-4 me-2" />
+          {t("monitoring.retry")}
+        </Button>
+      </div>
+    );
   }
 
   const errors = getRecentErrors(data);

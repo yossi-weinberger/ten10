@@ -53,7 +53,8 @@
       "surveys30d": "How many feedback survey responses in the last 30 days.",
       "topPaths": "Which page paths were viewed most in the last 7 days.",
       "eventCounts": "How often each product event fired in the last 7 days."
-    }
+    },
+    "empty": "No analytics data available yet."
   },
   "users": {
     "title": "User Statistics",
@@ -238,7 +239,8 @@
       "problematic": "Problematic"
     },
     "requiresDeployment": "Deploy the updated Edge Function:",
-    "addAwsKeys": "Add AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to Supabase Secrets"
+    "addAwsKeys": "Add AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY to Supabase Secrets",
+    "empty": "No monitoring data available yet."
   },
   "errors": {
     "loadFailed": "Failed to load admin data",
