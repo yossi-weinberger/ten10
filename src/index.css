@@ -4,7 +4,12 @@
   src: url("/fonts/Assistant-VariableFont_wght.ttf") format("truetype");
   font-weight: 200 800;
   font-style: normal;
-  font-display: swap;
+  /* `optional` (paired with the <link rel="preload"> in index.html) prevents the
+     font swap from reflowing already-painted text: the preloaded font is ready
+     before first paint, so it is used immediately with no fallback flash and no
+     layout shift. On a rare slow first load the fallback is used for that load
+     instead of swapping mid-render, which also avoids CLS. */
+  font-display: optional;
 }
 
 @tailwind base;
