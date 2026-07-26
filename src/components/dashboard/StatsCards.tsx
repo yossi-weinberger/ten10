@@ -139,24 +139,30 @@ export function StatsCards({
   );
 
   const incomeSubtitle = useMemo(() => {
-    if (
-      serverIncomeError ||
-      typeof effectiveChomeshValue !== "number" ||
-      effectiveChomeshValue <= 0
-    ) {
-      return null;
-    }
+    const hasChomesh =
+      !serverIncomeError &&
+      typeof effectiveChomeshValue === "number" &&
+      effectiveChomeshValue > 0;
 
+    // Always render the line container (with a reserved height) so the card does
+    // not grow / shift when the chomesh value arrives after the initial paint.
     return (
-      <span className="block text-xs text-muted-foreground me-9 sm:me-11" dir={i18n.dir()}>
-        <CountUp
-          start={chomeshStartValue}
-          end={chomeshDisplayValue}
-          duration={0.75}
-          decimals={2}
-          formattingFn={formatChomeshCurrency}
-        />{" "}
-        {t("statsCards.income.withChomesh")}
+      <span
+        className="block min-h-[1rem] text-xs text-muted-foreground me-9 sm:me-11 tabular-nums"
+        dir={i18n.dir()}
+      >
+        {hasChomesh && (
+          <>
+            <CountUp
+              start={chomeshStartValue}
+              end={chomeshDisplayValue}
+              duration={0.75}
+              decimals={2}
+              formattingFn={formatChomeshCurrency}
+            />{" "}
+            {t("statsCards.income.withChomesh")}
+          </>
+        )}
       </span>
     );
   }, [

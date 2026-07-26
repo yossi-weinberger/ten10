@@ -160,7 +160,7 @@ export function StatCard({
               </p>
             ) : (
               <span
-                className={`ph-mask text-2xl sm:text-3xl font-bold ${styles.text}`}
+                className={`ph-mask inline-block text-2xl sm:text-3xl font-bold tabular-nums whitespace-nowrap ${styles.text}`}
                 data-ph-mask
               >
                 <CountUp
