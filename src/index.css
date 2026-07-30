@@ -4,12 +4,11 @@
   src: url("/fonts/Assistant-VariableFont_wght.ttf") format("truetype");
   font-weight: 200 800;
   font-style: normal;
-  /* `optional` (paired with the <link rel="preload"> in index.html) prevents the
-     font swap from reflowing already-painted text: the preloaded font is ready
-     before first paint, so it is used immediately with no fallback flash and no
-     layout shift. On a rare slow first load the fallback is used for that load
-     instead of swapping mid-render, which also avoids CLS. */
-  font-display: optional;
+  /* Paired with the <link rel="preload"> in index.html: preload usually makes
+     Assistant ready before first paint (no visible swap). Keep `swap` so a rare
+     slow first load still adopts the brand font once it arrives, rather than
+     staying on the system fallback for the whole visit (`optional`). */
+  font-display: swap;
 }
 
 @tailwind base;
