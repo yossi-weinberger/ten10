@@ -6,10 +6,11 @@
     <link rel="icon" type="image/svg+xml" href="/logo/favicon.svg" />
     <link rel="icon" href="/logo/favicon.ico" />
 
-    <!-- Preload the primary UI font so it is downloaded in parallel with the JS
-         bundle and is ready before text first paints. Combined with
-         `font-display: optional`, this eliminates the late font swap that would
-         otherwise reflow the whole page and cause large layout shift (CLS). -->
+    <!-- Preload the primary UI font so it downloads in parallel with the JS
+         bundle and is usually ready before text first paints. Paired with
+         `font-display: swap` in index.css: when preload wins there is little or
+         no layout shift; on a slow first load we still adopt Assistant once it
+         arrives instead of staying on the system fallback for the visit. -->
     <link
       rel="preload"
       href="/fonts/Assistant-VariableFont_wght.ttf"
