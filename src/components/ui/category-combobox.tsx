@@ -4,7 +4,8 @@
  * A combobox for selecting transaction categories with:
  * - Predefined categories stored as stable keys (e.g. "food", "salary")
  *   and displayed as localized labels at render time.
- * - User's previously used categories (fetched lazily on open).
+ * - User's previously used categories (fetched lazily on open; list stays
+ *   interactive while that fetch runs — same loading UX as PaymentMethodCombobox).
  * - Ability to create new categories by typing (stored as raw free text).
  */
 
@@ -206,65 +207,73 @@ export function CategoryCombobox({
       <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
         <Command shouldFilter={true}>
           <CommandInput
-            placeholder={t("transactionForm.category.searchPlaceholder", "חפש או הקלד קטגוריה...")}
+            placeholder={t("transactionForm.category.searchPlaceholder")}
             value={searchValue}
             onValueChange={setSearchValue}
           />
           <CommandList>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-6">
+            {/* Predefined categories are available synchronously, so render the
+                list immediately. Only the user's saved categories need the async
+                fetch; surface that with an unobtrusive inline row rather than
+                replacing the whole list with a spinner (same pattern as
+                PaymentMethodCombobox). */}
+            <CommandEmpty>
+              {isNewCategory ? (
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    handleCreateNew();
+                  }}
+                  className="flex w-full items-center justify-center gap-2 px-2 py-1.5 text-sm hover:bg-accent rounded-sm cursor-pointer"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>
+                    {t("transactionForm.category.createNew")}:{" "}
+                    <strong>"{searchValue.trim()}"</strong>
+                  </span>
+                </button>
+              ) : (
+                t("transactionForm.category.noResults")
+              )}
+            </CommandEmpty>
+            <CommandGroup>
+              {allOptions.map((option) => (
+                <CommandItem
+                  key={option.value}
+                  value={`${option.label} ${option.value}`}
+                  onSelect={() => handleSelect(option.value)}
+                >
+                  <Check
+                    className={cn(
+                      "mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2",
+                      value === option.value ? "opacity-100" : "opacity-0"
+                    )}
+                  />
+                  {option.label}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+            {isLoading && (
+              <div className="flex items-center justify-center py-2">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 <span className="ml-2 rtl:ml-0 rtl:mr-2 text-sm text-muted-foreground">
-                  {t("transactionForm.category.loading", "טוען...")}
+                  {t("transactionForm.category.loading")}
                 </span>
               </div>
-            ) : (
+            )}
+            {isNewCategory && allOptions.length > 0 && (
               <>
-                <CommandEmpty>
-                  {isNewCategory ? (
-                    <button
-                      onClick={handleCreateNew}
-                      className="flex w-full items-center justify-center gap-2 px-2 py-1.5 text-sm hover:bg-accent rounded-sm cursor-pointer"
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span>
-                        {t("transactionForm.category.createNew", "צור קטגוריה חדשה")}:{" "}
-                        <strong>"{searchValue.trim()}"</strong>
-                      </span>
-                    </button>
-                  ) : (
-                    t("transactionForm.category.noResults", "לא נמצאו קטגוריות")
-                  )}
-                </CommandEmpty>
+                <CommandSeparator />
                 <CommandGroup>
-                  {allOptions.map((option) => (
-                    <CommandItem
-                      key={option.value}
-                      value={`${option.label} ${option.value}`}
-                      onSelect={() => handleSelect(option.value)}
-                    >
-                      <Check
-                        className={cn(
-                          "mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2",
-                          value === option.value ? "opacity-100" : "opacity-0"
-                        )}
-                      />
-                      {option.label}
-                    </CommandItem>
-                  ))}
+                  <CommandItem onSelect={handleCreateNew}>
+                    <Plus className="mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2" />
+                    {t("transactionForm.category.createNew")}:{" "}
+                    <strong className="ml-1 rtl:ml-0 rtl:mr-1">
+                      "{searchValue.trim()}"
+                    </strong>
+                  </CommandItem>
                 </CommandGroup>
-                {isNewCategory && allOptions.length > 0 && (
-                  <>
-                    <CommandSeparator />
-                    <CommandGroup>
-                      <CommandItem onSelect={handleCreateNew}>
-                        <Plus className="mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2" />
-                        {t("transactionForm.category.createNew", "צור קטגוריה חדשה")}:{" "}
-                        <strong className="ml-1 rtl:ml-0 rtl:mr-1">"{searchValue.trim()}"</strong>
-                      </CommandItem>
-                    </CommandGroup>
-                  </>
-                )}
               </>
             )}
           </CommandList>

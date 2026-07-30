@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Resolver, useForm } from "react-hook-form";
+import { FieldErrors, Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useDonationStore } from "@/lib/store";
 import {
@@ -27,6 +27,7 @@ import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransact
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useTransactionFormInitialization } from "@/hooks/useTransactionFormInitialization";
 import { logger } from "@/lib/logger";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { toast } from "sonner";
 
 interface TransactionFormProps {
@@ -417,10 +418,35 @@ export function TransactionForm({
     }
   }
 
+  // Called by react-hook-form when submit is blocked by validation.
+  // Without this, Zod refinement errors (e.g. is_chomesh combinations) could
+  // block a save with no on-screen feedback, since the only error observer is
+  // a logger.log that is a no-op in production.
+  function onInvalid(errors: FieldErrors<TransactionFormValues>) {
+    logger.log("Form submit blocked by validation:", errors);
+
+    // Surface the first validation message so the user knows what to fix.
+    const firstError = Object.values(errors).find(
+      (error) => error && typeof error.message === "string" && error.message
+    );
+    toast.error(
+      firstError?.message
+        ? String(firstError.message)
+        : t("transactionForm.messages.validationFailed")
+    );
+
+    // Measure blocked submits so we can track this beyond session recordings.
+    trackProductEvent("transaction_validation_failed", {
+      fields: Object.keys(errors).join(","),
+      field_count: Object.keys(errors).length,
+      is_edit_mode: isEditMode,
+    });
+  }
+
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={form.handleSubmit(onSubmit, onInvalid)}
         autoComplete="on"
         className={cn(
           "space-y-6 p-4 rounded-xl transition-colors duration-500 ease-in-out",

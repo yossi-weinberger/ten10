@@ -51,8 +51,8 @@ Categories are available for the following transaction types:
 
 ### Features
 - Dropdown with search/filter functionality
-- Shows predefined categories from translations
-- Lazy-loads user-created categories when opened
+- Shows predefined categories from translations **immediately on open** (sync)
+- Lazy-loads user-created categories when opened; while that fetch runs, keep the predefined list visible and show a small inline loading row (do **not** replace the whole list with a spinner — same UX as `PaymentMethodCombobox`)
 - Allows creating new categories by typing
 - Caches loaded categories for performance
 
@@ -76,6 +76,13 @@ interface CategoryComboboxProps {
   placeholder={t("transactionForm.category.incomePlaceholder")}
 />
 ```
+
+### Loading UX
+Predefined options come from `CATEGORY_KEYS_BY_TYPE` / i18n and are always available synchronously.
+User-created categories are fetched asynchronously on open (via `getUserCategories`).
+While that request is in flight, render the predefined list immediately and show an inline
+loading row under it — never gate the entire `CommandList` behind `isLoading`.
+This matches `PaymentMethodCombobox` (`src/components/ui/payment-method-combobox.tsx`).
 
 ### Cache Invalidation
 The combobox tracks a `cacheVersion` from the categories service. When a new category is created:

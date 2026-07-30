@@ -28,41 +28,49 @@ export default defineConfig(() => {
     },
     plugins: [
       react(),
-      // Only enable PWA plugin if NOT a Tauri build to avoid caching issues in desktop app
-      !isTauriBuild &&
-        VitePWA({
-          registerType: "autoUpdate",
-          // Disable SW in development — simpler debugging, no interception overhead.
-          devOptions: { enabled: false },
-          // IMPORTANT:
-          // We intentionally do NOT generate/inject a manifest here.
-          // The app's single source of truth is the static `public/manifest.json`
-          // referenced from `index.html`. This prevents duplicate <link rel="manifest">
-          // tags and avoids confusion about which manifest is deployed.
-          manifest: false,
-          workbox: {
-            // PERFORMANCE OPTIMIZATION: Minimal SW without precaching
-            // Why this works:
-            // - PWA install prompts only require a registered SW + manifest (since Chrome ~2023)
-            // - TWA (Android) uses the web version directly, doesn't need SW caching
-            // - Offline support is only needed for Desktop (Tauri), which uses SQLite, not SW
-            // - This eliminates ~1.3MB of precache downloads on first visit
-            globPatterns: [], // No precached assets
-            navigateFallback: null, // No offline HTML fallback; requires network
-            // Workbox requires either precaching or runtimeCaching; use NetworkOnly (no cache)
-            // to keep a minimal SW while satisfying workbox-build validation.
-            runtimeCaching: [
-              {
-                urlPattern: /.*/i,
-                handler: "NetworkOnly",
-              },
-            ],
-            // Ensure new SW takes control immediately on next load (no waiting).
-            skipWaiting: true,
-            clientsClaim: true,
-          },
-        }),
-    ].filter(Boolean),
+      // Disable the PWA/SW in Tauri builds to avoid caching issues in the desktop app.
+      // We keep the plugin in the array (rather than excluding it) so the
+      // `virtual:pwa-register` module still resolves; `disable` turns the SW into
+      // a no-op for Tauri while web builds get a real registration.
+      VitePWA({
+        disable: isTauriBuild,
+        registerType: "autoUpdate",
+        // Register the SW manually via `virtual:pwa-register` in main.tsx so we can
+        // attach an `onRegisterError` handler. Without this, the auto-injected
+        // registerSW.js lets a rejected navigator.serviceWorker.register() bubble up
+        // as an uncaught error (seen as "Error: Rejected" in error tracking).
+        injectRegister: false,
+        // Disable SW in development — simpler debugging, no interception overhead.
+        devOptions: { enabled: false },
+        // IMPORTANT:
+        // We intentionally do NOT generate/inject a manifest here.
+        // The app's single source of truth is the static `public/manifest.json`
+        // referenced from `index.html`. This prevents duplicate <link rel="manifest">
+        // tags and avoids confusion about which manifest is deployed.
+        manifest: false,
+        workbox: {
+          // PERFORMANCE OPTIMIZATION: Minimal SW without precaching
+          // Why this works:
+          // - PWA install prompts only require a registered SW + manifest (since Chrome ~2023)
+          // - TWA (Android) uses the web version directly, doesn't need SW caching
+          // - Offline support is only needed for Desktop (Tauri), which uses SQLite, not SW
+          // - This eliminates ~1.3MB of precache downloads on first visit
+          globPatterns: [], // No precached assets
+          navigateFallback: null, // No offline HTML fallback; requires network
+          // Workbox requires either precaching or runtimeCaching; use NetworkOnly (no cache)
+          // to keep a minimal SW while satisfying workbox-build validation.
+          runtimeCaching: [
+            {
+              urlPattern: /.*/i,
+              handler: "NetworkOnly",
+            },
+          ],
+          // Ensure new SW takes control immediately on next load (no waiting).
+          skipWaiting: true,
+          clientsClaim: true,
+        },
+      }),
+    ],
     optimizeDeps: {
       exclude: ["lucide-react"],
       // Pre-bundle heavy dependencies to speed up dev mode startup
