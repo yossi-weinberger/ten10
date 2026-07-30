@@ -184,10 +184,7 @@ export function PaymentMethodCombobox({
       >
         <Command shouldFilter={true}>
           <CommandInput
-            placeholder={t(
-              "transactionForm.paymentMethod.searchPlaceholder",
-              "חפש או הקלד אמצעי תשלום..."
-            )}
+            placeholder={t("transactionForm.paymentMethod.searchPlaceholder")}
             value={searchValue}
             onValueChange={setSearchValue}
           />
@@ -209,18 +206,12 @@ export function PaymentMethodCombobox({
                 >
                   <Plus className="h-4 w-4" />
                   <span>
-                    {t(
-                      "transactionForm.paymentMethod.createNew",
-                      "צור אפשרות חדשה"
-                    )}
+                    {t("transactionForm.paymentMethod.createNew")}
                     : <strong>"{searchValue.trim()}"</strong>
                   </span>
                 </button>
               ) : (
-                t(
-                  "transactionForm.paymentMethod.noResults",
-                  "לא נמצאו אפשרויות"
-                )
+                t("transactionForm.paymentMethod.noResults")
               )}
             </CommandEmpty>
             <CommandGroup>
@@ -244,7 +235,7 @@ export function PaymentMethodCombobox({
               <div className="flex items-center justify-center py-2">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 <span className="ml-2 rtl:ml-0 rtl:mr-2 text-sm text-muted-foreground">
-                  {t("transactionForm.paymentMethod.loading", "טוען...")}
+                  {t("transactionForm.paymentMethod.loading")}
                 </span>
               </div>
             )}
@@ -254,10 +245,7 @@ export function PaymentMethodCombobox({
                 <CommandGroup>
                   <CommandItem onSelect={handleCreateNew}>
                     <Plus className="mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2" />
-                    {t(
-                      "transactionForm.paymentMethod.createNew",
-                      "צור אפשרות חדשה"
-                    )}
+                    {t("transactionForm.paymentMethod.createNew")}
                     :{" "}
                     <strong className="ml-1 rtl:ml-0 rtl:mr-1">
                       "{searchValue.trim()}"

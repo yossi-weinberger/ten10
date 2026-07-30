@@ -115,7 +115,7 @@ export function AdminMonitoringSection() {
       <div className="space-y-6" dir={i18n.dir()}>
         <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t("monitoring.title", "System Monitoring")}</AlertTitle>
+          <AlertTitle>{t("monitoring.title")}</AlertTitle>
           <AlertDescription>{t("monitoring.empty")}</AlertDescription>
         </Alert>
         <Button onClick={loadData} variant="outline">

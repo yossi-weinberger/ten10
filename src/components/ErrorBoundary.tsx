@@ -77,21 +77,16 @@ function ErrorBoundaryFallback({
     <Alert variant="destructive" dir={i18n.dir()}>
       <AlertCircle className="h-4 w-4" />
       <AlertTitle>
-        {t("errorBoundary.title", "Something went wrong")}
+        {t("errorBoundary.title")}
       </AlertTitle>
       <AlertDescription className="space-y-3">
-        <p>
-          {t(
-            "errorBoundary.description",
-            "This section failed to load. You can try again."
-          )}
-        </p>
+        <p>{t("errorBoundary.description")}</p>
         {import.meta.env.DEV && (
           <p className="font-mono text-xs opacity-80">{error.message}</p>
         )}
         <Button variant="outline" size="sm" onClick={reset}>
           <RefreshCw className="me-2 h-4 w-4" />
-          {t("errorBoundary.retry", "Try again")}
+          {t("errorBoundary.retry")}
         </Button>
       </AlertDescription>
     </Alert>
