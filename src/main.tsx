@@ -8,7 +8,6 @@ import { TWAProvider } from "./contexts/TWAContext";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider } from "./contexts/AuthContext";
-import { ErrorBoundary } from "./components/ErrorBoundary";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import {
@@ -49,9 +48,7 @@ const appTree = (
     <PlatformProvider>
       <TWAProvider>
         <AuthProvider>
-          <ErrorBoundary boundaryName="app-root">
-            <RouterProvider router={router} />
-          </ErrorBoundary>
+          <RouterProvider router={router} />
           <SpeedInsights />
           <Analytics />
         </AuthProvider>
