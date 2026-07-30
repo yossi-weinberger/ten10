@@ -40,8 +40,7 @@
     "userId": "מזהה משתמש",
     "createdAt": "נוצר בתאריך",
     "updatedAt": "עודכן בתאריך",
-    "sourceRecurringId": "מזהה ה\"ק מקור",
-    "typeTooltip": "סוג התנועה. לסינון לפי סוג, השתמשו במסנן “סוגי תנועות” שמעל הטבלה."
+    "sourceRecurringId": "מזהה ה\"ק מקור"
   },
   "types": {
     "income": "הכנסה",

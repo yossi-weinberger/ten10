@@ -58,8 +58,7 @@
     "userId": "User ID",
     "createdAt": "Created At",
     "updatedAt": "Updated At",
-    "sourceRecurringId": "Source Rec. ID",
-    "typeTooltip": "Transaction type. To filter by type, use the “Transaction Types” filter above the table."
+    "sourceRecurringId": "Source Rec. ID"
   },
   "types": {
     "income": "Income",
