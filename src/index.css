@@ -4,10 +4,7 @@
   src: url("/fonts/Assistant-VariableFont_wght.ttf") format("truetype");
   font-weight: 200 800;
   font-style: normal;
-  /* Paired with the <link rel="preload"> in index.html: preload usually makes
-     Assistant ready before first paint (no visible swap). Keep `swap` so a rare
-     slow first load still adopts the brand font once it arrives, rather than
-     staying on the system fallback for the whole visit (`optional`). */
+  /* With preload in index.html; swap keeps brand font on slow first loads. */
   font-display: swap;
 }
 
