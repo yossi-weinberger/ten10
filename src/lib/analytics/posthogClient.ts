@@ -1,6 +1,7 @@
 import posthog from "posthog-js";
 import type { CaptureResult } from "posthog-js";
 import type { User } from "@supabase/supabase-js";
+import { scrubSensitiveUrl } from "./urlScrubbing";
 
 type PostHogEventProperties = Record<
   string,
@@ -21,6 +22,38 @@ const BENIGN_ERROR_MESSAGES = [
   // Generic network hiccups from cancelled/failed fetches and script loads.
   "Non-Error promise rejection captured",
 ];
+
+/**
+ * URL-valued event properties that can carry the OAuth callback fragment
+ * (`#access_token=…&refresh_token=…`) into pageviews and session-recording
+ * metadata. We scrub these on every outgoing event as a defence-in-depth layer
+ * behind the explicit scrubbing at each capture site.
+ */
+const URL_PROPERTY_KEYS = [
+  "$current_url",
+  "$referrer",
+  "$initial_current_url",
+  "$initial_referrer",
+  "$pathname",
+] as const;
+
+/**
+ * Redacts authentication material from any URL-valued properties on the event.
+ * Runs for all events (including `$snapshot`, which sets the recording's start
+ * URL) so credentials never reach PostHog regardless of the capture path.
+ */
+function scrubUrlProperties(event: CaptureResult | null): CaptureResult | null {
+  if (!event?.properties) return event;
+
+  for (const key of URL_PROPERTY_KEYS) {
+    const value = event.properties[key];
+    if (typeof value === "string" && value.length > 0) {
+      event.properties[key] = scrubSensitiveUrl(value);
+    }
+  }
+
+  return event;
+}
 
 /**
  * Drops `$exception` events whose message matches a known-benign browser
@@ -62,16 +95,13 @@ export function initPostHog(): void {
     capture_pageview: false,
     capture_pageleave: true,
     capture_exceptions: true,
-    before_send: dropBenignExceptions,
+    before_send: (event) => dropBenignExceptions(scrubUrlProperties(event)),
     session_recording: {
       maskAllInputs: true,
       maskTextSelector: "[data-ph-mask], .ph-mask",
       maskCapturedNetworkRequestFn: (request) => {
-        if (request.name) {
-          request.name = request.name.replace(
-            /([?&](token|access_token|refresh_token|code|auth|email|apikey)=)[^&]+/gi,
-            "$1[REDACTED]"
-          );
+        if (typeof request.name === "string") {
+          request.name = scrubSensitiveUrl(request.name);
         }
         return request;
       },
@@ -83,7 +113,7 @@ export function capturePostHogPageview(): void {
   if (!isPostHogSupported()) return;
 
   posthog.capture("$pageview", {
-    $current_url: window.location.href,
+    $current_url: scrubSensitiveUrl(window.location.href),
   });
 }
 
