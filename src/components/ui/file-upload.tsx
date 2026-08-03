@@ -4,7 +4,14 @@ import { Upload, X, File as FileIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getDropzoneRejectionMessage } from "@/lib/utils/dropzone-rejection";
 import { Button } from "./button";
+
+const ATTACHMENT_REJECTION_KEYS = {
+  tooLarge: "forms.attachments.errors.tooLarge",
+  tooManyFiles: "forms.attachments.errors.tooManyFiles",
+  unsupportedFormat: "forms.attachments.errors.unsupportedFormat",
+} as const;
 
 interface FileUploadProps {
   value: File[];
@@ -38,29 +45,12 @@ export const FileUpload = ({
 
   const onDropRejected = useCallback(
     (rejections: FileRejection[]) => {
-      const firstError = rejections[0]?.errors[0];
-      if (!firstError) {
-        toast.warning(t("forms.attachments.errors.unsupportedFormat"));
-        return;
-      }
-
-      if (firstError.code === "file-too-large") {
-        toast.warning(
-          t("forms.attachments.errors.tooLarge", {
-            size: Math.round(maxSize / 1024 / 1024),
-          })
-        );
-        return;
-      }
-
-      if (firstError.code === "too-many-files") {
-        toast.warning(
-          t("forms.attachments.errors.tooManyFiles", { maxFiles })
-        );
-        return;
-      }
-
-      toast.warning(t("forms.attachments.errors.unsupportedFormat"));
+      toast.warning(
+        getDropzoneRejectionMessage(rejections, t, ATTACHMENT_REJECTION_KEYS, {
+          maxSizeBytes: maxSize,
+          maxFiles,
+        })
+      );
     },
     [t, maxSize, maxFiles]
   );
