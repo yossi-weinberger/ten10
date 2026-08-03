@@ -56,7 +56,7 @@ src/components/import/
 ├── ColumnMapper.tsx             ← column mapping UI
 └── steps/
     ├── PrepareStep.tsx          ← format info + template download
-    ├── FileUploadStep.tsx       ← react-dropzone + Tauri drag-drop handler
+    ├── FileUploadStep.tsx       ← react-dropzone + Tauri drag-drop; rejection copy via shared `getDropzoneRejectionMessage`
     ├── ColumnMappingStep.tsx
     ├── ImportReviewStep.tsx     ← filter tabs + bulk actions
     └── ImportResultStep.tsx

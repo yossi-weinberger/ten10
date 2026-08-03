@@ -14,9 +14,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils/index";
+import { getDropzoneRejectionMessage } from "@/lib/utils/dropzone-rejection";
 import { withTimeout } from "@/lib/utils/with-timeout";
 import { parseFile, MAX_FILE_SIZE_BYTES, MAX_ROWS } from "@/lib/import/parsers";
 import type { ParsedFile } from "@/lib/import/import-session.types";
+
+const UPLOAD_REJECTION_KEYS = {
+  tooLarge: "upload.errors.tooLarge",
+  tooManyFiles: "upload.errors.tooManyFiles",
+  unsupportedFormat: "upload.errors.unsupportedFormat",
+} as const;
 
 interface FileUploadStepProps {
   onFileParsed: (file: ParsedFile) => void;
@@ -119,25 +126,12 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
 
   const onDropRejected = useCallback(
     (rejections: FileRejection[]) => {
-      const first = rejections[0];
-      const firstError = first?.errors[0];
-      if (!firstError) {
-        setError(t("upload.errors.unsupportedFormat"));
-        return;
-      }
-
-      if (firstError.code === "file-too-large") {
-        const maxMb = Math.round(MAX_FILE_SIZE_BYTES / 1024 / 1024);
-        setError(t("upload.errors.tooLarge", { size: maxMb }));
-        return;
-      }
-
-      if (firstError.code === "too-many-files") {
-        setError(t("upload.errors.tooManyFiles"));
-        return;
-      }
-
-      setError(t("upload.errors.unsupportedFormat"));
+      setError(
+        getDropzoneRejectionMessage(rejections, t, UPLOAD_REJECTION_KEYS, {
+          maxSizeBytes: MAX_FILE_SIZE_BYTES,
+          maxFiles: 1,
+        })
+      );
     },
     [t]
   );

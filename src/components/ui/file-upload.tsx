@@ -1,9 +1,17 @@
 import { useCallback } from "react";
-import { useDropzone } from "react-dropzone";
+import { useDropzone, type FileRejection } from "react-dropzone";
 import { Upload, X, File as FileIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getDropzoneRejectionMessage } from "@/lib/utils/dropzone-rejection";
 import { Button } from "./button";
+
+const ATTACHMENT_REJECTION_KEYS = {
+  tooLarge: "forms.attachments.errors.tooLarge",
+  tooManyFiles: "forms.attachments.errors.tooManyFiles",
+  unsupportedFormat: "forms.attachments.errors.unsupportedFormat",
+} as const;
 
 interface FileUploadProps {
   value: File[];
@@ -27,12 +35,45 @@ export const FileUpload = ({
 }: FileUploadProps) => {
   const { t } = useTranslation("contact");
 
+  // dropzone's `maxFiles` only counts the *current* selection, not files already
+  // in `value`. Pass remaining slots so adding past the cap hits onDropRejected
+  // instead of being silently truncated by `.slice()`.
+  const remainingSlots = Math.max(0, maxFiles - value.length);
+
+  const warnTooManyFiles = useCallback(() => {
+    toast.warning(
+      t(ATTACHMENT_REJECTION_KEYS.tooManyFiles, { maxFiles })
+    );
+  }, [t, maxFiles]);
+
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
-      const newFiles = [...value, ...acceptedFiles].slice(0, maxFiles);
-      onChange(newFiles);
+      if (acceptedFiles.length === 0) return;
+
+      if (remainingSlots <= 0) {
+        warnTooManyFiles();
+        return;
+      }
+
+      if (acceptedFiles.length > remainingSlots) {
+        warnTooManyFiles();
+      }
+
+      onChange([...value, ...acceptedFiles].slice(0, maxFiles));
     },
-    [value, maxFiles, onChange]
+    [value, maxFiles, onChange, remainingSlots, warnTooManyFiles]
+  );
+
+  const onDropRejected = useCallback(
+    (rejections: FileRejection[]) => {
+      toast.warning(
+        getDropzoneRejectionMessage(rejections, t, ATTACHMENT_REJECTION_KEYS, {
+          maxSizeBytes: maxSize,
+          maxFiles,
+        })
+      );
+    },
+    [t, maxSize, maxFiles]
   );
 
   const removeFile = (fileToRemove: File) => {
@@ -42,9 +83,16 @@ export const FileUpload = ({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    maxFiles,
+    onDropRejected,
+    // When already at the cap, keep maxFiles >= 1 and reject via validator —
+    // react-dropzone treats maxFiles: 0 as "unlimited".
+    maxFiles: remainingSlots > 0 ? remainingSlots : 1,
     maxSize,
     accept,
+    validator: () =>
+      remainingSlots <= 0
+        ? { code: "too-many-files", message: "Too many files" }
+        : null,
   });
 
   return (
