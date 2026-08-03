@@ -54,7 +54,12 @@
       "dropActive": "שחרר את הקבצים כאן...",
       "dropInactive": "גרור ושחרר קבצים כאן, או לחץ לבחירה",
       "limits": "(מקסימום {{maxFiles}} קבצים, עד {{maxSizeMB}}MB כל אחד)",
-      "removeFile": "הסר קובץ"
+      "removeFile": "הסר קובץ",
+      "errors": {
+        "tooLarge": "הקובץ גדול מדי (מקסימום {{size}}MB)",
+        "tooManyFiles": "ניתן לצרף עד {{maxFiles}} קבצים",
+        "unsupportedFormat": "סוג הקובץ אינו נתמך"
+      }
     }
   }
 }

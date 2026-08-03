@@ -54,7 +54,12 @@
       "dropActive": "Drop the files here...",
       "dropInactive": "Drag & drop files here, or click to select",
       "limits": "(Max {{maxFiles}} files, up to {{maxSizeMB}}MB each)",
-      "removeFile": "Remove file"
+      "removeFile": "Remove file",
+      "errors": {
+        "tooLarge": "File is too large (max {{size}}MB)",
+        "tooManyFiles": "You can attach up to {{maxFiles}} files",
+        "unsupportedFormat": "Unsupported file type"
+      }
     }
   }
 }

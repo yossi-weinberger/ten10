@@ -113,6 +113,7 @@ This flow leverages Tauri's secure bridge between the frontend and the Rust back
 - **Features**:
   - Drag-and-drop or click to select
   - File validation (max 3 files, 5MB each by default)
+  - Rejection feedback via `toast.warning` (`onDropRejected`: too large / too many / unsupported type) — matches project toast guidelines; import wizard keeps an inline `Alert` instead because it is a dedicated step
   - Visual feedback for selected files with size display
   - File removal before submission
   - Full i18n support (all text comes from translation files)

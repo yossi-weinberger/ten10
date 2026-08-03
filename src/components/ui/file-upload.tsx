@@ -1,7 +1,8 @@
 import { useCallback } from "react";
-import { useDropzone } from "react-dropzone";
+import { useDropzone, type FileRejection } from "react-dropzone";
 import { Upload, X, File as FileIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
@@ -35,6 +36,35 @@ export const FileUpload = ({
     [value, maxFiles, onChange]
   );
 
+  const onDropRejected = useCallback(
+    (rejections: FileRejection[]) => {
+      const firstError = rejections[0]?.errors[0];
+      if (!firstError) {
+        toast.warning(t("forms.attachments.errors.unsupportedFormat"));
+        return;
+      }
+
+      if (firstError.code === "file-too-large") {
+        toast.warning(
+          t("forms.attachments.errors.tooLarge", {
+            size: Math.round(maxSize / 1024 / 1024),
+          })
+        );
+        return;
+      }
+
+      if (firstError.code === "too-many-files") {
+        toast.warning(
+          t("forms.attachments.errors.tooManyFiles", { maxFiles })
+        );
+        return;
+      }
+
+      toast.warning(t("forms.attachments.errors.unsupportedFormat"));
+    },
+    [t, maxSize, maxFiles]
+  );
+
   const removeFile = (fileToRemove: File) => {
     const newFiles = value.filter((file) => file !== fileToRemove);
     onChange(newFiles);
@@ -42,6 +72,7 @@ export const FileUpload = ({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    onDropRejected,
     maxFiles,
     maxSize,
     accept,
