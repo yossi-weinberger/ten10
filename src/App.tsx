@@ -333,15 +333,23 @@ function App() {
     <TooltipProvider>
       <div className="h-full w-full overflow-hidden bg-background flex">
         {!isFullScreenPage && (
-          <div
-            className={cn(
-              "hidden md:block transition-all duration-300 bg-card overflow-hidden h-full shadow-lg",
-              isSidebarExpanded ? "w-44" : "w-16"
-            )}
-            onMouseEnter={() => setIsSidebarExpanded(true)}
-            onMouseLeave={() => setIsSidebarExpanded(false)}
-          >
-            <Sidebar expanded={isSidebarExpanded} />
+          // Keep a fixed-width (w-16) footprint in the flex flow so the main
+          // content never reflows. The panel inside overlays the content when it
+          // expands on hover instead of pushing and resizing it. A hover-driven
+          // width change on a flow element here would shift the whole page on
+          // every hover, and hover shifts are NOT excluded from Cumulative Layout
+          // Shift, so that reflow was the dominant CLS source on desktop.
+          <div className="hidden md:block relative w-16 shrink-0 h-full">
+            <div
+              className={cn(
+                "absolute inset-y-0 start-0 z-40 transition-all duration-300 bg-card overflow-hidden shadow-lg",
+                isSidebarExpanded ? "w-44" : "w-16"
+              )}
+              onMouseEnter={() => setIsSidebarExpanded(true)}
+              onMouseLeave={() => setIsSidebarExpanded(false)}
+            >
+              <Sidebar expanded={isSidebarExpanded} />
+            </div>
           </div>
         )}
 
