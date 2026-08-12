@@ -33,21 +33,35 @@ jobs:
           # --omit=dev excludes devDependencies (e.g. esbuild, vite) which are never
           # deployed to production and whose CVEs are dev-server-only concerns.
           AUDIT_RESULT=$(npm audit --omit=dev --json 2>/dev/null || true)
-          
+
           HIGH_COUNT=$(echo "$AUDIT_RESULT" | jq '.metadata.vulnerabilities.high // 0')
           CRITICAL_COUNT=$(echo "$AUDIT_RESULT" | jq '.metadata.vulnerabilities.critical // 0')
-          
+
           echo "High severity: $HIGH_COUNT"
           echo "Critical severity: $CRITICAL_COUNT"
-          
-          if [ "$CRITICAL_COUNT" -gt 0 ]; then
-            echo "❌ Critical vulnerabilities found!"
+
+          if [ "$CRITICAL_COUNT" -gt 0 ] || [ "$HIGH_COUNT" -gt 0 ]; then
+            echo ""
+            echo "Blocking advisories (high/critical):"
+            # Print package + advisory title/url/range so the CI log is actionable
+            # without needing a local npm audit reproduction.
+            echo "$AUDIT_RESULT" | jq -r '
+              .vulnerabilities
+              | to_entries[]
+              | select(.value.severity == "high" or .value.severity == "critical")
+              | . as $pkg
+              | ($pkg.value.via // [])
+              | .[]
+              | select(type == "object")
+              | "- [\($pkg.value.severity | ascii_upcase)] \($pkg.key): \(.title // "unknown")\n  range: \(.range // $pkg.value.range // "n/a")\n  url: \(.url // "n/a")"
+            '
+            echo ""
+            if [ "$CRITICAL_COUNT" -gt 0 ]; then
+              echo "❌ Critical vulnerabilities found!"
+            else
+              echo "⚠️ High severity vulnerabilities found!"
+            fi
             exit 1
           fi
-          
-          if [ "$HIGH_COUNT" -gt 0 ]; then
-            echo "⚠️ High severity vulnerabilities found!"
-            exit 1
-          fi
-          
+
           echo "✅ No high or critical vulnerabilities found"
