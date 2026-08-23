@@ -804,11 +804,17 @@ The following components implement the variant locking pattern:
 
 | Component | File |
 | --- | --- |
+| `ResponsiveConfirmationDialog` | `src/components/ui/ResponsiveConfirmationDialog.tsx` |
 | `RecurringTransactionEditModal` | `src/components/TransactionsTable/RecurringTransactionEditModal.tsx` |
 | `TransactionEditModal` | `src/components/TransactionsTable/TransactionEditModal.tsx` |
 | `BulkEditDialog` | `src/components/TransactionsTable/BulkEditDialog.tsx` |
 | `TermsAcceptanceModal` | `src/components/auth/TermsAcceptanceModal.tsx` |
 | `ContactModal` | `src/components/features/contact/ContactModal.tsx` |
+
+Destructive confirmations should use `ResponsiveConfirmationDialog`, which
+renders an `AlertDialog` on desktop and a `Drawer` on mobile. Keep the
+confirmation controlled so callers decide when to close after async actions and
+can preserve their success and error behavior.
 
 ### 11.5 Debugging Mobile Issues
 
