@@ -8,7 +8,7 @@ import {
 import { logger } from "@/lib/logger";
 import { rescheduleBillingDayInMonth } from "@/lib/recurring/recurring-date.utils";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
-import { invoke } from "@tauri-apps/api/core";
+import { invokeTauri } from "@/lib/tauri-invoke";
 import {
   bulkDeleteRecurringTransactions,
   bulkUpdateRecurringTransactions,
@@ -102,7 +102,7 @@ export async function fetchAllRecurring(
           filters.frequencies.length > 0 ? filters.frequencies : null,
       },
     };
-    const data = await invoke<RecurringTransaction[]>("get_recurring_transactions_handler", {
+    const data = await invokeTauri<RecurringTransaction[]>("get_recurring_transactions_handler", {
       args: payload,
     });
     return activeFirst(data);
@@ -170,7 +170,7 @@ export async function updateRecurringTransaction(
     trackRecurringUpdateEvents(existing, updates);
     return data as RecurringTransaction;
   } else if (platform === "desktop") {
-    const updatedTransaction = await invoke(
+    const updatedTransaction = await invokeTauri(
       "update_recurring_transaction_handler",
       {
         id,
@@ -203,7 +203,7 @@ export async function deleteRecurringTransaction(id: string): Promise<void> {
     }
     trackProductEvent("recurring_obligation_deleted");
   } else if (platform === "desktop") {
-    await invoke("delete_recurring_transaction_handler", { id });
+    await invokeTauri("delete_recurring_transaction_handler", { id });
   } else {
     throw new Error("Unsupported platform");
   }

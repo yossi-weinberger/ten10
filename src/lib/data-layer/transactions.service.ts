@@ -4,7 +4,7 @@ import { getPlatform } from "../platformManager";
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
-import { invoke } from "@tauri-apps/api/core";
+import { invokeTauri } from "@/lib/tauri-invoke";
 import {
   invokeDesktopFilteredTransactions,
   invokeDesktopFilteredTransactionsAllPages,
@@ -169,7 +169,7 @@ export async function getTransactionsCount(): Promise<number> {
 
   if (currentPlatform === "desktop") {
     try {
-      return await invoke<number>("get_transactions_count");
+      return await invokeTauri<number>("get_transactions_count");
     } catch (error) {
       logger.error("Error counting transactions (Desktop):", error);
       return 0;
@@ -210,7 +210,7 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
   const currentPlatform = getPlatform();
   if (currentPlatform === "desktop") {
     try {
-      await invoke("add_transaction", { transaction });
+      await invokeTauri("add_transaction", { transaction });
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
     } catch (error) {
       logger.error("Error invoking add_transaction:", error);
@@ -272,7 +272,7 @@ export async function deleteTransaction(transactionId: string): Promise<void> {
 
   if (currentPlatform === "desktop") {
     try {
-      await invoke("delete_transaction_handler", { transactionId });
+      await invokeTauri("delete_transaction_handler", { transactionId });
       logger.log(
         `TransactionsService: Tauri delete successful for ID: ${transactionId}`
       );
@@ -398,7 +398,7 @@ export async function updateTransaction(
 
   if (currentPlatform === "desktop") {
     try {
-      await invoke("update_transaction_handler", {
+      await invokeTauri("update_transaction_handler", {
         id: transactionId,
         payload: sanitizedPayload,
       });
@@ -539,7 +539,7 @@ export async function bulkDeleteTransactions(
   }
 
   if (currentPlatform === "desktop") {
-    const affectedCount = await invoke<number>("bulk_delete_transactions_handler", {
+    const affectedCount = await invokeTauri<number>("bulk_delete_transactions_handler", {
       ids: validatedIds,
     });
     verifyAffectedCount("transactions", validatedIds.length, affectedCount);
@@ -580,7 +580,7 @@ export async function bulkUpdateTransactions(
   }
 
   if (currentPlatform === "desktop") {
-    const affectedCount = await invoke<number>("bulk_update_transactions_handler", {
+    const affectedCount = await invokeTauri<number>("bulk_update_transactions_handler", {
       ids: validatedIds,
       field: change.field,
       value: change.value,
