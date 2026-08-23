@@ -9,11 +9,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
 
 export interface BulkEditFieldOption {
   value: string;
   label: string;
+  icon?: ReactNode;
   disabled?: boolean;
 }
 
@@ -76,31 +78,39 @@ export function BulkEditDialog({
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <Label id="bulk-edit-field-label">{fieldLabel}</Label>
-            <div
-              className="grid gap-2 sm:grid-cols-2"
-              role="radiogroup"
+            <ToggleGroup
+              type="single"
+              value={selectedField}
+              onValueChange={(value) => {
+                if (value) {
+                  onFieldChange(value);
+                }
+              }}
+              className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3"
               aria-labelledby="bulk-edit-field-label"
             >
               {fields.map((field) => (
-                <Button
+                <ToggleGroupItem
                   key={field.value}
-                  type="button"
-                  variant={field.value === selectedField ? "default" : "outline"}
-                  className={cn("justify-start", dir === "rtl" && "text-right")}
+                  value={field.value}
+                  className={cn(
+                    "h-auto justify-start gap-2 whitespace-normal rounded-md border px-3 py-2 text-start hover:bg-accent hover:text-accent-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground",
+                    dir === "rtl" && "text-right"
+                  )}
                   disabled={pending || field.disabled}
-                  role="radio"
-                  aria-checked={field.value === selectedField}
-                  onClick={() => onFieldChange(field.value)}
                 >
+                  {field.icon}
                   {field.label}
-                </Button>
+                </ToggleGroupItem>
               ))}
-            </div>
+            </ToggleGroup>
           </div>
 
           <div className="space-y-2">
-            <Label>{valueLabel}</Label>
-            {valueEditor}
+            <Label id="bulk-edit-value-label">{valueLabel}</Label>
+            <div role="group" aria-labelledby="bulk-edit-value-label">
+              {valueEditor}
+            </div>
           </div>
 
           <DialogFooter>

@@ -198,6 +198,7 @@
   },
   "buttons": {
     "showRecurring": "Show Recurring",
+    "backToTransactions": "Back to Transactions",
     "importTransactions": "Import Transactions"
   },
   "movementType": {

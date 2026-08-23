@@ -6,7 +6,7 @@ import { usePlatform } from "@/contexts/PlatformContext";
 import { Table, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { TransactionsFilters } from "./TransactionsFilters";
 import { ExportButton } from "./ExportButton";
-import { Upload } from "lucide-react";
+import { CreditCard, Tags, Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -162,6 +162,7 @@ export function TransactionsTableDisplay() {
   const transactionBulkFields: {
     value: TransactionBulkEditField;
     label: string;
+    icon: React.ReactNode;
   }[] = [];
   const paymentMethodAvailability = getBulkEditAvailability({
     kind: "transaction",
@@ -178,6 +179,7 @@ export function TransactionsTableDisplay() {
     transactionBulkFields.push({
       value: "payment_method",
       label: t("bulkEdit.fields.paymentMethod"),
+      icon: <CreditCard aria-hidden="true" className="h-4 w-4" />,
     });
   }
 
@@ -185,6 +187,7 @@ export function TransactionsTableDisplay() {
     transactionBulkFields.push({
       value: "category",
       label: t("bulkEdit.fields.category"),
+      icon: <Tags aria-hidden="true" className="h-4 w-4" />,
     });
   }
 
@@ -622,36 +625,26 @@ export function TransactionsTableDisplay() {
             </span>
           </Button>
         </div>
-        <Button
-          onClick={() =>
-            navigate({ to: "/transactions-table/recurring-transactions" })
-          }
-          variant="default"
-          className="bg-primary hover:bg-primary/90 text-primary-foreground"
-        >
-          {t("buttons.showRecurring")}
-        </Button>
+        <BulkActionsToolbar
+          selectedCount={selection.selectedCount}
+          selectedCountLabel={t("bulkToolbar.selectedCount", {
+            count: selection.selectedCount,
+          })}
+          editLabel={t("bulkToolbar.edit")}
+          deleteLabel={t("bulkToolbar.delete")}
+          clearLabel={t("bulkToolbar.clear")}
+          onEdit={handleBulkEditClick}
+          onDelete={() => setIsBulkDeleteDialogOpen(true)}
+          onClear={clearSelection}
+          ariaLabel={t("bulkToolbar.ariaLabel")}
+          pending={bulkPending}
+          editDisabled={transactionBulkFields.length === 0}
+          dir={i18n.dir()}
+        />
       </div>
 
-      <BulkActionsToolbar
-        selectedCount={selection.selectedCount}
-        selectedCountLabel={t("bulkToolbar.selectedCount", {
-          count: selection.selectedCount,
-        })}
-        editLabel={t("bulkToolbar.edit")}
-        deleteLabel={t("bulkToolbar.delete")}
-        clearLabel={t("bulkToolbar.clear")}
-        onEdit={handleBulkEditClick}
-        onDelete={() => setIsBulkDeleteDialogOpen(true)}
-        onClear={clearSelection}
-        ariaLabel={t("bulkToolbar.ariaLabel")}
-        pending={bulkPending}
-        editDisabled={transactionBulkFields.length === 0}
-        dir={i18n.dir()}
-      />
-
       {error && (
-        <p className="text-red-500 text-center py-4">
+        <p className="text-destructive text-center py-4">
           {t("messages.loadingError", { error })}
         </p>
       )}

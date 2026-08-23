@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useState, useCallback, useRef } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+  type ReactNode,
+} from "react";
 import { useTranslation } from "react-i18next";
 import { logger } from "@/lib/logger";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
@@ -23,7 +30,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { deleteRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
-import { MoreHorizontal, InfoIcon } from "lucide-react";
+import {
+  CirclePause,
+  CreditCard,
+  InfoIcon,
+  MoreHorizontal,
+  Tags,
+} from "lucide-react";
 import { RecurringTransaction, TransactionType } from "@/types/transaction";
 import { recurringStatusBadgeColors } from "@/types/recurringTransactionLabels";
 import { typeBadgeColors } from "@/types/transactionLabels";
@@ -159,6 +172,7 @@ export function RecurringTransactionsTableDisplay() {
   const recurringBulkFields: {
     value: RecurringBulkEditField;
     label: string;
+    icon: ReactNode;
   }[] = [];
   const statusAvailability = getBulkEditAvailability({
     kind: "recurring",
@@ -180,6 +194,7 @@ export function RecurringTransactionsTableDisplay() {
     recurringBulkFields.push({
       value: "status",
       label: t("bulkEdit.fields.status"),
+      icon: <CirclePause aria-hidden="true" className="h-4 w-4" />,
     });
   }
 
@@ -187,6 +202,7 @@ export function RecurringTransactionsTableDisplay() {
     recurringBulkFields.push({
       value: "payment_method",
       label: t("bulkEdit.fields.paymentMethod"),
+      icon: <CreditCard aria-hidden="true" className="h-4 w-4" />,
     });
   }
 
@@ -194,6 +210,7 @@ export function RecurringTransactionsTableDisplay() {
     recurringBulkFields.push({
       value: "category",
       label: t("bulkEdit.fields.category"),
+      icon: <Tags aria-hidden="true" className="h-4 w-4" />,
     });
   }
 
@@ -507,7 +524,7 @@ export function RecurringTransactionsTableDisplay() {
     <>
       <RecurringTransactionsFilters />
 
-      <div className="mt-4 bg-blue-50 text-blue-900 border border-blue-200 dark:bg-blue-950/30 dark:text-blue-100 dark:border-blue-800 rounded-lg p-4 flex items-start gap-3">
+      <div className="mt-4 rounded-lg border border-info/30 bg-info/10 p-4 text-info flex items-start gap-3">
         <InfoIcon className="h-5 w-5 mt-0.5 shrink-0" />
         <div>
           <h4 className="font-semibold text-sm">
@@ -521,28 +538,28 @@ export function RecurringTransactionsTableDisplay() {
         </div>
       </div>
 
-      <BulkActionsToolbar
-        className="mt-4"
-        selectedCount={selection.selectedCount}
-        selectedCountLabel={t("bulkToolbar.selectedRecurringCount", {
-          count: selection.selectedCount,
-        })}
-        editLabel={t("bulkToolbar.edit")}
-        deleteLabel={t("bulkToolbar.delete")}
-        clearLabel={t("bulkToolbar.clear")}
-        onEdit={handleBulkEditClick}
-        onDelete={() => setIsBulkDeleteDialogOpen(true)}
-        onClear={clearSelection}
-        ariaLabel={t("bulkToolbar.recurringAriaLabel")}
-        pending={bulkPending}
-        editDisabled={recurringBulkFields.length === 0}
-        dir={i18n.dir()}
-      />
-
       <Card className="mt-4">
-        <CardHeader>
-          <CardTitle>{t("recurringTable.title")}</CardTitle>
-          <CardDescription>{t("recurringTable.description")}</CardDescription>
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1.5">
+            <CardTitle>{t("recurringTable.title")}</CardTitle>
+            <CardDescription>{t("recurringTable.description")}</CardDescription>
+          </div>
+          <BulkActionsToolbar
+            selectedCount={selection.selectedCount}
+            selectedCountLabel={t("bulkToolbar.selectedRecurringCount", {
+              count: selection.selectedCount,
+            })}
+            editLabel={t("bulkToolbar.edit")}
+            deleteLabel={t("bulkToolbar.delete")}
+            clearLabel={t("bulkToolbar.clear")}
+            onEdit={handleBulkEditClick}
+            onDelete={() => setIsBulkDeleteDialogOpen(true)}
+            onClear={clearSelection}
+            ariaLabel={t("bulkToolbar.recurringAriaLabel")}
+            pending={bulkPending}
+            editDisabled={recurringBulkFields.length === 0}
+            dir={i18n.dir()}
+          />
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -582,7 +599,7 @@ export function RecurringTransactionsTableDisplay() {
                   <TableRow>
                     <TableCell
                       colSpan={10}
-                      className="h-24 text-center text-red-500"
+                      className="h-24 text-center text-destructive"
                     >
                       {t("messages.loadingError", { error })}
                     </TableCell>
@@ -596,25 +613,6 @@ export function RecurringTransactionsTableDisplay() {
                         selection.selectedIds.has(rec.id) ? "selected" : undefined
                       }
                     >
-                      <TableCell
-                        className={cn(
-                          "sticky rtl:right-0 ltr:left-0 z-20 w-12 text-center whitespace-nowrap",
-                          selection.selectedIds.has(rec.id)
-                            ? "bg-muted"
-                            : "bg-background"
-                        )}
-                      >
-                        <Checkbox
-                          checked={selection.selectedIds.has(rec.id)}
-                          onCheckedChange={() => selection.toggle(rec.id)}
-                          disabled={bulkPending}
-                          aria-label={t("bulkSelection.selectRecurringRow", {
-                            description:
-                              rec.description ||
-                              t("messages.defaultRecurringName"),
-                          })}
-                        />
-                      </TableCell>
                       <TableCell className="text-center whitespace-nowrap">
                         <Badge
                           variant="outline"
@@ -683,7 +681,7 @@ export function RecurringTransactionsTableDisplay() {
                       <TableCell className="text-center">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
+                            <Button variant="ghost" size="icon">
                               <span className="sr-only">
                                 {t("accessibility.openMenu")}
                               </span>
@@ -705,7 +703,7 @@ export function RecurringTransactionsTableDisplay() {
                               {t("actions.edit")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              className="text-red-600"
+                            className="text-destructive hover:!text-destructive focus:!text-destructive"
                               onClick={() => {
                                 requestAnimationFrame(() =>
                                   handleDeleteClick(rec)
@@ -716,6 +714,19 @@ export function RecurringTransactionsTableDisplay() {
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
+                      </TableCell>
+                      <TableCell className="w-12 overflow-visible text-center whitespace-nowrap">
+                        <Checkbox
+                          checked={selection.selectedIds.has(rec.id)}
+                          onCheckedChange={() => selection.toggle(rec.id)}
+                          disabled={bulkPending}
+                          aria-label={t("bulkSelection.selectRecurringRow", {
+                            description:
+                              rec.description ||
+                              t("messages.defaultRecurringName"),
+                          })}
+                          className="relative before:absolute before:-inset-3.5 before:content-['']"
+                        />
                       </TableCell>
                     </TableRow>
                   ))}

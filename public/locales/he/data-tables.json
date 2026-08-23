@@ -181,6 +181,7 @@
   },
   "buttons": {
     "showRecurring": "הצג הוראות קבע",
+    "backToTransactions": "חזרה לכל התנועות",
     "importTransactions": "ייבוא תנועות"
   },
   "movementType": {

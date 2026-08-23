@@ -43,7 +43,7 @@ export function BulkActionsToolbar({
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 rounded-md border bg-background p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between",
+        "flex flex-wrap items-center gap-2",
         className,
       )}
       dir={dir}
@@ -51,14 +51,15 @@ export function BulkActionsToolbar({
       aria-label={ariaLabel}
       aria-live="polite"
     >
-      <div className="text-sm font-medium">
+      <div className="text-sm font-medium text-muted-foreground">
         {selectedCountLabel}
       </div>
-      <div className="flex flex-col-reverse gap-2 sm:flex-row">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           type="button"
           variant="outline"
           size="sm"
+          className="min-h-11 sm:min-h-9"
           onClick={onClear}
           disabled={actionsDisabled}
         >
@@ -67,6 +68,7 @@ export function BulkActionsToolbar({
         <Button
           type="button"
           size="sm"
+          className="min-h-11 sm:min-h-9"
           onClick={onEdit}
           disabled={actionsDisabled || editDisabled || selectedCount === 0}
         >
@@ -76,6 +78,7 @@ export function BulkActionsToolbar({
           type="button"
           variant="destructive"
           size="sm"
+          className="min-h-11 sm:min-h-9"
           onClick={onDelete}
           disabled={actionsDisabled || selectedCount === 0}
         >
