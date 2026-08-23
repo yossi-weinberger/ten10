@@ -3,7 +3,21 @@
 -- authoritative for authenticated callers.
 
 DO $preconditions$
+DECLARE
+  function_signature text;
+  new_function_signatures constant text[] := ARRAY[
+    'public.bulk_delete_user_transactions(uuid,uuid[])',
+    'public.bulk_update_user_transactions(uuid,uuid[],text,text)',
+    'public.bulk_delete_user_recurring_transactions(uuid,uuid[])',
+    'public.bulk_update_user_recurring_transactions(uuid,uuid[],text,text)'
+  ];
 BEGIN
+  FOREACH function_signature IN ARRAY new_function_signatures LOOP
+    IF to_regprocedure(function_signature) IS NOT NULL THEN
+      RAISE EXCEPTION 'Refusing to replace an existing function: %', function_signature;
+    END IF;
+  END LOOP;
+
   IF NOT EXISTS (
     SELECT 1
     FROM pg_constraint AS constraint_row
@@ -37,7 +51,7 @@ BEGIN
 END;
 $preconditions$;
 
-CREATE OR REPLACE FUNCTION public.bulk_delete_user_transactions(
+CREATE FUNCTION public.bulk_delete_user_transactions(
   p_user_id uuid,
   p_ids uuid[]
 )
@@ -72,11 +86,12 @@ BEGIN
     RAISE EXCEPTION 'Bulk delete transaction ids cannot contain duplicates.';
   END IF;
 
-  WITH locked_rows AS (
+  WITH locked_rows AS MATERIALIZED (
     SELECT transaction_row.id
     FROM public.transactions AS transaction_row
     WHERE transaction_row.user_id = p_user_id
       AND transaction_row.id = ANY(p_ids)
+    ORDER BY transaction_row.id
     FOR UPDATE
   )
   SELECT count(*)::integer
@@ -105,7 +120,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.bulk_update_user_transactions(
+CREATE FUNCTION public.bulk_update_user_transactions(
   p_user_id uuid,
   p_ids uuid[],
   p_field text,
@@ -149,11 +164,12 @@ BEGIN
     RAISE EXCEPTION 'Unsupported transaction bulk update field: %.', p_field;
   END IF;
 
-  WITH locked_rows AS (
+  WITH locked_rows AS MATERIALIZED (
     SELECT transaction_row.id, transaction_row.type
     FROM public.transactions AS transaction_row
     WHERE transaction_row.user_id = p_user_id
       AND transaction_row.id = ANY(p_ids)
+    ORDER BY transaction_row.id
     FOR UPDATE
   )
   SELECT
@@ -211,7 +227,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.bulk_delete_user_recurring_transactions(
+CREATE FUNCTION public.bulk_delete_user_recurring_transactions(
   p_user_id uuid,
   p_ids uuid[]
 )
@@ -246,11 +262,12 @@ BEGIN
     RAISE EXCEPTION 'Bulk delete recurring transaction ids cannot contain duplicates.';
   END IF;
 
-  WITH locked_rows AS (
+  WITH locked_rows AS MATERIALIZED (
     SELECT recurring_row.id
     FROM public.recurring_transactions AS recurring_row
     WHERE recurring_row.user_id = p_user_id
       AND recurring_row.id = ANY(p_ids)
+    ORDER BY recurring_row.id
     FOR UPDATE
   )
   SELECT count(*)::integer
@@ -279,7 +296,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.bulk_update_user_recurring_transactions(
+CREATE FUNCTION public.bulk_update_user_recurring_transactions(
   p_user_id uuid,
   p_ids uuid[],
   p_field text,
@@ -331,11 +348,12 @@ BEGIN
     RAISE EXCEPTION 'Unsupported recurring transaction bulk status value: %.', p_value;
   END IF;
 
-  WITH locked_rows AS (
+  WITH locked_rows AS MATERIALIZED (
     SELECT recurring_row.id, recurring_row.type, recurring_row.status
     FROM public.recurring_transactions AS recurring_row
     WHERE recurring_row.user_id = p_user_id
       AND recurring_row.id = ANY(p_ids)
+    ORDER BY recurring_row.id
     FOR UPDATE
   )
   SELECT
@@ -475,6 +493,20 @@ BEGIN
 
     IF has_function_privilege('anon', function_oid, 'EXECUTE') THEN
       RAISE EXCEPTION 'anon can still execute: %', required_signature;
+    END IF;
+
+    IF EXISTS (
+      SELECT 1
+      FROM pg_proc
+      CROSS JOIN LATERAL aclexplode(coalesce(pg_proc.proacl, acldefault('f', pg_proc.proowner))) AS function_acl
+      JOIN pg_roles AS granted_role
+        ON granted_role.oid = function_acl.grantee
+      WHERE pg_proc.oid = function_oid
+        AND function_acl.privilege_type = 'EXECUTE'
+        AND function_acl.grantee <> pg_proc.proowner
+        AND granted_role.rolname NOT IN ('authenticated', 'service_role')
+    ) THEN
+      RAISE EXCEPTION 'Unexpected role can execute: %', required_signature;
     END IF;
 
     IF NOT has_function_privilege('authenticated', function_oid, 'EXECUTE') THEN
