@@ -19,7 +19,7 @@ This document provides a historical reference and status overview of the Transac
 - ✅ **Deletion**: Confirmation dialog with optimistic updates
 - ✅ **Load More**: Pagination with "Load More" button
 - ✅ **Bulk selection**: Loaded-only row checkboxes, tri-state header, select-all-loaded (no select-all-filtered)
-- ✅ **Bulk delete/update**: Atomic Web RPC + Desktop Tauri handlers; no optimistic bulk; one refetch on success; no Undo; no PostHog events
+- ✅ **Bulk delete/update**: Atomic Web RPC + Desktop Tauri handlers; no optimistic bulk; delete refetches once, update refetches from the UI after modal close; no Undo; no PostHog events
 - ✅ **Export**: CSV, Excel, and PDF export
 - ✅ **Import**: CSV/Excel import via review wizard — see `transaction-import-guide.md` (with month separators in PDF when sorting by date). On **desktop**, save uses `src/lib/utils/save-export-file.ts` (`dialog.save` + `writeFile`); cancelling the dialog sets `EXPORT_DESKTOP_SAVE_CANCELLED` (no success toast).
 - ❌ **Real-time Updates**: Removed (rely on optimistic updates and manual refresh)
@@ -196,7 +196,7 @@ interface TableTransactionsState {
 - Backup of original data (within async operation)
 - Rollback on failure (within async operation)
 
-**Bulk actions are not optimistic.** `deleteTransactionsBulk` / `updateTransactionsBulk` wait for the backend, then call `fetchTransactions(true)` once. Same pattern in `recurringTable.store.ts`.
+**Bulk actions are not optimistic.** `deleteTransactionsBulk` waits for the backend, then calls `fetchTransactions(true)` once. `updateTransactionsBulk` waits for the backend and lets the UI close the bulk edit modal before scheduling `clearSelection`, one refetch, and the success toast. The recurring table follows the same delete-vs-update split with `fetchRecurring()`.
 
 ## Supabase RPC Functions
 
@@ -366,7 +366,7 @@ WITH CHECK (auth.uid() = user_id);
 7. ✅ Load More implementation
 8. ✅ Edit and delete (Undo removed; bulk has no Undo)
 9. ✅ Export implementation (via `getDataForExport` using high-limit fetch)
-10. ✅ Bulk selection + bulk delete/update (loaded-only; atomic backend; one refetch)
+10. ✅ Bulk selection + bulk delete/update (loaded-only; atomic backend; delete refetches from the store, update refetches from the UI after modal close)
 11. ❌ Real-time updates (removed)
 
 ### Partially Completed
@@ -383,7 +383,7 @@ WITH CHECK (auth.uid() = user_id);
 ### Recently Added (bulk actions)
 
 16. ✅ **Bulk selection**: `useLoadedRowSelection` — loaded-only, tri-state header, select-all-loaded; selection cleared on filter/sort change; pruned on Load More
-17. ✅ **Bulk delete/update**: Web RPC + Desktop Tauri; no optimistic bulk; one refetch; tests in `bulkActions.test.ts`, `bulkOperations.store.test.ts`, `bulkOperations.service.test.ts`, and Rust `#[test]` modules in `transaction_commands.rs` / `recurring_transaction_commands.rs`
+17. ✅ **Bulk delete/update**: Web RPC + Desktop Tauri; no optimistic bulk; delete refetches from the store, update refetches from the UI after modal close; tests in `bulkActions.test.ts`, `bulkOperations.store.test.ts`, `bulkOperations.service.test.ts`, and Rust `#[test]` modules in `transaction_commands.rs` / `recurring_transaction_commands.rs`
 
 ### Not Yet Implemented
 

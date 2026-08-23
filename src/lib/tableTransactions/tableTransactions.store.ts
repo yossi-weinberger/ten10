@@ -338,7 +338,6 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           change,
           platform
         );
-        await get().fetchTransactions(true, platform);
         set({ bulkLoading: false });
       } catch (err: unknown) {
         const message = getErrorMessage(

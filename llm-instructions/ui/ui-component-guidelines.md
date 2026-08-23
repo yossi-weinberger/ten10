@@ -14,6 +14,7 @@ This document provides comprehensive guidelines for creating floating UI compone
 8. [Migration Guide](#8-migration-guide)
 9. [Internationalization (i18n) and Theming Guidelines](#9-internationalization-i18n-and-theming-guidelines)
 10. [Layout and Navigation Components](#10-layout-and-navigation-components)
+11. [Responsive Modals: Dialog/Drawer Pattern](#11-responsive-modals-dialogdrawer-pattern)
 
 ---
 
@@ -802,9 +803,10 @@ const handleSave = async () => {
 The following components implement the variant locking pattern:
 
 | Component | File |
-|-----------|------|
+| --- | --- |
 | `RecurringTransactionEditModal` | `src/components/TransactionsTable/RecurringTransactionEditModal.tsx` |
 | `TransactionEditModal` | `src/components/TransactionsTable/TransactionEditModal.tsx` |
+| `BulkEditDialog` | `src/components/TransactionsTable/BulkEditDialog.tsx` |
 | `TermsAcceptanceModal` | `src/components/auth/TermsAcceptanceModal.tsx` |
 | `ContactModal` | `src/components/features/contact/ContactModal.tsx` |
 

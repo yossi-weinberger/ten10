@@ -107,7 +107,6 @@ export const useRecurringTableStore = create<RecurringTableState>()(
       set({ bulkLoading: true, bulkError: null });
       try {
         await updateRecurringBulk(ids, change);
-        await get().fetchRecurring();
         set({ bulkLoading: false });
       } catch (err: unknown) {
         const message = getErrorMessage(

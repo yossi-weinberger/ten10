@@ -348,13 +348,18 @@ export function RecurringTransactionsTableDisplay() {
     try {
       await updateRecurringBulkAction(selectedRecurringIds, change);
       toast.dismiss(toastId);
-      toast.success(
-        t("bulkEdit.recurring.toast.success", {
-          count: selectedRecurringIds.length,
-        })
-      );
-      clearSelection();
       setIsBulkEditOpen(false);
+      requestAnimationFrame(() => {
+        void (async () => {
+          clearSelection();
+          await fetchRecurring();
+          toast.success(
+            t("bulkEdit.recurring.toast.success", {
+              count: selectedRecurringIds.length,
+            })
+          );
+        })();
+      });
     } catch (err: unknown) {
       logger.error("Failed to bulk update recurring transactions:", err);
       toast.dismiss(toastId);
@@ -372,6 +377,7 @@ export function RecurringTransactionsTableDisplay() {
     bulkPaymentMethodAction,
     bulkStatus,
     clearSelection,
+    fetchRecurring,
     selectedRecurringIds,
     t,
     updateRecurringBulkAction,
@@ -703,7 +709,7 @@ export function RecurringTransactionsTableDisplay() {
                               {t("actions.edit")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                            className="text-destructive hover:!text-destructive focus:!text-destructive"
+                              className="text-destructive hover:!text-destructive focus:!text-destructive"
                               onClick={() => {
                                 requestAnimationFrame(() =>
                                   handleDeleteClick(rec)

@@ -91,6 +91,24 @@ describe("table transaction bulk store actions", () => {
     expect(useTableTransactionsStore.getState().bulkError).toBe("bulk failed");
   });
 
+  it("updates in one service call without refreshing from the store", async () => {
+    const change = { kind: "transaction", field: "category", value: "salary" } as const;
+
+    await useTableTransactionsStore
+      .getState()
+      .updateTransactionsBulk(["t1", "t2"], change, "web");
+
+    expect(mockUpdateTransactionsBulk).toHaveBeenCalledTimes(1);
+    expect(mockUpdateTransactionsBulk).toHaveBeenCalledWith(
+      ["t1", "t2"],
+      change,
+      "web"
+    );
+    expect(mockFetchTransactions).not.toHaveBeenCalled();
+    expect(useTableTransactionsStore.getState().bulkLoading).toBe(false);
+    expect(useTableTransactionsStore.getState().bulkError).toBeNull();
+  });
+
   it("rejects a second transaction bulk delete while the first is pending", async () => {
     const pendingDelete = createDeferred();
     mockDeleteTransactionsBulk.mockReturnValueOnce(pendingDelete.promise);
@@ -139,7 +157,7 @@ describe("table transaction bulk store actions", () => {
     pendingUpdate.resolve();
     await firstCall;
 
-    expect(mockFetchTransactions).toHaveBeenCalledTimes(1);
+    expect(mockFetchTransactions).not.toHaveBeenCalled();
     expect(useTableTransactionsStore.getState().bulkLoading).toBe(false);
   });
 });
@@ -179,6 +197,24 @@ describe("recurring transaction bulk store actions", () => {
     expect(useRecurringTableStore.getState().bulkLoading).toBe(false);
   });
 
+  it("updates recurring rows in one service call without refreshing from the store", async () => {
+    const change = {
+      kind: "recurring",
+      field: "status",
+      value: "paused",
+    } as const;
+
+    await useRecurringTableStore
+      .getState()
+      .updateRecurringBulk(["r1", "r2"], change);
+
+    expect(mockUpdateRecurringBulk).toHaveBeenCalledTimes(1);
+    expect(mockUpdateRecurringBulk).toHaveBeenCalledWith(["r1", "r2"], change);
+    expect(mockFetchAllRecurring).not.toHaveBeenCalled();
+    expect(useRecurringTableStore.getState().bulkLoading).toBe(false);
+    expect(useRecurringTableStore.getState().bulkError).toBeNull();
+  });
+
   it("rejects a second recurring bulk update while the first is pending", async () => {
     const pendingUpdate = createDeferred();
     mockUpdateRecurringBulk.mockReturnValueOnce(pendingUpdate.promise);
@@ -205,7 +241,7 @@ describe("recurring transaction bulk store actions", () => {
     pendingUpdate.resolve();
     await firstCall;
 
-    expect(mockFetchAllRecurring).toHaveBeenCalledTimes(1);
+    expect(mockFetchAllRecurring).not.toHaveBeenCalled();
     expect(useRecurringTableStore.getState().bulkLoading).toBe(false);
   });
 });

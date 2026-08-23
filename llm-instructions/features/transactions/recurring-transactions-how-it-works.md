@@ -146,7 +146,7 @@
 - **שדות עריכה מותרים:** `status` (`active` / `paused` / `cancelled` בלבד — לא `completed`), `payment_method`, `category`. קטגוריה דורשת משפחת סוגים **הומוגנית** (income או expense) בין כל השורות הנבחרות (`getBulkCategoryFamily` ב-`bulkActions.ts`).
 - **חסימות:** שורות עם `status === "completed"` — bulk update חסום; mixed category family או donation — קטגוריה חסומה.
 - **מחיקה bulk (Desktop):** `bulk_delete_recurring_transactions_handler` רץ ב-SQLite transaction: קודם `UPDATE transactions SET source_recurring_id = NULL WHERE source_recurring_id IN (...)`, אחר כך `DELETE FROM recurring_transactions` — תואם ל-Web FK `ON DELETE SET NULL` (נבדק במיגרציה `20260823154606_add_atomic_bulk_transaction_actions.sql`).
-- **Store:** `deleteRecurringBulk` / `updateRecurringBulk` ב-`recurringTable.store.ts` — **ללא optimistic update**; refetch יחיד (`fetchRecurring()`) בהצלחה.
+- **Store/UI:** `deleteRecurringBulk` ב-`recurringTable.store.ts` מבצע refetch יחיד (`fetchRecurring()`) בהצלחה. `updateRecurringBulk` מבצע mutation בלבד; `RecurringTransactionsTableDisplay` סוגר את `BulkEditDialog` ורק אז מתזמן `clearSelection`, `fetchRecurring()` ו-success toast ב-`requestAnimationFrame`.
 - **ללא Undo**, **ללא PostHog events** בזרימת bulk.
 
 ---

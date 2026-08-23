@@ -373,13 +373,18 @@ export function TransactionsTableDisplay() {
     try {
       await updateTransactionsBulk(selectedTransactionIds, change, platform);
       toast.dismiss(toastId);
-      toast.success(
-        t("bulkEdit.transactions.toast.success", {
-          count: selectedTransactionIds.length,
-        })
-      );
-      clearSelection();
       setIsBulkEditOpen(false);
+      requestAnimationFrame(() => {
+        void (async () => {
+          clearSelection();
+          await fetchTransactions(true, platform);
+          toast.success(
+            t("bulkEdit.transactions.toast.success", {
+              count: selectedTransactionIds.length,
+            })
+          );
+        })();
+      });
     } catch (err: unknown) {
       logger.error("Failed to bulk update transactions:", err);
       toast.dismiss(toastId);
@@ -396,6 +401,7 @@ export function TransactionsTableDisplay() {
     bulkPaymentMethod,
     bulkPaymentMethodAction,
     clearSelection,
+    fetchTransactions,
     platform,
     selectedTransactionIds,
     t,
