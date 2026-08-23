@@ -8,6 +8,12 @@ import {
 import { logger } from "@/lib/logger";
 import { rescheduleBillingDayInMonth } from "@/lib/recurring/recurring-date.utils";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { invoke } from "@tauri-apps/api/core";
+import {
+  bulkDeleteRecurringTransactions,
+  bulkUpdateRecurringTransactions,
+} from "@/lib/data-layer/recurringTransactions.service";
+import type { RecurringBulkChange } from "./bulkActions";
 
 function activeFirst(
   recurring: RecurringTransaction[]
@@ -83,7 +89,6 @@ export async function fetchAllRecurring(
     }
     return activeFirst(data || []);
   } else if (platform === "desktop") {
-    const { invoke } = await import("@tauri-apps/api/core");
     const payload = {
       sorting: {
         field: sorting.field,
@@ -165,7 +170,6 @@ export async function updateRecurringTransaction(
     trackRecurringUpdateEvents(existing, updates);
     return data as RecurringTransaction;
   } else if (platform === "desktop") {
-    const { invoke } = await import("@tauri-apps/api/core");
     const updatedTransaction = await invoke(
       "update_recurring_transaction_handler",
       {
@@ -199,9 +203,19 @@ export async function deleteRecurringTransaction(id: string): Promise<void> {
     }
     trackProductEvent("recurring_obligation_deleted");
   } else if (platform === "desktop") {
-    const { invoke } = await import("@tauri-apps/api/core");
     await invoke("delete_recurring_transaction_handler", { id });
   } else {
     throw new Error("Unsupported platform");
   }
+}
+
+export async function deleteRecurringBulk(ids: readonly string[]): Promise<void> {
+  await bulkDeleteRecurringTransactions(ids);
+}
+
+export async function updateRecurringBulk(
+  ids: readonly string[],
+  change: RecurringBulkChange
+): Promise<void> {
+  await bulkUpdateRecurringTransactions(ids, change);
 }

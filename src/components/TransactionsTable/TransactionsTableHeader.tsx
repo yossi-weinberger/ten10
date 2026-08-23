@@ -1,6 +1,8 @@
 import React from "react";
+import type { CheckedState } from "@radix-ui/react-checkbox";
 import { useTranslation } from "react-i18next";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { Transaction } from "@/types/transaction";
 
@@ -18,11 +20,23 @@ interface TransactionsTableHeaderProps {
   };
   handleSort: (field: SortableField) => void;
   sortableColumns: { label: string; field: SortableField }[];
+  selectionChecked: CheckedState;
+  onToggleAllLoaded: () => void;
+  selectAllLoadedLabel: string;
+  selectionDisabled?: boolean;
 }
 
 export const TransactionsTableHeader: React.FC<
   TransactionsTableHeaderProps
-> = ({ sorting, handleSort, sortableColumns }) => {
+> = ({
+  sorting,
+  handleSort,
+  sortableColumns,
+  selectionChecked,
+  onToggleAllLoaded,
+  selectAllLoadedLabel,
+  selectionDisabled = false,
+}) => {
   const { t } = useTranslation("data-tables");
   const renderSortIcon = (field: SortableField) => {
     if (sorting.field !== field) {
@@ -53,6 +67,14 @@ export const TransactionsTableHeader: React.FC<
   return (
     <TableHeader>
       <TableRow>
+        <TableHead className="sticky rtl:right-0 ltr:left-0 z-30 w-12 bg-muted/95 text-center whitespace-nowrap">
+          <Checkbox
+            checked={selectionChecked}
+            onCheckedChange={onToggleAllLoaded}
+            disabled={selectionDisabled}
+            aria-label={selectAllLoadedLabel}
+          />
+        </TableHead>
         {sortableColumns.map((col) => (
           <TableHead
             key={col.field}

@@ -60,6 +60,85 @@
     "export": "ייצוא",
     "cancel": "ביטול"
   },
+  "bulkToolbar": {
+    "ariaLabel": "פעולות מרובות לתנועות שנבחרו",
+    "recurringAriaLabel": "פעולות מרובות להוראות קבע שנבחרו",
+    "selectedCount": "{{count}} תנועות נבחרו",
+    "selectedRecurringCount": "{{count}} הוראות קבע נבחרו",
+    "edit": "עריכה מרובה",
+    "delete": "מחיקה מרובה",
+    "clear": "בטל בחירה"
+  },
+  "bulkSelection": {
+    "selectAllLoaded": "בחר את כל {{count}} התנועות שנטענו",
+    "selectAllLoadedRecurring": "בחר את כל {{count}} הוראות הקבע שנטענו",
+    "selectRow": "בחר תנועה: {{description}}",
+    "selectRecurringRow": "בחר הוראת קבע: {{description}}"
+  },
+  "bulkEdit": {
+    "fieldLabel": "שדה לעדכון",
+    "valueLabel": "ערך חדש",
+    "clearValue": "נקה שדה",
+    "submit": "עדכן",
+    "pending": "מעדכן...",
+    "fields": {
+      "status": "סטטוס",
+      "paymentMethod": "אמצעי תשלום",
+      "category": "קטגוריה"
+    },
+    "placeholders": {
+      "status": "בחר סטטוס",
+      "paymentMethod": "בחר אמצעי תשלום או השאר ריק לניקוי",
+      "category": "בחר קטגוריה או השאר ריק לניקוי"
+    },
+    "messages": {
+      "noAvailableFields": "אין שדות זמינים לעריכה עבור הבחירה הנוכחית.",
+      "categoryUnavailable": "קטגוריה זמינה רק כאשר כל השורות הן מאותה משפחת קטגוריה."
+    },
+    "transactions": {
+      "title": "עריכה מרובה של תנועות",
+      "description": "עדכון שדה אחד עבור {{count}} תנועות שנבחרו.",
+      "toast": {
+        "loading": "מעדכן {{count}} תנועות...",
+        "success": "{{count}} תנועות עודכנו בהצלחה.",
+        "error": "שגיאה בעריכת התנועות: {{error}}"
+      }
+    },
+    "recurring": {
+      "title": "עריכה מרובה של הוראות קבע",
+      "description": "עדכון שדה אחד עבור {{count}} הוראות קבע שנבחרו.",
+      "toast": {
+        "loading": "מעדכן {{count}} הוראות קבע...",
+        "success": "{{count}} הוראות קבע עודכנו בהצלחה.",
+        "error": "שגיאה בעריכת הוראות הקבע: {{error}}"
+      }
+    }
+  },
+  "bulkDelete": {
+    "pending": "מוחק...",
+    "transactions": {
+      "title": "אישור מחיקת תנועות",
+      "description": "האם למחוק {{count}} תנועות שנבחרו? לא ניתן לשחזר פעולה זו.",
+      "warnings": {
+        "initialBalance": "הבחירה כוללת יתרת פתיחה; מחיקה תשפיע על חישובי היתרה.",
+        "recurringOccurrence": "הבחירה כוללת תנועות שנוצרו מהוראת קבע; ההגדרה תישאר קיימת ותמשיך לפעול."
+      },
+      "toast": {
+        "loading": "מוחק {{count}} תנועות...",
+        "success": "{{count}} תנועות נמחקו בהצלחה.",
+        "error": "שגיאה במחיקת התנועות: {{error}}"
+      }
+    },
+    "recurring": {
+      "title": "אישור מחיקת הוראות קבע",
+      "description": "האם למחוק {{count}} הגדרות הוראת קבע שנבחרו? פעולה זו תמנע יצירת תנועות עתידיות. תנועות עבר שכבר נוצרו יישארו, אך הקישור שלהן להגדרה יוסר. לא ניתן לשחזר פעולה זו.",
+      "toast": {
+        "loading": "מוחק {{count}} הוראות קבע...",
+        "success": "{{count}} הוראות קבע נמחקו בהצלחה.",
+        "error": "שגיאה במחיקת הוראות הקבע: {{error}}"
+      }
+    }
+  },
   "export": {
     "title": "יצוא נתונים",
     "loading": "מייצא...",
@@ -89,6 +168,7 @@
     "updateSuccess": "התנועה עודכנה בהצלחה",
     "updateError": "שגיאה בעדכון התנועה",
     "defaultTransactionName": "תנועה זו",
+    "defaultRecurringName": "הוראת קבע זו",
     "deleteErrorWithDescription": "שגיאה במחיקת \"{{description}}\": {{error}}",
     "platformError": "לא ניתן למחוק, הפלטפורמה עדיין בטעינה או לא תקינה",
     "recurringError": "שגיאה בטעינת פרטי הוראת הקבע",

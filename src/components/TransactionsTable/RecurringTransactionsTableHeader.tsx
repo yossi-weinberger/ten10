@@ -1,6 +1,7 @@
 import React from "react";
-import { useTranslation } from "react-i18next";
+import type { CheckedState } from "@radix-ui/react-checkbox";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { RecurringTransaction } from "@/types/transaction";
 import { cn } from "@/lib/utils/formatting";
@@ -15,6 +16,10 @@ interface RecurringTableHeaderProps {
   handleSort: (field: SortableField) => void;
   sortableColumns: { label: string; field: SortableField }[];
   extraColumns?: { label: string }[];
+  selectionChecked: CheckedState;
+  onToggleAllLoaded: () => void;
+  selectAllLoadedLabel: string;
+  selectionDisabled?: boolean;
 }
 
 function getAlignmentClass(field: SortableField): string {
@@ -35,8 +40,16 @@ function getAlignmentClass(field: SortableField): string {
 
 export const RecurringTransactionsTableHeader: React.FC<
   RecurringTableHeaderProps
-> = ({ sorting, handleSort, sortableColumns, extraColumns = [] }) => {
-  const { t } = useTranslation("data-tables");
+> = ({
+  sorting,
+  handleSort,
+  sortableColumns,
+  extraColumns = [],
+  selectionChecked,
+  onToggleAllLoaded,
+  selectAllLoadedLabel,
+  selectionDisabled = false,
+}) => {
   const renderSortIcon = (field: SortableField) => {
     if (sorting.field !== field) {
       return <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />;
@@ -50,6 +63,14 @@ export const RecurringTransactionsTableHeader: React.FC<
   return (
     <TableHeader>
       <TableRow>
+        <TableHead className="sticky rtl:right-0 ltr:left-0 z-30 w-12 bg-muted/95 text-center whitespace-nowrap">
+          <Checkbox
+            checked={selectionChecked}
+            onCheckedChange={onToggleAllLoaded}
+            disabled={selectionDisabled}
+            aria-label={selectAllLoadedLabel}
+          />
+        </TableHead>
         {sortableColumns.map((col) => (
           <TableHead
             key={col.field}

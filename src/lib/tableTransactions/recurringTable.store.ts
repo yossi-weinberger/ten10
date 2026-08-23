@@ -1,6 +1,15 @@
 import { create } from "zustand";
 import { RecurringTransaction } from "@/types/transaction";
-import { fetchAllRecurring } from "./recurringTable.service";
+import {
+  deleteRecurringBulk,
+  fetchAllRecurring,
+  updateRecurringBulk,
+} from "./recurringTable.service";
+import type { RecurringBulkChange } from "./bulkActions";
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  return err instanceof Error ? err.message : fallback;
+}
 
 export interface RecurringTableSortConfig {
   field: string;
@@ -18,12 +27,20 @@ export interface RecurringTableState {
   recurring: RecurringTransaction[];
   loading: boolean;
   error: string | null;
+  bulkLoading: boolean;
+  bulkError: string | null;
   sorting: RecurringTableSortConfig;
   filters: RecurringTableFilters;
   fetchRecurring: () => Promise<void>;
+  deleteRecurringBulk: (ids: readonly string[]) => Promise<void>;
+  updateRecurringBulk: (
+    ids: readonly string[],
+    change: RecurringBulkChange
+  ) => Promise<void>;
   setSorting: (field: string) => void;
   setFilters: (newFilters: Partial<RecurringTableFilters>) => void;
   resetFilters: () => void;
+  resetStore: () => void;
 }
 
 const initialSortConfig: RecurringTableSortConfig = {
@@ -43,6 +60,8 @@ export const useRecurringTableStore = create<RecurringTableState>()(
     recurring: [],
     loading: false,
     error: null,
+    bulkLoading: false,
+    bulkError: null,
     sorting: initialSortConfig,
     filters: initialFilters,
     fetchRecurring: async () => {
@@ -51,11 +70,52 @@ export const useRecurringTableStore = create<RecurringTableState>()(
         const { sorting, filters } = get();
         const data = await fetchAllRecurring(sorting, filters);
         set({ recurring: data, loading: false });
-      } catch (err: any) {
+      } catch (err: unknown) {
         set({
-          error: err.message || "Failed to fetch recurring transactions",
+          error: getErrorMessage(
+            err,
+            "Failed to fetch recurring transactions"
+          ),
           loading: false,
         });
+      }
+    },
+    deleteRecurringBulk: async (ids) => {
+      if (get().bulkLoading) {
+        throw new Error("Bulk action already in progress");
+      }
+
+      set({ bulkLoading: true, bulkError: null });
+      try {
+        await deleteRecurringBulk(ids);
+        await get().fetchRecurring();
+        set({ bulkLoading: false });
+      } catch (err: unknown) {
+        const message = getErrorMessage(
+          err,
+          "Failed to delete recurring transactions"
+        );
+        set({ bulkError: message, bulkLoading: false });
+        throw err;
+      }
+    },
+    updateRecurringBulk: async (ids, change) => {
+      if (get().bulkLoading) {
+        throw new Error("Bulk action already in progress");
+      }
+
+      set({ bulkLoading: true, bulkError: null });
+      try {
+        await updateRecurringBulk(ids, change);
+        await get().fetchRecurring();
+        set({ bulkLoading: false });
+      } catch (err: unknown) {
+        const message = getErrorMessage(
+          err,
+          "Failed to update recurring transactions"
+        );
+        set({ bulkError: message, bulkLoading: false });
+        throw err;
       }
     },
     setSorting: (field: string) => {
@@ -71,6 +131,17 @@ export const useRecurringTableStore = create<RecurringTableState>()(
     },
     resetFilters: () => {
       set({ filters: initialFilters });
+    },
+    resetStore: () => {
+      set({
+        recurring: [],
+        loading: false,
+        error: null,
+        bulkLoading: false,
+        bulkError: null,
+        sorting: initialSortConfig,
+        filters: initialFilters,
+      });
     },
   })
 );

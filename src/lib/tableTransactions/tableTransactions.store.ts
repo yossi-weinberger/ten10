@@ -17,6 +17,11 @@ import { EXPORT_DESKTOP_SAVE_CANCELLED } from "../utils/save-export-file";
 import i18n from "../i18n"; // For current language
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import type { TransactionBulkChange } from "./bulkActions";
+
+function getErrorMessage(err: unknown, fallback: string): string {
+  return err instanceof Error ? err.message : fallback;
+}
 
 export interface TableTransactionsState {
   // State
@@ -28,6 +33,8 @@ export interface TableTransactionsState {
   error: string | null; // General error for fetching transactions
   exportLoading: boolean; // Specific loading for export action
   exportError: string | null; // Specific error for export action
+  bulkLoading: boolean;
+  bulkError: string | null;
   totalCount: number; // Added for total count
 
   // Actions
@@ -38,9 +45,18 @@ export interface TableTransactionsState {
   updateTransactionState: (id: string, updates: Partial<Transaction>) => void;
   deleteTransactionState: (id: string) => void;
   deleteTransaction: (id: string, platform: Platform) => Promise<void>;
+  deleteTransactionsBulk: (
+    ids: readonly string[],
+    platform: Platform
+  ) => Promise<void>;
   updateTransaction: (
     id: string,
     updates: Partial<Transaction>,
+    platform: Platform
+  ) => Promise<void>;
+  updateTransactionsBulk: (
+    ids: readonly string[],
+    change: TransactionBulkChange,
     platform: Platform
   ) => Promise<void>;
   exportTransactions: (
@@ -62,6 +78,8 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
     error: null,
     exportLoading: false,
     exportError: null,
+    bulkLoading: false,
+    bulkError: null,
     totalCount: 0,
 
     // Actions
@@ -151,10 +169,10 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           },
           loading: false,
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         logger.error("Failed to fetch table transactions:", err);
         set({
-          error: err.message || "Failed to fetch transactions",
+          error: getErrorMessage(err, "Failed to fetch transactions"),
           loading: false,
         });
       }
@@ -235,12 +253,12 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         logger.log(
           `TableTransactionsStore: Update for ${id} successful on server. Optimistic update applied to table.`
         );
-      } catch (err: any) {
+      } catch (err: unknown) {
         logger.error("Failed to update transaction:", err);
         // Rollback optimistic update
         get().updateTransactionState(id, originalTransactionState);
         set({
-          error: err.message || "Failed to update transaction.",
+          error: getErrorMessage(err, "Failed to update transaction."),
         });
         // Re-throw so callers (e.g. TransactionForm) can show error feedback instead of a false success.
         throw err;
@@ -273,15 +291,61 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
       try {
         await TableTransactionsService.deleteTransaction(id, platform);
         logger.log(`Transaction ${id} deleted successfully from server.`);
-      } catch (err: any) {
+      } catch (err: unknown) {
         logger.error("Failed to delete transaction:", err);
         set({
           transactions: originalTransactions,
           totalCount: originalTotalCount,
           pagination: originalPagination,
-          error: err.message || "Failed to delete transaction.",
+          error: getErrorMessage(err, "Failed to delete transaction."),
         });
         // Re-throw so callers (e.g. TransactionsTableDisplay) can show error feedback instead of a false success.
+        throw err;
+      }
+    },
+
+    deleteTransactionsBulk: async (ids, platform) => {
+      if (get().bulkLoading) {
+        throw new Error("Bulk action already in progress");
+      }
+
+      set({ bulkLoading: true, bulkError: null });
+
+      try {
+        await TableTransactionsService.deleteTransactionsBulk(ids, platform);
+        await get().fetchTransactions(true, platform);
+        set({ bulkLoading: false });
+      } catch (err: unknown) {
+        const message = getErrorMessage(
+          err,
+          "Failed to delete transactions."
+        );
+        set({ bulkError: message, bulkLoading: false });
+        throw err;
+      }
+    },
+
+    updateTransactionsBulk: async (ids, change, platform) => {
+      if (get().bulkLoading) {
+        throw new Error("Bulk action already in progress");
+      }
+
+      set({ bulkLoading: true, bulkError: null });
+
+      try {
+        await TableTransactionsService.updateTransactionsBulk(
+          ids,
+          change,
+          platform
+        );
+        await get().fetchTransactions(true, platform);
+        set({ bulkLoading: false });
+      } catch (err: unknown) {
+        const message = getErrorMessage(
+          err,
+          "Failed to update transactions."
+        );
+        set({ bulkError: message, bulkLoading: false });
         throw err;
       }
     },
@@ -344,9 +408,11 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           return;
         }
         trackProductEvent("transactions_exported", { format });
-      } catch (err: any) {
+      } catch (err: unknown) {
         logger.error("Failed to export transactions:", err);
-        set({ exportError: err.message || "Failed to export transactions." });
+        set({
+          exportError: getErrorMessage(err, "Failed to export transactions."),
+        });
       } finally {
         set({ exportLoading: false });
       }
@@ -366,6 +432,8 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         error: null,
         exportLoading: false,
         exportError: null,
+        bulkLoading: false,
+        bulkError: null,
         totalCount: 0,
       });
     },

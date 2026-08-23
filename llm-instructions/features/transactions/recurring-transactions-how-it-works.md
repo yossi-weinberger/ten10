@@ -137,6 +137,20 @@
 
 ---
 
+## פעולות bulk בטבלת הוראות הקבע
+
+נוספו פעולות bulk (מחיקה ועריכה) גם לטבלת הוראות הקבע, באותו דפוס UX כמו בטבלת התנועות:
+
+- **בחירה:** `useLoadedRowSelection` — בחירה **רק בשורות שנטענו** לזיכרון. תיבת סימון בכותרת tri-state (`false` / `true` / `"indeterminate"`). "בחר הכל" = **כל השורות הנטענות בלבד** — **אין** select-all-filtered.
+- **איפוס בחירה:** שינוי **מסננים או מיון** (`selectionScopeKey` = `JSON.stringify({ filters, sorting })`) מאפס את הבחירה. Load More מוסיף שורות ומבצע prune ל-ID-ים שכבר לא בטעינה; לא מאפס מסננים/מיון.
+- **שדות עריכה מותרים:** `status` (`active` / `paused` / `cancelled` בלבד — לא `completed`), `payment_method`, `category`. קטגוריה דורשת משפחת סוגים **הומוגנית** (income או expense) בין כל השורות הנבחרות (`getBulkCategoryFamily` ב-`bulkActions.ts`).
+- **חסימות:** שורות עם `status === "completed"` — bulk update חסום; mixed category family או donation — קטגוריה חסומה.
+- **מחיקה bulk (Desktop):** `bulk_delete_recurring_transactions_handler` רץ ב-SQLite transaction: קודם `UPDATE transactions SET source_recurring_id = NULL WHERE source_recurring_id IN (...)`, אחר כך `DELETE FROM recurring_transactions` — תואם ל-Web FK `ON DELETE SET NULL` (נבדק במיגרציה `20260823154606_add_atomic_bulk_transaction_actions.sql`).
+- **Store:** `deleteRecurringBulk` / `updateRecurringBulk` ב-`recurringTable.store.ts` — **ללא optimistic update**; refetch יחיד (`fetchRecurring()`) בהצלחה.
+- **ללא Undo**, **ללא PostHog events** בזרימת bulk.
+
+---
+
 ## ייצוא וייבוא נתונים
 
 - **ייצוא (V2):** יוצר payload עם שתי רשימות נפרדות:
@@ -189,4 +203,4 @@ requestAnimationFrame(() => {
 
 ---
 
-מסמך זה מעודכן נכון לאפריל 2026; עודכן לאחרונה עם תיקון הבחנה בין manual/auto בשתי הפלטפורמות — ה-Edge Function (Web) כעת מתנהגת זהה לשירות Desktop: שער ידני נעול לנצח, שער אוטומטי מנסה לרענן ומשתמש בשמור כ-fallback.
+מסמך זה מעודכן נכון לאוגוסט 2026; עודכן לאחרונה עם תיעוד פעולות bulk (בחירה loaded-only, RPC/Tauri אטומיים, מחיקת recurring שמאפסת `source_recurring_id` בדסקטופ).

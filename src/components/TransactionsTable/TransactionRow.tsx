@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Transaction, TransactionForTable, TransactionType } from "@/types/transaction";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +27,10 @@ interface TransactionRowProps {
   onDelete: (transaction: Transaction) => void;
   onEditRecurring: (recurringId: string) => void;
   isFetchingRec: boolean;
+  selected: boolean;
+  onToggleSelected: (id: string) => void;
+  selectLabel: string;
+  selectionDisabled?: boolean;
 }
 
 const TransactionRowComponent: React.FC<TransactionRowProps> = ({
@@ -34,11 +39,28 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   onDelete,
   onEditRecurring,
   isFetchingRec,
+  selected,
+  onToggleSelected,
+  selectLabel,
+  selectionDisabled = false,
 }) => {
   const { t, i18n } = useTranslation(["data-tables", "transactions"]);
 
   return (
-    <TableRow key={transaction.id}>
+    <TableRow key={transaction.id} data-state={selected ? "selected" : undefined}>
+      <TableCell
+        className={cn(
+          "sticky rtl:right-0 ltr:left-0 z-20 w-12 text-center whitespace-nowrap",
+          selected ? "bg-muted" : "bg-background"
+        )}
+      >
+        <Checkbox
+          checked={selected}
+          onCheckedChange={() => onToggleSelected(transaction.id)}
+          disabled={selectionDisabled}
+          aria-label={selectLabel}
+        />
+      </TableCell>
       <TableCell className="text-start whitespace-nowrap">
         {new Date(transaction.date).toLocaleDateString("he-IL", {
           year: "numeric",

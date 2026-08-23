@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
@@ -11,12 +11,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { TransactionEditModal } from "./TransactionEditModal";
 import { RecurringTransactionEditModal } from "./RecurringTransactionEditModal";
 import { TransactionRow } from "./TransactionRow";
@@ -28,13 +22,34 @@ import { TransactionsTableFooter } from "./TransactionsTableFooter";
 import { useNavigate } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { getRecurringTransactionById } from "@/lib/data-layer/recurringTransactions.service";
-import { RecurringTransaction, TransactionForTable } from "@/types/transaction";
+import {
+  RecurringTransaction,
+  Transaction,
+  TransactionForTable,
+} from "@/types/transaction";
 import { DeleteConfirmationDialog } from "../ui/DeleteConfirmationDialog";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { TableTransactionsService } from "@/lib/tableTransactions/tableTransactionService";
+import { BulkActionsToolbar } from "./BulkActionsToolbar";
+import { BulkEditDialog } from "./BulkEditDialog";
+import { PaymentMethodCombobox } from "@/components/ui/payment-method-combobox";
+import { CategoryCombobox } from "@/components/ui/category-combobox";
+import { useLoadedRowSelection } from "@/hooks/useLoadedRowSelection";
+import {
+  getBulkCategoryFamily,
+  getBulkEditAvailability,
+  type TransactionBulkChange,
+  type TransactionBulkField,
+} from "@/lib/tableTransactions/bulkActions";
+import { getErrorMessage } from "@/lib/utils/error-message";
 
-// Define Transaction type (can be imported from a central types file if available)
-type Transaction = import("@/types/transaction").Transaction;
+type TransactionBulkEditField = TransactionBulkField;
+type BulkEditValueAction = "untouched" | "set" | "clear";
+
+function normalizeNullableBulkValue(value: string | null): string | null {
+  const normalized = value?.trim() ?? "";
+  return normalized.length > 0 ? normalized : null;
+}
 
 // sortableColumns definition - will be defined inside the component to use t()
 
@@ -53,8 +68,8 @@ export function TransactionsTableDisplay() {
     { label: t("columns.paymentMethod"), field: "payment_method" },
   ];
 
-  // Total number of columns: sortable columns + chomesh + recurring + actions
-  const TOTAL_TABLE_COLUMNS = sortableColumns.length + 3;
+  // Total number of columns: selection + sortable columns + chomesh + recurring + actions
+  const TOTAL_TABLE_COLUMNS = sortableColumns.length + 4;
 
   const {
     transactions,
@@ -63,10 +78,13 @@ export function TransactionsTableDisplay() {
     fetchTransactions,
     setLoadMorePagination,
     pagination,
+    filters,
     sorting,
     setSorting,
     deleteTransaction,
-    updateTransaction,
+    deleteTransactionsBulk,
+    updateTransactionsBulk,
+    bulkLoading,
   } = useTableTransactionsStore(
     useShallow((state) => ({
       transactions: state.transactions,
@@ -75,10 +93,13 @@ export function TransactionsTableDisplay() {
       fetchTransactions: state.fetchTransactions,
       setLoadMorePagination: state.setLoadMorePagination,
       pagination: state.pagination,
+      filters: state.filters,
       sorting: state.sorting,
       setSorting: state.setSorting,
       deleteTransaction: state.deleteTransaction,
-      updateTransaction: state.updateTransaction,
+      deleteTransactionsBulk: state.deleteTransactionsBulk,
+      updateTransactionsBulk: state.updateTransactionsBulk,
+      bulkLoading: state.bulkLoading,
     }))
   );
 
@@ -101,6 +122,115 @@ export function TransactionsTableDisplay() {
     useState<RecurringTransaction | null>(null);
   const [isRecEditModalOpen, setIsRecEditModalOpen] = useState(false);
   const [isFetchingRec, setIsFetchingRec] = useState(false);
+  const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
+  const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
+  const [bulkEditField, setBulkEditField] =
+    useState<TransactionBulkEditField | "">("");
+  const [bulkPaymentMethod, setBulkPaymentMethod] = useState<string | null>(null);
+  const [bulkPaymentMethodAction, setBulkPaymentMethodAction] =
+    useState<BulkEditValueAction>("untouched");
+  const [bulkCategory, setBulkCategory] = useState<string | null>(null);
+  const [bulkCategoryAction, setBulkCategoryAction] =
+    useState<BulkEditValueAction>("untouched");
+
+  const loadedTransactionIds = useMemo(
+    () => transactions.map((transaction) => transaction.id),
+    [transactions]
+  );
+  const selection = useLoadedRowSelection(loadedTransactionIds);
+  const selectionScopeKey = useMemo(
+    () => JSON.stringify({ filters, sorting }),
+    [filters, sorting]
+  );
+  const previousSelectionScopeKey = useRef(selectionScopeKey);
+  const clearSelection = selection.clear;
+  const selectedTransactions = transactions.filter((transaction) =>
+    selection.selectedIds.has(transaction.id)
+  );
+  const selectedTransactionIds = selectedTransactions.map(
+    (transaction) => transaction.id
+  );
+  const selectedHasInitialBalance = selectedTransactions.some(
+    (transaction) => transaction.type === "initial_balance"
+  );
+  const selectedHasRecurringOccurrence = selectedTransactions.some(
+    (transaction) => Boolean(transaction.source_recurring_id)
+  );
+  const bulkCategoryFamily = getBulkCategoryFamily(selectedTransactions);
+  const bulkPending = bulkLoading;
+
+  const transactionBulkFields: {
+    value: TransactionBulkEditField;
+    label: string;
+  }[] = [];
+  const paymentMethodAvailability = getBulkEditAvailability({
+    kind: "transaction",
+    rows: selectedTransactions,
+    field: "payment_method",
+  });
+  const categoryAvailability = getBulkEditAvailability({
+    kind: "transaction",
+    rows: selectedTransactions,
+    field: "category",
+  });
+
+  if (paymentMethodAvailability.allowed) {
+    transactionBulkFields.push({
+      value: "payment_method",
+      label: t("bulkEdit.fields.paymentMethod"),
+    });
+  }
+
+  if (categoryAvailability.allowed) {
+    transactionBulkFields.push({
+      value: "category",
+      label: t("bulkEdit.fields.category"),
+    });
+  }
+
+  const activeBulkEditField = transactionBulkFields.some(
+    (field) => field.value === bulkEditField
+  )
+    ? bulkEditField
+    : transactionBulkFields[0]?.value ?? "";
+
+  const resetBulkEditValues = useCallback(() => {
+    setBulkPaymentMethod(null);
+    setBulkPaymentMethodAction("untouched");
+    setBulkCategory(null);
+    setBulkCategoryAction("untouched");
+  }, []);
+
+  const handleBulkEditOpenChange = useCallback(
+    (open: boolean) => {
+      if (open) {
+        resetBulkEditValues();
+      }
+
+      setIsBulkEditOpen(open);
+    },
+    [resetBulkEditValues]
+  );
+
+  const handleBulkEditClick = useCallback(() => {
+    resetBulkEditValues();
+    setIsBulkEditOpen(true);
+  }, [resetBulkEditValues]);
+
+  const bulkEditSubmitDisabled = (() => {
+    switch (activeBulkEditField) {
+      case "payment_method":
+        return bulkPaymentMethodAction === "untouched";
+      case "category":
+        return bulkCategoryFamily === null || bulkCategoryAction === "untouched";
+      case "":
+        return true;
+      default: {
+        const exhaustive: never = activeBulkEditField;
+        return exhaustive;
+      }
+    }
+  })();
 
   useEffect(() => {
     // Initial fetch logic remains here as it depends on platform and sorting from the store
@@ -108,6 +238,13 @@ export function TransactionsTableDisplay() {
       fetchTransactions(true, platform);
     }
   }, [fetchTransactions, platform, sorting]);
+
+  useEffect(() => {
+    if (previousSelectionScopeKey.current !== selectionScopeKey) {
+      clearSelection();
+      previousSelectionScopeKey.current = selectionScopeKey;
+    }
+  }, [clearSelection, selectionScopeKey]);
 
   const handleLoadMore = useCallback(() => {
     setLoadMorePagination();
@@ -140,12 +277,12 @@ export function TransactionsTableDisplay() {
               description: deletedTransactionDescription,
             })
           );
-        } catch (err: any) {
+        } catch (err: unknown) {
           logger.error("Failed to delete transaction from component:", err);
           toast.error(
             t("messages.deleteErrorWithDescription", {
               description: deletedTransactionDescription,
-              error: err.message || t("messages.unknownError"),
+              error: getErrorMessage(err) || t("messages.unknownError"),
             })
           );
         }
@@ -155,7 +292,112 @@ export function TransactionsTableDisplay() {
     }
     setIsDeleteDialogOpen(false);
     setTransactionToDelete(null);
-  }, [transactionToDelete, platform, deleteTransaction]);
+  }, [transactionToDelete, platform, deleteTransaction, t]);
+
+  const handleBulkDeleteConfirm = useCallback(async () => {
+    if (selectedTransactionIds.length === 0) {
+      setIsBulkDeleteDialogOpen(false);
+      return;
+    }
+
+    if (platform !== "web" && platform !== "desktop") {
+      toast.error(t("messages.platformError"));
+      return;
+    }
+
+    const toastId = toast.loading(
+      t("bulkDelete.transactions.toast.loading", {
+        count: selectedTransactionIds.length,
+      })
+    );
+
+    try {
+      await deleteTransactionsBulk(selectedTransactionIds, platform);
+      toast.dismiss(toastId);
+      toast.success(
+        t("bulkDelete.transactions.toast.success", {
+          count: selectedTransactionIds.length,
+        })
+      );
+      clearSelection();
+      setIsBulkDeleteDialogOpen(false);
+    } catch (err: unknown) {
+      logger.error("Failed to bulk delete transactions:", err);
+      toast.dismiss(toastId);
+      toast.error(
+        t("bulkDelete.transactions.toast.error", {
+          error: getErrorMessage(err) || t("messages.unknownError"),
+        })
+      );
+    }
+  }, [
+    deleteTransactionsBulk,
+    platform,
+    selectedTransactionIds,
+    clearSelection,
+    t,
+  ]);
+
+  const handleBulkEditSubmit = useCallback(async () => {
+    if (selectedTransactionIds.length === 0 || activeBulkEditField === "") {
+      return;
+    }
+
+    if (platform !== "web" && platform !== "desktop") {
+      toast.error(t("messages.platformError"));
+      return;
+    }
+
+    const value =
+      activeBulkEditField === "payment_method"
+        ? bulkPaymentMethodAction === "clear"
+          ? null
+          : normalizeNullableBulkValue(bulkPaymentMethod)
+        : bulkCategoryAction === "clear"
+          ? null
+          : normalizeNullableBulkValue(bulkCategory);
+    const change: TransactionBulkChange = {
+      kind: "transaction",
+      field: activeBulkEditField,
+      value,
+    };
+    const toastId = toast.loading(
+      t("bulkEdit.transactions.toast.loading", {
+        count: selectedTransactionIds.length,
+      })
+    );
+
+    try {
+      await updateTransactionsBulk(selectedTransactionIds, change, platform);
+      toast.dismiss(toastId);
+      toast.success(
+        t("bulkEdit.transactions.toast.success", {
+          count: selectedTransactionIds.length,
+        })
+      );
+      clearSelection();
+      setIsBulkEditOpen(false);
+    } catch (err: unknown) {
+      logger.error("Failed to bulk update transactions:", err);
+      toast.dismiss(toastId);
+      toast.error(
+        t("bulkEdit.transactions.toast.error", {
+          error: getErrorMessage(err) || t("messages.unknownError"),
+        })
+      );
+    }
+  }, [
+    activeBulkEditField,
+    bulkCategory,
+    bulkCategoryAction,
+    bulkPaymentMethod,
+    bulkPaymentMethodAction,
+    clearSelection,
+    platform,
+    selectedTransactionIds,
+    t,
+    updateTransactionsBulk,
+  ]);
 
   const handleEditInitiate = useCallback((transaction: Transaction) => {
     // If it's an initial_balance transaction, open the dedicated modal
@@ -173,17 +415,12 @@ export function TransactionsTableDisplay() {
   const handleUpdateOpeningBalance = useCallback(
     async (transactionId: string, updates: Partial<Transaction>) => {
       if (platform === "web" || platform === "desktop") {
-        try {
-          // Use service directly to catch errors, as store action might suppress them
-          await TableTransactionsService.updateTransaction(
-            transactionId,
-            updates,
-            platform
-          );
-        } catch (error) {
-          // Re-throw error so the modal can handle it (show error toast and keep open)
-          throw error;
-        }
+        // Use service directly so the modal can handle errors and keep itself open.
+        await TableTransactionsService.updateTransaction(
+          transactionId,
+          updates,
+          platform
+        );
 
         try {
           // Refresh table data to reflect changes (reset=true to avoid appending duplicates)
@@ -199,20 +436,23 @@ export function TransactionsTableDisplay() {
     [platform, fetchTransactions, t]
   );
 
-  const handleEditRecurringInitiate = useCallback(async (recId: string) => {
-    setIsFetchingRec(true);
-    try {
-      const recData = await getRecurringTransactionById(recId);
-      setEditingRecTransaction(recData);
-      // Defer opening modal to the next frame to allow DropdownMenu to close first
-      requestAnimationFrame(() => setIsRecEditModalOpen(true));
-    } catch (error) {
-      logger.error("Failed to fetch recurring transaction details", error);
-      toast.error(t("messages.recurringError"));
-    } finally {
-      setIsFetchingRec(false);
-    }
-  }, []);
+  const handleEditRecurringInitiate = useCallback(
+    async (recId: string) => {
+      setIsFetchingRec(true);
+      try {
+        const recData = await getRecurringTransactionById(recId);
+        setEditingRecTransaction(recData);
+        // Defer opening modal to the next frame to allow DropdownMenu to close first
+        requestAnimationFrame(() => setIsRecEditModalOpen(true));
+      } catch (error) {
+        logger.error("Failed to fetch recurring transaction details", error);
+        toast.error(t("messages.recurringError"));
+      } finally {
+        setIsFetchingRec(false);
+      }
+    },
+    [t]
+  );
 
   // Helper function to get month key from date string (YYYY-MM format)
   const getMonthKey = useCallback((dateString: string): string => {
@@ -274,6 +514,91 @@ export function TransactionsTableDisplay() {
     return result;
   }, [transactions, sorting.field, getMonthKey, formatMonthLabel]);
 
+  const bulkEditValueEditor = (() => {
+    switch (activeBulkEditField) {
+      case "payment_method":
+        return (
+          <div className="space-y-2">
+            <PaymentMethodCombobox
+              value={bulkPaymentMethod}
+              onChange={(value) => {
+                setBulkPaymentMethod(value);
+                setBulkPaymentMethodAction(value === null ? "clear" : "set");
+              }}
+              placeholder={t("bulkEdit.placeholders.paymentMethod")}
+              disabled={bulkPending}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setBulkPaymentMethod(null);
+                setBulkPaymentMethodAction("clear");
+              }}
+              disabled={bulkPending}
+            >
+              {t("bulkEdit.clearValue")}
+            </Button>
+          </div>
+        );
+      case "category":
+        if (bulkCategoryFamily === null) {
+          return (
+            <p className="text-sm text-muted-foreground">
+              {t("bulkEdit.messages.categoryUnavailable")}
+            </p>
+          );
+        }
+
+        return (
+          <div className="space-y-2">
+            <CategoryCombobox
+              value={bulkCategory}
+              onChange={(value) => {
+                setBulkCategory(value);
+                setBulkCategoryAction(value === null ? "clear" : "set");
+              }}
+              transactionType={bulkCategoryFamily}
+              placeholder={t("bulkEdit.placeholders.category")}
+              disabled={bulkPending}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setBulkCategory(null);
+                setBulkCategoryAction("clear");
+              }}
+              disabled={bulkPending}
+            >
+              {t("bulkEdit.clearValue")}
+            </Button>
+          </div>
+        );
+      case "":
+        return (
+          <p className="text-sm text-muted-foreground">
+            {t("bulkEdit.messages.noAvailableFields")}
+          </p>
+        );
+      default: {
+        const exhaustive: never = activeBulkEditField;
+        return exhaustive;
+      }
+    }
+  })();
+
+  const bulkDeleteWarnings = [
+    selectedHasInitialBalance
+      ? t("bulkDelete.transactions.warnings.initialBalance")
+      : null,
+    selectedHasRecurringOccurrence
+      ? t("bulkDelete.transactions.warnings.recurringOccurrence")
+      : null,
+  ].filter((warning): warning is string => warning !== null);
+
   // The initial platform loading check (spinner/message) should be handled by the parent page component (src/pages/TransactionsTable.tsx)
   // If platform is loading, this component might not even be rendered, or rendered with a specific loading state passed via props.
   // For now, assuming this component is rendered when platform is determined.
@@ -308,6 +633,23 @@ export function TransactionsTableDisplay() {
         </Button>
       </div>
 
+      <BulkActionsToolbar
+        selectedCount={selection.selectedCount}
+        selectedCountLabel={t("bulkToolbar.selectedCount", {
+          count: selection.selectedCount,
+        })}
+        editLabel={t("bulkToolbar.edit")}
+        deleteLabel={t("bulkToolbar.delete")}
+        clearLabel={t("bulkToolbar.clear")}
+        onEdit={handleBulkEditClick}
+        onDelete={() => setIsBulkDeleteDialogOpen(true)}
+        onClear={clearSelection}
+        ariaLabel={t("bulkToolbar.ariaLabel")}
+        pending={bulkPending}
+        editDisabled={transactionBulkFields.length === 0}
+        dir={i18n.dir()}
+      />
+
       {error && (
         <p className="text-red-500 text-center py-4">
           {t("messages.loadingError", { error })}
@@ -321,6 +663,14 @@ export function TransactionsTableDisplay() {
                 sorting={sorting}
                 handleSort={handleSort}
                 sortableColumns={sortableColumns}
+                selectionChecked={selection.checked}
+                onToggleAllLoaded={selection.toggleAllLoaded}
+                selectAllLoadedLabel={t("bulkSelection.selectAllLoaded", {
+                  count: selection.loadedCount,
+                })}
+                selectionDisabled={
+                  loading || bulkPending || transactions.length === 0
+                }
               />
               <TableBody>
                 {loading && transactions.length === 0 && (
@@ -377,6 +727,14 @@ export function TransactionsTableDisplay() {
                       onDelete={handleDeleteInitiate}
                       onEditRecurring={handleEditRecurringInitiate}
                       isFetchingRec={isFetchingRec}
+                      selected={selection.selectedIds.has(item.transaction.id)}
+                      onToggleSelected={selection.toggle}
+                      selectLabel={t("bulkSelection.selectRow", {
+                        description:
+                          item.transaction.description ||
+                          t("messages.defaultTransactionName"),
+                      })}
+                      selectionDisabled={bulkPending}
                     />
                   );
                 })}
@@ -390,6 +748,44 @@ export function TransactionsTableDisplay() {
         pagination={pagination}
         transactionsLength={transactions.length}
         handleLoadMore={handleLoadMore}
+      />
+      <BulkEditDialog
+        open={isBulkEditOpen}
+        onOpenChange={handleBulkEditOpenChange}
+        title={t("bulkEdit.transactions.title")}
+        description={t("bulkEdit.transactions.description", {
+          count: selection.selectedCount,
+        })}
+        fieldLabel={t("bulkEdit.fieldLabel")}
+        valueLabel={t("bulkEdit.valueLabel")}
+        cancelLabel={t("actions.cancel")}
+        submitLabel={t("bulkEdit.submit")}
+        pendingLabel={t("bulkEdit.pending")}
+        pending={bulkPending}
+        submitDisabled={bulkEditSubmitDisabled}
+        fields={transactionBulkFields}
+        selectedField={activeBulkEditField}
+        valueEditor={bulkEditValueEditor}
+        onFieldChange={(field) =>
+          setBulkEditField(field as TransactionBulkEditField)
+        }
+        onSubmit={handleBulkEditSubmit}
+        dir={i18n.dir()}
+      />
+      <DeleteConfirmationDialog
+        isOpen={isBulkDeleteDialogOpen}
+        onOpenChange={setIsBulkDeleteDialogOpen}
+        onConfirm={handleBulkDeleteConfirm}
+        title={t("bulkDelete.transactions.title")}
+        description={[
+          t("bulkDelete.transactions.description", {
+            count: selection.selectedCount,
+          }),
+          ...bulkDeleteWarnings,
+        ].join(" ")}
+        confirmLabel={t("bulkToolbar.delete")}
+        pendingLabel={t("bulkDelete.pending")}
+        pending={bulkPending}
       />
       {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog
