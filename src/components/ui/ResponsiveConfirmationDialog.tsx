@@ -164,7 +164,9 @@ export function ResponsiveConfirmationDialog({
             <DrawerTitle>{title}</DrawerTitle>
             <DrawerDescription>{description}</DrawerDescription>
           </DrawerHeader>
-          <DrawerFooter>{actions(true)}</DrawerFooter>
+          <DrawerFooter className="grid grid-cols-2 gap-2">
+            {actions(true)}
+          </DrawerFooter>
         </DrawerContent>
       </Drawer>
     );

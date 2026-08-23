@@ -108,6 +108,7 @@ export function BulkEditDialog({
       <Label id="bulk-edit-field-label">{fieldLabel}</Label>
       <ToggleGroup
         type="single"
+        dir={dir}
         value={selectedField}
         onValueChange={(value) => {
           if (value) {
@@ -121,6 +122,7 @@ export function BulkEditDialog({
           <ToggleGroupItem
             key={field.value}
             value={field.value}
+            dir={dir}
             className={cn(
               "h-auto min-h-11 justify-start gap-2 whitespace-normal rounded-md border px-3 py-2 text-start hover:bg-accent hover:text-accent-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground sm:min-h-10",
               dir === "rtl" && "text-right"
@@ -201,7 +203,9 @@ export function BulkEditDialog({
           </DrawerHeader>
           <div className="overflow-y-auto overscroll-contain px-4 pb-2">
             {renderForm(
-              <DrawerFooter className="px-0 pb-4">{renderActions(true)}</DrawerFooter>
+              <DrawerFooter className="grid grid-cols-2 gap-2 px-0 pb-4">
+                {renderActions(true)}
+              </DrawerFooter>
             )}
           </div>
         </DrawerContent>

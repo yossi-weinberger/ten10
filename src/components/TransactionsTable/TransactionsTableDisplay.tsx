@@ -527,20 +527,23 @@ export function TransactionsTableDisplay() {
     switch (activeBulkEditField) {
       case "payment_method":
         return (
-          <div className="space-y-2">
-            <PaymentMethodCombobox
-              value={bulkPaymentMethod}
-              onChange={(value) => {
-                setBulkPaymentMethod(value);
-                setBulkPaymentMethodAction(value === null ? "clear" : "set");
-              }}
-              placeholder={t("bulkEdit.placeholders.paymentMethod")}
-              disabled={bulkPending}
-            />
+          <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <PaymentMethodCombobox
+                value={bulkPaymentMethod}
+                onChange={(value) => {
+                  setBulkPaymentMethod(value);
+                  setBulkPaymentMethodAction(value === null ? "clear" : "set");
+                }}
+                placeholder={t("bulkEdit.placeholders.paymentMethod")}
+                disabled={bulkPending}
+              />
+            </div>
             <Button
               type="button"
               variant="outline"
               size="sm"
+              className="min-h-11 shrink-0 sm:min-h-9"
               onClick={() => {
                 setBulkPaymentMethod(null);
                 setBulkPaymentMethodAction("clear");
@@ -561,21 +564,24 @@ export function TransactionsTableDisplay() {
         }
 
         return (
-          <div className="space-y-2">
-            <CategoryCombobox
-              value={bulkCategory}
-              onChange={(value) => {
-                setBulkCategory(value);
-                setBulkCategoryAction(value === null ? "clear" : "set");
-              }}
-              transactionType={bulkCategoryFamily}
-              placeholder={t("bulkEdit.placeholders.category")}
-              disabled={bulkPending}
-            />
+          <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <CategoryCombobox
+                value={bulkCategory}
+                onChange={(value) => {
+                  setBulkCategory(value);
+                  setBulkCategoryAction(value === null ? "clear" : "set");
+                }}
+                transactionType={bulkCategoryFamily}
+                placeholder={t("bulkEdit.placeholders.category")}
+                disabled={bulkPending}
+              />
+            </div>
             <Button
               type="button"
               variant="outline"
               size="sm"
+              className="min-h-11 shrink-0 sm:min-h-9"
               onClick={() => {
                 setBulkCategory(null);
                 setBulkCategoryAction("clear");
