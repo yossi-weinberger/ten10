@@ -18,10 +18,7 @@ import i18n from "../i18n"; // For current language
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import type { TransactionBulkChange } from "./bulkActions";
-
-function getErrorMessage(err: unknown, fallback: string): string {
-  return err instanceof Error ? err.message : fallback;
-}
+import { getErrorMessage } from "@/lib/utils/error-message";
 
 export interface TableTransactionsState {
   // State
@@ -38,7 +35,11 @@ export interface TableTransactionsState {
   totalCount: number; // Added for total count
 
   // Actions
-  fetchTransactions: (reset?: boolean, platform?: Platform) => Promise<void>;
+  fetchTransactions: (
+    reset?: boolean,
+    platform?: Platform,
+    rejectOnError?: boolean
+  ) => Promise<void>;
   setLoadMorePagination: () => void;
   setFilters: (filters: Partial<TableTransactionFilters>) => void;
   setSorting: (newSortField: keyof Transaction | string) => void;
@@ -67,6 +68,8 @@ export interface TableTransactionsState {
   resetStore: () => void;
 }
 
+let fetchGeneration = 0;
+
 export const useTableTransactionsStore = create<TableTransactionsState>()(
   (set, get) => ({
     // Initial State
@@ -83,7 +86,11 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
     totalCount: 0,
 
     // Actions
-    fetchTransactions: async (reset?: boolean, platform?: Platform) => {
+    fetchTransactions: async (
+      reset?: boolean,
+      platform?: Platform,
+      rejectOnError?: boolean
+    ) => {
       logger.log(
         `TableTransactionsStore: fetchTransactions called. Reset: ${reset}, Platform: ${platform}, Current loading: ${
           get().loading
@@ -107,6 +114,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         });
         return;
       }
+      const requestGeneration = ++fetchGeneration;
       const { filters, sorting, pagination } = get();
       let currentPage = pagination.currentPage;
       let currentTransactions = get().transactions;
@@ -140,6 +148,10 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
             platform,
           });
 
+        if (requestGeneration !== fetchGeneration) {
+          return;
+        }
+
         logger.log(
           "TableTransactionsStore: Received from service - Data length:",
           data?.length,
@@ -170,11 +182,17 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           loading: false,
         });
       } catch (err: unknown) {
+        if (requestGeneration !== fetchGeneration) {
+          return;
+        }
         logger.error("Failed to fetch table transactions:", err);
         set({
-          error: getErrorMessage(err, "Failed to fetch transactions"),
+          error: getErrorMessage(err) ?? "Failed to fetch transactions",
           loading: false,
         });
+        if (rejectOnError) {
+          throw err;
+        }
       }
     },
 
@@ -258,7 +276,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         // Rollback optimistic update
         get().updateTransactionState(id, originalTransactionState);
         set({
-          error: getErrorMessage(err, "Failed to update transaction."),
+          error: getErrorMessage(err) ?? "Failed to update transaction.",
         });
         // Re-throw so callers (e.g. TransactionForm) can show error feedback instead of a false success.
         throw err;
@@ -297,7 +315,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           transactions: originalTransactions,
           totalCount: originalTotalCount,
           pagination: originalPagination,
-          error: getErrorMessage(err, "Failed to delete transaction."),
+          error: getErrorMessage(err) ?? "Failed to delete transaction.",
         });
         // Re-throw so callers (e.g. TransactionsTableDisplay) can show error feedback instead of a false success.
         throw err;
@@ -313,13 +331,11 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
 
       try {
         await TableTransactionsService.deleteTransactionsBulk(ids, platform);
-        await get().fetchTransactions(true, platform);
+        await get().fetchTransactions(true, platform, true);
         set({ bulkLoading: false });
       } catch (err: unknown) {
-        const message = getErrorMessage(
-          err,
-          "Failed to delete transactions."
-        );
+        const message =
+          getErrorMessage(err) ?? "Failed to delete transactions.";
         set({ bulkError: message, bulkLoading: false });
         throw err;
       }
@@ -338,12 +354,11 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           change,
           platform
         );
+        await get().fetchTransactions(true, platform, true);
         set({ bulkLoading: false });
       } catch (err: unknown) {
-        const message = getErrorMessage(
-          err,
-          "Failed to update transactions."
-        );
+        const message =
+          getErrorMessage(err) ?? "Failed to update transactions.";
         set({ bulkError: message, bulkLoading: false });
         throw err;
       }
@@ -410,7 +425,8 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
       } catch (err: unknown) {
         logger.error("Failed to export transactions:", err);
         set({
-          exportError: getErrorMessage(err, "Failed to export transactions."),
+          exportError:
+            getErrorMessage(err) ?? "Failed to export transactions.",
         });
       } finally {
         set({ exportLoading: false });
@@ -422,6 +438,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
     },
 
     resetStore: () => {
+      fetchGeneration += 1;
       set({
         transactions: [],
         filters: initialTableTransactionFilters,

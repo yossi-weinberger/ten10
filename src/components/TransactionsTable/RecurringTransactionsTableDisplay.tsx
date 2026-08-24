@@ -13,13 +13,6 @@ import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.s
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import {
   DropdownMenu,
@@ -31,7 +24,6 @@ import {
 import { toast } from "sonner";
 import { deleteRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
 import {
-  CirclePause,
   CreditCard,
   InfoIcon,
   MoreHorizontal,
@@ -67,11 +59,8 @@ import { useLoadedRowSelection } from "@/hooks/useLoadedRowSelection";
 import {
   getBulkCategoryFamily,
   getBulkEditAvailability,
-  isRecurringBulkStatusValue,
-  RECURRING_BULK_STATUS_VALUES,
   type RecurringBulkChange,
   type RecurringBulkField,
-  type RecurringBulkStatusValue,
 } from "@/lib/tableTransactions/bulkActions";
 import { getErrorMessage } from "@/lib/utils/error-message";
 
@@ -96,8 +85,6 @@ export function RecurringTransactionsTableDisplay() {
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
   const [bulkEditField, setBulkEditField] =
     useState<RecurringBulkEditField | "">("");
-  const [bulkStatus, setBulkStatus] =
-    useState<RecurringBulkStatusValue | "">("");
   const [bulkPaymentMethod, setBulkPaymentMethod] = useState<string | null>(null);
   const [bulkPaymentMethodAction, setBulkPaymentMethodAction] =
     useState<BulkEditValueAction>("untouched");
@@ -174,11 +161,6 @@ export function RecurringTransactionsTableDisplay() {
     label: string;
     icon: ReactNode;
   }[] = [];
-  const statusAvailability = getBulkEditAvailability({
-    kind: "recurring",
-    rows: selectedRecurring,
-    field: "status",
-  });
   const paymentMethodAvailability = getBulkEditAvailability({
     kind: "recurring",
     rows: selectedRecurring,
@@ -189,14 +171,6 @@ export function RecurringTransactionsTableDisplay() {
     rows: selectedRecurring,
     field: "category",
   });
-
-  if (statusAvailability.allowed) {
-    recurringBulkFields.push({
-      value: "status",
-      label: t("bulkEdit.fields.status"),
-      icon: <CirclePause aria-hidden="true" className="h-4 w-4" />,
-    });
-  }
 
   if (paymentMethodAvailability.allowed) {
     recurringBulkFields.push({
@@ -221,7 +195,6 @@ export function RecurringTransactionsTableDisplay() {
     : recurringBulkFields[0]?.value ?? "";
 
   const resetBulkEditValues = useCallback(() => {
-    setBulkStatus("");
     setBulkPaymentMethod(null);
     setBulkPaymentMethodAction("untouched");
     setBulkCategory(null);
@@ -246,8 +219,6 @@ export function RecurringTransactionsTableDisplay() {
 
   const bulkEditSubmitDisabled = (() => {
     switch (activeBulkEditField) {
-      case "status":
-        return bulkStatus === "";
       case "payment_method":
         return bulkPaymentMethodAction === "untouched";
       case "category":
@@ -302,16 +273,6 @@ export function RecurringTransactionsTableDisplay() {
     let change: RecurringBulkChange;
 
     switch (activeBulkEditField) {
-      case "status":
-        if (bulkStatus === "") {
-          return;
-        }
-        change = {
-          kind: "recurring",
-          field: "status",
-          value: bulkStatus,
-        };
-        break;
       case "payment_method":
         change = {
           kind: "recurring",
@@ -332,8 +293,6 @@ export function RecurringTransactionsTableDisplay() {
               : normalizeNullableBulkValue(bulkCategory),
         };
         break;
-      case "":
-        return;
       default: {
         const exhaustive: never = activeBulkEditField;
         return exhaustive;
@@ -350,15 +309,12 @@ export function RecurringTransactionsTableDisplay() {
       toast.dismiss(toastId);
       setIsBulkEditOpen(false);
       requestAnimationFrame(() => {
-        void (async () => {
-          clearSelection();
-          await fetchRecurring();
-          toast.success(
-            t("bulkEdit.recurring.toast.success", {
-              count: selectedRecurringIds.length,
-            })
-          );
-        })();
+        clearSelection();
+        toast.success(
+          t("bulkEdit.recurring.toast.success", {
+            count: selectedRecurringIds.length,
+          })
+        );
       });
     } catch (err: unknown) {
       logger.error("Failed to bulk update recurring transactions:", err);
@@ -375,9 +331,7 @@ export function RecurringTransactionsTableDisplay() {
     bulkCategoryAction,
     bulkPaymentMethod,
     bulkPaymentMethodAction,
-    bulkStatus,
     clearSelection,
-    fetchRecurring,
     selectedRecurringIds,
     t,
     updateRecurringBulkAction,
@@ -429,29 +383,6 @@ export function RecurringTransactionsTableDisplay() {
 
   const bulkEditValueEditor = (() => {
     switch (activeBulkEditField) {
-      case "status":
-        return (
-          <Select
-            value={bulkStatus}
-            onValueChange={(value) => {
-              if (isRecurringBulkStatusValue(value)) {
-                setBulkStatus(value);
-              }
-            }}
-            disabled={bulkPending}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={t("bulkEdit.placeholders.status")} />
-            </SelectTrigger>
-            <SelectContent>
-              {RECURRING_BULK_STATUS_VALUES.map((status) => (
-                <SelectItem key={status} value={status}>
-                  {t(`recurring.statuses.${status}`, status)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        );
       case "payment_method":
         return (
           <div className="flex items-center gap-2">

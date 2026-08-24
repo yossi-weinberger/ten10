@@ -467,15 +467,6 @@ pub fn bulk_update_recurring_transactions_handler(
     validate_bulk_ids(&ids)?;
 
     let column = match field.as_str() {
-        "status" => {
-            let status = value
-                .as_deref()
-                .ok_or_else(|| "status cannot be null".to_string())?;
-            match status {
-                "active" | "paused" | "cancelled" => "status",
-                _ => return Err(format!("Unsupported recurring status: {}", status)),
-            }
-        }
         "payment_method" => "payment_method",
         "category" => "category",
         _ => return Err(format!("Unsupported bulk update field: {}", field)),
@@ -753,28 +744,19 @@ mod tests {
     }
 
     #[test]
-    fn bulk_update_recurring_transactions_rejects_invalid_or_null_status() {
+    fn bulk_update_recurring_transactions_rejects_status_field() {
         let app = mock_app();
 
-        let invalid = bulk_update_recurring_transactions_handler(
+        let err = bulk_update_recurring_transactions_handler(
             app.state::<crate::DbState>(),
             vec!["r1".to_string()],
             "status".to_string(),
-            Some("done".to_string()),
+            Some("paused".to_string()),
         )
-        .expect_err("invalid status should fail");
-        assert!(invalid.contains("status"), "unexpected error: {invalid}");
-
-        let null_status = bulk_update_recurring_transactions_handler(
-            app.state::<crate::DbState>(),
-            vec!["r1".to_string()],
-            "status".to_string(),
-            None,
-        )
-        .expect_err("null status should fail");
+        .expect_err("status bulk update should fail");
         assert!(
-            null_status.contains("status"),
-            "unexpected error: {null_status}"
+            err.contains("Unsupported bulk update field"),
+            "unexpected error: {err}"
         );
     }
 

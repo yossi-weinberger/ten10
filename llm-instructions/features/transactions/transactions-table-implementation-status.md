@@ -19,7 +19,7 @@ This document provides a historical reference and status overview of the Transac
 - ✅ **Deletion**: Confirmation dialog with optimistic updates
 - ✅ **Load More**: Pagination with "Load More" button
 - ✅ **Bulk selection**: Loaded-only row checkboxes, tri-state header, select-all-loaded (no select-all-filtered)
-- ✅ **Bulk delete/update**: Atomic Web RPC + Desktop Tauri handlers; no optimistic bulk; delete refetches once, update refetches from the UI after modal close; no Undo; no PostHog events
+- ✅ **Bulk delete/update**: Atomic Web RPC + Desktop Tauri handlers; Web RPCs enforce a runtime ownership guard; recurring bulk update currently allows `payment_method` and `category` only (`status` is deferred pending atomic recurring execution); no optimistic bulk; the stores refetch once before resolving successful delete/update actions; no Undo; no PostHog events
 - ✅ **Export**: CSV, Excel, and PDF export
 - ✅ **Import**: CSV/Excel import via review wizard — see `transaction-import-guide.md` (with month separators in PDF when sorting by date). On **desktop**, save uses `src/lib/utils/save-export-file.ts` (`dialog.save` + `writeFile`); cancelling the dialog sets `EXPORT_DESKTOP_SAVE_CANCELLED` (no success toast).
 - ❌ **Real-time Updates**: Removed (rely on optimistic updates and manual refresh)
@@ -196,7 +196,7 @@ interface TableTransactionsState {
 - Backup of original data (within async operation)
 - Rollback on failure (within async operation)
 
-**Bulk actions are not optimistic.** `deleteTransactionsBulk` waits for the backend, then calls `fetchTransactions(true)` once. `updateTransactionsBulk` waits for the backend and lets the UI close the bulk edit modal before scheduling `clearSelection`, one refetch, and the success toast. The recurring table follows the same delete-vs-update split with `fetchRecurring()`.
+**Bulk actions are not optimistic.** `deleteTransactionsBulk` and `updateTransactionsBulk` wait for the backend, then await `fetchTransactions(true)` once before resolving. The recurring table follows the same pattern with `fetchRecurring()`. After a successful store action, the UI closes the modal, clears selection, and shows the success toast.
 
 ## Supabase RPC Functions
 
@@ -264,13 +264,12 @@ bulk_update_user_transactions(p_user_id uuid, p_ids uuid[], p_field text, p_valu
 -- Recurring
 bulk_delete_user_recurring_transactions(p_user_id uuid, p_ids uuid[]) → integer
 bulk_update_user_recurring_transactions(p_user_id uuid, p_ids uuid[], p_field text, p_value text) → integer
-  -- p_field: 'status' | 'payment_method' | 'category'
-  -- status values: 'active' | 'paused' | 'cancelled' (not 'completed')
+  -- p_field: 'payment_method' | 'category' only
 ```
 
 **Desktop Tauri handlers** (registered in `src-tauri/src/main.rs`): `bulk_delete_transactions_handler`, `bulk_update_transactions_handler`, `bulk_delete_recurring_transactions_handler`, `bulk_update_recurring_transactions_handler`. Each runs inside a SQLite transaction; recurring bulk delete first `UPDATE transactions SET source_recurring_id = NULL` (matching Web FK `ON DELETE SET NULL`), then deletes recurring rows.
 
-**Bulk edit rules (frontend + backend aligned):** transactions — `payment_method`, `category` with homogeneous category family; blocks `initial_balance`. Recurring — `status` (`active`/`paused`/`cancelled`), `payment_method`, `category`; blocks `completed` status rows.
+**Bulk edit rules (frontend + backend aligned):** transactions — `payment_method`, `category` with homogeneous category family; blocks `initial_balance`. Recurring — `payment_method`, `category`; blocks `completed` status rows. Recurring bulk `status` editing is deferred until recurring execution is atomic with status changes.
 
 ## Service Layer
 
@@ -366,7 +365,7 @@ WITH CHECK (auth.uid() = user_id);
 7. ✅ Load More implementation
 8. ✅ Edit and delete (Undo removed; bulk has no Undo)
 9. ✅ Export implementation (via `getDataForExport` using high-limit fetch)
-10. ✅ Bulk selection + bulk delete/update (loaded-only; atomic backend; delete refetches from the store, update refetches from the UI after modal close)
+10. ✅ Bulk selection + bulk delete/update (loaded-only; atomic backend; delete and update each refetch once from the store before resolving)
 11. ❌ Real-time updates (removed)
 
 ### Partially Completed
@@ -383,7 +382,7 @@ WITH CHECK (auth.uid() = user_id);
 ### Recently Added (bulk actions)
 
 16. ✅ **Bulk selection**: `useLoadedRowSelection` — loaded-only, tri-state header, select-all-loaded; selection cleared on filter/sort change; pruned on Load More
-17. ✅ **Bulk delete/update**: Web RPC + Desktop Tauri; no optimistic bulk; delete refetches from the store, update refetches from the UI after modal close; tests in `bulkActions.test.ts`, `bulkOperations.store.test.ts`, `bulkOperations.service.test.ts`, and Rust `#[test]` modules in `transaction_commands.rs` / `recurring_transaction_commands.rs`
+17. ✅ **Bulk delete/update**: Web RPC + Desktop Tauri; no optimistic bulk; delete and update each refetch once from the store before resolving; tests in `bulkActions.test.ts`, `bulkOperations.store.test.ts`, `bulkOperations.service.test.ts`, and Rust `#[test]` modules in `transaction_commands.rs` / `recurring_transaction_commands.rs`
 
 ### Not Yet Implemented
 

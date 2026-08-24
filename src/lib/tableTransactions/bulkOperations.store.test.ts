@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { RecurringTransaction, Transaction } from "@/types/transaction";
 
 const mockFetchTransactions = vi.fn();
 const mockDeleteTransactionsBulk = vi.fn();
@@ -35,14 +36,14 @@ vi.mock("@/lib/analytics/productAnalytics", () => ({
 import { useRecurringTableStore } from "./recurringTable.store";
 import { useTableTransactionsStore } from "./tableTransactions.store";
 
-function createDeferred(): {
-  promise: Promise<void>;
-  resolve: () => void;
+function createDeferred<T = void>(): {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
   reject: (reason?: unknown) => void;
 } {
-  let resolve!: () => void;
+  let resolve!: (value: T) => void;
   let reject!: (reason?: unknown) => void;
-  const promise = new Promise<void>((promiseResolve, promiseReject) => {
+  const promise = new Promise<T>((promiseResolve, promiseReject) => {
     resolve = promiseResolve;
     reject = promiseReject;
   });
@@ -63,6 +64,55 @@ beforeEach(() => {
 });
 
 describe("table transaction bulk store actions", () => {
+  it("keeps a plain-object fetch error message", async () => {
+    mockFetchTransactions.mockRejectedValue({ message: "query failed" });
+
+    await useTableTransactionsStore
+      .getState()
+      .fetchTransactions(true, "web");
+
+    expect(useTableTransactionsStore.getState().error).toBe("query failed");
+  });
+
+  it("commits only the latest transaction fetch when requests resolve out of order", async () => {
+    const older = createDeferred<{
+      data: Transaction[];
+      totalCount: number;
+    }>();
+    const newer = createDeferred<{
+      data: Transaction[];
+      totalCount: number;
+    }>();
+    mockFetchTransactions
+      .mockReturnValueOnce(older.promise)
+      .mockReturnValueOnce(newer.promise);
+
+    useTableTransactionsStore.getState().setFilters({ search: "old" });
+    const olderFetch = useTableTransactionsStore
+      .getState()
+      .fetchTransactions(true, "web");
+    useTableTransactionsStore.getState().setFilters({ search: "new" });
+    const newerFetch = useTableTransactionsStore
+      .getState()
+      .fetchTransactions(true, "web");
+
+    newer.resolve({
+      data: [{ id: "new" } as Transaction],
+      totalCount: 1,
+    });
+    await newerFetch;
+    older.resolve({
+      data: [{ id: "old" } as Transaction],
+      totalCount: 1,
+    });
+    await olderFetch;
+
+    expect(
+      useTableTransactionsStore.getState().transactions.map(({ id }) => id),
+    ).toEqual(["new"]);
+    expect(useTableTransactionsStore.getState().loading).toBe(false);
+  });
+
   it("deletes in one service call and refreshes once without optimistic state", async () => {
     await useTableTransactionsStore
       .getState()
@@ -91,7 +141,7 @@ describe("table transaction bulk store actions", () => {
     expect(useTableTransactionsStore.getState().bulkError).toBe("bulk failed");
   });
 
-  it("updates in one service call without refreshing from the store", async () => {
+  it("updates in one service call and refreshes once", async () => {
     const change = { kind: "transaction", field: "category", value: "salary" } as const;
 
     await useTableTransactionsStore
@@ -104,10 +154,37 @@ describe("table transaction bulk store actions", () => {
       change,
       "web"
     );
-    expect(mockFetchTransactions).not.toHaveBeenCalled();
+    expect(mockFetchTransactions).toHaveBeenCalledTimes(1);
     expect(useTableTransactionsStore.getState().bulkLoading).toBe(false);
     expect(useTableTransactionsStore.getState().bulkError).toBeNull();
   });
+
+  it.each([
+    ["delete", () =>
+      useTableTransactionsStore
+        .getState()
+        .deleteTransactionsBulk(["t1"], "web")],
+    ["update", () =>
+      useTableTransactionsStore.getState().updateTransactionsBulk(
+        ["t1"],
+        { kind: "transaction", field: "category", value: "salary" },
+        "web",
+      )],
+  ])(
+    "rejects transaction bulk %s when its post-mutation refresh fails",
+    async (_operation, mutate) => {
+      const refreshError = { message: "refresh failed" };
+      mockFetchTransactions.mockRejectedValue(refreshError);
+
+      await expect(mutate()).rejects.toEqual(refreshError);
+
+      expect(useTableTransactionsStore.getState().error).toBe("refresh failed");
+      expect(useTableTransactionsStore.getState().bulkError).toBe(
+        "refresh failed",
+      );
+      expect(useTableTransactionsStore.getState().bulkLoading).toBe(false);
+    },
+  );
 
   it("rejects a second transaction bulk delete while the first is pending", async () => {
     const pendingDelete = createDeferred();
@@ -124,7 +201,7 @@ describe("table transaction bulk store actions", () => {
     expect(mockDeleteTransactionsBulk).toHaveBeenCalledTimes(1);
     expect(mockFetchTransactions).not.toHaveBeenCalled();
 
-    pendingDelete.resolve();
+    pendingDelete.resolve(undefined);
     await firstCall;
 
     expect(mockFetchTransactions).toHaveBeenCalledTimes(1);
@@ -154,15 +231,46 @@ describe("table transaction bulk store actions", () => {
     expect(mockUpdateTransactionsBulk).toHaveBeenCalledTimes(1);
     expect(mockFetchTransactions).not.toHaveBeenCalled();
 
-    pendingUpdate.resolve();
+    pendingUpdate.resolve(undefined);
     await firstCall;
 
-    expect(mockFetchTransactions).not.toHaveBeenCalled();
+    expect(mockFetchTransactions).toHaveBeenCalledTimes(1);
     expect(useTableTransactionsStore.getState().bulkLoading).toBe(false);
   });
 });
 
 describe("recurring transaction bulk store actions", () => {
+  it("keeps a plain-object fetch error message", async () => {
+    mockFetchAllRecurring.mockRejectedValue({ message: "query failed" });
+
+    await useRecurringTableStore.getState().fetchRecurring();
+
+    expect(useRecurringTableStore.getState().error).toBe("query failed");
+  });
+
+  it("commits only the latest recurring fetch when requests resolve out of order", async () => {
+    const older = createDeferred<RecurringTransaction[]>();
+    const newer = createDeferred<RecurringTransaction[]>();
+    mockFetchAllRecurring
+      .mockReturnValueOnce(older.promise)
+      .mockReturnValueOnce(newer.promise);
+
+    useRecurringTableStore.getState().setFilters({ search: "old" });
+    const olderFetch = useRecurringTableStore.getState().fetchRecurring();
+    useRecurringTableStore.getState().setFilters({ search: "new" });
+    const newerFetch = useRecurringTableStore.getState().fetchRecurring();
+
+    newer.resolve([{ id: "new" } as RecurringTransaction]);
+    await newerFetch;
+    older.resolve([{ id: "old" } as RecurringTransaction]);
+    await olderFetch;
+
+    expect(
+      useRecurringTableStore.getState().recurring.map(({ id }) => id),
+    ).toEqual(["new"]);
+    expect(useRecurringTableStore.getState().loading).toBe(false);
+  });
+
   it("deletes recurring rows in one service call and refreshes once", async () => {
     await useRecurringTableStore
       .getState()
@@ -190,18 +298,18 @@ describe("recurring transaction bulk store actions", () => {
     expect(mockDeleteRecurringBulk).toHaveBeenCalledTimes(1);
     expect(mockFetchAllRecurring).not.toHaveBeenCalled();
 
-    pendingDelete.resolve();
+    pendingDelete.resolve(undefined);
     await firstCall;
 
     expect(mockFetchAllRecurring).toHaveBeenCalledTimes(1);
     expect(useRecurringTableStore.getState().bulkLoading).toBe(false);
   });
 
-  it("updates recurring rows in one service call without refreshing from the store", async () => {
+  it("updates recurring rows in one service call and refreshes once", async () => {
     const change = {
       kind: "recurring",
-      field: "status",
-      value: "paused",
+      field: "payment_method",
+      value: "card",
     } as const;
 
     await useRecurringTableStore
@@ -210,10 +318,35 @@ describe("recurring transaction bulk store actions", () => {
 
     expect(mockUpdateRecurringBulk).toHaveBeenCalledTimes(1);
     expect(mockUpdateRecurringBulk).toHaveBeenCalledWith(["r1", "r2"], change);
-    expect(mockFetchAllRecurring).not.toHaveBeenCalled();
+    expect(mockFetchAllRecurring).toHaveBeenCalledTimes(1);
     expect(useRecurringTableStore.getState().bulkLoading).toBe(false);
     expect(useRecurringTableStore.getState().bulkError).toBeNull();
   });
+
+  it.each([
+    ["delete", () =>
+      useRecurringTableStore.getState().deleteRecurringBulk(["r1"])],
+    ["update", () =>
+      useRecurringTableStore.getState().updateRecurringBulk(["r1"], {
+        kind: "recurring",
+        field: "payment_method",
+        value: "card",
+      })],
+  ])(
+    "rejects recurring bulk %s when its post-mutation refresh fails",
+    async (_operation, mutate) => {
+      const refreshError = { message: "refresh failed" };
+      mockFetchAllRecurring.mockRejectedValue(refreshError);
+
+      await expect(mutate()).rejects.toEqual(refreshError);
+
+      expect(useRecurringTableStore.getState().error).toBe("refresh failed");
+      expect(useRecurringTableStore.getState().bulkError).toBe(
+        "refresh failed",
+      );
+      expect(useRecurringTableStore.getState().bulkLoading).toBe(false);
+    },
+  );
 
   it("rejects a second recurring bulk update while the first is pending", async () => {
     const pendingUpdate = createDeferred();
@@ -223,8 +356,8 @@ describe("recurring transaction bulk store actions", () => {
       .getState()
       .updateRecurringBulk(["r1"], {
         kind: "recurring",
-        field: "status",
-        value: "paused",
+        field: "payment_method",
+        value: "cash",
       });
     const secondCall = useRecurringTableStore
       .getState()
@@ -238,10 +371,10 @@ describe("recurring transaction bulk store actions", () => {
     expect(mockUpdateRecurringBulk).toHaveBeenCalledTimes(1);
     expect(mockFetchAllRecurring).not.toHaveBeenCalled();
 
-    pendingUpdate.resolve();
+    pendingUpdate.resolve(undefined);
     await firstCall;
 
-    expect(mockFetchAllRecurring).not.toHaveBeenCalled();
+    expect(mockFetchAllRecurring).toHaveBeenCalledTimes(1);
     expect(useRecurringTableStore.getState().bulkLoading).toBe(false);
   });
 });

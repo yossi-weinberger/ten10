@@ -2,8 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   getBulkCategoryFamily,
   getBulkEditAvailability,
-  isRecurringBulkStatusValue,
-  RECURRING_BULK_STATUS_VALUES,
   type RecurringBulkChange,
   type RecurringBulkRow,
   type TransactionBulkChange,
@@ -44,33 +42,20 @@ const validTransactionChange: TransactionBulkChange = {
   field: "category",
   value: null,
 };
-const validRecurringStatusChange: RecurringBulkChange = {
-  kind: "recurring",
-  field: "status",
-  value: "paused",
-};
 const validRecurringNullableChange: RecurringBulkChange = {
   kind: "recurring",
   field: "payment_method",
   value: null,
 };
 
-// @ts-expect-error recurring bulk status cannot be null.
-const invalidRecurringNullStatusChange: RecurringBulkChange = {
+const invalidRecurringStatusChange: RecurringBulkChange = {
   kind: "recurring",
+  // @ts-expect-error recurring status changes are intentionally unavailable in bulk.
   field: "status",
-  value: null,
+  value: "paused",
 };
 
-// @ts-expect-error completed is not a mutable recurring bulk status.
-const invalidRecurringCompletedStatusChange: RecurringBulkChange = {
-  kind: "recurring",
-  field: "status",
-  value: "completed",
-};
-
-void invalidRecurringNullStatusChange;
-void invalidRecurringCompletedStatusChange;
+void invalidRecurringStatusChange;
 
 describe("bulk action field availability", () => {
   it("blocks transaction bulk edits for an empty selection", () => {
@@ -148,15 +133,7 @@ describe("bulk action field availability", () => {
     ).toEqual({ allowed: false, reason: "initial-balance" });
   });
 
-  it("allows recurring status and payment method edits for open rows", () => {
-    expect(
-      getBulkEditAvailability({
-        kind: "recurring",
-        rows: [recurringRow({ id: "active", status: "active" })],
-        field: "status",
-      }),
-    ).toEqual({ allowed: true });
-
+  it("allows recurring payment method edits for open rows", () => {
     expect(
       getBulkEditAvailability({
         kind: "recurring",
@@ -192,18 +169,6 @@ describe("bulk action field availability", () => {
     ).toEqual({ allowed: false, reason: "completed-recurring" });
   });
 
-  it("allows only active, paused, and cancelled as recurring bulk status values", () => {
-    expect(RECURRING_BULK_STATUS_VALUES).toEqual([
-      "active",
-      "paused",
-      "cancelled",
-    ]);
-    expect(isRecurringBulkStatusValue("active")).toBe(true);
-    expect(isRecurringBulkStatusValue("paused")).toBe(true);
-    expect(isRecurringBulkStatusValue("cancelled")).toBe(true);
-    expect(isRecurringBulkStatusValue("completed")).toBe(false);
-  });
-
   it("returns the homogeneous category family for category-capable rows", () => {
     expect(
       getBulkCategoryFamily([
@@ -235,11 +200,6 @@ describe("bulk action field availability", () => {
       kind: "transaction",
       field: "category",
       value: null,
-    });
-    expect(validRecurringStatusChange).toEqual({
-      kind: "recurring",
-      field: "status",
-      value: "paused",
     });
     expect(validRecurringNullableChange).toEqual({
       kind: "recurring",

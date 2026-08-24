@@ -137,8 +137,8 @@ describe("recurring transaction bulk data-layer operations", () => {
 
     await bulkUpdateRecurringTransactions(["r1", "r2"], {
       kind: "recurring",
-      field: "status",
-      value: "paused",
+      field: "payment_method",
+      value: "card",
     });
 
     expect(invoke).toHaveBeenCalledTimes(1);
@@ -146,8 +146,8 @@ describe("recurring transaction bulk data-layer operations", () => {
       "bulk_update_recurring_transactions_handler",
       {
         ids: ["r1", "r2"],
-        field: "status",
-        value: "paused",
+        field: "payment_method",
+        value: "card",
       },
     );
     expect(mockSetLastDbFetchTimestamp).toHaveBeenCalledTimes(1);

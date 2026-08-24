@@ -143,10 +143,11 @@
 
 - **בחירה:** `useLoadedRowSelection` — בחירה **רק בשורות שנטענו** לזיכרון. תיבת סימון בכותרת tri-state (`false` / `true` / `"indeterminate"`). "בחר הכל" = **כל השורות הנטענות בלבד** — **אין** select-all-filtered.
 - **איפוס בחירה:** שינוי **מסננים או מיון** (`selectionScopeKey` = `JSON.stringify({ filters, sorting })`) מאפס את הבחירה. Load More מוסיף שורות ומבצע prune ל-ID-ים שכבר לא בטעינה; לא מאפס מסננים/מיון.
-- **שדות עריכה מותרים:** `status` (`active` / `paused` / `cancelled` בלבד — לא `completed`), `payment_method`, `category`. קטגוריה דורשת משפחת סוגים **הומוגנית** (income או expense) בין כל השורות הנבחרות (`getBulkCategoryFamily` ב-`bulkActions.ts`).
-- **חסימות:** שורות עם `status === "completed"` — bulk update חסום; mixed category family או donation — קטגוריה חסומה.
+- **Allowed Web RPC edit fields:** `payment_method` and `category` only. Bulk `status` editing is deferred until occurrence creation and recurring-state advancement are atomic together, avoiding a race with recurring execution.
+- **Blocked selections:** Rows with `status === "completed"` block bulk updates; mixed category families or donations block category changes.
+- **Security:** All four bulk RPCs remain `SECURITY INVOKER` and require `auth.uid()` to match `p_user_id` at runtime for every non-`service_role` caller.
 - **מחיקה bulk (Desktop):** `bulk_delete_recurring_transactions_handler` רץ ב-SQLite transaction: קודם `UPDATE transactions SET source_recurring_id = NULL WHERE source_recurring_id IN (...)`, אחר כך `DELETE FROM recurring_transactions` — תואם ל-Web FK `ON DELETE SET NULL` (נבדק במיגרציה `20260823154606_add_atomic_bulk_transaction_actions.sql`).
-- **Store/UI:** `deleteRecurringBulk` ב-`recurringTable.store.ts` מבצע refetch יחיד (`fetchRecurring()`) בהצלחה. `updateRecurringBulk` מבצע mutation בלבד; `RecurringTransactionsTableDisplay` סוגר את `BulkEditDialog` ורק אז מתזמן `clearSelection`, `fetchRecurring()` ו-success toast ב-`requestAnimationFrame`.
+- **Store/UI:** `deleteRecurringBulk` ו-`updateRecurringBulk` ב-`recurringTable.store.ts` מבצעים refetch יחיד (`fetchRecurring()`) וממתינים לו לפני הצלחה. כשל ב-refetch דוחה את הפעולה ומשאיר את ה-dialog פתוח; לאחר הצלחה `RecurringTransactionsTableDisplay` סוגר אותו ומתזמן `clearSelection` ו-success toast ב-`requestAnimationFrame`.
 - **ללא Undo**, **ללא PostHog events** בזרימת bulk.
 
 ---

@@ -5,11 +5,7 @@ import type {
 } from "@/types/transaction";
 
 export type TransactionBulkField = "payment_method" | "category";
-export type RecurringBulkField = "status" | "payment_method" | "category";
-export type RecurringBulkStatusValue = Exclude<
-  RecurringTransaction["status"],
-  "completed"
->;
+export type RecurringBulkField = "payment_method" | "category";
 
 export type TransactionBulkChange = {
   kind: "transaction";
@@ -17,17 +13,11 @@ export type TransactionBulkChange = {
   value: string | null;
 };
 
-export type RecurringBulkChange =
-  | {
-      kind: "recurring";
-      field: "status";
-      value: RecurringBulkStatusValue;
-    }
-  | {
-      kind: "recurring";
-      field: Exclude<RecurringBulkField, "status">;
-      value: string | null;
-    };
+export type RecurringBulkChange = {
+  kind: "recurring";
+  field: RecurringBulkField;
+  value: string | null;
+};
 
 export type TransactionBulkRow = Pick<
   Transaction,
@@ -64,21 +54,7 @@ export type BulkEditAvailabilityRequest =
       field: RecurringBulkField;
     };
 
-export const RECURRING_BULK_STATUS_VALUES = [
-  "active",
-  "paused",
-  "cancelled",
-] as const satisfies readonly RecurringBulkStatusValue[];
-
 type CategoryFamily = "income" | "expense";
-
-export function isRecurringBulkStatusValue(
-  value: string,
-): value is RecurringBulkStatusValue {
-  return RECURRING_BULK_STATUS_VALUES.includes(
-    value as RecurringBulkStatusValue,
-  );
-}
 
 export function getBulkCategoryFamily(
   rows: readonly { type: TransactionType }[],
@@ -153,7 +129,6 @@ function getRecurringBulkEditAvailability(
   }
 
   switch (field) {
-    case "status":
     case "payment_method":
       return { allowed: true };
     case "category":

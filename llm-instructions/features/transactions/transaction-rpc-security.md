@@ -22,7 +22,7 @@ Both tables have RLS policies that restrict rows to the current authenticated us
 
 The transaction RPCs therefore run as `SECURITY INVOKER`. This is intentional: it makes table RLS authoritative even when the existing RPC signature accepts `p_user_id` from the frontend.
 
-A user may alter `p_user_id` in a manually crafted request, but RLS still prevents reading, updating, or deleting another user's rows.
+The four bulk RPCs also enforce a runtime ownership guard before validation or row access: unless `auth.role()` is `service_role`, `auth.uid()` must match `p_user_id` using a NULL-safe comparison. This is defense in depth independent of RLS.
 
 ## Hardened RPCs
 
@@ -48,12 +48,14 @@ Migration `20260823154606_add_atomic_bulk_transaction_actions.sql` adds four ato
 | `bulk_delete_user_recurring_transactions` | `(p_user_id uuid, p_ids uuid[])` → `integer` |
 | `bulk_update_user_recurring_transactions` | `(p_user_id uuid, p_ids uuid[], p_field text, p_value text)` → `integer` |
 
-All four are `SECURITY INVOKER` with `SET search_path = ''`. Table RLS on `public.transactions` and `public.recurring_transactions` remains authoritative (same model as hardened single-row RPCs).
+Migration `20260824071032_harden_bulk_transaction_actions.sql` replaces all four without changing their signatures or return types. They remain `SECURITY INVOKER` with `SET search_path = ''`, retain exact-count atomicity and ordered row locking, and reject a non-`service_role` caller when `auth.uid() IS DISTINCT FROM p_user_id`. The role check uses `coalesce(auth.role(), '')` so a missing role cannot bypass the guard.
 
 **Allowed update fields:**
 
 - Transactions: `payment_method`, `category` only. Rejects `initial_balance` rows and mixed/non-applicable category families server-side.
-- Recurring: `status` (`active`, `paused`, `cancelled`), `payment_method`, `category`. Rejects `completed` rows and mixed/non-applicable category families.
+- Recurring: `payment_method`, `category` only. Rejects `completed` rows and mixed/non-applicable category families.
+
+Recurring bulk status editing is intentionally deferred. Allowing `status` changes through this RPC would expose a race with recurring execution until occurrence creation and recurring-state advancement are made atomic together.
 
 **Recurring bulk delete and `source_recurring_id`:** the migration preconditions require FK `transactions.source_recurring_id → recurring_transactions.id` with `ON DELETE SET NULL` (`confdeltype = 'n'`). Deleting recurring rows therefore nulls linked transaction occurrences on Web via FK; Desktop mirrors this explicitly in `bulk_delete_recurring_transactions_handler`.
 
@@ -64,7 +66,7 @@ All four are `SECURITY INVOKER` with `SET search_path = ''`. Table RLS on `publi
 - `authenticated`: execute
 - `service_role`: execute
 
-Postconditions in the migration verify `SECURITY INVOKER`, empty `search_path`, and grant shape.
+Postconditions in the hardening migration verify `SECURITY INVOKER`, empty `search_path`, exact non-owner execute grants, the runtime auth guard in every function definition, and recurring status exclusion.
 
 **Web callers:** `bulkDeleteTransactions` / `bulkUpdateTransactions` in `src/lib/data-layer/transactions.service.ts`; `bulkDeleteRecurringTransactions` / `bulkUpdateRecurringTransactions` in `src/lib/data-layer/recurringTransactions.service.ts`.
 
@@ -90,7 +92,7 @@ For every hardened overload:
 
 The web frontend currently obtains the authenticated user's ID through `supabase.auth.getUser()` and sends it as `p_user_id`. Keep this behavior until the RPC API is intentionally redesigned.
 
-Do not assume the client-provided ID is itself an authorization control. Authorization comes from the JWT-derived database role and RLS.
+Do not trust the client-provided ID by itself. Bulk RPC authorization requires the JWT-derived `auth.uid()` ownership guard and remains backed by table RLS.
 
 ## Service-role compatibility
 
@@ -131,7 +133,7 @@ Test the web application with a normal authenticated account:
 10. bulk-delete and bulk-update selected transactions (if UI available)
 11. bulk-delete and bulk-update selected recurring rows (if UI available)
 
-Also verify through database metadata that every targeted overload is `SECURITY INVOKER`, unavailable to `anon`, and executable by `authenticated` and `service_role` — including the four bulk functions from `20260823154606_add_atomic_bulk_transaction_actions.sql`.
+Also verify through database metadata that every targeted overload is `SECURITY INVOKER`, has an empty `search_path`, is unavailable to `PUBLIC` / `anon`, and has explicit execute grants only for `authenticated` and `service_role`. For the four bulk functions, also inspect `pg_get_functiondef` for the NULL-safe runtime ownership guard and verify that recurring bulk update accepts only `payment_method` and `category`.
 
 ## Future changes
 
