@@ -110,6 +110,7 @@ export function BulkEditFields({
           <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
               <PaymentMethodCombobox
+                id="bulk-edit-payment-method"
                 value={displayedBulkComboboxValue(
                   actions.payment_method,
                   sharedValues.payment_method,
@@ -125,6 +126,7 @@ export function BulkEditFields({
               />
             </div>
             <ClearButton
+              fieldLabel={t("bulkEdit.fields.paymentMethod")}
               pending={pending}
               onClear={() =>
                 updateField(
@@ -144,6 +146,7 @@ export function BulkEditFields({
           <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
               <CategoryCombobox
+                id="bulk-edit-category"
                 value={displayedBulkComboboxValue(
                   actions.category,
                   sharedValues.category,
@@ -160,6 +163,7 @@ export function BulkEditFields({
               />
             </div>
             <ClearButton
+              fieldLabel={t("bulkEdit.fields.category")}
               pending={pending}
               onClear={() =>
                 updateField(
@@ -260,7 +264,11 @@ function BulkTextField({
           disabled={pending}
           className="min-w-0 flex-1 text-start"
         />
-        <ClearButton pending={pending} onClear={onClear} />
+        <ClearButton
+          fieldLabel={label}
+          pending={pending}
+          onClear={onClear}
+        />
       </div>
       <ClearedHint action={action} />
     </div>
@@ -268,9 +276,11 @@ function BulkTextField({
 }
 
 function ClearButton({
+  fieldLabel,
   pending,
   onClear,
 }: {
+  fieldLabel: string;
   pending: boolean;
   onClear: () => void;
 }) {
@@ -284,6 +294,7 @@ function ClearButton({
       className="min-h-11 shrink-0 sm:min-h-9"
       onClick={onClear}
       disabled={pending}
+      aria-label={t("bulkEdit.clearValueNamed", { field: fieldLabel })}
     >
       {t("bulkEdit.clearValue")}
     </Button>

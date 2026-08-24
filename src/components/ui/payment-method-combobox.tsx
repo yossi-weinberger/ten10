@@ -32,6 +32,7 @@ import {
 } from "@/lib/payment-methods";
 
 interface PaymentMethodComboboxProps {
+  id?: string;
   value: string | null;
   onChange: (value: string | null) => void;
   placeholder?: string;
@@ -39,6 +40,7 @@ interface PaymentMethodComboboxProps {
 }
 
 export function PaymentMethodCombobox({
+  id,
   value,
   onChange,
   placeholder,
@@ -144,6 +146,7 @@ export function PaymentMethodCombobox({
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
+          id={id}
           variant="outline"
           role="combobox"
           aria-expanded={open}

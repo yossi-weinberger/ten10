@@ -82,6 +82,7 @@
     "fieldLabel": "שדה לעדכון",
     "valueLabel": "ערך חדש",
     "clearValue": "נקה שדה",
+    "clearValueNamed": "נקה את {{field}}",
     "willClear": "השדה ינוקה",
     "submit": "עדכן",
     "pending": "מעדכן...",

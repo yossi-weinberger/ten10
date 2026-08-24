@@ -41,15 +41,21 @@ export type TransactionBulkPatch = {
 };
 export type RecurringBulkPatch = TransactionBulkPatch;
 
+export type TransactionBulkTextField = Exclude<
+  TransactionBulkField,
+  "is_chomesh"
+>;
+export type RecurringBulkTextField = TransactionBulkTextField;
+
 export type TransactionBulkChange = {
   kind: "transaction";
-  field: TransactionBulkField;
+  field: TransactionBulkTextField;
   value: string | null;
 };
 
 export type RecurringBulkChange = {
   kind: "recurring";
-  field: RecurringBulkField;
+  field: RecurringBulkTextField;
   value: string | null;
 };
 

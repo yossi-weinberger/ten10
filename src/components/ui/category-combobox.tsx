@@ -39,6 +39,7 @@ import {
 } from "@/lib/category-registry";
 
 interface CategoryComboboxProps {
+  id?: string;
   value: string | null;
   onChange: (value: string | null) => void;
   transactionType: TransactionType;
@@ -56,6 +57,7 @@ type CategoryOption = {
 const CATEGORY_BASE_TYPES = ["income", "expense"] as const;
 
 export function CategoryCombobox({
+  id,
   value,
   onChange,
   transactionType,
@@ -191,6 +193,7 @@ export function CategoryCombobox({
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
+          id={id}
           variant="outline"
           role="combobox"
           aria-expanded={open}

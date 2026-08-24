@@ -145,18 +145,28 @@ export function BulkEditDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="sm:max-w-lg"
+        className="flex max-h-[90dvh] flex-col overflow-hidden sm:max-w-lg"
         dir={dir}
         aria-busy={pending}
         onEscapeKeyDown={preventCloseWhenPending}
         onPointerDownOutside={preventCloseWhenPending}
       >
-        <DialogHeader className="rtl:text-right ltr:text-left">
+        <DialogHeader className="shrink-0 rtl:text-right ltr:text-left">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        {renderForm(<DialogFooter>{renderActions(false)}</DialogFooter>)}
+        <form
+          className="flex min-h-0 flex-1 flex-col gap-4"
+          onSubmit={handleSubmit}
+        >
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain">
+            {children}
+          </div>
+          <DialogFooter className="shrink-0">
+            {renderActions(false)}
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

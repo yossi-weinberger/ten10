@@ -51,7 +51,9 @@ copy. They must not appear editable.
 
 ## Backend Contract
 
-Replace the single `p_field` + `p_value` updaters with one JSON patch:
+Add JSON patch overloads alongside the live V1 `p_field` + `p_value`
+updaters. New clients send `p_updates`; V1 clients that still send
+`p_field` / `p_value` must keep working:
 
 ```text
 bulk_update_user_transactions(p_user_id uuid, p_ids uuid[], p_updates jsonb) → integer
@@ -66,8 +68,8 @@ One `UPDATE` writes every requested column and `updated_at`. Desktop Tauri
 mirrors the same patch in one SQLite transaction.
 
 Keep the existing ownership guard, exact-count locking, `SECURITY INVOKER`,
-empty `search_path`, and postgres ownership. Drop the old four-argument
-signatures in the same forward migration so they cannot remain callable.
+empty `search_path`, and postgres ownership. Add the JSON patch overloads
+while retaining the four-argument signatures for V1 client compatibility.
 
 Server-side rules must match the table above, including the 100-character
 description limit and the exact-type chomesh check. Do not trust the UI.
