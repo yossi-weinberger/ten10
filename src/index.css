@@ -504,3 +504,43 @@ input[type="number"] {
     @apply bg-white dark:bg-[#020817];
   }
 }
+
+/* Driver.js popover — TEN10 tokens, logical edges, stay in viewport */
+.ten10-driver-popover {
+  max-width: min(22rem, calc(100vw - 1.5rem));
+  background-color: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.18);
+}
+
+.ten10-driver-popover .driver-popover-title {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.ten10-driver-popover .driver-popover-description {
+  color: hsl(var(--muted-foreground));
+}
+
+.ten10-driver-popover .driver-popover-footer {
+  gap: 0.5rem;
+}
+
+.ten10-driver-popover .driver-popover-footer button {
+  border-radius: calc(var(--radius) - 2px);
+}
+
+.ten10-driver-popover .driver-popover-next-btn {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  text-shadow: none;
+}
+
+.ten10-driver-popover .driver-popover-prev-btn,
+.ten10-driver-popover .driver-popover-close-btn {
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  text-shadow: none;
+}
