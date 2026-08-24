@@ -4,6 +4,7 @@ import {
   buildFirstRunSteps,
   firstRunStartIndex,
   getStepId,
+  shouldDriveFirstRunTour,
 } from "./firstRun";
 
 const copy = {
@@ -43,5 +44,12 @@ describe("buildFirstRunSteps", () => {
   it("resumes the form step on the add-transaction route", () => {
     expect(firstRunStartIndex("/")).toBe(0);
     expect(firstRunStartIndex("/add-transaction")).toBe(2);
+  });
+
+  it("does not drive the tour on settings or other pages", () => {
+    expect(shouldDriveFirstRunTour("/")).toBe(true);
+    expect(shouldDriveFirstRunTour("/add-transaction")).toBe(true);
+    expect(shouldDriveFirstRunTour("/settings")).toBe(false);
+    expect(shouldDriveFirstRunTour("/analytics")).toBe(false);
   });
 });

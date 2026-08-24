@@ -31,6 +31,10 @@ export function firstRunStartIndex(pathname: string): number {
   return pathname.startsWith("/add-transaction") ? 2 : 0;
 }
 
+export function shouldDriveFirstRunTour(pathname: string): boolean {
+  return pathname === "/" || pathname.startsWith("/add-transaction");
+}
+
 export function buildFirstRunSteps(
   copy: FirstRunCopy,
   dir: "rtl" | "ltr",

@@ -48,6 +48,7 @@ import {
 import {
   buildFirstRunSteps,
   firstRunStartIndex,
+  shouldDriveFirstRunTour,
 } from "@/lib/onboarding/tours/firstRun";
 import { logger } from "@/lib/logger";
 import { WelcomeDialog } from "./WelcomeDialog";
@@ -217,7 +218,13 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
   }, [refreshTourTick]);
 
   useEffect(() => {
-    if (!ready || !tourActive || isPublicPath || welcomeOpen) {
+    if (
+      !ready ||
+      !tourActive ||
+      isPublicPath ||
+      welcomeOpen ||
+      !shouldDriveFirstRunTour(pathname)
+    ) {
       destroyOnboardingTour();
       return;
     }
