@@ -10,8 +10,8 @@ import {
   invokeDesktopFilteredTransactionsAllPages,
 } from "@/lib/tableTransactions/desktop-filtered-transactions-invoke";
 import {
-  assertBulkTextValue,
-  type TransactionBulkChange,
+  assertBulkPatch,
+  type TransactionBulkPatch,
 } from "@/lib/tableTransactions/bulkActions";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 import { clearPaymentMethodCache } from "./paymentMethods.service";
@@ -571,23 +571,25 @@ export async function bulkDeleteTransactions(
 
 export async function bulkUpdateTransactions(
   ids: readonly string[],
-  change: TransactionBulkChange,
+  patch: TransactionBulkPatch,
 ): Promise<void> {
   const validatedIds = validateBulkIds(ids);
   const currentPlatform = getPlatform();
-  const value =
-    change.field === "payment_method"
-      ? normalizePaymentMethodValue(change.value)
-      : change.value;
-  assertBulkTextValue(value);
+  assertBulkPatch(patch);
+  const updates: TransactionBulkPatch = {
+    ...patch,
+    payment_method:
+      patch.payment_method !== undefined
+        ? normalizePaymentMethodValue(patch.payment_method)
+        : undefined,
+  };
 
   if (currentPlatform === "web") {
     const userId = await getAuthenticatedUserId();
     const { data, error } = await supabase.rpc("bulk_update_user_transactions", {
       p_user_id: userId,
       p_ids: validatedIds,
-      p_field: change.field,
-      p_value: value,
+      p_updates: updates,
     });
 
     if (error) {
@@ -600,7 +602,7 @@ export async function bulkUpdateTransactions(
       readAffectedCount(data),
     );
     useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
-    if (change.field === "payment_method") {
+    if (updates.payment_method !== undefined) {
       clearPaymentMethodCache();
     }
     return;
@@ -609,12 +611,11 @@ export async function bulkUpdateTransactions(
   if (currentPlatform === "desktop") {
     const affectedCount = await invokeTauri<number>("bulk_update_transactions_handler", {
       ids: validatedIds,
-      field: change.field,
-      value,
+      updates,
     });
     verifyAffectedCount("transactions", validatedIds.length, affectedCount);
     useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
-    if (change.field === "payment_method") {
+    if (updates.payment_method !== undefined) {
       clearPaymentMethodCache();
     }
     return;

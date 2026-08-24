@@ -177,6 +177,15 @@ pub fn delete_transaction_handler(
 }
 
 const BULK_TEXT_VALUE_MAX_LENGTH: usize = 50;
+const BULK_DESCRIPTION_MAX_LENGTH: usize = 100;
+
+struct BulkPatch {
+    payment_method: Option<Option<String>>,
+    category: Option<Option<String>>,
+    description: Option<Option<String>>,
+    recipient: Option<Option<String>>,
+    is_chomesh: Option<bool>,
+}
 
 fn validate_bulk_text_value(value: &Option<String>) -> std::result::Result<(), String> {
     if let Some(text) = value {
@@ -189,6 +198,164 @@ fn validate_bulk_text_value(value: &Option<String>) -> std::result::Result<(), S
     }
 
     Ok(())
+}
+
+fn parse_bulk_patch(updates: &serde_json::Value) -> std::result::Result<BulkPatch, String> {
+    let object = updates
+        .as_object()
+        .ok_or_else(|| "Bulk update requires at least one field.".to_string())?;
+    if object.is_empty() {
+        return Err("Bulk update requires at least one field.".to_string());
+    }
+
+    let mut patch = BulkPatch {
+        payment_method: None,
+        category: None,
+        description: None,
+        recipient: None,
+        is_chomesh: None,
+    };
+
+    for (key, value) in object {
+        match key.as_str() {
+            "payment_method" => {
+                patch.payment_method = Some(parse_bulk_text_field(value, key)?);
+            }
+            "category" => {
+                patch.category = Some(parse_bulk_text_field(value, key)?);
+            }
+            "description" => {
+                patch.description = Some(parse_bulk_description_field(value)?);
+            }
+            "recipient" => {
+                patch.recipient = Some(parse_bulk_text_field(value, key)?);
+            }
+            "is_chomesh" => {
+                patch.is_chomesh = Some(parse_bulk_chomesh_field(value)?);
+            }
+            _ => return Err(format!("Unsupported bulk update field: {}", key)),
+        }
+    }
+
+    Ok(patch)
+}
+
+fn parse_bulk_text_field(
+    value: &serde_json::Value,
+    key: &str,
+) -> std::result::Result<Option<String>, String> {
+    let text = match value {
+        serde_json::Value::Null => None,
+        serde_json::Value::String(text) => Some(text.clone()),
+        _ => {
+            return Err(format!(
+                "Bulk update field {} must be a string or null.",
+                key
+            ))
+        }
+    };
+    validate_bulk_text_value(&text)?;
+    Ok(text)
+}
+
+fn parse_bulk_description_field(
+    value: &serde_json::Value,
+) -> std::result::Result<Option<String>, String> {
+    let text = match value {
+        serde_json::Value::Null => None,
+        serde_json::Value::String(text) => Some(text.clone()),
+        _ => return Err("Bulk update field description must be a string or null.".to_string()),
+    };
+    if let Some(description) = &text {
+        if description.chars().count() > BULK_DESCRIPTION_MAX_LENGTH {
+            return Err(format!(
+                "Bulk update value exceeds the {} character limit.",
+                BULK_DESCRIPTION_MAX_LENGTH
+            ));
+        }
+    }
+    Ok(text)
+}
+
+fn parse_bulk_chomesh_field(value: &serde_json::Value) -> std::result::Result<bool, String> {
+    match value {
+        serde_json::Value::Bool(is_chomesh) => Ok(*is_chomesh),
+        _ => Err("Bulk chomesh update value must be a boolean.".to_string()),
+    }
+}
+
+fn push_optional_text_set(
+    set_clauses: &mut Vec<String>,
+    params: &mut Vec<Box<dyn ToSql>>,
+    column: &'static str,
+    value: &Option<Option<String>>,
+) {
+    if let Some(text) = value {
+        set_clauses.push(format!("{} = ?", column));
+        match text {
+            Some(value) => params.push(Box::new(value.clone())),
+            None => params.push(Box::new(rusqlite::types::Null)),
+        }
+    }
+}
+
+fn validate_bulk_category_families(
+    types: &[String],
+    family_of: fn(&str) -> Option<&'static str>,
+) -> std::result::Result<(), String> {
+    let families: Vec<Option<&str>> = types.iter().map(|row_type| family_of(row_type)).collect();
+    if families.iter().any(Option::is_none) {
+        return Err(
+            "Bulk category update requires one income or expense category family".to_string(),
+        );
+    }
+    let unique_families: HashSet<&str> = families.into_iter().flatten().collect();
+    if unique_families.len() != 1 {
+        return Err(
+            "Bulk category update requires one income or expense category family".to_string(),
+        );
+    }
+    Ok(())
+}
+
+fn is_recipient_family(transaction_type: &str) -> bool {
+    matches!(transaction_type, "donation" | "non_tithe_donation")
+}
+
+fn is_chomesh_bulk_type(transaction_type: &str) -> bool {
+    matches!(
+        transaction_type,
+        "income" | "donation" | "expense" | "recognized-expense"
+    )
+}
+
+fn validate_bulk_recipient_family(
+    types: &[String],
+    entity: &str,
+) -> std::result::Result<(), String> {
+    if types.iter().all(|row_type| is_recipient_family(row_type)) {
+        Ok(())
+    } else {
+        Err(format!(
+            "Bulk recipient update requires all {} to be donations.",
+            entity
+        ))
+    }
+}
+
+fn validate_bulk_chomesh_types(types: &[String], entity: &str) -> std::result::Result<(), String> {
+    let first_type = types.first().map(String::as_str);
+    if let Some(shared_type) = first_type {
+        if is_chomesh_bulk_type(shared_type) && types.iter().all(|row_type| row_type == shared_type)
+        {
+            return Ok(());
+        }
+    }
+
+    Err(format!(
+        "Bulk chomesh update requires every {} to have the same allowed type.",
+        entity
+    ))
 }
 
 fn validate_bulk_ids(ids: &[String]) -> std::result::Result<(), String> {
@@ -285,17 +452,10 @@ pub fn bulk_delete_transactions_handler(
 pub fn bulk_update_transactions_handler(
     db_state: State<'_, DbState>,
     ids: Vec<String>,
-    field: String,
-    value: Option<String>,
+    updates: serde_json::Value,
 ) -> std::result::Result<usize, String> {
     validate_bulk_ids(&ids)?;
-    validate_bulk_text_value(&value)?;
-
-    let column = match field.as_str() {
-        "payment_method" => "payment_method",
-        "category" => "category",
-        _ => return Err(format!("Unsupported bulk update field: {}", field)),
-    };
+    let patch = parse_bulk_patch(&updates)?;
 
     let mut conn_guard = db_state
         .0
@@ -334,47 +494,67 @@ pub fn bulk_update_transactions_handler(
         return Err("initial_balance transactions cannot be bulk updated".to_string());
     }
 
-    if column == "category" {
+    let types = {
         let mut stmt = tx
             .prepare(&format!(
-                "SELECT DISTINCT type FROM transactions WHERE id IN ({})",
+                "SELECT type FROM transactions WHERE id IN ({})",
                 in_clause
             ))
-            .map_err(|e| format!("Failed to prepare category validation: {}", e))?;
-        let families = stmt
-            .query_map(id_params(&ids).as_slice(), |row| {
-                let transaction_type: String = row.get(0)?;
-                Ok(transaction_category_family(&transaction_type))
-            })
-            .map_err(|e| format!("Failed to validate category family: {}", e))?
-            .collect::<RusqliteResult<Vec<_>>>()
-            .map_err(|e| format!("Failed to read category family: {}", e))?;
-        if families.iter().any(Option::is_none) {
-            return Err(
-                "Bulk category update requires one income or expense category family".to_string(),
-            );
-        }
-        let unique_families: HashSet<&str> = families.into_iter().flatten().collect();
-        if unique_families.len() != 1 {
-            return Err(
-                "Bulk category update requires one income or expense category family".to_string(),
-            );
-        }
+            .map_err(|e| format!("Failed to prepare type validation: {}", e))?;
+        let mapped = stmt
+            .query_map(id_params(&ids).as_slice(), |row| row.get(0))
+            .map_err(|e| format!("Failed to validate transaction types: {}", e))?;
+        let types = mapped
+            .collect::<RusqliteResult<Vec<String>>>()
+            .map_err(|e| format!("Failed to read transaction types: {}", e))?;
+        types
+    };
+
+    if patch.category.is_some() {
+        validate_bulk_category_families(&types, transaction_category_family)?;
+    }
+    if patch.recipient.is_some() {
+        validate_bulk_recipient_family(&types, "transactions")?;
+    }
+    if patch.is_chomesh.is_some() {
+        validate_bulk_chomesh_types(&types, "transaction")?;
     }
 
-    let mut update_params: Vec<&dyn ToSql> = Vec::with_capacity(ids.len() + 1);
-    update_params.push(&value);
+    let mut set_clauses = Vec::new();
+    let mut params: Vec<Box<dyn ToSql>> = Vec::new();
+    push_optional_text_set(
+        &mut set_clauses,
+        &mut params,
+        "payment_method",
+        &patch.payment_method,
+    );
+    push_optional_text_set(&mut set_clauses, &mut params, "category", &patch.category);
+    push_optional_text_set(
+        &mut set_clauses,
+        &mut params,
+        "description",
+        &patch.description,
+    );
+    push_optional_text_set(&mut set_clauses, &mut params, "recipient", &patch.recipient);
+    if let Some(is_chomesh) = patch.is_chomesh {
+        set_clauses.push("is_chomesh = ?".to_string());
+        params.push(Box::new(is_chomesh));
+    }
+    set_clauses.push("updated_at = CURRENT_TIMESTAMP".to_string());
+
     for id in &ids {
-        update_params.push(id);
+        params.push(Box::new(id.clone()));
     }
 
+    let params_slice: Vec<&dyn ToSql> = params.iter().map(|param| param.as_ref()).collect();
     let affected = tx
         .execute(
             &format!(
-                "UPDATE transactions SET {} = ?, updated_at = CURRENT_TIMESTAMP WHERE id IN ({})",
-                column, in_clause
+                "UPDATE transactions SET {} WHERE id IN ({})",
+                set_clauses.join(", "),
+                in_clause
             ),
-            update_params.as_slice(),
+            params_slice.as_slice(),
         )
         .map_err(|e| format!("Failed to update transactions: {}", e))?;
     if affected != ids.len() {
@@ -1370,6 +1550,8 @@ mod tests {
         let column = match field {
             "category" => "category",
             "payment_method" => "payment_method",
+            "description" => "description",
+            "recipient" => "recipient",
             _ => panic!("unsupported test field"),
         };
         let db_state = app.state::<crate::DbState>();
@@ -1435,8 +1617,7 @@ mod tests {
         let updated = bulk_update_transactions_handler(
             app.state::<crate::DbState>(),
             vec!["t1".to_string(), "t2".to_string()],
-            "payment_method".to_string(),
-            Some("bank".to_string()),
+            json!({ "payment_method": "bank" }),
         )
         .expect("bulk update");
 
@@ -1458,8 +1639,7 @@ mod tests {
         let duplicate = bulk_update_transactions_handler(
             app.state::<crate::DbState>(),
             vec!["t1".to_string(), "t1".to_string()],
-            "payment_method".to_string(),
-            Some("bank".to_string()),
+            json!({ "payment_method": "bank" }),
         )
         .expect_err("duplicate ids should fail");
         assert!(
@@ -1470,8 +1650,7 @@ mod tests {
         let empty = bulk_update_transactions_handler(
             app.state::<crate::DbState>(),
             vec!["t1".to_string(), " ".to_string()],
-            "payment_method".to_string(),
-            Some("bank".to_string()),
+            json!({ "payment_method": "bank" }),
         )
         .expect_err("empty ids should fail");
         assert!(empty.contains("empty"), "unexpected error: {empty}");
@@ -1485,8 +1664,7 @@ mod tests {
         let payment_method_err = bulk_update_transactions_handler(
             app.state::<crate::DbState>(),
             vec!["t_initial".to_string()],
-            "payment_method".to_string(),
-            Some("bank".to_string()),
+            json!({ "payment_method": "bank" }),
         )
         .expect_err("initial_balance row type should block payment_method update");
         assert!(
@@ -1501,8 +1679,7 @@ mod tests {
         let category_err = bulk_update_transactions_handler(
             app.state::<crate::DbState>(),
             vec!["t_initial".to_string()],
-            "category".to_string(),
-            Some("changed".to_string()),
+            json!({ "category": "changed" }),
         )
         .expect_err("initial_balance row type should block category update");
         assert!(
@@ -1521,8 +1698,7 @@ mod tests {
         let err = bulk_update_transactions_handler(
             app.state::<crate::DbState>(),
             vec!["t1".to_string(), "t2".to_string()],
-            "category".to_string(),
-            Some("shared".to_string()),
+            json!({ "category": "shared" }),
         )
         .expect_err("mixed income/expense category update should fail");
 
@@ -1543,8 +1719,7 @@ mod tests {
         let err = bulk_update_transactions_handler(
             app.state::<crate::DbState>(),
             vec!["t1".to_string(), "t3".to_string()],
-            "category".to_string(),
-            Some("shared".to_string()),
+            json!({ "category": "shared" }),
         )
         .expect_err("donation is not an applicable category family");
 
@@ -1563,13 +1738,123 @@ mod tests {
         let err = bulk_update_transactions_handler(
             app.state::<crate::DbState>(),
             vec!["t1".to_string()],
-            "category".to_string(),
-            Some(oversized),
+            json!({ "category": oversized }),
         )
         .expect_err("oversized category should fail");
 
         assert!(
             err.contains("50 character limit"),
+            "unexpected error: {err}"
+        );
+        assert_eq!(
+            transaction_field(&app, "t1", "category"),
+            Some("salary".to_string())
+        );
+    }
+
+    #[test]
+    fn bulk_update_transactions_writes_payment_method_and_description_together() {
+        let app = mock_app();
+        let updated = bulk_update_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t1".to_string(), "t2".to_string()],
+            json!({
+                "payment_method": "bank",
+                "description": "Pizza"
+            }),
+        )
+        .expect("bulk update");
+
+        assert_eq!(updated, 2);
+        assert_eq!(
+            transaction_field(&app, "t1", "payment_method"),
+            Some("bank".to_string())
+        );
+        assert_eq!(
+            transaction_field(&app, "t2", "payment_method"),
+            Some("bank".to_string())
+        );
+        assert_eq!(
+            transaction_field(&app, "t1", "description"),
+            Some("Pizza".to_string())
+        );
+        assert_eq!(
+            transaction_field(&app, "t2", "description"),
+            Some("Pizza".to_string())
+        );
+        assert_eq!(
+            transaction_field(&app, "t1", "category"),
+            Some("salary".to_string())
+        );
+        assert_eq!(
+            transaction_field(&app, "t2", "category"),
+            Some("food".to_string())
+        );
+    }
+
+    #[test]
+    fn bulk_update_transactions_rejects_oversized_description_with_rollback() {
+        let app = mock_app();
+        let err = bulk_update_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t1".to_string()],
+            json!({ "description": "a".repeat(101) }),
+        )
+        .expect_err("oversized description should fail");
+
+        assert!(
+            err.contains("100 character limit"),
+            "unexpected error: {err}"
+        );
+        assert_eq!(
+            transaction_field(&app, "t1", "description"),
+            Some("משכורת ינואר".to_string())
+        );
+    }
+
+    #[test]
+    fn bulk_update_transactions_rejects_mixed_types_for_chomesh() {
+        let app = mock_app();
+        let err = bulk_update_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t1".to_string(), "t2".to_string()],
+            json!({ "is_chomesh": true }),
+        )
+        .expect_err("mixed types should reject chomesh");
+
+        assert!(err.contains("same allowed type"), "unexpected error: {err}");
+    }
+
+    #[test]
+    fn bulk_update_transactions_rejects_recipient_for_donation_and_expense() {
+        let app = mock_app();
+        let err = bulk_update_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t2".to_string(), "t3".to_string()],
+            json!({ "recipient": "charity" }),
+        )
+        .expect_err("donation plus expense should reject recipient");
+
+        assert!(err.contains("donations"), "unexpected error: {err}");
+        assert_eq!(transaction_field(&app, "t2", "recipient"), None);
+        assert_eq!(
+            transaction_field(&app, "t3", "recipient"),
+            Some("ישיבה".to_string())
+        );
+    }
+
+    #[test]
+    fn bulk_update_transactions_rejects_unknown_json_key() {
+        let app = mock_app();
+        let err = bulk_update_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t1".to_string()],
+            json!({ "amount": 12 }),
+        )
+        .expect_err("unknown key should fail");
+
+        assert!(
+            err.contains("Unsupported bulk update field"),
             "unexpected error: {err}"
         );
         assert_eq!(

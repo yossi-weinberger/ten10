@@ -359,6 +359,15 @@ pub fn delete_recurring_transaction_handler(
 }
 
 const BULK_TEXT_VALUE_MAX_LENGTH: usize = 50;
+const BULK_DESCRIPTION_MAX_LENGTH: usize = 100;
+
+struct BulkPatch {
+    payment_method: Option<Option<String>>,
+    category: Option<Option<String>>,
+    description: Option<Option<String>>,
+    recipient: Option<Option<String>>,
+    is_chomesh: Option<bool>,
+}
 
 fn validate_bulk_text_value(value: &Option<String>) -> std::result::Result<(), String> {
     if let Some(text) = value {
@@ -371,6 +380,160 @@ fn validate_bulk_text_value(value: &Option<String>) -> std::result::Result<(), S
     }
 
     Ok(())
+}
+
+fn parse_bulk_patch(updates: &serde_json::Value) -> std::result::Result<BulkPatch, String> {
+    let object = updates
+        .as_object()
+        .ok_or_else(|| "Bulk update requires at least one field.".to_string())?;
+    if object.is_empty() {
+        return Err("Bulk update requires at least one field.".to_string());
+    }
+
+    let mut patch = BulkPatch {
+        payment_method: None,
+        category: None,
+        description: None,
+        recipient: None,
+        is_chomesh: None,
+    };
+
+    for (key, value) in object {
+        match key.as_str() {
+            "payment_method" => {
+                patch.payment_method = Some(parse_bulk_text_field(value, key)?);
+            }
+            "category" => {
+                patch.category = Some(parse_bulk_text_field(value, key)?);
+            }
+            "description" => {
+                patch.description = Some(parse_bulk_description_field(value)?);
+            }
+            "recipient" => {
+                patch.recipient = Some(parse_bulk_text_field(value, key)?);
+            }
+            "is_chomesh" => {
+                patch.is_chomesh = Some(parse_bulk_chomesh_field(value)?);
+            }
+            _ => return Err(format!("Unsupported bulk update field: {}", key)),
+        }
+    }
+
+    Ok(patch)
+}
+
+fn parse_bulk_text_field(
+    value: &serde_json::Value,
+    key: &str,
+) -> std::result::Result<Option<String>, String> {
+    let text = match value {
+        serde_json::Value::Null => None,
+        serde_json::Value::String(text) => Some(text.clone()),
+        _ => {
+            return Err(format!(
+                "Bulk update field {} must be a string or null.",
+                key
+            ))
+        }
+    };
+    validate_bulk_text_value(&text)?;
+    Ok(text)
+}
+
+fn parse_bulk_description_field(
+    value: &serde_json::Value,
+) -> std::result::Result<Option<String>, String> {
+    let text = match value {
+        serde_json::Value::Null => None,
+        serde_json::Value::String(text) => Some(text.clone()),
+        _ => return Err("Bulk update field description must be a string or null.".to_string()),
+    };
+    if let Some(description) = &text {
+        if description.chars().count() > BULK_DESCRIPTION_MAX_LENGTH {
+            return Err(format!(
+                "Bulk update value exceeds the {} character limit.",
+                BULK_DESCRIPTION_MAX_LENGTH
+            ));
+        }
+    }
+    Ok(text)
+}
+
+fn parse_bulk_chomesh_field(value: &serde_json::Value) -> std::result::Result<bool, String> {
+    match value {
+        serde_json::Value::Bool(is_chomesh) => Ok(*is_chomesh),
+        _ => Err("Bulk chomesh update value must be a boolean.".to_string()),
+    }
+}
+
+fn push_optional_text_set(
+    set_clauses: &mut Vec<String>,
+    params: &mut Vec<Box<dyn ToSql>>,
+    column: &'static str,
+    value: &Option<Option<String>>,
+) {
+    if let Some(text) = value {
+        set_clauses.push(format!("{} = ?", column));
+        match text {
+            Some(value) => params.push(Box::new(value.clone())),
+            None => params.push(Box::new(rusqlite::types::Null)),
+        }
+    }
+}
+
+fn validate_bulk_category_families(types: &[String]) -> std::result::Result<(), String> {
+    let families: Vec<Option<&str>> = types
+        .iter()
+        .map(|row_type| recurring_category_family(row_type))
+        .collect();
+    if families.iter().any(Option::is_none) {
+        return Err(
+            "Bulk category update requires one income or expense category family".to_string(),
+        );
+    }
+    let unique_families: HashSet<&str> = families.into_iter().flatten().collect();
+    if unique_families.len() != 1 {
+        return Err(
+            "Bulk category update requires one income or expense category family".to_string(),
+        );
+    }
+    Ok(())
+}
+
+fn is_recipient_family(transaction_type: &str) -> bool {
+    matches!(transaction_type, "donation" | "non_tithe_donation")
+}
+
+fn is_chomesh_bulk_type(transaction_type: &str) -> bool {
+    matches!(
+        transaction_type,
+        "income" | "donation" | "expense" | "recognized-expense"
+    )
+}
+
+fn validate_bulk_recipient_family(types: &[String]) -> std::result::Result<(), String> {
+    if types.iter().all(|row_type| is_recipient_family(row_type)) {
+        Ok(())
+    } else {
+        Err(
+            "Bulk recipient update requires all recurring transactions to be donations.".to_string(),
+        )
+    }
+}
+
+fn validate_bulk_chomesh_types(types: &[String]) -> std::result::Result<(), String> {
+    let first_type = types.first().map(String::as_str);
+    if let Some(shared_type) = first_type {
+        if is_chomesh_bulk_type(shared_type) && types.iter().all(|row_type| row_type == shared_type)
+        {
+            return Ok(());
+        }
+    }
+
+    Err(
+        "Bulk chomesh update requires every recurring transaction to have the same allowed type."
+            .to_string(),
+    )
 }
 
 fn validate_bulk_ids(ids: &[String]) -> std::result::Result<(), String> {
@@ -476,17 +639,10 @@ pub fn bulk_delete_recurring_transactions_handler(
 pub fn bulk_update_recurring_transactions_handler(
     db_state: State<'_, DbState>,
     ids: Vec<String>,
-    field: String,
-    value: Option<String>,
+    updates: serde_json::Value,
 ) -> std::result::Result<usize, String> {
     validate_bulk_ids(&ids)?;
-    validate_bulk_text_value(&value)?;
-
-    let column = match field.as_str() {
-        "payment_method" => "payment_method",
-        "category" => "category",
-        _ => return Err(format!("Unsupported bulk update field: {}", field)),
-    };
+    let patch = parse_bulk_patch(&updates)?;
 
     let mut conn = db_state.0.lock().map_err(|e| e.to_string())?;
     let tx = conn
@@ -522,49 +678,69 @@ pub fn bulk_update_recurring_transactions_handler(
         return Err("completed recurring transactions cannot be bulk updated".to_string());
     }
 
-    if column == "category" {
+    let types = {
         let mut stmt = tx
             .prepare(&format!(
-                "SELECT DISTINCT type FROM recurring_transactions WHERE id IN ({})",
+                "SELECT type FROM recurring_transactions WHERE id IN ({})",
                 in_clause
             ))
-            .map_err(|e| format!("Failed to prepare category validation: {}", e))?;
-        let families = stmt
-            .query_map(id_params(&ids).as_slice(), |row| {
-                let transaction_type: String = row.get(0)?;
-                Ok(recurring_category_family(&transaction_type))
-            })
-            .map_err(|e| format!("Failed to validate category family: {}", e))?
-            .collect::<RusqliteResult<Vec<_>>>()
-            .map_err(|e| format!("Failed to read category family: {}", e))?;
-        if families.iter().any(Option::is_none) {
-            return Err(
-                "Bulk category update requires one income or expense category family".to_string(),
-            );
-        }
-        let unique_families: HashSet<&str> = families.into_iter().flatten().collect();
-        if unique_families.len() != 1 {
-            return Err(
-                "Bulk category update requires one income or expense category family".to_string(),
-            );
-        }
+            .map_err(|e| format!("Failed to prepare type validation: {}", e))?;
+        let mapped = stmt
+            .query_map(id_params(&ids).as_slice(), |row| row.get(0))
+            .map_err(|e| format!("Failed to validate recurring types: {}", e))?;
+        let types = mapped
+            .collect::<RusqliteResult<Vec<String>>>()
+            .map_err(|e| format!("Failed to read recurring types: {}", e))?;
+        types
+    };
+
+    if patch.category.is_some() {
+        validate_bulk_category_families(&types)?;
+    }
+    if patch.recipient.is_some() {
+        validate_bulk_recipient_family(&types)?;
+    }
+    if patch.is_chomesh.is_some() {
+        validate_bulk_chomesh_types(&types)?;
     }
 
     let now = Local::now().to_rfc3339();
-    let mut update_params: Vec<&dyn ToSql> = Vec::with_capacity(ids.len() + 2);
-    update_params.push(&value);
-    update_params.push(&now);
+    let mut set_clauses = Vec::new();
+    let mut params: Vec<Box<dyn ToSql>> = Vec::new();
+    push_optional_text_set(
+        &mut set_clauses,
+        &mut params,
+        "payment_method",
+        &patch.payment_method,
+    );
+    push_optional_text_set(&mut set_clauses, &mut params, "category", &patch.category);
+    push_optional_text_set(
+        &mut set_clauses,
+        &mut params,
+        "description",
+        &patch.description,
+    );
+    push_optional_text_set(&mut set_clauses, &mut params, "recipient", &patch.recipient);
+    if let Some(is_chomesh) = patch.is_chomesh {
+        set_clauses.push("is_chomesh = ?".to_string());
+        params.push(Box::new(is_chomesh));
+    }
+    set_clauses.push("updated_at = ?".to_string());
+    params.push(Box::new(now));
+
     for id in &ids {
-        update_params.push(id);
+        params.push(Box::new(id.clone()));
     }
 
+    let params_slice: Vec<&dyn ToSql> = params.iter().map(|param| param.as_ref()).collect();
     let affected = tx
         .execute(
             &format!(
-                "UPDATE recurring_transactions SET {} = ?, updated_at = ? WHERE id IN ({})",
-                column, in_clause
+                "UPDATE recurring_transactions SET {} WHERE id IN ({})",
+                set_clauses.join(", "),
+                in_clause
             ),
-            update_params.as_slice(),
+            params_slice.as_slice(),
         )
         .map_err(|e| format!("Failed to update recurring transactions: {}", e))?;
     if affected != ids.len() {
@@ -730,8 +906,7 @@ mod tests {
         let updated = bulk_update_recurring_transactions_handler(
             app.state::<crate::DbState>(),
             vec!["r1".to_string(), "r2".to_string()],
-            "payment_method".to_string(),
-            None,
+            json!({ "payment_method": null }),
         )
         .expect("bulk update recurring");
 
@@ -751,8 +926,7 @@ mod tests {
         let err = bulk_update_recurring_transactions_handler(
             app.state::<crate::DbState>(),
             vec!["r4".to_string()],
-            "payment_method".to_string(),
-            Some("bank".to_string()),
+            json!({ "payment_method": "bank" }),
         )
         .expect_err("completed recurring should fail");
 
@@ -766,8 +940,7 @@ mod tests {
         let err = bulk_update_recurring_transactions_handler(
             app.state::<crate::DbState>(),
             vec!["r1".to_string()],
-            "status".to_string(),
-            Some("paused".to_string()),
+            json!({ "status": "paused" }),
         )
         .expect_err("status bulk update should fail");
         assert!(
@@ -782,8 +955,7 @@ mod tests {
         let err = bulk_update_recurring_transactions_handler(
             app.state::<crate::DbState>(),
             vec!["r1".to_string(), "r3".to_string()],
-            "category".to_string(),
-            Some("shared".to_string()),
+            json!({ "category": "shared" }),
         )
         .expect_err("mixed category families should fail");
 
@@ -796,8 +968,7 @@ mod tests {
         let err = bulk_update_recurring_transactions_handler(
             app.state::<crate::DbState>(),
             vec!["r1".to_string(), "r5".to_string()],
-            "category".to_string(),
-            Some("shared".to_string()),
+            json!({ "category": "shared" }),
         )
         .expect_err("donation is not an applicable recurring category family");
 
@@ -825,8 +996,7 @@ mod tests {
         let err = bulk_update_recurring_transactions_handler(
             app.state::<crate::DbState>(),
             vec!["r1".to_string()],
-            "payment_method".to_string(),
-            Some(oversized),
+            json!({ "payment_method": oversized }),
         )
         .expect_err("oversized payment method should fail");
 
@@ -840,6 +1010,106 @@ mod tests {
                 "SELECT payment_method FROM recurring_transactions WHERE id = 'r1'"
             ),
             Some("cash".to_string())
+        );
+    }
+
+    #[test]
+    fn bulk_update_recurring_transactions_writes_payment_method_and_description_together() {
+        let app = mock_app();
+        let updated = bulk_update_recurring_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["r1".to_string(), "r2".to_string()],
+            json!({
+                "payment_method": "bank",
+                "description": "Pizza"
+            }),
+        )
+        .expect("bulk update recurring");
+
+        assert_eq!(updated, 2);
+        assert_eq!(
+            optional_text(
+                &app,
+                "SELECT payment_method FROM recurring_transactions WHERE id = 'r1'"
+            ),
+            Some("bank".to_string())
+        );
+        assert_eq!(
+            optional_text(
+                &app,
+                "SELECT description FROM recurring_transactions WHERE id = 'r1'"
+            ),
+            Some("Pizza".to_string())
+        );
+        assert_eq!(
+            optional_text(
+                &app,
+                "SELECT description FROM recurring_transactions WHERE id = 'r2'"
+            ),
+            Some("Pizza".to_string())
+        );
+        assert_eq!(
+            optional_text(
+                &app,
+                "SELECT category FROM recurring_transactions WHERE id = 'r1'"
+            ),
+            Some("salary".to_string())
+        );
+    }
+
+    #[test]
+    fn bulk_update_recurring_transactions_rejects_oversized_description_with_rollback() {
+        let app = mock_app();
+        let err = bulk_update_recurring_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["r1".to_string()],
+            json!({ "description": "a".repeat(101) }),
+        )
+        .expect_err("oversized description should fail");
+
+        assert!(
+            err.contains("100 character limit"),
+            "unexpected error: {err}"
+        );
+        assert_eq!(
+            optional_text(
+                &app,
+                "SELECT description FROM recurring_transactions WHERE id = 'r1'"
+            ),
+            None
+        );
+    }
+
+    #[test]
+    fn bulk_update_recurring_transactions_rejects_mixed_types_for_chomesh() {
+        let app = mock_app();
+        let err = bulk_update_recurring_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["r1".to_string(), "r3".to_string()],
+            json!({ "is_chomesh": true }),
+        )
+        .expect_err("mixed types should reject chomesh");
+
+        assert!(err.contains("same allowed type"), "unexpected error: {err}");
+    }
+
+    #[test]
+    fn bulk_update_recurring_transactions_rejects_recipient_for_donation_and_expense() {
+        let app = mock_app();
+        let err = bulk_update_recurring_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["r3".to_string(), "r5".to_string()],
+            json!({ "recipient": "charity" }),
+        )
+        .expect_err("donation plus expense should reject recipient");
+
+        assert!(err.contains("donations"), "unexpected error: {err}");
+        assert_eq!(
+            optional_text(
+                &app,
+                "SELECT recipient FROM recurring_transactions WHERE id = 'r5'"
+            ),
+            None
         );
     }
 

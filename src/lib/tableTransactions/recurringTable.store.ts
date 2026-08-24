@@ -5,7 +5,7 @@ import {
   fetchAllRecurring,
   updateRecurringBulk,
 } from "./recurringTable.service";
-import type { BulkMutationResult, RecurringBulkChange } from "./bulkActions";
+import type { BulkMutationResult, RecurringBulkPatch } from "./bulkActions";
 import { getErrorMessage } from "@/lib/utils/error-message";
 
 export interface RecurringTableSortConfig {
@@ -34,7 +34,7 @@ export interface RecurringTableState {
   ) => Promise<BulkMutationResult>;
   updateRecurringBulk: (
     ids: readonly string[],
-    change: RecurringBulkChange
+    patch: RecurringBulkPatch
   ) => Promise<BulkMutationResult>;
   setSorting: (field: string) => void;
   setFilters: (newFilters: Partial<RecurringTableFilters>) => void;
@@ -116,14 +116,14 @@ export const useRecurringTableStore = create<RecurringTableState>()(
         return { refreshError };
       }
     },
-    updateRecurringBulk: async (ids, change) => {
+    updateRecurringBulk: async (ids, patch) => {
       if (get().bulkLoading) {
         throw new Error("Bulk action already in progress");
       }
 
       set({ bulkLoading: true, bulkError: null });
       try {
-        await updateRecurringBulk(ids, change);
+        await updateRecurringBulk(ids, patch);
       } catch (err: unknown) {
         const message =
           getErrorMessage(err) ?? "Failed to update recurring transactions";

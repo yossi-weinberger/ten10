@@ -13,7 +13,7 @@ import {
   bulkDeleteRecurringTransactions,
   bulkUpdateRecurringTransactions,
 } from "@/lib/data-layer/recurringTransactions.service";
-import type { RecurringBulkChange } from "./bulkActions";
+import type { RecurringBulkPatch } from "./bulkActions";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 import { clearPaymentMethodCache } from "@/lib/data-layer/paymentMethods.service";
 
@@ -227,7 +227,7 @@ export async function deleteRecurringBulk(ids: readonly string[]): Promise<void>
 
 export async function updateRecurringBulk(
   ids: readonly string[],
-  change: RecurringBulkChange
+  patch: RecurringBulkPatch
 ): Promise<void> {
-  await bulkUpdateRecurringTransactions(ids, change);
+  await bulkUpdateRecurringTransactions(ids, patch);
 }
