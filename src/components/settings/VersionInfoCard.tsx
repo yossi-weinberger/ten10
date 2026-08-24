@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Card,
   CardContent,
@@ -34,6 +35,7 @@ import {
 } from "@/lib/data-layer/updater.service";
 import { toast } from "sonner";
 import { WhatsNewModal } from "@/components/WhatsNewModal";
+import { useOnboardingUi } from "@/components/onboarding/OnboardingContext";
 
 type CheckStatus =
   | "idle"
@@ -61,7 +63,10 @@ function hasNetworkErrorCode(error: unknown) {
 
 export function VersionInfoCard() {
   const { t } = useTranslation("settings");
+  const { t: tOnboarding } = useTranslation("onboarding");
   const { platform } = usePlatform();
+  const navigate = useNavigate();
+  const { restartTour } = useOnboardingUi();
 
   const [currentVersion, setCurrentVersion] = useState<string>("");
   const [checkStatus, setCheckStatus] = useState<CheckStatus>("idle");
@@ -194,6 +199,18 @@ export function VersionInfoCard() {
             </Button>
           </div>
         </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start"
+          onClick={() => {
+            restartTour();
+            void navigate({ to: "/" });
+          }}
+        >
+          {tOnboarding("restart.button")}
+        </Button>
 
         {/* Update Status */}
         {checkStatus !== "idle" && (
