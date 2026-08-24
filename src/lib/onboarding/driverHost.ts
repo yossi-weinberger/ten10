@@ -5,6 +5,37 @@ import { getStepId } from "./tours/firstRun";
 import type { StepId } from "./types";
 
 const POPOVER_CLASS = "ten10-driver-popover";
+const QUICK_ADD_PIN_ATTR = "data-ten10-onboarding-pinned";
+
+function unpinQuickAddButtons(): void {
+  document.querySelectorAll(`[${QUICK_ADD_PIN_ATTR}]`).forEach((node) => {
+    const element = node as HTMLElement;
+    element.style.position = "";
+    element.style.top = "";
+    element.style.left = "";
+    element.style.width = "";
+    element.style.height = "";
+    element.style.zIndex = "";
+    element.style.margin = "";
+    element.removeAttribute(QUICK_ADD_PIN_ATTR);
+  });
+}
+
+function pinQuickAddButtons(): void {
+  unpinQuickAddButtons();
+  document.querySelectorAll("[data-onboarding='card-quick-add']").forEach((node) => {
+    const element = node as HTMLElement;
+    const rect = element.getBoundingClientRect();
+    element.setAttribute(QUICK_ADD_PIN_ATTR, "true");
+    element.style.position = "fixed";
+    element.style.top = `${rect.top}px`;
+    element.style.left = `${rect.left}px`;
+    element.style.width = `${rect.width}px`;
+    element.style.height = `${rect.height}px`;
+    element.style.zIndex = "10002";
+    element.style.margin = "0";
+  });
+}
 
 export interface OnboardingTourCallbacks {
   onStepViewed: (stepId: StepId) => void;
@@ -21,6 +52,7 @@ export function isOnboardingTourRunning(): boolean {
 }
 
 export function destroyOnboardingTour(): void {
+  unpinQuickAddButtons();
   if (!activeDriver) return;
   startingDestroy = true;
   activeDriver.destroy();
@@ -81,6 +113,11 @@ export function startOnboardingTour(input: {
         logger.warn("[onboarding] Target missing for step", getStepId(step));
       }
       const stepId = getStepId(step);
+      if (stepId === "card-quick-add") {
+        pinQuickAddButtons();
+      } else {
+        unpinQuickAddButtons();
+      }
       if (stepId) {
         callbacks.onStepViewed(stepId);
       }
