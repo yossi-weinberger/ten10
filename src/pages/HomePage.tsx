@@ -20,7 +20,7 @@ export function HomePage() {
 
   return (
     <div className="grid gap-6">
-      <div className="grid gap-2">
+      <div className="grid gap-2" data-onboarding="home-intro">
         <h2 className="text-2xl font-bold text-foreground">
           {t("homePage.title")}
         </h2>
@@ -36,7 +36,7 @@ export function HomePage() {
       )}
 
       {showHomeCta && (
-        <Button asChild className="w-fit">
+        <Button asChild className="w-fit" data-onboarding="add-transaction-cta">
           <Link to="/add-transaction">
             <PlusCircle className="h-4 w-4" />
             {tOnboarding("cta.addTransaction")}

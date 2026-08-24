@@ -13,6 +13,8 @@ const copy = {
   prev: "Back",
   done: "Continue on my own",
   progress: "{{current}} / {{total}}",
+  homeIntroTitle: "Home",
+  homeIntroDescription: "Start here",
   dateRangeTitle: "Range",
   dateRangeDescription: "Pick a range",
   titheBalanceTitle: "Tithe",
@@ -21,6 +23,9 @@ const copy = {
   openingBalanceDescription: "Set it once",
   cardQuickAddTitle: "Quick add",
   cardQuickAddDescription: "Use the +",
+  addCtaTitle: "Add",
+  addCtaDescription: "Continue",
+  continueToForm: "Go to form",
   flagsTitle: "Flags",
   flagsDescription: "Chomesh and maaser",
   recurringTitle: "Recurring",
@@ -34,11 +39,12 @@ describe("buildFirstRunSteps", () => {
     const steps = buildFirstRunSteps(copy, "rtl", "/");
 
     expect(steps.map((step) => getStepId(step))).toEqual([...HOME_STEP_IDS]);
-    expect(steps[0]?.element).toBe(ONBOARDING_TARGETS.dateRange);
-    expect(steps[2]?.element).toBe(ONBOARDING_TARGETS.openingBalance);
-    expect(steps[3]?.advanceOnClick).toBe(true);
+    expect(steps[0]?.element).toBe(ONBOARDING_TARGETS.homeIntro);
+    expect(steps[3]?.element).toBe(ONBOARDING_TARGETS.openingBalance);
+    expect(steps[5]?.advanceOnClick).toBe(true);
+    expect(steps[5]?.popover?.nextBtnText).toBe("Go to form");
     expect(steps.every((step) => step.waitForElement === 5000)).toBe(true);
-    expect(steps[3]?.popover?.side).toBe("left");
+    expect(steps[4]?.popover?.side).toBe("left");
   });
 
   it("keeps form steps off the Home drive", () => {
@@ -51,12 +57,12 @@ describe("buildFirstRunSteps", () => {
 
   it("flips interactive popover sides in LTR", () => {
     const steps = buildFirstRunSteps(copy, "ltr", "/");
-    expect(steps[3]?.popover?.side).toBe("right");
+    expect(steps[4]?.popover?.side).toBe("right");
   });
 
   it("resumes the Home tour after the opening-balance modal", () => {
     expect(firstRunStartIndex("/")).toBe(0);
-    expect(firstRunStartIndex("/", "card-quick-add")).toBe(3);
+    expect(firstRunStartIndex("/", "card-quick-add")).toBe(4);
     expect(firstRunStartIndex("/add-transaction", "card-quick-add")).toBe(0);
     expect(firstRunStartIndex("/add-transaction")).toBe(0);
   });

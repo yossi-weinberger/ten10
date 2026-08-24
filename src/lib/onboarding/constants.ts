@@ -10,10 +10,12 @@ export const ONBOARDING_TOUR_ID = "first-run" as const;
 export const ONBOARDING_TOUR_ACTIVE_KEY = "ten10.onboarding.v1";
 
 export const ONBOARDING_TARGETS = {
+  homeIntro: "[data-onboarding='home-intro']",
   dateRange: "[data-onboarding='date-range']",
   titheBalance: "[data-onboarding='tithe-balance']",
   openingBalance: "[data-onboarding='opening-balance']",
   cardQuickAdd: "[data-onboarding='card-quick-add']",
+  addTransactionCta: "[data-onboarding='add-transaction-cta']",
   transactionFlags: "[data-onboarding='transaction-flags']",
   recurringToggle: "[data-onboarding='recurring-toggle']",
   liveBalance: "[data-onboarding='live-balance']",

@@ -12,6 +12,8 @@ export interface FirstRunCopy {
   prev: string;
   done: string;
   progress: string;
+  homeIntroTitle: string;
+  homeIntroDescription: string;
   dateRangeTitle: string;
   dateRangeDescription: string;
   titheBalanceTitle: string;
@@ -20,6 +22,9 @@ export interface FirstRunCopy {
   openingBalanceDescription: string;
   cardQuickAddTitle: string;
   cardQuickAddDescription: string;
+  addCtaTitle: string;
+  addCtaDescription: string;
+  continueToForm: string;
   flagsTitle: string;
   flagsDescription: string;
   recurringTitle: string;
@@ -28,8 +33,8 @@ export interface FirstRunCopy {
   liveBalanceDescription: string;
 }
 
-export function getStepId(step: DriveStep): StepId | undefined {
-  const stepId = step.data?.stepId;
+export function getStepId(step?: DriveStep): StepId | undefined {
+  const stepId = step?.data?.stepId;
   return isStepId(stepId) ? stepId : undefined;
 }
 
@@ -65,6 +70,18 @@ export function buildFirstRunSteps(
   const ctaSide = dir === "rtl" ? "left" : "right";
 
   const homeSteps: DriveStep[] = [
+    {
+      element: ONBOARDING_TARGETS.homeIntro,
+      ...stepOptions("home-intro"),
+      popover: {
+        title: copy.homeIntroTitle,
+        description: copy.homeIntroDescription,
+        side: "bottom",
+        align: "start",
+        showButtons: ["next", "close"],
+        nextBtnText: copy.next,
+      },
+    },
     {
       element: ONBOARDING_TARGETS.dateRange,
       ...stepOptions("date-range"),
@@ -105,14 +122,28 @@ export function buildFirstRunSteps(
     {
       element: ONBOARDING_TARGETS.cardQuickAdd,
       ...stepOptions("card-quick-add"),
-      advanceOnClick: true,
       disableActiveInteraction: false,
       popover: {
         title: copy.cardQuickAddTitle,
         description: copy.cardQuickAddDescription,
         side: ctaSide,
         align: "start",
-        showButtons: ["close"],
+        showButtons: ["next", "close"],
+        nextBtnText: copy.next,
+      },
+    },
+    {
+      element: ONBOARDING_TARGETS.addTransactionCta,
+      ...stepOptions("add-transaction-cta"),
+      advanceOnClick: true,
+      disableActiveInteraction: false,
+      popover: {
+        title: copy.addCtaTitle,
+        description: copy.addCtaDescription,
+        side: "bottom",
+        align: "start",
+        showButtons: ["next", "close"],
+        nextBtnText: copy.continueToForm,
       },
     },
   ];

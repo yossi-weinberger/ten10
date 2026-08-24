@@ -5,10 +5,12 @@ export type OnboardingPlatform = "web" | "desktop";
 export type TourId = "first-run";
 
 export const HOME_STEP_IDS = [
+  "home-intro",
   "date-range",
   "tithe-balance",
   "opening-balance",
   "card-quick-add",
+  "add-transaction-cta",
 ] as const;
 
 export const FORM_STEP_IDS = [

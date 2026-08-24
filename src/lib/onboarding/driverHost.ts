@@ -10,6 +10,7 @@ export interface OnboardingTourCallbacks {
   onStepViewed: (stepId: StepId) => void;
   onStepCompleted: (stepId: StepId) => void;
   onPaused: () => void;
+  onContinueToForm: () => void;
 }
 
 let activeDriver: Driver | null = null;
@@ -51,6 +52,8 @@ export function startOnboardingTour(input: {
     steps: input.steps,
     animate: true,
     smoothScroll: true,
+    stagePadding: 8,
+    stageRadius: 8,
     allowClose: true,
     allowKeyboardControl: true,
     skipMissingElement: true,
@@ -63,6 +66,15 @@ export function startOnboardingTour(input: {
     popoverClass: POPOVER_CLASS,
     onPopoverRender: (popover) => {
       popover.wrapper.setAttribute("dir", input.dir);
+    },
+    onNextClick: () => {
+      const stepId = getStepId(activeDriver?.getActiveStep());
+      if (stepId === "add-transaction-cta") {
+        callbacks.onStepCompleted(stepId);
+        callbacks.onContinueToForm();
+        return;
+      }
+      activeDriver?.moveNext();
     },
     onHighlightStarted: (_element, step, { index }) => {
       if (!_element && step.element) {
@@ -88,6 +100,11 @@ export function startOnboardingTour(input: {
     onDoneClick: () => {
       const step = activeDriver?.getActiveStep();
       const stepId = step ? getStepId(step) : undefined;
+      if (stepId === "add-transaction-cta") {
+        if (stepId) callbacks.onStepCompleted(stepId);
+        callbacks.onContinueToForm();
+        return;
+      }
       if (stepId) {
         callbacks.onStepCompleted(stepId);
       }
@@ -96,6 +113,12 @@ export function startOnboardingTour(input: {
     },
     onDestroyStarted: () => {
       if (startingDestroy) {
+        return;
+      }
+      const stepId = getStepId(activeDriver?.getActiveStep());
+      if (stepId === "add-transaction-cta") {
+        callbacks.onStepCompleted(stepId);
+        callbacks.onContinueToForm();
         return;
       }
       callbacks.onPaused();

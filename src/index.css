@@ -505,42 +505,74 @@ input[type="number"] {
   }
 }
 
-/* Driver.js popover — TEN10 tokens, logical edges, stay in viewport */
+/* Driver.js popover — match TEN10 shadcn cards and buttons */
 .ten10-driver-popover {
   max-width: min(22rem, calc(100vw - 1.5rem));
+  padding: 1rem 1.1rem 0.9rem;
   background-color: hsl(var(--popover));
   color: hsl(var(--popover-foreground));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
-  box-shadow: 0 10px 30px rgb(0 0 0 / 0.18);
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.04),
+    0 12px 32px rgb(0 0 0 / 0.12);
+  font-family: inherit;
 }
 
 .ten10-driver-popover .driver-popover-title {
+  font-size: 1rem;
   font-weight: 600;
+  letter-spacing: -0.01em;
   color: hsl(var(--foreground));
 }
 
 .ten10-driver-popover .driver-popover-description {
+  margin-top: 0.35rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+.ten10-driver-popover .driver-popover-progress-text {
+  font-size: 0.75rem;
   color: hsl(var(--muted-foreground));
 }
 
 .ten10-driver-popover .driver-popover-footer {
+  margin-top: 0.85rem;
   gap: 0.5rem;
 }
 
 .ten10-driver-popover .driver-popover-footer button {
+  height: 2rem;
+  padding: 0 0.75rem;
+  border: none;
   border-radius: calc(var(--radius) - 2px);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1;
+  text-shadow: none;
 }
 
 .ten10-driver-popover .driver-popover-next-btn {
   background-color: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
-  text-shadow: none;
+}
+
+.ten10-driver-popover .driver-popover-next-btn:hover {
+  background-color: hsl(var(--primary) / 0.9);
 }
 
 .ten10-driver-popover .driver-popover-prev-btn,
 .ten10-driver-popover .driver-popover-close-btn {
   background-color: hsl(var(--secondary));
   color: hsl(var(--secondary-foreground));
-  text-shadow: none;
+}
+
+.ten10-driver-popover .driver-popover-arrow {
+  border-color: hsl(var(--popover));
+}
+
+.driver-overlay {
+  background-color: rgb(15 23 42 / 0.45);
 }

@@ -78,9 +78,9 @@ Lazy namespace `onboarding`: `public/locales/{en,he}/onboarding.json`. No hardco
 
 ## Mobile / RTL
 
-Do not target the Sidebar Add button. On small screens it lives in a closed Sheet; on `md+` the sidebar is collapsed to icons. Home continues from the income card `+` (`data-onboarding="card-quick-add"`).
+Do not target the Sidebar Add button. On small screens it lives in a closed Sheet; on `md+` the sidebar is collapsed to icons. Home finishes on the visible CTA (`data-onboarding="add-transaction-cta"`). Next or the button keeps `tourActive` and opens `/add-transaction`.
 
-First-run steps: `date-range` → `tithe-balance` → `opening-balance` → `card-quick-add` → `transaction-flags` → `recurring-toggle` → `live-balance`. Opening the starting-balance modal destroys the Driver overlay and resumes at `card-quick-add`. Chart and Contact are mentioned only in the success copy.
+First-run steps: `home-intro` → `date-range` → `tithe-balance` → `opening-balance` → `card-quick-add` → `add-transaction-cta` → `transaction-flags` → `recurring-toggle` → `live-balance`. Opening the starting-balance modal destroys the Driver overlay and resumes at `card-quick-add`. Chart and Contact are mentioned only in the success copy.
 
 `.ten10-driver-popover` uses theme tokens and `max-width: min(22rem, calc(100vw - 1.5rem))`.
 

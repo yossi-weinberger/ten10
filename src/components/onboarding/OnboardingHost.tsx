@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { useRouterState } from "@tanstack/react-router";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { PUBLIC_ROUTES } from "@/lib/constants";
@@ -86,6 +86,7 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const { platform } = usePlatform();
   const { t, i18n, ready } = useTranslation("onboarding");
+  const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const hasHydrated = useDonationStore((state) => state._hasHydrated);
   const onboarding = useDonationStore((state) => state.settings.onboarding);
@@ -117,6 +118,10 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
     destroyOnboardingTour();
     refreshTourTick();
   }, [refreshTourTick]);
+
+  const continueToForm = useCallback(() => {
+    void navigate({ to: "/add-transaction" });
+  }, [navigate]);
 
   useEffect(() => {
     if (!hasHydrated || platform === "loading" || isPublicPath) return;
@@ -257,6 +262,8 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
           prev: t("tour.prev"),
           done: t("tour.done"),
           progress: t("tour.progress"),
+          homeIntroTitle: t("tour.homeIntroTitle"),
+          homeIntroDescription: t("tour.homeIntroDescription"),
           dateRangeTitle: t("tour.dateRangeTitle"),
           dateRangeDescription: t("tour.dateRangeDescription"),
           titheBalanceTitle: t("tour.titheBalanceTitle"),
@@ -265,6 +272,9 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
           openingBalanceDescription: t("tour.openingBalanceDescription"),
           cardQuickAddTitle: t("tour.cardQuickAddTitle"),
           cardQuickAddDescription: t("tour.cardQuickAddDescription"),
+          addCtaTitle: t("tour.addCtaTitle"),
+          addCtaDescription: t("tour.addCtaDescription"),
+          continueToForm: t("tour.continueToForm"),
           flagsTitle: t("tour.flagsTitle"),
           flagsDescription: t("tour.flagsDescription"),
           recurringTitle: t("tour.recurringTitle"),
@@ -285,13 +295,14 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
         onStepViewed: trackOnboardingStepViewed,
         onStepCompleted: trackOnboardingStepCompleted,
         onPaused: pauseTour,
+        onContinueToForm: continueToForm,
       },
     });
 
     return () => {
       destroyOnboardingTour();
     };
-  }, [ready, tourActive, pathname, welcomeOpen, isPublicPath, i18n, t, pauseTour, tourTick]);
+  }, [ready, tourActive, pathname, welcomeOpen, isPublicPath, i18n, t, pauseTour, continueToForm, tourTick]);
 
   const handleStart = () => {
     startOnboarding();
