@@ -119,6 +119,7 @@ Highlights of expanded events:
 - Export: `transactions_exported`
 - Settings: `settings_changed`, `reminder_preference_changed`
 - Other: `category_created`, `contact_form_submitted`
+- Onboarding: `onboarding_offered`, `onboarding_started`, `onboarding_step_viewed`, `onboarding_step_completed`, `onboarding_skipped`, `onboarding_completed`, `onboarding_restarted` (properties: `version`, `tour_id`, `step_id` only). See `features/onboarding/new-user-onboarding-guide.md`.
 
 ---
 
@@ -188,7 +189,7 @@ Powered by existing `$pageview` captures. Open [Web Analytics](https://eu.postho
 
 | Feature | Notes |
 |---------|-------|
-| Feature Flags | Ready when needed |
+| Feature Flags | First flag: `new-user-onboarding-v1` (boolean, fail closed on Web). Create it in PostHog UI. See onboarding guide. |
 | Experiments | Needs more traffic |
 | Workflows / alerts | Configure in PostHog UI |
 | CDP / warehouse | Out of scope |
