@@ -482,19 +482,19 @@ export function TransactionForm({
           "space-y-6 p-4 rounded-xl transition-colors duration-500 ease-in-out",
           backgroundStyles[selectedType]
         )}
+        data-onboarding="transaction-form"
       >
-        {/* Type Selection using Tabs - Replaced with new component */}
+        <div className="space-y-6" data-onboarding="transaction-basics">
         <TransactionTypeSelector
           form={form}
           selectedType={selectedType}
           defaultIncomeChomesh={autoCalcChomesh}
         />
 
-        {/* Amount, currency and date fields */}
         <AmountCurrencyDateFields form={form} isRecurring={isRecurringChecked} />
 
-        {/* Description and category/recipient fields */}
         <DescriptionCategoryFields form={form} selectedType={selectedType} />
+        </div>
 
         {/* All checkboxes in one row as squares - Replaced with new component */}
         <TransactionCheckboxes

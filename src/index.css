@@ -520,6 +520,7 @@ input[type="number"] {
 }
 
 .ten10-driver-popover .driver-popover-title {
+  padding-inline-end: 2.25rem;
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -563,10 +564,25 @@ input[type="number"] {
   background-color: hsl(var(--primary) / 0.9);
 }
 
-.ten10-driver-popover .driver-popover-prev-btn,
-.ten10-driver-popover .driver-popover-close-btn {
+.ten10-driver-popover .driver-popover-prev-btn {
   background-color: hsl(var(--secondary));
   color: hsl(var(--secondary-foreground));
+}
+
+.ten10-driver-popover .driver-popover-close-btn {
+  top: 0.55rem;
+  right: unset;
+  left: unset;
+  inset-inline-end: 0.55rem;
+  inset-inline-start: auto;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius);
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  text-shadow: none;
 }
 
 .ten10-driver-popover .driver-popover-arrow {

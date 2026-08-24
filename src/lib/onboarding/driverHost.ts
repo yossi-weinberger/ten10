@@ -69,7 +69,7 @@ export function startOnboardingTour(input: {
     },
     onNextClick: () => {
       const stepId = getStepId(activeDriver?.getActiveStep());
-      if (stepId === "add-transaction-cta") {
+      if (stepId === "continue-to-form") {
         callbacks.onStepCompleted(stepId);
         callbacks.onContinueToForm();
         return;
@@ -100,8 +100,8 @@ export function startOnboardingTour(input: {
     onDoneClick: () => {
       const step = activeDriver?.getActiveStep();
       const stepId = step ? getStepId(step) : undefined;
-      if (stepId === "add-transaction-cta") {
-        if (stepId) callbacks.onStepCompleted(stepId);
+      if (stepId === "continue-to-form") {
+        callbacks.onStepCompleted(stepId);
         callbacks.onContinueToForm();
         return;
       }
@@ -116,7 +116,7 @@ export function startOnboardingTour(input: {
         return;
       }
       const stepId = getStepId(activeDriver?.getActiveStep());
-      if (stepId === "add-transaction-cta") {
+      if (stepId === "continue-to-form") {
         callbacks.onStepCompleted(stepId);
         callbacks.onContinueToForm();
         return;

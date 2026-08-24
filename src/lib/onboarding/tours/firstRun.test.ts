@@ -23,9 +23,13 @@ const copy = {
   openingBalanceDescription: "Set it once",
   cardQuickAddTitle: "Quick add",
   cardQuickAddDescription: "Use the +",
-  addCtaTitle: "Add",
-  addCtaDescription: "Continue",
+  continueToFormTitle: "Ready?",
+  continueToFormDescription: "Open the form",
   continueToForm: "Go to form",
+  formIntroTitle: "Form",
+  formIntroDescription: "The whole form",
+  formBasicsTitle: "Basics",
+  formBasicsDescription: "Type and amount",
   flagsTitle: "Flags",
   flagsDescription: "Chomesh and maaser",
   recurringTitle: "Recurring",
@@ -35,29 +39,25 @@ const copy = {
 };
 
 describe("buildFirstRunSteps", () => {
-  it("drives Home targets including opening balance and card quick-add", () => {
+  it("drives Home targets and a form-continue message without a tour-only CTA", () => {
     const steps = buildFirstRunSteps(copy, "rtl", "/");
 
     expect(steps.map((step) => getStepId(step))).toEqual([...HOME_STEP_IDS]);
     expect(steps[0]?.element).toBe(ONBOARDING_TARGETS.homeIntro);
     expect(steps[3]?.element).toBe(ONBOARDING_TARGETS.openingBalance);
-    expect(steps[5]?.advanceOnClick).toBe(true);
+    expect(steps[4]?.element).toBe(ONBOARDING_TARGETS.cardQuickAdd);
+    expect(steps[5]?.element).toBeUndefined();
     expect(steps[5]?.popover?.nextBtnText).toBe("Go to form");
     expect(steps.every((step) => step.waitForElement === 5000)).toBe(true);
-    expect(steps[4]?.popover?.side).toBe("left");
   });
 
-  it("keeps form steps off the Home drive", () => {
+  it("starts the form tour with the full form, then everyday fields", () => {
     const formSteps = buildFirstRunSteps(copy, "rtl", "/add-transaction");
 
     expect(formSteps.map((step) => getStepId(step))).toEqual([...FORM_STEP_IDS]);
-    expect(formSteps[0]?.element).toBe(ONBOARDING_TARGETS.transactionFlags);
-    expect(formSteps[2]?.element).toBe(ONBOARDING_TARGETS.liveBalance);
-  });
-
-  it("flips interactive popover sides in LTR", () => {
-    const steps = buildFirstRunSteps(copy, "ltr", "/");
-    expect(steps[4]?.popover?.side).toBe("right");
+    expect(formSteps[0]?.element).toBe(ONBOARDING_TARGETS.transactionForm);
+    expect(formSteps[1]?.element).toBe(ONBOARDING_TARGETS.transactionBasics);
+    expect(formSteps[2]?.element).toBe(ONBOARDING_TARGETS.transactionFlags);
   });
 
   it("resumes the Home tour after the opening-balance modal", () => {

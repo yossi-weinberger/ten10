@@ -370,10 +370,11 @@ export function StatsCards({
 
   return (
     <div className={rootContainerClass}>
-      <div
-        className="flex justify-end gap-2 items-center flex-wrap"
-        data-onboarding="date-range"
-      >
+      <div className="flex justify-end">
+        <div
+          className="inline-flex w-fit max-w-full flex-wrap items-center justify-end gap-2"
+          data-onboarding="date-range"
+        >
         {(Object.keys(dateRangeLabels) as DateRangeSelectionType[])
           .filter((rangeKey) => rangeKey !== "custom")
           .map((rangeKey) => (
@@ -422,6 +423,7 @@ export function StatsCards({
           }
           className="w-auto"
         />
+        </div>
       </div>
 
       <div className={containerClass} data-onboarding="live-balance">
@@ -449,6 +451,14 @@ export function StatsCards({
             addButtonOnboarding="opening-balance"
           />
         </motion.div>
+        <div
+          data-onboarding="card-quick-add"
+          className={
+            orientation === "horizontal"
+              ? "col-span-2 grid grid-cols-3 gap-4 xl:col-span-3"
+              : "col-span-2 grid grid-cols-2 gap-4 md:col-span-1 md:grid-cols-1"
+          }
+        >
         <StatCard
           title={`${t("statsCards.income.title")} (${
             activeDateRangeObject.label ?? ""
@@ -462,7 +472,6 @@ export function StatsCards({
           onAddClick={handleIncomeAdd}
           showAddButton={true}
           addButtonTooltip={t("statsCards.income.addIncome")}
-          addButtonOnboarding="card-quick-add"
         />
         <StatCard
           title={`${t("statsCards.expenses.title")} (${
@@ -491,6 +500,7 @@ export function StatsCards({
           showAddButton={true}
           addButtonTooltip={t("statsCards.donations.addDonation")}
         />
+        </div>
       </div>
 
       <OpeningBalanceModal

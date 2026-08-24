@@ -20,6 +20,7 @@ import {
   AlertCircle,
   Sparkles,
   Mail,
+  RotateCcw,
 } from "lucide-react";
 import { usePlatform } from "@/contexts/PlatformContext";
 import {
@@ -194,23 +195,25 @@ export function VersionInfoCard() {
               variant="outline"
               size="sm"
             >
-              <Sparkles className="mr-2 h-4 w-4" />
+              <Sparkles className="h-4 w-4" />
               {t("versionInfo.whatsNewButton")}
             </Button>
           </div>
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="w-full justify-start"
-          onClick={() => {
-            restartTour();
-            void navigate({ to: "/" });
-          }}
-        >
-          {tOnboarding("restart.button")}
-        </Button>
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              restartTour();
+              void navigate({ to: "/" });
+            }}
+          >
+            <RotateCcw className="h-4 w-4" />
+            {tOnboarding("restart.button")}
+          </Button>
+        </div>
 
         {/* Update Status */}
         {checkStatus !== "idle" && (

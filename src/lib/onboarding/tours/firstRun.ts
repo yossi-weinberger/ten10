@@ -22,9 +22,13 @@ export interface FirstRunCopy {
   openingBalanceDescription: string;
   cardQuickAddTitle: string;
   cardQuickAddDescription: string;
-  addCtaTitle: string;
-  addCtaDescription: string;
+  continueToFormTitle: string;
+  continueToFormDescription: string;
   continueToForm: string;
+  formIntroTitle: string;
+  formIntroDescription: string;
+  formBasicsTitle: string;
+  formBasicsDescription: string;
   flagsTitle: string;
   flagsDescription: string;
   recurringTitle: string;
@@ -126,22 +130,17 @@ export function buildFirstRunSteps(
       popover: {
         title: copy.cardQuickAddTitle,
         description: copy.cardQuickAddDescription,
-        side: ctaSide,
+        side: "top",
         align: "start",
         showButtons: ["next", "close"],
         nextBtnText: copy.next,
       },
     },
     {
-      element: ONBOARDING_TARGETS.addTransactionCta,
-      ...stepOptions("add-transaction-cta"),
-      advanceOnClick: true,
-      disableActiveInteraction: false,
+      ...stepOptions("continue-to-form"),
       popover: {
-        title: copy.addCtaTitle,
-        description: copy.addCtaDescription,
-        side: "bottom",
-        align: "start",
+        title: copy.continueToFormTitle,
+        description: copy.continueToFormDescription,
         showButtons: ["next", "close"],
         nextBtnText: copy.continueToForm,
       },
@@ -149,6 +148,30 @@ export function buildFirstRunSteps(
   ];
 
   const formSteps: DriveStep[] = [
+    {
+      element: ONBOARDING_TARGETS.transactionForm,
+      ...stepOptions("transaction-form"),
+      popover: {
+        title: copy.formIntroTitle,
+        description: copy.formIntroDescription,
+        side: "top",
+        align: "start",
+        showButtons: ["next", "close"],
+        nextBtnText: copy.next,
+      },
+    },
+    {
+      element: ONBOARDING_TARGETS.transactionBasics,
+      ...stepOptions("transaction-basics"),
+      popover: {
+        title: copy.formBasicsTitle,
+        description: copy.formBasicsDescription,
+        side: "bottom",
+        align: "start",
+        showButtons: ["next", "close"],
+        nextBtnText: copy.next,
+      },
+    },
     {
       element: ONBOARDING_TARGETS.transactionFlags,
       ...stepOptions("transaction-flags"),

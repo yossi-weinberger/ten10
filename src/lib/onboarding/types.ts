@@ -10,10 +10,12 @@ export const HOME_STEP_IDS = [
   "tithe-balance",
   "opening-balance",
   "card-quick-add",
-  "add-transaction-cta",
+  "continue-to-form",
 ] as const;
 
 export const FORM_STEP_IDS = [
+  "transaction-form",
+  "transaction-basics",
   "transaction-flags",
   "recurring-toggle",
   "live-balance",
