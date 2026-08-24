@@ -93,6 +93,9 @@
     "selectRow": "Select transaction: {{description}}",
     "selectRecurringRow": "Select recurring transaction: {{description}}"
   },
+  "bulkFeedback": {
+    "refreshWarning": "Changes were saved, but the table could not refresh. Data may be stale; refresh it to see the latest values."
+  },
   "bulkEdit": {
     "fieldLabel": "Field to update",
     "valueLabel": "New value",

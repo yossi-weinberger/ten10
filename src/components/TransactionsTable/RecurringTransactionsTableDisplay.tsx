@@ -245,7 +245,7 @@ export function RecurringTransactionsTableDisplay() {
     );
 
     try {
-      await deleteRecurringBulkAction(selectedRecurringIds);
+      const result = await deleteRecurringBulkAction(selectedRecurringIds);
       toast.dismiss(toastId);
       toast.success(
         t("bulkDelete.recurring.toast.success", {
@@ -254,6 +254,9 @@ export function RecurringTransactionsTableDisplay() {
       );
       clearSelection();
       setIsBulkDeleteDialogOpen(false);
+      if (result.refreshError) {
+        toast.warning(t("bulkFeedback.refreshWarning"));
+      }
     } catch (err: unknown) {
       logger.error("Failed to bulk delete recurring transactions:", err);
       toast.dismiss(toastId);
@@ -305,7 +308,10 @@ export function RecurringTransactionsTableDisplay() {
     );
 
     try {
-      await updateRecurringBulkAction(selectedRecurringIds, change);
+      const result = await updateRecurringBulkAction(
+        selectedRecurringIds,
+        change
+      );
       toast.dismiss(toastId);
       setIsBulkEditOpen(false);
       requestAnimationFrame(() => {
@@ -315,6 +321,9 @@ export function RecurringTransactionsTableDisplay() {
             count: selectedRecurringIds.length,
           })
         );
+        if (result.refreshError) {
+          toast.warning(t("bulkFeedback.refreshWarning"));
+        }
       });
     } catch (err: unknown) {
       logger.error("Failed to bulk update recurring transactions:", err);

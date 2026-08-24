@@ -125,21 +125,37 @@ describe("table transaction bulk store actions", () => {
     expect(useTableTransactionsStore.getState().bulkError).toBeNull();
   });
 
-  it("stores and rethrows bulk errors without refreshing", async () => {
-    mockUpdateTransactionsBulk.mockRejectedValue(new Error("bulk failed"));
+  it.each([
+    [
+      "delete",
+      mockDeleteTransactionsBulk,
+      () =>
+        useTableTransactionsStore
+          .getState()
+          .deleteTransactionsBulk(["t1"], "web"),
+    ],
+    [
+      "update",
+      mockUpdateTransactionsBulk,
+      () =>
+        useTableTransactionsStore.getState().updateTransactionsBulk(
+          ["t1"],
+          { kind: "transaction", field: "category", value: "salary" },
+          "web",
+        ),
+    ],
+  ])(
+    "rejects transaction bulk %s mutation failures without refreshing",
+    async (_operation, mutation, mutate) => {
+      mutation.mockRejectedValue(new Error("bulk failed"));
 
-    await expect(
-      useTableTransactionsStore.getState().updateTransactionsBulk(
-        ["t1"],
-        { kind: "transaction", field: "category", value: "salary" },
-        "web",
-      ),
-    ).rejects.toThrow("bulk failed");
+      await expect(mutate()).rejects.toThrow("bulk failed");
 
-    expect(mockFetchTransactions).not.toHaveBeenCalled();
-    expect(useTableTransactionsStore.getState().bulkLoading).toBe(false);
-    expect(useTableTransactionsStore.getState().bulkError).toBe("bulk failed");
-  });
+      expect(mockFetchTransactions).not.toHaveBeenCalled();
+      expect(useTableTransactionsStore.getState().bulkLoading).toBe(false);
+      expect(useTableTransactionsStore.getState().bulkError).toBe("bulk failed");
+    },
+  );
 
   it("updates in one service call and refreshes once", async () => {
     const change = { kind: "transaction", field: "category", value: "salary" } as const;
@@ -171,20 +187,49 @@ describe("table transaction bulk store actions", () => {
         "web",
       )],
   ])(
-    "rejects transaction bulk %s when its post-mutation refresh fails",
+    "resolves transaction bulk %s with a warning when refresh fails",
     async (_operation, mutate) => {
       const refreshError = { message: "refresh failed" };
       mockFetchTransactions.mockRejectedValue(refreshError);
 
-      await expect(mutate()).rejects.toEqual(refreshError);
+      await expect(mutate()).resolves.toEqual({
+        refreshError: "refresh failed",
+      });
 
       expect(useTableTransactionsStore.getState().error).toBe("refresh failed");
-      expect(useTableTransactionsStore.getState().bulkError).toBe(
-        "refresh failed",
-      );
+      expect(useTableTransactionsStore.getState().bulkError).toBeNull();
       expect(useTableTransactionsStore.getState().bulkLoading).toBe(false);
     },
   );
+
+  it("restores transaction rows and pagination when a bulk refresh fails", async () => {
+    const transactions = [
+      { id: "t1", description: "First" } as Transaction,
+      { id: "t2", description: "Second" } as Transaction,
+    ];
+    const pagination = {
+      currentPage: 2,
+      itemsPerPage: 20,
+      totalCount: 35,
+      hasMore: true,
+    };
+    useTableTransactionsStore.setState({
+      transactions,
+      pagination,
+      totalCount: 35,
+    });
+    mockFetchTransactions.mockRejectedValue(new Error("refresh failed"));
+
+    await useTableTransactionsStore
+      .getState()
+      .deleteTransactionsBulk(["t1"], "web");
+
+    expect(useTableTransactionsStore.getState().transactions).toEqual(
+      transactions,
+    );
+    expect(useTableTransactionsStore.getState().pagination).toEqual(pagination);
+    expect(useTableTransactionsStore.getState().totalCount).toBe(35);
+  });
 
   it("rejects a second transaction bulk delete while the first is pending", async () => {
     const pendingDelete = createDeferred();
@@ -283,6 +328,36 @@ describe("recurring transaction bulk store actions", () => {
     expect(useRecurringTableStore.getState().bulkError).toBeNull();
   });
 
+  it.each([
+    [
+      "delete",
+      mockDeleteRecurringBulk,
+      () =>
+        useRecurringTableStore.getState().deleteRecurringBulk(["r1"]),
+    ],
+    [
+      "update",
+      mockUpdateRecurringBulk,
+      () =>
+        useRecurringTableStore.getState().updateRecurringBulk(["r1"], {
+          kind: "recurring",
+          field: "payment_method",
+          value: "card",
+        }),
+    ],
+  ])(
+    "rejects recurring bulk %s mutation failures without refreshing",
+    async (_operation, mutation, mutate) => {
+      mutation.mockRejectedValue(new Error("bulk failed"));
+
+      await expect(mutate()).rejects.toThrow("bulk failed");
+
+      expect(mockFetchAllRecurring).not.toHaveBeenCalled();
+      expect(useRecurringTableStore.getState().bulkLoading).toBe(false);
+      expect(useRecurringTableStore.getState().bulkError).toBe("bulk failed");
+    },
+  );
+
   it("rejects a second recurring bulk delete while the first is pending", async () => {
     const pendingDelete = createDeferred();
     mockDeleteRecurringBulk.mockReturnValueOnce(pendingDelete.promise);
@@ -333,17 +408,17 @@ describe("recurring transaction bulk store actions", () => {
         value: "card",
       })],
   ])(
-    "rejects recurring bulk %s when its post-mutation refresh fails",
+    "resolves recurring bulk %s with a warning when refresh fails",
     async (_operation, mutate) => {
       const refreshError = { message: "refresh failed" };
       mockFetchAllRecurring.mockRejectedValue(refreshError);
 
-      await expect(mutate()).rejects.toEqual(refreshError);
+      await expect(mutate()).resolves.toEqual({
+        refreshError: "refresh failed",
+      });
 
       expect(useRecurringTableStore.getState().error).toBe("refresh failed");
-      expect(useRecurringTableStore.getState().bulkError).toBe(
-        "refresh failed",
-      );
+      expect(useRecurringTableStore.getState().bulkError).toBeNull();
       expect(useRecurringTableStore.getState().bulkLoading).toBe(false);
     },
   );

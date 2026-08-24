@@ -19,6 +19,10 @@ export type RecurringBulkChange = {
   value: string | null;
 };
 
+export type BulkMutationResult = {
+  refreshError: string | null;
+};
+
 export type TransactionBulkRow = Pick<
   Transaction,
   "id" | "type" | "payment_method" | "category"

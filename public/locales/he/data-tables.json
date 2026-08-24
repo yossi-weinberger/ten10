@@ -75,6 +75,9 @@
     "selectRow": "בחר תנועה: {{description}}",
     "selectRecurringRow": "בחר הוראת קבע: {{description}}"
   },
+  "bulkFeedback": {
+    "refreshWarning": "השינויים נשמרו, אך רענון הטבלה נכשל. ייתכן שהנתונים אינם מעודכנים; יש לרענן כדי לראות את הערכים האחרונים."
+  },
   "bulkEdit": {
     "fieldLabel": "שדה לעדכון",
     "valueLabel": "ערך חדש",

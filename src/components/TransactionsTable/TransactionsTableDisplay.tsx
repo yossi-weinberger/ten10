@@ -315,7 +315,10 @@ export function TransactionsTableDisplay() {
     );
 
     try {
-      await deleteTransactionsBulk(selectedTransactionIds, platform);
+      const result = await deleteTransactionsBulk(
+        selectedTransactionIds,
+        platform
+      );
       toast.dismiss(toastId);
       toast.success(
         t("bulkDelete.transactions.toast.success", {
@@ -324,6 +327,9 @@ export function TransactionsTableDisplay() {
       );
       clearSelection();
       setIsBulkDeleteDialogOpen(false);
+      if (result.refreshError) {
+        toast.warning(t("bulkFeedback.refreshWarning"));
+      }
     } catch (err: unknown) {
       logger.error("Failed to bulk delete transactions:", err);
       toast.dismiss(toastId);
@@ -371,7 +377,11 @@ export function TransactionsTableDisplay() {
     );
 
     try {
-      await updateTransactionsBulk(selectedTransactionIds, change, platform);
+      const result = await updateTransactionsBulk(
+        selectedTransactionIds,
+        change,
+        platform
+      );
       toast.dismiss(toastId);
       setIsBulkEditOpen(false);
       requestAnimationFrame(() => {
@@ -381,6 +391,9 @@ export function TransactionsTableDisplay() {
             count: selectedTransactionIds.length,
           })
         );
+        if (result.refreshError) {
+          toast.warning(t("bulkFeedback.refreshWarning"));
+        }
       });
     } catch (err: unknown) {
       logger.error("Failed to bulk update transactions:", err);

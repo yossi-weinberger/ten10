@@ -19,7 +19,7 @@ This document provides a historical reference and status overview of the Transac
 - ✅ **Deletion**: Confirmation dialog with optimistic updates
 - ✅ **Load More**: Pagination with "Load More" button
 - ✅ **Bulk selection**: Loaded-only row checkboxes, tri-state header, select-all-loaded (no select-all-filtered)
-- ✅ **Bulk delete/update**: Atomic Web RPC + Desktop Tauri handlers; Web RPCs enforce a runtime ownership guard; recurring bulk update currently allows `payment_method` and `category` only (`status` is deferred pending atomic recurring execution); no optimistic bulk; the stores refetch once before resolving successful delete/update actions; no Undo; no PostHog events
+- ✅ **Bulk delete/update**: Atomic Web RPC + Desktop Tauri handlers; Web RPCs enforce a runtime ownership guard; recurring bulk update currently allows `payment_method` and `category` only (`status` is deferred pending atomic recurring execution); no optimistic bulk; the stores refetch once after a committed mutation and resolve refresh-only failures as stale-data warnings; no Undo; no PostHog events
 - ✅ **Export**: CSV, Excel, and PDF export
 - ✅ **Import**: CSV/Excel import via review wizard — see `transaction-import-guide.md` (with month separators in PDF when sorting by date). On **desktop**, save uses `src/lib/utils/save-export-file.ts` (`dialog.save` + `writeFile`); cancelling the dialog sets `EXPORT_DESKTOP_SAVE_CANCELLED` (no success toast).
 - ❌ **Real-time Updates**: Removed (rely on optimistic updates and manual refresh)
@@ -171,12 +171,12 @@ interface TableTransactionsState {
     platform: Platform
   ) => Promise<void>;
   deleteTransaction: (id: string, platform: Platform) => Promise<void>;
-  deleteTransactionsBulk: (ids: readonly string[], platform: Platform) => Promise<void>;
+  deleteTransactionsBulk: (ids: readonly string[], platform: Platform) => Promise<BulkMutationResult>;
   updateTransactionsBulk: (
     ids: readonly string[],
     change: TransactionBulkChange,
     platform: Platform
-  ) => Promise<void>;
+  ) => Promise<BulkMutationResult>;
   exportTransactions: (
     format: "csv" | "excel" | "pdf",
     platform: Platform
@@ -196,7 +196,7 @@ interface TableTransactionsState {
 - Backup of original data (within async operation)
 - Rollback on failure (within async operation)
 
-**Bulk actions are not optimistic.** `deleteTransactionsBulk` and `updateTransactionsBulk` wait for the backend, then await `fetchTransactions(true)` once before resolving. The recurring table follows the same pattern with `fetchRecurring()`. After a successful store action, the UI closes the modal, clears selection, and shows the success toast.
+**Bulk actions are not optimistic.** `deleteTransactionsBulk` and `updateTransactionsBulk` wait for the backend, then await `fetchTransactions(true)` once. Mutation failures reject, set `bulkError`, and skip refresh. If the mutation commits but refresh fails, the action resolves with `{ refreshError }`, keeps `bulkError` clear, and leaves the fetch problem in the table `error`; the transactions store restores the rows and pagination captured before the reset refresh. The recurring table follows the same result contract with `fetchRecurring()`. The UI treats refresh-only failure as committed success: it closes the dialog, clears selection, shows the success toast, and adds a localized stale-data warning.
 
 ## Supabase RPC Functions
 
@@ -382,7 +382,7 @@ WITH CHECK (auth.uid() = user_id);
 ### Recently Added (bulk actions)
 
 16. ✅ **Bulk selection**: `useLoadedRowSelection` — loaded-only, tri-state header, select-all-loaded; selection cleared on filter/sort change; pruned on Load More
-17. ✅ **Bulk delete/update**: Web RPC + Desktop Tauri; no optimistic bulk; delete and update each refetch once from the store before resolving; tests in `bulkActions.test.ts`, `bulkOperations.store.test.ts`, `bulkOperations.service.test.ts`, and Rust `#[test]` modules in `transaction_commands.rs` / `recurring_transaction_commands.rs`
+17. ✅ **Bulk delete/update**: Web RPC + Desktop Tauri; no optimistic bulk; delete and update each refetch once after commit; refresh-only failures resolve with a typed stale-data warning while mutation failures still reject; tests in `bulkActions.test.ts`, `bulkOperations.store.test.ts`, `bulkOperations.service.test.ts`, and Rust `#[test]` modules in `transaction_commands.rs` / `recurring_transaction_commands.rs`
 
 ### Not Yet Implemented
 

@@ -17,7 +17,10 @@ import { EXPORT_DESKTOP_SAVE_CANCELLED } from "../utils/save-export-file";
 import i18n from "../i18n"; // For current language
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
-import type { TransactionBulkChange } from "./bulkActions";
+import type {
+  BulkMutationResult,
+  TransactionBulkChange,
+} from "./bulkActions";
 import { getErrorMessage } from "@/lib/utils/error-message";
 
 export interface TableTransactionsState {
@@ -49,7 +52,7 @@ export interface TableTransactionsState {
   deleteTransactionsBulk: (
     ids: readonly string[],
     platform: Platform
-  ) => Promise<void>;
+  ) => Promise<BulkMutationResult>;
   updateTransaction: (
     id: string,
     updates: Partial<Transaction>,
@@ -59,7 +62,7 @@ export interface TableTransactionsState {
     ids: readonly string[],
     change: TransactionBulkChange,
     platform: Platform
-  ) => Promise<void>;
+  ) => Promise<BulkMutationResult>;
   exportTransactions: (
     format: "csv" | "excel" | "pdf",
     platform: Platform
@@ -116,8 +119,11 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
       }
       const requestGeneration = ++fetchGeneration;
       const { filters, sorting, pagination } = get();
+      const originalTransactions = get().transactions;
+      const originalPagination = pagination;
+      const originalTotalCount = get().totalCount;
       let currentPage = pagination.currentPage;
-      let currentTransactions = get().transactions;
+      let currentTransactions = originalTransactions;
 
       if (reset) {
         currentPage = 1;
@@ -187,6 +193,13 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         }
         logger.error("Failed to fetch table transactions:", err);
         set({
+          ...(reset && rejectOnError
+            ? {
+                transactions: originalTransactions,
+                pagination: originalPagination,
+                totalCount: originalTotalCount,
+              }
+            : {}),
           error: getErrorMessage(err) ?? "Failed to fetch transactions",
           loading: false,
         });
@@ -331,13 +344,22 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
 
       try {
         await TableTransactionsService.deleteTransactionsBulk(ids, platform);
-        await get().fetchTransactions(true, platform, true);
-        set({ bulkLoading: false });
       } catch (err: unknown) {
         const message =
           getErrorMessage(err) ?? "Failed to delete transactions.";
         set({ bulkError: message, bulkLoading: false });
         throw err;
+      }
+
+      try {
+        await get().fetchTransactions(true, platform, true);
+        set({ bulkLoading: false });
+        return { refreshError: null };
+      } catch (err: unknown) {
+        const refreshError =
+          getErrorMessage(err) ?? "Failed to refresh transactions.";
+        set({ bulkLoading: false });
+        return { refreshError };
       }
     },
 
@@ -354,13 +376,22 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           change,
           platform
         );
-        await get().fetchTransactions(true, platform, true);
-        set({ bulkLoading: false });
       } catch (err: unknown) {
         const message =
           getErrorMessage(err) ?? "Failed to update transactions.";
         set({ bulkError: message, bulkLoading: false });
         throw err;
+      }
+
+      try {
+        await get().fetchTransactions(true, platform, true);
+        set({ bulkLoading: false });
+        return { refreshError: null };
+      } catch (err: unknown) {
+        const refreshError =
+          getErrorMessage(err) ?? "Failed to refresh transactions.";
+        set({ bulkLoading: false });
+        return { refreshError };
       }
     },
 
