@@ -154,6 +154,37 @@ export function getBulkRecipientFamily(
   return null;
 }
 
+export const INITIAL_BULK_FIELD_ACTIONS: BulkPatchFieldActions = {
+  payment_method: { action: "untouched" },
+  category: { action: "untouched" },
+  description: { action: "untouched" },
+  recipient: { action: "untouched" },
+  is_chomesh: { action: "untouched" },
+};
+
+export function normalizeBulkFieldActions(
+  actions: BulkPatchFieldActions,
+): BulkPatchFieldActions {
+  return {
+    payment_method: normalizeTextFieldAction(actions.payment_method),
+    category: normalizeTextFieldAction(actions.category),
+    description: normalizeTextFieldAction(actions.description),
+    recipient: normalizeTextFieldAction(actions.recipient),
+    is_chomesh: actions.is_chomesh,
+  };
+}
+
+function normalizeTextFieldAction(action: BulkFieldAction): BulkFieldAction {
+  if (action.action !== "set" || typeof action.value !== "string") {
+    return action;
+  }
+
+  const normalized = action.value.trim();
+  return normalized.length > 0
+    ? { action: "set", value: normalized }
+    : { action: "clear" };
+}
+
 export function buildBulkPatch(
   actions: BulkPatchFieldActions,
 ): TransactionBulkPatch {

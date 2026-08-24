@@ -16,35 +16,20 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Label } from "@/components/ui/label";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useMediaQuery } from "@/hooks/use-media-query";
-import { getBulkFieldGridClassName } from "@/lib/tableTransactions/bulkActions";
 import { cn } from "@/lib/utils";
-
-export interface BulkEditFieldOption {
-  value: string;
-  label: string;
-  icon?: ReactNode;
-  disabled?: boolean;
-}
 
 export interface BulkEditDialogProps {
   open: boolean;
   title: string;
   description: string;
-  fieldLabel: string;
-  valueLabel: string;
   cancelLabel: string;
   submitLabel: string;
   pendingLabel: string;
   pending: boolean;
   submitDisabled?: boolean;
-  fields: readonly BulkEditFieldOption[];
-  selectedField: string;
-  valueEditor: ReactNode;
+  children: ReactNode;
   onOpenChange: (open: boolean) => void;
-  onFieldChange: (field: string) => void;
   onSubmit: () => void;
   dir?: "rtl" | "ltr";
 }
@@ -53,18 +38,13 @@ export function BulkEditDialog({
   open,
   title,
   description,
-  fieldLabel,
-  valueLabel,
   cancelLabel,
   submitLabel,
   pendingLabel,
   pending,
   submitDisabled = false,
-  fields,
-  selectedField,
-  valueEditor,
+  children,
   onOpenChange,
-  onFieldChange,
   onSubmit,
   dir = "rtl",
 }: BulkEditDialogProps) {
@@ -104,52 +84,6 @@ export function BulkEditDialog({
     }
   };
 
-  const renderFieldSelector = () => (
-    <div className="space-y-2">
-      <Label id="bulk-edit-field-label">{fieldLabel}</Label>
-      <ToggleGroup
-        type="single"
-        dir={dir}
-        value={selectedField}
-        onValueChange={(value) => {
-          if (value) {
-            onFieldChange(value);
-          }
-        }}
-        className={cn(
-          "grid items-stretch gap-2",
-          getBulkFieldGridClassName(fields.length)
-        )}
-        aria-labelledby="bulk-edit-field-label"
-      >
-        {fields.map((field) => (
-          <ToggleGroupItem
-            key={field.value}
-            value={field.value}
-            dir={dir}
-            className={cn(
-              "h-full min-h-14 justify-start gap-2 whitespace-normal rounded-md border px-3 py-2 text-start hover:bg-accent hover:text-accent-foreground data-[state=on]:border-primary data-[state=on]:bg-primary data-[state=on]:text-primary-foreground",
-              dir === "rtl" && "text-right"
-            )}
-            disabled={pending || field.disabled}
-          >
-            {field.icon}
-            {field.label}
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
-    </div>
-  );
-
-  const renderValueEditor = () => (
-    <div className="space-y-2">
-      <Label id="bulk-edit-value-label">{valueLabel}</Label>
-      <div role="group" aria-labelledby="bulk-edit-value-label">
-        {valueEditor}
-      </div>
-    </div>
-  );
-
   const renderActions = (isDrawer: boolean) => {
     const buttonClassName = isDrawer ? "min-h-11 w-full" : undefined;
 
@@ -166,12 +100,7 @@ export function BulkEditDialog({
         </Button>
         <Button
           type="submit"
-          disabled={
-            pending ||
-            submitDisabled ||
-            fields.length === 0 ||
-            selectedField === ""
-          }
+          disabled={pending || submitDisabled}
           className={buttonClassName}
         >
           {pending ? pendingLabel : submitLabel}
@@ -181,12 +110,8 @@ export function BulkEditDialog({
   };
 
   const renderForm = (footer: ReactNode, className?: string) => (
-    <form
-      className={cn("space-y-4", className)}
-      onSubmit={handleSubmit}
-    >
-      {renderFieldSelector()}
-      {renderValueEditor()}
+    <form className={cn("space-y-4", className)} onSubmit={handleSubmit}>
+      {children}
       {footer}
     </form>
   );
@@ -231,11 +156,7 @@ export function BulkEditDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
 
-        {renderForm(
-          <DialogFooter>
-            {renderActions(false)}
-          </DialogFooter>
-        )}
+        {renderForm(<DialogFooter>{renderActions(false)}</DialogFooter>)}
       </DialogContent>
     </Dialog>
   );

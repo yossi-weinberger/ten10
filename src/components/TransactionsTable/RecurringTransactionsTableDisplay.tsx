@@ -4,7 +4,6 @@ import {
   useState,
   useCallback,
   useRef,
-  type ReactNode,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { logger } from "@/lib/logger";
@@ -24,10 +23,8 @@ import {
 import { toast } from "sonner";
 import { deleteRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
 import {
-  CreditCard,
   InfoIcon,
   MoreHorizontal,
-  Tags,
 } from "lucide-react";
 import { RecurringTransaction, TransactionType } from "@/types/transaction";
 import { recurringStatusBadgeColors } from "@/types/recurringTransactionLabels";
@@ -53,25 +50,19 @@ import { usePlatform } from "@/contexts/PlatformContext";
 import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversionInfo";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 import { BulkEditDialog } from "./BulkEditDialog";
-import { PaymentMethodCombobox } from "@/components/ui/payment-method-combobox";
-import { CategoryCombobox } from "@/components/ui/category-combobox";
+import { BulkEditFields } from "./BulkEditFields";
 import { useLoadedRowSelection } from "@/hooks/useLoadedRowSelection";
 import {
+  assertBulkPatch,
+  buildBulkPatch,
   getBulkCategoryFamily,
   getBulkEditAvailability,
   getSelectionActionMode,
-  type RecurringBulkChange,
-  type RecurringBulkField,
+  INITIAL_BULK_FIELD_ACTIONS,
+  normalizeBulkFieldActions,
 } from "@/lib/tableTransactions/bulkActions";
 import { getErrorMessage } from "@/lib/utils/error-message";
 
-type RecurringBulkEditField = RecurringBulkField;
-type BulkEditValueAction = "untouched" | "set" | "clear";
-
-function normalizeNullableBulkValue(value: string | null): string | null {
-  const normalized = value?.trim() ?? "";
-  return normalized.length > 0 ? normalized : null;
-}
 
 export function RecurringTransactionsTableDisplay() {
   const { t, i18n } = useTranslation(["data-tables", "transactions"]);
@@ -84,14 +75,9 @@ export function RecurringTransactionsTableDisplay() {
     useState<RecurringTransaction | null>(null);
   const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
-  const [bulkEditField, setBulkEditField] =
-    useState<RecurringBulkEditField | "">("");
-  const [bulkPaymentMethod, setBulkPaymentMethod] = useState<string | null>(null);
-  const [bulkPaymentMethodAction, setBulkPaymentMethodAction] =
-    useState<BulkEditValueAction>("untouched");
-  const [bulkCategory, setBulkCategory] = useState<string | null>(null);
-  const [bulkCategoryAction, setBulkCategoryAction] =
-    useState<BulkEditValueAction>("untouched");
+  const [bulkFieldActions, setBulkFieldActions] = useState(
+    INITIAL_BULK_FIELD_ACTIONS,
+  );
 
   const {
     recurring,
@@ -159,49 +145,36 @@ export function RecurringTransactionsTableDisplay() {
     }
   };
 
-  const recurringBulkFields: {
-    value: RecurringBulkEditField;
-    label: string;
-    icon: ReactNode;
-  }[] = [];
-  const paymentMethodAvailability = getBulkEditAvailability({
-    kind: "recurring",
-    rows: selectedRecurring,
-    field: "payment_method",
-  });
-  const categoryAvailability = getBulkEditAvailability({
-    kind: "recurring",
-    rows: selectedRecurring,
-    field: "category",
-  });
-
-  if (paymentMethodAvailability.allowed) {
-    recurringBulkFields.push({
-      value: "payment_method",
-      label: t("bulkEdit.fields.paymentMethod"),
-      icon: <CreditCard aria-hidden="true" className="h-4 w-4" />,
-    });
-  }
-
-  if (categoryAvailability.allowed) {
-    recurringBulkFields.push({
-      value: "category",
-      label: t("bulkEdit.fields.category"),
-      icon: <Tags aria-hidden="true" className="h-4 w-4" />,
-    });
-  }
-
-  const activeBulkEditField = recurringBulkFields.some(
-    (field) => field.value === bulkEditField
-  )
-    ? bulkEditField
-    : recurringBulkFields[0]?.value ?? "";
+  const bulkFieldAvailability = {
+    description: getBulkEditAvailability({
+      kind: "recurring",
+      rows: selectedRecurring,
+      field: "description",
+    }).allowed,
+    payment_method: getBulkEditAvailability({
+      kind: "recurring",
+      rows: selectedRecurring,
+      field: "payment_method",
+    }).allowed,
+    category: getBulkEditAvailability({
+      kind: "recurring",
+      rows: selectedRecurring,
+      field: "category",
+    }).allowed,
+    recipient: getBulkEditAvailability({
+      kind: "recurring",
+      rows: selectedRecurring,
+      field: "recipient",
+    }).allowed,
+    is_chomesh: getBulkEditAvailability({
+      kind: "recurring",
+      rows: selectedRecurring,
+      field: "is_chomesh",
+    }).allowed,
+  };
 
   const resetBulkEditValues = useCallback(() => {
-    setBulkPaymentMethod(null);
-    setBulkPaymentMethodAction("untouched");
-    setBulkCategory(null);
-    setBulkCategoryAction("untouched");
+    setBulkFieldActions(INITIAL_BULK_FIELD_ACTIONS);
   }, []);
 
   const handleBulkEditOpenChange = useCallback(
@@ -245,20 +218,10 @@ export function RecurringTransactionsTableDisplay() {
     setIsBulkDeleteDialogOpen(true);
   }, [handleDeleteClick, selectedRecurring, selectionActionMode]);
 
-  const bulkEditSubmitDisabled = (() => {
-    switch (activeBulkEditField) {
-      case "payment_method":
-        return bulkPaymentMethodAction === "untouched";
-      case "category":
-        return bulkCategoryFamily === null || bulkCategoryAction === "untouched";
-      case "":
-        return true;
-      default: {
-        const exhaustive: never = activeBulkEditField;
-        return exhaustive;
-      }
-    }
-  })();
+  const bulkEditPatch = buildBulkPatch(
+    normalizeBulkFieldActions(bulkFieldActions),
+  );
+  const bulkEditSubmitDisabled = Object.keys(bulkEditPatch).length === 0;
 
   const handleBulkDeleteConfirm = useCallback(async () => {
     if (selectedRecurringIds.length === 0) {
@@ -297,38 +260,17 @@ export function RecurringTransactionsTableDisplay() {
   }, [clearSelection, deleteRecurringBulkAction, selectedRecurringIds, t]);
 
   const handleBulkEditSubmit = useCallback(async () => {
-    if (selectedRecurringIds.length === 0 || activeBulkEditField === "") {
+    if (selectedRecurringIds.length === 0) {
       return;
     }
 
-    let change: RecurringBulkChange;
-
-    switch (activeBulkEditField) {
-      case "payment_method":
-        change = {
-          kind: "recurring",
-          field: "payment_method",
-          value:
-            bulkPaymentMethodAction === "clear"
-              ? null
-              : normalizeNullableBulkValue(bulkPaymentMethod),
-        };
-        break;
-      case "category":
-        change = {
-          kind: "recurring",
-          field: "category",
-          value:
-            bulkCategoryAction === "clear"
-              ? null
-              : normalizeNullableBulkValue(bulkCategory),
-        };
-        break;
-      default: {
-        const exhaustive: never = activeBulkEditField;
-        return exhaustive;
-      }
+    const patch = buildBulkPatch(normalizeBulkFieldActions(bulkFieldActions));
+    try {
+      assertBulkPatch(patch);
+    } catch {
+      return;
     }
+
     const toastId = toast.loading(
       t("bulkEdit.recurring.toast.loading", {
         count: selectedRecurringIds.length,
@@ -338,7 +280,7 @@ export function RecurringTransactionsTableDisplay() {
     try {
       const result = await updateRecurringBulkAction(
         selectedRecurringIds,
-        change
+        patch
       );
       toast.dismiss(toastId);
       setIsBulkEditOpen(false);
@@ -363,11 +305,7 @@ export function RecurringTransactionsTableDisplay() {
       );
     }
   }, [
-    activeBulkEditField,
-    bulkCategory,
-    bulkCategoryAction,
-    bulkPaymentMethod,
-    bulkPaymentMethodAction,
+    bulkFieldActions,
     clearSelection,
     selectedRecurringIds,
     t,
@@ -418,88 +356,6 @@ export function RecurringTransactionsTableDisplay() {
     [t]
   );
 
-  const bulkEditValueEditor = (() => {
-    switch (activeBulkEditField) {
-      case "payment_method":
-        return (
-          <div className="flex items-center gap-2">
-            <div className="min-w-0 flex-1">
-              <PaymentMethodCombobox
-                value={bulkPaymentMethod}
-                onChange={(value) => {
-                  setBulkPaymentMethod(value);
-                  setBulkPaymentMethodAction(value === null ? "clear" : "set");
-                }}
-                placeholder={t("bulkEdit.placeholders.paymentMethod")}
-                disabled={bulkPending}
-              />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="min-h-11 shrink-0 sm:min-h-9"
-              onClick={() => {
-                setBulkPaymentMethod(null);
-                setBulkPaymentMethodAction("clear");
-              }}
-              disabled={bulkPending}
-            >
-              {t("bulkEdit.clearValue")}
-            </Button>
-          </div>
-        );
-      case "category":
-        if (bulkCategoryFamily === null) {
-          return (
-            <p className="text-sm text-muted-foreground">
-              {t("bulkEdit.messages.categoryUnavailable")}
-            </p>
-          );
-        }
-
-        return (
-          <div className="flex items-center gap-2">
-            <div className="min-w-0 flex-1">
-              <CategoryCombobox
-                value={bulkCategory}
-                onChange={(value) => {
-                  setBulkCategory(value);
-                  setBulkCategoryAction(value === null ? "clear" : "set");
-                }}
-                transactionType={bulkCategoryFamily}
-                placeholder={t("bulkEdit.placeholders.category")}
-                disabled={bulkPending}
-              />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="min-h-11 shrink-0 sm:min-h-9"
-              onClick={() => {
-                setBulkCategory(null);
-                setBulkCategoryAction("clear");
-              }}
-              disabled={bulkPending}
-            >
-              {t("bulkEdit.clearValue")}
-            </Button>
-          </div>
-        );
-      case "":
-        return (
-          <p className="text-sm text-muted-foreground">
-            {t("bulkEdit.messages.noAvailableFields")}
-          </p>
-        );
-      default: {
-        const exhaustive: never = activeBulkEditField;
-        return exhaustive;
-      }
-    }
-  })();
-
   return (
     <>
       <RecurringTransactionsFilters />
@@ -548,7 +404,7 @@ export function RecurringTransactionsTableDisplay() {
             editDisabled={
               selectionActionMode === "single"
                 ? selectedRecurring[0]?.status === "completed"
-                : recurringBulkFields.length === 0
+                : !Object.values(bulkFieldAvailability).some(Boolean)
             }
             dir={i18n.dir()}
           />
@@ -742,22 +598,22 @@ export function RecurringTransactionsTableDisplay() {
         description={t("bulkEdit.recurring.description", {
           count: selection.selectedCount,
         })}
-        fieldLabel={t("bulkEdit.fieldLabel")}
-        valueLabel={t("bulkEdit.valueLabel")}
         cancelLabel={t("actions.cancel")}
         submitLabel={t("bulkEdit.submit")}
         pendingLabel={t("bulkEdit.pending")}
         pending={bulkPending}
         submitDisabled={bulkEditSubmitDisabled}
-        fields={recurringBulkFields}
-        selectedField={activeBulkEditField}
-        valueEditor={bulkEditValueEditor}
-        onFieldChange={(field) =>
-          setBulkEditField(field as RecurringBulkEditField)
-        }
         onSubmit={handleBulkEditSubmit}
         dir={i18n.dir()}
-      />
+      >
+        <BulkEditFields
+          pending={bulkPending}
+          actions={bulkFieldActions}
+          availability={bulkFieldAvailability}
+          categoryFamily={bulkCategoryFamily}
+          onActionsChange={setBulkFieldActions}
+        />
+      </BulkEditDialog>
       <DeleteConfirmationDialog
         isOpen={isBulkDeleteDialogOpen}
         onOpenChange={setIsBulkDeleteDialogOpen}
