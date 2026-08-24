@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   getBulkCategoryFamily,
   getBulkEditAvailability,
+  getBulkFieldGridClassName,
+  getSelectionActionMode,
   type RecurringBulkChange,
   type RecurringBulkRow,
   type TransactionBulkChange,
@@ -56,6 +58,20 @@ const invalidRecurringStatusChange: RecurringBulkChange = {
 };
 
 void invalidRecurringStatusChange;
+
+describe("selection action policy helpers", () => {
+  it("maps selected row counts to action modes", () => {
+    expect(getSelectionActionMode(0)).toBe("none");
+    expect(getSelectionActionMode(1)).toBe("single");
+    expect(getSelectionActionMode(2)).toBe("bulk");
+  });
+
+  it("maps editable field counts to responsive grid classes", () => {
+    expect(getBulkFieldGridClassName(1)).toContain("grid-cols-1");
+    expect(getBulkFieldGridClassName(2)).toContain("grid-cols-2");
+    expect(getBulkFieldGridClassName(3)).toContain("sm:grid-cols-3");
+  });
+});
 
 describe("bulk action field availability", () => {
   it("blocks transaction bulk edits for an empty selection", () => {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Dialog,
@@ -21,28 +21,31 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 interface TransactionEditModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmitSuccess?: () => void;
+  onMutationSuccess?: () => void;
   transaction: Transaction | null;
 }
 
 export function TransactionEditModal({
   isOpen,
   onClose,
+  onSubmitSuccess,
+  onMutationSuccess,
   transaction,
 }: TransactionEditModalProps) {
   const { t, i18n } = useTranslation("data-tables");
 
-  // Use media query instead of resize listener
   const isSmallNow = useMediaQuery("(max-width: 767px)");
-  const [useDrawer, setUseDrawer] = useState(isSmallNow);
-
-  // Lock the variant (Drawer/Dialog) when the modal is open
-  useEffect(() => {
-    if (!isOpen) setUseDrawer(isSmallNow);
-  }, [isSmallNow, isOpen]);
+  const [useDrawer] = useState(isSmallNow);
 
   if (!isOpen || !transaction) {
     return null;
   }
+
+  const handleSubmitSuccess = () => {
+    onSubmitSuccess?.();
+    onClose();
+  };
 
   // Mobile: use Drawer for full-height, scrollable experience
   if (useDrawer) {
@@ -57,7 +60,8 @@ export function TransactionEditModal({
             <TransactionForm
               isEditMode={true}
               initialData={transaction}
-              onSubmitSuccess={onClose}
+              onSubmitSuccess={handleSubmitSuccess}
+              onMutationSuccess={onMutationSuccess}
               onCancel={onClose}
             />
           </div>
@@ -81,7 +85,8 @@ export function TransactionEditModal({
           <TransactionForm
             isEditMode={true}
             initialData={transaction}
-            onSubmitSuccess={onClose}
+            onSubmitSuccess={handleSubmitSuccess}
+            onMutationSuccess={onMutationSuccess}
             onCancel={onClose}
           />
         </div>

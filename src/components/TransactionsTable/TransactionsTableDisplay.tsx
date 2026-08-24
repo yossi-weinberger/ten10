@@ -38,6 +38,7 @@ import { useLoadedRowSelection } from "@/hooks/useLoadedRowSelection";
 import {
   getBulkCategoryFamily,
   getBulkEditAvailability,
+  getSelectionActionMode,
   type TransactionBulkChange,
   type TransactionBulkField,
 } from "@/lib/tableTransactions/bulkActions";
@@ -147,6 +148,7 @@ export function TransactionsTableDisplay() {
   const selectedTransactions = transactions.filter((transaction) =>
     selection.selectedIds.has(transaction.id)
   );
+  const selectionActionMode = getSelectionActionMode(selection.selectedCount);
   const selectedTransactionIds = selectedTransactions.map(
     (transaction) => transaction.id
   );
@@ -275,6 +277,7 @@ export function TransactionsTableDisplay() {
       if (platform === "web" || platform === "desktop") {
         try {
           await deleteTransaction(deletedTransactionId, platform);
+          clearSelection();
           toast.success(
             t("messages.deleteSuccess", {
               description: deletedTransactionDescription,
@@ -295,7 +298,7 @@ export function TransactionsTableDisplay() {
     }
     setIsDeleteDialogOpen(false);
     setTransactionToDelete(null);
-  }, [transactionToDelete, platform, deleteTransaction, t]);
+  }, [transactionToDelete, platform, deleteTransaction, clearSelection, t]);
 
   const handleBulkDeleteConfirm = useCallback(async () => {
     if (selectedTransactionIds.length === 0) {
@@ -430,6 +433,31 @@ export function TransactionsTableDisplay() {
     requestAnimationFrame(() => setIsEditModalOpen(true));
   }, []);
 
+  const handleSelectionEdit = useCallback(() => {
+    const row = selectedTransactions[0];
+    if (selectionActionMode === "single" && row) {
+      handleEditInitiate(row);
+      return;
+    }
+
+    handleBulkEditClick();
+  }, [
+    handleBulkEditClick,
+    handleEditInitiate,
+    selectedTransactions,
+    selectionActionMode,
+  ]);
+
+  const handleSelectionDelete = useCallback(() => {
+    const row = selectedTransactions[0];
+    if (selectionActionMode === "single" && row) {
+      handleDeleteInitiate(row);
+      return;
+    }
+
+    setIsBulkDeleteDialogOpen(true);
+  }, [handleDeleteInitiate, selectedTransactions, selectionActionMode]);
+
   const handleUpdateOpeningBalance = useCallback(
     async (transactionId: string, updates: Partial<Transaction>) => {
       if (platform === "web" || platform === "desktop") {
@@ -452,6 +480,14 @@ export function TransactionsTableDisplay() {
       }
     },
     [platform, fetchTransactions, t]
+  );
+
+  const handleUpdateSelectedOpeningBalance = useCallback(
+    async (transactionId: string, updates: Partial<Transaction>) => {
+      await handleUpdateOpeningBalance(transactionId, updates);
+      clearSelection();
+    },
+    [clearSelection, handleUpdateOpeningBalance]
   );
 
   const handleEditRecurringInitiate = useCallback(
@@ -651,15 +687,25 @@ export function TransactionsTableDisplay() {
           selectedCountLabel={t("bulkToolbar.selectedCount", {
             count: selection.selectedCount,
           })}
-          editLabel={t("bulkToolbar.edit")}
-          deleteLabel={t("bulkToolbar.delete")}
+          editLabel={
+            selectionActionMode === "single"
+              ? t("actions.edit")
+              : t("bulkToolbar.edit")
+          }
+          deleteLabel={
+            selectionActionMode === "single"
+              ? t("actions.delete")
+              : t("bulkToolbar.delete")
+          }
           clearLabel={t("bulkToolbar.clear")}
-          onEdit={handleBulkEditClick}
-          onDelete={() => setIsBulkDeleteDialogOpen(true)}
+          onEdit={handleSelectionEdit}
+          onDelete={handleSelectionDelete}
           onClear={clearSelection}
           ariaLabel={t("bulkToolbar.ariaLabel")}
           pending={bulkPending}
-          editDisabled={transactionBulkFields.length === 0}
+          editDisabled={
+            selectionActionMode === "bulk" && transactionBulkFields.length === 0
+          }
           dir={i18n.dir()}
         />
       </div>
@@ -827,6 +873,7 @@ export function TransactionsTableDisplay() {
             setEditingTransaction(null);
           }}
           transaction={editingTransaction}
+          onMutationSuccess={clearSelection}
         />
       )}
       {isRecEditModalOpen && editingRecTransaction && (
@@ -837,9 +884,10 @@ export function TransactionsTableDisplay() {
             setEditingRecTransaction(null);
           }}
           transaction={editingRecTransaction}
+          onSubmitSuccess={clearSelection}
         />
       )}
-      
+
       <OpeningBalanceModal
         key={editingOpeningBalanceTransaction?.id ?? "opening-balance-edit"}
         isOpen={isOpeningBalanceEditModalOpen}
@@ -848,7 +896,7 @@ export function TransactionsTableDisplay() {
           setEditingOpeningBalanceTransaction(null);
         }}
         initialData={editingOpeningBalanceTransaction}
-        onUpdate={handleUpdateOpeningBalance}
+        onUpdate={handleUpdateSelectedOpeningBalance}
       />
     </div>
   );

@@ -59,6 +59,7 @@ import { useLoadedRowSelection } from "@/hooks/useLoadedRowSelection";
 import {
   getBulkCategoryFamily,
   getBulkEditAvailability,
+  getSelectionActionMode,
   type RecurringBulkChange,
   type RecurringBulkField,
 } from "@/lib/tableTransactions/bulkActions";
@@ -115,26 +116,10 @@ export function RecurringTransactionsTableDisplay() {
     setSelectedTransaction(null);
   }, []);
 
-  const handleDeleteClick = (transaction: RecurringTransaction) => {
+  const handleDeleteClick = useCallback((transaction: RecurringTransaction) => {
     setTransactionToDelete(transaction);
     setIsDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!transactionToDelete) return;
-    try {
-      await deleteRecurringTransaction(transactionToDelete.id);
-      toast.success(t("messages.recurringDeleteSuccess"));
-    } catch (error) {
-      logger.error("Failed to delete recurring transaction:", error);
-      toast.error(t("messages.recurringDeleteError"));
-    } finally {
-      setIsDeleteDialogOpen(false);
-      setTransactionToDelete(null);
-      // Refresh table after dialog closes to avoid portal race conditions
-      requestAnimationFrame(() => fetchRecurring());
-    }
-  };
+  }, []);
 
   const loadedRecurringIds = useMemo(
     () => recurring.map((transaction) => transaction.id),
@@ -150,11 +135,29 @@ export function RecurringTransactionsTableDisplay() {
   const selectedRecurring = recurring.filter((transaction) =>
     selection.selectedIds.has(transaction.id)
   );
+  const selectionActionMode = getSelectionActionMode(selection.selectedCount);
   const selectedRecurringIds = selectedRecurring.map(
     (transaction) => transaction.id
   );
   const bulkCategoryFamily = getBulkCategoryFamily(selectedRecurring);
   const bulkPending = bulkLoading;
+
+  const handleConfirmDelete = async () => {
+    if (!transactionToDelete) return;
+    try {
+      await deleteRecurringTransaction(transactionToDelete.id);
+      clearSelection();
+      toast.success(t("messages.recurringDeleteSuccess"));
+    } catch (error) {
+      logger.error("Failed to delete recurring transaction:", error);
+      toast.error(t("messages.recurringDeleteError"));
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setTransactionToDelete(null);
+      // Refresh table after dialog closes to avoid portal race conditions
+      requestAnimationFrame(() => fetchRecurring());
+    }
+  };
 
   const recurringBulkFields: {
     value: RecurringBulkEditField;
@@ -216,6 +219,31 @@ export function RecurringTransactionsTableDisplay() {
     resetBulkEditValues();
     setIsBulkEditOpen(true);
   }, [resetBulkEditValues]);
+
+  const handleSelectionEdit = useCallback(() => {
+    const row = selectedRecurring[0];
+    if (selectionActionMode === "single" && row) {
+      handleEditClick(row);
+      return;
+    }
+
+    handleBulkEditClick();
+  }, [
+    handleBulkEditClick,
+    handleEditClick,
+    selectedRecurring,
+    selectionActionMode,
+  ]);
+
+  const handleSelectionDelete = useCallback(() => {
+    const row = selectedRecurring[0];
+    if (selectionActionMode === "single" && row) {
+      handleDeleteClick(row);
+      return;
+    }
+
+    setIsBulkDeleteDialogOpen(true);
+  }, [handleDeleteClick, selectedRecurring, selectionActionMode]);
 
   const bulkEditSubmitDisabled = (() => {
     switch (activeBulkEditField) {
@@ -501,15 +529,27 @@ export function RecurringTransactionsTableDisplay() {
             selectedCountLabel={t("bulkToolbar.selectedRecurringCount", {
               count: selection.selectedCount,
             })}
-            editLabel={t("bulkToolbar.edit")}
-            deleteLabel={t("bulkToolbar.delete")}
+            editLabel={
+              selectionActionMode === "single"
+                ? t("actions.edit")
+                : t("bulkToolbar.edit")
+            }
+            deleteLabel={
+              selectionActionMode === "single"
+                ? t("actions.delete")
+                : t("bulkToolbar.delete")
+            }
             clearLabel={t("bulkToolbar.clear")}
-            onEdit={handleBulkEditClick}
-            onDelete={() => setIsBulkDeleteDialogOpen(true)}
+            onEdit={handleSelectionEdit}
+            onDelete={handleSelectionDelete}
             onClear={clearSelection}
             ariaLabel={t("bulkToolbar.recurringAriaLabel")}
             pending={bulkPending}
-            editDisabled={recurringBulkFields.length === 0}
+            editDisabled={
+              selectionActionMode === "single"
+                ? selectedRecurring[0]?.status === "completed"
+                : recurringBulkFields.length === 0
+            }
             dir={i18n.dir()}
           />
         </CardHeader>
@@ -687,11 +727,14 @@ export function RecurringTransactionsTableDisplay() {
           </div>
         </CardContent>
       </Card>
-      <RecurringTransactionEditModal
-        isOpen={isEditModalOpen}
-        onClose={handleCloseModal}
-        transaction={selectedTransaction}
-      />
+      {isEditModalOpen && selectedTransaction && (
+        <RecurringTransactionEditModal
+          isOpen={isEditModalOpen}
+          onClose={handleCloseModal}
+          onSubmitSuccess={clearSelection}
+          transaction={selectedTransaction}
+        />
+      )}
       <BulkEditDialog
         open={isBulkEditOpen}
         onOpenChange={handleBulkEditOpenChange}

@@ -6,6 +6,7 @@ import type {
 
 export type TransactionBulkField = "payment_method" | "category";
 export type RecurringBulkField = "payment_method" | "category";
+export type SelectionActionMode = "none" | "single" | "bulk";
 
 export type TransactionBulkChange = {
   kind: "transaction";
@@ -59,6 +60,19 @@ export type BulkEditAvailabilityRequest =
     };
 
 type CategoryFamily = "income" | "expense";
+
+export function getSelectionActionMode(
+  selectedCount: number,
+): SelectionActionMode {
+  if (selectedCount <= 0) return "none";
+  return selectedCount === 1 ? "single" : "bulk";
+}
+
+export function getBulkFieldGridClassName(fieldCount: number): string {
+  if (fieldCount <= 1) return "grid-cols-1";
+  if (fieldCount === 2) return "grid-cols-2";
+  return "grid-cols-2 sm:grid-cols-3";
+}
 
 export function getBulkCategoryFamily(
   rows: readonly { type: TransactionType }[],
