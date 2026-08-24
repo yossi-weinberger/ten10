@@ -4,6 +4,7 @@ import { Currency as TransactionCurrency } from "../types/transaction";
 import { ServerDonationData } from "./data-layer/stats.service";
 import { MonthlyDataPoint } from "./data-layer/chart.service";
 import { logger } from "./logger";
+import type { OnboardingState } from "./onboarding/types";
 
 export type { TransactionCurrency as Currency };
 
@@ -26,6 +27,7 @@ export interface Settings {
   lastSeenVersion?: string | null;
   /** Desktop app lock: auto-lock after this many minutes of inactivity (0 = disabled). */
   autoLockTimeoutMinutes?: number;
+  onboarding?: OnboardingState;
 }
 
 export interface DonationState {

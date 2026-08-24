@@ -27,7 +27,14 @@ export type ProductAnalyticsEvent =
   | "settings_changed"
   | "reminder_preference_changed"
   | "category_created"
-  | "contact_form_submitted";
+  | "contact_form_submitted"
+  | "onboarding_offered"
+  | "onboarding_started"
+  | "onboarding_step_viewed"
+  | "onboarding_step_completed"
+  | "onboarding_skipped"
+  | "onboarding_completed"
+  | "onboarding_restarted";
 
 type ProductAnalyticsProperties = Record<
   string,
