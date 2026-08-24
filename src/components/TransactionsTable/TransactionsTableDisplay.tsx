@@ -874,6 +874,7 @@ export function TransactionsTableDisplay() {
           }}
           transaction={editingTransaction}
           onMutationSuccess={clearSelection}
+          onSubmitSuccess={clearSelection}
         />
       )}
       {isRecEditModalOpen && editingRecTransaction && (

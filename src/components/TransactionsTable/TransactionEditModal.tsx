@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Dialog,
@@ -36,7 +36,12 @@ export function TransactionEditModal({
   const { t, i18n } = useTranslation("data-tables");
 
   const isSmallNow = useMediaQuery("(max-width: 767px)");
-  const [useDrawer] = useState(isSmallNow);
+  const [useDrawer, setUseDrawer] = useState(isSmallNow);
+
+  // Lock the variant (Drawer/Dialog) while the modal is open.
+  useEffect(() => {
+    if (!isOpen) setUseDrawer(isSmallNow);
+  }, [isSmallNow, isOpen]);
 
   if (!isOpen || !transaction) {
     return null;
