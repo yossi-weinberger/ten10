@@ -1,0 +1,38 @@
+{
+  "welcome": {
+    "title": "Welcome to TEN10",
+    "description": "We'll show you how to get started in less than a minute.",
+    "start": "Start the tour",
+    "skip": "I'll look around on my own"
+  },
+  "tour": {
+    "next": "Next",
+    "prev": "Back",
+    "done": "I'll continue on my own",
+    "progress": "{{current}} of {{total}}",
+    "homeSummaryTitle": "Your financial snapshot",
+    "homeSummaryDescription": "Income, tithe and donations, and the remaining balance appear here.",
+    "addCtaTitle": "Add your first transaction",
+    "addCtaDescription": "This is the best place to start. Click the button to continue.",
+    "formTitle": "Enter the transaction",
+    "formDescription": "Add the amount and a short description. You can refine the details later."
+  },
+  "success": {
+    "title": "You're in",
+    "description": "Your first transaction is saved. TEN10 will keep the balance up to date from here.",
+    "dismiss": "Got it"
+  },
+  "cta": {
+    "addTransaction": "Add a transaction"
+  },
+  "checklist": {
+    "title": "Getting started",
+    "description": "Two small steps to see TEN10 at work.",
+    "firstTransaction": "Add your first transaction",
+    "openAnalytics": "Open Analytics",
+    "dismiss": "Hide this list"
+  },
+  "restart": {
+    "button": "Restart onboarding"
+  }
+}

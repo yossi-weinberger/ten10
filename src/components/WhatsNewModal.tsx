@@ -27,6 +27,10 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { logger } from "@/lib/logger";
 import { CURRENT_WHATS_NEW_VERSION } from "@/lib/whats-new-history";
 import {
+  isWhatsNewSuppressedForSession,
+  WHATS_NEW_SUPPRESS_EVENT,
+} from "@/lib/onboarding/whatsNew";
+import {
   CheckCircle2,
   ClipboardCheck,
   FileSpreadsheet,
@@ -127,7 +131,7 @@ export function WhatsNewModal({
       setCheckingStatus(true);
 
       // Don't show modal on public paths
-      if (isPublicPath) {
+      if (isPublicPath || isWhatsNewSuppressedForSession()) {
         setIsOpen(false);
         setCheckingStatus(false);
         return;
@@ -191,7 +195,17 @@ export function WhatsNewModal({
       }
     };
 
+    const closeIfSuppressed = () => {
+      if (isWhatsNewSuppressedForSession() && !isManuallyControlled) {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener(WHATS_NEW_SUPPRESS_EVENT, closeIfSuppressed);
+
     checkWhatsNewStatus();
+    return () => {
+      window.removeEventListener(WHATS_NEW_SUPPRESS_EVENT, closeIfSuppressed);
+    };
     // userId changes when user switches accounts - this triggers re-check
     // forcedOpen and onForcedOpenChange are needed for manual control mode
     // lastSeenVersion is needed for desktop mode to react to store changes

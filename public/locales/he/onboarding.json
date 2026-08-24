@@ -1,0 +1,38 @@
+{
+  "welcome": {
+    "title": "ברוכים הבאים ל-TEN10",
+    "description": "נראה לכם איך להתחיל בפחות מדקה.",
+    "start": "התחילו את הסיור",
+    "skip": "אסתדר לבד"
+  },
+  "tour": {
+    "next": "הבא",
+    "prev": "הקודם",
+    "done": "אמשיך לבד",
+    "progress": "{{current}} מתוך {{total}}",
+    "homeSummaryTitle": "התמונה הפיננסית שלכם",
+    "homeSummaryDescription": "כאן רואים הכנסות, הפרשות ותרומות, ואת היתרה שנשארה.",
+    "addCtaTitle": "הוסיפו את התנועה הראשונה",
+    "addCtaDescription": "כאן הכי כדאי להתחיל. לחצו על הכפתור כדי להמשיך.",
+    "formTitle": "הזינו את התנועה",
+    "formDescription": "מלאו סכום ותיאור קצר. אפשר לדייק את השדות אחר כך."
+  },
+  "success": {
+    "title": "התחלתם",
+    "description": "התנועה הראשונה נשמרה. מכאן TEN10 יעדכן את היתרה בשבילכם.",
+    "dismiss": "הבנתי"
+  },
+  "cta": {
+    "addTransaction": "הוספת תנועה"
+  },
+  "checklist": {
+    "title": "איך מתחילים",
+    "description": "שני צעדים קצרים כדי לראות את TEN10 בפעולה.",
+    "firstTransaction": "הוספת תנועה ראשונה",
+    "openAnalytics": "פתיחת האנליטיקה",
+    "dismiss": "הסתרת הרשימה"
+  },
+  "restart": {
+    "button": "הפעלת הסיור מחדש"
+  }
+}

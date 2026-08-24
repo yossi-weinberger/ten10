@@ -88,7 +88,7 @@ const defaultSettings: Settings = {
 
 export const useDonationStore = create<DonationState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       serverCalculatedTitheBalance: null,
       serverCalculatedMaaserBalance: null,
       serverCalculatedChomeshBalance: null,

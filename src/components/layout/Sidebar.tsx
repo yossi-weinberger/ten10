@@ -372,7 +372,11 @@ export function Sidebar({
             <NavLink to="/" icon={Home}>
               {t("menu.home")}
             </NavLink>
-            <NavLink to="/add-transaction" icon={PlusCircle}>
+            <NavLink
+              to="/add-transaction"
+              icon={PlusCircle}
+              data-onboarding="nav-add-transaction"
+            >
               {t("menu.addTransaction")}
             </NavLink>
             <NavLink to="/transactions-table" icon={Table}>

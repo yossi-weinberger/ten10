@@ -21,7 +21,7 @@ export function AddTransactionPage() {
       <div className="grid gap-6 md:grid-cols-3 md:items-start">
         <div className="md:col-span-2 space-y-3">
           <ImportBanner />
-          <Card>
+          <Card data-onboarding="transaction-form">
             <CardHeader></CardHeader>
             <CardContent>
               <TransactionForm />
