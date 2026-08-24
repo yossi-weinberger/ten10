@@ -36,7 +36,7 @@ export function HomePage() {
       )}
 
       {showHomeCta && (
-        <Button asChild className="w-fit" data-onboarding="add-transaction-cta">
+        <Button asChild className="w-fit">
           <Link to="/add-transaction">
             <PlusCircle className="h-4 w-4" />
             {tOnboarding("cta.addTransaction")}
@@ -44,9 +44,7 @@ export function HomePage() {
         </Button>
       )}
 
-      <div data-onboarding="home-summary">
-        <StatsCards />
-      </div>
+      <StatsCards />
       <MonthlyChart />
     </div>
   );

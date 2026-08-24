@@ -25,9 +25,9 @@ describe("onboarding analytics", () => {
   it("emits the typed product events without financial properties", () => {
     trackOnboardingOffered();
     trackOnboardingStarted();
-    trackOnboardingStepViewed("home-summary");
-    trackOnboardingStepCompleted("add-transaction-cta");
-    trackOnboardingSkipped("transaction-form");
+    trackOnboardingStepViewed("tithe-balance");
+    trackOnboardingStepCompleted("opening-balance");
+    trackOnboardingSkipped("card-quick-add");
     trackOnboardingCompleted();
     trackOnboardingRestarted();
 
@@ -45,7 +45,7 @@ describe("onboarding analytics", () => {
       {
         version: CURRENT_ONBOARDING_VERSION,
         tour_id: ONBOARDING_TOUR_ID,
-        step_id: "home-summary",
+        step_id: "tithe-balance",
       },
     );
     expect(trackProductEvent).toHaveBeenNthCalledWith(7, "onboarding_restarted", {

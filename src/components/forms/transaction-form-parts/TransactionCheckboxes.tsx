@@ -76,7 +76,11 @@ export function TransactionCheckboxes({
   );
 
   return (
-    <div className="flex flex-row flex-wrap gap-3 mt-2 w-full justify-center">
+    <div className="flex flex-col gap-3 mt-2 w-full">
+      <div
+        className="flex flex-row flex-wrap gap-3 w-full justify-center"
+        data-onboarding="transaction-flags"
+      >
       {selectedType === "income" && (
         <>
           {/* Exempt Income */}
@@ -164,12 +168,17 @@ export function TransactionCheckboxes({
         </>
       )}
 
-      {/* Recurring Transaction - Always Visible */}
+      </div>
+      <div
+        className="flex flex-row flex-wrap gap-3 w-full justify-center"
+        data-onboarding="recurring-toggle"
+      >
       {renderToggleButton(
         "is_recurring",
         "transactionForm.recurringTransaction.isRecurring",
         "transactionForm.recurringTransaction.tooltip"
       )}
+      </div>
     </div>
   );
 }

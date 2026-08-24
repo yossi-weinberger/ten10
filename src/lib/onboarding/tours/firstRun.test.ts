@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ONBOARDING_TARGETS } from "../constants";
+import { FORM_STEP_IDS, HOME_STEP_IDS } from "../types";
 import {
   buildFirstRunSteps,
   firstRunStartIndex,
@@ -12,49 +13,51 @@ const copy = {
   prev: "Back",
   done: "Continue on my own",
   progress: "{{current}} / {{total}}",
-  homeSummaryTitle: "Summary",
-  homeSummaryDescription: "See balances here",
-  addCtaTitle: "Add a transaction",
-  addCtaDescription: "Start here",
-  formTitle: "Enter the transaction",
-  formDescription: "Fill the form",
+  dateRangeTitle: "Range",
+  dateRangeDescription: "Pick a range",
+  titheBalanceTitle: "Tithe",
+  titheBalanceDescription: "Credit or debit",
+  openingBalanceTitle: "Opening",
+  openingBalanceDescription: "Set it once",
+  cardQuickAddTitle: "Quick add",
+  cardQuickAddDescription: "Use the +",
+  flagsTitle: "Flags",
+  flagsDescription: "Chomesh and maaser",
+  recurringTitle: "Recurring",
+  recurringDescription: "Standing order",
+  liveBalanceTitle: "Live",
+  liveBalanceDescription: "Sidebar updates",
 };
 
 describe("buildFirstRunSteps", () => {
-  it("uses stable selectors and interactive Driver.js options", () => {
+  it("drives Home targets including opening balance and card quick-add", () => {
     const steps = buildFirstRunSteps(copy, "rtl", "/");
 
-    expect(steps).toHaveLength(2);
-    expect(steps[0]?.element).toBe(ONBOARDING_TARGETS.homeSummary);
-    expect(steps[1]?.element).toBe(ONBOARDING_TARGETS.addTransactionCta);
-    expect(steps[1]?.advanceOnClick).toBe(true);
-    expect(steps[1]?.disableActiveInteraction).toBe(false);
+    expect(steps.map((step) => getStepId(step))).toEqual([...HOME_STEP_IDS]);
+    expect(steps[0]?.element).toBe(ONBOARDING_TARGETS.dateRange);
+    expect(steps[2]?.element).toBe(ONBOARDING_TARGETS.openingBalance);
+    expect(steps[3]?.advanceOnClick).toBe(true);
     expect(steps.every((step) => step.waitForElement === 5000)).toBe(true);
-    expect(steps.every((step) => step.skipMissingElement)).toBe(true);
-    expect(getStepId(steps[0]!)).toBe("home-summary");
-    expect(steps[1]?.popover?.side).toBe("left");
+    expect(steps[3]?.popover?.side).toBe("left");
   });
 
-  it("keeps the form step off the Home drive so a missing Home target cannot wait on /add-transaction", () => {
-    const homeSteps = buildFirstRunSteps(copy, "rtl", "/");
+  it("keeps form steps off the Home drive", () => {
     const formSteps = buildFirstRunSteps(copy, "rtl", "/add-transaction");
 
-    expect(homeSteps.map((step) => getStepId(step))).toEqual([
-      "home-summary",
-      "add-transaction-cta",
-    ]);
-    expect(formSteps).toHaveLength(1);
-    expect(formSteps[0]?.element).toBe(ONBOARDING_TARGETS.transactionForm);
-    expect(formSteps[0]?.waitForElement).toBe(5000);
+    expect(formSteps.map((step) => getStepId(step))).toEqual([...FORM_STEP_IDS]);
+    expect(formSteps[0]?.element).toBe(ONBOARDING_TARGETS.transactionFlags);
+    expect(formSteps[2]?.element).toBe(ONBOARDING_TARGETS.liveBalance);
   });
 
-  it("flips the CTA popover side in LTR", () => {
+  it("flips interactive popover sides in LTR", () => {
     const steps = buildFirstRunSteps(copy, "ltr", "/");
-    expect(steps[1]?.popover?.side).toBe("right");
+    expect(steps[3]?.popover?.side).toBe("right");
   });
 
-  it("starts at the first step of the current route", () => {
+  it("resumes the Home tour after the opening-balance modal", () => {
     expect(firstRunStartIndex("/")).toBe(0);
+    expect(firstRunStartIndex("/", "card-quick-add")).toBe(3);
+    expect(firstRunStartIndex("/add-transaction", "card-quick-add")).toBe(0);
     expect(firstRunStartIndex("/add-transaction")).toBe(0);
   });
 

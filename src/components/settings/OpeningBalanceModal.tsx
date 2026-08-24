@@ -532,7 +532,7 @@ export function OpeningBalanceModal({
 
   if (useDesktop) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <DialogContent
           className="sm:max-w-lg"
           dir={layoutDir}

@@ -10,16 +10,24 @@
     "prev": "Back",
     "done": "I'll continue on my own",
     "progress": "{{current}} of {{total}}",
-    "homeSummaryTitle": "Your financial snapshot",
-    "homeSummaryDescription": "Income, tithe and donations, and the remaining balance appear here.",
-    "addCtaTitle": "Add your first transaction",
-    "addCtaDescription": "This is the best place to start. Click the button to continue.",
-    "formTitle": "Enter the transaction",
-    "formDescription": "Add the amount and a short description. You can refine the details later."
+    "dateRangeTitle": "Pick the time range",
+    "dateRangeDescription": "This month, this year, all time, or a custom range. The cards follow what you choose.",
+    "titheBalanceTitle": "Your tithe balance",
+    "titheBalanceDescription": "Positive means you still owe. Negative means you have given more than required — a credit.",
+    "openingBalanceTitle": "Starting balance",
+    "openingBalanceDescription": "Coming from another notebook or spreadsheet? Set the current balance once here. TEN10 continues from that number. Use the + on this card.",
+    "cardQuickAddTitle": "Add from a card",
+    "cardQuickAddDescription": "Each + opens a transaction of that type — income, expense, or donation. Click the income + to continue.",
+    "flagsTitle": "How this affects the tithe",
+    "flagsDescription": "On income: Chomesh (20%) or exempt. On expense: from maaser or from chomesh. You can also enter another currency in the amount field.",
+    "recurringTitle": "Standing orders",
+    "recurringDescription": "Turn this on for a salary, rent, or a fixed donation. TEN10 will create the next occurrences for you.",
+    "liveBalanceTitle": "The balance updates live",
+    "liveBalanceDescription": "These cards move as you type and after you save. Fill in the amount and save when you are ready."
   },
   "success": {
     "title": "You're in",
-    "description": "Your first transaction is saved. TEN10 will keep the balance up to date from here.",
+    "description": "Your first transaction is saved. The monthly chart below Home shows the trend, and Contact is there if you need a rabbi or technical help.",
     "dismiss": "Got it"
   },
   "cta": {

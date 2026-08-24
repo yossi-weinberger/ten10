@@ -40,7 +40,9 @@ import {
   trackOnboardingStepViewed,
 } from "@/lib/onboarding/analytics";
 import { subscribeOnboardingTransactionCreated } from "@/lib/onboarding/transactionBridge";
+import { subscribeOnboardingBlockingModal } from "@/lib/onboarding/modalBridge";
 import { markCurrentWhatsNewSeen } from "@/lib/onboarding/whatsNew";
+import type { StepId } from "@/lib/onboarding/types";
 import {
   destroyOnboardingTour,
   startOnboardingTour,
@@ -98,6 +100,9 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
   >("pending");
   const [tourTick, setTourTick] = useState(0);
   const offeredRef = useRef(false);
+  const resumeStepRef = useRef<StepId | null>(null);
+  const pathnameRef = useRef(pathname);
+  pathnameRef.current = pathname;
 
   const isPublicPath = PUBLIC_ROUTES.includes(pathname);
   const tourActive = isOnboardingTourActive();
@@ -197,6 +202,19 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
   ]);
 
   useEffect(() => {
+    return subscribeOnboardingBlockingModal((isOpen) => {
+      if (isOpen) {
+        destroyOnboardingTour();
+        return;
+      }
+      if (!isOnboardingTourActive()) return;
+      resumeStepRef.current =
+        pathnameRef.current === "/" ? "card-quick-add" : null;
+      refreshTourTick();
+    });
+  }, [refreshTourTick]);
+
+  useEffect(() => {
     return subscribeOnboardingTransactionCreated(() => {
       const outcome = resolveTransactionOnboardingOutcome({
         status: getOnboardingState().status,
@@ -230,6 +248,8 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
     }
 
     const dir = i18n.dir() === "rtl" ? "rtl" : "ltr";
+    const resumeStepId = resumeStepRef.current;
+    resumeStepRef.current = null;
     startOnboardingTour({
       steps: buildFirstRunSteps(
         {
@@ -237,17 +257,25 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
           prev: t("tour.prev"),
           done: t("tour.done"),
           progress: t("tour.progress"),
-          homeSummaryTitle: t("tour.homeSummaryTitle"),
-          homeSummaryDescription: t("tour.homeSummaryDescription"),
-          addCtaTitle: t("tour.addCtaTitle"),
-          addCtaDescription: t("tour.addCtaDescription"),
-          formTitle: t("tour.formTitle"),
-          formDescription: t("tour.formDescription"),
+          dateRangeTitle: t("tour.dateRangeTitle"),
+          dateRangeDescription: t("tour.dateRangeDescription"),
+          titheBalanceTitle: t("tour.titheBalanceTitle"),
+          titheBalanceDescription: t("tour.titheBalanceDescription"),
+          openingBalanceTitle: t("tour.openingBalanceTitle"),
+          openingBalanceDescription: t("tour.openingBalanceDescription"),
+          cardQuickAddTitle: t("tour.cardQuickAddTitle"),
+          cardQuickAddDescription: t("tour.cardQuickAddDescription"),
+          flagsTitle: t("tour.flagsTitle"),
+          flagsDescription: t("tour.flagsDescription"),
+          recurringTitle: t("tour.recurringTitle"),
+          recurringDescription: t("tour.recurringDescription"),
+          liveBalanceTitle: t("tour.liveBalanceTitle"),
+          liveBalanceDescription: t("tour.liveBalanceDescription"),
         },
         dir,
         pathname,
       ),
-      startIndex: firstRunStartIndex(pathname),
+      startIndex: firstRunStartIndex(pathname, resumeStepId),
       dir,
       nextBtnText: t("tour.next"),
       prevBtnText: t("tour.prev"),

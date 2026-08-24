@@ -78,7 +78,9 @@ Lazy namespace `onboarding`: `public/locales/{en,he}/onboarding.json`. No hardco
 
 ## Mobile / RTL
 
-Do not target the Sidebar Add button. On small screens it lives in a closed Sheet; on `md+` the sidebar is collapsed to icons. The v1 CTA is a visible Home button (`data-onboarding="add-transaction-cta"`).
+Do not target the Sidebar Add button. On small screens it lives in a closed Sheet; on `md+` the sidebar is collapsed to icons. Home continues from the income card `+` (`data-onboarding="card-quick-add"`).
+
+First-run steps: `date-range` → `tithe-balance` → `opening-balance` → `card-quick-add` → `transaction-flags` → `recurring-toggle` → `live-balance`. Opening the starting-balance modal destroys the Driver overlay and resumes at `card-quick-add`. Chart and Contact are mentioned only in the success copy.
 
 `.ten10-driver-popover` uses theme tokens and `max-width: min(22rem, calc(100vw - 1.5rem))`.
 
@@ -87,7 +89,7 @@ Do not target the Sidebar Add button. On small screens it lives in a closed Shee
 1. Add a stable `data-onboarding="..."` on the target.
 2. Extend `StepId` and `buildFirstRunSteps`.
 3. Add copy to both locale files.
-4. Keep the first-run tour to 3–4 steps.
+4. Keep first-run to the Home + form steps above. Do not add chart or Contact as Driver steps.
 
 ## How to add a tour
 

@@ -1,38 +1,60 @@
 import type { DriveStep } from "driver.js";
 import { ONBOARDING_TARGETS } from "../constants";
-import type { StepId } from "../types";
+import {
+  FORM_STEP_IDS,
+  HOME_STEP_IDS,
+  isStepId,
+  type StepId,
+} from "../types";
 
 export interface FirstRunCopy {
   next: string;
   prev: string;
   done: string;
   progress: string;
-  homeSummaryTitle: string;
-  homeSummaryDescription: string;
-  addCtaTitle: string;
-  addCtaDescription: string;
-  formTitle: string;
-  formDescription: string;
+  dateRangeTitle: string;
+  dateRangeDescription: string;
+  titheBalanceTitle: string;
+  titheBalanceDescription: string;
+  openingBalanceTitle: string;
+  openingBalanceDescription: string;
+  cardQuickAddTitle: string;
+  cardQuickAddDescription: string;
+  flagsTitle: string;
+  flagsDescription: string;
+  recurringTitle: string;
+  recurringDescription: string;
+  liveBalanceTitle: string;
+  liveBalanceDescription: string;
 }
 
 export function getStepId(step: DriveStep): StepId | undefined {
   const stepId = step.data?.stepId;
-  if (
-    stepId === "home-summary" ||
-    stepId === "add-transaction-cta" ||
-    stepId === "transaction-form"
-  ) {
-    return stepId;
-  }
-  return undefined;
+  return isStepId(stepId) ? stepId : undefined;
 }
 
-export function firstRunStartIndex(_pathname?: string): number {
-  return 0;
+export function firstRunStartIndex(
+  pathname: string,
+  resumeStepId?: StepId | null,
+): number {
+  const ids = pathname.startsWith("/add-transaction")
+    ? FORM_STEP_IDS
+    : HOME_STEP_IDS;
+  if (!resumeStepId) return 0;
+  const index = ids.indexOf(resumeStepId);
+  return index >= 0 ? index : 0;
 }
 
 export function shouldDriveFirstRunTour(pathname: string): boolean {
   return pathname === "/" || pathname.startsWith("/add-transaction");
+}
+
+function stepOptions(stepId: StepId): Pick<DriveStep, "skipMissingElement" | "waitForElement" | "data"> {
+  return {
+    skipMissingElement: true,
+    waitForElement: 5000,
+    data: { stepId },
+  };
 }
 
 export function buildFirstRunSteps(
@@ -44,13 +66,23 @@ export function buildFirstRunSteps(
 
   const homeSteps: DriveStep[] = [
     {
-      element: ONBOARDING_TARGETS.homeSummary,
-      skipMissingElement: true,
-      waitForElement: 5000,
-      data: { stepId: "home-summary" },
+      element: ONBOARDING_TARGETS.dateRange,
+      ...stepOptions("date-range"),
       popover: {
-        title: copy.homeSummaryTitle,
-        description: copy.homeSummaryDescription,
+        title: copy.dateRangeTitle,
+        description: copy.dateRangeDescription,
+        side: "bottom",
+        align: "end",
+        showButtons: ["next", "close"],
+        nextBtnText: copy.next,
+      },
+    },
+    {
+      element: ONBOARDING_TARGETS.titheBalance,
+      ...stepOptions("tithe-balance"),
+      popover: {
+        title: copy.titheBalanceTitle,
+        description: copy.titheBalanceDescription,
         side: "bottom",
         align: "start",
         showButtons: ["next", "close"],
@@ -58,15 +90,26 @@ export function buildFirstRunSteps(
       },
     },
     {
-      element: ONBOARDING_TARGETS.addTransactionCta,
-      skipMissingElement: true,
-      waitForElement: 5000,
+      element: ONBOARDING_TARGETS.openingBalance,
+      ...stepOptions("opening-balance"),
+      disableActiveInteraction: false,
+      popover: {
+        title: copy.openingBalanceTitle,
+        description: copy.openingBalanceDescription,
+        side: ctaSide,
+        align: "start",
+        showButtons: ["next", "close"],
+        nextBtnText: copy.next,
+      },
+    },
+    {
+      element: ONBOARDING_TARGETS.cardQuickAdd,
+      ...stepOptions("card-quick-add"),
       advanceOnClick: true,
       disableActiveInteraction: false,
-      data: { stepId: "add-transaction-cta" },
       popover: {
-        title: copy.addCtaTitle,
-        description: copy.addCtaDescription,
+        title: copy.cardQuickAddTitle,
+        description: copy.cardQuickAddDescription,
         side: ctaSide,
         align: "start",
         showButtons: ["close"],
@@ -74,24 +117,48 @@ export function buildFirstRunSteps(
     },
   ];
 
-  const formStep: DriveStep = {
-    element: ONBOARDING_TARGETS.transactionForm,
-    skipMissingElement: true,
-    waitForElement: 5000,
-    data: { stepId: "transaction-form" },
-    popover: {
-      title: copy.formTitle,
-      description: copy.formDescription,
-      side: "top",
-      align: "start",
-      showButtons: ["next", "close"],
-      nextBtnText: copy.done,
-      doneBtnText: copy.done,
+  const formSteps: DriveStep[] = [
+    {
+      element: ONBOARDING_TARGETS.transactionFlags,
+      ...stepOptions("transaction-flags"),
+      popover: {
+        title: copy.flagsTitle,
+        description: copy.flagsDescription,
+        side: "top",
+        align: "start",
+        showButtons: ["next", "close"],
+        nextBtnText: copy.next,
+      },
     },
-  };
+    {
+      element: ONBOARDING_TARGETS.recurringToggle,
+      ...stepOptions("recurring-toggle"),
+      popover: {
+        title: copy.recurringTitle,
+        description: copy.recurringDescription,
+        side: "top",
+        align: "start",
+        showButtons: ["next", "close"],
+        nextBtnText: copy.next,
+      },
+    },
+    {
+      element: ONBOARDING_TARGETS.liveBalance,
+      ...stepOptions("live-balance"),
+      popover: {
+        title: copy.liveBalanceTitle,
+        description: copy.liveBalanceDescription,
+        side: dir === "rtl" ? "left" : "right",
+        align: "start",
+        showButtons: ["next", "close"],
+        nextBtnText: copy.done,
+        doneBtnText: copy.done,
+      },
+    },
+  ];
 
   if (pathname.startsWith("/add-transaction")) {
-    return [formStep];
+    return formSteps;
   }
 
   return homeSteps;
