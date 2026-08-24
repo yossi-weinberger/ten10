@@ -66,7 +66,9 @@ Recurring bulk status editing is intentionally deferred. Allowing `status` chang
 - `authenticated`: execute
 - `service_role`: execute
 
-Postconditions in the hardening migration verify `SECURITY INVOKER`, empty `search_path`, exact non-owner execute grants, the runtime auth guard in every function definition, and recurring status exclusion.
+Forward migration `20260824100005_enforce_bulk_transaction_function_ownership.sql` explicitly transfers all four exact signatures to the trusted `postgres` owner, then reapplies the least-privilege grants above without changing function bodies or signatures. Its preconditions require every signature and the `postgres` role to exist. Its per-function postconditions fail closed unless the resolved owner is exactly `postgres`, the function remains `SECURITY INVOKER`, `PUBLIC` / `anon` cannot execute, `authenticated` / `service_role` can execute, and no unexpected non-owner execute grantee exists.
+
+Postconditions in the original hardening migration continue to verify empty `search_path`, the runtime auth guard in every function definition, and recurring status exclusion.
 
 **Web callers:** `bulkDeleteTransactions` / `bulkUpdateTransactions` in `src/lib/data-layer/transactions.service.ts`; `bulkDeleteRecurringTransactions` / `bulkUpdateRecurringTransactions` in `src/lib/data-layer/recurringTransactions.service.ts`.
 

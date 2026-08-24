@@ -12,6 +12,7 @@ import {
   bulkDeleteTransactions as bulkDeleteTransactionsInDataService,
   bulkUpdateTransactions as bulkUpdateTransactionsInDataService,
 } from "../data-layer/transactions.service";
+import { getUserPaymentMethods } from "../data-layer/paymentMethods.service";
 import { logger } from "@/lib/logger";
 import { invokeDesktopFilteredTransactions } from "@/lib/tableTransactions/desktop-filtered-transactions-invoke";
 import type { TransactionBulkChange } from "./bulkActions";
@@ -38,10 +39,22 @@ export class TableTransactionsService {
     params: FetchTransactionsParams
   ): Promise<FetchTransactionsResponse> {
     const { offset, limit, filters, sorting, platform } = params;
-    const expandedPaymentMethods =
-      filters.paymentMethods.length > 0
-        ? expandPaymentMethodFilterAliases(filters.paymentMethods)
-        : null;
+    let expandedPaymentMethods: string[] | null = null;
+    if (filters.paymentMethods.length > 0) {
+      let observedRawValues: string[] = [];
+      try {
+        observedRawValues = await getUserPaymentMethods();
+      } catch (error) {
+        logger.warn(
+          "TableTransactionsService: Failed to fetch observed payment methods; using official aliases.",
+          error
+        );
+      }
+      expandedPaymentMethods = expandPaymentMethodFilterAliases(
+        filters.paymentMethods,
+        observedRawValues
+      );
+    }
 
     logger.log(
       "TableTransactionsService: Fetching transactions. Platform:",

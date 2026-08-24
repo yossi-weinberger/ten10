@@ -147,7 +147,7 @@
 - **Blocked selections:** Rows with `status === "completed"` block bulk updates; mixed category families or donations block category changes.
 - **Security:** All four bulk RPCs remain `SECURITY INVOKER` and require `auth.uid()` to match `p_user_id` at runtime for every non-`service_role` caller.
 - **מחיקה bulk (Desktop):** `bulk_delete_recurring_transactions_handler` רץ ב-SQLite transaction: קודם `UPDATE transactions SET source_recurring_id = NULL WHERE source_recurring_id IN (...)`, אחר כך `DELETE FROM recurring_transactions` — תואם ל-Web FK `ON DELETE SET NULL` (נבדק במיגרציה `20260823154606_add_atomic_bulk_transaction_actions.sql`).
-- **Store/UI:** `deleteRecurringBulk` ו-`updateRecurringBulk` ב-`recurringTable.store.ts` מבצעים refetch יחיד (`fetchRecurring()`) וממתינים לו לפני הצלחה. כשל ב-refetch דוחה את הפעולה ומשאיר את ה-dialog פתוח; לאחר הצלחה `RecurringTransactionsTableDisplay` סוגר אותו ומתזמן `clearSelection` ו-success toast ב-`requestAnimationFrame`.
+- **Store/UI:** כשל במוטציה עצמה גורם ל-`deleteRecurringBulk` או ל-`updateRecurringBulk` לדחות את הפעולה, ומשאיר את זרימת הניסיון החוזר ואת ה-dialog פתוחים. אם המוטציה כבר נשמרה ורק הרענון נכשל, הפעולה נפתרת עם `BulkMutationResult.refreshError`; ה-UI סוגר את ה-dialog, מנקה את הבחירה ומציג הודעת הצלחה לצד אזהרה שהנתונים המוצגים עלולים להיות לא מעודכנים.
 - **ללא Undo**, **ללא PostHog events** בזרימת bulk.
 
 ---

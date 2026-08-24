@@ -93,11 +93,29 @@ export function getPaymentMethodAliases(value: string): string[] {
 }
 
 export function expandPaymentMethodFilterAliases(
-  values: readonly string[]
+  values: readonly string[],
+  observedRawValues: readonly string[] = []
 ): string[] {
-  return Array.from(
-    new Set(values.flatMap((value) => getPaymentMethodAliases(value)))
-  );
+  const selectedCanonicalIdentities = new Set<string>();
+  for (const value of values) {
+    const normalizedValue = normalizePaymentMethodValue(value);
+    if (normalizedValue) {
+      selectedCanonicalIdentities.add(normalizedValue);
+    }
+  }
+
+  const aliases = values.flatMap((value) => getPaymentMethodAliases(value));
+  for (const rawValue of observedRawValues) {
+    const normalizedValue = normalizePaymentMethodValue(rawValue);
+    if (
+      normalizedValue &&
+      selectedCanonicalIdentities.has(normalizedValue)
+    ) {
+      aliases.push(rawValue);
+    }
+  }
+
+  return Array.from(new Set(aliases));
 }
 
 export function mergePaymentMethodOptions(

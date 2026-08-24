@@ -30,6 +30,21 @@ describe("payment method compatibility", () => {
     ]);
   });
 
+  it("includes exact observed aliases matching the selected identity", () => {
+    expect(
+      expandPaymentMethodFilterAliases(
+        ["credit_card"],
+        ["CREDIT CARD", " CrEdIt CaRd ", "Cash", "", "   "],
+      ),
+    ).toEqual([
+      "credit_card",
+      "Credit card",
+      "כרטיס אשראי",
+      "CREDIT CARD",
+      " CrEdIt CaRd ",
+    ]);
+  });
+
   it("merges trim-identical custom options but preserves case-distinct values", () => {
     const predefined: PaymentMethodOption[] = [
       {

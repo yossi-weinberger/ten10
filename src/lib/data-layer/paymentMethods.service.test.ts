@@ -33,6 +33,8 @@ function deferred<T>() {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockRpc.mockReset();
+  mockGetSession.mockReset();
   clearPaymentMethodCache();
   mockGetSession.mockResolvedValue({
     data: { session: { user: { id: "user-1" } } },
@@ -40,6 +42,33 @@ beforeEach(() => {
 });
 
 describe("payment method cache invalidation", () => {
+  it("does not cache a failed Web fetch", async () => {
+    mockRpc
+      .mockResolvedValueOnce({
+        data: null,
+        error: new Error("temporary"),
+      })
+      .mockResolvedValueOnce({
+        data: [{ payment_method: "Fresh card" }],
+        error: null,
+      });
+
+    await expect(getUserPaymentMethods()).rejects.toThrow("temporary");
+    await expect(getUserPaymentMethods()).resolves.toEqual(["Fresh card"]);
+    expect(mockRpc).toHaveBeenCalledTimes(2);
+  });
+
+  it("caches a successful empty Web response", async () => {
+    mockRpc.mockResolvedValue({
+      data: [],
+      error: null,
+    });
+
+    await expect(getUserPaymentMethods()).resolves.toEqual([]);
+    await expect(getUserPaymentMethods()).resolves.toEqual([]);
+    expect(mockRpc).toHaveBeenCalledOnce();
+  });
+
   it("does not return or cache a stale fetch resolved after invalidation", async () => {
     const staleResponse = deferred<{
       data: Array<{ payment_method: string }>;
