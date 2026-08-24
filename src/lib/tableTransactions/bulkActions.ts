@@ -136,6 +136,28 @@ export function getBulkChomeshType(
   return firstType;
 }
 
+export function shouldShowBulkChomeshField(
+  type: ChomeshBulkType | null,
+  trackChomeshSeparately: boolean,
+): boolean {
+  if (type === null) {
+    return false;
+  }
+
+  switch (type) {
+    case "donation":
+      return trackChomeshSeparately;
+    case "income":
+    case "expense":
+    case "recognized-expense":
+      return true;
+    default: {
+      const exhaustive: never = type;
+      return exhaustive;
+    }
+  }
+}
+
 export function getBulkRecipientFamily(
   rows: readonly { type: TransactionType }[],
 ): true | null {
@@ -154,6 +176,22 @@ export function getBulkRecipientFamily(
   return null;
 }
 
+export type BulkSharedValueRow = {
+  payment_method?: string | null;
+  category?: string | null;
+  description?: string | null;
+  recipient?: string | null;
+  is_chomesh?: boolean | null;
+};
+
+export type SharedBulkValues = {
+  payment_method: string | null | undefined;
+  category: string | null | undefined;
+  description: string | null | undefined;
+  recipient: string | null | undefined;
+  is_chomesh: boolean | undefined;
+};
+
 export const INITIAL_BULK_FIELD_ACTIONS: BulkPatchFieldActions = {
   payment_method: { action: "untouched" },
   category: { action: "untouched" },
@@ -161,6 +199,86 @@ export const INITIAL_BULK_FIELD_ACTIONS: BulkPatchFieldActions = {
   recipient: { action: "untouched" },
   is_chomesh: { action: "untouched" },
 };
+
+export function getSharedBulkValues(
+  rows: readonly BulkSharedValueRow[],
+): SharedBulkValues {
+  return {
+    payment_method: getSharedTextValue(rows, "payment_method"),
+    category: getSharedTextValue(rows, "category"),
+    description: getSharedTextValue(rows, "description"),
+    recipient: getSharedTextValue(rows, "recipient"),
+    is_chomesh: getSharedChomeshValue(rows),
+  };
+}
+
+export function displayedBulkTextValue(
+  action: BulkFieldAction,
+  shared: string | null | undefined,
+): string {
+  switch (action.action) {
+    case "set":
+      return typeof action.value === "string" ? action.value : "";
+    case "clear":
+      return "";
+    case "untouched":
+      return shared ?? "";
+    default: {
+      const exhaustive: never = action;
+      return exhaustive;
+    }
+  }
+}
+
+export function displayedBulkComboboxValue(
+  action: BulkFieldAction,
+  shared: string | null | undefined,
+): string | null {
+  const text = displayedBulkTextValue(action, shared);
+  return text.length > 0 ? text : null;
+}
+
+export function displayedBulkChomeshChecked(
+  action: BulkFieldAction,
+  shared: boolean | undefined,
+): boolean {
+  switch (action.action) {
+    case "set":
+      return action.value === true;
+    case "clear":
+    case "untouched":
+      return shared === true;
+    default: {
+      const exhaustive: never = action;
+      return exhaustive;
+    }
+  }
+}
+
+export function nextBulkTextAction(
+  value: string | null,
+  shared: string | null | undefined,
+): BulkFieldAction {
+  const normalized = normalizeSharedText(value);
+  if (shared !== undefined && normalized === shared) {
+    return { action: "untouched" };
+  }
+
+  return normalized === null
+    ? { action: "clear" }
+    : { action: "set", value: normalized };
+}
+
+export function nextBulkChomeshAction(
+  nextChecked: boolean,
+  shared: boolean | undefined,
+): BulkFieldAction {
+  if (shared !== undefined && nextChecked === shared) {
+    return { action: "untouched" };
+  }
+
+  return { action: "set", value: nextChecked };
+}
 
 export function normalizeBulkFieldActions(
   actions: BulkPatchFieldActions,
@@ -255,6 +373,46 @@ function assignTextPatchField(
       return exhaustive;
     }
   }
+}
+
+function normalizeSharedText(value: string | null | undefined): string | null {
+  if (value == null) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function getSharedTextValue(
+  rows: readonly BulkSharedValueRow[],
+  field: "payment_method" | "category" | "description" | "recipient",
+): string | null | undefined {
+  if (rows.length === 0) {
+    return undefined;
+  }
+
+  const first = normalizeSharedText(rows[0]?.[field]);
+  if (rows.some((row) => normalizeSharedText(row[field]) !== first)) {
+    return undefined;
+  }
+
+  return first;
+}
+
+function getSharedChomeshValue(
+  rows: readonly BulkSharedValueRow[],
+): boolean | undefined {
+  if (rows.length === 0) {
+    return undefined;
+  }
+
+  const first = rows[0]?.is_chomesh === true;
+  if (rows.some((row) => (row.is_chomesh === true) !== first)) {
+    return undefined;
+  }
+
+  return first;
 }
 
 function isChomeshBulkType(type: TransactionType): type is ChomeshBulkType {

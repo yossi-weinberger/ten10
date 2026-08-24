@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { FlagToggleButton } from "@/components/forms/transaction-form-parts/FlagToggleButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,9 +8,16 @@ import { PaymentMethodCombobox } from "@/components/ui/payment-method-combobox";
 import {
   BULK_DESCRIPTION_MAX_LENGTH,
   BULK_TEXT_VALUE_MAX_LENGTH,
+  displayedBulkChomeshChecked,
+  displayedBulkComboboxValue,
+  displayedBulkTextValue,
+  nextBulkChomeshAction,
+  nextBulkTextAction,
   type BulkCategoryFamily,
   type BulkFieldAction,
   type BulkPatchFieldActions,
+  type ChomeshBulkType,
+  type SharedBulkValues,
 } from "@/lib/tableTransactions/bulkActions";
 import { cn } from "@/lib/utils";
 
@@ -26,23 +34,9 @@ export interface BulkEditFieldsProps {
   actions: BulkPatchFieldActions;
   availability: BulkEditFieldAvailability;
   categoryFamily: BulkCategoryFamily | null;
+  chomeshType: ChomeshBulkType | null;
+  sharedValues: SharedBulkValues;
   onActionsChange: (actions: BulkPatchFieldActions) => void;
-}
-
-function textValue(action: BulkFieldAction): string {
-  if (action.action === "set" && typeof action.value === "string") {
-    return action.value;
-  }
-
-  return "";
-}
-
-function comboboxValue(action: BulkFieldAction): string | null {
-  if (action.action === "set" && typeof action.value === "string") {
-    return action.value;
-  }
-
-  return null;
 }
 
 export function BulkEditFields({
@@ -50,9 +44,12 @@ export function BulkEditFields({
   actions,
   availability,
   categoryFamily,
+  chomeshType,
+  sharedValues,
   onActionsChange,
 }: BulkEditFieldsProps) {
   const { t } = useTranslation("data-tables");
+  const { t: tTransactions } = useTranslation("transactions");
 
   const updateField = (
     field: keyof BulkPatchFieldActions,
@@ -89,10 +86,19 @@ export function BulkEditFields({
           maxLength={BULK_DESCRIPTION_MAX_LENGTH}
           pending={pending}
           action={actions.description}
+          shared={sharedValues.description}
           onChange={(value) =>
-            updateField("description", { action: "set", value })
+            updateField(
+              "description",
+              nextBulkTextAction(value, sharedValues.description),
+            )
           }
-          onClear={() => updateField("description", { action: "clear" })}
+          onClear={() =>
+            updateField(
+              "description",
+              nextBulkTextAction(null, sharedValues.description),
+            )
+          }
         />
       ) : null}
 
@@ -104,13 +110,14 @@ export function BulkEditFields({
           <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
               <PaymentMethodCombobox
-                value={comboboxValue(actions.payment_method)}
+                value={displayedBulkComboboxValue(
+                  actions.payment_method,
+                  sharedValues.payment_method,
+                )}
                 onChange={(value) =>
                   updateField(
                     "payment_method",
-                    value === null
-                      ? { action: "clear" }
-                      : { action: "set", value },
+                    nextBulkTextAction(value, sharedValues.payment_method),
                   )
                 }
                 placeholder={t("bulkEdit.placeholders.paymentMethod")}
@@ -120,7 +127,10 @@ export function BulkEditFields({
             <ClearButton
               pending={pending}
               onClear={() =>
-                updateField("payment_method", { action: "clear" })
+                updateField(
+                  "payment_method",
+                  nextBulkTextAction(null, sharedValues.payment_method),
+                )
               }
             />
           </div>
@@ -134,13 +144,14 @@ export function BulkEditFields({
           <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
               <CategoryCombobox
-                value={comboboxValue(actions.category)}
+                value={displayedBulkComboboxValue(
+                  actions.category,
+                  sharedValues.category,
+                )}
                 onChange={(value) =>
                   updateField(
                     "category",
-                    value === null
-                      ? { action: "clear" }
-                      : { action: "set", value },
+                    nextBulkTextAction(value, sharedValues.category),
                   )
                 }
                 transactionType={categoryFamily}
@@ -150,7 +161,12 @@ export function BulkEditFields({
             </div>
             <ClearButton
               pending={pending}
-              onClear={() => updateField("category", { action: "clear" })}
+              onClear={() =>
+                updateField(
+                  "category",
+                  nextBulkTextAction(null, sharedValues.category),
+                )
+              }
             />
           </div>
           <ClearedHint action={actions.category} />
@@ -165,48 +181,45 @@ export function BulkEditFields({
           maxLength={BULK_TEXT_VALUE_MAX_LENGTH}
           pending={pending}
           action={actions.recipient}
+          shared={sharedValues.recipient}
           onChange={(value) =>
-            updateField("recipient", { action: "set", value })
+            updateField(
+              "recipient",
+              nextBulkTextAction(value, sharedValues.recipient),
+            )
           }
-          onClear={() => updateField("recipient", { action: "clear" })}
+          onClear={() =>
+            updateField(
+              "recipient",
+              nextBulkTextAction(null, sharedValues.recipient),
+            )
+          }
         />
       ) : null}
 
-      {availability.is_chomesh ? (
-        <div className="space-y-2">
-          <Label>{t("bulkEdit.fields.chomesh")}</Label>
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant={
-                actions.is_chomesh.action === "set" &&
-                actions.is_chomesh.value === true
-                  ? "default"
-                  : "outline"
-              }
-              disabled={pending}
-              onClick={() =>
-                updateField("is_chomesh", { action: "set", value: true })
-              }
-            >
-              {t("bulkEdit.chomesh.yes")}
-            </Button>
-            <Button
-              type="button"
-              variant={
-                actions.is_chomesh.action === "set" &&
-                actions.is_chomesh.value === false
-                  ? "default"
-                  : "outline"
-              }
-              disabled={pending}
-              onClick={() =>
-                updateField("is_chomesh", { action: "set", value: false })
-              }
-            >
-              {t("bulkEdit.chomesh.no")}
-            </Button>
-          </div>
+      {availability.is_chomesh && chomeshType !== null ? (
+        <div className="flex justify-center">
+          <FlagToggleButton
+            className="min-w-[100px] max-w-[160px]"
+            checked={displayedBulkChomeshChecked(
+              actions.is_chomesh,
+              sharedValues.is_chomesh,
+            )}
+            disabled={pending}
+            isGolden
+            label={tTransactions(getChomeshLabelKey(chomeshType))}
+            tooltip={tTransactions(getChomeshTooltipKey(chomeshType))}
+            onToggle={() => {
+              const isChecked = displayedBulkChomeshChecked(
+                actions.is_chomesh,
+                sharedValues.is_chomesh,
+              );
+              updateField(
+                "is_chomesh",
+                nextBulkChomeshAction(!isChecked, sharedValues.is_chomesh),
+              );
+            }}
+          />
         </div>
       ) : null}
     </div>
@@ -220,6 +233,7 @@ function BulkTextField({
   maxLength,
   pending,
   action,
+  shared,
   onChange,
   onClear,
 }: {
@@ -229,6 +243,7 @@ function BulkTextField({
   maxLength: number;
   pending: boolean;
   action: BulkFieldAction;
+  shared: string | null | undefined;
   onChange: (value: string) => void;
   onClear: () => void;
 }) {
@@ -238,7 +253,7 @@ function BulkTextField({
       <div className="flex items-center gap-2">
         <Input
           id={id}
-          value={textValue(action)}
+          value={displayedBulkTextValue(action, shared)}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
           maxLength={maxLength}
@@ -273,6 +288,38 @@ function ClearButton({
       {t("bulkEdit.clearValue")}
     </Button>
   );
+}
+
+function getChomeshLabelKey(type: ChomeshBulkType): string {
+  switch (type) {
+    case "income":
+      return "transactionForm.chomesh.label";
+    case "expense":
+    case "recognized-expense":
+      return "transactionForm.chomeshExpense.label";
+    case "donation":
+      return "transactionForm.chomeshDonation.label";
+    default: {
+      const exhaustive: never = type;
+      return exhaustive;
+    }
+  }
+}
+
+function getChomeshTooltipKey(type: ChomeshBulkType): string {
+  switch (type) {
+    case "income":
+      return "transactionForm.chomesh.tooltip";
+    case "expense":
+    case "recognized-expense":
+      return "transactionForm.chomeshExpense.tooltip";
+    case "donation":
+      return "transactionForm.chomeshDonation.tooltip";
+    default: {
+      const exhaustive: never = type;
+      return exhaustive;
+    }
+  }
 }
 
 function ClearedHint({ action }: { action: BulkFieldAction }) {

@@ -90,8 +90,7 @@
       "paymentMethod": "אמצעי תשלום",
       "category": "קטגוריה",
       "description": "תיאור",
-      "recipient": "מקבל",
-      "chomesh": "חומש"
+      "recipient": "מקבל"
     },
     "placeholders": {
       "status": "בחר סטטוס",
@@ -99,10 +98,6 @@
       "category": "בחר קטגוריה או השאר ריק לניקוי",
       "description": "הזן תיאור או נקה את השדה",
       "recipient": "הזן מקבל או נקה את השדה"
-    },
-    "chomesh": {
-      "yes": "כן",
-      "no": "לא"
     },
     "messages": {
       "noAvailableFields": "אין שדות זמינים לעריכה עבור הבחירה הנוכחית.",

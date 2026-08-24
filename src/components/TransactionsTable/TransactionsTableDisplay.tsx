@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";
+import { useDonationStore } from "@/lib/store";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { Table, TableBody, TableRow, TableCell } from "@/components/ui/table";
@@ -38,8 +39,11 @@ import {
   assertBulkPatch,
   buildBulkPatch,
   getBulkCategoryFamily,
+  getBulkChomeshType,
   getBulkEditAvailability,
   getSelectionActionMode,
+  getSharedBulkValues,
+  shouldShowBulkChomeshField,
   INITIAL_BULK_FIELD_ACTIONS,
   normalizeBulkFieldActions,
 } from "@/lib/tableTransactions/bulkActions";
@@ -50,6 +54,9 @@ import { getErrorMessage } from "@/lib/utils/error-message";
 export function TransactionsTableDisplay() {
   const { t, i18n } = useTranslation("data-tables");
   const { t: tImport } = useTranslation("import");
+  const trackChomeshSeparately = useDonationStore(
+    (state) => state.settings.trackChomeshSeparately,
+  );
 
   // sortableColumns definition with translations
   const sortableColumns: { label: string; field: SortableField }[] = [
@@ -147,6 +154,8 @@ export function TransactionsTableDisplay() {
     (transaction) => Boolean(transaction.source_recurring_id)
   );
   const bulkCategoryFamily = getBulkCategoryFamily(selectedTransactions);
+  const bulkChomeshType = getBulkChomeshType(selectedTransactions);
+  const sharedBulkValues = getSharedBulkValues(selectedTransactions);
   const bulkPending = bulkLoading;
 
   const bulkFieldAvailability = {
@@ -170,11 +179,13 @@ export function TransactionsTableDisplay() {
       rows: selectedTransactions,
       field: "recipient",
     }).allowed,
-    is_chomesh: getBulkEditAvailability({
-      kind: "transaction",
-      rows: selectedTransactions,
-      field: "is_chomesh",
-    }).allowed,
+    is_chomesh:
+      getBulkEditAvailability({
+        kind: "transaction",
+        rows: selectedTransactions,
+        field: "is_chomesh",
+      }).allowed &&
+      shouldShowBulkChomeshField(bulkChomeshType, trackChomeshSeparately),
   };
 
   const resetBulkEditValues = useCallback(() => {
@@ -703,6 +714,8 @@ export function TransactionsTableDisplay() {
           actions={bulkFieldActions}
           availability={bulkFieldAvailability}
           categoryFamily={bulkCategoryFamily}
+          chomeshType={bulkChomeshType}
+          sharedValues={sharedBulkValues}
           onActionsChange={setBulkFieldActions}
         />
       </BulkEditDialog>

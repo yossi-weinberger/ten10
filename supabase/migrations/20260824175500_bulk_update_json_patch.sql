@@ -1,4 +1,6 @@
--- Replace single-field bulk updaters with an atomic jsonb patch.
+-- Add jsonb patch overloads for bulk edit v2.
+-- Keep the live (uuid, uuid[], text, text) signatures so V1 web clients
+-- that still send p_field/p_value continue to work.
 
 DO $preconditions$
 BEGIN
@@ -9,11 +11,16 @@ BEGIN
   IF to_regprocedure('public.bulk_update_user_recurring_transactions(uuid,uuid[],text,text)') IS NULL THEN
     RAISE EXCEPTION 'Required function is missing before jsonb patch migration: public.bulk_update_user_recurring_transactions(uuid,uuid[],text,text)';
   END IF;
+
+  IF to_regprocedure('public.bulk_update_user_transactions(uuid,uuid[],jsonb)') IS NOT NULL THEN
+    RAISE EXCEPTION 'Jsonb transaction bulk updater already exists before additive migration.';
+  END IF;
+
+  IF to_regprocedure('public.bulk_update_user_recurring_transactions(uuid,uuid[],jsonb)') IS NOT NULL THEN
+    RAISE EXCEPTION 'Jsonb recurring bulk updater already exists before additive migration.';
+  END IF;
 END;
 $preconditions$;
-
-DROP FUNCTION public.bulk_update_user_transactions(uuid, uuid[], text, text);
-DROP FUNCTION public.bulk_update_user_recurring_transactions(uuid, uuid[], text, text);
 
 CREATE FUNCTION public.bulk_update_user_transactions(
   p_user_id uuid,
@@ -48,14 +55,34 @@ BEGIN
     RAISE EXCEPTION 'Bulk update requires at least one field.';
   END IF;
 
-  SELECT key
+  SELECT object_key
   INTO v_unknown_key
-  FROM jsonb_object_keys(p_updates) AS key
-  WHERE key NOT IN ('payment_method', 'category', 'description', 'recipient', 'is_chomesh')
+  FROM jsonb_object_keys(p_updates) AS keys(object_key)
+  WHERE object_key NOT IN ('payment_method', 'category', 'description', 'recipient', 'is_chomesh')
   LIMIT 1;
 
   IF v_unknown_key IS NOT NULL THEN
     RAISE EXCEPTION 'Unsupported transaction bulk update field: %.', v_unknown_key;
+  END IF;
+
+  IF p_updates ? 'payment_method'
+     AND jsonb_typeof(p_updates->'payment_method') NOT IN ('string', 'null') THEN
+    RAISE EXCEPTION 'Bulk update field payment_method must be a string or null.';
+  END IF;
+
+  IF p_updates ? 'category'
+     AND jsonb_typeof(p_updates->'category') NOT IN ('string', 'null') THEN
+    RAISE EXCEPTION 'Bulk update field category must be a string or null.';
+  END IF;
+
+  IF p_updates ? 'recipient'
+     AND jsonb_typeof(p_updates->'recipient') NOT IN ('string', 'null') THEN
+    RAISE EXCEPTION 'Bulk update field recipient must be a string or null.';
+  END IF;
+
+  IF p_updates ? 'description'
+     AND jsonb_typeof(p_updates->'description') NOT IN ('string', 'null') THEN
+    RAISE EXCEPTION 'Bulk update field description must be a string or null.';
   END IF;
 
   IF p_updates ? 'payment_method'
@@ -229,14 +256,34 @@ BEGIN
     RAISE EXCEPTION 'Bulk update requires at least one field.';
   END IF;
 
-  SELECT key
+  SELECT object_key
   INTO v_unknown_key
-  FROM jsonb_object_keys(p_updates) AS key
-  WHERE key NOT IN ('payment_method', 'category', 'description', 'recipient', 'is_chomesh')
+  FROM jsonb_object_keys(p_updates) AS keys(object_key)
+  WHERE object_key NOT IN ('payment_method', 'category', 'description', 'recipient', 'is_chomesh')
   LIMIT 1;
 
   IF v_unknown_key IS NOT NULL THEN
     RAISE EXCEPTION 'Unsupported recurring transaction bulk update field: %.', v_unknown_key;
+  END IF;
+
+  IF p_updates ? 'payment_method'
+     AND jsonb_typeof(p_updates->'payment_method') NOT IN ('string', 'null') THEN
+    RAISE EXCEPTION 'Bulk update field payment_method must be a string or null.';
+  END IF;
+
+  IF p_updates ? 'category'
+     AND jsonb_typeof(p_updates->'category') NOT IN ('string', 'null') THEN
+    RAISE EXCEPTION 'Bulk update field category must be a string or null.';
+  END IF;
+
+  IF p_updates ? 'recipient'
+     AND jsonb_typeof(p_updates->'recipient') NOT IN ('string', 'null') THEN
+    RAISE EXCEPTION 'Bulk update field recipient must be a string or null.';
+  END IF;
+
+  IF p_updates ? 'description'
+     AND jsonb_typeof(p_updates->'description') NOT IN ('string', 'null') THEN
+    RAISE EXCEPTION 'Bulk update field description must be a string or null.';
   END IF;
 
   IF p_updates ? 'payment_method'
@@ -399,18 +446,30 @@ DECLARE
   function_owner text;
   execute_grantees text[];
   required_signature text;
+  legacy_signatures constant text[] := ARRAY[
+    'public.bulk_update_user_transactions(uuid,uuid[],text,text)',
+    'public.bulk_update_user_recurring_transactions(uuid,uuid[],text,text)'
+  ];
   required_signatures constant text[] := ARRAY[
     'public.bulk_update_user_transactions(uuid,uuid[],jsonb)',
     'public.bulk_update_user_recurring_transactions(uuid,uuid[],jsonb)'
   ];
 BEGIN
-  IF to_regprocedure('public.bulk_update_user_transactions(uuid,uuid[],text,text)') IS NOT NULL THEN
-    RAISE EXCEPTION 'Old single-field transaction bulk updater still exists.';
-  END IF;
+  FOREACH required_signature IN ARRAY legacy_signatures LOOP
+    function_oid := to_regprocedure(required_signature);
 
-  IF to_regprocedure('public.bulk_update_user_recurring_transactions(uuid,uuid[],text,text)') IS NOT NULL THEN
-    RAISE EXCEPTION 'Old single-field recurring bulk updater still exists.';
-  END IF;
+    IF function_oid IS NULL THEN
+      RAISE EXCEPTION 'Legacy single-field bulk updater is missing after additive jsonb migration: %', required_signature;
+    END IF;
+
+    SELECT pg_get_functiondef(function_oid)
+    INTO function_def;
+
+    IF function_def !~* $allowed_fields_regex$p_field[[:space:]]+NOT[[:space:]]+IN[[:space:]]*\([[:space:]]*'payment_method'[[:space:]]*,[[:space:]]*'category'[[:space:]]*\)$allowed_fields_regex$
+       OR function_def ~* $status_update_regex$SET[[:space:]]+status[[:space:]]*=$status_update_regex$ THEN
+      RAISE EXCEPTION 'Legacy bulk updater lost its field allowlist: %', required_signature;
+    END IF;
+  END LOOP;
 
   FOREACH required_signature IN ARRAY required_signatures LOOP
     function_oid := to_regprocedure(required_signature);

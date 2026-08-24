@@ -108,8 +108,7 @@
       "paymentMethod": "Payment Method",
       "category": "Category",
       "description": "Description",
-      "recipient": "Recipient",
-      "chomesh": "Chomesh"
+      "recipient": "Recipient"
     },
     "placeholders": {
       "status": "Select status",
@@ -117,10 +116,6 @@
       "category": "Select a category or leave empty to clear",
       "description": "Enter a description or clear the field",
       "recipient": "Enter a recipient or clear the field"
-    },
-    "chomesh": {
-      "yes": "Yes",
-      "no": "No"
     },
     "messages": {
       "noAvailableFields": "No fields are available for the current selection.",

@@ -7,7 +7,13 @@ import {
   getBulkCategoryFamily,
   getBulkChomeshType,
   getBulkEditAvailability,
+  shouldShowBulkChomeshField,
+  displayedBulkChomeshChecked,
+  displayedBulkTextValue,
   getBulkFieldGridClassName,
+  getSharedBulkValues,
+  nextBulkChomeshAction,
+  nextBulkTextAction,
   getBulkRecipientFamily,
   getSelectionActionMode,
   type RecurringBulkChange,
@@ -281,6 +287,113 @@ describe("bulk action field availability", () => {
         field: "is_chomesh",
       }),
     ).toEqual({ allowed: false, reason: "chomesh-not-applicable" });
+  });
+
+  it("returns shared bulk values only when every selected row matches", () => {
+    expect(
+      getSharedBulkValues([
+        {
+          category: "food",
+          payment_method: "cash",
+          description: "Lunch",
+          recipient: null,
+          is_chomesh: true,
+        },
+        {
+          category: "food",
+          payment_method: "cash",
+          description: " Lunch ",
+          recipient: "",
+          is_chomesh: true,
+        },
+      ]),
+    ).toEqual({
+      category: "food",
+      payment_method: "cash",
+      description: "Lunch",
+      recipient: null,
+      is_chomesh: true,
+    });
+
+    expect(
+      getSharedBulkValues([
+        { category: "food", is_chomesh: true },
+        { category: "housing", is_chomesh: false },
+      ]),
+    ).toEqual({
+      category: undefined,
+      payment_method: null,
+      description: null,
+      recipient: null,
+      is_chomesh: undefined,
+    });
+
+    expect(
+      getSharedBulkValues([
+        { category: null, description: "", is_chomesh: false },
+        { category: "  ", description: null, is_chomesh: null },
+      ]),
+    ).toEqual({
+      category: null,
+      payment_method: null,
+      description: null,
+      recipient: null,
+      is_chomesh: false,
+    });
+
+    expect(getSharedBulkValues([])).toEqual({
+      category: undefined,
+      payment_method: undefined,
+      description: undefined,
+      recipient: undefined,
+      is_chomesh: undefined,
+    });
+  });
+
+  it("keeps shared values displayed without marking fields touched", () => {
+    const untouched = { action: "untouched" as const };
+
+    expect(displayedBulkTextValue(untouched, "food")).toBe("food");
+    expect(displayedBulkTextValue(untouched, undefined)).toBe("");
+    expect(displayedBulkChomeshChecked(untouched, true)).toBe(true);
+    expect(displayedBulkChomeshChecked(untouched, false)).toBe(false);
+    expect(displayedBulkChomeshChecked(untouched, undefined)).toBe(false);
+
+    expect(nextBulkTextAction("food", "food")).toEqual({ action: "untouched" });
+    expect(nextBulkTextAction(null, "food")).toEqual({ action: "clear" });
+    expect(nextBulkTextAction(null, null)).toEqual({ action: "untouched" });
+    expect(nextBulkTextAction("housing", "food")).toEqual({
+      action: "set",
+      value: "housing",
+    });
+    expect(nextBulkChomeshAction(false, true)).toEqual({
+      action: "set",
+      value: false,
+    });
+    expect(nextBulkChomeshAction(true, true)).toEqual({ action: "untouched" });
+    expect(nextBulkChomeshAction(true, undefined)).toEqual({
+      action: "set",
+      value: true,
+    });
+
+    expect(
+      buildBulkPatch({
+        payment_method: { action: "untouched" },
+        category: { action: "untouched" },
+        description: { action: "untouched" },
+        recipient: { action: "untouched" },
+        is_chomesh: { action: "untouched" },
+      }),
+    ).toEqual({});
+  });
+
+  it("shows donation chomesh only when chomesh is tracked separately", () => {
+    expect(shouldShowBulkChomeshField("income", false)).toBe(true);
+    expect(shouldShowBulkChomeshField("expense", false)).toBe(true);
+    expect(shouldShowBulkChomeshField("recognized-expense", false)).toBe(true);
+    expect(shouldShowBulkChomeshField("donation", false)).toBe(false);
+    expect(shouldShowBulkChomeshField("donation", true)).toBe(true);
+    expect(shouldShowBulkChomeshField(null, true)).toBe(false);
   });
 
   it("builds a patch from touched fields only", () => {

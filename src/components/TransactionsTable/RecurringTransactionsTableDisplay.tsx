@@ -47,6 +47,7 @@ import {
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
 import { DeleteConfirmationDialog } from "../ui/DeleteConfirmationDialog";
 import { usePlatform } from "@/contexts/PlatformContext";
+import { useDonationStore } from "@/lib/store";
 import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversionInfo";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 import { BulkEditDialog } from "./BulkEditDialog";
@@ -56,8 +57,11 @@ import {
   assertBulkPatch,
   buildBulkPatch,
   getBulkCategoryFamily,
+  getBulkChomeshType,
   getBulkEditAvailability,
   getSelectionActionMode,
+  getSharedBulkValues,
+  shouldShowBulkChomeshField,
   INITIAL_BULK_FIELD_ACTIONS,
   normalizeBulkFieldActions,
 } from "@/lib/tableTransactions/bulkActions";
@@ -67,6 +71,9 @@ import { getErrorMessage } from "@/lib/utils/error-message";
 export function RecurringTransactionsTableDisplay() {
   const { t, i18n } = useTranslation(["data-tables", "transactions"]);
   const { platform } = usePlatform();
+  const trackChomeshSeparately = useDonationStore(
+    (state) => state.settings.trackChomeshSeparately,
+  );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] =
     useState<RecurringTransaction | null>(null);
@@ -126,6 +133,8 @@ export function RecurringTransactionsTableDisplay() {
     (transaction) => transaction.id
   );
   const bulkCategoryFamily = getBulkCategoryFamily(selectedRecurring);
+  const bulkChomeshType = getBulkChomeshType(selectedRecurring);
+  const sharedBulkValues = getSharedBulkValues(selectedRecurring);
   const bulkPending = bulkLoading;
 
   const handleConfirmDelete = async () => {
@@ -166,11 +175,13 @@ export function RecurringTransactionsTableDisplay() {
       rows: selectedRecurring,
       field: "recipient",
     }).allowed,
-    is_chomesh: getBulkEditAvailability({
-      kind: "recurring",
-      rows: selectedRecurring,
-      field: "is_chomesh",
-    }).allowed,
+    is_chomesh:
+      getBulkEditAvailability({
+        kind: "recurring",
+        rows: selectedRecurring,
+        field: "is_chomesh",
+      }).allowed &&
+      shouldShowBulkChomeshField(bulkChomeshType, trackChomeshSeparately),
   };
 
   const resetBulkEditValues = useCallback(() => {
@@ -611,6 +622,8 @@ export function RecurringTransactionsTableDisplay() {
           actions={bulkFieldActions}
           availability={bulkFieldAvailability}
           categoryFamily={bulkCategoryFamily}
+          chomeshType={bulkChomeshType}
+          sharedValues={sharedBulkValues}
           onActionsChange={setBulkFieldActions}
         />
       </BulkEditDialog>
