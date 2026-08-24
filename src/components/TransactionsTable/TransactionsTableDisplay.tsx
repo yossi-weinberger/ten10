@@ -1,12 +1,13 @@
-import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useShallow } from "zustand/react/shallow";
+import { useDonationStore } from "@/lib/store";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { Table, TableBody, TableRow, TableCell } from "@/components/ui/table";
 import { TransactionsFilters } from "./TransactionsFilters";
 import { ExportButton } from "./ExportButton";
-import { CreditCard, Tags, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -32,31 +33,30 @@ import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { TableTransactionsService } from "@/lib/tableTransactions/tableTransactionService";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 import { BulkEditDialog } from "./BulkEditDialog";
-import { PaymentMethodCombobox } from "@/components/ui/payment-method-combobox";
-import { CategoryCombobox } from "@/components/ui/category-combobox";
+import { BulkEditFields } from "./BulkEditFields";
 import { useLoadedRowSelection } from "@/hooks/useLoadedRowSelection";
 import {
+  assertBulkPatch,
+  buildBulkPatch,
   getBulkCategoryFamily,
+  getBulkChomeshType,
   getBulkEditAvailability,
   getSelectionActionMode,
-  type TransactionBulkChange,
-  type TransactionBulkField,
+  getSharedBulkValues,
+  shouldShowBulkChomeshField,
+  INITIAL_BULK_FIELD_ACTIONS,
+  normalizeBulkFieldActions,
 } from "@/lib/tableTransactions/bulkActions";
 import { getErrorMessage } from "@/lib/utils/error-message";
-
-type TransactionBulkEditField = TransactionBulkField;
-type BulkEditValueAction = "untouched" | "set" | "clear";
-
-function normalizeNullableBulkValue(value: string | null): string | null {
-  const normalized = value?.trim() ?? "";
-  return normalized.length > 0 ? normalized : null;
-}
 
 // sortableColumns definition - will be defined inside the component to use t()
 
 export function TransactionsTableDisplay() {
   const { t, i18n } = useTranslation("data-tables");
   const { t: tImport } = useTranslation("import");
+  const trackChomeshSeparately = useDonationStore(
+    (state) => state.settings.trackChomeshSeparately,
+  );
 
   // sortableColumns definition with translations
   const sortableColumns: { label: string; field: SortableField }[] = [
@@ -125,14 +125,9 @@ export function TransactionsTableDisplay() {
   const [isFetchingRec, setIsFetchingRec] = useState(false);
   const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false);
-  const [bulkEditField, setBulkEditField] =
-    useState<TransactionBulkEditField | "">("");
-  const [bulkPaymentMethod, setBulkPaymentMethod] = useState<string | null>(null);
-  const [bulkPaymentMethodAction, setBulkPaymentMethodAction] =
-    useState<BulkEditValueAction>("untouched");
-  const [bulkCategory, setBulkCategory] = useState<string | null>(null);
-  const [bulkCategoryAction, setBulkCategoryAction] =
-    useState<BulkEditValueAction>("untouched");
+  const [bulkFieldActions, setBulkFieldActions] = useState(
+    INITIAL_BULK_FIELD_ACTIONS,
+  );
 
   const loadedTransactionIds = useMemo(
     () => transactions.map((transaction) => transaction.id),
@@ -159,51 +154,42 @@ export function TransactionsTableDisplay() {
     (transaction) => Boolean(transaction.source_recurring_id)
   );
   const bulkCategoryFamily = getBulkCategoryFamily(selectedTransactions);
+  const bulkChomeshType = getBulkChomeshType(selectedTransactions);
+  const sharedBulkValues = getSharedBulkValues(selectedTransactions);
   const bulkPending = bulkLoading;
 
-  const transactionBulkFields: {
-    value: TransactionBulkEditField;
-    label: string;
-    icon: React.ReactNode;
-  }[] = [];
-  const paymentMethodAvailability = getBulkEditAvailability({
-    kind: "transaction",
-    rows: selectedTransactions,
-    field: "payment_method",
-  });
-  const categoryAvailability = getBulkEditAvailability({
-    kind: "transaction",
-    rows: selectedTransactions,
-    field: "category",
-  });
-
-  if (paymentMethodAvailability.allowed) {
-    transactionBulkFields.push({
-      value: "payment_method",
-      label: t("bulkEdit.fields.paymentMethod"),
-      icon: <CreditCard aria-hidden="true" className="h-4 w-4" />,
-    });
-  }
-
-  if (categoryAvailability.allowed) {
-    transactionBulkFields.push({
-      value: "category",
-      label: t("bulkEdit.fields.category"),
-      icon: <Tags aria-hidden="true" className="h-4 w-4" />,
-    });
-  }
-
-  const activeBulkEditField = transactionBulkFields.some(
-    (field) => field.value === bulkEditField
-  )
-    ? bulkEditField
-    : transactionBulkFields[0]?.value ?? "";
+  const bulkFieldAvailability = {
+    description: getBulkEditAvailability({
+      kind: "transaction",
+      rows: selectedTransactions,
+      field: "description",
+    }).allowed,
+    payment_method: getBulkEditAvailability({
+      kind: "transaction",
+      rows: selectedTransactions,
+      field: "payment_method",
+    }).allowed,
+    category: getBulkEditAvailability({
+      kind: "transaction",
+      rows: selectedTransactions,
+      field: "category",
+    }).allowed,
+    recipient: getBulkEditAvailability({
+      kind: "transaction",
+      rows: selectedTransactions,
+      field: "recipient",
+    }).allowed,
+    is_chomesh:
+      getBulkEditAvailability({
+        kind: "transaction",
+        rows: selectedTransactions,
+        field: "is_chomesh",
+      }).allowed &&
+      shouldShowBulkChomeshField(bulkChomeshType, trackChomeshSeparately),
+  };
 
   const resetBulkEditValues = useCallback(() => {
-    setBulkPaymentMethod(null);
-    setBulkPaymentMethodAction("untouched");
-    setBulkCategory(null);
-    setBulkCategoryAction("untouched");
+    setBulkFieldActions(INITIAL_BULK_FIELD_ACTIONS);
   }, []);
 
   const handleBulkEditOpenChange = useCallback(
@@ -222,20 +208,10 @@ export function TransactionsTableDisplay() {
     setIsBulkEditOpen(true);
   }, [resetBulkEditValues]);
 
-  const bulkEditSubmitDisabled = (() => {
-    switch (activeBulkEditField) {
-      case "payment_method":
-        return bulkPaymentMethodAction === "untouched";
-      case "category":
-        return bulkCategoryFamily === null || bulkCategoryAction === "untouched";
-      case "":
-        return true;
-      default: {
-        const exhaustive: never = activeBulkEditField;
-        return exhaustive;
-      }
-    }
-  })();
+  const bulkEditPatch = buildBulkPatch(
+    normalizeBulkFieldActions(bulkFieldActions),
+  );
+  const bulkEditSubmitDisabled = Object.keys(bulkEditPatch).length === 0;
 
   useEffect(() => {
     // Initial fetch logic remains here as it depends on platform and sorting from the store
@@ -351,7 +327,7 @@ export function TransactionsTableDisplay() {
   ]);
 
   const handleBulkEditSubmit = useCallback(async () => {
-    if (selectedTransactionIds.length === 0 || activeBulkEditField === "") {
+    if (selectedTransactionIds.length === 0) {
       return;
     }
 
@@ -360,19 +336,13 @@ export function TransactionsTableDisplay() {
       return;
     }
 
-    const value =
-      activeBulkEditField === "payment_method"
-        ? bulkPaymentMethodAction === "clear"
-          ? null
-          : normalizeNullableBulkValue(bulkPaymentMethod)
-        : bulkCategoryAction === "clear"
-          ? null
-          : normalizeNullableBulkValue(bulkCategory);
-    const change: TransactionBulkChange = {
-      kind: "transaction",
-      field: activeBulkEditField,
-      value,
-    };
+    const patch = buildBulkPatch(normalizeBulkFieldActions(bulkFieldActions));
+    try {
+      assertBulkPatch(patch);
+    } catch {
+      return;
+    }
+
     const toastId = toast.loading(
       t("bulkEdit.transactions.toast.loading", {
         count: selectedTransactionIds.length,
@@ -382,7 +352,7 @@ export function TransactionsTableDisplay() {
     try {
       const result = await updateTransactionsBulk(
         selectedTransactionIds,
-        change,
+        patch,
         platform
       );
       toast.dismiss(toastId);
@@ -408,11 +378,7 @@ export function TransactionsTableDisplay() {
       );
     }
   }, [
-    activeBulkEditField,
-    bulkCategory,
-    bulkCategoryAction,
-    bulkPaymentMethod,
-    bulkPaymentMethodAction,
+    bulkFieldActions,
     clearSelection,
     platform,
     selectedTransactionIds,
@@ -568,88 +534,6 @@ export function TransactionsTableDisplay() {
     return result;
   }, [transactions, sorting.field, getMonthKey, formatMonthLabel]);
 
-  const bulkEditValueEditor = (() => {
-    switch (activeBulkEditField) {
-      case "payment_method":
-        return (
-          <div className="flex items-center gap-2">
-            <div className="min-w-0 flex-1">
-              <PaymentMethodCombobox
-                value={bulkPaymentMethod}
-                onChange={(value) => {
-                  setBulkPaymentMethod(value);
-                  setBulkPaymentMethodAction(value === null ? "clear" : "set");
-                }}
-                placeholder={t("bulkEdit.placeholders.paymentMethod")}
-                disabled={bulkPending}
-              />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="min-h-11 shrink-0 sm:min-h-9"
-              onClick={() => {
-                setBulkPaymentMethod(null);
-                setBulkPaymentMethodAction("clear");
-              }}
-              disabled={bulkPending}
-            >
-              {t("bulkEdit.clearValue")}
-            </Button>
-          </div>
-        );
-      case "category":
-        if (bulkCategoryFamily === null) {
-          return (
-            <p className="text-sm text-muted-foreground">
-              {t("bulkEdit.messages.categoryUnavailable")}
-            </p>
-          );
-        }
-
-        return (
-          <div className="flex items-center gap-2">
-            <div className="min-w-0 flex-1">
-              <CategoryCombobox
-                value={bulkCategory}
-                onChange={(value) => {
-                  setBulkCategory(value);
-                  setBulkCategoryAction(value === null ? "clear" : "set");
-                }}
-                transactionType={bulkCategoryFamily}
-                placeholder={t("bulkEdit.placeholders.category")}
-                disabled={bulkPending}
-              />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="min-h-11 shrink-0 sm:min-h-9"
-              onClick={() => {
-                setBulkCategory(null);
-                setBulkCategoryAction("clear");
-              }}
-              disabled={bulkPending}
-            >
-              {t("bulkEdit.clearValue")}
-            </Button>
-          </div>
-        );
-      case "":
-        return (
-          <p className="text-sm text-muted-foreground">
-            {t("bulkEdit.messages.noAvailableFields")}
-          </p>
-        );
-      default: {
-        const exhaustive: never = activeBulkEditField;
-        return exhaustive;
-      }
-    }
-  })();
-
   const bulkDeleteWarnings = [
     selectedHasInitialBalance
       ? t("bulkDelete.transactions.warnings.initialBalance")
@@ -704,7 +588,8 @@ export function TransactionsTableDisplay() {
           ariaLabel={t("bulkToolbar.ariaLabel")}
           pending={bulkPending}
           editDisabled={
-            selectionActionMode === "bulk" && transactionBulkFields.length === 0
+            selectionActionMode === "bulk" &&
+            !Object.values(bulkFieldAvailability).some(Boolean)
           }
           dir={i18n.dir()}
         />
@@ -816,22 +701,24 @@ export function TransactionsTableDisplay() {
         description={t("bulkEdit.transactions.description", {
           count: selection.selectedCount,
         })}
-        fieldLabel={t("bulkEdit.fieldLabel")}
-        valueLabel={t("bulkEdit.valueLabel")}
         cancelLabel={t("actions.cancel")}
         submitLabel={t("bulkEdit.submit")}
         pendingLabel={t("bulkEdit.pending")}
         pending={bulkPending}
         submitDisabled={bulkEditSubmitDisabled}
-        fields={transactionBulkFields}
-        selectedField={activeBulkEditField}
-        valueEditor={bulkEditValueEditor}
-        onFieldChange={(field) =>
-          setBulkEditField(field as TransactionBulkEditField)
-        }
         onSubmit={handleBulkEditSubmit}
         dir={i18n.dir()}
-      />
+      >
+        <BulkEditFields
+          pending={bulkPending}
+          actions={bulkFieldActions}
+          availability={bulkFieldAvailability}
+          categoryFamily={bulkCategoryFamily}
+          chomeshType={bulkChomeshType}
+          sharedValues={sharedBulkValues}
+          onActionsChange={setBulkFieldActions}
+        />
+      </BulkEditDialog>
       <DeleteConfirmationDialog
         isOpen={isBulkDeleteDialogOpen}
         onOpenChange={setIsBulkDeleteDialogOpen}

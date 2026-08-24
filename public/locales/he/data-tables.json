@@ -82,25 +82,33 @@
     "fieldLabel": "שדה לעדכון",
     "valueLabel": "ערך חדש",
     "clearValue": "נקה שדה",
+    "clearValueNamed": "נקה את {{field}}",
+    "willClear": "השדה ינוקה",
     "submit": "עדכן",
     "pending": "מעדכן...",
     "fields": {
       "status": "סטטוס",
       "paymentMethod": "אמצעי תשלום",
-      "category": "קטגוריה"
+      "category": "קטגוריה",
+      "description": "תיאור",
+      "recipient": "מקבל"
     },
     "placeholders": {
       "status": "בחר סטטוס",
       "paymentMethod": "בחר אמצעי תשלום או השאר ריק לניקוי",
-      "category": "בחר קטגוריה או השאר ריק לניקוי"
+      "category": "בחר קטגוריה או השאר ריק לניקוי",
+      "description": "הזן תיאור או נקה את השדה",
+      "recipient": "הזן מקבל או נקה את השדה"
     },
     "messages": {
       "noAvailableFields": "אין שדות זמינים לעריכה עבור הבחירה הנוכחית.",
-      "categoryUnavailable": "קטגוריה זמינה רק כאשר כל השורות הן מאותה משפחת קטגוריה."
+      "categoryUnavailable": "קטגוריה זמינה רק כאשר כל השורות הן מאותה משפחת קטגוריה.",
+      "recipientUnavailable": "מקבל זמין רק כאשר כל השורות הן תרומה או תרומה שאינה ממעשר.",
+      "chomeshUnavailable": "חומש זמין רק כאשר לכל השורות יש אותו סוג מותר."
     },
     "transactions": {
       "title": "עריכה מרובה של תנועות",
-      "description": "עדכון שדה אחד עבור {{count}} תנועות שנבחרו.",
+      "description": "בחרו אילו שדות לעדכן עבור {{count}} תנועות שנבחרו. שדות שלא נגעתם בהם לא ישתנו.",
       "toast": {
         "loading": "מעדכן {{count}} תנועות...",
         "success": "{{count}} תנועות עודכנו בהצלחה.",
@@ -109,7 +117,7 @@
     },
     "recurring": {
       "title": "עריכה מרובה של הוראות קבע",
-      "description": "עדכון שדה אחד עבור {{count}} הוראות קבע שנבחרו.",
+      "description": "בחרו אילו שדות לעדכן עבור {{count}} הוראות קבע שנבחרו. שדות שלא נגעתם בהם לא ישתנו.",
       "toast": {
         "loading": "מעדכן {{count}} הוראות קבע...",
         "success": "{{count}} הוראות קבע עודכנו בהצלחה.",

@@ -44,21 +44,23 @@ Migration `20260823154606_add_atomic_bulk_transaction_actions.sql` adds four ato
 | Function | Signature |
 | --- | --- |
 | `bulk_delete_user_transactions` | `(p_user_id uuid, p_ids uuid[])` → `integer` |
-| `bulk_update_user_transactions` | `(p_user_id uuid, p_ids uuid[], p_field text, p_value text)` → `integer` |
+| `bulk_update_user_transactions` | `(p_user_id uuid, p_ids uuid[], p_field text, p_value text)` → `integer` (V1, kept) |
+| `bulk_update_user_transactions` | `(p_user_id uuid, p_ids uuid[], p_updates jsonb)` → `integer` (V2 patch) |
 | `bulk_delete_user_recurring_transactions` | `(p_user_id uuid, p_ids uuid[])` → `integer` |
-| `bulk_update_user_recurring_transactions` | `(p_user_id uuid, p_ids uuid[], p_field text, p_value text)` → `integer` |
+| `bulk_update_user_recurring_transactions` | `(p_user_id uuid, p_ids uuid[], p_field text, p_value text)` → `integer` (V1, kept) |
+| `bulk_update_user_recurring_transactions` | `(p_user_id uuid, p_ids uuid[], p_updates jsonb)` → `integer` (V2 patch) |
 
 Migration `20260824071032_harden_bulk_transaction_actions.sql` replaces all four without changing their signatures or return types. They remain `SECURITY INVOKER` with `SET search_path = ''`, retain exact-count atomicity and ordered row locking, and reject a non-`service_role` caller when `auth.uid() IS DISTINCT FROM p_user_id`. The role check uses `coalesce(auth.role(), '')` so a missing role cannot bypass the guard.
 
-**Allowed update fields:**
+**Allowed update fields (jsonb patch):**
 
-- Transactions: `payment_method`, `category` only. Rejects `initial_balance` rows and mixed/non-applicable category families server-side.
-- Recurring: `payment_method`, `category` only. Rejects `completed` rows and mixed/non-applicable category families.
-- Both updaters reject non-null `p_value` longer than 50 characters, matching the singular transaction and recurring schemas. The TypeScript bulk services and Tauri handlers enforce the same limit before dispatch.
+- Keys ⊆ `{payment_method, category, description, recipient, is_chomesh}`. Unknown keys, non-objects, and `{}` are rejected. Key presence writes the field; JSON `null` clears a text field; missing keys stay unchanged.
+- Transactions: rejects `initial_balance` rows. Recurring: rejects `completed` rows.
+- `category` requires one income or expense family. `recipient` requires every locked row to be `donation` or `non_tithe_donation`. `is_chomesh` requires every locked row to share the same type in `{income, donation, recognized-expense}` and a boolean value. Plain `expense` is rejected; the form promotes expense+chomesh to `recognized-expense`, and balances ignore the flag on `expense`.
+- Lengths: `description` ≤ 100; `payment_method`, `category`, `recipient` ≤ 50. TypeScript `assertBulkPatch` and the Tauri handlers enforce the same limits before dispatch.
+- Recurring `status` is not an allowed key. Recurring bulk status editing remains deferred until occurrence creation and recurring-state advancement are atomic together.
 
-The initial create migration installs the recurring updater without a `status` field so a later hardening failure cannot leave authenticated callers with a status-capable RPC. Recurring bulk status editing remains deferred until occurrence creation and recurring-state advancement are atomic together.
-
-Forward migration `20260824114314_limit_bulk_update_text_values.sql` replaces both bulk updaters to add the 50-character `p_value` guard without changing signatures, ownership, or grants.
+The initial create migration installed single-field `(uuid, uuid[], text, text)` updaters. Forward migration `20260824114314_limit_bulk_update_text_values.sql` added the 50-character `p_value` guard on that signature. Forward migration `20260824175500_bulk_update_json_patch.sql` **adds** the jsonb patch overloads above and **keeps** the live four-argument signatures so V1 clients that still send `p_field`/`p_value` keep working. Both overloads stay `SECURITY INVOKER`, empty `search_path`, postgres-owned, with the same EXECUTE grants.
 
 **Recurring bulk delete and `source_recurring_id`:** the migration preconditions require FK `transactions.source_recurring_id → recurring_transactions.id` with `ON DELETE SET NULL` (`confdeltype = 'n'`). Deleting recurring rows therefore nulls linked transaction occurrences on Web via FK; Desktop mirrors this explicitly in `bulk_delete_recurring_transactions_handler`.
 

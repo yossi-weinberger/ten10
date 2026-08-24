@@ -100,25 +100,33 @@
     "fieldLabel": "Field to update",
     "valueLabel": "New value",
     "clearValue": "Clear field",
+    "clearValueNamed": "Clear {{field}}",
+    "willClear": "This field will be cleared",
     "submit": "Update",
     "pending": "Updating...",
     "fields": {
       "status": "Status",
       "paymentMethod": "Payment Method",
-      "category": "Category"
+      "category": "Category",
+      "description": "Description",
+      "recipient": "Recipient"
     },
     "placeholders": {
       "status": "Select status",
       "paymentMethod": "Select a payment method or leave empty to clear",
-      "category": "Select a category or leave empty to clear"
+      "category": "Select a category or leave empty to clear",
+      "description": "Enter a description or clear the field",
+      "recipient": "Enter a recipient or clear the field"
     },
     "messages": {
       "noAvailableFields": "No fields are available for the current selection.",
-      "categoryUnavailable": "Category is available only when all selected rows share one category family."
+      "categoryUnavailable": "Category is available only when all selected rows share one category family.",
+      "recipientUnavailable": "Recipient is available only when every selected row is a donation or non-tithe donation.",
+      "chomeshUnavailable": "Chomesh is available only when every selected row has the same allowed type."
     },
     "transactions": {
       "title": "Bulk Edit Transactions",
-      "description": "Update one field for {{count}} selected transactions.",
+      "description": "Choose which fields to update for {{count}} selected transactions. Untouched fields stay unchanged.",
       "toast": {
         "loading": "Updating {{count}} transactions...",
         "success": "{{count}} transactions updated successfully.",
@@ -127,7 +135,7 @@
     },
     "recurring": {
       "title": "Bulk Edit Recurring Transactions",
-      "description": "Update one field for {{count}} selected recurring transactions.",
+      "description": "Choose which fields to update for {{count}} selected recurring transactions. Untouched fields stay unchanged.",
       "toast": {
         "loading": "Updating {{count}} recurring transactions...",
         "success": "{{count}} recurring transactions updated successfully.",

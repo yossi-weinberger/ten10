@@ -6,8 +6,8 @@ import { nanoid } from "nanoid";
 import { logger } from "@/lib/logger";
 import { invokeTauri } from "@/lib/tauri-invoke";
 import {
-  assertBulkTextValue,
-  type RecurringBulkChange,
+  assertBulkPatch,
+  type RecurringBulkPatch,
 } from "@/lib/tableTransactions/bulkActions";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 import { clearPaymentMethodCache } from "./paymentMethods.service";
@@ -253,15 +253,18 @@ export async function bulkDeleteRecurringTransactions(
 
 export async function bulkUpdateRecurringTransactions(
   ids: readonly string[],
-  change: RecurringBulkChange,
+  patch: RecurringBulkPatch,
 ): Promise<void> {
   const validatedIds = validateBulkIds(ids);
   const platform = getPlatform();
-  const value =
-    change.field === "payment_method"
-      ? normalizePaymentMethodValue(change.value)
-      : change.value;
-  assertBulkTextValue(value);
+  assertBulkPatch(patch);
+  const updates: RecurringBulkPatch = {
+    ...patch,
+    payment_method:
+      patch.payment_method !== undefined
+        ? normalizePaymentMethodValue(patch.payment_method)
+        : undefined,
+  };
 
   if (platform === "web") {
     const userId = await getAuthenticatedUserId();
@@ -270,8 +273,7 @@ export async function bulkUpdateRecurringTransactions(
       {
         p_user_id: userId,
         p_ids: validatedIds,
-        p_field: change.field,
-        p_value: value,
+        p_updates: updates,
       },
     );
 
@@ -281,7 +283,7 @@ export async function bulkUpdateRecurringTransactions(
 
     verifyAffectedCount(validatedIds.length, readAffectedCount(data));
     markBulkMutationSucceeded();
-    if (change.field === "payment_method") {
+    if (updates.payment_method !== undefined) {
       clearPaymentMethodCache();
     }
     return;
@@ -292,13 +294,12 @@ export async function bulkUpdateRecurringTransactions(
       "bulk_update_recurring_transactions_handler",
       {
         ids: validatedIds,
-        field: change.field,
-        value,
+        updates,
       },
     );
     verifyAffectedCount(validatedIds.length, affectedCount);
     markBulkMutationSucceeded();
-    if (change.field === "payment_method") {
+    if (updates.payment_method !== undefined) {
       clearPaymentMethodCache();
     }
     return;

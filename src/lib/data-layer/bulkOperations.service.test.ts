@@ -55,20 +55,33 @@ describe("transaction bulk data-layer operations", () => {
     mockRpc.mockResolvedValue({ data: 2, error: null });
 
     await bulkUpdateTransactions(["t1", "t2"], {
-      kind: "transaction",
-      field: "payment_method",
-      value: " Credit card ",
+      payment_method: " Credit card ",
     });
 
     expect(mockRpc).toHaveBeenCalledTimes(1);
     expect(mockRpc).toHaveBeenCalledWith("bulk_update_user_transactions", {
       p_user_id: "user-1",
       p_ids: ["t1", "t2"],
-      p_field: "payment_method",
-      p_value: "credit_card",
+      p_updates: { payment_method: "credit_card" },
     });
     expect(mockSetLastDbFetchTimestamp).toHaveBeenCalledTimes(1);
     expect(mockClearPaymentMethodCache).toHaveBeenCalledTimes(1);
+  });
+
+  it("sends multiple touched fields in one web RPC patch", async () => {
+    mockGetPlatform.mockReturnValue("web");
+    mockRpc.mockResolvedValue({ data: 2, error: null });
+
+    await bulkUpdateTransactions(["t1", "t2"], {
+      payment_method: "credit_card",
+      description: "Pizza",
+    });
+
+    expect(mockRpc).toHaveBeenCalledWith("bulk_update_user_transactions", {
+      p_user_id: "user-1",
+      p_ids: ["t1", "t2"],
+      p_updates: { payment_method: "credit_card", description: "Pizza" },
+    });
   });
 
   it("calls the desktop bulk delete handler once and verifies the affected count", async () => {
@@ -123,9 +136,7 @@ describe("transaction bulk data-layer operations", () => {
 
     await expect(
       bulkUpdateTransactions(["t1"], {
-        kind: "transaction",
-        field: "category",
-        value: "a".repeat(51),
+        category: "a".repeat(51),
       }),
     ).rejects.toThrow("50 character limit");
     expect(mockRpc).not.toHaveBeenCalled();
@@ -157,9 +168,7 @@ describe("recurring transaction bulk data-layer operations", () => {
     vi.mocked(invoke).mockResolvedValue(2);
 
     await bulkUpdateRecurringTransactions(["r1", "r2"], {
-      kind: "recurring",
-      field: "payment_method",
-      value: " כרטיס אשראי ",
+      payment_method: " כרטיס אשראי ",
     });
 
     expect(invoke).toHaveBeenCalledTimes(1);
@@ -167,8 +176,7 @@ describe("recurring transaction bulk data-layer operations", () => {
       "bulk_update_recurring_transactions_handler",
       {
         ids: ["r1", "r2"],
-        field: "payment_method",
-        value: "credit_card",
+        updates: { payment_method: "credit_card" },
       },
     );
     expect(mockSetLastDbFetchTimestamp).toHaveBeenCalledTimes(1);
@@ -190,9 +198,7 @@ describe("recurring transaction bulk data-layer operations", () => {
     mockRpc.mockResolvedValue({ data: null, error: new Error("rls denied") });
 
     await expect(bulkUpdateRecurringTransactions(["r1"], {
-      kind: "recurring",
-      field: "payment_method",
-      value: "card",
+      payment_method: "card",
     })).rejects.toThrow("rls denied");
     expect(mockSetLastDbFetchTimestamp).not.toHaveBeenCalled();
   });
@@ -202,9 +208,7 @@ describe("recurring transaction bulk data-layer operations", () => {
 
     await expect(
       bulkUpdateRecurringTransactions(["r1"], {
-        kind: "recurring",
-        field: "category",
-        value: "a".repeat(51),
+        category: "a".repeat(51),
       }),
     ).rejects.toThrow("50 character limit");
     expect(invoke).not.toHaveBeenCalled();

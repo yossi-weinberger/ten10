@@ -19,7 +19,7 @@ import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import type {
   BulkMutationResult,
-  TransactionBulkChange,
+  TransactionBulkPatch,
 } from "./bulkActions";
 import { getErrorMessage } from "@/lib/utils/error-message";
 
@@ -60,7 +60,7 @@ export interface TableTransactionsState {
   ) => Promise<void>;
   updateTransactionsBulk: (
     ids: readonly string[],
-    change: TransactionBulkChange,
+    patch: TransactionBulkPatch,
     platform: Platform
   ) => Promise<BulkMutationResult>;
   exportTransactions: (
@@ -363,7 +363,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
       }
     },
 
-    updateTransactionsBulk: async (ids, change, platform) => {
+    updateTransactionsBulk: async (ids, patch, platform) => {
       if (get().bulkLoading) {
         throw new Error("Bulk action already in progress");
       }
@@ -373,7 +373,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
       try {
         await TableTransactionsService.updateTransactionsBulk(
           ids,
-          change,
+          patch,
           platform
         );
       } catch (err: unknown) {

@@ -15,7 +15,7 @@ import {
 import { getUserPaymentMethods } from "../data-layer/paymentMethods.service";
 import { logger } from "@/lib/logger";
 import { invokeDesktopFilteredTransactions } from "@/lib/tableTransactions/desktop-filtered-transactions-invoke";
-import type { TransactionBulkChange } from "./bulkActions";
+import type { TransactionBulkPatch } from "./bulkActions";
 import { expandPaymentMethodFilterAliases } from "@/lib/payment-methods";
 
 interface FetchTransactionsParams {
@@ -284,11 +284,11 @@ export class TableTransactionsService {
 
   static async updateTransactionsBulk(
     ids: readonly string[],
-    change: TransactionBulkChange,
+    patch: TransactionBulkPatch,
     _platform: Platform
   ): Promise<void> {
     void _platform;
-    await bulkUpdateTransactionsInDataService(ids, change);
+    await bulkUpdateTransactionsInDataService(ids, patch);
   }
 
   static async getDataForExport(

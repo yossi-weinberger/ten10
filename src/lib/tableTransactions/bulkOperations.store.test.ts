@@ -140,7 +140,7 @@ describe("table transaction bulk store actions", () => {
       () =>
         useTableTransactionsStore.getState().updateTransactionsBulk(
           ["t1"],
-          { kind: "transaction", field: "category", value: "salary" },
+          { category: "salary" },
           "web",
         ),
     ],
@@ -158,7 +158,7 @@ describe("table transaction bulk store actions", () => {
   );
 
   it("updates in one service call and refreshes once", async () => {
-    const change = { kind: "transaction", field: "category", value: "salary" } as const;
+    const change = { category: "salary" } as const;
 
     await useTableTransactionsStore
       .getState()
@@ -183,7 +183,7 @@ describe("table transaction bulk store actions", () => {
     ["update", () =>
       useTableTransactionsStore.getState().updateTransactionsBulk(
         ["t1"],
-        { kind: "transaction", field: "category", value: "salary" },
+        { category: "salary" },
         "web",
       )],
   ])(
@@ -261,14 +261,14 @@ describe("table transaction bulk store actions", () => {
       .getState()
       .updateTransactionsBulk(
         ["t1"],
-        { kind: "transaction", field: "category", value: "salary" },
+        { category: "salary" },
         "web",
       );
     const secondCall = useTableTransactionsStore
       .getState()
       .updateTransactionsBulk(
         ["t2"],
-        { kind: "transaction", field: "payment_method", value: "card" },
+        { payment_method: "card" },
         "web",
       );
 
@@ -340,9 +340,7 @@ describe("recurring transaction bulk store actions", () => {
       mockUpdateRecurringBulk,
       () =>
         useRecurringTableStore.getState().updateRecurringBulk(["r1"], {
-          kind: "recurring",
-          field: "payment_method",
-          value: "card",
+          payment_method: "card",
         }),
     ],
   ])(
@@ -382,9 +380,7 @@ describe("recurring transaction bulk store actions", () => {
 
   it("updates recurring rows in one service call and refreshes once", async () => {
     const change = {
-      kind: "recurring",
-      field: "payment_method",
-      value: "card",
+      payment_method: "card",
     } as const;
 
     await useRecurringTableStore
@@ -403,9 +399,7 @@ describe("recurring transaction bulk store actions", () => {
       useRecurringTableStore.getState().deleteRecurringBulk(["r1"])],
     ["update", () =>
       useRecurringTableStore.getState().updateRecurringBulk(["r1"], {
-        kind: "recurring",
-        field: "payment_method",
-        value: "card",
+        payment_method: "card",
       })],
   ])(
     "resolves recurring bulk %s with a warning when refresh fails",
@@ -430,16 +424,12 @@ describe("recurring transaction bulk store actions", () => {
     const firstCall = useRecurringTableStore
       .getState()
       .updateRecurringBulk(["r1"], {
-        kind: "recurring",
-        field: "payment_method",
-        value: "cash",
+        payment_method: "cash",
       });
     const secondCall = useRecurringTableStore
       .getState()
       .updateRecurringBulk(["r2"], {
-        kind: "recurring",
-        field: "payment_method",
-        value: "card",
+        payment_method: "card",
       });
 
     await expect(secondCall).rejects.toThrow("Bulk action already in progress");
