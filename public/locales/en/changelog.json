@@ -4,6 +4,19 @@
   "current": "Current",
   "backToSettings": "Back to Settings",
   "releases": {
+    "v074": {
+      "title": "Bulk actions and reminder emails",
+      "items": {
+        "bulkTableActions": {
+          "title": "Multi-select in tables",
+          "description": "Select transactions and recurring transactions to delete several at once, or update several fields together — description, category, payment method, recipient, and chomesh. Untouched fields stay unchanged. A single selected row still opens the regular edit or delete flow."
+        },
+        "reminderEmails": {
+          "title": "Reminder emails in Hebrew and English",
+          "description": "Reminder emails now follow the user's language, with a refreshed layout and monthly encouragement stories."
+        }
+      }
+    },
     "v073": {
       "title": "Improvements and fixes",
       "items": {

@@ -16,6 +16,7 @@ import {
   LayoutDashboard,
   Library,
   Lock,
+  Mail,
   Megaphone,
   MessageSquare,
   MonitorCog,
@@ -39,6 +40,8 @@ import {
 } from "@/lib/whats-new-history";
 
 const itemIcons: Record<string, LucideIcon> = {
+  bulkTableActions: TableProperties,
+  reminderEmails: Mail,
   recurringBillingDay: Repeat,
   homeFeedback: MessageSquare,
   toastRefresh: Megaphone,
