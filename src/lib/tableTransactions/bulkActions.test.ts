@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
+  assertBulkPatch,
   assertBulkTextValue,
+  buildBulkPatch,
   BULK_TEXT_VALUE_MAX_LENGTH,
   getBulkCategoryFamily,
+  getBulkChomeshType,
   getBulkEditAvailability,
   getBulkFieldGridClassName,
+  getBulkRecipientFamily,
   getSelectionActionMode,
   type RecurringBulkChange,
   type RecurringBulkRow,
@@ -221,6 +225,98 @@ describe("bulk action field availability", () => {
         transactionRow({ id: "donation", type: "donation" }),
       ]),
     ).toBeNull();
+  });
+
+  it("allows description like payment method and gates recipient and chomesh", () => {
+    expect(
+      getBulkEditAvailability({
+        kind: "transaction",
+        rows: [
+          transactionRow({ id: "income", type: "income" }),
+          transactionRow({ id: "expense", type: "expense" }),
+        ],
+        field: "description",
+      }),
+    ).toEqual({ allowed: true });
+    expect(
+      getBulkEditAvailability({
+        kind: "transaction",
+        rows: [
+          transactionRow({ id: "donation", type: "donation" }),
+          transactionRow({
+            id: "personal",
+            type: "non_tithe_donation",
+          }),
+        ],
+        field: "recipient",
+      }),
+    ).toEqual({ allowed: true });
+    expect(
+      getBulkEditAvailability({
+        kind: "transaction",
+        rows: [
+          transactionRow({ id: "donation", type: "donation" }),
+          transactionRow({ id: "expense", type: "expense" }),
+        ],
+        field: "recipient",
+      }),
+    ).toEqual({ allowed: false, reason: "recipient-not-applicable" });
+    expect(
+      getBulkEditAvailability({
+        kind: "transaction",
+        rows: [
+          transactionRow({ id: "a", type: "income" }),
+          transactionRow({ id: "b", type: "income" }),
+        ],
+        field: "is_chomesh",
+      }),
+    ).toEqual({ allowed: true });
+    expect(
+      getBulkEditAvailability({
+        kind: "transaction",
+        rows: [
+          transactionRow({ id: "income", type: "income" }),
+          transactionRow({ id: "exempt", type: "exempt-income" }),
+        ],
+        field: "is_chomesh",
+      }),
+    ).toEqual({ allowed: false, reason: "chomesh-not-applicable" });
+  });
+
+  it("builds a patch from touched fields only", () => {
+    expect(getBulkChomeshType([{ type: "income" }, { type: "income" }])).toBe(
+      "income",
+    );
+    expect(
+      getBulkChomeshType([{ type: "income" }, { type: "exempt-income" }]),
+    ).toBeNull();
+    expect(getBulkChomeshType([{ type: "expense" }, { type: "expense" }])).toBe(
+      "expense",
+    );
+    expect(
+      getBulkRecipientFamily([
+        { type: "donation" },
+        { type: "non_tithe_donation" },
+      ]),
+    ).toBe(true);
+    expect(
+      getBulkRecipientFamily([{ type: "donation" }, { type: "expense" }]),
+    ).toBeNull();
+
+    expect(
+      buildBulkPatch({
+        payment_method: { action: "set", value: "cash" },
+        category: { action: "untouched" },
+        description: { action: "clear" },
+        recipient: { action: "untouched" },
+        is_chomesh: { action: "untouched" },
+      }),
+    ).toEqual({ payment_method: "cash", description: null });
+
+    expect(() => assertBulkPatch({})).toThrow();
+    expect(() => assertBulkPatch({ description: "a".repeat(101) })).toThrow(
+      "100",
+    );
   });
 
   it("models discriminated bulk change values", () => {
