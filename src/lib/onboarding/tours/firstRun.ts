@@ -27,8 +27,8 @@ export function getStepId(step: DriveStep): StepId | undefined {
   return undefined;
 }
 
-export function firstRunStartIndex(pathname: string): number {
-  return pathname.startsWith("/add-transaction") ? 2 : 0;
+export function firstRunStartIndex(_pathname?: string): number {
+  return 0;
 }
 
 export function shouldDriveFirstRunTour(pathname: string): boolean {
@@ -38,13 +38,15 @@ export function shouldDriveFirstRunTour(pathname: string): boolean {
 export function buildFirstRunSteps(
   copy: FirstRunCopy,
   dir: "rtl" | "ltr",
+  pathname = "/",
 ): DriveStep[] {
   const ctaSide = dir === "rtl" ? "left" : "right";
 
-  return [
+  const homeSteps: DriveStep[] = [
     {
       element: ONBOARDING_TARGETS.homeSummary,
       skipMissingElement: true,
+      waitForElement: 5000,
       data: { stepId: "home-summary" },
       popover: {
         title: copy.homeSummaryTitle,
@@ -58,6 +60,7 @@ export function buildFirstRunSteps(
     {
       element: ONBOARDING_TARGETS.addTransactionCta,
       skipMissingElement: true,
+      waitForElement: 5000,
       advanceOnClick: true,
       disableActiveInteraction: false,
       data: { stepId: "add-transaction-cta" },
@@ -69,20 +72,27 @@ export function buildFirstRunSteps(
         showButtons: ["close"],
       },
     },
-    {
-      element: ONBOARDING_TARGETS.transactionForm,
-      skipMissingElement: true,
-      waitForElement: 5000,
-      data: { stepId: "transaction-form" },
-      popover: {
-        title: copy.formTitle,
-        description: copy.formDescription,
-        side: "top",
-        align: "start",
-        showButtons: ["next", "close"],
-        nextBtnText: copy.done,
-        doneBtnText: copy.done,
-      },
-    },
   ];
+
+  const formStep: DriveStep = {
+    element: ONBOARDING_TARGETS.transactionForm,
+    skipMissingElement: true,
+    waitForElement: 5000,
+    data: { stepId: "transaction-form" },
+    popover: {
+      title: copy.formTitle,
+      description: copy.formDescription,
+      side: "top",
+      align: "start",
+      showButtons: ["next", "close"],
+      nextBtnText: copy.done,
+      doneBtnText: copy.done,
+    },
+  };
+
+  if (pathname.startsWith("/add-transaction")) {
+    return [formStep];
+  }
+
+  return homeSteps;
 }

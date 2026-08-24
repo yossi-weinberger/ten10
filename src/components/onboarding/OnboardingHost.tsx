@@ -245,6 +245,7 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
           formDescription: t("tour.formDescription"),
         },
         dir,
+        pathname,
       ),
       startIndex: firstRunStartIndex(pathname),
       dir,
