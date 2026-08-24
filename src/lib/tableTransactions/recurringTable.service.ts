@@ -14,6 +14,8 @@ import {
   bulkUpdateRecurringTransactions,
 } from "@/lib/data-layer/recurringTransactions.service";
 import type { RecurringBulkChange } from "./bulkActions";
+import { normalizePaymentMethodValue } from "@/lib/payment-methods";
+import { clearPaymentMethodCache } from "@/lib/data-layer/paymentMethods.service";
 
 function activeFirst(
   recurring: RecurringTransaction[]
@@ -117,6 +119,9 @@ export async function updateRecurringTransaction(
 ): Promise<RecurringTransaction> {
   const platform = getPlatform();
   const updates = { ...values };
+  if (values.payment_method !== undefined) {
+    updates.payment_method = normalizePaymentMethodValue(values.payment_method);
+  }
 
   if (
     existing &&
@@ -168,6 +173,9 @@ export async function updateRecurringTransaction(
       throw error;
     }
     trackRecurringUpdateEvents(existing, updates);
+    if (updates.payment_method !== undefined) {
+      clearPaymentMethodCache();
+    }
     return data as RecurringTransaction;
   } else if (platform === "desktop") {
     const updatedTransaction = await invokeTauri(
@@ -177,6 +185,9 @@ export async function updateRecurringTransaction(
         updates: updates,
       }
     );
+    if (updates.payment_method !== undefined) {
+      clearPaymentMethodCache();
+    }
     return updatedTransaction as RecurringTransaction;
   }
   throw new Error("Unsupported platform");
@@ -207,6 +218,7 @@ export async function deleteRecurringTransaction(id: string): Promise<void> {
   } else {
     throw new Error("Unsupported platform");
   }
+  clearPaymentMethodCache();
 }
 
 export async function deleteRecurringBulk(ids: readonly string[]): Promise<void> {

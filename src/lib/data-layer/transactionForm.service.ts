@@ -16,7 +16,7 @@ import { clearPaymentMethodCache } from "./paymentMethods.service";
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { firstDueDate } from "@/lib/recurring/recurring-date.utils";
-
+import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 
 /**
  * Normalizes a transaction type to its base type.
@@ -77,10 +77,9 @@ export async function handleTransactionSubmit(
 ): Promise<void> {
   logger.log("handleTransactionSubmit received values:", values);
   const finalType = determineFinalType(values);
-  const normalizedPaymentMethod =
-    values.payment_method && values.payment_method.trim() !== ""
-      ? values.payment_method.trim()
-      : null;
+  const normalizedPaymentMethod = normalizePaymentMethodValue(
+    values.payment_method
+  );
 
   // For recurring transactions, the day of the month is derived from the start date,
   // unless explicitly provided by the user (e.g. they want charge on 15th but start on 10th).

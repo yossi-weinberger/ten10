@@ -29,6 +29,7 @@ import { useTransactionFormInitialization } from "@/hooks/useTransactionFormInit
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { toast } from "sonner";
+import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 
 interface TransactionFormProps {
   initialData?: Transaction | null; // For editing
@@ -250,6 +251,10 @@ export function TransactionForm({
         submissionValues.conversion_date = null;
         submissionValues.rate_source = null;
     }
+
+    submissionValues.payment_method = normalizePaymentMethodValue(
+      submissionValues.payment_method
+    );
 
     // Override path: bypass all DB writes and hand data to the caller.
     // All existing callers that don't pass onOverrideSubmit are unaffected.

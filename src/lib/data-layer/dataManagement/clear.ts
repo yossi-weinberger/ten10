@@ -2,6 +2,7 @@ import { useDonationStore } from "../../store";
 import { getPlatform } from "../../platformManager";
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
+import { clearPaymentMethodCache } from "../paymentMethods.service";
 
 function isTauriRuntime(): boolean {
   return (
@@ -54,6 +55,7 @@ export async function clearAllData() {
   }
 
   logger.log("Clearing Zustand store...");
+  clearPaymentMethodCache();
   // After clearing data, we need to signal that any cached data is now stale.
   // Setting the fetch timestamp to a new value will trigger data re-fetching
   // in components that depend on it.

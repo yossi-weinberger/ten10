@@ -10,6 +10,8 @@ import {
   invokeDesktopFilteredTransactionsAllPages,
 } from "@/lib/tableTransactions/desktop-filtered-transactions-invoke";
 import type { TransactionBulkChange } from "@/lib/tableTransactions/bulkActions";
+import { normalizePaymentMethodValue } from "@/lib/payment-methods";
+import { clearPaymentMethodCache } from "./paymentMethods.service";
 
 // --- New CRUD API for Transactions ---
 
@@ -208,9 +210,15 @@ export async function hasAnyTransaction(): Promise<boolean> {
  */
 export async function addTransaction(transaction: Transaction): Promise<void> {
   const currentPlatform = getPlatform();
+  const normalizedTransaction = {
+    ...transaction,
+    payment_method: normalizePaymentMethodValue(transaction.payment_method),
+  };
   if (currentPlatform === "desktop") {
     try {
-      await invokeTauri("add_transaction", { transaction });
+      await invokeTauri("add_transaction", {
+        transaction: normalizedTransaction,
+      });
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
     } catch (error) {
       logger.error("Error invoking add_transaction:", error);
@@ -228,7 +236,7 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
       const userId = user.id;
 
       const transactionToInsert: Partial<Transaction> & Record<string, unknown> = {
-        ...transaction,
+        ...normalizedTransaction,
         user_id: userId,
       };
 
@@ -325,6 +333,7 @@ export async function deleteTransaction(transactionId: string): Promise<void> {
   }
 
   trackProductEvent("transaction_deleted");
+  clearPaymentMethodCache();
 }
 
 export interface TransactionUpdatePayload {
@@ -379,7 +388,9 @@ export async function updateTransaction(
   if (payload.recipient !== undefined)
     sanitizedPayload.recipient = payload.recipient;
   if (payload.payment_method !== undefined)
-    sanitizedPayload.payment_method = payload.payment_method;
+    sanitizedPayload.payment_method = normalizePaymentMethodValue(
+      payload.payment_method
+    );
   if (payload.original_amount !== undefined)
     sanitizedPayload.original_amount = payload.original_amount;
   if (payload.original_currency !== undefined)
@@ -460,6 +471,9 @@ export async function updateTransaction(
     fields_changed: Object.keys(sanitizedPayload),
     type: sanitizedPayload.type,
   });
+  if (sanitizedPayload.payment_method !== undefined) {
+    clearPaymentMethodCache();
+  }
 }
 
 function validateBulkIds(ids: readonly string[]): string[] {
@@ -535,6 +549,7 @@ export async function bulkDeleteTransactions(
       readAffectedCount(data),
     );
     useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
+    clearPaymentMethodCache();
     return;
   }
 
@@ -544,6 +559,7 @@ export async function bulkDeleteTransactions(
     });
     verifyAffectedCount("transactions", validatedIds.length, affectedCount);
     useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
+    clearPaymentMethodCache();
     return;
   }
 
@@ -556,6 +572,10 @@ export async function bulkUpdateTransactions(
 ): Promise<void> {
   const validatedIds = validateBulkIds(ids);
   const currentPlatform = getPlatform();
+  const value =
+    change.field === "payment_method"
+      ? normalizePaymentMethodValue(change.value)
+      : change.value;
 
   if (currentPlatform === "web") {
     const userId = await getAuthenticatedUserId();
@@ -563,7 +583,7 @@ export async function bulkUpdateTransactions(
       p_user_id: userId,
       p_ids: validatedIds,
       p_field: change.field,
-      p_value: change.value,
+      p_value: value,
     });
 
     if (error) {
@@ -576,6 +596,9 @@ export async function bulkUpdateTransactions(
       readAffectedCount(data),
     );
     useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
+    if (change.field === "payment_method") {
+      clearPaymentMethodCache();
+    }
     return;
   }
 
@@ -583,10 +606,13 @@ export async function bulkUpdateTransactions(
     const affectedCount = await invokeTauri<number>("bulk_update_transactions_handler", {
       ids: validatedIds,
       field: change.field,
-      value: change.value,
+      value,
     });
     verifyAffectedCount("transactions", validatedIds.length, affectedCount);
     useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
+    if (change.field === "payment_method") {
+      clearPaymentMethodCache();
+    }
     return;
   }
 

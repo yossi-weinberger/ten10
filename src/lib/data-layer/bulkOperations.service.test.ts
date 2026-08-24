@@ -4,6 +4,7 @@ const mockGetPlatform = vi.fn();
 const mockGetUser = vi.fn();
 const mockRpc = vi.fn();
 const mockSetLastDbFetchTimestamp = vi.fn();
+const mockClearPaymentMethodCache = vi.fn();
 
 vi.mock("../platformManager", () => ({ getPlatform: () => mockGetPlatform() }));
 vi.mock("@/lib/supabaseClient", () => ({
@@ -24,6 +25,9 @@ vi.mock("@/lib/logger", () => ({
 }));
 vi.mock("@/lib/analytics/productAnalytics", () => ({
   trackProductEvent: vi.fn(),
+}));
+vi.mock("./paymentMethods.service", () => ({
+  clearPaymentMethodCache: () => mockClearPaymentMethodCache(),
 }));
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
 
@@ -53,7 +57,7 @@ describe("transaction bulk data-layer operations", () => {
     await bulkUpdateTransactions(["t1", "t2"], {
       kind: "transaction",
       field: "payment_method",
-      value: "card",
+      value: " Credit card ",
     });
 
     expect(mockRpc).toHaveBeenCalledTimes(1);
@@ -61,9 +65,10 @@ describe("transaction bulk data-layer operations", () => {
       p_user_id: "user-1",
       p_ids: ["t1", "t2"],
       p_field: "payment_method",
-      p_value: "card",
+      p_value: "credit_card",
     });
     expect(mockSetLastDbFetchTimestamp).toHaveBeenCalledTimes(1);
+    expect(mockClearPaymentMethodCache).toHaveBeenCalledTimes(1);
   });
 
   it("calls the desktop bulk delete handler once and verifies the affected count", async () => {
@@ -77,6 +82,7 @@ describe("transaction bulk data-layer operations", () => {
       ids: ["t1", "t2"],
     });
     expect(mockSetLastDbFetchTimestamp).toHaveBeenCalledTimes(1);
+    expect(mockClearPaymentMethodCache).toHaveBeenCalledTimes(1);
   });
 
   it("throws when the affected count does not match the requested ids", async () => {
@@ -129,6 +135,7 @@ describe("recurring transaction bulk data-layer operations", () => {
       },
     );
     expect(mockSetLastDbFetchTimestamp).toHaveBeenCalledTimes(1);
+    expect(mockClearPaymentMethodCache).toHaveBeenCalledTimes(1);
   });
 
   it("calls the desktop recurring bulk update handler with field and value and updates timestamp once", async () => {
@@ -138,7 +145,7 @@ describe("recurring transaction bulk data-layer operations", () => {
     await bulkUpdateRecurringTransactions(["r1", "r2"], {
       kind: "recurring",
       field: "payment_method",
-      value: "card",
+      value: " כרטיס אשראי ",
     });
 
     expect(invoke).toHaveBeenCalledTimes(1);
@@ -147,10 +154,11 @@ describe("recurring transaction bulk data-layer operations", () => {
       {
         ids: ["r1", "r2"],
         field: "payment_method",
-        value: "card",
+        value: "credit_card",
       },
     );
     expect(mockSetLastDbFetchTimestamp).toHaveBeenCalledTimes(1);
+    expect(mockClearPaymentMethodCache).toHaveBeenCalledTimes(1);
   });
 
   it("does not update timestamp when recurring affected count mismatches", async () => {

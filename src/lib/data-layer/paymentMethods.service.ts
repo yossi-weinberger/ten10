@@ -51,6 +51,7 @@ async function fetchUserPaymentMethodsDesktop(): Promise<string[]> {
 }
 
 export async function getUserPaymentMethods(): Promise<string[]> {
+  const requestCacheVersion = cacheVersion;
   const platform = getPlatform();
   let cacheKey = `${platform}`;
 
@@ -84,6 +85,10 @@ export async function getUserPaymentMethods(): Promise<string[]> {
   } else {
     logger.warn("PaymentMethodsService: Platform not yet determined");
     return [];
+  }
+
+  if (requestCacheVersion !== cacheVersion) {
+    return paymentMethodCache.get(cacheKey) ?? [];
   }
 
   paymentMethodCache.set(cacheKey, methods);

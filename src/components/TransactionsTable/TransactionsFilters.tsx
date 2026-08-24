@@ -35,6 +35,9 @@ import {
   getUserPaymentMethods,
 } from "@/lib/data-layer";
 import {
+  getPaymentMethodAliases,
+  mergePaymentMethodOptions,
+  normalizePaymentMethodValue,
   PAYMENT_METHOD_PRIORITY,
   formatPaymentMethod,
   isPredefinedPaymentMethod,
@@ -84,7 +87,14 @@ export function TransactionsFilters() {
   );
   const [localTypes, setLocalTypes] = useState<string[]>(storeFilters.types);
   const [localPaymentMethods, setLocalPaymentMethods] = useState<string[]>(
-    storeFilters.paymentMethods ?? []
+    () =>
+      (storeFilters.paymentMethods ?? [])
+        .map(normalizePaymentMethodValue)
+        .filter((method): method is string => method !== null)
+  );
+  const selectedPaymentMethods = React.useMemo(
+    () => new Set(localPaymentMethods),
+    [localPaymentMethods]
   );
   const [localIsRecurring, setLocalIsRecurring] = useState<IsRecurringFilter>(
     storeFilters.isRecurring
@@ -140,9 +150,12 @@ export function TransactionsFilters() {
   };
 
   const handlePaymentMethodChange = (method: string, checked: boolean) => {
+    const normalizedMethod = normalizePaymentMethodValue(method);
+    if (!normalizedMethod) return;
+
     const newMethods = checked
-      ? Array.from(new Set([...localPaymentMethods, method]))
-      : localPaymentMethods.filter((m) => m !== method);
+      ? Array.from(new Set([...localPaymentMethods, normalizedMethod]))
+      : localPaymentMethods.filter((m) => m !== normalizedMethod);
     setLocalPaymentMethods(newMethods);
     setStoreFilters({ paymentMethods: newMethods });
   };
@@ -227,40 +240,24 @@ export function TransactionsFilters() {
   );
 
   const predefinedPaymentMethods = React.useMemo(
-    () => PAYMENT_METHOD_PRIORITY.map((key) => key),
-    []
+    () =>
+      PAYMENT_METHOD_PRIORITY.map((key) => ({
+        value: key,
+        label: getPaymentMethodLabel(key),
+        keywords: getPaymentMethodAliases(key),
+      })),
+    [getPaymentMethodLabel]
   );
 
-  const allPaymentMethods = React.useMemo(() => {
-    const dedupedMap = new Map<string, string>();
-    const sortedCustom = [...userPaymentMethods].sort((a, b) =>
-      getPaymentMethodLabel(a).localeCompare(
-        getPaymentMethodLabel(b),
+  const allPaymentMethods = React.useMemo(
+    () =>
+      mergePaymentMethodOptions(
+        predefinedPaymentMethods,
+        userPaymentMethods,
         i18n.language
-      )
-    );
-
-    predefinedPaymentMethods.forEach((item) => {
-      const key = item.toLowerCase();
-      if (!dedupedMap.has(key)) {
-        dedupedMap.set(key, item);
-      }
-    });
-
-    sortedCustom.forEach((item) => {
-      const key = item.toLowerCase();
-      if (!dedupedMap.has(key)) {
-        dedupedMap.set(key, item);
-      }
-    });
-
-    return Array.from(dedupedMap.values());
-  }, [
-    predefinedPaymentMethods,
-    userPaymentMethods,
-    i18n.language,
-    getPaymentMethodLabel,
-  ]);
+      ),
+    [predefinedPaymentMethods, userPaymentMethods, i18n.language]
+  );
 
   const handlePaymentMethodsOpenChange = async (open: boolean) => {
     setPaymentMethodsDropdownOpen(open);
@@ -403,14 +400,14 @@ export function TransactionsFilters() {
                   <DropdownMenuSeparator />
                   {allPaymentMethods.map((method) => (
                     <DropdownMenuCheckboxItem
-                      key={method}
-                      checked={localPaymentMethods.includes(method)}
+                      key={method.value}
+                      checked={selectedPaymentMethods.has(method.value)}
                       onCheckedChange={(checked) =>
-                        handlePaymentMethodChange(method, !!checked)
+                        handlePaymentMethodChange(method.value, !!checked)
                       }
                       onClick={stopPropagation}
                     >
-                      {getPaymentMethodLabel(method)}
+                      {method.label}
                     </DropdownMenuCheckboxItem>
                   ))}
                 </DropdownMenuContent>
