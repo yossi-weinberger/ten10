@@ -9,7 +9,10 @@ import {
   invokeDesktopFilteredTransactions,
   invokeDesktopFilteredTransactionsAllPages,
 } from "@/lib/tableTransactions/desktop-filtered-transactions-invoke";
-import type { TransactionBulkChange } from "@/lib/tableTransactions/bulkActions";
+import {
+  assertBulkTextValue,
+  type TransactionBulkChange,
+} from "@/lib/tableTransactions/bulkActions";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 import { clearPaymentMethodCache } from "./paymentMethods.service";
 
@@ -576,6 +579,7 @@ export async function bulkUpdateTransactions(
     change.field === "payment_method"
       ? normalizePaymentMethodValue(change.value)
       : change.value;
+  assertBulkTextValue(value);
 
   if (currentPlatform === "web") {
     const userId = await getAuthenticatedUserId();

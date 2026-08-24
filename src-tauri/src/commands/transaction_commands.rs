@@ -176,6 +176,21 @@ pub fn delete_transaction_handler(
     }
 }
 
+const BULK_TEXT_VALUE_MAX_LENGTH: usize = 50;
+
+fn validate_bulk_text_value(value: &Option<String>) -> std::result::Result<(), String> {
+    if let Some(text) = value {
+        if text.chars().count() > BULK_TEXT_VALUE_MAX_LENGTH {
+            return Err(format!(
+                "Bulk update value exceeds the {} character limit.",
+                BULK_TEXT_VALUE_MAX_LENGTH
+            ));
+        }
+    }
+
+    Ok(())
+}
+
 fn validate_bulk_ids(ids: &[String]) -> std::result::Result<(), String> {
     if ids.is_empty() {
         return Err("ids must not be empty".to_string());
@@ -274,6 +289,7 @@ pub fn bulk_update_transactions_handler(
     value: Option<String>,
 ) -> std::result::Result<usize, String> {
     validate_bulk_ids(&ids)?;
+    validate_bulk_text_value(&value)?;
 
     let column = match field.as_str() {
         "payment_method" => "payment_method",
@@ -1538,5 +1554,27 @@ mod tests {
             Some("salary".to_string())
         );
         assert_eq!(transaction_field(&app, "t3", "category"), None);
+    }
+
+    #[test]
+    fn bulk_update_transactions_rejects_oversized_text_values() {
+        let app = mock_app();
+        let oversized = "a".repeat(51);
+        let err = bulk_update_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t1".to_string()],
+            "category".to_string(),
+            Some(oversized),
+        )
+        .expect_err("oversized category should fail");
+
+        assert!(
+            err.contains("50 character limit"),
+            "unexpected error: {err}"
+        );
+        assert_eq!(
+            transaction_field(&app, "t1", "category"),
+            Some("salary".to_string())
+        );
     }
 }

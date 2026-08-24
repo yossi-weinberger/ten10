@@ -54,8 +54,11 @@ Migration `20260824071032_harden_bulk_transaction_actions.sql` replaces all four
 
 - Transactions: `payment_method`, `category` only. Rejects `initial_balance` rows and mixed/non-applicable category families server-side.
 - Recurring: `payment_method`, `category` only. Rejects `completed` rows and mixed/non-applicable category families.
+- Both updaters reject non-null `p_value` longer than 50 characters, matching the singular transaction and recurring schemas. The TypeScript bulk services and Tauri handlers enforce the same limit before dispatch.
 
-Recurring bulk status editing is intentionally deferred. Allowing `status` changes through this RPC would expose a race with recurring execution until occurrence creation and recurring-state advancement are made atomic together.
+The initial create migration installs the recurring updater without a `status` field so a later hardening failure cannot leave authenticated callers with a status-capable RPC. Recurring bulk status editing remains deferred until occurrence creation and recurring-state advancement are atomic together.
+
+Forward migration `20260824114314_limit_bulk_update_text_values.sql` replaces both bulk updaters to add the 50-character `p_value` guard without changing signatures, ownership, or grants.
 
 **Recurring bulk delete and `source_recurring_id`:** the migration preconditions require FK `transactions.source_recurring_id → recurring_transactions.id` with `ON DELETE SET NULL` (`confdeltype = 'n'`). Deleting recurring rows therefore nulls linked transaction occurrences on Web via FK; Desktop mirrors this explicitly in `bulk_delete_recurring_transactions_handler`.
 

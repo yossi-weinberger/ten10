@@ -8,6 +8,8 @@ export type TransactionBulkField = "payment_method" | "category";
 export type RecurringBulkField = "payment_method" | "category";
 export type SelectionActionMode = "none" | "single" | "bulk";
 
+export const BULK_TEXT_VALUE_MAX_LENGTH = 50;
+
 export type TransactionBulkChange = {
   kind: "transaction";
   field: TransactionBulkField;
@@ -72,6 +74,14 @@ export function getBulkFieldGridClassName(fieldCount: number): string {
   if (fieldCount <= 1) return "grid-cols-1";
   if (fieldCount === 2) return "grid-cols-2";
   return "grid-cols-2 sm:grid-cols-3";
+}
+
+export function assertBulkTextValue(value: string | null): void {
+  if (value !== null && value.length > BULK_TEXT_VALUE_MAX_LENGTH) {
+    throw new Error(
+      `Bulk update value exceeds the ${BULK_TEXT_VALUE_MAX_LENGTH} character limit.`,
+    );
+  }
 }
 
 export function getBulkCategoryFamily(

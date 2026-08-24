@@ -358,6 +358,21 @@ pub fn delete_recurring_transaction_handler(
     Ok(())
 }
 
+const BULK_TEXT_VALUE_MAX_LENGTH: usize = 50;
+
+fn validate_bulk_text_value(value: &Option<String>) -> std::result::Result<(), String> {
+    if let Some(text) = value {
+        if text.chars().count() > BULK_TEXT_VALUE_MAX_LENGTH {
+            return Err(format!(
+                "Bulk update value exceeds the {} character limit.",
+                BULK_TEXT_VALUE_MAX_LENGTH
+            ));
+        }
+    }
+
+    Ok(())
+}
+
 fn validate_bulk_ids(ids: &[String]) -> std::result::Result<(), String> {
     if ids.is_empty() {
         return Err("ids must not be empty".to_string());
@@ -465,6 +480,7 @@ pub fn bulk_update_recurring_transactions_handler(
     value: Option<String>,
 ) -> std::result::Result<usize, String> {
     validate_bulk_ids(&ids)?;
+    validate_bulk_text_value(&value)?;
 
     let column = match field.as_str() {
         "payment_method" => "payment_method",
@@ -799,6 +815,31 @@ mod tests {
                 "SELECT category FROM recurring_transactions WHERE id = 'r5'"
             ),
             Some("charity".to_string())
+        );
+    }
+
+    #[test]
+    fn bulk_update_recurring_transactions_rejects_oversized_text_values() {
+        let app = mock_app();
+        let oversized = "a".repeat(51);
+        let err = bulk_update_recurring_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["r1".to_string()],
+            "payment_method".to_string(),
+            Some(oversized),
+        )
+        .expect_err("oversized payment method should fail");
+
+        assert!(
+            err.contains("50 character limit"),
+            "unexpected error: {err}"
+        );
+        assert_eq!(
+            optional_text(
+                &app,
+                "SELECT payment_method FROM recurring_transactions WHERE id = 'r1'"
+            ),
+            Some("cash".to_string())
         );
     }
 

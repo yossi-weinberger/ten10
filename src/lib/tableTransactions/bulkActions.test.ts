@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  assertBulkTextValue,
+  BULK_TEXT_VALUE_MAX_LENGTH,
   getBulkCategoryFamily,
   getBulkEditAvailability,
   getBulkFieldGridClassName,
@@ -70,6 +72,16 @@ describe("selection action policy helpers", () => {
     expect(getBulkFieldGridClassName(1)).toContain("grid-cols-1");
     expect(getBulkFieldGridClassName(2)).toContain("grid-cols-2");
     expect(getBulkFieldGridClassName(3)).toContain("sm:grid-cols-3");
+  });
+
+  it("rejects bulk text values longer than the shared schema limit", () => {
+    expect(() => assertBulkTextValue(null)).not.toThrow();
+    expect(() =>
+      assertBulkTextValue("a".repeat(BULK_TEXT_VALUE_MAX_LENGTH)),
+    ).not.toThrow();
+    expect(() =>
+      assertBulkTextValue("a".repeat(BULK_TEXT_VALUE_MAX_LENGTH + 1)),
+    ).toThrow("50 character limit");
   });
 });
 

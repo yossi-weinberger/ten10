@@ -5,7 +5,10 @@ import { useDonationStore } from "../store";
 import { nanoid } from "nanoid";
 import { logger } from "@/lib/logger";
 import { invokeTauri } from "@/lib/tauri-invoke";
-import type { RecurringBulkChange } from "@/lib/tableTransactions/bulkActions";
+import {
+  assertBulkTextValue,
+  type RecurringBulkChange,
+} from "@/lib/tableTransactions/bulkActions";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 import { clearPaymentMethodCache } from "./paymentMethods.service";
 
@@ -258,6 +261,7 @@ export async function bulkUpdateRecurringTransactions(
     change.field === "payment_method"
       ? normalizePaymentMethodValue(change.value)
       : change.value;
+  assertBulkTextValue(value);
 
   if (platform === "web") {
     const userId = await getAuthenticatedUserId();

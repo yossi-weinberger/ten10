@@ -117,6 +117,20 @@ describe("transaction bulk data-layer operations", () => {
     expect(mockRpc).not.toHaveBeenCalled();
     expect(invoke).not.toHaveBeenCalled();
   });
+
+  it("rejects oversized category values before dispatching", async () => {
+    mockGetPlatform.mockReturnValue("web");
+
+    await expect(
+      bulkUpdateTransactions(["t1"], {
+        kind: "transaction",
+        field: "category",
+        value: "a".repeat(51),
+      }),
+    ).rejects.toThrow("50 character limit");
+    expect(mockRpc).not.toHaveBeenCalled();
+    expect(invoke).not.toHaveBeenCalled();
+  });
 });
 
 describe("recurring transaction bulk data-layer operations", () => {
@@ -181,5 +195,19 @@ describe("recurring transaction bulk data-layer operations", () => {
       value: "card",
     })).rejects.toThrow("rls denied");
     expect(mockSetLastDbFetchTimestamp).not.toHaveBeenCalled();
+  });
+
+  it("rejects oversized recurring category values before dispatching", async () => {
+    mockGetPlatform.mockReturnValue("desktop");
+
+    await expect(
+      bulkUpdateRecurringTransactions(["r1"], {
+        kind: "recurring",
+        field: "category",
+        value: "a".repeat(51),
+      }),
+    ).rejects.toThrow("50 character limit");
+    expect(invoke).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
   });
 });

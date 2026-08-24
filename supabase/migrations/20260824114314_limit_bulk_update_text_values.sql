@@ -1,97 +1,21 @@
--- Harden atomic bulk transaction RPC ownership checks.
--- Recurring bulk status updates remain deferred until recurring execution is atomic.
+-- Enforce the same 50-character category/payment_method limit used by
+-- singular transaction and recurring schemas on bulk update RPCs.
 
 DO $preconditions$
 DECLARE
   required_signature text;
   required_signatures constant text[] := ARRAY[
-    'public.bulk_delete_user_transactions(uuid,uuid[])',
     'public.bulk_update_user_transactions(uuid,uuid[],text,text)',
-    'public.bulk_delete_user_recurring_transactions(uuid,uuid[])',
     'public.bulk_update_user_recurring_transactions(uuid,uuid[],text,text)'
   ];
 BEGIN
   FOREACH required_signature IN ARRAY required_signatures LOOP
     IF to_regprocedure(required_signature) IS NULL THEN
-      RAISE EXCEPTION 'Required function is missing before replacement: %', required_signature;
+      RAISE EXCEPTION 'Required function is missing before bulk text-length enforcement: %', required_signature;
     END IF;
   END LOOP;
 END;
 $preconditions$;
-
-CREATE OR REPLACE FUNCTION public.bulk_delete_user_transactions(
-  p_user_id uuid,
-  p_ids uuid[]
-)
-RETURNS integer
-LANGUAGE plpgsql
-SECURITY INVOKER
-SET search_path = ''
-AS $$
-DECLARE
-  v_input_count integer;
-  v_distinct_count integer;
-  v_has_null_id boolean;
-  v_locked_count integer;
-  v_affected_count integer;
-BEGIN
-  IF coalesce(auth.role(), '') <> 'service_role'
-     AND auth.uid() IS DISTINCT FROM p_user_id THEN
-    RAISE EXCEPTION 'Access denied';
-  END IF;
-
-  SELECT
-    count(*)::integer,
-    count(DISTINCT input_id.id)::integer,
-    bool_or(input_id.id IS NULL)
-  INTO v_input_count, v_distinct_count, v_has_null_id
-  FROM unnest(p_ids) AS input_id(id);
-
-  IF coalesce(v_input_count, 0) = 0 THEN
-    RAISE EXCEPTION 'Bulk delete requires at least one transaction id.';
-  END IF;
-
-  IF coalesce(v_has_null_id, false) THEN
-    RAISE EXCEPTION 'Bulk delete transaction ids cannot contain null values.';
-  END IF;
-
-  IF v_distinct_count <> v_input_count THEN
-    RAISE EXCEPTION 'Bulk delete transaction ids cannot contain duplicates.';
-  END IF;
-
-  WITH locked_rows AS MATERIALIZED (
-    SELECT transaction_row.id
-    FROM public.transactions AS transaction_row
-    WHERE transaction_row.user_id = p_user_id
-      AND transaction_row.id = ANY(p_ids)
-    ORDER BY transaction_row.id
-    FOR UPDATE
-  )
-  SELECT count(*)::integer
-  INTO v_locked_count
-  FROM locked_rows;
-
-  IF v_locked_count <> v_input_count THEN
-    RAISE EXCEPTION 'Bulk delete locked % transaction rows, expected %.', v_locked_count, v_input_count;
-  END IF;
-
-  WITH deleted_rows AS (
-    DELETE FROM public.transactions AS transaction_row
-    WHERE transaction_row.user_id = p_user_id
-      AND transaction_row.id = ANY(p_ids)
-    RETURNING 1
-  )
-  SELECT count(*)::integer
-  INTO v_affected_count
-  FROM deleted_rows;
-
-  IF v_affected_count <> v_input_count THEN
-    RAISE EXCEPTION 'Bulk delete affected % transaction rows, expected %.', v_affected_count, v_input_count;
-  END IF;
-
-  RETURN v_affected_count;
-END;
-$$;
 
 CREATE OR REPLACE FUNCTION public.bulk_update_user_transactions(
   p_user_id uuid,
@@ -203,80 +127,6 @@ BEGIN
 
   IF v_affected_count <> v_input_count THEN
     RAISE EXCEPTION 'Bulk update affected % transaction rows, expected %.', v_affected_count, v_input_count;
-  END IF;
-
-  RETURN v_affected_count;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.bulk_delete_user_recurring_transactions(
-  p_user_id uuid,
-  p_ids uuid[]
-)
-RETURNS integer
-LANGUAGE plpgsql
-SECURITY INVOKER
-SET search_path = ''
-AS $$
-DECLARE
-  v_input_count integer;
-  v_distinct_count integer;
-  v_has_null_id boolean;
-  v_locked_count integer;
-  v_affected_count integer;
-BEGIN
-  IF coalesce(auth.role(), '') <> 'service_role'
-     AND auth.uid() IS DISTINCT FROM p_user_id THEN
-    RAISE EXCEPTION 'Access denied';
-  END IF;
-
-  SELECT
-    count(*)::integer,
-    count(DISTINCT input_id.id)::integer,
-    bool_or(input_id.id IS NULL)
-  INTO v_input_count, v_distinct_count, v_has_null_id
-  FROM unnest(p_ids) AS input_id(id);
-
-  IF coalesce(v_input_count, 0) = 0 THEN
-    RAISE EXCEPTION 'Bulk delete requires at least one recurring transaction id.';
-  END IF;
-
-  IF coalesce(v_has_null_id, false) THEN
-    RAISE EXCEPTION 'Bulk delete recurring transaction ids cannot contain null values.';
-  END IF;
-
-  IF v_distinct_count <> v_input_count THEN
-    RAISE EXCEPTION 'Bulk delete recurring transaction ids cannot contain duplicates.';
-  END IF;
-
-  WITH locked_rows AS MATERIALIZED (
-    SELECT recurring_row.id
-    FROM public.recurring_transactions AS recurring_row
-    WHERE recurring_row.user_id = p_user_id
-      AND recurring_row.id = ANY(p_ids)
-    ORDER BY recurring_row.id
-    FOR UPDATE
-  )
-  SELECT count(*)::integer
-  INTO v_locked_count
-  FROM locked_rows;
-
-  IF v_locked_count <> v_input_count THEN
-    RAISE EXCEPTION 'Bulk delete locked % recurring transaction rows, expected %.', v_locked_count, v_input_count;
-  END IF;
-
-  WITH deleted_rows AS (
-    DELETE FROM public.recurring_transactions AS recurring_row
-    WHERE recurring_row.user_id = p_user_id
-      AND recurring_row.id = ANY(p_ids)
-    RETURNING 1
-  )
-  SELECT count(*)::integer
-  INTO v_affected_count
-  FROM deleted_rows;
-
-  IF v_affected_count <> v_input_count THEN
-    RAISE EXCEPTION 'Bulk delete affected % recurring transaction rows, expected %.', v_affected_count, v_input_count;
   END IF;
 
   RETURN v_affected_count;
@@ -399,20 +249,17 @@ BEGIN
 END;
 $$;
 
-REVOKE EXECUTE ON FUNCTION public.bulk_delete_user_transactions(uuid, uuid[])
-  FROM PUBLIC, anon, authenticated, service_role;
+ALTER FUNCTION public.bulk_update_user_transactions(uuid, uuid[], text, text)
+  OWNER TO postgres;
+ALTER FUNCTION public.bulk_update_user_recurring_transactions(uuid, uuid[], text, text)
+  OWNER TO postgres;
+
 REVOKE EXECUTE ON FUNCTION public.bulk_update_user_transactions(uuid, uuid[], text, text)
-  FROM PUBLIC, anon, authenticated, service_role;
-REVOKE EXECUTE ON FUNCTION public.bulk_delete_user_recurring_transactions(uuid, uuid[])
   FROM PUBLIC, anon, authenticated, service_role;
 REVOKE EXECUTE ON FUNCTION public.bulk_update_user_recurring_transactions(uuid, uuid[], text, text)
   FROM PUBLIC, anon, authenticated, service_role;
 
-GRANT EXECUTE ON FUNCTION public.bulk_delete_user_transactions(uuid, uuid[])
-  TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.bulk_update_user_transactions(uuid, uuid[], text, text)
-  TO authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.bulk_delete_user_recurring_transactions(uuid, uuid[])
   TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.bulk_update_user_recurring_transactions(uuid, uuid[], text, text)
   TO authenticated, service_role;
@@ -421,12 +268,11 @@ DO $postconditions$
 DECLARE
   function_oid oid;
   function_def text;
+  function_owner text;
   execute_grantees text[];
   required_signature text;
   required_signatures constant text[] := ARRAY[
-    'public.bulk_delete_user_transactions(uuid,uuid[])',
     'public.bulk_update_user_transactions(uuid,uuid[],text,text)',
-    'public.bulk_delete_user_recurring_transactions(uuid,uuid[])',
     'public.bulk_update_user_recurring_transactions(uuid,uuid[],text,text)'
   ];
 BEGIN
@@ -434,11 +280,20 @@ BEGIN
     function_oid := to_regprocedure(required_signature);
 
     IF function_oid IS NULL THEN
-      RAISE EXCEPTION 'Required function is missing after replacement: %', required_signature;
+      RAISE EXCEPTION 'Required function is missing after bulk text-length enforcement: %', required_signature;
     END IF;
 
     SELECT pg_get_functiondef(function_oid)
     INTO function_def;
+
+    SELECT pg_get_userbyid(pg_proc.proowner)
+    INTO function_owner
+    FROM pg_proc
+    WHERE pg_proc.oid = function_oid;
+
+    IF function_owner IS DISTINCT FROM 'postgres' THEN
+      RAISE EXCEPTION 'Function owner is not postgres: % owned by %', required_signature, function_owner;
+    END IF;
 
     IF EXISTS (
       SELECT 1
@@ -449,30 +304,12 @@ BEGIN
       RAISE EXCEPTION 'Function is SECURITY DEFINER: %', required_signature;
     END IF;
 
-    IF NOT EXISTS (
-      SELECT 1
-      FROM pg_proc
-      CROSS JOIN LATERAL unnest(coalesce(pg_proc.proconfig, ARRAY[]::text[])) AS setting(value)
-      WHERE pg_proc.oid = function_oid
-        AND split_part(setting.value, '=', 1) = 'search_path'
-        AND replace(replace(split_part(setting.value, '=', 2), '"', ''), '''', '') = ''
-    ) THEN
-      RAISE EXCEPTION 'Function does not have an explicit empty search_path: %', required_signature;
+    IF function_def !~* $length_guard_regex$char_length[[:space:]]*\([[:space:]]*p_value[[:space:]]*\)[[:space:]]*>[[:space:]]*50$length_guard_regex$ THEN
+      RAISE EXCEPTION 'Function is missing the 50-character value limit: %', required_signature;
     END IF;
 
     IF function_def !~* $auth_guard_regex$coalesce[[:space:]]*\([[:space:]]*auth\.role\(\)[[:space:]]*,[[:space:]]*''[[:space:]]*\)[[:space:]]*<>[[:space:]]*'service_role'[[:space:]]+AND[[:space:]]+auth\.uid\(\)[[:space:]]+IS[[:space:]]+DISTINCT[[:space:]]+FROM[[:space:]]+p_user_id$auth_guard_regex$ THEN
       RAISE EXCEPTION 'Function is missing the NULL-safe ownership guard: %', required_signature;
-    END IF;
-
-    IF EXISTS (
-      SELECT 1
-      FROM pg_proc
-      CROSS JOIN LATERAL aclexplode(coalesce(pg_proc.proacl, acldefault('f', pg_proc.proowner))) AS function_acl
-      WHERE pg_proc.oid = function_oid
-        AND function_acl.grantee = 0
-        AND function_acl.privilege_type = 'EXECUTE'
-    ) THEN
-      RAISE EXCEPTION 'PUBLIC can execute: %', required_signature;
     END IF;
 
     IF has_function_privilege('anon', function_oid, 'EXECUTE') THEN

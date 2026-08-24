@@ -1,6 +1,8 @@
 -- Add atomic bulk transaction actions for the table bulk-action UI.
 -- These functions intentionally remain SECURITY INVOKER so table RLS is
 -- authoritative for authenticated callers.
+-- The recurring updater is created without a status field so authenticated
+-- callers cannot perform non-atomic status edits if a later migration fails.
 
 DO $preconditions$
 DECLARE
@@ -162,6 +164,10 @@ BEGIN
 
   IF p_field IS NULL OR p_field NOT IN ('payment_method', 'category') THEN
     RAISE EXCEPTION 'Unsupported transaction bulk update field: %.', p_field;
+  END IF;
+
+  IF p_value IS NOT NULL AND char_length(p_value) > 50 THEN
+    RAISE EXCEPTION 'Bulk update value exceeds the 50 character limit.';
   END IF;
 
   WITH locked_rows AS MATERIALIZED (
@@ -336,16 +342,12 @@ BEGIN
     RAISE EXCEPTION 'Bulk update recurring transaction ids cannot contain duplicates.';
   END IF;
 
-  IF p_field IS NULL OR p_field NOT IN ('status', 'payment_method', 'category') THEN
+  IF p_field IS NULL OR p_field NOT IN ('payment_method', 'category') THEN
     RAISE EXCEPTION 'Unsupported recurring transaction bulk update field: %.', p_field;
   END IF;
 
-  IF p_field = 'status' AND p_value IS NULL THEN
-    RAISE EXCEPTION 'Recurring transaction bulk status update value cannot be null.';
-  END IF;
-
-  IF p_field = 'status' AND p_value NOT IN ('active', 'paused', 'cancelled') THEN
-    RAISE EXCEPTION 'Unsupported recurring transaction bulk status value: %.', p_value;
+  IF p_value IS NOT NULL AND char_length(p_value) > 50 THEN
+    RAISE EXCEPTION 'Bulk update value exceeds the 50 character limit.';
   END IF;
 
   WITH locked_rows AS MATERIALIZED (
@@ -377,19 +379,7 @@ BEGIN
     RAISE EXCEPTION 'Bulk category update requires all recurring transactions to be in one income or expense family.';
   END IF;
 
-  IF p_field = 'status' THEN
-    WITH updated_rows AS (
-      UPDATE public.recurring_transactions AS recurring_row
-      SET status = p_value,
-          updated_at = now()
-      WHERE recurring_row.user_id = p_user_id
-        AND recurring_row.id = ANY(p_ids)
-      RETURNING 1
-    )
-    SELECT count(*)::integer
-    INTO v_affected_count
-    FROM updated_rows;
-  ELSIF p_field = 'payment_method' THEN
+  IF p_field = 'payment_method' THEN
     WITH updated_rows AS (
       UPDATE public.recurring_transactions AS recurring_row
       SET payment_method = p_value,
@@ -517,5 +507,15 @@ BEGIN
       RAISE EXCEPTION 'service_role cannot execute: %', required_signature;
     END IF;
   END LOOP;
+
+  function_oid := to_regprocedure(
+    'public.bulk_update_user_recurring_transactions(uuid,uuid[],text,text)'
+  );
+
+  IF pg_get_functiondef(function_oid) !~* $allowed_fields_regex$p_field[[:space:]]+NOT[[:space:]]+IN[[:space:]]*\([[:space:]]*'payment_method'[[:space:]]*,[[:space:]]*'category'[[:space:]]*\)$allowed_fields_regex$
+     OR pg_get_functiondef(function_oid) ~* $status_field_regex$p_field[[:space:]]*=[[:space:]]*'status'$status_field_regex$
+     OR pg_get_functiondef(function_oid) ~* $status_update_regex$SET[[:space:]]+status[[:space:]]*=[[:space:]]*p_value$status_update_regex$ THEN
+    RAISE EXCEPTION 'Initial recurring bulk update must not permit status editing.';
+  END IF;
 END;
 $postconditions$;
