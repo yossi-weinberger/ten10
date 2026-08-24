@@ -18,6 +18,8 @@ This document provides a historical reference and status overview of the Transac
 - ✅ **Editing**: Modal-based editing with form validation
 - ✅ **Deletion**: Confirmation dialog with optimistic updates
 - ✅ **Load More**: Pagination with "Load More" button
+- ✅ **Bulk selection**: Loaded-only row checkboxes, tri-state header, select-all-loaded (no select-all-filtered)
+- ✅ **Bulk delete/update**: Atomic Web RPC + Desktop Tauri handlers; Web RPCs enforce a runtime ownership guard; recurring bulk update currently allows `payment_method` and `category` only (`status` is deferred pending atomic recurring execution); no optimistic bulk; the stores refetch once after a committed mutation and resolve refresh-only failures as stale-data warnings; no Undo; no PostHog events
 - ✅ **Export**: CSV, Excel, and PDF export
 - ✅ **Import**: CSV/Excel import via review wizard — see `transaction-import-guide.md` (with month separators in PDF when sorting by date). On **desktop**, save uses `src/lib/utils/save-export-file.ts` (`dialog.save` + `writeFile`); cancelling the dialog sets `EXPORT_DESKTOP_SAVE_CANCELLED` (no success toast).
 - ❌ **Real-time Updates**: Removed (rely on optimistic updates and manual refresh)
@@ -39,11 +41,20 @@ src/
 │   │   ├── RecurringTransactionEditModal.tsx  # Recurring transaction edit modal
 │   │   ├── TransactionsTableHeader.tsx        # Table header with sorting
 │   │   ├── TransactionsTableFooter.tsx        # Table footer with load more
+│   │   ├── BulkActionsToolbar.tsx             # Bulk selection toolbar
+│   │   ├── BulkEditDialog.tsx                 # Bulk edit dialog
 │   │   └── ExportButton.tsx                   # Export button
+├── hooks/
+│   └── useLoadedRowSelection.ts               # Loaded-only tri-state selection
 ├── lib/
+│   ├── data-layer/
+│   │   └── bulkOperations.service.test.ts     # Web/Desktop bulk RPC invoke tests
 │   └── tableTransactions/
 │       ├── tableTransactionService.ts          # API services (note: singular "transaction")
 │       ├── tableTransactions.store.ts          # Zustand store
+│       ├── bulkActions.ts                      # Bulk edit field rules / category family
+│       ├── bulkActions.test.ts
+│       ├── bulkOperations.store.test.ts
 │       └── tableTransactions.types.ts         # Table TypeScript types
 ├── types/
 │   └── transaction.ts                         # Main Transaction type
@@ -143,6 +154,8 @@ interface TableTransactionsState {
   error: string | null; // General error for fetching transactions
   exportLoading: boolean; // Specific loading for export action
   exportError: string | null; // Specific error for export action
+  bulkLoading: boolean; // Bulk delete/update in progress
+  bulkError: string | null; // Last bulk action error
   totalCount: number; // Total count of transactions matching filters
 
   // Actions
@@ -158,6 +171,12 @@ interface TableTransactionsState {
     platform: Platform
   ) => Promise<void>;
   deleteTransaction: (id: string, platform: Platform) => Promise<void>;
+  deleteTransactionsBulk: (ids: readonly string[], platform: Platform) => Promise<BulkMutationResult>;
+  updateTransactionsBulk: (
+    ids: readonly string[],
+    change: TransactionBulkChange,
+    platform: Platform
+  ) => Promise<BulkMutationResult>;
   exportTransactions: (
     format: "csv" | "excel" | "pdf",
     platform: Platform
@@ -171,11 +190,13 @@ interface TableTransactionsState {
 
 ### Optimistic Updates
 
-**Status**: Implemented for editing and deletion.
+**Status**: Implemented for **single-row** edit and delete only.
 
-- Immediate state update during edit/delete
+- Immediate state update during single-row edit/delete
 - Backup of original data (within async operation)
 - Rollback on failure (within async operation)
+
+**Bulk actions are not optimistic.** `deleteTransactionsBulk` and `updateTransactionsBulk` wait for the backend, then await `fetchTransactions(true)` once. Mutation failures reject, set `bulkError`, and skip refresh. If the mutation commits but refresh fails, the action resolves with `{ refreshError }`, keeps `bulkError` clear, and leaves the fetch problem in the table `error`; the transactions store restores the rows and pagination captured before the reset refresh. The recurring table follows the same result contract with `fetchRecurring()`. The UI treats refresh-only failure as committed success: it closes the dialog, clears selection, shows the success toast, and adds a localized stale-data warning.
 
 ## Supabase RPC Functions
 
@@ -230,6 +251,26 @@ RETURNS SETOF transactions AS $$ ... $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 **Note**: Export does not use a separate RPC function. Instead, the service layer uses `getDataForExport()` which calls `fetchTransactions()` with a high limit (10000) to retrieve all matching transactions for export.
 
+### Bulk delete / update (atomic)
+
+Migration `20260823154606_add_atomic_bulk_transaction_actions.sql` adds four `SECURITY INVOKER` RPCs (RLS-authoritative; see `transaction-rpc-security.md`):
+
+```sql
+-- Transactions
+bulk_delete_user_transactions(p_user_id uuid, p_ids uuid[]) → integer
+bulk_update_user_transactions(p_user_id uuid, p_ids uuid[], p_field text, p_value text) → integer
+  -- p_field: 'payment_method' | 'category' only
+
+-- Recurring
+bulk_delete_user_recurring_transactions(p_user_id uuid, p_ids uuid[]) → integer
+bulk_update_user_recurring_transactions(p_user_id uuid, p_ids uuid[], p_field text, p_value text) → integer
+  -- p_field: 'payment_method' | 'category' only
+```
+
+**Desktop Tauri handlers** (registered in `src-tauri/src/main.rs`): `bulk_delete_transactions_handler`, `bulk_update_transactions_handler`, `bulk_delete_recurring_transactions_handler`, `bulk_update_recurring_transactions_handler`. Each runs inside a SQLite transaction; recurring bulk delete first `UPDATE transactions SET source_recurring_id = NULL` (matching Web FK `ON DELETE SET NULL`), then deletes recurring rows.
+
+**Bulk edit rules (frontend + backend aligned):** transactions — `payment_method`, `category` with homogeneous category family; blocks `initial_balance`. Recurring — `payment_method`, `category`; blocks `completed` status rows. Recurring bulk `status` editing is deferred until recurring execution is atomic with status changes.
+
 ## Service Layer
 
 **Status**: Implemented in `src/lib/tableTransactions/tableTransactionService.ts` (note: singular "transaction" in filename).
@@ -251,6 +292,13 @@ class TableTransactionsService {
   ): Promise<void>; // Returns void, delegates to dataService
 
   static async deleteTransaction(id: string, platform: Platform): Promise<void>; // Returns void, delegates to dataService
+
+  static async deleteTransactionsBulk(ids: readonly string[], platform: Platform): Promise<void>;
+  static async updateTransactionsBulk(
+    ids: readonly string[],
+    change: TransactionBulkChange,
+    platform: Platform
+  ): Promise<void>;
 
   static async getDataForExport(
     filters: TableTransactionFilters,
@@ -315,13 +363,14 @@ WITH CHECK (auth.uid() = user_id);
 5. ✅ Basic table component
 6. ✅ Filters and search (including recurring transaction filters)
 7. ✅ Load More implementation
-8. ✅ Edit and delete (Undo removed)
+8. ✅ Edit and delete (Undo removed; bulk has no Undo)
 9. ✅ Export implementation (via `getDataForExport` using high-limit fetch)
-10. ❌ Real-time updates (removed)
+10. ✅ Bulk selection + bulk delete/update (loaded-only; atomic backend; delete and update each refetch once from the store before resolving)
+11. ❌ Real-time updates (removed)
 
 ### Partially Completed
 
-11. ⚠️ Performance optimizations (partially implemented - Skeleton, pagination info, React.memo for rows, Toast notifications)
+12. ⚠️ Performance optimizations (partially implemented - Skeleton, pagination info, React.memo for rows, Toast notifications)
 
 ### Recently Added (v0.3.8)
 
@@ -329,6 +378,11 @@ WITH CHECK (auth.uid() = user_id);
 13. ✅ **PDF Month Separators**: Month separators in PDF export matching table UI when sorting by date
 14. ✅ **Code Quality**: Extracted `TOTAL_TABLE_COLUMNS` constant to avoid magic numbers and ensure consistency
 15. ✅ **UI Improvements**: Increased spacing between "Load More" button and transaction count text (`gap-6`)
+
+### Recently Added (bulk actions)
+
+16. ✅ **Bulk selection**: `useLoadedRowSelection` — loaded-only, tri-state header, select-all-loaded; selection cleared on filter/sort change; pruned on Load More
+17. ✅ **Bulk delete/update**: Web RPC + Desktop Tauri; no optimistic bulk; delete and update each refetch once after commit; refresh-only failures resolve with a typed stale-data warning while mutation failures still reject; tests in `bulkActions.test.ts`, `bulkOperations.store.test.ts`, `bulkOperations.service.test.ts`, and Rust `#[test]` modules in `transaction_commands.rs` / `recurring_transaction_commands.rs`
 
 ### Not Yet Implemented
 
@@ -340,15 +394,14 @@ WITH CHECK (auth.uid() = user_id);
 - Request cancellation
 - Caching of results
 - Virtual scrolling (optional for future)
-- Unit tests
-- Integration tests
+- Integration tests (unit tests added for bulk selection rules, store bulk flow, data-layer RPC/Tauri wiring, and Rust bulk handlers)
 - Mobile responsive improvements
 - Accessibility improvements (screen readers)
 
 ## Important Principles
 
 - **Server-side filtering**: All filters and sorting on server - ✅ Implemented
-- **Optimistic updates**: Immediate UI update - ✅ Implemented
+- **Optimistic updates**: Immediate UI update for single-row edit/delete only — ✅ Implemented. Bulk actions refetch instead — ✅ Implemented
 - **Error resilience**: Full error handling - ⚠️ Basic handling exists, can be extended
 - **Progressive enhancement**: Basic functionality always works - ✅ Mostly correct
 - **Accessibility**: Full screen reader support - ⚠️ Requires testing and specific improvements
@@ -370,7 +423,7 @@ WITH CHECK (auth.uid() = user_id);
 
 ---
 
-**Last Updated**: January 2026  
+**Last Updated**: August 2026
 **Author**: Ten10 Development Team
 
 ## Recent Updates (v0.3.8)

@@ -3,16 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ResponsiveConfirmationDialog } from "@/components/ui/ResponsiveConfirmationDialog";
 import {
   setupLock,
   unlock,
@@ -167,6 +158,22 @@ export function DesktopLockScreen({
     }
   }
 
+  const fullResetConfirmation = (
+    <ResponsiveConfirmationDialog
+      open={fullResetDialogOpen}
+      onOpenChange={setFullResetDialogOpen}
+      onConfirm={handleFullResetConfirm}
+      title={t("fullResetConfirmTitle")}
+      description={t("fullResetConfirmDescription")}
+      confirmLabel={t("fullResetButton")}
+      cancelLabel={tCommon("actions.cancel")}
+      pending={fullResetLoading}
+      pendingLabel={tCommon("labels.loading")}
+      variant="destructive"
+      dir={i18n.dir()}
+    />
+  );
+
   if (loading) {
     return <AppLoader />;
   }
@@ -256,33 +263,7 @@ export function DesktopLockScreen({
           </button>
         </div>
 
-        <AlertDialog
-          open={fullResetDialogOpen}
-          onOpenChange={setFullResetDialogOpen}
-        >
-          <AlertDialogContent dir={i18n.dir()}>
-            <AlertDialogHeader className="text-start">
-              <AlertDialogTitle className="text-start">
-                {t("fullResetConfirmTitle")}
-              </AlertDialogTitle>
-              <AlertDialogDescription className="text-start">
-                {t("fullResetConfirmDescription")}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="gap-2 sm:space-x-0">
-              <AlertDialogCancel>{tCommon("actions.cancel")}</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleFullResetConfirm}
-                disabled={fullResetLoading}
-                className="bg-destructive hover:bg-destructive/90"
-              >
-                {fullResetLoading
-                  ? tCommon("labels.loading")
-                  : t("fullResetButton")}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        {fullResetConfirmation}
       </AuthLayout>
     );
   }
@@ -430,33 +411,7 @@ export function DesktopLockScreen({
         </button>
       </div>
 
-      <AlertDialog
-        open={fullResetDialogOpen}
-        onOpenChange={setFullResetDialogOpen}
-      >
-        <AlertDialogContent dir={i18n.dir()}>
-          <AlertDialogHeader className="text-start">
-            <AlertDialogTitle className="text-start">
-              {t("fullResetConfirmTitle")}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-start">
-              {t("fullResetConfirmDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:space-x-0">
-            <AlertDialogCancel>{tCommon("actions.cancel")}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleFullResetConfirm}
-              disabled={fullResetLoading}
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              {fullResetLoading
-                ? tCommon("labels.loading")
-                : t("fullResetButton")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {fullResetConfirmation}
     </AuthLayout>
   );
 }

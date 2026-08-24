@@ -4,10 +4,17 @@ import { getPlatform } from "../platformManager";
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { invokeTauri } from "@/lib/tauri-invoke";
 import {
   invokeDesktopFilteredTransactions,
   invokeDesktopFilteredTransactionsAllPages,
 } from "@/lib/tableTransactions/desktop-filtered-transactions-invoke";
+import {
+  assertBulkTextValue,
+  type TransactionBulkChange,
+} from "@/lib/tableTransactions/bulkActions";
+import { normalizePaymentMethodValue } from "@/lib/payment-methods";
+import { clearPaymentMethodCache } from "./paymentMethods.service";
 
 // --- New CRUD API for Transactions ---
 
@@ -84,7 +91,7 @@ export async function loadTransactions(
         } transactions.`
       );
       return (data as Transaction[]) || [];
-    } catch (errorCaught: any) {
+    } catch (errorCaught: unknown) {
       logger.error(
         "TransactionsService: Error explicitly caught in loadTransactions (Supabase block):",
         errorCaught
@@ -167,8 +174,7 @@ export async function getTransactionsCount(): Promise<number> {
 
   if (currentPlatform === "desktop") {
     try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      return await invoke<number>("get_transactions_count");
+      return await invokeTauri<number>("get_transactions_count");
     } catch (error) {
       logger.error("Error counting transactions (Desktop):", error);
       return 0;
@@ -207,10 +213,15 @@ export async function hasAnyTransaction(): Promise<boolean> {
  */
 export async function addTransaction(transaction: Transaction): Promise<void> {
   const currentPlatform = getPlatform();
+  const normalizedTransaction = {
+    ...transaction,
+    payment_method: normalizePaymentMethodValue(transaction.payment_method),
+  };
   if (currentPlatform === "desktop") {
     try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("add_transaction", { transaction });
+      await invokeTauri("add_transaction", {
+        transaction: normalizedTransaction,
+      });
       useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
     } catch (error) {
       logger.error("Error invoking add_transaction:", error);
@@ -227,17 +238,17 @@ export async function addTransaction(transaction: Transaction): Promise<void> {
       }
       const userId = user.id;
 
-      const transactionToInsert = {
-        ...transaction,
+      const transactionToInsert: Partial<Transaction> & Record<string, unknown> = {
+        ...normalizedTransaction,
         user_id: userId,
       };
 
       // Clean up fields that should not be sent on insert
-      delete (transactionToInsert as any).is_recurring;
-      delete (transactionToInsert as any).recurring_day_of_month;
-      delete (transactionToInsert as any).recurring_total_count;
-      delete (transactionToInsert as any).recurring_info;
-      delete (transactionToInsert as any).id;
+      delete transactionToInsert["is_recurring"];
+      delete transactionToInsert["recurring_day_of_month"];
+      delete transactionToInsert["recurring_total_count"];
+      delete transactionToInsert["recurring_info"];
+      delete transactionToInsert.id;
 
       const { data: insertedData, error: insertError } = await supabase
         .from("transactions")
@@ -272,8 +283,7 @@ export async function deleteTransaction(transactionId: string): Promise<void> {
 
   if (currentPlatform === "desktop") {
     try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("delete_transaction_handler", { transactionId });
+      await invokeTauri("delete_transaction_handler", { transactionId });
       logger.log(
         `TransactionsService: Tauri delete successful for ID: ${transactionId}`
       );
@@ -326,6 +336,7 @@ export async function deleteTransaction(transactionId: string): Promise<void> {
   }
 
   trackProductEvent("transaction_deleted");
+  clearPaymentMethodCache();
 }
 
 export interface TransactionUpdatePayload {
@@ -380,7 +391,9 @@ export async function updateTransaction(
   if (payload.recipient !== undefined)
     sanitizedPayload.recipient = payload.recipient;
   if (payload.payment_method !== undefined)
-    sanitizedPayload.payment_method = payload.payment_method;
+    sanitizedPayload.payment_method = normalizePaymentMethodValue(
+      payload.payment_method
+    );
   if (payload.original_amount !== undefined)
     sanitizedPayload.original_amount = payload.original_amount;
   if (payload.original_currency !== undefined)
@@ -399,8 +412,7 @@ export async function updateTransaction(
 
   if (currentPlatform === "desktop") {
     try {
-      const { invoke } = await import("@tauri-apps/api/core");
-      await invoke("update_transaction_handler", {
+      await invokeTauri("update_transaction_handler", {
         id: transactionId,
         payload: sanitizedPayload,
       });
@@ -462,4 +474,151 @@ export async function updateTransaction(
     fields_changed: Object.keys(sanitizedPayload),
     type: sanitizedPayload.type,
   });
+  if (sanitizedPayload.payment_method !== undefined) {
+    clearPaymentMethodCache();
+  }
+}
+
+function validateBulkIds(ids: readonly string[]): string[] {
+  if (ids.length === 0) {
+    throw new Error("Bulk action requires at least one id");
+  }
+
+  const normalizedIds = ids.map((id) => id.trim());
+  if (normalizedIds.some((id) => id.length === 0)) {
+    throw new Error("Bulk action ids must not be empty");
+  }
+
+  if (new Set(normalizedIds).size !== normalizedIds.length) {
+    throw new Error("Bulk action ids must be unique");
+  }
+
+  return normalizedIds;
+}
+
+async function getAuthenticatedUserId(): Promise<string> {
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError || !user) {
+    throw new Error("User not authenticated for Supabase operation.");
+  }
+
+  return user.id;
+}
+
+function readAffectedCount(data: unknown): number {
+  if (typeof data === "number") {
+    return data;
+  }
+
+  throw new Error("Bulk action did not return an affected count.");
+}
+
+function verifyAffectedCount(
+  entityName: string,
+  expectedCount: number,
+  affectedCount: number,
+): void {
+  if (affectedCount !== expectedCount) {
+    throw new Error(
+      `Expected to affect ${expectedCount} ${entityName}, affected ${affectedCount}`,
+    );
+  }
+}
+
+export async function bulkDeleteTransactions(
+  ids: readonly string[],
+): Promise<void> {
+  const validatedIds = validateBulkIds(ids);
+  const currentPlatform = getPlatform();
+
+  if (currentPlatform === "web") {
+    const userId = await getAuthenticatedUserId();
+    const { data, error } = await supabase.rpc("bulk_delete_user_transactions", {
+      p_user_id: userId,
+      p_ids: validatedIds,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    verifyAffectedCount(
+      "transactions",
+      validatedIds.length,
+      readAffectedCount(data),
+    );
+    useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
+    clearPaymentMethodCache();
+    return;
+  }
+
+  if (currentPlatform === "desktop") {
+    const affectedCount = await invokeTauri<number>("bulk_delete_transactions_handler", {
+      ids: validatedIds,
+    });
+    verifyAffectedCount("transactions", validatedIds.length, affectedCount);
+    useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
+    clearPaymentMethodCache();
+    return;
+  }
+
+  throw new Error("Cannot bulk delete transactions: Platform not initialized.");
+}
+
+export async function bulkUpdateTransactions(
+  ids: readonly string[],
+  change: TransactionBulkChange,
+): Promise<void> {
+  const validatedIds = validateBulkIds(ids);
+  const currentPlatform = getPlatform();
+  const value =
+    change.field === "payment_method"
+      ? normalizePaymentMethodValue(change.value)
+      : change.value;
+  assertBulkTextValue(value);
+
+  if (currentPlatform === "web") {
+    const userId = await getAuthenticatedUserId();
+    const { data, error } = await supabase.rpc("bulk_update_user_transactions", {
+      p_user_id: userId,
+      p_ids: validatedIds,
+      p_field: change.field,
+      p_value: value,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    verifyAffectedCount(
+      "transactions",
+      validatedIds.length,
+      readAffectedCount(data),
+    );
+    useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
+    if (change.field === "payment_method") {
+      clearPaymentMethodCache();
+    }
+    return;
+  }
+
+  if (currentPlatform === "desktop") {
+    const affectedCount = await invokeTauri<number>("bulk_update_transactions_handler", {
+      ids: validatedIds,
+      field: change.field,
+      value,
+    });
+    verifyAffectedCount("transactions", validatedIds.length, affectedCount);
+    useDonationStore.getState().setLastDbFetchTimestamp(Date.now());
+    if (change.field === "payment_method") {
+      clearPaymentMethodCache();
+    }
+    return;
+  }
+
+  throw new Error("Cannot bulk update transactions: Platform not initialized.");
 }

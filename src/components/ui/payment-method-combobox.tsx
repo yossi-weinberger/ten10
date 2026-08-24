@@ -22,8 +22,12 @@ import {
   getPaymentMethodCacheVersion,
 } from "@/lib/data-layer";
 import {
+  getPaymentMethodAliases,
+  mergePaymentMethodOptions,
+  normalizePaymentMethodValue,
   PAYMENT_METHOD_PRIORITY,
   type PaymentMethodKey,
+  type PaymentMethodOption,
   isPredefinedPaymentMethod,
 } from "@/lib/payment-methods";
 
@@ -33,11 +37,6 @@ interface PaymentMethodComboboxProps {
   placeholder?: string;
   disabled?: boolean;
 }
-
-type PaymentMethodOption = {
-  value: string;
-  label: string;
-};
 
 export function PaymentMethodCombobox({
   value,
@@ -64,6 +63,7 @@ export function PaymentMethodCombobox({
     return PAYMENT_METHOD_PRIORITY.map((key) => ({
       value: key,
       label: getLabelForKey(key),
+      keywords: getPaymentMethodAliases(key),
     }));
   }, [getLabelForKey]);
 
@@ -99,52 +99,30 @@ export function PaymentMethodCombobox({
   }, []);
 
   const allMethods = React.useMemo<PaymentMethodOption[]>(() => {
-    const predefined = getPredefinedMethods();
-    const userOptions = userMethods.map((method) => ({
-      value: method,
-      label: isPredefinedPaymentMethod(method)
-        ? getLabelForKey(method as PaymentMethodKey)
-        : method,
-    }));
-
-    const dedupedMap = new Map<string, PaymentMethodOption>();
-    const sortedUserOptions = [...userOptions].sort((a, b) =>
-      a.label.localeCompare(b.label, i18n.language)
+    return mergePaymentMethodOptions(
+      getPredefinedMethods(),
+      userMethods,
+      i18n.language
     );
-
-    predefined.forEach((item) => {
-      const key = item.value.toLowerCase();
-      if (!dedupedMap.has(key)) {
-        dedupedMap.set(key, item);
-      }
-    });
-
-    sortedUserOptions.forEach((item) => {
-      const key = item.value.toLowerCase();
-      if (!dedupedMap.has(key)) {
-        dedupedMap.set(key, item);
-      }
-    });
-
-    return Array.from(dedupedMap.values());
   }, [getPredefinedMethods, userMethods, i18n.language]);
 
+  const normalizedSearchValue = normalizePaymentMethodValue(searchValue);
   const isNewValue =
-    searchValue.trim() !== "" &&
-    !allMethods.some(
-      (method) =>
-        method.label.toLowerCase() === searchValue.trim().toLowerCase() ||
-        method.value.toLowerCase() === searchValue.trim().toLowerCase()
-    );
+    normalizedSearchValue !== null &&
+    !allMethods.some((method) => method.value === normalizedSearchValue);
 
   const handleSelect = (selectedValue: string) => {
-    onChange(selectedValue === value ? null : selectedValue);
+    onChange(
+      selectedValue === normalizePaymentMethodValue(value)
+        ? null
+        : selectedValue
+    );
     setOpen(false);
     setSearchValue("");
   };
 
   const handleCreateNew = () => {
-    const newMethod = searchValue.trim();
+    const newMethod = normalizePaymentMethodValue(searchValue);
     if (newMethod) {
       onChange(newMethod);
       setOpen(false);
@@ -155,10 +133,11 @@ export function PaymentMethodCombobox({
   const displayPlaceholder =
     placeholder || t("transactionForm.paymentMethod.placeholder");
 
-  const displayValue = value
-    ? isPredefinedPaymentMethod(value)
-      ? getLabelForKey(value as PaymentMethodKey)
-      : value
+  const normalizedValue = normalizePaymentMethodValue(value);
+  const displayValue = normalizedValue
+    ? isPredefinedPaymentMethod(normalizedValue)
+      ? getLabelForKey(normalizedValue)
+      : normalizedValue
     : displayPlaceholder;
 
   return (
@@ -218,13 +197,16 @@ export function PaymentMethodCombobox({
               {allMethods.map((method) => (
                 <CommandItem
                   key={method.value}
-                  value={method.label}
+                  value={method.value}
+                  keywords={method.keywords}
                   onSelect={() => handleSelect(method.value)}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4 rtl:mr-0 rtl:ml-2",
-                      value === method.value ? "opacity-100" : "opacity-0"
+                      normalizedValue === method.value
+                        ? "opacity-100"
+                        : "opacity-0"
                     )}
                   />
                   {method.label}

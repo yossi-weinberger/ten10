@@ -12,16 +12,6 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -29,6 +19,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { ResponsiveConfirmationDialog } from "@/components/ui/ResponsiveConfirmationDialog";
 import {
   Tooltip,
   TooltipContent,
@@ -144,6 +135,7 @@ export function AppLockSettingsCard() {
       await disableLock();
       setLockEnabled(false);
       toast.success(t("appLock.lockDisabled"));
+      setDisableConfirmOpen(false);
     } catch (e) {
       logger.error("Disable app lock failed", e);
       toast.error(t("appLock.disableLockError"));
@@ -326,57 +318,31 @@ export function AppLockSettingsCard() {
       )}
 
       {/* Disable confirmation */}
-      <AlertDialog
+      <ResponsiveConfirmationDialog
         open={disableConfirmOpen}
         onOpenChange={setDisableConfirmOpen}
-      >
-        <AlertDialogContent dir={i18n.dir()}>
-          <AlertDialogHeader className="text-start">
-            <AlertDialogTitle className="text-start">
-              {t("appLock.disableConfirmTitle")}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-start">
-              {t("appLock.disableConfirmDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:space-x-0">
-            <AlertDialogCancel>{tCommon("actions.cancel")}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDisable}
-              disabled={loading}
-              className="bg-destructive hover:bg-destructive/90"
-            >
-              {t("appLock.disableLock")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onConfirm={handleDisable}
+        title={t("appLock.disableConfirmTitle")}
+        description={t("appLock.disableConfirmDescription")}
+        confirmLabel={t("appLock.disableLock")}
+        cancelLabel={tCommon("actions.cancel")}
+        pending={loading}
+        variant="destructive"
+        dir={i18n.dir()}
+      />
 
       {/* Regenerate recovery key confirmation */}
-      <AlertDialog
+      <ResponsiveConfirmationDialog
         open={regenerateConfirmOpen}
         onOpenChange={setRegenerateConfirmOpen}
-      >
-        <AlertDialogContent dir={i18n.dir()}>
-          <AlertDialogHeader className="text-start">
-            <AlertDialogTitle className="text-start">
-              {t("appLock.regenerateWarningTitle")}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-start">
-              {t("appLock.regenerateWarningDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2 sm:space-x-0">
-            <AlertDialogCancel>{tCommon("actions.cancel")}</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleRegenerateRecoveryKey}
-              disabled={loading}
-            >
-              {t("appLock.regenerateRecoveryKey")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        onConfirm={handleRegenerateRecoveryKey}
+        title={t("appLock.regenerateWarningTitle")}
+        description={t("appLock.regenerateWarningDescription")}
+        confirmLabel={t("appLock.regenerateRecoveryKey")}
+        cancelLabel={tCommon("actions.cancel")}
+        pending={loading}
+        dir={i18n.dir()}
+      />
 
       <Dialog open={enableDialogOpen} onOpenChange={setEnableDialogOpen}>
         <DialogContent dir={i18n.dir()} className="sm:max-w-md">

@@ -1,10 +1,11 @@
 // src-tauri/src/commands/transaction_commands.rs
 
-use crate::DbState;
 use crate::models::{RecurringInfo, Transaction, TransactionForTable};
-use rusqlite::{params, ToSql};
+use crate::DbState;
 use rusqlite::Result as RusqliteResult;
+use rusqlite::{params, ToSql};
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use tauri::State; // Assuming DbState is in lib.rs or main.rs and accessible
 
 #[derive(Deserialize, Debug)]
@@ -175,6 +176,220 @@ pub fn delete_transaction_handler(
     }
 }
 
+const BULK_TEXT_VALUE_MAX_LENGTH: usize = 50;
+
+fn validate_bulk_text_value(value: &Option<String>) -> std::result::Result<(), String> {
+    if let Some(text) = value {
+        if text.chars().count() > BULK_TEXT_VALUE_MAX_LENGTH {
+            return Err(format!(
+                "Bulk update value exceeds the {} character limit.",
+                BULK_TEXT_VALUE_MAX_LENGTH
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+fn validate_bulk_ids(ids: &[String]) -> std::result::Result<(), String> {
+    if ids.is_empty() {
+        return Err("ids must not be empty".to_string());
+    }
+
+    let mut seen = HashSet::new();
+    for id in ids {
+        let normalized = id.trim();
+        if normalized.is_empty()
+            || normalized.eq_ignore_ascii_case("null")
+            || normalized.eq_ignore_ascii_case("undefined")
+        {
+            return Err("ids must not contain empty or null-like values".to_string());
+        }
+        if !seen.insert(normalized.to_string()) {
+            return Err(format!("duplicate id: {}", normalized));
+        }
+    }
+
+    Ok(())
+}
+
+fn placeholders(count: usize) -> String {
+    std::iter::repeat("?")
+        .take(count)
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
+fn id_params(ids: &[String]) -> Vec<&dyn ToSql> {
+    ids.iter().map(|id| id as &dyn ToSql).collect()
+}
+
+fn transaction_category_family(transaction_type: &str) -> Option<&'static str> {
+    match transaction_type {
+        "income" | "exempt-income" => Some("income"),
+        "expense" | "recognized-expense" => Some("expense"),
+        _ => None,
+    }
+}
+
+#[tauri::command]
+pub fn bulk_delete_transactions_handler(
+    db_state: State<'_, DbState>,
+    ids: Vec<String>,
+) -> std::result::Result<usize, String> {
+    validate_bulk_ids(&ids)?;
+
+    let mut conn_guard = db_state
+        .0
+        .lock()
+        .map_err(|e| format!("DB lock error: {}", e))?;
+    let tx = conn_guard
+        .transaction()
+        .map_err(|e| format!("Failed to start transaction: {}", e))?;
+    let in_clause = placeholders(ids.len());
+
+    let matched: usize = tx
+        .query_row(
+            &format!(
+                "SELECT COUNT(*) FROM transactions WHERE id IN ({})",
+                in_clause
+            ),
+            id_params(&ids).as_slice(),
+            |row| row.get(0),
+        )
+        .map_err(|e| format!("Failed to count transactions: {}", e))?;
+    if matched != ids.len() {
+        return Err("One or more transactions were not found".to_string());
+    }
+
+    let affected = tx
+        .execute(
+            &format!("DELETE FROM transactions WHERE id IN ({})", in_clause),
+            id_params(&ids).as_slice(),
+        )
+        .map_err(|e| format!("Failed to delete transactions: {}", e))?;
+    if affected != ids.len() {
+        return Err(format!(
+            "Expected to delete {} transactions, deleted {}",
+            ids.len(),
+            affected
+        ));
+    }
+
+    tx.commit()
+        .map_err(|e| format!("Failed to commit transaction: {}", e))?;
+    Ok(affected)
+}
+
+#[tauri::command]
+pub fn bulk_update_transactions_handler(
+    db_state: State<'_, DbState>,
+    ids: Vec<String>,
+    field: String,
+    value: Option<String>,
+) -> std::result::Result<usize, String> {
+    validate_bulk_ids(&ids)?;
+    validate_bulk_text_value(&value)?;
+
+    let column = match field.as_str() {
+        "payment_method" => "payment_method",
+        "category" => "category",
+        _ => return Err(format!("Unsupported bulk update field: {}", field)),
+    };
+
+    let mut conn_guard = db_state
+        .0
+        .lock()
+        .map_err(|e| format!("DB lock error: {}", e))?;
+    let tx = conn_guard
+        .transaction()
+        .map_err(|e| format!("Failed to start transaction: {}", e))?;
+    let in_clause = placeholders(ids.len());
+
+    let matched: usize = tx
+        .query_row(
+            &format!(
+                "SELECT COUNT(*) FROM transactions WHERE id IN ({})",
+                in_clause
+            ),
+            id_params(&ids).as_slice(),
+            |row| row.get(0),
+        )
+        .map_err(|e| format!("Failed to count transactions: {}", e))?;
+    if matched != ids.len() {
+        return Err("One or more transactions were not found".to_string());
+    }
+
+    let initial_balance_count: usize = tx
+        .query_row(
+            &format!(
+                "SELECT COUNT(*) FROM transactions WHERE id IN ({}) AND type = 'initial_balance'",
+                in_clause
+            ),
+            id_params(&ids).as_slice(),
+            |row| row.get(0),
+        )
+        .map_err(|e| format!("Failed to validate transaction type: {}", e))?;
+    if initial_balance_count > 0 {
+        return Err("initial_balance transactions cannot be bulk updated".to_string());
+    }
+
+    if column == "category" {
+        let mut stmt = tx
+            .prepare(&format!(
+                "SELECT DISTINCT type FROM transactions WHERE id IN ({})",
+                in_clause
+            ))
+            .map_err(|e| format!("Failed to prepare category validation: {}", e))?;
+        let families = stmt
+            .query_map(id_params(&ids).as_slice(), |row| {
+                let transaction_type: String = row.get(0)?;
+                Ok(transaction_category_family(&transaction_type))
+            })
+            .map_err(|e| format!("Failed to validate category family: {}", e))?
+            .collect::<RusqliteResult<Vec<_>>>()
+            .map_err(|e| format!("Failed to read category family: {}", e))?;
+        if families.iter().any(Option::is_none) {
+            return Err(
+                "Bulk category update requires one income or expense category family".to_string(),
+            );
+        }
+        let unique_families: HashSet<&str> = families.into_iter().flatten().collect();
+        if unique_families.len() != 1 {
+            return Err(
+                "Bulk category update requires one income or expense category family".to_string(),
+            );
+        }
+    }
+
+    let mut update_params: Vec<&dyn ToSql> = Vec::with_capacity(ids.len() + 1);
+    update_params.push(&value);
+    for id in &ids {
+        update_params.push(id);
+    }
+
+    let affected = tx
+        .execute(
+            &format!(
+                "UPDATE transactions SET {} = ?, updated_at = CURRENT_TIMESTAMP WHERE id IN ({})",
+                column, in_clause
+            ),
+            update_params.as_slice(),
+        )
+        .map_err(|e| format!("Failed to update transactions: {}", e))?;
+    if affected != ids.len() {
+        return Err(format!(
+            "Expected to update {} transactions, updated {}",
+            ids.len(),
+            affected
+        ));
+    }
+
+    tx.commit()
+        .map_err(|e| format!("Failed to commit transaction: {}", e))?;
+    Ok(affected)
+}
+
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct ExportFiltersPayload {
@@ -193,7 +408,10 @@ pub fn export_transactions_handler(
     db_state: State<'_, DbState>,
     filters: ExportFiltersPayload,
 ) -> std::result::Result<Vec<TransactionForTable>, String> {
-    println!("[Rust DEBUG] export_transactions_handler called with filters: {:?}", filters);
+    println!(
+        "[Rust DEBUG] export_transactions_handler called with filters: {:?}",
+        filters
+    );
 
     let conn_guard = db_state
         .0
@@ -264,10 +482,7 @@ pub fn export_transactions_handler(
             let placeholders: Vec<String> = (0..payment_methods.len())
                 .map(|i| format!("?{}", current_param_idx + i))
                 .collect();
-            where_clauses.push(format!(
-                "t.payment_method IN ({})",
-                placeholders.join(", ")
-            ));
+            where_clauses.push(format!("t.payment_method IN ({})", placeholders.join(", ")));
             for method in payment_methods {
                 sql_params_dynamic.push(Box::new(method.clone()));
             }
@@ -323,12 +538,13 @@ pub fn export_transactions_handler(
 
     println!("[Rust DEBUG] Export query: {}", final_query);
 
-    let params_for_rusqlite: Vec<&dyn ToSql> = sql_params_dynamic.iter().map(|p| p.as_ref()).collect();
+    let params_for_rusqlite: Vec<&dyn ToSql> =
+        sql_params_dynamic.iter().map(|p| p.as_ref()).collect();
 
     let mut stmt = conn
         .prepare(&final_query)
         .map_err(|e| format!("[Rust ERROR] Failed to prepare statement: {}", e))?;
-    
+
     let transactions_iter = stmt
         .query_map(params_for_rusqlite.as_slice(), |row| {
             let transaction = crate::models::Transaction::from_row(row)?;
@@ -349,17 +565,27 @@ pub fn export_transactions_handler(
                 recurring_info,
             })
         })
-        .map_err(|e| format!("[Rust ERROR] Failed to query transactions for export: {}", e))?;
+        .map_err(|e| {
+            format!(
+                "[Rust ERROR] Failed to query transactions for export: {}",
+                e
+            )
+        })?;
 
     let mut transactions_vec = Vec::new();
     for transaction_result in transactions_iter {
-        transactions_vec.push(
-            transaction_result
-                .map_err(|e| format!("[Rust ERROR] Failed to map transaction row for export: {}", e))?,
-        );
+        transactions_vec.push(transaction_result.map_err(|e| {
+            format!(
+                "[Rust ERROR] Failed to map transaction row for export: {}",
+                e
+            )
+        })?);
     }
 
-    println!("[Rust DEBUG] Export successful. Found {} transactions.", transactions_vec.len());
+    println!(
+        "[Rust DEBUG] Export successful. Found {} transactions.",
+        transactions_vec.len()
+    );
     Ok(transactions_vec)
 }
 
@@ -485,10 +711,7 @@ pub fn get_filtered_transactions_handler(
             let placeholders: Vec<String> = (0..payment_methods.len())
                 .map(|i| format!("?{}", current_param_idx + i))
                 .collect();
-            where_clauses.push(format!(
-                "t.payment_method IN ({})",
-                placeholders.join(", ")
-            ));
+            where_clauses.push(format!("t.payment_method IN ({})", placeholders.join(", ")));
             for method in payment_methods {
                 sql_params_dynamic.push(Box::new(method.clone()));
             }
@@ -508,7 +731,7 @@ pub fn get_filtered_transactions_handler(
             _ => {} // "all" or any other value means no filter
         }
     }
-    
+
     if let Some(statuses) = &filters.recurring_statuses {
         if !statuses.is_empty() {
             let placeholders: Vec<String> = (0..statuses.len())
@@ -541,13 +764,11 @@ pub fn get_filtered_transactions_handler(
         "".to_string()
     };
 
-    let query_string_for_count = format!(
-        "SELECT COUNT(t.id) {} {}",
-        base_from, where_clause_str
-    );
+    let query_string_for_count = format!("SELECT COUNT(t.id) {} {}", base_from, where_clause_str);
 
     println!("[Rust DEBUG] Count Query: {}", query_string_for_count);
-    let params_for_rusqlite: Vec<&dyn ToSql> = sql_params_dynamic.iter().map(|p| p.as_ref()).collect();
+    let params_for_rusqlite: Vec<&dyn ToSql> =
+        sql_params_dynamic.iter().map(|p| p.as_ref()).collect();
 
     let total_count: i64 = conn
         .query_row(
@@ -598,13 +819,16 @@ pub fn get_filtered_transactions_handler(
     );
 
     println!("[Rust DEBUG] Data Query: {}", query_string_for_data);
-    let params_for_rusqlite: Vec<&dyn ToSql> = sql_params_dynamic.iter().map(|p| p.as_ref()).collect();
+    let params_for_rusqlite: Vec<&dyn ToSql> =
+        sql_params_dynamic.iter().map(|p| p.as_ref()).collect();
 
-    let mut stmt = conn.prepare(&query_string_for_data).map_err(|e| e.to_string())?;
+    let mut stmt = conn
+        .prepare(&query_string_for_data)
+        .map_err(|e| e.to_string())?;
     let transactions_iter = stmt
         .query_map(params_for_rusqlite.as_slice(), |row| {
             let recurring_status: Option<String> = row.get("recurring_status")?;
-            
+
             let recurring_info = if recurring_status.is_some() {
                 Some(RecurringInfo {
                     status: recurring_status.unwrap(),
@@ -624,14 +848,17 @@ pub fn get_filtered_transactions_handler(
                 recurring_info,
             })
         })
-    .map_err(|e| e.to_string())?;
+        .map_err(|e| e.to_string())?;
 
     let mut transactions = Vec::new();
     for tr in transactions_iter {
         transactions.push(tr.map_err(|e| e.to_string())?);
     }
 
-    println!("[Rust DEBUG] Number of transactions fetched: {}", transactions.len());
+    println!(
+        "[Rust DEBUG] Number of transactions fetched: {}",
+        transactions.len()
+    );
     println!("[Rust DEBUG] Returning PaginatedTransactionsResponse: total_count: {}, transactions_count: {}", total_count, transactions.len());
 
     Ok(PaginatedTransactionsResponse {
@@ -641,21 +868,17 @@ pub fn get_filtered_transactions_handler(
 }
 
 #[tauri::command]
-pub fn get_transactions_count(
-    db_state: State<'_, DbState>,
-) -> std::result::Result<i64, String> {
+pub fn get_transactions_count(db_state: State<'_, DbState>) -> std::result::Result<i64, String> {
     let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
     let conn = &*conn_guard;
 
     // Use count with limit 1 logic for maximum speed if we just need existence,
     // but here we return actual count as requested. For existence check:
     // SELECT 1 FROM transactions LIMIT 1
-    
-    let count: i64 = conn.query_row(
-        "SELECT COUNT(*) FROM transactions",
-        [],
-        |row| row.get(0),
-    ).map_err(|e| e.to_string())?;
+
+    let count: i64 = conn
+        .query_row("SELECT COUNT(*) FROM transactions", [], |row| row.get(0))
+        .map_err(|e| e.to_string())?;
 
     Ok(count)
 }
@@ -694,7 +917,10 @@ pub(crate) fn insert_transaction_row(
 }
 
 #[tauri::command]
-pub async fn add_transaction(db: State<'_, DbState>, transaction: Transaction) -> Result<(), String> {
+pub async fn add_transaction(
+    db: State<'_, DbState>,
+    transaction: Transaction,
+) -> Result<(), String> {
     let conn = db.0.lock().map_err(|e| e.to_string())?;
     insert_transaction_row(&conn, &transaction).map_err(|e| e.to_string())?;
     Ok(())
@@ -713,7 +939,7 @@ pub fn get_last_known_rate(
     // The `transactions` table has `original_currency` and `currency` (which is the target, usually default).
     // So we look for `original_currency = from` and `currency = to`.
     // And `conversion_rate` IS NOT NULL.
-    
+
     let query = "
         SELECT conversion_rate 
         FROM transactions 
@@ -723,7 +949,9 @@ pub fn get_last_known_rate(
     ";
 
     let mut stmt = conn.prepare(query).map_err(|e| e.to_string())?;
-    let mut rows = stmt.query(params![from_currency, to_currency]).map_err(|e| e.to_string())?;
+    let mut rows = stmt
+        .query(params![from_currency, to_currency])
+        .map_err(|e| e.to_string())?;
 
     if let Some(row) = rows.next().map_err(|e| e.to_string())? {
         let rate: f64 = row.get(0).map_err(|e| e.to_string())?;
@@ -736,7 +964,7 @@ pub fn get_last_known_rate(
 /// Get distinct categories that the user has used for a specific transaction type.
 /// This is used to populate the category combobox with user-defined categories
 /// in addition to the predefined ones.
-/// 
+///
 /// Includes derived types: income includes exempt-income, expense includes
 /// recognized-expense, donation includes non_tithe_donation.
 #[tauri::command]
@@ -769,13 +997,13 @@ pub fn get_distinct_categories(
     );
 
     let mut stmt = conn.prepare(&query).map_err(|e| e.to_string())?;
-    
+
     // Convert types to rusqlite params
     let params: Vec<&dyn rusqlite::ToSql> = types_to_query
         .iter()
         .map(|s| s as &dyn rusqlite::ToSql)
         .collect();
-    
+
     let categories_iter = stmt
         .query_map(params.as_slice(), |row| row.get::<_, String>(0))
         .map_err(|e| e.to_string())?;
@@ -925,7 +1153,10 @@ mod tests {
     }
 
     fn ids(res: &PaginatedTransactionsResponse) -> Vec<String> {
-        res.transactions.iter().map(|t| t.transaction.id.clone()).collect()
+        res.transactions
+            .iter()
+            .map(|t| t.transaction.id.clone())
+            .collect()
     }
 
     #[test]
@@ -981,7 +1212,11 @@ mod tests {
     #[test]
     fn filters_by_types_and_payment_methods() {
         let app = mock_app();
-        let types = run(&app, json!({ "types": ["income", "donation"] }), default_sort());
+        let types = run(
+            &app,
+            json!({ "types": ["income", "donation"] }),
+            default_sort(),
+        );
         assert_eq!(ids(&types), vec!["t1", "t3"]);
 
         let cash = run(&app, json!({ "paymentMethods": ["cash"] }), default_sort());
@@ -1017,23 +1252,43 @@ mod tests {
     #[test]
     fn filters_by_recurring_status_and_frequency() {
         let app = mock_app();
-        let active = run(&app, json!({ "recurringStatuses": ["active"] }), default_sort());
+        let active = run(
+            &app,
+            json!({ "recurringStatuses": ["active"] }),
+            default_sort(),
+        );
         assert_eq!(ids(&active), vec!["t3"]);
 
-        let monthly = run(&app, json!({ "recurringFrequencies": ["monthly"] }), default_sort());
+        let monthly = run(
+            &app,
+            json!({ "recurringFrequencies": ["monthly"] }),
+            default_sort(),
+        );
         assert_eq!(ids(&monthly), vec!["t3"]);
 
-        let paused = run(&app, json!({ "recurringStatuses": ["paused"] }), default_sort());
+        let paused = run(
+            &app,
+            json!({ "recurringStatuses": ["paused"] }),
+            default_sort(),
+        );
         assert_eq!(paused.total_count, 0);
     }
 
     #[test]
     fn sorts_by_amount_both_directions() {
         let app = mock_app();
-        let asc = run(&app, json!({}), json!({ "field": "amount", "direction": "asc" }));
+        let asc = run(
+            &app,
+            json!({}),
+            json!({ "field": "amount", "direction": "asc" }),
+        );
         assert_eq!(ids(&asc), vec!["t3", "t2", "t1"]);
 
-        let desc = run(&app, json!({}), json!({ "field": "amount", "direction": "desc" }));
+        let desc = run(
+            &app,
+            json!({}),
+            json!({ "field": "amount", "direction": "desc" }),
+        );
         assert_eq!(ids(&desc), vec!["t1", "t2", "t3"]);
     }
 
@@ -1050,14 +1305,22 @@ mod tests {
         assert_eq!(res.total_count, 3);
         assert_eq!(ids(&res), vec!["t3", "t2", "t1"]); // ASC by amount
 
-        let upper = run(&app, json!({}), json!({ "field": "amount", "direction": "DeSc" }));
+        let upper = run(
+            &app,
+            json!({}),
+            json!({ "field": "amount", "direction": "DeSc" }),
+        );
         assert_eq!(ids(&upper), vec!["t1", "t2", "t3"]); // case-insensitive DESC
     }
 
     #[test]
     fn unknown_sort_field_falls_back_to_created_at() {
         let app = mock_app();
-        let res = run(&app, json!({}), json!({ "field": "bogus", "direction": "asc" }));
+        let res = run(
+            &app,
+            json!({}),
+            json!({ "field": "bogus", "direction": "asc" }),
+        );
         assert_eq!(res.total_count, 3);
         assert_eq!(ids(&res), vec!["t1", "t2", "t3"]); // created_at order
     }
@@ -1090,5 +1353,228 @@ mod tests {
         .unwrap();
         assert_eq!(page2.total_count, 3);
         assert_eq!(ids(&page2), vec!["t3"]);
+    }
+
+    fn transaction_count(app: &tauri::App<tauri::test::MockRuntime>) -> i64 {
+        let db_state = app.state::<crate::DbState>();
+        let conn = db_state.0.lock().expect("db lock");
+        conn.query_row("SELECT COUNT(*) FROM transactions", [], |row| row.get(0))
+            .expect("count")
+    }
+
+    fn transaction_field(
+        app: &tauri::App<tauri::test::MockRuntime>,
+        id: &str,
+        field: &str,
+    ) -> Option<String> {
+        let column = match field {
+            "category" => "category",
+            "payment_method" => "payment_method",
+            _ => panic!("unsupported test field"),
+        };
+        let db_state = app.state::<crate::DbState>();
+        let conn = db_state.0.lock().expect("db lock");
+        conn.query_row(
+            &format!("SELECT {} FROM transactions WHERE id = ?1", column),
+            params![id],
+            |row| row.get(0),
+        )
+        .expect("field")
+    }
+
+    fn insert_initial_balance_transaction(app: &tauri::App<tauri::test::MockRuntime>) {
+        let db_state = app.state::<crate::DbState>();
+        let conn = db_state.0.lock().expect("db lock");
+        conn.execute(
+            "INSERT INTO transactions
+                (id, date, amount, currency, type, category, payment_method, created_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)",
+            params![
+                "t_initial",
+                "2024-01-01",
+                0.0,
+                "ILS",
+                "initial_balance",
+                "opening",
+                "system",
+                "2024-01-01T00:00:00Z"
+            ],
+        )
+        .expect("insert initial_balance transaction");
+    }
+
+    #[test]
+    fn bulk_delete_transactions_deletes_all_requested_ids() {
+        let app = mock_app();
+        let deleted = bulk_delete_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t1".to_string(), "t2".to_string()],
+        )
+        .expect("bulk delete");
+
+        assert_eq!(deleted, 2);
+        assert_eq!(transaction_count(&app), 1);
+    }
+
+    #[test]
+    fn bulk_delete_transactions_rolls_back_when_any_id_is_missing() {
+        let app = mock_app();
+        let err = bulk_delete_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t1".to_string(), "missing".to_string()],
+        )
+        .expect_err("missing id should fail");
+
+        assert!(err.contains("not found"), "unexpected error: {err}");
+        assert_eq!(transaction_count(&app), 3);
+    }
+
+    #[test]
+    fn bulk_update_transactions_updates_payment_method_for_all_requested_ids() {
+        let app = mock_app();
+        let updated = bulk_update_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t1".to_string(), "t2".to_string()],
+            "payment_method".to_string(),
+            Some("bank".to_string()),
+        )
+        .expect("bulk update");
+
+        assert_eq!(updated, 2);
+        assert_eq!(
+            transaction_field(&app, "t1", "payment_method"),
+            Some("bank".to_string())
+        );
+        assert_eq!(
+            transaction_field(&app, "t2", "payment_method"),
+            Some("bank".to_string())
+        );
+    }
+
+    #[test]
+    fn bulk_update_transactions_rejects_duplicate_and_empty_ids() {
+        let app = mock_app();
+
+        let duplicate = bulk_update_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t1".to_string(), "t1".to_string()],
+            "payment_method".to_string(),
+            Some("bank".to_string()),
+        )
+        .expect_err("duplicate ids should fail");
+        assert!(
+            duplicate.contains("duplicate"),
+            "unexpected error: {duplicate}"
+        );
+
+        let empty = bulk_update_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t1".to_string(), " ".to_string()],
+            "payment_method".to_string(),
+            Some("bank".to_string()),
+        )
+        .expect_err("empty ids should fail");
+        assert!(empty.contains("empty"), "unexpected error: {empty}");
+    }
+
+    #[test]
+    fn bulk_update_transactions_rejects_initial_balance_row_type_for_allowed_fields() {
+        let app = mock_app();
+        insert_initial_balance_transaction(&app);
+
+        let payment_method_err = bulk_update_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t_initial".to_string()],
+            "payment_method".to_string(),
+            Some("bank".to_string()),
+        )
+        .expect_err("initial_balance row type should block payment_method update");
+        assert!(
+            payment_method_err.contains("initial_balance"),
+            "unexpected error: {payment_method_err}"
+        );
+        assert_eq!(
+            transaction_field(&app, "t_initial", "payment_method"),
+            Some("system".to_string())
+        );
+
+        let category_err = bulk_update_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t_initial".to_string()],
+            "category".to_string(),
+            Some("changed".to_string()),
+        )
+        .expect_err("initial_balance row type should block category update");
+        assert!(
+            category_err.contains("initial_balance"),
+            "unexpected error: {category_err}"
+        );
+        assert_eq!(
+            transaction_field(&app, "t_initial", "category"),
+            Some("opening".to_string())
+        );
+    }
+
+    #[test]
+    fn bulk_update_transactions_rejects_mixed_category_families() {
+        let app = mock_app();
+        let err = bulk_update_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t1".to_string(), "t2".to_string()],
+            "category".to_string(),
+            Some("shared".to_string()),
+        )
+        .expect_err("mixed income/expense category update should fail");
+
+        assert!(err.contains("category family"), "unexpected error: {err}");
+        assert_eq!(
+            transaction_field(&app, "t1", "category"),
+            Some("salary".to_string())
+        );
+        assert_eq!(
+            transaction_field(&app, "t2", "category"),
+            Some("food".to_string())
+        );
+    }
+
+    #[test]
+    fn bulk_update_transactions_rejects_income_and_donation_category_with_rollback() {
+        let app = mock_app();
+        let err = bulk_update_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t1".to_string(), "t3".to_string()],
+            "category".to_string(),
+            Some("shared".to_string()),
+        )
+        .expect_err("donation is not an applicable category family");
+
+        assert!(err.contains("category family"), "unexpected error: {err}");
+        assert_eq!(
+            transaction_field(&app, "t1", "category"),
+            Some("salary".to_string())
+        );
+        assert_eq!(transaction_field(&app, "t3", "category"), None);
+    }
+
+    #[test]
+    fn bulk_update_transactions_rejects_oversized_text_values() {
+        let app = mock_app();
+        let oversized = "a".repeat(51);
+        let err = bulk_update_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t1".to_string()],
+            "category".to_string(),
+            Some(oversized),
+        )
+        .expect_err("oversized category should fail");
+
+        assert!(
+            err.contains("50 character limit"),
+            "unexpected error: {err}"
+        );
+        assert_eq!(
+            transaction_field(&app, "t1", "category"),
+            Some("salary".to_string())
+        );
     }
 }

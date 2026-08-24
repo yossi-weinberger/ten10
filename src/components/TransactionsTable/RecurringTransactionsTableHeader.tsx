@@ -1,6 +1,7 @@
 import React from "react";
-import { useTranslation } from "react-i18next";
+import type { CheckedState } from "@radix-ui/react-checkbox";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { RecurringTransaction } from "@/types/transaction";
 import { cn } from "@/lib/utils/formatting";
@@ -15,6 +16,10 @@ interface RecurringTableHeaderProps {
   handleSort: (field: SortableField) => void;
   sortableColumns: { label: string; field: SortableField }[];
   extraColumns?: { label: string }[];
+  selectionChecked: CheckedState;
+  onToggleAllLoaded: () => void;
+  selectAllLoadedLabel: string;
+  selectionDisabled?: boolean;
 }
 
 function getAlignmentClass(field: SortableField): string {
@@ -35,16 +40,39 @@ function getAlignmentClass(field: SortableField): string {
 
 export const RecurringTransactionsTableHeader: React.FC<
   RecurringTableHeaderProps
-> = ({ sorting, handleSort, sortableColumns, extraColumns = [] }) => {
-  const { t } = useTranslation("data-tables");
+> = ({
+  sorting,
+  handleSort,
+  sortableColumns,
+  extraColumns = [],
+  selectionChecked,
+  onToggleAllLoaded,
+  selectAllLoadedLabel,
+  selectionDisabled = false,
+}) => {
   const renderSortIcon = (field: SortableField) => {
     if (sorting.field !== field) {
-      return <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />;
+      return (
+        <ChevronsUpDown
+          aria-hidden="true"
+          className="h-4 w-4 opacity-50"
+        />
+      );
     }
     if (sorting.direction === "asc") {
-      return <ArrowUp className="ml-2 h-4 w-4" />;
+      return <ArrowUp aria-hidden="true" className="h-4 w-4" />;
     }
-    return <ArrowDown className="ml-2 h-4 w-4" />;
+    return <ArrowDown aria-hidden="true" className="h-4 w-4" />;
+  };
+
+  const getAriaSort = (
+    field: SortableField
+  ): React.AriaAttributes["aria-sort"] => {
+    if (sorting.field !== field) {
+      return "none";
+    }
+
+    return sorting.direction === "asc" ? "ascending" : "descending";
   };
 
   return (
@@ -53,23 +81,25 @@ export const RecurringTransactionsTableHeader: React.FC<
         {sortableColumns.map((col) => (
           <TableHead
             key={col.field}
+            aria-sort={getAriaSort(col.field)}
             className={cn(
-              "whitespace-nowrap cursor-pointer hover:bg-muted/50",
+              "whitespace-nowrap",
               getAlignmentClass(col.field)
             )}
-            onClick={() => handleSort(col.field)}
           >
-            <div
+            <button
+              type="button"
               className={cn(
-                "flex items-center",
+                "flex h-full w-full items-center gap-2 rounded-sm border-0 bg-transparent px-0 py-2 text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 getAlignmentClass(col.field) === "text-center"
                   ? "justify-center"
-                  : ""
+                  : "justify-start"
               )}
+              onClick={() => handleSort(col.field)}
             >
               {col.label}
               {renderSortIcon(col.field)}
-            </div>
+            </button>
           </TableHead>
         ))}
         {extraColumns.map((col, index) => (
@@ -80,6 +110,15 @@ export const RecurringTransactionsTableHeader: React.FC<
             {col.label}
           </TableHead>
         ))}
+        <TableHead className="w-12 overflow-visible text-center whitespace-nowrap">
+          <Checkbox
+            checked={selectionChecked}
+            onCheckedChange={onToggleAllLoaded}
+            disabled={selectionDisabled}
+            aria-label={selectAllLoadedLabel}
+            className="relative before:absolute before:-inset-3.5 before:content-['']"
+          />
+        </TableHead>
       </TableRow>
     </TableHeader>
   );

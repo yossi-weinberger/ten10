@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Transaction, TransactionForTable, TransactionType } from "@/types/transaction";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,6 +27,10 @@ interface TransactionRowProps {
   onDelete: (transaction: Transaction) => void;
   onEditRecurring: (recurringId: string) => void;
   isFetchingRec: boolean;
+  selected: boolean;
+  onToggleSelected: (id: string) => void;
+  selectLabel: string;
+  selectionDisabled?: boolean;
 }
 
 const TransactionRowComponent: React.FC<TransactionRowProps> = ({
@@ -34,13 +39,17 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   onDelete,
   onEditRecurring,
   isFetchingRec,
+  selected,
+  onToggleSelected,
+  selectLabel,
+  selectionDisabled = false,
 }) => {
   const { t, i18n } = useTranslation(["data-tables", "transactions"]);
 
   return (
-    <TableRow key={transaction.id}>
+    <TableRow key={transaction.id} data-state={selected ? "selected" : undefined}>
       <TableCell className="text-start whitespace-nowrap">
-        {new Date(transaction.date).toLocaleDateString("he-IL", {
+        {new Date(transaction.date).toLocaleDateString(i18n.language, {
           year: "numeric",
           month: "2-digit",
           day: "2-digit",
@@ -115,7 +124,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
-              className="h-8 w-8 p-0"
+              size="icon"
               disabled={isFetchingRec}
             >
               <span className="sr-only">{t("accessibility.openMenu")}</span>
@@ -125,7 +134,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>{t("actions.title")}</DropdownMenuLabel>
             <DropdownMenuItem onClick={() => onEdit(transaction)}>
-              <Edit3 className="mr-2 h-4 w-4" />
+              <Edit3 className="me-2 h-4 w-4" />
               {t("actions.edit")}
             </DropdownMenuItem>
             {transaction.source_recurring_id && (
@@ -138,7 +147,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
                   transaction.recurring_info?.status === "completed"
                 }
               >
-                <Repeat className="mr-2 h-4 w-4" />
+                <Repeat className="me-2 h-4 w-4" />
                 <span>
                   {isFetchingRec
                     ? t("messages.loading")
@@ -149,13 +158,22 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => onDelete(transaction)}
-              className="text-red-600 hover:!text-red-600 focus:!text-red-600"
+              className="text-destructive hover:!text-destructive focus:!text-destructive"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
+              <Trash2 className="me-2 h-4 w-4" />
               {t("actions.delete")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+      </TableCell>
+      <TableCell className="w-12 overflow-visible text-center whitespace-nowrap">
+        <Checkbox
+          checked={selected}
+          onCheckedChange={() => onToggleSelected(transaction.id)}
+          disabled={selectionDisabled}
+          aria-label={selectLabel}
+          className="relative before:absolute before:-inset-3.5 before:content-['']"
+        />
       </TableCell>
     </TableRow>
   );

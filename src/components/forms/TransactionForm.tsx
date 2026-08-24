@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { FieldErrors, Resolver, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,11 +29,13 @@ import { useTransactionFormInitialization } from "@/hooks/useTransactionFormInit
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { toast } from "sonner";
+import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 
 interface TransactionFormProps {
   initialData?: Transaction | null; // For editing
   isEditMode?: boolean;
   onSubmitSuccess?: () => void; // Callback after successful submission
+  onMutationSuccess?: () => void; // Immediate callback after a persisted mutation succeeds
   onCancel?: () => void; // Callback for cancel action
   /**
    * When provided, replaces the DB save entirely.
@@ -58,6 +60,7 @@ export function TransactionForm({
   initialData,
   isEditMode = false,
   onSubmitSuccess,
+  onMutationSuccess,
   onCancel,
   onOverrideSubmit,
 }: TransactionFormProps) {
@@ -84,14 +87,15 @@ export function TransactionForm({
   );
 
   // If the stored currency isn't one of the valid ones, default to ILS.
-  const defaultCurrency = validCurrencies.includes(
+  const defaultCurrency: TransactionFormValues["currency"] = validCurrencies.includes(
     storedDefaultCurrency as (typeof validCurrencies)[number]
   )
-    ? storedDefaultCurrency
+    ? (storedDefaultCurrency as TransactionFormValues["currency"])
     : "ILS";
 
   // State for success animation
   const [isSuccess, setIsSuccess] = useState(false);
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const transactionSchema = useMemo(() => createTransactionFormSchema(t), [t]);
 
@@ -121,6 +125,32 @@ export function TransactionForm({
       recurringTotalCount: undefined,
     },
   });
+
+  const clearSuccessTimer = () => {
+    if (successTimerRef.current) {
+      clearTimeout(successTimerRef.current);
+      successTimerRef.current = null;
+    }
+  };
+
+  const scheduleSubmitSuccess = (beforeSubmitSuccess?: () => void) => {
+    clearSuccessTimer();
+    successTimerRef.current = setTimeout(() => {
+      successTimerRef.current = null;
+      setIsSuccess(false);
+      beforeSubmitSuccess?.();
+      onSubmitSuccess?.();
+    }, 1500);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (successTimerRef.current) {
+        clearTimeout(successTimerRef.current);
+        successTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // Update form when URL search params change
   useEffect(() => {
@@ -179,7 +209,7 @@ export function TransactionForm({
         currency: (initialData.original_currency as Transaction["currency"]) ?? initialData.currency,
         conversion_rate: initialData.conversion_rate ?? undefined,
         conversion_date: initialData.conversion_date ?? undefined,
-        rate_source: (initialData.rate_source as any) ?? undefined,
+        rate_source: initialData.rate_source ?? undefined,
         original_amount: initialData.original_amount ?? undefined,
         original_currency: initialData.original_currency ?? undefined,
         payment_method: initialData.payment_method ?? "",
@@ -236,7 +266,7 @@ export function TransactionForm({
         submissionValues = {
             ...values,
             amount: convertedAmount,
-            currency: defaultCurrency as any,
+            currency: defaultCurrency,
             original_amount: originalAmount,
             original_currency: originalCurrency,
             // conversion_rate, date, source are already in values
@@ -250,6 +280,10 @@ export function TransactionForm({
         submissionValues.conversion_date = null;
         submissionValues.rate_source = null;
     }
+
+    submissionValues.payment_method = normalizePaymentMethodValue(
+      submissionValues.payment_method
+    );
 
     // Override path: bypass all DB writes and hand data to the caller.
     // All existing callers that don't pass onOverrideSubmit are unaffected.
@@ -368,12 +402,10 @@ export function TransactionForm({
       if (Object.keys(updatePayload).length > 0) {
         try {
           await updateTransaction(initialData.id, updatePayload, platform);
+          onMutationSuccess?.();
           setIsSuccess(true);
           toast.success(t("transactionForm.messages.success"));
-          setTimeout(() => {
-            setIsSuccess(false);
-            if (onSubmitSuccess) onSubmitSuccess();
-          }, 1500);
+          scheduleSubmitSuccess();
         } catch (error) {
           logger.error("Error updating transaction:", error);
           toast.error(t("transactionForm.messages.error"));
@@ -388,8 +420,7 @@ export function TransactionForm({
         await handleTransactionSubmit(submissionValues);
         setIsSuccess(true);
         toast.success(t("transactionForm.messages.success"));
-        setTimeout(() => {
-          setIsSuccess(false);
+        scheduleSubmitSuccess(() => {
           const nextType = form.getValues("type");
           form.reset({
             date: new Date().toISOString().split("T")[0],
@@ -409,8 +440,7 @@ export function TransactionForm({
             recurring_day_of_month: undefined,
             recurringTotalCount: undefined,
           });
-          if (onSubmitSuccess) onSubmitSuccess();
-        }, 1500);
+        });
       } catch (error) {
         logger.error("Error creating transaction:", error);
         toast.error(t("transactionForm.messages.error"));
@@ -474,7 +504,7 @@ export function TransactionForm({
         />
 
         {/* Recurring fields section - Replaced with new component where applicable */}
-        {isRecurringChecked && <RecurringFields form={form as any} />}
+        {isRecurringChecked && <RecurringFields form={form} />}
 
         {/* Submit and Cancel Buttons - Replaced with new component */}
         <FormActionButtons

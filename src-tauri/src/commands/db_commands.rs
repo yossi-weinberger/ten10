@@ -123,6 +123,11 @@ pub async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
         )
         .map_err(|e| e.to_string())?;
     }
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_transactions_source_recurring_id ON transactions(source_recurring_id)",
+        [],
+    )
+    .map_err(|e| e.to_string())?;
 
     // Add occurrence_number to transactions table if it doesn't exist
     if !column_exists(&conn, "transactions", "occurrence_number").map_err(|e| e.to_string())? {
@@ -390,3 +395,66 @@ pub fn infer_default_currency_from_transactions(db: State<'_, DbState>) -> Resul
         Ok(None)
     }
 } 
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::Mutex;
+    use tauri::Manager;
+
+    fn mock_app() -> tauri::App<tauri::test::MockRuntime> {
+        let app = tauri::test::mock_app();
+        let conn = Connection::open_in_memory().expect("in-memory db");
+        app.manage(crate::DbState(Mutex::new(conn)));
+        app
+    }
+
+    fn assert_source_recurring_id_index(app: &tauri::App<tauri::test::MockRuntime>) {
+        tauri::async_runtime::block_on(init_db(app.state::<crate::DbState>()))
+            .expect("initialize database");
+
+        let db_state = app.state::<crate::DbState>();
+        let conn = db_state.0.lock().expect("db lock");
+        let index_count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_schema
+                 WHERE type = 'index'
+                   AND name = 'idx_transactions_source_recurring_id'
+                   AND tbl_name = 'transactions'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("index lookup");
+        assert_eq!(index_count, 1);
+
+        let query_plan: String = conn
+            .query_row(
+                "EXPLAIN QUERY PLAN
+                 SELECT id FROM transactions
+                 WHERE source_recurring_id IN ('r1', 'r2')",
+                [],
+                |row| row.get(3),
+            )
+            .expect("query plan");
+        assert!(
+            query_plan.contains("idx_transactions_source_recurring_id"),
+            "expected source_recurring_id index in query plan, got: {query_plan}"
+        );
+    }
+
+    #[test]
+    fn init_db_indexes_source_recurring_id_for_new_and_existing_databases() {
+        let app = mock_app();
+
+        assert_source_recurring_id_index(&app);
+
+        {
+            let db_state = app.state::<crate::DbState>();
+            let conn = db_state.0.lock().expect("db lock");
+            conn.execute("DROP INDEX idx_transactions_source_recurring_id", [])
+                .expect("drop index to simulate an existing database");
+        }
+
+        assert_source_recurring_id_index(&app);
+    }
+}

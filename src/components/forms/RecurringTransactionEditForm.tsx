@@ -33,6 +33,7 @@ import { CurrencyConversionSection } from "./transaction-form-parts/CurrencyConv
 import { CategoryCombobox } from "@/components/ui/category-combobox";
 import { useDonationStore } from "@/lib/store";
 import { PaymentMethodCombobox } from "@/components/ui/payment-method-combobox";
+import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 
 interface RecurringTransactionEditFormProps {
   initialData: RecurringTransaction;
@@ -86,11 +87,9 @@ export function RecurringTransactionEditForm({
 
     // Handle Currency Conversion Logic
     let submissionValues = { ...values };
-    const normalizedPaymentMethod =
-      values.payment_method && values.payment_method.trim() !== ""
-        ? values.payment_method.trim()
-        : null;
-    submissionValues.payment_method = normalizedPaymentMethod;
+    submissionValues.payment_method = normalizePaymentMethodValue(
+      values.payment_method
+    );
 
     if (values.currency !== defaultCurrency) {
       // Foreign currency - conversion is REQUIRED

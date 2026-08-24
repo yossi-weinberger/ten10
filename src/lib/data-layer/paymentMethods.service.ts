@@ -18,8 +18,7 @@ async function fetchUserPaymentMethodsWeb(): Promise<string[]> {
     const { data, error } = await supabase.rpc("get_user_payment_methods");
 
     if (error) {
-      logger.error("Error fetching payment methods from Supabase RPC:", error);
-      return [];
+      throw error;
     }
 
     const methods = (data || []).map(
@@ -31,7 +30,7 @@ async function fetchUserPaymentMethodsWeb(): Promise<string[]> {
     return methods;
   } catch (error) {
     logger.error("Error in fetchUserPaymentMethodsWeb:", error);
-    return [];
+    throw error;
   }
 }
 
@@ -46,11 +45,12 @@ async function fetchUserPaymentMethodsDesktop(): Promise<string[]> {
     return methods;
   } catch (error) {
     logger.error("Error invoking get_distinct_payment_methods:", error);
-    return [];
+    throw error;
   }
 }
 
 export async function getUserPaymentMethods(): Promise<string[]> {
+  const requestCacheVersion = cacheVersion;
   const platform = getPlatform();
   let cacheKey = `${platform}`;
 
@@ -84,6 +84,10 @@ export async function getUserPaymentMethods(): Promise<string[]> {
   } else {
     logger.warn("PaymentMethodsService: Platform not yet determined");
     return [];
+  }
+
+  if (requestCacheVersion !== cacheVersion) {
+    return paymentMethodCache.get(cacheKey) ?? [];
   }
 
   paymentMethodCache.set(cacheKey, methods);

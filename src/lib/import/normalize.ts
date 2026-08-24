@@ -6,7 +6,7 @@ import type {
   ImportRowIssue,
 } from "./import-session.types";
 import { normalizeCategoryValue } from "@/lib/category-registry";
-import { isPredefinedPaymentMethod } from "@/lib/payment-methods";
+import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 import { resolveTypeWithIssues } from "./type-resolver";
 import { BOOLEAN_TRUTHY_VALUES } from "./import-locale-aliases";
 
@@ -318,8 +318,7 @@ export function normalizeRow(
   let paymentMethod: string | null = null;
   if (rawPayment !== null && rawPayment !== undefined && rawPayment !== "") {
     const pmStr = sanitizeText(String(rawPayment).trim()).slice(0, MAX_PAYMENT_METHOD_LENGTH);
-    // Use stable key if predefined, otherwise free text
-    paymentMethod = isPredefinedPaymentMethod(pmStr) ? pmStr : pmStr || null;
+    paymentMethod = normalizePaymentMethodValue(pmStr);
   }
 
   // --- Chomesh (20% tithe flag) ---

@@ -92,7 +92,7 @@ export interface RecurringTransaction {
   amount: number;
   currency: Currency;
   type: TransactionType;
-  category?: string;
+  category?: string | null;
   is_chomesh?: boolean;
   recipient?: string;
   payment_method?: string | null;

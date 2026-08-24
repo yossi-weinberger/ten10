@@ -35,6 +35,7 @@ This is the core table component, managing most of the logic related to data dis
   - The month label is formatted using the current language locale (e.g., "ינואר 2024" in Hebrew, "January 2024" in English).
 - **Loading More Data (Pagination - "Load More"):**
   - When the user reaches the end of the displayed list and more data is available to load (according to `pagination.hasMore` from the store), clicking the "Load More" button (in `TransactionsTableFooter`) triggers the `setLoadMorePagination` action from the store (to update the current page number). It then calls `fetchTransactions(false, platform)` to fetch the next page of data without resetting already loaded data.
+  - **Bulk selection and Load More:** row checkboxes operate on **loaded rows only** (see §2.9). Load More appends rows; selection is pruned to IDs still present in the loaded list (`useLoadedRowSelection` / `pruneSelectionToLoadedIds`). Changing **filters or sorting** clears selection entirely via a `selectionScopeKey` derived from `JSON.stringify({ filters, sorting })`.
 - **Sorting:**
   - Uses the `TransactionsTableHeader` component to display column headers.
   - Allows clicking on sortable column headers (as defined in the `sortableColumns` array). Clicking triggers the `handleSort` function, which in turn calls the `setSorting` action from the store with the selected field name.
@@ -153,7 +154,23 @@ The PDF export functionality includes visual month separators when transactions 
   - Handles page breaks: if there's insufficient space for a separator, a new page is created.
   - The separator maintains the same visual style as the table UI separators for consistency.
 
-### 2.9. `src/components/TransactionsTable/TransactionsTableFooter.tsx`
+### 2.9. Bulk row selection and bulk actions
+
+Bulk selection and bulk delete/update are implemented for both the transactions table and the recurring-transactions table.
+
+- **Hook:** `src/hooks/useLoadedRowSelection.ts` — selection is **loaded-only** (never selects rows beyond the current in-memory list). There is **no select-all-filtered** (no action to select all rows matching active filters across pagination).
+- **Tri-state header checkbox:** `getLoadedSelectionState` returns `checked: false | true | "indeterminate"` based on how many loaded IDs are selected.
+- **Select all loaded:** header checkbox toggles all currently loaded row IDs via `toggleAllLoadedIds`.
+- **Scope reset:** when `filters` or `sorting` change, `TransactionsTableDisplay` / `RecurringTransactionsTableDisplay` call `selection.clear()` (tracked via `selectionScopeKey`). Load More does not reset filters/sort and does not clear selection by scope; it only prunes IDs no longer loaded.
+- **UI:** `BulkActionsToolbar.tsx` (toolbar when `selectedCount > 0`), `BulkEditDialog.tsx` (field + value editor). No Undo after bulk delete/update. No PostHog / `trackProductEvent` calls in bulk UI flows.
+- **Adaptive selected-row actions:** one selected row keeps the toolbar visible but routes Edit/Delete to the existing singular handlers (including opening-balance and completed-recurring safeguards), while two or more selected rows use the atomic bulk handlers; cancelling a singular modal preserves the selection, successful singular edit/delete clears it, and bulk edit field toggles use 1/2/3-column grids with stretched equal-min-height items.
+- **Responsive modal:** `BulkEditDialog.tsx` uses Dialog on desktop/tablet and Drawer on mobile, with the responsive variant locked while open to avoid Portal swaps during mobile keyboard resize.
+- **Allowed bulk edit fields (transactions):** `payment_method`, `category` only. Category and payment method values are capped at 50 characters (`assertBulkTextValue` plus the same limit in the RPC/Tauri updaters). Category requires a **homogeneous category family** across the selection (`getBulkCategoryFamily` in `src/lib/tableTransactions/bulkActions.ts`: income family = `income`/`exempt-income`; expense family = `expense`/`recognized-expense`). **Blockers:** any selected row with `type === "initial_balance"` blocks **all** bulk edit fields (`payment_method` and `category`; bulk delete is still allowed with a warning); mixed income/expense families or donation/non-applicable types block category only.
+- **Allowed bulk edit fields (recurring Web RPC):** `payment_method`, `category` only. Recurring `status` bulk editing is deferred until recurring occurrence creation and state advancement are atomic together; the RPC rejects `status`.
+- **Store behaviour:** bulk delete/update actions set `bulkLoading`, call the service once, then await one refetch before resolving. Mutation failures reject, set `bulkError`, and skip the refetch so the selection remains available for a safe retry. A committed mutation whose refetch fails resolves with `BulkMutationResult.refreshError`, leaves `bulkError` clear, and records the problem in the table `error`; the transactions store also restores its pre-refresh rows and pagination. The displays still close the dialog, clear selection, and show success for the committed mutation, then add a localized stale-data warning.
+- **Backend:** Web — Supabase RPCs `bulk_delete_user_transactions`, `bulk_update_user_transactions`, `bulk_delete_user_recurring_transactions`, `bulk_update_user_recurring_transactions`; all are `SECURITY INVOKER` with a NULL-safe runtime `auth.uid()` / `p_user_id` ownership guard for non-`service_role` callers. Desktop — Tauri `bulk_delete_transactions_handler`, `bulk_update_transactions_handler`, `bulk_delete_recurring_transactions_handler`, `bulk_update_recurring_transactions_handler` (SQLite transaction, all-or-nothing). See `transaction-rpc-security.md`.
+
+### 2.10. `src/components/TransactionsTable/TransactionsTableFooter.tsx`
 
 This component is responsible for displaying the bottom part of the transactions table, including pagination options and information about the amount of data displayed.
 
@@ -185,6 +202,8 @@ The Zustand global store, `useTableTransactionsStore`, centralizes all state and
     - `direction: "asc" | "desc"`: Sort direction (ascending or descending).
   - `exportLoading: boolean`: Flag indicating if data export is currently in progress.
   - `exportError: string | null`: Error message in case of export failure.
+  - `bulkLoading: boolean`: Flag indicating a bulk delete/update is in progress.
+  - `bulkError: string | null`: Error message from the last failed bulk action.
 - **Main Actions:**
   - `fetchTransactions(reset: boolean, platform: Platform)`:
     - Responsible for fetching transactions from the backend (by calling an appropriate function in `transactionService`).
@@ -198,6 +217,8 @@ The Zustand global store, `useTableTransactionsStore`, centralizes all state and
   - `deleteTransaction(transactionId: string, platform: Platform)`:
     - Responsible for deleting a transaction (by calling `transactionService`).
     - After receiving success confirmation from the server, the action removes the transaction from the local `transactions` array in the store.
+  - `deleteTransactionsBulk(ids, platform)` / `updateTransactionsBulk(ids, change, platform)`:
+    - Atomic bulk delete/update via data-layer RPC/Tauri handlers. **Not optimistic** — both actions refetch from the store exactly once after a successful mutation and return `BulkMutationResult`. Mutation failures reject; refresh-only failures resolve with `refreshError` so the UI can report committed success plus a stale-data warning. Guards against concurrent bulk actions via `bulkLoading`.
 
   ### 3.1. Dialog UX Improvements (January 2026)
   - **Text Alignment:** All dialog headers (`AlertDialogTitle`) and descriptions now explicitly use `text-start` to respect text direction (RTL/LTR).

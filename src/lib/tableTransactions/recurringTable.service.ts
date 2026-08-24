@@ -8,6 +8,14 @@ import {
 import { logger } from "@/lib/logger";
 import { rescheduleBillingDayInMonth } from "@/lib/recurring/recurring-date.utils";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { invokeTauri } from "@/lib/tauri-invoke";
+import {
+  bulkDeleteRecurringTransactions,
+  bulkUpdateRecurringTransactions,
+} from "@/lib/data-layer/recurringTransactions.service";
+import type { RecurringBulkChange } from "./bulkActions";
+import { normalizePaymentMethodValue } from "@/lib/payment-methods";
+import { clearPaymentMethodCache } from "@/lib/data-layer/paymentMethods.service";
 
 function activeFirst(
   recurring: RecurringTransaction[]
@@ -83,7 +91,6 @@ export async function fetchAllRecurring(
     }
     return activeFirst(data || []);
   } else if (platform === "desktop") {
-    const { invoke } = await import("@tauri-apps/api/core");
     const payload = {
       sorting: {
         field: sorting.field,
@@ -97,7 +104,7 @@ export async function fetchAllRecurring(
           filters.frequencies.length > 0 ? filters.frequencies : null,
       },
     };
-    const data = await invoke<RecurringTransaction[]>("get_recurring_transactions_handler", {
+    const data = await invokeTauri<RecurringTransaction[]>("get_recurring_transactions_handler", {
       args: payload,
     });
     return activeFirst(data);
@@ -112,6 +119,9 @@ export async function updateRecurringTransaction(
 ): Promise<RecurringTransaction> {
   const platform = getPlatform();
   const updates = { ...values };
+  if (values.payment_method !== undefined) {
+    updates.payment_method = normalizePaymentMethodValue(values.payment_method);
+  }
 
   if (
     existing &&
@@ -163,16 +173,21 @@ export async function updateRecurringTransaction(
       throw error;
     }
     trackRecurringUpdateEvents(existing, updates);
+    if (updates.payment_method !== undefined) {
+      clearPaymentMethodCache();
+    }
     return data as RecurringTransaction;
   } else if (platform === "desktop") {
-    const { invoke } = await import("@tauri-apps/api/core");
-    const updatedTransaction = await invoke(
+    const updatedTransaction = await invokeTauri(
       "update_recurring_transaction_handler",
       {
         id,
         updates: updates,
       }
     );
+    if (updates.payment_method !== undefined) {
+      clearPaymentMethodCache();
+    }
     return updatedTransaction as RecurringTransaction;
   }
   throw new Error("Unsupported platform");
@@ -199,9 +214,20 @@ export async function deleteRecurringTransaction(id: string): Promise<void> {
     }
     trackProductEvent("recurring_obligation_deleted");
   } else if (platform === "desktop") {
-    const { invoke } = await import("@tauri-apps/api/core");
-    await invoke("delete_recurring_transaction_handler", { id });
+    await invokeTauri("delete_recurring_transaction_handler", { id });
   } else {
     throw new Error("Unsupported platform");
   }
+  clearPaymentMethodCache();
+}
+
+export async function deleteRecurringBulk(ids: readonly string[]): Promise<void> {
+  await bulkDeleteRecurringTransactions(ids);
+}
+
+export async function updateRecurringBulk(
+  ids: readonly string[],
+  change: RecurringBulkChange
+): Promise<void> {
+  await bulkUpdateRecurringTransactions(ids, change);
 }

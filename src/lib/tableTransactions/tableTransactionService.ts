@@ -8,8 +8,15 @@ import {
   deleteTransaction as deleteTransactionInDataService,
   TransactionUpdatePayload, // Assuming TransactionUpdatePayload is exported from dataService or a shared types file
 } from "../data-layer"; // Adjusted path to dataService
+import {
+  bulkDeleteTransactions as bulkDeleteTransactionsInDataService,
+  bulkUpdateTransactions as bulkUpdateTransactionsInDataService,
+} from "../data-layer/transactions.service";
+import { getUserPaymentMethods } from "../data-layer/paymentMethods.service";
 import { logger } from "@/lib/logger";
 import { invokeDesktopFilteredTransactions } from "@/lib/tableTransactions/desktop-filtered-transactions-invoke";
+import type { TransactionBulkChange } from "./bulkActions";
+import { expandPaymentMethodFilterAliases } from "@/lib/payment-methods";
 
 interface FetchTransactionsParams {
   offset: number;
@@ -32,6 +39,22 @@ export class TableTransactionsService {
     params: FetchTransactionsParams
   ): Promise<FetchTransactionsResponse> {
     const { offset, limit, filters, sorting, platform } = params;
+    let expandedPaymentMethods: string[] | null = null;
+    if (filters.paymentMethods.length > 0) {
+      let observedRawValues: string[] = [];
+      try {
+        observedRawValues = await getUserPaymentMethods();
+      } catch (error) {
+        logger.warn(
+          "TableTransactionsService: Failed to fetch observed payment methods; using official aliases.",
+          error
+        );
+      }
+      expandedPaymentMethods = expandPaymentMethodFilterAliases(
+        filters.paymentMethods,
+        observedRawValues
+      );
+    }
 
     logger.log(
       "TableTransactionsService: Fetching transactions. Platform:",
@@ -61,8 +84,7 @@ export class TableTransactionsService {
             : null,
           p_types: filters.types.length > 0 ? filters.types : null,
           p_search: filters.search || null,
-          p_payment_methods:
-            filters.paymentMethods.length > 0 ? filters.paymentMethods : null,
+          p_payment_methods: expandedPaymentMethods,
           p_sort_field: sorting.field as string,
           p_sort_direction: sorting.direction,
           p_is_recurring:
@@ -152,8 +174,7 @@ export class TableTransactionsService {
               ? new Date(filters.dateRange.to).toISOString().split("T")[0]
               : null,
             types: filters.types.length > 0 ? filters.types : null,
-            paymentMethods:
-              filters.paymentMethods.length > 0 ? filters.paymentMethods : null,
+            paymentMethods: expandedPaymentMethods,
             showOnly:
               filters.isRecurring === "all" ? null : filters.isRecurring,
             recurringStatuses:
@@ -202,6 +223,7 @@ export class TableTransactionsService {
     updates: Partial<Transaction>,
     _platform: Platform
   ): Promise<void> {
+    void _platform;
     logger.log(
       `TableTransactionsService: updateTransaction for ID ${id} - delegating to dataService. Platform awareness is in dataService.`
     );
@@ -230,6 +252,7 @@ export class TableTransactionsService {
     id: string,
     _platform: Platform
   ): Promise<void> {
+    void _platform;
     logger.log(
       `TableTransactionsService: deleteTransaction for ID ${id} - delegating to dataService. Platform awareness is in dataService.`
     );
@@ -249,6 +272,23 @@ export class TableTransactionsService {
         }`
       );
     }
+  }
+
+  static async deleteTransactionsBulk(
+    ids: readonly string[],
+    _platform: Platform
+  ): Promise<void> {
+    void _platform;
+    await bulkDeleteTransactionsInDataService(ids);
+  }
+
+  static async updateTransactionsBulk(
+    ids: readonly string[],
+    change: TransactionBulkChange,
+    _platform: Platform
+  ): Promise<void> {
+    void _platform;
+    await bulkUpdateTransactionsInDataService(ids, change);
   }
 
   static async getDataForExport(

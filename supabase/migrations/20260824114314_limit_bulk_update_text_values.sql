@@ -1,0 +1,349 @@
+-- Enforce the same 50-character category/payment_method limit used by
+-- singular transaction and recurring schemas on bulk update RPCs.
+
+DO $preconditions$
+DECLARE
+  required_signature text;
+  required_signatures constant text[] := ARRAY[
+    'public.bulk_update_user_transactions(uuid,uuid[],text,text)',
+    'public.bulk_update_user_recurring_transactions(uuid,uuid[],text,text)'
+  ];
+BEGIN
+  FOREACH required_signature IN ARRAY required_signatures LOOP
+    IF to_regprocedure(required_signature) IS NULL THEN
+      RAISE EXCEPTION 'Required function is missing before bulk text-length enforcement: %', required_signature;
+    END IF;
+  END LOOP;
+END;
+$preconditions$;
+
+CREATE OR REPLACE FUNCTION public.bulk_update_user_transactions(
+  p_user_id uuid,
+  p_ids uuid[],
+  p_field text,
+  p_value text
+)
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+DECLARE
+  v_input_count integer;
+  v_distinct_count integer;
+  v_has_null_id boolean;
+  v_locked_count integer;
+  v_affected_count integer;
+  v_has_initial_balance boolean;
+  v_all_income_family boolean;
+  v_all_expense_family boolean;
+BEGIN
+  IF coalesce(auth.role(), '') <> 'service_role'
+     AND auth.uid() IS DISTINCT FROM p_user_id THEN
+    RAISE EXCEPTION 'Access denied';
+  END IF;
+
+  SELECT
+    count(*)::integer,
+    count(DISTINCT input_id.id)::integer,
+    bool_or(input_id.id IS NULL)
+  INTO v_input_count, v_distinct_count, v_has_null_id
+  FROM unnest(p_ids) AS input_id(id);
+
+  IF coalesce(v_input_count, 0) = 0 THEN
+    RAISE EXCEPTION 'Bulk update requires at least one transaction id.';
+  END IF;
+
+  IF coalesce(v_has_null_id, false) THEN
+    RAISE EXCEPTION 'Bulk update transaction ids cannot contain null values.';
+  END IF;
+
+  IF v_distinct_count <> v_input_count THEN
+    RAISE EXCEPTION 'Bulk update transaction ids cannot contain duplicates.';
+  END IF;
+
+  IF p_field IS NULL OR p_field NOT IN ('payment_method', 'category') THEN
+    RAISE EXCEPTION 'Unsupported transaction bulk update field: %.', p_field;
+  END IF;
+
+  IF p_value IS NOT NULL AND char_length(p_value) > 50 THEN
+    RAISE EXCEPTION 'Bulk update value exceeds the 50 character limit.';
+  END IF;
+
+  WITH locked_rows AS MATERIALIZED (
+    SELECT transaction_row.id, transaction_row.type
+    FROM public.transactions AS transaction_row
+    WHERE transaction_row.user_id = p_user_id
+      AND transaction_row.id = ANY(p_ids)
+    ORDER BY transaction_row.id
+    FOR UPDATE
+  )
+  SELECT
+    count(*)::integer,
+    bool_or(locked_rows.type = 'initial_balance'),
+    bool_and(coalesce(locked_rows.type IN ('income', 'exempt-income'), false)),
+    bool_and(coalesce(locked_rows.type IN ('expense', 'recognized-expense'), false))
+  INTO v_locked_count, v_has_initial_balance, v_all_income_family, v_all_expense_family
+  FROM locked_rows;
+
+  IF v_locked_count <> v_input_count THEN
+    RAISE EXCEPTION 'Bulk update locked % transaction rows, expected %.', v_locked_count, v_input_count;
+  END IF;
+
+  IF coalesce(v_has_initial_balance, false) THEN
+    RAISE EXCEPTION 'Bulk update cannot modify initial balance transactions.';
+  END IF;
+
+  IF p_field = 'category'
+    AND NOT (coalesce(v_all_income_family, false) OR coalesce(v_all_expense_family, false)) THEN
+    RAISE EXCEPTION 'Bulk category update requires all transactions to be in one income or expense family.';
+  END IF;
+
+  IF p_field = 'payment_method' THEN
+    WITH updated_rows AS (
+      UPDATE public.transactions AS transaction_row
+      SET payment_method = p_value,
+          updated_at = now()
+      WHERE transaction_row.user_id = p_user_id
+        AND transaction_row.id = ANY(p_ids)
+      RETURNING 1
+    )
+    SELECT count(*)::integer
+    INTO v_affected_count
+    FROM updated_rows;
+  ELSIF p_field = 'category' THEN
+    WITH updated_rows AS (
+      UPDATE public.transactions AS transaction_row
+      SET category = p_value,
+          updated_at = now()
+      WHERE transaction_row.user_id = p_user_id
+        AND transaction_row.id = ANY(p_ids)
+      RETURNING 1
+    )
+    SELECT count(*)::integer
+    INTO v_affected_count
+    FROM updated_rows;
+  END IF;
+
+  IF v_affected_count <> v_input_count THEN
+    RAISE EXCEPTION 'Bulk update affected % transaction rows, expected %.', v_affected_count, v_input_count;
+  END IF;
+
+  RETURN v_affected_count;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.bulk_update_user_recurring_transactions(
+  p_user_id uuid,
+  p_ids uuid[],
+  p_field text,
+  p_value text
+)
+RETURNS integer
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path = ''
+AS $$
+DECLARE
+  v_input_count integer;
+  v_distinct_count integer;
+  v_has_null_id boolean;
+  v_locked_count integer;
+  v_affected_count integer;
+  v_has_completed boolean;
+  v_all_income_family boolean;
+  v_all_expense_family boolean;
+BEGIN
+  IF coalesce(auth.role(), '') <> 'service_role'
+     AND auth.uid() IS DISTINCT FROM p_user_id THEN
+    RAISE EXCEPTION 'Access denied';
+  END IF;
+
+  SELECT
+    count(*)::integer,
+    count(DISTINCT input_id.id)::integer,
+    bool_or(input_id.id IS NULL)
+  INTO v_input_count, v_distinct_count, v_has_null_id
+  FROM unnest(p_ids) AS input_id(id);
+
+  IF coalesce(v_input_count, 0) = 0 THEN
+    RAISE EXCEPTION 'Bulk update requires at least one recurring transaction id.';
+  END IF;
+
+  IF coalesce(v_has_null_id, false) THEN
+    RAISE EXCEPTION 'Bulk update recurring transaction ids cannot contain null values.';
+  END IF;
+
+  IF v_distinct_count <> v_input_count THEN
+    RAISE EXCEPTION 'Bulk update recurring transaction ids cannot contain duplicates.';
+  END IF;
+
+  IF p_field IS NULL OR p_field NOT IN ('payment_method', 'category') THEN
+    RAISE EXCEPTION 'Unsupported recurring transaction bulk update field: %.', p_field;
+  END IF;
+
+  IF p_value IS NOT NULL AND char_length(p_value) > 50 THEN
+    RAISE EXCEPTION 'Bulk update value exceeds the 50 character limit.';
+  END IF;
+
+  WITH locked_rows AS MATERIALIZED (
+    SELECT recurring_row.id, recurring_row.type, recurring_row.status
+    FROM public.recurring_transactions AS recurring_row
+    WHERE recurring_row.user_id = p_user_id
+      AND recurring_row.id = ANY(p_ids)
+    ORDER BY recurring_row.id
+    FOR UPDATE
+  )
+  SELECT
+    count(*)::integer,
+    bool_or(locked_rows.status = 'completed'),
+    bool_and(coalesce(locked_rows.type IN ('income', 'exempt-income'), false)),
+    bool_and(coalesce(locked_rows.type IN ('expense', 'recognized-expense'), false))
+  INTO v_locked_count, v_has_completed, v_all_income_family, v_all_expense_family
+  FROM locked_rows;
+
+  IF v_locked_count <> v_input_count THEN
+    RAISE EXCEPTION 'Bulk update locked % recurring transaction rows, expected %.', v_locked_count, v_input_count;
+  END IF;
+
+  IF coalesce(v_has_completed, false) THEN
+    RAISE EXCEPTION 'Bulk update cannot modify completed recurring transactions.';
+  END IF;
+
+  IF p_field = 'category'
+    AND NOT (coalesce(v_all_income_family, false) OR coalesce(v_all_expense_family, false)) THEN
+    RAISE EXCEPTION 'Bulk category update requires all recurring transactions to be in one income or expense family.';
+  END IF;
+
+  IF p_field = 'payment_method' THEN
+    WITH updated_rows AS (
+      UPDATE public.recurring_transactions AS recurring_row
+      SET payment_method = p_value,
+          updated_at = now()
+      WHERE recurring_row.user_id = p_user_id
+        AND recurring_row.id = ANY(p_ids)
+      RETURNING 1
+    )
+    SELECT count(*)::integer
+    INTO v_affected_count
+    FROM updated_rows;
+  ELSIF p_field = 'category' THEN
+    WITH updated_rows AS (
+      UPDATE public.recurring_transactions AS recurring_row
+      SET category = p_value,
+          updated_at = now()
+      WHERE recurring_row.user_id = p_user_id
+        AND recurring_row.id = ANY(p_ids)
+      RETURNING 1
+    )
+    SELECT count(*)::integer
+    INTO v_affected_count
+    FROM updated_rows;
+  END IF;
+
+  IF v_affected_count <> v_input_count THEN
+    RAISE EXCEPTION 'Bulk update affected % recurring transaction rows, expected %.', v_affected_count, v_input_count;
+  END IF;
+
+  RETURN v_affected_count;
+END;
+$$;
+
+ALTER FUNCTION public.bulk_update_user_transactions(uuid, uuid[], text, text)
+  OWNER TO postgres;
+ALTER FUNCTION public.bulk_update_user_recurring_transactions(uuid, uuid[], text, text)
+  OWNER TO postgres;
+
+REVOKE EXECUTE ON FUNCTION public.bulk_update_user_transactions(uuid, uuid[], text, text)
+  FROM PUBLIC, anon, authenticated, service_role;
+REVOKE EXECUTE ON FUNCTION public.bulk_update_user_recurring_transactions(uuid, uuid[], text, text)
+  FROM PUBLIC, anon, authenticated, service_role;
+
+GRANT EXECUTE ON FUNCTION public.bulk_update_user_transactions(uuid, uuid[], text, text)
+  TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.bulk_update_user_recurring_transactions(uuid, uuid[], text, text)
+  TO authenticated, service_role;
+
+DO $postconditions$
+DECLARE
+  function_oid oid;
+  function_def text;
+  function_owner text;
+  execute_grantees text[];
+  required_signature text;
+  required_signatures constant text[] := ARRAY[
+    'public.bulk_update_user_transactions(uuid,uuid[],text,text)',
+    'public.bulk_update_user_recurring_transactions(uuid,uuid[],text,text)'
+  ];
+BEGIN
+  FOREACH required_signature IN ARRAY required_signatures LOOP
+    function_oid := to_regprocedure(required_signature);
+
+    IF function_oid IS NULL THEN
+      RAISE EXCEPTION 'Required function is missing after bulk text-length enforcement: %', required_signature;
+    END IF;
+
+    SELECT pg_get_functiondef(function_oid)
+    INTO function_def;
+
+    SELECT pg_get_userbyid(pg_proc.proowner)
+    INTO function_owner
+    FROM pg_proc
+    WHERE pg_proc.oid = function_oid;
+
+    IF function_owner IS DISTINCT FROM 'postgres' THEN
+      RAISE EXCEPTION 'Function owner is not postgres: % owned by %', required_signature, function_owner;
+    END IF;
+
+    IF EXISTS (
+      SELECT 1
+      FROM pg_proc
+      WHERE pg_proc.oid = function_oid
+        AND pg_proc.prosecdef
+    ) THEN
+      RAISE EXCEPTION 'Function is SECURITY DEFINER: %', required_signature;
+    END IF;
+
+    IF function_def !~* $length_guard_regex$char_length[[:space:]]*\([[:space:]]*p_value[[:space:]]*\)[[:space:]]*>[[:space:]]*50$length_guard_regex$ THEN
+      RAISE EXCEPTION 'Function is missing the 50-character value limit: %', required_signature;
+    END IF;
+
+    IF function_def !~* $auth_guard_regex$coalesce[[:space:]]*\([[:space:]]*auth\.role\(\)[[:space:]]*,[[:space:]]*''[[:space:]]*\)[[:space:]]*<>[[:space:]]*'service_role'[[:space:]]+AND[[:space:]]+auth\.uid\(\)[[:space:]]+IS[[:space:]]+DISTINCT[[:space:]]+FROM[[:space:]]+p_user_id$auth_guard_regex$ THEN
+      RAISE EXCEPTION 'Function is missing the NULL-safe ownership guard: %', required_signature;
+    END IF;
+
+    IF has_function_privilege('anon', function_oid, 'EXECUTE') THEN
+      RAISE EXCEPTION 'anon can execute: %', required_signature;
+    END IF;
+
+    SELECT coalesce(array_agg(granted_role.rolname ORDER BY granted_role.rolname), ARRAY[]::name[])::text[]
+    INTO execute_grantees
+    FROM (
+      SELECT DISTINCT function_acl.grantee
+      FROM pg_proc
+      CROSS JOIN LATERAL aclexplode(coalesce(pg_proc.proacl, acldefault('f', pg_proc.proowner))) AS function_acl
+      WHERE pg_proc.oid = function_oid
+        AND function_acl.grantee <> 0
+        AND function_acl.grantee <> pg_proc.proowner
+        AND function_acl.privilege_type = 'EXECUTE'
+    ) AS execute_acl
+    JOIN pg_roles AS granted_role
+      ON granted_role.oid = execute_acl.grantee;
+
+    IF execute_grantees IS DISTINCT FROM ARRAY['authenticated', 'service_role']::text[] THEN
+      RAISE EXCEPTION 'Unexpected EXECUTE grants for %: %', required_signature, execute_grantees;
+    END IF;
+  END LOOP;
+
+  function_oid := to_regprocedure(
+    'public.bulk_update_user_recurring_transactions(uuid,uuid[],text,text)'
+  );
+  function_def := pg_get_functiondef(function_oid);
+
+  IF function_def !~* $allowed_fields_regex$p_field[[:space:]]+NOT[[:space:]]+IN[[:space:]]*\([[:space:]]*'payment_method'[[:space:]]*,[[:space:]]*'category'[[:space:]]*\)$allowed_fields_regex$
+     OR function_def ~* $status_field_regex$p_field[[:space:]]*=[[:space:]]*'status'$status_field_regex$
+     OR function_def ~* $status_update_regex$SET[[:space:]]+status[[:space:]]*=[[:space:]]*p_value$status_update_regex$ THEN
+    RAISE EXCEPTION 'Recurring bulk update still permits status editing.';
+  END IF;
+END;
+$postconditions$;

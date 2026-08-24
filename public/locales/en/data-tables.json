@@ -78,6 +78,88 @@
     "export": "Export",
     "cancel": "Cancel"
   },
+  "bulkToolbar": {
+    "ariaLabel": "Bulk actions for selected transactions",
+    "recurringAriaLabel": "Bulk actions for selected recurring transactions",
+    "selectedCount": "{{count}} transactions selected",
+    "selectedRecurringCount": "{{count}} recurring transactions selected",
+    "edit": "Bulk edit",
+    "delete": "Bulk delete",
+    "clear": "Clear selection"
+  },
+  "bulkSelection": {
+    "selectAllLoaded": "Select all {{count}} loaded transactions",
+    "selectAllLoadedRecurring": "Select all {{count}} loaded recurring transactions",
+    "selectRow": "Select transaction: {{description}}",
+    "selectRecurringRow": "Select recurring transaction: {{description}}"
+  },
+  "bulkFeedback": {
+    "refreshWarning": "Changes were saved, but the table could not refresh. Data may be stale; refresh it to see the latest values."
+  },
+  "bulkEdit": {
+    "fieldLabel": "Field to update",
+    "valueLabel": "New value",
+    "clearValue": "Clear field",
+    "submit": "Update",
+    "pending": "Updating...",
+    "fields": {
+      "status": "Status",
+      "paymentMethod": "Payment Method",
+      "category": "Category"
+    },
+    "placeholders": {
+      "status": "Select status",
+      "paymentMethod": "Select a payment method or leave empty to clear",
+      "category": "Select a category or leave empty to clear"
+    },
+    "messages": {
+      "noAvailableFields": "No fields are available for the current selection.",
+      "categoryUnavailable": "Category is available only when all selected rows share one category family."
+    },
+    "transactions": {
+      "title": "Bulk Edit Transactions",
+      "description": "Update one field for {{count}} selected transactions.",
+      "toast": {
+        "loading": "Updating {{count}} transactions...",
+        "success": "{{count}} transactions updated successfully.",
+        "error": "Error updating transactions: {{error}}"
+      }
+    },
+    "recurring": {
+      "title": "Bulk Edit Recurring Transactions",
+      "description": "Update one field for {{count}} selected recurring transactions.",
+      "toast": {
+        "loading": "Updating {{count}} recurring transactions...",
+        "success": "{{count}} recurring transactions updated successfully.",
+        "error": "Error updating recurring transactions: {{error}}"
+      }
+    }
+  },
+  "bulkDelete": {
+    "pending": "Deleting...",
+    "transactions": {
+      "title": "Confirm Transaction Deletion",
+      "description": "Delete {{count}} selected transactions? This action cannot be undone.",
+      "warnings": {
+        "initialBalance": "The selection includes an opening balance; deleting it will affect balance calculations.",
+        "recurringOccurrence": "The selection includes transactions created from a recurring setup; the setup will remain and keep running."
+      },
+      "toast": {
+        "loading": "Deleting {{count}} transactions...",
+        "success": "{{count}} transactions deleted successfully.",
+        "error": "Error deleting transactions: {{error}}"
+      }
+    },
+    "recurring": {
+      "title": "Confirm Recurring Transaction Deletion",
+      "description": "Delete {{count}} selected recurring transaction setups? This will stop future transactions from being created. Past transactions already created will remain, but their link to the setup will be removed. This action cannot be undone.",
+      "toast": {
+        "loading": "Deleting {{count}} recurring transactions...",
+        "success": "{{count}} recurring transactions deleted successfully.",
+        "error": "Error deleting recurring transactions: {{error}}"
+      }
+    }
+  },
   "export": {
     "title": "Export Data",
     "loading": "Exporting...",
@@ -106,6 +188,12 @@
     "deleteError": "Error deleting transaction",
     "updateSuccess": "Transaction updated successfully",
     "updateError": "Error updating transaction",
+    "defaultTransactionName": "this transaction",
+    "defaultRecurringName": "this recurring transaction",
+    "deleteErrorWithDescription": "Error deleting \"{{description}}\": {{error}}",
+    "platformError": "Cannot delete because the platform is still loading or invalid",
+    "loadingError": "Error loading data: {{error}}",
+    "unknownError": "Unknown error",
     "recurringUpdateSuccess": "Recurring transaction updated successfully!",
     "recurringUpdateError": "Error updating recurring transaction.",
     "recurringDeleteSuccess": "Recurring transaction deleted successfully.",
@@ -113,6 +201,7 @@
   },
   "buttons": {
     "showRecurring": "Show Recurring",
+    "backToTransactions": "Back to Transactions",
     "importTransactions": "Import Transactions"
   },
   "movementType": {

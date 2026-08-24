@@ -18,8 +18,7 @@ import { RecurringTransaction } from "@/types/transaction";
 import { updateRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
 import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.store";
 import { RecurringTransactionEditForm } from "@/components/forms/RecurringTransactionEditForm";
-import { RecurringEditFormValues, recurringEditSchema } from "@/lib/schemas";
-import { z } from "zod";
+import { RecurringEditFormValues } from "@/lib/schemas";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -27,12 +26,14 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 interface RecurringTransactionEditModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmitSuccess?: () => void;
   transaction: RecurringTransaction | null;
 }
 
 export function RecurringTransactionEditModal({
   isOpen,
   onClose,
+  onSubmitSuccess,
   transaction,
 }: RecurringTransactionEditModalProps) {
   const { t, i18n } = useTranslation("data-tables");
@@ -41,7 +42,7 @@ export function RecurringTransactionEditModal({
   const isSmallNow = useMediaQuery("(max-width: 767px)");
   const [useDrawer, setUseDrawer] = useState(isSmallNow);
 
-  // Lock the variant (Drawer/Dialog) when the modal is open
+  // Lock the variant (Drawer/Dialog) while the modal is open.
   useEffect(() => {
     if (!isOpen) setUseDrawer(isSmallNow);
   }, [isSmallNow, isOpen]);
@@ -54,6 +55,7 @@ export function RecurringTransactionEditModal({
         total_occurrences: values.total_occurrences ?? undefined,
       };
       await updateRecurringTransaction(transaction!.id, updateValues, transaction!);
+      onSubmitSuccess?.();
 
       // Close modal first to avoid race condition with Portal cleanup
       onClose();
@@ -72,7 +74,7 @@ export function RecurringTransactionEditModal({
 
   if (!isOpen) return null;
 
-  // Use the locked variant state instead of the live media query
+  // Use the locked variant state instead of the live media query.
   if (useDrawer) {
     return (
       <Drawer open={isOpen} onOpenChange={onClose}>
