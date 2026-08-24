@@ -15,7 +15,6 @@ export type SelectionActionMode = "none" | "single" | "bulk";
 export type ChomeshBulkType =
   | "income"
   | "donation"
-  | "expense"
   | "recognized-expense";
 export type BulkFieldAction =
   | { action: "untouched" }
@@ -154,7 +153,6 @@ export function shouldShowBulkChomeshField(
     case "donation":
       return trackChomeshSeparately;
     case "income":
-    case "expense":
     case "recognized-expense":
       return true;
     default: {
@@ -425,9 +423,9 @@ function isChomeshBulkType(type: TransactionType): type is ChomeshBulkType {
   switch (type) {
     case "income":
     case "donation":
-    case "expense":
     case "recognized-expense":
       return true;
+    case "expense":
     case "exempt-income":
     case "non_tithe_donation":
     case "initial_balance":

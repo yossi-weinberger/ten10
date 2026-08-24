@@ -178,7 +178,7 @@ BEGIN
   IF p_updates ? 'is_chomesh'
      AND (
        coalesce(v_distinct_types, 0) <> 1
-       OR coalesce(v_shared_type, '') NOT IN ('income', 'donation', 'expense', 'recognized-expense')
+       OR coalesce(v_shared_type, '') NOT IN ('income', 'donation', 'recognized-expense')
      ) THEN
     RAISE EXCEPTION 'Bulk chomesh update requires every transaction to have the same allowed type.';
   END IF;
@@ -379,7 +379,7 @@ BEGIN
   IF p_updates ? 'is_chomesh'
      AND (
        coalesce(v_distinct_types, 0) <> 1
-       OR coalesce(v_shared_type, '') NOT IN ('income', 'donation', 'expense', 'recognized-expense')
+       OR coalesce(v_shared_type, '') NOT IN ('income', 'donation', 'recognized-expense')
      ) THEN
     RAISE EXCEPTION 'Bulk chomesh update requires every recurring transaction to have the same allowed type.';
   END IF;

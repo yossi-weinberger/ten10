@@ -305,7 +305,6 @@ function getChomeshLabelKey(type: ChomeshBulkType): string {
   switch (type) {
     case "income":
       return "transactionForm.chomesh.label";
-    case "expense":
     case "recognized-expense":
       return "transactionForm.chomeshExpense.label";
     case "donation":
@@ -321,7 +320,6 @@ function getChomeshTooltipKey(type: ChomeshBulkType): string {
   switch (type) {
     case "income":
       return "transactionForm.chomesh.tooltip";
-    case "expense":
     case "recognized-expense":
       return "transactionForm.chomeshExpense.tooltip";
     case "donation":

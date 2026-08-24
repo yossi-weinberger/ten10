@@ -507,7 +507,7 @@ fn is_recipient_family(transaction_type: &str) -> bool {
 fn is_chomesh_bulk_type(transaction_type: &str) -> bool {
     matches!(
         transaction_type,
-        "income" | "donation" | "expense" | "recognized-expense"
+        "income" | "donation" | "recognized-expense"
     )
 }
 
@@ -1077,6 +1077,23 @@ mod tests {
                 "SELECT description FROM recurring_transactions WHERE id = 'r1'"
             ),
             None
+        );
+    }
+
+    #[test]
+    fn bulk_update_recurring_transactions_rejects_plain_expense_chomesh() {
+        let app = mock_app();
+        let err = bulk_update_recurring_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["r3".to_string()],
+            json!({ "is_chomesh": true }),
+        )
+        .expect_err("plain expense should reject chomesh");
+
+        assert!(err.contains("same allowed type"), "unexpected error: {err}");
+        assert_eq!(
+            optional_text(&app, "SELECT type FROM recurring_transactions WHERE id = 'r3'"),
+            Some("expense".to_string())
         );
     }
 

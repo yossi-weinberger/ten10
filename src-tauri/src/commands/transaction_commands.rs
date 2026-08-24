@@ -325,7 +325,7 @@ fn is_recipient_family(transaction_type: &str) -> bool {
 fn is_chomesh_bulk_type(transaction_type: &str) -> bool {
     matches!(
         transaction_type,
-        "income" | "donation" | "expense" | "recognized-expense"
+        "income" | "donation" | "recognized-expense"
     )
 }
 
@@ -1552,6 +1552,7 @@ mod tests {
             "payment_method" => "payment_method",
             "description" => "description",
             "recipient" => "recipient",
+            "type" => "type",
             _ => panic!("unsupported test field"),
         };
         let db_state = app.state::<crate::DbState>();
@@ -1810,6 +1811,20 @@ mod tests {
             transaction_field(&app, "t1", "description"),
             Some("משכורת ינואר".to_string())
         );
+    }
+
+    #[test]
+    fn bulk_update_transactions_rejects_plain_expense_chomesh() {
+        let app = mock_app();
+        let err = bulk_update_transactions_handler(
+            app.state::<crate::DbState>(),
+            vec!["t2".to_string()],
+            json!({ "is_chomesh": true }),
+        )
+        .expect_err("plain expense should reject chomesh");
+
+        assert!(err.contains("same allowed type"), "unexpected error: {err}");
+        assert_eq!(transaction_field(&app, "t2", "type"), Some("expense".to_string()));
     }
 
     #[test]

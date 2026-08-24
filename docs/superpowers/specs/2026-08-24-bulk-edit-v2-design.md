@@ -30,7 +30,7 @@ availability rules.
 | `category` | 50 chars | Homogeneous income or expense family |
 | `description` | 100 chars | Always, except blocked rows |
 | `recipient` | 50 chars | Every selected row is `donation` or `non_tithe_donation` |
-| `is_chomesh` | boolean | Every selected row has the **same** type, and that type allows chomesh: `income`, `donation`, `expense`, or `recognized-expense` |
+| `is_chomesh` | boolean | Every selected row has the **same** type, and that type allows chomesh: `income`, `donation`, or `recognized-expense`. Plain `expense` is excluded because the form promotes expense+chomesh to `recognized-expense`, and balances ignore `is_chomesh` on `expense`. |
 
 Blocked rows still apply to the whole dialog:
 
@@ -96,4 +96,5 @@ and runs the same length / availability checks the backends enforce.
 - Implement on a dedicated branch (`feat/bulk-edit-v2`), not inside PR #397.
 - Recurring gets the same fields and UI. Status stays deferred.
 - Chomesh uses exact type equality, not category-family grouping.
-- `exempt-income` and `non_tithe_donation` cannot receive bulk chomesh.
+- `exempt-income`, `non_tithe_donation`, and plain `expense` cannot receive bulk chomesh.
+- Bulk edit must not change `type`. Promoting `expense` to `recognized-expense` stays in the singular form.

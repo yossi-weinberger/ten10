@@ -389,7 +389,6 @@ describe("bulk action field availability", () => {
 
   it("shows donation chomesh only when chomesh is tracked separately", () => {
     expect(shouldShowBulkChomeshField("income", false)).toBe(true);
-    expect(shouldShowBulkChomeshField("expense", false)).toBe(true);
     expect(shouldShowBulkChomeshField("recognized-expense", false)).toBe(true);
     expect(shouldShowBulkChomeshField("donation", false)).toBe(false);
     expect(shouldShowBulkChomeshField("donation", true)).toBe(true);
@@ -403,9 +402,13 @@ describe("bulk action field availability", () => {
     expect(
       getBulkChomeshType([{ type: "income" }, { type: "exempt-income" }]),
     ).toBeNull();
-    expect(getBulkChomeshType([{ type: "expense" }, { type: "expense" }])).toBe(
-      "expense",
-    );
+    expect(getBulkChomeshType([{ type: "expense" }, { type: "expense" }])).toBeNull();
+    expect(
+      getBulkChomeshType([
+        { type: "recognized-expense" },
+        { type: "recognized-expense" },
+      ]),
+    ).toBe("recognized-expense");
     expect(
       getBulkRecipientFamily([
         { type: "donation" },

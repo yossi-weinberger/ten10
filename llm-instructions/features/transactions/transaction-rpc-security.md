@@ -56,7 +56,7 @@ Migration `20260824071032_harden_bulk_transaction_actions.sql` replaces all four
 
 - Keys ⊆ `{payment_method, category, description, recipient, is_chomesh}`. Unknown keys, non-objects, and `{}` are rejected. Key presence writes the field; JSON `null` clears a text field; missing keys stay unchanged.
 - Transactions: rejects `initial_balance` rows. Recurring: rejects `completed` rows.
-- `category` requires one income or expense family. `recipient` requires every locked row to be `donation` or `non_tithe_donation`. `is_chomesh` requires every locked row to share the same type in `{income, donation, expense, recognized-expense}` and a boolean value.
+- `category` requires one income or expense family. `recipient` requires every locked row to be `donation` or `non_tithe_donation`. `is_chomesh` requires every locked row to share the same type in `{income, donation, recognized-expense}` and a boolean value. Plain `expense` is rejected; the form promotes expense+chomesh to `recognized-expense`, and balances ignore the flag on `expense`.
 - Lengths: `description` ≤ 100; `payment_method`, `category`, `recipient` ≤ 50. TypeScript `assertBulkPatch` and the Tauri handlers enforce the same limits before dispatch.
 - Recurring `status` is not an allowed key. Recurring bulk status editing remains deferred until occurrence creation and recurring-state advancement are atomic together.
 

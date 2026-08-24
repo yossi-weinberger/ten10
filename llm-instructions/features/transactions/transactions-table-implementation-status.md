@@ -253,23 +253,27 @@ RETURNS SETOF transactions AS $$ ... $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 ### Bulk delete / update (atomic)
 
-Migration `20260823154606_add_atomic_bulk_transaction_actions.sql` adds four `SECURITY INVOKER` RPCs (RLS-authoritative; see `transaction-rpc-security.md`):
+Migration `20260823154606_add_atomic_bulk_transaction_actions.sql` adds four `SECURITY INVOKER` RPCs (RLS-authoritative; see `transaction-rpc-security.md`). Forward migration `20260824175500_bulk_update_json_patch.sql` **adds** the jsonb patch overloads and **keeps** the V1 four-argument signatures:
 
 ```sql
 -- Transactions
 bulk_delete_user_transactions(p_user_id uuid, p_ids uuid[]) → integer
+bulk_update_user_transactions(p_user_id uuid, p_ids uuid[], p_field text, p_value text) → integer
+  -- V1, kept for compatibility
 bulk_update_user_transactions(p_user_id uuid, p_ids uuid[], p_updates jsonb) → integer
-  -- keys ⊆ payment_method | category | description | recipient | is_chomesh
+  -- V2 keys ⊆ payment_method | category | description | recipient | is_chomesh
 
 -- Recurring
 bulk_delete_user_recurring_transactions(p_user_id uuid, p_ids uuid[]) → integer
+bulk_update_user_recurring_transactions(p_user_id uuid, p_ids uuid[], p_field text, p_value text) → integer
+  -- V1, kept for compatibility
 bulk_update_user_recurring_transactions(p_user_id uuid, p_ids uuid[], p_updates jsonb) → integer
-  -- same allowed keys; status is rejected
+  -- same V2 allowed keys; status is rejected
 ```
 
 **Desktop Tauri handlers** (registered in `src-tauri/src/main.rs`): `bulk_delete_transactions_handler`, `bulk_update_transactions_handler`, `bulk_delete_recurring_transactions_handler`, `bulk_update_recurring_transactions_handler`. Each runs inside a SQLite transaction; recurring bulk delete first `UPDATE transactions SET source_recurring_id = NULL` (matching Web FK `ON DELETE SET NULL`), then deletes recurring rows. The update handlers take `updates` (JSON object), not `field`/`value`.
 
-**Bulk edit rules (frontend + backend aligned):** both tables — `payment_method` (50), `category` (50), `description` (100), `recipient` (50), `is_chomesh`. Category needs one income/expense family; recipient needs donation family; chomesh needs the same allowed type on every row. Blocks `initial_balance` (transactions) and `completed` (recurring). Recurring bulk `status` editing is deferred until recurring execution is atomic with status changes.
+**Bulk edit rules (frontend + backend aligned):** both tables — `payment_method` (50), `category` (50), `description` (100), `recipient` (50), `is_chomesh`. Category needs one income/expense family; recipient needs donation family; chomesh needs the same type in `{income, donation, recognized-expense}` on every row (plain `expense` is rejected). Blocks `initial_balance` (transactions) and `completed` (recurring). Recurring bulk `status` editing is deferred until recurring execution is atomic with status changes.
 
 ## Service Layer
 
