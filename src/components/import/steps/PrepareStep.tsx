@@ -141,10 +141,7 @@ export function PrepareStep({ onNext }: PrepareStepProps) {
       </div>
 
       {/* Own-file hint + proceed */}
-      <div
-        className="flex flex-col items-end gap-2 pt-1"
-        data-onboarding="import-upload"
-      >
+      <div className="flex flex-col items-end gap-2 pt-1">
         <p className="text-xs text-muted-foreground text-end leading-snug">
           {t("prepare.ownFileHint")}
         </p>

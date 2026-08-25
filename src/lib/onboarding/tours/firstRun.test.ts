@@ -59,15 +59,16 @@ describe("buildFirstRunSteps", () => {
     expect(steps.every((step) => step.waitForElement === 5000)).toBe(true);
   });
 
-  it("starts the form tour with the form, then import, then everyday fields", () => {
+  it("starts the form tour with everyday fields, then ends on import", () => {
     const formSteps = buildFirstRunSteps(copy, "rtl", "/add-transaction");
 
     expect(formSteps.map((step) => getStepId(step))).toEqual([...FORM_STEP_IDS]);
     expect(formSteps[0]?.element).toBe(ONBOARDING_TARGETS.transactionForm);
     expect(formSteps[0]?.popover?.disableButtons).toEqual([]);
-    expect(formSteps[1]?.element).toBe(ONBOARDING_TARGETS.transactionImport);
-    expect(formSteps[2]?.element).toBe(ONBOARDING_TARGETS.transactionBasics);
-    expect(formSteps[3]?.element).toBe(ONBOARDING_TARGETS.transactionFlags);
+    expect(formSteps[1]?.element).toBe(ONBOARDING_TARGETS.transactionBasics);
+    expect(formSteps[2]?.element).toBe(ONBOARDING_TARGETS.transactionFlags);
+    expect(formSteps.at(-1)?.element).toBe(ONBOARDING_TARGETS.transactionImport);
+    expect(formSteps.at(-1)?.popover?.nextBtnText).toBe("Continue on my own");
     expect(
       formSteps.every((step) => step.popover?.showButtons?.includes("previous")),
     ).toBe(true);
@@ -82,14 +83,8 @@ describe("buildFirstRunSteps", () => {
 
   it("keeps page help tours on the current page", () => {
     const homeHelp = buildFirstRunSteps(copy, "rtl", "/", { help: true });
-    expect(homeHelp.map((step) => getStepId(step))).toEqual([
-      "home-intro",
-      "tithe-balance",
-      "opening-balance",
-      "card-quick-add",
-      "date-range",
-    ]);
-    expect(homeHelp.at(-1)?.popover?.nextBtnText).toBe("Continue on my own");
+    expect(homeHelp.map((step) => getStepId(step))).toEqual([...HOME_STEP_IDS]);
+    expect(homeHelp.at(-1)?.popover?.nextBtnText).toBe("Go to form");
 
     const formHelp = buildFirstRunSteps(copy, "rtl", "/add-transaction", {
       help: true,

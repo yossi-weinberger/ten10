@@ -247,6 +247,7 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
       {!availableSheets && (
       <div
         {...getRootProps()}
+        data-onboarding="import-upload"
         className={cn(
           "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",

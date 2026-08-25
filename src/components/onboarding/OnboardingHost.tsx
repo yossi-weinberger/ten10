@@ -132,8 +132,20 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
     void navigate({ to: "/add-transaction" });
   }, [navigate]);
 
+  const continueToFormFromHelp = useCallback(() => {
+    resumeStepRef.current = null;
+    setHelpTour("form");
+    void navigate({ to: "/add-transaction" });
+  }, [navigate]);
+
   const backToHome = useCallback(() => {
     resumeStepRef.current = "continue-to-form";
+    void navigate({ to: "/" });
+  }, [navigate]);
+
+  const backToHomeFromHelp = useCallback(() => {
+    resumeStepRef.current = "continue-to-form";
+    setHelpTour("home");
     void navigate({ to: "/" });
   }, [navigate]);
 
@@ -297,6 +309,14 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
           templateDescription: t("importTour.templateDescription"),
           uploadTitle: t("importTour.uploadTitle"),
           uploadDescription: t("importTour.uploadDescription"),
+          mappingTitle: t("importTour.mappingTitle"),
+          mappingDescription: t("importTour.mappingDescription"),
+          reviewTitle: t("importTour.reviewTitle"),
+          reviewDescription: t("importTour.reviewDescription"),
+          approveTitle: t("importTour.approveTitle"),
+          approveDescription: t("importTour.approveDescription"),
+          stepsTitle: t("importTour.stepsTitle"),
+          stepsDescription: t("importTour.stepsDescription"),
         }),
         dir,
         nextBtnText: t("tour.next"),
@@ -341,6 +361,8 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
           onStepViewed: trackOnboardingStepViewed,
           onStepCompleted: trackOnboardingStepCompleted,
           onPaused: stopHelpTour,
+          onContinueToForm: helpOnHome ? continueToFormFromHelp : undefined,
+          onBackToHome: helpOnForm ? backToHomeFromHelp : undefined,
         },
       });
 
@@ -395,7 +417,9 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
     t,
     pauseTour,
     continueToForm,
+    continueToFormFromHelp,
     backToHome,
+    backToHomeFromHelp,
     stopHelpTour,
     tourTick,
   ]);

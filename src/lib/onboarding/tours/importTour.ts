@@ -8,17 +8,25 @@ export interface ImportTourCopy {
   done: string;
   introTitle: string;
   introDescription: string;
+  stepsTitle: string;
+  stepsDescription: string;
   checklistTitle: string;
   checklistDescription: string;
   templateTitle: string;
   templateDescription: string;
   uploadTitle: string;
   uploadDescription: string;
+  mappingTitle: string;
+  mappingDescription: string;
+  reviewTitle: string;
+  reviewDescription: string;
+  approveTitle: string;
+  approveDescription: string;
 }
 
 function importStep(
   stepId: string,
-  element: string,
+  element: string | undefined,
   title: string,
   description: string,
   copy: Pick<FirstRunCopy, "next" | "prev">,
@@ -26,9 +34,9 @@ function importStep(
   doneBtnText?: string,
 ): DriveStep {
   return {
-    element,
+    ...(element ? { element } : {}),
     skipMissingElement: true,
-    waitForElement: 5000,
+    waitForElement: element ? 5000 : undefined,
     data: { stepId },
     popover: {
       title,
@@ -52,6 +60,13 @@ export function buildImportTourSteps(copy: ImportTourCopy): DriveStep[] {
       nav,
     ),
     importStep(
+      "import-steps",
+      ONBOARDING_TARGETS.importSteps,
+      copy.stepsTitle,
+      copy.stepsDescription,
+      nav,
+    ),
+    importStep(
       "import-checklist",
       ONBOARDING_TARGETS.importChecklist,
       copy.checklistTitle,
@@ -70,6 +85,27 @@ export function buildImportTourSteps(copy: ImportTourCopy): DriveStep[] {
       ONBOARDING_TARGETS.importUpload,
       copy.uploadTitle,
       copy.uploadDescription,
+      nav,
+    ),
+    importStep(
+      "import-mapping",
+      undefined,
+      copy.mappingTitle,
+      copy.mappingDescription,
+      nav,
+    ),
+    importStep(
+      "import-review",
+      undefined,
+      copy.reviewTitle,
+      copy.reviewDescription,
+      nav,
+    ),
+    importStep(
+      "import-approve",
+      undefined,
+      copy.approveTitle,
+      copy.approveDescription,
       nav,
       copy.done,
       copy.done,

@@ -26,15 +26,15 @@
     "formIntroTitle": "The transaction form",
     "formIntroDescription": "This is where every transaction is recorded. Type, amount, date, and description are enough to save. The options below refine how it affects the tithe.",
     "formImportTitle": "Import from a file",
-    "formImportDescription": "Have many rows in Excel or from the bank? Import them here in one go instead of typing each one.",
+    "formImportDescription": "Have many rows in Excel or from the bank? Import them here in one go instead of typing each one. You can open import now or later.",
     "formBasicsTitle": "The everyday fields",
     "formBasicsDescription": "Choose the type, enter the amount — any currency — a date, and a short description. Categories help you sort later.",
     "flagsTitle": "How this affects the tithe",
-    "flagsDescription": "These buttons decide how the transaction counts. On income, Exempt skips the tithe and Chomesh takes 20% instead of 10%. On an expense, mark whether the money already came from maaser or chomesh so the side balance updates correctly.",
+    "flagsDescription": "<p>These buttons decide how the transaction counts toward the tithe:</p><ul class=\"ten10-driver-list\"><li><strong>Income</strong> — Exempt skips the tithe. Chomesh takes 20% instead of 10%.</li><li><strong>Expense</strong> — mark whether the money already came from the maaser or chomesh fund.</li><li>The side balance updates accordingly after you save.</li></ul>",
     "recurringTitle": "Standing orders",
-    "recurringDescription": "A standing order is saved as a rule, not as a row in the transactions table. TEN10 creates the actual transaction on the billing day. Until then it lives under Standing orders, not in the table.",
-    "liveBalanceTitle": "The balance updates live",
-    "liveBalanceDescription": "These cards move as you type and after you save. Fill in the amount and save when you are ready."
+    "recurringDescription": "This does not create a transaction now. It adds a standing order to the Standing orders table, and TEN10 creates the transaction automatically on the day you chose — every month.",
+    "liveBalanceTitle": "The balance updates after you save",
+    "liveBalanceDescription": "These cards do not change while you type. After you save the transaction, the tithe balance updates."
   },
   "success": {
     "title": "You're in",
@@ -61,12 +61,20 @@
   "importTour": {
     "start": "How import works",
     "introTitle": "Import transactions",
-    "introDescription": "Upload a CSV or Excel file here. After column mapping and review, only the rows you approve are added to the table.",
+    "introDescription": "Import many transactions from a CSV or Excel file. The flow has four stages, and only the rows you approve at the end are added to the table.",
+    "stepsTitle": "Four stages",
+    "stepsDescription": "Prepare, upload a file, map columns, then review and approve. You can go back at any stage. Nothing is saved before the final confirmation.",
     "checklistTitle": "What happens next",
     "checklistDescription": "Upload a file, map the columns, review the rows — and only then approve. Nothing is saved before the final confirmation.",
     "templateTitle": "Ready-made template",
     "templateDescription": "Download the TEN10 template to skip most column mapping. You can also upload your own file.",
     "uploadTitle": "Upload the file",
-    "uploadDescription": "Next opens the upload screen. After that you map columns and check each row before anything is saved."
+    "uploadDescription": "Drop a CSV or Excel file here, or click to choose one. After the file is read, you map the columns.",
+    "mappingTitle": "Map the columns",
+    "mappingDescription": "Next you match each column in the file to a TEN10 field: type, amount, date, and description. The TEN10 template fills most of this in for you.",
+    "reviewTitle": "Review the rows",
+    "reviewDescription": "You see a preview of every row, fix errors, and choose what to import. Possible duplicates or standing-order matches are flagged first.",
+    "approveTitle": "Final approval",
+    "approveDescription": "Only after you approve are the transactions added to the table. Until then you can go back, fix rows, or cancel — nothing is saved."
   }
 }

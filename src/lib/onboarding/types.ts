@@ -17,18 +17,22 @@ export const HOME_STEP_IDS = [
 
 export const FORM_STEP_IDS = [
   "transaction-form",
-  "transaction-import",
   "transaction-basics",
   "transaction-flags",
   "recurring-toggle",
   "live-balance",
+  "transaction-import",
 ] as const;
 
 export const IMPORT_STEP_IDS = [
   "import-intro",
+  "import-steps",
   "import-checklist",
   "import-template",
   "import-upload",
+  "import-mapping",
+  "import-review",
+  "import-approve",
 ] as const;
 
 export const ONBOARDING_STEP_IDS = [

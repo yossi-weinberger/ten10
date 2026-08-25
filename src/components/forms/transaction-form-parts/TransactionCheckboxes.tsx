@@ -78,7 +78,7 @@ export function TransactionCheckboxes({
   return (
     <div className="flex flex-col gap-3 mt-2 w-full">
       <div
-        className="flex flex-row flex-wrap gap-3 w-full justify-center"
+        className="flex flex-row flex-wrap gap-3 w-fit max-w-full mx-auto justify-center"
         data-onboarding="transaction-flags"
       >
       {selectedType === "income" && (

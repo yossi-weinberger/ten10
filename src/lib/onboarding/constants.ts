@@ -23,6 +23,7 @@ export const ONBOARDING_TARGETS = {
   recurringToggle: "[data-onboarding='recurring-toggle']",
   liveBalance: "[data-onboarding='live-balance']",
   importIntro: "[data-onboarding='import-intro']",
+  importSteps: "[data-onboarding='import-steps']",
   importChecklist: "[data-onboarding='import-checklist']",
   importTemplate: "[data-onboarding='import-template']",
   importUpload: "[data-onboarding='import-upload']",

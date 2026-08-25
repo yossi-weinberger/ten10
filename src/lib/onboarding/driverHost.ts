@@ -1,8 +1,19 @@
 import { driver, type Driver, type DriveStep } from "driver.js";
 import "driver.js/dist/driver.css";
 import { logger } from "@/lib/logger";
+import {
+  importWizardScreenForStep,
+  notifyOnboardingImportWizardScreen,
+} from "./importWizardBridge";
 import { getStepId } from "./tours/firstRun";
 import type { StepId } from "./types";
+
+function syncImportWizardToStep(stepId: StepId | undefined): void {
+  const screen = importWizardScreenForStep(stepId);
+  if (screen) {
+    notifyOnboardingImportWizardScreen(screen);
+  }
+}
 
 const POPOVER_CLASS = "ten10-driver-popover";
 const EXTRA_STAGE_ATTR = "data-ten10-extra-stage";
@@ -180,6 +191,8 @@ export function startOnboardingTour(input: {
         callbacks.onContinueToForm?.();
         return;
       }
+      const nextId = getStepId(input.steps[(lastIndex ?? 0) + 1]);
+      syncImportWizardToStep(nextId);
       activeDriver?.moveNext();
     },
     onPrevClick: () => {
@@ -188,6 +201,8 @@ export function startOnboardingTour(input: {
         callbacks.onBackToHome?.();
         return;
       }
+      const previousId = getStepId(input.steps[(lastIndex ?? 0) - 1]);
+      syncImportWizardToStep(previousId);
       activeDriver?.movePrevious();
     },
     onHighlightStarted: (_element, step, { index }) => {
@@ -195,6 +210,7 @@ export function startOnboardingTour(input: {
         logger.warn("[onboarding] Target missing for step", getStepId(step));
       }
       const stepId = getStepId(step);
+      syncImportWizardToStep(stepId);
       if (stepId === "card-quick-add") {
         addExtraQuickAddStages(_element);
       } else {
@@ -250,5 +266,7 @@ export function startOnboardingTour(input: {
     },
   });
 
-  activeDriver.drive(input.startIndex ?? 0);
+  const startIndex = input.startIndex ?? 0;
+  syncImportWizardToStep(getStepId(input.steps[startIndex]));
+  activeDriver.drive(startIndex);
 }

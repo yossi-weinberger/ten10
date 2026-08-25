@@ -216,18 +216,6 @@ export function buildFirstRunSteps(
       },
     },
     {
-      element: ONBOARDING_TARGETS.transactionImport,
-      ...stepOptions("transaction-import"),
-      disableActiveInteraction: false,
-      popover: {
-        title: copy.formImportTitle,
-        description: copy.formImportDescription,
-        side: "bottom",
-        align: "start",
-        ...tourNavButtons(copy),
-      },
-    },
-    {
       element: ONBOARDING_TARGETS.transactionBasics,
       ...stepOptions("transaction-basics"),
       popover: {
@@ -268,6 +256,18 @@ export function buildFirstRunSteps(
         description: copy.liveBalanceDescription,
         side: dir === "rtl" ? "left" : "right",
         align: "start",
+        ...tourNavButtons(copy),
+      },
+    },
+    {
+      element: ONBOARDING_TARGETS.transactionImport,
+      ...stepOptions("transaction-import"),
+      disableActiveInteraction: false,
+      popover: {
+        title: copy.formImportTitle,
+        description: copy.formImportDescription,
+        side: "bottom",
+        align: "start",
         ...tourNavButtons(copy, copy.done),
         doneBtnText: copy.done,
       },
@@ -276,18 +276,6 @@ export function buildFirstRunSteps(
 
   if (pathname.startsWith("/add-transaction")) {
     return formSteps;
-  }
-
-  if (options?.help) {
-    const helpSteps = homeSteps.filter(
-      (step) => getStepId(step) !== "continue-to-form",
-    );
-    const last = helpSteps[helpSteps.length - 1];
-    if (last?.popover) {
-      last.popover.nextBtnText = copy.done;
-      last.popover.doneBtnText = copy.done;
-    }
-    return helpSteps;
   }
 
   return homeSteps;

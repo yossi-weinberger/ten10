@@ -20,6 +20,7 @@ import { clearCategoryCache } from "@/lib/data-layer/categories.service";
 import { clearPaymentMethodCache } from "@/lib/data-layer/paymentMethods.service";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { logger } from "@/lib/logger";
+import { subscribeOnboardingImportWizardScreen } from "@/lib/onboarding/importWizardBridge";
 import type {
   ColumnMapping,
   ImportFlowError,
@@ -350,6 +351,18 @@ export function ImportWizard() {
     trackProductEvent("transaction_import_started", { platform });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    return subscribeOnboardingImportWizardScreen((screen) => {
+      if (screen === "prepare" && state.step === "upload") {
+        dispatch({ type: "SET_STEP", step: "prepare" });
+        return;
+      }
+      if (screen === "upload" && state.step === "prepare") {
+        dispatch({ type: "SET_STEP", step: "upload" });
+      }
+    });
+  }, [state.step]);
 
   // ---------------------------------------------------------------------------
   // Handlers
@@ -687,7 +700,7 @@ export function ImportWizard() {
 
       {/* Step indicator */}
       {state.step !== "result" && (
-        <div className="relative py-1">
+        <div className="relative py-1" data-onboarding="import-steps">
           {/* Background line */}
           <div className="absolute top-[14px] inset-x-0 h-0.5 bg-border" />
           {/* Filled line — mirrors horizontally in RTL */}
