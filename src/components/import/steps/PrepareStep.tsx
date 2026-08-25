@@ -64,7 +64,10 @@ export function PrepareStep({ onNext }: PrepareStepProps) {
       </div>
 
       {/* Checklist */}
-      <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+      <div
+        className="rounded-xl border border-border bg-muted/30 p-4 space-y-3"
+        data-onboarding="import-checklist"
+      >
         <p className="text-sm font-semibold">{t("prepare.checklistTitle")}</p>
         <ul className="space-y-2.5">
           {/* User stays in control until final approval */}
@@ -109,7 +112,10 @@ export function PrepareStep({ onNext }: PrepareStepProps) {
       </div>
 
       {/* Template download — optional, neutral styling */}
-      <div className="rounded-xl border border-border bg-muted/20 p-4 space-y-3">
+      <div
+        className="rounded-xl border border-border bg-muted/20 p-4 space-y-3"
+        data-onboarding="import-template"
+      >
         <div className="flex items-start gap-3">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted mt-0.5">
             <FileSpreadsheet aria-hidden="true" className="h-5 w-5 text-muted-foreground" />
@@ -135,7 +141,10 @@ export function PrepareStep({ onNext }: PrepareStepProps) {
       </div>
 
       {/* Own-file hint + proceed */}
-      <div className="flex flex-col items-end gap-2 pt-1">
+      <div
+        className="flex flex-col items-end gap-2 pt-1"
+        data-onboarding="import-upload"
+      >
         <p className="text-xs text-muted-foreground text-end leading-snug">
           {t("prepare.ownFileHint")}
         </p>

@@ -1,4 +1,4 @@
-import type { DriveStep } from "driver.js";
+import type { AllowedButtons, DriveStep } from "driver.js";
 import { ONBOARDING_TARGETS } from "../constants";
 import {
   FORM_STEP_IDS,
@@ -27,6 +27,8 @@ export interface FirstRunCopy {
   continueToForm: string;
   formIntroTitle: string;
   formIntroDescription: string;
+  formImportTitle: string;
+  formImportDescription: string;
   formBasicsTitle: string;
   formBasicsDescription: string;
   flagsTitle: string;
@@ -35,6 +37,22 @@ export interface FirstRunCopy {
   recurringDescription: string;
   liveBalanceTitle: string;
   liveBalanceDescription: string;
+}
+
+const TOUR_BUTTONS: AllowedButtons[] = ["previous", "next", "close"];
+
+export function tourNavButtons(
+  copy: Pick<FirstRunCopy, "next" | "prev">,
+  nextBtnText = copy.next,
+): Pick<
+  NonNullable<DriveStep["popover"]>,
+  "showButtons" | "nextBtnText" | "prevBtnText"
+> {
+  return {
+    showButtons: TOUR_BUTTONS,
+    nextBtnText,
+    prevBtnText: copy.prev,
+  };
 }
 
 export function getStepId(step?: DriveStep): StepId | undefined {
@@ -58,7 +76,13 @@ export function shouldDriveFirstRunTour(pathname: string): boolean {
   return pathname === "/" || pathname.startsWith("/add-transaction");
 }
 
-function stepOptions(stepId: StepId): Pick<DriveStep, "skipMissingElement" | "waitForElement" | "data"> {
+export function shouldDriveImportTour(pathname: string): boolean {
+  return pathname.startsWith("/transactions-table/import");
+}
+
+function stepOptions(
+  stepId: StepId,
+): Pick<DriveStep, "skipMissingElement" | "waitForElement" | "data"> {
   return {
     skipMissingElement: true,
     waitForElement: 5000,
@@ -82,20 +106,7 @@ export function buildFirstRunSteps(
         description: copy.homeIntroDescription,
         side: "bottom",
         align: "start",
-        showButtons: ["next", "close"],
-        nextBtnText: copy.next,
-      },
-    },
-    {
-      element: ONBOARDING_TARGETS.dateRange,
-      ...stepOptions("date-range"),
-      popover: {
-        title: copy.dateRangeTitle,
-        description: copy.dateRangeDescription,
-        side: "bottom",
-        align: "end",
-        showButtons: ["next", "close"],
-        nextBtnText: copy.next,
+        ...tourNavButtons(copy),
       },
     },
     {
@@ -106,8 +117,7 @@ export function buildFirstRunSteps(
         description: copy.titheBalanceDescription,
         side: "bottom",
         align: "start",
-        showButtons: ["next", "close"],
-        nextBtnText: copy.next,
+        ...tourNavButtons(copy),
       },
     },
     {
@@ -119,8 +129,7 @@ export function buildFirstRunSteps(
         description: copy.openingBalanceDescription,
         side: ctaSide,
         align: "start",
-        showButtons: ["next", "close"],
-        nextBtnText: copy.next,
+        ...tourNavButtons(copy),
       },
     },
     {
@@ -132,8 +141,18 @@ export function buildFirstRunSteps(
         description: copy.cardQuickAddDescription,
         side: "top",
         align: "start",
-        showButtons: ["next", "close"],
-        nextBtnText: copy.next,
+        ...tourNavButtons(copy),
+      },
+    },
+    {
+      element: ONBOARDING_TARGETS.dateRange,
+      ...stepOptions("date-range"),
+      popover: {
+        title: copy.dateRangeTitle,
+        description: copy.dateRangeDescription,
+        side: "bottom",
+        align: "end",
+        ...tourNavButtons(copy),
       },
     },
     {
@@ -141,8 +160,7 @@ export function buildFirstRunSteps(
       popover: {
         title: copy.continueToFormTitle,
         description: copy.continueToFormDescription,
-        showButtons: ["next", "close"],
-        nextBtnText: copy.continueToForm,
+        ...tourNavButtons(copy, copy.continueToForm),
       },
     },
   ];
@@ -156,8 +174,20 @@ export function buildFirstRunSteps(
         description: copy.formIntroDescription,
         side: "top",
         align: "start",
-        showButtons: ["next", "close"],
-        nextBtnText: copy.next,
+        ...tourNavButtons(copy),
+        disableButtons: [],
+      },
+    },
+    {
+      element: ONBOARDING_TARGETS.transactionImport,
+      ...stepOptions("transaction-import"),
+      disableActiveInteraction: false,
+      popover: {
+        title: copy.formImportTitle,
+        description: copy.formImportDescription,
+        side: "bottom",
+        align: "start",
+        ...tourNavButtons(copy),
       },
     },
     {
@@ -168,8 +198,7 @@ export function buildFirstRunSteps(
         description: copy.formBasicsDescription,
         side: "bottom",
         align: "start",
-        showButtons: ["next", "close"],
-        nextBtnText: copy.next,
+        ...tourNavButtons(copy),
       },
     },
     {
@@ -180,8 +209,7 @@ export function buildFirstRunSteps(
         description: copy.flagsDescription,
         side: "top",
         align: "start",
-        showButtons: ["next", "close"],
-        nextBtnText: copy.next,
+        ...tourNavButtons(copy),
       },
     },
     {
@@ -192,8 +220,7 @@ export function buildFirstRunSteps(
         description: copy.recurringDescription,
         side: "top",
         align: "start",
-        showButtons: ["next", "close"],
-        nextBtnText: copy.next,
+        ...tourNavButtons(copy),
       },
     },
     {
@@ -204,8 +231,7 @@ export function buildFirstRunSteps(
         description: copy.liveBalanceDescription,
         side: dir === "rtl" ? "left" : "right",
         align: "start",
-        showButtons: ["next", "close"],
-        nextBtnText: copy.done,
+        ...tourNavButtons(copy, copy.done),
         doneBtnText: copy.done,
       },
     },

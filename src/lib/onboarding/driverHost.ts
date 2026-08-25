@@ -114,7 +114,8 @@ export interface OnboardingTourCallbacks {
   onStepViewed: (stepId: StepId) => void;
   onStepCompleted: (stepId: StepId) => void;
   onPaused: () => void;
-  onContinueToForm: () => void;
+  onContinueToForm?: () => void;
+  onBackToHome?: () => void;
 }
 
 let activeDriver: Driver | null = null;
@@ -176,10 +177,18 @@ export function startOnboardingTour(input: {
       const stepId = getStepId(activeDriver?.getActiveStep());
       if (stepId === "continue-to-form") {
         callbacks.onStepCompleted(stepId);
-        callbacks.onContinueToForm();
+        callbacks.onContinueToForm?.();
         return;
       }
       activeDriver?.moveNext();
+    },
+    onPrevClick: () => {
+      const stepId = getStepId(activeDriver?.getActiveStep());
+      if (stepId === "transaction-form") {
+        callbacks.onBackToHome?.();
+        return;
+      }
+      activeDriver?.movePrevious();
     },
     onHighlightStarted: (_element, step, { index }) => {
       if (!_element && step.element) {
@@ -217,7 +226,7 @@ export function startOnboardingTour(input: {
       const stepId = step ? getStepId(step) : undefined;
       if (stepId === "continue-to-form") {
         callbacks.onStepCompleted(stepId);
-        callbacks.onContinueToForm();
+        callbacks.onContinueToForm?.();
         return;
       }
       if (stepId) {
@@ -233,7 +242,7 @@ export function startOnboardingTour(input: {
       const stepId = getStepId(activeDriver?.getActiveStep());
       if (stepId === "continue-to-form") {
         callbacks.onStepCompleted(stepId);
-        callbacks.onContinueToForm();
+        callbacks.onContinueToForm?.();
         return;
       }
       callbacks.onPaused();

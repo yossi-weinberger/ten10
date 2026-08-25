@@ -1,6 +1,6 @@
 import { useReducer, useCallback, useMemo, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, ArrowRight, X, FileSpreadsheet, Check } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, X, FileSpreadsheet, Check, CircleHelp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -48,6 +48,7 @@ import { ColumnMappingStep } from "./steps/ColumnMappingStep";
 import { ImportReviewStep } from "./steps/ImportReviewStep";
 import { ImportResultStep } from "./steps/ImportResultStep";
 import { PrepareStep } from "./steps/PrepareStep";
+import { useOnboardingUi } from "@/components/onboarding/OnboardingContext";
 
 const IMPORT_PREVIEW_FETCH_TIMEOUT_MS = 15000;
 
@@ -330,9 +331,11 @@ function ImportProcessingErrorState({
 
 export function ImportWizard() {
   const { t, i18n } = useTranslation("import");
+  const { t: tOnboarding } = useTranslation("onboarding");
   const navigate = useNavigate();
   const { platform } = usePlatform();
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
+  const { startImportTour } = useOnboardingUi();
 
   const [state, dispatch] = useReducer(wizardReducer, initialState);
 
@@ -664,21 +667,35 @@ export function ImportWizard() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
+        <div className="space-y-1" data-onboarding="import-intro">
           <div className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5 text-primary shrink-0" aria-hidden="true" />
             <h1 className="text-xl font-semibold">{t("title")}</h1>
           </div>
           <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate({ to: "/transactions-table" })}
-          aria-label={t("navigation.cancel")}
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-        </Button>
+        <div className="flex items-center gap-2">
+          {state.step === "prepare" && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={startImportTour}
+              className="gap-1.5"
+            >
+              <CircleHelp className="h-4 w-4" aria-hidden="true" />
+              {tOnboarding("importTour.start")}
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate({ to: "/transactions-table" })}
+            aria-label={t("navigation.cancel")}
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </Button>
+        </div>
       </div>
 
       {/* Step indicator */}

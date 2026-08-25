@@ -2,28 +2,37 @@ export type OnboardingStatus = "idle" | "started" | "skipped" | "completed";
 
 export type OnboardingPlatform = "web" | "desktop";
 
-export type TourId = "first-run";
+export type TourId = "first-run" | "import";
 
 export const HOME_STEP_IDS = [
   "home-intro",
-  "date-range",
   "tithe-balance",
   "opening-balance",
   "card-quick-add",
+  "date-range",
   "continue-to-form",
 ] as const;
 
 export const FORM_STEP_IDS = [
   "transaction-form",
+  "transaction-import",
   "transaction-basics",
   "transaction-flags",
   "recurring-toggle",
   "live-balance",
 ] as const;
 
+export const IMPORT_STEP_IDS = [
+  "import-intro",
+  "import-checklist",
+  "import-template",
+  "import-upload",
+] as const;
+
 export const ONBOARDING_STEP_IDS = [
   ...HOME_STEP_IDS,
   ...FORM_STEP_IDS,
+  ...IMPORT_STEP_IDS,
 ] as const;
 
 export type StepId = (typeof ONBOARDING_STEP_IDS)[number];

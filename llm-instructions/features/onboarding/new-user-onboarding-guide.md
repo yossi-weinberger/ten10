@@ -80,7 +80,9 @@ Lazy namespace `onboarding`: `public/locales/{en,he}/onboarding.json`. No hardco
 
 Do not target the Sidebar Add button. On small screens it lives in a closed Sheet; on `md+` the sidebar is collapsed to icons. Do not add a Home CTA that exists only during the tour. Home finishes on a Driver message (`continue-to-form`) whose Next keeps `tourActive` and opens `/add-transaction`.
 
-First-run steps: `home-intro` → `date-range` → `tithe-balance` → `opening-balance` → `card-quick-add` → `continue-to-form` → `transaction-form` → `transaction-basics` → `transaction-flags` → `recurring-toggle` → `live-balance`. Opening the starting-balance modal destroys the Driver overlay and resumes at `card-quick-add`. Chart and Contact are mentioned only in the success copy.
+First-run steps: `home-intro` → `tithe-balance` → `opening-balance` → `card-quick-add` → `date-range` → `continue-to-form` → `transaction-form` → `transaction-import` → `transaction-basics` → `transaction-flags` → `recurring-toggle` → `live-balance`. Date range comes after the cards. Opening the starting-balance modal destroys the Driver overlay and resumes at `card-quick-add`. Chart and Contact are mentioned only in the success copy.
+
+Import help tour (manual, `/transactions-table/import`): `import-intro` → `import-checklist` → `import-template` → `import-upload`. Started from the page button. There is no Analytics Driver tour — the Home checklist only links to `/analytics`.
 
 `.ten10-driver-popover` uses theme tokens and `max-width: min(22rem, calc(100vw - 1.5rem))`.
 

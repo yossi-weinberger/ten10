@@ -13,9 +13,9 @@
     "homeIntroTitle": "This is your home",
     "homeIntroDescription": "Income, tithe, donations, and the remaining balance live here. We'll walk through the parts that matter, then add a transaction.",
     "dateRangeTitle": "Pick the time range",
-    "dateRangeDescription": "This month, this year, all time, or a custom range. The cards follow what you choose.",
+    "dateRangeDescription": "This month, this year, all time, or a custom range. Now that you know the cards, this is how you choose which period they show.",
     "titheBalanceTitle": "Your tithe balance",
-    "titheBalanceDescription": "Positive means you still owe. Negative means you have given more than required — a credit.",
+    "titheBalanceDescription": "This card shows how much tithe is still due. A minus means you have already given more than required — you have a credit.",
     "openingBalanceTitle": "Starting balance",
     "openingBalanceDescription": "Coming from another notebook or spreadsheet? Set the current balance once here. TEN10 continues from that number. Use the + on this card.",
     "cardQuickAddTitle": "Add from a card",
@@ -25,12 +25,14 @@
     "continueToForm": "Continue to the form",
     "formIntroTitle": "The transaction form",
     "formIntroDescription": "This is where every transaction is recorded. Type, amount, date, and description are enough to save. The options below refine how it affects the tithe.",
+    "formImportTitle": "Import from a file",
+    "formImportDescription": "Have many rows in Excel or from the bank? Import them here in one go instead of typing each one.",
     "formBasicsTitle": "The everyday fields",
     "formBasicsDescription": "Choose the type, enter the amount — any currency — a date, and a short description. Categories help you sort later.",
     "flagsTitle": "How this affects the tithe",
-    "flagsDescription": "On income: Chomesh (20%) or exempt. On expense: from maaser or from chomesh. These change the balance on the side.",
+    "flagsDescription": "These buttons decide how the transaction counts. On income, Exempt skips the tithe and Chomesh takes 20% instead of 10%. On an expense, mark whether the money already came from maaser or chomesh so the side balance updates correctly.",
     "recurringTitle": "Standing orders",
-    "recurringDescription": "Turn this on for a salary, rent, or a fixed donation. TEN10 will create the next occurrences for you.",
+    "recurringDescription": "A standing order is saved as a rule, not as a row in the transactions table. TEN10 creates the actual transaction on the billing day. Until then it lives under Standing orders, not in the table.",
     "liveBalanceTitle": "The balance updates live",
     "liveBalanceDescription": "These cards move as you type and after you save. Fill in the amount and save when you are ready."
   },
@@ -51,5 +53,16 @@
   },
   "restart": {
     "button": "Restart onboarding"
+  },
+  "importTour": {
+    "start": "How import works",
+    "introTitle": "Import transactions",
+    "introDescription": "Upload a CSV or Excel file here. After column mapping and review, only the rows you approve are added to the table.",
+    "checklistTitle": "What happens next",
+    "checklistDescription": "Upload a file, map the columns, review the rows — and only then approve. Nothing is saved before the final confirmation.",
+    "templateTitle": "Ready-made template",
+    "templateDescription": "Download the TEN10 template to skip most column mapping. You can also upload your own file.",
+    "uploadTitle": "Upload the file",
+    "uploadDescription": "Next opens the upload screen. After that you map columns and check each row before anything is saved."
   }
 }

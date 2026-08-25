@@ -7,6 +7,7 @@ export interface OnboardingUiValue {
   analyticsOpened: boolean;
   dismissChecklist: () => void;
   restartTour: () => void;
+  startImportTour: () => void;
 }
 
 export const defaultOnboardingUi: OnboardingUiValue = {
@@ -16,6 +17,7 @@ export const defaultOnboardingUi: OnboardingUiValue = {
   analyticsOpened: false,
   dismissChecklist: () => undefined,
   restartTour: () => undefined,
+  startImportTour: () => undefined,
 };
 
 export const OnboardingUiContext = createContext<OnboardingUiValue | null>(null);

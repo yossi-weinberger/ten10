@@ -14,7 +14,10 @@ import { PUBLIC_ROUTES } from "@/lib/constants";
 import { hasAnyTransaction } from "@/lib/data-layer/transactions.service";
 import { supabase } from "@/lib/supabaseClient";
 import { useDonationStore } from "@/lib/store";
-import { CURRENT_ONBOARDING_VERSION } from "@/lib/onboarding/constants";
+import {
+  CURRENT_ONBOARDING_VERSION,
+  IMPORT_TOUR_ID,
+} from "@/lib/onboarding/constants";
 import {
   isOnboardingEligible,
   resolveTransactionOnboardingOutcome,
@@ -51,7 +54,9 @@ import {
   buildFirstRunSteps,
   firstRunStartIndex,
   shouldDriveFirstRunTour,
+  shouldDriveImportTour,
 } from "@/lib/onboarding/tours/firstRun";
+import { buildImportTourSteps } from "@/lib/onboarding/tours/importTour";
 import { logger } from "@/lib/logger";
 import { WelcomeDialog } from "./WelcomeDialog";
 import { OnboardingSuccessDialog } from "./OnboardingSuccessDialog";
@@ -100,6 +105,7 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
     "pending" | "empty" | "has"
   >("pending");
   const [tourTick, setTourTick] = useState(0);
+  const [importTourRequested, setImportTourRequested] = useState(false);
   const offeredRef = useRef(false);
   const resumeStepRef = useRef<StepId | null>(null);
   const pathnameRef = useRef(pathname);
@@ -122,6 +128,28 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
   const continueToForm = useCallback(() => {
     void navigate({ to: "/add-transaction" });
   }, [navigate]);
+
+  const backToHome = useCallback(() => {
+    resumeStepRef.current = "continue-to-form";
+    void navigate({ to: "/" });
+  }, [navigate]);
+
+  const startImportTour = useCallback(() => {
+    setImportTourRequested(true);
+    refreshTourTick();
+  }, [refreshTourTick]);
+
+  useEffect(() => {
+    if (importTourRequested && !shouldDriveImportTour(pathname)) {
+      setImportTourRequested(false);
+    }
+  }, [importTourRequested, pathname]);
+
+  const stopImportTour = useCallback(() => {
+    setImportTourRequested(false);
+    destroyOnboardingTour();
+    refreshTourTick();
+  }, [refreshTourTick]);
 
   useEffect(() => {
     if (!hasHydrated || platform === "loading" || isPublicPath) return;
@@ -241,18 +269,52 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
   }, [refreshTourTick]);
 
   useEffect(() => {
-    if (
-      !ready ||
-      !tourActive ||
-      isPublicPath ||
-      welcomeOpen ||
-      !shouldDriveFirstRunTour(pathname)
-    ) {
+    if (!ready || isPublicPath || welcomeOpen) {
       destroyOnboardingTour();
       return;
     }
 
     const dir = i18n.dir() === "rtl" ? "rtl" : "ltr";
+
+    if (importTourRequested && shouldDriveImportTour(pathname)) {
+      startOnboardingTour({
+        steps: buildImportTourSteps({
+          next: t("tour.next"),
+          prev: t("tour.prev"),
+          done: t("tour.done"),
+          introTitle: t("importTour.introTitle"),
+          introDescription: t("importTour.introDescription"),
+          checklistTitle: t("importTour.checklistTitle"),
+          checklistDescription: t("importTour.checklistDescription"),
+          templateTitle: t("importTour.templateTitle"),
+          templateDescription: t("importTour.templateDescription"),
+          uploadTitle: t("importTour.uploadTitle"),
+          uploadDescription: t("importTour.uploadDescription"),
+        }),
+        dir,
+        nextBtnText: t("tour.next"),
+        prevBtnText: t("tour.prev"),
+        doneBtnText: t("tour.done"),
+        progressText: t("tour.progress"),
+        callbacks: {
+          onStepViewed: (stepId) =>
+            trackOnboardingStepViewed(stepId, IMPORT_TOUR_ID),
+          onStepCompleted: (stepId) =>
+            trackOnboardingStepCompleted(stepId, IMPORT_TOUR_ID),
+          onPaused: stopImportTour,
+        },
+      });
+
+      return () => {
+        destroyOnboardingTour();
+      };
+    }
+
+    if (!tourActive || !shouldDriveFirstRunTour(pathname)) {
+      destroyOnboardingTour();
+      return;
+    }
+
     const resumeStepId = resumeStepRef.current;
     resumeStepRef.current = null;
     startOnboardingTour({
@@ -277,6 +339,8 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
           continueToForm: t("tour.continueToForm"),
           formIntroTitle: t("tour.formIntroTitle"),
           formIntroDescription: t("tour.formIntroDescription"),
+          formImportTitle: t("tour.formImportTitle"),
+          formImportDescription: t("tour.formImportDescription"),
           formBasicsTitle: t("tour.formBasicsTitle"),
           formBasicsDescription: t("tour.formBasicsDescription"),
           flagsTitle: t("tour.flagsTitle"),
@@ -300,13 +364,28 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
         onStepCompleted: trackOnboardingStepCompleted,
         onPaused: pauseTour,
         onContinueToForm: continueToForm,
+        onBackToHome: backToHome,
       },
     });
 
     return () => {
       destroyOnboardingTour();
     };
-  }, [ready, tourActive, pathname, welcomeOpen, isPublicPath, i18n, t, pauseTour, continueToForm, tourTick]);
+  }, [
+    ready,
+    tourActive,
+    importTourRequested,
+    pathname,
+    welcomeOpen,
+    isPublicPath,
+    i18n,
+    t,
+    pauseTour,
+    continueToForm,
+    backToHome,
+    stopImportTour,
+    tourTick,
+  ]);
 
   const handleStart = () => {
     startOnboarding();
@@ -352,6 +431,7 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
       analyticsOpened: Boolean(onboarding?.analyticsOpened),
       dismissChecklist,
       restartTour,
+      startImportTour,
     }),
     [
       showHomeCta,
@@ -360,6 +440,7 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
       onboarding?.analyticsOpened,
       dismissChecklist,
       restartTour,
+      startImportTour,
     ],
   );
 

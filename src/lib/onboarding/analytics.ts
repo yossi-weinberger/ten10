@@ -1,13 +1,13 @@
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { CURRENT_ONBOARDING_VERSION, ONBOARDING_TOUR_ID } from "./constants";
-import type { StepId } from "./types";
+import type { StepId, TourId } from "./types";
 
 function versionProps() {
   return { version: CURRENT_ONBOARDING_VERSION };
 }
 
-function tourProps() {
-  return { ...versionProps(), tour_id: ONBOARDING_TOUR_ID };
+function tourProps(tourId: TourId = ONBOARDING_TOUR_ID) {
+  return { ...versionProps(), tour_id: tourId };
 }
 
 export function trackOnboardingOffered(): void {
@@ -18,16 +18,22 @@ export function trackOnboardingStarted(): void {
   trackProductEvent("onboarding_started", tourProps());
 }
 
-export function trackOnboardingStepViewed(stepId: StepId): void {
+export function trackOnboardingStepViewed(
+  stepId: StepId,
+  tourId: TourId = ONBOARDING_TOUR_ID,
+): void {
   trackProductEvent("onboarding_step_viewed", {
-    ...tourProps(),
+    ...tourProps(tourId),
     step_id: stepId,
   });
 }
 
-export function trackOnboardingStepCompleted(stepId: StepId): void {
+export function trackOnboardingStepCompleted(
+  stepId: StepId,
+  tourId: TourId = ONBOARDING_TOUR_ID,
+): void {
   trackProductEvent("onboarding_step_completed", {
-    ...tourProps(),
+    ...tourProps(tourId),
     step_id: stepId,
   });
 }

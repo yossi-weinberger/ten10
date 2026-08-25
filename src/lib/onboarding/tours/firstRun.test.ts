@@ -6,6 +6,7 @@ import {
   firstRunStartIndex,
   getStepId,
   shouldDriveFirstRunTour,
+  shouldDriveImportTour,
 } from "./firstRun";
 
 const copy = {
@@ -28,6 +29,8 @@ const copy = {
   continueToForm: "Go to form",
   formIntroTitle: "Form",
   formIntroDescription: "The whole form",
+  formImportTitle: "Import",
+  formImportDescription: "Upload a file",
   formBasicsTitle: "Basics",
   formBasicsDescription: "Type and amount",
   flagsTitle: "Flags",
@@ -39,38 +42,50 @@ const copy = {
 };
 
 describe("buildFirstRunSteps", () => {
-  it("drives Home targets and a form-continue message without a tour-only CTA", () => {
+  it("walks the cards before the date range, then continues to the form", () => {
     const steps = buildFirstRunSteps(copy, "rtl", "/");
 
     expect(steps.map((step) => getStepId(step))).toEqual([...HOME_STEP_IDS]);
     expect(steps[0]?.element).toBe(ONBOARDING_TARGETS.homeIntro);
-    expect(steps[3]?.element).toBe(ONBOARDING_TARGETS.openingBalance);
-    expect(steps[4]?.element).toBe(ONBOARDING_TARGETS.cardQuickAdd);
+    expect(steps[1]?.element).toBe(ONBOARDING_TARGETS.titheBalance);
+    expect(steps[2]?.element).toBe(ONBOARDING_TARGETS.openingBalance);
+    expect(steps[3]?.element).toBe(ONBOARDING_TARGETS.cardQuickAdd);
+    expect(steps[4]?.element).toBe(ONBOARDING_TARGETS.dateRange);
     expect(steps[5]?.element).toBeUndefined();
     expect(steps[5]?.popover?.nextBtnText).toBe("Go to form");
+    expect(
+      steps.every((step) => step.popover?.showButtons?.includes("previous")),
+    ).toBe(true);
     expect(steps.every((step) => step.waitForElement === 5000)).toBe(true);
   });
 
-  it("starts the form tour with the full form, then everyday fields", () => {
+  it("starts the form tour with the form, then import, then everyday fields", () => {
     const formSteps = buildFirstRunSteps(copy, "rtl", "/add-transaction");
 
     expect(formSteps.map((step) => getStepId(step))).toEqual([...FORM_STEP_IDS]);
     expect(formSteps[0]?.element).toBe(ONBOARDING_TARGETS.transactionForm);
-    expect(formSteps[1]?.element).toBe(ONBOARDING_TARGETS.transactionBasics);
-    expect(formSteps[2]?.element).toBe(ONBOARDING_TARGETS.transactionFlags);
+    expect(formSteps[0]?.popover?.disableButtons).toEqual([]);
+    expect(formSteps[1]?.element).toBe(ONBOARDING_TARGETS.transactionImport);
+    expect(formSteps[2]?.element).toBe(ONBOARDING_TARGETS.transactionBasics);
+    expect(formSteps[3]?.element).toBe(ONBOARDING_TARGETS.transactionFlags);
+    expect(
+      formSteps.every((step) => step.popover?.showButtons?.includes("previous")),
+    ).toBe(true);
   });
 
   it("resumes the Home tour after the opening-balance modal", () => {
     expect(firstRunStartIndex("/")).toBe(0);
-    expect(firstRunStartIndex("/", "card-quick-add")).toBe(4);
+    expect(firstRunStartIndex("/", "card-quick-add")).toBe(3);
     expect(firstRunStartIndex("/add-transaction", "card-quick-add")).toBe(0);
     expect(firstRunStartIndex("/add-transaction")).toBe(0);
   });
 
-  it("does not drive the tour on settings or other pages", () => {
+  it("does not drive the first-run tour on settings or other pages", () => {
     expect(shouldDriveFirstRunTour("/")).toBe(true);
     expect(shouldDriveFirstRunTour("/add-transaction")).toBe(true);
     expect(shouldDriveFirstRunTour("/settings")).toBe(false);
     expect(shouldDriveFirstRunTour("/analytics")).toBe(false);
+    expect(shouldDriveImportTour("/transactions-table/import")).toBe(true);
+    expect(shouldDriveImportTour("/")).toBe(false);
   });
 });
