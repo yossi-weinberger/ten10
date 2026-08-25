@@ -32,9 +32,9 @@
     "flagsTitle": "How this affects the tithe",
     "flagsDescription": "<p>These buttons decide how the transaction counts toward the tithe:</p><ul class=\"ten10-driver-list\"><li><strong>Income</strong> — Exempt skips the tithe. Chomesh takes 20% instead of 10%.</li><li><strong>Expense</strong> — mark whether the money already came from the maaser or chomesh fund.</li><li>The side balance updates accordingly after you save.</li></ul>",
     "recurringTitle": "Standing orders",
-    "recurringDescription": "This does not create a transaction now. It adds a standing order to the Standing orders table, and TEN10 creates the transaction automatically on the day you chose — every month.",
+    "recurringDescription": "This adds a standing order to the Standing orders table, and TEN10 creates the transaction automatically on the day you chose — every month.",
     "liveBalanceTitle": "The balance updates after you save",
-    "liveBalanceDescription": "These cards do not change while you type. After you save the transaction, the tithe balance updates."
+    "liveBalanceDescription": "After you save the transaction, the cards on the side update — including the tithe balance."
   },
   "success": {
     "title": "You're in",

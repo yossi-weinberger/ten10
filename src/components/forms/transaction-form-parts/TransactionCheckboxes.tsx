@@ -170,7 +170,7 @@ export function TransactionCheckboxes({
 
       </div>
       <div
-        className="flex flex-row flex-wrap gap-3 w-full justify-center"
+        className="flex flex-row flex-wrap gap-3 w-fit max-w-full mx-auto justify-center"
         data-onboarding="recurring-toggle"
       >
       {renderToggleButton(

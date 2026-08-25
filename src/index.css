@@ -611,7 +611,15 @@ input[type="number"] {
 }
 
 .driver-overlay {
-  background-color: rgb(15 23 42 / 0.45);
+  background-color: rgb(15 23 42 / 0.55);
+}
+
+/* Same lit surface as the popover — Driver.js demo paints both yellow;
+   TEN10 uses the popover token so the cutout and tooltip share one plate. */
+.driver-active .driver-active-element {
+  background-color: hsl(var(--popover));
+  border-radius: 8px;
+  box-shadow: 0 0 0 8px hsl(var(--popover));
 }
 
 .ten10-onboarding-stage-frame {
