@@ -3,6 +3,7 @@ import "driver.js/dist/driver.css";
 import { logger } from "@/lib/logger";
 import {
   importWizardScreenForStep,
+  notifyOnboardingImportMappingNext,
   notifyOnboardingImportUploadNext,
   notifyOnboardingImportWizardScreen,
   registerOnboardingTourRefresh,
@@ -202,6 +203,13 @@ export function startOnboardingTour(input: {
       }
       if (stepId === "import-upload") {
         notifyOnboardingImportUploadNext();
+        // Move off the upload target before the wizard unmounts it.
+        activeDriver?.moveNext();
+        return;
+      }
+      if (stepId === "import-mapping") {
+        notifyOnboardingImportMappingNext();
+        activeDriver?.moveNext();
         return;
       }
       const nextId = getStepId(input.steps[(lastIndex ?? 0) + 1]);

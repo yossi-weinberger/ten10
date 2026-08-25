@@ -36,6 +36,9 @@ describe("buildImportTourSteps", () => {
     expect(steps[4]?.element).toBe(ONBOARDING_TARGETS.importMapping);
     expect(steps[5]?.element).toBe(ONBOARDING_TARGETS.importReview);
     expect(steps[6]?.element).toBe(ONBOARDING_TARGETS.importApprove);
+    expect(steps[4]?.waitForElement).toBe(20000);
+    expect(steps[5]?.waitForElement).toBe(20000);
+    expect(steps[6]?.waitForElement).toBe(20000);
     expect(steps.at(-1)?.popover?.nextBtnText).toBe("Done");
     expect(
       steps.every((step) => step.popover?.showButtons?.includes("previous")),

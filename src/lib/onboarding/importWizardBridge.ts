@@ -1,13 +1,14 @@
-export type OnboardingImportWizardScreen = "prepare" | "upload";
+export type OnboardingImportWizardScreen = "prepare" | "upload" | "mapping";
 
 export type OnboardingImportReachedStep = "mapping" | "review";
 
 type ImportWizardListener = (screen: OnboardingImportWizardScreen) => void;
-type ImportUploadNextListener = () => void;
+type ImportAdvanceListener = () => void;
 type ImportReachedListener = (step: OnboardingImportReachedStep) => void;
 
 const screenListeners = new Set<ImportWizardListener>();
-const uploadNextListeners = new Set<ImportUploadNextListener>();
+const uploadNextListeners = new Set<ImportAdvanceListener>();
+const mappingNextListeners = new Set<ImportAdvanceListener>();
 const reachedListeners = new Set<ImportReachedListener>();
 
 let refreshTour: (() => void) | null = null;
@@ -19,11 +20,8 @@ export function importWizardScreenForStep(
 ): OnboardingImportWizardScreen | null {
   if (!stepId?.startsWith("import-")) return null;
   if (IMPORT_UPLOAD_STEP_IDS.has(stepId)) return "upload";
-  if (
-    stepId === "import-mapping" ||
-    stepId === "import-review" ||
-    stepId === "import-approve"
-  ) {
+  if (stepId === "import-mapping") return "mapping";
+  if (stepId === "import-review" || stepId === "import-approve") {
     return null;
   }
   return "prepare";
@@ -53,11 +51,26 @@ export function notifyOnboardingImportUploadNext(): void {
 }
 
 export function subscribeOnboardingImportUploadNext(
-  handler: ImportUploadNextListener,
+  handler: ImportAdvanceListener,
 ): () => void {
   uploadNextListeners.add(handler);
   return () => {
     uploadNextListeners.delete(handler);
+  };
+}
+
+export function notifyOnboardingImportMappingNext(): void {
+  for (const listener of mappingNextListeners) {
+    listener();
+  }
+}
+
+export function subscribeOnboardingImportMappingNext(
+  handler: ImportAdvanceListener,
+): () => void {
+  mappingNextListeners.add(handler);
+  return () => {
+    mappingNextListeners.delete(handler);
   };
 }
 

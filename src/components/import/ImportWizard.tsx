@@ -22,6 +22,7 @@ import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { logger } from "@/lib/logger";
 import {
   notifyOnboardingImportReached,
+  subscribeOnboardingImportMappingNext,
   subscribeOnboardingImportWizardScreen,
 } from "@/lib/onboarding/importWizardBridge";
 import type {
@@ -361,8 +362,15 @@ export function ImportWizard() {
         dispatch({ type: "SET_STEP", step: "prepare" });
         return;
       }
-      if (screen === "upload" && state.step === "prepare") {
+      if (
+        screen === "upload" &&
+        (state.step === "prepare" || state.step === "mapping")
+      ) {
         dispatch({ type: "SET_STEP", step: "upload" });
+        return;
+      }
+      if (screen === "mapping" && state.step === "review") {
+        dispatch({ type: "SET_STEP", step: "mapping" });
       }
     });
   }, [state.step]);
@@ -439,6 +447,13 @@ export function ImportWizard() {
     // AFTER the browser has painted the loading state.
     dispatch({ type: "SET_PREVIEW_ROWS", rows: [], processing: true });
   }, [state.columnMappings, state.parsedFile, state.isTen10Template, defaultCurrency, platform]);
+
+  useEffect(() => {
+    return subscribeOnboardingImportMappingNext(() => {
+      if (state.step !== "mapping" || state.isProcessingRows) return;
+      handleMappingNext();
+    });
+  }, [handleMappingNext, state.step, state.isProcessingRows]);
 
   // Runs after isProcessingRows flips to true and the loading skeleton is
   // painted. Heavy async work runs here so the browser has already rendered

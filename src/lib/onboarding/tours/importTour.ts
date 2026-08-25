@@ -22,6 +22,9 @@ export interface ImportTourCopy {
   approveDescription: string;
 }
 
+const IMPORT_STEP_WAIT_MS = 5000;
+const IMPORT_SCREEN_WAIT_MS = 20000;
+
 function importStep(
   stepId: string,
   element: string | undefined,
@@ -30,11 +33,12 @@ function importStep(
   copy: Pick<FirstRunCopy, "next" | "prev">,
   nextBtnText?: string,
   doneBtnText?: string,
+  waitForElementMs = IMPORT_STEP_WAIT_MS,
 ): DriveStep {
   return {
     ...(element ? { element } : {}),
     skipMissingElement: true,
-    waitForElement: element ? 5000 : undefined,
+    waitForElement: element ? waitForElementMs : undefined,
     data: { stepId },
     popover: {
       title,
@@ -84,6 +88,9 @@ export function buildImportTourSteps(copy: ImportTourCopy): DriveStep[] {
       copy.mappingTitle,
       copy.mappingDescription,
       nav,
+      undefined,
+      undefined,
+      IMPORT_SCREEN_WAIT_MS,
     ),
     importStep(
       "import-review",
@@ -91,6 +98,9 @@ export function buildImportTourSteps(copy: ImportTourCopy): DriveStep[] {
       copy.reviewTitle,
       copy.reviewDescription,
       nav,
+      undefined,
+      undefined,
+      IMPORT_SCREEN_WAIT_MS,
     ),
     importStep(
       "import-approve",
@@ -100,6 +110,7 @@ export function buildImportTourSteps(copy: ImportTourCopy): DriveStep[] {
       nav,
       copy.done,
       copy.done,
+      IMPORT_SCREEN_WAIT_MS,
     ),
   ];
 }

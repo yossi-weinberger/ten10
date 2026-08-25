@@ -151,21 +151,14 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
 
   useEffect(() => {
     return subscribeOnboardingImportUploadNext(() => {
+      if (isLoading) return;
       if (availableSheets) {
         void handleSheetConfirm();
         return;
       }
-      if (!pendingFile) {
-        void processFile(createTen10TemplateFile(i18n.language));
-      }
+      void processFile(createTen10TemplateFile(i18n.language));
     });
-  }, [
-    availableSheets,
-    pendingFile,
-    handleSheetConfirm,
-    processFile,
-    i18n.language,
-  ]);
+  }, [availableSheets, isLoading, handleSheetConfirm, processFile, i18n.language]);
 
   // Desktop: Tauri drag-and-drop handler (DOM drag events may be blocked by the webview)
   useEffect(() => {
