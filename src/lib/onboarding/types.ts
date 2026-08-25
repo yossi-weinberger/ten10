@@ -27,7 +27,6 @@ export const FORM_STEP_IDS = [
 export const IMPORT_STEP_IDS = [
   "import-intro",
   "import-steps",
-  "import-checklist",
   "import-template",
   "import-upload",
   "import-mapping",

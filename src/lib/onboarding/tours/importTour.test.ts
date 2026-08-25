@@ -12,8 +12,6 @@ const copy = {
   introDescription: "Upload a file",
   stepsTitle: "Stages",
   stepsDescription: "Four stages",
-  checklistTitle: "Process",
-  checklistDescription: "Review first",
   templateTitle: "Template",
   templateDescription: "Download it",
   uploadTitle: "Upload",
@@ -33,12 +31,11 @@ describe("buildImportTourSteps", () => {
     expect(steps.map((step) => getStepId(step))).toEqual([...IMPORT_STEP_IDS]);
     expect(steps[0]?.element).toBe(ONBOARDING_TARGETS.importIntro);
     expect(steps[1]?.element).toBe(ONBOARDING_TARGETS.importSteps);
-    expect(steps[2]?.element).toBe(ONBOARDING_TARGETS.importChecklist);
-    expect(steps[3]?.element).toBe(ONBOARDING_TARGETS.importTemplate);
-    expect(steps[4]?.element).toBe(ONBOARDING_TARGETS.importUpload);
-    expect(steps[5]?.element).toBe(ONBOARDING_TARGETS.importMapping);
-    expect(steps[6]?.element).toBe(ONBOARDING_TARGETS.importReview);
-    expect(steps[7]?.element).toBe(ONBOARDING_TARGETS.importApprove);
+    expect(steps[2]?.element).toBe(ONBOARDING_TARGETS.importTemplate);
+    expect(steps[3]?.element).toBe(ONBOARDING_TARGETS.importUpload);
+    expect(steps[4]?.element).toBe(ONBOARDING_TARGETS.importMapping);
+    expect(steps[5]?.element).toBe(ONBOARDING_TARGETS.importReview);
+    expect(steps[6]?.element).toBe(ONBOARDING_TARGETS.importApprove);
     expect(steps.at(-1)?.popover?.nextBtnText).toBe("Done");
     expect(
       steps.every((step) => step.popover?.showButtons?.includes("previous")),

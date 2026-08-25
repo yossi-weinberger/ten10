@@ -303,8 +303,6 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
           done: t("tour.done"),
           introTitle: t("importTour.introTitle"),
           introDescription: t("importTour.introDescription"),
-          checklistTitle: t("importTour.checklistTitle"),
-          checklistDescription: t("importTour.checklistDescription"),
           templateTitle: t("importTour.templateTitle"),
           templateDescription: t("importTour.templateDescription"),
           uploadTitle: t("importTour.uploadTitle"),

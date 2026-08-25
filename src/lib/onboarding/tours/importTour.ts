@@ -10,8 +10,6 @@ export interface ImportTourCopy {
   introDescription: string;
   stepsTitle: string;
   stepsDescription: string;
-  checklistTitle: string;
-  checklistDescription: string;
   templateTitle: string;
   templateDescription: string;
   uploadTitle: string;
@@ -64,13 +62,6 @@ export function buildImportTourSteps(copy: ImportTourCopy): DriveStep[] {
       ONBOARDING_TARGETS.importSteps,
       copy.stepsTitle,
       copy.stepsDescription,
-      nav,
-    ),
-    importStep(
-      "import-checklist",
-      ONBOARDING_TARGETS.importChecklist,
-      copy.checklistTitle,
-      copy.checklistDescription,
       nav,
     ),
     importStep(
