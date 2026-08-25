@@ -1,7 +1,9 @@
 {
   "welcome": {
     "title": "Welcome to Ten10",
-    "description": "Ten10 manages income, expenses, and donations — and calculates how much tithe is still due. We'll look at Home and add a first transaction.",
+    "description": "If you'd like to learn the system, you can start a tour now.",
+    "restartBefore": "If not, you can always start it from the ",
+    "restartAfter": " at the top, or from Settings.",
     "start": "Start the tour",
     "skip": "I'll look around on my own"
   },

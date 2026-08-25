@@ -1,3 +1,4 @@
+import { CircleHelp } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +41,19 @@ export function WelcomeDialog({
     }
   };
 
+  const description = (
+    <>
+      {t("welcome.description")}
+      <br />
+      {t("welcome.restartBefore")}
+      <CircleHelp
+        className="mb-0.5 inline h-4 w-4 text-muted-foreground"
+        aria-hidden="true"
+      />
+      {t("welcome.restartAfter")}
+    </>
+  );
+
   const actions = (
     <>
       <Button
@@ -68,7 +82,7 @@ export function WelcomeDialog({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("welcome.title")}</DialogTitle>
-            <DialogDescription>{t("welcome.description")}</DialogDescription>
+            <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
           <DialogFooter className="sm:justify-end">{actions}</DialogFooter>
         </DialogContent>
@@ -81,7 +95,7 @@ export function WelcomeDialog({
       <DrawerContent>
         <DrawerHeader className="text-start">
           <DrawerTitle>{t("welcome.title")}</DrawerTitle>
-          <DrawerDescription>{t("welcome.description")}</DrawerDescription>
+          <DrawerDescription>{description}</DrawerDescription>
         </DrawerHeader>
         <DrawerFooter>{actions}</DrawerFooter>
       </DrawerContent>
