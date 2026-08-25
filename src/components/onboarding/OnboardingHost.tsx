@@ -27,7 +27,6 @@ import {
   completeOnboarding,
   getOnboardingState,
   isOnboardingTourActive,
-  restartOnboarding,
   setOnboardingTourActive,
   skipOnboarding,
   startOnboarding,
@@ -108,6 +107,7 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
   const [tourTick, setTourTick] = useState(0);
   const [helpTour, setHelpTour] = useState<PageTourId | null>(null);
   const offeredRef = useRef(false);
+  const previewWelcomeRef = useRef(false);
   const resumeStepRef = useRef<StepId | null>(null);
   const pathnameRef = useRef(pathname);
   const helpTourRef = useRef(helpTour);
@@ -423,6 +423,7 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
   ]);
 
   const handleStart = () => {
+    previewWelcomeRef.current = false;
     startOnboarding();
     setOnboardingTourActive(true);
     setWelcomeOpen(false);
@@ -431,17 +432,23 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
   };
 
   const handleSkip = () => {
-    skipOnboarding();
+    const previewOnly = previewWelcomeRef.current;
+    previewWelcomeRef.current = false;
+    if (!previewOnly) {
+      skipOnboarding();
+      trackOnboardingSkipped();
+    }
     setWelcomeOpen(false);
     refreshTourTick();
-    trackOnboardingSkipped();
   };
 
   const restartTour = useCallback(() => {
     setHelpTour(null);
-    restartOnboarding();
+    destroyOnboardingTour();
+    setOnboardingTourActive(false);
     offeredRef.current = true;
-    setWelcomeOpen(false);
+    previewWelcomeRef.current = true;
+    setWelcomeOpen(true);
     refreshTourTick();
     trackOnboardingRestarted();
   }, [refreshTourTick]);

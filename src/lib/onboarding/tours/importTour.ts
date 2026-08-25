@@ -34,10 +34,11 @@ function importStep(
   nextBtnText?: string,
   doneBtnText?: string,
   waitForElementMs = IMPORT_STEP_WAIT_MS,
+  skipMissingElement = true,
 ): DriveStep {
   return {
     ...(element ? { element } : {}),
-    skipMissingElement: true,
+    skipMissingElement,
     waitForElement: element ? waitForElementMs : undefined,
     data: { stepId },
     popover: {
@@ -81,6 +82,10 @@ export function buildImportTourSteps(copy: ImportTourCopy): DriveStep[] {
       copy.uploadTitle,
       copy.uploadDescription,
       nav,
+      undefined,
+      undefined,
+      IMPORT_SCREEN_WAIT_MS,
+      false,
     ),
     importStep(
       "import-mapping",
@@ -91,6 +96,7 @@ export function buildImportTourSteps(copy: ImportTourCopy): DriveStep[] {
       undefined,
       undefined,
       IMPORT_SCREEN_WAIT_MS,
+      false,
     ),
     importStep(
       "import-review",
@@ -101,6 +107,7 @@ export function buildImportTourSteps(copy: ImportTourCopy): DriveStep[] {
       undefined,
       undefined,
       IMPORT_SCREEN_WAIT_MS,
+      false,
     ),
     importStep(
       "import-approve",
@@ -111,6 +118,7 @@ export function buildImportTourSteps(copy: ImportTourCopy): DriveStep[] {
       copy.done,
       copy.done,
       IMPORT_SCREEN_WAIT_MS,
+      false,
     ),
   ];
 }

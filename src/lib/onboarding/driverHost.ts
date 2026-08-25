@@ -173,6 +173,29 @@ export function startOnboardingTour(input: {
   const { callbacks } = input;
   let lastIndex: number | undefined;
 
+  const advanceFromActiveStep = (): void => {
+    const stepId = getStepId(activeDriver?.getActiveStep());
+    if (stepId === "continue-to-form") {
+      callbacks.onStepCompleted(stepId);
+      callbacks.onContinueToForm?.();
+      return;
+    }
+    if (stepId === "import-upload") {
+      notifyOnboardingImportUploadNext();
+      // Move off the upload target before the wizard unmounts it.
+      activeDriver?.moveNext();
+      return;
+    }
+    if (stepId === "import-mapping") {
+      notifyOnboardingImportMappingNext();
+      activeDriver?.moveNext();
+      return;
+    }
+    const nextId = getStepId(input.steps[(lastIndex ?? 0) + 1]);
+    syncImportWizardToStep(nextId);
+    activeDriver?.moveNext();
+  };
+
   activeDriver = driver({
     steps: input.steps,
     animate: true,
@@ -195,26 +218,7 @@ export function startOnboardingTour(input: {
       popover.wrapper.setAttribute("dir", input.dir);
     },
     onNextClick: () => {
-      const stepId = getStepId(activeDriver?.getActiveStep());
-      if (stepId === "continue-to-form") {
-        callbacks.onStepCompleted(stepId);
-        callbacks.onContinueToForm?.();
-        return;
-      }
-      if (stepId === "import-upload") {
-        notifyOnboardingImportUploadNext();
-        // Move off the upload target before the wizard unmounts it.
-        activeDriver?.moveNext();
-        return;
-      }
-      if (stepId === "import-mapping") {
-        notifyOnboardingImportMappingNext();
-        activeDriver?.moveNext();
-        return;
-      }
-      const nextId = getStepId(input.steps[(lastIndex ?? 0) + 1]);
-      syncImportWizardToStep(nextId);
-      activeDriver?.moveNext();
+      advanceFromActiveStep();
     },
     onPrevClick: () => {
       const stepId = getStepId(activeDriver?.getActiveStep());
@@ -259,11 +263,10 @@ export function startOnboardingTour(input: {
       destroyOnboardingTour();
     },
     onDoneClick: () => {
-      const step = activeDriver?.getActiveStep();
-      const stepId = step ? getStepId(step) : undefined;
-      if (stepId === "continue-to-form") {
-        callbacks.onStepCompleted(stepId);
-        callbacks.onContinueToForm?.();
+      const stepId = getStepId(activeDriver?.getActiveStep());
+      // Driver.js calls Done when later import screens are not in the DOM yet.
+      if (stepId?.startsWith("import-") && stepId !== "import-approve") {
+        advanceFromActiveStep();
         return;
       }
       if (stepId) {
@@ -280,6 +283,9 @@ export function startOnboardingTour(input: {
       if (stepId === "continue-to-form") {
         callbacks.onStepCompleted(stepId);
         callbacks.onContinueToForm?.();
+        return;
+      }
+      if (stepId?.startsWith("import-") && stepId !== "import-approve") {
         return;
       }
       callbacks.onPaused();

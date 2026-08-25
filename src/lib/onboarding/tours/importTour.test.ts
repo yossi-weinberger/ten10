@@ -36,6 +36,11 @@ describe("buildImportTourSteps", () => {
     expect(steps[4]?.element).toBe(ONBOARDING_TARGETS.importMapping);
     expect(steps[5]?.element).toBe(ONBOARDING_TARGETS.importReview);
     expect(steps[6]?.element).toBe(ONBOARDING_TARGETS.importApprove);
+    expect(steps[3]?.skipMissingElement).toBe(false);
+    expect(steps[4]?.skipMissingElement).toBe(false);
+    expect(steps[5]?.skipMissingElement).toBe(false);
+    expect(steps[6]?.skipMissingElement).toBe(false);
+    expect(steps[3]?.waitForElement).toBe(20000);
     expect(steps[4]?.waitForElement).toBe(20000);
     expect(steps[5]?.waitForElement).toBe(20000);
     expect(steps[6]?.waitForElement).toBe(20000);
