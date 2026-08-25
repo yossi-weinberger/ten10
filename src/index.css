@@ -592,3 +592,13 @@ input[type="number"] {
 .driver-overlay {
   background-color: rgb(15 23 42 / 0.45);
 }
+
+.ten10-onboarding-stage-frame {
+  position: fixed;
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 100000;
+  border: 8px solid hsl(var(--popover));
+  border-radius: 8px;
+  box-shadow: 0 0 0 1px rgb(15 23 42 / 0.16);
+}
