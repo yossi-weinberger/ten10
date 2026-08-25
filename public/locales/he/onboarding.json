@@ -54,6 +54,10 @@
   "restart": {
     "button": "הפעלת הסיור מחדש"
   },
+  "pageTour": {
+    "tooltip": "סיור בדף זה",
+    "ariaLabel": "הפעלת סיור בדף זה"
+  },
   "importTour": {
     "start": "הסבר על היבוא",
     "introTitle": "יבוא תנועות",

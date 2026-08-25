@@ -54,6 +54,10 @@
   "restart": {
     "button": "Restart onboarding"
   },
+  "pageTour": {
+    "tooltip": "Tour this page",
+    "ariaLabel": "Start a tour of this page"
+  },
   "importTour": {
     "start": "How import works",
     "introTitle": "Import transactions",

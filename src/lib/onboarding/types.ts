@@ -4,6 +4,8 @@ export type OnboardingPlatform = "web" | "desktop";
 
 export type TourId = "first-run" | "import";
 
+export type PageTourId = "home" | "form" | "import";
+
 export const HOME_STEP_IDS = [
   "home-intro",
   "tithe-balance",

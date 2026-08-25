@@ -1,6 +1,6 @@
 import { useReducer, useCallback, useMemo, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
-import { AlertTriangle, ArrowLeft, ArrowRight, X, FileSpreadsheet, Check, CircleHelp } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, X, FileSpreadsheet, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -48,7 +48,7 @@ import { ColumnMappingStep } from "./steps/ColumnMappingStep";
 import { ImportReviewStep } from "./steps/ImportReviewStep";
 import { ImportResultStep } from "./steps/ImportResultStep";
 import { PrepareStep } from "./steps/PrepareStep";
-import { useOnboardingUi } from "@/components/onboarding/OnboardingContext";
+import { PageTourButton } from "@/components/onboarding/PageTourButton";
 
 const IMPORT_PREVIEW_FETCH_TIMEOUT_MS = 15000;
 
@@ -331,11 +331,9 @@ function ImportProcessingErrorState({
 
 export function ImportWizard() {
   const { t, i18n } = useTranslation("import");
-  const { t: tOnboarding } = useTranslation("onboarding");
   const navigate = useNavigate();
   const { platform } = usePlatform();
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
-  const { startImportTour } = useOnboardingUi();
 
   const [state, dispatch] = useReducer(wizardReducer, initialState);
 
@@ -675,18 +673,7 @@ export function ImportWizard() {
           <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
         <div className="flex items-center gap-2">
-          {state.step === "prepare" && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={startImportTour}
-              className="gap-1.5"
-            >
-              <CircleHelp className="h-4 w-4" aria-hidden="true" />
-              {tOnboarding("importTour.start")}
-            </Button>
-          )}
+          {state.step === "prepare" && <PageTourButton tour="import" />}
           <Button
             variant="ghost"
             size="icon"

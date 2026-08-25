@@ -45,13 +45,14 @@ import {
 import { subscribeOnboardingTransactionCreated } from "@/lib/onboarding/transactionBridge";
 import { subscribeOnboardingBlockingModal } from "@/lib/onboarding/modalBridge";
 import { markCurrentWhatsNewSeen } from "@/lib/onboarding/whatsNew";
-import type { StepId } from "@/lib/onboarding/types";
+import type { PageTourId, StepId } from "@/lib/onboarding/types";
 import {
   destroyOnboardingTour,
   startOnboardingTour,
 } from "@/lib/onboarding/driverHost";
 import {
   buildFirstRunSteps,
+  firstRunCopyFromTranslator,
   firstRunStartIndex,
   shouldDriveFirstRunTour,
   shouldDriveImportTour,
@@ -105,11 +106,13 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
     "pending" | "empty" | "has"
   >("pending");
   const [tourTick, setTourTick] = useState(0);
-  const [importTourRequested, setImportTourRequested] = useState(false);
+  const [helpTour, setHelpTour] = useState<PageTourId | null>(null);
   const offeredRef = useRef(false);
   const resumeStepRef = useRef<StepId | null>(null);
   const pathnameRef = useRef(pathname);
+  const helpTourRef = useRef(helpTour);
   pathnameRef.current = pathname;
+  helpTourRef.current = helpTour;
 
   const isPublicPath = PUBLIC_ROUTES.includes(pathname);
   const tourActive = isOnboardingTourActive();
@@ -134,19 +137,17 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
     void navigate({ to: "/" });
   }, [navigate]);
 
-  const startImportTour = useCallback(() => {
-    setImportTourRequested(true);
-    refreshTourTick();
-  }, [refreshTourTick]);
+  const startPageTour = useCallback(
+    (tour: PageTourId) => {
+      if (isOnboardingTourActive() || welcomeOpen) return;
+      setHelpTour(tour);
+      refreshTourTick();
+    },
+    [refreshTourTick, welcomeOpen],
+  );
 
-  useEffect(() => {
-    if (importTourRequested && !shouldDriveImportTour(pathname)) {
-      setImportTourRequested(false);
-    }
-  }, [importTourRequested, pathname]);
-
-  const stopImportTour = useCallback(() => {
-    setImportTourRequested(false);
+  const stopHelpTour = useCallback(() => {
+    setHelpTour(null);
     destroyOnboardingTour();
     refreshTourTick();
   }, [refreshTourTick]);
@@ -240,10 +241,16 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
         destroyOnboardingTour();
         return;
       }
-      if (!isOnboardingTourActive()) return;
-      resumeStepRef.current =
-        pathnameRef.current === "/" ? "card-quick-add" : null;
-      refreshTourTick();
+      if (isOnboardingTourActive()) {
+        resumeStepRef.current =
+          pathnameRef.current === "/" ? "card-quick-add" : null;
+        refreshTourTick();
+        return;
+      }
+      if (helpTourRef.current === "home" && pathnameRef.current === "/") {
+        resumeStepRef.current = "card-quick-add";
+        refreshTourTick();
+      }
     });
   }, [refreshTourTick]);
 
@@ -276,7 +283,7 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
 
     const dir = i18n.dir() === "rtl" ? "rtl" : "ltr";
 
-    if (importTourRequested && shouldDriveImportTour(pathname)) {
+    if (helpTour === "import" && shouldDriveImportTour(pathname)) {
       startOnboardingTour({
         steps: buildImportTourSteps({
           next: t("tour.next"),
@@ -301,13 +308,49 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
             trackOnboardingStepViewed(stepId, IMPORT_TOUR_ID),
           onStepCompleted: (stepId) =>
             trackOnboardingStepCompleted(stepId, IMPORT_TOUR_ID),
-          onPaused: stopImportTour,
+          onPaused: stopHelpTour,
         },
       });
 
       return () => {
         destroyOnboardingTour();
       };
+    }
+
+    const helpOnHome = helpTour === "home" && pathname === "/";
+    const helpOnForm =
+      helpTour === "form" && pathname.startsWith("/add-transaction");
+
+    if (helpOnHome || helpOnForm) {
+      const resumeStepId = resumeStepRef.current;
+      resumeStepRef.current = null;
+      startOnboardingTour({
+        steps: buildFirstRunSteps(
+          firstRunCopyFromTranslator(t),
+          dir,
+          pathname,
+          { help: true },
+        ),
+        startIndex: firstRunStartIndex(pathname, resumeStepId),
+        dir,
+        nextBtnText: t("tour.next"),
+        prevBtnText: t("tour.prev"),
+        doneBtnText: t("tour.done"),
+        progressText: t("tour.progress"),
+        callbacks: {
+          onStepViewed: trackOnboardingStepViewed,
+          onStepCompleted: trackOnboardingStepCompleted,
+          onPaused: stopHelpTour,
+        },
+      });
+
+      return () => {
+        destroyOnboardingTour();
+      };
+    }
+
+    if (helpTour) {
+      return;
     }
 
     if (!tourActive || !shouldDriveFirstRunTour(pathname)) {
@@ -319,37 +362,7 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
     resumeStepRef.current = null;
     startOnboardingTour({
       steps: buildFirstRunSteps(
-        {
-          next: t("tour.next"),
-          prev: t("tour.prev"),
-          done: t("tour.done"),
-          progress: t("tour.progress"),
-          homeIntroTitle: t("tour.homeIntroTitle"),
-          homeIntroDescription: t("tour.homeIntroDescription"),
-          dateRangeTitle: t("tour.dateRangeTitle"),
-          dateRangeDescription: t("tour.dateRangeDescription"),
-          titheBalanceTitle: t("tour.titheBalanceTitle"),
-          titheBalanceDescription: t("tour.titheBalanceDescription"),
-          openingBalanceTitle: t("tour.openingBalanceTitle"),
-          openingBalanceDescription: t("tour.openingBalanceDescription"),
-          cardQuickAddTitle: t("tour.cardQuickAddTitle"),
-          cardQuickAddDescription: t("tour.cardQuickAddDescription"),
-          continueToFormTitle: t("tour.continueToFormTitle"),
-          continueToFormDescription: t("tour.continueToFormDescription"),
-          continueToForm: t("tour.continueToForm"),
-          formIntroTitle: t("tour.formIntroTitle"),
-          formIntroDescription: t("tour.formIntroDescription"),
-          formImportTitle: t("tour.formImportTitle"),
-          formImportDescription: t("tour.formImportDescription"),
-          formBasicsTitle: t("tour.formBasicsTitle"),
-          formBasicsDescription: t("tour.formBasicsDescription"),
-          flagsTitle: t("tour.flagsTitle"),
-          flagsDescription: t("tour.flagsDescription"),
-          recurringTitle: t("tour.recurringTitle"),
-          recurringDescription: t("tour.recurringDescription"),
-          liveBalanceTitle: t("tour.liveBalanceTitle"),
-          liveBalanceDescription: t("tour.liveBalanceDescription"),
-        },
+        firstRunCopyFromTranslator(t),
         dir,
         pathname,
       ),
@@ -374,7 +387,7 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
   }, [
     ready,
     tourActive,
-    importTourRequested,
+    helpTour,
     pathname,
     welcomeOpen,
     isPublicPath,
@@ -383,7 +396,7 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
     pauseTour,
     continueToForm,
     backToHome,
-    stopImportTour,
+    stopHelpTour,
     tourTick,
   ]);
 
@@ -403,6 +416,7 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
   };
 
   const restartTour = useCallback(() => {
+    setHelpTour(null);
     restartOnboarding();
     offeredRef.current = true;
     setWelcomeOpen(false);
@@ -422,6 +436,7 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
     !(transactionProbe === "has" && Boolean(onboarding?.analyticsOpened));
 
   const showHomeCta = showGettingStarted || tourActive || welcomeOpen;
+  const isTourRunning = tourActive || welcomeOpen || helpTour !== null;
 
   const uiValue = useMemo<OnboardingUiValue>(
     () => ({
@@ -429,18 +444,20 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
       showGettingStarted,
       hasFirstTransaction: transactionProbe === "has",
       analyticsOpened: Boolean(onboarding?.analyticsOpened),
+      isTourRunning,
       dismissChecklist,
       restartTour,
-      startImportTour,
+      startPageTour,
     }),
     [
       showHomeCta,
       showGettingStarted,
       transactionProbe,
       onboarding?.analyticsOpened,
+      isTourRunning,
       dismissChecklist,
       restartTour,
-      startImportTour,
+      startPageTour,
     ],
   );
 

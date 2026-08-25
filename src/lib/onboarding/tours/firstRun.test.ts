@@ -80,6 +80,24 @@ describe("buildFirstRunSteps", () => {
     expect(firstRunStartIndex("/add-transaction")).toBe(0);
   });
 
+  it("keeps page help tours on the current page", () => {
+    const homeHelp = buildFirstRunSteps(copy, "rtl", "/", { help: true });
+    expect(homeHelp.map((step) => getStepId(step))).toEqual([
+      "home-intro",
+      "tithe-balance",
+      "opening-balance",
+      "card-quick-add",
+      "date-range",
+    ]);
+    expect(homeHelp.at(-1)?.popover?.nextBtnText).toBe("Continue on my own");
+
+    const formHelp = buildFirstRunSteps(copy, "rtl", "/add-transaction", {
+      help: true,
+    });
+    expect(formHelp.map((step) => getStepId(step))).toEqual([...FORM_STEP_IDS]);
+    expect(formHelp[0]?.popover?.disableButtons).toBeUndefined();
+  });
+
   it("does not drive the first-run tour on settings or other pages", () => {
     expect(shouldDriveFirstRunTour("/")).toBe(true);
     expect(shouldDriveFirstRunTour("/add-transaction")).toBe(true);

@@ -55,6 +55,42 @@ export function tourNavButtons(
   };
 }
 
+export function firstRunCopyFromTranslator(
+  t: (key: string) => string,
+): FirstRunCopy {
+  return {
+    next: t("tour.next"),
+    prev: t("tour.prev"),
+    done: t("tour.done"),
+    progress: t("tour.progress"),
+    homeIntroTitle: t("tour.homeIntroTitle"),
+    homeIntroDescription: t("tour.homeIntroDescription"),
+    dateRangeTitle: t("tour.dateRangeTitle"),
+    dateRangeDescription: t("tour.dateRangeDescription"),
+    titheBalanceTitle: t("tour.titheBalanceTitle"),
+    titheBalanceDescription: t("tour.titheBalanceDescription"),
+    openingBalanceTitle: t("tour.openingBalanceTitle"),
+    openingBalanceDescription: t("tour.openingBalanceDescription"),
+    cardQuickAddTitle: t("tour.cardQuickAddTitle"),
+    cardQuickAddDescription: t("tour.cardQuickAddDescription"),
+    continueToFormTitle: t("tour.continueToFormTitle"),
+    continueToFormDescription: t("tour.continueToFormDescription"),
+    continueToForm: t("tour.continueToForm"),
+    formIntroTitle: t("tour.formIntroTitle"),
+    formIntroDescription: t("tour.formIntroDescription"),
+    formImportTitle: t("tour.formImportTitle"),
+    formImportDescription: t("tour.formImportDescription"),
+    formBasicsTitle: t("tour.formBasicsTitle"),
+    formBasicsDescription: t("tour.formBasicsDescription"),
+    flagsTitle: t("tour.flagsTitle"),
+    flagsDescription: t("tour.flagsDescription"),
+    recurringTitle: t("tour.recurringTitle"),
+    recurringDescription: t("tour.recurringDescription"),
+    liveBalanceTitle: t("tour.liveBalanceTitle"),
+    liveBalanceDescription: t("tour.liveBalanceDescription"),
+  };
+}
+
 export function getStepId(step?: DriveStep): StepId | undefined {
   const stepId = step?.data?.stepId;
   return isStepId(stepId) ? stepId : undefined;
@@ -94,6 +130,7 @@ export function buildFirstRunSteps(
   copy: FirstRunCopy,
   dir: "rtl" | "ltr",
   pathname = "/",
+  options?: { help?: boolean },
 ): DriveStep[] {
   const ctaSide = dir === "rtl" ? "left" : "right";
 
@@ -175,7 +212,7 @@ export function buildFirstRunSteps(
         side: "top",
         align: "start",
         ...tourNavButtons(copy),
-        disableButtons: [],
+        disableButtons: options?.help ? undefined : [],
       },
     },
     {
@@ -239,6 +276,18 @@ export function buildFirstRunSteps(
 
   if (pathname.startsWith("/add-transaction")) {
     return formSteps;
+  }
+
+  if (options?.help) {
+    const helpSteps = homeSteps.filter(
+      (step) => getStepId(step) !== "continue-to-form",
+    );
+    const last = helpSteps[helpSteps.length - 1];
+    if (last?.popover) {
+      last.popover.nextBtnText = copy.done;
+      last.popover.doneBtnText = copy.done;
+    }
+    return helpSteps;
   }
 
   return homeSteps;

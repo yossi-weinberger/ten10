@@ -82,7 +82,9 @@ Do not target the Sidebar Add button. On small screens it lives in a closed Shee
 
 First-run steps: `home-intro` → `tithe-balance` → `opening-balance` → `card-quick-add` → `date-range` → `continue-to-form` → `transaction-form` → `transaction-import` → `transaction-basics` → `transaction-flags` → `recurring-toggle` → `live-balance`. Date range comes after the cards. Opening the starting-balance modal destroys the Driver overlay and resumes at `card-quick-add`. Chart and Contact are mentioned only in the success copy.
 
-Import help tour (manual, `/transactions-table/import`): `import-intro` → `import-checklist` → `import-template` → `import-upload`. Started from the page button. There is no Analytics Driver tour — the Home checklist only links to `/analytics`.
+Import help tour (manual, `/transactions-table/import`): `import-intro` → `import-checklist` → `import-template` → `import-upload`. There is no Analytics Driver tour — the Home checklist only links to `/analytics`.
+
+Page help: a `CircleHelp` button next to the title on Home, Add Transaction, and Import starts only that page's tour. Hidden while any tour or Welcome is open. Settings restart still replays the full first-run.
 
 `.ten10-driver-popover` uses theme tokens and `max-width: min(22rem, calc(100vw - 1.5rem))`.
 

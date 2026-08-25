@@ -1,13 +1,15 @@
 import { createContext, useContext } from "react";
+import type { PageTourId } from "@/lib/onboarding/types";
 
 export interface OnboardingUiValue {
   showHomeCta: boolean;
   showGettingStarted: boolean;
   hasFirstTransaction: boolean;
   analyticsOpened: boolean;
+  isTourRunning: boolean;
   dismissChecklist: () => void;
   restartTour: () => void;
-  startImportTour: () => void;
+  startPageTour: (tour: PageTourId) => void;
 }
 
 export const defaultOnboardingUi: OnboardingUiValue = {
@@ -15,9 +17,10 @@ export const defaultOnboardingUi: OnboardingUiValue = {
   showGettingStarted: false,
   hasFirstTransaction: false,
   analyticsOpened: false,
+  isTourRunning: false,
   dismissChecklist: () => undefined,
   restartTour: () => undefined,
-  startImportTour: () => undefined,
+  startPageTour: () => undefined,
 };
 
 export const OnboardingUiContext = createContext<OnboardingUiValue | null>(null);
