@@ -27,7 +27,7 @@ const copy = {
 };
 
 describe("buildImportTourSteps", () => {
-  it("walks the full import process, including later stages without a file", () => {
+  it("walks the full import process including mapping, review, and approve", () => {
     const steps = buildImportTourSteps(copy);
 
     expect(steps.map((step) => getStepId(step))).toEqual([...IMPORT_STEP_IDS]);
@@ -36,9 +36,9 @@ describe("buildImportTourSteps", () => {
     expect(steps[2]?.element).toBe(ONBOARDING_TARGETS.importChecklist);
     expect(steps[3]?.element).toBe(ONBOARDING_TARGETS.importTemplate);
     expect(steps[4]?.element).toBe(ONBOARDING_TARGETS.importUpload);
-    expect(steps[5]?.element).toBeUndefined();
-    expect(steps[6]?.element).toBeUndefined();
-    expect(steps[7]?.element).toBeUndefined();
+    expect(steps[5]?.element).toBe(ONBOARDING_TARGETS.importMapping);
+    expect(steps[6]?.element).toBe(ONBOARDING_TARGETS.importReview);
+    expect(steps[7]?.element).toBe(ONBOARDING_TARGETS.importApprove);
     expect(steps.at(-1)?.popover?.nextBtnText).toBe("Done");
     expect(
       steps.every((step) => step.popover?.showButtons?.includes("previous")),

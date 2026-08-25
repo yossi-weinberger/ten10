@@ -20,7 +20,10 @@ import { clearCategoryCache } from "@/lib/data-layer/categories.service";
 import { clearPaymentMethodCache } from "@/lib/data-layer/paymentMethods.service";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { logger } from "@/lib/logger";
-import { subscribeOnboardingImportWizardScreen } from "@/lib/onboarding/importWizardBridge";
+import {
+  notifyOnboardingImportReached,
+  subscribeOnboardingImportWizardScreen,
+} from "@/lib/onboarding/importWizardBridge";
 import type {
   ColumnMapping,
   ImportFlowError,
@@ -362,6 +365,12 @@ export function ImportWizard() {
         dispatch({ type: "SET_STEP", step: "upload" });
       }
     });
+  }, [state.step]);
+
+  useEffect(() => {
+    if (state.step === "mapping" || state.step === "review") {
+      notifyOnboardingImportReached(state.step);
+    }
   }, [state.step]);
 
   // ---------------------------------------------------------------------------
@@ -819,7 +828,10 @@ export function ImportWizard() {
 
       {/* Navigation footer — sticky so the import button stays visible while scrolling */}
       {state.step !== "result" && state.step !== "prepare" && !state.processingError && (
-        <div className="sticky bottom-0 flex justify-between gap-3 bg-background/95 backdrop-blur-sm border-t border-border pt-3 pb-3 -mx-1 px-1 z-10">
+        <div
+          className="sticky bottom-0 flex justify-between gap-3 bg-background/95 backdrop-blur-sm border-t border-border pt-3 pb-3 -mx-1 px-1 z-10"
+          data-onboarding-import-nav=""
+        >
           <Button
             variant="outline"
             onClick={handleBack}
@@ -849,6 +861,7 @@ export function ImportWizard() {
                 onClick={handleReviewNext}
                 disabled={approvedCount === 0 || state.isImporting}
                 className="gap-1.5"
+                data-onboarding="import-approve"
               >
                 {t("confirm.proceed")} ({approvedCount})
                 <NextIcon className="h-4 w-4" aria-hidden="true" />

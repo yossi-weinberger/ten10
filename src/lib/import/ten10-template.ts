@@ -47,6 +47,14 @@ export function generateTemplateCsv(language = "en"): string {
   return [headers, ...rows].join("\n");
 }
 
+/** In-memory template file for the import tour sample path. */
+export function createTen10TemplateFile(language = "en"): File {
+  const csv = generateTemplateCsv(language);
+  return new File(["\uFEFF" + csv], "ten10-import-template.csv", {
+    type: "text/csv;charset=utf-8",
+  });
+}
+
 /** Trigger browser download of the template CSV. */
 export function downloadTemplateCsv(
   language = "en",

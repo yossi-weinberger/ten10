@@ -17,6 +17,11 @@ import { cn } from "@/lib/utils/index";
 import { getDropzoneRejectionMessage } from "@/lib/utils/dropzone-rejection";
 import { withTimeout } from "@/lib/utils/with-timeout";
 import { parseFile, MAX_FILE_SIZE_BYTES, MAX_ROWS } from "@/lib/import/parsers";
+import { createTen10TemplateFile } from "@/lib/import/ten10-template";
+import {
+  requestOnboardingTourRefresh,
+  subscribeOnboardingImportUploadNext,
+} from "@/lib/onboarding/importWizardBridge";
 import type { ParsedFile } from "@/lib/import/import-session.types";
 
 const UPLOAD_REJECTION_KEYS = {
@@ -32,7 +37,7 @@ interface FileUploadStepProps {
 const FILE_PARSE_TIMEOUT_MS = 15000;
 
 export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
-  const { t } = useTranslation("import");
+  const { t, i18n } = useTranslation("import");
   const { platform } = usePlatform();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +109,9 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
         setAvailableSheets(result.file.availableSheets);
         setSelectedSheet(result.file.availableSheets[0] ?? "");
         setIsLoading(false);
+        requestAnimationFrame(() => {
+          requestOnboardingTourRefresh();
+        });
         return;
       }
 
@@ -140,6 +148,24 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
     if (!pendingFile || !selectedSheet) return;
     await processFile(pendingFile, selectedSheet);
   }, [pendingFile, selectedSheet, processFile]);
+
+  useEffect(() => {
+    return subscribeOnboardingImportUploadNext(() => {
+      if (availableSheets) {
+        void handleSheetConfirm();
+        return;
+      }
+      if (!pendingFile) {
+        void processFile(createTen10TemplateFile(i18n.language));
+      }
+    });
+  }, [
+    availableSheets,
+    pendingFile,
+    handleSheetConfirm,
+    processFile,
+    i18n.language,
+  ]);
 
   // Desktop: Tauri drag-and-drop handler (DOM drag events may be blocked by the webview)
   useEffect(() => {
@@ -242,12 +268,11 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
   const isDragActive = isWebDragActive || isTauriDragActive;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-onboarding="import-upload">
       {/* Dropzone — hidden once sheet selection is active */}
       {!availableSheets && (
       <div
         {...getRootProps()}
-        data-onboarding="import-upload"
         className={cn(
           "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",

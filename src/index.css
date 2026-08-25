@@ -610,9 +610,8 @@ input[type="number"] {
   border-color: hsl(var(--popover));
 }
 
-.driver-overlay {
-  background-color: rgb(15 23 42 / 0.55);
-}
+/* Overlay color is set on the SVG path via Driver overlayColor/overlayOpacity.
+   Do not paint .driver-overlay itself — that fills the cutout and dims the target. */
 
 /* Same lit surface as the popover — Driver.js demo paints both yellow;
    TEN10 uses the popover token so the cutout and tooltip share one plate. */
@@ -620,6 +619,16 @@ input[type="number"] {
   background-color: hsl(var(--popover));
   border-radius: 8px;
   box-shadow: 0 0 0 8px hsl(var(--popover));
+}
+
+/* Driver disables pointer-events on the page; keep import controls usable. */
+.driver-active [data-onboarding-import-nav],
+.driver-active [data-onboarding-import-nav] *,
+.driver-active [data-radix-popper-content-wrapper],
+.driver-active [data-radix-popper-content-wrapper] *,
+.driver-active [role="dialog"],
+.driver-active [role="dialog"] * {
+  pointer-events: auto;
 }
 
 .ten10-onboarding-stage-frame {

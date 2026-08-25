@@ -11,9 +11,9 @@ describe("import wizard bridge", () => {
     expect(importWizardScreenForStep("import-steps")).toBe("prepare");
     expect(importWizardScreenForStep("import-template")).toBe("prepare");
     expect(importWizardScreenForStep("import-upload")).toBe("upload");
-    expect(importWizardScreenForStep("import-mapping")).toBe("upload");
-    expect(importWizardScreenForStep("import-review")).toBe("upload");
-    expect(importWizardScreenForStep("import-approve")).toBe("upload");
+    expect(importWizardScreenForStep("import-mapping")).toBeNull();
+    expect(importWizardScreenForStep("import-review")).toBeNull();
+    expect(importWizardScreenForStep("import-approve")).toBeNull();
     expect(importWizardScreenForStep("transaction-form")).toBeNull();
   });
 

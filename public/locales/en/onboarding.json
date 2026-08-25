@@ -1,7 +1,7 @@
 {
   "welcome": {
-    "title": "Welcome to TEN10",
-    "description": "We'll show you how to get started in less than a minute.",
+    "title": "Welcome to Ten10",
+    "description": "Ten10 tracks income, expenses, and donations — and calculates how much ma'aser (tithe) you still need to give. We'll look at Home and add your first transaction.",
     "start": "Start the tour",
     "skip": "I'll look around on my own"
   },
@@ -10,35 +10,35 @@
     "prev": "Back",
     "done": "I'll continue on my own",
     "progress": "{{current}} of {{total}}",
-    "homeIntroTitle": "This is your home",
-    "homeIntroDescription": "Income, tithe, donations, and the remaining balance live here. We'll walk through the parts that matter, then add a transaction.",
-    "dateRangeTitle": "Pick the time range",
-    "dateRangeDescription": "This month, this year, all time, or a custom range. Now that you know the cards, this is how you choose which period they show.",
-    "titheBalanceTitle": "Your tithe balance",
-    "titheBalanceDescription": "This card shows how much tithe is still due. A minus means you have already given more than required — you have a credit.",
-    "openingBalanceTitle": "Starting balance",
-    "openingBalanceDescription": "Coming from another notebook or spreadsheet? Set the current balance once here. TEN10 continues from that number. Use the + on this card.",
+    "homeIntroTitle": "This is Home",
+    "homeIntroDescription": "Three cards show income, expenses, and donations for the period you pick. The «Ma'aser balance» card tracks what you still owe across all time. We'll meet them, then add a transaction.",
+    "dateRangeTitle": "Time range",
+    "dateRangeDescription": "«From start of month», «From start of year», «All time», or a custom range. This changes the income, expense, and donation cards — not the ma'aser balance.",
+    "titheBalanceTitle": "Ma'aser balance",
+    "titheBalanceDescription": "How much ma'aser is still due — from all transactions, not just this month. Income adds 10% to the obligation; a donation reduces it. A minus means you already gave more than required — you have a credit.",
+    "openingBalanceTitle": "Opening balance",
+    "openingBalanceDescription": "Already have a balance from a notebook or spreadsheet? The + on this card sets that starting point once. Ten10 continues from there — it is not a regular transaction.",
     "cardQuickAddTitle": "Add from a card",
-    "cardQuickAddDescription": "Each + opens a transaction of that type — income, expense, or donation.",
-    "continueToFormTitle": "Ready to add a transaction?",
-    "continueToFormDescription": "Next we'll open the form and walk through the fields — first the everyday ones, then the tithe-specific options.",
+    "cardQuickAddDescription": "The + on Income, Expenses, or Donations opens the form with that type already selected.",
+    "continueToFormTitle": "Ready for the first transaction?",
+    "continueToFormDescription": "Next we'll open the form. First the everyday fields, then the options that decide how the transaction counts toward ma'aser.",
     "continueToForm": "Continue to the form",
     "formIntroTitle": "The transaction form",
-    "formIntroDescription": "This is where every transaction is recorded. Type, amount, date, and description are enough to save. The options below refine how it affects the tithe.",
+    "formIntroDescription": "Every transaction is recorded here. Type, amount, date, and description are enough to save. The options below decide whether it counts toward ma'aser — and how.",
     "formImportTitle": "Import from a file",
-    "formImportDescription": "Have many rows in Excel or from the bank? Import them here in one go instead of typing each one. You can open import now or later.",
+    "formImportDescription": "Many rows in Excel or from the bank? Import a CSV or Excel file here in one go. Open it now or later — nothing is saved until you approve.",
     "formBasicsTitle": "The everyday fields",
-    "formBasicsDescription": "Choose the type, enter the amount — any currency — a date, and a short description. Categories help you sort later.",
-    "flagsTitle": "How this affects the tithe",
-    "flagsDescription": "<p>These buttons decide how the transaction counts toward the tithe:</p><ul class=\"ten10-driver-list\"><li><strong>Income</strong> — Exempt skips the tithe. Chomesh takes 20% instead of 10%.</li><li><strong>Expense</strong> — mark whether the money already came from the maaser or chomesh fund.</li><li>The side balance updates accordingly after you save.</li></ul>",
-    "recurringTitle": "Standing orders",
-    "recurringDescription": "This adds a standing order to the Standing orders table, and TEN10 creates the transaction automatically on the day you chose — every month.",
+    "formBasicsDescription": "Choose the type — income, expense, or donation — enter the amount in any currency, a date, and a short description. Category helps you sort later.",
+    "flagsTitle": "How this affects ma'aser",
+    "flagsDescription": "<p>The buttons change with the transaction type:</p><ul class=\"ten10-driver-list\"><li><strong>Income</strong> — «Exempt from Ma'aser» skips the calculation. «Calculate Chomesh» takes 20% instead of 10%.</li><li><strong>Expense</strong> — «Recognized Expense» reduces the obligation by 10% of the amount (or 20% for chomesh). A regular expense does not affect ma'aser.</li><li><strong>Donation</strong> — a regular donation reduces the balance. «Not from ma'aser» is recorded without reducing the obligation.</li></ul>",
+    "recurringTitle": "Recurring transaction",
+    "recurringDescription": "This saves a standing order without creating a transaction now. Ten10 will create it automatically on the day you chose, at the frequency you pick — monthly by default.",
     "liveBalanceTitle": "The balance updates after you save",
-    "liveBalanceDescription": "After you save the transaction, the cards on the side update — including the tithe balance."
+    "liveBalanceDescription": "After you save, the summary cards on the side update — including the ma'aser balance. Nothing changes until you save."
   },
   "success": {
-    "title": "You're in",
-    "description": "Your first transaction is saved. The monthly chart below Home shows the trend, and Contact is there if you need a rabbi or technical help.",
+    "title": "Your first transaction is saved",
+    "description": "On Home, below the cards, a «Monthly Summary» chart shows the trend. «Contact» opens a message to a rabbi or to the Ten10 team.",
     "dismiss": "Got it"
   },
   "cta": {
@@ -46,13 +46,13 @@
   },
   "checklist": {
     "title": "Getting started",
-    "description": "Two small steps to see TEN10 at work.",
+    "description": "Two short steps to see Ten10 at work.",
     "firstTransaction": "Add your first transaction",
     "openAnalytics": "Open Analytics",
     "dismiss": "Hide this list"
   },
   "restart": {
-    "button": "Restart onboarding"
+    "button": "Restart the tour"
   },
   "pageTour": {
     "tooltip": "Tour this page",
@@ -61,20 +61,20 @@
   "importTour": {
     "start": "How import works",
     "introTitle": "Import transactions",
-    "introDescription": "Import many transactions from a CSV or Excel file. The flow has four stages, and only the rows you approve at the end are added to the table.",
+    "introDescription": "Import many transactions from a CSV or Excel file. The flow has four stages: prepare, upload, map columns, and review. Only the rows you approve at the end are added to the table.",
     "stepsTitle": "Four stages",
-    "stepsDescription": "Prepare, upload a file, map columns, then review and approve. You can go back at any stage. Nothing is saved before the final confirmation.",
-    "checklistTitle": "What happens next",
-    "checklistDescription": "Upload a file, map the columns, review the rows — and only then approve. Nothing is saved before the final confirmation.",
+    "stepsDescription": "Prepare, upload, map columns, then review. In review you confirm with «Import Now». You can go back at any stage. Nothing is saved before that confirmation.",
+    "checklistTitle": "Before you start",
+    "checklistDescription": "The file is parsed in the browser and nothing is saved until you approve. Date and amount are required. A Ten10 template is optional if your file has clear headers.",
     "templateTitle": "Ready-made template",
-    "templateDescription": "Download the TEN10 template to skip most column mapping. You can also upload your own file.",
+    "templateDescription": "Download the Ten10 template to skip most column mapping. You can also upload your own file with clear headers.",
     "uploadTitle": "Upload the file",
-    "uploadDescription": "Drop a CSV or Excel file here, or click to choose one. After the file is read, you map the columns.",
+    "uploadDescription": "Drop a CSV or Excel (.xlsx) file here, or click to choose one. .xls and PDF are not supported. After the file is read, you map the columns.",
     "mappingTitle": "Map the columns",
-    "mappingDescription": "Next you match each column in the file to a TEN10 field: type, amount, date, and description. The TEN10 template fills most of this in for you.",
+    "mappingDescription": "Next you match each column in the file to a Ten10 field. Date and amount are required. The Ten10 template fills most of this in for you.",
     "reviewTitle": "Review the rows",
-    "reviewDescription": "You see a preview of every row, fix errors, and choose what to import. Possible duplicates or standing-order matches are flagged first.",
+    "reviewDescription": "You see a preview, fix errors, and choose what to import. Possible duplicates are flagged first.",
     "approveTitle": "Final approval",
-    "approveDescription": "Only after you approve are the transactions added to the table. Until then you can go back, fix rows, or cancel — nothing is saved."
+    "approveDescription": "Only after «Import Now» are the transactions added to the table. Until then you can go back, fix rows, or cancel — nothing is saved."
   }
 }

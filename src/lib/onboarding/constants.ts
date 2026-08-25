@@ -27,4 +27,7 @@ export const ONBOARDING_TARGETS = {
   importChecklist: "[data-onboarding='import-checklist']",
   importTemplate: "[data-onboarding='import-template']",
   importUpload: "[data-onboarding='import-upload']",
+  importMapping: "[data-onboarding='import-mapping']",
+  importReview: "[data-onboarding='import-review']",
+  importApprove: "[data-onboarding='import-approve']",
 } as const;

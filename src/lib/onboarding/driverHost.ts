@@ -3,7 +3,10 @@ import "driver.js/dist/driver.css";
 import { logger } from "@/lib/logger";
 import {
   importWizardScreenForStep,
+  notifyOnboardingImportUploadNext,
   notifyOnboardingImportWizardScreen,
+  registerOnboardingTourRefresh,
+  subscribeOnboardingImportReached,
 } from "./importWizardBridge";
 import { getStepId } from "./tours/firstRun";
 import type { StepId } from "./types";
@@ -131,12 +134,16 @@ export interface OnboardingTourCallbacks {
 
 let activeDriver: Driver | null = null;
 let startingDestroy = false;
+let unsubscribeImportReached: (() => void) | null = null;
 
 export function isOnboardingTourRunning(): boolean {
   return activeDriver?.isActive() === true;
 }
 
 export function destroyOnboardingTour(): void {
+  unsubscribeImportReached?.();
+  unsubscribeImportReached = null;
+  registerOnboardingTourRefresh(null);
   clearExtraQuickAddStages();
   if (!activeDriver) return;
   startingDestroy = true;
@@ -171,6 +178,8 @@ export function startOnboardingTour(input: {
     smoothScroll: true,
     stagePadding: 8,
     stageRadius: 8,
+    overlayColor: "rgb(15, 23, 42)",
+    overlayOpacity: 0.5,
     allowClose: true,
     allowKeyboardControl: true,
     skipMissingElement: true,
@@ -189,6 +198,10 @@ export function startOnboardingTour(input: {
       if (stepId === "continue-to-form") {
         callbacks.onStepCompleted(stepId);
         callbacks.onContinueToForm?.();
+        return;
+      }
+      if (stepId === "import-upload") {
+        notifyOnboardingImportUploadNext();
         return;
       }
       const nextId = getStepId(input.steps[(lastIndex ?? 0) + 1]);
@@ -264,6 +277,31 @@ export function startOnboardingTour(input: {
       callbacks.onPaused();
       destroyOnboardingTour();
     },
+  });
+
+  registerOnboardingTourRefresh(() => {
+    activeDriver?.refresh();
+  });
+  unsubscribeImportReached = subscribeOnboardingImportReached((step) => {
+    let stepId: StepId;
+    switch (step) {
+      case "mapping":
+        stepId = "import-mapping";
+        break;
+      case "review":
+        stepId = "import-review";
+        break;
+      default: {
+        const _exhaustive: never = step;
+        return _exhaustive;
+      }
+    }
+    const index = input.steps.findIndex(
+      (tourStep) => getStepId(tourStep) === stepId,
+    );
+    if (index >= 0) {
+      activeDriver?.moveTo(index);
+    }
   });
 
   const startIndex = input.startIndex ?? 0;
