@@ -204,6 +204,20 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
     const evaluateOffer = async () => {
       if (platform === "web" && !user) return;
 
+      const previewFirstRun =
+        typeof window !== "undefined" &&
+        new URLSearchParams(window.location.search).get("onboarding") ===
+          "first-run";
+      if (previewFirstRun) {
+        offeredRef.current = true;
+        previewWelcomeRef.current = true;
+        if (pathname !== "/") {
+          void navigate({ to: "/" });
+        }
+        setWelcomeOpen(true);
+        return;
+      }
+
       const termsAccepted = await hasAcceptedCurrentTerms(
         platform === "desktop" ? "desktop" : "web",
         user?.id,
@@ -245,6 +259,8 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
     user,
     termsAcceptedVersion,
     transactionProbe,
+    pathname,
+    navigate,
   ]);
 
   useEffect(() => {

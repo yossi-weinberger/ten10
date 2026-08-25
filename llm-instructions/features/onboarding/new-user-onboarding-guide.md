@@ -115,6 +115,7 @@ Use `data-onboarding` targets already in the tree (including `nav-add-transactio
 - `sessionStorage["ten10.onboarding.v1"]` — tour active.
 - `settings.onboarding` in the Zustand persist store.
 - Restart from Settings → Version Information.
+- `/?onboarding=first-run` opens Welcome after login, ignoring eligibility, so an existing account can preview first-run. Closing it does not write `skipped`.
 
 ## Platform split
 

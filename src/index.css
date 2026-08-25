@@ -614,9 +614,15 @@ input[type="number"] {
    Do not paint .driver-overlay itself — that fills the cutout and dims the target. */
 
 /* Same lit surface as the popover — Driver.js demo paints both yellow;
-   TEN10 uses the popover token so the cutout and tooltip share one plate. */
-.driver-active .driver-active-element {
+   TEN10 uses the popover token so the cutout and tooltip share one plate.
+   Leave buttons alone: primary text is light, so a popover fill hides the label. */
+.driver-active .driver-active-element:not(button) {
   background-color: hsl(var(--popover));
+  border-radius: 8px;
+  box-shadow: 0 0 0 8px hsl(var(--popover));
+}
+
+.driver-active button.driver-active-element {
   border-radius: 8px;
   box-shadow: 0 0 0 8px hsl(var(--popover));
 }
