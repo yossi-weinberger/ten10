@@ -13,5 +13,17 @@
   "placeholder": {
     "title": "Coming Soon...",
     "description": "Content for this section will be added soon."
-  }
+  },
+  "print": "Print",
+  "printedOn": "Printed on {{date}}",
+  "tocTitle": "Contents",
+  "creditAuthor": "Written by Rabbi Tzvi Weinberger, head of the \"Torat HaAdam LeAdam\" Institute",
+  "creditApp": "Printed from Ten10 — simple and accurate ma'aser and financial budget management",
+  "creditDetails": "Details:",
+  "creditLanding": "Landing page",
+  "creditEmail": "Contact",
+  "pdfExportError": "PDF export failed",
+  "bookletKind": "Halachic Booklet",
+  "practiceLabel": "Practical Halacha",
+  "cautionLabel": "Take Care"
 }

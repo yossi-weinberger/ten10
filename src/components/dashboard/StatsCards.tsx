@@ -32,6 +32,7 @@ import { he, enUS } from "date-fns/locale";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { useEffect, useMemo, useState } from "react";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
+import { notifyOnboardingBlockingModal } from "@/lib/onboarding/modalBridge";
 
 export function StatsCards({
   orientation = "horizontal",
@@ -369,7 +370,11 @@ export function StatsCards({
 
   return (
     <div className={rootContainerClass}>
-      <div className="flex justify-end gap-2 items-center flex-wrap">
+      <div className="flex justify-end">
+        <div
+          className="inline-flex w-fit max-w-full flex-wrap items-center justify-end gap-2"
+          data-onboarding="date-range"
+        >
         {(Object.keys(dateRangeLabels) as DateRangeSelectionType[])
           .filter((rangeKey) => rangeKey !== "custom")
           .map((rangeKey) => (
@@ -418,13 +423,15 @@ export function StatsCards({
           }
           className="w-auto"
         />
+        </div>
       </div>
 
-      <div className={containerClass}>
+      <div className={containerClass} data-onboarding="live-balance">
         <motion.div
           initial={{ scale: 1 }}
           whileHover={{ scale: 1.05 }}
           transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          data-onboarding="tithe-balance"
         >
           <StatCard
             title={t("statsCards.overallRequired.title")}
@@ -435,9 +442,13 @@ export function StatsCards({
             colorScheme="blue"
             subtitleContent={overallRequiredSubtitle}
             isSpecial={true}
-            onAddClick={() => setIsOpeningBalanceModalOpen(true)}
+            onAddClick={() => {
+              notifyOnboardingBlockingModal(true);
+              setIsOpeningBalanceModalOpen(true);
+            }}
             showAddButton={true}
             addButtonTooltip={t("statsCards.overallRequired.setOpeningBalance")}
+            addButtonOnboarding="opening-balance"
           />
         </motion.div>
         <StatCard
@@ -453,6 +464,7 @@ export function StatsCards({
           onAddClick={handleIncomeAdd}
           showAddButton={true}
           addButtonTooltip={t("statsCards.income.addIncome")}
+          addButtonOnboarding="card-quick-add"
         />
         <StatCard
           title={`${t("statsCards.expenses.title")} (${
@@ -466,6 +478,7 @@ export function StatsCards({
           onAddClick={handleExpensesAdd}
           showAddButton={true}
           addButtonTooltip={t("statsCards.expenses.addExpense")}
+          addButtonOnboarding="card-quick-add"
         />
         <StatCard
           title={`${t("statsCards.donations.title")} (${
@@ -480,12 +493,16 @@ export function StatsCards({
           onAddClick={handleDonationsAdd}
           showAddButton={true}
           addButtonTooltip={t("statsCards.donations.addDonation")}
+          addButtonOnboarding="card-quick-add"
         />
       </div>
 
       <OpeningBalanceModal
         isOpen={isOpeningBalanceModalOpen}
-        onClose={() => setIsOpeningBalanceModalOpen(false)}
+        onClose={() => {
+          setIsOpeningBalanceModalOpen(false);
+          notifyOnboardingBlockingModal(false);
+        }}
       />
     </div>
   );

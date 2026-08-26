@@ -64,7 +64,7 @@ export function ImportReviewStep({
   ].filter((btn) => btn.count > 0 || btn.key === "all");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-onboarding="import-review">
       {/* Summary cards */}
       <ImportReviewSummary summary={summary} />
 

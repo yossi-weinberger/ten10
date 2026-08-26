@@ -67,6 +67,8 @@ This section details how the different parts of the project interact with each o
 │   ├── features/          # Feature-specific documentation
 │   │   ├── analytics/     # Analytics dashboard
 │   │   │   └── analytics-page-guide.md
+│   │   ├── onboarding/    # New-user first-run tour
+│   │   │   └── new-user-onboarding-guide.md
 │   │   ├── transactions/  # Transactions table and data model
 │   │   │   ├── transactions-table-technical-overview.md
 │   │   │   ├── transactions-table-implementation-status.md

@@ -15,6 +15,7 @@ import { clearCategoryCacheForType } from "./categories.service";
 import { clearPaymentMethodCache } from "./paymentMethods.service";
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { notifyOnboardingTransactionCreated } from "@/lib/onboarding/transactionBridge";
 import { firstDueDate } from "@/lib/recurring/recurring-date.utils";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 
@@ -151,6 +152,7 @@ export async function handleTransactionSubmit(
       is_chomesh: values.is_chomesh ?? false,
       has_conversion: values.original_currency != null,
     });
+    notifyOnboardingTransactionCreated();
   }
 
   // Clear category cache for this transaction type if a category was provided

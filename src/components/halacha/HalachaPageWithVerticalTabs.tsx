@@ -14,6 +14,7 @@ import {
   ContentTab, // Using the generic tab
 } from "./tabs";
 import { FormattedText } from "./FormattedText";
+import { HalachaPrintButton } from "./HalachaPrintButton";
 
 const LoadingFallback = () => (
   <div className="flex gap-8">
@@ -216,10 +217,19 @@ function HalachaPageContent() {
     <div className="grid gap-6">
       {/* Page Header */}
       <div className="space-y-3">
-        <FormattedText as="h1" className="text-2xl font-bold text-foreground">
-          {t("pageTitle")}
-        </FormattedText>
-        <FormattedText as="p" className="text-muted-foreground text-lg">
+        <div className="flex items-start justify-between gap-4">
+          <FormattedText
+            as="h1"
+            className="text-2xl font-bold text-foreground"
+          >
+            {t("pageTitle")}
+          </FormattedText>
+          <HalachaPrintButton />
+        </div>
+        <FormattedText
+          as="p"
+          className="text-muted-foreground text-lg"
+        >
           {t("pageDescription")}
         </FormattedText>
       </div>

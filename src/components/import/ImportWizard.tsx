@@ -20,6 +20,11 @@ import { clearCategoryCache } from "@/lib/data-layer/categories.service";
 import { clearPaymentMethodCache } from "@/lib/data-layer/paymentMethods.service";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { logger } from "@/lib/logger";
+import {
+  notifyOnboardingImportReached,
+  subscribeOnboardingImportMappingNext,
+  subscribeOnboardingImportWizardScreen,
+} from "@/lib/onboarding/importWizardBridge";
 import type {
   ColumnMapping,
   ImportFlowError,
@@ -48,6 +53,7 @@ import { ColumnMappingStep } from "./steps/ColumnMappingStep";
 import { ImportReviewStep } from "./steps/ImportReviewStep";
 import { ImportResultStep } from "./steps/ImportResultStep";
 import { PrepareStep } from "./steps/PrepareStep";
+import { PageTourButton } from "@/components/onboarding/PageTourButton";
 
 const IMPORT_PREVIEW_FETCH_TIMEOUT_MS = 15000;
 
@@ -350,6 +356,31 @@ export function ImportWizard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    return subscribeOnboardingImportWizardScreen((screen) => {
+      if (screen === "prepare" && state.step === "upload") {
+        dispatch({ type: "SET_STEP", step: "prepare" });
+        return;
+      }
+      if (
+        screen === "upload" &&
+        (state.step === "prepare" || state.step === "mapping")
+      ) {
+        dispatch({ type: "SET_STEP", step: "upload" });
+        return;
+      }
+      if (screen === "mapping" && state.step === "review") {
+        dispatch({ type: "SET_STEP", step: "mapping" });
+      }
+    });
+  }, [state.step]);
+
+  useEffect(() => {
+    if (state.step === "mapping" || state.step === "review") {
+      notifyOnboardingImportReached(state.step);
+    }
+  }, [state.step]);
+
   // ---------------------------------------------------------------------------
   // Handlers
   // ---------------------------------------------------------------------------
@@ -416,6 +447,13 @@ export function ImportWizard() {
     // AFTER the browser has painted the loading state.
     dispatch({ type: "SET_PREVIEW_ROWS", rows: [], processing: true });
   }, [state.columnMappings, state.parsedFile, state.isTen10Template, defaultCurrency, platform]);
+
+  useEffect(() => {
+    return subscribeOnboardingImportMappingNext(() => {
+      if (state.step !== "mapping" || state.isProcessingRows) return;
+      handleMappingNext();
+    });
+  }, [handleMappingNext, state.step, state.isProcessingRows]);
 
   // Runs after isProcessingRows flips to true and the loading skeleton is
   // painted. Heavy async work runs here so the browser has already rendered
@@ -664,26 +702,29 @@ export function ImportWizard() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
+        <div className="space-y-1" data-onboarding="import-intro">
           <div className="flex items-center gap-2">
             <FileSpreadsheet className="h-5 w-5 text-primary shrink-0" aria-hidden="true" />
             <h1 className="text-xl font-semibold">{t("title")}</h1>
           </div>
           <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate({ to: "/transactions-table" })}
-          aria-label={t("navigation.cancel")}
-        >
-          <X className="h-4 w-4" aria-hidden="true" />
-        </Button>
+        <div className="flex items-center gap-2">
+          {state.step === "prepare" && <PageTourButton tour="import" />}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate({ to: "/transactions-table" })}
+            aria-label={t("navigation.cancel")}
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </Button>
+        </div>
       </div>
 
       {/* Step indicator */}
       {state.step !== "result" && (
-        <div className="relative py-1">
+        <div className="relative py-1" data-onboarding="import-steps">
           {/* Background line */}
           <div className="absolute top-[14px] inset-x-0 h-0.5 bg-border" />
           {/* Filled line — mirrors horizontally in RTL */}
@@ -802,7 +843,10 @@ export function ImportWizard() {
 
       {/* Navigation footer — sticky so the import button stays visible while scrolling */}
       {state.step !== "result" && state.step !== "prepare" && !state.processingError && (
-        <div className="sticky bottom-0 flex justify-between gap-3 bg-background/95 backdrop-blur-sm border-t border-border pt-3 pb-3 -mx-1 px-1 z-10">
+        <div
+          className="sticky bottom-0 flex justify-between gap-3 bg-background/95 backdrop-blur-sm border-t border-border pt-3 pb-3 -mx-1 px-1 z-10"
+          data-onboarding-import-nav=""
+        >
           <Button
             variant="outline"
             onClick={handleBack}
@@ -832,6 +876,7 @@ export function ImportWizard() {
                 onClick={handleReviewNext}
                 disabled={approvedCount === 0 || state.isImporting}
                 className="gap-1.5"
+                data-onboarding="import-approve"
               >
                 {t("confirm.proceed")} ({approvedCount})
                 <NextIcon className="h-4 w-4" aria-hidden="true" />

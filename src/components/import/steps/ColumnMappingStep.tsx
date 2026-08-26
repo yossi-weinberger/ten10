@@ -29,7 +29,7 @@ export function ColumnMappingStep({
   const isRtl = i18n.dir() === "rtl";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-onboarding="import-mapping">
       {/* Single contextual explanation — template banner OR plain text, never both */}
       {isTen10Template ? (
         <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30">

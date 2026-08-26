@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils/index";
 import ContactFAB from "./components/layout/ContactFAB";
 import { TermsAcceptanceModal } from "./components/auth/TermsAcceptanceModal";
 import { WhatsNewModal } from "./components/WhatsNewModal";
+import { OnboardingHost } from "./components/onboarding/OnboardingHost";
 import { Footer } from "@/pages/landing/sections/Footer";
 import AppLoader from "./components/layout/AppLoader";
 
@@ -330,6 +331,7 @@ function App() {
   }
 
   return (
+    <OnboardingHost>
     <TooltipProvider>
       <div className="h-full w-full overflow-hidden bg-background flex">
         {!isFullScreenPage && (
@@ -425,6 +427,7 @@ function App() {
       <TermsAcceptanceModal />
       <WhatsNewModal />
     </TooltipProvider>
+    </OnboardingHost>
   );
 }
 

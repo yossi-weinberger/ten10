@@ -36,6 +36,7 @@ interface StatCardProps {
   onAddClick?: () => void; // New prop for add button functionality
   showAddButton?: boolean; // New prop to control add button visibility
   addButtonTooltip?: string; // New prop for tooltip text
+  addButtonOnboarding?: string;
 }
 
 const colorStyles: Record<
@@ -106,6 +107,7 @@ export function StatCard({
   onAddClick,
   showAddButton = false, // Default to false
   addButtonTooltip = "", // Default to empty string
+  addButtonOnboarding,
 }: StatCardProps) {
   const { t, i18n } = useTranslation("dashboard");
   const defaultCurrency = useDonationStore(
@@ -200,6 +202,7 @@ export function StatCard({
                   variant="ghost"
                   size="sm"
                   onClick={onAddClick}
+                  data-onboarding={addButtonOnboarding}
                   className={`h-8 w-8 sm:h-10 sm:w-10 p-0 hover:bg-white/20 dark:hover:bg-black/20 transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg ${styles.icon}`}
                 >
                   <BadgePlus className="h-5 w-5 sm:h-6 sm:w-6 [&]:!size-5 sm:[&]:!size-6" />
