@@ -13,5 +13,17 @@
   "placeholder": {
     "title": "בקרוב...",
     "description": "התוכן עבור חלק זה יתווסף בקרוב."
-  }
+  },
+  "print": "הדפסה",
+  "printedOn": "הודפס ב-{{date}}",
+  "tocTitle": "תוכן עניינים",
+  "creditAuthor": "נכתב על ידי הרב צבי וינברגר, ראש מכון \"תורת האדם לאדם\"",
+  "creditApp": "הודפס מתוך מערכת Ten10 — ניהול מעשרות ותקציב פיננסי פשוט ומדויק",
+  "creditDetails": "לפרטים:",
+  "creditLanding": "דף נחיתה",
+  "creditEmail": "צור קשר",
+  "pdfExportError": "ייצוא ה-PDF נכשל",
+  "bookletKind": "קונטרס הלכתי",
+  "practiceLabel": "הלכה למעשה",
+  "cautionLabel": "לזהירות"
 }
