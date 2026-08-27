@@ -4,6 +4,19 @@
   "current": "Current",
   "backToSettings": "Back to Settings",
   "releases": {
+    "v075": {
+      "title": "Guided tour and halacha booklet",
+      "items": {
+        "guidedHelp": {
+          "title": "Guided tour and help button",
+          "description": "New users can take a short tour. Home, Add Transaction, and bulk import have a help button in the top corner. You can skip it and restart from Settings."
+        },
+        "halachaBooklet": {
+          "title": "Export a halacha booklet PDF",
+          "description": "From the Halacha page you can download a designed booklet for print or reading."
+        }
+      }
+    },
     "v074": {
       "title": "Bulk actions and reminder emails",
       "items": {
@@ -12,8 +25,8 @@
           "description": "Select transactions and recurring transactions to delete several at once, or update several fields together — description, category, payment method, recipient, and chomesh. Untouched fields stay unchanged. A single selected row still opens the regular edit or delete flow."
         },
         "reminderEmails": {
-          "title": "Reminder emails in Hebrew and English",
-          "description": "Reminder emails now follow the user's language, with a refreshed layout and monthly encouragement stories."
+          "title": "Refreshed reminder emails",
+          "description": "Web only: we improved the reminder email design and added an Encouragement Corner. Enable reminders in Settings — otherwise you will not receive them."
         }
       }
     },

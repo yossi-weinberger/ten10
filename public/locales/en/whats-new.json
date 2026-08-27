@@ -1,25 +1,24 @@
 {
   "title": "What's New in Version {{version}}",
-  "description": "A highly requested TEN10 feature is here",
+  "description": "Recent updates in TEN10",
   "dismissButton": "Got it",
   "historyButton": "Changelog",
   "dismissing": "Saving...",
   "featured": {
-    "badge": "New in 0.7.0",
-    "title": "Import Transactions from Excel",
-    "description": "You can now import transactions from a CSV or Excel file with a guided flow: upload a file, map columns, review rows, and approve only what you want to save.",
+    "title": "Multi-select in tables",
+    "description": "Select transactions and recurring transactions together: delete several at once, or update description, category, payment method, recipient, and chomesh in one save. Fields you do not touch stay unchanged.",
     "highlights": {
-      "files": {
-        "title": "CSV and Excel support",
-        "description": "Use the Ten10 template or upload your own spreadsheet with clear column headers."
+      "help": {
+        "title": "Guided tour and help button",
+        "description": "Home, Add Transaction, and bulk import have a help button in the top corner. New users also get a short first-run tour."
       },
-      "mapping": {
-        "title": "Smart column mapping",
-        "description": "Ten10 suggests mappings automatically, and you can adjust every column before continuing."
+      "halacha": {
+        "title": "Download the Halacha booklet",
+        "description": "From the Halacha page you can download a designed booklet for reading or print."
       },
-      "review": {
-        "title": "Review before saving",
-        "description": "Nothing is saved until you review, select, and approve the rows for import."
+      "reminders": {
+        "title": "Refreshed reminder emails",
+        "description": "We improved the email design and added an Encouragement Corner. Enable reminders in Settings — otherwise you will not receive them."
       }
     }
   }

@@ -12,6 +12,7 @@ import {
   FileText,
   Globe2,
   HardDrive,
+  HelpCircle,
   Languages,
   LayoutDashboard,
   Library,
@@ -40,6 +41,8 @@ import {
 } from "@/lib/whats-new-history";
 
 const itemIcons: Record<string, LucideIcon> = {
+  guidedHelp: HelpCircle,
+  halachaBooklet: Library,
   bulkTableActions: TableProperties,
   reminderEmails: Mail,
   recurringBillingDay: Repeat,

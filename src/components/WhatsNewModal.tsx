@@ -31,9 +31,9 @@ import {
   WHATS_NEW_SUPPRESS_EVENT,
 } from "@/lib/onboarding/whatsNew";
 import {
-  CheckCircle2,
-  ClipboardCheck,
-  FileSpreadsheet,
+  HelpCircle,
+  Library,
+  Mail,
   Sparkles,
   TableProperties,
 } from "lucide-react";
@@ -42,25 +42,27 @@ interface FeatureItem {
   icon: React.ReactNode;
   titleKey: string;
   descriptionKey: string;
+  webOnly?: boolean;
 }
 
 const iconClass = "h-5 w-5 text-primary flex-shrink-0";
 
 const highlights: FeatureItem[] = [
   {
-    icon: <FileSpreadsheet className={iconClass} />,
-    titleKey: "featured.highlights.files.title",
-    descriptionKey: "featured.highlights.files.description",
+    icon: <HelpCircle className={iconClass} />,
+    titleKey: "featured.highlights.help.title",
+    descriptionKey: "featured.highlights.help.description",
   },
   {
-    icon: <TableProperties className={iconClass} />,
-    titleKey: "featured.highlights.mapping.title",
-    descriptionKey: "featured.highlights.mapping.description",
+    icon: <Library className={iconClass} />,
+    titleKey: "featured.highlights.halacha.title",
+    descriptionKey: "featured.highlights.halacha.description",
   },
   {
-    icon: <ClipboardCheck className={iconClass} />,
-    titleKey: "featured.highlights.review.title",
-    descriptionKey: "featured.highlights.review.description",
+    icon: <Mail className={iconClass} />,
+    titleKey: "featured.highlights.reminders.title",
+    descriptionKey: "featured.highlights.reminders.description",
+    webOnly: true,
   },
 ];
 
@@ -304,21 +306,15 @@ export function WhatsNewModal({
         <div className="relative space-y-4">
           <div className="flex items-start gap-3">
             <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
-              <FileSpreadsheet className="h-6 w-6" />
+              <TableProperties className="h-6 w-6" />
             </div>
             <div className="min-w-0 space-y-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                {t("featured.badge")}
-              </span>
-              <div>
-                <h3 className="text-xl font-bold tracking-tight text-foreground">
-                  {t("featured.title")}
-                </h3>
-                <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                  {t("featured.description")}
-                </p>
-              </div>
+              <h3 className="text-xl font-bold tracking-tight text-foreground">
+                {t("featured.title")}
+              </h3>
+              <p className="text-sm leading-6 text-muted-foreground">
+                {t("featured.description")}
+              </p>
             </div>
           </div>
         </div>
@@ -326,7 +322,9 @@ export function WhatsNewModal({
 
       <section>
         <ul className="grid gap-3">
-          {highlights.map((item) => (
+          {highlights
+            .filter((item) => !item.webOnly || platform === "web")
+            .map((item) => (
             <li
               key={item.titleKey}
               className="group flex items-start gap-3 rounded-lg border border-border bg-card px-3 py-3 transition-colors hover:bg-muted/40"
