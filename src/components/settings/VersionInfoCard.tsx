@@ -188,28 +188,26 @@ export function VersionInfoCard() {
               v{currentVersion || "..."}
             </Badge>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              onClick={() => setShowWhatsNew(true)}
-              variant="outline"
-              size="sm"
-            >
-              <Sparkles className="h-4 w-4" />
-              {t("versionInfo.whatsNewButton")}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                restartTour();
-                void navigate({ to: "/" });
-              }}
-            >
-              <RotateCcw className="h-4 w-4" />
-              {tOnboarding("restart.button")}
-            </Button>
-          </div>
+          <Button
+            onClick={() => setShowWhatsNew(true)}
+            variant="outline"
+            size="sm"
+          >
+            <Sparkles className="h-4 w-4" />
+            {t("versionInfo.whatsNewButton")}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              restartTour();
+              void navigate({ to: "/" });
+            }}
+          >
+            <RotateCcw className="h-4 w-4" />
+            {tOnboarding("restart.button")}
+          </Button>
         </div>
 
         {/* Update Status */}
