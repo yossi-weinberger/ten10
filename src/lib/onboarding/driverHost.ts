@@ -9,6 +9,7 @@ import {
   registerOnboardingTourRefresh,
   subscribeOnboardingImportReached,
 } from "./importWizardBridge";
+import { resolveOnboardingDoneAction } from "./doneAction";
 import { getStepId } from "./tours/firstRun";
 import type { StepId } from "./types";
 
@@ -264,16 +265,31 @@ export function startOnboardingTour(input: {
     },
     onDoneClick: () => {
       const stepId = getStepId(activeDriver?.getActiveStep());
-      // Driver.js calls Done when later import screens are not in the DOM yet.
-      if (stepId?.startsWith("import-") && stepId !== "import-approve") {
-        advanceFromActiveStep();
-        return;
+      const doneAction = resolveOnboardingDoneAction(stepId);
+      switch (doneAction) {
+        case "continue-to-form":
+          if (stepId) {
+            callbacks.onStepCompleted(stepId);
+          }
+          callbacks.onContinueToForm?.();
+          destroyOnboardingTour();
+          return;
+        case "advance":
+          // Driver.js calls Done when later import screens are not in the DOM yet.
+          advanceFromActiveStep();
+          return;
+        case "pause":
+          if (stepId) {
+            callbacks.onStepCompleted(stepId);
+          }
+          callbacks.onPaused();
+          destroyOnboardingTour();
+          return;
+        default: {
+          const _exhaustive: never = doneAction;
+          return _exhaustive;
+        }
       }
-      if (stepId) {
-        callbacks.onStepCompleted(stepId);
-      }
-      callbacks.onPaused();
-      destroyOnboardingTour();
     },
     onDestroyStarted: () => {
       if (startingDestroy) {
