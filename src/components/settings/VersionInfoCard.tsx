@@ -179,28 +179,23 @@ export function VersionInfoCard() {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Current Version */}
-        <div className="grid grid-cols-3 items-center gap-3">
-          <span className="text-sm font-medium">
-            {t("versionInfo.currentVersion")}
-          </span>
-          <div className="flex justify-center">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium">
+              {t("versionInfo.currentVersion")}
+            </span>
             <Badge variant="outline" className="font-mono text-base px-2 py-1">
               v{currentVersion || "..."}
             </Badge>
           </div>
-          <div className="flex justify-end">
-            <Button
-              onClick={() => setShowWhatsNew(true)}
-              variant="outline"
-              size="sm"
-            >
-              <Sparkles className="h-4 w-4" />
-              {t("versionInfo.whatsNewButton")}
-            </Button>
-          </div>
-        </div>
-        <div className="flex justify-end">
+          <Button
+            onClick={() => setShowWhatsNew(true)}
+            variant="outline"
+            size="sm"
+          >
+            <Sparkles className="h-4 w-4" />
+            {t("versionInfo.whatsNewButton")}
+          </Button>
           <Button
             type="button"
             variant="outline"
