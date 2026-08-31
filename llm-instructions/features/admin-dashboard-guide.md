@@ -119,7 +119,7 @@ Returns trend buckets filtered by date range (set-based aggregates; not per-mont
 **Behavior:**
 
 - Ranges ≤ 62 days → **daily** buckets (`YYYY-MM-DD`), including empty days (so "this month" is a series)
-- Longer ranges → **monthly** buckets (`YYYY-MM`), empty months omitted
+- Longer ranges → **monthly** buckets (`YYYY-MM`), including empty months (continuous time axis)
 - Start dates before `2000-01-01` are clamped (avoids ~24k months from garbage tx dates like year 0002)
 
 **Returns:**
@@ -268,7 +268,7 @@ Engagement and system metrics with visual separation and tooltips.
 
 Owns trends fetch for the selected date range (default: month). Avoids double-fetch with the page load.
 
-**Charts:** legend via `ChartLegend`, stacked finance areas (`stackId`), compact `₪` Y-axis, `--chart-*` colors, loading/error UI. Short ranges use daily buckets from the RPC; longer ranges use months.
+**Charts:** legend via `ChartLegend`, unstacked finance areas (income / donations / expenses plotted independently, not `stackId`), compact Y-axis without a currency glyph, `--chart-*` colors, loading/error UI. Short ranges use daily buckets from the RPC; longer ranges use months. Activity uses dual Y-axes (`transaction_count` left, `active_users` right). Chart containers use `aspect-auto` and `dir="ltr"`.
 
 #### AdminDownloadsSection
 
@@ -370,13 +370,13 @@ Interactive charts with date range filtering.
 - Date range controls (month, year, all time, custom)
 - Uses `useDateControls` hook from main dashboard
 - Three charts:
-  1. User Growth (AreaChart)
-  2. Financial Trends (AreaChart - stacked)
-  3. Activity (LineChart - dual lines)
+  1. New users (AreaChart)
+  2. Financial Trends (AreaChart — unstacked)
+  3. Activity (LineChart — dual Y-axis)
 
 **Colors:**
 
-- User growth: purple (`hsl(262, 83%, 58%)`)
+- New users: teal (`hsl(var(--chart-teal))`)
 - Income: green (`hsl(var(--chart-green))`)
 - Donations: yellow (`hsl(var(--chart-yellow))`)
 - Expenses: red (`hsl(var(--chart-red))`)
@@ -561,9 +561,9 @@ Potential future additions:
 
 - [ ] Numbers are large and readable
 - [ ] Charts use correct colors (green, yellow, red)
-- [ ] User growth chart shows purple area
-- [ ] Financial chart shows stacked areas
-- [ ] Activity chart shows dual lines
+- [ ] New users chart shows teal area
+- [ ] Financial chart shows unstacked areas (income peak is not income+donations+expenses)
+- [ ] Activity chart shows dual Y-axes (transactions vs active users)
 - [ ] Total managed card is centered and prominent
 - [ ] All cards use consistent styling
 

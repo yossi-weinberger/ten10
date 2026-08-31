@@ -137,7 +137,7 @@
   },
   "trends": {
     "title": "Trends Over Time",
-    "userGrowth": "User Growth",
+    "userGrowth": "New users",
     "financialTrends": "Financial Trends",
     "activityTrends": "Transaction and User Activity",
     "newUsers": "New Users",
@@ -145,7 +145,7 @@
     "activeUsers": "Active Users",
     "noData": "No trend data available",
     "loadFailed": "Failed to load trends",
-    "financialDisclaimer": "Monthly amounts without FX conversion (raw sum)."
+    "financialDisclaimer": "Amounts without FX conversion or a currency sign (raw sum)."
   },
   "monitoring": {
     "title": "System Monitoring",

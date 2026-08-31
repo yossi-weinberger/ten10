@@ -31,18 +31,13 @@ import {
   useDateControls,
   DateRangeSelectionType,
 } from "@/hooks/useDateControls";
+import {
+  formatCompactAmount,
+  formatTrendBucketLabel,
+} from "@/lib/admin/trend-chart.utils";
 
 interface AdminTrendsChartProps {
   earliestDate: string;
-}
-
-function formatCompactCurrency(value: number, locale: string): string {
-  if (!Number.isFinite(value)) return "";
-  const compact = new Intl.NumberFormat(locale, {
-    notation: "compact",
-    maximumFractionDigits: 1,
-  }).format(value);
-  return `₪${compact}`;
 }
 
 export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
@@ -61,6 +56,8 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
   } = useDateControls();
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadTrends() {
       setLoading(true);
       setError(null);
@@ -74,6 +71,7 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
           startDate,
           activeDateRangeObject.endDate
         );
+        if (cancelled) return;
         if (data) {
           setTrends(data);
         } else {
@@ -82,19 +80,26 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
         }
       } catch (err) {
         console.error("Failed to fetch trends:", err);
+        if (cancelled) return;
         setTrends([]);
         setError(t("trends.loadFailed"));
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
     loadTrends();
+    return () => {
+      cancelled = true;
+    };
+    // Language changes must not refetch; `t` is only used for error copy.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- omit t
   }, [
     activeDateRangeObject.startDate,
     activeDateRangeObject.endDate,
     dateRangeSelection,
     earliestDate,
-    t,
   ]);
 
   const userGrowthConfig = {
@@ -134,15 +139,14 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
   const isDailyBuckets =
     trends.length > 0 && /^\d{4}-\d{2}-\d{2}$/.test(trends[0].month);
 
-  const formatBucketLabel = (value: string) => {
-    if (!isDailyBuckets) return value;
-    const parsed = new Date(`${value}T00:00:00`);
-    if (Number.isNaN(parsed.getTime())) return value;
-    return parsed.toLocaleDateString(locale, {
-      day: "numeric",
-      month: "short",
-    });
-  };
+  const formatBucketLabel = (value: string) =>
+    formatTrendBucketLabel(value, locale, isDailyBuckets);
+
+  const tooltipLabelFormatter = (value: unknown) =>
+    formatTrendBucketLabel(String(value), locale, isDailyBuckets);
+
+  const compactCountTick = (value: unknown) =>
+    formatCompactAmount(Number(value), locale);
 
   return (
     <div className="space-y-4" dir={i18n.dir()}>
@@ -224,7 +228,8 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
             <CardContent>
               <ChartContainer
                 config={userGrowthConfig}
-                className="h-[300px] w-full"
+                className="aspect-auto h-[300px] w-full"
+                dir="ltr"
               >
                 <AreaChart data={trends}>
                   <CartesianGrid
@@ -245,14 +250,15 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                     axisLine={false}
                     tickMargin={8}
                     className="text-muted-foreground"
-                    tickFormatter={(value) =>
-                      new Intl.NumberFormat(locale, {
-                        notation: "compact",
-                        maximumFractionDigits: 1,
-                      }).format(Number(value))
+                    tickFormatter={compactCountTick}
+                  />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        labelFormatter={tooltipLabelFormatter}
+                      />
                     }
                   />
-                  <ChartTooltip content={<ChartTooltipContent />} />
                   <ChartLegend content={<ChartLegendContent />} />
                   <Area
                     type="monotone"
@@ -277,7 +283,8 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
             <CardContent>
               <ChartContainer
                 config={financialConfig}
-                className="h-[400px] w-full"
+                className="aspect-auto h-[400px] w-full"
+                dir="ltr"
               >
                 <AreaChart data={trends}>
                   <CartesianGrid
@@ -300,15 +307,20 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                     width={56}
                     className="text-muted-foreground"
                     tickFormatter={(value) =>
-                      formatCompactCurrency(Number(value), locale)
+                      formatCompactAmount(Number(value), locale)
                     }
                   />
-                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        labelFormatter={tooltipLabelFormatter}
+                      />
+                    }
+                  />
                   <ChartLegend content={<ChartLegendContent />} />
                   <Area
                     type="monotone"
                     dataKey="total_income"
-                    stackId="finance"
                     stroke="var(--color-total_income)"
                     fill="var(--color-total_income)"
                     fillOpacity={0.5}
@@ -317,7 +329,6 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                   <Area
                     type="monotone"
                     dataKey="total_donations"
-                    stackId="finance"
                     stroke="var(--color-total_donations)"
                     fill="var(--color-total_donations)"
                     fillOpacity={0.5}
@@ -326,7 +337,6 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                   <Area
                     type="monotone"
                     dataKey="total_expenses"
-                    stackId="finance"
                     stroke="var(--color-total_expenses)"
                     fill="var(--color-total_expenses)"
                     fillOpacity={0.5}
@@ -344,7 +354,8 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
             <CardContent>
               <ChartContainer
                 config={activityConfig}
-                className="h-[300px] w-full"
+                className="aspect-auto h-[300px] w-full"
+                dir="ltr"
               >
                 <LineChart data={trends}>
                   <CartesianGrid
@@ -361,20 +372,33 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                     tickFormatter={formatBucketLabel}
                   />
                   <YAxis
+                    yAxisId="tx"
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
                     className="text-muted-foreground"
-                    tickFormatter={(value) =>
-                      new Intl.NumberFormat(locale, {
-                        notation: "compact",
-                        maximumFractionDigits: 1,
-                      }).format(Number(value))
+                    tickFormatter={compactCountTick}
+                  />
+                  <YAxis
+                    yAxisId="users"
+                    orientation="right"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    width={40}
+                    className="text-muted-foreground"
+                    tickFormatter={compactCountTick}
+                  />
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        labelFormatter={tooltipLabelFormatter}
+                      />
                     }
                   />
-                  <ChartTooltip content={<ChartTooltipContent />} />
                   <ChartLegend content={<ChartLegendContent />} />
                   <Line
+                    yAxisId="tx"
                     type="monotone"
                     dataKey="transaction_count"
                     stroke="var(--color-transaction_count)"
@@ -397,6 +421,7 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                     }}
                   />
                   <Line
+                    yAxisId="users"
                     type="monotone"
                     dataKey="active_users"
                     stroke="var(--color-active_users)"

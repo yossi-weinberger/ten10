@@ -137,7 +137,7 @@
   },
   "trends": {
     "title": "מגמות לאורך זמן",
-    "userGrowth": "גידול במשתמשים",
+    "userGrowth": "משתמשים חדשים",
     "financialTrends": "מגמות כספיות",
     "activityTrends": "פעילות טרנזקציות ומשתמשים",
     "newUsers": "משתמשים חדשים",
@@ -145,7 +145,7 @@
     "activeUsers": "משתמשים פעילים",
     "noData": "אין נתוני מגמות זמינים",
     "loadFailed": "טעינת מגמות נכשלה",
-    "financialDisclaimer": "סכומים חודשיים ללא המרת מטבע (סכימה גולמית)."
+    "financialDisclaimer": "סכומים ללא המרת מטבע וללא סימן מטבע (סכימה גולמית)."
   },
   "monitoring": {
     "title": "ניטור מערכת",

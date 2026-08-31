@@ -176,7 +176,7 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - All admin operations secured at database level - cannot be bypassed from frontend.
 - **Admin RPC Functions:**
   - `get_admin_dashboard_stats()` - Returns comprehensive statistics (users, finance, downloads, engagement, system).
-  - `get_admin_monthly_trends(p_start_date, p_end_date)` - Returns monthly trends with date range filtering, excludes empty months.
+  - `get_admin_monthly_trends(p_start_date, p_end_date)` - Returns trend buckets for a date range. Ranges ≤ 62 days use daily buckets; longer ranges use months. Empty buckets are included so the time axis stays continuous.
   - `get_earliest_system_date()` - Returns the earliest date in the system (transactions or users) for dynamic "all time" ranges.
   - All functions include admin email whitelist verification using `SECURITY DEFINER`.
 - **Frontend Implementation:**

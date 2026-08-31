@@ -61,12 +61,14 @@ export function AdminDashboardPage() {
           fetchEarliestSystemDate(),
         ]);
 
+        setEarliestDate(earliestDateData);
         if (!statsData) {
-          throw new Error(t("errors.loadFailed"));
+          setStats(null);
+          setError(t("errors.loadFailed"));
+          return;
         }
 
         setStats(statsData);
-        setEarliestDate(earliestDateData);
       } catch (err) {
         setError(err instanceof Error ? err.message : t("errors.loadFailed"));
       } finally {
@@ -97,16 +99,12 @@ export function AdminDashboardPage() {
     );
   }
 
-  if (error || !stats) {
-    return (
-      <div className="container mx-auto p-4 sm:p-6">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error || t("errors.loadFailed")}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  const statsErrorAlert = (
+    <Alert variant="destructive">
+      <AlertCircle className="h-4 w-4" />
+      <AlertDescription>{error || t("errors.loadFailed")}</AlertDescription>
+    </Alert>
+  );
 
   return (
     <div className="container mx-auto p-4 sm:p-6 space-y-6" dir={i18n.dir()}>
@@ -211,16 +209,26 @@ export function AdminDashboardPage() {
 
         {/* Users Tab */}
         <TabsContent value="users" className="space-y-6">
-          <AdminUsersSection stats={stats.users} />
-          <AdminEngagementSection
-            engagement={stats.engagement}
-            system={stats.system}
-          />
+          {stats ? (
+            <>
+              <AdminUsersSection stats={stats.users} />
+              <AdminEngagementSection
+                engagement={stats.engagement}
+                system={stats.system}
+              />
+            </>
+          ) : (
+            statsErrorAlert
+          )}
         </TabsContent>
 
         {/* Finance Tab */}
         <TabsContent value="finance" className="space-y-6">
-          <AdminFinanceSection finance={stats.finance} />
+          {stats ? (
+            <AdminFinanceSection finance={stats.finance} />
+          ) : (
+            statsErrorAlert
+          )}
         </TabsContent>
 
         {/* Trends Tab — chart owns its own fetch (avoids page 12m + chart month double-fetch) */}
@@ -230,7 +238,11 @@ export function AdminDashboardPage() {
 
         {/* Downloads Tab */}
         <TabsContent value="downloads" className="space-y-6">
-          <AdminDownloadsSection downloads={stats.downloads} />
+          {stats ? (
+            <AdminDownloadsSection downloads={stats.downloads} />
+          ) : (
+            statsErrorAlert
+          )}
         </TabsContent>
 
         {/* Monitoring Tab */}
