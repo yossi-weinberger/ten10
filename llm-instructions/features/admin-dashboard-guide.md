@@ -409,7 +409,7 @@ Interactive charts with date range filtering.
 
 #### Shared admin chart/finance helpers
 
-**Files:** `src/lib/admin/trend-chart.utils.ts`, `src/lib/admin/use-admin-currency-selection.ts`
+**Files:** `src/lib/admin/admin-currency.utils.ts`, `src/lib/admin/trend-chart.utils.ts`, `src/lib/admin/use-admin-currency-selection.ts`
 
 - `sortAdminCurrencies` — ILS, USD, then `localeCompare`
 - `sumSelectedCurrencyTotals` — sums `by_currency` for checked codes (missing fields = 0)

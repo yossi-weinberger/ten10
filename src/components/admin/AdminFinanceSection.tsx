@@ -17,7 +17,7 @@ import {
   formatAdminMixedAmount,
   sortAdminCurrencies,
   sumSelectedCurrencyTotals,
-} from "@/lib/admin/trend-chart.utils";
+} from "@/lib/admin/admin-currency.utils";
 
 interface AdminFinanceSectionProps {
   finance: AdminFinanceStats;

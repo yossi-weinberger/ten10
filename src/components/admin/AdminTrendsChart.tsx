@@ -35,10 +35,12 @@ import { AdminCurrencyFilter } from "@/components/admin/AdminCurrencyFilter";
 import { useAdminCurrencySelection } from "@/lib/admin/use-admin-currency-selection";
 import {
   formatAdminMixedAmount,
-  formatCompactAmount,
-  formatTrendBucketLabel,
   sortAdminCurrencies,
   sumSelectedCurrencyTotals,
+} from "@/lib/admin/admin-currency.utils";
+import {
+  formatCompactAmount,
+  formatTrendBucketLabel,
 } from "@/lib/admin/trend-chart.utils";
 
 interface AdminTrendsChartProps {

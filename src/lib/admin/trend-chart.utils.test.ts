@@ -1,11 +1,13 @@
 import { describe, it, expect } from "vitest";
 import {
   formatAdminMixedAmount,
+  sortAdminCurrencies,
+  sumSelectedCurrencyTotals,
+} from "./admin-currency.utils";
+import {
   formatCompactAmount,
   formatTrendBucketLabel,
   isPresentChartValue,
-  sortAdminCurrencies,
-  sumSelectedCurrencyTotals,
 } from "./trend-chart.utils";
 
 const sampleByCurrency = {
