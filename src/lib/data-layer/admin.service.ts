@@ -12,6 +12,16 @@ export interface AdminUserStats {
   new_7d: number;
 }
 
+export interface AdminCurrencyBreakdown {
+  income: number;
+  expenses: number;
+  donations: number;
+  exempt_income?: number;
+  recognized_expenses?: number;
+  non_tithe_donation?: number;
+  total_managed: number;
+}
+
 export interface AdminFinanceStats {
   total_income: number;
   total_expenses: number;
@@ -19,15 +29,7 @@ export interface AdminFinanceStats {
   total_recognized_expenses: number;
   total_exempt_income: number;
   total_non_tithe_donation: number;
-  by_currency: Record<
-    string,
-    {
-      income: number;
-      expenses: number;
-      donations: number;
-      total_managed: number;
-    }
-  >;
+  by_currency: Record<string, AdminCurrencyBreakdown>;
 }
 
 export interface AdminDownloadStats {
@@ -56,6 +58,12 @@ export interface AdminDashboardStats {
   system: AdminSystemStats;
 }
 
+export interface MonthlyTrendCurrencyBreakdown {
+  income: number;
+  expenses: number;
+  donations: number;
+}
+
 export interface MonthlyTrend {
   month: string;
   new_users: number;
@@ -64,6 +72,8 @@ export interface MonthlyTrend {
   total_donations: number;
   transaction_count: number;
   active_users: number;
+  download_requests?: number;
+  by_currency?: Record<string, MonthlyTrendCurrencyBreakdown>;
 }
 
 // ============================================================================

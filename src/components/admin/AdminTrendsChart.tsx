@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -31,9 +31,14 @@ import {
   useDateControls,
   DateRangeSelectionType,
 } from "@/hooks/useDateControls";
+import { AdminCurrencyFilter } from "@/components/admin/AdminCurrencyFilter";
+import { useAdminCurrencySelection } from "@/lib/admin/use-admin-currency-selection";
 import {
+  formatAdminMixedAmount,
   formatCompactAmount,
   formatTrendBucketLabel,
+  sortAdminCurrencies,
+  sumSelectedCurrencyTotals,
 } from "@/lib/admin/trend-chart.utils";
 
 interface AdminTrendsChartProps {
@@ -102,10 +107,47 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
     earliestDate,
   ]);
 
+  const currencies = useMemo(() => {
+    const codes = new Set<string>();
+    for (const row of trends) {
+      if (!row.by_currency) continue;
+      for (const code of Object.keys(row.by_currency)) {
+        codes.add(code);
+      }
+    }
+    return sortAdminCurrencies([...codes]);
+  }, [trends]);
+  const [selectedCurrencies, setSelectedCurrencies] =
+    useAdminCurrencySelection(currencies);
+
+  const financeChartData = useMemo(
+    () =>
+      trends.map((row) => {
+        if (row.by_currency && Object.keys(row.by_currency).length > 0) {
+          const sums = sumSelectedCurrencyTotals(
+            row.by_currency,
+            selectedCurrencies
+          );
+          return {
+            ...row,
+            total_income: sums.income,
+            total_expenses: sums.expenses,
+            total_donations: sums.donations,
+          };
+        }
+        return row;
+      }),
+    [trends, selectedCurrencies]
+  );
+
   const userGrowthConfig = {
     new_users: {
       label: t("trends.newUsers"),
       color: "hsl(var(--chart-teal))",
+    },
+    download_requests: {
+      label: t("trends.downloadRequests"),
+      color: "hsl(var(--chart-purple))",
     },
   } satisfies ChartConfig;
 
@@ -224,6 +266,9 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
           <Card>
             <CardHeader>
               <CardTitle>{t("trends.userGrowth")}</CardTitle>
+              <p className="text-sm font-normal text-muted-foreground">
+                {t("trends.downloadRequestsHint")}
+              </p>
             </CardHeader>
             <CardContent>
               <ChartContainer
@@ -268,6 +313,28 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                     fillOpacity={0.4}
                     strokeWidth={2}
                   />
+                  <Line
+                    type="monotone"
+                    dataKey="download_requests"
+                    stroke="var(--color-download_requests)"
+                    strokeWidth={2}
+                    dot={
+                      isDailyBuckets
+                        ? false
+                        : {
+                            fill: "hsl(var(--background))",
+                            stroke: "var(--color-download_requests)",
+                            strokeWidth: 2,
+                            r: 5,
+                          }
+                    }
+                    activeDot={{
+                      r: 6,
+                      fill: "var(--color-download_requests)",
+                      stroke: "hsl(var(--background))",
+                      strokeWidth: 2,
+                    }}
+                  />
                 </AreaChart>
               </ChartContainer>
             </CardContent>
@@ -280,13 +347,20 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                 {t("trends.financialDisclaimer")}
               </p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {currencies.length > 0 && (
+                <AdminCurrencyFilter
+                  currencies={currencies}
+                  selected={selectedCurrencies}
+                  onChange={setSelectedCurrencies}
+                />
+              )}
               <ChartContainer
                 config={financialConfig}
                 className="aspect-auto h-[400px] w-full"
                 dir="ltr"
               >
-                <AreaChart data={trends}>
+                <AreaChart data={financeChartData}>
                   <CartesianGrid
                     strokeDasharray="3 3"
                     className="stroke-muted"
@@ -307,7 +381,11 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                     width={56}
                     className="text-muted-foreground"
                     tickFormatter={(value) =>
-                      formatCompactAmount(Number(value), locale)
+                      formatAdminMixedAmount(
+                        Number(value),
+                        selectedCurrencies,
+                        locale
+                      )
                     }
                   />
                   <ChartTooltip
@@ -372,20 +450,9 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                     tickFormatter={formatBucketLabel}
                   />
                   <YAxis
-                    yAxisId="tx"
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
-                    className="text-muted-foreground"
-                    tickFormatter={compactCountTick}
-                  />
-                  <YAxis
-                    yAxisId="users"
-                    orientation="right"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    width={40}
                     className="text-muted-foreground"
                     tickFormatter={compactCountTick}
                   />
@@ -398,7 +465,6 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                   />
                   <ChartLegend content={<ChartLegendContent />} />
                   <Line
-                    yAxisId="tx"
                     type="monotone"
                     dataKey="transaction_count"
                     stroke="var(--color-transaction_count)"
@@ -421,7 +487,6 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
                     }}
                   />
                   <Line
-                    yAxisId="users"
                     type="monotone"
                     dataKey="active_users"
                     stroke="var(--color-active_users)"

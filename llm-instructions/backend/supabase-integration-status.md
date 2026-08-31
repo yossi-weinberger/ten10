@@ -175,8 +175,8 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - Admin email: `<admin-email@example.com>` configured as initial admin.
   - All admin operations secured at database level - cannot be bypassed from frontend.
 - **Admin RPC Functions:**
-  - `get_admin_dashboard_stats()` - Returns comprehensive statistics (users, finance, downloads, engagement, system).
-  - `get_admin_monthly_trends(p_start_date, p_end_date)` - Returns trend buckets for a date range. Ranges ≤ 62 days use daily buckets; longer ranges use months. Empty buckets are included so the time axis stays continuous.
+  - `get_admin_dashboard_stats()` - Returns comprehensive statistics (users, finance, downloads, engagement, system). Finance `by_currency` includes related types (`exempt_income`, `recognized_expenses`, `non_tithe_donation`) from a single transactions scan; UI checkboxes filter which currencies enter the displayed sums.
+  - `get_admin_monthly_trends(p_start_date, p_end_date)` - Returns trend buckets for a date range. Ranges ≤ 62 days use daily buckets; longer ranges use months. Empty buckets are included so the time axis stays continuous. Each bucket includes `by_currency` (income/expenses/donations) and `download_requests` (`status=sent` by `created_at`). Activity chart uses one Y-axis.
   - `get_earliest_system_date()` - Returns the earliest date in the system (transactions or users) for dynamic "all time" ranges.
   - All functions include admin email whitelist verification using `SECURITY DEFINER`.
 - **Frontend Implementation:**
@@ -184,10 +184,11 @@ This document tracks the progress of integrating Supabase into the Ten10 project
   - Page: `src/pages/AdminDashboardPage.tsx` with tabs-based navigation.
   - Components: `src/components/admin/` directory containing:
     - `AdminUsersSection.tsx` - User statistics with StatCard / AdminMetricCard components.
-    - `AdminFinanceSection.tsx` - Financial overview with currency breakdown.
+    - `AdminFinanceSection.tsx` - Financial overview with shared currency checkboxes over `by_currency`.
+    - `AdminCurrencyFilter.tsx` - Checkbox row used by Finance and Trends (separate selection state per tab).
     - `AdminEngagementSection.tsx` - Engagement and system metrics.
     - `AdminDownloadsSection.tsx` - Desktop download email requests + GitHub release stats.
-    - `AdminTrendsChart.tsx` - Interactive charts with date range controls.
+    - `AdminTrendsChart.tsx` - Interactive charts with date range controls, currency-filtered finance series, installer download-request line, single activity Y-axis.
     - `AdminPostHogSection.tsx` - PostHog product analytics aggregates.
   - Service: `src/lib/data-layer/admin.service.ts` for admin RPCs; `posthogAdmin.service.ts` for PostHog Edge Function.
   - Translations: `public/locales/{he,en}/admin.json` namespace.

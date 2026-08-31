@@ -86,6 +86,9 @@ Returns comprehensive dashboard statistics.
         income: number;
         expenses: number;
         donations: number;
+        exempt_income: number;
+        recognized_expenses: number;
+        non_tithe_donation: number;
         total_managed: number;
       }
     >;
@@ -133,6 +136,11 @@ Array<{
   total_donations: number;
   transaction_count: number;
   active_users: number;
+  download_requests: number; // download_requests.status = 'sent' by created_at
+  by_currency: Record<
+    string,
+    { income: number; expenses: number; donations: number }
+  >;
 }>;
 ```
 
@@ -162,7 +170,8 @@ src/
 │   └── admin/
 │       ├── AdminMetricCard.tsx         # Shared neutral metric card (theme tokens)
 │       ├── AdminUsersSection.tsx       # User statistics
-│       ├── AdminFinanceSection.tsx     # Financial overview (explicit ILS formatting)
+│       ├── AdminCurrencyFilter.tsx     # Shared currency checkboxes (finance + trends)
+│       ├── AdminFinanceSection.tsx     # Financial overview (filtered by_currency sums)
 │       ├── AdminEngagementSection.tsx  # Engagement metrics
 │       ├── AdminDownloadsSection.tsx   # Email download requests + GitHub release stats
 │       ├── AdminTrendsChart.tsx        # Interactive charts (owns its own date-range fetch)
@@ -246,11 +255,12 @@ Financial overview with highlighted total and breakdown.
 
 **Features:**
 
-- Large centered "Total Managed" card (primary/muted, not green gradient)
-- Formats amounts explicitly as currency (default ILS) — does **not** use dashboard `StatCard` / user `defaultCurrency`
-- Disclaimer: amounts are **not FX-converted** across currencies
-- Three main categories (Income, Expenses, Donations) with absolute subtitles for related types (not misleading %)
-- Currency breakdown sorted by: ILS, USD, then alphabetically
+- Shared `AdminCurrencyFilter` checkboxes (all selected by default; empty selection is zeros). Selection is tab-local, not URL-synced.
+- Hero + three cards + related-type subtitles are summed from `by_currency` for the checked codes — not from global `total_*`
+- One selected currency: `Intl` currency format for that ISO code (including GBP/CAD). Mixed/none: compact number, no currency sign. Does **not** use `normalizeCurrencyCode` (that maps unknown → ILS)
+- Related types (exempt income / recognized expenses / non-tithe donations) live in `by_currency` and follow the same filter
+- Per-currency breakdown hides unchecked currencies
+- Disclaimer: checkboxes filter; no FX; mixed sum has no currency sign
 
 #### AdminEngagementSection
 
@@ -268,7 +278,7 @@ Engagement and system metrics with visual separation and tooltips.
 
 Owns trends fetch for the selected date range (default: month). Avoids double-fetch with the page load.
 
-**Charts:** legend via `ChartLegend`, unstacked finance areas (income / donations / expenses plotted independently, not `stackId`), compact Y-axis without a currency glyph, `--chart-*` colors, loading/error UI. Short ranges use daily buckets from the RPC; longer ranges use months. Activity uses dual Y-axes (`transaction_count` left, `active_users` right). Chart containers use `aspect-auto` and `dir="ltr"`.
+**Charts:** legend via `ChartLegend`, unstacked finance areas (income / donations / expenses plotted independently, not `stackId`), currency checkboxes above the finance chart (`useMemo` over `by_currency`, no refetch), compact Y-axis (currency glyph only when one currency is selected), `--chart-*` colors, loading/error UI. Short ranges use daily buckets from the RPC; longer ranges use months. User-growth chart includes a second series `download_requests` (same `status=sent` metric as the Downloads tab; GitHub totals stay there). Activity uses a **single shared Y-axis**. Chart containers use `aspect-auto` and `dir="ltr"`.
 
 #### AdminDownloadsSection
 
@@ -370,13 +380,14 @@ Interactive charts with date range filtering.
 - Date range controls (month, year, all time, custom)
 - Uses `useDateControls` hook from main dashboard
 - Three charts:
-  1. New users (AreaChart)
-  2. Financial Trends (AreaChart — unstacked)
-  3. Activity (LineChart — dual Y-axis)
+  1. New users + installer download requests (AreaChart + Line, shared Y-axis)
+  2. Financial Trends (AreaChart — unstacked, currency checkboxes)
+  3. Activity (LineChart — single Y-axis)
 
 **Colors:**
 
 - New users: teal (`hsl(var(--chart-teal))`)
+- Installer download requests: purple (`hsl(var(--chart-purple))`)
 - Income: green (`hsl(var(--chart-green))`)
 - Donations: yellow (`hsl(var(--chart-yellow))`)
 - Expenses: red (`hsl(var(--chart-red))`)
@@ -395,6 +406,15 @@ Interactive charts with date range filtering.
 - `checkIsAdmin()` - Check if current user is admin
 
 **Exported via:** `src/lib/data-layer/index.ts`
+
+#### Shared admin chart/finance helpers
+
+**Files:** `src/lib/admin/trend-chart.utils.ts`, `src/lib/admin/use-admin-currency-selection.ts`
+
+- `sortAdminCurrencies` — ILS, USD, then `localeCompare`
+- `sumSelectedCurrencyTotals` — sums `by_currency` for checked codes (missing fields = 0)
+- `formatAdminMixedAmount` — one ISO code → `Intl` currency; mixed/none → compact, no glyph
+- Blank/null SQL `currency` is grouped as `UNKNOWN` so it can be filtered
 
 #### Monitoring Service
 
@@ -563,7 +583,9 @@ Potential future additions:
 - [ ] Charts use correct colors (green, yellow, red)
 - [ ] New users chart shows teal area
 - [ ] Financial chart shows unstacked areas (income peak is not income+donations+expenses)
-- [ ] Activity chart shows dual Y-axes (transactions vs active users)
+- [ ] Activity chart uses a single shared Y-axis
+- [ ] Unchecking a currency updates finance cards/chart without a network request
+- [ ] Mixed currency selection shows no ₪ / currency sign; a single currency uses that ISO code
 - [ ] Total managed card is centered and prominent
 - [ ] All cards use consistent styling
 

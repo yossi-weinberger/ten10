@@ -74,7 +74,7 @@
     "title": "Financial Statistics",
     "totalManaged": "Total Money Managed in System",
     "totalManagedHint": "Income + expenses + donations (no FX conversion)",
-    "disclaimer": "Amounts are shown as stored in the database, without converting between currencies. Per-currency breakdown is below.",
+    "disclaimer": "Checkboxes filter which currencies enter the totals. There is no FX conversion. When more than one currency is selected, amounts have no currency sign.",
     "totalIncome": "Total Income",
     "totalExpenses": "Total Expenses",
     "totalDonations": "Total Donations",
@@ -145,7 +145,9 @@
     "activeUsers": "Active Users",
     "noData": "No trend data available",
     "loadFailed": "Failed to load trends",
-    "financialDisclaimer": "Amounts without FX conversion or a currency sign (raw sum)."
+    "financialDisclaimer": "Checkboxes filter which currencies enter each series. No FX conversion. Mixed selection has no currency sign.",
+    "downloadRequests": "Installer download requests",
+    "downloadRequestsHint": "Same metric as the Downloads tab (status=sent). GitHub release totals stay on that tab."
   },
   "monitoring": {
     "title": "System Monitoring",
