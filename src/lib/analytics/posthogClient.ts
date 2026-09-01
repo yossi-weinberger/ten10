@@ -21,6 +21,10 @@ const BENIGN_ERROR_MESSAGES = [
   "ResizeObserver loop limit exceeded",
   // Generic network hiccups from cancelled/failed fetches and script loads.
   "Non-Error promise rejection captured",
+  // posthog-js aborts its own outgoing request after 3000ms and reports the
+  // AbortError back through `capture_exceptions`. It is SDK network noise, not
+  // an app bug, so we drop it here.
+  "PostHog request timed out after",
 ];
 
 /**
