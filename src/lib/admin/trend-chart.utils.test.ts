@@ -40,6 +40,12 @@ describe("isPresentChartValue", () => {
     expect(isPresentChartValue(undefined)).toBe(false);
     expect(isPresentChartValue("")).toBe(false);
   });
+
+  it("rejects NaN and Infinity", () => {
+    expect(isPresentChartValue(Number.NaN)).toBe(false);
+    expect(isPresentChartValue(Number.POSITIVE_INFINITY)).toBe(false);
+    expect(isPresentChartValue(Number.NEGATIVE_INFINITY)).toBe(false);
+  });
 });
 
 describe("formatTrendBucketLabel", () => {

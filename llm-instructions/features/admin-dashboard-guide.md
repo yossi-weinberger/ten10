@@ -112,7 +112,7 @@ Returns comprehensive dashboard statistics. Finance, engagement, and `active_30d
 
 #### 2. `get_admin_monthly_trends(p_start_date, p_end_date)`
 
-Returns trend buckets filtered by date range (set-based aggregates; not per-month correlated subqueries).
+Returns trend buckets filtered by date range (set-based aggregates; not per-month correlated subqueries). Admin check uses `is_admin_user()`.
 
 **Parameters:**
 

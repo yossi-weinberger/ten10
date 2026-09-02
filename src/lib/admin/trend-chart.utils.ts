@@ -2,6 +2,9 @@ export function isPresentChartValue(value: unknown): boolean {
   if (value === null || value === undefined || value === "") {
     return false;
   }
+  if (typeof value === "number" && !Number.isFinite(value)) {
+    return false;
+  }
   return true;
 }
 
