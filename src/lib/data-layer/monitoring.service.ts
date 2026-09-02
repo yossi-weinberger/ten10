@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
 import type {
@@ -86,7 +87,8 @@ export async function fetchMonitoringData(): Promise<MonitoringData | null> {
  * Calculate system health overview from monitoring data
  */
 export function calculateSystemHealth(
-  data: MonitoringData
+  data: MonitoringData,
+  t: TFunction<"admin">
 ): SystemHealthOverview {
   const now = new Date().toISOString();
 
@@ -100,8 +102,8 @@ export function calculateSystemHealth(
     status: dbHasError ? "error" : dbHasWarning ? "warning" : "healthy",
     message:
       dbAnomalies.length > 0
-        ? `${dbAnomalies.length} issue(s) detected`
-        : "All systems normal",
+        ? t("monitoring.health.issuesDetected", { count: dbAnomalies.length })
+        : t("monitoring.health.allNormal"),
     lastCheck: now,
   };
 
@@ -126,8 +128,10 @@ export function calculateSystemHealth(
         : "healthy",
     message:
       authAnomaliesMeaningful.length > 0
-        ? `${authAnomaliesMeaningful.length} issue(s) detected`
-        : "All systems normal",
+        ? t("monitoring.health.issuesDetected", {
+            count: authAnomaliesMeaningful.length,
+          })
+        : t("monitoring.health.allNormal"),
     lastCheck: now,
   };
 
@@ -143,8 +147,10 @@ export function calculateSystemHealth(
     status: edgeHasError ? "error" : edgeHasWarning ? "warning" : "healthy",
     message:
       data.edgeFunctions.errorRate > 0
-        ? `${data.edgeFunctions.errorRate}% error rate`
-        : "All systems normal",
+        ? t("monitoring.health.errorRate", {
+            rate: data.edgeFunctions.errorRate,
+          })
+        : t("monitoring.health.allNormal"),
     lastCheck: now,
   };
 
@@ -153,23 +159,31 @@ export function calculateSystemHealth(
   const emailHasError = emailAnomalies.some((a) => a.severity === "error");
   const emailHasWarning = emailAnomalies.some((a) => a.severity === "warning");
 
-  let emailMessage = "All systems normal";
+  let emailMessage = t("monitoring.health.allNormal");
   let emailStatus: ServiceHealthStatus = "healthy";
 
   if (!data.email) {
     emailStatus = "unknown";
-    emailMessage = "Requires deployment";
+    emailMessage = t("monitoring.stats.emailRequiresDeploy");
   } else if (!data.email.available) {
     emailStatus = "unknown";
-    emailMessage = data.email.error || "Not configured";
+    emailMessage = data.email.error || t("monitoring.stats.emailNotConfigured");
   } else if (emailHasError) {
     emailStatus = "error";
-    emailMessage = `Bounce rate: ${data.email.bounceRate}%`;
+    emailMessage = t("monitoring.health.emailBounceRate", {
+      rate: data.email.bounceRate,
+    });
   } else if (emailHasWarning) {
     emailStatus = "warning";
-    emailMessage = `${data.email.sends24h} sent, ${data.email.bounces24h} bounced`;
+    emailMessage = t("monitoring.health.emailSentBounced", {
+      sent: data.email.sends24h,
+      bounced: data.email.bounces24h,
+    });
   } else if (data.email.sends24h > 0) {
-    emailMessage = `${data.email.sends24h} sent, ${data.email.deliveryRate}% delivered`;
+    emailMessage = t("monitoring.health.emailSentDelivered", {
+      sent: data.email.sends24h,
+      rate: data.email.deliveryRate,
+    });
   }
 
   const emailHealth: ServiceHealth = {

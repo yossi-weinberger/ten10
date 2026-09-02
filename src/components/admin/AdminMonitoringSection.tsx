@@ -23,7 +23,6 @@ import {
   getPerformanceAdvisories,
   formatTimestamp,
   type MonitoringData,
-  type SystemHealthOverview,
 } from "@/lib/data-layer/monitoring.service";
 import { getTooltipDescriptions } from "./monitoring/monitoringUtils";
 import {
@@ -44,7 +43,6 @@ export function AdminMonitoringSection() {
   const { t, i18n } = useTranslation("admin");
   const tooltipDescriptions = getTooltipDescriptions(t);
   const [data, setData] = useState<MonitoringData | null>(null);
-  const [health, setHealth] = useState<SystemHealthOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
@@ -61,7 +59,6 @@ export function AdminMonitoringSection() {
       }
 
       setData(monitoringData);
-      setHealth(calculateSystemHealth(monitoringData));
       setLastRefresh(new Date());
     } catch (err) {
       setError(err instanceof Error ? err.message : t("errors.loadFailed"));
@@ -110,9 +107,11 @@ export function AdminMonitoringSection() {
     );
   }
 
-  if (!data || !health) {
+  if (!data) {
     return null;
   }
+
+  const health = calculateSystemHealth(data, t);
 
   const errors = getRecentErrors(data);
   const warnings = getWarnings(data);

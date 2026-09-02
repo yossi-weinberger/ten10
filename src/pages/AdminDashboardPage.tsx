@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -29,14 +29,53 @@ import { AdminMonitoringSection } from "@/components/admin/AdminMonitoringSectio
 import { AdminPostHogSection } from "@/components/admin/AdminPostHogSection";
 import { cn } from "@/lib/utils";
 
+type AdminTab =
+  | "users"
+  | "finance"
+  | "trends"
+  | "downloads"
+  | "monitoring"
+  | "posthog";
+
+function isAdminTab(value: string): value is AdminTab {
+  switch (value) {
+    case "users":
+    case "finance":
+    case "trends":
+    case "downloads":
+    case "monitoring":
+    case "posthog":
+      return true;
+    default:
+      return false;
+  }
+}
+
+function AdminStatsTabSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Skeleton key={i} className="h-32" />
+        ))}
+      </div>
+      <Skeleton className="h-96" />
+    </div>
+  );
+}
+
 export function AdminDashboardPage() {
   const { t, i18n } = useTranslation("admin");
   const { platform } = usePlatform();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<AdminTab>("users");
   const [stats, setStats] = useState<AdminDashboardStats | null>(null);
-  const [earliestDate, setEarliestDate] = useState<string>("2025-05-01");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [statsError, setStatsError] = useState<string | null>(null);
+  // Default tab is Users — start the fat stats fetch immediately (no empty flash).
+  const [shouldLoadStats, setShouldLoadStats] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [earliestDate, setEarliestDate] = useState<string | null>(null);
+  const [shouldLoadEarliest, setShouldLoadEarliest] = useState(false);
 
   // Redirect if on desktop platform
   useEffect(() => {
@@ -45,68 +84,119 @@ export function AdminDashboardPage() {
     }
   }, [platform, navigate]);
 
+  const handleTabChange = (value: string) => {
+    if (!isAdminTab(value)) {
+      return;
+    }
+    setActiveTab(value);
+    switch (value) {
+      case "users":
+      case "finance":
+      case "downloads":
+        setShouldLoadStats(true);
+        break;
+      case "trends":
+        setShouldLoadEarliest(true);
+        break;
+      case "monitoring":
+      case "posthog":
+        break;
+      default: {
+        const _exhaustive: never = value;
+        return _exhaustive;
+      }
+    }
+  };
+
   useEffect(() => {
-    // Only load data if on web platform
-    if (platform !== "web") {
+    if (platform !== "web" || !shouldLoadStats) {
       return;
     }
 
-    async function loadData() {
-      setLoading(true);
-      setError(null);
+    let cancelled = false;
+
+    async function loadStats() {
+      setStatsLoading(true);
+      setStatsError(null);
 
       try {
-        const [statsData, earliestDateData] = await Promise.all([
-          fetchAdminDashboardStats(),
-          fetchEarliestSystemDate(),
-        ]);
-
+        const statsData = await fetchAdminDashboardStats();
+        if (cancelled) return;
         if (!statsData) {
-          throw new Error(t("errors.loadFailed"));
+          setStats(null);
+          setStatsError(t("errors.loadFailed"));
+          return;
         }
-
         setStats(statsData);
-        setEarliestDate(earliestDateData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("errors.loadFailed"));
+        if (cancelled) return;
+        setStatsError(
+          err instanceof Error ? err.message : t("errors.loadFailed")
+        );
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setStatsLoading(false);
+        }
       }
     }
 
-    loadData();
-  }, [platform, t]);
+    void loadStats();
+    return () => {
+      cancelled = true;
+    };
+    // Language changes must not refetch; `t` is only used for error copy.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- omit t
+  }, [platform, shouldLoadStats]);
+
+  useEffect(() => {
+    if (platform !== "web" || !shouldLoadEarliest) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadEarliest() {
+      try {
+        const date = await fetchEarliestSystemDate();
+        if (!cancelled) {
+          setEarliestDate(date);
+        }
+      } catch {
+        if (!cancelled) {
+          setEarliestDate("2025-05-01");
+        }
+      }
+    }
+
+    void loadEarliest();
+    return () => {
+      cancelled = true;
+    };
+  }, [platform, shouldLoadEarliest]);
 
   // Don't render anything on desktop
   if (platform === "desktop") {
     return null;
   }
 
-  if (loading) {
-    return (
-      <div className="container mx-auto p-4 sm:p-6 space-y-6">
-        <Skeleton className="h-12 w-64" />
-        <Skeleton className="h-10 w-full max-w-md" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
-        </div>
-        <Skeleton className="h-96" />
-      </div>
-    );
-  }
+  const statsErrorAlert = (
+    <Alert variant="destructive">
+      <AlertCircle className="h-4 w-4" />
+      <AlertDescription>
+        {statsError || t("errors.loadFailed")}
+      </AlertDescription>
+    </Alert>
+  );
 
-  if (error || !stats) {
-    return (
-      <div className="container mx-auto p-4 sm:p-6">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error || t("errors.loadFailed")}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  const renderStatsTab = (content: ReactNode) => {
+    if (statsLoading && !stats) {
+      return <AdminStatsTabSkeleton />;
+    }
+    if (stats) {
+      return content;
+    }
+    return statsErrorAlert;
+  };
 
   return (
     <div className="container mx-auto p-4 sm:p-6 space-y-6" dir={i18n.dir()}>
@@ -122,7 +212,11 @@ export function AdminDashboardPage() {
       </div>
 
       {/* Tabs - Halacha-style: card container, 2 per row on mobile */}
-      <Tabs defaultValue="users" className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={handleTabChange}
+        className="w-full"
+      >
         <TabsList
           className={cn(
             "grid w-full grid-cols-2 gap-2 p-2 h-auto",
@@ -211,34 +305,54 @@ export function AdminDashboardPage() {
 
         {/* Users Tab */}
         <TabsContent value="users" className="space-y-6">
-          <AdminUsersSection stats={stats.users} />
-          <AdminEngagementSection
-            engagement={stats.engagement}
-            system={stats.system}
-          />
+          {renderStatsTab(
+            stats ? (
+              <>
+                <AdminUsersSection stats={stats.users} />
+                <AdminEngagementSection
+                  engagement={stats.engagement}
+                  system={stats.system}
+                />
+              </>
+            ) : null
+          )}
         </TabsContent>
 
         {/* Finance Tab */}
         <TabsContent value="finance" className="space-y-6">
-          <AdminFinanceSection finance={stats.finance} />
+          {renderStatsTab(
+            stats ? <AdminFinanceSection finance={stats.finance} /> : null
+          )}
         </TabsContent>
 
-        {/* Trends Tab — chart owns its own fetch (avoids page 12m + chart month double-fetch) */}
+        {/* Trends Tab — chart owns its own fetch; earliestDate only when opened */}
         <TabsContent value="trends" className="space-y-6">
-          <AdminTrendsChart earliestDate={earliestDate} />
+          {earliestDate ? (
+            <AdminTrendsChart earliestDate={earliestDate} />
+          ) : (
+            <div className="space-y-4">
+              <Skeleton className="h-[300px] w-full" />
+              <Skeleton className="h-[400px] w-full" />
+              <Skeleton className="h-[300px] w-full" />
+            </div>
+          )}
         </TabsContent>
 
         {/* Downloads Tab */}
         <TabsContent value="downloads" className="space-y-6">
-          <AdminDownloadsSection downloads={stats.downloads} />
+          {renderStatsTab(
+            stats ? (
+              <AdminDownloadsSection downloads={stats.downloads} />
+            ) : null
+          )}
         </TabsContent>
 
-        {/* Monitoring Tab */}
+        {/* Monitoring Tab — fetches itself, not blocked on stats */}
         <TabsContent value="monitoring" className="space-y-6">
           <AdminMonitoringSection />
         </TabsContent>
 
-        {/* PostHog Analytics Tab */}
+        {/* PostHog Analytics Tab — fetches itself, not blocked on stats */}
         <TabsContent value="posthog" className="space-y-6">
           <AdminPostHogSection />
         </TabsContent>
