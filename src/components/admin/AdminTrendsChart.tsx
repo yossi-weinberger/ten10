@@ -430,6 +430,9 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
           <Card>
             <CardHeader>
               <CardTitle>{t("trends.activityTrends")}</CardTitle>
+              <p className="text-sm font-normal text-muted-foreground">
+                {t("trends.activeUsersHint")}
+              </p>
             </CardHeader>
             <CardContent>
               <ChartContainer

@@ -18,7 +18,6 @@ export const getTooltipDescriptions = (
   rowCount: t("monitoring.tooltips.rowCount"),
 
   // Auth Stats
-  failedLogins: t("monitoring.tooltips.failedLogins"),
   signups: t("monitoring.tooltips.signups"),
   passwordResets: t("monitoring.tooltips.passwordResets"),
 

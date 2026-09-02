@@ -46,27 +46,7 @@ export function AuthStats({ data }: AuthStatsProps) {
         <CollapsibleContent>
           <CardContent className="space-y-4" dir={i18n.dir()}>
             {/* Summary Stats */}
-            <div className="grid grid-cols-3 gap-4">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="p-3 rounded-lg bg-muted/50 text-center cursor-help border border-dashed border-muted-foreground/30">
-                    <p className="text-2xl font-bold text-muted-foreground">
-                      {t("monitoring.stats.notAvailable")}
-                    </p>
-                    <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                      {t("monitoring.stats.failedLogins")}
-                      <HelpCircle className="h-3 w-3 text-yellow-500" />
-                    </p>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent
-                  side="bottom"
-                  className={`max-w-xs ${i18n.dir() === "rtl" ? "text-end" : "text-start"}`}
-                  dir={i18n.dir()}
-                >
-                  <p>{tooltipDescriptions.failedLogins}</p>
-                </TooltipContent>
-              </Tooltip>
+            <div className="grid grid-cols-2 gap-4">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="p-3 rounded-lg bg-muted/50 text-center cursor-help">

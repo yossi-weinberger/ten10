@@ -30,7 +30,7 @@ CREATE TABLE admin_emails (
 1. **Route Protection (`src/routes.ts`):**
 
    - `beforeLoad` check prevents desktop platform access
-   - `beforeLoad` verifies admin privileges via RPC call
+   - `beforeLoad` verifies admin privileges via light `is_admin_user()` (`checkIsAdmin()`), not `get_admin_dashboard_stats`
    - Automatic redirect to home for non-admin users
 
 2. **Component Protection (`AdminDashboardPage.tsx`):**
@@ -59,7 +59,7 @@ CREATE TABLE admin_emails (
 
 #### 1. `get_admin_dashboard_stats()`
 
-Returns comprehensive dashboard statistics.
+Returns comprehensive dashboard statistics. Finance, engagement, and `active_30d` share one materialized `transactions` scan (`20260902120000_admin_dashboard_stats_one_scan.sql`). Users/downloads stay on their own tables. Both `()` and `(integer)` signatures exist; integer wraps no-arg. Admin check uses `is_admin_user()`.
 
 **Returns:**
 
@@ -210,7 +210,7 @@ supabase/
 
 #### AdminDashboardPage
 
-Main page with tab-based navigation.
+Main page with tab-based navigation. Header + tabs render immediately. Fat `get_admin_dashboard_stats` loads only for Users / Finance / Downloads (starts on the default Users tab). `get_earliest_system_date` loads only when Trends is opened. Monitoring and PostHog fetch themselves and are not blocked on stats.
 
 **Tabs:**
 
@@ -223,7 +223,9 @@ Main page with tab-based navigation.
 
 **PostHog tab notes** (merged via `#316`; details in `analytics/posthog-integration-guide.md`):
 
+- Field `dau7d` is 7-day unique persons (label as 7-day uniques — not classic daily DAU)
 - Field `wau30d` is 30-day unique persons (label as 30-day actives / MAU — not classic WAU)
+- Field `surveyResponses30d` counts PostHog `survey sent` events (label as surveys sent, not "responses")
 - Do not equate PostHog actives with DB `active_30d` on the Users tab
 - Must be listed in CI `ALL_FUNCTIONS` / `SHARED_DEPENDENT` or prod deploy is skipped (browser shows CORS on 404 preflight)
 
@@ -276,9 +278,9 @@ Engagement and system metrics with visual separation and tooltips.
 
 #### AdminTrendsChart
 
-Owns trends fetch for the selected date range (default: month). Avoids double-fetch with the page load.
+Owns trends fetch for the selected date range (default: month). Avoids double-fetch with the page load. Page fetches `earliestDate` only when the Trends tab is opened.
 
-**Charts:** legend via `ChartLegend`, unstacked finance areas (income / donations / expenses plotted independently, not `stackId`), currency checkboxes above the finance chart (`useMemo` over `by_currency`, no refetch), compact Y-axis (currency glyph only when one currency is selected), `--chart-*` colors, loading/error UI. Short ranges use daily buckets from the RPC; longer ranges use months. User-growth chart includes a second series `download_requests` (same `status=sent` metric as the Downloads tab; GitHub totals stay there). Activity uses a **single shared Y-axis**. Chart containers use `aspect-auto` and `dir="ltr"`.
+**Charts:** legend via `ChartLegend`, unstacked finance areas (income / donations / expenses plotted independently, not `stackId`), currency checkboxes above the finance chart (`useMemo` over `by_currency`, no refetch), compact Y-axis (currency glyph only when one currency is selected), `--chart-*` colors, loading/error UI. Short ranges use daily buckets from the RPC; longer ranges use months. User-growth chart includes a second series `download_requests` (same `status=sent` metric as the Downloads tab; GitHub totals stay there). Activity uses a **single shared Y-axis**. `active_users` is distinct users by `transactions.date` (including backdated imports), not `created_at`. Chart containers use `aspect-auto` and `dir="ltr"`.
 
 #### AdminDownloadsSection
 
@@ -307,7 +309,7 @@ The monitoring section is organized into multiple files for better maintainabili
   - `getTooltipDescriptions()` - i18n tooltip text helper
 - **`monitoring/stats/`** - Individual statistics display components:
   - `DatabaseStats.tsx` - Database connections, slow queries, table statistics
-  - `AuthStats.tsx` - Authentication events, signups, password resets
+  - `AuthStats.tsx` - Authentication events, signups, password resets (no failed-logins card; Supabase does not store them)
   - `EdgeFunctionStats.tsx` - Edge Functions invocations and errors
   - `EmailStatsDisplay.tsx` - Email (SES) sends, deliveries, bounces
   - `CloudflareStatsDisplay.tsx` - Cloudflare Workers requests and errors
@@ -326,7 +328,7 @@ The monitoring section is organized into multiple files for better maintainabili
 | Service        | Data                                         | Source                           |
 | -------------- | -------------------------------------------- | -------------------------------- |
 | Database       | Connections, table stats, RLS check, indexes | PostgreSQL pg_stat views via RPC |
-| Auth           | Signups, password resets, recent events      | auth.audit_log_entries           |
+| Auth           | Signups, password resets, recent events (failed logins not shown) | auth.audit_log_entries           |
 | Edge Functions | Invocations, errors, error rate              | download_requests table (proxy)  |
 | Email (SES)    | Sends, deliveries, bounces, complaints       | AWS SES GetSendStatistics API    |
 | Cloudflare     | Requests, errors, error rate                 | Cloudflare GraphQL Analytics API |
@@ -365,7 +367,7 @@ The monitoring section is organized into multiple files for better maintainabili
 
 **Limitations:**
 
-- Failed logins not tracked (Supabase limitation - doesn't log failed attempts)
+- Failed logins are not shown (Supabase does not store failed attempts in the audit log)
 
 1. Create `download_events` table
 2. Create Edge Function to track downloads
@@ -403,7 +405,7 @@ Interactive charts with date range filtering.
 - `fetchAdminDashboardStats()` - Get all statistics
 - `fetchAdminMonthlyTrends(startDate?, endDate?)` - Get trends with date range
 - `fetchEarliestSystemDate()` - Get earliest system date
-- `checkIsAdmin()` - Check if current user is admin
+- `checkIsAdmin()` - Light admin check via `is_admin_user()` RPC
 
 **Exported via:** `src/lib/data-layer/index.ts`
 
@@ -426,7 +428,7 @@ Interactive charts with date range filtering.
 **Service Functions:**
 
 - `fetchMonitoringData()` - Fetch monitoring data from Edge Function
-- `calculateSystemHealth(data)` - Calculate system health overview
+- `calculateSystemHealth(data, t)` - Calculate system health overview (messages via admin i18n)
 - `getRecentErrors(data)` - Get recent errors from monitoring data
 - `getWarnings(data)` - Get warnings from monitoring data
 - `getSecurityAdvisories(data)` - Get security advisories

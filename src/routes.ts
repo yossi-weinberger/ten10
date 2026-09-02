@@ -8,7 +8,8 @@ import {
   lazyRouteComponent,
 } from "@tanstack/react-router";
 import App from "./App";
-import { supabase, getCachedSession } from "./lib/supabaseClient";
+import { getCachedSession } from "./lib/supabaseClient";
+import { checkIsAdmin } from "./lib/data-layer/admin.service";
 import { PUBLIC_ROUTES } from "./lib/constants";
 
 // Critical pages loaded synchronously (needed immediately)
@@ -280,13 +281,9 @@ const adminRoute = createRoute({
       });
     }
 
-    // Additional check: Try to fetch admin stats
-    // If user is not admin, the RPC will throw an error
-    try {
-      const { error } = await supabase.rpc("get_admin_dashboard_stats");
-      if (error) throw error;
-    } catch {
-      // Redirect to home if not admin
+    // Light admin gate — is_admin_user(), not the fat dashboard stats RPC
+    const isAdmin = await checkIsAdmin();
+    if (!isAdmin) {
       throw redirect({
         to: "/",
         replace: true,

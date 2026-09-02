@@ -22,7 +22,7 @@
     "openProject": "Open in PostHog",
     "unavailable": "PostHog is unavailable. Ensure Edge Function secrets are configured.",
     "loadFailed": "Failed to load PostHog analytics",
-    "dau7d": "DAU (7 days)",
+    "dau7d": "7-day uniques",
     "wau30d": "Active users (30 days)",
     "pageviews7d": "Pageviews (7 days)",
     "importSuccess": "Import success (7 days)",
@@ -31,7 +31,7 @@
     "signups7d": "Signups (7 days)",
     "transactions7d": "New transactions (7 days)",
     "exceptions7d": "Exceptions (7 days)",
-    "surveys30d": "Survey responses (30 days)",
+    "surveys30d": "Surveys sent (30 days)",
     "webAnalytics": "Web Analytics",
     "surveys": "Surveys",
     "errorTracking": "Error Tracking",
@@ -41,7 +41,7 @@
     "lastUpdated": "Last updated",
     "usersCompareNote": "PostHog counts web product-event actives. The Users tab active_30d counts DB users with a transaction — different definitions.",
     "tooltips": {
-      "dau7d": "Daily Active Users (here): unique users who sent at least one event in the last 7 days.",
+      "dau7d": "Unique persons who sent at least one event in the last 7 days (not classic daily DAU).",
       "wau30d": "Unique persons who sent at least one event in the last 30 days (MAU-style; not classic 7-day WAU).",
       "pageviews7d": "How many $pageview events were recorded in the last 7 days.",
       "importSuccess": "Share of imports that completed successfully out of imports started in the last 7 days.",
@@ -50,7 +50,7 @@
       "signups7d": "How many signup_completed events in the last 7 days.",
       "transactions7d": "How many transaction_created events in the last 7 days.",
       "exceptions7d": "How many JavaScript exceptions were auto-captured in the last 7 days.",
-      "surveys30d": "How many feedback survey responses in the last 30 days.",
+      "surveys30d": "How many survey sent events in the last 30 days (submitted feedback).",
       "topPaths": "Which page paths were viewed most in the last 7 days.",
       "eventCounts": "How often each product event fired in the last 7 days."
     }
@@ -147,7 +147,8 @@
     "loadFailed": "Failed to load trends",
     "financialDisclaimer": "Checkboxes filter which currencies enter each series. No FX conversion. Mixed selection has no currency sign.",
     "downloadRequests": "Installer download requests",
-    "downloadRequestsHint": "Same metric as the Downloads tab (status=sent). GitHub release totals stay on that tab."
+    "downloadRequestsHint": "Same metric as the Downloads tab (status=sent). GitHub release totals stay on that tab.",
+    "activeUsersHint": "Active users count distinct users by transaction date (including backdated imports), not by created_at."
   },
   "monitoring": {
     "title": "System Monitoring",
@@ -170,6 +171,14 @@
     "noWarnings": "No warnings",
     "noSecurityIssues": "No security issues detected",
     "noPerformanceIssues": "No performance issues detected",
+    "health": {
+      "allNormal": "All systems normal",
+      "issuesDetected": "{{count}} issue(s) detected",
+      "errorRate": "{{rate}}% error rate",
+      "emailBounceRate": "Bounce rate: {{rate}}%",
+      "emailSentBounced": "{{sent}} sent, {{bounced}} bounced",
+      "emailSentDelivered": "{{sent}} sent, {{rate}}% delivered"
+    },
     "services": {
       "database": "Database",
       "authentication": "Authentication",
@@ -187,7 +196,6 @@
       "threshold": "Threshold",
       "activeConnections": "Active Connections",
       "slowQueries": "Slow Queries",
-      "failedLogins": "Failed Logins (24h)",
       "signups": "Signups (24h)",
       "passwordResets": "Password Resets (24h)",
       "recentEvents": "Recent Events",
@@ -198,7 +206,7 @@
     },
     "tooltips": {
       "database": "Database status - checks connections, slow queries, and tables without RLS",
-      "auth": "Authentication system status - checks login failures and suspicious attempts",
+      "auth": "Authentication system status - checks signups, password resets, and recent events",
       "edgeFunctions": "Metrics mainly for the download-email Edge Function (not all Edge Functions)",
       "email": "Email sending status - bounce rate and alerts",
       "activeConnections": "Number of active connections to the database. High values may indicate an issue",
@@ -207,7 +215,6 @@
       "indexScans": "Index Scans - scans using indexes. Higher values relative to Seq Scans are better",
       "deadTuples": "Rows deleted/updated but not cleaned up. High values require VACUUM",
       "rowCount": "Number of rows in the table",
-      "failedLogins": "⚠️ Supabase limitation: Login failures are not stored in the audit log. Value will always be 0. You can enable Password Verification Hook for logging.",
       "signups": "Number of new signups in the last 24 hours",
       "passwordResets": "Number of password reset requests in the last 24 hours",
       "invocations": "Number of Edge Function invocations in the last 24 hours",

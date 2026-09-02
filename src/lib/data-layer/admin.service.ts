@@ -144,8 +144,12 @@ export async function fetchAdminMonthlyTrends(
  */
 export async function checkIsAdmin(): Promise<boolean> {
   try {
-    const { error } = await supabase.rpc("get_admin_dashboard_stats");
-    return !error;
+    const { data, error } = await supabase.rpc("is_admin_user");
+    if (error) {
+      logger.error("AdminService: is_admin_user failed:", error);
+      return false;
+    }
+    return data === true;
   } catch {
     return false;
   }

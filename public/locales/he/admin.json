@@ -22,7 +22,7 @@
     "openProject": "פתח ב-PostHog",
     "unavailable": "PostHog לא זמין כרגע. ודא ש-secrets מוגדרים ב-Edge Function.",
     "loadFailed": "טעינת נתוני PostHog נכשלה",
-    "dau7d": "DAU (7 ימים)",
+    "dau7d": "ייחודיים ב־7 ימים",
     "wau30d": "פעילים (30 יום)",
     "pageviews7d": "צפיות עמוד (7 ימים)",
     "importSuccess": "הצלחת ייבוא (7 ימים)",
@@ -31,7 +31,7 @@
     "signups7d": "הרשמות (7 ימים)",
     "transactions7d": "עסקאות חדשות (7 ימים)",
     "exceptions7d": "שגיאות (7 ימים)",
-    "surveys30d": "תשובות סקר (30 ימים)",
+    "surveys30d": "סקרים שנשלחו (30 ימים)",
     "webAnalytics": "Web Analytics",
     "surveys": "Surveys",
     "errorTracking": "Error Tracking",
@@ -41,7 +41,7 @@
     "lastUpdated": "עדכון אחרון",
     "usersCompareNote": "PostHog סופר פעילים לפי אירועי מוצר ב־web. בטאב משתמשים active_30d סופר משתמשי DB עם תנועה — הגדרות שונות.",
     "tooltips": {
-      "dau7d": "Daily Active Users (בפועל כאן): כמה משתמשים ייחודיים שלחו לפחות אירוע אחד ב־7 הימים האחרונים.",
+      "dau7d": "משתמשים ייחודיים ששלחו לפחות אירוע אחד ב־7 הימים האחרונים (לא DAU יומי קלאסי).",
       "wau30d": "משתמשים ייחודיים ששלחו לפחות אירוע אחד ב־30 הימים האחרונים (סגנון MAU; לא WAU קלאסי של 7 ימים).",
       "pageviews7d": "כמה פעמים נרשמה צפייה בעמוד ($pageview) ב־7 הימים האחרונים.",
       "importSuccess": "אחוז ייבואים שהסתיימו בהצלחה מתוך כל הייבואים שהתחילו ב־7 הימים האחרונים.",
@@ -50,7 +50,7 @@
       "signups7d": "כמה משתמשים השלימו הרשמה (signup_completed) ב־7 הימים האחרונים.",
       "transactions7d": "כמה עסקאות חדשות נוצרו (transaction_created) ב־7 הימים האחרונים.",
       "exceptions7d": "כמה שגיאות JavaScript נתפסו אוטומטית ב־7 הימים האחרונים.",
-      "surveys30d": "כמה תשובות לסקר המשוב התקבלו ב־30 הימים האחרונים.",
+      "surveys30d": "כמה אירועי survey sent ב־30 הימים האחרונים (משוב שנשלח).",
       "topPaths": "אילו נתיבי עמוד נצפו הכי הרבה ב־7 הימים האחרונים.",
       "eventCounts": "כמה פעמים נשלח כל אירוע מוצר ב־7 הימים האחרונים."
     }
@@ -147,7 +147,8 @@
     "loadFailed": "טעינת מגמות נכשלה",
     "financialDisclaimer": "הצ'קבוקסים מסננים אילו מטבעות נכנסות לכל קו. אין המרת מטבע. כשמסומן יותר ממטבע אחד אין סימן מטבע.",
     "downloadRequests": "בקשות הורדה למתקין",
-    "downloadRequestsHint": "אותו מדד כמו בלשונית הורדות: בקשות עם status=sent. סה\"כ GitHub נשאר שם."
+    "downloadRequestsHint": "אותו מדד כמו בלשונית הורדות: בקשות עם status=sent. סה\"כ GitHub נשאר שם.",
+    "activeUsersHint": "משתמשים פעילים נספרים לפי תאריך התנועה (כולל ייבואים עם תאריך רטרואקטיבי), לא לפי created_at."
   },
   "monitoring": {
     "title": "ניטור מערכת",
@@ -170,6 +171,14 @@
     "noWarnings": "אין אזהרות",
     "noSecurityIssues": "לא זוהו בעיות אבטחה",
     "noPerformanceIssues": "לא זוהו בעיות ביצועים",
+    "health": {
+      "allNormal": "כל המערכות תקינות",
+      "issuesDetected": "זוהו {{count}} בעיות",
+      "errorRate": "שיעור שגיאות {{rate}}%",
+      "emailBounceRate": "שיעור החזרות: {{rate}}%",
+      "emailSentBounced": "{{sent}} נשלחו, {{bounced}} חזרו",
+      "emailSentDelivered": "{{sent}} נשלחו, {{rate}}% נמסרו"
+    },
     "services": {
       "database": "מסד נתונים",
       "authentication": "אימות",
@@ -187,7 +196,6 @@
       "threshold": "סף",
       "activeConnections": "חיבורים פעילים",
       "slowQueries": "שאילתות איטיות",
-      "failedLogins": "כשלונות התחברות (24ש)",
       "signups": "הרשמות (24ש)",
       "passwordResets": "איפוסי סיסמה (24ש)",
       "recentEvents": "אירועים אחרונים",
@@ -198,7 +206,7 @@
     },
     "tooltips": {
       "database": "מצב בסיס הנתונים - בודק חיבורים, שאילתות איטיות, וטבלאות ללא RLS",
-      "auth": "מצב מערכת האימות - בודק כשלונות התחברות וניסיונות חשודים",
+      "auth": "מצב מערכת האימות - בודק הרשמות, איפוסי סיסמה ואירועים אחרונים",
       "edgeFunctions": "מדדים הקשורים בעיקר לפונקציית הורדות באימייל (לא כל ה-Edge Functions)",
       "email": "מצב שליחת אימיילים - bounce rate והתראות",
       "activeConnections": "מספר החיבורים הפעילים כרגע לבסיס הנתונים. ערך גבוה מדי עלול להעיד על בעיה",
@@ -207,7 +215,6 @@
       "indexScans": "Index Scans - סריקות באמצעות אינדקס. עדיף ערך גבוה יחסית ל-Seq Scans",
       "deadTuples": "שורות שנמחקו/עודכנו אך לא נוקו. ערך גבוה מצריך VACUUM",
       "rowCount": "מספר השורות בטבלה",
-      "failedLogins": "⚠️ מגבלת Supabase: כישלונות התחברות לא נשמרים ב-audit log. הערך תמיד יהיה 0. ניתן להפעיל Password Verification Hook לתיעוד.",
       "signups": "מספר הרשמות חדשות ב-24 שעות",
       "passwordResets": "מספר בקשות לאיפוס סיסמה ב-24 שעות",
       "invocations": "מספר ההפעלות של פונקציות Edge ב-24 שעות",
