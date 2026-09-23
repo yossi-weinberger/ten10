@@ -11,11 +11,18 @@
 
 set -euo pipefail
 
-PROJECT_REF="${SUPABASE_PROJECT_REF:-flpzqbvbymoluoeeeofg}"
+PRODUCTION_PROJECT_REF="flpzqbvbymoluoeeeofg"
+PROJECT_REF="${SUPABASE_PROJECT_REF:?SUPABASE_PROJECT_REF must be set explicitly}"
+CURRENT_BRANCH="${GITHUB_REF_NAME:-$(git branch --show-current)}"
 PLAN_ONLY=false
 
 if [[ "${1:-}" == "--plan-only" ]]; then
   PLAN_ONLY=true
+fi
+
+if [[ "$PROJECT_REF" == "$PRODUCTION_PROJECT_REF" && "$CURRENT_BRANCH" != "main" ]]; then
+  echo "Refusing to deploy production functions from branch '$CURRENT_BRANCH'." >&2
+  exit 1
 fi
 
 # Functions managed by CI (keep in sync with deploy-supabase-functions.yml)

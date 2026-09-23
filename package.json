@@ -25,7 +25,8 @@
     "diagnostics:update": "node scripts/diagnostic-ratchet.mjs typecheck --update && node scripts/diagnostic-ratchet.mjs lint --update",
     "test": "vitest run",
     "test:app": "vitest run src",
-    "test:edge": "vitest run supabase/functions"
+    "test:edge": "vitest run supabase/functions",
+    "test:infra": "vitest run scripts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

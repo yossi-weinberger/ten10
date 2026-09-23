@@ -35,6 +35,9 @@ jobs:
       - name: Type-check
         run: npm run typecheck
 
+      - name: Run infrastructure guard tests
+        run: npm run test:infra
+
   lint:
     name: ESLint
     runs-on: ubuntu-latest
