@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: supabase-production
+  cancel-in-progress: false
+
 jobs:
   deploy:
     if: github.ref == 'refs/heads/main'
@@ -27,6 +31,17 @@ jobs:
         uses: supabase/setup-cli@v3
         with:
           version: 2.117.0
+
+      - name: Link to production
+        run: supabase link --project-ref flpzqbvbymoluoeeeofg
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Apply pending migrations before function deployment
+        run: supabase db push --linked --yes
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
       - name: Plan changed functions
         id: plan

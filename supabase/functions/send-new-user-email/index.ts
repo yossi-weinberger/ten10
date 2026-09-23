@@ -268,7 +268,7 @@ serve(async (req) => {
   const { data: reminderLogs, error: reminderLogsError } = await supabaseAdmin
     .from("reminder_run_logs")
     .select(
-      "run_at, day_of_month, was_reminder_day, was_shabbat, users_processed, emails_sent, emails_failed, notes",
+      "run_at, day_of_month, was_reminder_day, was_shabbat, was_yom_tov, users_processed, emails_sent, emails_failed, notes",
     )
     .gte("run_at", sinceIso)
     .order("run_at", { ascending: false });

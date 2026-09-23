@@ -168,15 +168,27 @@ function until this branch's migration and Edge Function are deployed.
 
 ### Reminder Days
 
-The existing reminder behavior supports days **1, 5, 10, 15, 20, 25**.
-Scheduling is not part of the pending localized-redesign rollout.
+Reminder profile values remain Gregorian days **1, 5, 10, 15, 20, 25**.
+The Hebrew calendar is used only to block Israel Yom Tov dates and defer a
+due reminder to the next eligible civil day.
 
-The function uses `Asia/Jerusalem` for day-of-month and Shabbat handling:
+The function uses `Asia/Jerusalem` and a civil-midnight boundary. It does not
+use sunset or zmanim. Israel observance blocks Rosh Hashana (both days), Yom
+Kippur, the first day of Sukkot, Shemini Atzeret, the first and seventh days
+of Pesach, and Shavuot. Chol HaMoed, Purim, Chanukah, fasts, and Erev Yom Tov
+are not blocked. Diaspora second-day support remains a location-policy
+follow-up and is not implemented in this stage.
+
+The existing Friday/Saturday behavior is intentionally preserved:
 
 - Saturday (Israel): skipped entirely
 - Friday (Israel): skipped (cron fires after sunset)
 - Sunday: makeup for Saturday reminder days
 - Thursday: makeup for Friday reminder days
+
+The Friday rule is the existing sunset-based operational exception and is
+therefore inconsistent with the otherwise civil-midnight convention. Stage 5
+preserves it rather than redesigning established reminder behavior.
 
 ## Monitoring
 

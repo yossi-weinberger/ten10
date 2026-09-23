@@ -296,6 +296,45 @@ describe("daily new-user summary email template", () => {
     expect(text).toContain("📧 Reminder emails: skipped (Shabbat)");
   });
 
+  it("renders Yom Tov skips while treating legacy missing values as false", () => {
+    const yomTovText = visibleText(
+      withReminderLogs([
+        {
+          day_of_month: 5,
+          emails_failed: 0,
+          emails_sent: 0,
+          notes: "Israel Yom Tov (Sukkot) - skipped",
+          run_at: "2028-10-05T18:00:00.000Z",
+          users_processed: 0,
+          was_reminder_day: false,
+          was_shabbat: false,
+          was_yom_tov: true,
+        },
+      ]),
+    );
+    const legacyText = visibleText(
+      withReminderLogs([
+        {
+          day_of_month: 5,
+          emails_failed: 0,
+          emails_sent: 0,
+          notes: null,
+          run_at: "2028-10-05T18:00:00.000Z",
+          users_processed: 0,
+          was_reminder_day: false,
+          was_shabbat: false,
+        },
+      ]),
+    );
+
+    expect(yomTovText).toContain(
+      "📧 Reminder emails: skipped (Israel Yom Tov)",
+    );
+    expect(legacyText).toContain(
+      "📧 Reminder emails: not a reminder day",
+    );
+  });
+
   it("preserves non-reminder-day wording", () => {
     const text = visibleText(withReminderLogs([]));
 

@@ -118,7 +118,10 @@ jobs:
           TZ: UTC
 
       - name: Run shared calendar Deno parity test
-        run: deno test --config supabase/functions/deno.json supabase/functions/_shared/calendar/index_deno_test.ts
+        run: >-
+          deno test --config supabase/functions/deno.json
+          supabase/functions/_shared/calendar/index_deno_test.ts
+          supabase/functions/send-reminder-emails/reminder-schedule_deno_test.ts
 
   rust-tests:
     name: Rust tests

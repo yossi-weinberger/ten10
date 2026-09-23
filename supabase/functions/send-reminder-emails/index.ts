@@ -1,13 +1,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
-import { UserService } from "./user-service.ts";
-import { SimpleEmailService } from "./simple-email-service.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { getIsraelDate } from "../_shared/israel-date.ts";
+import {
+  buildReminderRunLog,
+  resolveReminderSchedule,
+  type ReminderScheduleResolution,
+} from "./reminder-schedule.ts";
+import { SimpleEmailService } from "./simple-email-service.ts";
+import { UserService } from "./user-service.ts";
 
 async function logRun(supabase: ReturnType<typeof createClient>, entry: {
   day_of_month: number;
   was_reminder_day: boolean;
   was_shabbat: boolean;
+  was_yom_tov: boolean;
   users_processed: number;
   emails_sent: number;
   emails_failed: number;
@@ -17,6 +24,10 @@ async function logRun(supabase: ReturnType<typeof createClient>, entry: {
   if (error) {
     console.error("[REMINDER] Failed to log run:", error.message);
   }
+}
+
+function assertNever(value: never): never {
+  throw new Error(`Unsupported reminder schedule result: ${String(value)}`);
 }
 
 // Deployment trigger note: editing this file forces the GitHub workflow to redeploy the function.
@@ -285,112 +296,74 @@ serve(async (req) => {
       );
     }
 
-    // Get current date in ISRAEL timezone.
-    // The cron runs at 18:00 UTC = 20:00 IST (winter) / 21:00 IDT (summer).
-    // Using UTC here caused a critical bug: on Fridays the UTC day is 5 (Friday)
-    // but in Israel Shabbat has already started (sunset ~17:30-20:00). Using the
-    // Israel date ensures the Shabbat check is correct regardless of DST.
-    const nowUtc = new Date();
-    const israelDateStr = nowUtc.toLocaleDateString("en-CA", {
-      timeZone: "Asia/Jerusalem",
-    }); // "YYYY-MM-DD"
-    const israelDate = new Date(israelDateStr + "T12:00:00"); // noon = stable, no DST edge
-    const currentDay = israelDate.getDate();
-    const currentDayOfWeek = israelDate.getDay(); // 0=Sun, 5=Fri, 6=Sat
-
-    // Reminder days configuration: 1st, 5th, 10th, 15th, 20th, 25th
+    const currentIsraelDate = getIsraelDate();
+    const currentDay = Number(currentIsraelDate.slice(8, 10));
     const reminderDays = [1, 5, 10, 15, 20, 25];
+    const resolution: ReminderScheduleResolution = isTest
+      ? { kind: "send-today", reminderDay: 25 }
+      : resolveReminderSchedule(currentIsraelDate, reminderDays);
+    let finalTestDay: number;
+    let scheduleNote = "";
 
-    let effectiveDay = currentDay;
-    let shabbatNote = "";
-
-    // Saturday (Israel time) — Shabbat. Skip entirely; Sunday will handle makeup.
-    if (!isTest && currentDayOfWeek === 6) {
-      await logRun(supabaseAdmin, {
-        day_of_month: currentDay,
-        was_reminder_day: false,
-        was_shabbat: true,
-        users_processed: 0,
-        emails_sent: 0,
-        emails_failed: 0,
-        notes: "Shabbat (Saturday Israel) - skipped",
-      });
-      return new Response(
-        JSON.stringify({ message: "Today is Shabbat (Saturday in Israel). Skipped." }),
-        { headers: { ...getCorsHeaders(origin), "Content-Type": "application/json" }, status: 200 },
-      );
-    }
-
-    // Friday (Israel time) — the cron fires AFTER sunset (Shabbat already started).
-    // Skip Friday sends. Thursday makeup below handles Friday reminder days.
-    if (!isTest && currentDayOfWeek === 5) {
-      await logRun(supabaseAdmin, {
-        day_of_month: currentDay,
-        was_reminder_day: false,
-        was_shabbat: true, // cron fires at 21:00 IDT — after sunset, so Shabbat has started
-        users_processed: 0,
-        emails_sent: 0,
-        emails_failed: 0,
-        notes: "Erev Shabbat (Friday Israel, cron fires after sunset) - skipped",
-      });
-      return new Response(
-        JSON.stringify({ message: "Today is Erev Shabbat in Israel (cron fires after sunset). Skipped." }),
-        { headers: { ...getCorsHeaders(origin), "Content-Type": "application/json" }, status: 200 },
-      );
-    }
-
-    // Sunday (Israel time) — makeup for missed Saturday reminder days.
-    if (!isTest && currentDayOfWeek === 0) {
-      const saturdayDate = new Date(israelDate);
-      saturdayDate.setDate(saturdayDate.getDate() - 1);
-      const saturdayDay = saturdayDate.getDate();
-      if (reminderDays.includes(saturdayDay)) {
-        effectiveDay = saturdayDay;
-        shabbatNote = ` (Saturday makeup — day ${saturdayDay} sent on Sunday)`;
-        console.log(`Sunday makeup: sending reminders for Saturday day ${saturdayDay}`);
-      }
-    }
-
-    // Thursday (Israel time) — makeup for upcoming Friday reminder days.
-    // Since Friday sends are skipped, we send them a day early on Thursday.
-    if (!isTest && currentDayOfWeek === 4) {
-      const tomorrowDate = new Date(israelDate);
-      tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-      const tomorrowDay = tomorrowDate.getDate();
-      if (reminderDays.includes(tomorrowDay)) {
-        effectiveDay = tomorrowDay;
-        shabbatNote = ` (Friday makeup — day ${tomorrowDay} sent on Thursday before Shabbat)`;
-        console.log(`Thursday makeup: sending reminders for Friday day ${tomorrowDay}`);
-      }
-    }
-
-    // Update testDay after effectiveDay might have changed
-    const finalTestDay = isTest ? 25 : effectiveDay;
-
-    if (!isTest && !reminderDays.includes(effectiveDay)) {
-      await logRun(supabaseAdmin, {
-        day_of_month: currentDay,
-        was_reminder_day: false,
-        was_shabbat: false,
-        users_processed: 0,
-        emails_sent: 0,
-        emails_failed: 0,
-        notes: `Not a reminder day (days: ${reminderDays.join(", ")})`,
-      });
-      return new Response(
-        JSON.stringify({
-          message: `Today (${currentDay}) is not a reminder day. Reminder days: ${reminderDays.join(
-            ", ",
-          )}`,
-        }),
-        {
-          headers: {
-            ...getCorsHeaders(origin),
-            "Content-Type": "application/json",
+    switch (resolution.kind) {
+      case "send-today":
+        finalTestDay = resolution.reminderDay;
+        break;
+      case "makeup":
+        finalTestDay = resolution.reminderDay;
+        scheduleNote =
+          ` (${resolution.reason} makeup for ${resolution.reminderDate})`;
+        console.log(
+          `[REMINDER] Makeup: day ${finalTestDay} on ${currentIsraelDate} (${resolution.reason})`,
+        );
+        break;
+      case "skip": {
+        const logEntry = buildReminderRunLog(
+          currentIsraelDate,
+          resolution,
+        );
+        await logRun(supabaseAdmin, logEntry);
+        console.log("[REMINDER] Schedule skipped:", logEntry.notes);
+        return new Response(
+          JSON.stringify({
+            message: logEntry.notes,
+            reason: resolution.reason,
+            was_yom_tov: logEntry.was_yom_tov,
+          }),
+          {
+            headers: {
+              ...getCorsHeaders(origin),
+              "Content-Type": "application/json",
+            },
+            status: 200,
           },
-          status: 200,
-        },
-      );
+        );
+      }
+      case "no-op": {
+        const logEntry = buildReminderRunLog(
+          currentIsraelDate,
+          resolution,
+        );
+        logEntry.notes =
+          `Not a reminder day (days: ${reminderDays.join(", ")})`;
+        await logRun(supabaseAdmin, logEntry);
+        return new Response(
+          JSON.stringify({
+            message:
+              `Today (${currentDay}) is not a reminder day. Reminder days: ${reminderDays.join(", ")}`,
+            was_yom_tov: false,
+          }),
+          {
+            headers: {
+              ...getCorsHeaders(origin),
+              "Content-Type": "application/json",
+            },
+            status: 200,
+          },
+        );
+      }
+      default:
+        return assertNever(resolution);
     }
 
     // Get users with tithe balances
@@ -399,17 +372,12 @@ serve(async (req) => {
 
     if (usersWithBalances.length === 0) {
       await logRun(supabaseAdmin, {
-        day_of_month: finalTestDay,
-        was_reminder_day: true,
-        was_shabbat: false,
-        users_processed: 0,
-        emails_sent: 0,
-        emails_failed: 0,
-        notes: `No users configured for day ${finalTestDay}${isTest ? " (TEST)" : ""}`,
+        ...buildReminderRunLog(currentIsraelDate, resolution),
+        notes: `No users configured for day ${finalTestDay}${scheduleNote}${isTest ? " (TEST)" : ""}`,
       });
       return new Response(
         JSON.stringify({
-          message: `No users found with reminders enabled for day ${finalTestDay}${isTest ? " (TEST MODE)" : ""}`,
+          message: `No users found with reminders enabled for day ${finalTestDay}${scheduleNote}${isTest ? " (TEST MODE)" : ""}`,
         }),
         {
           headers: {
@@ -447,22 +415,22 @@ serve(async (req) => {
       }
     });
 
-    const sundayMessage = isTest ? "" : shabbatNote;
+    const scheduleMessage = isTest ? "" : scheduleNote;
 
     await logRun(supabaseAdmin, {
-      day_of_month: finalTestDay,
-      was_reminder_day: true,
-      was_shabbat: false,
-      users_processed: usersWithBalances.length,
-      emails_sent: sentCount,
-      emails_failed: failedCount,
-      notes: sundayMessage || (isTest ? "TEST MODE" : undefined),
+      ...buildReminderRunLog(currentIsraelDate, resolution, {
+        usersProcessed: usersWithBalances.length,
+        emailsSent: sentCount,
+        emailsFailed: failedCount,
+      }),
+      notes: scheduleMessage || (isTest ? "TEST MODE" : undefined),
     });
 
     return new Response(
       JSON.stringify({
-        message: `Processed ${usersWithBalances.length} users for day ${finalTestDay}${sundayMessage}${isTest ? " (TEST MODE)" : ""}. Sent: ${sentCount}, Failed: ${failedCount}`,
+        message: `Processed ${usersWithBalances.length} users for day ${finalTestDay}${scheduleMessage}${isTest ? " (TEST MODE)" : ""}. Sent: ${sentCount}, Failed: ${failedCount}`,
         results,
+        was_yom_tov: false,
       }),
       {
         headers: {
