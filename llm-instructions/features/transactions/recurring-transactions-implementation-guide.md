@@ -2,6 +2,8 @@
 
 **סטטוס כללי:** שלבי הווב (1-3) הושלמו במלואם. העבודה על שלב 4 (דסקטופ) החלה.
 
+**לוח עברי (2026):** `recurring_transactions.calendar_type` (ברירת מחדל `gregorian`) ו-`anchor_month_code` להו"ק שנתית. החישוב המשותף ב-`src/lib/calendar` / `_shared/calendar` משתמש ב-clamp. ראה `features/calendar/hebrew-calendar-guide.md`.
+
 מסמך זה מתאר את שלבי הפעולה המפורטים להטמעת מערכת ניהול הוראות קבע (Standing Orders) באפליקציה, עבור פלטפורמת הווב (Supabase) והדסקטופ (Tauri v2/SQLite).
 
 המדריך מבוסס על הדיון והדגשים הבאים:

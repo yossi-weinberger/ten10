@@ -1,6 +1,6 @@
 # מחקר: תמיכה גורפת בלוח עברי ב-TEN10
 
-**תאריך:** 18.9.2026 (ז' בתשרי תשפ"ז) · **גרסת אפליקציה:** 0.7.5 · **סטטוס ביצוע (23.9.2026):** P1–P4, 0a–0b ושלבים 1–8 הושלמו ב-[Draft PR #424](https://github.com/yossi-weinberger/ten10/pull/424). שלב 7 אומת ב-CI. שלב 8 מוסיף דוח שנת מעשר מתשרי (יתרה as-of + כרטיס באנליטיקה) ותזכורת ערב ר״ה בלי לשנות את יתרת המעשרות המצטברת.
+**תאריך:** 18.9.2026 (ז' בתשרי תשפ"ז) · **גרסת אפליקציה:** 0.7.5 · **סטטוס ביצוע (23.9.2026):** P1–P4, 0a–0b ושלבים 1–9 הושלמו ב-[Draft PR #424](https://github.com/yossi-weinberger/ten10/pull/424). P5 (baseline + seed) נשאר PR תשתית נפרד.
 
 מקורות: כל `src/`, `supabase/` (מיגרציות + edge functions), `src-tauri/`, `llm-instructions/`, `docs/`, `public/locales/`, `TODO.md`, היסטוריית git (1,370 קומיטים), סכמת ה-Postgres החיה בפרודקשן (638 פרופילים, ~17K תנועות, 880 הוראות קבע), הצלבה מול מסמך המלצות חיצוני (`hebrew-calendar-recommendations-2026-09-18.md`), ובדיקות חיות של `@hebcal/hdate` ו-`temporal-polyfill/full` ב-Node 24.
 
@@ -357,7 +357,7 @@ src/lib/calendar/
 | **6. רמה C — הוראות קבע עבריות — הושלם** | מנוע recurrence משותף TS/Deno: monthly/yearly, clamp, first due, reschedule, catch-up; daily/weekly Gregorian. `calendar_type` + `anchor_month_code` נוספו ב-Postgres/SQLite עם default Gregorian, checks ו-RPC overload תואם. 880 קיימות נשארו Gregorian. 55 קבוצות כפולות היסטוריות לא נמחקו; partial unique index מונע כפילויות עתידיות. Browser smoke יצר הוראה עברית יום 30: `2026-09-23` → due `2026-10-11`, והטבלה הציגה `30 בתשרי 5787 / 11/10/2026` | migration `20260923161451`, shared engine, web/desktop UI/data, 550 TS / 47 Rust tests | הושלם | 1, 4 |
 | **7. רמה C — תזכורות ביום עברי — הושלם** | `reminder_calendar_type`, CHECK, RPC, edge, desktop | ~8 קבצים | הושלם | 1, 5 |
 | **8. דוח שנת מעשר — הושלם** | overload אדיטיבי `calculate_user_tithe_balance(uuid, date)`; פקודת Tauri as-of; כרטיס סיכום שנתי באנליטיקה מתשרי עד אלול; תזכורת ערב ר״ה (באנר, דסקטופ, ומייל שנתי למקבלי תזכורות). יתרת המעשרות המצטברת לא אופסה | migration `20260923220000` + `20260923220100` | הושלם | 4 |
-| **9. תיעוד** | `llm-instructions`, `TODO.md`, changelog, whats-new | — | ½ יום | כל שלב |
+| **9. תיעוד — הושלם** | מדריך `features/calendar/hebrew-calendar-guide.md`; עדכון overview/tech-stack/structure/analytics/reminders/recurring; `TODO.md`; changelog + what's new ל-0.7.6 | docs + locales | הושלם | כל שלב |
 
 **שער יציאה לכל שלב** (חובה לפני שממשיכים): הטסטים שמפורטים לשלב בסעיף 9.5 ירוקים ב-CI; מצב `gregorian` זהה ל-snapshot של P4; המיגרציות של השלב (אם יש) הוחלו על ענף `testing` ו-Vercel preview מולו נבדק. רק אז merge ל-main → פרוד.
 

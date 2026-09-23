@@ -4,6 +4,23 @@
   "current": "Current",
   "backToSettings": "Back to Settings",
   "releases": {
+    "v076": {
+      "title": "Hebrew calendar",
+      "items": {
+        "hebrewCalendar": {
+          "title": "Hebrew display and periods",
+          "description": "In Settings you can choose a Hebrew or Gregorian primary calendar. Dates in screens, pickers, and charts follow that calendar. The other calendar can appear as display-only text."
+        },
+        "hebrewRecurring": {
+          "title": "Hebrew recurring schedules and reminders",
+          "description": "Standing orders and reminders can use the Hebrew calendar. Reminder emails skip Friday, Saturday, and Israel Yom Tov, then make up on the next eligible civil day."
+        },
+        "maaserYear": {
+          "title": "Maaser year summary",
+          "description": "Analytics now includes a yearly report from 1 Tishrei through 29 Elul. The lifetime tithe balance on the home page is unchanged."
+        }
+      }
+    },
     "v075": {
       "title": "Guided tour and halacha booklet",
       "items": {

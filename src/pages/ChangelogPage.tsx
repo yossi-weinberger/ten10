@@ -42,6 +42,9 @@ import {
 } from "@/lib/whats-new-history";
 
 const itemIcons: Record<string, LucideIcon> = {
+  hebrewCalendar: CalendarDays,
+  hebrewRecurring: Repeat,
+  maaserYear: Coins,
   guidedHelp: HelpCircle,
   halachaBooklet: Library,
   bulkTableActions: TableProperties,

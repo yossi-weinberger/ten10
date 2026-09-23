@@ -5,20 +5,20 @@
   "historyButton": "Changelog",
   "dismissing": "Saving...",
   "featured": {
-    "title": "Multi-select in tables",
-    "description": "Select transactions and recurring transactions together: delete several at once, or update description, category, payment method, recipient, and chomesh in one save. Fields you do not touch stay unchanged.",
+    "title": "Hebrew calendar throughout the app",
+    "description": "Choose a Hebrew or Gregorian primary calendar. Display, periods, standing orders, and reminders follow that calendar. The default stays Gregorian.",
     "highlights": {
       "help": {
-        "title": "Guided tour and help button",
-        "description": "Home, Add Transaction, and bulk import have a help button in the top corner. New users also get a short first-run tour."
+        "title": "Secondary date display",
+        "description": "You can show the other calendar as display-only text. It does not change filters or calculations."
       },
       "halacha": {
-        "title": "Download the Halacha booklet",
-        "description": "From the Halacha page you can download a designed booklet for reading or print."
+        "title": "Hebrew standing orders and reminders",
+        "description": "Set a Hebrew day of the month. Reminders skip Friday, Saturday, and Israel Yom Tov."
       },
       "reminders": {
-        "title": "Refreshed reminder emails",
-        "description": "We improved the email design and added an Encouragement Corner. Enable reminders in Settings — otherwise you will not receive them."
+        "title": "Maaser year summary",
+        "description": "Analytics includes a report from 1 Tishrei through 29 Elul. The home-page tithe balance is not reset."
       }
     }
   }
