@@ -18,8 +18,6 @@ import { DonationRecipientsInsight } from "@/components/analytics/DonationRecipi
 import { InsightsSummaryRow } from "@/components/analytics/InsightsSummaryRow";
 import { TextInsightsCard } from "@/components/analytics/TextInsightsCard";
 import { TransactionHeatmap } from "@/components/analytics/TransactionHeatmap";
-import { format } from "date-fns";
-import { he, enUS } from "date-fns/locale";
 import { useDonationStore } from "@/lib/store";
 import { generateAnalyticsPdf, computeRecurringTotals } from "@/lib/analytics/export-pdf";
 import { formatCurrency } from "@/lib/utils/currency";
@@ -27,9 +25,12 @@ import { formatCategory } from "@/lib/category-registry";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { formatLocalDate } from "@/lib/utils/local-date";
 
 export function AnalyticsPage() {
   const { t, i18n } = useTranslation("dashboard");
+  const formatDisplayDate = useDisplayDate();
   const { user } = useAuth();
   const { platform } = usePlatform();
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
@@ -116,10 +117,12 @@ export function AnalyticsPage() {
 
   const formatDate = useCallback(
     (date: Date) => {
-      const locale = i18n.language === "he" ? he : enUS;
-      return format(date, "dd/MM/yyyy", { locale });
+      const displayDate = formatDisplayDate(formatLocalDate(date), "numeric");
+      return displayDate.secondary
+        ? `${displayDate.primary} (${displayDate.secondary})`
+        : displayDate.primary;
     },
-    [i18n.language]
+    [formatDisplayDate]
   );
 
   const isAllTime = activeDateRangeObject.startDate === "1970-01-01";
@@ -134,8 +137,10 @@ export function AnalyticsPage() {
     const toastId = toast.loading(t("analytics.pdfGenerating"));
     try {
       const fmtDatePdf = (iso: string) => {
-        const p = iso.split("-");
-        return p.length === 3 ? `${p[2]}/${p[1]}/${p[0].slice(2)}` : iso;
+        const displayDate = formatDisplayDate(iso, "short");
+        return displayDate.secondary
+          ? `${displayDate.primary} (${displayDate.secondary})`
+          : displayDate.primary;
       };
       const displayRange = isAllTime
         ? t("dateRange.all")

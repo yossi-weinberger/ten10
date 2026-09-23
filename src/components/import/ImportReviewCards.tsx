@@ -10,6 +10,7 @@ import { typeBadgeColors } from "@/types/transactionLabels";
 import { cn } from "@/lib/utils/index";
 import { ImportRowStatusBadge } from "./ImportRowStatusBadge";
 import { ImportRowEditModal } from "./ImportRowEditModal";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
 
 function fmtAmount(amount: number, currency: string): string {
   try {
@@ -22,12 +23,6 @@ function fmtAmount(amount: number, currency: string): string {
   } catch {
     return `${currency} ${amount}`;
   }
-}
-
-function fmtDate(isoDate: string): string {
-  const parts = isoDate.split("-");
-  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  return isoDate;
 }
 
 interface ImportReviewCardsProps {
@@ -49,7 +44,6 @@ export function ImportReviewCards({
 }: ImportReviewCardsProps) {
   const { t } = useTranslation("import");
   const { t: tTx } = useTranslation("transactions");
-
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const editingRow = editingRowId
     ? (rows.find((r) => r.id === editingRowId) ?? null)
@@ -142,6 +136,7 @@ interface RowCardProps {
 }
 
 function RowCard({ row, typeLabel, onToggleApproval, onRequestEdit, t }: RowCardProps) {
+  const formatDisplayDate = useDisplayDate();
   const [optimisticApproved, setOptimisticApproved] = useOptimistic(
     row.approved,
     (_: boolean, next: boolean) => next
@@ -186,7 +181,7 @@ function RowCard({ row, typeLabel, onToggleApproval, onRequestEdit, t }: RowCard
         <div className="flex items-center gap-1 mt-0.5 flex-wrap">
           {n?.date && (
             <span className="text-xs text-muted-foreground" dir="ltr">
-              {fmtDate(n.date)}
+              {Object.values(formatDisplayDate(n.date)).join(" · ")}
             </span>
           )}
           {n?.type && (

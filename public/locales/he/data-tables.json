@@ -23,6 +23,7 @@
   "columns": {
     "select": "בחר",
     "date": "תאריך",
+    "hebrewDate": "תאריך עברי",
     "type": "סוג",
     "description": "תיאור",
     "category": "קטגוריה",

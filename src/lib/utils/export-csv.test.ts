@@ -89,4 +89,30 @@ describe("exportTransactionsToCSV (integration with shared export fields)", () =
     expect(result).toBe(true);
     expect(saveOrDownloadExportedFile).not.toHaveBeenCalled();
   });
+
+  it("keeps Gregorian date only for default calendar settings", async () => {
+    await exportTransactionsToCSV(
+      [baseTransaction()],
+      "test",
+      "en",
+      { calendarType: "gregorian", showSecondaryDate: false },
+    );
+
+    const row = await exportedRow();
+    expect(row["columns.date"]).toBe("01/03/2024");
+    expect(row["columns.hebrewDate"]).toBeUndefined();
+  });
+
+  it("adds a separately labeled Hebrew date when requested", async () => {
+    await exportTransactionsToCSV(
+      [baseTransaction({ date: "2026-09-12" })],
+      "test",
+      "he",
+      { calendarType: "gregorian", showSecondaryDate: true },
+    );
+
+    const row = await exportedRow();
+    expect(row["columns.date"]).toBe("12/09/2026");
+    expect(row["columns.hebrewDate"]).toBe("1 בתשרי 5787");
+  });
 });

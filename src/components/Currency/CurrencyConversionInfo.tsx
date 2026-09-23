@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatCurrency } from "@/lib/utils/currency";
 import {
@@ -13,7 +13,7 @@ import { useDonationStore } from "@/lib/store";
 import { CurrencyCode } from "@/lib/currencies";
 import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
-import { parseLocalDate } from "@/lib/utils/local-date";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
 
 interface CurrencyConversionInfoProps {
   amount: number;
@@ -40,7 +40,11 @@ export function CurrencyConversionInfo({
 }: CurrencyConversionInfoProps) {
   const { i18n } = useTranslation();
   const { t: tCurrency } = useTranslation("currency-features");
+  const formatDisplayDate = useDisplayDate();
   const defaultCurrency = useDonationStore((state) => state.settings.defaultCurrency);
+  const displayedConversionDate = conversionDate
+    ? formatDisplayDate(conversionDate, "short")
+    : null;
 
   // If we have stored conversion details (originalAmount & originalCurrency), treat as static.
   // This applies to BOTH manual AND auto rates that were "locked in" at creation time.
@@ -136,12 +140,10 @@ export function CurrencyConversionInfo({
                     {tCurrency("row.tooltip.date")}:
                   </span>
                   <span className="font-medium">
-                    {conversionDate
-                      ? parseLocalDate(conversionDate).toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "2-digit",
-                          year: "2-digit",
-                        })
+                    {displayedConversionDate
+                      ? displayedConversionDate.secondary
+                        ? `${displayedConversionDate.primary} (${displayedConversionDate.secondary})`
+                        : displayedConversionDate.primary
                       : "-"}
                   </span>
 

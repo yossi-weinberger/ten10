@@ -13,6 +13,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { formatLocalDate } from "@/lib/utils/local-date";
 
 interface DatePickerWithRangeProps {
   className?: string;
@@ -28,6 +30,7 @@ export function DatePickerWithRange({
   triggerButton,
 }: DatePickerWithRangeProps) {
   const { i18n, t } = useTranslation("dashboard");
+  const formatDisplayDate = useDisplayDate();
   // Use local state to manage range selection
   const [localRange, setLocalRange] = React.useState<DateRange | undefined>(
     date
@@ -129,9 +132,9 @@ export function DatePickerWithRange({
   };
 
   const formatDate = (date: Date) => {
-    // Use i18n language for locale selection
-    const currentLocale = i18n.language === "he" ? he : enUS;
-    return format(date, "dd/MM/yyyy", { locale: currentLocale });
+    return Object.values(
+      formatDisplayDate(formatLocalDate(date), "numeric"),
+    ).join(" · ");
   };
 
   const formatCaption = (date: Date) => {

@@ -27,12 +27,12 @@ import { formatCurrency } from "@/lib/utils/currency";
 import { useDonationStore } from "@/lib/store";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { format } from "date-fns";
-import { he, enUS } from "date-fns/locale";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { useEffect, useMemo, useState } from "react";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { notifyOnboardingBlockingModal } from "@/lib/onboarding/modalBridge";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { formatLocalDate } from "@/lib/utils/local-date";
 
 export function StatsCards({
   orientation = "horizontal",
@@ -42,6 +42,7 @@ export function StatsCards({
   const { user } = useAuth();
   const { platform } = usePlatform();
   const { t, i18n } = useTranslation("dashboard");
+  const formatDisplayDate = useDisplayDate();
   const navigate = useNavigate();
   const defaultCurrency = useDonationStore(
     (state) => state.settings.defaultCurrency,
@@ -82,9 +83,10 @@ export function StatsCards({
   } = useDateControls();
 
   const formatDate = (date: Date) => {
-    // Use i18n language for locale selection
-    const currentLocale = i18n.language === "he" ? he : enUS;
-    return format(date, "dd/MM/yyyy", { locale: currentLocale });
+    const displayDate = formatDisplayDate(formatLocalDate(date), "numeric");
+    return displayDate.secondary
+      ? `${displayDate.primary} (${displayDate.secondary})`
+      : displayDate.primary;
   };
 
   const trackChomeshSeparately = useDonationStore(

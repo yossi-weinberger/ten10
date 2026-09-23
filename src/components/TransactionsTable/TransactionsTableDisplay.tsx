@@ -33,7 +33,7 @@ import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { TableTransactionsService } from "@/lib/tableTransactions/tableTransactionService";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 import { BulkEditDialog } from "./BulkEditDialog";
-import { parseLocalDate } from "@/lib/utils/local-date";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { BulkEditFields } from "./BulkEditFields";
 import { useLoadedRowSelection } from "@/hooks/useLoadedRowSelection";
 import {
@@ -60,6 +60,7 @@ import {
 export function TransactionsTableDisplay() {
   const { t, i18n } = useTranslation("data-tables");
   const { t: tImport } = useTranslation("import");
+  const formatDisplayDate = useDisplayDate();
   const trackChomeshSeparately = useDonationStore(
     (state) => state.settings.trackChomeshSeparately,
   );
@@ -734,9 +735,15 @@ export function TransactionsTableDisplay() {
             transactionToDelete?.description ||
             t("messages.defaultTransactionName"),
           date: transactionToDelete?.date
-            ? parseLocalDate(transactionToDelete.date).toLocaleDateString(
-                i18n.language
-              )
+            ? (() => {
+                const displayDate = formatDisplayDate(
+                  transactionToDelete.date,
+                  "numeric",
+                );
+                return displayDate.secondary
+                  ? `${displayDate.primary} (${displayDate.secondary})`
+                  : displayDate.primary;
+              })()
             : "",
         })}
       />

@@ -19,6 +19,8 @@ import {
   eachDayOfInterval, isWithinInterval, startOfDay,
 } from "date-fns";
 import { he, enUS } from "date-fns/locale";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { formatLocalDate } from "@/lib/utils/local-date";
 
 interface TransactionHeatmapProps {
   data: DailyHeatmapResponse;
@@ -125,6 +127,7 @@ export function TransactionHeatmap({
   className,
 }: TransactionHeatmapProps) {
   const { t, i18n } = useTranslation("dashboard");
+  const formatDisplayDate = useDisplayDate();
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
   const dateLocale = i18n.language === "he" ? he : enUS;
   const fmt = (v: number) => formatCurrency(v, defaultCurrency, i18n.language);
@@ -267,6 +270,13 @@ export function TransactionHeatmap({
                           </div>
                           {week.map((cell) => {
                             const intensity = cell.entry ? getIntensity(cell.entry.total_amount, maxAmount) : 0;
+                            const displayDate = formatDisplayDate(
+                              formatLocalDate(cell.date),
+                              "numeric",
+                            );
+                            const dateText = displayDate.secondary
+                              ? `${displayDate.primary} (${displayDate.secondary})`
+                              : displayDate.primary;
                             if (!cell.inRange) {
                               return (
                                 <div
@@ -288,11 +298,11 @@ export function TransactionHeatmap({
                                   <p className="text-xs" dir={i18n.dir()}>
                                     {cell.entry
                                       ? t("analytics.heatmap.tooltip", {
-                                          date: format(cell.date, "dd/MM/yyyy"),
+                                          date: dateText,
                                           count: cell.entry.tx_count,
                                           amount: fmt(cell.entry.total_amount),
                                         })
-                                      : format(cell.date, "dd/MM/yyyy")}
+                                      : dateText}
                                   </p>
                                 </TooltipContent>
                               </Tooltip>

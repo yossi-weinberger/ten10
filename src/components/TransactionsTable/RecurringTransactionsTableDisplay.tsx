@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { RecurringTransaction, TransactionType } from "@/types/transaction";
 import { recurringStatusBadgeColors } from "@/types/recurringTransactionLabels";
-import { parseLocalDate } from "@/lib/utils/local-date";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { RecurringTransactionEditModal } from "./RecurringTransactionEditModal";
 import {
@@ -71,6 +71,7 @@ import { getErrorMessage } from "@/lib/utils/error-message";
 
 export function RecurringTransactionsTableDisplay() {
   const { t, i18n } = useTranslation(["data-tables", "transactions"]);
+  const formatDisplayDate = useDisplayDate();
   const { platform } = usePlatform();
   const trackChomeshSeparately = useDonationStore(
     (state) => state.settings.trackChomeshSeparately,
@@ -466,7 +467,12 @@ export function RecurringTransactionsTableDisplay() {
                   </TableRow>
                 )}
                 {!loading &&
-                  recurring.map((rec) => (
+                  recurring.map((rec) => {
+                    const nextDueDate = formatDisplayDate(
+                      rec.next_due_date,
+                      "numeric",
+                    );
+                    return (
                     <TableRow
                       key={rec.id}
                       data-state={
@@ -513,8 +519,11 @@ export function RecurringTransactionsTableDisplay() {
                         )}
                       </TableCell>
                       <TableCell className="text-center">
-                        {parseLocalDate(rec.next_due_date).toLocaleDateString(
-                          i18n.language
+                        <span>{nextDueDate.primary}</span>
+                        {nextDueDate.secondary && (
+                          <span className="block text-xs text-muted-foreground">
+                            {nextDueDate.secondary}
+                          </span>
                         )}
                       </TableCell>
                       <TableCell className="text-center">
@@ -589,7 +598,8 @@ export function RecurringTransactionsTableDisplay() {
                         />
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
               </TableBody>
             </Table>
           </div>

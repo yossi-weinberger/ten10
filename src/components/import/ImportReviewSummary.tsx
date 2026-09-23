@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { ImportSummary, ImportIssueCode } from "@/lib/import/import-session.types";
 import { useDonationStore } from "@/lib/store";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
 
 function fmtAmount(amount: number, currency: string): string {
   try {
@@ -17,19 +18,13 @@ function fmtAmount(amount: number, currency: string): string {
   }
 }
 
-function fmtDate(isoDate: string | null): string {
-  if (!isoDate) return "";
-  const parts = isoDate.split("-");
-  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  return isoDate;
-}
-
 interface ImportReviewSummaryProps {
   summary: ImportSummary;
 }
 
 export function ImportReviewSummary({ summary }: ImportReviewSummaryProps) {
   const { t } = useTranslation("import");
+  const formatDisplayDate = useDisplayDate();
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
 
   const fmt = (amount: number) => fmtAmount(amount, defaultCurrency);
@@ -109,8 +104,10 @@ export function ImportReviewSummary({ summary }: ImportReviewSummaryProps) {
                 <dt className="text-muted-foreground">{t("review.financial.dateRange")}</dt>
                 <dd className="font-medium text-end" dir="ltr">
                   {summary.dateRangeMin === summary.dateRangeMax
-                    ? fmtDate(summary.dateRangeMin)
-                    : `${fmtDate(summary.dateRangeMin)} – ${fmtDate(summary.dateRangeMax)}`}
+                    ? Object.values(
+                        formatDisplayDate(summary.dateRangeMin),
+                      ).join(" · ")
+                    : `${Object.values(formatDisplayDate(summary.dateRangeMin)).join(" · ")} – ${Object.values(formatDisplayDate(summary.dateRangeMax)).join(" · ")}`}
                 </dd>
               </div>
             )}

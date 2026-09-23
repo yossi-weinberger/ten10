@@ -1020,7 +1020,7 @@
         "TS2739": 1,
         "TS2740": 2,
         "TS2741": 5,
-        "TS6133": 19,
+        "TS6133": 18,
         "TS6192": 1,
         "TS7006": 11
       },
@@ -1050,13 +1050,6 @@
           "code": "TS6133",
           "file": "src/components/charts/area-chart-interactive.tsx",
           "message": "'CardDescription' is declared but its value is never read.",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "TS6133",
-          "file": "src/components/Currency/CurrencyConversionInfo.tsx",
-          "message": "'React' is declared but its value is never read.",
           "severity": "error",
           "count": 1
         },
@@ -1643,9 +1636,9 @@
         }
       ],
       "severities": {
-        "error": 103
+        "error": 102
       },
-      "total": 103
+      "total": 102
     }
   },
   "version": 1

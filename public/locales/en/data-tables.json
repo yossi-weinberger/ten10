@@ -41,6 +41,7 @@
   "columns": {
     "select": "Select",
     "date": "Date",
+    "hebrewDate": "Hebrew Date",
     "type": "Type",
     "description": "Description",
     "category": "Category",

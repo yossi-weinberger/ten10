@@ -23,6 +23,7 @@ import type {
 } from "./bulkActions";
 import { getErrorMessage } from "@/lib/utils/error-message";
 import { parseLocalDate } from "@/lib/utils/local-date";
+import { useDonationStore } from "@/lib/store";
 
 export interface TableTransactionsState {
   // State
@@ -402,6 +403,9 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
 
       try {
         const { filters, sorting } = get();
+        const { calendarType, showSecondaryDate } =
+          useDonationStore.getState().settings;
+        const calendarSettings = { calendarType, showSecondaryDate };
         const { transactions: transactionsToExport, totalCount } =
           await TableTransactionsService.getDataForExport(filters, platform);
 
@@ -427,19 +431,22 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
             exportFilters,
             totalCount,
             i18n.language,
-            sorting
+            sorting,
+            calendarSettings,
           );
         } else if (format === "excel") {
           saved = await exportTransactionsToExcel(
             transactionsToExport,
             "Ten10-transactions.xlsx",
-            i18n.language
+            i18n.language,
+            calendarSettings,
           );
         } else if (format === "csv") {
           saved = await exportTransactionsToCSV(
             transactionsToExport,
             "Ten10-transactions.csv",
-            i18n.language
+            i18n.language,
+            calendarSettings,
           );
         } else {
           const _exhaustive: never = format;

@@ -14,7 +14,12 @@ import {
   getGregorianMonthKey,
   isGregorianMonthTransition,
 } from "@/lib/utils/gregorian-month";
-import { parseLocalDate } from "@/lib/utils/local-date";
+import { formatLocalDate } from "@/lib/utils/local-date";
+import {
+  formatExportDate,
+  type CalendarExportSettings,
+} from "@/lib/calendar/export-date";
+import { formatDisplayDate } from "@/lib/calendar/display-date";
 
 // Import fonts directly using Vite's ?url feature for robust path handling
 import regularFontUrl from "/fonts/Rubik-Regular.ttf?url";
@@ -231,6 +236,10 @@ export async function exportTransactionsToPDF(
   totalCount: number,
   currentLanguage: string = "he",
   sorting?: { field: string; direction: "asc" | "desc" },
+  calendarSettings: CalendarExportSettings = {
+    calendarType: "gregorian",
+    showSecondaryDate: false,
+  },
 ): Promise<boolean> {
   try {
     const pdfDoc = await PDFDocument.create();
@@ -283,6 +292,7 @@ export async function exportTransactionsToPDF(
     const margin = LAYOUT.margin;
     const contentWidth = width - 2 * margin;
     const isRtl = currentLanguage === "he";
+    const calendarLanguage = isRtl ? "he" : "en";
 
     let y = height - margin - 10;
 
@@ -347,9 +357,19 @@ export async function exportTransactionsToPDF(
     const dateRange = filters.dateRange;
     let dateRangeText = i18n.t("export.pdf.allDates", { lng: currentLanguage });
     if (dateRange.from && dateRange.to) {
+      const formatRangeDate = (date: Date) => {
+        const displayDate = formatDisplayDate(formatLocalDate(date), {
+          ...calendarSettings,
+          language: calendarLanguage,
+          style: "short",
+        });
+        return displayDate.secondary
+          ? `${displayDate.primary} (${displayDate.secondary})`
+          : displayDate.primary;
+      };
       dateRangeText = i18n.t("export.pdf.dateRange", {
-        from: format(dateRange.from, "dd/MM/yy"),
-        to: format(dateRange.to, "dd/MM/yy"),
+        from: formatRangeDate(dateRange.from),
+        to: formatRangeDate(dateRange.to),
         lng: currentLanguage,
       });
     }
@@ -633,9 +653,19 @@ export async function exportTransactionsToPDF(
           t.type === "recognized-expense" ||
           t.type === "initial_balance") &&
         t.is_chomesh === true;
+      const exportDate = formatExportDate(t.date, {
+        ...calendarSettings,
+        language: calendarLanguage,
+      });
+      const gregorianPdfDate = formatDisplayDate(t.date, {
+        calendarType: "gregorian",
+        showSecondaryDate: false,
+        language: calendarLanguage,
+        style: "short",
+      }).primary;
 
       const rowData = [
-        format(parseLocalDate(t.date), "dd/MM/yy"),
+        gregorianPdfDate,
         i18n.t(`export.transactionTypes.${t.type}`, { lng: currentLanguage }) ||
           t.type,
         formatCurrency(t.amount, t.currency, currentLanguage),
@@ -661,7 +691,48 @@ export async function exportTransactionsToPDF(
         const fontSize = LAYOUT.fontSize.cell;
         const cellCenterY = rowY + LAYOUT.rowHeight / 2 - fontSize / 2 + 1;
 
-        if (i === 1) {
+        if (i === 0 && exportDate.hebrew) {
+          const gregorianSize = 6.5;
+          const hebrewSize = Math.min(
+            5.5,
+            ((colWidth - 4) / regularFont.widthOfTextAtSize(exportDate.hebrew, 1)),
+          );
+          const cellLeft = isRtl ? cellX - colWidth : cellX;
+          const gregorianWidth = regularFont.widthOfTextAtSize(
+            gregorianPdfDate,
+            gregorianSize,
+          );
+          page.drawText(gregorianPdfDate, {
+            x: cellLeft + (colWidth - gregorianWidth) / 2,
+            y: rowY + 15,
+            font: regularFont,
+            size: gregorianSize,
+            color: COLORS.text,
+          });
+          if (calendarLanguage === "he") {
+            drawRtlText(
+              page,
+              exportDate.hebrew,
+              cellLeft + colWidth - 2,
+              rowY + 5,
+              regularFont,
+              hebrewSize,
+              COLORS.textSecondary,
+            );
+          } else {
+            const hebrewWidth = regularFont.widthOfTextAtSize(
+              exportDate.hebrew,
+              hebrewSize,
+            );
+            page.drawText(exportDate.hebrew, {
+              x: cellLeft + (colWidth - hebrewWidth) / 2,
+              y: rowY + 5,
+              font: regularFont,
+              size: hebrewSize,
+              color: COLORS.textSecondary,
+            });
+          }
+        } else if (i === 1) {
           // TYPE
           const { textColor: badgeTextColor, bgColor: badgeBgColor } =
             parseTailwindColor(typeBadgeColors[t.type] || "");
