@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDonationStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
 import { format, parse, subMonths } from "date-fns";
-import { he, enUS } from "date-fns/locale";
 import { fetchServerMonthlyChartData } from "@/lib/data-layer/chart.service";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,6 +15,7 @@ import {
 } from "@/components/charts/area-chart-interactive";
 import { ChartConfig } from "@/components/ui/chart";
 import { logger } from "@/lib/logger";
+import { formatGregorianMonthlyChartData } from "./monthly-chart.utils";
 
 const NUM_MONTHS_TO_FETCH = 6;
 
@@ -24,7 +24,7 @@ export function MonthlyChart() {
   const { user } = useAuth();
   const userId = user?.id;
   const { platform } = usePlatform();
-  const dateLocale = i18n.language === "he" ? he : enUS;
+  const language = i18n.language;
 
   const monthlyChartConfig: ChartConfig = {
     income: {
@@ -194,36 +194,11 @@ export function MonthlyChart() {
 
   const formattedChartDataForAreaChart: MonthlyChartDataPoint[] =
     React.useMemo(() => {
-      if (!serverMonthlyChartData) return [];
-
-      return serverMonthlyChartData
-        .slice()
-        .sort((itemA, itemB) => {
-          const dateA = parse(
-            itemA.month_label,
-            "yyyy-MM",
-            new Date()
-          ).getTime();
-          const dateB = parse(
-            itemB.month_label,
-            "yyyy-MM",
-            new Date()
-          ).getTime();
-          return dateA - dateB;
-        })
-        .map((item) => ({
-          month: format(
-            parse(item.month_label, "yyyy-MM", new Date()),
-            "MMM yyyy",
-            {
-              locale: dateLocale,
-            }
-          ),
-          income: item.income,
-          donations: item.donations,
-          expenses: item.expenses,
-        }));
-    }, [serverMonthlyChartData, i18n.language, dateLocale]);
+      return formatGregorianMonthlyChartData(
+        serverMonthlyChartData,
+        language,
+      );
+    }, [serverMonthlyChartData, language]);
 
   // Consistent container height to prevent CLS
   const chartContainerHeight = "min-h-[400px] md:min-h-[500px]";

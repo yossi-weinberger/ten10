@@ -48,6 +48,11 @@ import {
   normalizeBulkFieldActions,
 } from "@/lib/tableTransactions/bulkActions";
 import { getErrorMessage } from "@/lib/utils/error-message";
+import {
+  formatGregorianMonthLabel,
+  getGregorianMonthKey,
+  isGregorianMonthTransition,
+} from "@/lib/utils/gregorian-month";
 
 // sortableColumns definition - will be defined inside the component to use t()
 
@@ -474,26 +479,6 @@ export function TransactionsTableDisplay() {
     [t]
   );
 
-  // Helper function to get month key from date string (YYYY-MM format)
-  const getMonthKey = useCallback((dateString: string): string => {
-    // Parse directly from string to avoid timezone issues with Date object
-    // Expects YYYY-MM-DD format which is standard in this app
-    return dateString.substring(0, 7);
-  }, []);
-
-  // Helper function to format month label
-  const formatMonthLabel = useCallback(
-    (monthKey: string): string => {
-      const [year, month] = monthKey.split("-");
-      const date = new Date(parseInt(year), parseInt(month) - 1, 1);
-      return date.toLocaleDateString(i18n.language, {
-        year: "numeric",
-        month: "long",
-      });
-    },
-    [i18n.language]
-  );
-
   // Create array of transactions with month separators when sorting by date
   const transactionsWithSeparators = useMemo(() => {
     // Only add separators when sorting by date
@@ -512,14 +497,17 @@ export function TransactionsTableDisplay() {
     let previousMonthKey: string | null = null;
 
     transactions.forEach((transaction) => {
-      const currentMonthKey = getMonthKey(transaction.date);
+      const currentMonthKey = getGregorianMonthKey(transaction.date);
 
       // Add separator if month changed (not for first transaction)
-      if (previousMonthKey !== null && previousMonthKey !== currentMonthKey) {
+      if (isGregorianMonthTransition(previousMonthKey, transaction.date)) {
         result.push({
           type: "separator",
           monthKey: currentMonthKey,
-          monthLabel: formatMonthLabel(currentMonthKey),
+          monthLabel: formatGregorianMonthLabel(
+            currentMonthKey,
+            i18n.language,
+          ),
         });
       }
 
@@ -532,7 +520,7 @@ export function TransactionsTableDisplay() {
     });
 
     return result;
-  }, [transactions, sorting.field, getMonthKey, formatMonthLabel]);
+  }, [transactions, sorting.field, i18n.language]);
 
   const bulkDeleteWarnings = [
     selectedHasInitialBalance

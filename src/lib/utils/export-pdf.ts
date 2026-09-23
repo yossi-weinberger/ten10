@@ -9,6 +9,11 @@ import { logger } from "@/lib/logger";
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { formatCategory } from "@/lib/category-registry";
 import { saveOrDownloadExportedFile } from "@/lib/utils/save-export-file";
+import {
+  formatGregorianMonthLabel,
+  getGregorianMonthKey,
+  isGregorianMonthTransition,
+} from "@/lib/utils/gregorian-month";
 
 // Import fonts directly using Vite's ?url feature for robust path handling
 import regularFontUrl from "/fonts/Rubik-Regular.ttf?url";
@@ -481,31 +486,17 @@ export async function exportTransactionsToPDF(
     drawTableHeader(tableTop);
     y = tableTop - LAYOUT.headerHeight;
 
-    // Helper function to get month key from date string (YYYY-MM format)
-    const getMonthKey = (dateString: string): string => {
-      // Parse directly from string to avoid timezone issues with Date object
-      // Expects YYYY-MM-DD format which is standard in this app
-      return dateString.substring(0, 7);
-    };
-
-    // Helper function to format month label
-    const formatMonthLabel = (monthKey: string): string => {
-      const [year, month] = monthKey.split("-");
-      const date = new Date(parseInt(year), parseInt(month) - 1, 1);
-      return date.toLocaleDateString(currentLanguage, {
-        year: "numeric",
-        month: "long",
-      });
-    };
-
     // --- 3. Table Rows ---
     let previousMonthKey: string | null = null;
     for (const t of transactions) {
       // Check if we need to add a month separator
       const shouldAddSeparator =
         sorting?.field === "date" && previousMonthKey !== null;
-      const currentMonthKey = getMonthKey(t.date);
-      const monthChanged = previousMonthKey !== currentMonthKey;
+      const currentMonthKey = getGregorianMonthKey(t.date);
+      const monthChanged = isGregorianMonthTransition(
+        previousMonthKey,
+        t.date,
+      );
 
       if (shouldAddSeparator && monthChanged) {
         // Check if we need a new page for the separator
@@ -529,7 +520,10 @@ export async function exportTransactionsToPDF(
         });
 
         // Small month label on the side with background
-        const monthLabel = formatMonthLabel(currentMonthKey);
+        const monthLabel = formatGregorianMonthLabel(
+          currentMonthKey,
+          currentLanguage,
+        );
         const labelFontSize = LAYOUT.fontSize.cell - 1;
         const labelPadding = 4;
         const labelY = separatorY - labelFontSize / 2 - 1;
