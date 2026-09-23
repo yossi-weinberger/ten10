@@ -1,6 +1,6 @@
 # מחקר: תמיכה גורפת בלוח עברי ב-TEN10
 
-**תאריך:** 18.9.2026 (ז' בתשרי תשפ"ז) · **גרסת אפליקציה:** 0.7.5 · **סטטוס ביצוע (23.9.2026):** P1–P3 הושלמו ואומתו ב-[Draft PR #424](https://github.com/yossi-weinberger/ten10/pull/424): CI ירוק, testing מבודד, Preview ירוק, ופרוד נפרס רק מ-`main`.
+**תאריך:** 18.9.2026 (ז' בתשרי תשפ"ז) · **גרסת אפליקציה:** 0.7.5 · **סטטוס ביצוע (23.9.2026):** P1–P4 הושלמו ואומתו ב-[Draft PR #424](https://github.com/yossi-weinberger/ten10/pull/424): CI ירוק, testing מבודד, Preview ירוק, פרוד נפרס רק מ-`main`, ו-397 בדיקות מקפיאות את ההתנהגות הגרגוריאנית.
 
 מקורות: כל `src/`, `supabase/` (מיגרציות + edge functions), `src-tauri/`, `llm-instructions/`, `docs/`, `public/locales/`, `TODO.md`, היסטוריית git (1,370 קומיטים), סכמת ה-Postgres החיה בפרודקשן (638 פרופילים, ~17K תנועות, 880 הוראות קבע), הצלבה מול מסמך המלצות חיצוני (`hebrew-calendar-recommendations-2026-09-18.md`), ובדיקות חיות של `@hebcal/hdate` ו-`temporal-polyfill/full` ב-Node 24.
 
@@ -345,7 +345,7 @@ src/lib/calendar/
 | **P1. CI לטסטים** | `ci.yml` על כל PR: `tsc --noEmit`, `eslint`, `vitest run` (matrix `TZ=UTC`/`Asia/Jerusalem`), `deno test supabase/functions`, `cargo test` ב-`src-tauri`. **שער:** כל 35+13 קבצי הטסט הקיימים ירוקים | `.github/workflows/ci.yml` | ½ יום | — |
 | **P2. סביבת בדיקות** | ענף `testing` מחדש כ-`--persistent --with-data` (סעיף 9.3 ב'), נטרול מיילים בענף, vault, functions deploy; `.env.testing` + Vercel preview env. **שער:** סקריפט השוואת `information_schema` ענף↔פרוד ירוק | Supabase Dashboard/CLI, `MIGRATION_VAULT_SETUP.md` | ½–1 יום | — |
 | **P3. פלואו פריסה** | `deploy-supabase-migrations.yml`: PR → ענף בלבד, main → פרוד; guard ל-`main` ב-`deploy-functions.js` ו-`release.cjs`; עדכון `supabase-database-migrations-workflow.md` | 2 workflows, 2 סקריפטים, doc | ½ יום | P2 |
-| **P4. רשת ביטחון** | Characterization tests שמקפיאים התנהגות גרגוריאנית נוכחית (סעיף 9.5 שורה ראשונה). **שער:** snapshot לכל preset/מפריד/`advanceMonthly`/`extractClientPreferences` | `src/**/*.test.ts` חדשים | 1–2 ימים | P1 |
+| **P4. רשת ביטחון — הושלם** | 32 בדיקות characterization מקפיאות presets, טווח קודם, recurring, preferences, month keys/labels, מפרידי טבלה/PDF וגרף חודשי. **שער:** 397/397 ב-UTC וב-Asia/Jerusalem; CI ירוק | 6 קובצי בדיקות + 3 seams טהורים | הושלם | P1 |
 | **P5. baseline (מקביל, לא חוסם)** | Dump סכמה → מיגרציה אחת; `migration repair` בפרוד; מחיקת 174 stubs; `seed.sql` סינתטי עם מקרי קצה עבריים | `supabase/migrations/`, `supabase/seed.sql`, `scripts/generate-seed.ts` | 1–2 ימים | P3 |
 | **0a. ביקורת UTC** | להחליף את 25 מופעי `toISOString().split("T")[0]` בתאריכי-יום ב-`formatLocalDate`; edge `process-recurring-transactions` ל-`Asia/Jerusalem`. **מתקן באג קיים** בסינון טווחים ובתאריך ברירת מחדל | ~12 קבצים + edge אחת | 1 יום | — |
 | **0b. ניקוי** | למחוק `maaserYearStart` מה-store; whitelist ב-`PreferencesSyncService`; `UPDATE` ניקוי ב-DB; למחוק `weekStart*`/`nisan`/`january` מ-i18n; **למחוק** `execute_due_recurring_transactions` ו-`calculate_new_next_due_date` (לא בשימוש, השנייה מקולקלת) | `store.ts`, `preferences-sync.service.ts`, `settings.json`, מיגרציה | ½ יום | — |
