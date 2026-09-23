@@ -85,14 +85,9 @@
     "cardDescription": "הגדרות תאריכים ולוח שנה",
     "hebrewCalendarLabel": "לוח שנה",
     "hebrewCalendarDescription": "הצג תאריכים בלוח העברי",
-    "weekStartLabel": "תחילת שנת מעשר",
-    "weekStartPlaceholder": "בחר חודש",
     "options": {
       "gregorian": "לוח גרגוריאני",
-      "hebrew": "לוח עברי",
-      "tishrei": "תשרי",
-      "nisan": "ניסן",
-      "january": "ינואר"
+      "hebrew": "לוח עברי"
     }
   },
   "importExport": {

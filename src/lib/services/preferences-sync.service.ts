@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import { useDonationStore, Settings } from "@/lib/store";
 import { logger } from "@/lib/logger";
+import { sanitizeClientPreferences } from "@/lib/settings/client-preferences";
 
 export const PreferencesSyncService = {
   /**
@@ -8,16 +9,7 @@ export const PreferencesSyncService = {
    * Fields that have dedicated columns in the profiles table are omitted.
    */
   extractClientPreferences(settings: Settings): Partial<Settings> {
-    const {
-      defaultCurrency,
-      reminderEnabled,
-      reminderDayOfMonth,
-      mailingListConsent,
-      lastSeenVersion,
-      termsAcceptedVersion,
-      ...preferences
-    } = settings;
-    return preferences;
+    return sanitizeClientPreferences(settings);
   },
 
   /**
@@ -45,8 +37,11 @@ export const PreferencesSyncService = {
         return;
       }
 
-      const dbPreferences =
-        profile?.client_preferences as Partial<Settings> | null;
+      const dbPreferences = profile?.client_preferences
+        ? sanitizeClientPreferences(
+            profile.client_preferences as Partial<Settings>,
+          )
+        : null;
       const localSettings = useDonationStore.getState().settings;
 
       // Build the dedicated-column overrides (reminder fields live in their own

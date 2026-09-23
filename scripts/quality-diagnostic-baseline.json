@@ -7,7 +7,7 @@
         "@typescript-eslint/no-empty-object-type": 3,
         "@typescript-eslint/no-explicit-any": 50,
         "@typescript-eslint/no-unused-expressions": 1,
-        "@typescript-eslint/no-unused-vars": 30,
+        "@typescript-eslint/no-unused-vars": 24,
         "no-shadow-restricted-names": 1,
         "no-unsafe-finally": 1,
         "no-useless-escape": 10,
@@ -695,48 +695,6 @@
           "count": 1
         },
         {
-          "code": "@typescript-eslint/no-unused-vars",
-          "file": "src/lib/services/preferences-sync.service.ts",
-          "message": "'defaultCurrency' is assigned a value but never used.",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "@typescript-eslint/no-unused-vars",
-          "file": "src/lib/services/preferences-sync.service.ts",
-          "message": "'lastSeenVersion' is assigned a value but never used.",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "@typescript-eslint/no-unused-vars",
-          "file": "src/lib/services/preferences-sync.service.ts",
-          "message": "'mailingListConsent' is assigned a value but never used.",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "@typescript-eslint/no-unused-vars",
-          "file": "src/lib/services/preferences-sync.service.ts",
-          "message": "'reminderDayOfMonth' is assigned a value but never used.",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "@typescript-eslint/no-unused-vars",
-          "file": "src/lib/services/preferences-sync.service.ts",
-          "message": "'reminderEnabled' is assigned a value but never used.",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "@typescript-eslint/no-unused-vars",
-          "file": "src/lib/services/preferences-sync.service.ts",
-          "message": "'termsAcceptedVersion' is assigned a value but never used.",
-          "severity": "error",
-          "count": 1
-        },
-        {
           "code": "@typescript-eslint/no-explicit-any",
           "file": "src/lib/services/recurring-transactions.service.ts",
           "message": "Unexpected any. Specify a different type.",
@@ -1039,10 +997,10 @@
         }
       ],
       "severities": {
-        "error": 172,
+        "error": 166,
         "warning": 25
       },
-      "total": 197
+      "total": 191
     },
     "typecheck:app": {
       "command": "tsc -p tsconfig.app.json --noEmit --pretty false",

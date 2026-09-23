@@ -17,7 +17,6 @@ describe("PreferencesSyncService.extractClientPreferences", () => {
       trackChomeshSeparately: true,
       recurringDonations: false,
       minMaaserPercentage: 12,
-      maaserYearStart: "01-01",
       reminderEnabled: true,
       reminderDayOfMonth: 25,
       termsAcceptedVersion: "2026-09",
@@ -43,7 +42,7 @@ describe("PreferencesSyncService.extractClientPreferences", () => {
     expect(preferences).not.toHaveProperty("termsAcceptedVersion");
   });
 
-  it("preserves every current client preference including legacy fields", () => {
+  it("preserves current client preferences and rejects legacy keys", () => {
     const settings: Settings = {
       theme: "dark",
       language: "en",
@@ -53,7 +52,6 @@ describe("PreferencesSyncService.extractClientPreferences", () => {
       trackChomeshSeparately: true,
       recurringDonations: false,
       minMaaserPercentage: 12,
-      maaserYearStart: "01-01",
       reminderEnabled: true,
       reminderDayOfMonth: 25,
       termsAcceptedVersion: "2026-09",
@@ -69,7 +67,11 @@ describe("PreferencesSyncService.extractClientPreferences", () => {
     };
 
     expect(
-      PreferencesSyncService.extractClientPreferences(settings),
+      PreferencesSyncService.extractClientPreferences({
+        ...settings,
+        maaserYearStart: "01-01",
+        unexpectedPreference: true,
+      } as Settings),
     ).toEqual({
       theme: "dark",
       language: "en",
@@ -78,7 +80,6 @@ describe("PreferencesSyncService.extractClientPreferences", () => {
       trackChomeshSeparately: true,
       recurringDonations: false,
       minMaaserPercentage: 12,
-      maaserYearStart: "01-01",
       autoLockTimeoutMinutes: 30,
       onboarding: {
         version: 2,

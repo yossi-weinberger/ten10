@@ -113,6 +113,13 @@ COMMENT ON COLUMN public.transactions.source_recurring_id IS 'Links to the recur
 
 **סטטוס:** ✅ **בוצע**
 
+> **עדכון 2026-09-23:** המימוש הפעיל הוא
+> `supabase/functions/process-recurring-transactions/index.ts`, שנקרא מדי יום
+> על ידי `pg_cron` דרך HTTP. פונקציית ה-SQL הישנה
+> `execute_due_recurring_transactions()` אינה בשימוש והוסרה במיגרציה
+> `20260923114002_cleanup_legacy_calendar_and_recurring_rpcs.sql`. הסעיפים
+> הבאים מתעדים את התכנון ההיסטורי בלבד ואינם הוראות פריסה עדכניות.
+
 ### 2.1: יצירת פונקציית ה-Cron Job ב-SQL
 
 **סטטוס:** ✅ **בוצע**

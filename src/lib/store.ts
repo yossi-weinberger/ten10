@@ -19,7 +19,6 @@ export interface Settings {
   trackChomeshSeparately: boolean;
   recurringDonations: boolean;
   minMaaserPercentage?: number;
-  maaserYearStart?: string;
   reminderEnabled: boolean;
   reminderDayOfMonth: 1 | 5 | 10 | 15 | 20 | 25;
   termsAcceptedVersion?: string | null;
@@ -77,7 +76,6 @@ const defaultSettings: Settings = {
   trackChomeshSeparately: false,
   recurringDonations: true,
   minMaaserPercentage: 10,
-  maaserYearStart: "01-01",
   reminderEnabled: false,
   reminderDayOfMonth: 10,
   termsAcceptedVersion: null,
@@ -240,6 +238,12 @@ export const useDonationStore = create<DonationState>()(
             );
           } else if (state) {
             logger.log("Zustand: Rehydration finished.");
+
+            delete (
+              state.settings as Settings & {
+                maaserYearStart?: unknown;
+              }
+            ).maaserYearStart;
 
             // Migration: Add reminder settings if they don't exist
             if (state.settings.reminderEnabled === undefined) {

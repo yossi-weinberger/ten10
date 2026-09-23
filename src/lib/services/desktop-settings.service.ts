@@ -89,11 +89,17 @@ export async function restoreDesktopSettings(): Promise<RestoredDesktopSettings>
 
     if (storedPreferencesStr) {
       try {
-        const parsed = JSON.parse(storedPreferencesStr);
+        const parsed = JSON.parse(storedPreferencesStr) as Record<
+          string,
+          unknown
+        >;
+        delete parsed.maaserYearStart;
         logger.log("DesktopSettingsService: Restored client_preferences from SQLite.");
-        store.updateSettings(parsed);
-        if (isValidTheme(parsed.theme)) {
-          result.theme = parsed.theme;
+        store.updateSettings(parsed as Partial<Settings>);
+        const parsedTheme =
+          typeof parsed.theme === "string" ? parsed.theme : undefined;
+        if (isValidTheme(parsedTheme)) {
+          result.theme = parsedTheme;
         }
         return result;
       } catch (parseErr) {
