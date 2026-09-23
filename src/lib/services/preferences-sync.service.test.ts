@@ -1,6 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Settings } from "@/lib/store";
 import { PreferencesSyncService } from "./preferences-sync.service";
+
+vi.mock("@/lib/supabaseClient", () => ({
+  supabase: {},
+}));
 
 describe("PreferencesSyncService.extractClientPreferences", () => {
   it("omits every setting backed by a dedicated profile column", () => {
