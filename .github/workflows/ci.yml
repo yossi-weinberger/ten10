@@ -104,6 +104,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate Edge Function imports
+        run: npm run check-supabase-imports
+
       - name: Run Edge Function tests
         run: npm run test:edge
         env:
