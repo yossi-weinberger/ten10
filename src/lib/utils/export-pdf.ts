@@ -10,10 +10,10 @@ import { formatPaymentMethod } from "@/lib/payment-methods";
 import { formatCategory } from "@/lib/category-registry";
 import { saveOrDownloadExportedFile } from "@/lib/utils/save-export-file";
 import {
-  formatGregorianMonthLabel,
-  getGregorianMonthKey,
-  isGregorianMonthTransition,
-} from "@/lib/utils/gregorian-month";
+  formatCalendarMonthLabel,
+  getCalendarMonthKey,
+  isCalendarMonthTransition,
+} from "@/lib/calendar/calendar-period";
 import { formatLocalDate } from "@/lib/utils/local-date";
 import {
   formatExportDate,
@@ -513,10 +513,14 @@ export async function exportTransactionsToPDF(
       // Check if we need to add a month separator
       const shouldAddSeparator =
         sorting?.field === "date" && previousMonthKey !== null;
-      const currentMonthKey = getGregorianMonthKey(t.date);
-      const monthChanged = isGregorianMonthTransition(
+      const currentMonthKey = getCalendarMonthKey(
+        t.date,
+        calendarSettings.calendarType,
+      );
+      const monthChanged = isCalendarMonthTransition(
         previousMonthKey,
         t.date,
+        calendarSettings.calendarType,
       );
 
       if (shouldAddSeparator && monthChanged) {
@@ -541,8 +545,9 @@ export async function exportTransactionsToPDF(
         });
 
         // Small month label on the side with background
-        const monthLabel = formatGregorianMonthLabel(
+        const monthLabel = formatCalendarMonthLabel(
           currentMonthKey,
+          calendarSettings.calendarType,
           currentLanguage,
         );
         const labelFontSize = LAYOUT.fontSize.cell - 1;

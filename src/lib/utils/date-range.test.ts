@@ -43,7 +43,14 @@ describe("getPreviousPeriodRange", () => {
   for (const testCase of cases) {
     it(testCase.name, () => {
       expect(
-        getPreviousPeriodRange(testCase.startDate, testCase.endDate),
+        getPreviousPeriodRange(
+          testCase.startDate,
+          testCase.endDate,
+          {
+            selection: "custom",
+            calendarType: "gregorian",
+          },
+        ),
       ).toEqual({
         startDate: testCase.expectedStart,
         endDate: testCase.expectedEnd,
@@ -52,16 +59,83 @@ describe("getPreviousPeriodRange", () => {
   }
 
   it("treats date-only inputs as local calendar dates", () => {
-    expect(getPreviousPeriodRange("2026-01-01", "2026-01-01")).toEqual({
+    expect(
+      getPreviousPeriodRange("2026-01-01", "2026-01-01", {
+        selection: "custom",
+        calendarType: "gregorian",
+      }),
+    ).toEqual({
       startDate: "2025-12-31",
       endDate: "2025-12-31",
     });
   });
 
   it("keeps calendar-day length across the Israeli daylight-saving boundary", () => {
-    expect(getPreviousPeriodRange("2026-03-27", "2026-03-29")).toEqual({
+    expect(
+      getPreviousPeriodRange("2026-03-27", "2026-03-29", {
+        selection: "custom",
+        calendarType: "gregorian",
+      }),
+    ).toEqual({
       startDate: "2026-03-24",
       endDate: "2026-03-26",
     });
+  });
+
+  it("compares a Gregorian month preset with the full previous month", () => {
+    expect(
+      getPreviousPeriodRange("2024-03-01", "2024-03-15", {
+        selection: "month",
+        calendarType: "gregorian",
+      }),
+    ).toEqual({
+      startDate: "2024-02-01",
+      endDate: "2024-02-29",
+    });
+  });
+
+  it("compares a Gregorian year preset with the full previous year", () => {
+    expect(
+      getPreviousPeriodRange("2024-01-01", "2024-06-15", {
+        selection: "year",
+        calendarType: "gregorian",
+      }),
+    ).toEqual({
+      startDate: "2023-01-01",
+      endDate: "2023-12-31",
+    });
+  });
+
+  it("compares Tishri 5787 with the full previous Hebrew month", () => {
+    expect(
+      getPreviousPeriodRange("2026-09-12", "2026-09-23", {
+        selection: "month",
+        calendarType: "hebrew",
+      }),
+    ).toEqual({
+      startDate: "2026-08-14",
+      endDate: "2026-09-11",
+    });
+  });
+
+  it("compares Hebrew year 5787 with full Hebrew year 5786", () => {
+    expect(
+      getPreviousPeriodRange("2026-09-12", "2027-01-01", {
+        selection: "year",
+        calendarType: "hebrew",
+      }),
+    ).toEqual({
+      startDate: "2025-09-23",
+      endDate: "2026-09-11",
+    });
+  });
+
+  it("returns no comparison for all-time", () => {
+    expect(
+      getPreviousPeriodRange("1970-01-01", "2026-09-23", {
+        selection: "all",
+        calendarType: "hebrew",
+      }),
+    ).toBeNull();
   });
 });

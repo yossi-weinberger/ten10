@@ -34,6 +34,7 @@ export function AnalyticsPage() {
   const { user } = useAuth();
   const { platform } = usePlatform();
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
+  const calendarType = useDonationStore((s) => s.settings.calendarType);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   useEffect(() => {
@@ -80,13 +81,21 @@ export function AnalyticsPage() {
     prevIncome,
     prevExpenses,
     isLoading: isLoadingPeriodComparison,
-  } = usePeriodComparison(activeDateRangeObject, user, platform);
+  } = usePeriodComparison(
+    activeDateRangeObject,
+    dateRangeSelection,
+    user,
+    platform,
+  );
 
   const prevPeriodDates = useMemo(() => {
     const { startDate, endDate } = activeDateRangeObject;
     if (!startDate || !endDate || startDate === "1970-01-01") return null;
-    return getPreviousPeriodRange(startDate, endDate);
-  }, [activeDateRangeObject]);
+    return getPreviousPeriodRange(startDate, endDate, {
+      selection: dateRangeSelection,
+      calendarType,
+    });
+  }, [activeDateRangeObject, dateRangeSelection, calendarType]);
 
   const {
     categoryData,

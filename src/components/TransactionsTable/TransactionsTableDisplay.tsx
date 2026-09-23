@@ -50,10 +50,10 @@ import {
 } from "@/lib/tableTransactions/bulkActions";
 import { getErrorMessage } from "@/lib/utils/error-message";
 import {
-  formatGregorianMonthLabel,
-  getGregorianMonthKey,
-  isGregorianMonthTransition,
-} from "@/lib/utils/gregorian-month";
+  formatCalendarMonthLabel,
+  getCalendarMonthKey,
+  isCalendarMonthTransition,
+} from "@/lib/calendar/calendar-period";
 
 // sortableColumns definition - will be defined inside the component to use t()
 
@@ -63,6 +63,9 @@ export function TransactionsTableDisplay() {
   const formatDisplayDate = useDisplayDate();
   const trackChomeshSeparately = useDonationStore(
     (state) => state.settings.trackChomeshSeparately,
+  );
+  const calendarType = useDonationStore(
+    (state) => state.settings.calendarType,
   );
 
   // sortableColumns definition with translations
@@ -499,15 +502,25 @@ export function TransactionsTableDisplay() {
     let previousMonthKey: string | null = null;
 
     transactions.forEach((transaction) => {
-      const currentMonthKey = getGregorianMonthKey(transaction.date);
+      const currentMonthKey = getCalendarMonthKey(
+        transaction.date,
+        calendarType,
+      );
 
       // Add separator if month changed (not for first transaction)
-      if (isGregorianMonthTransition(previousMonthKey, transaction.date)) {
+      if (
+        isCalendarMonthTransition(
+          previousMonthKey,
+          transaction.date,
+          calendarType,
+        )
+      ) {
         result.push({
           type: "separator",
           monthKey: currentMonthKey,
-          monthLabel: formatGregorianMonthLabel(
+          monthLabel: formatCalendarMonthLabel(
             currentMonthKey,
+            calendarType,
             i18n.language,
           ),
         });
@@ -522,7 +535,7 @@ export function TransactionsTableDisplay() {
     });
 
     return result;
-  }, [transactions, sorting.field, i18n.language]);
+  }, [transactions, sorting.field, i18n.language, calendarType]);
 
   const bulkDeleteWarnings = [
     selectedHasInitialBalance

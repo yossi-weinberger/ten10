@@ -125,6 +125,7 @@ export const useDonationStore = create<DonationState>()(
             ...(resetCalendarChartCache && {
               serverMonthlyChartData: [],
               currentChartEndDate: null,
+              serverMonthlyChartDataError: null,
               canLoadMoreChartData: true,
             }),
           };
@@ -183,13 +184,13 @@ export const useDonationStore = create<DonationState>()(
             JSON.parse(JSON.stringify(state.serverMonthlyChartData))
           );
 
-          // Filter out duplicates from the new data based on existing month_labels if prepending or potentially if initial load might refetch
-          const existingLabels = new Set(
-            state.serverMonthlyChartData.map((d) => d.month_label)
+          const existingCacheKeys = new Set(
+            state.serverMonthlyChartData.map((item) => item.cache_key)
           );
           const uniqueNewData = data.filter(
-            (d) => !existingLabels.has(d.month_label) || !prepend
-          ); // if not prepending, we typically want to overwrite with new data anyway
+            (item) =>
+              !existingCacheKeys.has(item.cache_key) || !prepend
+          );
 
           logger.log(
             "[Store] Unique new data to be added/set:",
@@ -200,7 +201,7 @@ export const useDonationStore = create<DonationState>()(
             // for 'loadMore' which loads older data
             // Ensure uniqueNewData only contains items not already in state if there's an overlap concern during prepend
             const trulyNewDataForPrepend = uniqueNewData.filter(
-              (d) => !existingLabels.has(d.month_label)
+              (item) => !existingCacheKeys.has(item.cache_key)
             );
             if (trulyNewDataForPrepend.length !== uniqueNewData.length) {
               logger.warn(

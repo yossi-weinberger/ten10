@@ -10,7 +10,9 @@ mod commands;
 mod models;
 mod transaction_types;
 
-use commands::chart_commands::get_desktop_monthly_financial_summary;
+use commands::chart_commands::{
+    get_desktop_monthly_financial_summary, get_desktop_period_financial_summary,
+};
 use commands::db_commands::{
     clear_all_data, delete_app_setting, get_app_setting, get_app_version, get_default_currency,
     infer_default_currency_from_transactions, init_db, set_app_setting, set_default_currency,
@@ -87,6 +89,7 @@ fn main() {
             get_distinct_categories,
             get_distinct_payment_methods,
             get_desktop_monthly_financial_summary,
+            get_desktop_period_financial_summary,
             get_due_recurring_transactions_handler,
             add_recurring_transaction_handler,
             get_recurring_transactions_handler,

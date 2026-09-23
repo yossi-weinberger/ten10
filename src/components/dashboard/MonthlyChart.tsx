@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDonationStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
-import { format, parse, subMonths } from "date-fns";
 import { fetchServerMonthlyChartData } from "@/lib/data-layer/chart.service";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,7 +14,13 @@ import {
 } from "@/components/charts/area-chart-interactive";
 import { ChartConfig } from "@/components/ui/chart";
 import { logger } from "@/lib/logger";
-import { formatGregorianMonthlyChartData } from "./monthly-chart.utils";
+import { buildPeriodBoundaries } from "@/lib/calendar/calendar-period";
+import { formatLocalDate } from "@/lib/utils/local-date";
+import {
+  formatMonthlyChartData,
+  getPreviousChartAnchor,
+  shouldLoadInitialChart,
+} from "./monthly-chart.utils";
 
 const NUM_MONTHS_TO_FETCH = 6;
 
@@ -51,6 +56,7 @@ export function MonthlyChart() {
     setIsLoadingServerMonthlyChartData,
     setServerMonthlyChartDataError,
     setCanLoadMoreChartData,
+    calendarType,
   } = useDonationStore(
     useShallow((state) => ({
       serverMonthlyChartData: state.serverMonthlyChartData,
@@ -64,6 +70,7 @@ export function MonthlyChart() {
         state.setIsLoadingServerMonthlyChartData,
       setServerMonthlyChartDataError: state.setServerMonthlyChartDataError,
       setCanLoadMoreChartData: state.setCanLoadMoreChartData,
+      calendarType: state.settings.calendarType,
     }))
   );
 
@@ -94,21 +101,24 @@ export function MonthlyChart() {
         setInitialLoadAttempted(true);
       }
 
-      let endDateForFetch;
+      let anchorDate: string;
       if (loadMore && currentChartEndDate && !isReset) {
-        const currentEarliestDate = parse(
+        anchorDate = getPreviousChartAnchor(
           currentChartEndDate,
-          "yyyy-MM-dd",
-          new Date()
+          calendarType,
         );
-        endDateForFetch = subMonths(currentEarliestDate, 1);
       } else {
-        endDateForFetch = new Date();
+        anchorDate = formatLocalDate(new Date());
       }
+      const boundaries = buildPeriodBoundaries(
+        anchorDate,
+        NUM_MONTHS_TO_FETCH,
+        calendarType,
+      );
 
       logger.log(
-        "MonthlyChart: Preparing to fetch data. endDateForFetch:",
-        endDateForFetch,
+        "MonthlyChart: Preparing to fetch data. boundaries:",
+        boundaries,
         "LoadMore:",
         loadMore,
         "IsReset:",
@@ -118,8 +128,8 @@ export function MonthlyChart() {
       try {
         const data = await fetchServerMonthlyChartData(
           userId ?? null,
-          endDateForFetch,
-          NUM_MONTHS_TO_FETCH
+          boundaries,
+          calendarType,
         );
         if (data) {
           if (data.length < NUM_MONTHS_TO_FETCH && (loadMore || !isReset)) {
@@ -128,13 +138,7 @@ export function MonthlyChart() {
           setServerMonthlyChartData(data, loadMore && !isReset);
 
           if (data.length > 0) {
-            const earliestMonthLabel = data[data.length - 1].month_label;
-            const newEarliestDate = parse(
-              earliestMonthLabel,
-              "yyyy-MM",
-              new Date()
-            );
-            setCurrentChartEndDate(format(newEarliestDate, "yyyy-MM-dd"));
+            setCurrentChartEndDate(data[0].period_start);
           } else if (loadMore && !isReset) {
             setCanLoadMoreChartData(false);
           }
@@ -157,6 +161,7 @@ export function MonthlyChart() {
       setCurrentChartEndDate,
       setCanLoadMoreChartData,
       currentChartEndDate,
+      calendarType,
     ]
   );
 
@@ -165,14 +170,16 @@ export function MonthlyChart() {
   };
 
   useEffect(() => {
-    const canFetchData =
-      platformReady &&
-      (platform === "desktop" || (user?.id && platform === "web"));
-
     if (
-      canFetchData &&
-      !isLoadingServerMonthlyChartData &&
-      !initialLoadAttempted
+      shouldLoadInitialChart({
+        platformReady,
+        platform,
+        userId: user?.id,
+        isLoading: isLoadingServerMonthlyChartData,
+        hasError: serverMonthlyChartDataError !== null,
+        initialLoadAttempted,
+        dataLength: serverMonthlyChartData.length,
+      })
     ) {
       logger.log(
         "[MonthlyChart] useEffect [platformReady, user, ...]: Initial data fetch conditions met. Platform:",
@@ -190,15 +197,18 @@ export function MonthlyChart() {
     isLoadingServerMonthlyChartData,
     loadData,
     initialLoadAttempted,
+    serverMonthlyChartData.length,
+    serverMonthlyChartDataError,
   ]);
 
   const formattedChartDataForAreaChart: MonthlyChartDataPoint[] =
     React.useMemo(() => {
-      return formatGregorianMonthlyChartData(
+      return formatMonthlyChartData(
         serverMonthlyChartData,
+        calendarType,
         language,
       );
-    }, [serverMonthlyChartData, language]);
+    }, [serverMonthlyChartData, calendarType, language]);
 
   // Consistent container height to prevent CLS
   const chartContainerHeight = "min-h-[400px] md:min-h-[500px]";

@@ -11,13 +11,18 @@ describe("calendar settings store behavior", () => {
       },
       serverMonthlyChartData: [
         {
-          month_label: "2026-09",
+          period_index: 1,
+          period_start: "2026-09-01",
+          period_end: "2026-10-01",
+          period_key: "2026-09",
+          cache_key: "gregorian:2026-09",
           income: 100,
           expenses: 20,
           donations: 10,
         },
       ],
       currentChartEndDate: "2026-09-01",
+      serverMonthlyChartDataError: "failure",
       canLoadMoreChartData: false,
     });
   });
@@ -30,6 +35,7 @@ describe("calendar settings store behavior", () => {
     expect(useDonationStore.getState()).toMatchObject({
       serverMonthlyChartData: [],
       currentChartEndDate: null,
+      serverMonthlyChartDataError: null,
       canLoadMoreChartData: true,
       lastDbFetchTimestamp: originalLastFetch,
     });
@@ -43,5 +49,42 @@ describe("calendar settings store behavior", () => {
       canLoadMoreChartData: false,
     });
     expect(useDonationStore.getState().serverMonthlyChartData).toHaveLength(1);
+  });
+
+  it("deduplicates prepended chart periods by calendar-scoped cache key", () => {
+    useDonationStore.getState().setServerMonthlyChartData(
+      [
+        {
+          period_index: 1,
+          period_start: "2026-09-01",
+          period_end: "2026-10-01",
+          period_key: "2026-09",
+          cache_key: "gregorian:2026-09",
+          income: 999,
+          expenses: 999,
+          donations: 999,
+        },
+        {
+          period_index: 1,
+          period_start: "2026-08-01",
+          period_end: "2026-09-01",
+          period_key: "2026-08",
+          cache_key: "gregorian:2026-08",
+          income: 50,
+          expenses: 5,
+          donations: 5,
+        },
+      ],
+      true,
+    );
+
+    expect(
+      useDonationStore
+        .getState()
+        .serverMonthlyChartData.map((item) => item.cache_key),
+    ).toEqual([
+      "gregorian:2026-08",
+      "gregorian:2026-09",
+    ]);
   });
 });

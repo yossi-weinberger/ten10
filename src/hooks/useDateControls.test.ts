@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  calculateGregorianDateRange,
+  calculateDateRange,
   type DateRangeSelectionType,
 } from "./useDateControls";
 
@@ -11,7 +11,7 @@ const labels = {
   custom: "custom",
 } satisfies Record<DateRangeSelectionType, string>;
 
-describe("calculateGregorianDateRange", () => {
+describe("calculateDateRange", () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });
@@ -48,7 +48,15 @@ describe("calculateGregorianDateRange", () => {
     it(`keeps the month preset Gregorian on ${boundary.name}`, () => {
       vi.setSystemTime(boundary.now);
 
-      expect(calculateGregorianDateRange("month", undefined, labels)).toEqual({
+      expect(
+        calculateDateRange(
+          "month",
+          undefined,
+          labels,
+          "gregorian",
+          "en",
+        ),
+      ).toEqual({
         startDate: boundary.monthStart,
         endDate: boundary.today,
         label: "month",
@@ -58,7 +66,15 @@ describe("calculateGregorianDateRange", () => {
     it(`keeps the year preset Gregorian on ${boundary.name}`, () => {
       vi.setSystemTime(boundary.now);
 
-      expect(calculateGregorianDateRange("year", undefined, labels)).toEqual({
+      expect(
+        calculateDateRange(
+          "year",
+          undefined,
+          labels,
+          "gregorian",
+          "en",
+        ),
+      ).toEqual({
         startDate: boundary.yearStart,
         endDate: boundary.today,
         label: "year",
@@ -68,7 +84,15 @@ describe("calculateGregorianDateRange", () => {
     it(`keeps the all preset anchored at the Unix epoch on ${boundary.name}`, () => {
       vi.setSystemTime(boundary.now);
 
-      expect(calculateGregorianDateRange("all", undefined, labels)).toEqual({
+      expect(
+        calculateDateRange(
+          "all",
+          undefined,
+          labels,
+          "gregorian",
+          "en",
+        ),
+      ).toEqual({
         startDate: "1970-01-01",
         endDate: boundary.today,
         label: "all",
@@ -81,7 +105,13 @@ describe("calculateGregorianDateRange", () => {
     const day = new Date(2026, 4, 7);
 
     expect(
-      calculateGregorianDateRange("custom", { from: day }, labels),
+      calculateDateRange(
+        "custom",
+        { from: day },
+        labels,
+        "gregorian",
+        "en",
+      ),
     ).toEqual({
       startDate: "2026-05-07",
       endDate: "2026-05-07",
@@ -93,13 +123,15 @@ describe("calculateGregorianDateRange", () => {
     vi.setSystemTime(new Date(2026, 11, 31, 12));
 
     expect(
-      calculateGregorianDateRange(
+      calculateDateRange(
         "custom",
         {
           from: new Date(2026, 6, 20),
           to: new Date(2026, 6, 3),
         },
         labels,
+        "gregorian",
+        "en",
       ),
     ).toEqual({
       startDate: "2026-07-03",
@@ -112,14 +144,63 @@ describe("calculateGregorianDateRange", () => {
     vi.setSystemTime(new Date(2024, 1, 29, 12));
 
     expect(
-      calculateGregorianDateRange(
+      calculateDateRange(
         "custom",
         { from: undefined },
         labels,
+        "gregorian",
+        "en",
       ),
     ).toEqual({
       startDate: "2024-02-01",
       endDate: "2024-02-29",
+      label: "custom",
+    });
+  });
+
+  it("starts the Hebrew month and year at their primary-calendar boundaries", () => {
+    vi.setSystemTime(new Date(2026, 8, 23, 12));
+
+    expect(
+      calculateDateRange("month", undefined, labels, "hebrew", "en"),
+    ).toEqual({
+      startDate: "2026-09-12",
+      endDate: "2026-09-23",
+      label: "month (Tishri 5787)",
+    });
+    expect(
+      calculateDateRange("year", undefined, labels, "hebrew", "en"),
+    ).toEqual({
+      startDate: "2026-09-12",
+      endDate: "2026-09-23",
+      label: "year (5787)",
+    });
+  });
+
+  it("keeps all-time and custom storage semantics in Hebrew mode", () => {
+    vi.setSystemTime(new Date(2026, 8, 23, 12));
+
+    expect(
+      calculateDateRange("all", undefined, labels, "hebrew", "en"),
+    ).toEqual({
+      startDate: "1970-01-01",
+      endDate: "2026-09-23",
+      label: "all",
+    });
+    expect(
+      calculateDateRange(
+        "custom",
+        {
+          from: new Date(2026, 8, 10),
+          to: new Date(2026, 8, 15),
+        },
+        labels,
+        "hebrew",
+        "en",
+      ),
+    ).toEqual({
+      startDate: "2026-09-10",
+      endDate: "2026-09-15",
       label: "custom",
     });
   });

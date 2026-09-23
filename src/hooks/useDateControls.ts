@@ -1,6 +1,12 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DateRange } from "react-day-picker";
+import {
+  getCalendarAdapter,
+  type CalendarLanguage,
+  type CalendarType,
+} from "@/lib/calendar";
+import { useDonationStore } from "@/lib/store";
 import { formatLocalDate } from "@/lib/utils/local-date";
 
 export type DateRangeSelectionType = "month" | "year" | "all" | "custom";
@@ -17,29 +23,42 @@ function todayLocal(): Date {
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
 }
 
-export function calculateGregorianDateRange(
+export function calculateDateRange(
   dateRangeSelection: DateRangeSelectionType,
   customDateRange: DateRange | undefined,
   labels: Record<DateRangeSelectionType, string>,
+  calendarType: CalendarType,
+  language: CalendarLanguage,
 ): DateRangeObject {
   const today = todayLocal();
   const endDate = formatLocalDate(today);
+  const adapter = getCalendarAdapter(calendarType);
 
   switch (dateRangeSelection) {
-    case "month":
+    case "month": {
+      const monthKey = adapter.monthKey(endDate);
+      const label =
+        calendarType === "hebrew"
+          ? `${labels.month} (${adapter.monthLabel(monthKey, language)})`
+          : labels.month;
       return {
-        startDate: formatLocalDate(
-          new Date(today.getFullYear(), today.getMonth(), 1),
-        ),
+        startDate: adapter.startOfMonth(endDate),
         endDate,
-        label: labels.month,
+        label,
       };
-    case "year":
+    }
+    case "year": {
+      const representation = adapter.fromIsoDate(endDate);
+      const label =
+        calendarType === "hebrew"
+          ? `${labels.year} (${representation.year})`
+          : labels.year;
       return {
-        startDate: formatLocalDate(new Date(today.getFullYear(), 0, 1)),
+        startDate: adapter.startOfYear(endDate),
         endDate,
-        label: labels.year,
+        label,
       };
+    }
     case "all":
       return {
         startDate: "1970-01-01",
@@ -84,6 +103,10 @@ export function calculateGregorianDateRange(
 
 export function useDateControls() {
   const { t } = useTranslation("dashboard");
+  const { i18n } = useTranslation();
+  const calendarType = useDonationStore(
+    (state) => state.settings.calendarType,
+  );
   const [dateRangeSelection, setDateRangeSelection] =
     useState<DateRangeSelectionType>("month");
   const [customDateRange, setCustomDateRange] = useState<
@@ -104,12 +127,20 @@ export function useDateControls() {
 
   const activeDateRangeObject = useMemo<DateRangeObject>(
     () =>
-      calculateGregorianDateRange(
+      calculateDateRange(
         dateRangeSelection,
         customDateRange,
         dateRangeLabels,
+        calendarType,
+        i18n.language.startsWith("he") ? "he" : "en",
       ),
-    [dateRangeSelection, customDateRange, dateRangeLabels],
+    [
+      dateRangeSelection,
+      customDateRange,
+      dateRangeLabels,
+      calendarType,
+      i18n.language,
+    ],
   );
 
   return {

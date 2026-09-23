@@ -18,9 +18,17 @@ import {
   eachWeekOfInterval, startOfWeek, endOfWeek,
   eachDayOfInterval, isWithinInterval, startOfDay,
 } from "date-fns";
-import { he, enUS } from "date-fns/locale";
+import {
+  getCalendarAdapter,
+  type CalendarLanguage,
+} from "@/lib/calendar";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { formatLocalDate } from "@/lib/utils/local-date";
+import {
+  filterHeatmapDataByCalendarYear,
+  formatHeatmapMonthTick,
+  getHeatmapCalendarYears,
+} from "./transaction-heatmap.utils";
 
 interface TransactionHeatmapProps {
   data: DailyHeatmapResponse;
@@ -129,14 +137,15 @@ export function TransactionHeatmap({
   const { t, i18n } = useTranslation("dashboard");
   const formatDisplayDate = useDisplayDate();
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
-  const dateLocale = i18n.language === "he" ? he : enUS;
+  const calendarType = useDonationStore((s) => s.settings.calendarType);
+  const calendarLanguage: CalendarLanguage =
+    i18n.language.startsWith("he") ? "he" : "en";
   const fmt = (v: number) => formatCurrency(v, defaultCurrency, i18n.language);
 
   // Available years from data (for year navigation when data spans >1 year)
   const availableYears = useMemo(() => {
-    const years = [...new Set(data.map((d) => d.tx_date.substring(0, 4)))].sort();
-    return years;
-  }, [data]);
+    return getHeatmapCalendarYears(data, calendarType);
+  }, [data, calendarType]);
 
   const isMultiYear = availableYears.length > 1;
 
@@ -150,8 +159,12 @@ export function TransactionHeatmap({
   // Filter data to selected year when multi-year; otherwise show all
   const filteredData = useMemo(() => {
     if (!isMultiYear || !effectiveYear) return data;
-    return data.filter((d) => d.tx_date.startsWith(effectiveYear));
-  }, [data, isMultiYear, effectiveYear]);
+    return filterHeatmapDataByCalendarYear(
+      data,
+      effectiveYear,
+      calendarType,
+    );
+  }, [data, isMultiYear, effectiveYear, calendarType]);
 
   const { weeks, maxAmount } = useMemo(
     () => buildWeeksGrid(filteredData),
@@ -264,8 +277,14 @@ export function TransactionHeatmap({
                         <div key={wi} className="flex flex-col gap-0.5">
                           {/* Month label on first week of month */}
                           <div className="h-5 text-[9px] text-muted-foreground leading-none flex items-center">
-                            {week[0].date.getDate() <= 7
-                              ? format(week[0].date, "MMM", { locale: dateLocale })
+                            {getCalendarAdapter(calendarType).fromIsoDate(
+                              formatLocalDate(week[0].date),
+                            ).day <= 7
+                              ? formatHeatmapMonthTick(
+                                  formatLocalDate(week[0].date),
+                                  calendarType,
+                                  calendarLanguage,
+                                )
                               : ""}
                           </div>
                           {week.map((cell) => {
