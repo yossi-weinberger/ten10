@@ -1,5 +1,11 @@
 export {
+  advanceMonthlyRecurringDate,
+  advanceRecurringDate,
+  advanceYearlyRecurringDate,
+  firstRecurringDueDate,
+  generateRecurringCatchUpDates,
   getCalendarAdapter,
+  rescheduleRecurringBillingDay,
   type CalendarAdapter,
   type CalendarDateInput,
   type CalendarDateRepresentation,
@@ -7,4 +13,7 @@ export {
   type CalendarLanguage,
   type CalendarOverflow,
   type CalendarType,
+  type RecurrenceFrequency,
+  type RecurrenceRule,
+  type YearlyNormalizationPolicy,
 } from "../../../supabase/functions/_shared/calendar/index.ts";

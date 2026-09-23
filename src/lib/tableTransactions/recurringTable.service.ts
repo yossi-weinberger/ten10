@@ -7,6 +7,7 @@ import {
 } from "./recurringTable.store";
 import { logger } from "@/lib/logger";
 import { rescheduleBillingDayInMonth } from "@/lib/recurring/recurring-date.utils";
+import { getCalendarAdapter } from "@/lib/calendar";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { invokeTauri } from "@/lib/tauri-invoke";
 import {
@@ -56,6 +57,73 @@ function trackRecurringUpdateEvents(
     fields_changed: fieldsChanged,
     frequency: existing?.frequency ?? updates.frequency,
   });
+}
+
+function prepareRecurringUpdates(
+  values: Partial<RecurringTransaction>,
+  existing?: RecurringTransaction,
+): Partial<RecurringTransaction> {
+  const updates = { ...values };
+  if (values.payment_method !== undefined) {
+    updates.payment_method = normalizePaymentMethodValue(values.payment_method);
+  }
+
+  if (
+    existing &&
+    updates.day_of_month != null &&
+    (updates.day_of_month !== existing.day_of_month ||
+      updates.calendar_type !== undefined)
+  ) {
+    updates.next_due_date = rescheduleBillingDayInMonth(
+      existing.next_due_date,
+      updates.day_of_month,
+      updates.calendar_type ?? existing.calendar_type ?? "gregorian",
+    );
+  }
+
+  if (
+    existing?.frequency === "yearly" &&
+    updates.calendar_type !== undefined &&
+    updates.calendar_type !== existing.calendar_type
+  ) {
+    updates.anchor_month_code = getCalendarAdapter(
+      updates.calendar_type,
+    ).fromIsoDate(updates.next_due_date ?? existing.next_due_date).monthCode;
+  }
+
+  return updates;
+}
+
+export function buildRecurringUpdateRpcParams(
+  id: string,
+  userId: string,
+  values: Partial<RecurringTransaction>,
+  existing?: RecurringTransaction,
+) {
+  const updates = prepareRecurringUpdates(values, existing);
+  return {
+    p_id: id,
+    p_user_id: userId,
+    p_amount: updates.amount,
+    p_currency: updates.currency,
+    p_description: updates.description,
+    p_status: updates.status,
+    p_total_occurrences: updates.total_occurrences ?? null,
+    p_day_of_month: updates.day_of_month ?? null,
+    p_payment_method: updates.payment_method ?? null,
+    p_original_amount: updates.original_amount ?? null,
+    p_original_currency: updates.original_currency ?? null,
+    p_conversion_rate: updates.conversion_rate ?? null,
+    p_conversion_date: updates.conversion_date ?? null,
+    p_rate_source: updates.rate_source ?? null,
+    p_next_due_date: updates.next_due_date ?? null,
+    p_calendar_type:
+      updates.calendar_type ?? existing?.calendar_type ?? "gregorian",
+    p_anchor_month_code:
+      updates.anchor_month_code !== undefined
+        ? updates.anchor_month_code
+        : existing?.anchor_month_code ?? null,
+  };
 }
 
 export async function fetchAllRecurring(
@@ -118,23 +186,7 @@ export async function updateRecurringTransaction(
   existing?: RecurringTransaction
 ): Promise<RecurringTransaction> {
   const platform = getPlatform();
-  const updates = { ...values };
-  if (values.payment_method !== undefined) {
-    updates.payment_method = normalizePaymentMethodValue(values.payment_method);
-  }
-
-  if (
-    existing &&
-    updates.day_of_month != null &&
-    updates.day_of_month !== existing.day_of_month
-  ) {
-    // Keep the scheduled month; only move billing day within that cycle.
-    // Cron catch-up still processes all missed months from this anchor.
-    updates.next_due_date = rescheduleBillingDayInMonth(
-      existing.next_due_date,
-      updates.day_of_month
-    );
-  }
+  const updates = prepareRecurringUpdates(values, existing);
 
   if (platform === "web") {
     const {
@@ -144,24 +196,12 @@ export async function updateRecurringTransaction(
       throw new Error("User not authenticated for updating transaction");
     }
 
-    // Map the form values to the expected RPC parameter names
-    const rpcParams = {
-      p_id: id,
-      p_user_id: user.id,
-      p_amount: updates.amount,
-      p_currency: updates.currency,
-      p_description: updates.description,
-      p_status: updates.status,
-      p_total_occurrences: updates.total_occurrences ?? null,
-      p_day_of_month: updates.day_of_month ?? null,
-      p_payment_method: updates.payment_method ?? null,
-      p_original_amount: updates.original_amount ?? null,
-      p_original_currency: updates.original_currency ?? null,
-      p_conversion_rate: updates.conversion_rate ?? null,
-      p_conversion_date: updates.conversion_date ?? null,
-      p_rate_source: updates.rate_source ?? null,
-      p_next_due_date: updates.next_due_date ?? null,
-    };
+    const rpcParams = buildRecurringUpdateRpcParams(
+      id,
+      user.id,
+      updates,
+      existing,
+    );
 
     const { data, error } = await supabase
       .rpc("update_recurring_transaction", rpcParams)

@@ -2,6 +2,10 @@
 use rusqlite::Result as RusqliteResult;
 use serde::{Deserialize, Serialize};
 
+fn default_calendar_type() -> String {
+    "gregorian".to_string()
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Transaction {
     pub id: String,
@@ -78,6 +82,10 @@ pub struct RecurringTransaction {
     pub start_date: String,
     pub next_due_date: String,
     pub frequency: String,
+    #[serde(default = "default_calendar_type")]
+    pub calendar_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub anchor_month_code: Option<String>,
     pub day_of_month: i32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub total_occurrences: Option<i32>,
@@ -125,6 +133,8 @@ impl RecurringTransaction {
             start_date: row.get("start_date")?,
             next_due_date: row.get("next_due_date")?,
             frequency: row.get("frequency")?,
+            calendar_type: row.get("calendar_type")?,
+            anchor_month_code: row.get("anchor_month_code")?,
             day_of_month: row.get("day_of_month")?,
             total_occurrences: row.get("total_occurrences")?,
             execution_count: row.get("execution_count")?,
@@ -156,6 +166,8 @@ pub struct RecurringInfo {
     pub day_of_month: i32,
     pub start_date: String,
     pub next_due_date: String,
+    pub calendar_type: String,
+    pub anchor_month_code: Option<String>,
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -163,6 +175,34 @@ pub struct TransactionForTable {
     #[serde(flatten)]
     pub transaction: Transaction,
     pub recurring_info: Option<RecurringInfo>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::RecurringTransaction;
+    use serde_json::json;
+
+    #[test]
+    fn old_recurring_backup_defaults_to_gregorian() {
+        let recurring: RecurringTransaction = serde_json::from_value(json!({
+            "id": "old",
+            "status": "active",
+            "start_date": "2026-01-01",
+            "next_due_date": "2026-01-31",
+            "frequency": "monthly",
+            "day_of_month": 31,
+            "execution_count": 0,
+            "amount": 100.0,
+            "currency": "ILS",
+            "type": "expense",
+            "created_at": "2026-01-01",
+            "updated_at": "2026-01-01"
+        }))
+        .expect("deserialize old recurring backup");
+
+        assert_eq!(recurring.calendar_type, "gregorian");
+        assert_eq!(recurring.anchor_month_code, None);
+    }
 }
 
 #[derive(Serialize, Debug, Clone)]

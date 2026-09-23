@@ -513,10 +513,20 @@ export function RecurringTransactionsTableDisplay() {
                         />
                       </TableCell>
                       <TableCell className="text-center">
-                        {t(
-                          `recurring.frequencies.${rec.frequency}`,
-                          rec.frequency
-                        )}
+                        <span className="block">
+                          {t(
+                            `recurring.frequencies.${rec.frequency}`,
+                            rec.frequency
+                          )}
+                        </span>
+                        <Badge
+                          variant="secondary"
+                          className="mt-1 px-1.5 py-0 text-[10px] font-normal"
+                        >
+                          {t(
+                            `recurring.calendars.${rec.calendar_type ?? "gregorian"}`,
+                          )}
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-center">
                         <span>{nextDueDate.primary}</span>

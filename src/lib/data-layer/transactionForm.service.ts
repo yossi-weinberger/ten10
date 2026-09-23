@@ -17,6 +17,7 @@ import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { notifyOnboardingTransactionCreated } from "@/lib/onboarding/transactionBridge";
 import { firstDueDate } from "@/lib/recurring/recurring-date.utils";
+import { getCalendarAdapter } from "@/lib/calendar";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 import { parseLocalDate } from "@/lib/utils/local-date";
 
@@ -91,10 +92,17 @@ export async function handleTransactionSubmit(
 
   // Logic for recurring transactions
   if (values.is_recurring) {
+    const calendarType = values.recurring_calendar_type ?? "gregorian";
+    const anchorMonthCode =
+      values.frequency === "yearly"
+        ? getCalendarAdapter(calendarType).fromIsoDate(values.date).monthCode
+        : null;
     const definition: NewRecurringTransaction = {
       start_date: values.date,
-      next_due_date: firstDueDate(values.date, dayOfMonth),
+      next_due_date: firstDueDate(values.date, dayOfMonth, calendarType),
       frequency: values.frequency || "monthly",
+      calendar_type: calendarType,
+      anchor_month_code: anchorMonthCode,
       day_of_month: dayOfMonth,
       total_occurrences: values.recurringTotalCount,
       amount: values.amount,
@@ -108,7 +116,9 @@ export async function handleTransactionSubmit(
       // Pass conversion details if present (only for manual rate usually, but can pass auto too if we want to snapshot it)
       // The backend/DB now supports these fields.
       original_amount: values.original_amount ?? undefined,
-      original_currency: values.original_currency ?? undefined,
+      original_currency:
+        (values.original_currency as RecurringTransaction["original_currency"]) ??
+        undefined,
       conversion_rate: values.conversion_rate ?? undefined,
       conversion_date: values.conversion_date ?? undefined,
       rate_source: values.rate_source ?? undefined,
@@ -139,7 +149,8 @@ export async function handleTransactionSubmit(
       source_recurring_id: null,
       user_id: null,
       original_amount: values.original_amount ?? null,
-      original_currency: values.original_currency ?? null,
+      original_currency:
+        (values.original_currency as Transaction["original_currency"]) ?? null,
       conversion_rate: values.conversion_rate ?? null,
       conversion_date: values.conversion_date ?? null,
       rate_source: values.rate_source ?? null,

@@ -49,11 +49,13 @@ export function RecurringTransactionEditModal({
 
   const handleUpdate = async (values: RecurringEditFormValues) => {
     try {
+      const { calendar_type, anchor_month_code, ...legacyValues } = values;
       const updateValues = {
-        ...values,
+        ...legacyValues,
         day_of_month: values.day_of_month ?? undefined,
         total_occurrences: values.total_occurrences ?? undefined,
       };
+      Object.assign(updateValues, { calendar_type, anchor_month_code });
       await updateRecurringTransaction(transaction!.id, updateValues, transaction!);
       onSubmitSuccess?.();
 

@@ -229,6 +229,10 @@
       "weekly": "שבועי",
       "monthly": "חודשי",
       "yearly": "שנתי"
+    },
+    "calendars": {
+      "gregorian": "לועזי",
+      "hebrew": "עברי"
     }
   },
   "filters": {

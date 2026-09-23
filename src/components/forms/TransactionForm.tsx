@@ -81,6 +81,9 @@ export function TransactionForm({
   const autoCalcChomesh = useDonationStore(
     (state) => state.settings.autoCalcChomesh
   );
+  const defaultRecurringCalendar = useDonationStore(
+    (state) => state.settings.calendarType,
+  );
 
   // The form schema only allows these currencies.
   const validCurrencies: Array<TransactionFormValues["currency"]> = CURRENCIES.map(
@@ -122,6 +125,7 @@ export function TransactionForm({
       isFromPersonalFunds: false,
       is_recurring: false,
       frequency: "monthly",
+      recurring_calendar_type: defaultRecurringCalendar,
       recurring_day_of_month: undefined,
       recurringTotalCount: undefined,
     },
@@ -436,6 +440,7 @@ export function TransactionForm({
             isFromPersonalFunds: false,
             is_recurring: false,
             frequency: "monthly",
+            recurring_calendar_type: defaultRecurringCalendar,
             recurring_day_of_month: undefined,
             recurringTotalCount: undefined,
           });

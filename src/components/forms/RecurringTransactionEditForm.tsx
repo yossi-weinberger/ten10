@@ -69,6 +69,8 @@ export function RecurringTransactionEditForm({
       status: initialData.status,
       total_occurrences: initialData.total_occurrences,
       day_of_month: initialData.day_of_month,
+      calendar_type: initialData.calendar_type ?? "gregorian",
+      anchor_month_code: initialData.anchor_month_code ?? null,
       // Conversion fields from initial data
       conversion_rate: initialData.conversion_rate ?? undefined,
       conversion_date: initialData.conversion_date ?? undefined,
@@ -81,6 +83,7 @@ export function RecurringTransactionEditForm({
   const status = form.watch("status");
   const selectedCurrency = form.watch("currency");
   const amount = form.watch("amount");
+  const calendarType = form.watch("calendar_type");
 
   const handleFormSubmit = async (values: RecurringEditFormValues) => {
     setIsSuccess(false);
@@ -347,33 +350,90 @@ export function RecurringTransactionEditForm({
 
           {/* Day of Month */}
           {status !== "completed" && (
-            <FormField
-              control={form.control}
-              name="day_of_month"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {t("transactionForm.recurringTransaction.dayOfMonth")}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={31}
-                      {...field}
-                      value={field.value ?? ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === "" ? null : Number(value));
+            <>
+              <FormField
+                control={form.control}
+                name="calendar_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {t(
+                        "transactionForm.recurringTransaction.calendar.label",
+                      )}
+                    </FormLabel>
+                    <Select
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        if (
+                          value === "hebrew" &&
+                          (form.getValues("day_of_month") ?? 0) > 30
+                        ) {
+                          form.setValue("day_of_month", 30, {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          });
+                        }
                       }}
-                    />
-                  </FormControl>
-                  <div className="h-5">
-                    <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
+                      value={field.value}
+                      dir={i18n.dir()}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="gregorian">
+                          {t(
+                            "transactionForm.recurringTransaction.calendar.gregorian",
+                          )}
+                        </SelectItem>
+                        <SelectItem value="hebrew">
+                          {t(
+                            "transactionForm.recurringTransaction.calendar.hebrew",
+                          )}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="h-5">
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="day_of_month"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {t("transactionForm.recurringTransaction.dayOfMonth")}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={calendarType === "hebrew" ? 30 : 31}
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === "" ? null : Number(value));
+                        }}
+                      />
+                    </FormControl>
+                    <p className="text-sm text-muted-foreground">
+                      {t(
+                        "transactionForm.recurringTransaction.dayClampHint",
+                      )}
+                    </p>
+                    <div className="h-5">
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </>
           )}
         </div>
 

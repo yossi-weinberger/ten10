@@ -4,6 +4,7 @@ import {
   firstDueDate,
   rescheduleBillingDayInMonth,
 } from "./recurring-date.utils";
+import { getCalendarAdapter } from "@/lib/calendar";
 
 function daysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate();
@@ -126,5 +127,22 @@ describe("advanceMonthly", () => {
       "2025-02-28",
       "2025-03-31",
     ]);
+  });
+
+  it("delegates Hebrew month advancement to the shared calendar engine", () => {
+    const hebrew = getCalendarAdapter("hebrew");
+    const adarOne = hebrew.toIsoDate({
+      year: 5787,
+      monthCode: "M05L",
+      day: 30,
+    });
+
+    expect(advanceMonthly(adarOne, 30, "hebrew")).toBe(
+      hebrew.toIsoDate({
+        year: 5787,
+        monthCode: "M06",
+        day: 29,
+      }),
+    );
   });
 });

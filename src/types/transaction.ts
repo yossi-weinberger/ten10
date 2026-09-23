@@ -1,4 +1,5 @@
 // Remove circular import of Currency from store.ts
+import type { CalendarType } from "@/lib/calendar";
 
 // Define the possible currency types
 export type Currency =
@@ -44,6 +45,8 @@ export interface RecurringInfo {
   day_of_month: number;
   start_date: string;
   next_due_date: string;
+  calendar_type: CalendarType;
+  anchor_month_code: string | null;
 }
 
 // Define the core Transaction interface
@@ -85,6 +88,8 @@ export interface RecurringTransaction {
   start_date: string; // ISO 8601 date string
   next_due_date: string; // ISO 8601 date string
   frequency: "daily" | "weekly" | "monthly" | "yearly";
+  calendar_type: CalendarType;
+  anchor_month_code: string | null;
   day_of_month?: number; // For 'monthly'
   total_occurrences?: number;
   execution_count: number;

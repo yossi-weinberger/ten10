@@ -9,38 +9,28 @@ import { nanoid } from "nanoid";
 
 import { getPlatform } from "@/lib/platformManager";
 import {
-  advanceMonthly,
-  formatLocalDate,
-  parseLocalDate,
-} from "@/lib/recurring/recurring-date.utils";
+  advanceRecurringDate,
+  getCalendarAdapter,
+} from "@/lib/calendar";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
 
 /**
  * Advances the due date based on frequency
  */
 function advanceDueDate(
-  currentDate: Date,
-  frequency: string,
-  dayOfMonth?: number
-): Date {
-  if (frequency === "monthly") {
-    const dom = dayOfMonth ?? currentDate.getDate();
-    return parseLocalDate(
-      advanceMonthly(formatLocalDate(currentDate), dom)
-    );
-  }
-
-  const newDate = new Date(currentDate);
-
-  if (frequency === "weekly") {
-    newDate.setDate(newDate.getDate() + 7);
-  } else if (frequency === "yearly") {
-    newDate.setFullYear(newDate.getFullYear() + 1);
-  } else if (frequency === "daily") {
-    newDate.setDate(newDate.getDate() + 1);
-  }
-
-  return newDate;
+  currentDate: string,
+  recurring: RecurringTransaction,
+): string {
+  const calendarType = recurring.calendar_type ?? "gregorian";
+  return advanceRecurringDate(currentDate, {
+    calendarType,
+    frequency: recurring.frequency,
+    dayOfMonth:
+      recurring.day_of_month ??
+      getCalendarAdapter(calendarType).fromIsoDate(currentDate).day,
+    anchorMonthCode: recurring.anchor_month_code,
+    yearlyNormalization: "constrain",
+  });
 }
 
 export const RecurringTransactionsService = {
@@ -85,29 +75,19 @@ export const RecurringTransactionsService = {
         return;
       }
 
-      const today = new Date();
-      // Reset time part to ensure clean comparison
-      today.setHours(0, 0, 0, 0);
+      const today = getCurrentLocalDate();
 
       for (const rec of dueTransactions) {
         try {
           // Use explicit parsing to avoid UTC vs Local timezone shifts
-          let currentDueDate = parseLocalDate(rec.next_due_date);
+          let currentDueDate = rec.next_due_date;
 
           let executionCount = rec.execution_count;
           let currentStatus = rec.status;
 
           // Loop until the next due date is in the future
           while (currentDueDate <= today && currentStatus === "active") {
-            // Safe ISO string generation for local date:
-            // format manually to avoid UTC conversion shifts
-            const year = currentDueDate.getFullYear();
-            const month = String(currentDueDate.getMonth() + 1).padStart(
-              2,
-              "0"
-            );
-            const day = String(currentDueDate.getDate()).padStart(2, "0");
-            const currentDueDateStr = `${year}-${month}-${day}`;
+            const currentDueDateStr = currentDueDate;
 
             logger.log(
               `RecurringTransactionsService: Processing ${rec.id} for date ${currentDueDateStr}`
@@ -201,11 +181,7 @@ export const RecurringTransactionsService = {
                 );
                 // Skip this occurrence and advance
                 executionCount++;
-                currentDueDate = advanceDueDate(
-                  currentDueDate,
-                  rec.frequency,
-                  rec.day_of_month
-                );
+                currentDueDate = advanceDueDate(currentDueDate, rec);
                 if (
                   rec.total_occurrences &&
                   executionCount >= rec.total_occurrences
@@ -248,11 +224,7 @@ export const RecurringTransactionsService = {
 
             // 3. Advance to next occurrence
             executionCount++;
-            currentDueDate = advanceDueDate(
-              currentDueDate,
-              rec.frequency,
-              rec.day_of_month
-            );
+            currentDueDate = advanceDueDate(currentDueDate, rec);
             if (
               rec.total_occurrences &&
               executionCount >= rec.total_occurrences
@@ -263,10 +235,7 @@ export const RecurringTransactionsService = {
 
           // 4. Update Recurring Definition in DB (after loop finishes or breaks)
           // We update with the final calculated state
-          const year = currentDueDate.getFullYear();
-          const month = String(currentDueDate.getMonth() + 1).padStart(2, "0");
-          const day = String(currentDueDate.getDate()).padStart(2, "0");
-          const newNextDueDate = `${year}-${month}-${day}`;
+          const newNextDueDate = currentDueDate;
 
           await invoke("update_recurring_transaction_handler", {
             id: rec.id,

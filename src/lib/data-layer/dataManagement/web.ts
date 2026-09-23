@@ -360,6 +360,8 @@ export const importDataWeb = async ({
                 day_of_month,
                 start_date,
                 next_due_date,
+                calendar_type,
+                anchor_month_code,
               } = normalizeKeysToSnake(
                 recurringInfo as unknown as Record<string, unknown>,
                 RECURRING_CAMEL_TO_SNAKE,
@@ -372,6 +374,8 @@ export const importDataWeb = async ({
                 day_of_month?: number | null;
                 start_date?: string | null;
                 next_due_date?: string | null;
+                calendar_type?: "gregorian" | "hebrew";
+                anchor_month_code?: string | null;
               };
 
               const normalizedTransaction = normalizeKeysToSnake(
@@ -417,6 +421,8 @@ export const importDataWeb = async ({
                 day_of_month,
                 start_date,
                 next_due_date,
+                calendar_type: calendar_type ?? "gregorian",
+                anchor_month_code: anchor_month_code ?? null,
                 description,
                 amount,
                 currency,

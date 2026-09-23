@@ -4,6 +4,16 @@ export type CalendarType = "gregorian" | "hebrew";
 export type CalendarLanguage = "he" | "en";
 export type CalendarFormatStyle = "numeric" | "long";
 export type CalendarOverflow = "constrain" | "reject";
+export type RecurrenceFrequency = "daily" | "weekly" | "monthly" | "yearly";
+export type YearlyNormalizationPolicy = "constrain" | "reject";
+
+export interface RecurrenceRule {
+  calendarType: CalendarType;
+  frequency: RecurrenceFrequency;
+  dayOfMonth: number;
+  anchorMonthCode?: string | null;
+  yearlyNormalization?: YearlyNormalizationPolicy;
+}
 
 interface CalendarDateFields {
   year: number;
@@ -263,4 +273,133 @@ export function getCalendarAdapter(
     default:
       return assertNever(calendarType);
   }
+}
+
+function dateInCalendarMonth(
+  isoDate: string,
+  calendarType: CalendarType,
+  dayOfMonth: number,
+): string {
+  const adapter = getCalendarAdapter(calendarType);
+  const representation = adapter.fromIsoDate(isoDate);
+  return adapter.toIsoDate({
+    year: representation.year,
+    month: representation.month,
+    day: adapter.clampDay(
+      representation.year,
+      representation.month,
+      dayOfMonth,
+    ),
+  });
+}
+
+export function firstRecurringDueDate(
+  startDate: string,
+  calendarType: CalendarType,
+  dayOfMonth: number,
+): string {
+  const candidate = dateInCalendarMonth(
+    startDate,
+    calendarType,
+    dayOfMonth,
+  );
+  return candidate >= startDate
+    ? candidate
+    : advanceMonthlyRecurringDate(startDate, calendarType, dayOfMonth);
+}
+
+export function advanceMonthlyRecurringDate(
+  currentDate: string,
+  calendarType: CalendarType,
+  dayOfMonth: number,
+): string {
+  const adapter = getCalendarAdapter(calendarType);
+  return dateInCalendarMonth(
+    adapter.addMonths(currentDate, 1),
+    calendarType,
+    dayOfMonth,
+  );
+}
+
+export function advanceYearlyRecurringDate(
+  currentDate: string,
+  calendarType: CalendarType,
+  dayOfMonth: number,
+  anchorMonthCode: string,
+  normalization: YearlyNormalizationPolicy,
+): string {
+  const adapter = getCalendarAdapter(calendarType);
+  const current = adapter.fromIsoDate(currentDate);
+  return adapter.toIsoDate(
+    {
+      year: current.year + 1,
+      monthCode: anchorMonthCode,
+      day: dayOfMonth,
+    },
+    normalization,
+  );
+}
+
+export function advanceRecurringDate(
+  currentDate: string,
+  rule: RecurrenceRule,
+): string {
+  switch (rule.frequency) {
+    case "daily":
+      return Temporal.PlainDate.from(currentDate).add({ days: 1 }).toString();
+    case "weekly":
+      return Temporal.PlainDate.from(currentDate).add({ days: 7 }).toString();
+    case "monthly":
+      return advanceMonthlyRecurringDate(
+        currentDate,
+        rule.calendarType,
+        rule.dayOfMonth,
+      );
+    case "yearly": {
+      const current = getCalendarAdapter(rule.calendarType).fromIsoDate(
+        currentDate,
+      );
+      return advanceYearlyRecurringDate(
+        currentDate,
+        rule.calendarType,
+        rule.dayOfMonth,
+        rule.anchorMonthCode ?? current.monthCode,
+        rule.yearlyNormalization ?? "constrain",
+      );
+    }
+    default:
+      return assertNever(rule.frequency);
+  }
+}
+
+export function rescheduleRecurringBillingDay(
+  nextDueDate: string,
+  calendarType: CalendarType,
+  dayOfMonth: number,
+): string {
+  return dateInCalendarMonth(nextDueDate, calendarType, dayOfMonth);
+}
+
+export function generateRecurringCatchUpDates(
+  nextDueDate: string,
+  throughDate: string,
+  rule: RecurrenceRule,
+  maximumOccurrences = 10_000,
+): string[] {
+  const dueDates: string[] = [];
+  let dueDate = nextDueDate;
+
+  while (dueDate <= throughDate) {
+    if (dueDates.length >= maximumOccurrences) {
+      throw new RangeError("Recurring catch-up exceeded maximum occurrences");
+    }
+    dueDates.push(dueDate);
+    const nextDueDate = advanceRecurringDate(dueDate, rule);
+    if (nextDueDate <= dueDate) {
+      throw new RangeError("Recurring schedule did not advance");
+    }
+    dueDate = nextDueDate;
+  }
+
+  return dueDates;
 }

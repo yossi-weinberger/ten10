@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getIsraelDate } from "../_shared/israel-date.ts";
+import { advanceRecurringDate } from "../_shared/calendar/index.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -7,33 +8,6 @@ const validAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
 const validServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
-
-// ponytail: mirror src/lib/recurring/recurring-date.utils.ts (advanceMonthly covered by vitest)
-function parseLocalDate(dateStr: string): Date {
-  const [year, month, day] = dateStr.split("-").map(Number);
-  return new Date(year, month - 1, day);
-}
-
-function formatLocalDate(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function advanceMonthly(currentDate: string, dayOfMonth: number): string {
-  const current = parseLocalDate(currentDate);
-  let targetMonth = current.getMonth() + 1;
-  let targetYear = current.getFullYear();
-  if (targetMonth > 11) {
-    targetMonth = 0;
-    targetYear += 1;
-  }
-  const daysInMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
-  return formatLocalDate(
-    new Date(targetYear, targetMonth, Math.min(dayOfMonth, daysInMonth))
-  );
-}
 
 // Multi-provider exchange rate fetching (same priority as frontend)
 interface RateProvider {
@@ -224,7 +198,9 @@ Deno.serve(async (req) => {
     const today = getIsraelDate();
     const { data: dueTransactions, error: fetchError } = await supabase
       .from("recurring_transactions")
-      .select("*")
+      .select(
+        "id,user_id,status,start_date,next_due_date,frequency,calendar_type,anchor_month_code,day_of_month,total_occurrences,execution_count,description,amount,currency,type,category,is_chomesh,recipient,payment_method,original_amount,original_currency,conversion_rate,conversion_date,rate_source",
+      )
       .eq("status", "active")
       .lte("next_due_date", today);
 
@@ -255,8 +231,6 @@ Deno.serve(async (req) => {
       return rate;
     };
 
-    const todayDateObj = parseLocalDate(today);
-
     // 2. Process each transaction definition
     for (const rec of dueTransactions) {
       try {
@@ -278,7 +252,7 @@ Deno.serve(async (req) => {
         const defaultCurrency = profile?.default_currency || "ILS";
 
         // Loop variables
-        let currentDueDateObj = parseLocalDate(rec.next_due_date);
+        let currentDueDate = rec.next_due_date;
         let executionCount = rec.execution_count;
         let currentStatus = rec.status;
         let processedOccurrences = 0;
@@ -286,16 +260,10 @@ Deno.serve(async (req) => {
 
         // Catch-up Loop: Process all missed occurrences up to today
         while (
-          currentDueDateObj <= todayDateObj &&
+          currentDueDate <= today &&
           currentStatus === "active"
         ) {
-          const year = currentDueDateObj.getFullYear();
-          const month = String(currentDueDateObj.getMonth() + 1).padStart(
-            2,
-            "0"
-          );
-          const day = String(currentDueDateObj.getDate()).padStart(2, "0");
-          const currentDueDateStr = `${year}-${month}-${day}`;
+          const currentDueDateStr = currentDueDate;
 
           console.log(
             `Processing occurrence for ${rec.id} due on ${currentDueDateStr}`
@@ -310,8 +278,28 @@ Deno.serve(async (req) => {
 
           // Check conversion logic
           let shouldInsert = true;
+          const occurrenceNumber = executionCount + 1;
+          const { data: existingOccurrence, error: existingOccurrenceError } =
+            await supabase
+              .from("transactions")
+              .select("id")
+              .eq("source_recurring_id", rec.id)
+              .eq("occurrence_number", occurrenceNumber)
+              .maybeSingle();
 
-          if (rec.original_amount != null && rec.original_currency != null) {
+          if (existingOccurrenceError) {
+            throw existingOccurrenceError;
+          }
+          if (existingOccurrence) {
+            shouldInsert = false;
+            processedOccurrences++;
+          }
+
+          if (
+            shouldInsert &&
+            rec.original_amount != null &&
+            rec.original_currency != null
+          ) {
             if (rec.rate_source === "manual") {
               // MANUAL RATE: Always use the stored rate - user explicitly set it
               finalAmount = rec.amount;
@@ -356,7 +344,7 @@ Deno.serve(async (req) => {
                 rateSource = "auto";
               }
             }
-          } else if (recCurrency !== defaultCurrency) {
+          } else if (shouldInsert && recCurrency !== defaultCurrency) {
             // Legacy / Foreign currency without stored conversion
             const rate = await fetchExchangeRateCached(recCurrency, defaultCurrency);
 
@@ -394,7 +382,7 @@ Deno.serve(async (req) => {
                 recipient: rec.recipient,
                 payment_method: rec.payment_method,
                 source_recurring_id: rec.id,
-                occurrence_number: executionCount + 1,
+                occurrence_number: occurrenceNumber,
                 original_amount: originalAmount,
                 original_currency: originalCurrency,
                 conversion_rate: conversionRate,
@@ -419,18 +407,13 @@ Deno.serve(async (req) => {
 
           executionCount++;
 
-          // Calculate next date using Logic that respects day_of_month
-          if (rec.frequency === "monthly") {
-            const dom = rec.day_of_month ?? currentDueDateObj.getDate();
-            const nextDueStr = advanceMonthly(currentDueDateStr, dom);
-            currentDueDateObj = parseLocalDate(nextDueStr);
-          } else if (rec.frequency === "weekly") {
-            currentDueDateObj.setDate(currentDueDateObj.getDate() + 7);
-          } else if (rec.frequency === "yearly") {
-            currentDueDateObj.setFullYear(currentDueDateObj.getFullYear() + 1);
-          } else if (rec.frequency === "daily") {
-            currentDueDateObj.setDate(currentDueDateObj.getDate() + 1);
-          }
+          currentDueDate = advanceRecurringDate(currentDueDateStr, {
+            calendarType: rec.calendar_type ?? "gregorian",
+            frequency: rec.frequency,
+            dayOfMonth: rec.day_of_month,
+            anchorMonthCode: rec.anchor_month_code,
+            yearlyNormalization: "constrain",
+          });
 
           // Check completion
           if (
@@ -444,13 +427,7 @@ Deno.serve(async (req) => {
         // Update recurring transaction definition (Always update if we entered the loop/advanced state)
         // We check if executionCount changed to know if we did anything
         if (executionCount > rec.execution_count) {
-          const nextYear = currentDueDateObj.getFullYear();
-          const nextMonth = String(currentDueDateObj.getMonth() + 1).padStart(
-            2,
-            "0"
-          );
-          const nextDay = String(currentDueDateObj.getDate()).padStart(2, "0");
-          const finalNextDueDate = `${nextYear}-${nextMonth}-${nextDay}`;
+          const finalNextDueDate = currentDueDate;
 
           const { error: updateError } = await supabase
             .from("recurring_transactions")

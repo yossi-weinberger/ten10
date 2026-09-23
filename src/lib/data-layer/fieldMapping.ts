@@ -45,6 +45,8 @@ export const RECURRING_CAMEL_TO_SNAKE: Record<string, string> = {
   conversionRate: "conversion_rate",
   conversionDate: "conversion_date",
   rateSource: "rate_source",
+  calendarType: "calendar_type",
+  anchorMonthCode: "anchor_month_code",
 };
 
 /**
