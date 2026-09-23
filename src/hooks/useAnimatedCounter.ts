@@ -9,6 +9,7 @@ interface UseAnimatedCounterProps {
 
 interface UseAnimatedCounterReturn {
   displayValue: number;
+  isReady: boolean;
   startAnimateValue: number;
 }
 

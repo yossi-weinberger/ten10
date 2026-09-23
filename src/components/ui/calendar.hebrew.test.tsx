@@ -300,7 +300,9 @@ describe("Hebrew date pickers", () => {
     await user.click(getDayButton("2026-09-23"));
 
     expect(setDate).not.toHaveBeenCalledWith(undefined);
-    const selected = setDate.mock.calls.at(-1)?.[0] as Date | undefined;
+    const selected = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as
+      | Date
+      | undefined;
     if (selected) {
       expect(formatLocalDate(selected)).toBe("2026-09-23");
     }
