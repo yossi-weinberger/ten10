@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   buildMaaserYearSummary,
   type MaaserYearSummary,
@@ -21,6 +21,19 @@ const EMPTY_BALANCE = {
   chomesh_balance: 0,
 };
 
+function emptySummary(hebrewYear: number, today: string): MaaserYearSummary {
+  const range = getMaaserYearRange(hebrewYear);
+  return buildMaaserYearSummary({
+    range,
+    reportEndDate: clampMaaserYearReportEnd(range, today),
+    today,
+    opening: EMPTY_BALANCE,
+    closing: EMPTY_BALANCE,
+    incomeInRange: 0,
+    donationsInRange: 0,
+  });
+}
+
 export function useMaaserYearSummary(userId: string | null) {
   const today = getCurrentLocalDate();
   const currentYear = getCurrentMaaserYear(today);
@@ -29,19 +42,23 @@ export function useMaaserYearSummary(userId: string | null) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const loadYear = useCallback(
-    async (year: number) => {
-      const range = getMaaserYearRange(year);
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      const range = getMaaserYearRange(hebrewYear);
+      const reportEndDate = clampMaaserYearReportEnd(range, today);
+
       if (today < range.startDate) {
-        setSummary(null);
+        const nextSummary = null;
+        const nextError = null;
+        await Promise.resolve();
+        if (cancelled) return;
+        setSummary(nextSummary);
+        setError(nextError);
         setIsLoading(false);
-        setError(null);
         return;
       }
-
-      setIsLoading(true);
-      setError(null);
-      const reportEndDate = clampMaaserYearReportEnd(range, today);
 
       try {
         const [opening, closing, stats] = await Promise.all([
@@ -50,9 +67,12 @@ export function useMaaserYearSummary(userId: string | null) {
           fetchAnalyticsRangeStats(range.startDate, reportEndDate),
         ]);
 
+        if (cancelled) return;
+
         if (!opening || !closing || !stats) {
           setError("load-failed");
           setSummary(null);
+          setIsLoading(false);
           return;
         }
 
@@ -67,38 +87,26 @@ export function useMaaserYearSummary(userId: string | null) {
             donationsInRange: stats.total_donations,
           }),
         );
+        setError(null);
+        setIsLoading(false);
       } catch (err) {
         logger.error("useMaaserYearSummary: failed to load year", err);
+        if (cancelled) return;
         setError("load-failed");
         setSummary(null);
-      } finally {
         setIsLoading(false);
       }
-    },
-    [today, userId],
-  );
+    })();
 
-  useEffect(() => {
-    void loadYear(hebrewYear);
-  }, [hebrewYear, loadYear]);
+    return () => {
+      cancelled = true;
+    };
+  }, [hebrewYear, today, userId]);
 
   return {
     hebrewYear,
     currentYear,
-    summary:
-      summary ??
-      buildMaaserYearSummary({
-        range: getMaaserYearRange(hebrewYear),
-        reportEndDate: clampMaaserYearReportEnd(
-          getMaaserYearRange(hebrewYear),
-          today,
-        ),
-        today,
-        opening: EMPTY_BALANCE,
-        closing: EMPTY_BALANCE,
-        incomeInRange: 0,
-        donationsInRange: 0,
-      }),
+    summary: summary ?? emptySummary(hebrewYear, today),
     isLoading,
     error,
     canGoNext: hebrewYear < currentYear,
