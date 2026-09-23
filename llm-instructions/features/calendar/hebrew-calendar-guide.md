@@ -20,7 +20,7 @@ Hebrew year start is 1 Tishrei. There is no `maaserYearStart`.
 - Format through `formatDisplayDate` / `useDisplayDate`.
 - Pickers use `src/lib/calendar/hebrew-date-lib.ts` with `react-day-picker` when `calendarType === "hebrew"`.
 - Typed input stays `DD/MM/YYYY` Gregorian in both calendars.
-- Exports always keep a Gregorian column. Hebrew is added only when the user enabled the secondary date.
+- Exports always keep a Gregorian column. CSV and Excel add a Hebrew column when Hebrew is the primary calendar or when the secondary date is enabled.
 
 ## Periods and charts
 
