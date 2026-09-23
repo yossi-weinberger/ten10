@@ -79,7 +79,7 @@ describe("Hebrew DayPicker DateLib", () => {
     expect(formatHebrewCalendarCaption(tishrei, "en")).toContain("Tishri");
     expect(formatHebrewCalendarMonth(tishrei, "he")).toBe("תשרי");
     expect(formatHebrewCalendarMonth(tishrei, "en")).toBe("Tishri");
-    expect(dateLib.format(tishrei, "d")).toBe("1");
+    expect(dateLib.format(tishrei, "d")).toBe("א׳");
     expect(dateLib.format(tishrei, "yyyy-MM-dd")).toBe("2026-09-12");
   });
 });

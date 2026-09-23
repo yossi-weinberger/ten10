@@ -6,6 +6,7 @@ import {
   type CalendarLanguage,
   type CalendarType,
 } from "@/lib/calendar";
+import { formatHebrewYear } from "@/lib/halacha/hebrew-numeral";
 import { useDonationStore } from "@/lib/store";
 import { formatLocalDate } from "@/lib/utils/local-date";
 
@@ -51,7 +52,7 @@ export function calculateDateRange(
       const representation = adapter.fromIsoDate(endDate);
       const label =
         calendarType === "hebrew"
-          ? `${labels.year} (${representation.year})`
+          ? `${labels.year} (${formatHebrewYear(representation.year)})`
           : labels.year;
       return {
         startDate: adapter.startOfYear(endDate),

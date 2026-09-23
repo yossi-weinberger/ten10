@@ -113,6 +113,6 @@ describe("exportTransactionsToCSV (integration with shared export fields)", () =
 
     const row = await exportedRow();
     expect(row["columns.date"]).toBe("12/09/2026");
-    expect(row["columns.hebrewDate"]).toBe("1 בתשרי 5787");
+    expect(row["columns.hebrewDate"]).toBe("א׳ בתשרי תשפ״ז");
   });
 });

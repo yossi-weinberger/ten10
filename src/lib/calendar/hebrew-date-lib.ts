@@ -5,6 +5,7 @@ import {
   getCalendarAdapter,
   type CalendarLanguage,
 } from "@/lib/calendar";
+import { formatHebrewNumeral } from "@/lib/halacha/hebrew-numeral";
 import { formatLocalDate, parseLocalDate } from "@/lib/utils/local-date";
 
 const hebrewCalendar = getCalendarAdapter("hebrew");
@@ -200,7 +201,7 @@ export function createHebrewDateLib(
     format: (date, formatString, options) => {
       switch (formatString) {
         case "d":
-          return String(toHebrewDate(date).day);
+          return formatHebrewNumeral(toHebrewDate(date).day);
         case "LLLL y":
         case "y LLLL":
           return formatHebrewCalendarCaption(date, language);

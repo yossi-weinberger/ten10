@@ -1,4 +1,8 @@
 import { Temporal } from "temporal-polyfill/full";
+import {
+  formatHebrewNumeral,
+  formatHebrewYear,
+} from "./hebrew-numeral.ts";
 
 export type CalendarType = "gregorian" | "hebrew";
 export type CalendarLanguage = "he" | "en";
@@ -154,6 +158,36 @@ function parseMonthKey(monthKey: string): { year: number; month: number } {
   };
 }
 
+function formatHebrewMonthName(
+  isoDate: string,
+  language: CalendarLanguage,
+): string {
+  return new Intl.DateTimeFormat(getLocale(language), {
+    calendar: "hebrew",
+    month: "long",
+    timeZone: "UTC",
+  }).format(new Date(`${isoDate}T00:00:00Z`));
+}
+
+function formatHebrewDisplayDate(
+  isoDate: string,
+  language: CalendarLanguage,
+): string {
+  const date = toCalendarDate(isoDate, "hebrew");
+  const day = formatHebrewNumeral(date.day);
+  const monthName = formatHebrewMonthName(isoDate, language);
+  const year = formatHebrewYear(date.year);
+
+  switch (language) {
+    case "he":
+      return `${day} ב${monthName} ${year}`;
+    case "en":
+      return `${day} ${monthName} ${year}`;
+    default:
+      return assertNever(language);
+  }
+}
+
 function createCalendarAdapter(calendarType: CalendarType): CalendarAdapter {
   return {
     calendarType,
@@ -177,6 +211,10 @@ function createCalendarAdapter(calendarType: CalendarType): CalendarAdapter {
     },
 
     formatDate(isoDate, language, style) {
+      if (calendarType === "hebrew") {
+        return formatHebrewDisplayDate(isoDate, language);
+      }
+
       return new Intl.DateTimeFormat(
         getLocale(language),
         getFormatOptions(style, calendarType),
@@ -248,9 +286,12 @@ function createCalendarAdapter(calendarType: CalendarType): CalendarAdapter {
           "reject",
         ),
       );
-      const calendar = calendarType === "hebrew" ? "hebrew" : "gregory";
+      if (calendarType === "hebrew") {
+        return `${formatHebrewMonthName(isoDate, language)} ${formatHebrewYear(year)}`;
+      }
+
       return new Intl.DateTimeFormat(getLocale(language), {
-        calendar,
+        calendar: "gregory",
         month: "long",
         year: "numeric",
         timeZone: "UTC",

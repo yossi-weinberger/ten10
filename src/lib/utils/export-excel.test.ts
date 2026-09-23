@@ -59,7 +59,7 @@ describe("exportTransactionsToExcel", () => {
 
     const sheet = await exportedSheet();
     expect(sheet.getRow(2).getCell(1).value).toBeInstanceOf(Date);
-    expect(sheet.getRow(2).getCell(2).value).toBe("1 Tishri 5787");
+    expect(sheet.getRow(2).getCell(2).value).toBe("א׳ Tishri תשפ״ז");
     expect(sheet.columnCount).toBe(11);
   });
 });

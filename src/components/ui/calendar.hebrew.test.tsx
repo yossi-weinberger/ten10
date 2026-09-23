@@ -21,13 +21,9 @@ vi.mock("react-i18next", () => ({
     t: (key: string) => {
       const translations: Record<string, Record<string, string>> = {
         en: {
-          "datePicker.gregorianInputHelp":
-            "Manual entry uses the Gregorian calendar (DD/MM/YYYY).",
           "datePicker.selectDateRange": "Select date range",
         },
         he: {
-          "datePicker.gregorianInputHelp":
-            "הזנה ידנית לפי הלוח הגרגוריאני (DD/MM/YYYY)",
           "datePicker.selectDateRange": "בחר טווח תאריכים",
         },
       };
@@ -137,13 +133,18 @@ describe("Hebrew calendar grid", () => {
       const currentMonthCells = getCurrentMonthCells(container);
       expect(currentMonthCells).toHaveLength(30);
       expect(screen.getByRole("status")).toHaveTextContent(expectedCaption);
-      expect(screen.getByRole("status")).toHaveTextContent("5787");
+      expect(screen.getByRole("status")).toHaveTextContent("תשפ״ז");
 
       const firstDayCell = container.querySelector<HTMLElement>(
         '[role="gridcell"][data-day="2026-09-12"]',
       );
       expect(firstDayCell).not.toBeNull();
-      expect(firstDayCell).toHaveTextContent(/^1$/);
+      expect(firstDayCell).toHaveTextContent("א׳");
+      expect(getDayButton("2026-09-12")).toHaveAttribute("data-yom-tov", "true");
+      expect(getDayButton("2026-09-12")).toHaveAttribute("data-shabbat", "true");
+      expect(getDayButton("2026-09-19")).toHaveAttribute("data-shabbat", "true");
+      expect(getDayButton("2026-09-19")).not.toHaveAttribute("data-yom-tov");
+      expect(getDayButton("2026-09-14")).not.toHaveAttribute("data-shabbat");
       expect(
         Array.from(firstDayCell?.parentElement?.children ?? []).indexOf(
           firstDayCell as HTMLElement,
@@ -164,7 +165,7 @@ describe("Hebrew calendar grid", () => {
     );
 
     expect(screen.getByRole("status")).toHaveTextContent("תשרי");
-    expect(screen.getByRole("status")).toHaveTextContent("5787");
+    expect(screen.getByRole("status")).toHaveTextContent("תשפ״ז");
     expect(getCurrentMonthCells(container)[0]).toHaveAttribute(
       "data-day",
       "2026-09-12",
@@ -283,18 +284,16 @@ describe("Hebrew calendar grid", () => {
 });
 
 describe("Hebrew date pickers", () => {
-  it("keeps DatePicker manual input Gregorian and describes it explicitly", () => {
+  it("keeps DatePicker manual input Gregorian without extra help text", () => {
     render(
       <DatePicker date={parseLocalDate("2026-09-12")} setDate={vi.fn()} />,
     );
 
     expect(screen.getByRole("textbox")).toHaveValue("12/09/2026");
-    expect(screen.getByRole("textbox")).toHaveAccessibleDescription(
-      "הזנה ידנית לפי הלוח הגרגוריאני (DD/MM/YYYY)",
-    );
+    expect(screen.getByRole("textbox")).not.toHaveAccessibleDescription();
     expect(
-      screen.getByText("הזנה ידנית לפי הלוח הגרגוריאני (DD/MM/YYYY)"),
-    ).toBeVisible();
+      screen.queryByText("הזנה ידנית לפי הלוח הגרגוריאני (DD/MM/YYYY)"),
+    ).not.toBeInTheDocument();
   });
 
   it("selects an exact Gregorian date through DatePicker Hebrew grid", async () => {

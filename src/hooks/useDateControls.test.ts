@@ -166,14 +166,14 @@ describe("calculateDateRange", () => {
     ).toEqual({
       startDate: "2026-09-12",
       endDate: "2026-09-23",
-      label: "month (Tishri 5787)",
+      label: "month (Tishri תשפ״ז)",
     });
     expect(
       calculateDateRange("year", undefined, labels, "hebrew", "en"),
     ).toEqual({
       startDate: "2026-09-12",
       endDate: "2026-09-23",
-      label: "year (5787)",
+      label: "year (תשפ״ז)",
     });
   });
 

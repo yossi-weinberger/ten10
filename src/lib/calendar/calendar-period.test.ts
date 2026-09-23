@@ -86,7 +86,7 @@ describe("calendar month grouping", () => {
       {
         beforeIndex: 4,
         monthKey: "5786-12",
-        monthLabel: "Elul 5786",
+        monthLabel: "Elul תשפ״ו",
       },
     ]);
   });

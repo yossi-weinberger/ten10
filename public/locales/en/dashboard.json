@@ -10,8 +10,7 @@
     "custom": "Custom range"
   },
   "datePicker": {
-    "selectDateRange": "Select date range",
-    "gregorianInputHelp": "Manual entry uses the Gregorian calendar (DD/MM/YYYY)."
+    "selectDateRange": "Select date range"
   },
   "statsCards": {
     "income": {

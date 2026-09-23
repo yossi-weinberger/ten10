@@ -14,8 +14,8 @@ describe("formatDisplayDate", () => {
   });
 
   it.each([
-    ["he", "1 בתשרי 5787"],
-    ["en", "1 Tishri 5787"],
+    ["he", "א׳ בתשרי תשפ״ז"],
+    ["en", "א׳ Tishri תשפ״ז"],
   ] as const)("localizes Hebrew long output in %s", (language, primary) => {
     expect(
       formatDisplayDate("2026-09-12", {
@@ -37,7 +37,7 @@ describe("formatDisplayDate", () => {
       }),
     ).toEqual({
       primary: "12/09/2026",
-      secondary: "1 Tishri 5787",
+      secondary: "א׳ Tishri תשפ״ז",
     });
   });
 
@@ -49,7 +49,7 @@ describe("formatDisplayDate", () => {
         language: "en",
         style: "numeric",
       }),
-    ).toEqual({ primary: "1 Tishri 5787" });
+    ).toEqual({ primary: "א׳ Tishri תשפ״ז" });
   });
 
   it("adds Gregorian as the secondary display", () => {
@@ -61,7 +61,7 @@ describe("formatDisplayDate", () => {
         style: "long",
       }),
     ).toEqual({
-      primary: "3 Adar I 5787",
+      primary: "ג׳ Adar I תשפ״ז",
       secondary: "10/02/2027",
     });
   });

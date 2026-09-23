@@ -61,8 +61,8 @@ export const CALENDAR_PARITY_EXPECTED = [
       monthsInYear: 13,
     },
     monthKey: "5787-01",
-    monthLabel: "תשרי 5787",
-    formatted: "1 בתשרי 5787",
+    monthLabel: "תשרי תשפ״ז",
+    formatted: "א׳ בתשרי תשפ״ז",
   },
   {
     representation: {
@@ -76,8 +76,8 @@ export const CALENDAR_PARITY_EXPECTED = [
       monthsInYear: 13,
     },
     monthKey: "5787-07",
-    monthLabel: "Adar II 5787",
-    formatted: "1 Adar II 5787",
+    monthLabel: "Adar II תשפ״ז",
+    formatted: "א׳ Adar II תשפ״ז",
   },
 ] as const;
 

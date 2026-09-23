@@ -8,6 +8,7 @@ export {
   isMaaserYearCloseWindow,
 } from "../../../supabase/functions/_shared/calendar/maaser-year.ts";
 export type { MaaserYearRange } from "../../../supabase/functions/_shared/calendar/maaser-year.ts";
+export { getIsraelYomTov } from "../../../supabase/functions/_shared/calendar/israel-yom-tov.ts";
 
 export {
   advanceMonthlyRecurringDate,

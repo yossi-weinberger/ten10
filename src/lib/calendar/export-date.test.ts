@@ -27,7 +27,7 @@ describe("formatExportDate", () => {
         }),
       ).toMatchObject({
         gregorian: "10/03/2027",
-        hebrew: "1 Adar II 5787",
+        hebrew: "א׳ Adar II תשפ״ז",
       });
     },
   );
@@ -39,6 +39,6 @@ describe("formatExportDate", () => {
         showSecondaryDate: false,
         language: "he",
       }).pdfCell,
-    ).toBe("12/09/26 · 1 בתשרי 5787");
+    ).toBe("12/09/26 · א׳ בתשרי תשפ״ז");
   });
 });

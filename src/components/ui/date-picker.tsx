@@ -11,7 +11,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useDonationStore } from "@/lib/store";
 import { Input } from "./input";
 
 export function DatePicker({
@@ -24,11 +23,7 @@ export function DatePicker({
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>("");
   const [month, setMonth] = React.useState<Date | undefined>(date);
-  const manualInputDescriptionId = React.useId();
-  const { i18n, t } = useTranslation("dashboard");
-  const calendarType = useDonationStore(
-    (state) => state.settings.calendarType,
-  );
+  const { i18n } = useTranslation("dashboard");
 
   React.useEffect(() => {
     if (date && isValidDate(date)) {
@@ -107,11 +102,6 @@ export function DatePicker({
         value={inputValue}
         onChange={handleInputChange}
         className="bg-background pr-10"
-        aria-describedby={
-          calendarType === "hebrew"
-            ? manualInputDescriptionId
-            : undefined
-        }
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") {
             e.preventDefault();
@@ -171,19 +161,5 @@ export function DatePicker({
     </div>
   );
 
-  if (calendarType === "gregorian") {
-    return picker;
-  }
-
-  return (
-    <div>
-      {picker}
-      <p
-        id={manualInputDescriptionId}
-        className="mt-1 text-xs text-muted-foreground"
-      >
-        {t("datePicker.gregorianInputHelp")}
-      </p>
-    </div>
-  );
+  return picker;
 }

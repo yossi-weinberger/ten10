@@ -103,13 +103,13 @@ describe("formatGregorianMonthlyChartData", () => {
 
     expect(formatMonthlyChartData(hebrewData, "hebrew", "en")).toEqual([
       {
-        month: "Adar I 5787",
+        month: "Adar I תשפ״ז",
         income: 100,
         donations: 10,
         expenses: 20,
       },
       {
-        month: "Adar II 5787",
+        month: "Adar II תשפ״ז",
         income: 200,
         donations: 20,
         expenses: 40,
