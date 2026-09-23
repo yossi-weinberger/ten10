@@ -1,4 +1,15 @@
 export {
+  clampMaaserYearReportEnd,
+  getCurrentMaaserYear,
+  getErevRoshHashanah,
+  getHebrewYear,
+  getMaaserYearRange,
+  isErevRoshHashanah,
+  isMaaserYearCloseWindow,
+} from "../../../supabase/functions/_shared/calendar/maaser-year.ts";
+export type { MaaserYearRange } from "../../../supabase/functions/_shared/calendar/maaser-year.ts";
+
+export {
   advanceMonthlyRecurringDate,
   advanceRecurringDate,
   advanceYearlyRecurringDate,

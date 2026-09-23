@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildReminderRunLog,
   REMINDER_CALENDAR_POLICY,
+  resolveMaaserYearCloseReminder,
   resolveReminderSchedule,
 } from "./reminder-schedule.ts";
 import type { CalendarType } from "../_shared/calendar/index.ts";
@@ -244,6 +245,22 @@ describe("reminder run logging", () => {
       was_reminder_day: false,
       was_shabbat: false,
       was_yom_tov: true,
+    });
+  });
+
+  it("sends the maaser-year close reminder on Erev Rosh Hashanah with Friday advance", () => {
+    expect(resolveMaaserYearCloseReminder("2026-09-10")).toEqual({
+      kind: "makeup",
+      reason: "friday-advance",
+      reminderDate: "2026-09-11",
+      reminderDay: 29,
+    });
+    expect(resolveMaaserYearCloseReminder("2026-09-11")).toMatchObject({
+      kind: "skip",
+      reason: "shabbat",
+    });
+    expect(resolveMaaserYearCloseReminder("2026-09-23")).toEqual({
+      kind: "no-op",
     });
   });
 

@@ -3,6 +3,7 @@ import {
   getCalendarAdapter,
   type CalendarType,
 } from "../_shared/calendar/index.ts";
+import { getMaaserYearRange } from "../_shared/calendar/maaser-year.ts";
 
 export const REMINDER_CALENDAR_POLICY = {
   dayBoundary: "civil-midnight",
@@ -200,6 +201,80 @@ export function resolveReminderSchedule(
   }
 
   return { kind: "no-op" };
+}
+
+export function resolveSpecificReminderDate(
+  currentIsraelDate: string,
+  reminderDate: string,
+): ReminderScheduleResolution {
+  const currentBlocked = getBlockedDate(currentIsraelDate);
+  if (currentBlocked.isShabbat || currentBlocked.holidayLabel !== null) {
+    const holidayLabel = currentBlocked.holidayLabel;
+    return {
+      kind: "skip",
+      reason: getSkipReason(currentBlocked),
+      ...(holidayLabel === null ? {} : { holidayLabel }),
+    };
+  }
+
+  const reminderDay = dayOfMonth(reminderDate, "hebrew");
+  if (currentIsraelDate === reminderDate) {
+    return { kind: "send-today", reminderDay };
+  }
+
+  const currentDayOfWeek = toUtcDate(currentIsraelDate).getUTCDay();
+  if (
+    currentDayOfWeek === 4 &&
+    addDays(currentIsraelDate, 1) === reminderDate &&
+    getIsraelYomTov(reminderDate) === null
+  ) {
+    return {
+      kind: "makeup",
+      reason: "friday-advance",
+      reminderDate,
+      reminderDay,
+    };
+  }
+
+  if (
+    reminderDate < currentIsraelDate &&
+    addDays(reminderDate, REMINDER_CALENDAR_POLICY.makeupLookbackDays) >=
+      currentIsraelDate
+  ) {
+    const reminderDayOfWeek = toUtcDate(reminderDate).getUTCDay();
+    if (reminderDayOfWeek === 5 && fridayWasSentInAdvance(reminderDate)) {
+      return { kind: "no-op" };
+    }
+
+    let firstEligibleDate = reminderDate;
+    while (!isEligibleDate(firstEligibleDate)) {
+      firstEligibleDate = addDays(firstEligibleDate, 1);
+    }
+
+    if (firstEligibleDate === currentIsraelDate) {
+      return {
+        kind: "makeup",
+        reason: getMakeupReason(reminderDate, currentIsraelDate),
+        reminderDate,
+        reminderDay,
+      };
+    }
+  }
+
+  return { kind: "no-op" };
+}
+
+export function resolveMaaserYearCloseReminder(
+  currentIsraelDate: string,
+): ReminderScheduleResolution {
+  const hebrew = getCalendarAdapter("hebrew");
+  const { year, month } = hebrew.fromIsoDate(currentIsraelDate);
+  const targetDate =
+    month === 1
+      ? getMaaserYearRange(year - 1).endDate
+      : getMaaserYearRange(year).endDate;
+
+  return resolveSpecificReminderDate(currentIsraelDate, targetDate);
 }
 
 function getResolutionNote(

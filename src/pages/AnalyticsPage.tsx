@@ -18,6 +18,8 @@ import { DonationRecipientsInsight } from "@/components/analytics/DonationRecipi
 import { InsightsSummaryRow } from "@/components/analytics/InsightsSummaryRow";
 import { TextInsightsCard } from "@/components/analytics/TextInsightsCard";
 import { TransactionHeatmap } from "@/components/analytics/TransactionHeatmap";
+import { MaaserYearSummaryCard } from "@/components/analytics/MaaserYearSummaryCard";
+import { useMaaserYearSummary } from "@/hooks/useMaaserYearSummary";
 import { useDonationStore } from "@/lib/store";
 import { generateAnalyticsPdf, computeRecurringTotals } from "@/lib/analytics/export-pdf";
 import { formatCurrency } from "@/lib/utils/currency";
@@ -140,6 +142,8 @@ export function AnalyticsPage() {
     () => computeRecurringTotals(activeRecurring),
     [activeRecurring]
   );
+
+  const maaserYear = useMaaserYearSummary(user?.id ?? null);
 
   const handleExportPdf = async () => {
     setIsExportingPdf(true);
@@ -352,6 +356,16 @@ export function AnalyticsPage() {
           error={recipientsError}
         />
       </div>
+
+      <MaaserYearSummaryCard
+        summary={maaserYear.summary}
+        isLoading={maaserYear.isLoading}
+        error={maaserYear.error}
+        canGoNext={maaserYear.canGoNext}
+        onPreviousYear={maaserYear.goToPreviousYear}
+        onNextYear={maaserYear.goToNextYear}
+        currency={defaultCurrency}
+      />
 
       {/* Row 3: Standing Orders + Heatmap */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">

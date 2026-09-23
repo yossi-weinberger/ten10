@@ -61,6 +61,25 @@ describe("desktop reminder calendar", () => {
     expect(mocks.showDesktopNotification).not.toHaveBeenCalled();
   });
 
+  it("sends the maaser-year close reminder on 29 Elul even when the monthly day differs", async () => {
+    vi.setSystemTime(new Date(2026, 8, 11, 12));
+    useDonationStore.setState((state) => ({
+      settings: {
+        ...state.settings,
+        reminderDayOfMonth: 1,
+        reminderCalendarType: "gregorian",
+      },
+    }));
+
+    await checkAndSendDesktopReminder(vi.fn((key) => key));
+
+    expect(mocks.showDesktopNotification).toHaveBeenCalledOnce();
+    expect(mocks.showDesktopNotification.mock.calls[0]?.[0]).toMatchObject({
+      title: "reminders.maaserYear.title",
+    });
+    expect(storage.get("lastReminderDate")).toBe("2026-09-11");
+  });
+
   it("keeps the deduplication key as the Gregorian local civil ISO date", async () => {
     storage.set("lastReminderDate", "2027-02-08");
 

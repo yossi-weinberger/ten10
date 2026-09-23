@@ -18,7 +18,8 @@ use commands::db_commands::{
     infer_default_currency_from_transactions, init_db, set_app_setting, set_default_currency,
 };
 use commands::donation_commands::{
-    get_desktop_overall_tithe_balance, get_desktop_total_donations_in_range,
+    get_desktop_overall_tithe_balance, get_desktop_tithe_balance_as_of,
+    get_desktop_total_donations_in_range,
 };
 use commands::expense_commands::get_desktop_total_expenses_in_range;
 use commands::import_commands::import_desktop_data_bulk;
@@ -80,6 +81,7 @@ fn main() {
             get_desktop_total_expenses_in_range,
             get_desktop_total_donations_in_range,
             get_desktop_overall_tithe_balance,
+            get_desktop_tithe_balance_as_of,
             delete_transaction_handler,
             export_transactions_handler,
             get_filtered_transactions_handler,

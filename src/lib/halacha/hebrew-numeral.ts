@@ -25,3 +25,13 @@ export function toHebrewNumeral(value: number): string {
   result += ONES[remaining % 10];
   return result;
 }
+
+/** Formats a Hebrew year such as 5787 as תשפ״ז. */
+export function formatHebrewYear(year: number): string {
+  const numeral = toHebrewNumeral(year % 1000);
+  if (numeral.length <= 1) {
+    return `${numeral}׳`;
+  }
+
+  return `${numeral.slice(0, -1)}״${numeral.slice(-1)}`;
+}

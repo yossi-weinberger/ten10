@@ -4,7 +4,7 @@ import { showDesktopNotification } from "./notification.service";
 import { TFunction } from "i18next";
 import { logger } from "@/lib/logger";
 import { formatLocalDate } from "@/lib/utils/local-date";
-import { getCalendarAdapter } from "@/lib/calendar";
+import { getCalendarAdapter, isErevRoshHashanah } from "@/lib/calendar";
 
 const LAST_REMINDER_DATE_KEY = "lastReminderDate";
 
@@ -15,26 +15,43 @@ const LAST_REMINDER_DATE_KEY = "lastReminderDate";
  * @param titheBalance - The user's current tithe balance.
  * @returns An object with title and body for the notification.
  */
-function generateReminderContent(t: TFunction, titheBalance: number) {
+function generateReminderContent(
+  t: TFunction,
+  titheBalance: number,
+  kind: "monthly" | "maaser-year",
+) {
   const isPositive = titheBalance > 0.005; // Use a small tolerance
   const isNegative = titheBalance < -0.005;
   const absBalance = Math.abs(titheBalance).toFixed(2); // Always format to 2 decimal places
 
-  let title: string;
-  let body: string;
-
-  if (isPositive) {
-    title = t("reminders.positive.title");
-    body = t("reminders.positive.body", { amount: absBalance });
-  } else if (isNegative) {
-    title = t("reminders.negative.title");
-    body = t("reminders.negative.body", { amount: absBalance });
-  } else {
-    title = t("reminders.zero.title");
-    body = t("reminders.zero.body");
+  switch (kind) {
+    case "maaser-year":
+      return {
+        title: t("reminders.maaserYear.title"),
+        body: t("reminders.maaserYear.body", { amount: absBalance }),
+      };
+    case "monthly":
+      if (isPositive) {
+        return {
+          title: t("reminders.positive.title"),
+          body: t("reminders.positive.body", { amount: absBalance }),
+        };
+      }
+      if (isNegative) {
+        return {
+          title: t("reminders.negative.title"),
+          body: t("reminders.negative.body", { amount: absBalance }),
+        };
+      }
+      return {
+        title: t("reminders.zero.title"),
+        body: t("reminders.zero.body"),
+      };
+    default: {
+      const exhaustiveKind: never = kind;
+      return exhaustiveKind;
+    }
   }
-
-  return { title, body };
 }
 
 /**
@@ -69,7 +86,8 @@ export async function checkAndSendDesktopReminder(t: TFunction): Promise<void> {
       reminderCalendarType,
     ).fromIsoDate(todayStr).day;
 
-    if (currentDayOfMonth !== dayOfMonth) {
+    const isYearlyClose = isErevRoshHashanah(todayStr);
+    if (currentDayOfMonth !== dayOfMonth && !isYearlyClose) {
       logger.log(
         `Today is day ${currentDayOfMonth}, but reminder is set for day ${dayOfMonth}. Exiting.`
       );
@@ -98,7 +116,11 @@ export async function checkAndSendDesktopReminder(t: TFunction): Promise<void> {
     const titheBalance = balanceData.total_balance;
     logger.log("Tithe balance fetched:", titheBalance);
 
-    const { title, body } = generateReminderContent(t, titheBalance);
+    const { title, body } = generateReminderContent(
+      t,
+      titheBalance,
+      isYearlyClose ? "maaser-year" : "monthly",
+    );
     logger.log("Generated notification content:", { title, body });
 
     logger.log("Attempting to show desktop notification...");

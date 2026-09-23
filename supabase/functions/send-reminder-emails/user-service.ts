@@ -48,6 +48,18 @@ export class UserService {
     return normalizeReminderUserRows(users);
   }
 
+  async getAllReminderUsers(): Promise<ReminderUser[]> {
+    const { data: users, error } = await this.supabaseClient.rpc(
+      "get_all_reminder_users_with_emails",
+    );
+
+    if (error) {
+      throw new Error(`Error fetching yearly reminder users: ${error.message}`);
+    }
+
+    return normalizeReminderUserRows(users);
+  }
+
   async calculateUserTitheBalance(
     userId: string,
   ): Promise<{ total: number; maaser: number; chomesh: number }> {
@@ -87,6 +99,23 @@ export class UserService {
       reminderDay,
       reminderCalendar,
     );
+    const usersWithBalances: UserWithTitheBalance[] = [];
+
+    for (const user of users) {
+      const balanceData = await this.calculateUserTitheBalance(user.id);
+      usersWithBalances.push({
+        ...user,
+        titheBalance: balanceData.total,
+        maaserBalance: balanceData.maaser,
+        chomeshBalance: balanceData.chomesh,
+      });
+    }
+
+    return usersWithBalances;
+  }
+
+  async getAllUsersWithTitheBalances(): Promise<UserWithTitheBalance[]> {
+    const users = await this.getAllReminderUsers();
     const usersWithBalances: UserWithTitheBalance[] = [];
 
     for (const user of users) {

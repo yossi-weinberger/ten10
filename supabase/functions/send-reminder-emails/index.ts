@@ -4,6 +4,7 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 import { getIsraelDate } from "../_shared/israel-date.ts";
 import {
   buildReminderRunLog,
+  resolveMaaserYearCloseReminder,
   resolveReminderSchedule,
   type ReminderScheduleResolution,
 } from "./reminder-schedule.ts";
@@ -331,8 +332,14 @@ serve(async (req) => {
           },
         ]
       : resolveDueReminderCohorts(currentIsraelDate, reminderDays);
+    const yearlyResolution = isTest
+      ? ({ kind: "no-op" } satisfies ReminderScheduleResolution)
+      : resolveMaaserYearCloseReminder(currentIsraelDate);
+    const yearlyDue =
+      yearlyResolution.kind === "send-today" ||
+      yearlyResolution.kind === "makeup";
 
-    if (dueCohorts.length === 0) {
+    if (dueCohorts.length === 0 && !yearlyDue) {
       switch (fallbackResolution.kind) {
         case "skip": {
           const logEntry = buildReminderRunLog(
@@ -391,21 +398,23 @@ serve(async (req) => {
 
     const cohortContext = dueCohorts.map(describeCohort).join("; ");
     console.log(
-      `[REMINDER] Due calendar cohorts on ${currentIsraelDate}: ${cohortContext}`,
+      `[REMINDER] Due calendar cohorts on ${currentIsraelDate}: ${cohortContext || "none"}`,
     );
 
-    const cohortUsers = await Promise.all(
-      dueCohorts.map((cohort) =>
-        userService.getUsersWithTitheBalances(
-          cohort.reminderDay,
-          cohort.calendarType,
-        )
-      ),
-    );
+    const cohortUsers = dueCohorts.length === 0
+      ? []
+      : await Promise.all(
+        dueCohorts.map((cohort) =>
+          userService.getUsersWithTitheBalances(
+            cohort.reminderDay,
+            cohort.calendarType,
+          )
+        ),
+      );
     const usersWithBalances = deduplicateReminderUsers(cohortUsers.flat());
-    const primaryResolution = dueCohorts[0].resolution;
+    const primaryResolution = dueCohorts[0]?.resolution ?? yearlyResolution;
 
-    if (usersWithBalances.length === 0) {
+    if (usersWithBalances.length === 0 && !yearlyDue) {
       await logRun(supabaseAdmin, {
         ...buildReminderRunLog(currentIsraelDate, primaryResolution),
         notes:
@@ -426,10 +435,31 @@ serve(async (req) => {
       );
     }
 
-    console.log(
-      `[REMINDER] Starting to send emails to ${usersWithBalances.length} unique users for [${cohortContext}]${isTest ? " (TEST MODE)" : ""}`,
-    );
-    const results = await emailService.sendBulkReminders(usersWithBalances);
+    const results = usersWithBalances.length === 0
+      ? []
+      : [...await emailService.sendBulkReminders(usersWithBalances)];
+    const sentMonthlyIds = new Set(usersWithBalances.map((user) => user.id));
+
+    if (usersWithBalances.length > 0) {
+      console.log(
+        `[REMINDER] Starting to send emails to ${usersWithBalances.length} unique users for [${cohortContext}]${isTest ? " (TEST MODE)" : ""}`,
+      );
+    }
+
+    let yearlySent = 0;
+    let yearlyFailed = 0;
+    let yearlyProcessed = 0;
+    if (yearlyDue) {
+      const yearlyUsers = (await userService.getAllUsersWithTitheBalances())
+        .filter((user) => !sentMonthlyIds.has(user.id));
+      yearlyProcessed = yearlyUsers.length;
+      if (yearlyUsers.length > 0) {
+        const yearlyResults = await emailService.sendBulkReminders(yearlyUsers);
+        yearlySent = yearlyResults.filter((result) => result.status === "sent").length;
+        yearlyFailed = yearlyResults.filter((result) => result.status === "failed").length;
+        results.push(...yearlyResults);
+      }
+    }
 
     const sentCount = results.filter((r) => r.status === "sent").length;
     const failedCount = results.filter((r) => r.status === "failed").length;
@@ -449,19 +479,22 @@ serve(async (req) => {
       }
     });
 
+    const yearlyNote = yearlyDue
+      ? `; maaser-year-close=${yearlyResolution.kind}:${yearlyProcessed}/${yearlySent}/${yearlyFailed}`
+      : "";
     await logRun(supabaseAdmin, {
       ...buildReminderRunLog(currentIsraelDate, primaryResolution, {
-        usersProcessed: usersWithBalances.length,
+        usersProcessed: usersWithBalances.length + yearlyProcessed,
         emailsSent: sentCount,
         emailsFailed: failedCount,
       }),
-      notes: `${isTest ? "TEST MODE; " : ""}cohorts=[${cohortContext}]`,
+      notes: `${isTest ? "TEST MODE; " : ""}cohorts=[${cohortContext || "none"}]${yearlyNote}`,
     });
 
     return new Response(
       JSON.stringify({
         message:
-          `Processed ${usersWithBalances.length} unique users for [${cohortContext}]${isTest ? " (TEST MODE)" : ""}. Sent: ${sentCount}, Failed: ${failedCount}`,
+          `Processed ${usersWithBalances.length + yearlyProcessed} unique users for [${cohortContext || "none"}]${yearlyDue ? "; maaser-year-close" : ""}${isTest ? " (TEST MODE)" : ""}. Sent: ${sentCount}, Failed: ${failedCount}`,
         results,
         was_yom_tov: false,
       }),

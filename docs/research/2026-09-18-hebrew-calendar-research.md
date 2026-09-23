@@ -1,6 +1,6 @@
 # מחקר: תמיכה גורפת בלוח עברי ב-TEN10
 
-**תאריך:** 18.9.2026 (ז' בתשרי תשפ"ז) · **גרסת אפליקציה:** 0.7.5 · **סטטוס ביצוע (23.9.2026):** P1–P4, 0a–0b ושלבים 1–6 הושלמו ואומתו ב-[Draft PR #424](https://github.com/yossi-weinberger/ten10/pull/424): CI ירוק בשני אזורי זמן, testing מבודד, Preview מחובר ישירות ל-testing, Temporal parity עבר ב-Vite וב-Deno, 550 בדיקות TS ו-47 בדיקות Rust ירוקות.
+**תאריך:** 18.9.2026 (ז' בתשרי תשפ"ז) · **גרסת אפליקציה:** 0.7.5 · **סטטוס ביצוע (23.9.2026):** P1–P4, 0a–0b ושלבים 1–8 הושלמו ב-[Draft PR #424](https://github.com/yossi-weinberger/ten10/pull/424). שלב 7 אומת ב-CI. שלב 8 מוסיף דוח שנת מעשר מתשרי (יתרה as-of + כרטיס באנליטיקה) ותזכורת ערב ר״ה בלי לשנות את יתרת המעשרות המצטברת.
 
 מקורות: כל `src/`, `supabase/` (מיגרציות + edge functions), `src-tauri/`, `llm-instructions/`, `docs/`, `public/locales/`, `TODO.md`, היסטוריית git (1,370 קומיטים), סכמת ה-Postgres החיה בפרודקשן (638 פרופילים, ~17K תנועות, 880 הוראות קבע), הצלבה מול מסמך המלצות חיצוני (`hebrew-calendar-recommendations-2026-09-18.md`), ובדיקות חיות של `@hebcal/hdate` ו-`temporal-polyfill/full` ב-Node 24.
 
@@ -355,8 +355,8 @@ src/lib/calendar/
 | **4. רמה B — תקופות — הושלם** | presets, previous-period, מפרידי טבלה/PDF, heatmap וגרף חודשי משתמשים בלוח הראשי. הלקוח שולח `N+1` גבולות Gregorian; RPC חדש ופקודת Rust מקבילה מסכמים `[start,end)` ללא מתמטיקת לוח. RPC אומת ב-testing: 2 תקופות למשתמש המאומת ו-0 ל-user אחר; פרוד נשאר ללא המיגרציה. Browser smoke: KPI תשרי 5787 הציג 100/10/20 וגרף הציג סיוון→תשרי. תוקן גם static Tauri import שגרם ל-loader תקוע ב-Vercel | TS + migration `20260923140714` + Rust command, 492 TS / 44 Rust tests | הושלם | 1 |
 | **5. יום טוב בתזכורות — הושלם** | חסימת ר״ה, יו״כ, סוכות א׳, שמיני עצרת, פסח א׳/ז׳ ושבועות בישראל; makeup ביום האזרחי הזכאי הבא ללא כפילות. מדיניות חמישי/שישי/שבת הקיימת נשמרה. `was_yom_tov` נוסף אדיטיבית ללוג; production deploys עוברים migration לפני functions. testing: column+function deploy ירוקים, cron פעיל=0; פרוד ללא העמודה עד merge | shared Temporal holiday rules + pure resolver + migration `20260923145054`, 522 tests | הושלם | עצמאי |
 | **6. רמה C — הוראות קבע עבריות — הושלם** | מנוע recurrence משותף TS/Deno: monthly/yearly, clamp, first due, reschedule, catch-up; daily/weekly Gregorian. `calendar_type` + `anchor_month_code` נוספו ב-Postgres/SQLite עם default Gregorian, checks ו-RPC overload תואם. 880 קיימות נשארו Gregorian. 55 קבוצות כפולות היסטוריות לא נמחקו; partial unique index מונע כפילויות עתידיות. Browser smoke יצר הוראה עברית יום 30: `2026-09-23` → due `2026-10-11`, והטבלה הציגה `30 בתשרי 5787 / 11/10/2026` | migration `20260923161451`, shared engine, web/desktop UI/data, 550 TS / 47 Rust tests | הושלם | 1, 4 |
-| **7. רמה C — תזכורות ביום עברי** | `reminder_calendar_type`, CHECK, RPC, edge, desktop | ~8 קבצים | 2 ימים | 1, 5 |
-| **8. דוח שנת מעשר** | RPC `p_as_of_date` ליתרה; עמוד/כרטיס סיכום שנתי מתשרי; תזכורת ערב ר"ה | חדש | 3–4 ימים | 4 |
+| **7. רמה C — תזכורות ביום עברי — הושלם** | `reminder_calendar_type`, CHECK, RPC, edge, desktop | ~8 קבצים | הושלם | 1, 5 |
+| **8. דוח שנת מעשר — הושלם** | overload אדיטיבי `calculate_user_tithe_balance(uuid, date)`; פקודת Tauri as-of; כרטיס סיכום שנתי באנליטיקה מתשרי עד אלול; תזכורת ערב ר״ה (באנר, דסקטופ, ומייל שנתי למקבלי תזכורות). יתרת המעשרות המצטברת לא אופסה | migration `20260923220000` + `20260923220100` | הושלם | 4 |
 | **9. תיעוד** | `llm-instructions`, `TODO.md`, changelog, whats-new | — | ½ יום | כל שלב |
 
 **שער יציאה לכל שלב** (חובה לפני שממשיכים): הטסטים שמפורטים לשלב בסעיף 9.5 ירוקים ב-CI; מצב `gregorian` זהה ל-snapshot של P4; המיגרציות של השלב (אם יש) הוחלו על ענף `testing` ו-Vercel preview מולו נבדק. רק אז merge ל-main → פרוד.

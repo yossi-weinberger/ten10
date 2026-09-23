@@ -1,5 +1,8 @@
 import { getIsraelYomTov } from "../_shared/calendar/israel-yom-tov.ts";
-import { resolveReminderSchedule } from "./reminder-schedule.ts";
+import {
+  resolveMaaserYearCloseReminder,
+  resolveReminderSchedule,
+} from "./reminder-schedule.ts";
 
 function assertEquals(actual: unknown, expected: unknown): void {
   const actualJson = JSON.stringify(actual);
@@ -38,5 +41,14 @@ Deno.test("reminder resolver has Deno parity for Hebrew calendar days", () => {
     reason: "yom-tov-and-shabbat",
     reminderDate: "2026-09-12",
     reminderDay: 1,
+  });
+});
+
+Deno.test("maaser-year close reminder has Deno parity for Friday Erev Rosh Hashanah", () => {
+  assertEquals(resolveMaaserYearCloseReminder("2026-09-10"), {
+    kind: "makeup",
+    reason: "friday-advance",
+    reminderDate: "2026-09-11",
+    reminderDay: 29,
   });
 });
