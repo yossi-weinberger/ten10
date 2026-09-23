@@ -10,7 +10,8 @@
     "custom": "טווח מותאם"
   },
   "datePicker": {
-    "selectDateRange": "בחר טווח תאריכים"
+    "selectDateRange": "בחר טווח תאריכים",
+    "gregorianInputHelp": "הזנה ידנית לפי הלוח הגרגוריאני (DD/MM/YYYY)"
   },
   "statsCards": {
     "income": {

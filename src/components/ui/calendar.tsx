@@ -7,9 +7,18 @@ import {
   ChevronRightIcon,
 } from "lucide-react";
 import { DayButton, DayPicker, getDefaultClassNames } from "react-day-picker";
+import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  createHebrewDateLib,
+  formatHebrewCalendarCaption,
+  formatHebrewCalendarMonth,
+} from "@/lib/calendar/hebrew-date-lib";
+import { getCalendarAdapter, type CalendarLanguage } from "@/lib/calendar";
+import { useDonationStore } from "@/lib/store";
+import { formatLocalDate } from "@/lib/utils/local-date";
 
 function Calendar({
   className,
@@ -19,11 +28,56 @@ function Calendar({
   buttonVariant = "ghost",
   formatters,
   components,
+  dateLib,
+  dir,
+  labels,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
 }) {
   const defaultClassNames = getDefaultClassNames();
+  const { i18n } = useTranslation();
+  const calendarType = useDonationStore(
+    (state) => state.settings.calendarType,
+  );
+  const language: CalendarLanguage = i18n.language.startsWith("he")
+    ? "he"
+    : "en";
+  const hebrewDateLib = React.useMemo(
+    () => createHebrewDateLib(language),
+    [language],
+  );
+  const hebrewCalendar = getCalendarAdapter("hebrew");
+  const resolvedFormatters =
+    calendarType === "hebrew"
+      ? {
+          ...formatters,
+          formatCaption: (date: Date) =>
+            formatHebrewCalendarCaption(date, language),
+          formatDay: (date: Date) =>
+            String(
+              hebrewCalendar.fromIsoDate(formatLocalDate(date)).day,
+            ),
+          formatMonthDropdown: (date: Date) =>
+            formatHebrewCalendarMonth(date, language),
+          formatYearDropdown: (date: Date) =>
+            String(
+              hebrewCalendar.fromIsoDate(formatLocalDate(date)).year,
+            ),
+        }
+      : {
+          formatMonthDropdown: (date: Date) =>
+            date.toLocaleString("default", { month: "short" }),
+          ...formatters,
+        };
+  const resolvedLabels =
+    calendarType === "hebrew"
+      ? {
+          ...labels,
+          labelGrid: (date: Date) =>
+            formatHebrewCalendarCaption(date, language),
+        }
+      : labels;
 
   return (
     <DayPicker
@@ -35,11 +89,10 @@ function Calendar({
         className
       )}
       captionLayout={captionLayout}
-      formatters={{
-        formatMonthDropdown: (date) =>
-          date.toLocaleString("default", { month: "short" }),
-        ...formatters,
-      }}
+      formatters={resolvedFormatters}
+      dateLib={calendarType === "hebrew" ? hebrewDateLib : dateLib}
+      dir={calendarType === "hebrew" ? i18n.dir() : dir}
+      labels={resolvedLabels}
       classNames={{
         root: cn("w-fit", defaultClassNames.root),
         months: cn(
