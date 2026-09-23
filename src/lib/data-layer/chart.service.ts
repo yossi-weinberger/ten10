@@ -1,4 +1,3 @@
-import { invoke } from "@tauri-apps/api/core";
 import { supabase } from "@/lib/supabaseClient";
 import {
   getCalendarAdapter,
@@ -6,6 +5,7 @@ import {
 } from "@/lib/calendar";
 import { getPlatform } from "../platformManager";
 import { logger } from "@/lib/logger";
+import { invokeTauri } from "@/lib/tauri-invoke";
 
 export interface MonthlyDataPoint {
   period_index: number;
@@ -89,7 +89,7 @@ export async function fetchServerMonthlyChartData(
       logger.log("ChartService: Successfully fetched chart data (Web):", data);
       return mapPeriodRows((data ?? []) as PeriodSummaryRow[], calendarType);
     } else if (platform === "desktop") {
-      const data = await invoke<PeriodSummaryRow[]>(TAURI_COMMAND_NAME, {
+      const data = await invokeTauri<PeriodSummaryRow[]>(TAURI_COMMAND_NAME, {
         boundaries,
       });
       logger.log(
