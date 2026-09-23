@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { useDonationStore } from "./store";
+import {
+  normalizeReminderCalendarType,
+  useDonationStore,
+} from "./store";
 
 describe("calendar settings store behavior", () => {
   beforeEach(() => {
@@ -87,4 +90,28 @@ describe("calendar settings store behavior", () => {
       "gregorian:2026-09",
     ]);
   });
+
+  it("keeps reminder calendar independent from display calendar", () => {
+    useDonationStore.getState().updateSettings({
+      calendarType: "hebrew",
+    });
+
+    expect(useDonationStore.getState().settings).toMatchObject({
+      calendarType: "hebrew",
+      reminderCalendarType: "gregorian",
+    });
+  });
+
+  it.each([
+    [undefined, "gregorian"],
+    [null, "gregorian"],
+    ["julian", "gregorian"],
+    ["gregorian", "gregorian"],
+    ["hebrew", "hebrew"],
+  ])(
+    "normalizes persisted reminder calendar %s to %s",
+    (value, expected) => {
+      expect(normalizeReminderCalendarType(value)).toBe(expected);
+    },
+  );
 });

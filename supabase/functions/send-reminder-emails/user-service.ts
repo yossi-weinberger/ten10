@@ -8,6 +8,7 @@ import {
   normalizeReminderUserRows,
   type ReminderUser,
 } from "./reminder-user.ts";
+import type { CalendarType } from "../_shared/calendar/index.ts";
 
 export type { ReminderUser } from "./reminder-user.ts";
 
@@ -28,10 +29,16 @@ export class UserService {
     );
   }
 
-  async getReminderUsers(reminderDay: number): Promise<ReminderUser[]> {
+  async getReminderUsers(
+    reminderDay: number,
+    reminderCalendar: CalendarType,
+  ): Promise<ReminderUser[]> {
     const { data: users, error } = await this.supabaseClient.rpc(
       "get_reminder_users_with_emails",
-      { reminder_day: reminderDay },
+      {
+        reminder_day: reminderDay,
+        reminder_calendar: reminderCalendar,
+      },
     );
 
     if (error) {
@@ -74,8 +81,12 @@ export class UserService {
 
   async getUsersWithTitheBalances(
     reminderDay: number,
+    reminderCalendar: CalendarType,
   ): Promise<UserWithTitheBalance[]> {
-    const users = await this.getReminderUsers(reminderDay);
+    const users = await this.getReminderUsers(
+      reminderDay,
+      reminderCalendar,
+    );
     const usersWithBalances: UserWithTitheBalance[] = [];
 
     for (const user of users) {

@@ -4,6 +4,7 @@ import { showDesktopNotification } from "./notification.service";
 import { TFunction } from "i18next";
 import { logger } from "@/lib/logger";
 import { formatLocalDate } from "@/lib/utils/local-date";
+import { getCalendarAdapter } from "@/lib/calendar";
 
 const LAST_REMINDER_DATE_KEY = "lastReminderDate";
 
@@ -46,19 +47,28 @@ export async function checkAndSendDesktopReminder(t: TFunction): Promise<void> {
   logger.log("Starting desktop reminder check...");
   try {
     const { settings } = useDonationStore.getState();
-    const { reminderEnabled: enabled, reminderDayOfMonth: dayOfMonth } =
-      settings;
+    const {
+      reminderEnabled: enabled,
+      reminderDayOfMonth: dayOfMonth,
+      reminderCalendarType,
+    } = settings;
 
-    logger.log("Reminder settings:", { enabled, dayOfMonth });
+    logger.log("Reminder settings:", {
+      enabled,
+      dayOfMonth,
+      reminderCalendarType,
+    });
     if (!enabled) {
       logger.log("Reminders are disabled in settings. Exiting.");
       return;
     }
 
     const today = new Date();
-    const currentDayOfMonth = today.getDate();
+    const todayStr = formatLocalDate(today);
+    const currentDayOfMonth = getCalendarAdapter(
+      reminderCalendarType,
+    ).fromIsoDate(todayStr).day;
 
-    // NOTE: This check is temporarily disabled for testing.
     if (currentDayOfMonth !== dayOfMonth) {
       logger.log(
         `Today is day ${currentDayOfMonth}, but reminder is set for day ${dayOfMonth}. Exiting.`
@@ -67,7 +77,6 @@ export async function checkAndSendDesktopReminder(t: TFunction): Promise<void> {
     }
 
     const lastReminderDate = localStorage.getItem(LAST_REMINDER_DATE_KEY);
-    const todayStr = formatLocalDate(today);
 
     logger.log(
       "Last reminder sent on:",

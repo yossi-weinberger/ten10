@@ -1,4 +1,8 @@
-import { useDonationStore, Settings } from "@/lib/store";
+import {
+  normalizeReminderCalendarType,
+  useDonationStore,
+  Settings,
+} from "@/lib/store";
 import { logger } from "@/lib/logger";
 import { getPlatform } from "@/lib/platformManager";
 import { CURRENCIES } from "@/lib/currencies";
@@ -96,6 +100,9 @@ export async function restoreDesktopSettings(): Promise<RestoredDesktopSettings>
         >;
         delete parsed.maaserYearStart;
         Object.assign(parsed, normalizeCalendarSettings(parsed));
+        parsed.reminderCalendarType = normalizeReminderCalendarType(
+          parsed.reminderCalendarType,
+        );
         logger.log("DesktopSettingsService: Restored client_preferences from SQLite.");
         store.updateSettings(parsed as Partial<Settings>);
         const parsedTheme =

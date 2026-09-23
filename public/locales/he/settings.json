@@ -70,6 +70,11 @@
     "emailNotificationsDescription": "קבל עדכונים, התראות, סיכומים ותזכורות במייל",
     "desktopNotificationsLabel": "התראות במחשב",
     "desktopNotificationsDescription": "קבל תזכורות במחשב שלך",
+    "reminderCalendarLabel": "לוח שנה לתזכורת",
+    "calendarOptions": {
+      "gregorian": "לוח גרגוריאני",
+      "hebrew": "לוח עברי"
+    },
     "reminderDayLabel": "יום שליחת התזכורת:",
     "day1": "1 בחודש",
     "day5": "5 בחודש",
@@ -77,6 +82,12 @@
     "day15": "15 בחודש",
     "day20": "20 בחודש",
     "day25": "25 בחודש",
+    "hebrewDay1": "א׳ בחודש העברי",
+    "hebrewDay5": "ה׳ בחודש העברי",
+    "hebrewDay10": "י׳ בחודש העברי",
+    "hebrewDay15": "ט״ו בחודש העברי",
+    "hebrewDay20": "כ׳ בחודש העברי",
+    "hebrewDay25": "כ״ה בחודש העברי",
     "autostartLabel": "הפעלת התוכנה אוטומטית בהפעלת המחשב",
     "autostartDescription": "מומלץ לקבלת תזכורות בזמן, גם אם התוכנה סגורה."
   },

@@ -16,6 +16,12 @@ describe("desktop calendar preference persistence", () => {
   beforeEach(() => {
     invoke.mockReset();
     setPlatform("desktop");
+    useDonationStore.setState((state) => ({
+      settings: {
+        ...state.settings,
+        reminderCalendarType: "gregorian",
+      },
+    }));
   });
 
   afterEach(() => {
@@ -26,6 +32,7 @@ describe("desktop calendar preference persistence", () => {
     const settings = {
       ...useDonationStore.getState().settings,
       calendarType: "hebrew" as const,
+      reminderCalendarType: "hebrew" as const,
       showSecondaryDate: true,
     };
 
@@ -41,6 +48,7 @@ describe("desktop calendar preference persistence", () => {
     invoke.mockResolvedValueOnce(
       JSON.stringify({
         calendarType: "hebrew",
+        reminderCalendarType: "hebrew",
         showSecondaryDate: true,
       }),
     );
@@ -49,7 +57,24 @@ describe("desktop calendar preference persistence", () => {
 
     expect(useDonationStore.getState().settings).toMatchObject({
       calendarType: "hebrew",
+      reminderCalendarType: "hebrew",
       showSecondaryDate: true,
+    });
+  });
+
+  it("keeps Gregorian reminder semantics for an old settings backup", async () => {
+    invoke.mockResolvedValueOnce(
+      JSON.stringify({
+        calendarType: "hebrew",
+        showSecondaryDate: true,
+      }),
+    );
+
+    await restoreDesktopSettings();
+
+    expect(useDonationStore.getState().settings).toMatchObject({
+      calendarType: "hebrew",
+      reminderCalendarType: "gregorian",
     });
   });
 });

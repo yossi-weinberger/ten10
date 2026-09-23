@@ -31,6 +31,7 @@ import { CurrencyCode } from "@/lib/currencies";
 
 import { useIsCurrencyLocked } from "@/hooks/useIsCurrencyLocked";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { buildReminderProfileUpdate } from "@/lib/services/preferences-sync.service";
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -169,6 +170,7 @@ export function SettingsPage() {
         recurringDonations: settings.recurringDonations,
         reminderEnabled: settings.reminderEnabled,
         reminderDayOfMonth: settings.reminderDayOfMonth,
+        reminderCalendarType: settings.reminderCalendarType,
         mailingListConsent: settings.mailingListConsent,
       }}
       updateSettings={async (newNotificationSettings) => {
@@ -184,25 +186,9 @@ export function SettingsPage() {
         // Update Supabase for web users — only fields present in this change
         if (platform === "web" && user) {
           try {
-            const profileUpdate: {
-              reminder_enabled?: boolean;
-              mailing_list_consent?: boolean;
-              reminder_day_of_month?: 1 | 5 | 10 | 15 | 20 | 25;
-            } = {};
-            if (typeof newNotificationSettings.reminderEnabled === "boolean") {
-              profileUpdate.reminder_enabled =
-                newNotificationSettings.reminderEnabled;
-            }
-            if (
-              typeof newNotificationSettings.mailingListConsent === "boolean"
-            ) {
-              profileUpdate.mailing_list_consent =
-                newNotificationSettings.mailingListConsent;
-            }
-            if (newNotificationSettings.reminderDayOfMonth != null) {
-              profileUpdate.reminder_day_of_month =
-                newNotificationSettings.reminderDayOfMonth;
-            }
+            const profileUpdate = buildReminderProfileUpdate(
+              newNotificationSettings,
+            );
             if (Object.keys(profileUpdate).length > 0) {
               const { error } = await supabase
                 .from("profiles")

@@ -4,6 +4,7 @@ import {
   REMINDER_CALENDAR_POLICY,
   resolveReminderSchedule,
 } from "./reminder-schedule.ts";
+import type { CalendarType } from "../_shared/calendar/index.ts";
 
 const reminderDays = [1, 5, 10, 15, 20, 25];
 
@@ -130,6 +131,98 @@ describe("resolveReminderSchedule", () => {
     expect(resolveReminderSchedule("2028-10-11", reminderDays)).toEqual({
       kind: "no-op",
     });
+  });
+});
+
+describe("Hebrew reminder calendar scheduling", () => {
+  it.each([
+    [1, "2027-02-08"],
+    [5, "2027-01-13"],
+    [10, "2027-01-18"],
+    [15, "2027-02-22"],
+    [20, "2027-01-28"],
+    [25, "2027-01-04"],
+  ] as const)("recognizes Hebrew day %i on %s", (day, isoDate) => {
+    expect(resolveReminderSchedule(isoDate, [day], "hebrew")).toEqual({
+      kind: "send-today",
+      reminderDay: day,
+    });
+  });
+
+  it("distinguishes Hebrew and Gregorian cohorts on the same civil date", () => {
+    expect(resolveReminderSchedule("2027-02-08", [1], "hebrew")).toEqual({
+      kind: "send-today",
+      reminderDay: 1,
+    });
+    expect(resolveReminderSchedule("2027-02-08", [1], "gregorian")).toEqual({
+      kind: "no-op",
+    });
+
+    expect(resolveReminderSchedule("2027-02-01", [1], "gregorian")).toEqual({
+      kind: "send-today",
+      reminderDay: 1,
+    });
+    expect(resolveReminderSchedule("2027-02-01", [1], "hebrew")).toEqual({
+      kind: "no-op",
+    });
+  });
+
+  it("handles Tishrei rollover and makes up Hebrew day 1 after Rosh Hashana", () => {
+    expect(resolveReminderSchedule("2026-09-11", [1], "hebrew")).toEqual({
+      kind: "skip",
+      reason: "shabbat",
+    });
+    expect(
+      resolveReminderSchedule("2026-09-12", [1], "hebrew"),
+    ).toMatchObject({
+      kind: "skip",
+      reason: "yom-tov-and-shabbat",
+    });
+    expect(resolveReminderSchedule("2026-09-14", [1], "hebrew")).toEqual({
+      kind: "makeup",
+      reason: "yom-tov-and-shabbat",
+      reminderDate: "2026-09-12",
+      reminderDay: 1,
+    });
+  });
+
+  it("recognizes both Adar I and Adar II in a leap year", () => {
+    expect(resolveReminderSchedule("2027-02-08", [1], "hebrew")).toEqual({
+      kind: "send-today",
+      reminderDay: 1,
+    });
+    expect(resolveReminderSchedule("2027-03-10", [1], "hebrew")).toEqual({
+      kind: "send-today",
+      reminderDay: 1,
+    });
+  });
+
+  it("recognizes the same reminder day in a simple Hebrew year", () => {
+    expect(resolveReminderSchedule("2028-03-13", [15], "hebrew")).toEqual({
+      kind: "send-today",
+      reminderDay: 15,
+    });
+  });
+
+  it("keeps the default calendar byte-for-byte Gregorian", () => {
+    const dates = [
+      "2029-09-10",
+      "2029-09-12",
+      "2034-09-17",
+      "2026-04-30",
+      "2026-08-16",
+      "2028-10-11",
+    ];
+
+    for (const date of dates) {
+      expect(resolveReminderSchedule(date, reminderDays)).toEqual(
+        resolveReminderSchedule(
+          date,
+          reminderDays,
+          "gregorian" satisfies CalendarType,
+        ),
+      );
+    }
   });
 });
 

@@ -1,4 +1,8 @@
 import { getIsraelYomTov } from "../_shared/calendar/israel-yom-tov.ts";
+import {
+  getCalendarAdapter,
+  type CalendarType,
+} from "../_shared/calendar/index.ts";
 
 export const REMINDER_CALENDAR_POLICY = {
   dayBoundary: "civil-midnight",
@@ -61,8 +65,11 @@ function addDays(isoDate: string, amount: number): string {
   return date.toISOString().slice(0, 10);
 }
 
-function dayOfMonth(isoDate: string): number {
-  return toUtcDate(isoDate).getUTCDate();
+function dayOfMonth(
+  isoDate: string,
+  calendarType: CalendarType = "gregorian",
+): number {
+  return getCalendarAdapter(calendarType).fromIsoDate(isoDate).day;
 }
 
 function getBlockedDate(isoDate: string): BlockedDate {
@@ -122,6 +129,7 @@ function fridayWasSentInAdvance(fridayDate: string): boolean {
 export function resolveReminderSchedule(
   currentIsraelDate: string,
   reminderDays: readonly number[],
+  calendarType: CalendarType = "gregorian",
 ): ReminderScheduleResolution {
   const currentBlocked = getBlockedDate(currentIsraelDate);
   if (
@@ -137,12 +145,12 @@ export function resolveReminderSchedule(
   }
 
   const currentDate = toUtcDate(currentIsraelDate);
-  const currentDay = currentDate.getUTCDate();
+  const currentDay = dayOfMonth(currentIsraelDate, calendarType);
   const currentDayOfWeek = currentDate.getUTCDay();
 
   if (currentDayOfWeek === 4) {
     const fridayDate = addDays(currentIsraelDate, 1);
-    const fridayDay = dayOfMonth(fridayDate);
+    const fridayDay = dayOfMonth(fridayDate, calendarType);
     if (
       reminderDays.includes(fridayDay) &&
       getIsraelYomTov(fridayDate) === null
@@ -166,7 +174,7 @@ export function resolveReminderSchedule(
     offset += 1
   ) {
     const reminderDate = addDays(currentIsraelDate, -offset);
-    const reminderDay = dayOfMonth(reminderDate);
+    const reminderDay = dayOfMonth(reminderDate, calendarType);
     if (!reminderDays.includes(reminderDay)) {
       continue;
     }

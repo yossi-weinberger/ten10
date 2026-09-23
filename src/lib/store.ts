@@ -26,6 +26,7 @@ export interface Settings {
   minMaaserPercentage?: number;
   reminderEnabled: boolean;
   reminderDayOfMonth: 1 | 5 | 10 | 15 | 20 | 25;
+  reminderCalendarType: CalendarType;
   termsAcceptedVersion?: string | null;
   mailingListConsent?: boolean;
   lastSeenVersion?: string | null;
@@ -85,6 +86,7 @@ const defaultSettings: Settings = {
   minMaaserPercentage: 10,
   reminderEnabled: false,
   reminderDayOfMonth: 10,
+  reminderCalendarType: "gregorian",
   termsAcceptedVersion: null,
   mailingListConsent: false,
   lastSeenVersion: null,
@@ -285,6 +287,10 @@ export const useDonationStore = create<DonationState>()(
               );
               state.settings.reminderDayOfMonth = 10;
             }
+            state.settings.reminderCalendarType =
+              normalizeReminderCalendarType(
+                state.settings.reminderCalendarType,
+              );
 
             if (state.settings.mailingListConsent === undefined) {
               logger.log(
@@ -323,3 +329,9 @@ export const useDonationStore = create<DonationState>()(
     }
   )
 );
+
+export function normalizeReminderCalendarType(
+  value: unknown,
+): CalendarType {
+  return value === "hebrew" ? "hebrew" : "gregorian";
+}

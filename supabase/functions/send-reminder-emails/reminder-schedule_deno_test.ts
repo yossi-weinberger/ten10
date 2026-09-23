@@ -27,3 +27,16 @@ Deno.test("reminder resolver has Deno parity for Yom Tov makeup", () => {
     },
   );
 });
+
+Deno.test("reminder resolver has Deno parity for Hebrew calendar days", () => {
+  assertEquals(resolveReminderSchedule("2027-02-08", [1], "hebrew"), {
+    kind: "send-today",
+    reminderDay: 1,
+  });
+  assertEquals(resolveReminderSchedule("2026-09-14", [1], "hebrew"), {
+    kind: "makeup",
+    reason: "yom-tov-and-shabbat",
+    reminderDate: "2026-09-12",
+    reminderDay: 1,
+  });
+});

@@ -70,6 +70,11 @@
     "emailNotificationsDescription": "Receive updates, notifications, summaries and reminders via email",
     "desktopNotificationsLabel": "Desktop Notifications",
     "desktopNotificationsDescription": "Get reminders on your computer",
+    "reminderCalendarLabel": "Reminder calendar",
+    "calendarOptions": {
+      "gregorian": "Gregorian Calendar",
+      "hebrew": "Hebrew Calendar"
+    },
     "reminderDayLabel": "Reminder Day:",
     "day1": "1st of month",
     "day5": "5th of month",
@@ -77,6 +82,12 @@
     "day15": "15th of month",
     "day20": "20th of month",
     "day25": "25th of month",
+    "hebrewDay1": "1st of Hebrew month",
+    "hebrewDay5": "5th of Hebrew month",
+    "hebrewDay10": "10th of Hebrew month",
+    "hebrewDay15": "15th of Hebrew month",
+    "hebrewDay20": "20th of Hebrew month",
+    "hebrewDay25": "25th of Hebrew month",
     "autostartLabel": "Launch at Startup",
     "autostartDescription": "Recommended to get timely reminders, even if the app is closed."
   },

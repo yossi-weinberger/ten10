@@ -7,6 +7,11 @@ import {
   resolveReminderSchedule,
   type ReminderScheduleResolution,
 } from "./reminder-schedule.ts";
+import {
+  deduplicateReminderUsers,
+  resolveDueReminderCohorts,
+  type DueReminderCohort,
+} from "./reminder-cohorts.ts";
 import { SimpleEmailService } from "./simple-email-service.ts";
 import { UserService } from "./user-service.ts";
 
@@ -28,6 +33,13 @@ async function logRun(supabase: ReturnType<typeof createClient>, entry: {
 
 function assertNever(value: never): never {
   throw new Error(`Unsupported reminder schedule result: ${String(value)}`);
+}
+
+function describeCohort(cohort: DueReminderCohort): string {
+  const { calendarType, reminderDay, resolution } = cohort;
+  return resolution.kind === "makeup"
+    ? `${calendarType}:day=${reminderDay},${resolution.reason}-makeup-for=${resolution.reminderDate}`
+    : `${calendarType}:day=${reminderDay},send-today`;
 }
 
 // Deployment trigger note: editing this file forces the GitHub workflow to redeploy the function.
@@ -299,85 +311,110 @@ serve(async (req) => {
     const currentIsraelDate = getIsraelDate();
     const currentDay = Number(currentIsraelDate.slice(8, 10));
     const reminderDays = [1, 5, 10, 15, 20, 25];
-    const resolution: ReminderScheduleResolution = isTest
-      ? { kind: "send-today", reminderDay: 25 }
-      : resolveReminderSchedule(currentIsraelDate, reminderDays);
-    let finalTestDay: number;
-    let scheduleNote = "";
+    const fallbackResolution: ReminderScheduleResolution =
+      resolveReminderSchedule(
+        currentIsraelDate,
+        reminderDays,
+        "gregorian",
+      );
+    const dueCohorts: DueReminderCohort[] = isTest
+      ? [
+          {
+            calendarType: "gregorian",
+            reminderDay: 25,
+            resolution: { kind: "send-today", reminderDay: 25 },
+          },
+          {
+            calendarType: "hebrew",
+            reminderDay: 25,
+            resolution: { kind: "send-today", reminderDay: 25 },
+          },
+        ]
+      : resolveDueReminderCohorts(currentIsraelDate, reminderDays);
 
-    switch (resolution.kind) {
-      case "send-today":
-        finalTestDay = resolution.reminderDay;
-        break;
-      case "makeup":
-        finalTestDay = resolution.reminderDay;
-        scheduleNote =
-          ` (${resolution.reason} makeup for ${resolution.reminderDate})`;
-        console.log(
-          `[REMINDER] Makeup: day ${finalTestDay} on ${currentIsraelDate} (${resolution.reason})`,
-        );
-        break;
-      case "skip": {
-        const logEntry = buildReminderRunLog(
-          currentIsraelDate,
-          resolution,
-        );
-        await logRun(supabaseAdmin, logEntry);
-        console.log("[REMINDER] Schedule skipped:", logEntry.notes);
-        return new Response(
-          JSON.stringify({
-            message: logEntry.notes,
-            reason: resolution.reason,
-            was_yom_tov: logEntry.was_yom_tov,
-          }),
-          {
-            headers: {
-              ...getCorsHeaders(origin),
-              "Content-Type": "application/json",
+    if (dueCohorts.length === 0) {
+      switch (fallbackResolution.kind) {
+        case "skip": {
+          const logEntry = buildReminderRunLog(
+            currentIsraelDate,
+            fallbackResolution,
+          );
+          await logRun(supabaseAdmin, logEntry);
+          console.log("[REMINDER] Schedule skipped:", logEntry.notes);
+          return new Response(
+            JSON.stringify({
+              message: logEntry.notes,
+              reason: fallbackResolution.reason,
+              was_yom_tov: logEntry.was_yom_tov,
+            }),
+            {
+              headers: {
+                ...getCorsHeaders(origin),
+                "Content-Type": "application/json",
+              },
+              status: 200,
             },
-            status: 200,
-          },
-        );
-      }
-      case "no-op": {
-        const logEntry = buildReminderRunLog(
-          currentIsraelDate,
-          resolution,
-        );
-        logEntry.notes =
-          `Not a reminder day (days: ${reminderDays.join(", ")})`;
-        await logRun(supabaseAdmin, logEntry);
-        return new Response(
-          JSON.stringify({
-            message:
-              `Today (${currentDay}) is not a reminder day. Reminder days: ${reminderDays.join(", ")}`,
-            was_yom_tov: false,
-          }),
-          {
-            headers: {
-              ...getCorsHeaders(origin),
-              "Content-Type": "application/json",
+          );
+        }
+        case "no-op": {
+          const logEntry = buildReminderRunLog(
+            currentIsraelDate,
+            fallbackResolution,
+          );
+          logEntry.notes =
+            `Not a reminder day in either calendar (days: ${reminderDays.join(", ")})`;
+          await logRun(supabaseAdmin, logEntry);
+          return new Response(
+            JSON.stringify({
+              message:
+                `Today (${currentDay}) is not a reminder day in either calendar. Reminder days: ${reminderDays.join(", ")}`,
+              was_yom_tov: false,
+            }),
+            {
+              headers: {
+                ...getCorsHeaders(origin),
+                "Content-Type": "application/json",
+              },
+              status: 200,
             },
-            status: 200,
-          },
-        );
+          );
+        }
+        case "send-today":
+        case "makeup":
+          throw new Error(
+            "Reminder cohorts missing for a due Gregorian schedule",
+          );
+        default:
+          return assertNever(fallbackResolution);
       }
-      default:
-        return assertNever(resolution);
     }
 
-    // Get users with tithe balances
-    const usersWithBalances =
-      await userService.getUsersWithTitheBalances(finalTestDay);
+    const cohortContext = dueCohorts.map(describeCohort).join("; ");
+    console.log(
+      `[REMINDER] Due calendar cohorts on ${currentIsraelDate}: ${cohortContext}`,
+    );
+
+    const cohortUsers = await Promise.all(
+      dueCohorts.map((cohort) =>
+        userService.getUsersWithTitheBalances(
+          cohort.reminderDay,
+          cohort.calendarType,
+        )
+      ),
+    );
+    const usersWithBalances = deduplicateReminderUsers(cohortUsers.flat());
+    const primaryResolution = dueCohorts[0].resolution;
 
     if (usersWithBalances.length === 0) {
       await logRun(supabaseAdmin, {
-        ...buildReminderRunLog(currentIsraelDate, resolution),
-        notes: `No users configured for day ${finalTestDay}${scheduleNote}${isTest ? " (TEST)" : ""}`,
+        ...buildReminderRunLog(currentIsraelDate, primaryResolution),
+        notes:
+          `No users configured for due cohorts [${cohortContext}]${isTest ? " (TEST)" : ""}`,
       });
       return new Response(
         JSON.stringify({
-          message: `No users found with reminders enabled for day ${finalTestDay}${scheduleNote}${isTest ? " (TEST MODE)" : ""}`,
+          message:
+            `No users found for due reminder cohorts [${cohortContext}]${isTest ? " (TEST MODE)" : ""}`,
         }),
         {
           headers: {
@@ -389,20 +426,17 @@ serve(async (req) => {
       );
     }
 
-    // Send bulk reminder emails
     console.log(
-      `[REMINDER] Starting to send emails to ${usersWithBalances.length} users for day ${finalTestDay}${isTest ? " (TEST MODE)" : ""}`,
+      `[REMINDER] Starting to send emails to ${usersWithBalances.length} unique users for [${cohortContext}]${isTest ? " (TEST MODE)" : ""}`,
     );
     const results = await emailService.sendBulkReminders(usersWithBalances);
 
-    // Log detailed results for debugging
     const sentCount = results.filter((r) => r.status === "sent").length;
     const failedCount = results.filter((r) => r.status === "failed").length;
     console.log(
       `[REMINDER] Email sending completed: ${sentCount} sent, ${failedCount} failed`,
     );
 
-    // Log any failures
     results.forEach((result) => {
       if (result.status === "failed") {
         console.error(
@@ -415,20 +449,19 @@ serve(async (req) => {
       }
     });
 
-    const scheduleMessage = isTest ? "" : scheduleNote;
-
     await logRun(supabaseAdmin, {
-      ...buildReminderRunLog(currentIsraelDate, resolution, {
+      ...buildReminderRunLog(currentIsraelDate, primaryResolution, {
         usersProcessed: usersWithBalances.length,
         emailsSent: sentCount,
         emailsFailed: failedCount,
       }),
-      notes: scheduleMessage || (isTest ? "TEST MODE" : undefined),
+      notes: `${isTest ? "TEST MODE; " : ""}cohorts=[${cohortContext}]`,
     });
 
     return new Response(
       JSON.stringify({
-        message: `Processed ${usersWithBalances.length} users for day ${finalTestDay}${scheduleMessage}${isTest ? " (TEST MODE)" : ""}. Sent: ${sentCount}, Failed: ${failedCount}`,
+        message:
+          `Processed ${usersWithBalances.length} unique users for [${cohortContext}]${isTest ? " (TEST MODE)" : ""}. Sent: ${sentCount}, Failed: ${failedCount}`,
         results,
         was_yom_tov: false,
       }),
