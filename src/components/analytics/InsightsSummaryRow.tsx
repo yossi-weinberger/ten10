@@ -12,15 +12,10 @@ import {
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { RecurringTransaction } from "@/types/transaction";
 import { Info, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
 
 const KPI_GRID_CLASS = "grid grid-cols-3 gap-2 sm:gap-4 items-stretch";
 
-/** Converts "YYYY-MM-DD" → "DD/MM/YY" for tooltip display */
-function isoToDDMMYY(iso: string): string {
-  const parts = iso.split("-");
-  if (parts.length !== 3) return iso;
-  return `${parts[2]}/${parts[1]}/${parts[0].slice(2)}`;
-}
 const KPI_CARD_HEIGHT = "h-[112px] sm:h-[132px]";
 const KPI_DELTA_SLOT_HEIGHT = "min-h-[18px] sm:min-h-[22px]";
 
@@ -146,6 +141,7 @@ export function InsightsSummaryRow({
   prevPeriodEnd,
 }: InsightsSummaryRowProps) {
   const { t } = useTranslation("dashboard");
+  const formatDisplayDate = useDisplayDate();
 
   const income = serverTotalIncome ?? 0;
   const expenses = serverTotalExpenses ?? 0;
@@ -205,8 +201,12 @@ export function InsightsSummaryRow({
   // Build period comparison tooltip with actual dates
   const periodTooltip = prevPeriodStart && prevPeriodEnd && !isAllTime
     ? t("analytics.insightsSummary.periodComparisonTooltipWithDates", {
-        prevStart: isoToDDMMYY(prevPeriodStart),
-        prevEnd: isoToDDMMYY(prevPeriodEnd),
+        prevStart: Object.values(
+          formatDisplayDate(prevPeriodStart, "short"),
+        ).join(" · "),
+        prevEnd: Object.values(
+          formatDisplayDate(prevPeriodEnd, "short"),
+        ).join(" · "),
       })
     : t("analytics.insightsSummary.periodComparisonTooltip");
 

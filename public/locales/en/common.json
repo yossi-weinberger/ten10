@@ -107,6 +107,10 @@
     "zero": {
       "title": "Monthly Update Reminder",
       "body": "You've met your monthly tithe goal. Don't forget to update your latest data!"
+    },
+    "maaserYear": {
+      "title": "Close your maaser year",
+      "body": "Erev Rosh Hashanah is here. Review this year's income and donations before the new year begins. Your current tithe balance is {{amount}} ILS."
     }
   },
   "platform": {

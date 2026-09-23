@@ -28,6 +28,9 @@ interface RecurringFieldsProps {
 
 export function RecurringFields({ form }: RecurringFieldsProps) {
   const { t } = useTranslation("transactions");
+  const calendarType =
+    form.watch("recurring_calendar_type") ?? "gregorian";
+  const maximumDay = calendarType === "hebrew" ? 30 : 31;
   return (
     <div className="space-y-4 mt-4 p-4 border rounded-lg shadow-sm bg-muted/10">
       <Alert className="bg-blue-50 text-blue-900 border-blue-200 dark:bg-blue-950/30 dark:text-blue-100 dark:border-blue-800">
@@ -40,7 +43,7 @@ export function RecurringFields({ form }: RecurringFieldsProps) {
         </AlertDescription>
       </Alert>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <FormField
           control={form.control}
           name="frequency"
@@ -83,6 +86,53 @@ export function RecurringFields({ form }: RecurringFieldsProps) {
         />
         <FormField
           control={form.control}
+          name="recurring_calendar_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                {t("transactionForm.recurringTransaction.calendar.label")}
+              </FormLabel>
+              <Select
+                onValueChange={(value) => {
+                  field.onChange(value);
+                  if (
+                    value === "hebrew" &&
+                    (form.getValues("recurring_day_of_month") ?? 0) > 30
+                  ) {
+                    form.setValue("recurring_day_of_month", 30, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+                  }
+                }}
+                value={field.value ?? "gregorian"}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="gregorian">
+                    {t(
+                      "transactionForm.recurringTransaction.calendar.gregorian",
+                    )}
+                  </SelectItem>
+                  <SelectItem value="hebrew">
+                    {t(
+                      "transactionForm.recurringTransaction.calendar.hebrew",
+                    )}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="h-5">
+                <FormMessage />
+              </div>
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
           name="recurring_day_of_month"
           render={({ field }) => (
             <FormItem>
@@ -93,11 +143,14 @@ export function RecurringFields({ form }: RecurringFieldsProps) {
                 <Input
                   type="number"
                   min={1}
-                  max={31}
+                  max={maximumDay}
                   {...field}
                   value={field.value ?? ""}
                 />
               </FormControl>
+              <p className="text-sm text-muted-foreground">
+                {t("transactionForm.recurringTransaction.dayClampHint")}
+              </p>
               <div className="h-5">
                 <FormMessage />
               </div>

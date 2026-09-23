@@ -4,11 +4,20 @@ import i18n from "@/lib/i18n";
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { getRecurringExportInfo, getExportCategoryLabel } from "@/lib/utils/export-transaction-fields";
 import { saveOrDownloadExportedFile } from "@/lib/utils/save-export-file";
+import { parseLocalDate } from "@/lib/utils/local-date";
+import {
+  formatExportDate,
+  type CalendarExportSettings,
+} from "@/lib/calendar/export-date";
 
 export async function exportTransactionsToExcel(
   transactions: Transaction[],
   filename = "Ten10-transactions.xlsx",
-  currentLanguage: string = "he"
+  currentLanguage: string = "he",
+  calendarSettings: CalendarExportSettings = {
+    calendarType: "gregorian",
+    showSecondaryDate: false,
+  },
 ): Promise<boolean> {
   const workbook = new ExcelJS.Workbook();
 
@@ -17,6 +26,9 @@ export async function exportTransactionsToExcel(
   workbook.modified = new Date();
 
   const isHebrew = currentLanguage === "he";
+  const includeHebrewDate =
+    calendarSettings.calendarType === "hebrew" ||
+    calendarSettings.showSecondaryDate;
 
   const sheetName = i18n.t("sheetName", {
     lng: currentLanguage,
@@ -38,6 +50,18 @@ export async function exportTransactionsToExcel(
       width: 12,
       style: { numFmt: "dd/mm/yyyy" },
     },
+    ...(includeHebrewDate
+      ? [
+          {
+            header: i18n.t("columns.hebrewDate", {
+              lng: currentLanguage,
+              ns: "data-tables",
+            }),
+            key: "hebrew_date",
+            width: 22,
+          },
+        ]
+      : []),
     {
       header: i18n.t("columns.type", {
         lng: currentLanguage,
@@ -122,8 +146,13 @@ export async function exportTransactionsToExcel(
       currentLanguage
     );
 
+    const exportDate = formatExportDate(transaction.date, {
+      ...calendarSettings,
+      language: isHebrew ? "he" : "en",
+    });
     const rowData = {
-      date: new Date(transaction.date),
+      date: parseLocalDate(transaction.date),
+      ...(includeHebrewDate && { hebrew_date: exportDate.hebrew ?? "" }),
       type:
         i18n.t(`export.transactionTypes.${transaction.type}`, {
           lng: currentLanguage,
@@ -178,6 +207,7 @@ export async function exportTransactionsToExcel(
   const textAlignment = isHebrew ? "right" : "left";
   [
     "type",
+    ...(includeHebrewDate ? ["hebrew_date"] : []),
     "description",
     "category",
     "payment_method",

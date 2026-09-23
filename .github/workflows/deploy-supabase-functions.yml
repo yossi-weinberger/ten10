@@ -9,8 +9,16 @@ on:
       - "supabase/scripts/deploy-changed-functions.sh"
       - ".github/workflows/deploy-supabase-functions.yml"
 
+permissions:
+  contents: read
+
+concurrency:
+  group: supabase-production
+  cancel-in-progress: false
+
 jobs:
   deploy:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
@@ -22,13 +30,25 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v3
         with:
-          version: 2.99.0
+          version: 2.117.0
+
+      - name: Link to production
+        run: supabase link --project-ref flpzqbvbymoluoeeeofg
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Apply pending migrations before function deployment
+        run: supabase db push --linked --yes
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
       - name: Plan changed functions
         id: plan
         env:
           GITHUB_EVENT_BEFORE: ${{ github.event.before }}
           GITHUB_SHA: ${{ github.sha }}
+          SUPABASE_PROJECT_REF: flpzqbvbymoluoeeeofg
         run: bash supabase/scripts/deploy-changed-functions.sh --plan-only
 
       - name: Deploy changed functions
@@ -37,4 +57,5 @@ jobs:
           GITHUB_EVENT_BEFORE: ${{ github.event.before }}
           GITHUB_SHA: ${{ github.sha }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: flpzqbvbymoluoeeeofg
         run: bash supabase/scripts/deploy-changed-functions.sh

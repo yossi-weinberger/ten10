@@ -3,11 +3,12 @@
  * Handles all user-related database operations
  */
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import {
   normalizeReminderUserRows,
   type ReminderUser,
 } from "./reminder-user.ts";
+import type { CalendarType } from "../_shared/calendar/index.ts";
 
 export type { ReminderUser } from "./reminder-user.ts";
 
@@ -28,14 +29,32 @@ export class UserService {
     );
   }
 
-  async getReminderUsers(reminderDay: number): Promise<ReminderUser[]> {
+  async getReminderUsers(
+    reminderDay: number,
+    reminderCalendar: CalendarType,
+  ): Promise<ReminderUser[]> {
     const { data: users, error } = await this.supabaseClient.rpc(
       "get_reminder_users_with_emails",
-      { reminder_day: reminderDay },
+      {
+        reminder_day: reminderDay,
+        reminder_calendar: reminderCalendar,
+      },
     );
 
     if (error) {
       throw new Error(`Error fetching users: ${error.message}`);
+    }
+
+    return normalizeReminderUserRows(users);
+  }
+
+  async getAllReminderUsers(): Promise<ReminderUser[]> {
+    const { data: users, error } = await this.supabaseClient.rpc(
+      "get_all_reminder_users_with_emails",
+    );
+
+    if (error) {
+      throw new Error(`Error fetching yearly reminder users: ${error.message}`);
     }
 
     return normalizeReminderUserRows(users);
@@ -74,8 +93,29 @@ export class UserService {
 
   async getUsersWithTitheBalances(
     reminderDay: number,
+    reminderCalendar: CalendarType,
   ): Promise<UserWithTitheBalance[]> {
-    const users = await this.getReminderUsers(reminderDay);
+    const users = await this.getReminderUsers(
+      reminderDay,
+      reminderCalendar,
+    );
+    const usersWithBalances: UserWithTitheBalance[] = [];
+
+    for (const user of users) {
+      const balanceData = await this.calculateUserTitheBalance(user.id);
+      usersWithBalances.push({
+        ...user,
+        titheBalance: balanceData.total,
+        maaserBalance: balanceData.maaser,
+        chomeshBalance: balanceData.chomesh,
+      });
+    }
+
+    return usersWithBalances;
+  }
+
+  async getAllUsersWithTitheBalances(): Promise<UserWithTitheBalance[]> {
+    const users = await this.getAllReminderUsers();
     const usersWithBalances: UserWithTitheBalance[] = [];
 
     for (const user of users) {

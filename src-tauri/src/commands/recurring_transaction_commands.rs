@@ -59,8 +59,8 @@ pub(crate) fn insert_recurring_transaction_row(
     rec_transaction: &RecurringTransaction,
 ) -> RusqliteResult<()> {
     conn.execute(
-        "INSERT INTO recurring_transactions (id, user_id, status, start_date, next_due_date, frequency, day_of_month, total_occurrences, execution_count, description, amount, currency, type, category, is_chomesh, recipient, payment_method, created_at, updated_at, original_amount, original_currency, conversion_rate, conversion_date, rate_source)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24)",
+        "INSERT INTO recurring_transactions (id, user_id, status, start_date, next_due_date, frequency, calendar_type, anchor_month_code, day_of_month, total_occurrences, execution_count, description, amount, currency, type, category, is_chomesh, recipient, payment_method, created_at, updated_at, original_amount, original_currency, conversion_rate, conversion_date, rate_source)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26)",
         params![
             rec_transaction.id,
             rec_transaction.user_id,
@@ -68,6 +68,8 @@ pub(crate) fn insert_recurring_transaction_row(
             rec_transaction.start_date,
             rec_transaction.next_due_date,
             rec_transaction.frequency,
+            rec_transaction.calendar_type,
+            rec_transaction.anchor_month_code,
             rec_transaction.day_of_month,
             rec_transaction.total_occurrences,
             rec_transaction.execution_count,
@@ -289,6 +291,8 @@ fn recurring_update_column(key: &str) -> Option<&'static str> {
         "start_date" | "startDate" => Some("start_date"),
         "next_due_date" | "nextDueDate" => Some("next_due_date"),
         "frequency" => Some("frequency"),
+        "calendar_type" | "calendarType" => Some("calendar_type"),
+        "anchor_month_code" | "anchorMonthCode" => Some("anchor_month_code"),
         "day_of_month" | "dayOfMonth" => Some("day_of_month"),
         "total_occurrences" | "totalOccurrences" => Some("total_occurrences"),
         "execution_count" | "executionCount" => Some("execution_count"),
@@ -779,6 +783,8 @@ mod tests {
                 id TEXT PRIMARY KEY, user_id TEXT, status TEXT NOT NULL DEFAULT 'active',
                 start_date TEXT NOT NULL, next_due_date TEXT NOT NULL,
                 frequency TEXT NOT NULL DEFAULT 'monthly', day_of_month INTEGER NOT NULL,
+                calendar_type TEXT NOT NULL DEFAULT 'gregorian',
+                anchor_month_code TEXT,
                 total_occurrences INTEGER, execution_count INTEGER NOT NULL DEFAULT 0,
                 description TEXT, amount REAL NOT NULL, currency TEXT NOT NULL,
                 type TEXT NOT NULL, category TEXT, is_chomesh INTEGER, recipient TEXT,
@@ -1151,5 +1157,22 @@ mod tests {
             ),
             Some("paused".to_string())
         );
+    }
+
+    #[test]
+    fn update_recurring_transaction_handler_round_trips_calendar_fields() {
+        let app = mock_app();
+        let updated = update_recurring_transaction_handler(
+            app.state::<crate::DbState>(),
+            "r1".to_string(),
+            json!({
+                "calendar_type": "hebrew",
+                "anchor_month_code": "M05L"
+            }),
+        )
+        .expect("update calendar fields");
+
+        assert_eq!(updated.calendar_type, "hebrew");
+        assert_eq!(updated.anchor_month_code, Some("M05L".to_string()));
     }
 }

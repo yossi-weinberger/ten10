@@ -168,15 +168,35 @@ function until this branch's migration and Edge Function are deployed.
 
 ### Reminder Days
 
-The existing reminder behavior supports days **1, 5, 10, 15, 20, 25**.
-Scheduling is not part of the pending localized-redesign rollout.
+Reminder profile values remain days **1, 5, 10, 15, 20, 25**. Each profile
+chooses whether that number is interpreted in the Gregorian or Hebrew
+calendar. Existing profiles default to Gregorian. The Edge function resolves
+both cohorts for the same Israel civil date, fetches only due cohorts, and
+deduplicates recipients before sending.
 
-The function uses `Asia/Jerusalem` for day-of-month and Shabbat handling:
+The function uses `Asia/Jerusalem` and a civil-midnight boundary. It does not
+use sunset or zmanim. Israel observance blocks Rosh Hashana (both days), Yom
+Kippur, the first day of Sukkot, Shemini Atzeret, the first and seventh days
+of Pesach, and Shavuot. Chol HaMoed, Purim, Chanukah, fasts, and Erev Yom Tov
+are not blocked. Diaspora second-day support remains a location-policy
+follow-up and is not implemented in this stage.
+
+The existing Friday/Saturday behavior is intentionally preserved:
 
 - Saturday (Israel): skipped entirely
 - Friday (Israel): skipped (cron fires after sunset)
 - Sunday: makeup for Saturday reminder days
 - Thursday: makeup for Friday reminder days
+
+The Friday rule is the existing sunset-based operational exception and is
+therefore inconsistent with the otherwise civil-midnight convention. Stage 5
+preserves it rather than redesigning established reminder behavior.
+
+Desktop reminders use the selected reminder calendar at the machine's local
+civil midnight and retain a Gregorian ISO local-storage key for once-per-day
+deduplication. They do not run the server's Israel Yom Tov/Shabbat makeup
+policy because the desktop app has no background scheduler; that policy
+remains specific to Web email delivery.
 
 ## Monitoring
 

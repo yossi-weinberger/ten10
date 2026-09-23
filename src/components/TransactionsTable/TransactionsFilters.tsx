@@ -42,6 +42,8 @@ import {
   formatPaymentMethod,
   isPredefinedPaymentMethod,
 } from "@/lib/payment-methods";
+import { serializeTransactionDateRange } from "./transactions-filter-date.utils";
+import { parseLocalDate } from "@/lib/utils/local-date";
 
 const availableTransactionTypes: TransactionType[] = [
   "income",
@@ -77,10 +79,10 @@ export function TransactionsFilters() {
     storeFilters.dateRange.from || storeFilters.dateRange.to
       ? {
           from: storeFilters.dateRange.from
-            ? new Date(storeFilters.dateRange.from)
+            ? parseLocalDate(storeFilters.dateRange.from)
             : undefined,
           to: storeFilters.dateRange.to
-            ? new Date(storeFilters.dateRange.to)
+            ? parseLocalDate(storeFilters.dateRange.to)
             : undefined,
         }
       : undefined
@@ -130,14 +132,7 @@ export function TransactionsFilters() {
   const handleDateChange = (selectedDateRange: DateRange | undefined) => {
     setLocalDateRange(selectedDateRange);
     setStoreFilters({
-      dateRange: {
-        from: selectedDateRange?.from
-          ? selectedDateRange.from.toISOString().split("T")[0]
-          : null,
-        to: selectedDateRange?.to
-          ? selectedDateRange.to.toISOString().split("T")[0]
-          : null,
-      },
+      dateRange: serializeTransactionDateRange(selectedDateRange),
     });
   };
 
@@ -200,10 +195,10 @@ export function TransactionsFilters() {
         initialTableTransactionFilters.dateRange.to
         ? {
             from: initialTableTransactionFilters.dateRange.from
-              ? new Date(initialTableTransactionFilters.dateRange.from)
+              ? parseLocalDate(initialTableTransactionFilters.dateRange.from)
               : undefined,
             to: initialTableTransactionFilters.dateRange.to
-              ? new Date(initialTableTransactionFilters.dateRange.to)
+              ? parseLocalDate(initialTableTransactionFilters.dateRange.to)
               : undefined,
           }
         : undefined

@@ -80,6 +80,7 @@ export class SimpleEmailService {
     language: ReminderLanguage,
     fullName: string | null,
     currency?: string | null,
+    kind: "monthly" | "maaser-year" = "monthly",
   ): Promise<EmailResult> {
     try {
       console.log(`[EMAIL] Starting to send reminder email to ${userEmail}`);
@@ -105,6 +106,7 @@ export class SimpleEmailService {
         fullName,
         currency,
         israelMonth: getIsraelMonth(),
+        kind,
         unsubscribeUrls,
       };
       const subject = generateReminderEmailSubject(templateData);
@@ -203,6 +205,7 @@ export class SimpleEmailService {
       full_name: string | null;
       default_currency?: string | null;
     }>,
+    kind: "monthly" | "maaser-year" = "monthly",
   ): Promise<EmailResult[]> {
     const results: EmailResult[] = [];
     // Sequential with a gentle delay; you can replace with a small concurrency pool if needed.
@@ -216,6 +219,7 @@ export class SimpleEmailService {
         u.language,
         u.full_name,
         u.default_currency,
+        kind,
       );
       results.push(r);
       await this.sleep(100);

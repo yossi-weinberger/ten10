@@ -10,24 +10,24 @@ alwaysApply: false
 
 | Environment | Project ID (MCP) | Role |
 |-------------|------------------|------|
-| Production | `flpzqbvbymoluoeeeofg` | Updated via PR / merge to main (GitHub Action `db push`) |
-| Staging | *none — deleted* | Recreate on demand if you need a pre-prod DB |
+| Production | `flpzqbvbymoluoeeeofg` | Updated only after merge/push to `main` |
+| Testing | `bbcllewcotypedqsnwmi` | Persistent branch for PR validation; cloned production data; cron disabled |
 
-**Staging note:** The former staging project (`ngtsnskyupageagcmqdp`) was deleted to avoid idle cost. Do not call that ref. If staging is needed, create a new Supabase project, update this rule + `llm-instructions/backend/supabase-database-migrations-workflow.md` with the new ref, push migrations, set Vault secrets, then test. See that workflow doc § “Recreate staging”.
+**Testing safety:** All four `cron.job` entries are disabled. Do not enable them until the testing Vault `service_role_key` is rotated to the testing branch token. The former staging ref `ngtsnskyupageagcmqdp` and failed testing ref `ghzcsmscsympfxknubcp` are deleted.
 
 ## Workflow (always follow)
 
 1. Create migration file: `supabase/migrations/YYYYMMDDHHMMSS_description.sql` (full timestamp).
-2. **If staging exists:** apply via MCP `apply_migration(project_id=<staging-ref>, name, query)`, verify with `.env` → staging.
-3. **If no staging (current default):** proceed with careful review; opening a PR pushes to **production** via CI.
-4. Open PR → GitHub Action pushes to **production** (Vercel preview works).
-5. Merge to main.
+2. Open/update the PR. Supabase Preview applies the migration to `bbcllewcotypedqsnwmi`; Vercel Preview targets the matching Git branch.
+3. Verify the migration, application flow, RLS, and advisors on testing.
+4. Merge only after all PR checks pass.
+5. Push to `main` triggers the production migration workflow.
 
 ## MCP tools — which to use
 
 | MCP server | Connected to | Use for |
 |---|---|---|
-| `plugin-supabase-supabase` | requires `project_id` param | staging (only after recreate) |
+| `plugin-supabase-supabase` | requires `project_id` param | testing (`bbcllewcotypedqsnwmi`) |
 | `user-supabase` / `user-supabase ten10` | **PRODUCTION** | ❌ never for migrations |
 
 **CRITICAL**: Production MCP is hardwired to `flpzqbvbymoluoeeeofg`. Never use it to apply migrations.
@@ -44,7 +44,7 @@ VALUES ('20260423120000', 'migration_name', ARRAY['...']) ON CONFLICT DO NOTHING
 
 | Target | Command | Who triggers |
 |--------|---------|-------------|
-| Staging (only if recreated) | `npx supabase functions deploy <name> --project-ref <new-staging-ref>` | Agent / developer manually |
+| Testing | Supabase Preview for the PR-associated Git branch | Supabase GitHub integration |
 | Production | **Never manually** | GitHub Action on push to `main` |
 
 ⚠️ **`process-email-request` must always use `--no-verify-jwt`** — omitting it breaks Cloudflare email routing. The GitHub Action already handles this. Never redeploy it manually without the flag.
@@ -54,7 +54,7 @@ The GitHub Action (`deploy-supabase-functions.yml`) triggers on push to `main` w
 ## Do not
 
 - Use production MCP for any migration.
-- Assume staging ref `ngtsnskyupageagcmqdp` still exists.
+- Use deleted refs `ngtsnskyupageagcmqdp` or `ghzcsmscsympfxknubcp`.
 - Run ad-hoc SQL on production without a migration file in Git.
 - Edit or delete migration files already applied on production.
 - Run `supabase db reset` on production.

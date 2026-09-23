@@ -15,7 +15,7 @@ Base URL for calling Edge Functions from cron jobs.
 | Environment | Value |
 |-------------|-------|
 | Production  | `https://flpzqbvbymoluoeeeofg.supabase.co` |
-| Staging     | *No staging project right now.* If you recreate one, use `https://<new-staging-ref>.supabase.co` and update `llm-instructions/backend/supabase-database-migrations-workflow.md`. |
+| Testing     | `https://bbcllewcotypedqsnwmi.supabase.co` |
 
 ### `service_role_key`
 
@@ -24,10 +24,12 @@ The `service_role` JWT used to authenticate cron job requests to Edge Functions.
 | Environment | Value |
 |-------------|-------|
 | Production  | service_role JWT from Dashboard → Project Settings → API |
-| Staging     | Only if staging is recreated: service_role JWT from that project's API settings |
+| Testing     | service_role JWT from the testing branch API settings |
 
 > **Security note:** This key bypasses Row Level Security. Never commit it to git.
 > Always add it via the Dashboard UI.
+> Testing currently contains a cloned production token. All testing cron jobs
+> must remain disabled until that token is replaced with the testing token.
 
 ---
 

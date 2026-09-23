@@ -105,11 +105,17 @@
         "quarterly": "Quarterly",
         "yearly": "Yearly"
       },
+      "calendar": {
+        "label": "Recurrence calendar",
+        "gregorian": "Gregorian",
+        "hebrew": "Hebrew"
+      },
       "endDate": {
         "label": "End Date",
         "placeholder": "Select end date (optional)"
       },
       "dayOfMonth": "Day of month for charge",
+      "dayClampHint": "If the selected day does not exist, the last day of that month is used.",
       "totalCount": "Number of repetitions (empty for unlimited)",
       "comingSoon": "Coming Soon"
     },
@@ -197,6 +203,7 @@
           "number": "Day of month must be a number",
           "integer": "Day of month must be an integer",
           "range": "Day of month must be between 1 and 31",
+          "hebrewRange": "Hebrew recurring day must be between 1 and 30",
           "requiredForMonthly": "Day of month must be specified for monthly recurring transactions",
           "onlyForRecurring": "Day of month cannot be set for non-recurring transactions"
         },

@@ -114,7 +114,7 @@ export function StatCard({
     (state) => state.settings.defaultCurrency,
   );
 
-  const { displayValue, startAnimateValue } = useAnimatedCounter({
+  const { displayValue, isReady, startAnimateValue } = useAnimatedCounter({
     serverValue: value,
     isLoading,
   });
@@ -160,6 +160,11 @@ export function StatCard({
               <p className="text-xs text-red-500" dir={i18n.dir()}>
                 {t("monthlyChart.error")}
               </p>
+            ) : !isReady ? (
+              <span
+                aria-hidden
+                className="inline-block h-8 w-24 animate-pulse rounded-md bg-foreground/10"
+              />
             ) : (
               <span
                 className={`ph-mask inline-block text-2xl sm:text-3xl font-bold tabular-nums whitespace-nowrap ${styles.text}`}

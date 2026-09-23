@@ -612,7 +612,9 @@ pub fn export_transactions_handler(
             rt.total_occurrences as recurring_total_occurrences,
             rt.day_of_month as recurring_day_of_month_def,
             rt.start_date as recurring_start_date,
-            rt.next_due_date as recurring_next_due_date
+            rt.next_due_date as recurring_next_due_date,
+            rt.calendar_type as recurring_calendar_type,
+            rt.anchor_month_code as recurring_anchor_month_code
         FROM transactions t
         LEFT JOIN recurring_transactions rt ON t.source_recurring_id = rt.id
     ";
@@ -737,6 +739,8 @@ pub fn export_transactions_handler(
                     day_of_month: row.get("recurring_day_of_month_def")?,
                     start_date: row.get("recurring_start_date")?,
                     next_due_date: row.get("recurring_next_due_date")?,
+                    calendar_type: row.get("recurring_calendar_type")?,
+                    anchor_month_code: row.get("recurring_anchor_month_code")?,
                 }),
                 None => None,
             };
@@ -839,7 +843,9 @@ pub fn get_filtered_transactions_handler(
             rt.total_occurrences as recurring_total_occurrences,
             rt.day_of_month as recurring_day_of_month_def,
             rt.start_date as recurring_start_date,
-            rt.next_due_date as recurring_next_due_date
+            rt.next_due_date as recurring_next_due_date,
+            rt.calendar_type as recurring_calendar_type,
+            rt.anchor_month_code as recurring_anchor_month_code
     ";
     let base_from = "
         FROM transactions t
@@ -1018,6 +1024,8 @@ pub fn get_filtered_transactions_handler(
                     day_of_month: row.get("recurring_day_of_month_def")?,
                     start_date: row.get("recurring_start_date")?,
                     next_due_date: row.get("recurring_next_due_date")?,
+                    calendar_type: row.get("recurring_calendar_type")?,
+                    anchor_month_code: row.get("recurring_anchor_month_code")?,
                 })
             } else {
                 None
@@ -1264,7 +1272,10 @@ mod tests {
             CREATE TABLE recurring_transactions (
                 id TEXT PRIMARY KEY, user_id TEXT, status TEXT NOT NULL DEFAULT 'active',
                 start_date TEXT NOT NULL, next_due_date TEXT NOT NULL,
-                frequency TEXT NOT NULL DEFAULT 'monthly', day_of_month INTEGER NOT NULL,
+                frequency TEXT NOT NULL DEFAULT 'monthly',
+                calendar_type TEXT NOT NULL DEFAULT 'gregorian',
+                anchor_month_code TEXT,
+                day_of_month INTEGER NOT NULL,
                 total_occurrences INTEGER, execution_count INTEGER NOT NULL DEFAULT 0,
                 description TEXT, amount REAL NOT NULL, currency TEXT NOT NULL,
                 type TEXT NOT NULL, category TEXT, is_chomesh INTEGER, recipient TEXT,

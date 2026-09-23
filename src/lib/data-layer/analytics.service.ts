@@ -1,6 +1,7 @@
 import { getPlatform } from "../platformManager";
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
+import { invokeTauri } from "@/lib/tauri-invoke";
 
 // Define a type for the data structure returned by server-side calculations
 export interface ServerIncomeData {
@@ -325,6 +326,43 @@ export interface TitheBalanceBreakdown {
   chomesh_balance: number;
 }
 
+function parseTitheBalance(data: unknown): TitheBalanceBreakdown {
+  if (Array.isArray(data) && data.length > 0) {
+    const row = data[0] as TitheBalanceBreakdown;
+    if (typeof row.total_balance === "number") {
+      return {
+        total_balance: row.total_balance,
+        maaser_balance: row.maaser_balance ?? row.total_balance,
+        chomesh_balance: row.chomesh_balance ?? 0,
+      };
+    }
+  }
+
+  if (typeof data === "number") {
+    return { total_balance: data, maaser_balance: data, chomesh_balance: 0 };
+  }
+
+  if (
+    data &&
+    typeof data === "object" &&
+    !Array.isArray(data) &&
+    typeof (data as TitheBalanceBreakdown).total_balance === "number"
+  ) {
+    const row = data as TitheBalanceBreakdown;
+    return {
+      total_balance: row.total_balance,
+      maaser_balance: row.maaser_balance ?? row.total_balance,
+      chomesh_balance: row.chomesh_balance ?? 0,
+    };
+  }
+
+  logger.warn(
+    "AnalyticsService: unexpected tithe balance shape:",
+    data,
+  );
+  return { total_balance: 0, maaser_balance: 0, chomesh_balance: 0 };
+}
+
 async function fetchServerTitheBalanceWeb(
   userId: string
 ): Promise<TitheBalanceBreakdown | null> {
@@ -344,42 +382,7 @@ async function fetchServerTitheBalanceWeb(
       throw error;
     }
 
-    // Handle new TABLE format (array of row objects)
-    if (Array.isArray(data) && data.length > 0) {
-      const row = data[0];
-      if (typeof row.total_balance === "number") {
-        return {
-          total_balance: row.total_balance,
-          maaser_balance: row.maaser_balance ?? row.total_balance,
-          chomesh_balance: row.chomesh_balance ?? 0,
-        };
-      }
-    }
-
-    // Handle old scalar format (backward compat before migration is applied)
-    if (typeof data === "number") {
-      return { total_balance: data, maaser_balance: data, chomesh_balance: 0 };
-    }
-
-    // Handle single object format (some Supabase versions)
-    if (
-      data &&
-      typeof data === "object" &&
-      !Array.isArray(data) &&
-      typeof data.total_balance === "number"
-    ) {
-      return {
-        total_balance: data.total_balance,
-        maaser_balance: data.maaser_balance ?? data.total_balance,
-        chomesh_balance: data.chomesh_balance ?? 0,
-      };
-    }
-
-    logger.warn(
-      "AnalyticsService (Web): Received unexpected data structure from Supabase RPC for overall tithe balance:",
-      data
-    );
-    return { total_balance: 0, maaser_balance: 0, chomesh_balance: 0 };
+    return parseTitheBalance(data);
   } catch (error) {
     logger.error("Error in fetchServerTitheBalanceWeb:", error);
     return null;
@@ -500,4 +503,74 @@ export async function fetchServerTitheBalance(
     );
     return null;
   }
+}
+
+async function fetchServerTitheBalanceAsOfWeb(
+  userId: string,
+  asOfDate: string,
+): Promise<TitheBalanceBreakdown | null> {
+  try {
+    const { data, error } = await supabase.rpc("calculate_user_tithe_balance", {
+      p_user_id: userId,
+      p_as_of_date: asOfDate,
+    });
+
+    if (error) {
+      logger.error(
+        "Error fetching as-of tithe balance from Supabase RPC:",
+        error,
+      );
+      throw error;
+    }
+
+    return parseTitheBalance(data);
+  } catch (error) {
+    logger.error("Error in fetchServerTitheBalanceAsOfWeb:", error);
+    return null;
+  }
+}
+
+async function fetchServerTitheBalanceAsOfDesktop(
+  asOfDate: string,
+): Promise<TitheBalanceBreakdown | null> {
+  try {
+    return await invokeTauri<TitheBalanceBreakdown>(
+      "get_desktop_tithe_balance_as_of",
+      { asOfDate },
+    );
+  } catch (error) {
+    logger.error("Error invoking get_desktop_tithe_balance_as_of:", error);
+    return null;
+  }
+}
+
+export async function fetchServerTitheBalanceAsOf(
+  userId: string | null,
+  asOfDate: string,
+): Promise<TitheBalanceBreakdown | null> {
+  const currentPlatform = getPlatform();
+  if (currentPlatform === "web") {
+    if (!userId) {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        logger.error(
+          "AnalyticsService: No authenticated user found for as-of tithe balance.",
+        );
+        return null;
+      }
+      userId = user.id;
+    }
+    return fetchServerTitheBalanceAsOfWeb(userId, asOfDate);
+  }
+
+  if (currentPlatform === "desktop") {
+    return fetchServerTitheBalanceAsOfDesktop(asOfDate);
+  }
+
+  logger.warn(
+    "AnalyticsService (fetchServerTitheBalanceAsOf): Platform not determined.",
+  );
+  return null;
 }

@@ -41,6 +41,15 @@ pub async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
             start_date TEXT NOT NULL,
             next_due_date TEXT NOT NULL,
             frequency TEXT NOT NULL DEFAULT 'monthly',
+            calendar_type TEXT NOT NULL DEFAULT 'gregorian'
+                CHECK (calendar_type IN ('gregorian', 'hebrew')),
+            anchor_month_code TEXT
+                CHECK (
+                    anchor_month_code IS NULL
+                    OR anchor_month_code GLOB 'M0[1-9]'
+                    OR anchor_month_code GLOB 'M1[0-2]'
+                    OR anchor_month_code = 'M05L'
+                ),
             day_of_month INTEGER NOT NULL,
             total_occurrences INTEGER,
             execution_count INTEGER NOT NULL DEFAULT 0,
@@ -109,6 +118,31 @@ pub async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
     if !column_exists(&conn, "recurring_transactions", "payment_method").map_err(|e| e.to_string())? {
         conn.execute(
             "ALTER TABLE recurring_transactions ADD COLUMN payment_method TEXT",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    if !column_exists(&conn, "recurring_transactions", "calendar_type").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE recurring_transactions
+             ADD COLUMN calendar_type TEXT NOT NULL DEFAULT 'gregorian'
+             CHECK (calendar_type IN ('gregorian', 'hebrew'))",
+            [],
+        )
+        .map_err(|e| e.to_string())?;
+    }
+
+    if !column_exists(&conn, "recurring_transactions", "anchor_month_code").map_err(|e| e.to_string())? {
+        conn.execute(
+            "ALTER TABLE recurring_transactions
+             ADD COLUMN anchor_month_code TEXT
+             CHECK (
+                 anchor_month_code IS NULL
+                 OR anchor_month_code GLOB 'M0[1-9]'
+                 OR anchor_month_code GLOB 'M1[0-2]'
+                 OR anchor_month_code = 'M05L'
+             )",
             [],
         )
         .map_err(|e| e.to_string())?;
@@ -456,5 +490,78 @@ mod tests {
         }
 
         assert_source_recurring_id_index(&app);
+    }
+
+    #[test]
+    fn init_db_adds_calendar_fields_to_existing_recurring_rows() {
+        let app = mock_app();
+        {
+            let db_state = app.state::<crate::DbState>();
+            let conn = db_state.0.lock().expect("db lock");
+            conn.execute_batch(
+                "CREATE TABLE recurring_transactions (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT,
+                    status TEXT NOT NULL DEFAULT 'active',
+                    start_date TEXT NOT NULL,
+                    next_due_date TEXT NOT NULL,
+                    frequency TEXT NOT NULL DEFAULT 'monthly',
+                    day_of_month INTEGER NOT NULL,
+                    total_occurrences INTEGER,
+                    execution_count INTEGER NOT NULL DEFAULT 0,
+                    description TEXT,
+                    amount REAL NOT NULL,
+                    currency TEXT NOT NULL,
+                    type TEXT NOT NULL,
+                    category TEXT,
+                    is_chomesh INTEGER,
+                    recipient TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                INSERT INTO recurring_transactions (
+                    id, start_date, next_due_date, day_of_month, amount,
+                    currency, type, created_at, updated_at
+                ) VALUES (
+                    'old-row', '2026-01-01', '2026-01-31', 31, 100,
+                    'ILS', 'expense', '2026-01-01', '2026-01-01'
+                );",
+            )
+            .expect("old recurring schema");
+        }
+
+        tauri::async_runtime::block_on(init_db(app.state::<crate::DbState>()))
+            .expect("migrate old database");
+
+        let db_state = app.state::<crate::DbState>();
+        let conn = db_state.0.lock().expect("db lock");
+        let values: (String, Option<String>) = conn
+            .query_row(
+                "SELECT calendar_type, anchor_month_code
+                 FROM recurring_transactions
+                 WHERE id = 'old-row'",
+                [],
+                |row| Ok((row.get(0)?, row.get(1)?)),
+            )
+            .expect("calendar fields");
+        assert_eq!(values, ("gregorian".to_string(), None));
+        assert!(
+            conn.execute(
+                "UPDATE recurring_transactions
+                 SET calendar_type = 'julian'
+                 WHERE id = 'old-row'",
+                [],
+            )
+            .is_err()
+        );
+        assert!(
+            conn.execute(
+                "UPDATE recurring_transactions
+                 SET anchor_month_code = 'M13'
+                 WHERE id = 'old-row'",
+                [],
+            )
+            .is_err()
+        );
     }
 }

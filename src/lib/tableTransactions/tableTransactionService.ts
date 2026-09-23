@@ -76,12 +76,8 @@ export class TableTransactionsService {
           p_user_id: user.id,
           p_offset: offset,
           p_limit: limit,
-          p_date_from: filters.dateRange.from
-            ? new Date(filters.dateRange.from).toISOString().split("T")[0]
-            : null,
-          p_date_to: filters.dateRange.to
-            ? new Date(filters.dateRange.to).toISOString().split("T")[0]
-            : null,
+          p_date_from: filters.dateRange.from,
+          p_date_to: filters.dateRange.to,
           p_types: filters.types.length > 0 ? filters.types : null,
           p_search: filters.search || null,
           p_payment_methods: expandedPaymentMethods,
@@ -167,12 +163,8 @@ export class TableTransactionsService {
         const response = await invokeDesktopFilteredTransactions({
           filters: {
             search: filters.search || null,
-            dateFrom: filters.dateRange.from
-              ? new Date(filters.dateRange.from).toISOString().split("T")[0]
-              : null,
-            dateTo: filters.dateRange.to
-              ? new Date(filters.dateRange.to).toISOString().split("T")[0]
-              : null,
+            dateFrom: filters.dateRange.from,
+            dateTo: filters.dateRange.to,
             types: filters.types.length > 0 ? filters.types : null,
             paymentMethods: expandedPaymentMethods,
             showOnly:

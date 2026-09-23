@@ -33,6 +33,7 @@ import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { TableTransactionsService } from "@/lib/tableTransactions/tableTransactionService";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 import { BulkEditDialog } from "./BulkEditDialog";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { BulkEditFields } from "./BulkEditFields";
 import { useLoadedRowSelection } from "@/hooks/useLoadedRowSelection";
 import {
@@ -48,14 +49,23 @@ import {
   normalizeBulkFieldActions,
 } from "@/lib/tableTransactions/bulkActions";
 import { getErrorMessage } from "@/lib/utils/error-message";
+import {
+  formatCalendarMonthLabel,
+  getCalendarMonthKey,
+  isCalendarMonthTransition,
+} from "@/lib/calendar/calendar-period";
 
 // sortableColumns definition - will be defined inside the component to use t()
 
 export function TransactionsTableDisplay() {
   const { t, i18n } = useTranslation("data-tables");
   const { t: tImport } = useTranslation("import");
+  const formatDisplayDate = useDisplayDate();
   const trackChomeshSeparately = useDonationStore(
     (state) => state.settings.trackChomeshSeparately,
+  );
+  const calendarType = useDonationStore(
+    (state) => state.settings.calendarType,
   );
 
   // sortableColumns definition with translations
@@ -474,26 +484,6 @@ export function TransactionsTableDisplay() {
     [t]
   );
 
-  // Helper function to get month key from date string (YYYY-MM format)
-  const getMonthKey = useCallback((dateString: string): string => {
-    // Parse directly from string to avoid timezone issues with Date object
-    // Expects YYYY-MM-DD format which is standard in this app
-    return dateString.substring(0, 7);
-  }, []);
-
-  // Helper function to format month label
-  const formatMonthLabel = useCallback(
-    (monthKey: string): string => {
-      const [year, month] = monthKey.split("-");
-      const date = new Date(parseInt(year), parseInt(month) - 1, 1);
-      return date.toLocaleDateString(i18n.language, {
-        year: "numeric",
-        month: "long",
-      });
-    },
-    [i18n.language]
-  );
-
   // Create array of transactions with month separators when sorting by date
   const transactionsWithSeparators = useMemo(() => {
     // Only add separators when sorting by date
@@ -512,14 +502,27 @@ export function TransactionsTableDisplay() {
     let previousMonthKey: string | null = null;
 
     transactions.forEach((transaction) => {
-      const currentMonthKey = getMonthKey(transaction.date);
+      const currentMonthKey = getCalendarMonthKey(
+        transaction.date,
+        calendarType,
+      );
 
       // Add separator if month changed (not for first transaction)
-      if (previousMonthKey !== null && previousMonthKey !== currentMonthKey) {
+      if (
+        isCalendarMonthTransition(
+          previousMonthKey,
+          transaction.date,
+          calendarType,
+        )
+      ) {
         result.push({
           type: "separator",
           monthKey: currentMonthKey,
-          monthLabel: formatMonthLabel(currentMonthKey),
+          monthLabel: formatCalendarMonthLabel(
+            currentMonthKey,
+            calendarType,
+            i18n.language,
+          ),
         });
       }
 
@@ -532,7 +535,7 @@ export function TransactionsTableDisplay() {
     });
 
     return result;
-  }, [transactions, sorting.field, getMonthKey, formatMonthLabel]);
+  }, [transactions, sorting.field, i18n.language, calendarType]);
 
   const bulkDeleteWarnings = [
     selectedHasInitialBalance
@@ -745,9 +748,15 @@ export function TransactionsTableDisplay() {
             transactionToDelete?.description ||
             t("messages.defaultTransactionName"),
           date: transactionToDelete?.date
-            ? new Date(transactionToDelete.date).toLocaleDateString(
-                i18n.language
-              )
+            ? (() => {
+                const displayDate = formatDisplayDate(
+                  transactionToDelete.date,
+                  "numeric",
+                );
+                return displayDate.secondary
+                  ? `${displayDate.primary} (${displayDate.secondary})`
+                  : displayDate.primary;
+              })()
             : "",
         })}
       />

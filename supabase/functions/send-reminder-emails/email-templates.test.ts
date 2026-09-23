@@ -111,6 +111,21 @@ describe("reminder email templates", () => {
     expect(text).toContain("Stop monthly reminders");
   });
 
+  it("uses maaser-year close copy instead of the monthly reminder", () => {
+    const data = {
+      ...baseData,
+      kind: "maaser-year" as const,
+    };
+    expect(generateReminderEmailSubject(data)).toBe("סגירת שנת מעשר");
+    expect(generateReminderEmailText(data)).toContain("ערב ראש השנה הגיע");
+    expect(generateReminderEmailHTML(data)).not.toContain(
+      "תזכורת קצרה לעדכון המעשרות",
+    );
+    expect(
+      generateReminderEmailSubject({ ...data, language: "en" }),
+    ).toBe("Close your maaser year");
+  });
+
   it("renders English credit badge", () => {
     const html = generateReminderEmailHTML({
       ...baseData,

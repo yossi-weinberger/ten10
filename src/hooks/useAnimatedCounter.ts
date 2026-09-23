@@ -9,6 +9,7 @@ interface UseAnimatedCounterProps {
 
 interface UseAnimatedCounterReturn {
   displayValue: number;
+  isReady: boolean;
   startAnimateValue: number;
 }
 
@@ -21,33 +22,34 @@ export function useAnimatedCounter({
   const [displayValue, setDisplayValue] = useState<number>(initialDisplayValue);
   const [startAnimateValue, setStartAnimateValue] =
     useState<number>(initialDisplayValue);
+  const [isReady, setIsReady] = useState(!isLoading && serverValue != null);
 
   useEffect(() => {
-    // This captures the value that CountUp is currently displaying or has finished animating to.
     const valueCurrentlyShown = displayValue;
     const newServerValue = serverValue ?? 0;
 
     if (isLoading) {
-      // While loading, we want CountUp to hold its current value.
-      // So, we set the 'start' prop for the *next* animation (after loading finishes)
-      // to be the value currently shown. 'displayValue' (the 'end' prop) remains unchanged.
-      setStartAnimateValue(valueCurrentlyShown);
-    } else {
-      // Not loading. New serverValue might be available.
-      // Only update if the value actually changed to avoid unnecessary animations
-      // Use small tolerance for floating point comparison
-      const tolerance = 0.01;
-      if (Math.abs(valueCurrentlyShown - newServerValue) > tolerance) {
-        // Value actually changed - animate from current to new value
+      if (isReady) {
         setStartAnimateValue(valueCurrentlyShown);
-        setDisplayValue(newServerValue);
       }
-      // If value hasn't changed (within tolerance), don't update anything (no animation)
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [serverValue, isLoading]); // displayValue is intentionally omitted from deps here.
-  // We want this effect to run based on serverValue/isLoading changes.
-  // startAnimateValue is set based on the displayValue from the *previous* render cycle.
 
-  return { displayValue, startAnimateValue };
+    if (!isReady) {
+      setStartAnimateValue(newServerValue);
+      setDisplayValue(newServerValue);
+      setIsReady(true);
+      return;
+    }
+
+    const tolerance = 0.01;
+    if (Math.abs(valueCurrentlyShown - newServerValue) > tolerance) {
+      setStartAnimateValue(valueCurrentlyShown);
+      setDisplayValue(newServerValue);
+    }
+    // displayValue and isReady are read from the render that started this effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverValue, isLoading]);
+
+  return { displayValue, isReady, startAnimateValue };
 }

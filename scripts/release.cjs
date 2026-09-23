@@ -15,6 +15,18 @@
 const fs = require("fs");
 const { execSync } = require("child_process");
 const path = require("path");
+const {
+  getCurrentBranch,
+  getMainBranchError,
+} = require("./branch-guard.cjs");
+
+const currentBranch = getCurrentBranch();
+const branchError = getMainBranchError("create a release", currentBranch);
+
+if (branchError) {
+  console.error(`❌ Error: ${branchError}`);
+  process.exit(1);
+}
 
 // Get version from command line
 const newVersion = process.argv[2];

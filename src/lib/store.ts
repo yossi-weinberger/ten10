@@ -4,6 +4,11 @@ import { Currency as TransactionCurrency } from "../types/transaction";
 import { ServerDonationData } from "./data-layer/stats.service";
 import { MonthlyDataPoint } from "./data-layer/chart.service";
 import { logger } from "./logger";
+import type { CalendarType } from "./calendar";
+import {
+  normalizeCalendarSettings,
+  shouldResetCalendarChartCache,
+} from "./settings/calendar-settings";
 import type { OnboardingState } from "./onboarding/types";
 
 export type { TransactionCurrency as Currency };
@@ -19,15 +24,17 @@ export interface Settings {
   trackChomeshSeparately: boolean;
   recurringDonations: boolean;
   minMaaserPercentage?: number;
-  maaserYearStart?: string;
   reminderEnabled: boolean;
   reminderDayOfMonth: 1 | 5 | 10 | 15 | 20 | 25;
+  reminderCalendarType: CalendarType;
   termsAcceptedVersion?: string | null;
   mailingListConsent?: boolean;
   lastSeenVersion?: string | null;
   /** Desktop app lock: auto-lock after this many minutes of inactivity (0 = disabled). */
   autoLockTimeoutMinutes?: number;
   onboarding?: OnboardingState;
+  calendarType: CalendarType;
+  showSecondaryDate: boolean;
 }
 
 export interface DonationState {
@@ -77,13 +84,15 @@ const defaultSettings: Settings = {
   trackChomeshSeparately: false,
   recurringDonations: true,
   minMaaserPercentage: 10,
-  maaserYearStart: "01-01",
   reminderEnabled: false,
   reminderDayOfMonth: 10,
+  reminderCalendarType: "gregorian",
   termsAcceptedVersion: null,
   mailingListConsent: false,
   lastSeenVersion: null,
   autoLockTimeoutMinutes: 10,
+  calendarType: "gregorian",
+  showSecondaryDate: false,
 };
 
 export const useDonationStore = create<DonationState>()(
@@ -107,9 +116,22 @@ export const useDonationStore = create<DonationState>()(
       canLoadMoreChartData: true,
 
       updateSettings: (newSettings) => {
-        set((state) => ({
-          settings: { ...state.settings, ...newSettings },
-        }));
+        set((state) => {
+          const resetCalendarChartCache = shouldResetCalendarChartCache(
+            state.settings,
+            newSettings,
+          );
+
+          return {
+            settings: { ...state.settings, ...newSettings },
+            ...(resetCalendarChartCache && {
+              serverMonthlyChartData: [],
+              currentChartEndDate: null,
+              serverMonthlyChartDataError: null,
+              canLoadMoreChartData: true,
+            }),
+          };
+        });
       },
 
       setLastDbFetchTimestamp: (timestamp) => {
@@ -164,13 +186,13 @@ export const useDonationStore = create<DonationState>()(
             JSON.parse(JSON.stringify(state.serverMonthlyChartData))
           );
 
-          // Filter out duplicates from the new data based on existing month_labels if prepending or potentially if initial load might refetch
-          const existingLabels = new Set(
-            state.serverMonthlyChartData.map((d) => d.month_label)
+          const existingCacheKeys = new Set(
+            state.serverMonthlyChartData.map((item) => item.cache_key)
           );
           const uniqueNewData = data.filter(
-            (d) => !existingLabels.has(d.month_label) || !prepend
-          ); // if not prepending, we typically want to overwrite with new data anyway
+            (item) =>
+              !existingCacheKeys.has(item.cache_key) || !prepend
+          );
 
           logger.log(
             "[Store] Unique new data to be added/set:",
@@ -181,7 +203,7 @@ export const useDonationStore = create<DonationState>()(
             // for 'loadMore' which loads older data
             // Ensure uniqueNewData only contains items not already in state if there's an overlap concern during prepend
             const trulyNewDataForPrepend = uniqueNewData.filter(
-              (d) => !existingLabels.has(d.month_label)
+              (item) => !existingCacheKeys.has(item.cache_key)
             );
             if (trulyNewDataForPrepend.length !== uniqueNewData.length) {
               logger.warn(
@@ -241,6 +263,17 @@ export const useDonationStore = create<DonationState>()(
           } else if (state) {
             logger.log("Zustand: Rehydration finished.");
 
+            delete (
+              state.settings as Settings & {
+                maaserYearStart?: unknown;
+              }
+            ).maaserYearStart;
+
+            Object.assign(
+              state.settings,
+              normalizeCalendarSettings(state.settings),
+            );
+
             // Migration: Add reminder settings if they don't exist
             if (state.settings.reminderEnabled === undefined) {
               logger.log(
@@ -254,6 +287,10 @@ export const useDonationStore = create<DonationState>()(
               );
               state.settings.reminderDayOfMonth = 10;
             }
+            state.settings.reminderCalendarType =
+              normalizeReminderCalendarType(
+                state.settings.reminderCalendarType,
+              );
 
             if (state.settings.mailingListConsent === undefined) {
               logger.log(
@@ -292,3 +329,9 @@ export const useDonationStore = create<DonationState>()(
     }
   )
 );
+
+export function normalizeReminderCalendarType(
+  value: unknown,
+): CalendarType {
+  return value === "hebrew" ? "hebrew" : "gregorian";
+}

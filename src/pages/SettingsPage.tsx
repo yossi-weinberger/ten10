@@ -15,6 +15,7 @@ import {
 } from "@/lib/data-layer/transactions.service";
 import AppLoader from "@/components/layout/AppLoader";
 import { LanguageAndDisplaySettingsCard } from "@/components/settings/LanguageAndDisplaySettingsCard";
+import { CalendarSettingsCard } from "@/components/settings/CalendarSettingsCard";
 import { FinancialSettingsCard } from "@/components/settings/FinancialSettingsCard";
 import { NotificationSettingsCard } from "@/components/settings/NotificationSettingsCard";
 import { ClearDataSection } from "@/components/settings/ClearDataSection";
@@ -30,6 +31,7 @@ import { CurrencyCode } from "@/lib/currencies";
 
 import { useIsCurrencyLocked } from "@/hooks/useIsCurrencyLocked";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { buildReminderProfileUpdate } from "@/lib/services/preferences-sync.service";
 
 export function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -168,6 +170,7 @@ export function SettingsPage() {
         recurringDonations: settings.recurringDonations,
         reminderEnabled: settings.reminderEnabled,
         reminderDayOfMonth: settings.reminderDayOfMonth,
+        reminderCalendarType: settings.reminderCalendarType,
         mailingListConsent: settings.mailingListConsent,
       }}
       updateSettings={async (newNotificationSettings) => {
@@ -183,25 +186,9 @@ export function SettingsPage() {
         // Update Supabase for web users — only fields present in this change
         if (platform === "web" && user) {
           try {
-            const profileUpdate: {
-              reminder_enabled?: boolean;
-              mailing_list_consent?: boolean;
-              reminder_day_of_month?: 1 | 5 | 10 | 15 | 20 | 25;
-            } = {};
-            if (typeof newNotificationSettings.reminderEnabled === "boolean") {
-              profileUpdate.reminder_enabled =
-                newNotificationSettings.reminderEnabled;
-            }
-            if (
-              typeof newNotificationSettings.mailingListConsent === "boolean"
-            ) {
-              profileUpdate.mailing_list_consent =
-                newNotificationSettings.mailingListConsent;
-            }
-            if (newNotificationSettings.reminderDayOfMonth != null) {
-              profileUpdate.reminder_day_of_month =
-                newNotificationSettings.reminderDayOfMonth;
-            }
+            const profileUpdate = buildReminderProfileUpdate(
+              newNotificationSettings,
+            );
             if (Object.keys(profileUpdate).length > 0) {
               const { error } = await supabase
                 .from("profiles")
@@ -224,8 +211,27 @@ export function SettingsPage() {
     />
   );
 
-  // Calendar section is intentionally hidden for now.
-  const calendarSection = null;
+  const calendarSection = (
+    <CalendarSettingsCard
+      calendarSettings={{
+        calendarType: settings.calendarType,
+        showSecondaryDate: settings.showSecondaryDate,
+      }}
+      updateSettings={(calendarSettings) => {
+        updateSettings(calendarSettings);
+        if (calendarSettings.calendarType !== undefined) {
+          trackProductEvent("settings_changed", {
+            setting_key: "calendar_type",
+          });
+        }
+        if (calendarSettings.showSecondaryDate !== undefined) {
+          trackProductEvent("settings_changed", {
+            setting_key: "show_secondary_date",
+          });
+        }
+      }}
+    />
+  );
 
   const importExportSection = (
     <ImportExportDataSection
@@ -278,45 +284,39 @@ export function SettingsPage() {
           <p className="text-muted-foreground">{t("pageDescription")}</p>
         </div>
 
-        {/* Desktop Layout (Two Independent Columns) */}
         {isDesktop ? (
           <div className="hidden md:grid md:grid-cols-2 gap-6 items-start">
-            {/* Desktop left column */}
             <div className="flex flex-col gap-6">
               {languageSection}
               {versionSection}
               {appLockSection}
+              {calendarSection}
               {importExportSection}
             </div>
-
-            {/* Desktop right column */}
             <div className="flex flex-col gap-6">
               {financialSection}
               {notificationSection}
-              {calendarSection}
               {clearDataSection}
             </div>
           </div>
         ) : null}
 
-        {/* Web Layout (Two Columns) */}
         {!isDesktop ? (
           <div className="hidden md:grid md:grid-cols-2 gap-6 items-start">
             <div className="flex flex-col gap-6">
               {languageSection}
               {versionSection}
+              {calendarSection}
               {importExportSection}
             </div>
             <div className="flex flex-col gap-6">
               {financialSection}
               {notificationSection}
-              {calendarSection}
               {clearDataSection}
             </div>
           </div>
         ) : null}
 
-        {/* Mobile Layout (Single Column) */}
         <div className="flex flex-col gap-6 md:hidden">
           {languageSection}
           {versionSection}

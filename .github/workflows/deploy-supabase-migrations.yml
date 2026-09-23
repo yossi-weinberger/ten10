@@ -1,22 +1,23 @@
 name: Deploy Supabase Migrations
 
 on:
-  pull_request:
-    paths:
-      - "supabase/migrations/**"
-      - ".github/workflows/deploy-supabase-migrations.yml"
   push:
     branches: [main]
     paths:
       - "supabase/migrations/**"
+      - ".github/workflows/deploy-supabase-migrations.yml"
   workflow_dispatch:
+
+concurrency:
+  group: supabase-production
+  cancel-in-progress: false
 
 jobs:
   migrate-production:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: read
 
     steps:
       - name: Checkout code
@@ -25,7 +26,7 @@ jobs:
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v3
         with:
-          version: latest
+          version: 2.117.0
 
       - name: Link to production
         run: supabase link --project-ref flpzqbvbymoluoeeeofg

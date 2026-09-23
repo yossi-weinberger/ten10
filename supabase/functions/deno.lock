@@ -1,0 +1,26 @@
+{
+  "version": "5",
+  "specifiers": {
+    "npm:temporal-polyfill@1.0.5": "1.0.5"
+  },
+  "npm": {
+    "temporal-polyfill@1.0.5": {
+      "integrity": "sha512-+H/mmY74i6wXCMcjIhGuSnODcyZnc4eois2myhOyX0UqRAKNXQY5m9iB1en5jQ/n4SXtjLXo1ElBI5bmn8tZwQ==",
+      "dependencies": [
+        "temporal-spec",
+        "temporal-utils"
+      ]
+    },
+    "temporal-spec@1.0.1": {
+      "integrity": "sha512-wxVoanmDeavXie1vu2JaQ3WIc3JZnWAOYFBsJyATaVsXsycKYUflGsyBmrRSnoCpZJpwPyr38VpgSUlQ8CbFxg=="
+    },
+    "temporal-utils@1.0.3": {
+      "integrity": "sha512-9jbTSX3HvkOWvDpNpFzwX/d1mkCrgQgwLmVTOEiuocZGKHsrQJtttGZFmybJ2zYP5zCSZuU5ZyeS8+eOEPABiQ=="
+    }
+  },
+  "workspace": {
+    "dependencies": [
+      "npm:temporal-polyfill@1.0.5"
+    ]
+  }
+}

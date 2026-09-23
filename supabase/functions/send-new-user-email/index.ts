@@ -7,7 +7,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import {
   createClient,
   type SupabaseClient,
-} from "https://esm.sh/@supabase/supabase-js@2.39.0";
+} from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
 import {
@@ -268,7 +268,7 @@ serve(async (req) => {
   const { data: reminderLogs, error: reminderLogsError } = await supabaseAdmin
     .from("reminder_run_logs")
     .select(
-      "run_at, day_of_month, was_reminder_day, was_shabbat, users_processed, emails_sent, emails_failed, notes",
+      "run_at, day_of_month, was_reminder_day, was_shabbat, was_yom_tov, users_processed, emails_sent, emails_failed, notes",
     )
     .gte("run_at", sinceIso)
     .order("run_at", { ascending: false });

@@ -26,6 +26,7 @@ export {
   fetchTotalExpensesInRange,
   fetchTotalDonationsInRange,
   fetchServerTitheBalance,
+  fetchServerTitheBalanceAsOf,
   fetchAnalyticsRangeStats,
 } from "./analytics.service";
 export type {

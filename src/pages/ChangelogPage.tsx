@@ -32,6 +32,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,9 @@ import {
 } from "@/lib/whats-new-history";
 
 const itemIcons: Record<string, LucideIcon> = {
+  hebrewCalendar: CalendarDays,
+  hebrewRecurring: Repeat,
+  maaserYear: Coins,
   guidedHelp: HelpCircle,
   halachaBooklet: Library,
   bulkTableActions: TableProperties,
@@ -88,14 +92,9 @@ const itemIcons: Record<string, LucideIcon> = {
   releaseManagement: RefreshCw,
 };
 
-function formatReleaseDate(date: string) {
-  const [year, month, day] = date.split("-");
-  if (!year || !month || !day) return date;
-  return `${day}/${month}/${year}`;
-}
-
 export function ChangelogPage() {
   const { t, i18n } = useTranslation("changelog");
+  const formatDisplayDate = useDisplayDate();
   const latestChangelogVersion = whatsNewHistory[0]?.version;
 
   return (
@@ -124,7 +123,7 @@ export function ChangelogPage() {
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CalendarDays className="h-4 w-4" />
                   <time dateTime={release.date}>
-                    {formatReleaseDate(release.date)}
+                    {Object.values(formatDisplayDate(release.date)).join(" · ")}
                   </time>
                 </div>
               </div>

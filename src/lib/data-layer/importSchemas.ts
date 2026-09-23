@@ -20,10 +20,26 @@ export const ImportTransactionItemSchema = z
  */
 export const ImportRecurringItemSchema = z
   .object({
-    // Recurring usually has amount/currency etc, but might be partial
-    // We just ensure it's an object
+    calendar_type: z.enum(["gregorian", "hebrew"]).default("gregorian"),
+    anchor_month_code: z
+      .string()
+      .regex(/^M(?:0[1-9]|1[0-2]|05L)$/)
+      .nullable()
+      .default(null),
   })
-  .passthrough();
+  .passthrough()
+  .superRefine((data, ctx) => {
+    if (
+      data.calendar_type === "gregorian" &&
+      data.anchor_month_code === "M05L"
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["anchor_month_code"],
+        message: "M05L is only valid for the Hebrew calendar",
+      });
+    }
+  });
 
 /**
  * V1 Import Format: A simple array of transactions.

@@ -1,5 +1,7 @@
 # מדריך למימוש שליפה אגרגטיבית של "נדרש לתרומה"
 
+**חוזה נוכחי:** `calculate_user_tithe_balance(uuid)` נשאר all-time ולא מאפס יתרה. overload אדיטיבי `calculate_user_tithe_balance(uuid, date)` ו-`get_desktop_tithe_balance_as_of` משמשים רק את דוח שנת המעשר. ראה `features/calendar/hebrew-calendar-guide.md`.
+
 **מטרה:** לשלוף את הנתון "נדרש לתרומה" ישירות ממסד הנתונים (Supabase) באמצעות חישוב אגרגטיבי, במקום לחשב אותו בצד הלקוח מתוך כלל הטרנזקציות. המימוש החדש יתווסף לצד הלוגיקה הקיימת.
 
 **שלב 1: יצירת פונקציית SQL ב-Supabase לחישוב היתרה**
