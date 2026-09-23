@@ -1,6 +1,6 @@
 # מחקר: תמיכה גורפת בלוח עברי ב-TEN10
 
-**תאריך:** 18.9.2026 (ז' בתשרי תשפ"ז) · **גרסת אפליקציה:** 0.7.5 · **סטטוס ביצוע (23.9.2026):** P1 ירוק מקומית (`9616da9`); P2 הוקם ואומת, חיבור Vercel Preview ממתין ל-PR/הרשאת env.
+**תאריך:** 18.9.2026 (ז' בתשרי תשפ"ז) · **גרסת אפליקציה:** 0.7.5 · **סטטוס ביצוע (23.9.2026):** P1 ירוק מקומית וב-GitHub CI; P2 הוקם ואומת; Supabase Preview ו-Vercel Preview עברו ב-[Draft PR #424](https://github.com/yossi-weinberger/ten10/pull/424).
 
 מקורות: כל `src/`, `supabase/` (מיגרציות + edge functions), `src-tauri/`, `llm-instructions/`, `docs/`, `public/locales/`, `TODO.md`, היסטוריית git (1,370 קומיטים), סכמת ה-Postgres החיה בפרודקשן (638 פרופילים, ~17K תנועות, 880 הוראות קבע), הצלבה מול מסמך המלצות חיצוני (`hebrew-calendar-recommendations-2026-09-18.md`), ובדיקות חיות של `@hebcal/hdate` ו-`temporal-polyfill/full` ב-Node 24.
 
@@ -460,7 +460,7 @@ src/lib/calendar/
 | בטיחות | כל 4 ה-cron jobs הושבתו עם `cron.alter_job(..., active := false)`; `functions_base_url` ב-Vault הוחלף ל-URL של הענף |
 | בדיקת API | REST עם anon key של הענף החזיר HTTP 200 |
 | מגבלה פתוחה | `service_role_key` ב-Vault עדיין token של פרוד; **אסור להפעיל cron** עד החלפתו. ניסיונות CLI דרך pooler/direct DB נכשלו בחיבור; ניתן לעדכן דרך Dashboard SQL Editor או אחרי תיקון קישור ה-DB |
-| Vercel Preview | הענף משויך ל-Git, אבל MCP חסר הרשאת env ו-CLI דורש login. לפי Supabase integration הסנכרון מתבצע בפתיחת PR |
+| Vercel Preview | deployment עבר ב-PR #424. MCP חסר הרשאת env וה-preview מוגן SSO, לכן הזרקת ה-URL/key של הענף לא אומתה ישירות מתוך ה-bundle; Supabase Preview עבר והענף משויך לאותו Git branch |
 
 הענף הקודם `ghzcsmscsympfxknubcp` נכשל (`MIGRATIONS_FAILED`, 38/174 migrations) ונמחק לפני השחזור. שורש הבעיה ההיסטורי נשאר כחוב תשתיתי: 123 מ-174 קבצי המיגרציה הם stubs של `SELECT 1`; `with_data` עקף זאת באמצעות snapshot מלא. לכן baseline + seed (P5) עדיין נדרשים ל-local dev ולענפי preview נקיים.
 
@@ -507,7 +507,7 @@ src/lib/calendar/
 
 ### 9.5 אסטרטגיית טסטים — שערים לכל שלב
 
-**מצב אחרי P1 (`9616da9`):** `.github/workflows/ci.yml` מריץ app Vitest ב-UTC וב-Asia/Jerusalem, Edge Vitest, Rust `cargo test --locked`, Node TypeScript נקי, ו-ratchets דטרמיניסטיים לחוב App TypeScript (103 diagnostics) ו-ESLint (198 diagnostics). מקומית: 373/373 Vitest, 130/130 Edge, 43/43 Rust. כל diagnostic חדש מכשיל CI. הרצת GitHub-hosted הראשונה ממתינה ל-push/PR. עדיין אין `Deno.test`, RTL/jsdom, Playwright או pgTAP.
+**מצב אחרי P1 (`9616da9`, תיקון Linux `0d552b5`):** `.github/workflows/ci.yml` מריץ app Vitest ב-UTC וב-Asia/Jerusalem, Edge Vitest, Rust `cargo test --locked`, Node TypeScript נקי, ו-ratchets דטרמיניסטיים לחוב App TypeScript (103 diagnostics) ו-ESLint (198 diagnostics). מקומית: 373/373 Vitest, 130/130 Edge, 43/43 Rust. ב-GitHub: TypeScript, ESLint, שני אזורי הזמן, Edge, Rust, security audit, Supabase Preview ו-Vercel Preview עברו. כל diagnostic חדש מכשיל CI. עדיין אין `Deno.test`, RTL/jsdom, Playwright או pgTAP.
 
 **עיקרון:** מצב `gregorian` חייב להישאר **זהה ביט-לביט** אחרי הרפקטור. זה מה שמאפשר לוותר על בדיקה ידנית — לא "לבדוק שהעברי עובד" אלא "להוכיח שהלועזי לא השתנה, ושהעברי עומד בטבלת אמת".
 
