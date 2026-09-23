@@ -137,5 +137,10 @@ jobs:
         with:
           workspaces: "./src-tauri -> target"
 
+      - name: Prepare Tauri frontend fixture
+        run: |
+          mkdir -p dist
+          printf '<!doctype html><title>Rust test fixture</title>' > dist/index.html
+
       - name: Run Rust tests
         run: cargo test --manifest-path src-tauri/Cargo.toml --locked
