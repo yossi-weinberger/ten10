@@ -47,6 +47,9 @@ export function StatsCards({
   const defaultCurrency = useDonationStore(
     (state) => state.settings.defaultCurrency,
   );
+  const calendarType = useDonationStore(
+    (state) => state.settings.calendarType,
+  );
 
   // Navigation functions for each stat card
   const navigateToAddTransaction = (transactionType: string) => {
@@ -377,6 +380,11 @@ export function StatsCards({
           className="inline-flex w-fit max-w-full flex-wrap items-center justify-end gap-2"
           data-onboarding="date-range"
         >
+        <span className="text-sm text-muted-foreground">
+          {calendarType === "hebrew"
+            ? t("dateRange.calendarHebrew")
+            : t("dateRange.calendarGregorian")}
+        </span>
         {(Object.keys(dateRangeLabels) as DateRangeSelectionType[])
           .filter((rangeKey) => rangeKey !== "custom")
           .map((rangeKey) => (
@@ -454,9 +462,7 @@ export function StatsCards({
           />
         </motion.div>
         <StatCard
-          title={`${t("statsCards.income.title")} (${
-            activeDateRangeObject.label ?? ""
-          })`}
+          title={t("statsCards.income.title")}
           value={serverTotalIncome ?? null}
           isLoading={isLoadingServerIncome}
           error={serverIncomeError}
@@ -469,9 +475,7 @@ export function StatsCards({
           addButtonOnboarding="card-quick-add"
         />
         <StatCard
-          title={`${t("statsCards.expenses.title")} (${
-            activeDateRangeObject.label ?? ""
-          })`}
+          title={t("statsCards.expenses.title")}
           value={serverTotalExpenses ?? null}
           isLoading={isLoadingServerExpenses}
           error={serverExpensesError}
@@ -483,9 +487,7 @@ export function StatsCards({
           addButtonOnboarding="card-quick-add"
         />
         <StatCard
-          title={`${t("statsCards.donations.title")} (${
-            activeDateRangeObject.label ?? ""
-          })`}
+          title={t("statsCards.donations.title")}
           value={serverCalculatedDonationsData?.total_donations_amount ?? null}
           isLoading={isLoadingServerDonations}
           error={serverDonationsError}

@@ -27,7 +27,19 @@ export const ImportRecurringItemSchema = z
       .nullable()
       .default(null),
   })
-  .passthrough();
+  .passthrough()
+  .superRefine((data, ctx) => {
+    if (
+      data.calendar_type === "gregorian" &&
+      data.anchor_month_code === "M05L"
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["anchor_month_code"],
+        message: "M05L is only valid for the Hebrew calendar",
+      });
+    }
+  });
 
 /**
  * V1 Import Format: A simple array of transactions.

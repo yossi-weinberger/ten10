@@ -3,6 +3,7 @@ import {
   type CalendarLanguage,
   type CalendarType,
 } from "@/lib/calendar";
+import { formatHebrewYear } from "@/lib/halacha/hebrew-numeral";
 import type { DailyHeatmapResponse } from "@/lib/data-layer/insights.service";
 
 function getCalendarYear(
@@ -36,6 +37,17 @@ export function filterHeatmapDataByCalendarYear(
     (entry) =>
       getCalendarYear(entry.tx_date, calendarType) === year,
   );
+}
+
+export function formatHeatmapYearLabel(
+  year: string,
+  calendarType: CalendarType,
+): string {
+  if (calendarType !== "hebrew") {
+    return year;
+  }
+
+  return formatHebrewYear(Number(year));
 }
 
 export function formatHeatmapMonthTick(

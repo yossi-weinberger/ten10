@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { getCalendarAdapter } from "@/lib/calendar";
 import {
   calculateDateRange,
   type DateRangeSelectionType,
@@ -55,12 +54,11 @@ describe("calculateDateRange", () => {
           undefined,
           labels,
           "gregorian",
-          "en",
         ),
       ).toEqual({
         startDate: boundary.monthStart,
         endDate: boundary.today,
-        label: `month (${getCalendarAdapter("gregorian").monthLabel(boundary.monthStart.slice(0, 7), "en")})`,
+        label: "month",
       });
     });
 
@@ -73,12 +71,11 @@ describe("calculateDateRange", () => {
           undefined,
           labels,
           "gregorian",
-          "en",
         ),
       ).toEqual({
         startDate: boundary.yearStart,
         endDate: boundary.today,
-        label: `year (${boundary.today.slice(0, 4)})`,
+        label: "year",
       });
     });
 
@@ -91,7 +88,6 @@ describe("calculateDateRange", () => {
           undefined,
           labels,
           "gregorian",
-          "en",
         ),
       ).toEqual({
         startDate: "1970-01-01",
@@ -111,7 +107,6 @@ describe("calculateDateRange", () => {
         { from: day },
         labels,
         "gregorian",
-        "en",
       ),
     ).toEqual({
       startDate: "2026-05-07",
@@ -132,7 +127,6 @@ describe("calculateDateRange", () => {
         },
         labels,
         "gregorian",
-        "en",
       ),
     ).toEqual({
       startDate: "2026-07-03",
@@ -150,7 +144,6 @@ describe("calculateDateRange", () => {
         { from: undefined },
         labels,
         "gregorian",
-        "en",
       ),
     ).toEqual({
       startDate: "2024-02-01",
@@ -163,18 +156,18 @@ describe("calculateDateRange", () => {
     vi.setSystemTime(new Date(2026, 8, 23, 12));
 
     expect(
-      calculateDateRange("month", undefined, labels, "hebrew", "en"),
+      calculateDateRange("month", undefined, labels, "hebrew"),
     ).toEqual({
       startDate: "2026-09-12",
       endDate: "2026-09-23",
-      label: "month (Tishri תשפ״ז)",
+      label: "month",
     });
     expect(
-      calculateDateRange("year", undefined, labels, "hebrew", "en"),
+      calculateDateRange("year", undefined, labels, "hebrew"),
     ).toEqual({
       startDate: "2026-09-12",
       endDate: "2026-09-23",
-      label: "year (תשפ״ז)",
+      label: "year",
     });
   });
 
@@ -182,7 +175,7 @@ describe("calculateDateRange", () => {
     vi.setSystemTime(new Date(2026, 8, 23, 12));
 
     expect(
-      calculateDateRange("all", undefined, labels, "hebrew", "en"),
+      calculateDateRange("all", undefined, labels, "hebrew"),
     ).toEqual({
       startDate: "1970-01-01",
       endDate: "2026-09-23",
@@ -197,7 +190,6 @@ describe("calculateDateRange", () => {
         },
         labels,
         "hebrew",
-        "en",
       ),
     ).toEqual({
       startDate: "2026-09-10",

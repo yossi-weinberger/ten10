@@ -8,14 +8,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { CalendarType } from "@/lib/calendar";
 
 interface CalendarSettings {
@@ -26,13 +20,6 @@ interface CalendarSettings {
 interface CalendarSettingsCardProps {
   calendarSettings: CalendarSettings;
   updateSettings: (settings: Partial<CalendarSettings>) => void;
-}
-
-function parseCalendarType(value: string): CalendarType {
-  if (value === "gregorian" || value === "hebrew") {
-    return value;
-  }
-  throw new Error(`Unsupported calendar type: ${value}`);
 }
 
 export function CalendarSettingsCard({
@@ -52,30 +39,31 @@ export function CalendarSettingsCard({
       </CardHeader>
       <CardContent className="grid gap-4">
         <div className="grid gap-2">
-          <Label htmlFor="primary-calendar">
-            {t("calendar.primaryCalendarLabel")}
-          </Label>
-          <Select
+          <Label>{t("calendar.primaryCalendarLabel")}</Label>
+          <ToggleGroup
+            type="single"
             value={calendarSettings.calendarType}
-            onValueChange={(value) =>
-              updateSettings({ calendarType: parseCalendarType(value) })
-            }
+            onValueChange={(value) => {
+              if (value === "gregorian" || value === "hebrew") {
+                updateSettings({ calendarType: value });
+              }
+            }}
+            aria-label={t("calendar.primaryCalendarLabel")}
+            className="grid grid-cols-2 gap-1 rounded-md border p-1"
           >
-            <SelectTrigger
-              id="primary-calendar"
-              aria-label={t("calendar.primaryCalendarLabel")}
+            <ToggleGroupItem
+              value="gregorian"
+              className="flex-1 justify-center hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
             >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="gregorian">
-                {t("calendar.options.gregorian")}
-              </SelectItem>
-              <SelectItem value="hebrew">
-                {t("calendar.options.hebrew")}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+              {t("calendar.options.gregorian")}
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="hebrew"
+              className="flex-1 justify-center hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            >
+              {t("calendar.options.hebrew")}
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
 
         <div className="flex items-center justify-between gap-4">

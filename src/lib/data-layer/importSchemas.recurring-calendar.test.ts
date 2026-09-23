@@ -37,6 +37,12 @@ describe("recurring calendar backup compatibility", () => {
     expect(() =>
       ImportRecurringItemSchema.parse({ calendar_type: "julian" }),
     ).toThrow();
+    expect(() =>
+      ImportRecurringItemSchema.parse({
+        calendar_type: "gregorian",
+        anchor_month_code: "M05L",
+      }),
+    ).toThrow();
   });
 
   it("maps legacy camelCase calendar fields for round-trip imports", () => {

@@ -253,7 +253,16 @@ export function SettingsPage() {
 
   const appLockSection =
     platform === "desktop" ? <AppLockSettingsCard /> : null;
-  const isDesktop = platform === "desktop";
+  const settingsTiles = [
+    ["language", languageSection],
+    ["version", versionSection],
+    ["app-lock", appLockSection],
+    ["financial", financialSection],
+    ["notifications", notificationSection],
+    ["calendar", calendarSection],
+    ["import-export", importExportSection],
+    ["clear-data", clearDataSection],
+  ] as const;
 
   return (
     <>
@@ -284,54 +293,14 @@ export function SettingsPage() {
           <p className="text-muted-foreground">{t("pageDescription")}</p>
         </div>
 
-        {/* Desktop Layout (Two Independent Columns) */}
-        {isDesktop ? (
-          <div className="hidden md:grid md:grid-cols-2 gap-6 items-start">
-            {/* Desktop left column */}
-            <div className="flex flex-col gap-6">
-              {languageSection}
-              {versionSection}
-              {appLockSection}
-              {importExportSection}
-            </div>
-
-            {/* Desktop right column */}
-            <div className="flex flex-col gap-6">
-              {financialSection}
-              {notificationSection}
-              {calendarSection}
-              {clearDataSection}
-            </div>
-          </div>
-        ) : null}
-
-        {/* Web Layout (Two Columns) */}
-        {!isDesktop ? (
-          <div className="hidden md:grid md:grid-cols-2 gap-6 items-start">
-            <div className="flex flex-col gap-6">
-              {languageSection}
-              {versionSection}
-              {importExportSection}
-            </div>
-            <div className="flex flex-col gap-6">
-              {financialSection}
-              {notificationSection}
-              {calendarSection}
-              {clearDataSection}
-            </div>
-          </div>
-        ) : null}
-
-        {/* Mobile Layout (Single Column) */}
-        <div className="flex flex-col gap-6 md:hidden">
-          {languageSection}
-          {versionSection}
-          {appLockSection}
-          {financialSection}
-          {notificationSection}
-          {calendarSection}
-          {importExportSection}
-          {clearDataSection}
+        <div className="columns-1 gap-6 md:columns-2 xl:columns-3">
+          {settingsTiles.map(([key, tile]) =>
+            tile ? (
+              <div key={key} className="mb-6 break-inside-avoid">
+                {tile}
+              </div>
+            ) : null,
+          )}
         </div>
 
         <ImportConfirmModal

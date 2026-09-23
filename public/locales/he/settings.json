@@ -72,8 +72,8 @@
     "desktopNotificationsDescription": "קבל תזכורות במחשב שלך",
     "reminderCalendarLabel": "לוח שנה לתזכורת",
     "calendarOptions": {
-      "gregorian": "לוח גרגוריאני",
-      "hebrew": "לוח עברי"
+      "gregorian": "לועזי",
+      "hebrew": "עברי"
     },
     "reminderDayLabel": "יום שליחת התזכורת:",
     "day1": "1 בחודש",
@@ -98,8 +98,8 @@
     "showSecondaryDateLabel": "הצג גם תאריך משני",
     "showSecondaryDateDescription": "לתצוגה בלבד — אינו משנה סינונים או תקופות.",
     "options": {
-      "gregorian": "לוח גרגוריאני",
-      "hebrew": "לוח עברי"
+      "gregorian": "לועזי",
+      "hebrew": "עברי"
     }
   },
   "importExport": {

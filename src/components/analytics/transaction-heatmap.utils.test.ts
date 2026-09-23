@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   filterHeatmapDataByCalendarYear,
   formatHeatmapMonthTick,
+  formatHeatmapYearLabel,
   getHeatmapCalendarYears,
 } from "./transaction-heatmap.utils";
 
@@ -29,6 +30,11 @@ describe("transaction heatmap calendar labels", () => {
     expect(
       filterHeatmapDataByCalendarYear(data, "5787", "hebrew"),
     ).toEqual(data.slice(1));
+  });
+
+  it("shows Hebrew years as letters and keeps Gregorian years numeric", () => {
+    expect(formatHeatmapYearLabel("5787", "hebrew")).toBe("תשפ״ז");
+    expect(formatHeatmapYearLabel("2026", "gregorian")).toBe("2026");
   });
 
   it("formats month ticks in the primary calendar", () => {

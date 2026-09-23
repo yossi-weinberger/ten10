@@ -3,10 +3,8 @@ import { useTranslation } from "react-i18next";
 import type { DateRange } from "react-day-picker";
 import {
   getCalendarAdapter,
-  type CalendarLanguage,
   type CalendarType,
 } from "@/lib/calendar";
-import { formatHebrewYear } from "@/lib/halacha/hebrew-numeral";
 import { useDonationStore } from "@/lib/store";
 import { formatLocalDate } from "@/lib/utils/local-date";
 
@@ -29,7 +27,6 @@ export function calculateDateRange(
   customDateRange: DateRange | undefined,
   labels: Record<DateRangeSelectionType, string>,
   calendarType: CalendarType,
-  language: CalendarLanguage,
 ): DateRangeObject {
   const today = todayLocal();
   const endDate = formatLocalDate(today);
@@ -37,23 +34,17 @@ export function calculateDateRange(
 
   switch (dateRangeSelection) {
     case "month": {
-      const monthKey = adapter.monthKey(endDate);
       return {
         startDate: adapter.startOfMonth(endDate),
         endDate,
-        label: `${labels.month} (${adapter.monthLabel(monthKey, language)})`,
+        label: labels.month,
       };
     }
     case "year": {
-      const representation = adapter.fromIsoDate(endDate);
-      const yearLabel =
-        calendarType === "hebrew"
-          ? formatHebrewYear(representation.year)
-          : String(representation.year);
       return {
         startDate: adapter.startOfYear(endDate),
         endDate,
-        label: `${labels.year} (${yearLabel})`,
+        label: labels.year,
       };
     }
     case "all":
@@ -100,7 +91,6 @@ export function calculateDateRange(
 
 export function useDateControls() {
   const { t } = useTranslation("dashboard");
-  const { i18n } = useTranslation();
   const calendarType = useDonationStore(
     (state) => state.settings.calendarType,
   );
@@ -129,14 +119,12 @@ export function useDateControls() {
         customDateRange,
         dateRangeLabels,
         calendarType,
-        i18n.language.startsWith("he") ? "he" : "en",
       ),
     [
       dateRangeSelection,
       customDateRange,
       dateRangeLabels,
       calendarType,
-      i18n.language,
     ],
   );
 

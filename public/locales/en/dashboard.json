@@ -7,7 +7,9 @@
     "month": "From start of month",
     "year": "From start of year",
     "all": "All time",
-    "custom": "Custom range"
+    "custom": "Custom range",
+    "calendarHebrew": "Hebrew",
+    "calendarGregorian": "Gregorian"
   },
   "datePicker": {
     "selectDateRange": "Select date range"

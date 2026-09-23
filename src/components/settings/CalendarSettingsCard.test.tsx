@@ -25,7 +25,9 @@ describe("CalendarSettingsCard", () => {
 
     expect(markup).toContain('dir="rtl"');
     expect(markup).toContain("calendar.primaryCalendarLabel");
-    expect(markup).toContain('role="combobox"');
+    expect(markup).toContain("calendar.options.gregorian");
+    expect(markup).toContain("calendar.options.hebrew");
+    expect(markup).not.toContain('role="combobox"');
     expect(markup).toContain("calendar.showSecondaryDateLabel");
     expect(markup).toContain("calendar.showSecondaryDateDescription");
     expect(markup).toContain('role="switch"');

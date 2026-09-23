@@ -27,6 +27,7 @@ import { formatLocalDate } from "@/lib/utils/local-date";
 import {
   filterHeatmapDataByCalendarYear,
   formatHeatmapMonthTick,
+  formatHeatmapYearLabel,
   getHeatmapCalendarYears,
 } from "./transaction-heatmap.utils";
 
@@ -215,7 +216,7 @@ export function TransactionHeatmap({
               <TabsList className="h-7 p-0.5">
                 {availableYears.map((year) => (
                   <TabsTrigger key={year} value={year} className="text-[11px] px-2 h-6">
-                    {year}
+                    {formatHeatmapYearLabel(year, calendarType)}
                   </TabsTrigger>
                 ))}
               </TabsList>
