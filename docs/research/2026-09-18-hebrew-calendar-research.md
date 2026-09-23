@@ -1,6 +1,6 @@
 # מחקר: תמיכה גורפת בלוח עברי ב-TEN10
 
-**תאריך:** 18.9.2026 (ז' בתשרי תשפ"ז) · **גרסת אפליקציה:** 0.7.5 · **סטטוס:** מחקר + החלטות מוצר ראשוניות — לא נכתב קוד.
+**תאריך:** 18.9.2026 (ז' בתשרי תשפ"ז) · **גרסת אפליקציה:** 0.7.5 · **סטטוס ביצוע (23.9.2026):** P1 ירוק מקומית (`9616da9`); P2 הוקם ואומת, חיבור Vercel Preview ממתין ל-PR/הרשאת env.
 
 מקורות: כל `src/`, `supabase/` (מיגרציות + edge functions), `src-tauri/`, `llm-instructions/`, `docs/`, `public/locales/`, `TODO.md`, היסטוריית git (1,370 קומיטים), סכמת ה-Postgres החיה בפרודקשן (638 פרופילים, ~17K תנועות, 880 הוראות קבע), הצלבה מול מסמך המלצות חיצוני (`hebrew-calendar-recommendations-2026-09-18.md`), ובדיקות חיות של `@hebcal/hdate` ו-`temporal-polyfill/full` ב-Node 24.
 
@@ -446,22 +446,27 @@ src/lib/calendar/
 
 ## 9. סביבת בדיקות (ענף `testing`) ואסטרטגיית טסטים (22.9.2026)
 
-### 9.1 מצב הענף `testing` (`ghzcsmscsympfxknubcp`) — לא שמיש כרגע
+### 9.1 מצב הענף `testing` — הוקם מחדש ואומת (23.9.2026)
 
 | ממצא | ערך |
 |---|---|
-| סטטוס Branching | **`MIGRATIONS_FAILED`**, `with_data: false` |
-| מיגרציות שהוחלו | 38 מתוך 174, האחרונה `20250611072533` (יוני 2025) |
-| טבלאות | 3 בלבד (`profiles`, `recurring_transactions`, `transactions`) — 0 שורות. חסרות: `reminder_run_logs`, `app_kv_store`, `contact_messages`, `admin_emails`, `download_*` |
-| עמודות | סכמה ישנה: `transactions.is_recurring`, `recurring_day_of_month` (נמחקו בפרוד); **חסרות** `payment_method`, `original_amount`, `conversion_*`, `occurrence_number`; `profiles` בלי `default_currency`, `client_preferences`, `reminder_*`, `terms_*` |
-| פונקציות | 15 מתוך ~55 (כולל `hello_world`; בלי analytics/admin/bulk RPCs) |
-| pg_cron / vault secrets | אין |
+| Ref / סוג | `ldgrbqibfuagniilrtpm` · Persistent Micro · `with_data: true` · Git branch `feat/hebrew-calendar-foundation` |
+| סטטוס | `FUNCTIONS_DEPLOYED` / `ACTIVE_HEALTHY` |
+| עלות | החל מ-$0.01344 לשעה (~$9.80 לחודש), ללא Compute Credits |
+| סכמה | **זהה לפרוד ביט-לביט לפי fingerprints:** 99 עמודות, 54 פונקציות, 25 indexes, 15 policies |
+| מיגרציות | 174, האחרונה `20260902180000` — זהה לפרוד |
+| snapshot נתונים | 640 profiles, 17,299 transactions, 880 recurring transactions |
+| Edge Functions | 11 פונקציות פעילות — clone של פרוד |
+| בטיחות | כל 4 ה-cron jobs הושבתו עם `cron.alter_job(..., active := false)`; `functions_base_url` ב-Vault הוחלף ל-URL של הענף |
+| בדיקת API | REST עם anon key של הענף החזיר HTTP 200 |
+| מגבלה פתוחה | `service_role_key` ב-Vault עדיין token של פרוד; **אסור להפעיל cron** עד החלפתו. ניסיונות CLI דרך pooler/direct DB נכשלו בחיבור; ניתן לעדכן דרך Dashboard SQL Editor או אחרי תיקון קישור ה-DB |
+| Vercel Preview | הענף משויך ל-Git, אבל MCP חסר הרשאת env ו-CLI דורש login. לפי Supabase integration הסנכרון מתבצע בפתיחת PR |
 
-**שורש הבעיה — לא הענף, אלא ההיסטוריה:** 123 מ-174 קבצי המיגרציה ב-`supabase/migrations/` הם stubs של `SELECT 1` ("Legacy migration, applied before repo sync"). ה-`CREATE TABLE` של הטבלאות המרכזיות מעולם לא היה ב-repo. Branching שיחזר את 38 הראשונות מה-`statements` השמורים ב-`schema_migrations` של פרוד ונפל על ה-39. **כל סביבה חדשה (ענף, staging, local) תיכשל באותה נקודה** עד שההיסטוריה תהיה ניתנת לשחזור.
+הענף הקודם `ghzcsmscsympfxknubcp` נכשל (`MIGRATIONS_FAILED`, 38/174 migrations) ונמחק לפני השחזור. שורש הבעיה ההיסטורי נשאר כחוב תשתיתי: 123 מ-174 קבצי המיגרציה הם stubs של `SELECT 1`; `with_data` עקף זאת באמצעות snapshot מלא. לכן baseline + seed (P5) עדיין נדרשים ל-local dev ולענפי preview נקיים.
 
 ### 9.2 האם צריך דאטה?
 
-**לא דאטה של פרוד.** שלוש סיבות: PII (מיילים, שמות, תנועות כספיות של 638 משתמשים) בסביבת בדיקות; `with_data: true` הוא פיצ'ר בתשלום/beta ולא פותר את בעיית הסכמה; ובעיקר — לבדיקות לוח עברי **seed סינתטי טוב יותר** כי אפשר לבנות בכוונה מקרי קצה: תנועות סביב א' תשרי, ל' חשוון בשנה שיש/אין, אדר א'/ב' תשפ"ז, הו"ק ל-ל' בחודש, משתמש `he` ומשתמש `en`, משתמש עם `client_preferences` ישן (`calendarType: "gregorian"`, `maaserYearStart: "01-01"`).
+**החלטת ביניים:** P2 משתמש ב-snapshot של פרוד כדי לקבל סביבה מלאה מיד, עם cron מושבת. לטווח הארוך עדיין לא רצוי להסתמך על PII של משתמשים אמיתיים: seed סינתטי טוב יותר לבדיקות לוח עברי כי אפשר לבנות בכוונה מקרי קצה — תנועות סביב א' תשרי, ל' חשוון בשנה שיש/אין, אדר א'/ב' תשפ"ז, הו"ק ל-ל' בחודש, משתמש `he` ומשתמש `en`, ומשתמש עם `client_preferences` ישן.
 
 מימוש: `supabase/seed.sql` (Branching מריץ אותו אוטומטית ביצירת ענף; אין כזה היום) עם 3–4 משתמשי `auth.users` + פרופילים + ~200 תנועות + ~10 הו"ק שנוצרות מסקריפט Node דטרמיניסטי (`scripts/generate-seed.ts`) — כך אפשר לחדש את ה-seed כשהסכמה משתנה.
 
@@ -502,7 +507,7 @@ src/lib/calendar/
 
 ### 9.5 אסטרטגיית טסטים — שערים לכל שלב
 
-**מצב היום:** 35 קבצי vitest ב-`src/`, 13 ב-edge, ~43 `#[test]` ב-Rust (SQLite in-memory). **אין** workflow CI שמריץ `npm test` / `cargo test` / Deno tests — רק security-audit, tauri-build (קומפילציה בלבד) ו-deploys. **אין** RTL/jsdom, **אין** Playwright, **אין** pgTAP.
+**מצב אחרי P1 (`9616da9`):** `.github/workflows/ci.yml` מריץ app Vitest ב-UTC וב-Asia/Jerusalem, Edge Vitest, Rust `cargo test --locked`, Node TypeScript נקי, ו-ratchets דטרמיניסטיים לחוב App TypeScript (103 diagnostics) ו-ESLint (198 diagnostics). מקומית: 373/373 Vitest, 130/130 Edge, 43/43 Rust. כל diagnostic חדש מכשיל CI. הרצת GitHub-hosted הראשונה ממתינה ל-push/PR. עדיין אין `Deno.test`, RTL/jsdom, Playwright או pgTAP.
 
 **עיקרון:** מצב `gregorian` חייב להישאר **זהה ביט-לביט** אחרי הרפקטור. זה מה שמאפשר לוותר על בדיקה ידנית — לא "לבדוק שהעברי עובד" אלא "להוכיח שהלועזי לא השתנה, ושהעברי עומד בטבלת אמת".
 
@@ -520,7 +525,7 @@ src/lib/calendar/
 | **7–8** | כנ"ל בהתאמה; דוח שנת מעשר: סכומי א' תשרי–כ"ט אלול == סכום ידני על seed | |
 | **E2E על Vercel preview + ענף** | Playwright smoke (חדש): login משתמש seed → הגדרות → החלפת לוח → דשבורד, טבלה, בוחר, ייצוא PDF → צילומי מסך he/en. רץ ב-CI על כל PR | Playwright |
 
-**CI חסר — להוסיף `ci.yml`** על כל PR: `tsc --noEmit`, `eslint`, `vitest run` (matrix `TZ`), `deno test supabase/functions`, `cargo test` ב-`src-tauri`, ובהמשך Playwright מול preview. בלי זה "לכסות הכל בטסטים" לא אוכף כלום.
+**המשך CI:** P1 אוכף את הבדיקות הקיימות. כשייכתבו `Deno.test`, RTL/jsdom ו-Playwright בשלבים הבאים, להוסיף אותם לאותו workflow; לא ליצור job ירוק פיקטיבי לפני שיש בדיקות אמיתיות.
 
 ## נספח א' — עובדות מה-DB החי (פרודקשן, 18.9.2026)
 
