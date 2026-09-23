@@ -103,6 +103,7 @@
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.6.0",
     "tailwindcss-animate": "^1.0.7",
+    "temporal-polyfill": "1.0.5",
     "vaul": "^1.1.2",
     "zod": "^4.6.2",
     "zustand": "^5.0.15"

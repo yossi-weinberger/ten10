@@ -82,9 +82,10 @@
   },
   "calendar": {
     "cardTitle": "Calendar",
-    "cardDescription": "Date and calendar settings",
-    "hebrewCalendarLabel": "Calendar Type",
-    "hebrewCalendarDescription": "Display dates in Hebrew calendar",
+    "cardDescription": "Choose the primary display calendar. Hebrew days change at civil midnight.",
+    "primaryCalendarLabel": "Primary calendar",
+    "showSecondaryDateLabel": "Show a secondary date",
+    "showSecondaryDateDescription": "Display only — this does not affect filters or periods.",
     "options": {
       "gregorian": "Gregorian Calendar",
       "hebrew": "Hebrew Calendar"

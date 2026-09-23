@@ -4,6 +4,7 @@ import { getPlatform } from "@/lib/platformManager";
 import { CURRENCIES } from "@/lib/currencies";
 import type { CurrencyCode } from "@/lib/currencies";
 import type { Language } from "@/lib/store";
+import { normalizeCalendarSettings } from "@/lib/settings/calendar-settings";
 
 type Theme = "light" | "dark" | "system";
 
@@ -94,6 +95,7 @@ export async function restoreDesktopSettings(): Promise<RestoredDesktopSettings>
           unknown
         >;
         delete parsed.maaserYearStart;
+        Object.assign(parsed, normalizeCalendarSettings(parsed));
         logger.log("DesktopSettingsService: Restored client_preferences from SQLite.");
         store.updateSettings(parsed as Partial<Settings>);
         const parsedTheme =

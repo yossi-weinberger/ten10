@@ -4,6 +4,11 @@ import { Currency as TransactionCurrency } from "../types/transaction";
 import { ServerDonationData } from "./data-layer/stats.service";
 import { MonthlyDataPoint } from "./data-layer/chart.service";
 import { logger } from "./logger";
+import type { CalendarType } from "./calendar";
+import {
+  normalizeCalendarSettings,
+  shouldResetCalendarChartCache,
+} from "./settings/calendar-settings";
 import type { OnboardingState } from "./onboarding/types";
 
 export type { TransactionCurrency as Currency };
@@ -27,6 +32,8 @@ export interface Settings {
   /** Desktop app lock: auto-lock after this many minutes of inactivity (0 = disabled). */
   autoLockTimeoutMinutes?: number;
   onboarding?: OnboardingState;
+  calendarType: CalendarType;
+  showSecondaryDate: boolean;
 }
 
 export interface DonationState {
@@ -82,6 +89,8 @@ const defaultSettings: Settings = {
   mailingListConsent: false,
   lastSeenVersion: null,
   autoLockTimeoutMinutes: 10,
+  calendarType: "gregorian",
+  showSecondaryDate: false,
 };
 
 export const useDonationStore = create<DonationState>()(
@@ -105,9 +114,21 @@ export const useDonationStore = create<DonationState>()(
       canLoadMoreChartData: true,
 
       updateSettings: (newSettings) => {
-        set((state) => ({
-          settings: { ...state.settings, ...newSettings },
-        }));
+        set((state) => {
+          const resetCalendarChartCache = shouldResetCalendarChartCache(
+            state.settings,
+            newSettings,
+          );
+
+          return {
+            settings: { ...state.settings, ...newSettings },
+            ...(resetCalendarChartCache && {
+              serverMonthlyChartData: [],
+              currentChartEndDate: null,
+              canLoadMoreChartData: true,
+            }),
+          };
+        });
       },
 
       setLastDbFetchTimestamp: (timestamp) => {
@@ -244,6 +265,11 @@ export const useDonationStore = create<DonationState>()(
                 maaserYearStart?: unknown;
               }
             ).maaserYearStart;
+
+            Object.assign(
+              state.settings,
+              normalizeCalendarSettings(state.settings),
+            );
 
             // Migration: Add reminder settings if they don't exist
             if (state.settings.reminderEnabled === undefined) {

@@ -15,6 +15,7 @@ import {
 } from "@/lib/data-layer/transactions.service";
 import AppLoader from "@/components/layout/AppLoader";
 import { LanguageAndDisplaySettingsCard } from "@/components/settings/LanguageAndDisplaySettingsCard";
+import { CalendarSettingsCard } from "@/components/settings/CalendarSettingsCard";
 import { FinancialSettingsCard } from "@/components/settings/FinancialSettingsCard";
 import { NotificationSettingsCard } from "@/components/settings/NotificationSettingsCard";
 import { ClearDataSection } from "@/components/settings/ClearDataSection";
@@ -224,8 +225,27 @@ export function SettingsPage() {
     />
   );
 
-  // Calendar section is intentionally hidden for now.
-  const calendarSection = null;
+  const calendarSection = (
+    <CalendarSettingsCard
+      calendarSettings={{
+        calendarType: settings.calendarType,
+        showSecondaryDate: settings.showSecondaryDate,
+      }}
+      updateSettings={(calendarSettings) => {
+        updateSettings(calendarSettings);
+        if (calendarSettings.calendarType !== undefined) {
+          trackProductEvent("settings_changed", {
+            setting_key: "calendar_type",
+          });
+        }
+        if (calendarSettings.showSecondaryDate !== undefined) {
+          trackProductEvent("settings_changed", {
+            setting_key: "show_secondary_date",
+          });
+        }
+      }}
+    />
+  );
 
   const importExportSection = (
     <ImportExportDataSection

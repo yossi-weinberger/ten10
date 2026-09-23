@@ -82,9 +82,10 @@
   },
   "calendar": {
     "cardTitle": "לוח שנה",
-    "cardDescription": "הגדרות תאריכים ולוח שנה",
-    "hebrewCalendarLabel": "לוח שנה",
-    "hebrewCalendarDescription": "הצג תאריכים בלוח העברי",
+    "cardDescription": "בחר את לוח התצוגה הראשי. היום העברי מתחלף בחצות.",
+    "primaryCalendarLabel": "לוח ראשי",
+    "showSecondaryDateLabel": "הצג גם תאריך משני",
+    "showSecondaryDateDescription": "לתצוגה בלבד — אינו משנה סינונים או תקופות.",
     "options": {
       "gregorian": "לוח גרגוריאני",
       "hebrew": "לוח עברי"

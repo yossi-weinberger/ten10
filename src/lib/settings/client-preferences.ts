@@ -24,6 +24,13 @@ export function sanitizeClientPreferences(
     ...(settings.autoLockTimeoutMinutes !== undefined && {
       autoLockTimeoutMinutes: settings.autoLockTimeoutMinutes,
     }),
+    ...((settings.calendarType === "gregorian" ||
+      settings.calendarType === "hebrew") && {
+      calendarType: settings.calendarType,
+    }),
+    ...(typeof settings.showSecondaryDate === "boolean" && {
+      showSecondaryDate: settings.showSecondaryDate,
+    }),
     ...(settings.onboarding !== undefined && {
       onboarding: settings.onboarding,
     }),

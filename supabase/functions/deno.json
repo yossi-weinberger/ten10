@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "temporal-polyfill/full": "npm:temporal-polyfill@1.0.5/full"
+  }
+}

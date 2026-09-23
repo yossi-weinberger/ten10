@@ -23,6 +23,8 @@ describe("PreferencesSyncService.extractClientPreferences", () => {
       mailingListConsent: true,
       lastSeenVersion: "0.7.5",
       autoLockTimeoutMinutes: 30,
+      calendarType: "hebrew",
+      showSecondaryDate: true,
       onboarding: {
         version: 2,
         status: "completed",
@@ -58,6 +60,8 @@ describe("PreferencesSyncService.extractClientPreferences", () => {
       mailingListConsent: true,
       lastSeenVersion: "0.7.5",
       autoLockTimeoutMinutes: 30,
+      calendarType: "hebrew",
+      showSecondaryDate: true,
       onboarding: {
         version: 2,
         status: "completed",
@@ -81,6 +85,8 @@ describe("PreferencesSyncService.extractClientPreferences", () => {
       recurringDonations: false,
       minMaaserPercentage: 12,
       autoLockTimeoutMinutes: 30,
+      calendarType: "hebrew",
+      showSecondaryDate: true,
       onboarding: {
         version: 2,
         status: "completed",
@@ -88,5 +94,14 @@ describe("PreferencesSyncService.extractClientPreferences", () => {
         analyticsOpened: true,
       },
     });
+  });
+
+  it("rejects invalid calendar preferences from persisted web data", () => {
+    expect(
+      PreferencesSyncService.extractClientPreferences({
+        calendarType: "julian",
+        showSecondaryDate: "yes",
+      } as unknown as Settings),
+    ).toEqual({});
   });
 });
