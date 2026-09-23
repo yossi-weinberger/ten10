@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getCalendarAdapter } from "@/lib/calendar";
 import {
   calculateDateRange,
   type DateRangeSelectionType,
@@ -59,7 +60,7 @@ describe("calculateDateRange", () => {
       ).toEqual({
         startDate: boundary.monthStart,
         endDate: boundary.today,
-        label: "month",
+        label: `month (${getCalendarAdapter("gregorian").monthLabel(boundary.monthStart.slice(0, 7), "en")})`,
       });
     });
 
@@ -77,7 +78,7 @@ describe("calculateDateRange", () => {
       ).toEqual({
         startDate: boundary.yearStart,
         endDate: boundary.today,
-        label: "year",
+        label: `year (${boundary.today.slice(0, 4)})`,
       });
     });
 

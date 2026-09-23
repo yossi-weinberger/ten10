@@ -13,7 +13,7 @@ import { CurrencyPicker } from "@/components/ui/CurrencyPicker";
 import { CurrencyCode } from "@/lib/currencies";
 import { TransactionFormValues } from "@/lib/schemas";
 import { DatePicker } from "@/components/ui/date-picker";
-import { format, parse } from "date-fns";
+import { formatLocalDate, parseLocalDate } from "@/lib/utils/local-date";
 import { HelpCircle } from "lucide-react";
 import {
   Tooltip,
@@ -155,14 +155,12 @@ export function AmountCurrencyDateFields({
                 <DatePicker
                   date={
                     field.value
-                      ? parse(field.value, "yyyy-MM-dd", new Date())
+                      ? parseLocalDate(field.value)
                       : undefined
                   }
                   setDate={(date) => {
-                    if (date) {
-                      field.onChange(format(date, "yyyy-MM-dd"));
-                    } else {
-                      field.onChange("");
+                    if (date && !Number.isNaN(date.getTime())) {
+                      field.onChange(formatLocalDate(date));
                     }
                   }}
                 />

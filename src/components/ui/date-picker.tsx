@@ -11,6 +11,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { formatDisplayDate } from "@/lib/calendar/display-date";
+import { useDonationStore } from "@/lib/store";
+import { formatLocalDate } from "@/lib/utils/local-date";
 import { Input } from "./input";
 
 export function DatePicker({
@@ -24,15 +27,35 @@ export function DatePicker({
   const [inputValue, setInputValue] = React.useState<string>("");
   const [month, setMonth] = React.useState<Date | undefined>(date);
   const { i18n } = useTranslation("dashboard");
+  const calendarType = useDonationStore(
+    (state) => state.settings.calendarType,
+  );
+  const language = i18n.language.startsWith("he") ? "he" : "en";
+
+  const formatFieldDate = React.useCallback(
+    (value: Date): string => {
+      if (calendarType === "hebrew") {
+        return formatDisplayDate(formatLocalDate(value), {
+          calendarType: "hebrew",
+          showSecondaryDate: false,
+          language,
+          style: "long",
+        }).primary;
+      }
+
+      return format(value, "dd/MM/yyyy");
+    },
+    [calendarType, language],
+  );
 
   React.useEffect(() => {
     if (date && isValidDate(date)) {
-      setInputValue(format(date, "dd/MM/yyyy"));
+      setInputValue(formatFieldDate(date));
     } else {
       setInputValue("");
     }
     setMonth(date);
-  }, [date]);
+  }, [date, formatFieldDate]);
 
   function isValidDate(d: unknown): d is Date {
     return d instanceof Date && !isNaN(d.getTime());
@@ -53,7 +76,7 @@ export function DatePicker({
   const handleSelectDate = (selectedDate: Date | undefined) => {
     if (isValidDate(selectedDate)) {
       setDate(selectedDate);
-      setInputValue(format(selectedDate, "dd/MM/yyyy"));
+      setInputValue(formatFieldDate(selectedDate));
     } else {
       setDate(undefined);
       setInputValue("");
@@ -98,7 +121,7 @@ export function DatePicker({
   const picker = (
     <div className="relative">
       <Input
-        placeholder="DD/MM/YYYY"
+        placeholder={calendarType === "hebrew" ? "" : "DD/MM/YYYY"}
         value={inputValue}
         onChange={handleInputChange}
         className="bg-background pr-10"
@@ -127,6 +150,7 @@ export function DatePicker({
         >
           <Calendar
             mode="single"
+            required
             selected={date}
             onSelect={handleSelectDate}
             month={month}

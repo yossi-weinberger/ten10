@@ -284,16 +284,27 @@ describe("Hebrew calendar grid", () => {
 });
 
 describe("Hebrew date pickers", () => {
-  it("keeps DatePicker manual input Gregorian without extra help text", () => {
-    render(
-      <DatePicker date={parseLocalDate("2026-09-12")} setDate={vi.fn()} />,
+  it("shows the selected date in Hebrew letters and keeps day 12 selected", async () => {
+    const user = userEvent.setup();
+    const setDate = vi.fn();
+    const tishrei12 = parseLocalDate("2026-09-23");
+    render(<DatePicker date={tishrei12} setDate={setDate} />);
+
+    expect(screen.getByRole("textbox")).toHaveValue("י״ב בתשרי תשפ״ז");
+    expect(screen.getByRole("textbox")).not.toHaveAttribute(
+      "placeholder",
+      "DD/MM/YYYY",
     );
 
-    expect(screen.getByRole("textbox")).toHaveValue("12/09/2026");
-    expect(screen.getByRole("textbox")).not.toHaveAccessibleDescription();
-    expect(
-      screen.queryByText("הזנה ידנית לפי הלוח הגרגוריאני (DD/MM/YYYY)"),
-    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Open calendar" }));
+    await user.click(getDayButton("2026-09-23"));
+
+    expect(setDate).not.toHaveBeenCalledWith(undefined);
+    const selected = setDate.mock.calls.at(-1)?.[0] as Date | undefined;
+    if (selected) {
+      expect(formatLocalDate(selected)).toBe("2026-09-23");
+    }
+    expect(screen.getByRole("textbox")).toHaveValue("י״ב בתשרי תשפ״ז");
   });
 
   it("selects an exact Gregorian date through DatePicker Hebrew grid", async () => {
@@ -310,6 +321,7 @@ describe("Hebrew date pickers", () => {
     expect(formatLocalDate(selected)).toBe(
       "2026-09-21",
     );
+    expect(screen.getByRole("textbox")).toHaveValue("י׳ בתשרי תשפ״ז");
   });
 
   it("returns Gregorian endpoints for a range spanning a Hebrew year boundary", async () => {

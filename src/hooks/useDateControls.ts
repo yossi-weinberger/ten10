@@ -38,26 +38,22 @@ export function calculateDateRange(
   switch (dateRangeSelection) {
     case "month": {
       const monthKey = adapter.monthKey(endDate);
-      const label =
-        calendarType === "hebrew"
-          ? `${labels.month} (${adapter.monthLabel(monthKey, language)})`
-          : labels.month;
       return {
         startDate: adapter.startOfMonth(endDate),
         endDate,
-        label,
+        label: `${labels.month} (${adapter.monthLabel(monthKey, language)})`,
       };
     }
     case "year": {
       const representation = adapter.fromIsoDate(endDate);
-      const label =
+      const yearLabel =
         calendarType === "hebrew"
-          ? `${labels.year} (${formatHebrewYear(representation.year)})`
-          : labels.year;
+          ? formatHebrewYear(representation.year)
+          : String(representation.year);
       return {
         startDate: adapter.startOfYear(endDate),
         endDate,
-        label,
+        label: `${labels.year} (${yearLabel})`,
       };
     }
     case "all":
