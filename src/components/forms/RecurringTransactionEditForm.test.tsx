@@ -5,6 +5,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { RecurringTransactionEditForm } from "./RecurringTransactionEditForm";
 import type { RecurringTransaction } from "@/types/transaction";
 
+vi.mock("@/lib/supabaseClient", () => ({
+  supabase: {},
+}));
+
 vi.mock("react-i18next", () => ({
   initReactI18next: { type: "3rdParty", init: () => undefined },
   useTranslation: () => ({

@@ -1,6 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { getCalendarAdapter } from "@/lib/calendar";
 import { buildRecurringUpdateRpcParams } from "./recurringTable.service";
+
+vi.mock("@/lib/supabaseClient", () => ({
+  supabase: {},
+}));
 
 describe("recurring calendar edit payload", () => {
   it("preserves stored Hebrew choice and sends the compatibility overload fields", () => {
