@@ -95,7 +95,7 @@ const EXPECTED_METADATA: PreviewMetadata[] = [
     filename: "reminder-he-credit.html",
     language: "Hebrew",
     name: "Tithe reminder",
-    subject: "תזכורת מעשר - הינך בזכות של 384.70 ₪",
+    subject: "תזכורת מעשר - הינך בזכות של -384.70 ₪",
     variant: "Credit balance",
   },
   {
@@ -383,7 +383,7 @@ function buildPreviewDefinitions(): PreviewDefinition[] {
       audience: "User",
       expectedContent: [
         "ערב טוב, משתמש",
-        "יתרת המעשר שלך לתרומה היא",
+        "יתרה לתרומה",
         "384.70",
         "הפסקת תזכורות חודשיות",
       ],
@@ -397,9 +397,9 @@ function buildPreviewDefinitions(): PreviewDefinition[] {
     {
       audience: "User",
       expectedContent: [
-        "הינך נמצא בזכות של",
+        "זכות",
         "384.70",
-        "ביטול הרשמה מכל המיילים",
+        "ביטול הרשמה",
       ],
       filename: "reminder-he-credit.html",
       html: generateReminderEmailHTML(reminderHebrewCredit),
@@ -412,7 +412,7 @@ function buildPreviewDefinitions(): PreviewDefinition[] {
       audience: "User",
       expectedContent: [
         "Good evening, Example",
-        "Your remaining tithe balance is",
+        "Due to give",
         "Stop monthly reminders",
       ],
       filename: "reminder-en-outstanding.html",

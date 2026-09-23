@@ -11,13 +11,21 @@
     "dev": "vite",
     "build": "vite build",
     "clean-dist": "rimraf src-tauri/target/release/bundle",
-    "lint": "eslint .",
+    "lint": "eslint src supabase/functions vite.config.ts vitest.config.ts",
     "preview": "vite preview",
     "tauri": "node scripts/tauri-cli.cjs",
     "deploy-supabase": "node supabase/scripts/deploy-functions.js",
     "release": "node scripts/release.cjs",
     "check-supabase-imports": "node scripts/check-supabase-imports.js",
-    "test": "vitest run"
+    "typecheck": "npm run typecheck:node && npm run typecheck:app:ratchet",
+    "typecheck:node": "tsc -p tsconfig.node.json --noEmit --pretty false",
+    "typecheck:app": "tsc -p tsconfig.app.json --noEmit --pretty false",
+    "typecheck:app:ratchet": "node scripts/diagnostic-ratchet.mjs typecheck",
+    "lint:ratchet": "node scripts/diagnostic-ratchet.mjs lint",
+    "diagnostics:update": "node scripts/diagnostic-ratchet.mjs typecheck --update && node scripts/diagnostic-ratchet.mjs lint --update",
+    "test": "vitest run",
+    "test:app": "vitest run src",
+    "test:edge": "vitest run supabase/functions"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

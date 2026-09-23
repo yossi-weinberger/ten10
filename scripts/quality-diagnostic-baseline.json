@@ -1,0 +1,1701 @@
+{
+  "scopes": {
+    "eslint": {
+      "command": "eslint src supabase/functions vite.config.ts vitest.config.ts",
+      "categories": {
+        "@typescript-eslint/ban-ts-comment": 1,
+        "@typescript-eslint/no-empty-object-type": 3,
+        "@typescript-eslint/no-explicit-any": 50,
+        "@typescript-eslint/no-unused-expressions": 1,
+        "@typescript-eslint/no-unused-vars": 30,
+        "no-shadow-restricted-names": 1,
+        "no-unsafe-finally": 1,
+        "no-useless-escape": 10,
+        "react-hooks/exhaustive-deps": 12,
+        "react-hooks/immutability": 1,
+        "react-hooks/incompatible-library": 4,
+        "react-hooks/refs": 23,
+        "react-hooks/rules-of-hooks": 1,
+        "react-hooks/set-state-in-effect": 42,
+        "react-hooks/static-components": 8,
+        "react-refresh/only-export-components": 9,
+        "unknown": 1
+      },
+      "diagnostics": [
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/App.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/refs",
+          "file": "src/App.tsx",
+          "message": "Error: Cannot access refs during render React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/App.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/exhaustive-deps",
+          "file": "src/App.tsx",
+          "message": "React Hook useEffect has a missing dependency: 'setTheme'. Either include it or remove the dependency array.",
+          "severity": "warning",
+          "count": 2
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/admin/AdminMonitoringSection.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/admin/AdminPostHogSection.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/components/analytics/BreakdownBarPieChart.tsx",
+          "message": "'_total' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/exhaustive-deps",
+          "file": "src/components/analytics/PaymentMethodInsight.tsx",
+          "message": "React Hook useMemo has an unnecessary dependency: 'i18n.language'. Either exclude it or remove the dependency array.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/analytics/TextInsightsCard.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/auth/TermsAcceptanceModal.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/components/charts/area-chart-interactive.tsx",
+          "message": "'CardDescription' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/exhaustive-deps",
+          "file": "src/components/charts/area-chart-interactive.tsx",
+          "message": "React Hook React.useMemo has a missing dependency: 'DESIRED_SERIES_ORDER'. Either include it or remove the dependency array.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/components/Currency/CurrencyConversionInfo.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/Currency/CurrencyConversionInfo.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/components/dashboard/MonthlyChart.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/dashboard/MonthlyChart.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "react-hooks/exhaustive-deps",
+          "file": "src/components/dashboard/MonthlyChart.tsx",
+          "message": "React Hook React.useMemo has an unnecessary dependency: 'i18n.language'. Either exclude it or remove the dependency array.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/dashboard/StatsCards.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/exhaustive-deps",
+          "file": "src/components/dashboard/StatsCards.tsx",
+          "message": "React Hook useMemo has a missing dependency: 'i18n'. Either include it or remove the dependency array.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/components/features/contact/ContactForm.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/features/contact/ContactModal.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/feedback/HomeFeedbackCard.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/components/forms/RecurringTransactionEditForm.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/incompatible-library",
+          "file": "src/components/forms/RecurringTransactionEditForm.tsx",
+          "message": "Compilation Skipped: Use of incompatible library This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/components/forms/transaction-form-parts/AmountCurrencyDateFields.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/components/forms/transaction-form-parts/CurrencyConversionSection.tsx",
+          "message": "'loadingRate' is assigned a value but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/forms/transaction-form-parts/CurrencyConversionSection.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/exhaustive-deps",
+          "file": "src/components/forms/transaction-form-parts/CurrencyConversionSection.tsx",
+          "message": "React Hook useEffect has a missing dependency: 'form'. Either include it or remove the dependency array.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/forms/transaction-form-parts/FlagToggleButton.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/components/forms/transaction-form-parts/RecurringFields.tsx",
+          "message": "'FormDescription' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/incompatible-library",
+          "file": "src/components/forms/TransactionForm.tsx",
+          "message": "Compilation Skipped: Use of incompatible library This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/components/halacha/FormattedText.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/components/halacha/utils.ts",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/layout/ContactFAB.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/components/layout/PageControls.tsx",
+          "message": "'useTranslation' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/components/layout/Sidebar.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "@typescript-eslint/no-unused-expressions",
+          "file": "src/components/layout/Sidebar.tsx",
+          "message": "Expected an assignment or function call and instead saw an expression.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/layout/Sidebar.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/static-components",
+          "file": "src/components/layout/Sidebar.tsx",
+          "message": "Error: Cannot create components during render Components created during render will reset their state each time they are created. Declare components outside of render.",
+          "severity": "error",
+          "count": 8
+        },
+        {
+          "code": "react-hooks/refs",
+          "file": "src/components/onboarding/OnboardingHost.tsx",
+          "message": "Error: Cannot access refs during render React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/components/settings/FinancialSettingsCard.tsx",
+          "message": "'disableMinMaaserPercentage' is assigned a value but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/components/settings/FinancialSettingsCard.tsx",
+          "message": "'Input' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/components/settings/FinancialSettingsCard.tsx",
+          "message": "'Percent' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/components/settings/LanguageAndDisplaySettingsCard.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/components/settings/LanguageAndDisplaySettingsCard.tsx",
+          "message": "'languageSettings' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/components/settings/LanguageAndDisplaySettingsCard.tsx",
+          "message": "'Select' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/components/settings/LanguageAndDisplaySettingsCard.tsx",
+          "message": "'SelectContent' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/components/settings/LanguageAndDisplaySettingsCard.tsx",
+          "message": "'SelectItem' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/components/settings/LanguageAndDisplaySettingsCard.tsx",
+          "message": "'SelectTrigger' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/components/settings/LanguageAndDisplaySettingsCard.tsx",
+          "message": "'SelectValue' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/incompatible-library",
+          "file": "src/components/settings/OpeningBalanceModal.tsx",
+          "message": "Compilation Skipped: Use of incompatible library This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "no-shadow-restricted-names",
+          "file": "src/components/TransactionsTable/RecurringProgressBadge.tsx",
+          "message": "Shadowing of global property 'Infinity'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/TransactionsTable/RecurringTransactionEditModal.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/TransactionsTable/RecurringTransactionsFilters.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/TransactionsTable/TransactionEditModal.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-refresh/only-export-components",
+          "file": "src/components/ui/badge.tsx",
+          "message": "Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "react-refresh/only-export-components",
+          "file": "src/components/ui/button.tsx",
+          "message": "Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/ui/carousel.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/ui/category-combobox.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-empty-object-type",
+          "file": "src/components/ui/command.tsx",
+          "message": "An interface declaring no members is equivalent to its supertype.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 3
+        },
+        {
+          "code": "react-hooks/incompatible-library",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "Compilation Skipped: Use of incompatible library This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/ui/date-picker.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/refs",
+          "file": "src/components/ui/date-range-picker.tsx",
+          "message": "Error: Cannot access refs during render React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-refresh/only-export-components",
+          "file": "src/components/ui/form.tsx",
+          "message": "Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-empty-object-type",
+          "file": "src/components/ui/input.tsx",
+          "message": "An interface declaring no members is equivalent to its supertype.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/components/ui/language-toggle.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/ui/payment-method-combobox.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-empty-object-type",
+          "file": "src/components/ui/textarea.tsx",
+          "message": "An interface declaring no members is equivalent to its supertype.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-refresh/only-export-components",
+          "file": "src/components/ui/toggle.tsx",
+          "message": "Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/UserInfoDisplay.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/exhaustive-deps",
+          "file": "src/components/UserInfoDisplay.tsx",
+          "message": "React Hook useEffect has a missing dependency: 't'. Either include it or remove the dependency array.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/components/WhatsNewModal.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/contexts/AuthContext.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "react-refresh/only-export-components",
+          "file": "src/contexts/AuthContext.tsx",
+          "message": "Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "react-refresh/only-export-components",
+          "file": "src/contexts/PlatformContext.tsx",
+          "message": "Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/contexts/TWAContext.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-refresh/only-export-components",
+          "file": "src/contexts/TWAContext.tsx",
+          "message": "Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/hooks/use-media-query.ts",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/hooks/useAnimatedCounter.ts",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/hooks/useCountUp.ts",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/refs",
+          "file": "src/hooks/useDesktopUpdateCheck.ts",
+          "message": "Error: Cannot access refs during render React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/hooks/useGitHubReleaseDownloadStats.ts",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/hooks/useInsights.ts",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 4
+        },
+        {
+          "code": "react-hooks/exhaustive-deps",
+          "file": "src/hooks/useInsights.ts",
+          "message": "React Hook useEffect has a missing dependency: 'isReady'. Either include it or remove the dependency array.",
+          "severity": "warning",
+          "count": 2
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/hooks/useLatestRelease.ts",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/hooks/usePeriodComparison.ts",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "no-unsafe-finally",
+          "file": "src/hooks/useServerStats.ts",
+          "message": "Unsafe usage of ReturnStatement.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/hooks/useServerStats.ts",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "react-hooks/rules-of-hooks",
+          "file": "src/hooks/useTransactionFormInitialization.ts",
+          "message": "React Hook \"useSearch\" is called conditionally. React Hooks must be called in the exact same order in every component render.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/lib/data-layer/chart.service.ts",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "no-useless-escape",
+          "file": "src/lib/halacha/draw-mixed-rtl.ts",
+          "message": "Unnecessary escape character: \\/.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "no-useless-escape",
+          "file": "src/lib/halacha/draw-mixed-rtl.ts",
+          "message": "Unnecessary escape character: \\%.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/lib/i18n.ts",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/lib/logger.ts",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 6
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/lib/services/desktop-settings.service.ts",
+          "message": "'settings' is assigned a value but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/lib/services/desktop-settings.service.ts",
+          "message": "'value' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/lib/services/preferences-sync.service.ts",
+          "message": "'defaultCurrency' is assigned a value but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/lib/services/preferences-sync.service.ts",
+          "message": "'lastSeenVersion' is assigned a value but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/lib/services/preferences-sync.service.ts",
+          "message": "'mailingListConsent' is assigned a value but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/lib/services/preferences-sync.service.ts",
+          "message": "'reminderDayOfMonth' is assigned a value but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/lib/services/preferences-sync.service.ts",
+          "message": "'reminderEnabled' is assigned a value but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/lib/services/preferences-sync.service.ts",
+          "message": "'termsAcceptedVersion' is assigned a value but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/lib/services/recurring-transactions.service.ts",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 3
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/lib/supabaseClient.ts",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-refresh/only-export-components",
+          "file": "src/lib/theme.tsx",
+          "message": "Fast refresh only works when a file only exports components. Use a new file to share constants or functions between components.",
+          "severity": "warning",
+          "count": 2
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/lib/utils/currency.ts",
+          "message": "'CURRENCIES' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/lib/utils/export-pdf.ts",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 3
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "src/lib/utils/export-pdf.ts",
+          "message": "'e' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "no-useless-escape",
+          "file": "src/lib/utils/export-pdf.ts",
+          "message": "Unnecessary escape character: \\-.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "no-useless-escape",
+          "file": "src/lib/utils/export-pdf.ts",
+          "message": "Unnecessary escape character: \\..",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "no-useless-escape",
+          "file": "src/lib/utils/export-pdf.ts",
+          "message": "Unnecessary escape character: \\/.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "no-useless-escape",
+          "file": "src/lib/utils/pdf-helpers.ts",
+          "message": "Unnecessary escape character: \\-.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "no-useless-escape",
+          "file": "src/lib/utils/pdf-helpers.ts",
+          "message": "Unnecessary escape character: \\..",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "no-useless-escape",
+          "file": "src/lib/utils/pdf-helpers.ts",
+          "message": "Unnecessary escape character: \\/.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/refs",
+          "file": "src/pages/AboutPage.tsx",
+          "message": "Error: Cannot access refs during render React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "react-hooks/refs",
+          "file": "src/pages/AccessibilityPage.tsx",
+          "message": "Error: Cannot access refs during render React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/pages/ForgotPasswordPage.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/pages/landing/index.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 5
+        },
+        {
+          "code": "react-hooks/refs",
+          "file": "src/pages/landing/index.tsx",
+          "message": "Error: Cannot access refs during render React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).",
+          "severity": "error",
+          "count": 8
+        },
+        {
+          "code": "react-hooks/exhaustive-deps",
+          "file": "src/pages/landing/index.tsx",
+          "message": "React Hook useEffect has a missing dependency: 'sectionRefs'. Either include it or remove the dependency array.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "unknown",
+          "file": "src/pages/landing/index.tsx",
+          "message": "Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps').",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/refs",
+          "file": "src/pages/landing/sections/CtaSection.tsx",
+          "message": "Error: Cannot access refs during render React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/pages/LoginPage.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 4
+        },
+        {
+          "code": "react-hooks/refs",
+          "file": "src/pages/PrivacyPage.tsx",
+          "message": "Error: Cannot access refs during render React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/pages/ProfilePage.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/pages/ProfilePage.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/pages/ResetPasswordPage.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "src/pages/SignupPage.tsx",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "react-hooks/refs",
+          "file": "src/pages/TermsPage.tsx",
+          "message": "Error: Cannot access refs during render React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "react-hooks/immutability",
+          "file": "src/pages/UnsubscribePage.tsx",
+          "message": "Error: Cannot access variable before it is declared `handleUnsubscribe` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/set-state-in-effect",
+          "file": "src/pages/UnsubscribePage.tsx",
+          "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "react-hooks/exhaustive-deps",
+          "file": "src/pages/UnsubscribePage.tsx",
+          "message": "React Hook useEffect has a missing dependency: 'handleUnsubscribe'. Either include it or remove the dependency array.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "supabase/functions/_shared/simple-email-service.ts",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "no-useless-escape",
+          "file": "supabase/functions/_shared/simple-email-service.ts",
+          "message": "Unnecessary escape character: \\-.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "supabase/functions/get-monitoring-data/index.ts",
+          "message": "'endpoint' is assigned a value but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "supabase/functions/get-monitoring-data/index.ts",
+          "message": "'sesV1Endpoint' is assigned a value but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "supabase/functions/process-recurring-transactions/index.ts",
+          "message": "'error' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/ban-ts-comment",
+          "file": "supabase/functions/send-new-user-email/index.ts",
+          "message": "Do not use \"@ts-nocheck\" because it alters compilation errors.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "supabase/functions/send-new-user-email/index.ts",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "supabase/functions/send-new-user-email/index.ts",
+          "message": "'fetchAuthUser' is assigned a value but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "supabase/functions/send-reminder-emails/index.ts",
+          "message": "'e' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "supabase/functions/send-reminder-emails/simple-email-service.ts",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "no-useless-escape",
+          "file": "supabase/functions/send-reminder-emails/simple-email-service.ts",
+          "message": "Unnecessary escape character: \\-.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-explicit-any",
+          "file": "supabase/functions/send-reminder-emails/user-service.ts",
+          "message": "Unexpected any. Specify a different type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "@typescript-eslint/no-unused-vars",
+          "file": "supabase/functions/verify-captcha/index.ts",
+          "message": "'CaptchaPayload' is defined but never used.",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "severities": {
+        "error": 172,
+        "warning": 26
+      },
+      "total": 198
+    },
+    "typecheck:app": {
+      "command": "tsc -p tsconfig.app.json --noEmit --pretty false",
+      "categories": {
+        "TS2305": 6,
+        "TS2307": 3,
+        "TS2322": 18,
+        "TS2339": 14,
+        "TS2344": 2,
+        "TS2345": 4,
+        "TS2349": 1,
+        "TS2353": 3,
+        "TS2550": 7,
+        "TS2591": 1,
+        "TS2723": 1,
+        "TS2724": 4,
+        "TS2739": 1,
+        "TS2740": 2,
+        "TS2741": 5,
+        "TS6133": 19,
+        "TS6192": 1,
+        "TS7006": 11
+      },
+      "diagnostics": [
+        {
+          "code": "TS2741",
+          "file": "src/components/admin/AdminTrendsChart.tsx",
+          "message": "Property 'payload' is missing in type '{}' but required in type 'Omit<ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & Pick<Props, \"payload\" | \"verticalAlign\"> & { ...; }, \"ref\">'.",
+          "severity": "error",
+          "count": 3
+        },
+        {
+          "code": "TS2345",
+          "file": "src/components/analytics/RecurringRatioInsight.tsx",
+          "message": "Argument of type 'string' is not assignable to parameter of type '\"ILS\" | \"USD\" | \"EUR\" | \"CAD\" | \"GBP\" | \"AUD\" | \"CHF\" | \"ARS\" | \"BRL\" | \"ZAR\" | \"MXN\" | \"UAH\" | undefined'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2741",
+          "file": "src/components/charts/area-chart-interactive.tsx",
+          "message": "Property 'payload' is missing in type '{}' but required in type 'Omit<ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & Pick<Props, \"payload\" | \"verticalAlign\"> & { ...; }, \"ref\">'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/components/charts/area-chart-interactive.tsx",
+          "message": "'CardDescription' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/components/Currency/CurrencyConversionInfo.tsx",
+          "message": "'React' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/components/forms/transaction-form-parts/CurrencyConversionSection.tsx",
+          "message": "'loadingRate' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/components/forms/transaction-form-parts/CurrencyConversionSection.tsx",
+          "message": "'React' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/components/forms/transaction-form-parts/RecurringFields.tsx",
+          "message": "'FormDescription' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/components/forms/transaction-form-parts/RecurringFields.tsx",
+          "message": "'React' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2741",
+          "file": "src/components/forms/transaction-form-parts/TransactionTypeSelector.tsx",
+          "message": "Property 'initial_balance' is missing in type '{ income: any; donation: any; expense: any; \"exempt-income\": any; \"recognized-expense\": any; non_tithe_donation: any; }' but required in type 'Record<TransactionType, string>'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2322",
+          "file": "src/components/import/steps/ImportReviewStep.tsx",
+          "message": "Type '{ key: string; label: any; count: number; }[]' is not assignable to type '{ key: FilterMode; label: string; count: number; }[]'. Type '{ key: string; label: any; count: number; }' is not assignable to type '{ key: FilterMode; label: string; count: number; }'. Types of property 'key' are incompatible. Type 'string' is not assignable to type 'FilterMode'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/components/layout/PageControls.tsx",
+          "message": "'useTranslation' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/components/layout/PlatformIndicator.tsx",
+          "message": "'React' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/components/settings/FinancialSettingsCard.tsx",
+          "message": "'disableMinMaaserPercentage' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/components/settings/FinancialSettingsCard.tsx",
+          "message": "'Input' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/components/settings/FinancialSettingsCard.tsx",
+          "message": "'Percent' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/components/settings/LanguageAndDisplaySettingsCard.tsx",
+          "message": "'languageSettings' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6192",
+          "file": "src/components/settings/LanguageAndDisplaySettingsCard.tsx",
+          "message": "All imports in import declaration are unused.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/components/TransactionsTable/ExportButton.tsx",
+          "message": "'React' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2345",
+          "file": "src/components/TransactionsTable/RecurringTransactionEditModal.tsx",
+          "message": "Argument of type '{ day_of_month: number | undefined; total_occurrences: number | undefined; amount: number; currency: \"ILS\" | \"USD\" | \"EUR\" | \"CAD\" | \"GBP\" | \"AUD\" | \"CHF\" | \"ARS\" | \"BRL\" | \"ZAR\" | \"MXN\" | \"UAH\"; ... 8 more ...; rate_source?: \"auto\" | ... 2 more ... | undefined; }' is not assignable to parameter of type 'Partial<RecurringTransaction>'. Types of property 'original_currency' are incompatible. Type 'string | null | undefined' is not assignable to type 'Currency | null | undefined'. Type 'string' is not assignable to type 'Currency | null | undefined'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2322",
+          "file": "src/components/ui/accordion.tsx",
+          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'Iterable<ReactNode>'. The types returned by '[Symbol.iterator]().next(...)' are incompatible between these types. Type 'IteratorResult<ReactI18NextChildren, any>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorYieldResult<ReactNode>'. Type 'ReactI18NextChildren' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2322",
+          "file": "src/components/ui/breadcrumb.tsx",
+          "message": "Type '{ type?: string | undefined; defaultChecked?: boolean | undefined; defaultValue?: string | number | readonly string[] | undefined; suppressContentEditableWarning?: boolean | undefined; suppressHydrationWarning?: boolean | undefined; ... 282 more ...; className: string; }' is not assignable to type '{ children?: ReactNode; }'. Types of property 'children' are incompatible. Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2322",
+          "file": "src/components/ui/button.tsx",
+          "message": "Type '{ disabled?: boolean | undefined; form?: string | undefined; formAction?: string | ((formData: FormData) => void | Promise<void>) | undefined; formEncType?: string | undefined; ... 284 more ...; ref: ForwardedRef<...>; }' is not assignable to type '{ children?: ReactNode; }'. Types of property 'children' are incompatible. Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2353",
+          "file": "src/components/ui/calendar.tsx",
+          "message": "Object literal may only specify known properties, and 'table' does not exist in type 'Partial<ClassNames>'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2339",
+          "file": "src/components/ui/chart.tsx",
+          "message": "Property 'label' does not exist on type 'Omit<Omit<Props<ValueType, NameType>, PropertiesReadFromContext> & { active?: boolean | undefined; allowEscapeViewBox?: AllowInDimension | undefined; ... 24 more ...; wrapperStyle?: CSSProperties | undefined; } & ClassAttributes<...> & HTMLAttributes<...> & { ...; }, \"ref\">'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2339",
+          "file": "src/components/ui/chart.tsx",
+          "message": "Property 'length' does not exist on type '{}'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2339",
+          "file": "src/components/ui/chart.tsx",
+          "message": "Property 'map' does not exist on type '{}'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2339",
+          "file": "src/components/ui/chart.tsx",
+          "message": "Property 'payload' does not exist on type 'Omit<Omit<Props<ValueType, NameType>, PropertiesReadFromContext> & { active?: boolean | undefined; allowEscapeViewBox?: AllowInDimension | undefined; ... 24 more ...; wrapperStyle?: CSSProperties | undefined; } & ClassAttributes<...> & HTMLAttributes<...> & { ...; }, \"ref\">'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2344",
+          "file": "src/components/ui/chart.tsx",
+          "message": "Type '\"payload\" | \"verticalAlign\"' does not satisfy the constraint '\"content\" | \"children\" | \"dangerouslySetInnerHTML\" | \"onCopy\" | \"onCopyCapture\" | \"onCut\" | \"onCutCapture\" | \"onPaste\" | \"onPasteCapture\" | \"onCompositionEnd\" | \"onCompositionEndCapture\" | ... 169 more ... | \"onBBoxUpdate\"'. Type '\"payload\"' is not assignable to type '\"content\" | \"children\" | \"dangerouslySetInnerHTML\" | \"onCopy\" | \"onCopyCapture\" | \"onCut\" | \"onCutCapture\" | \"onPaste\" | \"onPasteCapture\" | \"onCompositionEnd\" | \"onCompositionEndCapture\" | ... 169 more ... | \"onBBoxUpdate\"'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS7006",
+          "file": "src/components/ui/chart.tsx",
+          "message": "Parameter 'index' implicitly has an 'any' type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS7006",
+          "file": "src/components/ui/chart.tsx",
+          "message": "Parameter 'item' implicitly has an 'any' type.",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "TS2305",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "Module '\"@/lib/utils\"' has no exported member 'exportToExcel'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2305",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "Module '\"@/lib/utils\"' has no exported member 'exportToPDF'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2305",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "Module '\"@tanstack/react-table\"' has no exported member 'getPaginationRowModel'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2344",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "Type 'TData' does not satisfy the constraint 'TableFeatures'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2724",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "'\"@tanstack/react-table\"' has no exported member named 'getCoreRowModel'. Did you mean 'createCoreRowModel'?",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2724",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "'\"@tanstack/react-table\"' has no exported member named 'getFilteredRowModel'. Did you mean 'createFilteredRowModel'?",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2724",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "'\"@tanstack/react-table\"' has no exported member named 'getSortedRowModel'. Did you mean 'createSortedRowModel'?",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2724",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "'\"@tanstack/react-table\"' has no exported member named 'useReactTable'. Did you mean 'ReactTable'?",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "'columnId' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS7006",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "Parameter 'cell' implicitly has an 'any' type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS7006",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "Parameter 'columnId' implicitly has an 'any' type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS7006",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "Parameter 'filterValue' implicitly has an 'any' type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS7006",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "Parameter 'header' implicitly has an 'any' type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS7006",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "Parameter 'headerGroup' implicitly has an 'any' type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS7006",
+          "file": "src/components/ui/data-table.tsx",
+          "message": "Parameter 'row' implicitly has an 'any' type.",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "TS2353",
+          "file": "src/components/ui/date-picker.tsx",
+          "message": "Object literal may only specify known properties, and 'caption' does not exist in type 'Partial<ClassNames>'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2353",
+          "file": "src/components/ui/date-range-picker.tsx",
+          "message": "Object literal may only specify known properties, and 'caption' does not exist in type 'Partial<ClassNames>'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2322",
+          "file": "src/components/ui/dialog.tsx",
+          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'Iterable<ReactNode>'. The types returned by '[Symbol.iterator]().next(...)' are incompatible between these types. Type 'IteratorResult<ReactI18NextChildren, any>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorYieldResult<ReactNode>'. Type 'ReactI18NextChildren' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2322",
+          "file": "src/components/ui/drawer.tsx",
+          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'Iterable<ReactNode>'. The types returned by '[Symbol.iterator]().next(...)' are incompatible between these types. Type 'IteratorResult<ReactI18NextChildren, any>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorYieldResult<ReactNode>'. Type 'ReactI18NextChildren' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2322",
+          "file": "src/components/ui/dropdown-menu.tsx",
+          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'Iterable<ReactNode>'. The types returned by '[Symbol.iterator]().next(...)' are incompatible between these types. Type 'IteratorResult<ReactI18NextChildren, any>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorYieldResult<ReactNode>'. Type 'ReactI18NextChildren' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
+          "severity": "error",
+          "count": 3
+        },
+        {
+          "code": "TS2339",
+          "file": "src/components/ui/resizable.tsx",
+          "message": "Property 'PanelGroup' does not exist on type 'typeof import(\"<repo>/node_modules/react-resizable-panels/dist/react-resizable-panels\")'.",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "TS2339",
+          "file": "src/components/ui/resizable.tsx",
+          "message": "Property 'PanelResizeHandle' does not exist on type 'typeof import(\"<repo>/node_modules/react-resizable-panels/dist/react-resizable-panels\")'.",
+          "severity": "error",
+          "count": 3
+        },
+        {
+          "code": "TS2322",
+          "file": "src/components/ui/select.tsx",
+          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'Iterable<ReactNode>'. The types returned by '[Symbol.iterator]().next(...)' are incompatible between these types. Type 'IteratorResult<ReactI18NextChildren, any>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorYieldResult<ReactNode>'. Type 'ReactI18NextChildren' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2322",
+          "file": "src/components/ui/sheet.tsx",
+          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'Iterable<ReactNode>'. The types returned by '[Symbol.iterator]().next(...)' are incompatible between these types. Type 'IteratorResult<ReactI18NextChildren, any>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorYieldResult<ReactNode>'. Type 'ReactI18NextChildren' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2322",
+          "file": "src/components/ui/toggle-group.tsx",
+          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2322",
+          "file": "src/hooks/useScrollAnimation.ts",
+          "message": "Type 'string' is not assignable to type 'MarginType | undefined'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2322",
+          "file": "src/hooks/useTransactionFormInitialization.ts",
+          "message": "Type 'string' is not assignable to type 'undefined'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2345",
+          "file": "src/lib/analytics/export-pdf.ts",
+          "message": "Argument of type 'string' is not assignable to parameter of type '\"ILS\" | \"USD\" | \"EUR\" | \"CAD\" | \"GBP\" | \"AUD\" | \"CHF\" | \"ARS\" | \"BRL\" | \"ZAR\" | \"MXN\" | \"UAH\" | undefined'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2339",
+          "file": "src/lib/analytics/posthogClient.ts",
+          "message": "Property '__TAURI_INTERNALS__' does not exist on type 'Window & typeof globalThis'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2305",
+          "file": "src/lib/data-layer/monitoring.service.ts",
+          "message": "Module '\"i18next\"' has no exported member 'TFunction'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2305",
+          "file": "src/lib/data-layer/reminders/reminder.service.ts",
+          "message": "Module '\"i18next\"' has no exported member 'TFunction'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2307",
+          "file": "src/lib/data-layer/transactionForm.service.ts",
+          "message": "Cannot find module '@/types/forms' or its corresponding type declarations.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2550",
+          "file": "src/lib/halacha/draw-mixed-rtl.test.ts",
+          "message": "Property 'at' does not exist on type '{ text: string; x: number; ltr: boolean; }[]'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2022' or later.",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "TS2307",
+          "file": "src/lib/halacha/export-halacha-pdf.test.ts",
+          "message": "Cannot find module 'node:fs' or its corresponding type declarations.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2307",
+          "file": "src/lib/halacha/export-halacha-pdf.test.ts",
+          "message": "Cannot find module 'node:path' or its corresponding type declarations.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2349",
+          "file": "src/lib/import/parsers.ts",
+          "message": "This expression is not callable. Not all constituents of type 'string | number | boolean | Date | CellErrorValue | CellRichTextValue | CellHyperlinkValue | CellFormulaValue | CellSharedFormulaValue | ((start?: number | undefined, end?: number | undefined) => CellValue[])' are callable. Type 'string' has no call signatures.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2591",
+          "file": "src/lib/import/parsers.ts",
+          "message": "Cannot find name 'Buffer'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node` and then add 'node' to the types field in your tsconfig.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2723",
+          "file": "src/lib/import/parsers.ts",
+          "message": "Cannot invoke an object which is possibly 'null' or 'undefined'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS7006",
+          "file": "src/lib/import/parsers.ts",
+          "message": "Parameter 'v' implicitly has an 'any' type.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2550",
+          "file": "src/lib/onboarding/tours/firstRun.test.ts",
+          "message": "Property 'at' does not exist on type 'DriveStep[]'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2022' or later.",
+          "severity": "error",
+          "count": 3
+        },
+        {
+          "code": "TS2345",
+          "file": "src/lib/onboarding/tours/firstRun.ts",
+          "message": "Argument of type '\"home-intro\" | \"tithe-balance\" | \"opening-balance\" | \"card-quick-add\" | \"date-range\" | \"continue-to-form\" | \"transaction-form\" | \"transaction-basics\" | \"transaction-flags\" | ... 9 more ... | \"import-approve\"' is not assignable to parameter of type 'never'. Type '\"home-intro\"' is not assignable to type 'never'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2550",
+          "file": "src/lib/onboarding/tours/importTour.test.ts",
+          "message": "Property 'at' does not exist on type 'DriveStep[]'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2022' or later.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2305",
+          "file": "src/lib/schemas.ts",
+          "message": "Module '\"i18next\"' has no exported member 'TFunction'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/lib/services/desktop-settings.service.ts",
+          "message": "'settings' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/lib/services/desktop-settings.service.ts",
+          "message": "'value' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2322",
+          "file": "src/lib/tableTransactions/bulkActions.ts",
+          "message": "Type 'any' is not assignable to type 'never'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2339",
+          "file": "src/lib/tableTransactions/bulkActions.ts",
+          "message": "Property 'action' does not exist on type 'never'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2740",
+          "file": "src/lib/utils/currency.ts",
+          "message": "Type '{ ILS: string; USD: string; EUR: string; }' is missing the following properties from type 'Record<\"ILS\" | \"USD\" | \"EUR\" | \"CAD\" | \"GBP\" | \"AUD\" | \"CHF\" | \"ARS\" | \"BRL\" | \"ZAR\" | \"MXN\" | \"UAH\", string>': CAD, GBP, AUD, CHF, and 5 more.",
+          "severity": "error",
+          "count": 2
+        },
+        {
+          "code": "TS6133",
+          "file": "src/lib/utils/currency.ts",
+          "message": "'CURRENCIES' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2739",
+          "file": "src/lib/utils/dropzone-rejection.test.ts",
+          "message": "Type 'File' is missing the following properties from type 'FileWithPath': path, relativePath",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2550",
+          "file": "src/lib/utils/export-csv.test.ts",
+          "message": "Property 'at' does not exist on type '[params: { bytes: Uint8Array<ArrayBufferLike>; defaultFilename: string; filters: ExportSaveFilter[]; mimeType?: string | undefined; }][]'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2022' or later.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2339",
+          "file": "src/lib/utils/serviceWorkerUtils.ts",
+          "message": "Property '__TAURI_INTERNALS__' does not exist on type 'Window & typeof globalThis'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2339",
+          "file": "src/pages/AnalyticsPage.tsx",
+          "message": "Property 'from' does not exist on type 'DateRange | ((prevState: DateRange | undefined) => DateRange | undefined)'. Property 'from' does not exist on type '(prevState: DateRange | undefined) => DateRange | undefined'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2339",
+          "file": "src/pages/AnalyticsPage.tsx",
+          "message": "Property 'to' does not exist on type 'DateRange | ((prevState: DateRange | undefined) => DateRange | undefined)'. Property 'to' does not exist on type '(prevState: DateRange | undefined) => DateRange | undefined'.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS2322",
+          "file": "src/pages/landing/components/LandingButtons.tsx",
+          "message": "Type 'ReactI18NextChildren | Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ... 4 more ... | undefined'. Type 'Iterable<ReactI18NextChildren>' is not assignable to type 'Iterable<ReactNode>'. The types returned by '[Symbol.iterator]().next(...)' are incompatible between these types. Type 'IteratorResult<ReactI18NextChildren, any>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorResult<ReactNode, any>'. Type 'IteratorYieldResult<ReactI18NextChildren>' is not assignable to type 'IteratorYieldResult<ReactNode>'. Type 'ReactI18NextChildren' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is not assignable to type 'ReactNode'. Type 'Record<string, unknown>' is missing the following properties from type 'ReactPortal': children, type, props, key",
+          "severity": "error",
+          "count": 3
+        },
+        {
+          "code": "TS6133",
+          "file": "src/pages/RecurringTransactionsTable.tsx",
+          "message": "'React' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        },
+        {
+          "code": "TS6133",
+          "file": "src/pages/TransactionsTable.tsx",
+          "message": "'React' is declared but its value is never read.",
+          "severity": "error",
+          "count": 1
+        }
+      ],
+      "severities": {
+        "error": 103
+      },
+      "total": 103
+    }
+  },
+  "version": 1
+}
