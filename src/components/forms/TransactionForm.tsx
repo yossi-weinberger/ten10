@@ -30,6 +30,7 @@ import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { toast } from "sonner";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
+import { getCurrentLocalDate } from "@/lib/utils/local-date";
 
 interface TransactionFormProps {
   initialData?: Transaction | null; // For editing
@@ -107,7 +108,7 @@ export function TransactionForm({
     resolver: zodResolver(transactionSchema) as Resolver<TransactionFormValues>,
     mode: "onChange",
     defaultValues: {
-      date: new Date().toISOString().split("T")[0],
+      date: getCurrentLocalDate(),
       amount: undefined,
       currency: defaultCurrency,
       description: "",
@@ -201,9 +202,7 @@ export function TransactionForm({
       const defaultVals: Partial<TransactionFormValues> = {
         ...initialData,
         type: baseType, // Use normalized base type instead of derived type
-        date: initialData.date
-          ? new Date(initialData.date).toISOString().split("T")[0]
-          : "",
+        date: initialData.date || "",
         // Handle converted transactions: show original values in form
         amount: initialData.original_amount ?? initialData.amount,
         currency: (initialData.original_currency as Transaction["currency"]) ?? initialData.currency,
@@ -423,7 +422,7 @@ export function TransactionForm({
         scheduleSubmitSuccess(() => {
           const nextType = form.getValues("type");
           form.reset({
-            date: new Date().toISOString().split("T")[0],
+            date: getCurrentLocalDate(),
             amount: undefined,
             currency: defaultCurrency,
             description: "",

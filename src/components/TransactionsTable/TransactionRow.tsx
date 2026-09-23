@@ -20,6 +20,7 @@ import { RecurringProgressBadge } from "./RecurringProgressBadge";
 import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversionInfo";
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { formatCategory } from "@/lib/category-registry";
+import { parseLocalDate } from "@/lib/utils/local-date";
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
@@ -49,7 +50,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   return (
     <TableRow key={transaction.id} data-state={selected ? "selected" : undefined}>
       <TableCell className="text-start whitespace-nowrap">
-        {new Date(transaction.date).toLocaleDateString(i18n.language, {
+        {parseLocalDate(transaction.date).toLocaleDateString(i18n.language, {
           year: "numeric",
           month: "2-digit",
           day: "2-digit",

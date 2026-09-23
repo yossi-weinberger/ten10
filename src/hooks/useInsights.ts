@@ -17,6 +17,7 @@ import { RecurringTransaction } from "@/types/transaction";
 import { DateRangeObject } from "./useDateControls";
 import { Platform } from "@/contexts/PlatformContext";
 import { logger } from "@/lib/logger";
+import { getCurrentLocalDate } from "@/lib/utils/local-date";
 
 // Re-export so existing callers don't break
 export { getPreviousPeriodRange } from "@/lib/utils/date-range";
@@ -207,7 +208,7 @@ export function useInsights(
     try {
       // Always fetch full history so the heatmap shows meaningful density
       // regardless of the active date filter.
-      const todayStr = new Date().toISOString().split("T")[0];
+      const todayStr = getCurrentLocalDate();
       const data = await fetchDailyHeatmap("1970-01-01", todayStr, heatmapTypeGroup);
       setHeatmapData(data);
     } catch (err) {

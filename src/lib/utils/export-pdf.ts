@@ -14,6 +14,7 @@ import {
   getGregorianMonthKey,
   isGregorianMonthTransition,
 } from "@/lib/utils/gregorian-month";
+import { parseLocalDate } from "@/lib/utils/local-date";
 
 // Import fonts directly using Vite's ?url feature for robust path handling
 import regularFontUrl from "/fonts/Rubik-Regular.ttf?url";
@@ -634,7 +635,7 @@ export async function exportTransactionsToPDF(
         t.is_chomesh === true;
 
       const rowData = [
-        format(new Date(t.date), "dd/MM/yy"),
+        format(parseLocalDate(t.date), "dd/MM/yy"),
         i18n.t(`export.transactionTypes.${t.type}`, { lng: currentLanguage }) ||
           t.type,
         formatCurrency(t.amount, t.currency, currentLanguage),

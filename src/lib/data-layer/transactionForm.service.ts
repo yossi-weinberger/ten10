@@ -18,6 +18,7 @@ import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { notifyOnboardingTransactionCreated } from "@/lib/onboarding/transactionBridge";
 import { firstDueDate } from "@/lib/recurring/recurring-date.utils";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
+import { parseLocalDate } from "@/lib/utils/local-date";
 
 /**
  * Normalizes a transaction type to its base type.
@@ -85,8 +86,7 @@ export async function handleTransactionSubmit(
   // For recurring transactions, the day of the month is derived from the start date,
   // unless explicitly provided by the user (e.g. they want charge on 15th but start on 10th).
   // We prioritize the user input recurring_day_of_month when provided (non-null/undefined).
-  // Using getUTCDate to avoid timezone-related off-by-one errors when deriving from date.
-  const derivedDayOfMonth = new Date(values.date).getUTCDate();
+  const derivedDayOfMonth = parseLocalDate(values.date).getDate();
   const dayOfMonth = values.recurring_day_of_month ?? derivedDayOfMonth;
 
   // Logic for recurring transactions

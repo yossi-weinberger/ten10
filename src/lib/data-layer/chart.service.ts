@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabaseClient";
 // import { getCurrentPlatform } from "./platformService"; // No longer needed
 import { getPlatform } from "../platformManager";
 import { logger } from "@/lib/logger";
+import { formatLocalDate } from "@/lib/utils/local-date";
 
 export interface MonthlyDataPoint {
   month_label: string; // "YYYY-MM"
@@ -30,7 +31,7 @@ export async function fetchServerMonthlyChartData(
     return null;
   }
 
-  const endDateStr = endDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
+  const endDateStr = formatLocalDate(endDate);
   const platform = getPlatform();
 
   logger.log(

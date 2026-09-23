@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
+import { getIsraelDate } from "../_shared/israel-date.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -220,7 +221,7 @@ Deno.serve(async (req) => {
     console.log("Starting process-recurring-transactions...");
 
     // 1. Fetch due recurring transactions
-    const today = new Date().toISOString().split("T")[0];
+    const today = getIsraelDate();
     const { data: dueTransactions, error: fetchError } = await supabase
       .from("recurring_transactions")
       .select("*")
@@ -254,8 +255,7 @@ Deno.serve(async (req) => {
       return rate;
     };
 
-    const todayDateObj = new Date();
-    todayDateObj.setHours(0, 0, 0, 0);
+    const todayDateObj = parseLocalDate(today);
 
     // 2. Process each transaction definition
     for (const rec of dueTransactions) {

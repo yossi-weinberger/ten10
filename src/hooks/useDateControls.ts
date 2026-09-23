@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DateRange } from "react-day-picker";
+import { formatLocalDate } from "@/lib/utils/local-date";
 
 export type DateRangeSelectionType = "month" | "year" | "all" | "custom";
 
@@ -8,14 +9,6 @@ export interface DateRangeObject {
   startDate: string; // YYYY-MM-DD (local)
   endDate: string; // YYYY-MM-DD (local) - typically "today"
   label?: string;
-}
-
-// Helper: format Date as local YYYY-MM-DD without timezone conversion
-function formatLocalDate(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
 }
 
 // Helper: get "today" as a Date (local)

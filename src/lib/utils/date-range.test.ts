@@ -51,10 +51,17 @@ describe("getPreviousPeriodRange", () => {
     });
   }
 
-  it("treats date-only inputs as UTC dates rather than shifting them to local midnight", () => {
+  it("treats date-only inputs as local calendar dates", () => {
     expect(getPreviousPeriodRange("2026-01-01", "2026-01-01")).toEqual({
       startDate: "2025-12-31",
       endDate: "2025-12-31",
+    });
+  });
+
+  it("keeps calendar-day length across the Israeli daylight-saving boundary", () => {
+    expect(getPreviousPeriodRange("2026-03-27", "2026-03-29")).toEqual({
+      startDate: "2026-03-24",
+      endDate: "2026-03-26",
     });
   });
 });

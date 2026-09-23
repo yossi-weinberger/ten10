@@ -4,6 +4,7 @@ import i18n from "@/lib/i18n";
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { getRecurringExportInfo, getExportCategoryLabel } from "@/lib/utils/export-transaction-fields";
 import { saveOrDownloadExportedFile } from "@/lib/utils/save-export-file";
+import { parseLocalDate } from "@/lib/utils/local-date";
 
 export async function exportTransactionsToExcel(
   transactions: Transaction[],
@@ -123,7 +124,7 @@ export async function exportTransactionsToExcel(
     );
 
     const rowData = {
-      date: new Date(transaction.date),
+      date: parseLocalDate(transaction.date),
       type:
         i18n.t(`export.transactionTypes.${transaction.type}`, {
           lng: currentLanguage,

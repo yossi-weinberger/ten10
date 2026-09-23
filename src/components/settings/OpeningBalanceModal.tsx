@@ -53,6 +53,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { CurrencyConversionSection } from "@/components/forms/transaction-form-parts/CurrencyConversionSection";
 import { OpeningBalanceHomeStyleStatCard } from "@/components/settings/OpeningBalanceHomeStyleStatCard";
 import { ToggleChoiceCard } from "@/components/ui/toggle-choice-card";
+import { getCurrentLocalDate } from "@/lib/utils/local-date";
 
 // Derive currency codes tuple from CURRENCIES for type-safe Zod enum
 const CURRENCY_CODES = CURRENCIES.map((c) => c.code) as [CurrencyCode, ...CurrencyCode[]];
@@ -259,7 +260,7 @@ export function OpeningBalanceModal({
         transactionPayload.original_currency = values.currency;
         transactionPayload.conversion_rate = conversionRate;
         transactionPayload.conversion_date =
-          values.conversion_date || new Date().toISOString().split("T")[0];
+          values.conversion_date || getCurrentLocalDate();
         transactionPayload.rate_source = values.rate_source;
       }
 
@@ -282,7 +283,7 @@ export function OpeningBalanceModal({
       // Opening balance uses a slim payload shape; TransactionFormValues is wider
       await handleTransactionSubmit({
         type: "initial_balance",
-        date: new Date().toISOString().split("T")[0],
+        date: getCurrentLocalDate(),
         description: t("balanceManagement.openingBalanceButton"),
         category: "",
         is_chomesh: isChomesh,

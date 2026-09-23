@@ -3,6 +3,7 @@ import { fetchServerTitheBalance } from "../analytics.service";
 import { showDesktopNotification } from "./notification.service";
 import { TFunction } from "i18next";
 import { logger } from "@/lib/logger";
+import { formatLocalDate } from "@/lib/utils/local-date";
 
 const LAST_REMINDER_DATE_KEY = "lastReminderDate";
 
@@ -66,7 +67,7 @@ export async function checkAndSendDesktopReminder(t: TFunction): Promise<void> {
     }
 
     const lastReminderDate = localStorage.getItem(LAST_REMINDER_DATE_KEY);
-    const todayStr = today.toISOString().split("T")[0];
+    const todayStr = formatLocalDate(today);
 
     logger.log(
       "Last reminder sent on:",

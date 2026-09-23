@@ -13,6 +13,7 @@ import { useDonationStore } from "@/lib/store";
 import { CurrencyCode } from "@/lib/currencies";
 import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
+import { parseLocalDate } from "@/lib/utils/local-date";
 
 interface CurrencyConversionInfoProps {
   amount: number;
@@ -136,7 +137,7 @@ export function CurrencyConversionInfo({
                   </span>
                   <span className="font-medium">
                     {conversionDate
-                      ? new Date(conversionDate).toLocaleDateString("en-GB", {
+                      ? parseLocalDate(conversionDate).toLocaleDateString("en-GB", {
                           day: "2-digit",
                           month: "2-digit",
                           year: "2-digit",

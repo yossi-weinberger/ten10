@@ -4,6 +4,7 @@ import { logger } from "@/lib/logger";
 import { saveOrDownloadExportedFile } from "@/lib/utils/save-export-file";
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { getRecurringExportInfo, getExportCategoryLabel } from "@/lib/utils/export-transaction-fields";
+import { parseLocalDate } from "@/lib/utils/local-date";
 
 function escapeCsvCell(
   cellData: string | number | boolean | null | undefined
@@ -80,7 +81,7 @@ export async function exportTransactionsToCSV(
       const locale = isHebrew ? "he-IL" : "en-US";
 
       const row = [
-        new Date(transaction.date).toLocaleDateString(locale, {
+        parseLocalDate(transaction.date).toLocaleDateString(locale, {
           year: "numeric",
           month: "2-digit",
           day: "2-digit",

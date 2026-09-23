@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { RecurringTransaction, TransactionType } from "@/types/transaction";
 import { recurringStatusBadgeColors } from "@/types/recurringTransactionLabels";
+import { parseLocalDate } from "@/lib/utils/local-date";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { RecurringTransactionEditModal } from "./RecurringTransactionEditModal";
 import {
@@ -512,7 +513,7 @@ export function RecurringTransactionsTableDisplay() {
                         )}
                       </TableCell>
                       <TableCell className="text-center">
-                        {new Date(rec.next_due_date).toLocaleDateString(
+                        {parseLocalDate(rec.next_due_date).toLocaleDateString(
                           i18n.language
                         )}
                       </TableCell>

@@ -1,5 +1,6 @@
 import type { ImportNormalizedRow, ImportRowIssue } from "./import-session.types";
 import type { RecurringTransaction } from "@/types/transaction";
+import { parseLocalDate } from "@/lib/utils/local-date";
 
 const AMOUNT_TOLERANCE_PERCENT = 0.05; // 5%
 const DAY_OF_MONTH_TOLERANCE = 3; // ±3 days
@@ -12,7 +13,7 @@ export function checkRecurringWarning(
   row: ImportNormalizedRow,
   recurringTransactions: RecurringTransaction[]
 ): ImportRowIssue | null {
-  const rowDate = new Date(row.date + "T00:00:00");
+  const rowDate = parseLocalDate(row.date);
   const rowDayOfMonth = rowDate.getDate();
 
   for (const rec of recurringTransactions) {

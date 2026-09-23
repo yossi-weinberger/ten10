@@ -22,6 +22,7 @@ import type {
   TransactionBulkPatch,
 } from "./bulkActions";
 import { getErrorMessage } from "@/lib/utils/error-message";
+import { parseLocalDate } from "@/lib/utils/local-date";
 
 export interface TableTransactionsState {
   // State
@@ -414,10 +415,10 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           const exportFilters = {
             dateRange: {
               from: filters.dateRange.from
-                ? new Date(filters.dateRange.from)
+                ? parseLocalDate(filters.dateRange.from)
                 : undefined,
               to: filters.dateRange.to
-                ? new Date(filters.dateRange.to)
+                ? parseLocalDate(filters.dateRange.to)
                 : undefined,
             },
           };

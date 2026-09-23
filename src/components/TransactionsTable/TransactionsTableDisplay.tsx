@@ -33,6 +33,7 @@ import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { TableTransactionsService } from "@/lib/tableTransactions/tableTransactionService";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 import { BulkEditDialog } from "./BulkEditDialog";
+import { parseLocalDate } from "@/lib/utils/local-date";
 import { BulkEditFields } from "./BulkEditFields";
 import { useLoadedRowSelection } from "@/hooks/useLoadedRowSelection";
 import {
@@ -733,7 +734,7 @@ export function TransactionsTableDisplay() {
             transactionToDelete?.description ||
             t("messages.defaultTransactionName"),
           date: transactionToDelete?.date
-            ? new Date(transactionToDelete.date).toLocaleDateString(
+            ? parseLocalDate(transactionToDelete.date).toLocaleDateString(
                 i18n.language
               )
             : "",

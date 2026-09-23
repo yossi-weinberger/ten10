@@ -1,3 +1,5 @@
+import { formatLocalDate, parseLocalDate } from "./local-date";
+
 /**
  * Compute the "previous period" date range of the same length as the active one.
  * Used for delta % comparison on KPI cards.
@@ -6,13 +8,34 @@ export function getPreviousPeriodRange(
   startDate: string,
   endDate: string
 ): { startDate: string; endDate: string } {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  const lengthMs = end.getTime() - start.getTime();
-  const prevEnd = new Date(start.getTime() - 1);
-  const prevStart = new Date(prevEnd.getTime() - lengthMs);
+  const start = parseLocalDate(startDate);
+  const end = parseLocalDate(endDate);
+  const startOrdinal = Date.UTC(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate(),
+  );
+  const endOrdinal = Date.UTC(
+    end.getFullYear(),
+    end.getMonth(),
+    end.getDate(),
+  );
+  const inclusiveDays = Math.round(
+    (endOrdinal - startOrdinal) / (24 * 60 * 60 * 1000),
+  ) + 1;
+  const prevEnd = new Date(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate() - 1,
+  );
+  const prevStart = new Date(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate() - inclusiveDays,
+  );
+
   return {
-    startDate: prevStart.toISOString().split("T")[0],
-    endDate: prevEnd.toISOString().split("T")[0],
+    startDate: formatLocalDate(prevStart),
+    endDate: formatLocalDate(prevEnd),
   };
 }

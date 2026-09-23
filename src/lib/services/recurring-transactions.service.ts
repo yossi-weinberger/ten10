@@ -13,6 +13,7 @@ import {
   formatLocalDate,
   parseLocalDate,
 } from "@/lib/recurring/recurring-date.utils";
+import { getCurrentLocalDate } from "@/lib/utils/local-date";
 
 /**
  * Advances the due date based on frequency
@@ -157,7 +158,7 @@ export const RecurringTransactionsService = {
                   originalAmount = rec.original_amount;
                   originalCurrency = rec.original_currency;
                   conversionRate = freshRate;
-                  conversionDate = new Date().toISOString().split("T")[0];
+                  conversionDate = getCurrentLocalDate();
                   rateSource = "auto";
                   logger.log(
                     `RecurringTransactionsService: Using FRESH rate for ${rec.id}: ${rec.original_amount} ${rec.original_currency} -> ${finalAmount} ${defaultCurrency} (Rate: ${freshRate})`
@@ -188,7 +189,7 @@ export const RecurringTransactionsService = {
                 originalAmount = rec.amount;
                 originalCurrency = rec.currency;
                 conversionRate = rate;
-                conversionDate = new Date().toISOString().split("T")[0];
+                conversionDate = getCurrentLocalDate();
                 rateSource = "auto";
                 logger.log(
                   `RecurringTransactionsService: Legacy conversion ${rec.amount} ${rec.currency} -> ${finalAmount} ${defaultCurrency}`
