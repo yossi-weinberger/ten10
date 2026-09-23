@@ -1,6 +1,6 @@
 # מחקר: תמיכה גורפת בלוח עברי ב-TEN10
 
-**תאריך:** 18.9.2026 (ז' בתשרי תשפ"ז) · **גרסת אפליקציה:** 0.7.5 · **סטטוס ביצוע (23.9.2026):** P1 ירוק מקומית וב-GitHub CI; P2 הוקם ואומת; Supabase Preview ו-Vercel Preview עברו ב-[Draft PR #424](https://github.com/yossi-weinberger/ten10/pull/424).
+**תאריך:** 18.9.2026 (ז' בתשרי תשפ"ז) · **גרסת אפליקציה:** 0.7.5 · **סטטוס ביצוע (23.9.2026):** P1–P3 הושלמו ואומתו ב-[Draft PR #424](https://github.com/yossi-weinberger/ten10/pull/424): CI ירוק, testing מבודד, Preview ירוק, ופרוד נפרס רק מ-`main`.
 
 מקורות: כל `src/`, `supabase/` (מיגרציות + edge functions), `src-tauri/`, `llm-instructions/`, `docs/`, `public/locales/`, `TODO.md`, היסטוריית git (1,370 קומיטים), סכמת ה-Postgres החיה בפרודקשן (638 פרופילים, ~17K תנועות, 880 הוראות קבע), הצלבה מול מסמך המלצות חיצוני (`hebrew-calendar-recommendations-2026-09-18.md`), ובדיקות חיות של `@hebcal/hdate` ו-`temporal-polyfill/full` ב-Node 24.
 
@@ -450,7 +450,7 @@ src/lib/calendar/
 
 | ממצא | ערך |
 |---|---|
-| Ref / סוג | `ldgrbqibfuagniilrtpm` · Persistent Micro · `with_data: true` · Git branch `feat/hebrew-calendar-foundation` |
+| Ref / סוג | `bbcllewcotypedqsnwmi` · Persistent Micro · `with_data: true` · Git branch `feat/hebrew-calendar-foundation` |
 | סטטוס | `FUNCTIONS_DEPLOYED` / `ACTIVE_HEALTHY` |
 | עלות | החל מ-$0.01344 לשעה (~$9.80 לחודש), ללא Compute Credits |
 | סכמה | **זהה לפרוד ביט-לביט לפי fingerprints:** 99 עמודות, 54 פונקציות, 25 indexes, 15 policies |

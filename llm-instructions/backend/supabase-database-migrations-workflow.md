@@ -16,13 +16,13 @@ This document describes the full process for applying database changes (schema, 
 | Environment | Project Ref | Use |
 |-------------|-------------|-----|
 | **Production** | `flpzqbvbymoluoeeeofg` | Live app – updated only from `main` |
-| **Testing** | `ldgrbqibfuagniilrtpm` | Persistent Supabase branch associated with `feat/hebrew-calendar-foundation` |
+| **Testing** | `bbcllewcotypedqsnwmi` | Persistent Supabase branch associated with `feat/hebrew-calendar-foundation` |
 
 ### Testing safety (important)
 
 - `testing` was cloned from production with data. Treat all rows as sensitive production data.
 - All four `cron.job` entries are disabled. Keep them disabled until `service_role_key` in testing Vault is rotated to the testing token.
-- `functions_base_url` in testing Vault points to `https://ldgrbqibfuagniilrtpm.supabase.co`.
+- `functions_base_url` in testing Vault points to `https://bbcllewcotypedqsnwmi.supabase.co`.
 - Production and testing schema fingerprints matched when testing was created: 99 columns, 54 functions, 25 indexes, 15 policies, 174 migrations.
 - Deleted refs `ngtsnskyupageagcmqdp` and `ghzcsmscsympfxknubcp` must never be used.
 
@@ -56,7 +56,7 @@ Do not manually apply the migration first with MCP. Doing so creates migration-h
 
 - Confirm the **Supabase Preview** check passed.
 - Run smoke tests against the Vercel Preview linked to testing.
-- Verify RLS and function behavior with the testing project (`ldgrbqibfuagniilrtpm`).
+- Verify RLS and function behavior with the testing project (`bbcllewcotypedqsnwmi`).
 - Run Supabase security/performance advisors for schema changes.
 - Confirm all testing cron jobs remain inactive.
 
@@ -95,7 +95,7 @@ Some migrations (e.g. cron jobs) use `vault.decrypted_secrets`. Secrets must be 
 
 | Name | Production | Testing |
 |------|-----------|-------------------------|
-| `functions_base_url` | `https://flpzqbvbymoluoeeeofg.supabase.co` | `https://ldgrbqibfuagniilrtpm.supabase.co` |
+| `functions_base_url` | `https://flpzqbvbymoluoeeeofg.supabase.co` | `https://bbcllewcotypedqsnwmi.supabase.co` |
 | `service_role_key` | service_role JWT from Project Settings → API | Must be rotated to the testing token before cron is enabled |
 
 ### How to Add

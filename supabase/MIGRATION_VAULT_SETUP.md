@@ -15,7 +15,7 @@ Base URL for calling Edge Functions from cron jobs.
 | Environment | Value |
 |-------------|-------|
 | Production  | `https://flpzqbvbymoluoeeeofg.supabase.co` |
-| Testing     | `https://ldgrbqibfuagniilrtpm.supabase.co` |
+| Testing     | `https://bbcllewcotypedqsnwmi.supabase.co` |
 
 ### `service_role_key`
 
