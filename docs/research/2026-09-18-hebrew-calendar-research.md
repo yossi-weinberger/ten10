@@ -1,6 +1,6 @@
 # מחקר: תמיכה גורפת בלוח עברי ב-TEN10
 
-**תאריך:** 18.9.2026 (ז' בתשרי תשפ"ז) · **גרסת אפליקציה:** 0.7.5 · **סטטוס ביצוע (23.9.2026):** P1–P4 ו-0a–0b הושלמו ואומתו ב-[Draft PR #424](https://github.com/yossi-weinberger/ten10/pull/424): CI ירוק בשני אזורי זמן, testing מבודד, Preview ירוק, פרוד נפרס רק מ-`main`, ו-410 בדיקות מגנות על התנהגות התאריכים.
+**תאריך:** 18.9.2026 (ז' בתשרי תשפ"ז) · **גרסת אפליקציה:** 0.7.5 · **סטטוס ביצוע (23.9.2026):** P1–P4, 0a–0b ושלב 1 הושלמו ואומתו ב-[Draft PR #424](https://github.com/yossi-weinberger/ten10/pull/424): CI ירוק בשני אזורי זמן, testing מבודד, Preview מחובר ישירות ל-testing, Temporal parity עבר ב-Vite וב-Deno, ו-436 בדיקות ירוקות.
 
 מקורות: כל `src/`, `supabase/` (מיגרציות + edge functions), `src-tauri/`, `llm-instructions/`, `docs/`, `public/locales/`, `TODO.md`, היסטוריית git (1,370 קומיטים), סכמת ה-Postgres החיה בפרודקשן (638 פרופילים, ~17K תנועות, 880 הוראות קבע), הצלבה מול מסמך המלצות חיצוני (`hebrew-calendar-recommendations-2026-09-18.md`), ובדיקות חיות של `@hebcal/hdate` ו-`temporal-polyfill/full` ב-Node 24.
 
@@ -349,7 +349,7 @@ src/lib/calendar/
 | **P5. baseline (מקביל, לא חוסם)** | Dump סכמה → מיגרציה אחת; `migration repair` בפרוד; מחיקת 174 stubs; `seed.sql` סינתטי עם מקרי קצה עבריים | `supabase/migrations/`, `supabase/seed.sql`, `scripts/generate-seed.ts` | 1–2 ימים | P3 |
 | **0a. ביקורת UTC — הושלם** | ערכי תאריך עסקי משתמשים בשדות local calendar במקום מעבר דרך UTC; date-only parsing לא זז למשתמשי חו"ל; `process-recurring-transactions` מחשב "היום" ב-`Asia/Jerusalem`. שימושי UTC טכניים (שמות קובצי export/backup) נשארו בכוונה | 32 קבצים, 4 test suites חדשים | הושלם | P4 |
 | **0b. ניקוי — הושלם** | `maaserYearStart` הוסר מה-store ומהעדפות web/desktop; `client_preferences` עובר whitelist; מפתחות i18n היתומים הוסרו; שני RPCs מתים הוסרו. Migration `20260923114002` נרשמה ב-testing בלבד: 0 פונקציות/העדפות legacy; פרוד נשאר עם 2/336 עד merge | Store, settings sanitizer, locales, migration | הושלם | P1–P3 |
-| **1. ליבה** | `src/lib/calendar/` + adapters (Temporal) + בדיקות טבלת אמת; `calendarType` + `showSecondaryDate` ב-store + `CalendarSettingsCard` (משוחזר ומפושט); החלטת רישוי. **כולל spike של ½ יום:** המודול יושב ב-`supabase/functions/_shared/calendar/`, Vite alias + `deno.json` import map, וטסט פאריטי אחד (אותו fixture ב-vitest וב-`deno test`) — מוכיח את מסלול השיתוף לפני שנשענים עליו בגל C | חדש + `SettingsPage.tsx` + `vite.config.ts` + `supabase/functions/deno.json` | 2–3 ימים | 0a, 0b |
+| **1. ליבה — הושלם** | Calendar adapter משותף על `temporal-polyfill/full`: המרות, format typed, גבולות חודש/שנה, addMonths, clamp, month keys/labels; round-trip של 73,414 ימים; parity fixtures זהים ב-Vite וב-Deno. `calendarType` ו-`showSecondaryDate` נשמרים בווב/דסקטופ, כרטיס ההגדרות פעיל ו-cache חודשי מתאפס רק בהחלפת לוח | 23 קבצים, 436 tests, Deno 2/2 | הושלם | 0a, 0b |
 | **2. רמה A — תצוגה** | כל נקודות הפורמט בסעיף 4.4 עוברות לפורמטר המרכזי (`{primary, secondary?}`); PDF/CSV/Excel עם עמודה לועזית קבועה; date-picker עם כיתוב עברי (עדיין גריד גרגוריאני) | ~15 קבצים | 2–3 ימים | 1 |
 | **3. גריד עברי** | `HebrewDateLib` ל-`react-day-picker`; caption/dropdown; RTL | `calendar.tsx`, `date-picker.tsx`, `date-range-picker.tsx` | 2–3 ימים | 1 |
 | **4. רמה B — תקופות** | `useDateControls`, `date-range.ts`, מפרידי חודשים (טבלה + PDF), heatmap labels; RPC/Tauri "גבולות" + `MonthlyChart` על `monthKey`; ניקוי cache | `useDateControls.ts`, `chart.service.ts`, מיגרציה RPC, `chart_commands.rs`, `MonthlyChart.tsx`, `store.ts` | 4–5 ימים | 1 |
@@ -460,7 +460,7 @@ src/lib/calendar/
 | בטיחות | כל 4 ה-cron jobs הושבתו עם `cron.alter_job(..., active := false)`; `functions_base_url` ב-Vault הוחלף ל-URL של הענף |
 | בדיקת API | REST עם anon key של הענף החזיר HTTP 200 |
 | מגבלה פתוחה | `service_role_key` ב-Vault עדיין token של פרוד; **אסור להפעיל cron** עד החלפתו. ניסיונות CLI דרך pooler/direct DB נכשלו בחיבור; ניתן לעדכן דרך Dashboard SQL Editor או אחרי תיקון קישור ה-DB |
-| Vercel Preview | deployment עבר ב-PR #424. MCP חסר הרשאת env וה-preview מוגן SSO, לכן הזרקת ה-URL/key של הענף לא אומתה ישירות מתוך ה-bundle; Supabase Preview עבר והענף משויך לאותו Git branch |
+| Vercel Preview | שני משתני `VITE_SUPABASE_*` מוגדרים כ-Preview branch overrides לענף Git. Login, settings ו-PATCH נבדקו בדפדפן; כל הבקשות יצאו ל-`bbcllewcotypedqsnwmi`, לא לפרוד |
 
 הענף הקודם `ghzcsmscsympfxknubcp` נכשל (`MIGRATIONS_FAILED`, 38/174 migrations) ונמחק לפני השחזור. שורש הבעיה ההיסטורי נשאר כחוב תשתיתי: 123 מ-174 קבצי המיגרציה הם stubs של `SELECT 1`; `with_data` עקף זאת באמצעות snapshot מלא. לכן baseline + seed (P5) עדיין נדרשים ל-local dev ולענפי preview נקיים.
 
@@ -507,7 +507,7 @@ src/lib/calendar/
 
 ### 9.5 אסטרטגיית טסטים — שערים לכל שלב
 
-**מצב אחרי P1 (`9616da9`, תיקון Linux `0d552b5`):** `.github/workflows/ci.yml` מריץ app Vitest ב-UTC וב-Asia/Jerusalem, Edge Vitest, Rust `cargo test --locked`, Node TypeScript נקי, ו-ratchets דטרמיניסטיים לחוב App TypeScript (103 diagnostics) ו-ESLint (198 diagnostics). מקומית: 373/373 Vitest, 130/130 Edge, 43/43 Rust. ב-GitHub: TypeScript, ESLint, שני אזורי הזמן, Edge, Rust, security audit, Supabase Preview ו-Vercel Preview עברו. כל diagnostic חדש מכשיל CI. עדיין אין `Deno.test`, RTL/jsdom, Playwright או pgTAP.
+**מצב אחרי שלב 1:** `.github/workflows/ci.yml` מריץ app Vitest ב-UTC וב-Asia/Jerusalem, Edge Vitest, Deno parity אמיתי, Rust `cargo test --locked`, Node TypeScript נקי, ו-ratchets דטרמיניסטיים לחוב App TypeScript ו-ESLint. ב-GitHub: TypeScript, ESLint, שני אזורי הזמן, Edge, Deno, Rust, security audit, Supabase Preview ו-Vercel Preview עברו. כל diagnostic חדש מכשיל CI. עדיין אין RTL/jsdom, Playwright CI או pgTAP.
 
 **עיקרון:** מצב `gregorian` חייב להישאר **זהה ביט-לביט** אחרי הרפקטור. זה מה שמאפשר לוותר על בדיקה ידנית — לא "לבדוק שהעברי עובד" אלא "להוכיח שהלועזי לא השתנה, ושהעברי עומד בטבלת אמת".
 
