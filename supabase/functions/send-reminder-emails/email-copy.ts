@@ -52,6 +52,10 @@ interface ReminderLocaleJson {
     credit: string;
     settled: string;
   };
+  maaserYear: {
+    subject: string;
+    reminder: string;
+  };
   monthlyEncouragements: readonly MonthlyEncouragement[];
 }
 
@@ -73,6 +77,10 @@ export interface ReminderLocaleCopy {
   unsubscribeReminder: string;
   unsubscribeAll: string;
   subject: SubjectCopy;
+  maaserYear: {
+    subject: string;
+    reminder: string;
+  };
   monthlyEncouragements: readonly MonthlyEncouragement[];
 }
 
@@ -110,6 +118,7 @@ function hydrateLocale(raw: ReminderLocaleJson): ReminderLocaleCopy {
       credit: (amount) => fillAmountTemplate(raw.subject.credit, amount),
       settled: raw.subject.settled,
     },
+    maaserYear: raw.maaserYear,
     monthlyEncouragements: raw.monthlyEncouragements,
   };
 }

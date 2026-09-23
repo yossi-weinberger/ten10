@@ -10,6 +10,7 @@ import {
 } from "./reminder-schedule.ts";
 import {
   deduplicateReminderUsers,
+  partitionYearlyReminderRecipients,
   resolveDueReminderCohorts,
   type DueReminderCohort,
 } from "./reminder-cohorts.ts";
@@ -435,31 +436,30 @@ serve(async (req) => {
       );
     }
 
-    const results = usersWithBalances.length === 0
+    const yearlyCandidates = yearlyDue
+      ? await userService.getAllUsersWithTitheBalances()
+      : [];
+    const { monthlyOnly, yearly } = partitionYearlyReminderRecipients(
+      usersWithBalances,
+      yearlyCandidates,
+    );
+    const monthlyResults = monthlyOnly.length === 0
       ? []
-      : [...await emailService.sendBulkReminders(usersWithBalances)];
-    const sentMonthlyIds = new Set(usersWithBalances.map((user) => user.id));
+      : await emailService.sendBulkReminders(monthlyOnly);
+    const yearlyResults = yearly.length === 0
+      ? []
+      : await emailService.sendBulkReminders(yearly, "maaser-year");
+    const results = [...monthlyResults, ...yearlyResults];
 
-    if (usersWithBalances.length > 0) {
+    if (monthlyOnly.length > 0) {
       console.log(
-        `[REMINDER] Starting to send emails to ${usersWithBalances.length} unique users for [${cohortContext}]${isTest ? " (TEST MODE)" : ""}`,
+        `[REMINDER] Starting to send emails to ${monthlyOnly.length} unique users for [${cohortContext}]${isTest ? " (TEST MODE)" : ""}`,
       );
     }
 
-    let yearlySent = 0;
-    let yearlyFailed = 0;
-    let yearlyProcessed = 0;
-    if (yearlyDue) {
-      const yearlyUsers = (await userService.getAllUsersWithTitheBalances())
-        .filter((user) => !sentMonthlyIds.has(user.id));
-      yearlyProcessed = yearlyUsers.length;
-      if (yearlyUsers.length > 0) {
-        const yearlyResults = await emailService.sendBulkReminders(yearlyUsers);
-        yearlySent = yearlyResults.filter((result) => result.status === "sent").length;
-        yearlyFailed = yearlyResults.filter((result) => result.status === "failed").length;
-        results.push(...yearlyResults);
-      }
-    }
+    const yearlySent = yearlyResults.filter((result) => result.status === "sent").length;
+    const yearlyFailed = yearlyResults.filter((result) => result.status === "failed").length;
+    const yearlyProcessed = yearly.length;
 
     const sentCount = results.filter((r) => r.status === "sent").length;
     const failedCount = results.filter((r) => r.status === "failed").length;
@@ -484,7 +484,7 @@ serve(async (req) => {
       : "";
     await logRun(supabaseAdmin, {
       ...buildReminderRunLog(currentIsraelDate, primaryResolution, {
-        usersProcessed: usersWithBalances.length + yearlyProcessed,
+        usersProcessed: monthlyOnly.length + yearlyProcessed,
         emailsSent: sentCount,
         emailsFailed: failedCount,
       }),
@@ -494,7 +494,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         message:
-          `Processed ${usersWithBalances.length + yearlyProcessed} unique users for [${cohortContext || "none"}]${yearlyDue ? "; maaser-year-close" : ""}${isTest ? " (TEST MODE)" : ""}. Sent: ${sentCount}, Failed: ${failedCount}`,
+          `Processed ${monthlyOnly.length + yearlyProcessed} unique users for [${cohortContext || "none"}]${yearlyDue ? "; maaser-year-close" : ""}${isTest ? " (TEST MODE)" : ""}. Sent: ${sentCount}, Failed: ${failedCount}`,
         results,
         was_yom_tov: false,
       }),

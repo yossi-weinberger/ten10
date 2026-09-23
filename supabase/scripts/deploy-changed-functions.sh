@@ -46,6 +46,7 @@ SHARED_DEPENDENT=(
   send-new-user-email
   verify-captcha
   verify-unsubscribe-token
+  process-recurring-transactions
   process-email-request
   get-monitoring-data
   get-posthog-analytics

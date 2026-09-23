@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   deduplicateReminderUsers,
+  partitionYearlyReminderRecipients,
   resolveDueReminderCohorts,
 } from "./reminder-cohorts.ts";
 import type { ReminderUser } from "./reminder-user.ts";
@@ -69,5 +70,17 @@ describe("mixed reminder calendar cohorts", () => {
         hebrewUser,
       ]),
     ).toEqual([gregorianUser, reminderUser("gregorian-only")]);
+  });
+
+  it("sends the maaser-year email to overlap recipients instead of a second monthly email", () => {
+    expect(
+      partitionYearlyReminderRecipients(
+        [reminderUser("monthly"), reminderUser("both")],
+        [reminderUser("both"), reminderUser("yearly")],
+      ),
+    ).toEqual({
+      monthlyOnly: [reminderUser("monthly")],
+      yearly: [reminderUser("both"), reminderUser("yearly")],
+    });
   });
 });

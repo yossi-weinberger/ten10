@@ -46,6 +46,17 @@ export function resolveDueReminderCohorts(
   return cohorts;
 }
 
+export function partitionYearlyReminderRecipients<T extends { id: string }>(
+  monthlyUsers: readonly T[],
+  yearlyUsers: readonly T[],
+): { monthlyOnly: T[]; yearly: T[] } {
+  const yearlyIds = new Set(yearlyUsers.map((user) => user.id));
+  return {
+    monthlyOnly: monthlyUsers.filter((user) => !yearlyIds.has(user.id)),
+    yearly: [...yearlyUsers],
+  };
+}
+
 export function deduplicateReminderUsers<T extends ReminderUser>(
   users: readonly T[],
 ): T[] {
