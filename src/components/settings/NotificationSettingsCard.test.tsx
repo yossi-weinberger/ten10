@@ -2,6 +2,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { NotificationSettingsCard } from "./NotificationSettingsCard";
 
+vi.mock("@/lib/supabaseClient", () => ({
+  supabase: {},
+}));
+
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
