@@ -27,7 +27,7 @@
       analyticsLines: ["ניתוח נתונים", "לכלכלת הבית."],
       reportsLines: ["הדפסת דוחות", "וייצוא נתונים."],
       // landing.json → about (partnership + endorsements)
-      trust: { line1: "פותח בשיתוף עם מכון תורת האדם לאדם", line2: "ובהסכמת רבנים מובילים", verified: "מאושר הלכתית", endCredit: "בשיתוף מכון תורת האדם לאדם" },
+      trust: { line1: "פותח בשיתוף עם מכון תורת האדם לאדם", line1V: ["פותח בשיתוף עם", "מכון תורת האדם לאדם"], line2: "ובהסכמת רבנים מובילים", verified: "מאושר הלכתית", endCredit: "בשיתוף מכון תורת האדם לאדם" },
       platformsTitle: "בחר את הגרסה המתאימה לך",
       halachaLine: "מאגר הלכות",
       questionLine: "שאלה שלא מצאת עליה תשובה?",
@@ -266,7 +266,7 @@
       remindLines: ["And reminders", "when you need them."],
       analyticsLines: ["Analytics", "for your household budget."],
       reportsLines: ["Print reports", "and export your data."],
-      trust: { line1: "Developed in partnership with Torat Ha’adam La’adam Institute", line2: "and endorsed by leading rabbis", verified: "Halachically Verified", endCredit: "In partnership with Torat Ha’adam La’adam Institute" },
+      trust: { line1: "Developed in partnership with Torat Ha’adam La’adam Institute", line1V: ["Developed in partnership with", "Torat Ha’adam La’adam Institute"], line2: "and endorsed by leading rabbis", verified: "Halachically Verified", endCredit: "In partnership with Torat Ha’adam La’adam Institute" },
       platformsTitle: "Choose the Right Version for You",
       halachaLine: "Halachic Library",
       questionLine: "Still have a question?",

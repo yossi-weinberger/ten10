@@ -22,7 +22,7 @@
   <script src="ui.js"></script>
   <script src="scenes.js"></script>
   <script>
-    // ?lang=he|en  &t=<sec>  &render=1 (hides controls; the renderer drives seek())
+    // ?lang=he|en  &format=landscape|vertical  &t=<sec>  &render=1 (hides controls; the renderer drives seek())
     (async function () {
       const q = new URLSearchParams(location.search);
       const lang = q.get("lang") === "en" ? "en" : "he";
@@ -37,17 +37,18 @@
       } catch {
         timing = ENGINE.estimateTiming(await getJSON(`../narration/script.${lang}.json`));
       }
-      const film = await FILM.init(stage, lang, timing);
+      const format = q.get("format") === "vertical" ? "vertical" : "landscape";
+      const film = await FILM.init(stage, lang, timing, { format });
       window.__film = {
-        ready: true, lang, duration: film.duration, times: film.times,
+        ready: true, lang, format, width: film.width, height: film.height, duration: film.duration, times: film.times,
         seek: (t) => film.seek(t), cues: () => film.cues(), qa: () => film.qa(), timingSource: timing.source,
       };
 
       // ---------- preview UI ----------
       const fit = () => {
         const ctl = render ? 0 : 54;
-        const k = Math.min(innerWidth / 1920, (innerHeight - ctl) / 1080);
-        stage.style.transform = `translate(${(innerWidth - 1920 * k) / 2}px, ${(innerHeight - ctl - 1080 * k) / 2}px) scale(${k})`;
+        const k = Math.min(innerWidth / film.width, (innerHeight - ctl) / film.height);
+        stage.style.transform = `translate(${(innerWidth - film.width * k) / 2}px, ${(innerHeight - ctl - film.height * k) / 2}px) scale(${k})`;
       };
       if (!render) { fit(); addEventListener("resize", fit); } else stage.style.transform = "none";
 

@@ -31,9 +31,10 @@ node tools/stills.mjs --lang he --times             # print every resolved scene
 tools/produce.sh he                          # full production, provisional timing (no voice yet)
 tools/produce.sh he audio/narration_he.wav   # full production synced to the real recording
 MUSIC=audio/licensed.wav tools/produce.sh en audio/narration_en.wav   # with a licensed music track
+FORMAT=vertical tools/produce.sh he          # the 9:16 (1080×1920) cut; stills/render take --format vertical too
 ```
 
-Output: `renders/<lang>/TEN10_promo_<lang>_1080p.mp4` (1920×1080, 30 fps, H.264 High CRF 16 + AAC 256k, −16 LUFS / −1.5 dBTP with narration).
+Output: `renders/<lang>/TEN10_promo_<lang>_1080p.mp4`, or `renders/<lang>-vertical/TEN10_promo_<lang>_vertical_1080x1920.mp4` for the vertical cut (1920×1080 / 1080×1920, 30 fps, H.264 High CRF 16 + AAC 256k, −16 LUFS / −1.5 dBTP with narration).
 A full render takes about 5 minutes per language with 3 parallel browsers (`WORKERS=3`).
 
 If Chromium lives somewhere unusual, set `CHROMIUM_PATH`. If ffmpeg isn't on `PATH`, set `FFMPEG`; otherwise the tools fall back to imageio-ffmpeg.
@@ -132,11 +133,13 @@ promo-video/
 
 The project is structured so derived cuts are edits, not rebuilds:
 
-* **1080×1920 / 1080×1080:** the stage size is set once (`W`, `H`, `CX`, `CY` in `scenes.js`, `#stage` in `film.css`). Every
-  scene reads layout from a few constants (window scale/position `WIN_*`, headline edge `HL_EDGE`/`HL_W`, tile columns). A
-  vertical cut stacks the headline above the app window instead of beside it (set `align: "center"` with a `top` on the headline
-  blocks, move `WIN_Y` down, and scale the window to width). The donut, logo and lockup scenes are already centre-composed.
-  `render.mjs` takes the viewport from `browser.mjs`, so change 1920×1080 there too.
+* **1080×1920 (built):** `?format=vertical` (`--format vertical` in the tools, `FORMAT=vertical` for `produce.sh`) is its own
+  composition, not a rotation. Timing, scenes and sound are shared; only layout changes, and all of it lives in one object `L` at
+  the top of `init()` in `scenes.js`. In vertical: headlines are centred blocks above the app window; the window is scaled to the
+  width and the camera moves in closer (`camK`) from the sidebar edge; overlays (transaction form, reminder email, export chips)
+  sit below the window; the chaos scene is transposed around the ring (`P()`); web and desktop are stacked; the together tiles
+  are rows above and below the window with vertical connectors. Headline readability QA runs the same way (`--qa --format vertical`).
+* **1080×1080:** add a third branch to `L` (and the stage size in `init()`, `film.css`, `browser.mjs`) following the vertical one.
 * **30 s / 15 s:** record (or trim) a shorter narration with a subset of the same phrase ids, for example 15 s =
   `hook1 hook2 order maaser brand tagline`. Scenes whose phrases are absent can be skipped by guarding their block with
   `A.has(id)` (already provided by `makeAnchors` in `engine.js`). Since everything is anchor-relative, the remaining scenes keep

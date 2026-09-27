@@ -12,9 +12,11 @@ import { openFilm } from "./browser.mjs";
 const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const arg = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? process.argv[i + 1] : d; };
 const lang = arg("lang", "he");
+const format = arg("format", "landscape");
+const tag = format === "vertical" ? `${lang}v` : lang;
 const out = path.join(root, "renders/stills");
 fs.mkdirSync(out, { recursive: true });
-const film = await openFilm(lang);
+const film = await openFilm(lang, { format });
 console.log(`${lang}: duration ${film.info.duration.toFixed(2)}s, timing ${film.info.source}`);
 if (process.argv.includes("--qa")) {
   // readability: seconds each headline group is fully on screen (once its reveal is legible)
@@ -29,14 +31,14 @@ const ts = arg("t", null);
 if (ts) {
   for (const t of ts.split(",").map(Number)) {
     await film.seek(t);
-    const f = path.join(out, `${lang}_${t.toFixed(2).padStart(6, "0")}.png`);
+    const f = path.join(out, `${tag}_${t.toFixed(2).padStart(6, "0")}.png`);
     await film.page.screenshot({ path: f });
     console.log(f);
   }
 }
 const sheet = arg("sheet", null);
 if (sheet) {
-  const n = Number(sheet), cols = 6, tw = 320, th = 180;
+  const n = Number(sheet), cols = format === "vertical" ? 10 : 6, tw = format === "vertical" ? 180 : 320, th = format === "vertical" ? 320 : 180;
   const shots = [];
   for (let i = 0; i < n; i++) {
     const t = (film.info.duration * (i + 0.5)) / n;
@@ -47,7 +49,7 @@ if (sheet) {
   await film.page.setViewportSize({ width: cols * tw, height: rows * (th + 18) });
   await film.page.setContent(`<body style="margin:0;background:#111;display:grid;grid-template-columns:repeat(${cols},${tw}px);font:12px sans-serif;color:#ccc">${shots
     .map((s) => `<div><img src="data:image/jpeg;base64,${s.b64}" style="width:${tw}px;height:${th}px;display:block"><div style="height:18px;padding-left:4px">${s.t.toFixed(2)}s</div></div>`).join("")}</body>`);
-  const f = path.join(out, `${lang}_sheet.png`);
+  const f = path.join(out, `${tag}_sheet.png`);
   await film.page.screenshot({ path: f, fullPage: true });
   console.log(f);
 }
@@ -70,7 +72,7 @@ if (process.argv.includes("--style")) {
     <div style="display:grid;grid-template-columns:repeat(2,${tw}px);gap:14px 20px">${shots.map((x) =>
       `<div><img src="data:image/jpeg;base64,${x.b64}" style="width:${tw}px;height:${th}px;display:block;border-radius:6px">
        <div style="padding:6px 2px 0">${x.label} <span style="color:#8d887a;font-weight:400">· ${x.t.toFixed(2)}s</span></div></div>`).join("")}</div></body>`);
-  const f = path.join(out, `${lang}_style_frames.png`);
+  const f = path.join(out, `${tag}_style_frames.png`);
   await film.page.screenshot({ path: f, fullPage: true });
   console.log(f);
 }

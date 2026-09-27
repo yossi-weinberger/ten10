@@ -9,8 +9,10 @@
 (function () {
   const { clamp, lerp, E, prog, win, makeAnchors, cue, sfx, h, s, icon, put, setText, setStyle, setAttr, rnd } = window.ENGINE;
 
-  const W = 1920, H = 1080, CX = 960, CY = 540;
-  const WIN_S = 0.85, WIN_VW = 1440, WIN_VH = 860;
+  // stage size is per format (landscape 1920×1080, vertical 1080×1920); set in init()
+  let W = 1920, H = 1080, CX = 960, CY = 540;
+  let WIN_S = 0.85;
+  const WIN_VW = 1440, WIN_VH = 860;
 
   async function inlineSvg(url) {
     const txt = await (await fetch(url)).text();
@@ -18,14 +20,38 @@
     return document.importNode(d.documentElement, true);
   }
 
-  async function init(stage, lang, timing) {
+  async function init(stage, lang, timing, opts = {}) {
     const C = window.CONTENT[lang];
     const R = C.dir === "rtl";
+    // Vertical (9:16) is its own composition, not a rotation: stacked layouts, centred type,
+    // a closer camera inside the app window. Scene logic and timing are shared.
+    const V = opts.format === "vertical";
+    W = V ? 1080 : 1920; H = V ? 1920 : 1080; CX = W / 2; CY = H / 2;
+    const L = V ? {
+      heroSize: 330, eyebrowTop: 660, eyebrowSize: R ? 58 : 50, soundsTop: 1305, soundsSize: R ? 70 : 62,
+      wideW: 900, wideCY: 900, orderTop: 1060, orderSize: R ? 66 : 54, stackCY: 820,
+      winS: 0.72, winX: (1080 - 1440 * 0.72) / 2, winY: 850, camK: 1.32,
+      hlCenter: 560, hlW: 980, hlSize: R ? 86 : 72, qSize: R ? 60 : 52, topTitle: 190, topW: 980,
+      tx: [280, 1490], fileStart: [1800], cal: [305, 890], recRow: [280, 1530], ib: [260, 1140], mail: [260, 890],
+      sheet: [190, 2000, 770], xch: [425, 1450], trustTop: 600,
+      pl: { web: [290], desk: [1062], s: 0.98, title: 150 }, s9S: 0.62, s9CY: 1000, finalRingY: 860,
+      taglineTop: 1110, taglineSize: R ? 62 : 52, freeTop: 1320, ruleTop: 1428, urlTop: 1454, creditTop: 1570,
+      tile: { w: 300, h: 178, k: 0.83 }, tileRows: [450, 1370],
+    } : {
+      heroSize: 400, eyebrowTop: 196, eyebrowSize: R ? 60 : 52, soundsTop: 806, soundsSize: R ? 76 : 70,
+      wideW: 980, wideCY: 430, orderTop: 596, orderSize: R ? 70 : 60, stackCY: 392,
+      winS: 0.85, winX: null, winY: 175, camK: 1,
+      hlCenter: 540, hlW: 545, hlSize: R ? 88 : 76, qSize: R ? 58 : 50, topTitle: null, topW: 1700,
+      trustTop: 225, s9S: 0.5, s9CY: 600, finalRingY: 520,
+      taglineTop: 612, taglineSize: R ? 68 : 56, freeTop: 712, ruleTop: 800, urlTop: 826, creditTop: 922,
+      tile: { w: 360, h: 214, k: 1 },
+    };
+    WIN_S = L.winS;
     const A = makeAnchors(timing);
     const UI = window.makeUI(C);
     const money = UI.money;
     const B = (k) => A.w(C.beats[k][0], C.beats[k][1]);
-    stage.className = R ? "rtl" : "ltr-stage";
+    stage.className = (R ? "rtl" : "ltr-stage") + (V ? " vertical" : "");
     stage.innerHTML = "";
     sfx.length = 0;
 
@@ -33,7 +59,7 @@
     const mx = (x, w = 0) => (R ? x : W - x - w);
     // keyword-synced visuals and their sounds land this much before the spoken word (brief §7, §25)
     const KW_LEAD = 0.14;
-    const HL_EDGE = 70, HL_W = 545;
+    const HL_EDGE = 70, HL_W = L.hlW;
 
     // =========================================================== named times
     const T = {};
@@ -150,7 +176,10 @@
     const K = C.chaos;
     const frags = [];
     const typeWord = C.ui.table.types;
-    const addFrag = (el, x, y, t0, opt = {}) => {
+    // landscape RTL-frame coordinates → this format's coordinates (vertical: transposed around the ring)
+    const P = (x, y) => (V ? [CX + (y - 540) * 0.74, CY + (x - 960) * 0.98] : [x, y]);
+    const addFrag = (el, x0, y0, t0, opt = {}) => {
+      let [x, y] = opt.raw ? [x0, y0] : P(x0, y0);
       chaosLayer.append(el);
       const conn = s("path", { fill: "none", stroke: "rgba(17,103,106,0.28)", "stroke-width": 1.6, pathLength: 1, "stroke-dasharray": "0 1" });
       connG.append(conn);
@@ -169,7 +198,7 @@
       const n = K.months.length;
       const a = (-34 + (68 * i) / (n - 1)) * (R ? -1 : 1);
       const [x, y] = pt(CX, CY + 60, 430, a);
-      addFrag(h("div", { class: "frag pill month" }, m), R ? x : W - x, y - 18, T.months - 0.12 + i * 0.07, { month: true });
+      addFrag(h("div", { class: "frag pill month" }, m), R ? x : W - x, y - 18, T.months - 0.12 + i * 0.07, { month: true, raw: true });
     });
     addFrag(h("div", { class: "frag pill" }, h("span", { style: { color: "var(--teal)" } }, icon("calendar", 18, 2)), K.prevMonth.label,
       h("span", { class: "amt num", style: { color: "var(--teal)" } }, money(K.prevMonth.amount))), 1390, 800, T.months + 0.3);
@@ -208,20 +237,26 @@
     const nonMonth = frags.filter((f) => !f.month && !f.noAlign);
     nonMonth.forEach((f, i) => {
       const col = i % 2, row = Math.floor(i / 2);
-      f.sx = (col === 0 ? 1500 : 420);
-      f.sx = R ? f.sx : W - f.sx;
-      f.sy = 330 + row * 66;
+      if (V) {
+        // two columns, half the rows above the ring and half below it
+        f.sx = col === 0 ? W * 0.73 : W * 0.27; f.sx = R ? f.sx : W - f.sx;
+        f.sy = row < 5 ? 250 + row * 64 : 1380 + (row - 5) * 64;
+      } else {
+        f.sx = (col === 0 ? 1500 : 420);
+        f.sx = R ? f.sx : W - f.sx;
+        f.sy = 330 + row * 66;
+      }
     });
-    frags.filter((f) => f.month).forEach((f, i) => { f.sx = R ? 1200 - i * 120 : 720 + i * 120; f.sy = 196; });
+    frags.filter((f) => f.month).forEach((f, i) => { f.sx = R ? CX + 240 - i * 120 : CX - 240 + i * 120; f.sy = V ? 150 : 196; });
 
     // =========================================================== hero "10%"
     const heroLayer = h("div", { class: "layer", style: { width: `${W}px`, height: `${H}px`, display: "flex", alignItems: "center", justifyContent: "center", transformOrigin: "50% 50%" } });
-    const hero = h("div", { class: "hero10", style: { fontSize: "400px", transform: "translateY(-0.04em)" } }, "10", h("span", { class: "pct" }, "%"));
+    const hero = h("div", { class: "hero10", style: { fontSize: `${L.heroSize}px`, transform: "translateY(-0.04em)" } }, "10", h("span", { class: "pct" }, "%"));
     heroLayer.append(hero);
-    const eyebrowWrap = h("div", { class: "abs", style: { width: `${W}px`, top: "196px", textAlign: "center", fontSize: R ? "60px" : "52px", fontWeight: "700", color: "var(--teal)", letterSpacing: "0.01em" } });
+    const eyebrowWrap = h("div", { class: "abs", style: { width: `${W}px`, top: `${L.eyebrowTop}px`, textAlign: "center", fontSize: `${L.eyebrowSize}px`, fontWeight: "700", color: "var(--teal)", letterSpacing: "0.01em" } });
     const eyebrow = h("span", { class: "wd" }, C.copy.eyebrow);
     eyebrowWrap.append(h("span", { class: "mask" }, eyebrow));
-    const soundsWrap = h("div", { class: "abs", style: { width: `${W}px`, top: "806px", textAlign: "center", fontSize: R ? "76px" : "70px", fontWeight: "600", color: "hsl(47 20% 26%)", letterSpacing: "-0.01em" } });
+    const soundsWrap = h("div", { class: "abs", style: { width: `${W}px`, top: `${L.soundsTop}px`, textAlign: "center", fontSize: `${L.soundsSize}px`, fontWeight: "600", color: "hsl(47 20% 26%)", letterSpacing: "-0.01em" } });
     const soundsW = C.copy.sounds.map((wd) => {
       const inner = h("span", { class: "wd" }, wd);
       soundsWrap.append(h("span", { class: "mask" }, inner), " ");
@@ -234,16 +269,16 @@
     const logoLayer = h("div", { class: "layer" });
     const wideSvg = await inlineSvg("../../public/logo/logo-wide.svg");
     const stackSvg = await inlineSvg("../../public/logo/logo.svg");
-    const WIDE_W = 980;
+    const WIDE_W = L.wideW;
     const wideVB = wideSvg.viewBox.baseVal;
     const wideScale = WIDE_W / wideVB.width;
     const WIDE_H = wideVB.height * wideScale;
-    const WIDE_X = CX - WIDE_W / 2, WIDE_Y = 430 - WIDE_H / 2;
+    const WIDE_X = CX - WIDE_W / 2, WIDE_Y = L.wideCY - WIDE_H / 2;
     const STACK_H = 330;
     const stackVB = stackSvg.viewBox.baseVal;
     const stackScale = STACK_H / stackVB.height;
     const STACK_W = stackVB.width * stackScale;
-    const STACK_X = CX - STACK_W / 2, STACK_Y = 392 - STACK_H / 2;
+    const STACK_X = CX - STACK_W / 2, STACK_Y = L.stackCY - STACK_H / 2;
 
     // split each logo into "letters" and "ring + wedge" layers so the donut can become the 0
     function splitLogo(svg, w, hgt) {
@@ -306,7 +341,7 @@
     const wideRing = ringGeom(wideSvg, wide.ring, wide.wedge, WIDE_X, WIDE_Y, wideScale, wideVB);
     const stackRing = ringGeom(stackSvg, stack.ring, stack.wedge, STACK_X, STACK_Y, stackScale, stackVB);
 
-    const orderTag = h("div", { class: "abs", style: { width: `${W}px`, top: "596px", textAlign: "center", fontSize: R ? "70px" : "60px", fontWeight: "700", color: "hsl(47 25% 18%)" } });
+    const orderTag = h("div", { class: "abs", style: { width: `${W}px`, top: `${L.orderTop}px`, textAlign: "center", fontSize: `${L.orderSize}px`, padding: V ? "0 50px" : "0", fontWeight: "700", color: "hsl(47 25% 18%)" } });
     const orderTagW = C.copy.orderTag.map((g) => {
       const inner = h("span", { class: "wd" }, g);
       orderTag.append(h("span", { class: "mask" }, inner), " ");
@@ -365,7 +400,7 @@
     const constPos = [[-420, -210], [380, -250], [-560, 60], [520, 40], [-300, 250], [300, 260], [-60, -330], [80, 330]];
     const constel = constVals.map((v, i) => {
       const el = h("div", { class: "abs num", style: { fontSize: `${[40, 30, 34, 28, 36, 30, 26, 28][i]}px`, fontWeight: "700", color: i % 3 === 0 ? "rgba(17,103,106,0.55)" : "hsl(47 12% 52% / 0.7)", whiteSpace: "nowrap", transformOrigin: "50% 50%" } }, money(v));
-      return { el, dx: constPos[i][0], dy: constPos[i][1], i };
+      return { el, dx: V ? constPos[i][1] * 1.05 : constPos[i][0], dy: V ? constPos[i][0] * 1.2 : constPos[i][1], i };
     });
     ovl.append(tx.el, step.el, file.el, cal.el, ...recRows.map((r) => r.el), dateFly, inbox.el, mail.el, ...constel.map((c) => c.el), floatAmt, floatTitle);
     function recDate(m) {
@@ -380,11 +415,11 @@
     // trust: the institute's logo (public/halacha/machon-semel.png, upscaled in film/assets) + about strings
     const tr = C.copy.trust;
     const trustLogo = h("div", { class: "tcard" }, h("img", { src: "assets/machon-semel@3x.png", alt: "" }));
-    const trustL1 = h("div", { class: "tl1", style: { fontSize: R ? "64px" : "50px" } }, tr.line1);
-    const trustL2 = h("div", { class: "tl2", style: { fontSize: R ? "64px" : "50px" } }, tr.line2);
+    const trustL1 = h("div", { class: "tl1", style: { fontSize: V ? (R ? "72px" : "60px") : R ? "64px" : "50px" } }, ...(V && tr.line1V ? tr.line1V.flatMap((l, i) => (i ? [h("br"), l] : [l])) : [tr.line1]));
+    const trustL2 = h("div", { class: "tl2", style: { fontSize: V ? (R ? "72px" : "60px") : R ? "64px" : "50px" } }, tr.line2);
     const trustBadge = h("div", { class: "tbadge" }, icon("circle-check", 26, 2.2), tr.verified);
-    const trustEl = h("div", { class: "trust", style: { top: "225px" } }, trustLogo, trustL1, trustL2, trustBadge);
-    const endCredit = h("div", { class: "endcredit", style: { top: "922px" } }, h("img", { src: "assets/machon-semel@3x.png", alt: "" }), h("span", {}, tr.endCredit));
+    const trustEl = h("div", { class: "trust", style: { top: `${L.trustTop}px` } }, trustLogo, trustL1, trustL2, trustBadge);
+    const endCredit = h("div", { class: "endcredit", style: { top: `${L.creditTop}px` } }, h("img", { src: "assets/machon-semel@3x.png", alt: "" }), h("span", {}, tr.endCredit));
 
     // platforms (web + desktop software), each showing the same live dashboard
     const platLayer = h("div", { class: "layer" });
@@ -395,7 +430,9 @@
     const webScr = makeScreen(), deskScr = makeScreen();
     const webF = UI.deviceFrame("web", webScr), deskF = UI.deviceFrame("desktop", deskScr);
     platLayer.append(webF.el, deskF.el, trustEl);
-    const PL = { web: { x: mx(1010, 760), y: 176 }, desk: { x: mx(150, 760), y: 176 } };
+    const PL = V
+      ? { web: { x: CX - 380, y: L.pl.web[0] }, desk: { x: CX - 380, y: L.pl.desk[0] }, s: L.pl.s }
+      : { web: { x: mx(1010, 760), y: 176 }, desk: { x: mx(150, 760), y: 176 }, s: 1 };
 
     // together tiles (scene 9): snapshots of the real components
     const tilesLayer = h("div", { class: "layer" });
@@ -418,7 +455,7 @@
       return lines;
     }
     /** groups: [{text, t, cls}] → stacked lines revealed group by group */
-    function headline(groups, { size = R ? 88 : 76, weight = 700, maxW = HL_W, align = "side", top = null } = {}) {
+    function headline(groups, { size = L.hlSize, weight = 700, maxW = HL_W, align = "side", top = null } = {}) {
       const el = h("div", { class: "headline", style: { fontSize: `${size}px`, fontWeight: weight } });
       const lines = [];
       groups.forEach((g, gi) => {
@@ -431,7 +468,10 @@
         }
       });
       const totalH = lines.reduce((a, l) => a + l.size * 1.1, 0);
-      if (align === "side") {
+      if (align === "side" && V) {
+        el.style.left = "0"; el.style.width = `${W}px`; el.style.textAlign = "center";
+        el.style.top = `${(top ?? L.hlCenter) - totalH / 2}px`;
+      } else if (align === "side") {
         el.style[R ? "right" : "left"] = `${HL_EDGE}px`;
         el.style.textAlign = R ? "right" : "left";
         el.style.top = `${(top ?? CY) - totalH / 2}px`;
@@ -455,7 +495,7 @@
       { groups: [{ text: cp.analyticsLines[0], t: T.anWord - 0.1, cls: "teal", key: true }, { text: cp.analyticsLines[1], t: T.household - 0.1, key: true }], hardOut: T.rep + 0.3 },
       { groups: [{ text: cp.reportsLines[0], t: T.print - 0.1, key: true }, { text: cp.reportsLines[1], t: T.excel - 0.1, cls: "teal", key: true }], hardOut: T.s8 + 0.4 },
       { groups: [{ text: cp.halachaLine, t: T.halWord - 0.1, cls: "teal", key: true }], hardOut: T.q - 0.25 },
-      { groups: [{ text: cp.questionLine, t: T.q, cls: "soft", size: R ? 58 : 50, weight: 700, key: true }, { text: cp.rabbiLine, t: T.rabbiWord - 0.06, cls: "teal", key: true }], hardOut: T.trust + 0.1 },
+      { groups: [{ text: cp.questionLine, t: T.q, cls: "soft", size: L.qSize, weight: 700, key: true }, { text: cp.rabbiLine, t: T.rabbiWord - 0.06, cls: "teal", key: true }], hardOut: T.trust + 0.1 },
     ];
     (function scheduleHeadlines() {
       let floor = -1e9;
@@ -475,17 +515,19 @@
       }
     })();
     const [hlMaaser, hlImport, hlRec, hlRemind, hlAn, hlRep, hlHal, hlRabbi] = HLDEF.map((d) => headline(d.groups));
-    const hlPlat = headline([{ text: cp.platformsTitle, t: T.pl + 0.3 }], { size: R ? 64 : 56, weight: 700, maxW: 1700, align: "center", top: 64 });
-    const hlTogether = headline([{ text: cp.togetherLine, t: T.s9 + 0.55 }], { size: R ? 66 : 58, weight: 700, maxW: 1700, align: "center", top: 86 });
-    const tagline = headline(cp.tagline.map((g, i) => ({ text: g, t: taglineWordTime(i) })), { size: R ? 68 : 56, weight: 700, maxW: 1800, align: "center", top: 612 });
+    const hlPlat = headline([{ text: cp.platformsTitle, t: T.pl + 0.3 }], { size: V ? (R ? 60 : 52) : R ? 64 : 56, weight: 700, maxW: L.topW, align: "center", top: V ? L.pl.title : 64 });
+    const hlTogether = headline([{ text: cp.togetherLine, t: T.s9 + 0.55 }], { size: V ? (R ? 62 : 54) : R ? 66 : 58, weight: 700, maxW: L.topW, align: "center", top: L.topTitle ?? 86 });
+    const tagline = headline(cp.tagline.map((g, i) => ({ text: g, t: taglineWordTime(i) })), { size: L.taglineSize, weight: 700, maxW: V ? 980 : 1800, align: "center", top: L.taglineTop });
     // tagline groups sit on one line: flatten them inline
-    tagline.el.querySelectorAll(".ln").forEach((l) => { l.style.display = "inline-block"; l.style.margin = "0 0.13em"; l.style.fontSize = `${R ? 68 : 56}px`; });
-    tagline.el.style.whiteSpace = "nowrap"; tagline.el.style.fontSize = "0"; // no stray inter-block spaces
+    if (!V) {
+      tagline.el.querySelectorAll(".ln").forEach((l) => { l.style.display = "inline-block"; l.style.margin = "0 0.13em"; l.style.fontSize = `${L.taglineSize}px`; });
+      tagline.el.style.whiteSpace = "nowrap"; tagline.el.style.fontSize = "0"; // no stray inter-block spaces
+    }
     // "free for personal use" (landing FAQ) + both platforms, then the URL
-    const freeEl = h("div", { class: "abs", style: { width: `${W}px`, top: "712px", display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", fontSize: R ? "34px" : "30px", fontWeight: "600", color: "hsl(47 20% 26%)" } },
+    const freeEl = h("div", { class: "abs", style: { width: `${W}px`, top: `${L.freeTop}px`, display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", fontSize: R ? "34px" : "30px", fontWeight: "600", color: "hsl(47 20% 26%)" } },
       h("span", { class: "freepill" }, cp.free), h("span", {}, cp.freeSub));
-    const urlEl = h("div", { class: "abs url", style: { width: `${W}px`, top: "826px", textAlign: "center" } }, cp.url);
-    const urlRule = h("div", { class: "abs", style: { left: `${CX - 36}px`, top: "800px", width: "72px", height: "3px", borderRadius: "2px", background: "#f0c000", transformOrigin: "50% 50%" } });
+    const urlEl = h("div", { class: "abs url", style: { width: `${W}px`, top: `${L.urlTop}px`, textAlign: "center" } }, cp.url);
+    const urlRule = h("div", { class: "abs", style: { left: `${CX - 36}px`, top: `${L.ruleTop}px`, width: "72px", height: "3px", borderRadius: "2px", background: "#f0c000", transformOrigin: "50% 50%" } });
     hlLayer.append(freeEl, urlRule, urlEl, endCredit);
     function taglineWordTime(i) {
       const ph = A.phrases.find((p) => p.id === "tagline");
@@ -512,7 +554,7 @@
     const halTitlePos = vpos(hal.title);
 
     // =========================================================== window geometry helpers
-    const WIN_X = mx(60, WIN_VW * WIN_S), WIN_Y = 175;
+    const WIN_X = V ? L.winX : mx(60, WIN_VW * WIN_S), WIN_Y = L.winY;
     const winState = { x: WIN_X, y: WIN_Y, s: WIN_S };
     const camState = { x: 0, y: 0, k: 1 };
     /** virtual → stage */
@@ -565,7 +607,7 @@
       const pin = prog(t, T.heroIn, T.heroIn + 1.1, E.outQuint);
       const pulse = Math.sin(clamp((t - A.s("hook2") + 0.05) / 0.7) * Math.PI) * 0.035;
       const shrink = prog(t, T.s2 - 0.1, T.s2 + 0.75, E.inOutCubic);
-      const k = lerp(0.94 + 0.06 * pin + pulse, 0.3, shrink);
+      const k = lerp(0.94 + 0.06 * pin + pulse, 120 / L.heroSize, shrink);
       const toCenter = shrink;
       const fadeToVal = prog(t, T.income - 0.15, T.income + 0.2, E.inOutQuad);
       put(heroLayer, { y: lerp(28 * (1 - pin), -6, toCenter), s: k, o: pin * (1 - fadeToVal), blur: (1 - pin) * 8 });
@@ -641,7 +683,7 @@
       const fDraw = prog(t, T.s10 + 0.3, T.s10 + 0.95, E.inOutCubic);
       const inFinal = t >= T.s10;
       const base = inFinal
-        ? { cx: CX, cy: 520, r: 150, th: 26 }
+        ? { cx: CX, cy: L.finalRingY, r: 150, th: 26 }
         : { cx: CX, cy: CY, r: 190, th: 30 };
       const drawP = inFinal ? fDraw : draw;
       // obligation share: 10% maaser (+ chomesh segment appears on the obligations beat)
@@ -754,8 +796,8 @@
       // scene 9: from the browser frame's screen to the centre; scene 10: converge
       const pull = prog(t, T.s9, T.s9 + 0.95, E.inOutCubic);
       const conv = prog(t, T.s10, T.s10 + 0.45, E.inCubic);
-      const s9 = 0.5;
-      const cxT = CX - (WIN_VW * s9) / 2, cyT = 600 - (WIN_VH * s9) / 2;
+      const s9 = L.s9S;
+      const cxT = CX - (WIN_VW * s9) / 2, cyT = L.s9CY - (WIN_VH * s9) / 2;
       let sc = WIN_S * lerp(0.965, 1, wIn);
       let wx = WIN_X + (WIN_VW * WIN_S * (1 - lerp(0.965, 1, wIn))) / 2;
       let wy = WIN_Y + (WIN_VH * WIN_S * (1 - lerp(0.965, 1, wIn))) / 2;
@@ -765,7 +807,7 @@
       }
       if (conv > 0) {
         const s2 = lerp(s9, 0.04, conv);
-        wx = lerp(wx, CX - (WIN_VW * s2) / 2, conv); wy = lerp(wy, 520 - (WIN_VH * s2) / 2, conv); sc = s2;
+        wx = lerp(wx, CX - (WIN_VW * s2) / 2, conv); wy = lerp(wy, L.finalRingY - (WIN_VH * s2) / 2, conv); sc = s2;
         o *= 1 - prog(t, T.s10 + 0.18, T.s10 + 0.42);
       }
       winState.x = wx; winState.y = wy; winState.s = sc;
@@ -832,6 +874,13 @@
       if (hp > 0) { const z = camFocus(1 + 0.06 * hp, WIN_VW / 2, 380); ck = z.k; cx = z.x; cy = z.y; }
       const ap = prog(t, T.an + 0.2, T.s8, E.inOutQuad) * (t < T.s8 + 0.4 ? 1 : 0);
       if (ap > 0) { const z = camFocus(1 + 0.04 * ap, WIN_VW / 2, 400); ck = z.k; cx = z.x; cy = z.y; }
+      if (V && t < T.s9) {
+        const bk = L.camK;
+        // anchor: reading-start edge; the table page leans lower so the recurring row stays in frame
+        const ay = WIN_VH * (0.62 * win(t, T.s5, T.an, 0.5, 0.4));
+        const ax = R ? WIN_VW : 0;
+        cx = ax + bk * (cx - ax); cy = ay + bk * (cy - ay); ck *= bk;
+      }
       camState.k = ck; camState.x = cx; camState.y = cy;
       put(cam, { x: cx, y: cy, s: ck });
 
@@ -924,7 +973,7 @@
       // "in any currency": the real currency select opens for a moment
       const cm = win(t, T.anyCur - 0.3, T.anyCur + 0.95, 0.2, 0.25);
       put(tx.curMenu, { y: (1 - cm) * -8, s: lerp(0.96, 1, cm), o: cm });
-      put(tx.el, { x: mx(170, 520), y: 560 + (1 - txIn) * 40 + txOut * 30, o: txIn * (1 - txOut) });
+      put(tx.el, { x: V ? L.tx[0] : mx(170, 520), y: (V ? L.tx[1] : 560) + (1 - txIn) * 40 + txOut * 30, o: txIn * (1 - txOut) });
       const on = t >= T.chomesh - KW_LEAD;
       tx.toggle.classList.toggle("on", on);
       put(tx.toggle, { s: 1 + 0.06 * Math.sin(clamp((t - T.chomesh + KW_LEAD) / 0.25) * Math.PI) });
@@ -933,7 +982,7 @@
       const fIn = prog(t, T.s5 + 0.12, T.s5 + 0.72, E.inOutCubic);
       const btn = v2s(importPos.x + importPos.w / 2, importPos.y + importPos.h / 2);
       const fw = file.el.offsetWidth, fh = file.el.offsetHeight;
-      const start = { x: R ? 1560 : W - 1560 - fw, y: 880 };
+      const start = V ? { x: CX - fw / 2, y: L.fileStart[0] } : { x: R ? 1560 : W - 1560 - fw, y: 880 };
       const fx = lerp(start.x, btn.x - fw / 2, fIn);
       const fy = lerp(start.y, btn.y - fh / 2, fIn) - Math.sin(fIn * Math.PI) * 90;
       const fOut = prog(t, T.s5 + 0.62, T.s5 + 0.86, E.inCubic);
@@ -955,7 +1004,7 @@
       // recurring (scene 6): the row's date lifts out and becomes a calendar
       const r7 = rowPos(7);
       const dateS = v2s(r7.x + (R ? tblPos.w - 70 : 70), r7.y + 26);
-      const CAL = { x: mx(700, 470), y: 214 };
+      const CAL = V ? { x: L.cal[0], y: L.cal[1] } : { x: mx(700, 470), y: 214 };
       const calIn = prog(t, T.recWord - 0.05, T.recWord + 0.5, E.outCubic);
       const calOut = prog(t, T.remindWord + 0.05, T.remindWord + 0.4, E.inCubic);
       put(cal.el, { x: lerp(dateS.x - 235, CAL.x, calIn), y: lerp(dateS.y - 60, CAL.y, calIn), s: lerp(0.3, 1, calIn), o: calIn * (1 - calOut) });
@@ -988,7 +1037,7 @@
         const ft = flips[i] + 0.15;
         const p = prog(t, ft, ft + 0.5, E.outCubic);
         const out = prog(t, T.s7, T.s7 + 0.35, E.inCubic);
-        const target = { x: mx(150, 520), y: 300 + i * 78 };
+        const target = V ? { x: L.recRow[0], y: L.recRow[1] + i * 78 } : { x: mx(150, 520), y: 300 + i * 78 };
         const w = 520;
         put(rr.el, { x: lerp(markStage.x - w / 2, target.x, p), y: lerp(markStage.y - 30, target.y, p) - out * 20, s: lerp(0.4, 1, p), o: p * (1 - out) });
         rr.el.style.width = `${w}px`;
@@ -1003,12 +1052,12 @@
       const bellStage = { x: CAL.x + 24 + bp.x, y: CAL.y + 22 + 36 + 12 + bp.y };
       const ib = prog(t, T.remindWord - 0.1, T.remindWord + 0.35, E.outCubic);
       const ibOut = prog(t, T.remindWord + 0.5, T.remindWord + 0.72);
-      const IB = { x: mx(394, 560), y: 470 };
+      const IB = V ? { x: L.ib[0], y: L.ib[1] } : { x: mx(394, 560), y: 470 };
       put(inbox.el, { x: lerp(bellStage.x - 280, IB.x, ib), y: lerp(bellStage.y - 37, IB.y, ib), s: lerp(0.2, 1, ib), o: ib * (1 - ibOut) });
       inbox.el.style.transformOrigin = "50% 50%";
       const me = prog(t, T.remindWord + 0.48, T.remindWord + 0.98, E.outCubic);
       const mOut = prog(t, T.an, T.an + 0.4, E.inOutQuad);
-      const MAIL = { x: mx(394, 560), y: 205 };
+      const MAIL = V ? { x: L.mail[0], y: L.mail[1] } : { x: mx(394, 560), y: 205 };
       put(mail.el, { x: MAIL.x, y: lerp(IB.y - 140, MAIL.y, me), s: lerp(0.94, 1, me), o: me * (1 - mOut) });
       mail.el.style.transformOrigin = "50% 50%";
 
@@ -1016,10 +1065,10 @@
       // reports: the analytics page's "Export PDF" prints the real report layout; export formats alongside
       const shIn = prog(t, T.print - 0.45, T.print + 0.35, E.outCubic);
       const shOut = prog(t, T.s8 - 0.05, T.s8 + 0.35, E.inCubic);
-      put(sheet.el, { x: mx(210, 700), y: lerp(1100, 150, shIn) - shOut * 40, r: lerp(3, 0, shIn) * (R ? -1 : 1), o: prog(t, T.print - 0.45, T.print - 0.25) * (1 - shOut) });
+      put(sheet.el, { x: V ? L.sheet[0] : mx(210, 700), y: lerp(V ? L.sheet[1] : 1100, V ? L.sheet[2] : 150, shIn) - shOut * 40, r: lerp(3, 0, shIn) * (R ? -1 : 1), o: prog(t, T.print - 0.45, T.print - 0.25) * (1 - shOut) });
       sheet.rows.forEach((r, i) => { const p = prog(t, T.print - 0.1 + i * 0.07, T.print + 0.2 + i * 0.07); put(r, { o: p }); });
       const xw = 230;
-      put(xch.el, { x: mx(960, xw), y: 330, o: prog(t, T.excel - 0.35, T.excel - 0.05) * (1 - shOut) });
+      put(xch.el, { x: V ? L.xch[0] : mx(960, xw), y: V ? L.xch[1] : 330, o: prog(t, T.excel - 0.35, T.excel - 0.05) * (1 - shOut) });
       xch.chips.forEach((c, i) => { const p = prog(t, T.excel - 0.25 + i * 0.16, T.excel + 0.25 + i * 0.16, E.outBack); put(c, { x: (1 - p) * (R ? 30 : -30), o: prog(t, T.excel - 0.25 + i * 0.16, T.excel + 0.05 + i * 0.16) }); });
 
       // scene 8: the balance floats free among the other figures, then becomes words
@@ -1049,7 +1098,9 @@
     // ----------------------------------------------------------- platforms (web / desktop software)
     function webScreenRect() {
       const sc = webF.frame.querySelector(".screen");
-      return { x: PL.web.x + webF.frame.offsetLeft + sc.offsetLeft, y: PL.web.y + webF.frame.offsetTop + sc.offsetTop, s: 760 / WIN_VW };
+      const ox = webF.el.offsetWidth / 2, oy = webF.el.offsetHeight / 2;   // frames scale about their centre
+      const lx = webF.frame.offsetLeft + sc.offsetLeft, ly = webF.frame.offsetTop + sc.offsetTop;
+      return { x: PL.web.x + ox + (lx - ox) * PL.s, y: PL.web.y + oy + (ly - oy) * PL.s, s: (760 / WIN_VW) * PL.s };
     }
     function trustScene(t) {
       const out = prog(t, T.pl - 0.1, T.pl + 0.3, E.inCubic);
@@ -1073,7 +1124,7 @@
         const lift = win(t, kw - 0.15, kw + 1.0, 0.2, 0.4);
         // the web frame's screen hands over to the real app window at scene 9, so only its chrome fades
         const o = p * (k === 0 ? 1 : 1 - out);
-        put(F.el, { x: P.x, y: P.y + (1 - p) * 40 - lift * 8, s: lerp(0.94, 1, p), o: o });
+        put(F.el, { x: P.x, y: P.y + (1 - p) * 40 - lift * 8, s: lerp(0.94, 1, p) * PL.s, o: o });
         F.el.style.transformOrigin = "50% 50%";
         setStyle(F.frame, "boxShadow", lift > 0.01 ? `0 0 0 ${(3 * lift).toFixed(1)}px rgba(17,103,106,0.45), var(--shadow-float)` : "");
         F.feats.forEach((f, i) => {
@@ -1157,21 +1208,30 @@
       if (spans[0]) spans[0].textContent = C.ui.contact.subject;
       if (spans[1]) spans[1].textContent = C.ui.contact.body;
       dlgClone.querySelectorAll(".caret").forEach((c) => c.remove());
-      const TW = 360, TH = 214;
+      const TW = L.tile.w, TH = L.tile.h, tk = L.tile.k;
+      const sn = (el, k, ox, oy) => snap(el, TW, TH, k * tk, ox * tk, oy * tk);
       const defsT = [
-        { el: snap(anaClone, TW, TH, 0.25, 4, 2) },
-        { el: snap(stepClone, TW, TH, 0.66, 16, 40) },
-        { el: snap(calClone, TW, TH, 0.52, 18, 4) },
-        { el: snap(mailClone, TW, TH, 0.62, 6, 0) },
-        { el: snap(halClone, TW, TH, 0.25, 4, 2) },
-        { el: snap(dlgClone, TW, TH, 0.6, 12, -4) },
+        { el: sn(anaClone, 0.25, 4, 2) },
+        { el: sn(stepClone, 0.66, 16, 40) },
+        { el: sn(calClone, 0.52, 18, 4) },
+        { el: sn(mailClone, 0.62, 6, 0) },
+        { el: sn(halClone, 0.25, 4, 2) },
+        { el: sn(dlgClone, 0.6, 12, -4) },
       ];
-      // reading-order columns: first three on the reading-start side
+      // reading order: landscape = columns (first three on the reading-start side);
+      // vertical = rows above and below the window, each row in reading direction
       const colA = R ? 1440 : 120, colB = R ? 120 : 1440;
       const ys = [262, 492, 722];
+      const gap = (W - 3 * TW) / 4, xsV = [0, 1, 2].map((j) => gap + j * (TW + gap));
       defsT.forEach((d, i) => {
-        d.x = i < 3 ? colA : colB;
-        d.y = ys[i % 3];
+        if (V) {
+          const j = i % 3;
+          d.x = xsV[R ? 2 - j : j];
+          d.y = i < 3 ? L.tileRows[0] : L.tileRows[1];
+        } else {
+          d.x = i < 3 ? colA : colB;
+          d.y = ys[i % 3];
+        }
         d.w = TW; d.h = TH;
         tilesLayer.append(d.el);
         d.conn = s("path", { fill: "none", stroke: "rgba(17,103,106,0.35)", "stroke-width": 2, pathLength: 1, "stroke-dasharray": "0 1" });
@@ -1182,24 +1242,35 @@
       return defsT;
     }
     function tilesScene(t) {
+      const xsMin = Math.min(...tiles.map((d) => d.x)), xsMax = Math.max(...tiles.map((d) => d.x));
       const conv = prog(t, T.s10 - 0.05, T.s10 + 0.15, E.linear);
-      const winBox = { x: CX - (WIN_VW * 0.5) / 2, y: 600 - (WIN_VH * 0.5) / 2, w: WIN_VW * 0.5, h: WIN_VH * 0.5 };
+      const ws = L.s9S;
+      const winBox = { x: CX - (WIN_VW * ws) / 2, y: L.s9CY - (WIN_VH * ws) / 2, w: WIN_VW * ws, h: WIN_VH * ws };
       tiles.forEach((d, i) => {
         const t0 = T.s9 + 0.45 + i * 0.1;
         const p = prog(t, t0, t0 + 0.6, E.outCubic);
-        const cx0 = CX - d.w / 2, cy0 = 600 - d.h / 2;
+        const cx0 = CX - d.w / 2, cy0 = L.s9CY - d.h / 2;
         let x = lerp(cx0, d.x, p), y = lerp(cy0, d.y, p), sc = lerp(0.6, 1, p);
         const ci = prog(t, T.s10 + i * 0.025, T.s10 + 0.4 + i * 0.025, E.inCubic);
-        x = lerp(x, CX - d.w / 2, ci); y = lerp(y, 520 - d.h / 2, ci); sc *= lerp(1, 0.1, ci);
+        x = lerp(x, CX - d.w / 2, ci); y = lerp(y, L.finalRingY - d.h / 2, ci); sc *= lerp(1, 0.1, ci);
         put(d.el, { x, y, s: sc, o: p * (1 - prog(t, T.s10 + 0.15 + i * 0.025, T.s10 + 0.4 + i * 0.025)) });
         d.el.style.transformOrigin = "50% 50%";
         // connector from tile edge to the app window
         const cp = prog(t, t0 + 0.35, t0 + 0.9, E.inOutCubic) * (1 - conv);
-        const leftSide = d.x < CX;
-        const ax = leftSide ? d.x + d.w : d.x, ay = d.y + d.h / 2;
-        const bx = leftSide ? winBox.x : winBox.x + winBox.w, by = lerp(winBox.y + 60, winBox.y + winBox.h - 60, (i % 3) / 2);
-        const mxp = (ax + bx) / 2;
-        setAttr(d.conn, "d", `M${ax},${ay} C${mxp},${ay} ${mxp},${by} ${bx},${by}`);
+        let ax, ay, bx, by;
+        if (V) {
+          const top = d.y < L.s9CY;
+          ax = d.x + d.w / 2; ay = top ? d.y + d.h : d.y;
+          bx = lerp(winBox.x + 90, winBox.x + winBox.w - 90, (d.x - xsMin) / (xsMax - xsMin)); by = top ? winBox.y : winBox.y + winBox.h;
+          const myp = (ay + by) / 2;
+          setAttr(d.conn, "d", `M${ax},${ay} C${ax},${myp} ${bx},${myp} ${bx},${by}`);
+        } else {
+          const leftSide = d.x < CX;
+          ax = leftSide ? d.x + d.w : d.x; ay = d.y + d.h / 2;
+          bx = leftSide ? winBox.x : winBox.x + winBox.w; by = lerp(winBox.y + 60, winBox.y + winBox.h - 60, (i % 3) / 2);
+          const mxp = (ax + bx) / 2;
+          setAttr(d.conn, "d", `M${ax},${ay} C${mxp},${ay} ${mxp},${by} ${bx},${by}`);
+        }
         setAttr(d.conn, "stroke-dasharray", `${cp.toFixed(3)} 1`);
         setAttr(d.dotA, "cx", ax); setAttr(d.dotA, "cy", ay); setAttr(d.dotA, "opacity", (cp > 0.02 ? 1 : 0) * (1 - conv));
         setAttr(d.dotB, "cx", bx); setAttr(d.dotB, "cy", by); setAttr(d.dotB, "opacity", (cp > 0.98 ? 1 : 0) * (1 - conv));
@@ -1207,7 +1278,7 @@
     }
 
     // ----------------------------------------------------------- scene 10 extras
-    const finalPct = h("div", { class: "abs hero10 num", style: { width: `${W}px`, top: `${520 - 52}px`, textAlign: "center", fontSize: "104px", transformOrigin: "50% 50%" } }, "10", h("span", { class: "pct" }, "%"));
+    const finalPct = h("div", { class: "abs hero10 num", style: { width: `${W}px`, top: `${L.finalRingY - 52}px`, textAlign: "center", fontSize: "104px", transformOrigin: "50% 50%" } }, "10", h("span", { class: "pct" }, "%"));
     stage.insertBefore(finalPct, logoLayer);
     function finalScene(t) {
       const p = prog(t, T.s10 + 0.55, T.s10 + 1.0, E.outCubic);
@@ -1301,7 +1372,7 @@
     }
 
     measureHost.remove();
-    return { duration: T.end, seek, times: T, qa, cues: () => ({ duration: T.end, cues: [...sfx].sort((a, b) => a.t - b.t) }) };
+    return { duration: T.end, width: W, height: H, format: V ? "vertical" : "landscape", seek, times: T, qa, cues: () => ({ duration: T.end, cues: [...sfx].sort((a, b) => a.t - b.t) }) };
   }
 
   window.FILM = { init };

@@ -14,18 +14,19 @@ export function chromiumPath() {
 }
 
 /** Opens the film page for `lang` and waits until it is ready to seek. */
-export async function openFilm(lang, { scale = 1 } = {}) {
+export async function openFilm(lang, { scale = 1, format = "landscape" } = {}) {
+  const vertical = format === "vertical";
   const server = await startServer(0);
   const { port } = server.address();
   const browser = await chromium.launch({
     executablePath: chromiumPath(),
     args: ["--font-render-hinting=none", "--disable-lcd-text", "--force-color-profile=srgb", "--hide-scrollbars"],
   });
-  const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: scale });
+  const page = await browser.newPage({ viewport: vertical ? { width: 1080, height: 1920 } : { width: 1920, height: 1080 }, deviceScaleFactor: scale });
   page.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") console.log(`[page ${m.type()}]`, m.text()); });
   page.on("pageerror", (e) => console.log("[page error]", e.message));
   page.on("response", (r) => { if (r.status() >= 400) console.log(`[http ${r.status()}]`, r.url()); });
-  await page.goto(`http://127.0.0.1:${port}/promo-video/film/?lang=${lang}&render=1`);
+  await page.goto(`http://127.0.0.1:${port}/promo-video/film/?lang=${lang}&format=${format}&render=1`);
   await page.waitForFunction(() => window.__film && (window.__film.ready || window.__film.error), null, { timeout: 60000 });
   const err = await page.evaluate(() => window.__film.error);
   if (err) throw new Error(err);

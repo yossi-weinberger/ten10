@@ -46,6 +46,13 @@ em { font-style: italic; }
 }
 #stage.rtl { direction: rtl; }
 .layer { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; }
+#stage.vertical { width: 1080px; height: 1920px; }
+#stage.vertical .layer { width: 1080px; height: 1920px; }
+#stage.vertical .trust { width: 1080px; }
+#stage.vertical .trust .tl1, #stage.vertical .trust .tl2 { white-space: normal; max-width: 900px; line-height: 1.18; text-wrap: balance; }
+#stage.vertical .trust .tcard img { width: 380px; }
+#stage.vertical .trust .tbadge { font-size: 30px; }
+#stage.vertical .endcredit { width: 1080px; }
 .abs { position: absolute; left: 0; top: 0; will-change: transform, opacity; }
 /* free-floating components are positioned purely by transform (RTL-safe) */
 .layer > .txform, .layer > .filechip, .layer > .cal, .layer > .recrow, .layer > .email,

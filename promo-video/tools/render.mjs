@@ -4,6 +4,7 @@
 //   node tools/render.mjs --lang he                 → renders/he/video.mp4 + renders/he/sfx-cues.json
 //   node tools/render.mjs --lang en --fps 30 --crf 16
 //   node tools/render.mjs --lang he --from 12 --to 20   (partial render for review)
+//   --format vertical   1080×1920 composition (renders/<lang>-vertical/)
 //   --workers 3   parallel headless browsers (frames are independent, segments are concatenated losslessly)
 //
 // Then mix + mux the soundtrack with tools/audio/mix.py (see README).
@@ -18,7 +19,8 @@ const arg = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ?
 const lang = arg("lang", "he");
 const fps = Number(arg("fps", 30));
 const crf = String(arg("crf", 16));
-const outDir = path.join(root, "renders", lang);
+const format = arg("format", "landscape");
+const outDir = path.join(root, "renders", format === "vertical" ? `${lang}-vertical` : lang);
 fs.mkdirSync(outDir, { recursive: true });
 
 function ffmpegPath() {
@@ -28,7 +30,7 @@ function ffmpegPath() {
 }
 
 const workers = Math.max(1, Number(arg("workers", 3)));
-const probe = await openFilm(lang);
+const probe = await openFilm(lang, { format });
 const dur = probe.info.duration;
 const from = Number(arg("from", 0));
 const to = Math.min(dur, Number(arg("to", dur)));
@@ -49,7 +51,7 @@ const encArgs = ["-c:v", "libx264", "-preset", "slow", "-crf", crf, "-pix_fmt", 
 
 /** Renders frames [a, b) into its own H.264 segment. */
 async function renderSegment(k, a, b, file) {
-  const film = await openFilm(lang);
+  const film = await openFilm(lang, { format });
   const ff = spawn(FF, ["-y", "-loglevel", "error", "-f", "image2pipe", "-framerate", String(fps), "-c:v", "png", "-i", "-", ...encArgs, file],
     { stdio: ["pipe", "inherit", "inherit"] });
   const done = new Promise((res, rej) => ff.on("close", (c) => (c === 0 ? res() : rej(new Error(`ffmpeg exited ${c}`)))));
