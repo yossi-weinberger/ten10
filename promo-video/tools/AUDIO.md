@@ -8,7 +8,7 @@ everything from the phrase ids in it (`hook1` … `tagline`).
 |---|---|
 | `tools/estimate_timing.py` | Estimated timing from the script, used until a recording exists (`source: "estimated"`) |
 | `tools/sync_narration.py` | Aligns a real recording to the script (`source: "audio"`) |
-| `tools/audio/synth_music.py` | Temporary procedural music bed, to be replaced by a licensed track later |
+| `tools/audio/synth_music.py` | Procedural product-film score that follows the phrase ids (§4) |
 | `tools/audio/synth_sfx.py` | UI sound library → `audio/sfx/*.wav` |
 | `tools/audio/mix.py` | Narration + ducked music + SFX → master WAV, plus an optional mux into the MP4 |
 
@@ -20,9 +20,9 @@ Every tool has a `--help`.
 ```bash
 python3 tools/estimate_timing.py --lang all                 # provisional timing (he + en)
 python3 tools/sync_narration.py --selftest                  # alignment self-test
-python3 tools/audio/synth_music.py --duration 58 --out audio/music_bed.wav --timing narration/timing.he.json
+python3 tools/audio/synth_music.py --timing narration/timing.he.json --out audio/music_bed.he.wav   # length = timing + 4 s
 python3 tools/audio/synth_sfx.py --out audio/sfx/
-python3 tools/audio/mix.py --lang he --duration 56.4 --music audio/music_bed.wav \
+python3 tools/audio/mix.py --lang he --duration 56.4 --music audio/music_bed.he.wav \
     --sfx-cues renders/he/sfx-cues.json --out renders/he/mix.wav \
     --video renders/he/video.mp4 --final renders/he/TEN10_promo_he_1080p.mp4
 ```
@@ -64,7 +64,7 @@ python3 tools/audio/mix.py --lang he --duration 56.4 --music audio/music_bed.wav
    above. Overrides are applied automatically.
 7. Re-render the film. It picks up the new timing. Then mix with the voice:
    ```bash
-   python3 tools/audio/mix.py --lang he --duration <film s> --music audio/music_bed.wav \
+   python3 tools/audio/mix.py --lang he --duration <film s> --music audio/music_bed.he.wav \
        --narration audio/narration_he.wav --sfx-cues renders/he/sfx-cues.json \
        --out renders/he/mix.wav --video renders/he/video.mp4 --final renders/he/TEN10_promo_he_1080p.mp4
    ```
@@ -141,10 +141,72 @@ use `--overrides PATH` to point to another file or `--no-overrides` to ignore it
 - The tool warns about unknown ids, and about overlaps or reversed spans that
   the overrides create.
 
-## 4. Replacing the music with a licensed track
+## 4. Music
 
-`synth_music.py` is only a placeholder. `mix.py` accepts **any file ffmpeg can
-read** via `--music`:
+### The synthesised score (`synth_music.py`)
+
+The score is a warm, restrained product-film bed in D major at about 95 BPM.
+Render one per language, because it follows that language's phrase timing:
+
+```bash
+python3 tools/audio/synth_music.py --timing narration/timing.he.json --out audio/music_bed.he.wav
+python3 tools/audio/synth_music.py --timing narration/timing.en.json --out audio/music_bed.en.wav
+#   --duration S   (default: timing audioDuration + 4 s)   --seed N   --bpm 95
+#   --no-tempo-fit   --lufs -20   --stems DIR (writes every bus as a WAV)
+```
+
+Re-run it whenever the timing changes, including after `sync_narration.py`. The
+output is deterministic: the same timing and seed give an identical file.
+
+**Tempo.** The tempo is fitted in two segments, each within ±6 % of `--bpm`,
+so that a bar line lands exactly on the logo reveal (`order` start + 0.6 s)
+and another exactly on `brand`. The intro can therefore be a few BPM away
+from the main groove, which is inaudible because the intro has no drums. The
+tool prints both tempi.
+
+**Arrangement** (from the phrase ids):
+
+| Phrases | Music |
+|---|---|
+| `hook1`–`hook2` | Intro: electric-piano chords and pad (Dmaj9, Gmaj9), a few felt-piano hints of the motif |
+| `complex1`–`complex2` | Mild tension: the keys go from quarters to 8ths at a restrained level, the pad filter opens, a bass pedal enters, a soft heartbeat kick and shaker come in over the last 2 bars. Bm7 – Gmaj7 – Em9 – A7sus4 leans towards the arrival |
+| `order` + 0.6 s | Arrival on the bar line: soft cymbal with a reverse swell, the groove and the motif start on Dmaj9 |
+| `order`–`analytics` | Groove on I – V6 – vi – IV (Dmaj9, A/C#, Bm7, Gmaj9). The motif plays in the 1st and 3rd 4-bar phrases; the 2nd phrase plays a sparse answer so the busiest narration has room |
+| `notjust`–`rabbi` | Calm: Gmaj7 – D/F# – Em7 – A7sus4, pad-led, sparse keys and piano, only shaker and a soft kick |
+| `platforms` | The groove returns lightly: rim, shaker, lighter keys and bass |
+| `together` | Full groove; strings/choir fade in over the last 2 bars (Gmaj9 → A7sus4) |
+| `brand` | Bar line and tonic: Dmaj9 resolve, soft kick and cymbal, strings swell, the motif's first phrase played slowly |
+| `tagline`–`free` | Warm outro: Dmaj9 – Gmaj9/D – Dmaj9, a final high D, then it rings out; fade over the last 2.5 s |
+
+**Instruments.** Every part is band-limited, and every note and hit has an
+envelope with an 8 ms tail fade.
+
+| Part | How it is made |
+|---|---|
+| Electric piano | FM (1:1 body pair plus 1:14 "tine" pair). Velocity sets the index/brightness. Hammer thump, key-release noise, pitch-dependent decay. Chord strum and ±12 ms timing humanisation |
+| Felt piano (motif) | Inharmonic partials, double decay, detuned unison strings on the lower partials, felt-hammer noise, damper release |
+| Pad | Detuned polyBLEP saws through a slowly automated low-pass sweep; mid/side width is kept mono-safe |
+| Strings/choir | 7 detuned saws per note, delayed vibrato, a formant blend ("ah") and a low-pass. Used only for the resolve |
+| Bass | Round finger-style electric bass on the chord roots, with an octave ghost and scale-step passing notes into the next root |
+| Drums | Sine-sweep kick with a click; soft snare in an FDN room; rim; closed hats and shaker at 55 % swing with ghost notes; soft cymbal; reverse swell |
+
+**Mix.**
+- **EQ:** every part except bass and kick is high-passed, and the keys, piano,
+  pad, strings and snare each get a 2–3 dB dip between 2 and 2.6 kHz so the
+  voice sits on top.
+- **Kick pump:** the kick gently ducks the pad by 3 dB, the bass by 2 dB and the
+  keys by 1.2 dB.
+- **Compression:** 3:1 on the drum bus and 1.8:1 glue on the mix bus.
+- **Reverb and delay:** an 8-line FDN plate (RT60 2.1 s, damped, rendered to an
+  IR and FFT-convolved) and a dotted-8th ping-pong delay on the keys and piano.
+- **Master:** true-peak limiting, then −20 LUFS integrated with peaks around
+  −7 dBFS (the ceiling is −3 dBFS).
+
+Balance lives in `LEVELS` at the top of the file.
+
+### Replacing it with a licensed track
+
+`mix.py` accepts **any file ffmpeg can read** via `--music`:
 
 ```bash
 python3 tools/audio/mix.py ... --music audio/licensed/track.wav
@@ -161,14 +223,6 @@ python3 tools/audio/mix.py ... --music audio/licensed/track.wav
   in the timing JSON.
 - Choose calm, steady material. Builds, drops and busy melodies in the
   200 Hz–4 kHz voice range fight the narration.
-
-To regenerate the placeholder bed after a real recording is synced, run
-`synth_music.py --timing narration/timing.<lang>.json` again:
-
-- The sections follow the phrase ids: sparse until `order`; fuller from `order`
-  to the end of `reminders`; calm from `notjust` to `rabbi`; a gentle return at
-  `together`; resolution to Dmaj9 on `brand`.
-- The tempo is nudged by at most ±4 % so that a bar line lands on `brand`.
 
 ## 5. Ducking
 
