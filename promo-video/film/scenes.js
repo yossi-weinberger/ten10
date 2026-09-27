@@ -31,6 +31,8 @@
 
     /** mirror an x coordinate (or a box's left edge when w is given) for LTR */
     const mx = (x, w = 0) => (R ? x : W - x - w);
+    // keyword-synced visuals and their sounds land this much before the spoken word (brief §7, §25)
+    const KW_LEAD = 0.14;
     const HL_EDGE = 84, HL_W = 500;
 
     // =========================================================== named times
@@ -53,7 +55,8 @@
     T.s4 = Math.max(A.s("maaser") - 0.35, T.tag + 1.25);
     T.maaser = B("maaser");
     T.chomesh = B("chomesh");
-    T.s5 = A.s("import") - 0.35;
+    // import visuals start on the phrase itself so the Maaser/Chomesh beat keeps its last line readable
+    T.s5 = A.s("import") - 0.12;
     T.s6 = A.s("recurring") - 0.3;
     T.recWord = B("recurringWord");
     T.autoWord = B("autoWord");
@@ -77,9 +80,11 @@
     T.body1 = Math.max(T.body0 + 0.6, Math.min(T.body0 + 1.15, A.s("together") - 0.95));
     T.send = Math.max(T.body1 + 0.12, A.e("rabbi") - 0.05);
     T.s9 = Math.max(A.s("together") - 0.4, T.send + 0.5);
-    T.tInc = B("tIncome");
-    T.tDon = B("tDonations");
-    T.tObl = B("tObligations");
+    // highlights need the pulled-out dashboard on screen (in English "income" is the phrase's first word)
+    const glowReady = T.s9 + 0.95;
+    T.tInc = Math.max(B("tIncome"), glowReady);
+    T.tDon = Math.max(B("tDonations"), T.tInc + 0.6);
+    T.tObl = Math.max(B("tObligations"), T.tDon + 0.6);
     T.brand = A.s("brand");
     // the return to "10%" needs ~1.3 s before "TEN10." is spoken; start right after the last highlight
     T.s10 = Math.max(T.tObl + 0.55, T.brand - 1.3);
@@ -362,12 +367,37 @@
       return { el, lines };
     }
     const cp = C.copy;
-    const hlMaaser = headline([{ text: cp.maaserLines[0], t: T.maaser - 0.08, cls: "teal" }, { text: cp.maaserLines[1], t: T.chomesh - 0.08, cls: "teal" }, { text: cp.maaserLines[2], t: Math.max(T.chomesh + 0.45, A.e("maaser") - 0.25) }]);
-    const hlImport = headline([{ text: cp.importLines[0], t: B("importWord") - 0.1 }, { text: cp.importLines[1], t: Math.max(B("importWord") + 0.55, A.e("import") - 0.2), cls: "soft" }]);
-    const hlRec = headline([{ text: cp.recurringLines[0], t: T.recWord - 0.1 }, { text: cp.recurringLines[1], t: T.autoWord - 0.05, cls: "teal" }]);
-    const hlRemind = headline([{ text: cp.remindLines[0], t: T.remindWord - 0.15 }, { text: cp.remindLines[1], t: Math.max(T.remindWord + 0.35, A.e("reminders") - 0.25), cls: "teal" }]);
-    const hlHal = headline([{ text: cp.halachaLine, t: T.halWord - 0.1, cls: "teal" }]);
-    const hlRabbi = headline([{ text: cp.questionLine, t: T.q, cls: "soft", size: R ? 50 : 44, weight: 700 }, { text: cp.rabbiLine, t: T.rabbiWord - 0.06, cls: "teal" }]);
+    // Side-column headline blocks for scenes 4–8. `key` groups land on their spoken keyword;
+    // the others follow. scheduleHeadlines() then guarantees readability (brief §22): each group
+    // gets ≥ 0.45 s after the previous one, and a block holds ≥ READ_MIN after its last line
+    // before the next block may enter (pushing the next block later if the narration is fast).
+    const READ_MIN = 1.1, REVEAL_READ = 0.35;
+    const HLDEF = [
+      { groups: [{ text: cp.maaserLines[0], t: T.maaser - 0.08, cls: "teal", key: true }, { text: cp.maaserLines[1], t: T.chomesh - 0.08, cls: "teal", key: true }, { text: cp.maaserLines[2], t: T.chomesh + 0.4 }], hardOut: T.s6 },
+      { groups: [{ text: cp.importLines[0], t: B("importWord") - 0.1, key: true }, { text: cp.importLines[1], t: B("importWord") + 0.55, cls: "soft" }], hardOut: T.s7 },
+      { groups: [{ text: cp.recurringLines[0], t: T.recWord - 0.1, key: true }, { text: cp.recurringLines[1], t: T.autoWord - 0.05, cls: "teal", key: true }], hardOut: T.s8 },
+      { groups: [{ text: cp.remindLines[0], t: T.remindWord - 0.15, key: true }, { text: cp.remindLines[1], t: T.remindWord + 0.4, cls: "teal" }], hardOut: T.s8 + 0.55 },
+      { groups: [{ text: cp.halachaLine, t: T.halWord - 0.1, cls: "teal", key: true }], hardOut: T.q - 0.25 },
+      { groups: [{ text: cp.questionLine, t: T.q, cls: "soft", size: R ? 50 : 44, weight: 700, key: true }, { text: cp.rabbiLine, t: T.rabbiWord - 0.06, cls: "teal", key: true }], hardOut: T.s9 },
+    ];
+    (function scheduleHeadlines() {
+      let floor = -1e9;
+      for (let b = 0; b < HLDEF.length; b++) {
+        const gs = HLDEF[b].groups;
+        const shift = Math.max(0, floor - gs[0].t);            // whole block waits for the previous one
+        let prev = -1e9;
+        for (const g of gs) { g.t = Math.max(g.t + (g.key ? 0 : shift), g.key ? g.t : 0, prev + 0.45, floor); prev = g.t; }
+        floor = prev + REVEAL_READ + READ_MIN + 0.25;
+      }
+      for (let b = 0; b < HLDEF.length; b++) {
+        const next = HLDEF[b + 1];
+        const last = HLDEF[b].groups[HLDEF[b].groups.length - 1].t;
+        const minOut = last + REVEAL_READ + READ_MIN;
+        HLDEF[b].out = Math.max(minOut, Math.min(HLDEF[b].hardOut, next ? next.groups[0].t - 0.25 : 1e9));
+        if (next && HLDEF[b].out > next.groups[0].t - 0.25) HLDEF[b].out = next.groups[0].t - 0.25;
+      }
+    })();
+    const [hlMaaser, hlImport, hlRec, hlRemind, hlHal, hlRabbi] = HLDEF.map((d) => headline(d.groups));
     const hlTogether = headline([{ text: cp.togetherLine, t: T.s9 + 0.55 }], { size: R ? 58 : 52, weight: 800, maxW: 1600, align: "center", top: 92 });
     const tagline = headline(cp.tagline.map((g, i) => ({ text: g, t: taglineWordTime(i) })), { size: R ? 64 : 58, weight: 700, maxW: 1800, align: "center", top: 624 });
     // tagline groups sit on one line: flatten them inline
@@ -761,9 +791,9 @@
       const txIn = prog(t, T.chomesh - 0.6, T.chomesh - 0.2, E.outCubic);
       const txOut = prog(t, A.e("maaser") + 0.15, A.e("maaser") + 0.5, E.inCubic);
       put(tx.el, { x: mx(170, 520), y: 560 + (1 - txIn) * 40 + txOut * 30, o: txIn * (1 - txOut) });
-      const on = t >= T.chomesh;
+      const on = t >= T.chomesh - KW_LEAD;
       tx.toggle.classList.toggle("on", on);
-      put(tx.toggle, { s: 1 + 0.06 * Math.sin(clamp((t - T.chomesh) / 0.25) * Math.PI) });
+      put(tx.toggle, { s: 1 + 0.06 * Math.sin(clamp((t - T.chomesh + KW_LEAD) / 0.25) * Math.PI) });
 
       // import (scene 5)
       const fIn = prog(t, T.s5 + 0.12, T.s5 + 0.72, E.inOutCubic);
@@ -883,15 +913,13 @@
         put(l.inner, { y: lerp(l.size * 1.1, 0, p) - out * l.size * 0.5, o: p * (1 - prog(t, tOut + i * 0.03, tOut + 0.3 + i * 0.03, E.linear)) });
       });
     }
+    // headline → exit time (also used by the readability QA report)
+    const HL_OUT = [
+      ...[hlMaaser, hlImport, hlRec, hlRemind, hlHal, hlRabbi].map((hl, i) => [hl, HLDEF[i].out]),
+      [hlTogether, T.s10], [tagline, T.end],
+    ];
     function headlines(t) {
-      showHL(hlMaaser, t, T.s5 - 0.05);
-      showHL(hlImport, t, T.s6 - 0.05);
-      showHL(hlRec, t, T.s7 - 0.05);
-      showHL(hlRemind, t, T.s8);
-      showHL(hlHal, t, T.q - 0.25);
-      showHL(hlRabbi, t, T.s9);
-      showHL(hlTogether, t, T.s10);
-      showHL(tagline, t, 1e9);
+      for (const [hl, tOut] of HL_OUT) showHL(hl, t, tOut);
       const u = prog(t, T.url, T.url + 0.7, E.outCubic);
       put(urlEl, { y: (1 - u) * 16, o: u });
       put(urlRule, { sx: prog(t, T.url - 0.2, T.url + 0.5, E.inOutCubic), o: prog(t, T.url - 0.2, T.url) });
@@ -1002,7 +1030,7 @@
       cue(T.sw0 + 0.05, "sweep", 0.7);
       cue(T.col0 + 0.34, "pop", 0.45);
       cue(T.s4 + 0.05, "whoosh", 0.32);
-      cue(T.chomesh, "tap", 0.6);
+      cue(T.chomesh - KW_LEAD, "tap", 0.6);
       cue(T.chomesh + 0.2, "pop", 0.35);
       cue(T.s5 + 0.15, "whoosh", 0.38);
       cue(T.s5 + 0.72, "pop", 0.4);
@@ -1025,10 +1053,48 @@
       [T.tInc, T.tDon, T.tObl].forEach((x) => cue(x, "tick", 0.24));
       cue(T.s10 + 0.05, "whoosh", 0.4);
       cue(T.brand, "resolve", 0.8);
+      keywordSafeCues();
+    }
+
+    /**
+     * Brief §25: no effect may sit on a spoken keyword's onset. Any cue that would land in
+     * [onset − 60 ms, onset + 220 ms] of a keyword is moved to KW_LEAD before the word (the
+     * visual it belongs to already starts there); a moved cue that now doubles another cue
+     * within 50 ms is dropped. The long "resolve" bloom under "TEN10." is exempt: it is the
+     * logo sting, mixed well below the voice and ducked by mix.py.
+     */
+    function keywordSafeCues() {
+      const onsets = Object.keys(C.beats).map((k) => B(k)).sort((a, b) => a - b);
+      for (const c of sfx) {
+        if (c.type === "resolve") continue;
+        const k = onsets.find((o) => c.t > o - 0.06 && c.t < o + 0.22);
+        if (k !== undefined) { c.t = +(k - KW_LEAD).toFixed(3); c.moved = true; }
+      }
+      sfx.sort((a, b) => a.t - b.t || b.gain - a.gain);
+      for (let i = sfx.length - 1; i > 0; i--) {
+        const prev = sfx.slice(0, i).reverse().find((x) => !x.dropped);
+        if (sfx[i].moved && prev && sfx[i].t - prev.t < 0.05) sfx[i].dropped = true;
+      }
+      for (let i = sfx.length - 1; i >= 0; i--) if (sfx[i].dropped) sfx.splice(i, 1);
+    }
+
+    /** Brief §22/§28: how long each piece of on-screen copy is fully readable. */
+    function qa() {
+      const rows = [];
+      for (const [hl, tOut] of HL_OUT) {
+        const seen = new Set();
+        for (const l of hl.lines) {
+          if (seen.has(l.g)) continue;
+          seen.add(l.g);
+          const text = hl.lines.filter((x) => x.g === l.g).map((x) => x.inner.textContent).join(" ");
+          rows.push({ text, in: +(l.t + REVEAL_READ).toFixed(2), out: +tOut.toFixed(2), readable: +(tOut - l.t - REVEAL_READ).toFixed(2) });
+        }
+      }
+      return rows;
     }
 
     measureHost.remove();
-    return { duration: T.end, seek, times: T, cues: () => ({ duration: T.end, cues: [...sfx].sort((a, b) => a.t - b.t) }) };
+    return { duration: T.end, seek, times: T, qa, cues: () => ({ duration: T.end, cues: [...sfx].sort((a, b) => a.t - b.t) }) };
   }
 
   window.FILM = { init };

@@ -136,6 +136,34 @@ The project is structured so derived cuts are edits, not rebuilds:
   `A.has(id)` (already provided by `makeAnchors` in `engine.js`). Since everything is anchor-relative, the remaining scenes keep
   their choreography and simply move.
 
+## Workflow and QA (brief §27–§28)
+
+| Stage | How it was done | Re-run with |
+|---|---|---|
+| A. Asset audit | Logo SVGs, tokens, font, icons, screenshots `public/screenshots/{he,en}`, locale strings, email template. See the "Source" table above. | — |
+| B. Style frames | 8 representative frames per language on one board | `node tools/stills.mjs --lang he --style` |
+| C. Animatic | Full anchored timeline against the estimated narration timing | `npm run preview` |
+| D. Motion polish | Easing, morphs (donut → logo ring), count-ups, sfx cue markers | — |
+| E. Brand fidelity | Every product scene compared with the screenshots. Fixes included the chart direction (Recharts doesn't mirror), ₪ placement, "1 / ∞" recurring badge, the real stepper steps, and no invented search box. | `node tools/stills.mjs --lang he --t …` |
+| F. RTL/LTR QA | Hebrew and English reviewed separately: wrapping, reading order, dates, currency, italics in English halacha terms | `--sheet 36` per language |
+| G. Final render | Both masters | `tools/produce.sh he` / `en` |
+
+Automatic checks:
+
+* **Readability (§22):** `node tools/stills.mjs --lang he --qa` lists how long every on-screen line is fully legible.
+  `scheduleHeadlines()` guarantees ≥ 1.1 s per line even when the narration is fast. It does this by holding a block until
+  the next one and pushing the next block later, while keyword lines stay on their words.
+* **Keywords vs. effects (§25):** `keywordSafeCues()` moves any sound cue that would hit a keyword's onset to 140 ms before
+  the word, and `mix.py` ducks the effects bus a further 6 dB under speech.
+* **Determinism (§24):** no `Math.random`/clock in the film; any frame renders identically in any order.
+
+Checklist status, with provisional timing and re-checked after syncing the real recordings:
+
+* 10% is the idea within 5 s (on screen from 0.3 s). TEN10 is established by 14.6 s (he) / 17.2 s (en).
+* Maaser, Chomesh, balance, import, recurring, reminders, Halachic Library and Ask the Rabbi are each shown in real UI.
+* Correct logo (original vectors), colours, Lucide icons and app layout. Hebrew: RTL, ₪, Hebrew UI. English: LTR, $, English UI.
+* The ending holds the lockup and URL for ≥ 3 s. The music is secondary (ducked −9 dB under speech) and the effects sit at about −26 dBFS peak.
+
 ## Known limitations
 
 * Until the recordings exist, timing is an estimate. It is close to a calm reading pace, but the final edit points come from

@@ -40,7 +40,7 @@
       const film = await FILM.init(stage, lang, timing);
       window.__film = {
         ready: true, lang, duration: film.duration, times: film.times,
-        seek: (t) => film.seek(t), cues: () => film.cues(), timingSource: timing.source,
+        seek: (t) => film.seek(t), cues: () => film.cues(), qa: () => film.qa(), timingSource: timing.source,
       };
 
       // ---------- preview UI ----------

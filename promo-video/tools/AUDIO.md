@@ -199,6 +199,7 @@ To regenerate the placeholder bed after a real recording is synced, run
 | Narration bus in the mix | −16 LUFS (static gain) |
 | Music bus, unducked | −15.5 LUFS (`--music-lufs`), which is about −24.5 LUFS under speech |
 | SFX bus | cue `gain` × −20 dB (`--sfx-db`) on the −6 dBFS files, so SFX peaks sit at about −26 dBFS or lower |
+| SFX under speech | a further −6 dB (`--sfx-duck-db`, 30 ms / 200 ms) keyed like the music duck. The film also moves any cue that would land on a keyword onset to 140 ms before the word (`keywordSafeCues()` in `film/scenes.js`) |
 | **Master (with narration)** | **−16 LUFS integrated, true peak ≤ −1.5 dBTP**, 48 kHz stereo 24-bit WAV |
 | Master (preview, no narration) | levels as they would sit under a real voice; only the true-peak ceiling is applied (`--normalize always` forces −16 LUFS) |
 | Final MP4 | H.264 video copied as is, AAC-LC 256 kb/s 48 kHz, `+faststart`, audio padded to the full film length (never `-shortest`) |

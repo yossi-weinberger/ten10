@@ -10,7 +10,8 @@ Buses (levels before the master stage, referenced to narration at -16 LUFS)
   music      static gain so the *unducked* bed sits at --music-lufs (default
              -15.5), i.e. about -24.5 LUFS while ducked by 9 dB under speech;
              fade-in 0.4 s, fade-out over the last 2.5 s
-  sfx        each cue: <sfx-dir>/<type>.wav * gain * --sfx-db (default -20 dB)
+  sfx        each cue: <sfx-dir>/<type>.wav * gain * --sfx-db (default -20 dB),
+             further ducked --sfx-duck-db (default 6 dB) while the voice speaks
 
 Ducking (music under voice), attack 80 ms / release 450 ms / depth 9 dB,
 60 ms look-ahead:
@@ -220,6 +221,9 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--release", type=float, default=0.45, help="duck release (s)")
     g.add_argument("--lookahead", type=float, default=0.06, help="duck look-ahead (s)")
     g.add_argument("--sfx-db", type=float, default=-20.0, help="SFX bus gain (dB) on the -6 dBFS files")
+    g.add_argument("--sfx-duck-db", type=float, default=6.0,
+                   help="extra SFX attenuation while the voice speaks (dB; same key as the music duck, "
+                        "faster 30 ms / 200 ms envelope) so no effect competes with a consonant")
     g.add_argument("--music-fade-in", type=float, default=0.4)
     g.add_argument("--music-fade-out", type=float, default=2.5)
     g.add_argument("--target-lufs", type=float, default=-16.0, help="master loudness (LUFS)")
@@ -304,13 +308,16 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  duck: mean gain {g_db[in_speech].mean():.1f} dB under speech, "
               f"{g_db[~in_speech].mean():.1f} dB elsewhere; music bus now {_dsp.lufs(music, SR):.1f} LUFS")
 
-    # ---- sfx bus
+    # ---- sfx bus (ducked under the voice too, brief §25)
     sfx_bus = np.zeros((n, 2))
     cues = cues_doc.get("cues", [])
     if cues:
         sfx_bus, placed = render_sfx(cues, n, resolve_path(args.sfx_dir, must_exist=True), args.sfx_db)
-        print(f"sfx: {placed}/{len(cues)} cues placed at {args.sfx_db:.0f} dB bus gain; "
-              f"bus peak {_dsp.peak_db(sfx_bus):.1f} dBFS")
+        if args.sfx_duck_db > 0 and key.any():
+            sgain, _ = duck_gain(key, args.sfx_duck_db, 0.03, 0.20, args.lookahead, n)
+            sfx_bus *= sgain[:, None]
+        print(f"sfx: {placed}/{len(cues)} cues placed at {args.sfx_db:.0f} dB bus gain, "
+              f"-{args.sfx_duck_db:.0f} dB under speech; bus peak {_dsp.peak_db(sfx_bus):.1f} dBFS")
 
     # ---- master
     mix = narr_bus + music + sfx_bus
