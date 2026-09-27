@@ -5,6 +5,7 @@
 //   node tools/render.mjs --lang en --fps 30 --crf 16
 //   node tools/render.mjs --lang he --from 12 --to 20   (partial render for review)
 //   --format vertical   1080×1920 composition (renders/<lang>-vertical/)
+//   --cut symbols       the feature scenes without app screens (renders/<lang>[-vertical]-symbols/, its own range)
 //   --workers 3   parallel headless browsers (frames are independent, segments are concatenated losslessly)
 //
 // Then mix + mux the soundtrack with tools/audio/mix.py (see README).
@@ -20,7 +21,8 @@ const lang = arg("lang", "he");
 const fps = Number(arg("fps", 30));
 const crf = String(arg("crf", 16));
 const format = arg("format", "landscape");
-const outDir = path.join(root, "renders", format === "vertical" ? `${lang}-vertical` : lang);
+const cut = arg("cut", "film");
+const outDir = path.join(root, "renders", (format === "vertical" ? `${lang}-vertical` : lang) + (cut === "film" ? "" : `-${cut}`));
 fs.mkdirSync(outDir, { recursive: true });
 
 function ffmpegPath() {
@@ -30,18 +32,18 @@ function ffmpegPath() {
 }
 
 const workers = Math.max(1, Number(arg("workers", 3)));
-const probe = await openFilm(lang, { format });
+const probe = await openFilm(lang, { format, cut });
 const dur = probe.info.duration;
-const from = Number(arg("from", 0));
-const to = Math.min(dur, Number(arg("to", dur)));
+const from = Number(arg("from", probe.info.range[0]));
+const to = Math.min(dur, Number(arg("to", probe.info.range[1])));
 const n = Math.round((to - from) * fps);
-const outFile = path.join(outDir, arg("out", from === 0 && to === dur ? "video.mp4" : `video_${from}-${to}.mp4`));
+const outFile = path.join(outDir, arg("out", from === probe.info.range[0] && to === probe.info.range[1] ? "video.mp4" : `video_${from}-${to}.mp4`));
 console.log(`${lang}: ${dur.toFixed(2)}s film (timing: ${probe.info.source}) → ${n} frames @ ${fps}fps, ${workers} workers → ${path.relative(root, outFile)}`);
 
 // sound-design cue sheet for tools/audio/mix.py
 const cues = await probe.page.evaluate(() => window.__film.cues());
 fs.writeFileSync(path.join(outDir, "sfx-cues.json"), JSON.stringify(cues, null, 1));
-fs.writeFileSync(path.join(outDir, "times.json"), JSON.stringify({ duration: dur, fps, times: probe.info.times }, null, 1));
+fs.writeFileSync(path.join(outDir, "times.json"), JSON.stringify({ duration: dur, range: [from, to], fps, times: probe.info.times }, null, 1));
 await probe.close();
 
 const FF = ffmpegPath();
@@ -51,7 +53,7 @@ const encArgs = ["-c:v", "libx264", "-preset", "slow", "-crf", crf, "-pix_fmt", 
 
 /** Renders frames [a, b) into its own H.264 segment. */
 async function renderSegment(k, a, b, file) {
-  const film = await openFilm(lang, { format });
+  const film = await openFilm(lang, { format, cut });
   const ff = spawn(FF, ["-y", "-loglevel", "error", "-f", "image2pipe", "-framerate", String(fps), "-c:v", "png", "-i", "-", ...encArgs, file],
     { stdio: ["pipe", "inherit", "inherit"] });
   const done = new Promise((res, rej) => ff.on("close", (c) => (c === 0 ? res() : rej(new Error(`ffmpeg exited ${c}`)))));

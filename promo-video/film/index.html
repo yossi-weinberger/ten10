@@ -21,8 +21,10 @@
   <script src="content.js"></script>
   <script src="ui.js"></script>
   <script src="scenes.js"></script>
+  <script src="symbols.js"></script>
   <script>
-    // ?lang=he|en  &format=landscape|vertical  &t=<sec>  &render=1 (hides controls; the renderer drives seek())
+    // ?lang=he|en  &format=landscape|vertical  &cut=symbols (feature scenes without app screens)
+    // &t=<sec>  &render=1 (hides controls; the renderer drives seek())
     (async function () {
       const q = new URLSearchParams(location.search);
       const lang = q.get("lang") === "en" ? "en" : "he";
@@ -38,9 +40,10 @@
         timing = ENGINE.estimateTiming(await getJSON(`../narration/script.${lang}.json`));
       }
       const format = q.get("format") === "vertical" ? "vertical" : "landscape";
-      const film = await FILM.init(stage, lang, timing, { format });
+      const cut = q.get("cut") === "symbols" ? "symbols" : "film";
+      const film = await (cut === "symbols" ? SYMBOLS : FILM).init(stage, lang, timing, { format });
       window.__film = {
-        ready: true, lang, format, width: film.width, height: film.height, duration: film.duration, times: film.times,
+        ready: true, lang, format, cut, range: film.range || [0, film.duration], width: film.width, height: film.height, duration: film.duration, times: film.times,
         seek: (t) => film.seek(t), cues: () => film.cues(), qa: () => film.qa(), timingSource: timing.source,
       };
 
@@ -58,7 +61,7 @@
       langSel.onchange = () => { q.set("lang", langSel.value); location.search = q.toString(); };
       document.getElementById("src").textContent = `timing: ${timing.source}${timing.audioFile ? " · " + timing.audioFile : ""} · ${film.duration.toFixed(2)}s`;
       const audio = timing.audioFile ? new Audio(`../${timing.audioFile}`) : null;
-      let t = Number(q.get("t") || 0), playing = false, t0 = 0, w0 = 0;
+      let t = Number(q.get("t") || (film.range ? film.range[0] : 0)), playing = false, t0 = 0, w0 = 0;
       const show = () => { film.seek(t); tc.textContent = t.toFixed(2); scrub.value = t / film.duration; };
       show();
       scrub.oninput = () => { t = scrub.value * film.duration; if (audio) audio.currentTime = t; show(); };
@@ -73,7 +76,7 @@
         playing = !playing;
         play.textContent = playing ? "❚❚" : "▶︎";
         if (playing) {
-          if (t >= film.duration - 0.01) t = 0;
+          if (t >= film.duration - 0.01) t = film.range ? film.range[0] : 0;
           t0 = performance.now(); w0 = t;
           if (audio) { audio.currentTime = t; audio.play(); }
           loop();

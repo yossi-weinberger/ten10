@@ -14,7 +14,7 @@ export function chromiumPath() {
 }
 
 /** Opens the film page for `lang` and waits until it is ready to seek. */
-export async function openFilm(lang, { scale = 1, format = "landscape" } = {}) {
+export async function openFilm(lang, { scale = 1, format = "landscape", cut = "film" } = {}) {
   const vertical = format === "vertical";
   const server = await startServer(0);
   const { port } = server.address();
@@ -26,11 +26,11 @@ export async function openFilm(lang, { scale = 1, format = "landscape" } = {}) {
   page.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") console.log(`[page ${m.type()}]`, m.text()); });
   page.on("pageerror", (e) => console.log("[page error]", e.message));
   page.on("response", (r) => { if (r.status() >= 400) console.log(`[http ${r.status()}]`, r.url()); });
-  await page.goto(`http://127.0.0.1:${port}/promo-video/film/?lang=${lang}&format=${format}&render=1`);
+  await page.goto(`http://127.0.0.1:${port}/promo-video/film/?lang=${lang}&format=${format}&cut=${cut}&render=1`);
   await page.waitForFunction(() => window.__film && (window.__film.ready || window.__film.error), null, { timeout: 60000 });
   const err = await page.evaluate(() => window.__film.error);
   if (err) throw new Error(err);
-  const info = await page.evaluate(() => ({ duration: window.__film.duration, times: window.__film.times, source: window.__film.timingSource }));
+  const info = await page.evaluate(() => ({ range: window.__film.range, duration: window.__film.duration, times: window.__film.times, source: window.__film.timingSource }));
   const seek = async (t) => {
     await page.evaluate((tt) => window.__film.seek(tt), t);
     // let images decode / layout settle for this frame

@@ -145,6 +145,23 @@ The project is structured so derived cuts are edits, not rebuilds:
   `A.has(id)` (already provided by `makeAnchors` in `engine.js`). Since everything is anchor-relative, the remaining scenes keep
   their choreography and simply move.
 
+## "Symbols" cut (prototype): feature scenes without app screens
+
+`film/symbols.js`, opened with `?cut=symbols` (`--cut symbols` for stills and render, `CUT=symbols` for `produce.sh`), tells the
+feature stretch without screenshots. One element carries it: the ring (the "0" of the logo), with one large symbol per
+feature and the headline directly under it, so the eye never jumps between a caption and a busy screen:
+
+| Beat | What happens |
+| --- | --- |
+| import | rows lift off a spreadsheet (real rows from `C.rows`) and flow into the ring; the counter climbs |
+| recurring | the ring becomes a year: the standing-order chip lands, a marker circles the ring and lights all twelve months |
+| reminders | the chip turns into the reminder email (the app's own subject line); the bell rings |
+| analytics | the ring opens into the real category split (`C.ui.analytics.cats`, top three + other), labels, the house draws in |
+
+Same engine, anchors and sound pipeline as the main film, so it re-times itself to the recording. The prototype range is
+`s(import) − 0.5 → s(reports) − 0.1`; its output is `renders/<lang>[-vertical]-symbols/TEN10_symbols_prototype_<lang>[_vertical].mp4`.
+If the direction is approved, the same approach replaces scenes 4–9 in `scenes.js`.
+
 ## Workflow and QA (brief §27–§28)
 
 | Stage | How it was done | Re-run with |

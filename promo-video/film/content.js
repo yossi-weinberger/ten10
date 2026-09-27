@@ -37,6 +37,8 @@
       free: "חינם לשימוש אישי",
       freeSub: "באתר ובתוכנה למחשב",
       url: "ten10-app.com",
+      // "symbols" cut (no app screens): captions inside the ring
+      sym: { imported: "תנועות יובאו", file: "תנועות.xlsx", monthly: "כל חודש", household: "הוצאות הבית", other: "אחר" },
     },
     // Narration words (as they appear in script.he.json) that trigger visual beats
     beats: {
@@ -49,6 +51,7 @@
       maaser: ["maaser", "מעשר"],
       chomesh: ["maaser", "חומש"],
       importWord: ["import", "לייבא"],
+      existingWord: ["import", "קיימות"],
       recurringWord: ["recurring", "הוראות"],
       autoWord: ["recurring", "אוטומטית"],
       remindWord: ["reminders", "תזכורות"],
@@ -276,6 +279,7 @@
       free: "Free for personal use",
       freeSub: "On the web and as desktop software",
       url: "ten10-app.com",
+      sym: { imported: "transactions imported", file: "transactions.xlsx", monthly: "every month", household: "household spending", other: "Other" },
     },
     beats: {
       income: ["complex1", "income"],
@@ -287,6 +291,7 @@
       maaser: ["maaser", "Maaser"],
       chomesh: ["maaser", "Chomesh"],
       importWord: ["import", "Import"],
+      existingWord: ["import", "existing"],
       recurringWord: ["recurring", "recurring"],
       autoWord: ["recurring", "entries"],
       remindWord: ["reminders", "reminders"],

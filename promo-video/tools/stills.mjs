@@ -13,10 +13,11 @@ const root = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const arg = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? process.argv[i + 1] : d; };
 const lang = arg("lang", "he");
 const format = arg("format", "landscape");
-const tag = format === "vertical" ? `${lang}v` : lang;
+const cut = arg("cut", "film");
+const tag = (format === "vertical" ? `${lang}v` : lang) + (cut === "film" ? "" : `_${cut}`);
 const out = path.join(root, "renders/stills");
 fs.mkdirSync(out, { recursive: true });
-const film = await openFilm(lang, { format });
+const film = await openFilm(lang, { format, cut });
 console.log(`${lang}: duration ${film.info.duration.toFixed(2)}s, timing ${film.info.source}`);
 if (process.argv.includes("--qa")) {
   // readability: seconds each headline group is fully on screen (once its reveal is legible)
@@ -41,7 +42,8 @@ if (sheet) {
   const n = Number(sheet), cols = format === "vertical" ? 10 : 6, tw = format === "vertical" ? 180 : 320, th = format === "vertical" ? 320 : 180;
   const shots = [];
   for (let i = 0; i < n; i++) {
-    const t = (film.info.duration * (i + 0.5)) / n;
+    const [ra, rb] = film.info.range;
+    const t = ra + ((rb - ra) * (i + 0.5)) / n;
     await film.seek(t);
     shots.push({ t, b64: (await film.page.screenshot({ type: "jpeg", quality: 80 })).toString("base64") });
   }

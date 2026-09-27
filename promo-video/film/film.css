@@ -358,3 +358,36 @@ body.render #controls { display: none; }
 .trust .tbadge { margin-top: 30px; display: inline-flex; align-items: center; gap: 10px; padding: 10px 24px; border-radius: 999px; background: #e8f3ee; border: 1px solid #b7d4c6; color: #11676a; font-size: 26px; font-weight: 700; }
 .endcredit { position: absolute; left: 0; width: 1920px; display: flex; justify-content: center; align-items: center; gap: 16px; font-size: 24px; font-weight: 600; color: hsl(47 15% 30%); }
 .endcredit img { height: 64px; }
+
+/* ------------------------------------------------------------ "symbols" cut (film/symbols.js) */
+#stage.sym .symface { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transform-origin: 50% 50%; }
+#stage.sym .symface .cap { font-size: 30px; font-weight: 600; color: var(--mfg); white-space: nowrap; }
+#stage.sym .symface .big { font-size: 84px; font-weight: 800; color: var(--teal); line-height: 1.05; letter-spacing: -0.01em; }
+#stage.sym .symface .mid { font-size: 44px; font-weight: 700; color: var(--teal); margin-top: 6px; }
+#stage.sym .symface .glyph { color: var(--teal); position: relative; line-height: 0; margin-bottom: 6px; }
+#stage.sym .symface .bell { color: var(--teal); }
+#stage.sym .symface .bell .dot { position: absolute; top: 4px; right: 2px; width: 38px; height: 38px; border-radius: 50%; background: #dc2626; color: #fff; font-size: 22px; font-weight: 800; line-height: 38px; text-align: center; box-shadow: 0 0 0 5px var(--bg); }
+#stage.sym .symsheet { width: 360px; height: 452px; background: #fff; border-radius: 26px; box-shadow: var(--shadow-float), 0 0 0 1px rgba(40,36,20,0.06); padding: 22px 26px; }
+#stage.sym .shhead { display: flex; align-items: center; gap: 12px; height: 52px; margin-bottom: 22px; color: #16a34a; font-size: 26px; font-weight: 700; }
+#stage.sym .shhead span { color: hsl(47 25% 18%); }
+#stage.sym .shrow { display: flex; align-items: center; gap: 14px; height: 48px; border-top: 1px solid var(--line); }
+#stage.sym .shrow b { display: block; height: 11px; border-radius: 6px; background: hsl(48 16% 86%); }
+#stage.sym .shrow b.s { width: 44px; margin-inline-start: auto; background: hsl(48 16% 80%); }
+#stage.sym i.d { display: block; width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; }
+#stage.sym i.d.income { background: #16a34a; } #stage.sym i.d.donation { background: var(--gold); } #stage.sym i.d.expense { background: #dc2626; }
+#stage.sym .sympill { display: flex; align-items: center; gap: 14px; height: 60px; padding: 0 24px; border-radius: 999px; background: #fff; white-space: nowrap; font-size: 28px; font-weight: 600; color: hsl(47 25% 18%); box-shadow: 0 12px 30px -14px rgba(36,40,30,0.35), 0 0 0 1px rgba(40,36,20,0.07); }
+#stage.sym .sympill b { font-weight: 800; color: var(--teal); }
+#stage.sym .symchip { display: flex; align-items: center; gap: 16px; height: 76px; padding: 0 34px; border-radius: 999px; background: #fff; white-space: nowrap; font-size: 36px; font-weight: 700; color: hsl(47 25% 16%); box-shadow: var(--shadow-float), 0 0 0 1px rgba(40,36,20,0.06); }
+#stage.sym .symchip .ic { color: var(--teal); }
+#stage.sym .symchip b { color: var(--teal); font-weight: 800; }
+#stage.sym .symtoast { display: flex; align-items: center; gap: 18px; padding: 16px 28px 16px 18px; border-radius: 22px; background: #fff; white-space: nowrap; box-shadow: var(--shadow-float), 0 0 0 1px rgba(40,36,20,0.06); }
+#stage.rtl.sym .symtoast { padding: 16px 18px 16px 28px; }
+#stage.sym .symtoast .ti { width: 70px; height: 70px; border-radius: 16px; background: var(--gold); color: hsl(41 51% 13%); display: flex; align-items: center; justify-content: center; }
+#stage.sym .symtoast div { display: flex; flex-direction: column; gap: 2px; }
+#stage.sym .symtoast div b { font-size: 26px; font-weight: 800; color: var(--teal); }
+#stage.sym .symtoast div span { font-size: 34px; font-weight: 700; color: hsl(47 25% 14%); }
+#stage.sym .symlbl .p { font-size: 56px; font-weight: 800; color: hsl(47 25% 14%); line-height: 1; }
+#stage.sym .symlbl .n { font-size: 30px; font-weight: 600; color: var(--mfg); margin-top: 4px; white-space: nowrap; }
+#stage.sym .symhl { text-align: center; font-weight: 800; letter-spacing: -0.015em; line-height: 1.14; color: hsl(47 25% 12%); white-space: nowrap; }
+#stage.sym .symhl .l2 { color: var(--teal); }
+#stage.sym .symhl .wd { display: inline-block; will-change: transform, opacity; }
