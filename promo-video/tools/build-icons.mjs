@@ -13,6 +13,8 @@ const names = [
   "mail", "send", "message-square-plus", "search", "arrow-left", "arrow-right", "x",
   "book-open", "bell", "chevron-down", "ellipsis", "arrow-left-right", "chevrons-up-down",
   "list-filter", "refresh-cw",
+  "cloud", "wifi-off", "hard-drive", "monitor", "smartphone", "lock", "lightbulb", "trending-up",
+  "chart-column", "list", "circle-alert", "minus", "square", "user-round-x",
 ];
 const out = {};
 for (const n of names) {

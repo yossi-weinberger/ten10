@@ -10,7 +10,7 @@
   const { clamp, lerp, E, prog, win, makeAnchors, cue, sfx, h, s, icon, put, setText, setStyle, setAttr, rnd } = window.ENGINE;
 
   const W = 1920, H = 1080, CX = 960, CY = 540;
-  const WIN_S = 0.82, WIN_VW = 1440, WIN_VH = 860;
+  const WIN_S = 0.85, WIN_VW = 1440, WIN_VH = 860;
 
   async function inlineSvg(url) {
     const txt = await (await fetch(url)).text();
@@ -33,7 +33,7 @@
     const mx = (x, w = 0) => (R ? x : W - x - w);
     // keyword-synced visuals and their sounds land this much before the spoken word (brief §7, §25)
     const KW_LEAD = 0.14;
-    const HL_EDGE = 84, HL_W = 500;
+    const HL_EDGE = 70, HL_W = 545;
 
     // =========================================================== named times
     const T = {};
@@ -64,6 +64,11 @@
     T.flip2 = Math.max(T.flip1 + 0.6, T.autoWord + 0.1);
     T.s7 = Math.max(A.s("reminders") - 0.25, T.flip2 + 0.55);
     T.remindWord = B("remindWord");
+    // analytics (between the reminder and "not just numbers")
+    T.an = A.s("analytics") - 0.3;
+    T.anWord = B("analyticsWord");
+    T.moneyW = B("moneyWord");
+    T.household = B("householdWord");
     T.s8 = A.s("notjust") - 0.25;
     T.numbers = B("numbers");
     T.hal = A.s("halacha") - 0.45;
@@ -77,9 +82,14 @@
     T.subj0 = T.dlg + 0.3;
     T.subj1 = T.subj0 + 0.75;
     T.body0 = T.subj1 + 0.12;
-    T.body1 = Math.max(T.body0 + 0.6, Math.min(T.body0 + 1.15, A.s("together") - 0.95));
+    T.body1 = Math.max(T.body0 + 0.6, Math.min(T.body0 + 1.15, A.s("platforms") - 0.95));
     T.send = Math.max(T.body1 + 0.12, A.e("rabbi") - 0.05);
-    T.s9 = Math.max(A.s("together") - 0.4, T.send + 0.5);
+    // two platforms: web + desktop software
+    T.pl = Math.max(A.s("platforms") - 0.35, T.send + 0.55);
+    T.web = B("webWord");
+    T.desk = B("desktopWord");
+    T.offline = B("offlineWord");
+    T.s9 = Math.max(A.s("together") - 0.4, T.pl + 1.6);
     // highlights need the pulled-out dashboard on screen (in English "income" is the phrase's first word)
     const glowReady = T.s9 + 0.95;
     T.tInc = Math.max(B("tIncome"), glowReady);
@@ -89,8 +99,13 @@
     // the return to "10%" needs ~1.3 s before "TEN10." is spoken; start right after the last highlight
     T.s10 = Math.max(T.tObl + 0.55, T.brand - 1.3);
     T.tagline = A.s("tagline");
-    T.url = A.e("tagline") + 0.3;
-    T.end = Math.max(A.duration, A.e("tagline") + 3.4);
+    T.free = B("freeWord");
+    T.url = A.e("free") + 0.3;
+    T.end = Math.max(A.duration, A.e("free") + 3.2);
+    // scene 1: the "but…" caption holds until the first fragments have landed
+    T.butOut = Math.max(A.s("complex1") + 1.2, T.months - 0.2);
+    T.anyCur = B("anyCurrency");
+    T.currencies = B("currencies");
 
     // =========================================================== backdrop
     stage.append(h("div", { id: "bgWash" }), h("div", { id: "bgGrid" }));
@@ -118,8 +133,8 @@
     };
 
     // ring center label
-    const ringCap = h("div", { style: { fontSize: "22px", fontWeight: "600", color: "var(--mfg)", textAlign: "center", whiteSpace: "nowrap" } }, C.chaos.centerLabel);
-    const ringVal = h("div", { class: "num", style: { fontSize: "66px", fontWeight: "800", color: "var(--teal)", textAlign: "center", whiteSpace: "nowrap", lineHeight: "1.1" } });
+    const ringCap = h("div", { style: { fontSize: "27px", fontWeight: "600", color: "var(--mfg)", textAlign: "center", whiteSpace: "nowrap" } }, C.chaos.centerLabel);
+    const ringVal = h("div", { class: "num", style: { fontSize: "78px", fontWeight: "800", color: "var(--teal)", textAlign: "center", whiteSpace: "nowrap", lineHeight: "1.1" } });
     const ringLabel = h("div", { class: "abs", style: { width: "600px", left: `${CX - 300}px`, top: `${CY - 58}px`, transformOrigin: "50% 58px" } }, ringCap, ringVal);
 
     // =========================================================== chaos fragments
@@ -131,7 +146,7 @@
       chaosLayer.append(el);
       const conn = s("path", { fill: "none", stroke: "rgba(17,103,106,0.28)", "stroke-width": 1.6, pathLength: 1, "stroke-dasharray": "0 1" });
       connG.append(conn);
-      frags.push({ el, x: R ? x : W - x, y, t0, conn, month: !!opt.month, i: frags.length });
+      frags.push({ el, x: R ? x : W - x, y, t0, conn, month: !!opt.month, noAlign: !!opt.noAlign, ghost: !!opt.ghost, i: frags.length });
     };
     const txFrag = (f) => h("div", { class: "frag" },
       h("span", { style: { color: f.type === "income" ? "#16a34a" : "#ca8a04" } }, icon(f.type === "income" ? "wallet" : "hand-coins", 22, 2)),
@@ -154,13 +169,35 @@
     addFrag(h("div", { class: "frag pill", style: { borderColor: "#f0c00088" } }, h("b", { style: { color: "#a16207" } }, K.obligations[1].label), h("span", { class: "num ltr", style: { color: "#a16207" } }, K.obligations[1].pct)), 820, 930, T.obligations + 0.12);
     addFrag(h("div", { class: "frag" }, h("span", { style: { color: "var(--teal)" } }, icon("repeat", 20, 2)), h("span", { class: "lbl" }, K.recurring.label),
       h("span", { style: { color: "var(--mfg)" } }, K.recurring.sub), h("span", { class: "badge rec num" }, K.recurring.badge)), 1150, 930, T.recurring - 0.05);
-    const nxPos = [[250, 190], [1680, 200], [1690, 900], [260, 880], [1740, 450], [200, 470]];
+    const nxPos = [[250, 190], [1680, 200], [1690, 900], [260, 880], [1740, 450], [200, 470], [1500, 110], [430, 110], [990, 1010]];
     const txSpan = Math.max(0.9, A.e("complex2") - T.harder - 0.2);
     nxPos.forEach(([x, y], i) => addFrag(h("div", { class: "frag pill", style: { fontSize: "17px", padding: "7px 14px" } },
       h("span", { style: { color: "var(--teal)" } }, icon("circle-plus", 17, 2)), K.newTx), x, y, T.harder + 0.1 + (i * txSpan) / nxPos.length));
 
+    // other currencies, converted automatically by the app (mentioned in passing, on "מטבעות / currencies")
+    const curFmt = (cur, v) => new Intl.NumberFormat(C.locale, { style: "currency", currency: cur, maximumFractionDigits: 0 }).format(v);
+    [[1250, 150], [1620, 690], [320, 740]].forEach(([x, y], i) => {
+      const c = K.currencies[i];
+      addFrag(h("div", { class: "frag pill" }, h("span", { style: { color: "var(--teal)" } }, icon("arrow-left-right", 19, 2)),
+        h("b", { class: "num" }, curFmt(c.cur, c.amt)), h("span", { style: { color: "var(--mfg)" } }, "≈"),
+        h("span", { class: "amt num", style: { color: "var(--teal)" } }, money(c.conv))), x, y, T.currencies - 0.12 + i * 0.12);
+    });
+    // the arithmetic people do by hand
+    [[560, 445], [650, 700]].forEach(([x, y], i) => {
+      const [pct, base] = K.calcs[i];
+      addFrag(h("div", { class: "frag calc", dir: "ltr" }, `${pct} × `, h("span", { class: "num" }, money(base)), " = ",
+        h("b", { class: "num" }, money((base * parseFloat(pct)) / 100))), x, y, T.obligations + 0.3 + i * 0.22, { noAlign: true });
+    });
+    // background layer: more and more transaction rows piling up
+    [[560, 250], [1400, 420], [520, 520], [1390, 610], [650, 950], [1290, 880], [870, 120], [1090, 970], [180, 610], [1760, 330]].forEach(([x, y], i) => {
+      const r = C.rows[(i * 5) % C.rows.length];
+      addFrag(h("div", { class: "frag ghostrow" }, h("span", { class: "num", style: { color: "var(--mfg)" } }, r.d),
+        h("span", {}, r.desc), h("span", { class: `badge ${r.type}` }, typeWord[r.type]), h("b", { class: "num" }, money(r.amt))),
+        x, y, T.harder - 0.35 + Math.pow(i / 10, 0.7) * Math.max(1.2, A.e("complex2") - T.harder + 0.2), { noAlign: true, ghost: true });
+    });
+
     // aligned "order" slots (scene 3)
-    const nonMonth = frags.filter((f) => !f.month);
+    const nonMonth = frags.filter((f) => !f.month && !f.noAlign);
     nonMonth.forEach((f, i) => {
       const col = i % 2, row = Math.floor(i / 2);
       f.sx = (col === 0 ? 1500 : 420);
@@ -173,12 +210,17 @@
     const heroLayer = h("div", { class: "layer", style: { width: `${W}px`, height: `${H}px`, display: "flex", alignItems: "center", justifyContent: "center", transformOrigin: "50% 50%" } });
     const hero = h("div", { class: "hero10", style: { fontSize: "400px", transform: "translateY(-0.04em)" } }, "10", h("span", { class: "pct" }, "%"));
     heroLayer.append(hero);
-    const soundsWrap = h("div", { class: "abs", style: { width: `${W}px`, top: "812px", textAlign: "center", fontSize: R ? "66px" : "62px", fontWeight: "600", color: "hsl(47 20% 26%)", letterSpacing: "-0.01em" } });
+    const eyebrowWrap = h("div", { class: "abs", style: { width: `${W}px`, top: "196px", textAlign: "center", fontSize: R ? "60px" : "52px", fontWeight: "700", color: "var(--teal)", letterSpacing: "0.01em" } });
+    const eyebrow = h("span", { class: "wd" }, C.copy.eyebrow);
+    eyebrowWrap.append(h("span", { class: "mask" }, eyebrow));
+    const soundsWrap = h("div", { class: "abs", style: { width: `${W}px`, top: "806px", textAlign: "center", fontSize: R ? "76px" : "70px", fontWeight: "600", color: "hsl(47 20% 26%)", letterSpacing: "-0.01em" } });
     const soundsW = C.copy.sounds.map((wd) => {
       const inner = h("span", { class: "wd" }, wd);
       soundsWrap.append(h("span", { class: "mask" }, inner), " ");
       return inner;
     });
+    const butW = h("span", { class: "wd", style: { color: "var(--teal)", fontWeight: "700" } }, C.copy.but);
+    soundsWrap.append(h("span", { class: "mask" }, butW));
 
     // =========================================================== logos
     const logoLayer = h("div", { class: "layer" });
@@ -256,8 +298,8 @@
     const wideRing = ringGeom(wideSvg, wide.ring, wide.wedge, WIDE_X, WIDE_Y, wideScale, wideVB);
     const stackRing = ringGeom(stackSvg, stack.ring, stack.wedge, STACK_X, STACK_Y, stackScale, stackVB);
 
-    const orderTag = h("div", { class: "abs", style: { width: `${W}px`, top: "600px", textAlign: "center", fontSize: R ? "62px" : "56px", fontWeight: "700", color: "hsl(47 25% 18%)" } });
-    const orderTagW = (R ? ["ניהול מעשרות.", "פשוט וברור."] : ["Maaser management.", "Clear and simple."]).map((g) => {
+    const orderTag = h("div", { class: "abs", style: { width: `${W}px`, top: "596px", textAlign: "center", fontSize: R ? "70px" : "60px", fontWeight: "700", color: "hsl(47 25% 18%)" } });
+    const orderTagW = C.copy.orderTag.map((g) => {
       const inner = h("span", { class: "wd" }, g);
       orderTag.append(h("span", { class: "mask" }, inner), " ");
       return inner;
@@ -272,7 +314,8 @@
     const table = UI.tablePage(C.rows);
     const hal = UI.halachaPage();
     const con = UI.contact();
-    cam.append(dash.el, table.el, hal.el, side.el);
+    const ana = UI.analyticsPage();
+    cam.append(dash.el, table.el, ana.el, hal.el, side.el);
     // contact FAB (bottom corner opposite the sidebar, like the app)
     const fabX = R ? 26 : WIN_VW - 26 - 58, fabY = WIN_VH - 26 - 58;
     con.fab.style.left = `${fabX}px`; con.fab.style.top = `${fabY}px`;
@@ -322,6 +365,17 @@
       return R ? `${d}.${String(m).padStart(2, "0")}.2026` : `${["Jan", "Feb", "Mar"][m - 1]} ${d}, 2026`;
     }
 
+    // platforms (web + desktop software), each showing the same live dashboard
+    const platLayer = h("div", { class: "layer" });
+    const makeScreen = () => {
+      const scr = h("div", { style: { width: `${WIN_VW}px`, height: `${WIN_VH}px`, background: "hsl(48 79% 98%)", transform: `scale(${760 / WIN_VW})` } });
+      return scr;
+    };
+    const webScr = makeScreen(), deskScr = makeScreen();
+    const webF = UI.deviceFrame("web", webScr), deskF = UI.deviceFrame("desktop", deskScr);
+    platLayer.append(webF.el, deskF.el);
+    const PL = { web: { x: mx(1010, 760), y: 176 }, desk: { x: mx(150, 760), y: 176 } };
+
     // together tiles (scene 9): snapshots of the real components
     const tilesLayer = h("div", { class: "layer" });
     const tileConn = s("svg", { width: W, height: H, style: "position:absolute;left:0;top:0;overflow:visible" });
@@ -343,7 +397,7 @@
       return lines;
     }
     /** groups: [{text, t, cls}] → stacked lines revealed group by group */
-    function headline(groups, { size = R ? 84 : 72, weight = 800, maxW = HL_W, align = "side", top = null } = {}) {
+    function headline(groups, { size = R ? 88 : 76, weight = 700, maxW = HL_W, align = "side", top = null } = {}) {
       const el = h("div", { class: "headline", style: { fontSize: `${size}px`, fontWeight: weight } });
       const lines = [];
       groups.forEach((g, gi) => {
@@ -376,9 +430,10 @@
       { groups: [{ text: cp.maaserLines[0], t: T.maaser - 0.08, cls: "teal", key: true }, { text: cp.maaserLines[1], t: T.chomesh - 0.08, cls: "teal", key: true }, { text: cp.maaserLines[2], t: T.chomesh + 0.4 }], hardOut: T.s6 },
       { groups: [{ text: cp.importLines[0], t: B("importWord") - 0.1, key: true }, { text: cp.importLines[1], t: B("importWord") + 0.55, cls: "soft" }], hardOut: T.s7 },
       { groups: [{ text: cp.recurringLines[0], t: T.recWord - 0.1, key: true }, { text: cp.recurringLines[1], t: T.autoWord - 0.05, cls: "teal", key: true }], hardOut: T.s8 },
-      { groups: [{ text: cp.remindLines[0], t: T.remindWord - 0.15, key: true }, { text: cp.remindLines[1], t: T.remindWord + 0.4, cls: "teal" }], hardOut: T.s8 + 0.55 },
+      { groups: [{ text: cp.remindLines[0], t: T.remindWord - 0.15, key: true }, { text: cp.remindLines[1], t: T.remindWord + 0.4, cls: "teal" }], hardOut: T.an + 0.3 },
+      { groups: [{ text: cp.analyticsLines[0], t: T.anWord - 0.1, cls: "teal", key: true }, { text: cp.analyticsLines[1], t: T.household - 0.1, key: true }], hardOut: T.s8 + 0.4 },
       { groups: [{ text: cp.halachaLine, t: T.halWord - 0.1, cls: "teal", key: true }], hardOut: T.q - 0.25 },
-      { groups: [{ text: cp.questionLine, t: T.q, cls: "soft", size: R ? 50 : 44, weight: 700, key: true }, { text: cp.rabbiLine, t: T.rabbiWord - 0.06, cls: "teal", key: true }], hardOut: T.s9 },
+      { groups: [{ text: cp.questionLine, t: T.q, cls: "soft", size: R ? 58 : 50, weight: 700, key: true }, { text: cp.rabbiLine, t: T.rabbiWord - 0.06, cls: "teal", key: true }], hardOut: T.pl + 0.1 },
     ];
     (function scheduleHeadlines() {
       let floor = -1e9;
@@ -397,14 +452,19 @@
         if (next && HLDEF[b].out > next.groups[0].t - 0.25) HLDEF[b].out = next.groups[0].t - 0.25;
       }
     })();
-    const [hlMaaser, hlImport, hlRec, hlRemind, hlHal, hlRabbi] = HLDEF.map((d) => headline(d.groups));
-    const hlTogether = headline([{ text: cp.togetherLine, t: T.s9 + 0.55 }], { size: R ? 58 : 52, weight: 800, maxW: 1600, align: "center", top: 92 });
-    const tagline = headline(cp.tagline.map((g, i) => ({ text: g, t: taglineWordTime(i) })), { size: R ? 64 : 58, weight: 700, maxW: 1800, align: "center", top: 624 });
+    const [hlMaaser, hlImport, hlRec, hlRemind, hlAn, hlHal, hlRabbi] = HLDEF.map((d) => headline(d.groups));
+    const hlPlat = headline([{ text: cp.platformsTitle, t: T.pl + 0.3 }], { size: R ? 64 : 56, weight: 700, maxW: 1700, align: "center", top: 64 });
+    const hlTogether = headline([{ text: cp.togetherLine, t: T.s9 + 0.55 }], { size: R ? 66 : 58, weight: 700, maxW: 1700, align: "center", top: 86 });
+    const tagline = headline(cp.tagline.map((g, i) => ({ text: g, t: taglineWordTime(i) })), { size: R ? 68 : 56, weight: 700, maxW: 1800, align: "center", top: 612 });
     // tagline groups sit on one line: flatten them inline
-    tagline.el.querySelectorAll(".ln").forEach((l) => { l.style.display = "inline-block"; l.style.margin = "0 0.14em"; });
-    const urlEl = h("div", { class: "abs url", style: { width: `${W}px`, top: "760px", textAlign: "center" } }, cp.url);
-    const urlRule = h("div", { class: "abs", style: { left: `${CX - 36}px`, top: "735px", width: "72px", height: "3px", borderRadius: "2px", background: "#f0c000", transformOrigin: "50% 50%" } });
-    hlLayer.append(urlRule, urlEl);
+    tagline.el.querySelectorAll(".ln").forEach((l) => { l.style.display = "inline-block"; l.style.margin = "0 0.13em"; l.style.fontSize = `${R ? 68 : 56}px`; });
+    tagline.el.style.whiteSpace = "nowrap"; tagline.el.style.fontSize = "0"; // no stray inter-block spaces
+    // "free for personal use" (landing FAQ) + both platforms, then the URL
+    const freeEl = h("div", { class: "abs", style: { width: `${W}px`, top: "712px", display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", fontSize: R ? "34px" : "30px", fontWeight: "600", color: "hsl(47 20% 26%)" } },
+      h("span", { class: "freepill" }, cp.free), h("span", {}, cp.freeSub));
+    const urlEl = h("div", { class: "abs url", style: { width: `${W}px`, top: "826px", textAlign: "center" } }, cp.url);
+    const urlRule = h("div", { class: "abs", style: { left: `${CX - 36}px`, top: "800px", width: "72px", height: "3px", borderRadius: "2px", background: "#f0c000", transformOrigin: "50% 50%" } });
+    hlLayer.append(freeEl, urlRule, urlEl);
     function taglineWordTime(i) {
       const ph = A.phrases.find((p) => p.id === "tagline");
       const words = ph.words || [];
@@ -417,7 +477,7 @@
     }
 
     // =========================================================== assemble (z-order)
-    stage.append(chaosLayer, ringLayer, heroLayer, soundsWrap, ringLabel, winLayer, ovl, tilesLayer, logoLayer, orderTag, hlLayer);
+    stage.append(chaosLayer, ringLayer, heroLayer, eyebrowWrap, soundsWrap, ringLabel, winLayer, ovl, platLayer, tilesLayer, logoLayer, orderTag, hlLayer);
 
     await document.fonts.ready;
 
@@ -428,10 +488,9 @@
     const rowPos = (i) => ({ x: tblPos.x, y: tblPos.y + 48 + i * 52 });
     const cardPos = { overall: vpos(dash.overall.el), income: vpos(dash.income.el), expenses: vpos(dash.expenses.el), donations: vpos(dash.donations.el) };
     const halTitlePos = vpos(hal.title);
-    const mailAmtPos = { x: mail.amt.offsetLeft, y: mail.amt.offsetTop };
 
     // =========================================================== window geometry helpers
-    const WIN_X = mx(84, WIN_VW * WIN_S), WIN_Y = 187;
+    const WIN_X = mx(60, WIN_VW * WIN_S), WIN_Y = 175;
     const winState = { x: WIN_X, y: WIN_Y, s: WIN_S };
     const camState = { x: 0, y: 0, k: 1 };
     /** virtual → stage */
@@ -439,6 +498,25 @@
     const camFocus = (k, px, py, qx = WIN_VW / 2, qy = WIN_VH / 2) => ({
       k, x: clamp(qx - k * px, WIN_VW - k * WIN_VW, 0), y: clamp(qy - k * py, WIN_VH - k * WIN_VH, 0),
     });
+
+    // device-frame screens: sidebar + dashboard in their final state (same as scene 9's window)
+    {
+      const D = C.data;
+      dash.set({ inc: D.incomeBase + D.chomeshIncome, chom: D.chomeshIncome, exp: D.expenses, don: D.donations,
+        maaser: D.incomeBase * 0.1 - D.donations, chomesh: D.chomeshIncome * 0.2, showChomesh: true });
+      for (const scr of [webScr, deskScr]) {
+        const d = dash.el.cloneNode(true);
+        d.style.opacity = "1"; d.style.visibility = "visible";
+        d.querySelectorAll(".card").forEach((c) => { c.style.transform = "none"; c.style.opacity = "1"; c.style.visibility = "visible"; });
+        const sb = side.el.cloneNode(true);
+        const hl = sb.querySelector(".navhl"), bar = sb.querySelector(".navbar");
+        hl.style.left = "0"; hl.style.top = "0"; hl.style.transform = `translate(8px, ${side.slotY(0)}px)`;
+        bar.style.left = "0"; bar.style.top = "0"; bar.style.transform = `translate(${R ? 62 : 1}px, ${side.slotY(0) + 9}px)`;
+        scr.append(d, sb);
+        // pin the 1440-wide screen to the frame's top-left (an RTL box would otherwise overflow leftwards)
+        Object.assign(scr.style, { position: "absolute", left: "0px", top: "0px", right: "auto", transformOrigin: "0 0" });
+      }
+    }
 
     // tiles (built after layout so clones carry real dimensions)
     const tiles = buildTiles();
@@ -454,6 +532,7 @@
       logoScene(t);
       appScene(t);
       overlays(t);
+      platformsScene(t);
       headlines(t);
       tilesScene(t);
       finalScene(t);
@@ -468,9 +547,15 @@
       const toCenter = shrink;
       const fadeToVal = prog(t, T.income - 0.15, T.income + 0.2, E.inOutQuad);
       put(heroLayer, { y: lerp(28 * (1 - pin), -6, toCenter), s: k, o: pin * (1 - fadeToVal), blur: (1 - pin) * 8 });
-      // "sounds simple" words
+      // "מעשר כספים" eyebrow gives the 10% its context
+      const ep = prog(t, A.s("hook1") - 0.15, A.s("hook1") + 0.5, E.outQuint);
+      const eOut = prog(t, T.s2 - 0.25, T.s2 + 0.15, E.inCubic);
+      put(eyebrow, { y: lerp(60, 0, ep) - eOut * 30, o: ep * (1 - eOut) });
+      // "sounds simple" words, then "but…" on the narration's "אבל / But"
       const wt = [A.s("hook1") + 0.1, A.w("hook1", R ? "נשמע" : "sounds"), A.w("hook1", R ? "פשוט" : "simple")];
-      const out = prog(t, T.s2 - 0.2, T.s2 + 0.25, E.inCubic);
+      const out = prog(t, T.butOut, T.butOut + 0.4, E.inCubic);
+      const bp = prog(t, A.s("complex1") - 0.12, A.s("complex1") + 0.45, E.outQuint);
+      put(butW, { y: lerp(80, 0, bp) - out * 40, o: bp * (1 - out) });
       soundsW.forEach((el, i) => {
         const p = prog(t, wt[Math.min(i + (soundsW.length === 2 ? 1 : 0), 2)] - 0.08, wt[Math.min(i + (soundsW.length === 2 ? 1 : 0), 2)] + 0.5, E.outQuint);
         put(el, { y: lerp(70, 0, p) - out * 40, o: p * (1 - out) });
@@ -498,17 +583,18 @@
         const still = 1 - prog(t, T.freeze - 0.15, T.freeze + 0.2);
         y += Math.sin(t * 1.3 + f.i * 1.7) * (4 + 5 * harder) * still;
         x += Math.cos(t * 1.1 + f.i * 2.3) * (3 + 4 * harder) * still;
-        let sc = lerp(0.86, 1, pin), o = pin, rot = (rnd(f.i) - 0.5) * 4 * harder * still;
+        let sc = lerp(0.86, 1, pin) * (f.ghost ? 0.82 : 1), o = pin * (f.ghost ? 0.5 : 1), rot = (rnd(f.i) - 0.5) * (f.ghost ? 7 : 4) * harder * still;
         // scene 3: the sweep aligns everything it passes, then it all collapses into the ring
         const passT = T.sw0 + ((R ? W + 60 - f.x : f.x + 60) / (W + 120)) * (T.sw1 - T.sw0);
-        const al = prog(t, passT - 0.05, passT + 0.38, E.outCubic);
-        x = lerp(x, f.sx, al); y = lerp(y, f.sy, al); rot = lerp(rot, 0, al);
+        const al = f.noAlign ? 0 : prog(t, passT - 0.05, passT + 0.38, E.outCubic);
+        if (f.noAlign) o *= 1 - prog(t, passT - 0.05, passT + 0.2);   // loose ends are simply swept away
+        else { x = lerp(x, f.sx, al); y = lerp(y, f.sy, al); rot = lerp(rot, 0, al); }
         const ct = T.col0 + (f.month ? 0.06 : 0) + (f.i % 7) * 0.028;
         const col = prog(t, ct, ct + 0.36, E.inCubic);
         x = lerp(x, CX, col); y = lerp(y, CY, col); sc *= lerp(1, 0.18, col); o *= 1 - prog(t, ct + 0.18, ct + 0.36, E.linear);
-        put(f.el, { x: x - f.w / 2, y: y - f.h / 2, s: sc, r: rot, o });
-        // connector: fragment → ring edge
-        const cp = prog(t, f.t0 + 0.15, f.t0 + 0.75, E.outCubic) * (1 - al);
+        put(f.el, { x: x - f.w / 2, y: y - f.h / 2, s: sc, r: rot, o, blur: f.ghost ? 1.1 : 0 });
+        // connector: fragment → ring edge (background rows have none)
+        const cp = f.ghost ? 0 : prog(t, f.t0 + 0.15, f.t0 + 0.75, E.outCubic) * (1 - al) * (f.noAlign ? o : 1);
         if (cp > 0.001) {
           const ang = Math.atan2(y - CY, x - CX);
           const ex = CX + Math.cos(ang) * 212, ey = CY + Math.sin(ang) * 212;
@@ -611,7 +697,7 @@
       // scene 4: the wide logo flies into the app sidebar
       const fly = prog(t, T.s4, T.s4 + 0.75, E.inOutCubic);
       const slot = { x: WIN_X + WIN_S * (R ? WIN_VW - 66 + 13 : 13), y: WIN_Y + WIN_S * 14, w: 40 * WIN_S };
-      const k = lerp(1, slot.w / WIDE_W * 1.9, fly);
+      const k = lerp(1, slot.w / WIDE_W * 1.9, E.outCubic(prog(t, T.s4, T.s4 + 0.6, E.linear)));
       const lx = lerp(WIDE_X, slot.x - (WIDE_W * k - slot.w) / 2, fly);
       const ly = lerp(WIDE_Y, slot.y, fly);
       const lo = (1 - prog(t, T.s4 + 0.35, T.s4 + 0.7, E.linear)) * (t < T.s10 ? 1 : 0);
@@ -637,19 +723,24 @@
     function appScene(t) {
       // window visibility / placement
       const wIn = prog(t, T.s4 + 0.2, T.s4 + 0.8, E.outCubic);
-      const wOut8 = prog(t, T.s8, T.s8 + 0.4, E.inOutQuad);
-      const wIn8 = prog(t, T.hal - 0.1, T.hal + 0.5, E.outCubic);
-      let o = t < T.s8 ? wIn : lerp(1 - wOut8, 1, wIn8 > 0 ? wIn8 : 0);
-      if (t >= T.s8 && t < T.hal - 0.1) o = 1 - wOut8;
-      if (t >= T.hal - 0.1) o = wIn8;
-      // scene 9: pull out to the centre; scene 10: converge
+      let o;
+      if (t < T.s8) o = wIn;                                                     // scenes 4–7 + analytics
+      else if (t < T.hal - 0.1) o = 1 - prog(t, T.s8, T.s8 + 0.4, E.inOutQuad);  // "not just numbers"
+      else if (t < T.pl) o = prog(t, T.hal - 0.1, T.hal + 0.5, E.outCubic);      // halacha + rabbi
+      else if (t < T.s9) o = 1 - prog(t, T.pl, T.pl + 0.35, E.inOutQuad);        // platforms (frames take over)
+      else o = 1;                                                                // together: picks up the web frame's screen
+      // scene 9: from the browser frame's screen to the centre; scene 10: converge
       const pull = prog(t, T.s9, T.s9 + 0.95, E.inOutCubic);
       const conv = prog(t, T.s10, T.s10 + 0.45, E.inCubic);
       const s9 = 0.5;
       const cxT = CX - (WIN_VW * s9) / 2, cyT = 600 - (WIN_VH * s9) / 2;
-      let sc = lerp(WIN_S * lerp(0.965, 1, wIn), s9, pull);
-      let wx = lerp(WIN_X + (WIN_VW * WIN_S * (1 - lerp(0.965, 1, wIn))) / 2, cxT, pull);
-      let wy = lerp(WIN_Y + (WIN_VH * WIN_S * (1 - lerp(0.965, 1, wIn))) / 2, cyT, pull);
+      let sc = WIN_S * lerp(0.965, 1, wIn);
+      let wx = WIN_X + (WIN_VW * WIN_S * (1 - lerp(0.965, 1, wIn))) / 2;
+      let wy = WIN_Y + (WIN_VH * WIN_S * (1 - lerp(0.965, 1, wIn))) / 2;
+      if (t >= T.s9) {
+        const ws = webScreenRect();
+        sc = lerp(ws.s, s9, pull); wx = lerp(ws.x, cxT, pull); wy = lerp(ws.y, cyT, pull);
+      }
       if (conv > 0) {
         const s2 = lerp(s9, 0.04, conv);
         wx = lerp(wx, CX - (WIN_VW * s2) / 2, conv); wy = lerp(wy, 520 - (WIN_VH * s2) / 2, conv); sc = s2;
@@ -658,24 +749,21 @@
       winState.x = wx; winState.y = wy; winState.s = sc;
       put(winEl, { x: wx, y: wy, s: sc, o });
 
-      // which page
-      const pages = [
-        [dash.el, t < T.s5 + 0.35 || t >= T.s9 + 0.05],
-        [table.el, t >= T.s5 && t < T.s8],
-        [hal.el, t >= T.s8 && t < T.s9 + 0.4],
-      ];
-      const pageFade = (el, a, b) => (t < a ? 0 : t < a + 0.35 ? prog(t, a, a + 0.35) : t < b ? 1 : 1 - prog(t, b, b + 0.35));
-      put(dash.el, { o: t < T.s9 ? 1 - prog(t, T.s5, T.s5 + 0.35) : prog(t, T.s9 + 0.05, T.s9 + 0.4) });
-      put(table.el, { o: pageFade(table.el, T.s5, T.s8 + 0.2), x: (1 - prog(t, T.s5, T.s5 + 0.45, E.outCubic)) * (R ? -30 : 30) });
-      put(hal.el, { o: t >= T.s9 ? 1 - prog(t, T.s9 + 0.05, T.s9 + 0.4) : (t >= T.hal - 0.1 ? 1 : 0) });
-      void pages; void page;
+      // pages
+      const fade = (a, b, d = 0.35) => (t < a ? 0 : t < b ? prog(t, a, a + d) : 1 - prog(t, b, b + d));
+      put(dash.el, { o: t >= T.pl ? 1 : 1 - prog(t, T.s5, T.s5 + 0.35) });
+      put(table.el, { o: fade(T.s5, T.an), x: (1 - prog(t, T.s5, T.s5 + 0.45, E.outCubic)) * (R ? -30 : 30) });
+      put(ana.el, { o: t < T.hal - 0.1 ? prog(t, T.an, T.an + 0.4) : 0, x: (1 - prog(t, T.an, T.an + 0.5, E.outCubic)) * (R ? -30 : 30) });
+      put(hal.el, { o: t >= T.hal - 0.1 && t < T.pl + 0.4 ? 1 : 0 });
 
-      // sidebar highlight
-      const navFrom = t < T.s5 ? 0 : t < T.hal ? 0 : t < T.s9 ? 2 : 4;
-      const navTo = t < T.s5 ? 0 : t < T.hal ? 2 : t < T.s9 ? 4 : 0;
-      const navP = t < T.s5 ? 1 : t < T.hal ? prog(t, T.s5 + 0.05, T.s5 + 0.45) : t < T.s9 ? 1 : prog(t, T.s9, T.s9 + 0.4);
-      const ny = lerp(side.slotY(navFrom), side.slotY(navTo), navP);
-      put(side.hl, { x: 8, y: ny - (navTo === 0 && navFrom === 0 ? 0 : 0) });
+      // sidebar highlight: home → table → analytics → halacha → home
+      const navKeys = [[-1e9, 0], [T.s5 + 0.05, 2], [T.an + 0.05, 3], [T.hal, 4], [T.pl, 0]];
+      let ny = side.slotY(0);
+      for (let i = 1; i < navKeys.length; i++) {
+        const [tk, idx] = navKeys[i];
+        if (t >= tk) ny = lerp(side.slotY(navKeys[i - 1][1]), side.slotY(idx), prog(t, tk, tk + 0.4));
+      }
+      put(side.hl, { x: 8, y: ny });
       side.hl.style.top = "0px"; side.hl.style.left = "0px";
       put(side.bar, { x: R ? 62 : 1, y: ny + 9 });
       side.bar.style.top = "0px"; side.bar.style.left = "0px";
@@ -720,6 +808,8 @@
       // halacha: slow, calm push-in
       const hp = prog(t, T.hal, T.q + 0.3, E.inOutQuad) * (1 - prog(t, T.q + 0.3, T.q + 0.9));
       if (hp > 0) { const z = camFocus(1 + 0.06 * hp, WIN_VW / 2, 380); ck = z.k; cx = z.x; cy = z.y; }
+      const ap = prog(t, T.an + 0.2, T.s8, E.inOutQuad) * (t < T.s8 + 0.4 ? 1 : 0);
+      if (ap > 0) { const z = camFocus(1 + 0.04 * ap, WIN_VW / 2, 400); ck = z.k; cx = z.x; cy = z.y; }
       camState.k = ck; camState.x = cx; camState.y = cy;
       put(cam, { x: cx, y: cy, s: ck });
 
@@ -739,7 +829,7 @@
       put(table.importBtn, { s: 1 + 0.08 * Math.sin(clamp((t - (T.s5 + 0.72)) / 0.35) * Math.PI) });
 
       // veil dims the app while overlays (calendar, email) take focus
-      const veilO = win(t, T.recWord - 0.1, T.s8 + 0.1, 0.4, 0.3) * 0.86;
+      const veilO = win(t, T.recWord - 0.1, T.an + 0.3, 0.4, 0.3) * 0.86;
       put(veil, { o: veilO });
 
       // ---------- halacha (scene 8) ----------
@@ -754,11 +844,30 @@
       hal.arts.forEach((a, i) => put(a, { o: artO[i], y: (1 - artO[i]) * 10 }));
       put(hal.title, { o: prog(t, T.hal + 0.42, T.hal + 0.5) });
 
+      // ---------- analytics ----------
+      const aT = T.an + 0.3;
+      ana.cards.forEach((c, i) => { const p = prog(t, aT + i * 0.06, aT + 0.5 + i * 0.06, E.outCubic); put(c, { y: (1 - p) * 22, o: p }); });
+      const kp = prog(t, aT + 0.25, aT + 1.2, E.outCubic);
+      ana.kpiVals.forEach((k) => setText(k.el, `${k.signed ? "+" : ""}${(k.v * kp).toFixed(1)}%`));
+      ana.ringArcs.forEach((r, i) => {
+        const p = prog(t, aT + 0.35 + i * 0.12, aT + 1.3 + i * 0.12, E.inOutCubic);
+        setAttr(r.arcC, "stroke-dasharray", `${(r.pct * p).toFixed(2)} 100`);
+        setText(r.txt, `${Math.round(r.pct * p)}%`);
+      });
+      ana.catBars.forEach((b, i) => { const p = prog(t, T.moneyW - 0.3 + i * 0.07, T.moneyW + 0.35 + i * 0.07, E.outCubic); setStyle(b.bar, "width", `${(b.w * p).toFixed(1)}px`); });
+      ana.payBars.forEach((b, i) => { const p = prog(t, aT + 0.7 + i * 0.1, aT + 1.3 + i * 0.1, E.outCubic); setStyle(b.bar, "width", `${(b.w * p).toFixed(1)}px`); });
+      ana.donutSegs.forEach((d, i) => { const p = prog(t, aT + 0.9 + i * 0.12, aT + 1.4 + i * 0.12, E.inOutQuad); setAttr(d.c, "stroke-dasharray", `${(d.len * p).toFixed(2)} 100`); });
+      ana.insightLines.forEach((l, i) => { const p = prog(t, aT + 0.8 + i * 0.3, aT + 1.2 + i * 0.3, E.outCubic); put(l, { y: (1 - p) * 8, o: p }); });
+      // the household beat lights the savings rate
+      const hh = win(t, T.household - 0.15, T.household + 1.1, 0.2, 0.4);
+      setStyle(ana.kpis[0], "outline", hh > 0.01 ? `${(4 * hh).toFixed(1)}px solid rgba(22,163,74,0.7)` : "none");
+      setStyle(ana.kpis[0], "outlineOffset", "3px");
+
       // ---------- ask the rabbi ----------
       const ripple = clamp((t - (T.fabPress - 0.35)) / 0.7);
       put(fabRipple, { s: 1 + ripple * 0.7, o: ripple > 0 && ripple < 1 ? 0.6 * (1 - ripple) : 0 });
       const press = Math.sin(clamp((t - T.fabPress) / 0.22) * Math.PI);
-      const fabVis = t >= T.hal ? prog(t, T.hal + 0.2, T.hal + 0.6) * (1 - prog(t, T.s9, T.s9 + 0.3)) : 0;
+      const fabVis = t >= T.hal ? prog(t, T.hal + 0.2, T.hal + 0.6) * (1 - prog(t, T.pl, T.pl + 0.3)) : 0;
       put(con.fab, { s: 1 - 0.1 * press, o: fabVis });
       con.fab.style.transformOrigin = "50% 50%";
       const dlgIn = prog(t, T.dlg, T.dlg + 0.35, E.outCubic);
@@ -775,7 +884,7 @@
       setStyle(con.tabRabbi, "boxShadow", tabHi > 0.01 ? `0 0 0 ${(2.5 * tabHi).toFixed(1)}px rgba(17,103,106,0.55), 0 2px 8px -2px rgba(0,0,0,0.1)` : "0 2px 8px -2px rgba(0,0,0,0.1)");
       setStyle(con.tabRabbi, "color", tabHi > 0.3 ? "#11676a" : "");
       put(con.send, { s: 1 - 0.04 * Math.sin(clamp((t - T.send) / 0.2) * Math.PI) });
-      const toastO = win(t, T.send + 0.25, T.s9 + 0.25, 0.25, 0.3);
+      const toastO = win(t, T.send + 0.25, T.pl + 0.3, 0.25, 0.3);
       const toastW = con.toast.offsetWidth;
       put(con.toast, { x: (WIN_VW - toastW) / 2, y: (1 - prog(t, T.send + 0.25, T.send + 0.6, E.outCubic)) * 20, o: toastO });
     }
@@ -789,7 +898,10 @@
     function overlays(t) {
       // chomesh transaction form (scene 4)
       const txIn = prog(t, T.chomesh - 0.6, T.chomesh - 0.2, E.outCubic);
-      const txOut = prog(t, A.e("maaser") + 0.15, A.e("maaser") + 0.5, E.inCubic);
+      const txOut = prog(t, Math.max(A.e("maaser") + 0.15, T.anyCur + 1.0), Math.max(A.e("maaser") + 0.5, T.anyCur + 1.35), E.inCubic);
+      // "in any currency": the real currency select opens for a moment
+      const cm = win(t, T.anyCur - 0.3, T.anyCur + 0.95, 0.2, 0.25);
+      put(tx.curMenu, { y: (1 - cm) * -8, s: lerp(0.96, 1, cm), o: cm });
       put(tx.el, { x: mx(170, 520), y: 560 + (1 - txIn) * 40 + txOut * 30, o: txIn * (1 - txOut) });
       const on = t >= T.chomesh - KW_LEAD;
       tx.toggle.classList.toggle("on", on);
@@ -873,19 +985,17 @@
       put(inbox.el, { x: lerp(bellStage.x - 280, IB.x, ib), y: lerp(bellStage.y - 37, IB.y, ib), s: lerp(0.2, 1, ib), o: ib * (1 - ibOut) });
       inbox.el.style.transformOrigin = "50% 50%";
       const me = prog(t, T.remindWord + 0.48, T.remindWord + 0.98, E.outCubic);
-      const mOut = prog(t, T.s8 + 0.05, T.s8 + 0.45, E.inOutQuad);
+      const mOut = prog(t, T.an, T.an + 0.4, E.inOutQuad);
       const MAIL = { x: mx(394, 560), y: 205 };
       put(mail.el, { x: MAIL.x, y: lerp(IB.y - 140, MAIL.y, me), s: lerp(0.94, 1, me), o: me * (1 - mOut) });
       mail.el.style.transformOrigin = "50% 50%";
-      put(mail.amt, { o: t >= T.s8 + 0.02 ? 0 : 1 });
 
-      // scene 8: the amount floats free, then becomes words
-      const amtStage = { x: MAIL.x + 32 + mailAmtPos.x, y: MAIL.y + mailAmtPos.y };
-      const fa = prog(t, T.s8 + 0.05, T.s8 + 1.0, E.inOutCubic);
+
+      // scene 8: the balance floats free among the other figures, then becomes words
+      const fa = prog(t, T.s8 + 0.1, T.s8 + 0.9, E.outCubic);
       const faOut = prog(t, T.numbers - 0.05, T.numbers + 0.55, E.inOutQuad);
       const faW = floatAmt.offsetWidth;
-      const amtTarget = { x: CX - faW / 2, y: CY - 30 };
-      put(floatAmt, { x: lerp(amtStage.x + (mail.amt.offsetWidth - faW) / 2, amtTarget.x, fa), y: lerp(amtStage.y, amtTarget.y, fa), s: lerp(1, 2.6, fa), o: (t >= T.s8 ? 1 : 0) * (1 - faOut), blur: faOut * 10 });
+      put(floatAmt, { x: CX - faW / 2, y: CY - 30, s: lerp(2.2, 2.6, fa), o: fa * (1 - faOut), blur: (1 - fa) * 6 + faOut * 10 });
       constel.forEach((c) => {
         const w = c.el.offsetWidth;
         const p = prog(t, T.s8 + 0.35 + c.i * 0.07, T.s8 + 1.05 + c.i * 0.07, E.outCubic);
@@ -905,6 +1015,37 @@
       });
     }
 
+    // ----------------------------------------------------------- platforms (web / desktop software)
+    function webScreenRect() {
+      const sc = webF.frame.querySelector(".screen");
+      return { x: PL.web.x + webF.frame.offsetLeft + sc.offsetLeft, y: PL.web.y + webF.frame.offsetTop + sc.offsetTop, s: 760 / WIN_VW };
+    }
+    function platformsScene(t) {
+      const out = prog(t, T.s9, T.s9 + 0.35, E.inCubic);
+      [[webF, PL.web, T.web], [deskF, PL.desk, T.desk]].forEach(([F, P, kw], k) => {
+        const p = prog(t, Math.max(T.pl + 0.1 + k * 0.25, kw - 0.45), Math.max(T.pl + 0.1 + k * 0.25, kw - 0.45) + 0.6, E.outCubic);
+        const lift = win(t, kw - 0.15, kw + 1.0, 0.2, 0.4);
+        // the web frame's screen hands over to the real app window at scene 9, so only its chrome fades
+        const o = p * (k === 0 ? 1 : 1 - out);
+        put(F.el, { x: P.x, y: P.y + (1 - p) * 40 - lift * 8, s: lerp(0.94, 1, p), o: o });
+        F.el.style.transformOrigin = "50% 50%";
+        setStyle(F.frame, "boxShadow", lift > 0.01 ? `0 0 0 ${(3 * lift).toFixed(1)}px rgba(17,103,106,0.45), var(--shadow-float)` : "");
+        F.feats.forEach((f, i) => {
+          const fp = prog(t, kw - 0.1 + i * 0.22, kw + 0.4 + i * 0.22, E.outCubic);
+          put(f, { y: (1 - fp) * 14, o: fp * (1 - out) });
+        });
+        const bp = k === 1 ? prog(t, T.offline - 0.2, T.offline + 0.25, E.outBack) : prog(t, T.web + 0.5, T.web + 0.9, E.outBack);
+        put(F.badge, { s: lerp(0.6, 1, bp), o: bp * (1 - out) });
+        F.badge.style.transformOrigin = "50% 50%";
+      });
+      // web frame: chrome + title fade while the real window takes over its screen
+      const chromeEls = [webF.frame.querySelector(".chrome"), webF.el.querySelector(".ptitle")];
+      chromeEls.forEach((el) => put(el, { o: 1 - out }));
+      put(webF.frame.querySelector(".screen"), { o: t >= T.s9 ? 0 : 1 });
+      setStyle(webF.frame, "background", t >= T.s9 ? "transparent" : "#fff");
+      if (t >= T.s9) setStyle(webF.frame, "boxShadow", out < 1 ? `0 0 0 1px rgba(40,36,20,${(0.1 * (1 - out)).toFixed(3)})` : "none");
+    }
+
     // ----------------------------------------------------------- headlines
     function showHL(hl, t, tOut) {
       const out = prog(t, tOut, tOut + 0.4, E.inCubic);
@@ -915,11 +1056,13 @@
     }
     // headline → exit time (also used by the readability QA report)
     const HL_OUT = [
-      ...[hlMaaser, hlImport, hlRec, hlRemind, hlHal, hlRabbi].map((hl, i) => [hl, HLDEF[i].out]),
-      [hlTogether, T.s10], [tagline, T.end],
+      ...[hlMaaser, hlImport, hlRec, hlRemind, hlAn, hlHal, hlRabbi].map((hl, i) => [hl, HLDEF[i].out]),
+      [hlPlat, T.s9 - 0.1], [hlTogether, T.s10], [tagline, T.end],
     ];
     function headlines(t) {
       for (const [hl, tOut] of HL_OUT) showHL(hl, t, tOut);
+      const fp = prog(t, T.free - 0.12, T.free + 0.5, E.outCubic);
+      put(freeEl, { y: (1 - fp) * 18, o: fp });
       const u = prog(t, T.url, T.url + 0.7, E.outCubic);
       put(urlEl, { y: (1 - u) * 16, o: u });
       put(urlRule, { sx: prog(t, T.url - 0.2, T.url + 0.5, E.inOutCubic), o: prog(t, T.url - 0.2, T.url) });
@@ -938,11 +1081,12 @@
         return box;
       };
       // freeze clones in their final visual state
-      const tableSnip = h("div", { style: { width: "1286px", position: "relative" } });
-      const tbClone = table.tbl.cloneNode(true);
-      tbClone.style.position = "relative"; tbClone.style.top = "0"; tbClone.style.left = "0"; tbClone.style.right = "0";
-      tbClone.querySelectorAll(".tr").forEach((r) => { r.style.transform = "none"; r.style.opacity = "1"; r.style.visibility = "visible"; });
-      tableSnip.append(tbClone);
+      ana.kpiVals.forEach((k) => { k.el.textContent = `${k.signed ? "+" : ""}${k.v.toFixed(1)}%`; });
+      ana.ringArcs.forEach((r) => { r.arcC.setAttribute("stroke-dasharray", `${r.pct} 100`); r.txt.textContent = `${r.pct}%`; });
+      ana.catBars.concat(ana.payBars).forEach((b) => { b.bar.style.width = `${b.w}px`; });
+      ana.donutSegs.forEach((d) => d.c.setAttribute("stroke-dasharray", `${d.len} 100`));
+      const anaClone = ana.el.cloneNode(true);
+      anaClone.querySelectorAll(".panel, div").forEach((c) => { if (c.style.opacity === "0") c.style.opacity = "1"; });
       cal.grids.forEach((g, i) => { g.g.style.opacity = i === 1 ? "1" : "0"; });
       cal.names.forEach((n, i) => { n.style.opacity = i === 1 ? "1" : "0"; n.style.transform = "none"; n.style.visibility = i === 1 ? "visible" : "hidden"; });
       const calClone = cal.el.cloneNode(true);
@@ -967,7 +1111,7 @@
       dlgClone.querySelectorAll(".caret").forEach((c) => c.remove());
       const TW = 360, TH = 214;
       const defsT = [
-        { el: snap(tableSnip, TW, TH, 0.36, 12, 12) },
+        { el: snap(anaClone, TW, TH, 0.25, 4, 2) },
         { el: snap(stepClone, TW, TH, 0.66, 16, 40) },
         { el: snap(calClone, TW, TH, 0.52, 18, 4) },
         { el: snap(mailClone, TW, TH, 0.62, 6, 0) },
@@ -1025,7 +1169,7 @@
 
     // ----------------------------------------------------------- cue plan
     function planCues() {
-      frags.forEach((f) => cue(f.t0 + 0.05, f.month ? "tick" : "arrive", f.month ? 0.22 : f.t0 > T.harder ? 0.22 : 0.34));
+      frags.forEach((f) => { if (!f.ghost) cue(f.t0 + 0.05, f.month || f.noAlign ? "tick" : "arrive", f.month ? 0.22 : f.t0 > T.harder ? 0.22 : 0.34); });
       [T.income, T.donations, T.months + 0.3, T.obligations + 0.12, T.recurring].forEach((b) => cue(b + 0.05, "tick", 0.3));
       cue(T.sw0 + 0.05, "sweep", 0.7);
       cue(T.col0 + 0.34, "pop", 0.45);
@@ -1041,6 +1185,11 @@
       cue(T.flip1 + 0.2, "arrive", 0.34); cue(T.flip2 + 0.2, "arrive", 0.34);
       cue(T.s7 + 0.32, "notify", 0.5);
       cue(T.remindWord + 0.5, "whoosh", 0.26);
+      cue(T.anyCur - 0.3, "tap", 0.3);
+      cue(T.an + 0.05, "whoosh", 0.3);
+      [0, 1, 2].forEach((i) => cue(T.an + 0.6 + i * 0.12, "tick", 0.2));
+      cue(T.moneyW - 0.3, "arrive", 0.28);
+      cue(T.household - 0.15, "tick", 0.26);
       cue(T.hal, "whoosh", 0.22);
       cue(T.tab1, "tap", 0.28); cue(T.tab2, "tap", 0.28);
       cue(T.fabPress, "tap", 0.5);
@@ -1049,10 +1198,15 @@
       for (let x = T.body0; x < T.body1; x += 0.18) cue(x, "type", 0.12);
       cue(T.send, "tap", 0.5);
       cue(T.send + 0.27, "notify", 0.3);
+      cue(T.pl + 0.05, "whoosh", 0.3);
+      cue(Math.max(T.pl + 0.1, T.web - 0.45), "pop", 0.32);
+      cue(Math.max(T.pl + 0.35, T.desk - 0.45), "pop", 0.32);
+      cue(T.offline - 0.2, "tick", 0.26);
       tiles.forEach((_, i) => cue(T.s9 + 0.5 + i * 0.1, "pop", 0.2));
       [T.tInc, T.tDon, T.tObl].forEach((x) => cue(x, "tick", 0.24));
       cue(T.s10 + 0.05, "whoosh", 0.4);
       cue(T.brand, "resolve", 0.8);
+      cue(T.free - 0.12, "pop", 0.3);
       keywordSafeCues();
     }
 

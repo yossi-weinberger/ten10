@@ -1,22 +1,97 @@
 {
   "lang": "en",
   "dir": "ltr",
-  "note": "English narration split into phrases. Phrase ids are the anchors the film's timeline hangs on; do not rename them. 'pauseAfter' is only used for the provisional (pre-recording) timing estimate.",
+  "note": "English narration split into phrases. Phrase ids are the anchors the film's timeline hangs on; do not rename them. 'pauseAfter' is the intended pause after each phrase (a direction for the voice-over as well as the provisional timing estimate). Calm, unhurried read.",
   "phrases": [
-    { "id": "hook1", "text": "Maaser sounds simple.", "pauseAfter": 0.35 },
-    { "id": "hook2", "text": "Ten percent.", "pauseAfter": 0.9 },
-    { "id": "complex1", "text": "But once you add income, donations, different months, recurring commitments and everything that changes along the way,", "pauseAfter": 0.3 },
-    { "id": "complex2", "text": "it quickly becomes harder to keep track.", "pauseAfter": 0.7 },
-    { "id": "order", "text": "TEN10 brings it all into one clear system,", "pauseAfter": 0.3 },
-    { "id": "maaser", "text": "with full support for both Maaser and Chomesh.", "pauseAfter": 0.7 },
-    { "id": "import", "text": "Import existing transactions,", "pauseAfter": 0.3 },
-    { "id": "recurring", "text": "automate recurring entries,", "pauseAfter": 0.3 },
-    { "id": "reminders", "text": "and get reminders when you need them.", "pauseAfter": 0.7 },
-    { "id": "notjust", "text": "And TEN10 is more than numbers.", "pauseAfter": 0.9 },
-    { "id": "halacha", "text": "Explore the Halachic Library for relevant guidance,", "pauseAfter": 0.35 },
-    { "id": "rabbi", "text": "and when you still have a question, use Ask the Rabbi.", "pauseAfter": 0.7 },
-    { "id": "together", "text": "Your income, donations and obligations come together in one clear picture.", "pauseAfter": 0.8 },
-    { "id": "brand", "text": "TEN10.", "pauseAfter": 0.8 },
-    { "id": "tagline", "text": "Maaser is simpler when everything is in order.", "pauseAfter": 0 }
+    {
+      "id": "hook1",
+      "text": "Maaser sounds simple.",
+      "pauseAfter": 0.45
+    },
+    {
+      "id": "hook2",
+      "text": "Ten percent.",
+      "pauseAfter": 1.0
+    },
+    {
+      "id": "complex1",
+      "text": "But once you add income, donations, currencies, different months, recurring commitments and everything that changes along the way,",
+      "pauseAfter": 0.35
+    },
+    {
+      "id": "complex2",
+      "text": "it quickly becomes harder to keep track.",
+      "pauseAfter": 0.85
+    },
+    {
+      "id": "order",
+      "text": "TEN10 brings it all into one clear system,",
+      "pauseAfter": 0.4
+    },
+    {
+      "id": "maaser",
+      "text": "with full support for both Maaser and Chomesh, in any currency.",
+      "pauseAfter": 0.85
+    },
+    {
+      "id": "import",
+      "text": "Import existing transactions,",
+      "pauseAfter": 0.55
+    },
+    {
+      "id": "recurring",
+      "text": "automate recurring entries,",
+      "pauseAfter": 0.55
+    },
+    {
+      "id": "reminders",
+      "text": "and get reminders when you need them.",
+      "pauseAfter": 0.85
+    },
+    {
+      "id": "analytics",
+      "text": "The analytics dashboard shows exactly where your household money goes.",
+      "pauseAfter": 0.9
+    },
+    {
+      "id": "notjust",
+      "text": "And TEN10 is more than numbers.",
+      "pauseAfter": 1.0
+    },
+    {
+      "id": "halacha",
+      "text": "Explore the Halachic Library for relevant guidance,",
+      "pauseAfter": 0.45
+    },
+    {
+      "id": "rabbi",
+      "text": "and when you still have a question, use Ask the Rabbi.",
+      "pauseAfter": 0.85
+    },
+    {
+      "id": "platforms",
+      "text": "Use it on the web from anywhere, or as desktop software that works even offline.",
+      "pauseAfter": 0.85
+    },
+    {
+      "id": "together",
+      "text": "Your income, donations and obligations come together in one clear picture.",
+      "pauseAfter": 0.85
+    },
+    {
+      "id": "brand",
+      "text": "TEN10.",
+      "pauseAfter": 0.7
+    },
+    {
+      "id": "tagline",
+      "text": "Simple and accurate tithe and financial budget management.",
+      "pauseAfter": 0.45
+    },
+    {
+      "id": "free",
+      "text": "Free for personal use.",
+      "pauseAfter": 0
+    }
   ]
 }

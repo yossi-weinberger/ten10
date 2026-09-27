@@ -160,6 +160,13 @@
       const F = U.form;
       const toggle = h("div", { class: "toggle" }, F.chomesh);
       const amt = h("div", { class: "field num", style: { flex: "1", fontWeight: "600" } }, money(C.data.chomeshIncome));
+      const curList = [["₪", "ILS"], ["$", "USD"], ["€", "EUR"], ["£", "GBP"], ["C$", "CAD"], ["₣", "CHF"]];
+      const mine = C.currency;
+      const ordered = [curList.find((c) => c[1] === mine), ...curList.filter((c) => c[1] !== mine)];
+      const curPill = h("div", { class: "btn primary", style: { height: "42px", padding: "0 14px", direction: "ltr" } }, `${ordered[0][0]} ${ordered[0][1]}`);
+      const swap = h("div", { class: "btn", style: { height: "42px", width: "42px", padding: "0", justifyContent: "center" } }, icon("arrow-left-right", 17, 2));
+      const curMenu = h("div", { class: "curmenu" },
+        ...ordered.map(([sym, code], i) => h("div", { class: `ci${i === 0 ? " on" : ""}` }, h("span", { class: "ltr" }, `${sym} ${code}`), i === 0 ? icon("check", 15, 2.4) : null)));
       const el = h("div", { class: "txform" },
         h("div", { style: { fontSize: "15px", fontWeight: "600" } }, F.type),
         h("div", { class: "seg" },
@@ -167,14 +174,15 @@
           h("div", {}, icon("credit-card", 20, 2), F.expense),
           h("div", {}, icon("hand-coins", 20, 2), F.donation)),
         h("div", { style: { display: "flex", gap: "12px", marginTop: "16px", alignItems: "flex-end" } },
-          h("div", { style: { flex: "1" } },
-            h("div", { style: { fontSize: "14px", fontWeight: "600", marginBottom: "6px" } }, F.amount), amt),
+          h("div", { style: { flex: "1.5" } },
+            h("div", { style: { fontSize: "14px", fontWeight: "600", marginBottom: "6px" } }, F.amount),
+            h("div", { style: { display: "flex", gap: "8px", position: "relative" } }, amt, curPill, swap, curMenu)),
           h("div", { style: { flex: "1" } },
             h("div", { style: { fontSize: "14px", fontWeight: "600", marginBottom: "6px" } }, " "),
             h("div", { class: "field", style: { color: "var(--fg)" } }, F.desc))),
         h("div", { style: { display: "flex", justifyContent: "center", marginTop: "18px" } }, toggle),
       );
-      return { el, toggle };
+      return { el, toggle, curMenu, curPill };
     }
 
     // ----------------------------------------------------------- transactions table
@@ -364,7 +372,109 @@
       return { el, subj, subjCaret, body, bodyCaret, bodyPh, send, toast, fab, tabRabbi };
     }
 
-    return { money, sidebar, dashboard, txForm, tablePage, fileChip, stepper, calendar, recRow, email, inbox, halachaPage, contact };
+
+    // ----------------------------------------------------------- analytics (AnalyticsPage)
+    function analyticsPage() {
+      const An = U.analytics;
+      const side = R ? "right" : "left", other = R ? "left" : "right";
+      const card = (st, ...kids) => h("div", { class: "panel", style: { position: "absolute", padding: "18px 20px", ...st } }, ...kids);
+      const head = (ic, col, title, sub) => h("div", {},
+        h("div", { style: { display: "flex", alignItems: "center", gap: "8px", fontSize: "17px", fontWeight: "700" } }, h("span", { style: { color: col } }, icon(ic, 18, 2)), title),
+        sub ? h("div", { style: { fontSize: "12.5px", color: "var(--mfg)", marginTop: "4px" } }, sub) : null);
+      // KPI row
+      const kpiVals = [];
+      const kpiCols = ["#dc2626", "#11676a", "#11676a"];
+      const kpis = An.kpis.map(([label, v], i) => {
+        const val = h("div", { class: "num", style: { fontSize: "34px", fontWeight: "700", color: i === 0 ? "#16a34a" : kpiCols[i], marginTop: "14px", direction: "ltr", textAlign: R ? "right" : "left" } }, "");
+        kpiVals.push({ el: val, v, signed: i === 2 });
+        return card({ top: "158px", [side]: `${44 + i * 214}px`, width: "200px", height: "134px" },
+          h("div", { style: { display: "flex", justifyContent: "space-between", fontSize: "13px", color: "var(--mfg)" } }, h("span", {}, label), icon("info", 14, 2)), val);
+      });
+      // insights
+      const insightLines = An.insights.map((txt, i) => h("div", { style: { display: "flex", alignItems: "center", gap: "8px", fontSize: "14.5px", marginTop: "10px" } },
+        h("span", { style: { color: i === 0 ? "#16a34a" : "#2563eb" } }, icon(i === 0 ? "trending-up" : "info", 16, 2)), txt));
+      const insights = card({ top: "306px", [side]: "44px", width: "628px", height: "150px" }, head("lightbulb", "#ca8a04", An.insightsTitle), ...insightLines);
+      // recurring vs one-time rings
+      const ringArcs = [];
+      const rings = An.rings.map(([label, pct, amt, col]) => {
+        const arcC = s("circle", { cx: 55, cy: 55, r: 44, fill: "none", stroke: col, "stroke-width": 9, "stroke-linecap": "round", pathLength: 100, "stroke-dasharray": "0 100", transform: "rotate(-90 55 55)" });
+        const txt = s("text", { x: 55, y: 62, "text-anchor": "middle", "font-size": 22, "font-weight": 600, fill: "#1f1d17", direction: "ltr" });
+        ringArcs.push({ arcC, txt, pct });
+        return h("div", { style: { display: "flex", flexDirection: "column", alignItems: "center", gap: "6px", width: "150px" } },
+          s("svg", { width: 110, height: 110 }, s("circle", { cx: 55, cy: 55, r: 44, fill: "none", stroke: "#ece8dc", "stroke-width": 9 }), arcC, txt),
+          h("div", { style: { fontSize: "15px", fontWeight: "700" } }, label),
+          h("div", { class: "num", style: { fontSize: "13px", color: "var(--mfg)" } }, money(amt)));
+      });
+      const ringsCard = card({ top: "158px", [other]: "44px", width: "640px", height: "298px" },
+        head("repeat", "#9333ea", An.ringsTitle, An.ringsSub),
+        h("div", { style: { display: "flex", justifyContent: "space-around", marginTop: "22px" } }, ...rings));
+      // bar charts (categories, payment methods): labels on the reading-start side, bars grow away from them
+      const bars = (items, col, maxW) => {
+        const max = Math.max(...items.map((x) => x[1]));
+        return items.map(([label, v], i) => {
+          const bar = h("i", { style: { display: "block", height: "20px", borderRadius: "4px", background: col, opacity: `${1 - i * 0.1}`, width: "0px" } });
+          const row = h("div", { style: { display: "flex", alignItems: "center", gap: "10px", marginTop: "12px" } },
+            h("div", { style: { width: "96px", fontSize: "13px", color: "hsl(47 15% 30%)", textAlign: R ? "left" : "right", whiteSpace: "nowrap" } }, label),
+            h("div", { style: { flex: "1" } }, bar));
+          return { row, bar, w: (v / max) * maxW };
+        });
+      };
+      const catBars = bars(An.cats, "#dc2626", 250);
+      const payBars = bars(An.pays, "#1d6fd8", 250);
+      const W3 = (1286 - 32) / 3;
+      const catCard = card({ top: "472px", [side]: "44px", width: `${W3}px`, height: "360px" },
+        h("div", { style: { display: "flex", justifyContent: "space-between", alignItems: "center" } }, head("list", "#ca8a04", An.catTitle),
+          h("div", { class: "tabs", style: { marginTop: "0", width: "150px" } }, h("div", { class: "on" }, An.catTabs[0]), h("div", {}, An.catTabs[1]))),
+        ...catBars.map((b) => b.row));
+      const payCard = card({ top: "472px", [side]: `${44 + W3 + 16}px`, width: `${W3}px`, height: "360px" }, head("credit-card", "#2563eb", An.payTitle, An.paySub),
+        h("div", { style: { height: "18px" } }), ...payBars.map((b) => b.row));
+      // donation recipients donut
+      const donutCols = ["#5aa9c9", "#6a4fc9", "#c65a8a", "#64c35a", "#c9844f"];
+      const total = An.recs.reduce((a, x) => a + x[1], 0);
+      let acc = 0;
+      const donutSegs = An.recs.map(([, v], i) => {
+        const len = (v / total) * 100;
+        const c = s("circle", { cx: 100, cy: 100, r: 70, fill: "none", stroke: donutCols[i], "stroke-width": 36, pathLength: 100,
+          "stroke-dasharray": `0 100`, "stroke-dashoffset": `${-acc}`, transform: "rotate(-90 100 100)" });
+        const seg = { c, len, start: acc };
+        acc += len;
+        return seg;
+      });
+      const legend = h("div", { style: { display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 14px", fontSize: "12.5px", marginTop: "8px" } },
+        ...An.recs.map(([name], i) => h("span", { style: { display: "inline-flex", alignItems: "center", gap: "5px" } }, h("i", { style: { width: "9px", height: "9px", borderRadius: "50%", background: donutCols[i], display: "inline-block" } }), name)));
+      const recCard = card({ top: "472px", [other]: "44px", width: `${W3}px`, height: "360px" }, head("hand-coins", "#ca8a04", An.recTitle, An.recSub),
+        h("div", { style: { display: "flex", justifyContent: "center", marginTop: "10px" } }, s("svg", { width: 200, height: 200 }, ...donutSegs.map((d) => d.c))), legend);
+      const topBar = h("div", { style: { position: "absolute", top: "104px", [side]: "44px", [other]: "44px", display: "flex", justifyContent: "space-between" } },
+        h("div", { style: { display: "flex", gap: "8px" } }, ...U.ranges.map((r, i) => h("div", { class: `btn${i === 0 ? " primary" : ""}` }, i === 3 ? icon("calendar", 15, 2) : null, r))),
+        h("div", { class: "btn" }, icon("download", 15, 2), An.exportPdf));
+      const el = h("div", { class: "page" }, h("h1", {}, An.title), h("div", { class: "sub" }, An.sub), topBar, ...kpis, insights, ringsCard, catCard, payCard, recCard);
+      return { el, kpiVals, kpis, insightLines, ringArcs, catBars, payBars, donutSegs, cards: [...kpis, insights, ringsCard, catCard, payCard, recCard] };
+    }
+
+    // ----------------------------------------------------------- platforms: browser + desktop app chrome
+    function deviceFrame(kind, content) {
+      const P = U.platforms[kind];
+      const chrome = kind === "web"
+        ? h("div", { class: "chrome web" },
+            h("div", { class: "dots" }, h("i"), h("i"), h("i")),
+            h("div", { class: "urlbar" }, h("span", { style: { color: "#16a34a" } }, icon("lock", 13, 2.2)), h("span", { class: "ltr" }, P.url)))
+        : h("div", { class: "chrome desk" },
+            h("div", { style: { display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: "600" } },
+              h("img", { src: "../../public/logo/favicon.svg", style: { width: "16px" } }), "Ten10"),
+            h("div", { class: "wctl" }, icon("minus", 14, 2), icon("square", 12, 2), icon("x", 14, 2)));
+      const screen = h("div", { class: "screen" }, content);
+      const frame = h("div", { class: `device ${kind}` }, chrome, screen);
+      const badge = kind === "desktop"
+        ? h("div", { class: "offline" }, icon("wifi-off", 15, 2.2), h("span", {}, P.feats[0][1]))
+        : h("div", { class: "offline sync" }, icon("cloud", 15, 2.2), h("span", {}, P.feats[1][1]));
+      frame.append(badge);
+      const title = h("div", { class: "ptitle" }, h("div", { class: "pt1" }, P.title), h("div", { class: "pt2" }, P.sub));
+      const feats = P.feats.map(([ic, txt]) => h("div", { class: "pfeat" }, h("span", { class: "pic" }, icon(ic, 18, 2)), txt));
+      const el = h("div", { class: "platform" }, title, frame, h("div", { class: "pfeats" }, ...feats));
+      return { el, frame, feats, badge };
+    }
+
+    return { money, sidebar, dashboard, txForm, tablePage, fileChip, stepper, calendar, recRow, email, inbox, halachaPage, contact, analyticsPage, deviceFrame };
   }
 
   window.makeUI = makeUI;
