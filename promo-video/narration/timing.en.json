@@ -1,0 +1,140 @@
+{
+  "lang": "en",
+  "source": "estimated",
+  "audioFile": null,
+  "audioDuration": 50.465,
+  "phrases": [
+    {"id": "hook1", "text": "Maaser sounds simple.", "start": 0.6, "end": 1.995, "words": [
+      {"w": "Maaser", "start": 0.6, "end": 1.065},
+      {"w": "sounds", "start": 1.065, "end": 1.53},
+      {"w": "simple", "start": 1.53, "end": 1.995}
+    ]},
+    {"id": "hook2", "text": "Ten percent.", "start": 2.345, "end": 3.121, "words": [
+      {"w": "Ten", "start": 2.345, "end": 2.578},
+      {"w": "percent", "start": 2.578, "end": 3.121}
+    ]},
+    {"id": "complex1", "text": "But once you add income, donations, different months, recurring commitments and everything that changes along the way,", "start": 4.021, "end": 11.977, "words": [
+      {"w": "But", "start": 4.021, "end": 4.253},
+      {"w": "once", "start": 4.253, "end": 4.563},
+      {"w": "you", "start": 4.563, "end": 4.796},
+      {"w": "add", "start": 4.796, "end": 5.028},
+      {"w": "income", "start": 5.028, "end": 5.493},
+      {"w": "donations", "start": 5.613, "end": 6.311},
+      {"w": "different", "start": 6.431, "end": 7.129},
+      {"w": "months", "start": 7.129, "end": 7.594},
+      {"w": "recurring", "start": 7.714, "end": 8.412},
+      {"w": "commitments", "start": 8.412, "end": 9.264},
+      {"w": "and", "start": 9.264, "end": 9.497},
+      {"w": "everything", "start": 9.497, "end": 10.272},
+      {"w": "that", "start": 10.272, "end": 10.582},
+      {"w": "changes", "start": 10.582, "end": 11.125},
+      {"w": "along", "start": 11.125, "end": 11.512},
+      {"w": "the", "start": 11.512, "end": 11.745},
+      {"w": "way", "start": 11.745, "end": 11.977}
+    ]},
+    {"id": "complex2", "text": "it quickly becomes harder to keep track.", "start": 12.277, "end": 14.836, "words": [
+      {"w": "it", "start": 12.277, "end": 12.432},
+      {"w": "quickly", "start": 12.432, "end": 12.975},
+      {"w": "becomes", "start": 12.975, "end": 13.518},
+      {"w": "harder", "start": 13.518, "end": 13.983},
+      {"w": "to", "start": 13.983, "end": 14.138},
+      {"w": "keep", "start": 14.138, "end": 14.448},
+      {"w": "track", "start": 14.448, "end": 14.836}
+    ]},
+    {"id": "order", "text": "TEN10 brings it all into one clear system,", "start": 15.536, "end": 18.171, "words": [
+      {"w": "TEN10", "start": 15.536, "end": 15.923},
+      {"w": "brings", "start": 15.923, "end": 16.388},
+      {"w": "it", "start": 16.388, "end": 16.543},
+      {"w": "all", "start": 16.543, "end": 16.776},
+      {"w": "into", "start": 16.776, "end": 17.086},
+      {"w": "one", "start": 17.086, "end": 17.319},
+      {"w": "clear", "start": 17.319, "end": 17.706},
+      {"w": "system", "start": 17.706, "end": 18.171}
+    ]},
+    {"id": "maaser", "text": "with full support for both Maaser and Chomesh.", "start": 18.471, "end": 21.417, "words": [
+      {"w": "with", "start": 18.471, "end": 18.781},
+      {"w": "full", "start": 18.781, "end": 19.091},
+      {"w": "support", "start": 19.091, "end": 19.634},
+      {"w": "for", "start": 19.634, "end": 19.867},
+      {"w": "both", "start": 19.867, "end": 20.177},
+      {"w": "Maaser", "start": 20.177, "end": 20.642},
+      {"w": "and", "start": 20.642, "end": 20.874},
+      {"w": "Chomesh", "start": 20.874, "end": 21.417}
+    ]},
+    {"id": "import", "text": "Import existing transactions,", "start": 22.117, "end": 24.132, "words": [
+      {"w": "Import", "start": 22.117, "end": 22.582},
+      {"w": "existing", "start": 22.582, "end": 23.202},
+      {"w": "transactions", "start": 23.202, "end": 24.132}
+    ]},
+    {"id": "recurring", "text": "automate recurring entries,", "start": 24.432, "end": 26.293, "words": [
+      {"w": "automate", "start": 24.432, "end": 25.053},
+      {"w": "recurring", "start": 25.053, "end": 25.75},
+      {"w": "entries", "start": 25.75, "end": 26.293}
+    ]},
+    {"id": "reminders", "text": "and get reminders when you need them.", "start": 26.593, "end": 28.919, "words": [
+      {"w": "and", "start": 26.593, "end": 26.826},
+      {"w": "get", "start": 26.826, "end": 27.058},
+      {"w": "reminders", "start": 27.058, "end": 27.756},
+      {"w": "when", "start": 27.756, "end": 28.066},
+      {"w": "you", "start": 28.066, "end": 28.298},
+      {"w": "need", "start": 28.298, "end": 28.608},
+      {"w": "them", "start": 28.608, "end": 28.919}
+    ]},
+    {"id": "notjust", "text": "And TEN10 is more than numbers.", "start": 29.619, "end": 31.557, "words": [
+      {"w": "And", "start": 29.619, "end": 29.851},
+      {"w": "TEN10", "start": 29.851, "end": 30.239},
+      {"w": "is", "start": 30.239, "end": 30.394},
+      {"w": "more", "start": 30.394, "end": 30.704},
+      {"w": "than", "start": 30.704, "end": 31.014},
+      {"w": "numbers", "start": 31.014, "end": 31.557}
+    ]},
+    {"id": "halacha", "text": "Explore the Halachic Library for relevant guidance,", "start": 32.457, "end": 35.867, "words": [
+      {"w": "Explore", "start": 32.457, "end": 32.999},
+      {"w": "the", "start": 32.999, "end": 33.232},
+      {"w": "Halachic", "start": 33.232, "end": 33.852},
+      {"w": "Library", "start": 33.852, "end": 34.394},
+      {"w": "for", "start": 34.394, "end": 34.627},
+      {"w": "relevant", "start": 34.627, "end": 35.247},
+      {"w": "guidance", "start": 35.247, "end": 35.867}
+    ]},
+    {"id": "rabbi", "text": "and when you still have a question, use Ask the Rabbi.", "start": 36.217, "end": 39.593, "words": [
+      {"w": "and", "start": 36.217, "end": 36.45},
+      {"w": "when", "start": 36.45, "end": 36.76},
+      {"w": "you", "start": 36.76, "end": 36.993},
+      {"w": "still", "start": 36.993, "end": 37.38},
+      {"w": "have", "start": 37.38, "end": 37.69},
+      {"w": "a", "start": 37.69, "end": 37.768},
+      {"w": "question", "start": 37.768, "end": 38.388},
+      {"w": "use", "start": 38.508, "end": 38.74},
+      {"w": "Ask", "start": 38.74, "end": 38.973},
+      {"w": "the", "start": 38.973, "end": 39.206},
+      {"w": "Rabbi", "start": 39.206, "end": 39.593}
+    ]},
+    {"id": "together", "text": "Your income, donations and obligations come together in one clear picture.", "start": 40.293, "end": 45.219, "words": [
+      {"w": "Your", "start": 40.293, "end": 40.603},
+      {"w": "income", "start": 40.603, "end": 41.068},
+      {"w": "donations", "start": 41.188, "end": 41.886},
+      {"w": "and", "start": 41.886, "end": 42.119},
+      {"w": "obligations", "start": 42.119, "end": 42.971},
+      {"w": "come", "start": 42.971, "end": 43.281},
+      {"w": "together", "start": 43.281, "end": 43.902},
+      {"w": "in", "start": 43.902, "end": 44.057},
+      {"w": "one", "start": 44.057, "end": 44.289},
+      {"w": "clear", "start": 44.289, "end": 44.677},
+      {"w": "picture", "start": 44.677, "end": 45.219}
+    ]},
+    {"id": "brand", "text": "TEN10.", "start": 46.019, "end": 46.719, "words": [
+      {"w": "TEN10", "start": 46.019, "end": 46.719}
+    ]},
+    {"id": "tagline", "text": "Maaser is simpler when everything is in order.", "start": 47.519, "end": 50.465, "words": [
+      {"w": "Maaser", "start": 47.519, "end": 47.984},
+      {"w": "is", "start": 47.984, "end": 48.14},
+      {"w": "simpler", "start": 48.14, "end": 48.682},
+      {"w": "when", "start": 48.682, "end": 48.992},
+      {"w": "everything", "start": 48.992, "end": 49.767},
+      {"w": "is", "start": 49.767, "end": 49.922},
+      {"w": "in", "start": 49.922, "end": 50.078},
+      {"w": "order", "start": 50.078, "end": 50.465}
+    ]}
+  ]
+}

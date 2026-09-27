@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TEN10 Promo Film</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="film.css" />
+</head>
+<body>
+  <div id="stage"></div>
+  <div id="controls">
+    <button id="play">▶︎</button>
+    <span id="tc">0.00</span>
+    <input id="scrub" type="range" min="0" max="1" step="0.001" value="0" />
+    <select id="lang"><option value="he">עברית</option><option value="en">English</option></select>
+    <span id="src"></span>
+  </div>
+  <script src="icons.js"></script>
+  <script src="engine.js"></script>
+  <script src="content.js"></script>
+  <script src="ui.js"></script>
+  <script src="scenes.js"></script>
+  <script>
+    // ?lang=he|en  &t=<sec>  &render=1 (hides controls; the renderer drives seek())
+    (async function () {
+      const q = new URLSearchParams(location.search);
+      const lang = q.get("lang") === "en" ? "en" : "he";
+      const render = q.get("render") === "1";
+      if (render) document.body.classList.add("render");
+      const stage = document.getElementById("stage");
+
+      const getJSON = async (u) => { const r = await fetch(u, { cache: "no-store" }); if (!r.ok) throw new Error(u); return r.json(); };
+      let timing;
+      try {
+        timing = await getJSON(`../narration/timing.${lang}.json`);
+      } catch {
+        timing = ENGINE.estimateTiming(await getJSON(`../narration/script.${lang}.json`));
+      }
+      const film = await FILM.init(stage, lang, timing);
+      window.__film = {
+        ready: true, lang, duration: film.duration, times: film.times,
+        seek: (t) => film.seek(t), cues: () => film.cues(), timingSource: timing.source,
+      };
+
+      // ---------- preview UI ----------
+      const fit = () => {
+        const ctl = render ? 0 : 54;
+        const k = Math.min(innerWidth / 1920, (innerHeight - ctl) / 1080);
+        stage.style.transform = `translate(${(innerWidth - 1920 * k) / 2}px, ${(innerHeight - ctl - 1080 * k) / 2}px) scale(${k})`;
+      };
+      if (!render) { fit(); addEventListener("resize", fit); } else stage.style.transform = "none";
+
+      const scrub = document.getElementById("scrub"), tc = document.getElementById("tc"), play = document.getElementById("play");
+      const langSel = document.getElementById("lang");
+      langSel.value = lang;
+      langSel.onchange = () => { q.set("lang", langSel.value); location.search = q.toString(); };
+      document.getElementById("src").textContent = `timing: ${timing.source}${timing.audioFile ? " · " + timing.audioFile : ""} · ${film.duration.toFixed(2)}s`;
+      const audio = timing.audioFile ? new Audio(`../${timing.audioFile}`) : null;
+      let t = Number(q.get("t") || 0), playing = false, t0 = 0, w0 = 0;
+      const show = () => { film.seek(t); tc.textContent = t.toFixed(2); scrub.value = t / film.duration; };
+      show();
+      scrub.oninput = () => { t = scrub.value * film.duration; if (audio) audio.currentTime = t; show(); };
+      const loop = () => {
+        if (!playing) return;
+        t = audio && !audio.paused ? audio.currentTime : w0 + (performance.now() - t0) / 1000;
+        if (t >= film.duration) { t = film.duration; playing = false; play.textContent = "▶︎"; }
+        show();
+        requestAnimationFrame(loop);
+      };
+      const toggle = () => {
+        playing = !playing;
+        play.textContent = playing ? "❚❚" : "▶︎";
+        if (playing) {
+          if (t >= film.duration - 0.01) t = 0;
+          t0 = performance.now(); w0 = t;
+          if (audio) { audio.currentTime = t; audio.play(); }
+          loop();
+        } else if (audio) audio.pause();
+      };
+      play.onclick = toggle;
+      addEventListener("keydown", (e) => {
+        if (e.code === "Space") { e.preventDefault(); toggle(); }
+        if (e.code === "ArrowRight") { t = Math.min(film.duration, t + (e.shiftKey ? 1 : 1 / 30)); show(); }
+        if (e.code === "ArrowLeft") { t = Math.max(0, t - (e.shiftKey ? 1 : 1 / 30)); show(); }
+      });
+    })().catch((e) => { document.body.innerHTML = `<pre style="color:#f88;padding:20px">${e.stack || e}</pre>`; window.__film = { error: String(e.stack || e) }; });
+  </script>
+</body>
+</html>

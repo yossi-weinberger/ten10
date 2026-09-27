@@ -1,0 +1,22 @@
+{
+  "lang": "he",
+  "dir": "rtl",
+  "note": "Hebrew narration split into phrases. Phrase ids are the anchors the film's timeline hangs on; do not rename them. 'pauseAfter' is only used for the provisional (pre-recording) timing estimate.",
+  "phrases": [
+    { "id": "hook1", "text": "מעשר נשמע פשוט.", "pauseAfter": 0.35 },
+    { "id": "hook2", "text": "עשרה אחוזים.", "pauseAfter": 0.9 },
+    { "id": "complex1", "text": "אבל כשמצטברים הכנסות, תרומות, חודשים, חיובים והוראות קבע —", "pauseAfter": 0.3 },
+    { "id": "complex2", "text": "הדברים כבר פחות פשוטים.", "pauseAfter": 0.7 },
+    { "id": "order", "text": "TEN10 מרכז את הכל למקום אחד,", "pauseAfter": 0.3 },
+    { "id": "maaser", "text": "ומאפשר לנהל בצורה ברורה גם מעשר וגם חומש.", "pauseAfter": 0.7 },
+    { "id": "import", "text": "אפשר לייבא תנועות קיימות,", "pauseAfter": 0.3 },
+    { "id": "recurring", "text": "להגדיר הוראות קבע שנוצרות אוטומטית,", "pauseAfter": 0.3 },
+    { "id": "reminders", "text": "ולקבל תזכורות כשצריך.", "pauseAfter": 0.7 },
+    { "id": "notjust", "text": "ו-TEN10 הוא לא רק מספרים.", "pauseAfter": 0.9 },
+    { "id": "halacha", "text": "מאגר ההלכות עוזר למצוא מידע רלוונטי,", "pauseAfter": 0.35 },
+    { "id": "rabbi", "text": "ואם נשארה שאלה — אפשר לפנות דרך \"שאל את הרב\".", "pauseAfter": 0.7 },
+    { "id": "together", "text": "הכל מתחבר לתמונה אחת ברורה של ההכנסות, התרומות והחיובים שלכם.", "pauseAfter": 0.8 },
+    { "id": "brand", "text": "TEN10.", "pauseAfter": 0.8 },
+    { "id": "tagline", "text": "המעשר פשוט יותר כשיש סדר.", "pauseAfter": 0 }
+  ]
+}

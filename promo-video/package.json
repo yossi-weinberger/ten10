@@ -1,0 +1,18 @@
+{
+  "name": "ten10-promo-video",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "TEN10 brand promo film: frame-accurate HTML/SVG motion graphics rendered through headless Chromium + ffmpeg.",
+  "scripts": {
+    "preview": "node tools/serve.mjs",
+    "icons": "node tools/build-icons.mjs",
+    "render:he": "node tools/render.mjs --lang he",
+    "render:en": "node tools/render.mjs --lang en",
+    "stills": "node tools/stills.mjs"
+  },
+  "devDependencies": {
+    "lucide-static": "^0.460.0",
+    "playwright-core": "^1.56.1"
+  }
+}
