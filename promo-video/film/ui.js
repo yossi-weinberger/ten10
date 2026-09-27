@@ -451,6 +451,28 @@
       return { el, kpiVals, kpis, insightLines, ringArcs, catBars, payBars, donutSegs, cards: [...kpis, insights, ringsCard, catCard, payCard, recCard] };
     }
 
+    // ----------------------------------------------------------- printable report (common.json → export.pdf) + export formats
+    function reportSheet() {
+      const Rp = U.report;
+      const T = U.table.types;
+      const cols = "92px 84px 96px 1fr 1fr 80px";
+      const head = h("div", { class: "rrow rhead", style: { gridTemplateColumns: cols } }, ...Rp.cols.map((c) => h("div", {}, c)));
+      const rows = C.rows.slice(0, 9).map((r, i) => h("div", { class: `rrow${i % 2 ? " alt" : ""}`, style: { gridTemplateColumns: cols } },
+        h("div", { class: "num" }, r.d), h("div", {}, h("span", { class: `rbadge ${r.type}` }, T[r.type])), h("div", { class: "num" }, money(r.amt)),
+        h("div", {}, r.desc), h("div", {}, r.cat), h("div", { class: "num" }, r.rec ? "(1/∞)" : "-")));
+      const el = h("div", { class: "report" },
+        h("div", { class: "rtop" }, h("div", {}, h("div", { class: "rtitle" }, Rp.title), h("div", { class: "rmeta num" }, Rp.meta), h("div", { class: "rmeta b" }, Rp.showing)),
+          h("img", { src: "../../public/logo/logo-wide.svg", style: { height: "26px" } })),
+        head, ...rows);
+      return { el, rows };
+    }
+    function exportChips() {
+      const fmts = [["file-spreadsheet", "Excel", "#16a34a"], ["file-text", "PDF", "#dc2626"], ["file-spreadsheet", "CSV", "#11676a"]];
+      const chips = fmts.map(([ic, name, col]) => h("div", { class: "xchip" }, h("span", { class: "xic", style: { background: col } }, icon(ic, 22, 1.8)), h("span", { class: "ltr" }, name)));
+      const el = h("div", { class: "xchips" }, h("div", { class: "xtitle" }, icon("download", 18, 2), U.report.export), ...chips);
+      return { el, chips };
+    }
+
     // ----------------------------------------------------------- platforms: browser + desktop app chrome
     function deviceFrame(kind, content) {
       const P = U.platforms[kind];
@@ -474,7 +496,7 @@
       return { el, frame, feats, badge };
     }
 
-    return { money, sidebar, dashboard, txForm, tablePage, fileChip, stepper, calendar, recRow, email, inbox, halachaPage, contact, analyticsPage, deviceFrame };
+    return { money, sidebar, dashboard, txForm, tablePage, fileChip, stepper, calendar, recRow, email, inbox, halachaPage, contact, analyticsPage, deviceFrame, reportSheet, exportChips };
   }
 
   window.makeUI = makeUI;

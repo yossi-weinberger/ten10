@@ -1,6 +1,6 @@
 # TEN10 brand film (promo video)
 
-A ~72-second product-brand film for TEN10 in two independent language versions (Hebrew RTL / ₪, English LTR / $).
+A ~84-second product-brand film for TEN10 in two independent language versions (Hebrew RTL / ₪, English LTR / $).
 It is built as **frame-accurate HTML/SVG motion graphics**: the film is a web page whose every frame is a pure function
 of time `t`. Headless Chromium seeks it frame by frame and ffmpeg encodes the frames. Narration, ducked music and UI sound
 design are mixed by the Python tools in `tools/audio/`.
@@ -40,8 +40,8 @@ If Chromium lives somewhere unusual, set `CHROMIUM_PATH`. If ffmpeg isn't on `PA
 
 ## The narration is the master timeline
 
-Nothing in the film is timed in absolute seconds. `narration/script.<lang>.json` splits each script into 18 phrases with
-stable ids (`hook1 hook2 complex1 complex2 order maaser import recurring reminders analytics notjust halacha rabbi platforms together brand tagline free`).
+Nothing in the film is timed in absolute seconds. `narration/script.<lang>.json` splits each script into 20 phrases with
+stable ids (`hook1 hook2 complex1 complex2 order maaser import recurring reminders analytics reports notjust halacha rabbi trust platforms together brand tagline free`).
 The scripts were revised after the first review: they now mention currencies in passing, analytics, the two platforms, and that the app
 is free. They close on the app's own slogan. `pauseAfter` doubles as a pacing direction for the voice-over (calm, unhurried).
 `narration/timing.<lang>.json` gives each phrase (and each word) a start and end. Every scene boundary and emphasis beat is
@@ -49,7 +49,7 @@ derived from those anchors in `film/scenes.js` (`A.s(id)`, `A.e(id)`, `A.w(id, w
 flips exactly when the word "חומש" / "Chomesh" is spoken.
 
 * **Now:** the timing is *estimated* (`tools/estimate_timing.py`, a letter-rate model with the script's intended pauses).
-* **When the recordings arrive:** `tools/sync_narration.py` detects speech and silence in the waveform and aligns the 18 phrases
+* **When the recordings arrive:** `tools/sync_narration.py` detects speech and silence in the waveform and aligns the 20 phrases
   to the real pauses with dynamic programming. The whole film then re-times itself on the next render. The audio is never cut,
   sped up or stretched. Its t=0 is the film's t=0. Details, the report format and manual overrides are in `tools/AUDIO.md`.
 
@@ -68,7 +68,9 @@ voice-over reads a slightly different wording, update the word there, or use the
 | 6 | `recurring` | The recurring donation row (badge **1 / ∞**) highlights. Its date lifts out and becomes a calendar. The months flip and on the 10th each month a new transaction is created (2 / ∞, 3 / ∞). | הוראות קבע — / אוטומטית. |
 | 7 | `reminders` | The calendar reaches the reminder day and a bell appears. A quiet notification ("תזכורת מעשר - נותרו 820 ₪ לתרומה", the real subject line) opens into the **real reminder email** (greeting, gold badge, balance, CTA). | וגם תזכורות / כשצריך. |
 | 7b | `analytics` | The window returns on the **analytics page** (real layout and strings): savings rate / fixed expenses / income change KPIs, insights, recurring-vs-one-time rings, category and payment-method bars (they grow on "הכסף / money"), and the donation-recipients donut. The savings KPI lights up on "הבית / household". All figures are consistent with the dashboard. | ניתוח נתונים / לכלכלת הבית. |
+| 7c | `reports` | The analytics page dims and a printed **transactions report** slides up (the real print layout: logo, title, meta line, teal header, badges). The export formats Excel / PDF / CSV land on "לאקסל / Excel". | הדפסת דוחות / וייצוא נתונים. |
 | 8 | `notjust`, `halacha`, `rabbi` | Calmer. The email's balance floats free among the film's other figures. On "מספרים / numbers" they dissolve into the words **הלכות מעשר כספים**, which become the title of the **Halachic Library** page. The gold nav pill browses מבוא → הכנסות החייבות במעשר → חומש with the real article text. Then the app's contact FAB opens the real **contact dialog** on the "פנייה לרב" tab. A question is typed and sent, and the success toast appears. It is a form to a rabbi, not a chatbot, because that is how the product works. | מאגר הלכות · שאלה שלא מצאת עליה תשובה? · שאל את הרב |
+| 8a | `trust` | A prominent trust beat: the Torat Ha'adam La'adam Institute's logo (`public/halacha/machon-semel.png`, upscaled ×3 to `film/assets/`) on a card, then the app's own words "פותח בשיתוף עם מכון תורת האדם לאדם" / "ובהסכמת רבנים מובילים" and the "מאושר הלכתית" badge (landing `about`). The institute also appears as a small credit under the final URL. | פותח בשיתוף עם מכון תורת האדם לאדם ובהסכמת רבנים מובילים |
 | 8b | `platforms` | The two versions side by side, as on the landing page: a browser frame (ten10-app.com, cloud sync) and a desktop-software window ("עבודה ללא אינטרנט" badge), each showing the same dashboard, with their real advantages listed below. The browser's screen then *becomes* the app window of scene 9. | בחר את הגרסה המתאימה לך |
 | 9 | `together` | The camera pulls out. The dashboard sits at the centre, with six live snapshots of the earlier scenes (analytics, import, recurring, reminder, halacha, rabbi) emerging from behind it and connected to it. The income, donations and overall cards glow on "ההכנסות / התרומות / והחיובים". | כל מה שצריך לניהול מעשר וחומש. |
 | 10 | `brand`, `tagline`, `free` | Everything converges back into a calm donut with **10%** in the opening typography. On "TEN10." the ring becomes the stacked logo's "0" and the letters reveal from it. The app's own slogan (landing `hero.tagline`), then "חינם לשימוש אישי" (landing FAQ) with both platforms, gold rule, URL, then a hold of at least 3 s. | ניהול מעשרות ותקציב פיננסי, פשוט ומדויק. · חינם לשימוש אישי · ten10-app.com |
@@ -169,6 +171,8 @@ Checklist status, with provisional timing and re-checked after syncing the real 
 * The ending holds the lockup and URL for ≥ 3 s. The music is secondary (ducked −9 dB under speech) and the effects sit at about −26 dBFS peak.
 
 ## Known limitations
+
+* The institute's logo exists in the repo only as a 145×109 PNG. The film upscales it ×3, and it holds up at the displayed size, but a vector or high-resolution original from the institute would be sharper.
 
 * Until the recordings exist, timing is an estimate. It is close to a calm reading pace, but the final edit points come from
   `sync_narration.py`.

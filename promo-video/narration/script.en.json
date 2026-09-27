@@ -54,6 +54,11 @@
       "pauseAfter": 0.9
     },
     {
+      "id": "reports",
+      "text": "Print reports, or export to Excel and PDF.",
+      "pauseAfter": 0.85
+    },
+    {
       "id": "notjust",
       "text": "And TEN10 is more than numbers.",
       "pauseAfter": 1.0
@@ -67,6 +72,11 @@
       "id": "rabbi",
       "text": "and when you still have a question, use Ask the Rabbi.",
       "pauseAfter": 0.85
+    },
+    {
+      "id": "trust",
+      "text": "TEN10 was developed with the Torat Ha'adam La'adam Institute, and endorsed by leading rabbis.",
+      "pauseAfter": 0.9
     },
     {
       "id": "platforms",

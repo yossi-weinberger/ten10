@@ -25,6 +25,9 @@
       recurringLines: ["הוראות קבע —", "אוטומטית."],
       remindLines: ["וגם תזכורות", "כשצריך."],
       analyticsLines: ["ניתוח נתונים", "לכלכלת הבית."],
+      reportsLines: ["הדפסת דוחות", "וייצוא נתונים."],
+      // landing.json → about (partnership + endorsements)
+      trust: { line1: "פותח בשיתוף עם מכון תורת האדם לאדם", line2: "ובהסכמת רבנים מובילים", verified: "מאושר הלכתית", endCredit: "בשיתוף מכון תורת האדם לאדם" },
       platformsTitle: "בחר את הגרסה המתאימה לך",
       halachaLine: "מאגר הלכות",
       questionLine: "שאלה שלא מצאת עליה תשובה?",
@@ -65,6 +68,10 @@
       desktopWord: ["platforms", "למחשב"],
       offlineWord: ["platforms", "אינטרנט"],
       freeWord: ["free", "חינם"],
+      printWord: ["reports", "להדפיס"],
+      excelWord: ["reports", "לאקסל"],
+      trustWord: ["trust", "בשיתוף"],
+      rabbisWord: ["trust", "רבנים"],
     },
     // Complexity scene (scene 2): product-like fragments
     chaos: {
@@ -201,6 +208,8 @@
         recTitle: "נמעני תרומות", recSub: "Top נמענים בתקופה הנבחרת",
         recs: [["תרומה חודשית", 360], ["כולל ערב", 100], ["קופת צדקה", 70], ["גמ״ח שכונתי", 50]],
       },
+      report: { title: "דוח תנועות", meta: "כל התאריכים | הופק בתאריך: 19/12/2025 15:50", showing: "מציג 12 מתוך 12 תנועות",
+        cols: ["תאריך", "סוג", "סכום", "פרטים", "קטגוריה", "הוראת קבע"], export: "יצוא נתונים" },
       platforms: {
         web: { title: "גרסת אתר", sub: "גישה מכל מקום עם סנכרון בענן", url: "ten10-app.com",
           feats: [["globe", "גישה מכל דפדפן"], ["cloud", "סנכרון אוטומטי בענן"], ["smartphone", "ניתן להתקין כאפליקציה"]] },
@@ -256,6 +265,8 @@
       recurringLines: ["Recurring transactions —", "automatic."],
       remindLines: ["And reminders", "when you need them."],
       analyticsLines: ["Analytics", "for your household budget."],
+      reportsLines: ["Print reports", "and export your data."],
+      trust: { line1: "Developed in partnership with Torat Ha’adam La’adam Institute", line2: "and endorsed by leading rabbis", verified: "Halachically Verified", endCredit: "In partnership with Torat Ha’adam La’adam Institute" },
       platformsTitle: "Choose the Right Version for You",
       halachaLine: "Halachic Library",
       questionLine: "Still have a question?",
@@ -295,6 +306,10 @@
       desktopWord: ["platforms", "desktop"],
       offlineWord: ["platforms", "offline"],
       freeWord: ["free", "Free"],
+      printWord: ["reports", "Print"],
+      excelWord: ["reports", "Excel"],
+      trustWord: ["trust", "Institute"],
+      rabbisWord: ["trust", "rabbis"],
     },
     chaos: {
       income: [
@@ -425,6 +440,8 @@
         recTitle: "Donation Recipients", recSub: "Top recipients in selected period",
         recs: [["Kollel", 136], ["Food bank", 104], ["Monthly donation", 100], ["Pushka", 60]],
       },
+      report: { title: "Transactions Report", meta: "All Dates | Generated on: 12/19/2025 3:50 PM", showing: "Showing 12 out of 12 transactions",
+        cols: ["Date", "Type", "Amount", "Details", "Category", "Recurring"], export: "Export Data" },
       platforms: {
         web: { title: "Website Version", sub: "Access anywhere with cloud sync", url: "ten10-app.com",
           feats: [["globe", "Access from any browser"], ["cloud", "Automatic cloud sync"], ["smartphone", "Can be installed as an app"]] },

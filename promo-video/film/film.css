@@ -323,3 +323,31 @@ body.render #controls { display: none; }
 .pfeats { margin-top: 22px; display: flex; flex-direction: column; gap: 12px; align-items: center; }
 .pfeat { display: flex; align-items: center; gap: 12px; font-size: 22px; font-weight: 600; color: hsl(47 25% 16%); }
 .pfeat .pic { width: 38px; height: 38px; border-radius: 10px; background: hsl(182 40% 92%); color: var(--teal); display: flex; align-items: center; justify-content: center; }
+
+/* printable report (export-report / "דוח תנועות") */
+.report { position: absolute; left: 0; top: 0; width: 700px; background: #fff; border-radius: 6px; padding: 30px 30px 20px; box-shadow: 0 40px 80px -24px rgba(20, 30, 20, 0.45), 0 0 0 1px rgba(0,0,0,0.06); transform-origin: 50% 0; }
+.report .rtop { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+.report .rtitle { font-size: 30px; font-weight: 700; color: var(--teal); }
+.report .rmeta { font-size: 13px; color: hsl(47 20% 20%); margin-top: 6px; }
+.report .rmeta.b { font-weight: 700; margin-top: 2px; }
+.report .rrow { display: grid; align-items: center; height: 40px; font-size: 13px; text-align: center; border-bottom: 1px solid #e3e3e3; }
+.report .rrow.alt { background: #f4faf6; }
+.report .rhead { background: var(--teal); color: #fff; font-weight: 700; height: 38px; border: 0; }
+.report .rbadge { font-size: 11.5px; padding: 2px 8px; border-radius: 4px; }
+.report .rbadge.income { background: #e8f6ec; color: #15803d; }
+.report .rbadge.expense { background: #fdecec; color: #b91c1c; }
+.report .rbadge.donation { background: #fdf6e3; color: #a16207; }
+.xchips { position: absolute; left: 0; top: 0; display: flex; flex-direction: column; gap: 14px; }
+.xtitle { display: flex; align-items: center; gap: 8px; font-size: 20px; font-weight: 700; color: hsl(47 25% 18%); margin-bottom: 4px; }
+.xchip { display: flex; align-items: center; gap: 14px; width: 230px; height: 64px; padding: 0 16px; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 16px 34px -18px rgba(20, 40, 30, 0.35); font-size: 22px; font-weight: 700; }
+.xchip .xic { width: 40px; height: 40px; border-radius: 9px; color: #fff; display: flex; align-items: center; justify-content: center; }
+
+/* trust beat (landing.json → about) */
+.trust { position: absolute; left: 0; top: 0; width: 1920px; display: flex; flex-direction: column; align-items: center; }
+.trust .tcard { background: #fff; border-radius: 24px; padding: 34px 54px; box-shadow: var(--shadow-float), 0 0 0 1px rgba(40,36,20,0.06); }
+.trust .tcard img { display: block; width: 300px; }
+.trust .tl1 { margin-top: 44px; font-size: 64px; font-weight: 700; color: hsl(47 25% 14%); text-align: center; white-space: nowrap; }
+.trust .tl2 { margin-top: 6px; font-size: 64px; font-weight: 700; color: var(--teal); text-align: center; white-space: nowrap; }
+.trust .tbadge { margin-top: 30px; display: inline-flex; align-items: center; gap: 10px; padding: 10px 24px; border-radius: 999px; background: #e8f3ee; border: 1px solid #b7d4c6; color: #11676a; font-size: 26px; font-weight: 700; }
+.endcredit { position: absolute; left: 0; width: 1920px; display: flex; justify-content: center; align-items: center; gap: 16px; font-size: 24px; font-weight: 600; color: hsl(47 15% 30%); }
+.endcredit img { height: 64px; }

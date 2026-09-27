@@ -69,6 +69,10 @@
     T.anWord = B("analyticsWord");
     T.moneyW = B("moneyWord");
     T.household = B("householdWord");
+    // printable reports + export (right after analytics)
+    T.rep = A.s("reports") - 0.3;
+    T.print = B("printWord");
+    T.excel = B("excelWord");
     T.s8 = A.s("notjust") - 0.25;
     T.numbers = B("numbers");
     T.hal = A.s("halacha") - 0.45;
@@ -82,10 +86,14 @@
     T.subj0 = T.dlg + 0.3;
     T.subj1 = T.subj0 + 0.75;
     T.body0 = T.subj1 + 0.12;
-    T.body1 = Math.max(T.body0 + 0.6, Math.min(T.body0 + 1.15, A.s("platforms") - 0.95));
+    T.body1 = Math.max(T.body0 + 0.6, Math.min(T.body0 + 1.15, A.s("trust") - 0.95));
     T.send = Math.max(T.body1 + 0.12, A.e("rabbi") - 0.05);
     // two platforms: web + desktop software
-    T.pl = Math.max(A.s("platforms") - 0.35, T.send + 0.55);
+    // trust: developed with the Torat Ha'adam La'adam Institute, endorsed by rabbis
+    T.trust = Math.max(A.s("trust") - 0.35, T.send + 0.55);
+    T.trustWord = B("trustWord");
+    T.rabbis = B("rabbisWord");
+    T.pl = Math.max(A.s("platforms") - 0.35, T.trust + 1.8);
     T.web = B("webWord");
     T.desk = B("desktopWord");
     T.offline = B("offlineWord");
@@ -365,6 +373,19 @@
       return R ? `${d}.${String(m).padStart(2, "0")}.2026` : `${["Jan", "Feb", "Mar"][m - 1]} ${d}, 2026`;
     }
 
+    // reports: printable "transactions report" + export formats
+    const sheet = UI.reportSheet();
+    const xch = UI.exportChips();
+    ovl.append(sheet.el, xch.el);
+    // trust: the institute's logo (public/halacha/machon-semel.png, upscaled in film/assets) + about strings
+    const tr = C.copy.trust;
+    const trustLogo = h("div", { class: "tcard" }, h("img", { src: "assets/machon-semel@3x.png", alt: "" }));
+    const trustL1 = h("div", { class: "tl1", style: { fontSize: R ? "64px" : "50px" } }, tr.line1);
+    const trustL2 = h("div", { class: "tl2", style: { fontSize: R ? "64px" : "50px" } }, tr.line2);
+    const trustBadge = h("div", { class: "tbadge" }, icon("circle-check", 26, 2.2), tr.verified);
+    const trustEl = h("div", { class: "trust", style: { top: "225px" } }, trustLogo, trustL1, trustL2, trustBadge);
+    const endCredit = h("div", { class: "endcredit", style: { top: "922px" } }, h("img", { src: "assets/machon-semel@3x.png", alt: "" }), h("span", {}, tr.endCredit));
+
     // platforms (web + desktop software), each showing the same live dashboard
     const platLayer = h("div", { class: "layer" });
     const makeScreen = () => {
@@ -373,7 +394,7 @@
     };
     const webScr = makeScreen(), deskScr = makeScreen();
     const webF = UI.deviceFrame("web", webScr), deskF = UI.deviceFrame("desktop", deskScr);
-    platLayer.append(webF.el, deskF.el);
+    platLayer.append(webF.el, deskF.el, trustEl);
     const PL = { web: { x: mx(1010, 760), y: 176 }, desk: { x: mx(150, 760), y: 176 } };
 
     // together tiles (scene 9): snapshots of the real components
@@ -431,9 +452,10 @@
       { groups: [{ text: cp.importLines[0], t: B("importWord") - 0.1, key: true }, { text: cp.importLines[1], t: B("importWord") + 0.55, cls: "soft" }], hardOut: T.s7 },
       { groups: [{ text: cp.recurringLines[0], t: T.recWord - 0.1, key: true }, { text: cp.recurringLines[1], t: T.autoWord - 0.05, cls: "teal", key: true }], hardOut: T.s8 },
       { groups: [{ text: cp.remindLines[0], t: T.remindWord - 0.15, key: true }, { text: cp.remindLines[1], t: T.remindWord + 0.4, cls: "teal" }], hardOut: T.an + 0.3 },
-      { groups: [{ text: cp.analyticsLines[0], t: T.anWord - 0.1, cls: "teal", key: true }, { text: cp.analyticsLines[1], t: T.household - 0.1, key: true }], hardOut: T.s8 + 0.4 },
+      { groups: [{ text: cp.analyticsLines[0], t: T.anWord - 0.1, cls: "teal", key: true }, { text: cp.analyticsLines[1], t: T.household - 0.1, key: true }], hardOut: T.rep + 0.3 },
+      { groups: [{ text: cp.reportsLines[0], t: T.print - 0.1, key: true }, { text: cp.reportsLines[1], t: T.excel - 0.1, cls: "teal", key: true }], hardOut: T.s8 + 0.4 },
       { groups: [{ text: cp.halachaLine, t: T.halWord - 0.1, cls: "teal", key: true }], hardOut: T.q - 0.25 },
-      { groups: [{ text: cp.questionLine, t: T.q, cls: "soft", size: R ? 58 : 50, weight: 700, key: true }, { text: cp.rabbiLine, t: T.rabbiWord - 0.06, cls: "teal", key: true }], hardOut: T.pl + 0.1 },
+      { groups: [{ text: cp.questionLine, t: T.q, cls: "soft", size: R ? 58 : 50, weight: 700, key: true }, { text: cp.rabbiLine, t: T.rabbiWord - 0.06, cls: "teal", key: true }], hardOut: T.trust + 0.1 },
     ];
     (function scheduleHeadlines() {
       let floor = -1e9;
@@ -452,7 +474,7 @@
         if (next && HLDEF[b].out > next.groups[0].t - 0.25) HLDEF[b].out = next.groups[0].t - 0.25;
       }
     })();
-    const [hlMaaser, hlImport, hlRec, hlRemind, hlAn, hlHal, hlRabbi] = HLDEF.map((d) => headline(d.groups));
+    const [hlMaaser, hlImport, hlRec, hlRemind, hlAn, hlRep, hlHal, hlRabbi] = HLDEF.map((d) => headline(d.groups));
     const hlPlat = headline([{ text: cp.platformsTitle, t: T.pl + 0.3 }], { size: R ? 64 : 56, weight: 700, maxW: 1700, align: "center", top: 64 });
     const hlTogether = headline([{ text: cp.togetherLine, t: T.s9 + 0.55 }], { size: R ? 66 : 58, weight: 700, maxW: 1700, align: "center", top: 86 });
     const tagline = headline(cp.tagline.map((g, i) => ({ text: g, t: taglineWordTime(i) })), { size: R ? 68 : 56, weight: 700, maxW: 1800, align: "center", top: 612 });
@@ -464,7 +486,7 @@
       h("span", { class: "freepill" }, cp.free), h("span", {}, cp.freeSub));
     const urlEl = h("div", { class: "abs url", style: { width: `${W}px`, top: "826px", textAlign: "center" } }, cp.url);
     const urlRule = h("div", { class: "abs", style: { left: `${CX - 36}px`, top: "800px", width: "72px", height: "3px", borderRadius: "2px", background: "#f0c000", transformOrigin: "50% 50%" } });
-    hlLayer.append(freeEl, urlRule, urlEl);
+    hlLayer.append(freeEl, urlRule, urlEl, endCredit);
     function taglineWordTime(i) {
       const ph = A.phrases.find((p) => p.id === "tagline");
       const words = ph.words || [];
@@ -726,8 +748,8 @@
       let o;
       if (t < T.s8) o = wIn;                                                     // scenes 4–7 + analytics
       else if (t < T.hal - 0.1) o = 1 - prog(t, T.s8, T.s8 + 0.4, E.inOutQuad);  // "not just numbers"
-      else if (t < T.pl) o = prog(t, T.hal - 0.1, T.hal + 0.5, E.outCubic);      // halacha + rabbi
-      else if (t < T.s9) o = 1 - prog(t, T.pl, T.pl + 0.35, E.inOutQuad);        // platforms (frames take over)
+      else if (t < T.trust) o = prog(t, T.hal - 0.1, T.hal + 0.5, E.outCubic);   // halacha + rabbi
+      else if (t < T.s9) o = 1 - prog(t, T.trust, T.trust + 0.35, E.inOutQuad);  // trust + platforms
       else o = 1;                                                                // together: picks up the web frame's screen
       // scene 9: from the browser frame's screen to the centre; scene 10: converge
       const pull = prog(t, T.s9, T.s9 + 0.95, E.inOutCubic);
@@ -829,7 +851,7 @@
       put(table.importBtn, { s: 1 + 0.08 * Math.sin(clamp((t - (T.s5 + 0.72)) / 0.35) * Math.PI) });
 
       // veil dims the app while overlays (calendar, email) take focus
-      const veilO = win(t, T.recWord - 0.1, T.an + 0.3, 0.4, 0.3) * 0.86;
+      const veilO = Math.max(win(t, T.recWord - 0.1, T.an + 0.3, 0.4, 0.3) * 0.86, win(t, T.rep, T.s8 + 0.2, 0.35, 0.3) * 0.7);
       put(veil, { o: veilO });
 
       // ---------- halacha (scene 8) ----------
@@ -867,7 +889,7 @@
       const ripple = clamp((t - (T.fabPress - 0.35)) / 0.7);
       put(fabRipple, { s: 1 + ripple * 0.7, o: ripple > 0 && ripple < 1 ? 0.6 * (1 - ripple) : 0 });
       const press = Math.sin(clamp((t - T.fabPress) / 0.22) * Math.PI);
-      const fabVis = t >= T.hal ? prog(t, T.hal + 0.2, T.hal + 0.6) * (1 - prog(t, T.pl, T.pl + 0.3)) : 0;
+      const fabVis = t >= T.hal ? prog(t, T.hal + 0.2, T.hal + 0.6) * (1 - prog(t, T.trust, T.trust + 0.3)) : 0;
       put(con.fab, { s: 1 - 0.1 * press, o: fabVis });
       con.fab.style.transformOrigin = "50% 50%";
       const dlgIn = prog(t, T.dlg, T.dlg + 0.35, E.outCubic);
@@ -884,7 +906,7 @@
       setStyle(con.tabRabbi, "boxShadow", tabHi > 0.01 ? `0 0 0 ${(2.5 * tabHi).toFixed(1)}px rgba(17,103,106,0.55), 0 2px 8px -2px rgba(0,0,0,0.1)` : "0 2px 8px -2px rgba(0,0,0,0.1)");
       setStyle(con.tabRabbi, "color", tabHi > 0.3 ? "#11676a" : "");
       put(con.send, { s: 1 - 0.04 * Math.sin(clamp((t - T.send) / 0.2) * Math.PI) });
-      const toastO = win(t, T.send + 0.25, T.pl + 0.3, 0.25, 0.3);
+      const toastO = win(t, T.send + 0.25, T.trust + 0.3, 0.25, 0.3);
       const toastW = con.toast.offsetWidth;
       put(con.toast, { x: (WIN_VW - toastW) / 2, y: (1 - prog(t, T.send + 0.25, T.send + 0.6, E.outCubic)) * 20, o: toastO });
     }
@@ -991,6 +1013,15 @@
       mail.el.style.transformOrigin = "50% 50%";
 
 
+      // reports: the analytics page's "Export PDF" prints the real report layout; export formats alongside
+      const shIn = prog(t, T.print - 0.45, T.print + 0.35, E.outCubic);
+      const shOut = prog(t, T.s8 - 0.05, T.s8 + 0.35, E.inCubic);
+      put(sheet.el, { x: mx(210, 700), y: lerp(1100, 150, shIn) - shOut * 40, r: lerp(3, 0, shIn) * (R ? -1 : 1), o: prog(t, T.print - 0.45, T.print - 0.25) * (1 - shOut) });
+      sheet.rows.forEach((r, i) => { const p = prog(t, T.print - 0.1 + i * 0.07, T.print + 0.2 + i * 0.07); put(r, { o: p }); });
+      const xw = 230;
+      put(xch.el, { x: mx(960, xw), y: 330, o: prog(t, T.excel - 0.35, T.excel - 0.05) * (1 - shOut) });
+      xch.chips.forEach((c, i) => { const p = prog(t, T.excel - 0.25 + i * 0.16, T.excel + 0.25 + i * 0.16, E.outBack); put(c, { x: (1 - p) * (R ? 30 : -30), o: prog(t, T.excel - 0.25 + i * 0.16, T.excel + 0.05 + i * 0.16) }); });
+
       // scene 8: the balance floats free among the other figures, then becomes words
       const fa = prog(t, T.s8 + 0.1, T.s8 + 0.9, E.outCubic);
       const faOut = prog(t, T.numbers - 0.05, T.numbers + 0.55, E.inOutQuad);
@@ -1020,7 +1051,22 @@
       const sc = webF.frame.querySelector(".screen");
       return { x: PL.web.x + webF.frame.offsetLeft + sc.offsetLeft, y: PL.web.y + webF.frame.offsetTop + sc.offsetTop, s: 760 / WIN_VW };
     }
+    function trustScene(t) {
+      const out = prog(t, T.pl - 0.1, T.pl + 0.3, E.inCubic);
+      const cIn = prog(t, T.trust + 0.1, T.trust + 0.7, E.outCubic);
+      put(trustLogo, { y: (1 - cIn) * 30, s: lerp(0.92, 1, cIn), o: cIn * (1 - out) });
+      trustLogo.style.transformOrigin = "50% 50%";
+      const l1 = prog(t, T.trustWord - 0.3, T.trustWord + 0.3, E.outQuint);
+      put(trustL1, { y: (1 - l1) * 40 - out * 20, o: l1 * (1 - out) });
+      const l2 = prog(t, T.rabbis - 0.25, T.rabbis + 0.35, E.outQuint);
+      put(trustL2, { y: (1 - l2) * 40 - out * 20, o: l2 * (1 - out) });
+      const b = prog(t, T.rabbis + 0.3, T.rabbis + 0.7, E.outBack);
+      put(trustBadge, { s: lerp(0.8, 1, b), o: b * (1 - out) });
+      trustBadge.style.transformOrigin = "50% 50%";
+      put(trustEl, { o: t >= T.trust ? 1 : 0 });
+    }
     function platformsScene(t) {
+      trustScene(t);
       const out = prog(t, T.s9, T.s9 + 0.35, E.inCubic);
       [[webF, PL.web, T.web], [deskF, PL.desk, T.desk]].forEach(([F, P, kw], k) => {
         const p = prog(t, Math.max(T.pl + 0.1 + k * 0.25, kw - 0.45), Math.max(T.pl + 0.1 + k * 0.25, kw - 0.45) + 0.6, E.outCubic);
@@ -1056,7 +1102,7 @@
     }
     // headline → exit time (also used by the readability QA report)
     const HL_OUT = [
-      ...[hlMaaser, hlImport, hlRec, hlRemind, hlAn, hlHal, hlRabbi].map((hl, i) => [hl, HLDEF[i].out]),
+      ...[hlMaaser, hlImport, hlRec, hlRemind, hlAn, hlRep, hlHal, hlRabbi].map((hl, i) => [hl, HLDEF[i].out]),
       [hlPlat, T.s9 - 0.1], [hlTogether, T.s10], [tagline, T.end],
     ];
     function headlines(t) {
@@ -1066,6 +1112,8 @@
       const u = prog(t, T.url, T.url + 0.7, E.outCubic);
       put(urlEl, { y: (1 - u) * 16, o: u });
       put(urlRule, { sx: prog(t, T.url - 0.2, T.url + 0.5, E.inOutCubic), o: prog(t, T.url - 0.2, T.url) });
+      const ec = prog(t, T.url + 0.4, T.url + 1.0, E.outCubic);
+      put(endCredit, { y: (1 - ec) * 14, o: ec });
     }
 
     // ----------------------------------------------------------- scene 9 tiles
@@ -1190,6 +1238,9 @@
       [0, 1, 2].forEach((i) => cue(T.an + 0.6 + i * 0.12, "tick", 0.2));
       cue(T.moneyW - 0.3, "arrive", 0.28);
       cue(T.household - 0.15, "tick", 0.26);
+      cue(T.print - 0.45, "whoosh", 0.3);
+      for (let i = 0; i < 9; i += 2) cue(T.print - 0.1 + i * 0.07, "tick", 0.16);
+      [0, 1, 2].forEach((i) => cue(T.excel - 0.25 + i * 0.16, "pop", 0.24));
       cue(T.hal, "whoosh", 0.22);
       cue(T.tab1, "tap", 0.28); cue(T.tab2, "tap", 0.28);
       cue(T.fabPress, "tap", 0.5);
@@ -1198,6 +1249,8 @@
       for (let x = T.body0; x < T.body1; x += 0.18) cue(x, "type", 0.12);
       cue(T.send, "tap", 0.5);
       cue(T.send + 0.27, "notify", 0.3);
+      cue(T.trust + 0.1, "whoosh", 0.26);
+      cue(T.rabbis + 0.3, "notify", 0.3);
       cue(T.pl + 0.05, "whoosh", 0.3);
       cue(Math.max(T.pl + 0.1, T.web - 0.45), "pop", 0.32);
       cue(Math.max(T.pl + 0.35, T.desk - 0.45), "pop", 0.32);
