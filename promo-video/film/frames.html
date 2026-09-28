@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>TEN10 style frames</title>
+  <link rel="stylesheet" href="film.css" />
+  <style>html, body { background: #111; } canvas { display: block; }</style>
+</head>
+<body>
+  <canvas id="c" width="1920" height="1080"></canvas>
+  <script src="icons.js"></script>
+  <script src="engine.js"></script>
+  <script src="content.js"></script>
+  <script src="ui.js"></script>
+  <script src="frames.js"></script>
+  <script>
+    // ?lang=he|en&frame=1..5 — draws one style frame; window.__ready when done
+    (async function () {
+      const q = new URLSearchParams(location.search);
+      const lang = q.get("lang") === "en" ? "en" : "he", n = Number(q.get("frame") || 1);
+      await Promise.all(["600", "700", "800"].map((w) => document.fonts.load(`${w} 60px Assistant`)));
+      const img = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+      const [logo, machon] = await Promise.all([img("../../public/logo/logo.svg"), img("assets/machon-semel@3x.png")]);
+      const cv = document.getElementById("c"), ctx = cv.getContext("2d");
+      const F = FRAMES.make(ctx, CONTENT[lang], 1920, 1080);
+      F["f" + n](logo, machon);
+      window.__ready = true;
+    })().catch((e) => { window.__ready = true; window.__err = String(e.stack || e); });
+  </script>
+</body>
+</html>
