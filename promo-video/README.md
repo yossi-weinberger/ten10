@@ -180,6 +180,16 @@ and flying into the spark that opens onto the house. A HUD (chapter, month, bala
 
 The grain is static on purpose (per-frame grain multiplied the bitrate ~10×).
 
+## "Geo" cut (prototype): the agreed geometry language in motion
+
+`film/geo.js` (`?cut=geo`, `--cut geo`, `CUT=geo`) animates the style frames (`film/frames.js`, `tools/frames.mjs`).
+One continuous shot: the logo's ring never leaves, it moves and changes role, and its gold tenth is the accent.
+Import = the ring is a spool (real rows wind onto it, the count climbs); recurring = the ring drains and becomes
+the year (first month stamped, then the head runs the year by itself: 12 × 360); reminders = the dark spreads
+out of the ring, gold waves, the tenth swings, the reminder email slides out; analytics = the light returns
+from the ring, the ring counts the month's spending, dashed "measuring" outlines, then it pours into columns at
+the real shares (one hue, direct labels). Bright, clean, soft layered shadows, no texture.
+
 ## Workflow and QA (brief §27–§28)
 
 | Stage | How it was done | Re-run with |

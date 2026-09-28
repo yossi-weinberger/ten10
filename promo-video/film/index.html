@@ -23,8 +23,9 @@
   <script src="scenes.js"></script>
   <script src="symbols.js"></script>
   <script src="cine.js"></script>
+  <script src="geo.js"></script>
   <script>
-    // ?lang=he|en  &format=landscape|vertical  &cut=symbols|cine (feature scenes without app screens)
+    // ?lang=he|en  &format=landscape|vertical  &cut=symbols|cine|geo (feature scenes without app screens)
     // &t=<sec>  &render=1 (hides controls; the renderer drives seek())
     (async function () {
       const q = new URLSearchParams(location.search);
@@ -41,7 +42,7 @@
         timing = ENGINE.estimateTiming(await getJSON(`../narration/script.${lang}.json`));
       }
       const format = q.get("format") === "vertical" ? "vertical" : "landscape";
-      const cuts = { film: window.FILM, symbols: window.SYMBOLS, cine: window.CINE };
+      const cuts = { film: window.FILM, symbols: window.SYMBOLS, cine: window.CINE, geo: window.GEO };
       const cut = cuts[q.get("cut")] ? q.get("cut") : "film";
       const film = await cuts[cut].init(stage, lang, timing, { format });
       window.__film = {
