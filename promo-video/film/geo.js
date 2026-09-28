@@ -44,6 +44,12 @@
     stage.className = (RTL ? "rtl" : "ltr-stage") + (V ? " vertical" : "") + " geo";
     const img = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
     const [logoWide, logoStack, machon] = await Promise.all([img("../../public/logo/logo-wide.svg"), img("../../public/logo/logo.svg"), img("assets/machon-semel@3x.png")]);
+    const ICON = {};
+    await Promise.all(["globe", "cloud", "smartphone", "wifi-off", "hard-drive", "user-round-x"].map(async (n) => {
+      const svgs = (col) => `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${window.ICONS[n]}</svg>`;
+      ICON[n] = await img("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgs("#11676a")));
+      ICON[n + ":dark"] = await img("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgs("#3d2f00")));
+    }));
     stage.innerHTML = ""; sfx.length = 0;
     const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
     cv.style.cssText = `position:absolute;left:0;top:0;width:${W}px;height:${H}px`;
@@ -90,15 +96,15 @@
         rem: { x: 540, y: 880, r: 215, sw: 52 }, an: { x: 540, y: 700, r: 122, sw: 38 },
         nj: { x: 540, y: 1000, r: 200, sw: 48 }, rab: { x: 540, y: 930, r: 210, sw: 44 }, tr: { x: 540, y: 780, r: 220, sw: 36 },
         tog: { x: 540, y: 1060, r: 205, sw: 50 },
-        tx: { x: RTL ? W - 84 : 84, top: 190, w: 912, small: RTL ? 50 : 44, big: RTL ? 104 : 90 },
-        center: { hook: 1090, lead: 120, c2: 1420, tag: 1060, w: 960, small: RTL ? 52 : 46, big: RTL ? 92 : 80 },
+        tx: { x: RTL ? W - 116 : 116, top: 200, w: 848, small: RTL ? 48 : 42, big: RTL ? 98 : 84 },
+        center: { hook: 1090, lead: 130, c2: 1420, tag: 1060, w: 860, small: RTL ? 50 : 44, big: RTL ? 88 : 76 },
         wide: { w: 900, cy: 880 }, stack: { w: 430, cy: 700 },
         src: [RTL ? 820 : 260, 1760], path: [[RTL ? 820 : 260, 1720], [RTL ? 1000 : 80, 1330], [RTL ? 150 : 930, 1380], [540, 1060]],
         card: [540, 1300], cols: { base: 1540, colW: 150, gap: 48, maxH: 520 },
         sheet: { cx: 540, w: 640, h: 880 }, xch: { x: 540, y: 1660, dx: 230, dy: 0 },
         book: { x: 540, y: 1420, w: 700, h: 300 }, list: { x: 540, y0: 700, dy: 78 },
         pill: [540, 1250], msg: [540, 1420],
-        trustL: [1130, 1250, 1360], dev: { web: [540, 740], desk: [540, 1320], w: 620, h: 380, cap: 250 }, globe: { x: 850, y: 540, r: 64, sw: 16 },
+        trustL: [1130, 1250, 1360], plat: { vertical: true, web: 540, desk: 540, webY: 610, deskY: 1310, bw: 500, bh: 290, title: 890, sub: 926, badge0: 980, dy: 46, divider: [1122], phone: [118, 214] }, globe: { x: 800, y: 455, r: 54, sw: 14 },
         medal: [400, 430], endFree: [1330, 1420, 1530],
       }
       : {
@@ -116,7 +122,7 @@
         sheet: { cx: mx(640), w: 540, h: 650 }, xch: { x: mx(640) - (RTL ? 1 : -1) * 420, y: 330, dx: 0, dy: 110 },
         book: { x: mx(640), y: 790, w: 660, h: 250 }, list: { x: mx(640), y0: 170, dy: 74 },
         pill: [mx(660), 720], msg: [mx(660), 860],
-        trustL: [640, 722, 812], dev: { web: [mx(810), 430], desk: [mx(340), 430], w: 450, h: 292, cap: 190 }, globe: { x: mx(1030), y: 270, r: 58, sw: 15 },
+        trustL: [640, 722, 812], plat: { web: mx(815), desk: mx(330), devY: 330, bw: 400, bh: 250, title: 590, sub: 626, badge0: 690, dy: 56, divider: [mx(572), 200, 860], phone: [118, 214] }, globe: { x: mx(1000), y: 190, r: 54, sw: 14 },
         medal: [350, 290], endFree: [790, 872, 962],
       };
     // the ring as the "0" of a logo file (wide or stacked), placed by its width and centre height
@@ -221,7 +227,7 @@
     }
     function pill(text, x, y, o = {}) {
       const a = o.alpha ?? 1; if (a <= 0.002) return;
-      ctx.save(); ctx.globalAlpha = a; ctx.font = font(o.w || 700, o.size || 26); ctx.direction = o.dir || (RTL ? "rtl" : "ltr");
+      ctx.save(); ctx.globalAlpha *= a; ctx.font = font(o.w || 700, o.size || 26); ctx.direction = o.dir || (RTL ? "rtl" : "ltr");
       const w = ctx.measureText(text).width + (o.pad || 26) * 2, h = (o.size || 26) * 2.1;
       ctx.translate(x, y); ctx.scale(o.s || 1, o.s || 1);
       shadow(24, 10, 0.14); ctx.fillStyle = o.bg || "#fff"; rrect(-w / 2, -h / 2, w, h, h / 2); ctx.fill(); noShadow();
@@ -230,7 +236,7 @@
     }
     const centerText = (st, big, small, o = {}) => {
       const a = o.alpha ?? 1; if (a <= 0.002) return;
-      ctx.save(); ctx.globalAlpha = a; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"; ctx.direction = RTL ? "rtl" : "ltr";
+      ctx.save(); ctx.globalAlpha *= a; ctx.textAlign = "center"; ctx.textBaseline = "alphabetic"; ctx.direction = RTL ? "rtl" : "ltr";
       const k = st.r / 210, bs = (o.bigSize || 100) * k;
       ctx.translate(st.x, st.y + (o.dy || 0)); ctx.scale(o.s || 1, o.s || 1);
       ctx.font = font(800, bs); ctx.fillStyle = o.color || TEAL; ctx.fillText(big, 0, bs * 0.22);
@@ -250,6 +256,8 @@
       let items = [];
       for (let i = i0; i < i1; i++) items.push({ w: words[i].replace(/^["“]+|[,;:—"”]+$/g, ""), t: p.words[i].start - 0.06, big: i >= b0 && i < b1 });
       items = items.filter((it) => it.w.length);
+      if (RTL) items[0].w = items[0].w.replace(/^ו-?(?=\S{2,})/, "");
+      else { if (/^and$/i.test(items[0].w) && items.length > 1) items.shift(); items[0].w = items[0].w[0].toUpperCase() + items[0].w.slice(1); }
       const last = items[items.length - 1];
       last.w = last.w.replace(/[.!?…]*$/, "");
       // consecutive runs of the same weight wrap into their own lines
@@ -302,7 +310,6 @@
     makeBlock({ id: "halacha", big: cc.big.halacha, tOut: T.rab - 0.1 });
     makeBlock({ id: "rabbi", big: cc.big.rabbi, tOut: T.tr - 0.15 });
     makeBlock({ id: "together", big: cc.big.together, tOut: T.brand - 0.15 });
-    makeBlock({ id: "tagline", big: cc.big.tagline, mode: "center", top: S.center.tag, tOut: T.end + 5 });
     function drawText(t) {
       ctx.save(); ctx.textBaseline = "alphabetic"; ctx.direction = RTL ? "rtl" : "ltr"; ctx.textAlign = RTL ? "right" : "left";
       for (const b of blocks) {
@@ -342,13 +349,6 @@
       if (a <= 0) return;
       ctx.save(); ctx.globalAlpha = a;
       ctx.font = font(700, 21); ctx.textBaseline = "middle"; ctx.direction = RTL ? "rtl" : "ltr"; ctx.textAlign = RTL ? "right" : "left";
-      chapters.forEach(([t0, n, name], i) => {
-        const t1 = chapters[i + 1] ? chapters[i + 1][0] : 1e9;
-        const al = prog(t, t0 - 0.2, t0 + 0.2) * (1 - prog(t, t1 - 0.2, t1 + 0.1));
-        if (al <= 0) return;
-        ctx.globalAlpha = a * al; ctx.fillStyle = dk > 0.5 ? "rgba(200,236,228,0.7)" : "rgba(17,103,106,0.55)";
-        ctx.fillText(`${n} · ${name}`, RTL ? W - 72 : 72, 64);
-      });
       ctx.globalAlpha = a;
       const x0 = W / 2 - (V ? 200 : 260), x1 = W / 2 + (V ? 200 : 260), y = H - 62, u = clamp(t / T.end);
       ctx.strokeStyle = dk > 0.5 ? "rgba(200,236,228,0.2)" : "rgba(17,103,106,0.16)"; ctx.lineWidth = 2;
@@ -627,7 +627,7 @@
     }
     const txt = (s0, x, y, o = {}) => {
       const a = o.alpha ?? 1; if (a <= 0.002) return;
-      ctx.save(); ctx.globalAlpha = a; ctx.font = font(o.w || 700, o.size || 28); ctx.fillStyle = o.color || INK;
+      ctx.save(); ctx.globalAlpha *= a; ctx.font = font(o.w || 700, o.size || 28); ctx.fillStyle = o.color || INK;
       ctx.textAlign = o.align || "center"; ctx.textBaseline = o.base || "alphabetic"; ctx.direction = o.dir || (RTL ? "rtl" : "ltr");
       if (o.halo) { ctx.shadowColor = "rgba(252,250,241,0.95)"; ctx.shadowBlur = 20; }
       ctx.fillText(s0, x, y); ctx.restore();
@@ -660,7 +660,8 @@
     const kwLabel = (key, i) => {
       const tt = T.kw[i] + KW, wi = cw.findIndex((w) => Math.abs(w.start - tt) < 1e-6);
       if (wi < 0) return key;
-      return cw[wi].w + (RTL && key === "recurring" && cw[wi + 1] ? " " + cw[wi + 1].w : "");
+      const w0 = RTL ? cw[wi].w.replace(/^ו-?(?=\S{2,})/, "") : cw[wi].w;
+      return w0 + (RTL && key === "recurring" && cw[wi + 1] ? " " + cw[wi + 1].w : "");
     };
     const SYM = { USD: "$", EUR: "€", GBP: "£", ILS: "₪" };
     const groups = (() => {
@@ -842,7 +843,9 @@
     }
 
     // =========================================================== not just numbers
-    const numbersFly = (() => { const r = rng(17); const out = []; rowsR.forEach((rw, k) => { out.push({ s: money(rw.amt), k, col: 2, vx: (r() - 0.5) * 160, vy: -140 - r() * 220, rot: (r() - 0.5) * 0.6, d: r() * 0.35 }); out.push({ s: rw.d, k, col: 0, vx: (r() - 0.5) * 160, vy: -120 - r() * 200, rot: (r() - 0.5) * 0.6, d: r() * 0.35 }); }); ["10%", "20%", "12 × 360", num(D.incomeBase), num(D.expenses)].forEach((s0, i) => out.push({ s: s0, k: i * 2, col: 1, vx: (r() - 0.5) * 220, vy: -160 - r() * 200, rot: (r() - 0.5) * 0.6, d: 0.2 + r() * 0.3 })); return out; })();
+    const numbersFly = (() => { const r = rng(17); const out = []; rowsR.forEach((rw, k) => out.push({ s: money(rw.amt), k, col: 2, vx: (r() - 0.5) * 420, vy: -120 - r() * 160, rot: (r() - 0.5) * 0.5, d: r() * 0.35 })); ["10%", "20%", "12 × 360", num(D.expenses)].forEach((s0, i) => out.push({ s: s0, k: 1 + i * 2, col: 1, vx: (r() - 0.5) * 420, vy: -140 - r() * 160, rot: (r() - 0.5) * 0.5, d: 0.2 + r() * 0.3 })); return out; })();
+    // the picture area (the text column stays clear)
+    const picX = V ? [70, W - 70] : RTL ? [60, 1020] : [W - 1020, W - 60];
     function sceneNotJust(t, st) {
       if (t < T.nj - 0.1 || t > T.hal + 0.3) return;
       const L2 = sheetRowsLayout(S.cols.base - SH.h);
@@ -852,7 +855,7 @@
         const burst = prog(t, T.nums, T.nums + 0.9, E.outCubic);
         const bx = L2.colX[n.col] + (RTL ? -30 : 30), by = L2.row0 + n.k * L2.dy;
         const dx = bx - st.x, dy = by - st.y, dl = Math.hypot(dx, dy) || 1;
-        const x = bx + n.vx * s0 * 0.6 + (dx / dl) * 420 * burst, y = by + n.vy * s0 * 0.6 + (dy / dl) * 300 * burst;
+        const x = clamp(bx + n.vx * s0 * 1.4, picX[0] + 80, picX[1] - 80), y = by + n.vy * s0 * 0.55 - burst * 140;
         const a = prog(s0, 0, 0.2) * (1 - prog(t, T.nums + 0.2, T.nums + 1.0));
         if (a <= 0) continue;
         ctx.save(); ctx.globalAlpha = a; ctx.translate(x, y); ctx.rotate(n.rot * s0);
@@ -1004,65 +1007,108 @@
       for (const f of [-0.5, 0, 0.5]) { const yy = st.y + f * ri, hw = Math.sqrt(Math.max(0, ri * ri - (f * ri) ** 2)); ctx.beginPath(); ctx.moveTo(st.x - hw, yy); ctx.lineTo(st.x + hw, yy); ctx.stroke(); }
       ctx.restore();
     }
-    function miniDash(x, y, w, h, a) {
+    function miniDash(x, y, w, h, a, tall = false) {
       // a dashboard drawn in the film's own language: ring + columns + lines
-      const rr0 = h * 0.2;
-      drawRing({ x: x + (RTL ? w * 0.28 : -w * 0.28), y: y - h * 0.05, r: rr0, sw: rr0 * 0.34 }, { alpha: a, shadow: false });
-      const bx = x + (RTL ? -w * 0.36 : w * 0.02), vals = [0.9, 0.35, 0.18, 0.3];
-      vals.forEach((v, i) => { ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = i ? "#5aa59c" : TEAL; const bw = w * 0.07, bh = h * 0.42 * v; rrect(bx + i * bw * 1.6, y + h * 0.2 - bh, bw, bh, [3, 3, 0, 0]); ctx.fill(); ctx.restore(); });
-      ctx.save(); ctx.globalAlpha = a * 0.6; ctx.fillStyle = "rgba(17,103,106,0.25)";
-      for (let k = 0; k < 2; k++) ctx.fillRect(x - w * 0.4, y + h * 0.28 + k * 14, w * (0.8 - k * 0.3), 6);
-      ctx.restore();
+      const rr0 = tall ? w * 0.26 : h * 0.2;
+      const rc = tall ? { x, y: y - h * 0.22 } : { x: x + (RTL ? w * 0.28 : -w * 0.28), y: y - h * 0.05 };
+      drawRing({ ...rc, r: rr0, sw: rr0 * 0.34 }, { alpha: a, shadow: false });
+      const bw = w * (tall ? 0.13 : 0.07), bx = tall ? x - bw * 2.4 : x + (RTL ? -w * 0.36 : w * 0.02), by = tall ? y + h * 0.28 : y + h * 0.2, vals = [0.9, 0.35, 0.18, 0.3];
+      vals.forEach((v, i) => { ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = i ? "#5aa59c" : TEAL; const bh = h * (tall ? 0.22 : 0.42) * v; rrect(bx + i * bw * 1.6, by - bh, bw, bh, [3, 3, 0, 0]); ctx.fill(); ctx.restore(); });
+      if (!tall) { ctx.save(); ctx.globalAlpha = a * 0.6; ctx.fillStyle = "rgba(17,103,106,0.25)"; for (let k = 0; k < 2; k++) ctx.fillRect(x - w * 0.4, y + h * 0.28 + k * 14, w * (0.8 - k * 0.3), 6); ctx.restore(); }
     }
-    function device(kind, cx0, cy0, w, h, p, a) {
+    // web: a browser window with the phone it installs on
+    function webDevice(cx0, cy0, w, h, a, t) {
       if (a <= 0.002) return;
       const x0 = cx0 - w / 2, y0 = cy0 - h / 2;
-      ctx.save(); ctx.globalAlpha = a;
-      if (p < 1) { ctx.strokeStyle = TEAL; ctx.lineWidth = 3; ctx.setLineDash([(w + h) * 2 * p, 9999]); rrect(x0, y0, w, h, 16); ctx.stroke(); ctx.setLineDash([]); }
-      const fa = prog(p, 0.55, 1);
-      ctx.globalAlpha = a * fa; shadow(40, 18, 0.16); ctx.fillStyle = "#fff"; rrect(x0, y0, w, h, 16); ctx.fill(); noShadow();
+      ctx.save(); ctx.globalAlpha = a; shadow(40, 18, 0.16); ctx.fillStyle = "#fff"; rrect(x0, y0, w, h, 16); ctx.fill(); noShadow();
       ctx.fillStyle = "#f1efe6"; rrect(x0, y0, w, 36, [16, 16, 0, 0]); ctx.fill();
-      if (kind === "web") {
-        ["#e0775f", "#e8c14a", "#63b36a"].forEach((c, i) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x0 + 22 + i * 18, y0 + 18, 5.5, 0, TAU); ctx.fill(); });
-        ctx.fillStyle = "#fff"; rrect(cx0 - w * 0.28, y0 + 8, w * 0.56, 20, 10); ctx.fill();
-        ctx.restore(); txt(C.ui.platforms.web.url, cx0, y0 + 24, { alpha: a * fa, size: 14, w: 700, color: "rgba(31,28,18,0.6)", dir: "ltr" }); ctx.save(); ctx.globalAlpha = a * fa;
-      } else {
-        ctx.strokeStyle = "rgba(31,28,18,0.55)"; ctx.lineWidth = 2;
-        const rx = x0 + w - 22; ctx.beginPath(); ctx.moveTo(rx - 5, y0 + 13); ctx.lineTo(rx + 5, y0 + 23); ctx.moveTo(rx + 5, y0 + 13); ctx.lineTo(rx - 5, y0 + 23); ctx.stroke();
-        ctx.strokeRect(rx - 36, y0 + 13, 10, 10); ctx.beginPath(); ctx.moveTo(rx - 64, y0 + 18); ctx.lineTo(rx - 54, y0 + 18); ctx.stroke();
-        ctx.restore(); txt("TEN10", x0 + 22, y0 + 24, { alpha: a * fa, size: 15, w: 800, color: TEAL, dir: "ltr", align: "left" }); ctx.save(); ctx.globalAlpha = a * fa;
+      ["#e0775f", "#e8c14a", "#63b36a"].forEach((c, i) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x0 + 22 + i * 18, y0 + 18, 5.5, 0, TAU); ctx.fill(); });
+      ctx.fillStyle = "#fff"; rrect(cx0 - w * 0.28, y0 + 8, w * 0.56, 20, 10); ctx.fill(); ctx.restore();
+      txt(C.ui.platforms.web.url, cx0, y0 + 24, { alpha: a, size: 14, w: 700, color: "rgba(31,28,18,0.6)", dir: "ltr" });
+      miniDash(cx0, cy0 + 18, w, h - 36, a);
+      // the phone, overlapping the reading-end corner, synced with the browser (cloud between them)
+      const [pw, ph2] = S.plat.phone, px = RTL ? x0 - pw * 0.2 : x0 + w - pw * 0.8, py = y0 + h - ph2 * 0.62;
+      const pa = a * prog(t, T.web + 0.35, T.web + 0.8, E.outCubic);
+      if (pa > 0) {
+        ctx.save(); ctx.globalAlpha = pa; ctx.translate(0, (1 - pa / a) * 20);
+        shadow(34, 14, 0.2); ctx.fillStyle = "#1f2b2a"; rrect(px, py, pw, ph2, 20); ctx.fill(); noShadow();
+        ctx.fillStyle = "#fff"; rrect(px + 7, py + 12, pw - 14, ph2 - 24, 14); ctx.fill(); ctx.restore();
+        miniDash(px + pw / 2, py + ph2 / 2 + 6, pw - 14, ph2 - 24, pa, true);
+        // sync: dots travel along an arc between browser and phone
+        const c1 = [cx0 + (RTL ? -w * 0.1 : w * 0.1), y0 - 24], c2 = [px + pw / 2, py - 20];
+        ctx.save(); ctx.globalAlpha = pa * 0.8; ctx.strokeStyle = "rgba(17,103,106,0.35)"; ctx.lineWidth = 2; ctx.setLineDash([4, 7]);
+        const mxp = (c1[0] + c2[0]) / 2, myp = Math.min(c1[1], c2[1]) - 70;
+        ctx.beginPath(); ctx.moveTo(c1[0], c1[1]); ctx.quadraticCurveTo(mxp, myp, c2[0], c2[1]); ctx.stroke(); ctx.setLineDash([]);
+        for (let k = 0; k < 3; k++) { const u = ((t * 0.7 + k / 3) % 1), q = 1 - u; const dx = q * q * c1[0] + 2 * q * u * mxp + u * u * c2[0], dy = q * q * c1[1] + 2 * q * u * myp + u * u * c2[1]; ctx.fillStyle = GOLD; ctx.beginPath(); ctx.arc(dx, dy, 5, 0, TAU); ctx.fill(); }
+        ctx.drawImage(ICON.cloud, mxp - 22, myp + 12, 44, 44);
+        ctx.restore();
       }
+    }
+    // desktop: a monitor on a stand, working on its own
+    function deskDevice(cx0, cy0, w, h, a, t) {
+      if (a <= 0.002) return;
+      const x0 = cx0 - w / 2, y0 = cy0 - h / 2;
+      ctx.save(); ctx.globalAlpha = a; shadow(40, 18, 0.18);
+      ctx.fillStyle = "#1f2b2a"; rrect(x0 - 12, y0 - 12, w + 24, h + 24, 18); ctx.fill(); noShadow();
+      ctx.fillStyle = "#26403e"; ctx.beginPath(); ctx.moveTo(cx0 - 26, y0 + h + 12); ctx.lineTo(cx0 + 26, y0 + h + 12); ctx.lineTo(cx0 + 40, y0 + h + 62); ctx.lineTo(cx0 - 40, y0 + h + 62); ctx.closePath(); ctx.fill();
+      rrect(cx0 - 110, y0 + h + 60, 220, 16, 8); ctx.fill();
+      ctx.fillStyle = "#fff"; rrect(x0, y0, w, h, 8); ctx.fill();
+      ctx.fillStyle = "#f1efe6"; rrect(x0, y0, w, 30, [8, 8, 0, 0]); ctx.fill();
+      ctx.strokeStyle = "rgba(31,28,18,0.55)"; ctx.lineWidth = 2; const rx = RTL ? x0 + 22 : x0 + w - 22;
+      ctx.beginPath(); ctx.moveTo(rx - 5, y0 + 10); ctx.lineTo(rx + 5, y0 + 20); ctx.moveTo(rx + 5, y0 + 10); ctx.lineTo(rx - 5, y0 + 20); ctx.stroke();
       ctx.restore();
-      miniDash(cx0, cy0 + 18, w, h - 36, a * fa);
+      txt("TEN10", RTL ? x0 + w - 18 : x0 + 18, y0 + 21, { alpha: a, size: 15, w: 800, color: TEAL, dir: "ltr", align: RTL ? "right" : "left" });
+      miniDash(cx0, cy0 + 15, w, h - 30, a);
+      // offline: the signal is cut, the app keeps running
+      const oa = a * prog(t, T.off - 0.1, T.off + 0.35, E.outBack);
+      if (oa > 0) {
+        const bx = RTL ? x0 - 20 : x0 + w + 20, by = y0 - 10;
+        ctx.save(); ctx.globalAlpha = clamp(oa); ctx.translate(bx, by); ctx.scale(clamp(oa), clamp(oa));
+        shadow(24, 10, 0.2); ctx.fillStyle = GOLD; ctx.beginPath(); ctx.arc(0, 0, 38, 0, TAU); ctx.fill(); noShadow();
+        ctx.drawImage(ICON["wifi-off:dark"], -24, -24, 48, 48); ctx.restore();
+      }
+    }
+    function badge(iconName, text, x, y, a, hot) {
+      if (a <= 0.002) return;
+      ctx.save(); ctx.font = font(700, V ? 24 : 22); const tw = ctx.measureText(text).width; ctx.restore();
+      const w = tw + 90, h = V ? 46 : 44, x0 = x - w / 2;
+      ctx.save(); ctx.globalAlpha = a; shadow(20, 8, 0.1); ctx.fillStyle = hot ? GOLD : "#fff"; rrect(x0, y - h / 2, w, h, h / 2); ctx.fill(); noShadow(); ctx.restore();
+      const ix = RTL ? x0 + w - 16 - 28 : x0 + 16;
+      ctx.save(); ctx.globalAlpha = a; ctx.drawImage(ICON[hot ? iconName + ":dark" : iconName], ix, y - 14, 28, 28); ctx.restore();
+      txt(text, RTL ? ix - 12 : ix + 28 + 12, y + 8, { alpha: a, size: V ? 24 : 22, w: 700, color: hot ? "#3d2f00" : INK, align: RTL ? "right" : "left" });
     }
     function scenePlatforms(t) {
       if (t < T.pl - 0.3 || t > T.tog + 0.2) return;
-      const out = prog(t, T.tog - 0.35, T.tog), P = C.ui.platforms, dv = S.dev;
+      const out = prog(t, T.tog - 0.35, T.tog), P = C.ui.platforms, L2 = S.plat;
       const ta = prog(t, T.pl + 0.05, T.pl + 0.5, E.outCubic) * (1 - out);
       if (ta > 0) {
-        ctx.save(); ctx.font = font(800, S.tx.big * 0.86); const words = cp.platformsTitle.split(" "), lines = []; let cur = "";
+        const tsz = S.tx.big * (V ? 0.66 : 0.86);
+        ctx.save(); ctx.font = font(800, tsz); const words = cp.platformsTitle.split(" "), lines = []; let cur = "";
         for (const w of words) { const tt = cur ? `${cur} ${w}` : w; if (ctx.measureText(tt).width > S.tx.w && cur) { lines.push(cur); cur = w; } else cur = tt; }
         lines.push(cur); ctx.restore();
-        lines.forEach((ln, k) => txt(ln, S.tx.x, S.tx.top + S.tx.big * (0.9 + k * 0.98) + (1 - ta) * 24, { alpha: ta, size: S.tx.big * 0.86, w: 800, color: TEAL, align: RTL ? "right" : "left" }));
+        lines.forEach((ln, k) => txt(ln, S.tx.x, S.tx.top + tsz * (1.05 + k * 1.14) + (1 - ta) * 24, { alpha: ta, size: tsz, w: 800, color: TEAL, align: RTL ? "right" : "left" }));
       }
-      [["web", T.web, P.web], ["desk", T.desk, P.desktop]].forEach(([k, tk, info]) => {
-        const p = prog(t, tk - 0.2, tk + 0.55, E.inOutCubic), a = prog(t, tk - 0.2, tk) * (1 - out);
-        const [x, y] = dv[k];
-        device(k, x, y, dv.w, dv.h, p, a);
-        const capY = y + dv.h / 2 + 46, ca = prog(t, tk + 0.3, tk + 0.7) * (1 - out);
-        txt(info.title, x, capY, { alpha: ca, size: 28, w: 800 });
-        info.feats.forEach(([, f], i) => { const fa = prog(t, tk + 0.45 + i * 0.16, tk + 0.8 + i * 0.16) * (1 - out); txt(`·  ${f}`, x, capY + 36 + i * 30, { alpha: fa, size: 20, w: 600, color: "rgba(31,28,18,0.65)" }); });
+      // the divider between the two versions
+      const da = prog(t, T.desk - 0.3, T.desk + 0.2) * (1 - out);
+      if (da > 0) {
+        ctx.save(); ctx.globalAlpha = da; ctx.strokeStyle = "rgba(17,103,106,0.22)"; ctx.lineWidth = 2; ctx.setLineDash([2, 8]); ctx.beginPath();
+        if (L2.vertical) { ctx.moveTo(140, L2.divider[0]); ctx.lineTo(W - 140, L2.divider[0]); } else { ctx.moveTo(L2.divider[0], L2.divider[1]); ctx.lineTo(L2.divider[0], L2.divider[2]); }
+        ctx.stroke(); ctx.restore();
+      }
+      [["web", T.web, P.web, [["globe"], ["cloud"], ["smartphone"]]], ["desk", T.desk, P.desktop, [["wifi-off"], ["hard-drive"], ["user-round-x"]]]].forEach(([k, tk, info]) => {
+        const e = prog(t, tk - 0.25, tk + 0.45, E.outCubic), a = e * (1 - out);
+        if (a <= 0) return;
+        const x = L2[k], y0 = L2.vertical ? (k === "web" ? L2.webY : L2.deskY) : L2.devY, dyOff = L2.vertical && k === "desk" ? L2.deskY - L2.webY : 0;
+        if (k === "web") webDevice(x, y0 + (1 - e) * 30, L2.bw, L2.bh, a, t); else deskDevice(x, y0 + (1 - e) * 30, L2.bw, L2.bh, a, t);
+        const ca = prog(t, tk + 0.2, tk + 0.6, E.outCubic) * (1 - out);
+        txt(info.title, x, L2.title + dyOff + (1 - ca) * 14, { alpha: ca, size: V ? 44 : 40, w: 800, color: TEAL });
+        txt(info.sub, x, L2.sub + dyOff + (1 - ca) * 14, { alpha: ca, size: V ? 22 : 20, w: 600, color: "rgba(31,28,18,0.6)" });
+        info.feats.forEach(([ic, f], i) => {
+          const fa = prog(t, tk + 0.4 + i * 0.16, tk + 0.8 + i * 0.16, E.outCubic) * (1 - out);
+          const hot = k === "desk" && i === 0 && t > T.off - 0.05;
+          badge(ic, f, x, L2.badge0 + dyOff + i * L2.dy + (1 - fa) * 12, fa, hot);
+        });
       });
-      // offline: the connection is cut, and it keeps working
-      const oa = prog(t, T.off - 0.1, T.off + 0.4, E.outBack) * (1 - out);
-      if (oa > 0) {
-        const [x, y] = dv.desk, gx = x, gy = y - dv.h / 2 - 50;
-        ctx.save(); ctx.globalAlpha = clamp(oa); ctx.strokeStyle = TEAL; ctx.lineWidth = 5; ctx.lineCap = "round";
-        for (let k = 1; k <= 3; k++) { ctx.beginPath(); ctx.arc(gx - 110, gy + 16, k * 11, -Math.PI * 0.75, -Math.PI * 0.25); ctx.stroke(); }
-        ctx.fillStyle = TEAL; ctx.beginPath(); ctx.arc(gx - 110, gy + 16, 4, 0, TAU); ctx.fill();
-        ctx.strokeStyle = "#dc2626"; ctx.beginPath(); ctx.moveTo(gx - 136, gy - 18); ctx.lineTo(gx - 84, gy + 22); ctx.stroke(); ctx.restore();
-        pill(P.desktop.feats[0][1], gx + 40, gy, { size: 24, bg: GOLD, color: "#3d2f00", w: 800, alpha: clamp(oa), s: lerp(0.8, 1, clamp(oa)) });
-      }
     }
 
     // =========================================================== together: every motif returns to the ring
@@ -1121,6 +1167,56 @@
     }
 
     // =========================================================== end card
+    // the tagline: whole lines revealed by a soft mask (the emphasised line from its centre), then a gold rule
+    const tagLines = (() => {
+      const lines = cp.tagline, em = cc.tagEm, tagW = ph("tagline").words, tEm = tagW[Math.min(cc.big.tagline[0], tagW.length - 1)].start - KW;
+      let y = S.center.tag;
+      return lines.map((raw, i) => {
+        const big = i === em, size = big ? (V ? 82 : 78) : (V ? 44 : 42), last = i === lines.length - 1;
+        const text = raw.replace(/[.]$/, "");
+        const m = document.createElement("canvas").getContext("2d"); m.font = font(big ? 800 : 700, size);
+        const tw = m.measureText(text).width, dw = last ? m.measureText(".").width : 0, pad = 30;
+        const c = document.createElement("canvas"); c.width = Math.ceil(tw + dw + pad * 2); c.height = Math.ceil(size * 1.6);
+        const g = c.getContext("2d"); g.font = font(big ? 800 : 700, size); g.textBaseline = "alphabetic"; g.direction = RTL ? "rtl" : "ltr";
+        const base = size * 1.12;
+        g.fillStyle = big ? TEAL : "#3a3524"; g.textAlign = RTL ? "right" : "left"; g.fillText(text, RTL ? c.width - pad : pad, base);
+        if (last) { g.fillStyle = GOLD; g.fillText(".", RTL ? pad + dw : pad + tw, base); }
+        y += i ? size * 1.18 + (lines.length && i - 1 === em ? 34 : 0) : size;
+        const t0 = big ? tEm : i < em ? T.tag - 0.05 : tEm + 0.55;
+        return { c, tmp: document.createElement("canvas"), big, size, y, base, t0, tw };
+      });
+    })();
+    function drawTagline(t) {
+      for (const L2 of tagLines) {
+        const u = prog(t, L2.t0, L2.t0 + (L2.big ? 0.75 : 0.85), E.inOutCubic);
+        if (u <= 0) continue;
+        const { c, tmp } = L2; if (tmp.width !== c.width) { tmp.width = c.width; tmp.height = c.height; }
+        const g = tmp.getContext("2d"); g.globalCompositeOperation = "source-over"; g.clearRect(0, 0, tmp.width, tmp.height); g.drawImage(c, 0, 0);
+        if (u < 1) {
+          g.globalCompositeOperation = "destination-in";
+          const soft = 140, Wc = c.width;
+          let gr;
+          if (L2.big) {
+            const half = (Wc / 2 + soft) * u, mid = Wc / 2;
+            gr = g.createLinearGradient(0, 0, Wc, 0);
+            const st0 = clamp((mid - half) / Wc), st1 = clamp((mid - half + soft) / Wc), st2 = clamp((mid + half - soft) / Wc), st3 = clamp((mid + half) / Wc);
+            gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(st0, "rgba(0,0,0,0)"); gr.addColorStop(Math.max(st0, Math.min(st1, 0.5)), "rgba(0,0,0,1)"); gr.addColorStop(Math.min(st3, Math.max(st2, 0.5)), "rgba(0,0,0,1)"); gr.addColorStop(st3, "rgba(0,0,0,0)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+          } else {
+            const edge = (Wc + soft) * u;
+            gr = RTL ? g.createLinearGradient(Wc, 0, 0, 0) : g.createLinearGradient(0, 0, Wc, 0);
+            const e0 = clamp((edge - soft) / Wc), e1 = clamp(edge / Wc);
+            gr.addColorStop(0, "rgba(0,0,0,1)"); gr.addColorStop(e0, "rgba(0,0,0,1)"); gr.addColorStop(Math.max(e0, e1), "rgba(0,0,0,0)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+          }
+          g.fillStyle = gr; g.fillRect(0, 0, tmp.width, tmp.height);
+        }
+        const k = L2.big ? lerp(0.965, 1, E.outCubic(u)) : 1, dx = W / 2 - (c.width * k) / 2, dy = L2.y - L2.base * k + (1 - u) * 8;
+        ctx.save(); ctx.globalAlpha = Math.min(1, u * 2.5); ctx.drawImage(tmp, dx, dy, c.width * k, c.height * k); ctx.restore();
+        if (L2.big) {
+          const r2 = prog(t, L2.t0 + 0.55, L2.t0 + 1.05, E.inOutCubic);
+          if (r2 > 0) { const hw = L2.tw * 0.28 * r2; ctx.save(); ctx.fillStyle = GOLD; rrect(W / 2 - hw, L2.y + L2.size * 0.24, hw * 2, 5, 3); ctx.fill(); ctx.restore(); }
+        }
+      }
+    }
     function sceneEnd(t, st) {
       if (t < T.brand - 0.4) return;
       // the opening's chaos, now a perfect halo of dots around the logo
@@ -1142,6 +1238,7 @@
         const G = LOGO.stack, f = STACK.lw / G.w, r0 = G.R * f + 2, rMax = Math.hypot(STACK.lw, STACK.lh) * 1.1;
         drawLogo("stack", STACK, 1, () => ctx.arc(STACK.ring.x, STACK.ring.y, lerp(r0, rMax, lv), 0, TAU));
       }
+      drawTagline(t);
       // free, where, and with whom
       const fa = prog(t, T.freeW - 0.05, T.freeW + 0.4, E.outBack), [yF, yU, yC] = S.endFree;
       if (fa > 0) {
@@ -1193,6 +1290,7 @@
       const st = { ...st0, x: st0.x + rs.dx, y: st0.y + rs.dy };
       // under the ring
       sceneChaos(t, st);
+      sceneNotJust(t, st);
       lensGlass(t, st);
       bubbleUnder(t, st);
       trustUnder(t, st);
@@ -1213,7 +1311,6 @@
       sceneRemind(t, st, dkR);
       scenePour(t, st);
       sceneReports(t);
-      sceneNotJust(t, st);
       sceneHalacha(t, st);
       sceneRabbi(t, st);
       sceneTrust(t);

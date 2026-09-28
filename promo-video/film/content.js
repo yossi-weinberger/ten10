@@ -46,7 +46,7 @@
         big: { hook1: [0, 3], complex2: [2, 4], maaser: [4, 8], reports: [1, 3], notjust: [2, 5], halacha: [0, 2], rabbi: [6, 9], together: [0, 2], tagline: [4, 6] },
         lead: "אבל כשמצטברים",
         scenes: { hook: "מעשר", chaos: "המורכבות", order: "TEN10", maaser: "מעשר וחומש", reports: "דוחות וייצוא", halacha: "מאגר ההלכות", rabbi: "שאל את הרב", trust: "שיתוף והסכמה", platforms: "אתר ותוכנה", together: "תמונה אחת" },
-        income: "הכנסות", donations: "תרומות", expenses: "חיובים", formula: "מעשר + חומש − תרומות", seen: "₪" },
+        income: "הכנסות", donations: "תרומות", expenses: "חיובים", formula: "מעשר + חומש − תרומות", seen: "₪", tagEm: 1 },
     },
     // Narration words (as they appear in script.he.json) that trigger visual beats
     beats: {
@@ -293,7 +293,7 @@
         big: { hook1: [0, 3], complex2: [3, 7], maaser: [5, 8], reports: [0, 2], notjust: [3, 6], halacha: [2, 4], rabbi: [8, 11], together: [5, 7], tagline: [0, 3] },
         lead: "But once you add",
         scenes: { hook: "Maaser", chaos: "Complexity", order: "TEN10", maaser: "Maaser & Chomesh", reports: "Reports & export", halacha: "Halachic Library", rabbi: "Ask the Rabbi", trust: "Partnership", platforms: "Web & desktop", together: "One picture" },
-        income: "Income", donations: "Donations", expenses: "Obligations", formula: "maaser + chomesh − donations", seen: "$" },
+        income: "Income", donations: "Donations", expenses: "Obligations", formula: "maaser + chomesh − donations", seen: "$", tagEm: 0 },
     },
     beats: {
       income: ["complex1", "income"],
