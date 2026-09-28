@@ -39,6 +39,9 @@
       url: "ten10-app.com",
       // "symbols" cut (no app screens): captions inside the ring
       sym: { imported: "תנועות יובאו", file: "תנועות.xlsx", monthly: "כל חודש", household: "הוצאות הבית", other: "אחר" },
+      // "cine" cut: chapter marks, and how many narration words stay small before the key words slam in
+      cine: { chapters: { import: "ייבוא", recurring: "הוראות קבע", reminders: "תזכורות", analytics: "ניתוח נתונים" },
+        split: { import: 2, recurring: 3, reminders: 1, analytics: 4 }, brand: "TEN10 · ניהול מעשרות", balance: "יתרה למעשרות" },
     },
     // Narration words (as they appear in script.he.json) that trigger visual beats
     beats: {
@@ -280,6 +283,8 @@
       freeSub: "On the web and as desktop software",
       url: "ten10-app.com",
       sym: { imported: "transactions imported", file: "transactions.xlsx", monthly: "every month", household: "household spending", other: "Other" },
+      cine: { chapters: { import: "Import", recurring: "Recurring", reminders: "Reminders", analytics: "Analytics" },
+        split: { import: 1, recurring: 1, reminders: 2, analytics: 5 }, brand: "TEN10 · Maaser management", balance: "Overall Required" },
     },
     beats: {
       income: ["complex1", "income"],

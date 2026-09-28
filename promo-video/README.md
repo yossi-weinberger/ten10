@@ -162,6 +162,24 @@ Same engine, anchors and sound pipeline as the main film, so it re-times itself 
 `s(import) − 0.5 → s(reports) − 0.1`; its output is `renders/<lang>[-vertical]-symbols/TEN10_symbols_prototype_<lang>[_vertical].mp4`.
 If the direction is approved, the same approach replaces scenes 4–9 in `scenes.js`.
 
+## "Cine" cut (prototype): an engraved, lit world on canvas
+
+`film/cine.js` (`?cut=cine`, `--cut cine`, `CUT=cine`) is the second, more cinematic take on the same stretch
+(import → recurring → reminders → analytics). It draws on a single canvas: warm paper, teal ink engraving, gold; a
+small 3D projector (painter's sort, back-face culling) for the ledger, the bell (a lathe mesh) and the house. The
+narration itself is the typography (words arrive as spoken; the key words slam in), and transitions are events in the
+world: a light burst out of the ledger, the lights going out on the calendar machine, a letter folding into an envelope
+and flying into the spark that opens onto the house. A HUD (chapter, month, balance, timeline) runs through it.
+
+| Beat | What happens |
+| --- | --- |
+| import | statement pages fan out; ~1,100 rows stream into a ledger whose pages flip; the count is printed on the page |
+| recurring | a geared calendar (meshing gears, month ring): the standing order is sealed on its month, then the machine runs the year |
+| reminders | lights out; an engraved bell rings; the reminder email (the app's own subject line) folds, is sealed with the logo, flies |
+| analytics | a house draws itself; the roof lifts; the rooms are the real category split and gold pours in; the camera cranes up |
+
+The grain is static on purpose (per-frame grain multiplied the bitrate ~10×).
+
 ## Workflow and QA (brief §27–§28)
 
 | Stage | How it was done | Re-run with |

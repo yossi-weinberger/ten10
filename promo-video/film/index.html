@@ -22,8 +22,9 @@
   <script src="ui.js"></script>
   <script src="scenes.js"></script>
   <script src="symbols.js"></script>
+  <script src="cine.js"></script>
   <script>
-    // ?lang=he|en  &format=landscape|vertical  &cut=symbols (feature scenes without app screens)
+    // ?lang=he|en  &format=landscape|vertical  &cut=symbols|cine (feature scenes without app screens)
     // &t=<sec>  &render=1 (hides controls; the renderer drives seek())
     (async function () {
       const q = new URLSearchParams(location.search);
@@ -40,8 +41,9 @@
         timing = ENGINE.estimateTiming(await getJSON(`../narration/script.${lang}.json`));
       }
       const format = q.get("format") === "vertical" ? "vertical" : "landscape";
-      const cut = q.get("cut") === "symbols" ? "symbols" : "film";
-      const film = await (cut === "symbols" ? SYMBOLS : FILM).init(stage, lang, timing, { format });
+      const cuts = { film: window.FILM, symbols: window.SYMBOLS, cine: window.CINE };
+      const cut = cuts[q.get("cut")] ? q.get("cut") : "film";
+      const film = await cuts[cut].init(stage, lang, timing, { format });
       window.__film = {
         ready: true, lang, format, cut, range: film.range || [0, film.duration], width: film.width, height: film.height, duration: film.duration, times: film.times,
         seek: (t) => film.seek(t), cues: () => film.cues(), qa: () => film.qa(), timingSource: timing.source,
