@@ -180,15 +180,36 @@ and flying into the spark that opens onto the house. A HUD (chapter, month, bala
 
 The grain is static on purpose (per-frame grain multiplied the bitrate ~10×).
 
-## "Geo" cut (prototype): the agreed geometry language in motion
+## The geometry film (current version): `film/geo.js`
 
-`film/geo.js` (`?cut=geo`, `--cut geo`, `CUT=geo`) animates the style frames (`film/frames.js`, `tools/frames.mjs`).
-One continuous shot: the logo's ring never leaves, it moves and changes role, and its gold tenth is the accent.
-Import = the ring is a spool (real rows wind onto it, the count climbs); recurring = the ring drains and becomes
-the year (first month stamped, then the head runs the year by itself: 12 × 360); reminders = the dark spreads
-out of the ring, gold waves, the tenth swings, the reminder email slides out; analytics = the light returns
-from the ring, the ring counts the month's spending, dashed "measuring" outlines, then it pours into columns at
-the real shares (one hue, direct labels). Bright, clean, soft layered shadows, no texture.
+The full film in the language agreed in the style frames (`film/frames.js`, `tools/frames.mjs`). Produce it with
+`CUT=geo tools/produce.sh he` (add `FORMAT=vertical` for 9:16); outputs keep the film's names under
+`renders/<lang>[-vertical]-geo/`. Stills: `node tools/stills.mjs --lang he --cut geo --sheet 48` (and `--qa`).
+
+One continuous shot on one canvas. The logo's ring (the "0") never leaves; it moves between per-scene states
+(`S.*` in `init`, blended by the keyframes in `keys()`), and its gold tenth is centred on the logo's own wedge.
+When the ring becomes a logo's "0", its position and thickness come from the logo files themselves (`LOGO`,
+measured once from `public/logo/*.svg`), so the wordmark and the stacked logo grow out of it exactly.
+
+| Scene | Anchors | What happens |
+| --- | --- | --- |
+| hook | hook1, hook2 | the ring draws itself; the tenth drops into its slot: 10% (eyebrow "מעשר כספים") |
+| chaos | complex1 keywords, complex2 | each spoken keyword lands with its real fragments, which orbit the ring faster and faster |
+| order | order | everything spirals in; the ring becomes the "0" of the wordmark; the app's badge line |
+| maaser | maaser, chomesh, currency | the ring is the income, its tenth the maaser; an inner ring's 20% the chomesh; 1,000 + 400 − 580 = 820; currencies convert on the way in |
+| import · recurring · reminders · analytics | as before | spool · self-filling year · dark wipe and the reminder email · the pour into columns |
+| reports | print, Excel | the baseline becomes a printer slot, the report rises, the ring lands as its logo; Excel / PDF / CSV |
+| not just numbers | numbers | the report's numbers lift off and scatter |
+| halacha | Halachic Library | an open book; topics rise into a list; the ring becomes a lens and finds chomesh |
+| rabbi | question, Ask | the lens becomes a speech bubble: "?", the button, the message, sent |
+| trust | Institute, rabbis | the ring frames the institute's emblem; partnership and endorsement lines, verified badge |
+| platforms | web, desktop, offline | web and desktop windows drawn in the same geometry; the ring becomes a globe; offline badge |
+| together | income, donations, obligations | every motif of the film orbits back; the ring splits into the three, named inside it |
+| end | brand, tagline, free | the stacked logo grows out of the ring; halo; tagline; free; URL; institute credit |
+
+All copy comes from `content.js` (`copy.cine.big` sets which narration words are set large per phrase).
+Readability QA: words appear as they are spoken; each block stays until the next phrase begins (0.6–1.2 s after
+its last word with the estimated timing).
 
 ## Workflow and QA (brief §27–§28)
 

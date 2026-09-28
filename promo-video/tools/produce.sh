@@ -18,7 +18,8 @@ FORMAT="${FORMAT:-landscape}"
 if [[ "$FORMAT" == "vertical" ]]; then OUT="renders/$LANG_ID-vertical"; NAME="TEN10_promo_${LANG_ID}_vertical_1080x1920.mp4"
 else OUT="renders/$LANG_ID"; NAME="TEN10_promo_${LANG_ID}_1080p.mp4"; fi
 CUT="${CUT:-film}"
-if [[ "$CUT" != "film" ]]; then OUT="$OUT-$CUT"; NAME="TEN10_${CUT}_prototype_${LANG_ID}${FORMAT/landscape/}.mp4"; NAME="${NAME/vertical/_vertical}"; fi
+if [[ "$CUT" == "geo" ]]; then OUT="$OUT-geo"   # the full film in the geometry language keeps the film's file names
+elif [[ "$CUT" != "film" ]]; then OUT="$OUT-$CUT"; NAME="TEN10_${CUT}_prototype_${LANG_ID}${FORMAT/landscape/}.mp4"; NAME="${NAME/vertical/_vertical}"; fi
 
 if [[ -n "$NARRATION" ]]; then
   echo "== 1. aligning narration → narration/timing.$LANG_ID.json"

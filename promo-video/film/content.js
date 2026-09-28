@@ -41,7 +41,12 @@
       sym: { imported: "תנועות יובאו", file: "תנועות.xlsx", monthly: "כל חודש", household: "הוצאות הבית", other: "אחר" },
       // "cine" cut: chapter marks, and how many narration words stay small before the key words slam in
       cine: { chapters: { import: "ייבוא", recurring: "הוראות קבע", reminders: "תזכורות", analytics: "ניתוח נתונים" },
-        split: { import: 2, recurring: 3, reminders: 1, analytics: 4 }, brand: "TEN10 · ניהול מעשרות", balance: "יתרה למעשרות" },
+        split: { import: 2, recurring: 3, reminders: 1, analytics: 4 }, brand: "TEN10 · ניהול מעשרות", balance: "יתרה למעשרות",
+        // geo film: [first, last) narration word indices set large; the rest stay small
+        big: { hook1: [0, 3], complex2: [2, 4], maaser: [4, 8], reports: [1, 3], notjust: [2, 5], halacha: [0, 2], rabbi: [6, 9], together: [0, 2], tagline: [4, 6] },
+        lead: "אבל כשמצטברים",
+        scenes: { hook: "מעשר", chaos: "המורכבות", order: "TEN10", maaser: "מעשר וחומש", reports: "דוחות וייצוא", halacha: "מאגר ההלכות", rabbi: "שאל את הרב", trust: "שיתוף והסכמה", platforms: "אתר ותוכנה", together: "תמונה אחת" },
+        income: "הכנסות", donations: "תרומות", expenses: "חיובים", formula: "מעשר + חומש − תרומות", seen: "₪" },
     },
     // Narration words (as they appear in script.he.json) that trigger visual beats
     beats: {
@@ -284,7 +289,11 @@
       url: "ten10-app.com",
       sym: { imported: "transactions imported", file: "transactions.xlsx", monthly: "every month", household: "household spending", other: "Other" },
       cine: { chapters: { import: "Import", recurring: "Recurring", reminders: "Reminders", analytics: "Analytics" },
-        split: { import: 1, recurring: 1, reminders: 2, analytics: 5 }, brand: "TEN10 · Maaser management", balance: "Overall Required" },
+        split: { import: 1, recurring: 1, reminders: 2, analytics: 5 }, brand: "TEN10 · Maaser management", balance: "Overall Required",
+        big: { hook1: [0, 3], complex2: [3, 7], maaser: [5, 8], reports: [0, 2], notjust: [3, 6], halacha: [2, 4], rabbi: [8, 11], together: [5, 7], tagline: [0, 3] },
+        lead: "But once you add",
+        scenes: { hook: "Maaser", chaos: "Complexity", order: "TEN10", maaser: "Maaser & Chomesh", reports: "Reports & export", halacha: "Halachic Library", rabbi: "Ask the Rabbi", trust: "Partnership", platforms: "Web & desktop", together: "One picture" },
+        income: "Income", donations: "Donations", expenses: "Obligations", formula: "maaser + chomesh − donations", seen: "$" },
     },
     beats: {
       income: ["complex1", "income"],
