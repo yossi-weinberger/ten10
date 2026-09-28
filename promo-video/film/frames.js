@@ -291,73 +291,77 @@
       hud(4, C.copy.cine.chapters.recurring);
     }
 
-    // ================================================================ 4. analytics: the house inside the ring
+    // ================================================================ 4. analytics: the ring pours into the split
+    // The ring holds the whole month's spending; it pours into columns whose heights are the
+    // real shares (one measure, one hue; identity by direct labels, not colour).
     function f4() {
       background();
-      const cx = RTL ? 690 : W - 690, cy = 520, r = 375, sw = 40;
       const cats = C.ui.analytics.cats, total = cats.reduce((a, c) => a + c[1], 0);
       const shares = [...cats.slice(0, 3), [C.copy.sym.other, cats.slice(3).reduce((a, c) => a + c[1], 0)]];
       const pct = shares.map(([, v]) => Math.round((v / total) * 100)); pct[3] = 100 - pct[0] - pct[1] - pct[2];
-      // the ring, opened into the split: arcs, each lifted a little outward
-      let acc = -Math.PI / 2 + 0.2;
-      const arcs = pct.map((p, i) => { const a0 = acc, a1 = acc + (TAU * p) / 100; acc = a1; return { a0, a1, i }; });
-      arcs.forEach(({ a0, a1, i }) => {
-        const am = (a0 + a1) / 2, off = 10 + i * 4;
-        ctx.save(); shadow(34, 16, 0.14); ctx.lineCap = "butt"; ctx.strokeStyle = TINTS[i]; ctx.lineWidth = sw;
-        ctx.beginPath(); ctx.arc(cx + Math.cos(am) * off, cy + Math.sin(am) * off, r, a0 + 0.02, a1 - 0.02); ctx.stroke(); ctx.restore();
+      const cx = RTL ? 660 : W - 660, base = 800, colW = 128, gap = 64, maxH = 470;
+      const x0 = cx - (4 * colW + 3 * gap) / 2;
+      // reading order: the first category sits on the reading-start side
+      const cols = shares.map(([name, v], i) => {
+        const k = RTL ? 3 - i : i, x = x0 + k * (colW + gap), h = Math.max(10, (maxH * pct[i]) / 100);
+        return { name, v, p: pct[i], x, h, top: base - h, cxc: x + colW / 2, i };
       });
-      // the house, inscribed: body + roof; rooms are the same split (treemap)
-      const hw = 500, bodyH = 280, roofH = 160, hx = cx - hw / 2, by = cy - 95, ty = by - roofH;
-      ctx.save(); shadow(46, 22, 0.16);
-      ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.moveTo(hx - 24, by + 4); ctx.lineTo(cx, ty); ctx.lineTo(hx + hw + 24, by + 4); ctx.lineTo(hx + hw, by + 4); ctx.lineTo(hx + hw, by + bodyH); ctx.lineTo(hx, by + bodyH); ctx.lineTo(hx, by + 4); ctx.closePath(); ctx.fill();
+      const ring = { x: cx, y: 200, r: 118, sw: 38 };
+      // baseline with fine ticks (precision)
+      ctx.save();
+      ctx.strokeStyle = "rgba(17,103,106,0.35)"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x0 - 60, base + 1); ctx.lineTo(x0 + 4 * colW + 3 * gap + 60, base + 1); ctx.stroke();
+      ctx.strokeStyle = "rgba(17,103,106,0.18)"; ctx.lineWidth = 1;
+      for (let x = x0 - 60; x <= x0 + 4 * colW + 3 * gap + 60; x += 12) { ctx.beginPath(); ctx.moveTo(x, base + 1); ctx.lineTo(x, base + ((x - x0 + 60) % 60 === 0 ? 12 : 6)); ctx.stroke(); }
+      // quiet gridlines at 25 / 50 %
+      ctx.setLineDash([3, 7]);
+      for (const g of [25, 50]) { const y = base - (maxH * g) / 100; ctx.beginPath(); ctx.moveTo(x0 - 40, y); ctx.lineTo(x0 + 4 * colW + 3 * gap + 40, y); ctx.stroke(); }
       ctx.restore();
-      // roof = the largest share lives under it: split body into rooms
-      const w0 = hw * (pct[0] / 100), rest = 100 - pct[0];
-      const bigX = RTL ? hx + hw - w0 : hx, restX = RTL ? hx : hx + w0;
-      const rooms = [{ x: bigX, y: by, w: w0, h: bodyH, i: 0 }];
-      let yy = by;
-      for (let i = 1; i < 4; i++) { const hh = (bodyH * pct[i]) / rest; rooms.push({ x: restX, y: yy, w: hw - w0, h: hh, i }); yy += hh; }
-      rooms.forEach((rm) => {
-        ctx.fillStyle = rm.i === 0 ? "rgba(17,103,106,0.12)" : rm.i === 2 ? "rgba(240,192,0,0.28)" : rm.i === 1 ? "rgba(90,165,156,0.2)" : "rgba(217,209,182,0.45)";
-        ctx.fillRect(rm.x + 3, rm.y + 3, rm.w - 6, rm.h - 6);
-        ctx.strokeStyle = "rgba(17,103,106,0.35)"; ctx.lineWidth = 2; ctx.strokeRect(rm.x + 3, rm.y + 3, rm.w - 6, rm.h - 6);
-        ctx.save(); ctx.textAlign = "center"; ctx.direction = "ltr"; ctx.textBaseline = "alphabetic";
-        const big = rm.i === 0 ? 74 : Math.max(26, Math.min(40, rm.h * 0.45));
-        ctx.font = font(800, big); ctx.fillStyle = rm.i === 0 ? TEAL : INK;
-        const mx = rm.x + rm.w / 2, my = rm.y + rm.h / 2;
-        if (rm.i === 0) { ctx.fillText(`${pct[0]}%`, mx, my + 18); ctx.direction = RTL ? "rtl" : "ltr"; ctx.font = font(700, 28); ctx.fillStyle = "rgba(31,28,18,0.6)"; ctx.fillText(shares[0][0], mx, my + 58); }
-        else if (rm.h > 70) {
-          ctx.font = font(800, 38); ctx.fillText(`${pct[rm.i]}%`, mx, my + 4);
-          ctx.direction = RTL ? "rtl" : "ltr"; ctx.font = font(700, 22); ctx.fillStyle = "rgba(31,28,18,0.65)"; ctx.fillText(shares[rm.i][0], mx, my + 32);
-        } else {
-          ctx.font = font(800, 24); ctx.direction = RTL ? "rtl" : "ltr";
-          ctx.fillText(RTL ? `${shares[rm.i][0]} ${pct[rm.i]}%` : `${pct[rm.i]}% ${shares[rm.i][0]}`, mx, my + 9);
-        }
+      // the pour: one ribbon per category, width by share at the ring, the column's width at the top
+      const outW = 104; let accW = -outW / 2;
+      const order = RTL ? [...cols].reverse() : cols; // ribbons leave the ring in the same left-to-right order as the columns
+      order.forEach((c) => {
+        const w0 = (outW * c.p) / 100, sx0 = ring.x + accW, sx1 = sx0 + w0; accW += w0;
+        const sy = ring.y + ring.r + ring.sw / 2 - 6, ey = c.top - 4, ex0 = c.x + 6, ex1 = c.x + colW - 6;
+        const my = lerp(sy, ey, 0.55);
+        const g = ctx.createLinearGradient(0, sy, 0, ey);
+        g.addColorStop(0, "rgba(17,103,106,0.55)"); g.addColorStop(1, "rgba(17,103,106,0.14)");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.moveTo(sx0, sy); ctx.bezierCurveTo(sx0, my, ex0, my, ex0, ey);
+        ctx.lineTo(ex1, ey); ctx.bezierCurveTo(ex1, my, sx1, my, sx1, sy); ctx.closePath(); ctx.fill();
+      });
+      // the columns: soft depth, 4px rounded data end
+      cols.forEach((c) => {
+        ctx.save(); shadow(28, 12, 0.14);
+        const gr = ctx.createLinearGradient(0, c.top, 0, base);
+        gr.addColorStop(0, "#13777a"); gr.addColorStop(1, TEAL_D);
+        ctx.fillStyle = gr; rrect(c.x, c.top, colW, c.h, [6, 6, 0, 0]); ctx.fill();
+        ctx.restore();
+        // gold rim on the largest: where most of it goes
+        if (c.i === 0) { ctx.fillStyle = GOLD; rrect(c.x, c.top, colW, 6, [6, 6, 0, 0]); ctx.fill(); }
+        // direct labels in text ink: share, name, amount
+        ctx.save(); ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+        ctx.direction = "ltr"; ctx.font = font(800, c.i === 0 ? 58 : 44); ctx.fillStyle = INK;
+        const ly = base + (c.i === 0 ? 70 : 62);
+        ctx.fillText(`${c.p}%`, c.cxc, ly);
+        ctx.direction = RTL ? "rtl" : "ltr"; ctx.font = font(700, 26); ctx.fillStyle = "rgba(31,28,18,0.72)";
+        ctx.fillText(c.name, c.cxc, ly + 36);
+        ctx.font = font(600, 21); ctx.fillStyle = "rgba(31,28,18,0.5)";
+        ctx.fillText(money(c.v), c.cxc, ly + 64);
         ctx.restore();
       });
-      // roof lines + chimney + the roof gable holds the total
-      ctx.save(); ctx.strokeStyle = TEAL; ctx.lineWidth = 6; ctx.lineJoin = "round";
-      ctx.beginPath(); ctx.moveTo(hx - 24, by + 4); ctx.lineTo(cx, ty); ctx.lineTo(hx + hw + 24, by + 4); ctx.stroke();
-      ctx.lineWidth = 3; ctx.strokeRect(hx, by, hw, bodyH);
-      ctx.textAlign = "center"; ctx.direction = RTL ? "rtl" : "ltr"; ctx.font = font(800, 40); ctx.fillStyle = TEAL; ctx.fillText(money(total), cx, by + bodyH + 58);
-      ctx.font = font(700, 24); ctx.fillStyle = "rgba(31,28,18,0.55)"; ctx.fillText(C.copy.sym.household, cx, by + bodyH + 92);
+      // the source ring: the month's spending, with its tenth
+      ringArc(ring.x, ring.y, ring.r, ring.sw);
+      ctx.save(); ctx.textAlign = "center"; ctx.direction = RTL ? "rtl" : "ltr"; ctx.textBaseline = "alphabetic";
+      ctx.font = font(800, 46); ctx.fillStyle = TEAL; ctx.fillText(money(total), ring.x, ring.y + 10);
+      ctx.font = font(700, 20); ctx.fillStyle = "rgba(31,28,18,0.55)"; ctx.fillText(C.copy.sym.household, ring.x, ring.y + 40);
       ctx.restore();
-      // the flow: gold drops from the ring's tenth into the rooms (motion trails)
-      const src = [cx, cy - r + 10];
-      const rr = rng(8);
-      for (let k = 0; k < 26; k++) {
-        const rm = rooms[k % 4], tx = rm.x + rm.w * (0.2 + rr() * 0.6), tyy = rm.y + rm.h * (0.25 + rr() * 0.5), u = 0.35 + rr() * 0.55;
-        const mx = lerp(src[0], tx, 0.5) + (rr() - 0.5) * 60, my = Math.min(src[1], tyy) - 60;
-        const bz = (s) => [(1 - s) ** 2 * src[0] + 2 * (1 - s) * s * mx + s * s * tx, (1 - s) ** 2 * src[1] + 2 * (1 - s) * s * my + s * s * tyy];
-        const [x, y] = bz(u), [x0, y0] = bz(Math.max(0, u - 0.18));
-        const g = ctx.createLinearGradient(x0, y0, x, y); g.addColorStop(0, "rgba(240,192,0,0)"); g.addColorStop(1, "rgba(240,192,0,0.9)");
-        ctx.strokeStyle = g; ctx.lineWidth = 4; ctx.lineCap = "round"; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo((x0 + x) / 2 + (mx - (src[0] + tx) / 2) * 0.3, (y0 + y) / 2 - 10, x, y); ctx.stroke();
-        ctx.fillStyle = GOLD; ctx.beginPath(); ctx.arc(x, y, 6, 0, TAU); ctx.fill();
-      }
       const ph = RTL ? ["וניתוח הנתונים מראה בדיוק", "לאן הולך הכסף של הבית."] : ["Analytics show exactly", "where your household money goes."];
-      headline(ph[0], ph[1], RTL ? W - 150 : 150, 300, { maxW: 700, big: 96 });
+      headline(ph[0], ph[1], RTL ? W - 150 : 150, 280, { maxW: 700, big: 96 });
       hud(6, C.copy.cine.chapters.analytics);
     }
+    function ringArc(cx, cy, r, sw) { ring(cx, cy, r, sw); }
 
     // ================================================================ 5. end card
     function f5(logo, machon) {
