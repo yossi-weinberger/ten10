@@ -174,13 +174,29 @@
     };
     const bgLight = mkBg(false), bgDark = mkBg(true);
     // the room goes dark as a circle spreading from the ring, and the light returns the same way
-    const RMAX = Math.hypot(W, H);
-    const dIn = (t) => prog(t, T.rem - 0.45, T.rem + 0.2, E.inOutCubic), dOut = (t) => prog(t, T.an - 0.4, T.an + 0.15, E.inOutCubic);
+    const RMAX = Math.hypot(W, H), BAND = 320, GRID = 36, DOTMAX = 27;
+    const dIn = (t) => prog(t, T.rem - 0.6, T.rem + 0.3, E.inOutCubic), dOut = (t) => prog(t, T.an - 0.5, T.an + 0.25, E.inOutCubic);
+    const frontIn = (t) => dIn(t) * (RMAX + BAND), frontOut = (t) => dOut(t) * (RMAX + BAND);
     const isDark = (x, y, t) => {
-      const a = dIn(t), b = dOut(t);
-      if (a <= 0 || b >= 1) return false;
-      return Math.hypot(x - S.rec.x, y - S.rec.y) < a * RMAX && !(Math.hypot(x - S.rem.x, y - S.rem.y) < b * RMAX);
+      const a = frontIn(t), b = frontOut(t);
+      if (a <= 0 || dOut(t) >= 1) return false;
+      return Math.hypot(x - S.rec.x, y - S.rec.y) < a - BAND * 0.5 && !(Math.hypot(x - S.rem.x, y - S.rem.y) < b - BAND * 0.5);
     };
+    /** a disc whose edge is the background's dot grid growing (halftone) */
+    function halftonePath(cx, cy, front) {
+      ctx.beginPath();
+      const inner = front - BAND;
+      if (inner > 0) ctx.arc(cx, cy, inner, 0, TAU);
+      const gx0 = Math.max(0, Math.floor((cx - front) / GRID)), gx1 = Math.min(Math.ceil(W / GRID), Math.ceil((cx + front) / GRID));
+      const gy0 = Math.max(0, Math.floor((cy - front) / GRID)), gy1 = Math.min(Math.ceil(H / GRID), Math.ceil((cy + front) / GRID));
+      for (let gx = gx0; gx <= gx1; gx++) for (let gy = gy0; gy <= gy1; gy++) {
+        const px = gx * GRID, py = gy * GRID, d = Math.hypot(px - cx, py - cy);
+        if (d > front || d < inner - DOTMAX) continue;
+        const rad = DOTMAX * E.inOutQuad(clamp((front - d) / BAND));
+        if (rad < 0.6) continue;
+        ctx.moveTo(px + rad, py); ctx.arc(px, py, rad, 0, TAU);
+      }
+    }
     const darkness = (t) => dIn(t) * (1 - dOut(t));
 
     // ------------------------------------------------------------ drawing helpers
@@ -201,7 +217,9 @@
       if (o.tenth !== false && (o.tenthAlpha ?? 1) > 0.001) {
         if (lift) shadow(40, 24, 0.25);
         ctx.globalAlpha = a * (o.tenthAlpha ?? 1);
-        ctx.strokeStyle = GOLD; ctx.beginPath(); ctx.arc(x + Math.cos(am) * lift, y + Math.sin(am) * lift, r, TENTH_A0 + rot, TENTH_A1 + rot); ctx.stroke();
+        const half = ((TENTH_A1 - TENTH_A0) / 2) * (o.tenthSpan ?? 1);
+        ctx.lineWidth = sw * (o.tenthW ?? 1);
+        ctx.strokeStyle = GOLD; ctx.beginPath(); ctx.arc(x + Math.cos(am) * lift, y + Math.sin(am) * lift, r, am - half, am + half); ctx.stroke();
       }
       ctx.restore();
     }
@@ -244,6 +262,47 @@
       ctx.restore();
     };
 
+    /** rolling-digit counter in the ring: fn(t) is the (continuous) value; digits roll like an odometer,
+     *  with a vertical smear when a column moves fast. kind: "money" | "count" */
+    const CUR = C.currency === "ILS" ? "₪" : "$";
+    function odo(st, fn, t, kind, small, o = {}) {
+      const a = o.alpha ?? 1; if (a <= 0.002) return;
+      const v = Math.max(0, fn(t)), vp = Math.max(0, fn(t - 1 / 30)), target = Math.round(o.target ?? fn(1e6));
+      const k = st.r / 210, bs = (o.bigSize || 100) * k;
+      const numS = target.toLocaleString("en-US"), pre = kind === "money" ? (RTL ? CUR + "\u2009" : CUR) : "";
+      ctx.save(); ctx.globalAlpha *= a; ctx.font = font(800, bs); ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"; ctx.direction = "ltr";
+      const dw = Math.max(...[..."0123456789"].map((d) => ctx.measureText(d).width));
+      // columns: digits from the right (ones = 0); commas belong to the digit on their left
+      const chars = [...numS]; let col = chars.filter((c) => /\d/.test(c)).length;
+      const cells = chars.map((c) => { if (/\d/.test(c)) { col--; return { c, col, w: dw }; } return { c, col, w: ctx.measureText(c).width }; });
+      const vis = (cl) => (cl === 0 ? 1 : clamp((v / 10 ** cl - 0.92) * 12.5));
+      const preW = pre ? ctx.measureText(pre).width : 0;
+      const totW = preW + cells.reduce((s0, c) => s0 + c.w * vis(c.col), 0);
+      let x = st.x - totW / 2;
+      const y = st.y + (o.dy || 0) + bs * 0.22, lh = bs * 1.02;
+      ctx.fillStyle = o.color || TEAL;
+      if (pre) { ctx.fillText(pre, x, y); x += preW; }
+      for (const c of cells) {
+        const va = vis(c.col); if (va <= 0.001) continue;
+        ctx.globalAlpha = a * va;
+        if (!/\d/.test(c.c)) { ctx.fillText(c.c, x, y); x += c.w * va; continue; }
+        const place = 10 ** c.col, base = Math.floor(v / place) % 10, lower = Math.floor(v) % place;
+        const f = lower === place - 1 ? v - Math.floor(v) : 0, speed = Math.abs(v - vp) / place;
+        ctx.save(); ctx.beginPath(); ctx.rect(x - 2, y - bs * 0.92, c.w * va + 4, bs * 1.18); ctx.clip();
+        const dxc = (c.w - ctx.measureText(String(base)).width) / 2;
+        const draw = (d, yy, al) => { ctx.globalAlpha = a * va * al; ctx.fillText(String(d), x + (c.w - ctx.measureText(String(d)).width) / 2, yy); };
+        const smear = Math.min(1, speed * 1.6);
+        if (smear > 0.05) for (const g of [-2, -1, 1, 2]) { draw(base, y - f * lh + g * lh * 0.12 * smear, 0.18 * smear); draw((base + 1) % 10, y + (1 - f) * lh + g * lh * 0.12 * smear, 0.18 * smear); }
+        draw(base, y - f * lh, 1 - 0.55 * smear); draw((base + 1) % 10, y + (1 - f) * lh, 1 - 0.55 * smear);
+        void dxc;
+        ctx.restore();
+        x += c.w * va;
+      }
+      ctx.globalAlpha = a;
+      if (small) { ctx.font = font(700, Math.min(28, Math.max(18, 27 * k))); ctx.direction = RTL ? "rtl" : "ltr"; ctx.textAlign = "center"; ctx.fillStyle = o.smallColor || "rgba(31,28,18,0.6)"; ctx.fillText(small, st.x, y + 44 * k + 6); }
+      ctx.restore();
+    }
+
     // ------------------------------------------------------------ typography: the narration
     const blocks = [];
     /** narration words as type. o: { id, words:[i0,i1), big:[b0,b1), mode:"col"|"center", top, tOut, halo, dot } */
@@ -254,7 +313,7 @@
       const center = o.mode === "center", Lc = S.center, Lt = S.tx;
       const small = center ? Lc.small : Lt.small, bigS = center ? Lc.big : Lt.big, maxW = center ? Lc.w : Lt.w;
       let items = [];
-      for (let i = i0; i < i1; i++) items.push({ w: words[i].replace(/^["“]+|[,;:—"”]+$/g, ""), t: p.words[i].start - 0.06, big: i >= b0 && i < b1 });
+      for (let i = i0; i < i1; i++) items.push({ w: words[i].replace(/^["“]+|[,;:—"”]+$/g, ""), t: p.words[i].start + 0.05, big: i >= b0 && i < b1 });
       items = items.filter((it) => it.w.length);
       if (RTL) items[0].w = items[0].w.replace(/^ו-?(?=\S{2,})/, "");
       else { if (/^and$/i.test(items[0].w) && items.length > 1) items.shift(); items[0].w = items[0].w[0].toUpperCase() + items[0].w.slice(1); }
@@ -292,28 +351,34 @@
         for (const it of ln.items) { it.x = x; it.y = y; it.size = sz; x += (RTL ? -1 : 1) * (it.width + ln.sp); }
         y += ln.big ? sz * 0.1 : sz * 0.42;
       });
+      // large words rise letter by letter out of a mask (only pure-script words: mixed runs keep bidi order whole)
+      for (const it of items) {
+        if (!it.big || !(RTL ? /^[\u05D0-\u05EA\u05F3\u05F4'"]+$/ : /^[A-Za-z'’]+$/).test(it.w)) continue;
+        ctx.font = font(800, it.size);
+        it.letters = [...it.w].map((ch, i) => ({ ch, off: ctx.measureText(it.w.slice(0, i)).width }));
+      }
       const b = { id: o.id, items, tIn: items[0].t, tOut: o.tOut, halo: !!o.halo, dot: o.dot !== false, text: items.map((x) => x.w).join(" ") };
       blocks.push(b);
       return b;
     }
     const bigFrom = (n) => [n, 99];
-    makeBlock({ id: "hook1", big: cc.big.hook1, mode: "center", top: S.center.hook, tOut: T.c1 - 0.1 });
+    makeBlock({ id: "hook1", big: cc.big.hook1, mode: "center", top: S.center.hook, tOut: T.c1 - 0.22 });
     makeBlock({ id: "complex1", words: [0, cc.lead.split(" ").length], mode: "center", top: S.center.lead, tOut: T.c2 - 0.4, halo: true, dot: false });
     makeBlock({ id: "complex2", big: cc.big.complex2, mode: "center", top: S.center.c2, tOut: T.ord - 0.1, halo: true });
-    makeBlock({ id: "maaser", big: cc.big.maaser, tOut: T.imp - 0.1 });
-    makeBlock({ id: "import", big: bigFrom(cc.split.import), tOut: T.rec - 0.1 });
-    makeBlock({ id: "recurring", big: bigFrom(cc.split.recurring), tOut: T.rem - 0.1 });
-    makeBlock({ id: "reminders", big: bigFrom(cc.split.reminders), tOut: T.an - 0.1 });
-    makeBlock({ id: "analytics", big: bigFrom(cc.split.analytics), tOut: T.rep - 0.1 });
-    makeBlock({ id: "reports", big: cc.big.reports, tOut: T.nj - 0.1 });
-    makeBlock({ id: "notjust", big: cc.big.notjust, tOut: T.hal - 0.1 });
-    makeBlock({ id: "halacha", big: cc.big.halacha, tOut: T.rab - 0.1 });
-    makeBlock({ id: "rabbi", big: cc.big.rabbi, tOut: T.tr - 0.15 });
-    makeBlock({ id: "together", big: cc.big.together, tOut: T.brand - 0.15 });
+    makeBlock({ id: "maaser", big: cc.big.maaser, tOut: T.imp - 0.22 });
+    makeBlock({ id: "import", big: bigFrom(cc.split.import), tOut: T.rec - 0.22 });
+    makeBlock({ id: "recurring", big: bigFrom(cc.split.recurring), tOut: T.rem - 0.22 });
+    makeBlock({ id: "reminders", big: bigFrom(cc.split.reminders), tOut: T.an - 0.22 });
+    makeBlock({ id: "analytics", big: bigFrom(cc.split.analytics), tOut: T.rep - 0.22 });
+    makeBlock({ id: "reports", big: cc.big.reports, tOut: T.nj - 0.22 });
+    makeBlock({ id: "notjust", big: cc.big.notjust, tOut: T.hal - 0.22 });
+    makeBlock({ id: "halacha", big: cc.big.halacha, tOut: T.rab - 0.22 });
+    makeBlock({ id: "rabbi", big: cc.big.rabbi, tOut: T.tr - 0.22 });
+    makeBlock({ id: "together", big: cc.big.together, tOut: T.brand - 0.22 });
     function drawText(t) {
       ctx.save(); ctx.textBaseline = "alphabetic"; ctx.direction = RTL ? "rtl" : "ltr"; ctx.textAlign = RTL ? "right" : "left";
       for (const b of blocks) {
-        const out = prog(t, b.tOut, b.tOut + 0.4, E.inCubic);
+        const out = prog(t, b.tOut, b.tOut + 0.3, E.inCubic);
         if (t < b.tIn - 0.05 || out >= 1) continue;
         const last = b.items[b.items.length - 1];
         for (const it of b.items) {
@@ -322,6 +387,34 @@
           ctx.font = font(it.big ? 800 : 700, it.size);
           const dkw = isDark(it.x - (RTL ? it.width / 2 : -it.width / 2), it.y - it.size * 0.35, t);
           const col = it.big ? (dkw ? "#9fe0d6" : TEAL) : dkw ? "rgba(236,246,242,0.85)" : "#3a3524";
+          if (it.letters) {
+            // masked rise with overshoot, a vertical smear while moving
+            const sz = it.size, x0 = RTL ? it.x - it.width - sz * 0.3 : it.x - sz * 0.3;
+            ctx.save(); ctx.beginPath(); ctx.rect(x0, it.y - sz * 1.12 - out * 30, it.width + sz * 0.6, sz * 1.44); ctx.clip();
+            ctx.fillStyle = col;
+            if (out > 0) ctx.filter = `blur(${(out * 6).toFixed(1)}px)`;
+            if (b.halo) { ctx.shadowColor = "rgba(252,250,241,0.95)"; ctx.shadowBlur = 26; }
+            it.letters.forEach((L, k) => {
+              const u = prog(t, it.t + k * 0.026, it.t + k * 0.026 + 0.55, E.linear);
+              if (u <= 0) return;
+              const e = E.outBack(u, 1.6), dy = (1 - e) * sz * 1.05 - out * 26, lx = RTL ? it.x - L.off : it.x + L.off;
+              if (u < 0.45) {
+                const sm = (1 - u / 0.45) * sz * 0.16;
+                ctx.globalAlpha = 0.22 * (1 - out); ctx.fillText(L.ch, lx, it.y + dy + sm);
+                ctx.globalAlpha = 0.12 * (1 - out); ctx.fillText(L.ch, lx, it.y + dy + sm * 2);
+              }
+              ctx.globalAlpha = Math.min(1, u * 5) * (1 - out);
+              ctx.fillText(L.ch, lx, it.y + dy);
+            });
+            ctx.restore();
+            ctx.filter = "none";
+            if (it === last && b.dot) {
+              const pd = prog(t, it.t + it.letters.length * 0.026 + 0.2, it.t + it.letters.length * 0.026 + 0.5, E.outBack);
+              ctx.fillStyle = GOLD; ctx.globalAlpha = clamp(pd) * (1 - out);
+              ctx.save(); ctx.translate(RTL ? it.x - it.width : it.x + it.width, it.y - out * 26); const ks = lerp(0.2, 1, clamp(pd)); ctx.scale(ks, ks); ctx.fillText(".", 0, 0); ctx.restore();
+            }
+            continue;
+          }
           ctx.globalAlpha = p * (1 - out);
           ctx.filter = p < 0.8 || out > 0 ? `blur(${((1 - p) * 7 + out * 6).toFixed(1)}px)` : "none";
           if (b.halo) { ctx.shadowColor = "rgba(252,250,241,0.95)"; ctx.shadowBlur = 26; }
@@ -415,9 +508,9 @@
       const sp = prog(t, T.imp - 0.15, T.imp + 0.3, E.outBack) * vis;
       pill(C.copy.sym.file, S.src[0], S.src[1], { size: 22, color: "#16a34a", dir: "ltr", alpha: clamp(sp), s: lerp(0.8, 1, clamp(sp)) });
       // the count
-      const cnt = Math.round(1284 * E.outCubic(prog(t, arriveT[0] - 0.1, arriveT[arriveT.length - 1], E.linear)));
+      const cntF = (tt) => 1284 * E.outCubic(prog(tt, arriveT[0] - 0.1, arriveT[arriveT.length - 1], E.linear));
       const ca = prog(t, T.impW + 0.1, T.impW + 0.5) * vis;
-      centerText(st, cnt.toLocaleString("en-US"), C.copy.sym.imported, { alpha: ca, bigSize: 104 });
+      odo(st, cntF, t, "count", C.copy.sym.imported, { alpha: ca, bigSize: 104, target: 1284 });
       // the balance handed over from the previous scene
       const ba = prog(t, T.impIn, T.impIn + 0.4) * (1 - prog(t, T.impW - 0.1, T.impW + 0.2));
       centerText(st, money(820), C.chaos.centerLabel, { alpha: ba, bigSize: 92 });
@@ -489,7 +582,9 @@
       }
       // the year's donations, computed as the months are stamped
       const ta = vis * prog(t, firstStamp, firstStamp + 0.3);
-      centerText(st, money(rc.amount * stamped), RTL ? "תרומות השנה · נוצרות לבד" : "this year · automatically", { alpha: ta, bigSize: 74 });
+      const yearF = (tt) => rc.amount * stampT.reduce((acc, s0) => acc + prog(tt, s0, s0 + 0.24, E.inOutQuad), 0);
+      void stamped;
+      odo(st, yearF, t, "money", RTL ? "תרומות השנה · נוצרות לבד" : "this year · automatically", { alpha: ta, bigSize: 74, target: rc.amount * 12 });
       return vis;
     }
 
@@ -610,8 +705,8 @@
         ctx.restore();
       });
       // the ring counts the month's spending
-      const cnt = prog(t, T.anW + 0.2, T.anW + 1.4, E.outCubic);
-      centerText(st, money(spendTotal * cnt), C.copy.sym.household, { alpha: vis * prog(t, T.anW + 0.1, T.anW + 0.4) * (1 - prog(t, T.rep - 0.3, T.rep)), bigSize: 88 });
+      const spF = (tt) => spendTotal * prog(tt, T.anW + 0.2, T.anW + 1.4, E.outCubic);
+      odo(st, spF, t, "money", C.copy.sym.household, { alpha: vis * prog(t, T.anW + 0.1, T.anW + 0.4) * (1 - prog(t, T.rep - 0.3, T.rep)), bigSize: 88, target: spendTotal });
     }
 
     // =========================================================== shared pieces for the new scenes
@@ -640,19 +735,82 @@
     const checkGlyph = (x, y, s0, col = "#fff", lw = 5) => { ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath(); ctx.moveTo(x - s0 * 0.45, y); ctx.lineTo(x - s0 * 0.1, y + s0 * 0.35); ctx.lineTo(x + s0 * 0.5, y - s0 * 0.35); ctx.stroke(); ctx.restore(); };
 
     // =========================================================== hook: the ring and its tenth
+    const torus = (() => {
+      const r = rng(41), out = [], NU = 132, NV = 11;
+      for (let i = 0; i < NU; i++) for (let j = 0; j < NV; j++) {
+        const u = (i / NU) * TAU, um = ((u - TENTH_A0) % TAU + TAU) % TAU;
+        if (um < TENTH_A1 - TENTH_A0 + 0.02) continue; // the tenth's slot stays empty
+        const th = r() * TAU, ph = Math.acos(2 * r() - 1), R0 = 2.2 + r() * 1.3;
+        out.push({ u, v: (j / NV) * TAU + (i % 2) * 0.28, d: r(), sx: Math.sin(ph) * Math.cos(th) * R0, sy: Math.sin(ph) * Math.sin(th) * R0, sz: Math.cos(ph) * R0 });
+      }
+      return out;
+    })();
+    const TORUS_END = 1.45;
+    function sceneTorus(t, st) {
+      if (t > TORUS_END) return;
+      const conv = prog(t, 0.35, 1.25, E.inOutCubic), fade = 1 - prog(t, 1.1, TORUS_END);
+      const minor = lerp(0.42, st.sw / 2 / st.r, conv), tilt = lerp(1.12, 0, conv), yaw = lerp(0.55, 0, conv), spin = Math.pow(1 - conv, 2) * 2.6;
+      const Dc = 4.2, buckets = [[], [], [], []];
+      for (const p of torus) {
+        const e = prog(t, p.d * 0.3, 0.5 + p.d * 0.3, E.outCubic);
+        if (e <= 0) continue;
+        const u = p.u + spin, v = p.v + t * 1.4;
+        let X = (1 + minor * Math.cos(v)) * Math.cos(u), Y = (1 + minor * Math.cos(v)) * Math.sin(u), Z = minor * Math.sin(v);
+        let y2 = Y * Math.cos(tilt) - Z * Math.sin(tilt), z2 = Y * Math.sin(tilt) + Z * Math.cos(tilt);
+        const x3 = X * Math.cos(yaw) + z2 * Math.sin(yaw), z3 = -X * Math.sin(yaw) + z2 * Math.cos(yaw);
+        const px = lerp(p.sx, x3, e), py = lerp(p.sy, y2, e), pz = lerp(p.sz, z3, e);
+        const k = Dc / (Dc + pz), sx = st.x + px * st.r * k, sy = st.y + py * st.r * k;
+        const depth = clamp((pz + 1.4) / 2.8), b = Math.min(3, Math.floor((1 - depth) * 4));
+        buckets[b].push([sx, sy, (2.1 + conv * 1.6) * k * (0.6 + 0.4 * e)]);
+      }
+      ctx.save();
+      buckets.forEach((arr, b) => {
+        ctx.globalAlpha = fade * (0.3 + b * 0.22); ctx.fillStyle = b > 1 ? TEAL : "#5aa59c"; ctx.beginPath();
+        for (const [x, y, rr] of arr) { ctx.moveTo(x + rr, y); ctx.arc(x, y, rr, 0, TAU); }
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+    // the tenth falls into its slot: stretched on the way down, squashed on impact, then it settles
+    const TENTH_HIT = () => T.h2w;
+    function tenthDrop(t) {
+      const hit = TENTH_HIT(), u = prog(t, hit - 0.4, hit, E.inQuad), q = t - hit;
+      if (q < 0) return { alpha: prog(t, hit - 0.42, hit - 0.34), lift: lerp(460, 0, u), span: lerp(1, 0.78, u), w: lerp(1, 1.32, u) };
+      const sq = Math.exp(-q * 7) * Math.cos(q * 24);
+      return { alpha: 1, lift: 16 * Math.exp(-q * 6) * Math.abs(Math.sin(q * 16)), span: 1 + 0.2 * sq, w: 1 - 0.3 * sq };
+    }
+    const spray = (() => { const r = rng(77); return Array.from({ length: 16 }, () => ({ a: (r() - 0.5) * 1.9, v: 260 + r() * 420, sz: 3 + r() * 4 })); })();
     function sceneHook(t, st) {
       if (t > T.c1 + 0.6) return;
       const out = prog(t, T.c1 - 0.3, T.c1 + 0.2);
       const ea = prog(t, T.h1 - 0.1, T.h1 + 0.4) * (1 - out);
       txt(cp.eyebrow, st.x, st.y - st.r - st.sw / 2 - (V ? 70 : 52) + (1 - ea) * 12, { alpha: ea, size: V ? 52 : 44, color: TEAL });
-      const pa = prog(t, T.h2w, T.h2w + 0.45, E.outBack), pout = prog(t, T.kw[0] - 0.4, T.kw[0]);
-      if (pa > 0 && pout < 1) {
-        ctx.save(); ctx.globalAlpha = clamp(pa) * (1 - pout); ctx.translate(st.x, st.y); const k = lerp(0.85, 1, clamp(pa)) * (st.r / 215); ctx.scale(k, k);
+      const pout = prog(t, T.kw[0] - 0.4, T.kw[0]);
+      if (t > T.h2w - 0.05 && pout < 1) {
+        // "1", "0", "%" rise out of a mask on the impact
+        ctx.save(); ctx.globalAlpha = 1 - pout; ctx.translate(st.x, st.y); const k = st.r / 215; ctx.scale(k, k);
         ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"; ctx.direction = "ltr"; ctx.font = font(800, 150);
-        const w10 = ctx.measureText("10").width, wp = ctx.measureText("%").width, x0 = -(w10 + wp) / 2;
-        ctx.fillStyle = TEAL; ctx.fillText("10", x0, 52); ctx.fillStyle = GOLD; ctx.fillText("%", x0 + w10, 52); ctx.restore();
+        const w1 = ctx.measureText("1").width, w10 = ctx.measureText("10").width, wp = ctx.measureText("%").width, x0 = -(w10 + wp) / 2;
+        ctx.beginPath(); ctx.rect(x0 - 20, -110, w10 + wp + 40, 180); ctx.clip();
+        [["1", x0, TEAL], ["0", x0 + w1, TEAL], ["%", x0 + w10, GOLD]].forEach(([ch, cx0, col], i) => {
+          const u = prog(t, T.h2w + 0.02 + i * 0.07, T.h2w + 0.6 + i * 0.07, E.linear); if (u <= 0) return;
+          ctx.fillStyle = col; ctx.fillText(ch, cx0, 52 + (1 - E.outBack(u, 1.7)) * 170);
+        });
+        ctx.restore();
       }
-      pulse(st, T.h2w + 0.15, t);
+      pulse(st, T.h2w, t, GOLD, 140);
+      // gold spray from the impact
+      const q = t - T.h2w;
+      if (q > 0 && q < 0.9) {
+        const am = (TENTH_A0 + TENTH_A1) / 2, ix = st.x + Math.cos(am) * (st.r + st.sw / 2), iy = st.y + Math.sin(am) * (st.r + st.sw / 2);
+        ctx.save(); ctx.fillStyle = GOLD;
+        for (const p of spray) {
+          const a = am + p.a, d = (p.v * (1 - Math.exp(-4 * q))) / 4;
+          ctx.globalAlpha = 1 - prog(q, 0.35, 0.9);
+          ctx.beginPath(); ctx.arc(ix + Math.cos(a) * d, iy + Math.sin(a) * d + 380 * q * q, p.sz * (1 - q), 0, TAU); ctx.fill();
+        }
+        ctx.restore();
+      }
     }
 
     // =========================================================== chaos: the household's money
@@ -679,9 +837,52 @@
     groups.forEach((g) => g.items.forEach((text, i) => frags.push({ g, text, i, ti: g.t0 + 0.12 + i * 0.1, rho: 250 + ((g.j * 3 + i) % 6) * 50, ph0: g.th + (i - (g.items.length - 1) / 2) * 0.32, om: (0.2 + 0.05 * ((g.j + i) % 4)) * ((g.j + i) % 5 === 3 ? -1 : 1), depth: (g.j + i) % 3 === 2 })));
     const dust = (() => { const r = rng(5); return Array.from({ length: 520 }, () => ({ rho: 220 + Math.pow(r(), 0.7) * 700, ph0: r() * TAU, om: 0.12 + r() * 0.38, sz: 1.2 + r() * 2.8, gold: r() < 0.14, t0: T.c1 + r() * (T.c2 - T.c1) })); })();
     const spd = (t) => 1 + 1.7 * prog(t, T.c2, T.ord, E.inQuad);
+    // metaball field at half resolution, splatted per blob (cheap), thresholded with a soft edge
+    const GS = 0.5, GW = Math.ceil(W * GS), GH = Math.ceil(H * GS);
+    const gF = new Float32Array(GW * GH), gR = new Float32Array(GW * GH), gG = new Float32Array(GW * GH), gB = new Float32Array(GW * GH);
+    const gooCv = document.createElement("canvas"); gooCv.width = GW; gooCv.height = GH;
+    const gooCtx = gooCv.getContext("2d");
+    const hex = (h) => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+    const TEAL_RGB = hex(TEAL), GOLD_RGB = hex(GOLD);
+    function drawGoo(blobs, ring) {
+      let bx0 = GW, by0 = GH, bx1 = 0, by1 = 0;
+      const touch = (x0, y0, x1, y1) => { bx0 = Math.min(bx0, x0); by0 = Math.min(by0, y0); bx1 = Math.max(bx1, x1); by1 = Math.max(by1, y1); };
+      const splat = (cx, cy, R, rgb) => {
+        const r = R * GS, reach = r * 3.2, x0 = Math.max(0, Math.floor(cx * GS - reach)), x1 = Math.min(GW - 1, Math.ceil(cx * GS + reach)), y0 = Math.max(0, Math.floor(cy * GS - reach)), y1 = Math.min(GH - 1, Math.ceil(cy * GS + reach));
+        touch(x0, y0, x1, y1); const r2 = r * r;
+        for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+          const dx = x - cx * GS, dy = y - cy * GS, w = Math.min(4, r2 / (dx * dx + dy * dy + 0.01)), i = y * GW + x;
+          gF[i] += w; gR[i] += w * rgb[0]; gG[i] += w * rgb[1]; gB[i] += w * rgb[2];
+        }
+      };
+      for (const b of blobs) if (b.R > 0.5) splat(b.x, b.y, b.R, b.rgb);
+      if (bx1 <= bx0) return;
+      // the ring as a field of its own (so blobs neck into it)
+      {
+        const rc = ring.r * GS, hw = (ring.sw / 2) * GS, reach = hw * 3.2, cx = ring.x * GS, cy = ring.y * GS;
+        const x0 = Math.max(0, Math.floor(cx - rc - reach)), x1 = Math.min(GW - 1, Math.ceil(cx + rc + reach)), y0 = Math.max(0, Math.floor(cy - rc - reach)), y1 = Math.min(GH - 1, Math.ceil(cy + rc + reach));
+        touch(x0, y0, x1, y1); const h2 = hw * hw;
+        for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+          const dx = x - cx, dy = y - cy, dd = Math.abs(Math.sqrt(dx * dx + dy * dy) - rc);
+          if (dd > reach) continue;
+          const ang = Math.atan2(dy, dx), am = ((ang - TENTH_A0) % TAU + TAU) % TAU, rgb = am < TENTH_A1 - TENTH_A0 ? GOLD_RGB : TEAL_RGB;
+          const w = Math.min(4, h2 / (dd * dd + 0.01)), i = y * GW + x;
+          gF[i] += w; gR[i] += w * rgb[0]; gG[i] += w * rgb[1]; gB[i] += w * rgb[2];
+        }
+      }
+      const rw = bx1 - bx0 + 1, rh = by1 - by0 + 1, img = gooCtx.createImageData(rw, rh), px = img.data;
+      for (let y = 0; y < rh; y++) for (let x = 0; x < rw; x++) {
+        const i = (y + by0) * GW + (x + bx0), f = gF[i], o = (y * rw + x) * 4;
+        if (f > 0.7) { const a = clamp((f - 0.9) / 0.2); px[o] = gR[i] / f; px[o + 1] = gG[i] / f; px[o + 2] = gB[i] / f; px[o + 3] = 255 * a * a * (3 - 2 * a); }
+        gF[i] = 0; gR[i] = 0; gG[i] = 0; gB[i] = 0;
+      }
+      gooCtx.clearRect(0, 0, GW, GH); gooCtx.putImageData(img, bx0, by0);
+      ctx.save(); shadow(30, 14, 0.14); ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(gooCv, bx0, by0, rw, rh, bx0 / GS, by0 / GS, rw / GS, rh / GS); ctx.restore();
+    }
     function sceneChaos(t, st) {
       if (t < T.c1 - 0.2 || t > T.ord + 1.0) return;
-      const [ox, oy] = S.orbit, cv = prog(t, T.ord - 0.15, T.ord + 0.75, E.inCubic);
+      const cv = prog(t, T.ord - 0.15, T.ord + 0.75, E.inCubic), ox = lerp(S.orbit[0], 1, cv), oy = lerp(S.orbit[1], 1, cv);
       const lvl = prog(t, T.c1, T.kw[5] + 0.5);
       // dust on spiral orbits
       ctx.save();
@@ -697,20 +898,24 @@
         ctx.beginPath(); ctx.moveTo(st.x + Math.cos(ph2) * rho * ox, st.y + Math.sin(ph2) * rho * oy); ctx.lineTo(x, y); ctx.stroke();
       }
       ctx.restore();
-      // the fragments
+      // the fragments (they melt into droplets on the way in)
+      const blobs = [];
       for (const f of frags) {
         if (t < f.ti) continue;
         const P = [st.x + Math.cos(f.g.th) * 440 * ox, st.y + Math.sin(f.g.th) * 440 * oy];
         const e = prog(t, f.ti, f.ti + 0.75, E.outCubic);
-        const ph = f.ph0 + f.om * Math.max(0, t - f.ti) * spd(t) + cv * 2.8, rho = lerp(f.rho, st.r * 0.9, cv);
+        const ph = f.ph0 + f.om * Math.max(0, t - f.ti) * spd(t) + cv * 2.8, rho = lerp(f.rho, st.r, cv);
         const O = [st.x + Math.cos(ph) * rho * ox, st.y + Math.sin(ph) * rho * oy];
         const x = lerp(P[0], O[0], e), y = lerp(P[1], O[1], e);
-        const al = prog(t, f.ti, f.ti + 0.2) * (1 - prog(cv, 0.7, 1)) * (f.depth ? 0.8 : 1);
+        const melt = prog(cv, 0.12, 0.36);
+        if (melt > 0) blobs.push({ x, y, R: (f.depth ? 30 : 24) * E.outBack(melt) * (1 - 0.75 * prog(cv, 0.72, 1)), rgb: hex(f.g.col) });
+        const al = prog(t, f.ti, f.ti + 0.2) * (1 - melt) * (f.depth ? 0.8 : 1);
         if (al <= 0.01) continue;
         ctx.save(); if (f.depth) ctx.filter = "blur(2px)";
         pill(f.text, x, y, { size: f.depth ? 26 : 23, color: f.g.col, alpha: al, s: lerp(1, 0.35, cv) * (f.depth ? 1.12 : 1), dir: f.g.ltr ? "ltr" : undefined, w: 800 });
         ctx.restore();
       }
+      if (blobs.length && cv < 1) drawGoo(blobs, st);
       // the spoken keyword lands where its money arrives
       for (const g of groups) {
         const a = prog(t, g.t0 - 0.05, g.t0 + 0.35, E.outCubic) * (1 - prog(t, g.t0 + 0.95, g.t0 + 1.4));
@@ -724,12 +929,56 @@
     }
 
     // =========================================================== order: the ring becomes the wordmark's "0"
-    const revealW = (t) => prog(t, T.ord + 1.3, T.ord + 1.9, E.inOutCubic) * (1 - prog(t, T.mas - 0.2, T.mas + 0.15, E.inOutCubic));
+    // the wordmark's letters, found in the logo file itself (columns with ink)
+    const wideCv = (() => {
+      const c = document.createElement("canvas"); c.width = Math.ceil(WIDE.lw); c.height = Math.ceil(WIDE.lh);
+      c.getContext("2d").drawImage(logoWide, 0, 0, c.width, c.height); return c;
+    })();
+    const letterSegs = (() => {
+      const g = wideCv.getContext("2d"), d = g.getImageData(0, 0, wideCv.width, wideCv.height).data, segs = [];
+      let x0 = -1;
+      for (let x = 0; x <= wideCv.width; x++) {
+        let ink = false;
+        if (x < wideCv.width) for (let y = 0; y < wideCv.height; y += 2) if (d[(y * wideCv.width + x) * 4 + 3] > 60) { ink = true; break; }
+        if (ink && x0 < 0) x0 = x; else if (!ink && x0 >= 0) { if (x - x0 > 6) segs.push([x0, x]); x0 = -1; }
+      }
+      return segs;
+    })();
+    const zeroSeg = letterSegs[letterSegs.length - 1], letters = letterSegs.slice(0, -1).reverse(); // nearest the "0" first
+    const LET0 = () => T.ord + 1.26;
     function sceneOrder(t) {
-      if (t < T.ord + 1.28 || t > T.mas + 0.14) return;
-      const a = revealW(t), G = LOGO.wide, f = WIDE.lw / G.w, ringLeft = WIDE.ring.x - G.R * f - 2;
-      const x0 = lerp(ringLeft, WIDE.lx - 4, a);
-      drawLogo("wide", WIDE, 1, () => ctx.rect(x0, WIDE.ly - 20, WIDE.lx + WIDE.lw + 20 - x0, WIDE.lh + 40));
+      if (t < T.ord + 1.24 || t > T.mas + 0.3) return;
+      const lx = WIDE.lx, ly = WIDE.ly, lh = WIDE.lh, base = ly + lh;
+      // the "0" (the ring itself, handed over to the logo file)
+      const out0 = prog(t, T.mas - 0.05, T.mas + 0.14);
+      if (out0 < 1) { ctx.save(); ctx.globalAlpha = 1 - out0; ctx.drawImage(wideCv, zeroSeg[0], 0, zeroSeg[1] - zeroSeg[0], lh, lx + zeroSeg[0], ly, zeroSeg[1] - zeroSeg[0], lh); ctx.restore(); }
+      letters.forEach(([a0, a1], i) => {
+        const t0 = LET0() + i * 0.08, u = prog(t, t0, t0 + 0.34, E.inQuad), q = t - (t0 + 0.34);
+        if (u <= 0) return;
+        const back = prog(t, T.mas - 0.32 + i * 0.04, T.mas + 0.02 + i * 0.04, E.inCubic);
+        if (back >= 1) return;
+        const w = a1 - a0, cx0 = lx + a0 + w / 2;
+        let dy = -(1 - u) * 190, sx = 1, sy = 1;
+        if (q < 0) { sx = 1 - 0.1 * u; sy = 1 + 0.2 * u; } else { const sq = Math.exp(-q * 8) * Math.cos(q * 22); sx = 1 + 0.12 * sq; sy = 1 - 0.18 * sq; }
+        // exit: sucked back into the ring
+        const tx = lerp(cx0, WIDE.ring.x, back), ks = 1 - back;
+        const draw = (oy, al) => {
+          ctx.save(); ctx.globalAlpha = al * Math.min(1, u * 4) * (1 - back);
+          ctx.translate(tx, base + dy + oy); ctx.scale(sx * ks, sy * ks);
+          ctx.drawImage(wideCv, a0, 0, w, lh, -w / 2, -lh, w, lh); ctx.restore();
+        };
+        if (q < 0) { draw(-lh * 0.28 * u, 0.16); draw(-lh * 0.14 * u, 0.28); }
+        draw(0, 1);
+        // dust where it lands
+        if (q > 0 && q < 0.5) {
+          ctx.save(); ctx.fillStyle = TEAL;
+          for (const sd of [-1, 1]) for (let k = 0; k < 3; k++) {
+            ctx.globalAlpha = (1 - q / 0.5) * 0.5; const dx = sd * (w / 2 + 10 + q * (90 + k * 50)), yy = base - 4 - k * 6 - q * 30 * k;
+            ctx.beginPath(); ctx.arc(tx + dx, yy, 4 - k, 0, TAU); ctx.fill();
+          }
+          ctx.restore();
+        }
+      });
       const ta = prog(t, T.ord + 1.8, T.ord + 2.3) * (1 - prog(t, T.mas - 0.3, T.mas));
       txt(cp.orderTag.join(" "), W / 2, WIDE.ly + WIDE.lh + (V ? 110 : 96) + (1 - ta) * 14, { alpha: ta, size: V ? 48 : 44, color: "#3a3524" });
     }
@@ -761,7 +1010,7 @@
       // what is owed, computed
       const oa = prog(t, T.chW + 0.75, T.chW + 1.2) * (1 - out);
       if (oa > 0) {
-        centerText(st, money(overall), cc.balance, { alpha: oa, bigSize: 72 });
+        odo(st, (tt) => overall * prog(tt, T.chW + 0.75, T.chW + 1.55, E.outCubic), t, "money", cc.balance, { alpha: oa, bigSize: 72, target: overall });
         txt(`${num(D.incomeBase * 0.1)} + ${num(D.chomeshIncome * 0.2)} − ${num(D.donations)}`, st.x, st.y - (V ? 70 : 62), { alpha: oa * 0.8, size: 21, color: "rgba(31,28,18,0.55)", dir: "ltr" });
       }
       // any currency: foreign amounts fly in and turn into the local one on the way
@@ -1217,13 +1466,14 @@
         }
       }
     }
+    const burst = (() => { const r = rng(303); return Array.from({ length: 72 }, () => ({ a: r() * TAU, v: 380 + r() * 900, sz: 2.5 + r() * 5, gold: r() < 0.32, arc: r() < 0.22 })); })();
     function sceneEnd(t, st) {
       if (t < T.brand - 0.4) return;
       // the opening's chaos, now a perfect halo of dots around the logo
       const ha = prog(t, T.brand + 0.2, T.brand + 1.2, E.outCubic), lcx = STACK.lx + STACK.lw / 2, lcy = STACK.ly + STACK.lh / 2;
       if (ha > 0) {
         for (let k = 0; k < 5; k++) {
-          const rr0 = lerp(STACK.lw * 0.3, STACK.lw * (0.74 + k * 0.14), ha), n = 70 + k * 24;
+          const rr0 = lerp(STACK.lw * 0.3, STACK.lw * (0.74 + k * 0.14), ha) + Math.sin(k * 1.3 - (t - T.brand) * 2.6) * 5 * ha, n = 70 + k * 24;
           for (let i = 0; i < n; i++) {
             const a = (i / n) * TAU + k * 0.1, am = ((a % TAU) + TAU) % TAU, t0 = ((TENTH_A0 % TAU) + TAU) % TAU, t1 = ((TENTH_A1 % TAU) + TAU) % TAU;
             const inT = am > t0 && am < t1;
@@ -1231,6 +1481,21 @@
             ctx.beginPath(); ctx.arc(lcx + Math.cos(a) * rr0, lcy + Math.sin(a) * rr0, 3.2 - k * 0.4, 0, TAU); ctx.fill();
           }
         }
+      }
+      // shockwave and a burst of the film's two colours as the logo appears
+      const qb = t - (T.brand + 0.5);
+      if (qb > 0 && qb < 1.6) {
+        const cx = STACK.ring.x, cy = STACK.ring.y, u = E.outCubic(clamp(qb / 1.1));
+        ctx.save(); ctx.globalAlpha = 0.45 * (1 - u); ctx.strokeStyle = TEAL; ctx.lineWidth = 3 + 6 * (1 - u);
+        ctx.beginPath(); ctx.arc(cx, cy, STACK.ring.r + u * (V ? 700 : 820), 0, TAU); ctx.stroke(); ctx.restore();
+        ctx.save();
+        for (const p of burst) {
+          const d = (p.v * (1 - Math.exp(-3.2 * qb))) / 3.2, x = cx + Math.cos(p.a) * (STACK.ring.r + d), y = cy + Math.sin(p.a) * (STACK.ring.r + d) * (V ? 1 : 0.9);
+          ctx.globalAlpha = 1 - prog(qb, 0.45, 1.5); ctx.fillStyle = p.gold ? GOLD : TEAL;
+          if (p.arc) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = p.sz; ctx.beginPath(); ctx.arc(x, y, p.sz * 2.2, p.a + qb * 6, p.a + qb * 6 + 1.2); ctx.stroke(); }
+          else { ctx.beginPath(); ctx.arc(x, y, p.sz * (1 - qb * 0.4), 0, TAU); ctx.fill(); }
+        }
+        ctx.restore();
       }
       // the stacked logo grows out of the ring
       const lv = prog(t, T.brand + 0.5, T.brand + 1.1, E.inOutCubic);
@@ -1261,13 +1526,12 @@
     function ringStyle(t) {
       const o = { alpha: 1, body: 1, tenthAlpha: 1, lift: 0, rot: 0, dx: 0, dy: 0 };
       if (t < T.c1) {
-        o.body = prog(t, 0.2, 1.25, E.inOutCubic); if (o.body <= 0.001) o.alpha = 0;
-        o.tenthAlpha = prog(t, T.h2w - 0.05, T.h2w + 0.15);
-        o.lift = 30 * E.outBack(prog(t, T.h2w, T.h2w + 0.5)) * (1 - prog(t, T.h2w + 1.0, T.h2w + 1.6, E.inOutCubic));
+        o.alpha = prog(t, 1.02, 1.32);
+        const td = tenthDrop(t); o.tenthAlpha = td.alpha; o.lift = td.lift; o.tenthSpan = td.span; o.tenthW = td.w;
       }
       const lvl = prog(t, T.kw[0], T.c2 + 1.0) * (1 - prog(t, T.ord, T.ord + 0.6)), shake = prog(t, T.harder, T.harder + 0.2) * (1 - prog(t, T.harder + 0.6, T.harder + 1.2));
       o.dx = Math.sin(t * 6.3) * 5 * lvl + Math.sin(t * 31) * 5 * shake; o.dy = Math.cos(t * 5.1) * 4 * lvl + Math.cos(t * 27) * 3 * shake; o.rot = Math.sin(t * 4.2) * 0.12 * lvl;
-      if (t > T.ord + 1.28 && t < T.mas + 0.14) o.alpha = 0;
+      if (t > T.ord + 1.24 && t < T.mas + 0.14) o.alpha = 0;
       if (t > T.masW - 0.1 && t < T.imp) o.lift = 24 * E.outBack(prog(t, T.masW, T.masW + 0.45)) * (1 - prog(t, T.imp - 0.7, T.imp - 0.3));
       if (sheetLogoA(t) >= 0.999) o.alpha = 0;
       if (t > T.tInc - 0.15 && t < T.brand - 0.35) o.alpha = 0;
@@ -1280,15 +1544,14 @@
       ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = "source-over"; ctx.filter = "none";
       const dk = darkness(t);
       ctx.drawImage(bgLight, 0, 0);
-      if (dk > 0) {
-        ctx.save(); ctx.beginPath();
-        ctx.arc(S.rec.x, S.rec.y, dIn(t) * RMAX, 0, TAU);
-        if (dOut(t) > 0) ctx.arc(S.rem.x, S.rem.y, dOut(t) * RMAX, 0, TAU, true);
-        ctx.clip("evenodd"); ctx.drawImage(bgDark, 0, 0); ctx.restore();
+      if (dIn(t) > 0 && dOut(t) < 1) {
+        ctx.save(); halftonePath(S.rec.x, S.rec.y, frontIn(t)); ctx.clip(); ctx.drawImage(bgDark, 0, 0); ctx.restore();
+        if (dOut(t) > 0) { ctx.save(); halftonePath(S.rem.x, S.rem.y, frontOut(t)); ctx.clip(); ctx.drawImage(bgLight, 0, 0); ctx.restore(); }
       }
       const st0 = ringAt(t), rs = ringStyle(t);
       const st = { ...st0, x: st0.x + rs.dx, y: st0.y + rs.dy };
       // under the ring
+      sceneTorus(t, st);
       sceneChaos(t, st);
       sceneNotJust(t, st);
       lensGlass(t, st);
@@ -1301,7 +1564,17 @@
       const ringDark = isDark(st.x, st.y, t) ? 1 : 0, dkR = lerp(ringDark, dk, 0.35);
       const solidA = rs.alpha * (1 - yearVis) * (1 - dkR);
       if (anFill < 1 && solidA > 0) { ctx.save(); ctx.globalAlpha = solidA; ctx.strokeStyle = "#e7efe9"; ctx.lineWidth = st.sw; ctx.beginPath(); ctx.arc(st.x, st.y, st.r, 0, TAU); ctx.stroke(); ctx.restore(); }
-      drawRing(st, { alpha: solidA, body: Math.max(0.001, Math.min(rs.body, anFill)), tenth: anFill > 0.97, tenthAlpha: rs.tenthAlpha, shadow: anFill > 0.97, lift: rs.lift, tenthRot: rs.rot });
+      // motion blur: when the ring travels, trailing copies smear along its path
+      if (solidA > 0.01) {
+        const far = ringAt(t - 1 / 24);
+        const moved = Math.hypot(far.x - st0.x, far.y - st0.y) + Math.abs(far.r - st0.r) * 2;
+        if (moved > 8) {
+          // enough samples that the trail reads as a smear, not as copies
+          const sm = clamp((moved - 8) / 70), n = Math.min(14, Math.ceil(moved / 7));
+          for (let k = n; k >= 1; k--) { const pv = ringAt(t - (k / n) / 24); drawRing({ ...pv, x: pv.x + rs.dx, y: pv.y + rs.dy }, { alpha: solidA * sm * (0.16 / Math.sqrt(n)) * (1 - k / (n + 1)) * 2, shadow: false, tenthAlpha: rs.tenthAlpha }); }
+        }
+      }
+      drawRing(st, { alpha: solidA, body: Math.max(0.001, Math.min(rs.body, anFill)), tenth: anFill > 0.97, tenthAlpha: rs.tenthAlpha, shadow: anFill > 0.97, lift: rs.lift, tenthRot: rs.rot, tenthSpan: rs.tenthSpan, tenthW: rs.tenthW });
       // over the ring
       sceneHook(t, st);
       sceneOrder(t);
@@ -1329,6 +1602,8 @@
     cue(T.ord - 0.15, "sweep", 0.5);
     cue(T.ord + 0.65, "resolve", 0.45);
     cue(T.ord + 1.3, "whoosh", 0.25);
+    letters.forEach((_, i) => cue(LET0() + i * 0.08 + 0.34, "tap", 0.2));
+    cue(T.ord + 0.1, "sweep", 0.3);
     cue(T.mas + 0.55, "tick", 0.2);
     cue(T.masW, "pop", 0.4);
     cue(T.chW, "pop", 0.4);
