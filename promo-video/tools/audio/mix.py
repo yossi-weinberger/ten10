@@ -217,6 +217,8 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--music-lufs", type=float, default=-15.5,
                    help="unducked music level (LUFS); ducked = this - duck depth")
     g.add_argument("--duck-db", type=float, default=9.0, help="duck depth under speech (dB)")
+    g.add_argument("--preview-duck-db", type=float, default=3.0,
+                   help="duck depth when there is no narration recording (timing spans only); default 3 dB")
     g.add_argument("--attack", type=float, default=0.08, help="duck attack (s)")
     g.add_argument("--release", type=float, default=0.45, help="duck release (s)")
     g.add_argument("--lookahead", type=float, default=0.06, help="duck look-ahead (s)")
@@ -296,6 +298,10 @@ def main(argv: list[str] | None = None) -> int:
     elif timing:
         key = key_from_timing(timing, n_ctrl)
         src = f"timing spans from {timing_path.name} (source={timing.get('source')})"
+        if args.preview_duck_db is not None:
+            # no voice yet: duck only lightly so the preview lets you judge the score itself
+            args.duck_db = args.preview_duck_db
+            src += f", preview depth {args.duck_db:.0f} dB"
     else:
         key = np.zeros(n_ctrl)
         src = "none (no narration and no timing)"

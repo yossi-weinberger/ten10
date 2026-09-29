@@ -105,6 +105,14 @@ side headlines), reading-order columns swap, and the sweep direction follows rea
 
 ## Sound
 
+The score is `tools/audio/synth_drive.py` (energetic, ~121 BPM: four-on-the-floor kick, claps, 16th hats,
+pumping bass and supersaw pad side-chained to the kick, 16th pluck arpeggio, risers and impacts into the logo
+reveal and "brand"). It reuses the grid, harmony and sections of `tools/audio/synth_music.py` (the earlier calm
+bed, still available with `MUSIC_GEN=synth_music.py`). Without a narration recording, `mix.py` ducks the music
+only 3 dB under the estimated speech spans (`--preview-duck-db`) so the preview lets you judge the score; with the
+recording it side-chains on the real voice at full depth.
+
+
 * **Music:** `tools/audio/synth_music.py` builds a *temporary* procedural bed (≈92 BPM, D major, warm pad, felt-pluck motif, soft
   shaker). Its arrangement follows the narration (sparse → fuller product section → thinner halacha → resolve on "TEN10").
   Replace it with a licensed track by passing `MUSIC=path.wav` to `produce.sh`. Ducking applies to any file.
