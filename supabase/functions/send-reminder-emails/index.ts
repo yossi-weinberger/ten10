@@ -12,6 +12,7 @@ import {
   DEFAULT_REMINDER_DAYS,
   planReminderRun,
   resolveReminderCivilDate,
+  type ReminderRunPlan,
 } from "./reminder-run-date.ts";
 import {
   buildReminderRunLog,
@@ -51,6 +52,7 @@ function describeCohort(cohort: DueReminderCohort): string {
 // Deployment trigger note: editing this file forces the GitHub workflow to redeploy the function.
 
 serve(async (req) => {
+  console.log("[REMINDER] Request received", { method: req.method });
   const origin = req.headers.get("origin");
 
   // CORS handling
@@ -321,7 +323,31 @@ serve(async (req) => {
     const currentIsraelDate = dateResolution.date;
     const currentDay = Number(currentIsraelDate.slice(8, 10));
     const reminderDays = DEFAULT_REMINDER_DAYS;
-    const planned = planReminderRun(currentIsraelDate, reminderDays);
+    let planned: ReminderRunPlan;
+    try {
+      planned = planReminderRun(currentIsraelDate, reminderDays);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      console.error("[REMINDER] Planning failed", {
+        currentIsraelDate,
+        message,
+        stack,
+      });
+      return new Response(
+        JSON.stringify({
+          error: "Failed to plan reminder run",
+          details: message,
+        }),
+        {
+          status: 500,
+          headers: {
+            ...getCorsHeaders(origin),
+            "Content-Type": "application/json",
+          },
+        },
+      );
+    }
     const fallbackResolution: ReminderScheduleResolution = planned.fallback;
     const dueCohorts: DueReminderCohort[] =
       isTest && !dateResolution.forceDateApplied
