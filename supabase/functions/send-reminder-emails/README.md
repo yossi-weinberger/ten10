@@ -171,6 +171,8 @@ function until this branch's migration and Edge Function are deployed.
 
 On the testing project (`bbcllewcotypedqsnwmi`), emails are held unless `DRY_RUN=true` or `EMAIL_ALLOWLIST` is set — including `{"test":true}` runs and contact/admin mail. See `supabase/MIGRATION_VAULT_SETUP.md`.
 
+`forceDate` (`YYYY-MM-DD`) is a **non-production-only** override for the Israel civil date used by reminder-day, Shabbat/Yom Tov skip, makeup, Friday early-send, and 29 Elul maaser-year logic. Production (`EMAIL_ENV=production` or a `SUPABASE_URL` containing `flpzqbvbymoluoeeeofg`) ignores it and logs that it was ignored. It never bypasses the email guard. Held/dry-run sends are counted as `emails_held`, not `emails_sent`. The HTTP `results` array returns masked addresses only.
+
 ### Reminder Days
 
 Reminder profile values remain days **1, 5, 10, 15, 20, 25**. Each profile

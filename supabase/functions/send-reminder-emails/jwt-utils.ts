@@ -4,6 +4,7 @@
  */
 
 import { create } from "https://deno.land/x/djwt@v3.0.1/mod.ts";
+import { maskEmail } from "../_shared/email-guard.ts";
 
 export interface UnsubscribeTokenPayload {
   userId: string;
@@ -32,7 +33,9 @@ export async function createUnsubscribeToken(
       console.error("[JWT] JWT_SECRET environment variable is not set");
       throw new Error("JWT_SECRET environment variable is not set");
     }
-    console.log(`[JWT] Creating unsubscribe token for ${email}, type: ${type}`);
+    console.log(
+      `[JWT] Creating unsubscribe token for ${maskEmail(email)}, type: ${type}`,
+    );
 
     const key = await crypto.subtle.importKey(
       "raw",

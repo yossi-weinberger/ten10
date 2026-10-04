@@ -1,6 +1,7 @@
 import {
   dryRunEmailResult,
   guardEmailSend,
+  maskEmail,
 } from "../_shared/email-guard.ts";
 import {
   generateReminderEmailHTML,
@@ -28,7 +29,7 @@ export interface EmailResult {
   email: string;
   titheBalance: number;
   messageId?: string;
-  status: "sent" | "failed";
+  status: "sent" | "failed" | "held";
   error?: string;
   dryRun?: boolean;
 }
@@ -61,7 +62,9 @@ export class SimpleEmailService {
       hasSecretKey: !!this.awsSecretAccessKey,
       hasFromEmail: !!this.fromEmail,
     });
+  }
 
+  private assertCanSend(): void {
     if (!this.awsAccessKeyId || !this.awsSecretAccessKey) {
       const error = "Missing AWS credentials (AWS_ACCESS_KEY_ID/SECRET).";
       console.error("[EMAIL_SERVICE]", error);
@@ -88,21 +91,9 @@ export class SimpleEmailService {
     kind: "monthly" | "maaser-year" = "monthly",
   ): Promise<EmailResult> {
     try {
-      console.log(`[EMAIL] Starting to send reminder email to ${userEmail}`);
+      const maskedEmail = maskEmail(userEmail);
+      console.log(`[EMAIL] Starting to send reminder email to ${maskedEmail}`);
 
-      // 1) Build template data
-      let unsubscribeUrls;
-      try {
-        unsubscribeUrls = await generateUnsubscribeUrls(userId, userEmail);
-        console.log(`[EMAIL] Generated unsubscribe URLs for ${userEmail}`);
-      } catch (error) {
-        console.error(
-          `[EMAIL] Failed to generate unsubscribe URLs for ${userEmail}:`,
-          error,
-        );
-        // Continue without unsubscribe URLs - email can still be sent
-        unsubscribeUrls = { reminderUrl: "", allUrl: "" };
-      }
       const templateData: EmailTemplateData = {
         titheBalance,
         maaserBalance,
@@ -112,11 +103,9 @@ export class SimpleEmailService {
         currency,
         israelMonth: getIsraelMonth(),
         kind,
-        unsubscribeUrls,
+        unsubscribeUrls: { reminderUrl: "", allUrl: "" },
       };
       const subject = generateReminderEmailSubject(templateData);
-      const htmlBody = generateReminderEmailHTML(templateData);
-      const textBody = generateReminderEmailText(templateData);
 
       const decision = guardEmailSend({
         recipients: [userEmail],
@@ -130,10 +119,29 @@ export class SimpleEmailService {
           email: userEmail,
           titheBalance,
           messageId: held.MessageId,
-          status: "sent",
+          status: "held",
           dryRun: true,
         };
       }
+
+      this.assertCanSend();
+
+      // 1) Build template data
+      let unsubscribeUrls;
+      try {
+        unsubscribeUrls = await generateUnsubscribeUrls(userId, userEmail);
+        console.log(`[EMAIL] Generated unsubscribe URLs for ${maskedEmail}`);
+      } catch (error) {
+        console.error(
+          `[EMAIL] Failed to generate unsubscribe URLs for ${maskedEmail}:`,
+          error,
+        );
+        // Continue without unsubscribe URLs - email can still be sent
+        unsubscribeUrls = { reminderUrl: "", allUrl: "" };
+      }
+      templateData.unsubscribeUrls = unsubscribeUrls;
+      const htmlBody = generateReminderEmailHTML(templateData);
+      const textBody = generateReminderEmailText(templateData);
 
       // 2) Build Raw MIME with List-Unsubscribe headers
       const mimeBytes = await this.buildRawMime({
@@ -175,7 +183,7 @@ export class SimpleEmailService {
       });
 
       // 5) Send
-      console.log(`[EMAIL] Sending email to ${userEmail} via AWS SES...`);
+      console.log(`[EMAIL] Sending email to ${maskedEmail} via AWS SES...`);
       const res = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -189,13 +197,13 @@ export class SimpleEmailService {
       if (!res.ok) {
         const t = await res.text();
         const errorMsg = `SES V2 error: ${res.status} ${t}`;
-        console.error(`[EMAIL] AWS SES error for ${userEmail}:`, errorMsg);
+        console.error(`[EMAIL] AWS SES error for ${maskedEmail}:`, errorMsg);
         throw new Error(errorMsg);
       }
 
       const json = (await res.json()) as { MessageId?: string };
       console.log(
-        `[EMAIL] Successfully sent email to ${userEmail}, MessageId: ${json?.MessageId}`,
+        `[EMAIL] Successfully sent email to ${maskedEmail}, MessageId: ${json?.MessageId}`,
       );
       return {
         userId,
@@ -205,7 +213,7 @@ export class SimpleEmailService {
         status: "sent",
       };
     } catch (error: any) {
-      console.error(`Error sending email to ${userEmail}:`, error);
+      console.error(`Error sending email to ${maskEmail(userEmail)}:`, error);
       return {
         userId,
         email: userEmail,

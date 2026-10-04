@@ -102,4 +102,39 @@ describe("shared SimpleEmailService email guard", () => {
     expect(fetchMock).not.toHaveBeenCalled();
     expect(result).toEqual({ MessageId: "dry-run", dryRun: true });
   });
+
+  it("holds without AWS credentials when the guard blocks the send", async () => {
+    stubDeno({
+      SUPABASE_URL: TESTING_URL,
+    });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const service = new SimpleEmailService(undefined, "send-contact-email");
+    const result = await service.sendRawEmail({
+      to: "dev@ten10-app.com",
+      subject: "Contact form",
+      textBody: "plain",
+      htmlBody: "<p>html</p>",
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result).toEqual({ MessageId: "dry-run", dryRun: true });
+  });
+
+  it("still requires AWS credentials for a real production send", async () => {
+    stubDeno({
+      SUPABASE_URL: PRODUCTION_URL,
+    });
+
+    const service = new SimpleEmailService(undefined, "send-cron-alerts");
+    await expect(
+      service.sendRawEmail({
+        to: "dev@ten10-app.com",
+        subject: "Cron failure",
+        textBody: "plain",
+        htmlBody: "<p>html</p>",
+      }),
+    ).rejects.toThrow("Missing AWS credentials.");
+  });
 });

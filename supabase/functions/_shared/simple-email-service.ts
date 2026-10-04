@@ -23,7 +23,9 @@ export class SimpleEmailService {
     this.fromEmail =
       fromOverride ?? Deno.env.get("SES_FROM") ?? "contact-form@ten10-app.com";
     this.functionName = functionName;
+  }
 
+  private assertCanSend(): void {
     if (!this.awsAccessKeyId || !this.awsSecretAccessKey) {
       throw new Error("Missing AWS credentials.");
     }
@@ -45,6 +47,8 @@ export class SimpleEmailService {
     if (decision.action === "hold") {
       return dryRunEmailResult();
     }
+
+    this.assertCanSend();
 
     const kept = new Set(
       decision.recipients.map((recipient) => recipient.trim().toLowerCase()),

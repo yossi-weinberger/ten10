@@ -1,19 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { maskEmail } from "../_shared/email-guard.ts";
 import { getIsraelDate } from "../_shared/israel-date.ts";
-import {
-  buildReminderRunLog,
-  resolveMaaserYearCloseReminder,
-  resolveReminderSchedule,
-  type ReminderScheduleResolution,
-} from "./reminder-schedule.ts";
 import {
   deduplicateReminderUsers,
   partitionYearlyReminderRecipients,
-  resolveDueReminderCohorts,
   type DueReminderCohort,
 } from "./reminder-cohorts.ts";
+import {
+  DEFAULT_REMINDER_DAYS,
+  planReminderRun,
+  resolveReminderCivilDate,
+} from "./reminder-run-date.ts";
+import {
+  buildReminderRunLog,
+  type ReminderScheduleResolution,
+} from "./reminder-schedule.ts";
+import { summarizeReminderSendResults } from "./reminder-send-summary.ts";
 import { SimpleEmailService } from "./simple-email-service.ts";
 import { UserService } from "./user-service.ts";
 
@@ -310,16 +314,17 @@ serve(async (req) => {
       );
     }
 
-    const currentIsraelDate = getIsraelDate();
+    const dateResolution = resolveReminderCivilDate({
+      forceDate: body.forceDate,
+      fallbackDate: getIsraelDate(),
+    });
+    const currentIsraelDate = dateResolution.date;
     const currentDay = Number(currentIsraelDate.slice(8, 10));
-    const reminderDays = [1, 5, 10, 15, 20, 25];
-    const fallbackResolution: ReminderScheduleResolution =
-      resolveReminderSchedule(
-        currentIsraelDate,
-        reminderDays,
-        "gregorian",
-      );
-    const dueCohorts: DueReminderCohort[] = isTest
+    const reminderDays = DEFAULT_REMINDER_DAYS;
+    const planned = planReminderRun(currentIsraelDate, reminderDays);
+    const fallbackResolution: ReminderScheduleResolution = planned.fallback;
+    const dueCohorts: DueReminderCohort[] =
+      isTest && !dateResolution.forceDateApplied
       ? [
           {
             calendarType: "gregorian",
@@ -332,10 +337,10 @@ serve(async (req) => {
             resolution: { kind: "send-today", reminderDay: 25 },
           },
         ]
-      : resolveDueReminderCohorts(currentIsraelDate, reminderDays);
-    const yearlyResolution = isTest
+      : planned.dueCohorts;
+    const yearlyResolution = isTest && !dateResolution.forceDateApplied
       ? ({ kind: "no-op" } satisfies ReminderScheduleResolution)
-      : resolveMaaserYearCloseReminder(currentIsraelDate);
+      : planned.yearly;
     const yearlyDue =
       yearlyResolution.kind === "send-today" ||
       yearlyResolution.kind === "makeup";
@@ -457,30 +462,39 @@ serve(async (req) => {
       );
     }
 
-    const yearlySent = yearlyResults.filter((result) => result.status === "sent").length;
-    const yearlyFailed = yearlyResults.filter((result) => result.status === "failed").length;
+    const yearlySummary = summarizeReminderSendResults(yearlyResults);
     const yearlyProcessed = yearly.length;
-
-    const sentCount = results.filter((r) => r.status === "sent").length;
-    const failedCount = results.filter((r) => r.status === "failed").length;
+    const summary = summarizeReminderSendResults(results);
+    const sentCount = summary.emails_sent;
+    const heldCount = summary.emails_held;
+    const failedCount = summary.emails_failed;
     console.log(
-      `[REMINDER] Email sending completed: ${sentCount} sent, ${failedCount} failed`,
+      `[REMINDER] Email sending completed: ${sentCount} sent, ${heldCount} held, ${failedCount} failed`,
     );
 
     results.forEach((result) => {
       if (result.status === "failed") {
         console.error(
-          `[REMINDER] Failed to send email to ${result.email}: ${result.error}`,
+          `[REMINDER] Failed to send email to ${maskEmail(result.email)}: ${result.error}`,
+        );
+      } else if (result.status === "held" || result.dryRun) {
+        console.log(
+          `[REMINDER] Held email to ${maskEmail(result.email)}, messageId: ${result.messageId}`,
         );
       } else {
         console.log(
-          `[REMINDER] Successfully sent email to ${result.email}, messageId: ${result.messageId}`,
+          `[REMINDER] Successfully sent email to ${maskEmail(result.email)}, messageId: ${result.messageId}`,
         );
       }
     });
 
+    const forceDateNote = dateResolution.forceDateApplied
+      ? `forceDate=${dateResolution.date}; `
+      : dateResolution.forceDateIgnored
+      ? `forceDate-ignored; `
+      : "";
     const yearlyNote = yearlyDue
-      ? `; maaser-year-close=${yearlyResolution.kind}:${yearlyProcessed}/${yearlySent}/${yearlyFailed}`
+      ? `; maaser-year-close=${yearlyResolution.kind}:${yearlyProcessed}/${yearlySummary.emails_sent}/${yearlySummary.emails_failed}/held=${yearlySummary.emails_held}`
       : "";
     await logRun(supabaseAdmin, {
       ...buildReminderRunLog(currentIsraelDate, primaryResolution, {
@@ -488,14 +502,19 @@ serve(async (req) => {
         emailsSent: sentCount,
         emailsFailed: failedCount,
       }),
-      notes: `${isTest ? "TEST MODE; " : ""}cohorts=[${cohortContext || "none"}]${yearlyNote}`,
+      notes: `${forceDateNote}${isTest ? "TEST MODE; " : ""}cohorts=[${cohortContext || "none"}]${yearlyNote}; held=${heldCount}`,
     });
 
     return new Response(
       JSON.stringify({
         message:
-          `Processed ${monthlyOnly.length + yearlyProcessed} unique users for [${cohortContext || "none"}]${yearlyDue ? "; maaser-year-close" : ""}${isTest ? " (TEST MODE)" : ""}. Sent: ${sentCount}, Failed: ${failedCount}`,
-        results,
+          `Processed ${monthlyOnly.length + yearlyProcessed} unique users for [${cohortContext || "none"}]${yearlyDue ? "; maaser-year-close" : ""}${isTest ? " (TEST MODE)" : ""}. Sent: ${sentCount}, Held: ${heldCount}, Failed: ${failedCount}`,
+        emails_sent: sentCount,
+        emails_held: heldCount,
+        emails_failed: failedCount,
+        results: summary.results,
+        forceDateApplied: dateResolution.forceDateApplied,
+        forceDateIgnored: dateResolution.forceDateIgnored,
         was_yom_tov: false,
       }),
       {

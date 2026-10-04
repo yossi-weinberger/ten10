@@ -50,6 +50,8 @@ Set these as **Edge Function secrets** (Dashboard → Edge Functions → Secrets
 
 `{"test":true}` on `send-reminder-emails` only skips the reminder-day check. It cannot bypass this guard.
 
+`forceDate` (`YYYY-MM-DD` in the request body) overrides the Israel civil "today" used by reminder scheduling **only on non-production**. Production ignores it and logs a warning. It never bypasses the email guard.
+
 Contact-form and admin emails (`send-contact-email`, `send-cron-alerts`, `send-new-user-email`) are also held on testing unless the destination is allowlisted. That is intended.
 
 ---

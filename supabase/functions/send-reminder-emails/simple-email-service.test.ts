@@ -45,6 +45,7 @@ function decodeMimePart(rawMime: string, contentType: string): string {
 describe("SimpleEmailService", () => {
   beforeEach(() => {
     vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const environment: Record<string, string> = {
       AWS_ACCESS_KEY_ID: "test-access-key",
@@ -162,7 +163,7 @@ describe("SimpleEmailService", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(result).toMatchObject({
-      status: "sent",
+      status: "held",
       messageId: "dry-run",
       dryRun: true,
     });
@@ -201,7 +202,7 @@ describe("SimpleEmailService", () => {
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(result.dryRun).toBe(true);
-    expect(result.status).toBe("sent");
+    expect(result.status).toBe("held");
     expect(result.messageId).toBe("dry-run");
   });
 
@@ -253,7 +254,38 @@ describe("SimpleEmailService", () => {
     });
     expect(dropped).toMatchObject({
       email: "cloned-user@example.com",
-      status: "sent",
+      status: "held",
+      dryRun: true,
+      messageId: "dry-run",
+    });
+  });
+
+  it("holds without AWS credentials on a non-production project", async () => {
+    vi.stubGlobal("Deno", {
+      env: {
+        get: (key: string) =>
+          ({
+            SUPABASE_URL: "https://bbcllewcotypedqsnwmi.supabase.co",
+          })[key],
+      },
+    });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const service = new SimpleEmailService();
+    const result = await service.sendReminderEmail(
+      "cloned-user@example.com",
+      "user-cloned",
+      1,
+      1,
+      0,
+      "en",
+      "Tester",
+    );
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      status: "held",
       dryRun: true,
       messageId: "dry-run",
     });
