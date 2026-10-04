@@ -9,7 +9,7 @@ Gregorian ISO (`YYYY-MM-DD`) stays the stored and queried date. Hebrew is a pres
 Canonical implementation: `supabase/functions/_shared/calendar/index.ts`.  
 The web app re-exports it from `src/lib/calendar/index.ts`. Deno and Vite must stay in parity.
 
-Core library: `temporal-polyfill/full` (MIT). Do not add `@hebcal/*` for date math. Israel holiday labels live in `supabase/functions/_shared/calendar/israel-yom-tov.ts`.
+Core library: arithmetic Hebrew calendar in `supabase/functions/_shared/calendar/hebrew-calendar.ts` (no ICU / `temporal-polyfill`). Do not add `@hebcal/*` for date math. Israel holiday labels live in `supabase/functions/_shared/calendar/israel-yom-tov.ts`.
 
 Overflow is always `constrain` (clamp). Hebrew day 30 in a 29-day month becomes 29. Adar I in a common year normalizes to Adar. Monthly Hebrew recurring runs in both Adar I and Adar II in a leap year.
 

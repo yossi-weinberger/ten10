@@ -1,8 +1,12 @@
-import { Temporal } from "temporal-polyfill/full";
 import {
-  formatHebrewNumeral,
-  formatHebrewYear,
-} from "./hebrew-numeral.ts";
+  addHebrewMonths,
+  createHebrewDate,
+  formatHebrewDisplayDate,
+  formatHebrewMonthLabel,
+  hebrewDaysInMonth,
+  hebrewFromIsoDate,
+  hebrewToIsoDate,
+} from "./hebrew-calendar.ts";
 
 export type CalendarType = "gregorian" | "hebrew";
 export type CalendarLanguage = "he" | "en";
@@ -63,10 +67,7 @@ export interface CalendarAdapter {
   monthLabel(monthKey: string, language: CalendarLanguage): string;
 }
 
-const CALENDAR_IDS: Record<CalendarType, string> = {
-  gregorian: "iso8601",
-  hebrew: "hebrew",
-};
+const ISO_DATE_PATTERN = /^(-?\d{4,})-(\d{2})-(\d{2})$/;
 
 function assertNever(value: never): never {
   throw new Error(`Unsupported calendar type: ${String(value)}`);
@@ -85,14 +86,11 @@ function getLocale(language: CalendarLanguage): string {
 
 function getFormatOptions(
   style: CalendarFormatStyle,
-  calendarType: CalendarType,
 ): Intl.DateTimeFormatOptions {
-  const calendar = calendarType === "hebrew" ? "hebrew" : "gregory";
-
   switch (style) {
     case "numeric":
       return {
-        calendar,
+        calendar: "gregory",
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -100,7 +98,7 @@ function getFormatOptions(
       };
     case "long":
       return {
-        calendar,
+        calendar: "gregory",
         day: "numeric",
         month: "long",
         year: "numeric",
@@ -115,35 +113,105 @@ function padMonth(month: number): string {
   return String(month).padStart(2, "0");
 }
 
-function toCalendarDate(isoDate: string, calendarType: CalendarType) {
-  return Temporal.PlainDate.from(isoDate).withCalendar(
-    CALENDAR_IDS[calendarType],
-  );
+export function parseIsoDate(isoDate: string): Date {
+  const match = ISO_DATE_PATTERN.exec(isoDate);
+  if (!match) {
+    throw new RangeError(`Invalid ISO date: ${isoDate}`);
+  }
+
+  const date = new Date(`${isoDate}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== isoDate) {
+    throw new RangeError(`Invalid ISO date: ${isoDate}`);
+  }
+  return date;
 }
 
-function toIsoDate(date: Temporal.PlainDate): string {
-  return date.withCalendar("iso8601").toString();
+export function addIsoDays(isoDate: string, amount: number): string {
+  const date = parseIsoDate(isoDate);
+  date.setUTCDate(date.getUTCDate() + amount);
+  return date.toISOString().slice(0, 10);
 }
 
-function createTemporalDate(
-  calendarType: CalendarType,
+function isGregorianLeapYear(year: number): boolean {
+  return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+}
+
+function gregorianDaysInMonth(year: number, month: number): number {
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+function gregorianMonthCode(month: number): string {
+  return `M${padMonth(month)}`;
+}
+
+function parseGregorianMonthCode(monthCode: string): number {
+  const match = /^M(\d{2})$/.exec(monthCode);
+  if (!match) {
+    throw new RangeError(`Invalid monthCode: ${monthCode}`);
+  }
+  return Number(match[1]);
+}
+
+function clampField(
+  name: string,
+  value: number,
+  min: number,
+  max: number,
+  overflow: CalendarOverflow,
+): number {
+  const clamped = Math.min(Math.max(value, min), max);
+  if (overflow === "reject" && value !== clamped) {
+    throw new RangeError(`${name} ${value} is out of range ${min}..${max}`);
+  }
+  return clamped;
+}
+
+function createGregorianDate(
   date: CalendarDateInput,
   overflow: CalendarOverflow,
-) {
-  const monthFields =
-    date.monthCode !== undefined
-      ? { monthCode: date.monthCode }
-      : { month: date.month };
+): { year: number; month: number; day: number } {
+  const year = date.year;
+  if (!Number.isInteger(year)) {
+    throw new RangeError(`Invalid Gregorian year: ${String(year)}`);
+  }
 
-  return Temporal.PlainDate.from(
-    {
-      calendar: CALENDAR_IDS[calendarType],
-      year: date.year,
-      ...monthFields,
-      day: date.day,
-    },
-    { overflow },
+  let month: number;
+  if (date.monthCode !== undefined) {
+    month = parseGregorianMonthCode(date.monthCode);
+    if (date.month !== undefined && date.month !== month) {
+      throw new RangeError("Mismatching month/monthCode");
+    }
+  } else if (date.month !== undefined) {
+    month = date.month;
+  } else {
+    throw new TypeError("Missing month/monthCode");
+  }
+
+  month = clampField("month", month, 1, 12, overflow);
+  const day = clampField(
+    "day",
+    date.day,
+    1,
+    gregorianDaysInMonth(year, month),
+    overflow,
   );
+  return { year, month, day };
+}
+
+function formatGregorianIso(year: number, month: number, day: number): string {
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.toISOString().slice(0, 10);
+}
+
+function addGregorianMonths(
+  year: number,
+  month: number,
+  amount: number,
+): { year: number; month: number } {
+  const totalMonths = year * 12 + (month - 1) + amount;
+  const nextYear = Math.floor(totalMonths / 12);
+  const nextMonth = (totalMonths % 12) + 1;
+  return { year: nextYear, month: nextMonth };
 }
 
 function parseMonthKey(monthKey: string): { year: number; month: number } {
@@ -158,45 +226,108 @@ function parseMonthKey(monthKey: string): { year: number; month: number } {
   };
 }
 
-function formatHebrewMonthName(
-  isoDate: string,
-  language: CalendarLanguage,
-): string {
-  return new Intl.DateTimeFormat(getLocale(language), {
-    calendar: "hebrew",
-    month: "long",
-    timeZone: "UTC",
-  }).format(new Date(`${isoDate}T00:00:00Z`));
-}
-
-function formatHebrewDisplayDate(
-  isoDate: string,
-  language: CalendarLanguage,
-): string {
-  const date = toCalendarDate(isoDate, "hebrew");
-  const day = formatHebrewNumeral(date.day);
-  const monthName = formatHebrewMonthName(isoDate, language);
-  const year = formatHebrewYear(date.year);
-
-  switch (language) {
-    case "he":
-      return `${day} ב${monthName} ${year}`;
-    case "en":
-      return `${day} ${monthName} ${year}`;
-    default:
-      return assertNever(language);
-  }
-}
-
-function createCalendarAdapter(calendarType: CalendarType): CalendarAdapter {
+function createGregorianAdapter(): CalendarAdapter {
   return {
-    calendarType,
+    calendarType: "gregorian",
 
     fromIsoDate(isoDate) {
-      const date = toCalendarDate(isoDate, calendarType);
+      const date = parseIsoDate(isoDate);
+      const year = date.getUTCFullYear();
+      const month = date.getUTCMonth() + 1;
+      const day = date.getUTCDate();
       return {
-        calendarType,
-        isoDate: toIsoDate(date),
+        calendarType: "gregorian",
+        isoDate,
+        year,
+        month,
+        monthCode: gregorianMonthCode(month),
+        day,
+        inLeapYear: isGregorianLeapYear(year),
+        monthsInYear: 12,
+      };
+    },
+
+    toIsoDate(date, overflow = "constrain") {
+      const fields = createGregorianDate(date, overflow);
+      return formatGregorianIso(fields.year, fields.month, fields.day);
+    },
+
+    formatDate(isoDate, language, style) {
+      return new Intl.DateTimeFormat(
+        getLocale(language),
+        getFormatOptions(style),
+      ).format(parseIsoDate(isoDate));
+    },
+
+    startOfMonth(isoDate) {
+      const date = this.fromIsoDate(isoDate);
+      return formatGregorianIso(date.year, date.month, 1);
+    },
+
+    endOfMonth(isoDate) {
+      const date = this.fromIsoDate(isoDate);
+      return formatGregorianIso(
+        date.year,
+        date.month,
+        gregorianDaysInMonth(date.year, date.month),
+      );
+    },
+
+    startOfYear(isoDate) {
+      const date = this.fromIsoDate(isoDate);
+      return formatGregorianIso(date.year, 1, 1);
+    },
+
+    addMonths(isoDate, amount) {
+      const date = this.fromIsoDate(isoDate);
+      const moved = addGregorianMonths(date.year, date.month, amount);
+      return this.toIsoDate(
+        {
+          year: moved.year,
+          month: moved.month,
+          day: date.day,
+        },
+        "constrain",
+      );
+    },
+
+    daysInMonth(year, month) {
+      createGregorianDate({ year, month, day: 1 }, "reject");
+      return gregorianDaysInMonth(year, month);
+    },
+
+    clampDay(year, month, day) {
+      return Math.min(Math.max(day, 1), this.daysInMonth(year, month));
+    },
+
+    monthKey(isoDate) {
+      const date = this.fromIsoDate(isoDate);
+      return `${date.year}-${padMonth(date.month)}`;
+    },
+
+    monthLabel(monthKey, language) {
+      const { year, month } = parseMonthKey(monthKey);
+      const isoDate = formatGregorianIso(year, month, 1);
+      return new Intl.DateTimeFormat(getLocale(language), {
+        calendar: "gregory",
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+      }).format(parseIsoDate(isoDate));
+    },
+  };
+}
+
+function createHebrewAdapter(): CalendarAdapter {
+  return {
+    calendarType: "hebrew",
+
+    fromIsoDate(isoDate) {
+      parseIsoDate(isoDate);
+      const date = hebrewFromIsoDate(isoDate);
+      return {
+        calendarType: "hebrew",
+        isoDate,
         year: date.year,
         month: date.month,
         monthCode: date.monthCode,
@@ -207,101 +338,75 @@ function createCalendarAdapter(calendarType: CalendarType): CalendarAdapter {
     },
 
     toIsoDate(date, overflow = "constrain") {
-      return toIsoDate(createTemporalDate(calendarType, date, overflow));
+      return hebrewToIsoDate(date, overflow);
     },
 
-    formatDate(isoDate, language, style) {
-      if (calendarType === "hebrew") {
-        return formatHebrewDisplayDate(isoDate, language);
-      }
-
-      return new Intl.DateTimeFormat(
-        getLocale(language),
-        getFormatOptions(style, calendarType),
-      ).format(new Date(`${isoDate}T00:00:00Z`));
+    formatDate(isoDate, language) {
+      return formatHebrewDisplayDate(hebrewFromIsoDate(isoDate), language);
     },
 
     startOfMonth(isoDate) {
-      return toIsoDate(
-        toCalendarDate(isoDate, calendarType).with(
-          { day: 1 },
-          { overflow: "constrain" },
-        ),
+      const date = hebrewFromIsoDate(isoDate);
+      return hebrewToIsoDate(
+        { year: date.year, month: date.month, day: 1 },
+        "reject",
       );
     },
 
     endOfMonth(isoDate) {
-      const date = toCalendarDate(isoDate, calendarType);
-      return toIsoDate(
-        date.with({ day: date.daysInMonth }, { overflow: "constrain" }),
+      const date = hebrewFromIsoDate(isoDate);
+      return hebrewToIsoDate(
+        {
+          year: date.year,
+          month: date.month,
+          day: hebrewDaysInMonth(date.year, date.month),
+        },
+        "reject",
       );
     },
 
     startOfYear(isoDate) {
-      return toIsoDate(
-        toCalendarDate(isoDate, calendarType).with(
-          { month: 1, day: 1 },
-          { overflow: "constrain" },
-        ),
-      );
+      const date = hebrewFromIsoDate(isoDate);
+      return hebrewToIsoDate({ year: date.year, month: 1, day: 1 }, "reject");
     },
 
     addMonths(isoDate, amount) {
-      return toIsoDate(
-        toCalendarDate(isoDate, calendarType).add(
-          { months: amount },
-          { overflow: "constrain" },
-        ),
+      const date = hebrewFromIsoDate(isoDate);
+      const moved = addHebrewMonths(date.year, date.month, amount);
+      return hebrewToIsoDate(
+        {
+          year: moved.year,
+          month: moved.month,
+          day: date.day,
+        },
+        "constrain",
       );
     },
 
     daysInMonth(year, month) {
-      return createTemporalDate(
-        calendarType,
-        { year, month, day: 1 },
-        "reject",
-      ).daysInMonth;
+      createHebrewDate({ year, month, day: 1 }, "reject");
+      return hebrewDaysInMonth(year, month);
     },
 
     clampDay(year, month, day) {
-      const maximumDay = createTemporalDate(
-        calendarType,
-        { year, month, day: 1 },
-        "reject",
-      ).daysInMonth;
-      return Math.min(Math.max(day, 1), maximumDay);
+      return Math.min(Math.max(day, 1), this.daysInMonth(year, month));
     },
 
     monthKey(isoDate) {
-      const date = toCalendarDate(isoDate, calendarType);
+      const date = hebrewFromIsoDate(isoDate);
       return `${date.year}-${padMonth(date.month)}`;
     },
 
     monthLabel(monthKey, language) {
       const { year, month } = parseMonthKey(monthKey);
-      const isoDate = toIsoDate(
-        createTemporalDate(
-          calendarType,
-          { year, month, day: 1 },
-          "reject",
-        ),
-      );
-      if (calendarType === "hebrew") {
-        return `${formatHebrewMonthName(isoDate, language)} ${formatHebrewYear(year)}`;
-      }
-
-      return new Intl.DateTimeFormat(getLocale(language), {
-        calendar: "gregory",
-        month: "long",
-        year: "numeric",
-        timeZone: "UTC",
-      }).format(new Date(`${isoDate}T00:00:00Z`));
+      createHebrewDate({ year, month, day: 1 }, "reject");
+      return formatHebrewMonthLabel(year, month, language);
     },
   };
 }
 
-const GREGORIAN_ADAPTER = createCalendarAdapter("gregorian");
-const HEBREW_ADAPTER = createCalendarAdapter("hebrew");
+const GREGORIAN_ADAPTER = createGregorianAdapter();
+const HEBREW_ADAPTER = createHebrewAdapter();
 
 export function getCalendarAdapter(
   calendarType: CalendarType,
@@ -387,9 +492,9 @@ export function advanceRecurringDate(
 ): string {
   switch (rule.frequency) {
     case "daily":
-      return Temporal.PlainDate.from(currentDate).add({ days: 1 }).toString();
+      return addIsoDays(currentDate, 1);
     case "weekly":
-      return Temporal.PlainDate.from(currentDate).add({ days: 7 }).toString();
+      return addIsoDays(currentDate, 7);
     case "monthly":
       return advanceMonthlyRecurringDate(
         currentDate,

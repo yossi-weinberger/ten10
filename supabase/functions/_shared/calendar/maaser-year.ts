@@ -1,5 +1,4 @@
-import { Temporal } from "temporal-polyfill/full";
-import { getCalendarAdapter } from "./index.ts";
+import { addIsoDays, getCalendarAdapter } from "./index.ts";
 
 export interface MaaserYearRange {
   hebrewYear: number;
@@ -11,7 +10,7 @@ export interface MaaserYearRange {
 const hebrewCalendar = getCalendarAdapter("hebrew");
 
 function addCalendarDays(isoDate: string, amount: number): string {
-  return Temporal.PlainDate.from(isoDate).add({ days: amount }).toString();
+  return addIsoDays(isoDate, amount);
 }
 
 export function getHebrewYear(isoDate: string): number {

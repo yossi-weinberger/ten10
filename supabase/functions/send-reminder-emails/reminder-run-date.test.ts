@@ -124,4 +124,22 @@ describe("planReminderRun with forceDate examples", () => {
       ]),
     );
   });
+
+  it("sends the Gregorian day-20 cohort on 2026-10-20", () => {
+    const plan = planReminderRun("2026-10-20");
+
+    expect(plan.fallback).toEqual({
+      kind: "send-today",
+      reminderDay: 20,
+    });
+    expect(plan.dueCohorts).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          calendarType: "gregorian",
+          reminderDay: 20,
+          resolution: { kind: "send-today", reminderDay: 20 },
+        }),
+      ]),
+    );
+  });
 });
