@@ -1,19 +1,28 @@
+import { dryRunEmailResult, guardEmailSend } from "./email-guard.ts";
+
 // Note: This is a simplified version of the reminder service's email logic,
 // adapted for generic use. It does not include List-Unsubscribe headers.
+
+export type RawEmailSendResult = {
+  MessageId?: string;
+  dryRun?: boolean;
+} & Record<string, unknown>;
 
 export class SimpleEmailService {
   private awsAccessKeyId: string;
   private awsSecretAccessKey: string;
   private awsRegion: string;
   private fromEmail: string;
+  private functionName: string;
 
-  constructor(fromOverride?: string) {
+  constructor(fromOverride?: string, functionName = "edge-email") {
     this.awsAccessKeyId = Deno.env.get("AWS_ACCESS_KEY_ID") ?? "";
     this.awsSecretAccessKey = Deno.env.get("AWS_SECRET_ACCESS_KEY") ?? "";
     this.awsRegion = Deno.env.get("AWS_REGION") ?? "eu-central-1";
     // Allow overriding the sender via constructor, then SES_FROM; default remains the contact form address
     this.fromEmail =
       fromOverride ?? Deno.env.get("SES_FROM") ?? "contact-form@ten10-app.com";
+    this.functionName = functionName;
 
     if (!this.awsAccessKeyId || !this.awsSecretAccessKey) {
       throw new Error("Missing AWS credentials.");
@@ -27,7 +36,25 @@ export class SimpleEmailService {
     subject: string;
     textBody: string;
     htmlBody: string;
-  }) {
+  }): Promise<RawEmailSendResult> {
+    const decision = guardEmailSend({
+      recipients: args.cc ? [args.to, args.cc] : [args.to],
+      subject: args.subject,
+      functionName: this.functionName,
+    });
+    if (decision.action === "hold") {
+      return dryRunEmailResult();
+    }
+
+    const kept = new Set(
+      decision.recipients.map((recipient) => recipient.trim().toLowerCase()),
+    );
+    if (!kept.has(args.to.trim().toLowerCase())) {
+      return dryRunEmailResult();
+    }
+    const cc =
+      args.cc && kept.has(args.cc.trim().toLowerCase()) ? args.cc : undefined;
+
     const mimeBytes = await this.buildRawMime(args);
 
     const payload: any = {
@@ -40,8 +67,8 @@ export class SimpleEmailService {
       },
     };
 
-    if (args.cc) {
-      payload.Destination.CcAddresses = [args.cc];
+    if (cc) {
+      payload.Destination.CcAddresses = [cc];
     }
 
     const host = `email.${this.awsRegion}.amazonaws.com`;

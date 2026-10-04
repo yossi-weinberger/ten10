@@ -162,9 +162,14 @@ function until this branch's migration and Edge Function are deployed.
 - `SES_FROM`: Sender email address (default: `reminder-noreply@ten10-app.com`)
 - `SES_FROM_NAME`: Optional display name
 - `SES_CONFIGURATION_SET`: Optional SES configuration set
-- `SUPABASE_URL`: Supabase project URL
+- `SUPABASE_URL`: Supabase project URL. The shared email guard treats a host containing `flpzqbvbymoluoeeeofg` as production.
 - `SUPABASE_SERVICE_ROLE_KEY`: Service role key
 - `SUPABASE_ANON_KEY`: Used for JWT validation only
+- `DRY_RUN`: When `true`, log a non-PII summary and do not call SES
+- `EMAIL_ALLOWLIST`: Comma-separated allowlist; other recipients are dropped
+- `EMAIL_ENV`: Optional override (`production` or any other value for non-prod)
+
+On the testing project (`bbcllewcotypedqsnwmi`), emails are held unless `DRY_RUN=true` or `EMAIL_ALLOWLIST` is set — including `{"test":true}` runs and contact/admin mail. See `supabase/MIGRATION_VAULT_SETUP.md`.
 
 ### Reminder Days
 

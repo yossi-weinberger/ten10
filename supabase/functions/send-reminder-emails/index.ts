@@ -107,11 +107,9 @@ serve(async (req) => {
     const tokenMatchesService = token === validServiceKey;
 
     console.log("[REMINDER] Token validation:", {
-      tokenLength: token.length,
-      tokenPrefix: token.substring(0, 20) + "...",
-      validAnonKeyPrefix: validAnonKey?.substring(0, 20) + "..." || "MISSING",
-      validServiceKeyPrefix:
-        validServiceKey?.substring(0, 20) + "..." || "MISSING",
+      isApiKey,
+      hasAnonKey: !!validAnonKey,
+      hasServiceKey: !!validServiceKey,
       tokenMatchesAnon,
       tokenMatchesService,
     });
@@ -239,7 +237,9 @@ serve(async (req) => {
   }
 
   try {
-    // Check for test mode in request body
+    // Check for test mode in request body.
+    // Test mode only bypasses the reminder-day check. All sends still go
+    // through SimpleEmailService, which applies the shared email guard.
     const body = await req.json().catch(() => ({}));
     let isTest = body.test === true;
 

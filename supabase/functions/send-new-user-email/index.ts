@@ -309,7 +309,10 @@ serve(async (req) => {
     // (which may be set for reminder emails).
     const fromUsers =
       Deno.env.get("SES_FROM_USERS") ?? "users-update@ten10-app.com";
-    const emailService = new SimpleEmailService(fromUsers);
+    const emailService = new SimpleEmailService(
+      fromUsers,
+      "send-new-user-email",
+    );
     await emailService.sendRawEmail({
       to: toEmail,
       subject: generateDailySummarySubject(emailInput),

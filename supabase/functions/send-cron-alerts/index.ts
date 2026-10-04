@@ -160,7 +160,7 @@ serve(async (req) => {
     }
 
     // Send alert emails
-    const emailService = new SimpleEmailService();
+    const emailService = new SimpleEmailService(undefined, "send-cron-alerts");
     const results: Array<{
       email: string;
       status: string;

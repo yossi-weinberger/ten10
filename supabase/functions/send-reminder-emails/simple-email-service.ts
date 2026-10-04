@@ -1,12 +1,7 @@
-/**
- * Simple Email Service (SES v2 HTTP JSON) for Deno Edge — Raw MIME support
- * - Supports List-Unsubscribe / List-Unsubscribe-Post via Raw MIME
- * - Correct SigV4: service=ses, host=email.<region>.amazonaws.com
- * - Single X-Amz-Date for both header and signature
- * - Optional Configuration Set via SES_CONFIGURATION_SET
- * - Tags with user_id_hash (SHA-256 short) instead of raw user_id
- */
-
+import {
+  dryRunEmailResult,
+  guardEmailSend,
+} from "../_shared/email-guard.ts";
 import {
   generateReminderEmailHTML,
   generateReminderEmailSubject,
@@ -19,6 +14,15 @@ import {
 } from "./email-copy.ts";
 import { generateUnsubscribeUrls } from "./jwt-utils.ts";
 
+/**
+ * Simple Email Service (SES v2 HTTP JSON) for Deno Edge — Raw MIME support
+ * - Supports List-Unsubscribe / List-Unsubscribe-Post via Raw MIME
+ * - Correct SigV4: service=ses, host=email.<region>.amazonaws.com
+ * - Single X-Amz-Date for both header and signature
+ * - Optional Configuration Set via SES_CONFIGURATION_SET
+ * - Tags with user_id_hash (SHA-256 short) instead of raw user_id
+ */
+
 export interface EmailResult {
   userId: string;
   email: string;
@@ -26,6 +30,7 @@ export interface EmailResult {
   messageId?: string;
   status: "sent" | "failed";
   error?: string;
+  dryRun?: boolean;
 }
 
 export class SimpleEmailService {
@@ -112,6 +117,23 @@ export class SimpleEmailService {
       const subject = generateReminderEmailSubject(templateData);
       const htmlBody = generateReminderEmailHTML(templateData);
       const textBody = generateReminderEmailText(templateData);
+
+      const decision = guardEmailSend({
+        recipients: [userEmail],
+        subject,
+        functionName: "send-reminder-emails",
+      });
+      if (decision.action === "hold") {
+        const held = dryRunEmailResult();
+        return {
+          userId,
+          email: userEmail,
+          titheBalance,
+          messageId: held.MessageId,
+          status: "sent",
+          dryRun: true,
+        };
+      }
 
       // 2) Build Raw MIME with List-Unsubscribe headers
       const mimeBytes = await this.buildRawMime({

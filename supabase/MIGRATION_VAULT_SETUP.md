@@ -33,6 +33,27 @@ The `service_role` JWT used to authenticate cron job requests to Edge Functions.
 
 ---
 
+## Testing: email send guard
+
+Every Edge Function SES send goes through `supabase/functions/_shared/email-guard.ts`.
+Set these as **Edge Function secrets** (Dashboard → Edge Functions → Secrets), not Vault cron secrets.
+
+| Secret | Purpose |
+|--------|---------|
+| `DRY_RUN` | When `true`, log a non-PII summary (recipient count, masked addresses like `a***@gmail.com`, subject, function name) and return a success-shaped `{ dryRun: true }` result without calling SES. |
+| `EMAIL_ALLOWLIST` | Comma-separated emails, case-insensitive and trimmed. Recipients not on the list are dropped (dropped count is logged, not the addresses). If nothing remains, nothing is sent. |
+| `EMAIL_ENV` | Optional override. `production` forces production send rules even if `SUPABASE_URL` is not the prod project. Any other value forces non-production rules. |
+
+**How production is decided:** production only when `EMAIL_ENV=production` or, if `EMAIL_ENV` is unset, when `SUPABASE_URL` contains the production ref `flpzqbvbymoluoeeeofg`. The testing ref `bbcllewcotypedqsnwmi` is non-production.
+
+**Fail-safe:** on a non-production project, if neither `DRY_RUN=true` nor a non-empty `EMAIL_ALLOWLIST` is set, nothing is sent (treated as dry-run) and a warning is logged. On production, leaving both unset keeps today's send-all behavior.
+
+`{"test":true}` on `send-reminder-emails` only skips the reminder-day check. It cannot bypass this guard.
+
+Contact-form and admin emails (`send-contact-email`, `send-cron-alerts`, `send-new-user-email`) are also held on testing unless the destination is allowlisted. That is intended.
+
+---
+
 ## Cron Jobs That Use Vault
 
 | Job name | Secrets used |

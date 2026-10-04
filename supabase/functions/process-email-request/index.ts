@@ -181,7 +181,10 @@ serve(async (req) => {
     // Uses SES_FROM_MAASER if set, otherwise defaults to maaser@ten10-app.com (must be verified in SES)
     const senderEmail =
       Deno.env.get("SES_FROM_MAASER") ?? "maaser@ten10-app.com";
-    const emailService = new SimpleEmailService(senderEmail);
+    const emailService = new SimpleEmailService(
+      senderEmail,
+      "process-email-request",
+    );
 
     const directDownloadLink = await getDirectDownloadLink();
 

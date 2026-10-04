@@ -23,7 +23,10 @@ async function sendEmailNotification(
   // (which may be set for reminder emails).
   const contactFrom =
     Deno.env.get("SES_FROM_CONTACT") ?? "contact-form@ten10-app.com";
-  const emailService = new SimpleEmailService(contactFrom);
+  const emailService = new SimpleEmailService(
+    contactFrom,
+    "send-contact-email",
+  );
 
   const toEmail =
     insertedRecord.channel === "halacha"
