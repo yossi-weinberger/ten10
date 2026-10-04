@@ -7,6 +7,7 @@ import {
   isProductionEmailEnv,
   maskEmail,
   parseEmailAllowlist,
+  summarizeLoggedSubject,
   type EmailGuardEnv,
 } from "./email-guard.ts";
 
@@ -112,10 +113,46 @@ describe("guardEmailSend", () => {
         function: "send-reminder-emails",
         recipientCount: 2,
         maskedRecipients: ["a***@gmail.com", "b***@ten10-app.com"],
-        subject: "Monthly reminder",
+        subjectLength: "Monthly reminder".length,
         dryRun: true,
       }),
     );
+    expect(JSON.stringify(vi.mocked(console.log).mock.calls)).not.toContain(
+      "Monthly reminder",
+    );
+  });
+
+  it("redacts a reminder subject that contains a user balance", () => {
+    const subject = "תזכורת מעשר - נותרו 4,265.57 ₪ לתרומה";
+    const decision = guardEmailSend({
+      recipients: ["user@example.com"],
+      subject,
+      functionName: "send-reminder-emails",
+      env: env({
+        SUPABASE_URL: TESTING_URL,
+        DRY_RUN: "true",
+      }),
+    });
+
+    expect(decision.action).toBe("hold");
+    expect(summarizeLoggedSubject(subject)).toEqual({
+      subjectLength: subject.length,
+    });
+    expect(console.log).toHaveBeenCalledWith(
+      "[EMAIL_GUARD] Held email send",
+      expect.objectContaining({
+        function: "send-reminder-emails",
+        maskedRecipients: ["u***@example.com"],
+        subjectLength: subject.length,
+      }),
+    );
+    const logged = JSON.stringify([
+      ...vi.mocked(console.log).mock.calls,
+      ...vi.mocked(console.warn).mock.calls,
+    ]);
+    expect(logged).not.toContain(subject);
+    expect(logged).not.toContain("4,265.57");
+    expect(logged).not.toContain("נותרו");
   });
 
   it("filters the allowlist case-insensitively and logs only the dropped count", () => {
@@ -189,8 +226,11 @@ describe("guardEmailSend", () => {
       expect.objectContaining({
         function: "send-reminder-emails",
         maskedRecipients: ["u***@example.com"],
-        subject: "Maaser year close",
+        subjectLength: "Maaser year close".length,
       }),
+    );
+    expect(JSON.stringify(vi.mocked(console.warn).mock.calls)).not.toContain(
+      "Maaser year close",
     );
   });
 

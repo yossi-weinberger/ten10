@@ -69,13 +69,21 @@ describe("shared SimpleEmailService email guard", () => {
     const service = new SimpleEmailService(undefined, "send-new-user-email");
     const result = await service.sendRawEmail({
       to: "dev@ten10-app.com",
-      subject: "Daily summary",
-      textBody: "plain",
-      htmlBody: "<p>html</p>",
+      subject: "תזכורת מעשר - נותרו 4,265.57 ₪ לתרומה",
+      textBody: "יתרת המעשר שלך לתרומה היא 4,265.57 ₪",
+      htmlBody: "<p>נותרו 4,265.57 ₪ לתרומה</p>",
     });
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(result).toEqual({ MessageId: "dry-run", dryRun: true });
+    const logged = JSON.stringify([
+      ...vi.mocked(console.log).mock.calls,
+      ...vi.mocked(console.warn).mock.calls,
+    ]);
+    expect(logged).not.toContain("4,265.57");
+    expect(logged).not.toContain("נותרו");
+    expect(logged).not.toContain("יתרת המעשר");
+    expect(logged).toContain("d***@ten10-app.com");
   });
 
   it("drops a non-allowlisted To address and does not send to remaining CC", async () => {

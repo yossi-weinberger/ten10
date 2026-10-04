@@ -40,7 +40,7 @@ Set these as **Edge Function secrets** (Dashboard → Edge Functions → Secrets
 
 | Secret | Purpose |
 |--------|---------|
-| `DRY_RUN` | When `true`, log a non-PII summary (recipient count, masked addresses like `a***@gmail.com`, subject, function name) and return a success-shaped `{ dryRun: true }` result without calling SES. |
+| `DRY_RUN` | When `true`, log a non-PII summary (recipient count, masked addresses like `a***@gmail.com`, subject length, function name) and return a success-shaped `{ dryRun: true }` result without calling SES. |
 | `EMAIL_ALLOWLIST` | Comma-separated emails, case-insensitive and trimmed. Recipients not on the list are dropped (dropped count is logged, not the addresses). If nothing remains, nothing is sent. |
 | `EMAIL_ENV` | Optional override. `production` forces production send rules even if `SUPABASE_URL` is not the prod project. Any other value forces non-production rules. |
 

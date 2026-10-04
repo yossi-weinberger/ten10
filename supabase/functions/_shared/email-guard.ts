@@ -74,6 +74,12 @@ export function maskEmail(email: string): string {
   return `${first}***@${domain}`;
 }
 
+export function summarizeLoggedSubject(subject: string): {
+  subjectLength: number;
+} {
+  return { subjectLength: subject.length };
+}
+
 export function isProductionEmailEnv(env?: EmailGuardEnv): boolean {
   const override = readEnv("EMAIL_ENV", env)?.trim().toLowerCase();
   if (override === "production") {
@@ -125,7 +131,7 @@ function logHold(
     reason: holdReasonLabel(decision.reason),
     recipientCount: decision.recipients.length,
     maskedRecipients: decision.recipients.map(maskEmail),
-    subject,
+    ...summarizeLoggedSubject(subject),
     droppedCount: decision.droppedCount,
     dryRun: true,
   };

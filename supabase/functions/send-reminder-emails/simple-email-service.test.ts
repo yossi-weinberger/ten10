@@ -154,11 +154,12 @@ describe("SimpleEmailService", () => {
     const result = await service.sendReminderEmail(
       "recipient@example.com",
       "user-123",
-      10,
-      10,
+      4265.57,
+      4265.57,
       0,
-      "en",
+      "he",
       "Yossi",
+      "ILS",
     );
 
     expect(fetchMock).not.toHaveBeenCalled();
@@ -167,6 +168,14 @@ describe("SimpleEmailService", () => {
       messageId: "dry-run",
       dryRun: true,
     });
+    const logged = JSON.stringify([
+      ...vi.mocked(console.log).mock.calls,
+      ...vi.mocked(console.warn).mock.calls,
+    ]);
+    expect(logged).not.toContain("4,265.57");
+    expect(logged).not.toContain("4265.57");
+    expect(logged).not.toContain("נותרו");
+    expect(logged).toContain("r***@example.com");
   });
 
   it("still holds {test:true} traffic on the testing project", async () => {
