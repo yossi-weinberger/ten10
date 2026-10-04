@@ -13,6 +13,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
+import { summarizeCronAlertSendResults } from "./cron-alert-send-summary.ts";
 import {
   generateAlertEmailHTML,
   generateAlertEmailSubject,
@@ -161,14 +162,13 @@ serve(async (req) => {
 
     // Send alert emails
     const emailService = new SimpleEmailService(undefined, "send-cron-alerts");
-    const results: Array<{
-      email: string;
-      status: string;
-      messageId?: string;
-      error?: string;
-    }> = [];
     const htmlBody = generateAlertEmailHTML(failures);
     const textBody = generateAlertEmailText(failures);
+    const attempts: Array<{
+      email: string;
+      result?: Awaited<ReturnType<typeof emailService.sendRawEmail>>;
+      error?: string;
+    }> = [];
 
     for (const admin of adminEmails) {
       try {
@@ -178,28 +178,25 @@ serve(async (req) => {
           htmlBody,
           textBody,
         });
-
-        results.push({
-          email: admin.email,
-          status: "sent",
-          messageId: result.MessageId,
-        });
+        attempts.push({ email: admin.email, result });
       } catch (error) {
-        results.push({
+        attempts.push({
           email: admin.email,
-          status: "failed",
           error: error instanceof Error ? error.message : String(error),
         });
       }
     }
 
+    const summary = summarizeCronAlertSendResults(attempts);
+
     return new Response(
       JSON.stringify({
         message: `Checked for failures, found ${failures.length} cron job failure(s)`,
         failures,
-        emailsSent: results.filter((r) => r.status === "sent").length,
-        emailsFailed: results.filter((r) => r.status === "failed").length,
-        results,
+        emailsSent: summary.emailsSent,
+        emailsHeld: summary.emailsHeld,
+        emailsFailed: summary.emailsFailed,
+        results: summary.results,
       }),
       {
         status: 200,
