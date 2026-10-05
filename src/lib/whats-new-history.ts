@@ -1,7 +1,7 @@
 // Controls when users see the "What's New" modal again.
 // This is intentionally separate from package.json because not every app release
 // needs fresh release notes.
-export const CURRENT_WHATS_NEW_VERSION = "0.7.6";
+export const CURRENT_WHATS_NEW_VERSION = "0.8.0";
 
 export interface WhatsNewHistoryRelease {
   version: string;
@@ -12,9 +12,9 @@ export interface WhatsNewHistoryRelease {
 
 export const whatsNewHistory: WhatsNewHistoryRelease[] = [
   {
-    version: "0.7.6",
+    version: "0.8.0",
     date: "2026-09-23",
-    translationKey: "v076",
+    translationKey: "v080",
     itemKeys: ["hebrewCalendar", "hebrewRecurring", "maaserYear"],
   },
   {
