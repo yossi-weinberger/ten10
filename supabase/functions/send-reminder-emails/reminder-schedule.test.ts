@@ -4,20 +4,16 @@ import {
   REMINDER_CALENDAR_POLICY,
   resolveMaaserYearCloseReminder,
   resolveReminderSchedule,
+  type ReminderScheduleResolution,
 } from "./reminder-schedule.ts";
 import {
+  addIsoDays,
   getCalendarAdapter,
   type CalendarType,
 } from "../_shared/calendar/index.ts";
 import { getIsraelYomTov } from "../_shared/calendar/israel-yom-tov.ts";
 
 const reminderDays = [1, 5, 10, 15, 20, 25];
-
-function addDays(isoDate: string, amount: number): string {
-  const date = new Date(`${isoDate}T00:00:00Z`);
-  date.setUTCDate(date.getUTCDate() + amount);
-  return date.toISOString().slice(0, 10);
-}
 
 // The cron runs after sunset in Israel, so a run is blocked when the evening
 // is Shabbat or Yom Tov, or when the civil date is Saturday or Yom Tov.
@@ -27,8 +23,28 @@ function isBlockedEvening(isoDate: string): boolean {
     dayOfWeek === 5 ||
     dayOfWeek === 6 ||
     getIsraelYomTov(isoDate) !== null ||
-    getIsraelYomTov(addDays(isoDate, 1)) !== null
+    getIsraelYomTov(addIsoDays(isoDate, 1)) !== null
   );
+}
+
+// Maps each due date to the dates its email was sent on.
+function collectSends(
+  resolve: (isoDate: string) => ReminderScheduleResolution,
+): Map<string, string[]> {
+  const sends = new Map<string, string[]>();
+  for (
+    let date = "2026-09-01";
+    date <= "2040-12-31";
+    date = addIsoDays(date, 1)
+  ) {
+    const resolution = resolve(date);
+    if (resolution.kind !== "send-today" && resolution.kind !== "makeup") {
+      continue;
+    }
+    const due = resolution.kind === "makeup" ? resolution.reminderDate : date;
+    sends.set(due, [...(sends.get(due) ?? []), date]);
+  }
+  return sends;
 }
 
 describe("resolveReminderSchedule", () => {
@@ -179,29 +195,18 @@ describe("resolveReminderSchedule", () => {
   it.each(["gregorian", "hebrew"] as const)(
     "sends each %s reminder day exactly once and never on a blocked evening",
     (calendarType) => {
+      const calendar = getCalendarAdapter(calendarType);
       for (const day of reminderDays) {
-        const sends = new Map<string, string[]>();
-        for (
-          let date = "2026-09-01";
-          date <= "2040-12-31";
-          date = addDays(date, 1)
-        ) {
-          const resolution = resolveReminderSchedule(date, [day], calendarType);
-          if (resolution.kind === "send-today") {
-            sends.set(date, [...(sends.get(date) ?? []), date]);
-          } else if (resolution.kind === "makeup") {
-            const due = resolution.reminderDate;
-            sends.set(due, [...(sends.get(due) ?? []), date]);
-          }
-        }
+        const sends = collectSends((date) =>
+          resolveReminderSchedule(date, [day], calendarType),
+        );
 
         for (
           let date = "2026-09-10";
           date <= "2040-12-20";
-          date = addDays(date, 1)
+          date = addIsoDays(date, 1)
         ) {
-          const isDue =
-            getCalendarAdapter(calendarType).fromIsoDate(date).day === day;
+          const isDue = calendar.fromIsoDate(date).day === day;
           expect(sends.get(date)?.length ?? 0, date).toBe(isDue ? 1 : 0);
         }
         for (const sentOn of [...sends.values()].flat()) {
@@ -365,23 +370,7 @@ describe("reminder run logging", () => {
   );
 
   it("sends the maaser-year close reminder once a year, never on a blocked evening", () => {
-    const sendsByTarget = new Map<string, string[]>();
-    for (
-      let date = "2026-09-01";
-      date <= "2040-12-31";
-      date = addDays(date, 1)
-    ) {
-      const resolution = resolveMaaserYearCloseReminder(date);
-      if (resolution.kind === "send-today") {
-        sendsByTarget.set(date, [...(sendsByTarget.get(date) ?? []), date]);
-      } else if (resolution.kind === "makeup") {
-        const target = resolution.reminderDate;
-        sendsByTarget.set(target, [
-          ...(sendsByTarget.get(target) ?? []),
-          date,
-        ]);
-      }
-    }
+    const sendsByTarget = collectSends(resolveMaaserYearCloseReminder);
 
     expect(sendsByTarget.size).toBe(15);
     for (const [target, sentOn] of sendsByTarget) {

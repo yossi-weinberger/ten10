@@ -136,11 +136,7 @@ function getMakeupReason(
 }
 
 function fridayWasSentInAdvance(fridayDate: string): boolean {
-  const thursdayDate = addDays(fridayDate, -1);
-  return (
-    getIsraelYomTov(fridayDate) === null &&
-    isEligibleDate(thursdayDate)
-  );
+  return isEligibleDate(addDays(fridayDate, -1));
 }
 
 export function resolveReminderSchedule(
@@ -168,10 +164,7 @@ export function resolveReminderSchedule(
   if (currentDayOfWeek === 4) {
     const fridayDate = addDays(currentIsraelDate, 1);
     const fridayDay = dayOfMonth(fridayDate, calendarType);
-    if (
-      reminderDays.includes(fridayDay) &&
-      getIsraelYomTov(fridayDate) === null
-    ) {
+    if (reminderDays.includes(fridayDay)) {
       return {
         kind: "makeup",
         reason: "friday-advance",
@@ -241,8 +234,7 @@ export function resolveSpecificReminderDate(
   const currentDayOfWeek = toUtcDate(currentIsraelDate).getUTCDay();
   if (
     currentDayOfWeek === 4 &&
-    addDays(currentIsraelDate, 1) === reminderDate &&
-    getIsraelYomTov(reminderDate) === null
+    addDays(currentIsraelDate, 1) === reminderDate
   ) {
     return {
       kind: "makeup",
