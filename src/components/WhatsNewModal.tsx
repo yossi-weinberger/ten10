@@ -31,11 +31,11 @@ import {
   WHATS_NEW_SUPPRESS_EVENT,
 } from "@/lib/onboarding/whatsNew";
 import {
-  HelpCircle,
-  Library,
-  Mail,
+  CalendarClock,
+  CalendarDays,
+  Coins,
+  Repeat,
   Sparkles,
-  TableProperties,
 } from "lucide-react";
 
 interface FeatureItem {
@@ -49,17 +49,17 @@ const iconClass = "h-5 w-5 text-primary flex-shrink-0";
 
 const highlights: FeatureItem[] = [
   {
-    icon: <HelpCircle className={iconClass} />,
+    icon: <CalendarClock className={iconClass} />,
     titleKey: "featured.highlights.help.title",
     descriptionKey: "featured.highlights.help.description",
   },
   {
-    icon: <Library className={iconClass} />,
+    icon: <Repeat className={iconClass} />,
     titleKey: "featured.highlights.halacha.title",
     descriptionKey: "featured.highlights.halacha.description",
   },
   {
-    icon: <Mail className={iconClass} />,
+    icon: <Coins className={iconClass} />,
     titleKey: "featured.highlights.reminders.title",
     descriptionKey: "featured.highlights.reminders.description",
     webOnly: true,
@@ -306,7 +306,7 @@ export function WhatsNewModal({
         <div className="relative space-y-4">
           <div className="flex items-start gap-3">
             <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
-              <TableProperties className="h-6 w-6" />
+              <CalendarDays className="h-6 w-6" />
             </div>
             <div className="min-w-0 space-y-2">
               <h3 className="text-xl font-bold tracking-tight text-foreground">
