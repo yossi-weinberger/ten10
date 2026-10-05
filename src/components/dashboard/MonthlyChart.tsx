@@ -18,7 +18,9 @@ import { buildPeriodBoundaries } from "@/lib/calendar/calendar-period";
 import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import { formatLocalDate } from "@/lib/utils/local-date";
 import {
+  chartBucketsNeedReload,
   formatMonthlyChartData,
+  getLoadedChartCalendarType,
   getPreviousChartAnchor,
   shouldLoadInitialChart,
 } from "./monthly-chart.utils";
@@ -97,6 +99,7 @@ export function MonthlyChart() {
       if (isReset) {
         setCurrentChartEndDate(null);
         setCanLoadMoreChartData(true);
+        setServerMonthlyChartData([], false);
       } else if (!loadMore) {
         setInitialLoadAttempted(true);
       }
@@ -169,6 +172,10 @@ export function MonthlyChart() {
     loadData(false, true);
   };
 
+  const loadedCalendarType = getLoadedChartCalendarType(
+    serverMonthlyChartData,
+  );
+
   useEffect(() => {
     if (
       shouldLoadInitialChart({
@@ -179,6 +186,8 @@ export function MonthlyChart() {
         hasError: serverMonthlyChartDataError !== null,
         initialLoadAttempted,
         dataLength: serverMonthlyChartData.length,
+        calendarType,
+        loadedCalendarType,
       })
     ) {
       logger.log(
@@ -187,7 +196,10 @@ export function MonthlyChart() {
         "User ID:",
         user?.id
       );
-      loadData(false, false);
+      loadData(
+        false,
+        chartBucketsNeedReload(loadedCalendarType, calendarType),
+      );
       setInitialLoadAttempted(true);
     }
   }, [
@@ -199,6 +211,8 @@ export function MonthlyChart() {
     initialLoadAttempted,
     serverMonthlyChartData.length,
     serverMonthlyChartDataError,
+    calendarType,
+    loadedCalendarType,
   ]);
 
   const formattedChartDataForAreaChart: MonthlyChartDataPoint[] =
@@ -216,7 +230,6 @@ export function MonthlyChart() {
   if (
     !platformReady ||
     (isLoadingServerMonthlyChartData &&
-      !initialLoadAttempted &&
       serverMonthlyChartData.length === 0)
   ) {
     return (

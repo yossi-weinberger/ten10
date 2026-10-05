@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { MonthlyDataPoint } from "@/lib/data-layer/chart.service";
 import {
+  chartBucketsNeedReload,
   formatMonthlyChartData,
+  getLoadedChartCalendarType,
   getPreviousChartAnchor,
   shouldLoadInitialChart,
 } from "./monthly-chart.utils";
@@ -136,7 +138,66 @@ describe("formatGregorianMonthlyChartData", () => {
         hasError: false,
         initialLoadAttempted: true,
         dataLength: 0,
+        calendarType: "gregorian",
+        loadedCalendarType: null,
       }),
     ).toBe(true);
+  });
+
+  it("reloads when calendarType flips even if stale buckets remain cached", () => {
+    expect(
+      chartBucketsNeedReload("hebrew", "gregorian"),
+    ).toBe(true);
+    expect(
+      shouldLoadInitialChart({
+        platformReady: true,
+        platform: "web",
+        userId: "user-1",
+        isLoading: false,
+        hasError: false,
+        initialLoadAttempted: true,
+        dataLength: 6,
+        calendarType: "gregorian",
+        loadedCalendarType: "hebrew",
+      }),
+    ).toBe(true);
+  });
+
+  it("does not reload when cached buckets already match the active calendar", () => {
+    expect(
+      shouldLoadInitialChart({
+        platformReady: true,
+        platform: "web",
+        userId: "user-1",
+        isLoading: false,
+        hasError: false,
+        initialLoadAttempted: true,
+        dataLength: 6,
+        calendarType: "hebrew",
+        loadedCalendarType: "hebrew",
+      }),
+    ).toBe(false);
+  });
+
+  it("reads the loaded calendar from the first cache key", () => {
+    expect(getLoadedChartCalendarType(data)).toBe("gregorian");
+    expect(getLoadedChartCalendarType([])).toBeNull();
+  });
+
+  it("does not format Hebrew buckets as Gregorian month labels", () => {
+    const hebrewData: MonthlyDataPoint[] = [
+      {
+        period_index: 1,
+        period_start: "2026-09-12",
+        period_end: "2026-10-12",
+        period_key: "5787-01",
+        cache_key: "hebrew:5787-01",
+        income: 100,
+        donations: 10,
+        expenses: 20,
+      },
+    ];
+
+    expect(formatMonthlyChartData(hebrewData, "gregorian", "he")).toEqual([]);
   });
 });
