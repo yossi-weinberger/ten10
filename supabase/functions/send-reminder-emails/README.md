@@ -184,20 +184,25 @@ deduplicates recipients before sending.
 The function uses `Asia/Jerusalem` and a civil-midnight boundary. It does not
 use sunset or zmanim. Israel observance blocks Rosh Hashana (both days), Yom
 Kippur, the first day of Sukkot, Shemini Atzeret, the first and seventh days
-of Pesach, and Shavuot. Chol HaMoed, Purim, Chanukah, fasts, and Erev Yom Tov
-are not blocked. Diaspora second-day support remains a location-policy
-follow-up and is not implemented in this stage.
+of Pesach, and Shavuot. Chol HaMoed, Purim, Chanukah, and fasts are not
+blocked. Diaspora second-day support remains a location-policy follow-up and
+is not implemented in this stage.
 
-The existing Friday/Saturday behavior is intentionally preserved:
+The cron fires after sunset in Israel, so the run on Friday and on Erev Yom Tov
+would send after Shabbat or Yom Tov starts:
 
 - Saturday (Israel): skipped entirely
 - Friday (Israel): skipped (cron fires after sunset)
+- Erev Yom Tov (Israel): skipped (cron fires after sunset)
 - Sunday: makeup for Saturday reminder days
 - Thursday: makeup for Friday reminder days
+- First eligible day after Yom Tov: makeup for Yom Tov and Erev Yom Tov
+  reminder days
+- Maaser-year email: when 29 Elul (Erev Rosh Hashanah) is blocked, it goes out
+  on the last eligible day before it
 
-The Friday rule is the existing sunset-based operational exception and is
-therefore inconsistent with the otherwise civil-midnight convention. Stage 5
-preserves it rather than redesigning established reminder behavior.
+The Friday and Erev Yom Tov rules are sunset-based operational exceptions and
+are therefore inconsistent with the otherwise civil-midnight convention.
 
 Desktop reminders use the selected reminder calendar at the machine's local
 civil midnight and retain a Gregorian ISO local-storage key for once-per-day
