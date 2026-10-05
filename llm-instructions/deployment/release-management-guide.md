@@ -140,23 +140,11 @@ Version numbers must be synchronized in **four files**:
 
 **Tip**: The release script (`npm run release`) automatically updates all four files. If updating manually, run `npm install --package-lock-only` after updating `package.json` to sync `package-lock.json`.
 
-### Step 2: Open a release pull request, then tag after merge
+### Step 2: Merge the release pull request
 
-`main` rejects direct pushes. `npm run release` creates `release/vX.Y.Z`, pushes that branch, and opens a pull request. It does not create the tag.
+`main` rejects direct pushes. `npm run release` creates `release/vX.Y.Z`, pushes that branch, and opens a pull request.
 
-After the pull request merges:
-
-```bash
-git checkout main
-git pull
-git tag -a v0.3.0 -m "Release v0.3.0"
-git push origin v0.3.0
-```
-
-**Important**:
-
-- Tag must start with `v` (e.g., `v0.3.0`, not `0.3.0`)
-- The tag push triggers the GitHub Actions workflow
+Merging that pull request creates the `vX.Y.Z` tag and starts the desktop build. There is no separate tag command.
 
 ### Step 3: Monitor Build
 
