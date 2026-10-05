@@ -62,18 +62,16 @@ function trackRecurringUpdateEvents(
 function previousBilledDate(existing: RecurringTransaction): string | null {
   if ((existing.execution_count ?? 0) <= 0) return null;
   const calendarType = existing.calendar_type ?? "gregorian";
-  const dayOfMonth = existing.day_of_month;
+  const adapter = getCalendarAdapter(calendarType);
+  const dayOfMonth =
+    existing.day_of_month ?? adapter.fromIsoDate(existing.next_due_date).day;
 
   switch (existing.frequency) {
     case "monthly": {
-      const previousMonth = getCalendarAdapter(calendarType).addMonths(
-        existing.next_due_date,
-        -1,
-      );
+      const previousMonth = adapter.addMonths(existing.next_due_date, -1);
       return rescheduleBillingDayInMonth(previousMonth, dayOfMonth, calendarType);
     }
     case "yearly": {
-      const adapter = getCalendarAdapter(calendarType);
       const current = adapter.fromIsoDate(existing.next_due_date);
       return adapter.toIsoDate(
         {
