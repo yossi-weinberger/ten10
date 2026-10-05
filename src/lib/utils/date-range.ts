@@ -50,7 +50,7 @@ export function getPreviousPeriodRange(
         endDate: adapter.toIsoDate(
           {
             year: current.year - 1,
-            month: current.month,
+            monthCode: current.monthCode,
             day: current.day,
           },
           "constrain",

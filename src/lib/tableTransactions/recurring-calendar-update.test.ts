@@ -116,7 +116,35 @@ describe("recurring calendar edit payload", () => {
 
     expect(switchedEarly < nextDueDate).toBe(true);
     expect(nextChargeDate).not.toBe(switchedEarly);
-    expect(nextChargeDate >= nextDueDate).toBe(true);
-    expect(nextChargeDate).toBe(hebrew.addMonths(switchedEarly, 1));
+    expect(nextChargeDate).toBe("2027-03-10");
+  });
+
+  it("keeps an unbilled month when the new day is after the last charge", () => {
+    const payload = buildRecurringUpdateRpcParams(
+      "monthly-id",
+      "user-id",
+      {
+        frequency: "monthly",
+        calendar_type: "hebrew",
+        day_of_month: 1,
+      },
+      {
+        id: "monthly-id",
+        user_id: "user-id",
+        status: "active",
+        start_date: "2027-01-11",
+        next_due_date: "2027-02-11",
+        frequency: "monthly",
+        calendar_type: "gregorian",
+        anchor_month_code: null,
+        day_of_month: 11,
+        execution_count: 1,
+        amount: 100,
+        currency: "ILS",
+        type: "expense",
+      },
+    );
+
+    expect(payload.p_next_due_date).toBe("2027-02-08");
   });
 });

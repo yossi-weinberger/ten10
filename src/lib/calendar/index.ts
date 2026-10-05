@@ -14,6 +14,7 @@ export {
   advanceMonthlyRecurringDate,
   advanceRecurringDate,
   advanceYearlyRecurringDate,
+  addIsoDays,
   firstRecurringDueDate,
   generateRecurringCatchUpDates,
   getCalendarAdapter,

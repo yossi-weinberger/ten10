@@ -130,7 +130,19 @@ describe("getPreviousPeriodRange", () => {
     });
   });
 
-  it("compares Hebrew year 5787 with the same elapsed date in 5786", () => {
+  it("compares Nisan 5787 with Nisan 5786, not the shifted month index", () => {
+    expect(
+      getPreviousPeriodRange("2026-09-12", "2027-04-29", {
+        selection: "year",
+        calendarType: "hebrew",
+      }),
+    ).toEqual({
+      startDate: "2025-09-23",
+      endDate: "2026-04-09",
+    });
+  });
+
+  it("compares Tevet 5787 with the same date in 5786", () => {
     expect(
       getPreviousPeriodRange("2026-09-12", "2027-01-01", {
         selection: "year",

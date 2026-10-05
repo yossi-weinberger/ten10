@@ -24,6 +24,7 @@ import type {
 import { getErrorMessage } from "@/lib/utils/error-message";
 import { parseLocalDate } from "@/lib/utils/local-date";
 import { useDonationStore } from "@/lib/store";
+import { useCalendarPreview } from "@/lib/calendar/calendar-preview";
 
 export interface TableTransactionsState {
   // State
@@ -403,9 +404,12 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
 
       try {
         const { filters, sorting } = get();
-        const { calendarType, showSecondaryDate } =
-          useDonationStore.getState().settings;
-        const calendarSettings = { calendarType, showSecondaryDate };
+        const savedCalendar = useDonationStore.getState().settings;
+        const preview = useCalendarPreview.getState().preview;
+        const calendarSettings = {
+          calendarType: preview ?? savedCalendar.calendarType,
+          showSecondaryDate: savedCalendar.showSecondaryDate,
+        };
         const { transactions: transactionsToExport, totalCount } =
           await TableTransactionsService.getDataForExport(filters, platform);
 

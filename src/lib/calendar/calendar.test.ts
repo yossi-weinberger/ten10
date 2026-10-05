@@ -11,11 +11,18 @@ import {
 import {
   getCalendarAdapter as getSharedCalendarAdapter,
 } from "../../../supabase/functions/_shared/calendar/index.ts";
+import { hebrewFromIsoDate } from "../../../supabase/functions/_shared/calendar/hebrew-calendar.ts";
 
 const gregorian = getCalendarAdapter("gregorian");
 const hebrew = getCalendarAdapter("hebrew");
 
 describe("calendar adapters", () => {
+  it("rejects a Gregorian date that does not exist", () => {
+    expect(() => hebrewFromIsoDate("2024-02-30")).toThrow(RangeError);
+    expect(() => gregorian.fromIsoDate("2024-02-30")).toThrow(RangeError);
+    expect(hebrewFromIsoDate("2024-02-29").day).toBeGreaterThan(0);
+  });
+
   it("round-trips Gregorian ISO dates through their representation", () => {
     for (const isoDate of ["1900-01-01", "2024-02-29", "2100-12-31"]) {
       const representation = gregorian.fromIsoDate(isoDate);

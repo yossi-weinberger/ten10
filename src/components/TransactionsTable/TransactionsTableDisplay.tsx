@@ -49,6 +49,7 @@ import {
   normalizeBulkFieldActions,
 } from "@/lib/tableTransactions/bulkActions";
 import { getErrorMessage } from "@/lib/utils/error-message";
+import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import {
   formatCalendarMonthLabel,
   getCalendarMonthKey,
@@ -64,9 +65,7 @@ export function TransactionsTableDisplay() {
   const trackChomeshSeparately = useDonationStore(
     (state) => state.settings.trackChomeshSeparately,
   );
-  const calendarType = useDonationStore(
-    (state) => state.settings.calendarType,
-  );
+  const calendarType = useEffectiveCalendarType();
 
   // sortableColumns definition with translations
   const sortableColumns: { label: string; field: SortableField }[] = [

@@ -31,6 +31,7 @@ import { CurrencyCode } from "@/lib/currencies";
 
 import { useIsCurrencyLocked } from "@/hooks/useIsCurrencyLocked";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { useCalendarPreview } from "@/lib/calendar/calendar-preview";
 import { buildReminderProfileUpdate } from "@/lib/services/preferences-sync.service";
 
 export function SettingsPage() {
@@ -220,6 +221,7 @@ export function SettingsPage() {
       updateSettings={(calendarSettings) => {
         updateSettings(calendarSettings);
         if (calendarSettings.calendarType !== undefined) {
+          useCalendarPreview.getState().clearPreview();
           trackProductEvent("settings_changed", {
             setting_key: "calendar_type",
           });

@@ -7,7 +7,7 @@ import {
 } from "./recurringTable.store";
 import { logger } from "@/lib/logger";
 import { rescheduleBillingDayInMonth } from "@/lib/recurring/recurring-date.utils";
-import { advanceRecurringDate, getCalendarAdapter } from "@/lib/calendar";
+import { advanceRecurringDate, addIsoDays, getCalendarAdapter } from "@/lib/calendar";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { invokeTauri } from "@/lib/tauri-invoke";
 import {
@@ -59,6 +59,42 @@ function trackRecurringUpdateEvents(
   });
 }
 
+function previousBilledDate(existing: RecurringTransaction): string | null {
+  if ((existing.execution_count ?? 0) <= 0) return null;
+  const calendarType = existing.calendar_type ?? "gregorian";
+  const dayOfMonth = existing.day_of_month;
+
+  switch (existing.frequency) {
+    case "monthly": {
+      const previousMonth = getCalendarAdapter(calendarType).addMonths(
+        existing.next_due_date,
+        -1,
+      );
+      return rescheduleBillingDayInMonth(previousMonth, dayOfMonth, calendarType);
+    }
+    case "yearly": {
+      const adapter = getCalendarAdapter(calendarType);
+      const current = adapter.fromIsoDate(existing.next_due_date);
+      return adapter.toIsoDate(
+        {
+          year: current.year - 1,
+          monthCode: existing.anchor_month_code ?? current.monthCode,
+          day: dayOfMonth,
+        },
+        "constrain",
+      );
+    }
+    case "weekly":
+      return addIsoDays(existing.next_due_date, -7);
+    case "daily":
+      return addIsoDays(existing.next_due_date, -1);
+    default: {
+      const exhaustiveFrequency: never = existing.frequency;
+      return exhaustiveFrequency;
+    }
+  }
+}
+
 function prepareRecurringUpdates(
   values: Partial<RecurringTransaction>,
   existing?: RecurringTransaction,
@@ -76,38 +112,44 @@ function prepareRecurringUpdates(
   ) {
     const calendarType =
       updates.calendar_type ?? existing.calendar_type ?? "gregorian";
-    let nextDueDate = rescheduleBillingDayInMonth(
-      existing.next_due_date,
-      updates.day_of_month,
-      calendarType,
-    );
-    const frequency = updates.frequency ?? existing.frequency;
     const calendarChanged =
       updates.calendar_type !== undefined &&
       updates.calendar_type !== existing.calendar_type;
-    const anchorMonthCode =
-      frequency === "yearly" && calendarChanged
-        ? getCalendarAdapter(calendarType).fromIsoDate(nextDueDate).monthCode
-        : updates.anchor_month_code !== undefined
-          ? updates.anchor_month_code
-          : existing.anchor_month_code;
-    let guard = 0;
-    while (calendarChanged && nextDueDate < existing.next_due_date) {
-      if (guard >= 36) {
-        throw new RangeError("Recurring reschedule did not advance");
+    const frequency = updates.frequency ?? existing.frequency;
+    let nextDueDate = rescheduleBillingDayInMonth(
+      calendarChanged
+        ? previousBilledDate(existing) ?? existing.start_date
+        : existing.next_due_date,
+      updates.day_of_month,
+      calendarType,
+    );
+    if (calendarChanged) {
+      const lastBilled = previousBilledDate(existing);
+      const lowerBound = lastBilled ?? addIsoDays(existing.start_date, -1);
+      let guard = 0;
+      while (nextDueDate <= lowerBound) {
+        if (guard >= 36) {
+          throw new RangeError("Recurring reschedule did not advance");
+        }
+        guard += 1;
+        const anchorMonthCode =
+          frequency === "yearly"
+            ? getCalendarAdapter(calendarType).fromIsoDate(nextDueDate).monthCode
+            : updates.anchor_month_code !== undefined
+              ? updates.anchor_month_code
+              : existing.anchor_month_code;
+        const advanced = advanceRecurringDate(nextDueDate, {
+          calendarType,
+          frequency,
+          dayOfMonth: updates.day_of_month,
+          anchorMonthCode,
+          yearlyNormalization: "constrain",
+        });
+        if (advanced <= nextDueDate) {
+          throw new RangeError("Recurring reschedule did not advance");
+        }
+        nextDueDate = advanced;
       }
-      guard += 1;
-      const advanced = advanceRecurringDate(nextDueDate, {
-        calendarType,
-        frequency,
-        dayOfMonth: updates.day_of_month,
-        anchorMonthCode,
-        yearlyNormalization: "constrain",
-      });
-      if (advanced <= nextDueDate) {
-        throw new RangeError("Recurring reschedule did not advance");
-      }
-      nextDueDate = advanced;
     }
     updates.next_due_date = nextDueDate;
   }

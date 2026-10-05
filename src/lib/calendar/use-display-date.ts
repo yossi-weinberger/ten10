@@ -1,6 +1,7 @@
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useDonationStore } from "@/lib/store";
+import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import {
   formatDisplayDate,
   type DisplayDate,
@@ -13,9 +14,7 @@ export function useDisplayDate(): (
   style?: DisplayDateStyle,
 ) => DisplayDate {
   const { i18n } = useTranslation();
-  const calendarType = useDonationStore(
-    (state) => state.settings.calendarType,
-  );
+  const calendarType = useEffectiveCalendarType();
   const showSecondaryDate = useDonationStore(
     (state) => state.settings.showSecondaryDate,
   );

@@ -18,6 +18,7 @@ import { PreferencesSyncService } from "@/lib/services/preferences-sync.service"
 import { resetPostHogUser } from "@/lib/analytics/posthogClient";
 import { syncPostHogUserIdentity } from "@/lib/analytics/posthogIdentity.service";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { useCalendarPreview } from "@/lib/calendar/calendar-preview";
 
 export type { SupabaseUser as User };
 
@@ -153,6 +154,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setLoading(false);
     } else {
       invalidateSessionCache();
+      useCalendarPreview.getState().clearPreview();
     }
   };
 
