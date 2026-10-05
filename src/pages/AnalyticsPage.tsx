@@ -18,8 +18,8 @@ import { DonationRecipientsInsight } from "@/components/analytics/DonationRecipi
 import { InsightsSummaryRow } from "@/components/analytics/InsightsSummaryRow";
 import { TextInsightsCard } from "@/components/analytics/TextInsightsCard";
 import { TransactionHeatmap } from "@/components/analytics/TransactionHeatmap";
-import { format } from "date-fns";
-import { he, enUS } from "date-fns/locale";
+import { MaaserYearSummaryCard } from "@/components/analytics/MaaserYearSummaryCard";
+import { useMaaserYearSummary } from "@/hooks/useMaaserYearSummary";
 import { useDonationStore } from "@/lib/store";
 import { generateAnalyticsPdf, computeRecurringTotals } from "@/lib/analytics/export-pdf";
 import { formatCurrency } from "@/lib/utils/currency";
@@ -27,9 +27,17 @@ import { formatCategory } from "@/lib/category-registry";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { formatDisplayDate } from "@/lib/calendar/display-date";
+import { CalendarPreviewToggle } from "@/components/dashboard/CalendarPreviewToggle";
+import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
+import { formatLocalDate } from "@/lib/utils/local-date";
 
 export function AnalyticsPage() {
   const { t, i18n } = useTranslation("dashboard");
+  const calendarType = useEffectiveCalendarType();
+  const showSecondaryDate = useDonationStore(
+    (state) => state.settings.showSecondaryDate,
+  );
   const { user } = useAuth();
   const { platform } = usePlatform();
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
@@ -79,13 +87,21 @@ export function AnalyticsPage() {
     prevIncome,
     prevExpenses,
     isLoading: isLoadingPeriodComparison,
-  } = usePeriodComparison(activeDateRangeObject, user, platform);
+  } = usePeriodComparison(
+    activeDateRangeObject,
+    dateRangeSelection,
+    user,
+    platform,
+  );
 
   const prevPeriodDates = useMemo(() => {
     const { startDate, endDate } = activeDateRangeObject;
     if (!startDate || !endDate || startDate === "1970-01-01") return null;
-    return getPreviousPeriodRange(startDate, endDate);
-  }, [activeDateRangeObject]);
+    return getPreviousPeriodRange(startDate, endDate, {
+      selection: dateRangeSelection,
+      calendarType,
+    });
+  }, [activeDateRangeObject, dateRangeSelection, calendarType]);
 
   const {
     categoryData,
@@ -116,10 +132,17 @@ export function AnalyticsPage() {
 
   const formatDate = useCallback(
     (date: Date) => {
-      const locale = i18n.language === "he" ? he : enUS;
-      return format(date, "dd/MM/yyyy", { locale });
+      const displayDate = formatDisplayDate(formatLocalDate(date), {
+        calendarType,
+        showSecondaryDate,
+        language: i18n.language.startsWith("he") ? "he" : "en",
+        style: "numeric",
+      });
+      return displayDate.secondary
+        ? `${displayDate.primary} (${displayDate.secondary})`
+        : displayDate.primary;
     },
-    [i18n.language]
+    [calendarType, i18n.language, showSecondaryDate],
   );
 
   const isAllTime = activeDateRangeObject.startDate === "1970-01-01";
@@ -129,13 +152,22 @@ export function AnalyticsPage() {
     [activeRecurring]
   );
 
+  const maaserYear = useMaaserYearSummary(user?.id ?? null);
+
   const handleExportPdf = async () => {
     setIsExportingPdf(true);
     const toastId = toast.loading(t("analytics.pdfGenerating"));
     try {
       const fmtDatePdf = (iso: string) => {
-        const p = iso.split("-");
-        return p.length === 3 ? `${p[2]}/${p[1]}/${p[0].slice(2)}` : iso;
+        const displayDate = formatDisplayDate(iso, {
+          calendarType,
+          showSecondaryDate,
+          language: i18n.language.startsWith("he") ? "he" : "en",
+          style: "short",
+        });
+        return displayDate.secondary
+          ? `${displayDate.primary} (${displayDate.secondary})`
+          : displayDate.primary;
       };
       const displayRange = isAllTime
         ? t("dateRange.all")
@@ -220,6 +252,7 @@ export function AnalyticsPage() {
 
       {/* Date range bar + PDF button — same row */}
       <div className="flex flex-wrap gap-2 items-center">
+        <CalendarPreviewToggle />
         {(Object.keys(dateRangeLabels) as DateRangeSelectionType[])
           .filter((k) => k !== "custom")
           .map((rangeKey) => (
@@ -338,6 +371,16 @@ export function AnalyticsPage() {
           error={recipientsError}
         />
       </div>
+
+      <MaaserYearSummaryCard
+        summary={maaserYear.summary}
+        isLoading={maaserYear.isLoading}
+        error={maaserYear.error}
+        canGoNext={maaserYear.canGoNext}
+        onPreviousYear={maaserYear.goToPreviousYear}
+        onNextYear={maaserYear.goToNextYear}
+        currency={defaultCurrency}
+      />
 
       {/* Row 3: Standing Orders + Heatmap */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">

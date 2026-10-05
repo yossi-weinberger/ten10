@@ -170,6 +170,7 @@ export function FlagToggleButton({
                     : "text-primary-foreground/70 hover:text-primary-foreground"
                   : "text-muted-foreground/70 hover:text-foreground",
               )}
+              aria-label={tooltip}
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();

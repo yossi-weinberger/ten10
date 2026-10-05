@@ -1,11 +1,18 @@
-// import { invoke } from "@tauri-apps/api/core"; // STATIC IMPORT REMOVED
 import { supabase } from "@/lib/supabaseClient";
-// import { getCurrentPlatform } from "./platformService"; // No longer needed
+import {
+  getCalendarAdapter,
+  type CalendarType,
+} from "@/lib/calendar";
 import { getPlatform } from "../platformManager";
 import { logger } from "@/lib/logger";
+import { invokeTauri } from "@/lib/tauri-invoke";
 
 export interface MonthlyDataPoint {
-  month_label: string; // "YYYY-MM"
+  period_index: number;
+  period_start: string;
+  period_end: string;
+  period_key: string;
+  cache_key: string;
   income: number;
   donations: number;
   expenses: number;
@@ -13,28 +20,50 @@ export interface MonthlyDataPoint {
 
 export type ServerMonthlyDataResponse = MonthlyDataPoint[];
 
-const SUPABASE_RPC_FUNCTION_NAME = "get_monthly_financial_summary";
-const TAURI_COMMAND_NAME = "get_desktop_monthly_financial_summary";
+interface PeriodSummaryRow {
+  period_index: number;
+  period_start: string;
+  period_end: string;
+  income: number;
+  donations: number;
+  expenses: number;
+}
+
+const SUPABASE_RPC_FUNCTION_NAME = "get_period_financial_summary";
+const TAURI_COMMAND_NAME = "get_desktop_period_financial_summary";
+
+function mapPeriodRows(
+  rows: readonly PeriodSummaryRow[],
+  calendarType: CalendarType,
+): MonthlyDataPoint[] {
+  const adapter = getCalendarAdapter(calendarType);
+
+  return rows.map((row) => {
+    const periodKey = adapter.monthKey(row.period_start);
+    return {
+      ...row,
+      period_key: periodKey,
+      cache_key: `${calendarType}:${periodKey}`,
+    };
+  });
+}
 
 export async function fetchServerMonthlyChartData(
   userId: string | null,
-  endDate: Date, // JavaScript Date object
-  numMonths: number
+  boundaries: readonly string[],
+  calendarType: CalendarType,
 ): Promise<ServerMonthlyDataResponse | null> {
-  // Validate endDate
-  if (!(endDate instanceof Date) || isNaN(endDate.getTime())) {
+  if (boundaries.length < 2) {
     logger.error(
-      "ChartService: Invalid endDate received. Expected a valid Date object. Received:",
-      endDate
+      "ChartService: At least two period boundaries are required.",
     );
     return null;
   }
 
-  const endDateStr = endDate.toISOString().split("T")[0]; // Format as YYYY-MM-DD
   const platform = getPlatform();
 
   logger.log(
-    `ChartService: Fetching monthly chart data for ${numMonths} months ending ${endDateStr}, platform: ${platform}`
+    `ChartService: Fetching ${boundaries.length - 1} periods, platform: ${platform}`,
   );
 
   try {
@@ -47,8 +76,7 @@ export async function fetchServerMonthlyChartData(
       }
       const { data, error } = await supabase.rpc(SUPABASE_RPC_FUNCTION_NAME, {
         p_user_id: userId,
-        p_end_date: endDateStr,
-        p_num_months: numMonths,
+        p_boundaries: boundaries,
       });
 
       if (error) {
@@ -59,18 +87,16 @@ export async function fetchServerMonthlyChartData(
         throw error;
       }
       logger.log("ChartService: Successfully fetched chart data (Web):", data);
-      return data as ServerMonthlyDataResponse;
+      return mapPeriodRows((data ?? []) as PeriodSummaryRow[], calendarType);
     } else if (platform === "desktop") {
-      const { invoke } = await import("@tauri-apps/api/core");
-      const data = await invoke<ServerMonthlyDataResponse>(TAURI_COMMAND_NAME, {
-        endDateStr: endDateStr,
-        numMonths: numMonths,
+      const data = await invokeTauri<PeriodSummaryRow[]>(TAURI_COMMAND_NAME, {
+        boundaries,
       });
       logger.log(
         "ChartService: Successfully fetched chart data (Desktop):",
         data
       );
-      return data;
+      return mapPeriodRows(data, calendarType);
     } else {
       // This case should ideally not be hit if MonthlyChart calls this function
       // only after platform is 'web' or 'desktop'.

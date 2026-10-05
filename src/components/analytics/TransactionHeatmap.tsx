@@ -18,7 +18,19 @@ import {
   eachWeekOfInterval, startOfWeek, endOfWeek,
   eachDayOfInterval, isWithinInterval, startOfDay,
 } from "date-fns";
-import { he, enUS } from "date-fns/locale";
+import {
+  getCalendarAdapter,
+  type CalendarLanguage,
+} from "@/lib/calendar";
+import { formatDisplayDate } from "@/lib/calendar/display-date";
+import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
+import { formatLocalDate } from "@/lib/utils/local-date";
+import {
+  filterHeatmapDataByCalendarYear,
+  formatHeatmapMonthTick,
+  formatHeatmapYearLabel,
+  getHeatmapCalendarYears,
+} from "./transaction-heatmap.utils";
 
 interface TransactionHeatmapProps {
   data: DailyHeatmapResponse;
@@ -126,14 +138,18 @@ export function TransactionHeatmap({
 }: TransactionHeatmapProps) {
   const { t, i18n } = useTranslation("dashboard");
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
-  const dateLocale = i18n.language === "he" ? he : enUS;
+  const showSecondaryDate = useDonationStore(
+    (state) => state.settings.showSecondaryDate,
+  );
+  const calendarType = useEffectiveCalendarType();
+  const calendarLanguage: CalendarLanguage =
+    i18n.language.startsWith("he") ? "he" : "en";
   const fmt = (v: number) => formatCurrency(v, defaultCurrency, i18n.language);
 
   // Available years from data (for year navigation when data spans >1 year)
   const availableYears = useMemo(() => {
-    const years = [...new Set(data.map((d) => d.tx_date.substring(0, 4)))].sort();
-    return years;
-  }, [data]);
+    return getHeatmapCalendarYears(data, calendarType);
+  }, [data, calendarType]);
 
   const isMultiYear = availableYears.length > 1;
 
@@ -147,8 +163,12 @@ export function TransactionHeatmap({
   // Filter data to selected year when multi-year; otherwise show all
   const filteredData = useMemo(() => {
     if (!isMultiYear || !effectiveYear) return data;
-    return data.filter((d) => d.tx_date.startsWith(effectiveYear));
-  }, [data, isMultiYear, effectiveYear]);
+    return filterHeatmapDataByCalendarYear(
+      data,
+      effectiveYear,
+      calendarType,
+    );
+  }, [data, isMultiYear, effectiveYear, calendarType]);
 
   const { weeks, maxAmount } = useMemo(
     () => buildWeeksGrid(filteredData),
@@ -199,7 +219,7 @@ export function TransactionHeatmap({
               <TabsList className="h-7 p-0.5">
                 {availableYears.map((year) => (
                   <TabsTrigger key={year} value={year} className="text-[11px] px-2 h-6">
-                    {year}
+                    {formatHeatmapYearLabel(year, calendarType)}
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -261,12 +281,30 @@ export function TransactionHeatmap({
                         <div key={wi} className="flex flex-col gap-0.5">
                           {/* Month label on first week of month */}
                           <div className="h-5 text-[9px] text-muted-foreground leading-none flex items-center">
-                            {week[0].date.getDate() <= 7
-                              ? format(week[0].date, "MMM", { locale: dateLocale })
+                            {getCalendarAdapter(calendarType).fromIsoDate(
+                              formatLocalDate(week[0].date),
+                            ).day <= 7
+                              ? formatHeatmapMonthTick(
+                                  formatLocalDate(week[0].date),
+                                  calendarType,
+                                  calendarLanguage,
+                                )
                               : ""}
                           </div>
                           {week.map((cell) => {
                             const intensity = cell.entry ? getIntensity(cell.entry.total_amount, maxAmount) : 0;
+                            const displayDate = formatDisplayDate(
+                              formatLocalDate(cell.date),
+                              {
+                                calendarType,
+                                showSecondaryDate,
+                                language: calendarLanguage,
+                                style: "numeric",
+                              },
+                            );
+                            const dateText = displayDate.secondary
+                              ? `${displayDate.primary} (${displayDate.secondary})`
+                              : displayDate.primary;
                             if (!cell.inRange) {
                               return (
                                 <div
@@ -288,11 +326,11 @@ export function TransactionHeatmap({
                                   <p className="text-xs" dir={i18n.dir()}>
                                     {cell.entry
                                       ? t("analytics.heatmap.tooltip", {
-                                          date: format(cell.date, "dd/MM/yyyy"),
+                                          date: dateText,
                                           count: cell.entry.tx_count,
                                           amount: fmt(cell.entry.total_amount),
                                         })
-                                      : format(cell.date, "dd/MM/yyyy")}
+                                      : dateText}
                                   </p>
                                 </TooltipContent>
                               </Tooltip>

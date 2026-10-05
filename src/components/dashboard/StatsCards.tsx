@@ -27,12 +27,14 @@ import { formatCurrency } from "@/lib/utils/currency";
 import { useDonationStore } from "@/lib/store";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "@tanstack/react-router";
-import { format } from "date-fns";
-import { he, enUS } from "date-fns/locale";
 import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { useEffect, useMemo, useState } from "react";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { notifyOnboardingBlockingModal } from "@/lib/onboarding/modalBridge";
+import { formatDisplayDate } from "@/lib/calendar/display-date";
+import { CalendarPreviewToggle } from "@/components/dashboard/CalendarPreviewToggle";
+import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
+import { formatLocalDate } from "@/lib/utils/local-date";
 
 export function StatsCards({
   orientation = "horizontal",
@@ -42,6 +44,10 @@ export function StatsCards({
   const { user } = useAuth();
   const { platform } = usePlatform();
   const { t, i18n } = useTranslation("dashboard");
+  const calendarType = useEffectiveCalendarType();
+  const showSecondaryDate = useDonationStore(
+    (state) => state.settings.showSecondaryDate,
+  );
   const navigate = useNavigate();
   const defaultCurrency = useDonationStore(
     (state) => state.settings.defaultCurrency,
@@ -82,9 +88,15 @@ export function StatsCards({
   } = useDateControls();
 
   const formatDate = (date: Date) => {
-    // Use i18n language for locale selection
-    const currentLocale = i18n.language === "he" ? he : enUS;
-    return format(date, "dd/MM/yyyy", { locale: currentLocale });
+    const displayDate = formatDisplayDate(formatLocalDate(date), {
+      calendarType,
+      showSecondaryDate,
+      language: i18n.language.startsWith("he") ? "he" : "en",
+      style: "numeric",
+    });
+    return displayDate.secondary
+      ? `${displayDate.primary} (${displayDate.secondary})`
+      : displayDate.primary;
   };
 
   const trackChomeshSeparately = useDonationStore(
@@ -375,6 +387,7 @@ export function StatsCards({
           className="inline-flex w-fit max-w-full flex-wrap items-center justify-end gap-2"
           data-onboarding="date-range"
         >
+        <CalendarPreviewToggle />
         {(Object.keys(dateRangeLabels) as DateRangeSelectionType[])
           .filter((rangeKey) => rangeKey !== "custom")
           .map((rangeKey) => (
@@ -452,9 +465,7 @@ export function StatsCards({
           />
         </motion.div>
         <StatCard
-          title={`${t("statsCards.income.title")} (${
-            activeDateRangeObject.label ?? ""
-          })`}
+          title={t("statsCards.income.title")}
           value={serverTotalIncome ?? null}
           isLoading={isLoadingServerIncome}
           error={serverIncomeError}
@@ -467,9 +478,7 @@ export function StatsCards({
           addButtonOnboarding="card-quick-add"
         />
         <StatCard
-          title={`${t("statsCards.expenses.title")} (${
-            activeDateRangeObject.label ?? ""
-          })`}
+          title={t("statsCards.expenses.title")}
           value={serverTotalExpenses ?? null}
           isLoading={isLoadingServerExpenses}
           error={serverExpensesError}
@@ -481,9 +490,7 @@ export function StatsCards({
           addButtonOnboarding="card-quick-add"
         />
         <StatCard
-          title={`${t("statsCards.donations.title")} (${
-            activeDateRangeObject.label ?? ""
-          })`}
+          title={t("statsCards.donations.title")}
           value={serverCalculatedDonationsData?.total_donations_amount ?? null}
           isLoading={isLoadingServerDonations}
           error={serverDonationsError}

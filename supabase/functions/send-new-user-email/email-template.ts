@@ -21,6 +21,7 @@ export interface ReminderRunLog {
   day_of_month: number;
   was_reminder_day: boolean;
   was_shabbat: boolean;
+  was_yom_tov?: boolean;
   users_processed: number;
   emails_sent: number;
   emails_failed: number;
@@ -287,13 +288,17 @@ export function buildEmailBodies(
   const wasReminderDay = reminderLogs.some((log) => log.was_reminder_day);
   const wasShabbatSkip =
     !wasReminderDay && reminderLogs.some((log) => log.was_shabbat);
+  const wasYomTovSkip =
+    !wasReminderDay && reminderLogs.some((log) => log.was_yom_tov === true);
   const reminderStatusLine = wasReminderDay
     ? reminderFailed > 0 && reminderSent === 0
       ? `📧 Reminder emails: <strong style="color: #dc2626;">⚠️ ${reminderFailed} failed, 0 sent</strong>`
       : reminderSent > 0
         ? `📧 Reminder emails: <strong style="color: #166534;">${reminderSent} sent</strong>${reminderFailed > 0 ? ` &nbsp;·&nbsp; <strong style="color: #dc2626;">${reminderFailed} failed</strong>` : ""}`
         : `📧 Reminder emails: reminder day — <strong style="color: ${MUTED_COLOR};">no users configured</strong>`
-    : wasShabbatSkip
+    : wasYomTovSkip
+      ? "📧 Reminder emails: skipped (Israel Yom Tov)"
+      : wasShabbatSkip
       ? "📧 Reminder emails: skipped (Shabbat)"
       : reminderFailed > 0
         ? `📧 Reminder emails: <strong style="color: #dc2626;">${reminderFailed} failed</strong>`

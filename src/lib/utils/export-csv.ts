@@ -4,6 +4,10 @@ import { logger } from "@/lib/logger";
 import { saveOrDownloadExportedFile } from "@/lib/utils/save-export-file";
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { getRecurringExportInfo, getExportCategoryLabel } from "@/lib/utils/export-transaction-fields";
+import {
+  formatExportDate,
+  type CalendarExportSettings,
+} from "@/lib/calendar/export-date";
 
 function escapeCsvCell(
   cellData: string | number | boolean | null | undefined
@@ -28,7 +32,11 @@ function escapeCsvCell(
 export async function exportTransactionsToCSV(
   transactions: Transaction[],
   filename = "Ten10-transactions.csv",
-  currentLanguage: string = "he"
+  currentLanguage: string = "he",
+  calendarSettings: CalendarExportSettings = {
+    calendarType: "gregorian",
+    showSecondaryDate: false,
+  },
 ): Promise<boolean> {
   if (!transactions || transactions.length === 0) {
     logger.warn("No transactions to export to CSV.");
@@ -36,9 +44,20 @@ export async function exportTransactionsToCSV(
   }
 
   const isHebrew = currentLanguage === "he";
+  const includeHebrewDate =
+    calendarSettings.calendarType === "hebrew" ||
+    calendarSettings.showSecondaryDate;
 
   const headers = [
     i18n.t("columns.date", { lng: currentLanguage, ns: "data-tables" }),
+    ...(includeHebrewDate
+      ? [
+          i18n.t("columns.hebrewDate", {
+            lng: currentLanguage,
+            ns: "data-tables",
+          }),
+        ]
+      : []),
     i18n.t("columns.type", { lng: currentLanguage, ns: "data-tables" }),
     i18n.t("columns.description", { lng: currentLanguage, ns: "data-tables" }),
     i18n.t("columns.category", { lng: currentLanguage, ns: "data-tables" }),
@@ -78,13 +97,14 @@ export async function exportTransactionsToCSV(
       );
 
       const locale = isHebrew ? "he-IL" : "en-US";
+      const exportDate = formatExportDate(transaction.date, {
+        ...calendarSettings,
+        language: isHebrew ? "he" : "en",
+      });
 
       const row = [
-        new Date(transaction.date).toLocaleDateString(locale, {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        }),
+        exportDate.gregorian,
+        ...(includeHebrewDate ? [exportDate.hebrew ?? ""] : []),
         i18n.t(`export.transactionTypes.${transaction.type}`, {
           lng: currentLanguage,
           ns: "common",

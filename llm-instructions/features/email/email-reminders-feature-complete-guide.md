@@ -42,7 +42,7 @@ The email reminders feature sends personalized monthly reminders to users about 
 
 ### Key Features
 
-- **Existing reminder schedule**: The frontend and Edge Function support 6 preset days (1st, 5th, 10th, 15th, 20th, 25th of each month)
+- **Existing reminder schedule**: The frontend and Edge Function support 6 preset days (1st, 5th, 10th, 15th, 20th, 25th). `profiles.reminder_calendar_type` chooses Gregorian or Hebrew day-of-month independently of display calendar. Israel Friday/Saturday and Yom Tov are skipped, with makeup on the next eligible civil day. 29 Elul also sends a maaser-year close email to opted-in users.
 - **Localized redesign (live)**: Optional first-name greeting and monthly encouragement
 - **Localized copy (live)**: Subject, HTML, and plain-text bodies use Hebrew or English based on `profiles.client_preferences.language` (Hebrew fallback)
 - **Direction support (live)**: Dynamic Hebrew RTL / English LTR layout
@@ -686,13 +686,15 @@ documentation task does not add one.
    - ✅ Type-safe interfaces
    - ✅ Reusable components
 
-3. **CI/CD Integration** ✅ **FUNCTION AUTOMATION AVAILABLE**
+3. **Hebrew reminder days, Israel Yom Tov skip, and Erev Rosh Hashanah close-year mail** ✅ **COMPLETED** (PR #424)
+
+4. **CI/CD Integration** ✅ **FUNCTION AUTOMATION AVAILABLE**
 
    - ✅ Automatic deployment via GitHub Actions
    - ✅ Seamless development workflow
    - ⏳ Manual email/client visual checks remain on the backlog
 
-4. **Email Templates** ✅ **LIVE ON PRODUCTION**
+5. **Email Templates** ✅ **LIVE ON PRODUCTION**
 
    - Hebrew and English subject, HTML, and plain-text bodies
      (`locales/email-*.json`)
@@ -700,19 +702,19 @@ documentation task does not add one.
    - Header asset with cream fallback
    - Optional first-name greeting from `full_name`
 
-5. **Advanced Scheduling**
+6. **Advanced Scheduling**
 
    - Custom reminder days
    - Multiple reminders per month
    - Time zone support
 
-6. **Analytics and Reporting**
+7. **Analytics and Reporting**
 
    - Email delivery statistics
    - User engagement metrics
    - A/B test results
 
-7. **Desktop Notifications**
+8. **Desktop Notifications**
    - Local system notifications for desktop users
    - Cross-platform notification service
 

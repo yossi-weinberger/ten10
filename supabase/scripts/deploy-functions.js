@@ -1,10 +1,30 @@
 #!/usr/bin/env node
 
-import { config } from "dotenv";
 import { execSync } from "child_process";
+import { loadEnvFile } from "process";
+import branchGuard from "../../scripts/branch-guard.cjs";
 
 // Load environment variables
-config();
+try {
+  loadEnvFile();
+} catch (error) {
+  if (error.code !== "ENOENT") {
+    throw error;
+  }
+}
+
+const { getCurrentBranch, getMainBranchError } = branchGuard;
+const PRODUCTION_PROJECT_REF = "flpzqbvbymoluoeeeofg";
+const currentBranch = getCurrentBranch();
+const branchError = getMainBranchError(
+  "deploy Supabase functions to production",
+  currentBranch,
+);
+
+if (branchError) {
+  console.error(`Error: ${branchError}`);
+  process.exit(1);
+}
 
 const projectRef = process.env.VITE_SUPABASE_PROJECT_REF;
 const jwtSecret = process.env.JWT_SECRET;
@@ -15,6 +35,13 @@ if (!projectRef) {
   );
   console.error(
     "Please make sure you have a .env file with VITE_SUPABASE_PROJECT_REF=your_project_id"
+  );
+  process.exit(1);
+}
+
+if (projectRef !== PRODUCTION_PROJECT_REF) {
+  console.error(
+    `Error: deploy-supabase only targets production (${PRODUCTION_PROJECT_REF}); received ${projectRef}`,
   );
   process.exit(1);
 }

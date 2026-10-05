@@ -1,8 +1,12 @@
 import { useEffect, useState } from "react";
 import { useDonationStore } from "@/lib/store";
+import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import { fetchAnalyticsRangeStats } from "@/lib/data-layer";
 import { getPreviousPeriodRange } from "@/lib/utils/date-range";
-import { DateRangeObject } from "./useDateControls";
+import {
+  DateRangeObject,
+  type DateRangeSelectionType,
+} from "./useDateControls";
 import { Platform } from "@/contexts/PlatformContext";
 import { User } from "@/contexts/AuthContext";
 import { logger } from "@/lib/logger";
@@ -19,6 +23,7 @@ export interface PeriodComparisonData {
  */
 export function usePeriodComparison(
   activeDateRangeObject: DateRangeObject,
+  selection: DateRangeSelectionType,
   user: User | null,
   platform: Platform | undefined
 ): PeriodComparisonData {
@@ -29,6 +34,7 @@ export function usePeriodComparison(
   const lastDbFetchTimestamp = useDonationStore(
     (state) => state.lastDbFetchTimestamp
   );
+  const calendarType = useEffectiveCalendarType();
 
   const { startDate, endDate } = activeDateRangeObject;
   const isAllTime = startDate === "1970-01-01";
@@ -54,10 +60,13 @@ export function usePeriodComparison(
       return;
     }
 
-    const { startDate: prevStart, endDate: prevEnd } = getPreviousPeriodRange(
+    const previousPeriod = getPreviousPeriodRange(
       startDate,
-      endDate
+      endDate,
+      { selection, calendarType },
     );
+    if (!previousPeriod) return;
+    const { startDate: prevStart, endDate: prevEnd } = previousPeriod;
 
     let cancelled = false;
     setIsLoading(true);
@@ -84,7 +93,16 @@ export function usePeriodComparison(
     return () => {
       cancelled = true;
     };
-  }, [startDate, endDate, isAllTime, platform, user?.id, lastDbFetchTimestamp]);
+  }, [
+    startDate,
+    endDate,
+    isAllTime,
+    platform,
+    user?.id,
+    lastDbFetchTimestamp,
+    selection,
+    calendarType,
+  ]);
 
   return { prevIncome, prevExpenses, isLoading };
 }

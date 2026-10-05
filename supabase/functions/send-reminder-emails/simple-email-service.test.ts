@@ -45,12 +45,14 @@ function decodeMimePart(rawMime: string, contentType: string): string {
 describe("SimpleEmailService", () => {
   beforeEach(() => {
     vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
 
     const environment: Record<string, string> = {
       AWS_ACCESS_KEY_ID: "test-access-key",
       AWS_SECRET_ACCESS_KEY: "test-secret-key",
       AWS_REGION: "eu-central-1",
       SES_FROM: "reminder-noreply@ten10-app.com",
+      SUPABASE_URL: "https://flpzqbvbymoluoeeeofg.supabase.co",
     };
 
     vi.stubGlobal("Deno", {
@@ -128,6 +130,173 @@ describe("SimpleEmailService", () => {
       titheBalance: 384.7,
       messageId: "message-123",
       status: "sent",
+    });
+  });
+
+  it("does not send when DRY_RUN=true", async () => {
+    const environment: Record<string, string> = {
+      AWS_ACCESS_KEY_ID: "test-access-key",
+      AWS_SECRET_ACCESS_KEY: "test-secret-key",
+      AWS_REGION: "eu-central-1",
+      SES_FROM: "reminder-noreply@ten10-app.com",
+      SUPABASE_URL: "https://flpzqbvbymoluoeeeofg.supabase.co",
+      DRY_RUN: "true",
+    };
+    vi.stubGlobal("Deno", {
+      env: {
+        get: (key: string) => environment[key],
+      },
+    });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const service = new SimpleEmailService();
+    const result = await service.sendReminderEmail(
+      "recipient@example.com",
+      "user-123",
+      4265.57,
+      4265.57,
+      0,
+      "he",
+      "Yossi",
+      "ILS",
+    );
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      status: "held",
+      messageId: "dry-run",
+      dryRun: true,
+    });
+    const logged = JSON.stringify([
+      ...vi.mocked(console.log).mock.calls,
+      ...vi.mocked(console.warn).mock.calls,
+    ]);
+    expect(logged).not.toContain("4,265.57");
+    expect(logged).not.toContain("4265.57");
+    expect(logged).not.toContain("נותרו");
+    expect(logged).toContain("r***@example.com");
+  });
+
+  it("still holds {test:true} traffic on the testing project", async () => {
+    const environment: Record<string, string> = {
+      AWS_ACCESS_KEY_ID: "test-access-key",
+      AWS_SECRET_ACCESS_KEY: "test-secret-key",
+      AWS_REGION: "eu-central-1",
+      SES_FROM: "reminder-noreply@ten10-app.com",
+      SUPABASE_URL: "https://bbcllewcotypedqsnwmi.supabase.co",
+    };
+    vi.stubGlobal("Deno", {
+      env: {
+        get: (key: string) => environment[key],
+      },
+    });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    // index.ts sets isTest from body.test === true only to skip the day check.
+    // Sends still go through this method, which has no test-mode bypass.
+    const service = new SimpleEmailService();
+    const result = await service.sendReminderEmail(
+      "cloned-user@example.com",
+      "user-cloned",
+      25,
+      25,
+      0,
+      "he",
+      "Test User",
+      "ILS",
+      "maaser-year",
+    );
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result.dryRun).toBe(true);
+    expect(result.status).toBe("held");
+    expect(result.messageId).toBe("dry-run");
+  });
+
+  it("sends only allowlisted reminder recipients", async () => {
+    const environment: Record<string, string> = {
+      AWS_ACCESS_KEY_ID: "test-access-key",
+      AWS_SECRET_ACCESS_KEY: "test-secret-key",
+      AWS_REGION: "eu-central-1",
+      SES_FROM: "reminder-noreply@ten10-app.com",
+      SUPABASE_URL: "https://bbcllewcotypedqsnwmi.supabase.co",
+      EMAIL_ALLOWLIST: "Recipient@Example.com",
+    };
+    vi.stubGlobal("Deno", {
+      env: {
+        get: (key: string) => environment[key],
+      },
+    });
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(JSON.stringify({ MessageId: "allowlisted-1" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const service = new SimpleEmailService();
+    const [kept, dropped] = await service.sendBulkReminders([
+      {
+        id: "user-1",
+        email: "recipient@example.com",
+        titheBalance: 1,
+        language: "en",
+        full_name: "Allowed",
+      },
+      {
+        id: "user-2",
+        email: "cloned-user@example.com",
+        titheBalance: 2,
+        language: "he",
+        full_name: "Blocked",
+      },
+    ]);
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(kept).toMatchObject({
+      email: "recipient@example.com",
+      status: "sent",
+      messageId: "allowlisted-1",
+    });
+    expect(dropped).toMatchObject({
+      email: "cloned-user@example.com",
+      status: "held",
+      dryRun: true,
+      messageId: "dry-run",
+    });
+  });
+
+  it("holds without AWS credentials on a non-production project", async () => {
+    vi.stubGlobal("Deno", {
+      env: {
+        get: (key: string) =>
+          ({
+            SUPABASE_URL: "https://bbcllewcotypedqsnwmi.supabase.co",
+          })[key],
+      },
+    });
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const service = new SimpleEmailService();
+    const result = await service.sendReminderEmail(
+      "cloned-user@example.com",
+      "user-cloned",
+      1,
+      1,
+      0,
+      "en",
+      "Tester",
+    );
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result).toMatchObject({
+      status: "held",
+      dryRun: true,
+      messageId: "dry-run",
     });
   });
 });

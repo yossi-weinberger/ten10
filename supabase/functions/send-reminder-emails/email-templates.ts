@@ -22,6 +22,7 @@ export interface EmailTemplateData {
   fullName?: string | null;
   currency?: ReminderCurrencyCode | string | null;
   israelMonth: number;
+  kind?: "monthly" | "maaser-year";
   unsubscribeUrls?: {
     reminderUrl: string;
     allUrl: string;
@@ -117,6 +118,7 @@ function buildViewModel(data: EmailTemplateData) {
     data.language,
     data.israelMonth,
   );
+  const maaserYear = data.kind === "maaser-year";
 
   return {
     amount,
@@ -125,8 +127,11 @@ function buildViewModel(data: EmailTemplateData) {
     copy,
     encouragement,
     greeting,
+    reminder: maaserYear ? copy.maaserYear.reminder : copy.reminder,
     state,
-    subject: getSubject(data, state, amount),
+    subject: maaserYear
+      ? copy.maaserYear.subject
+      : getSubject(data, state, amount),
   };
 }
 
@@ -277,6 +282,7 @@ export function generateReminderEmailHTML(data: EmailTemplateData): string {
     copy,
     encouragement,
     greeting,
+    reminder,
     state,
   } = buildViewModel(data);
   const direction = copy.direction;
@@ -290,7 +296,7 @@ export function generateReminderEmailHTML(data: EmailTemplateData): string {
         <td style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 24px; font-weight: 500; line-height: 32px; padding: 0 0 10px 0; text-align: ${textAlign};">${escapeHtml(greeting)}</td>
       </tr>
       <tr>
-        <td style="color: ${colors.bodyMuted}; font-family: ${fontFamily}; font-size: 16px; line-height: 26px; padding: 0 0 24px 0; text-align: ${textAlign};">${escapeHtml(copy.reminder)}</td>
+        <td style="color: ${colors.bodyMuted}; font-family: ${fontFamily}; font-size: 16px; line-height: 26px; padding: 0 0 24px 0; text-align: ${textAlign};">${escapeHtml(reminder)}</td>
       </tr>
       <tr>
         <td style="padding: 0 0 16px 0;">${renderBalancePanel(amount, balanceBadge, state, copy.verification)}</td>
@@ -334,7 +340,7 @@ export function generateReminderEmailHTML(data: EmailTemplateData): string {
 }
 
 export function generateReminderEmailText(data: EmailTemplateData): string {
-  const { amount, balanceLabel, copy, encouragement, greeting } =
+  const { amount, balanceLabel, copy, encouragement, greeting, reminder } =
     buildViewModel(data);
   const unsubscribeText = data.unsubscribeUrls
     ? [
@@ -350,7 +356,7 @@ export function generateReminderEmailText(data: EmailTemplateData): string {
   return [
     greeting,
     "",
-    copy.reminder,
+    reminder,
     "",
     `${balanceLabel} ${amount}`,
     copy.verification,

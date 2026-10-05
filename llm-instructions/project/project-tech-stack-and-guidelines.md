@@ -60,8 +60,10 @@ The application follows a clear strategy for handling text directionality:
 ## Utilities and Libraries
 
 - **Date/Time**:
-  - **`date-fns`**: For general date manipulations.
-  - **`react-day-picker`**: Used for date range selection (integrated via `shadcn/ui`).
+  - **Shared calendar adapter**: `src/lib/calendar` re-exports `supabase/functions/_shared/calendar`. Hebrew math is pure JS (no ICU). Use this for calendar math, not `@hebcal/*`.
+  - **`date-fns`**: For leftover Gregorian-only helpers. Prefer the shared adapter for new date-only business logic.
+  - **`react-day-picker`**: Date pickers. Hebrew month grids go through `src/lib/calendar/hebrew-date-lib.ts`.
+  - **`src/lib/utils/local-date.ts`**: Canonical local date-only parse/format. Do not use `toISOString().split("T")[0]` for business dates.
 - **Data Export**:
   - **`exceljs`**: For generating Excel files.
   - **`pdf-lib`** + **`@pdf-lib/fontkit`**: For generating PDF files with embedded fonts (Rubik). Used for both the Transactions Table PDF and the Analytics page PDF.

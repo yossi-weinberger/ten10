@@ -28,6 +28,12 @@ import {
   RecurringEditFormValues,
   createRecurringEditSchema,
 } from "@/lib/schemas";
+import {
+  clampRecurringDay,
+  maximumRecurringDay,
+} from "@/lib/recurring/recurring-day";
+import { SlidingToggleGroup } from "@/components/ui/sliding-toggle-group";
+import type { CalendarType } from "@/lib/calendar";
 import { CurrencyPicker } from "@/components/ui/CurrencyPicker";
 import { CurrencyConversionSection } from "./transaction-form-parts/CurrencyConversionSection";
 import { CategoryCombobox } from "@/components/ui/category-combobox";
@@ -69,6 +75,8 @@ export function RecurringTransactionEditForm({
       status: initialData.status,
       total_occurrences: initialData.total_occurrences,
       day_of_month: initialData.day_of_month,
+      calendar_type: initialData.calendar_type ?? "gregorian",
+      anchor_month_code: initialData.anchor_month_code ?? null,
       // Conversion fields from initial data
       conversion_rate: initialData.conversion_rate ?? undefined,
       conversion_date: initialData.conversion_date ?? undefined,
@@ -81,6 +89,7 @@ export function RecurringTransactionEditForm({
   const status = form.watch("status");
   const selectedCurrency = form.watch("currency");
   const amount = form.watch("amount");
+  const calendarType = form.watch("calendar_type");
 
   const handleFormSubmit = async (values: RecurringEditFormValues) => {
     setIsSuccess(false);
@@ -347,33 +356,89 @@ export function RecurringTransactionEditForm({
 
           {/* Day of Month */}
           {status !== "completed" && (
-            <FormField
-              control={form.control}
-              name="day_of_month"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {t("transactionForm.recurringTransaction.dayOfMonth")}
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={31}
-                      {...field}
-                      value={field.value ?? ""}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        field.onChange(value === "" ? null : Number(value));
-                      }}
-                    />
-                  </FormControl>
-                  <div className="h-5">
-                    <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
+            <>
+              <FormField
+                control={form.control}
+                name="calendar_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {t(
+                        "transactionForm.recurringTransaction.calendar.label",
+                      )}
+                    </FormLabel>
+                    <FormControl>
+                      <SlidingToggleGroup
+                        ariaLabel={t(
+                          "transactionForm.recurringTransaction.calendar.label",
+                        )}
+                        value={field.value as CalendarType}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          const day = form.getValues("day_of_month") ?? 0;
+                          const clamped = clampRecurringDay(value, day);
+                          if (clamped !== day) {
+                            form.setValue("day_of_month", clamped, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                          }
+                        }}
+                        options={[
+                          {
+                            value: "gregorian",
+                            label: t(
+                              "transactionForm.recurringTransaction.calendar.gregorian",
+                            ),
+                          },
+                          {
+                            value: "hebrew",
+                            label: t(
+                              "transactionForm.recurringTransaction.calendar.hebrew",
+                            ),
+                          },
+                        ]}
+                      />
+                    </FormControl>
+                    <div className="h-5">
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="day_of_month"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {t("transactionForm.recurringTransaction.dayOfMonth")}
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={maximumRecurringDay(calendarType)}
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          field.onChange(value === "" ? null : Number(value));
+                        }}
+                      />
+                    </FormControl>
+                    <p className="text-sm text-muted-foreground">
+                      {t(
+                        "transactionForm.recurringTransaction.dayClampHint",
+                      )}
+                    </p>
+                    <div className="h-5">
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </>
           )}
         </div>
 

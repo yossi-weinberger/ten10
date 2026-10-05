@@ -17,6 +17,7 @@ import { typeBadgeColors } from "@/types/transactionLabels";
 import { cn } from "@/lib/utils/index";
 import { ImportRowStatusBadge } from "./ImportRowStatusBadge";
 import { ImportRowEditModal } from "./ImportRowEditModal";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
 
 const fmtAmountCache = new Map<string, Intl.NumberFormat>();
 
@@ -38,12 +39,6 @@ function fmtAmount(amount: number, currency: string): string {
   return fmt.format(amount);
 }
 
-function fmtDate(isoDate: string): string {
-  const parts = isoDate.split("-");
-  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-  return isoDate;
-}
-
 // ---------------------------------------------------------------------------
 // Memoized row — no editing state inside; editing opens a full modal
 // ---------------------------------------------------------------------------
@@ -60,6 +55,7 @@ const ReviewTableRow = memo(function ReviewTableRow({
 }: ReviewRowProps) {
   const { t, i18n } = useTranslation("import");
   const { t: tTx } = useTranslation("transactions");
+  const formatDisplayDate = useDisplayDate();
   const isRtl = i18n.dir() === "rtl";
 
   // Instant visual feedback — checkbox flips before parent re-render completes
@@ -115,8 +111,10 @@ const ReviewTableRow = memo(function ReviewTableRow({
       </TableCell>
 
       {/* Date */}
-      <TableCell dir="ltr" className="whitespace-nowrap">
-        {row.normalized ? fmtDate(row.normalized.date) : "—"}
+      <TableCell dir="auto" className="whitespace-nowrap">
+        {row.normalized
+          ? Object.values(formatDisplayDate(row.normalized.date)).join(" · ")
+          : "—"}
       </TableCell>
 
       {/* Amount */}

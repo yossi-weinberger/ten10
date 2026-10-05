@@ -2,7 +2,7 @@
 
 This document outlines the file and directory structure of the Ten10 project.
 
-> **Note:** The tree below predates several additions (e.g. `src/lib/import/`, `src/lib/analytics/`, `src/lib/security/`, `src/lib/data-layer/reminders/`, `src/lib/data-layer/dataManagement/`) and has not been fully resynced. Treat it as a rough map, not a byte-accurate listing; verify against the actual filesystem for anything load-bearing.
+> **Note:** The tree below predates several additions (e.g. `src/lib/calendar/` — re-export of `supabase/functions/_shared/calendar`, `src/lib/import/`, `src/lib/analytics/`, `src/lib/security/`, `src/lib/data-layer/reminders/`, `src/lib/data-layer/dataManagement/`) and has not been fully resynced. Treat it as a rough map, not a byte-accurate listing; verify against the actual filesystem for anything load-bearing. Calendar contract: `features/calendar/hebrew-calendar-guide.md`.
 
 ## Inter-Component Interactions and Data Flow
 
@@ -40,7 +40,7 @@ This section details how the different parts of the project interact with each o
 6.  **LLM Instructions (`llm-instructions`)**:
     - This directory contains Markdown documents providing development guidelines and context, organized by topic. Key documents include:
       - **Project Overview**: `project/project-overview-and-requirements.md`, `project/project-tech-stack-and-guidelines.md`
-      - **Features**: `features/analytics/analytics-page-guide.md` (analytics dashboard — comprehensive), `features/transactions/` (data model, recurring, category selection, table overview/status), `features/email/` (reminders, unsubscribe, automated downloads), `features/auth/` (terms acceptance, password reset, desktop app lock), `features/contact-us-feature.md`, `features/currency/currency-conversion-guide.md`, `features/content/content-library-guide.md` (editorial content library / TN10 records)
+      - **Features**: `features/calendar/hebrew-calendar-guide.md` (Gregorian storage + Hebrew display/periods/recurring/reminders), `features/analytics/analytics-page-guide.md` (analytics dashboard — comprehensive), `features/transactions/` (data model, recurring, category selection, table overview/status), `features/email/` (reminders, unsubscribe, automated downloads), `features/auth/` (terms acceptance, password reset, desktop app lock), `features/contact-us-feature.md`, `features/currency/currency-conversion-guide.md`, `features/content/content-library-guide.md` (editorial content library / TN10 records)
       - **Platforms**: `platforms/desktop-data-saving-guide.md`, `platforms/desktop-release-system-guide.md`, `platforms/platform-context-api-guide.md`, `platforms/tauri-v2-build-and-platform-detection-summary.md`, `platforms/android-twa-implementation-guide.md`
       - **Deployment**: `deployment/release-management-guide.md`, `deployment/setup-updater-keys.md`, `deployment/code-signing-guide.md`, `deployment/performance-optimization-jan-2026.md`
       - **UI/UX**: `ui/landing-page-complete-guide.md`, `ui/multi-language-and-responsive-design-guide.md`, `ui/ui-component-guidelines.md`, `ui/translation-map.md`, `ui/halacha-page-revamp-plan.md`
@@ -65,6 +65,8 @@ This section details how the different parts of the project interact with each o
 │   │   ├── project-overview-and-requirements.md
 │   │   └── project-tech-stack-and-guidelines.md
 │   ├── features/          # Feature-specific documentation
+│   │   ├── calendar/
+│   │   │   └── hebrew-calendar-guide.md
 │   │   ├── analytics/     # Analytics dashboard
 │   │   │   └── analytics-page-guide.md
 │   │   ├── onboarding/    # New-user first-run tour
@@ -284,6 +286,7 @@ This section details how the different parts of the project interact with each o
 │   │   │   └── transactions.service.ts
 │   │   ├── platformManager.ts
 │   │   ├── schemas.ts
+│   │   ├── calendar/                          # App re-exports of the shared Temporal adapter
 │   │   ├── store.ts
 │   │   ├── supabaseClient.ts
 │   │   ├── tableTransactions/

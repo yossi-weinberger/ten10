@@ -5,16 +5,28 @@
  *
  * Automates the release process:
  * 1. Updates version in all 3 files
- * 2. Commits changes
- * 3. Creates and pushes tag
- * 4. GitHub Actions handles the build automatically
+ * 2. Commits the bump on release/vX.Y.Z
+ * 3. Pushes that branch and opens a pull request
+ * 4. After the pull request merges, tag the merge commit manually
  *
  * Usage: npm run release 0.3.0
  */
 
 const fs = require("fs");
-const { execSync } = require("child_process");
+const { execSync, spawnSync } = require("child_process");
 const path = require("path");
+const {
+  getCurrentBranch,
+  getMainBranchError,
+} = require("./branch-guard.cjs");
+
+const currentBranch = getCurrentBranch();
+const branchError = getMainBranchError("create a release", currentBranch);
+
+if (branchError) {
+  console.error(`❌ Error: ${branchError}`);
+  process.exit(1);
+}
 
 // Get version from command line
 const newVersion = process.argv[2];
@@ -104,6 +116,11 @@ try {
   );
   console.log("   ✅ Files staged\n");
 
+  const releaseBranch = `release/v${newVersion}`;
+  console.log(`🌿 Creating ${releaseBranch}...`);
+  execSync(`git checkout -b ${releaseBranch}`, { stdio: "inherit" });
+  console.log("   ✅ Branch created\n");
+
   // 6. Git commit
   console.log("💾 Committing changes...");
   try {
@@ -117,38 +134,50 @@ try {
     );
   }
 
-  // 7. Create tag
-  console.log(`🏷️  Creating tag v${newVersion}...`);
-  try {
-    execSync(`git tag -a v${newVersion} -m "Release v${newVersion}"`, {
-      stdio: "inherit",
-    });
-    console.log("   ✅ Tag created\n");
-  } catch (error) {
-    console.log(`   ⚠️  Tag v${newVersion} might already exist\n`);
+  // 7. Push the release branch and open a PR. main rejects direct pushes.
+  console.log("☁️  Pushing release branch...");
+  execSync(`git push -u origin ${releaseBranch}`, { stdio: "inherit" });
+  console.log("   ✅ Branch pushed\n");
+
+  console.log("🔀 Opening pull request...");
+  const prBody = [
+    `Version bump for v${newVersion}.`,
+    "",
+    "After this pull request merges, tag that merge commit:",
+    "",
+    "```",
+    "git checkout main",
+    "git pull",
+    `git tag -a v${newVersion} -m "Release v${newVersion}"`,
+    `git push origin v${newVersion}`,
+    "```",
+  ].join("\n");
+  const pullRequest = spawnSync(
+    "gh",
+    [
+      "pr",
+      "create",
+      "--base",
+      "main",
+      "--head",
+      releaseBranch,
+      "--title",
+      `chore: release v${newVersion}`,
+      "--body",
+      prBody,
+    ],
+    { stdio: "inherit" }
+  );
+  if (pullRequest.status !== 0) {
+    throw new Error("gh pr create failed");
   }
 
-  // 8. Push everything
-  console.log("☁️  Pushing to GitHub...");
-  execSync("git push", { stdio: "inherit" });
-  console.log("   ✅ Code pushed\n");
-
-  console.log("☁️  Pushing tag...");
-  execSync(`git push origin v${newVersion}`, { stdio: "inherit" });
-  console.log("   ✅ Tag pushed\n");
-
-  // Success!
   console.log("═══════════════════════════════════════════════════");
-  console.log("🎉 Release process completed successfully!");
+  console.log("🎉 Release pull request opened");
   console.log("═══════════════════════════════════════════════════");
   console.log(`\n📦 Version: ${newVersion}`);
-  console.log(`🏷️  Tag: v${newVersion}`);
-  console.log("\n🔄 GitHub Actions is now building your release...");
-  console.log("📊 Monitor progress at:");
-  console.log("   https://github.com/yossi-weinberger/ten10/actions\n");
-  console.log("📥 Release will be available at:");
-  console.log("   https://github.com/yossi-weinberger/ten10/releases\n");
-  console.log("⏱️  Expected build time: 5-15 minutes");
+  console.log(`🌿 Branch: ${releaseBranch}`);
+  console.log("\nThe desktop build starts only after the pull request merges and the tag is pushed.");
   console.log("═══════════════════════════════════════════════════\n");
 } catch (error) {
   console.error("\n❌ Error during release process:", error.message);

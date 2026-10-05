@@ -1,13 +1,32 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import { UserService } from "./user-service.ts";
-import { SimpleEmailService } from "./simple-email-service.ts";
+import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { maskEmail } from "../_shared/email-guard.ts";
+import { getIsraelDate } from "../_shared/israel-date.ts";
+import {
+  deduplicateReminderUsers,
+  partitionYearlyReminderRecipients,
+  type DueReminderCohort,
+} from "./reminder-cohorts.ts";
+import {
+  DEFAULT_REMINDER_DAYS,
+  planReminderRun,
+  resolveReminderCivilDate,
+  type ReminderRunPlan,
+} from "./reminder-run-date.ts";
+import {
+  buildReminderRunLog,
+  type ReminderScheduleResolution,
+} from "./reminder-schedule.ts";
+import { summarizeReminderSendResults } from "./reminder-send-summary.ts";
+import { SimpleEmailService } from "./simple-email-service.ts";
+import { UserService } from "./user-service.ts";
 
 async function logRun(supabase: ReturnType<typeof createClient>, entry: {
   day_of_month: number;
   was_reminder_day: boolean;
   was_shabbat: boolean;
+  was_yom_tov: boolean;
   users_processed: number;
   emails_sent: number;
   emails_failed: number;
@@ -19,9 +38,21 @@ async function logRun(supabase: ReturnType<typeof createClient>, entry: {
   }
 }
 
+function assertNever(value: never): never {
+  throw new Error(`Unsupported reminder schedule result: ${String(value)}`);
+}
+
+function describeCohort(cohort: DueReminderCohort): string {
+  const { calendarType, reminderDay, resolution } = cohort;
+  return resolution.kind === "makeup"
+    ? `${calendarType}:day=${reminderDay},${resolution.reason}-makeup-for=${resolution.reminderDate}`
+    : `${calendarType}:day=${reminderDay},send-today`;
+}
+
 // Deployment trigger note: editing this file forces the GitHub workflow to redeploy the function.
 
 serve(async (req) => {
+  console.log("[REMINDER] Request received", { method: req.method });
   const origin = req.headers.get("origin");
 
   // CORS handling
@@ -82,18 +113,16 @@ serve(async (req) => {
     const tokenMatchesService = token === validServiceKey;
 
     console.log("[REMINDER] Token validation:", {
-      tokenLength: token.length,
-      tokenPrefix: token.substring(0, 20) + "...",
-      validAnonKeyPrefix: validAnonKey?.substring(0, 20) + "..." || "MISSING",
-      validServiceKeyPrefix:
-        validServiceKey?.substring(0, 20) + "..." || "MISSING",
+      isApiKey,
+      hasAnonKey: !!validAnonKey,
+      hasServiceKey: !!validServiceKey,
       tokenMatchesAnon,
       tokenMatchesService,
     });
 
-    if (!tokenMatchesAnon && !tokenMatchesService) {
-      console.error("[REMINDER] API key validation failed - returning 403");
-      return new Response(JSON.stringify({ error: "Invalid token" }), {
+    if (!tokenMatchesService) {
+      console.error("[REMINDER] API key is not the service key - returning 403");
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: {
           ...getCorsHeaders(origin),
@@ -101,7 +130,7 @@ serve(async (req) => {
         },
       });
     }
-    console.log("[REMINDER] API key validated successfully");
+    console.log("[REMINDER] Service API key validated successfully");
   } else {
     // If it's a JWT token, validate it
     console.log("[REMINDER] Token is JWT, validating...");
@@ -173,33 +202,14 @@ serve(async (req) => {
         }
         console.log("[REMINDER] JWT validated successfully (service_role)");
       } else {
-        // For user tokens, validate with Supabase
-        console.log(
-          "[REMINDER] JWT is user token, validating with Supabase...",
-        );
-        const supabaseClient = createClient(supabaseUrl, validAnonKey ?? "", {
-          global: { headers: { Authorization: authorization } },
+        console.error("[REMINDER] JWT is not service_role - returning 403");
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: {
+            ...getCorsHeaders(origin),
+            "Content-Type": "application/json",
+          },
         });
-
-        const {
-          data: { user },
-          error: userError,
-        } = await supabaseClient.auth.getUser();
-
-        if (userError || !user) {
-          console.error(
-            "[REMINDER] JWT validation failed:",
-            userError?.message,
-          );
-          return new Response(JSON.stringify({ error: "Invalid token" }), {
-            status: 403,
-            headers: {
-              ...getCorsHeaders(origin),
-              "Content-Type": "application/json",
-            },
-          });
-        }
-        console.log("[REMINDER] JWT validated successfully (user token)");
       }
     } catch (error) {
       console.error("[REMINDER] JWT validation error:", error);
@@ -214,7 +224,9 @@ serve(async (req) => {
   }
 
   try {
-    // Check for test mode in request body
+    // Check for test mode in request body.
+    // Test mode only bypasses the reminder-day check. All sends still go
+    // through SimpleEmailService, which applies the shared email guard.
     const body = await req.json().catch(() => ({}));
     let isTest = body.test === true;
 
@@ -285,103 +297,163 @@ serve(async (req) => {
       );
     }
 
-    // Get current date in ISRAEL timezone.
-    // The cron runs at 18:00 UTC = 20:00 IST (winter) / 21:00 IDT (summer).
-    // Using UTC here caused a critical bug: on Fridays the UTC day is 5 (Friday)
-    // but in Israel Shabbat has already started (sunset ~17:30-20:00). Using the
-    // Israel date ensures the Shabbat check is correct regardless of DST.
-    const nowUtc = new Date();
-    const israelDateStr = nowUtc.toLocaleDateString("en-CA", {
-      timeZone: "Asia/Jerusalem",
-    }); // "YYYY-MM-DD"
-    const israelDate = new Date(israelDateStr + "T12:00:00"); // noon = stable, no DST edge
-    const currentDay = israelDate.getDate();
-    const currentDayOfWeek = israelDate.getDay(); // 0=Sun, 5=Fri, 6=Sat
-
-    // Reminder days configuration: 1st, 5th, 10th, 15th, 20th, 25th
-    const reminderDays = [1, 5, 10, 15, 20, 25];
-
-    let effectiveDay = currentDay;
-    let shabbatNote = "";
-
-    // Saturday (Israel time) — Shabbat. Skip entirely; Sunday will handle makeup.
-    if (!isTest && currentDayOfWeek === 6) {
-      await logRun(supabaseAdmin, {
-        day_of_month: currentDay,
-        was_reminder_day: false,
-        was_shabbat: true,
-        users_processed: 0,
-        emails_sent: 0,
-        emails_failed: 0,
-        notes: "Shabbat (Saturday Israel) - skipped",
-      });
-      return new Response(
-        JSON.stringify({ message: "Today is Shabbat (Saturday in Israel). Skipped." }),
-        { headers: { ...getCorsHeaders(origin), "Content-Type": "application/json" }, status: 200 },
-      );
-    }
-
-    // Friday (Israel time) — the cron fires AFTER sunset (Shabbat already started).
-    // Skip Friday sends. Thursday makeup below handles Friday reminder days.
-    if (!isTest && currentDayOfWeek === 5) {
-      await logRun(supabaseAdmin, {
-        day_of_month: currentDay,
-        was_reminder_day: false,
-        was_shabbat: true, // cron fires at 21:00 IDT — after sunset, so Shabbat has started
-        users_processed: 0,
-        emails_sent: 0,
-        emails_failed: 0,
-        notes: "Erev Shabbat (Friday Israel, cron fires after sunset) - skipped",
-      });
-      return new Response(
-        JSON.stringify({ message: "Today is Erev Shabbat in Israel (cron fires after sunset). Skipped." }),
-        { headers: { ...getCorsHeaders(origin), "Content-Type": "application/json" }, status: 200 },
-      );
-    }
-
-    // Sunday (Israel time) — makeup for missed Saturday reminder days.
-    if (!isTest && currentDayOfWeek === 0) {
-      const saturdayDate = new Date(israelDate);
-      saturdayDate.setDate(saturdayDate.getDate() - 1);
-      const saturdayDay = saturdayDate.getDate();
-      if (reminderDays.includes(saturdayDay)) {
-        effectiveDay = saturdayDay;
-        shabbatNote = ` (Saturday makeup — day ${saturdayDay} sent on Sunday)`;
-        console.log(`Sunday makeup: sending reminders for Saturday day ${saturdayDay}`);
-      }
-    }
-
-    // Thursday (Israel time) — makeup for upcoming Friday reminder days.
-    // Since Friday sends are skipped, we send them a day early on Thursday.
-    if (!isTest && currentDayOfWeek === 4) {
-      const tomorrowDate = new Date(israelDate);
-      tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-      const tomorrowDay = tomorrowDate.getDate();
-      if (reminderDays.includes(tomorrowDay)) {
-        effectiveDay = tomorrowDay;
-        shabbatNote = ` (Friday makeup — day ${tomorrowDay} sent on Thursday before Shabbat)`;
-        console.log(`Thursday makeup: sending reminders for Friday day ${tomorrowDay}`);
-      }
-    }
-
-    // Update testDay after effectiveDay might have changed
-    const finalTestDay = isTest ? 25 : effectiveDay;
-
-    if (!isTest && !reminderDays.includes(effectiveDay)) {
-      await logRun(supabaseAdmin, {
-        day_of_month: currentDay,
-        was_reminder_day: false,
-        was_shabbat: false,
-        users_processed: 0,
-        emails_sent: 0,
-        emails_failed: 0,
-        notes: `Not a reminder day (days: ${reminderDays.join(", ")})`,
+    const dateResolution = resolveReminderCivilDate({
+      forceDate: body.forceDate,
+      fallbackDate: getIsraelDate(),
+    });
+    const currentIsraelDate = dateResolution.date;
+    const currentDay = Number(currentIsraelDate.slice(8, 10));
+    const reminderDays = DEFAULT_REMINDER_DAYS;
+    let planned: ReminderRunPlan;
+    try {
+      planned = planReminderRun(currentIsraelDate, reminderDays);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const stack = error instanceof Error ? error.stack : undefined;
+      console.error("[REMINDER] Planning failed", {
+        currentIsraelDate,
+        message,
+        stack,
       });
       return new Response(
         JSON.stringify({
-          message: `Today (${currentDay}) is not a reminder day. Reminder days: ${reminderDays.join(
-            ", ",
-          )}`,
+          error: "Failed to plan reminder run",
+          details: message,
+        }),
+        {
+          status: 500,
+          headers: {
+            ...getCorsHeaders(origin),
+            "Content-Type": "application/json",
+          },
+        },
+      );
+    }
+    const fallbackResolution: ReminderScheduleResolution = planned.fallback;
+    const dueCohorts: DueReminderCohort[] =
+      isTest && !dateResolution.forceDateApplied
+      ? [
+          {
+            calendarType: "gregorian",
+            reminderDay: 25,
+            resolution: { kind: "send-today", reminderDay: 25 },
+          },
+          {
+            calendarType: "hebrew",
+            reminderDay: 25,
+            resolution: { kind: "send-today", reminderDay: 25 },
+          },
+        ]
+      : planned.dueCohorts;
+    const yearlyResolution = isTest && !dateResolution.forceDateApplied
+      ? ({ kind: "no-op" } satisfies ReminderScheduleResolution)
+      : planned.yearly;
+    const yearlyDue =
+      yearlyResolution.kind === "send-today" ||
+      yearlyResolution.kind === "makeup";
+
+    if (dueCohorts.length === 0 && !yearlyDue) {
+      switch (fallbackResolution.kind) {
+        case "skip": {
+          const logEntry = buildReminderRunLog(
+            currentIsraelDate,
+            fallbackResolution,
+          );
+          await logRun(supabaseAdmin, logEntry);
+          console.log("[REMINDER] Schedule skipped:", logEntry.notes);
+          return new Response(
+            JSON.stringify({
+              message: logEntry.notes,
+              reason: fallbackResolution.reason,
+              was_yom_tov: logEntry.was_yom_tov,
+            }),
+            {
+              headers: {
+                ...getCorsHeaders(origin),
+                "Content-Type": "application/json",
+              },
+              status: 200,
+            },
+          );
+        }
+        case "no-op": {
+          const logEntry = buildReminderRunLog(
+            currentIsraelDate,
+            fallbackResolution,
+          );
+          logEntry.notes =
+            `Not a reminder day in either calendar (days: ${reminderDays.join(", ")})`;
+          await logRun(supabaseAdmin, logEntry);
+          return new Response(
+            JSON.stringify({
+              message:
+                `Today (${currentDay}) is not a reminder day in either calendar. Reminder days: ${reminderDays.join(", ")}`,
+              was_yom_tov: false,
+            }),
+            {
+              headers: {
+                ...getCorsHeaders(origin),
+                "Content-Type": "application/json",
+              },
+              status: 200,
+            },
+          );
+        }
+        case "send-today":
+        case "makeup":
+          throw new Error(
+            "Reminder cohorts missing for a due Gregorian schedule",
+          );
+        default:
+          return assertNever(fallbackResolution);
+      }
+    }
+
+    const cohortContext = dueCohorts.map(describeCohort).join("; ");
+    console.log(
+      `[REMINDER] Due calendar cohorts on ${currentIsraelDate}: ${cohortContext || "none"}`,
+    );
+
+    const cohortResults = dueCohorts.length === 0
+      ? []
+      : await Promise.allSettled(
+        dueCohorts.map((cohort) =>
+          userService.getUsersWithTitheBalances(
+            cohort.reminderDay,
+            cohort.calendarType,
+          )
+        ),
+      );
+    for (const result of cohortResults) {
+      if (result.status === "rejected") {
+        console.error("[REMINDER] Cohort fetch failed:", result.reason);
+      }
+    }
+    const failedCohorts = cohortResults.filter((result) => result.status === "rejected");
+    if (
+      dueCohorts.length > 0 &&
+      failedCohorts.length === cohortResults.length &&
+      !yearlyDue
+    ) {
+      throw new Error("All reminder cohorts failed");
+    }
+    const usersWithBalances = deduplicateReminderUsers(
+      cohortResults.flatMap((result) =>
+        result.status === "fulfilled" ? result.value : []
+      ),
+    );
+    const primaryResolution = dueCohorts[0]?.resolution ?? yearlyResolution;
+
+    if (usersWithBalances.length === 0 && !yearlyDue) {
+      await logRun(supabaseAdmin, {
+        ...buildReminderRunLog(currentIsraelDate, primaryResolution),
+        notes:
+          `No users configured for due cohorts [${cohortContext}]${isTest ? " (TEST)" : ""}`,
+      });
+      return new Response(
+        JSON.stringify({
+          message:
+            `No users found for due reminder cohorts [${cohortContext}]${isTest ? " (TEST MODE)" : ""}`,
         }),
         {
           headers: {
@@ -393,76 +465,81 @@ serve(async (req) => {
       );
     }
 
-    // Get users with tithe balances
-    const usersWithBalances =
-      await userService.getUsersWithTitheBalances(finalTestDay);
+    const yearlyCandidates = yearlyDue
+      ? await userService.getAllUsersWithTitheBalances()
+      : [];
+    const { monthlyOnly, yearly } = partitionYearlyReminderRecipients(
+      usersWithBalances,
+      yearlyCandidates,
+    );
+    const monthlyResults = monthlyOnly.length === 0
+      ? []
+      : await emailService.sendBulkReminders(monthlyOnly);
+    const yearlyResults = yearly.length === 0
+      ? []
+      : await emailService.sendBulkReminders(yearly, "maaser-year");
+    const results = [...monthlyResults, ...yearlyResults];
 
-    if (usersWithBalances.length === 0) {
-      await logRun(supabaseAdmin, {
-        day_of_month: finalTestDay,
-        was_reminder_day: true,
-        was_shabbat: false,
-        users_processed: 0,
-        emails_sent: 0,
-        emails_failed: 0,
-        notes: `No users configured for day ${finalTestDay}${isTest ? " (TEST)" : ""}`,
-      });
-      return new Response(
-        JSON.stringify({
-          message: `No users found with reminders enabled for day ${finalTestDay}${isTest ? " (TEST MODE)" : ""}`,
-        }),
-        {
-          headers: {
-            ...getCorsHeaders(origin),
-            "Content-Type": "application/json",
-          },
-          status: 200,
-        },
+    if (monthlyOnly.length > 0) {
+      console.log(
+        `[REMINDER] Starting to send emails to ${monthlyOnly.length} unique users for [${cohortContext}]${isTest ? " (TEST MODE)" : ""}`,
       );
     }
 
-    // Send bulk reminder emails
+    const yearlySummary = summarizeReminderSendResults(yearlyResults);
+    const yearlyProcessed = yearly.length;
+    const summary = summarizeReminderSendResults(results);
+    const sentCount = summary.emails_sent;
+    const heldCount = summary.emails_held;
+    const failedCount = summary.emails_failed;
     console.log(
-      `[REMINDER] Starting to send emails to ${usersWithBalances.length} users for day ${finalTestDay}${isTest ? " (TEST MODE)" : ""}`,
-    );
-    const results = await emailService.sendBulkReminders(usersWithBalances);
-
-    // Log detailed results for debugging
-    const sentCount = results.filter((r) => r.status === "sent").length;
-    const failedCount = results.filter((r) => r.status === "failed").length;
-    console.log(
-      `[REMINDER] Email sending completed: ${sentCount} sent, ${failedCount} failed`,
+      `[REMINDER] Email sending completed: ${sentCount} sent, ${heldCount} held, ${failedCount} failed`,
     );
 
-    // Log any failures
     results.forEach((result) => {
       if (result.status === "failed") {
         console.error(
-          `[REMINDER] Failed to send email to ${result.email}: ${result.error}`,
+          `[REMINDER] Failed to send email to ${maskEmail(result.email)}: ${result.error}`,
+        );
+      } else if (result.status === "held" || result.dryRun) {
+        console.log(
+          `[REMINDER] Held email to ${maskEmail(result.email)}, messageId: ${result.messageId}`,
         );
       } else {
         console.log(
-          `[REMINDER] Successfully sent email to ${result.email}, messageId: ${result.messageId}`,
+          `[REMINDER] Successfully sent email to ${maskEmail(result.email)}, messageId: ${result.messageId}`,
         );
       }
     });
 
-    const sundayMessage = isTest ? "" : shabbatNote;
-
+    const forceDateNote = dateResolution.forceDateApplied
+      ? `forceDate=${dateResolution.date}; `
+      : dateResolution.forceDateIgnored
+      ? `forceDate-ignored; `
+      : "";
+    const yearlyNote = yearlyDue
+      ? `; maaser-year-close=${yearlyResolution.kind}:${yearlyProcessed}/${yearlySummary.emails_sent}/${yearlySummary.emails_failed}/held=${yearlySummary.emails_held}`
+      : "";
     await logRun(supabaseAdmin, {
-      day_of_month: finalTestDay,
-      was_reminder_day: true,
-      was_shabbat: false,
-      users_processed: usersWithBalances.length,
-      emails_sent: sentCount,
-      emails_failed: failedCount,
-      notes: sundayMessage || (isTest ? "TEST MODE" : undefined),
+      ...buildReminderRunLog(currentIsraelDate, primaryResolution, {
+        usersProcessed: monthlyOnly.length + yearlyProcessed,
+        emailsSent: sentCount,
+        emailsFailed: failedCount,
+      }),
+      notes: `${forceDateNote}${isTest ? "TEST MODE; " : ""}cohorts=[${cohortContext || "none"}]${yearlyNote}; held=${heldCount}`,
     });
 
     return new Response(
       JSON.stringify({
-        message: `Processed ${usersWithBalances.length} users for day ${finalTestDay}${sundayMessage}${isTest ? " (TEST MODE)" : ""}. Sent: ${sentCount}, Failed: ${failedCount}`,
-        results,
+        message:
+          `Processed ${monthlyOnly.length + yearlyProcessed} unique users for [${cohortContext || "none"}]${yearlyDue ? "; maaser-year-close" : ""}${isTest ? " (TEST MODE)" : ""}. Sent: ${sentCount}, Held: ${heldCount}, Failed: ${failedCount}`,
+        emails_sent: sentCount,
+        emails_held: heldCount,
+        emails_failed: failedCount,
+        results: summary.results,
+        forceDateApplied: dateResolution.forceDateApplied,
+        forceDateIgnored: dateResolution.forceDateIgnored,
+        was_yom_tov: false,
       }),
       {
         headers: {

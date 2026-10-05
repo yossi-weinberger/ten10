@@ -41,6 +41,7 @@
   "columns": {
     "select": "Select",
     "date": "Date",
+    "hebrewDate": "Hebrew Date",
     "type": "Type",
     "description": "Description",
     "category": "Category",
@@ -245,6 +246,10 @@
       "weekly": "Weekly",
       "monthly": "Monthly",
       "yearly": "Yearly"
+    },
+    "calendars": {
+      "gregorian": "Gregorian",
+      "hebrew": "Hebrew"
     }
   },
 

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { SlidingToggleGroup } from "@/components/ui/sliding-toggle-group";
 import { BellRing, Mail, Monitor, Power } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -17,6 +18,7 @@ import {
   disableAutostart,
   isAutostartEnabled,
 } from "@/lib/data-layer/reminders";
+import type { CalendarType } from "@/lib/calendar";
 
 // Define the specific settings properties needed by this component
 interface NotificationSettings {
@@ -24,6 +26,7 @@ interface NotificationSettings {
   recurringDonations: boolean;
   reminderEnabled: boolean;
   reminderDayOfMonth: 1 | 5 | 10 | 15 | 20 | 25;
+  reminderCalendarType: CalendarType;
   mailingListConsent?: boolean;
 }
 
@@ -128,6 +131,29 @@ export function NotificationSettingsCard({
           />
         </div>
 
+        <div className="ml-11 flex flex-wrap items-center justify-between gap-3">
+          <Label>{t("notifications.reminderCalendarLabel")}</Label>
+          <SlidingToggleGroup
+            ariaLabel={t("notifications.reminderCalendarLabel")}
+            className="w-44"
+            value={notificationSettings.reminderCalendarType}
+            disabled={disabled || !emailNotificationsOn}
+            onValueChange={(value) =>
+              updateSettings({ reminderCalendarType: value })
+            }
+            options={[
+              {
+                value: "gregorian",
+                label: t("notifications.calendarOptions.gregorian"),
+              },
+              {
+                value: "hebrew",
+                label: t("notifications.calendarOptions.hebrew"),
+              },
+            ]}
+          />
+        </div>
+
         {/* Day Selection - Always visible but disabled when notifications are off */}
         <div className="ml-11 space-y-2">
           <Label className="text-sm">
@@ -154,7 +180,11 @@ export function NotificationSettingsCard({
                 `}
               >
                 <span className="hidden sm:inline">
-                  {t(`notifications.day${day}`)}
+                  {t(
+                    notificationSettings.reminderCalendarType === "hebrew"
+                      ? `notifications.hebrewDay${day}`
+                      : `notifications.day${day}`,
+                  )}
                 </span>
                 <span className="sm:hidden">{day}</span>
               </button>

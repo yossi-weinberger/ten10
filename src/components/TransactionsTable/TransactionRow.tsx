@@ -20,6 +20,7 @@ import { RecurringProgressBadge } from "./RecurringProgressBadge";
 import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversionInfo";
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { formatCategory } from "@/lib/category-registry";
+import { useDisplayDate } from "@/lib/calendar/use-display-date";
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
@@ -45,15 +46,18 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   selectionDisabled = false,
 }) => {
   const { t, i18n } = useTranslation(["data-tables", "transactions"]);
+  const formatDisplayDate = useDisplayDate();
+  const displayDate = formatDisplayDate(transaction.date, "numeric");
 
   return (
     <TableRow key={transaction.id} data-state={selected ? "selected" : undefined}>
       <TableCell className="text-start whitespace-nowrap">
-        {new Date(transaction.date).toLocaleDateString(i18n.language, {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        })}
+        <span>{displayDate.primary}</span>
+        {displayDate.secondary && (
+          <span className="block text-xs text-muted-foreground">
+            {displayDate.secondary}
+          </span>
+        )}
       </TableCell>
       <TableCell className="text-start">
         {transaction.description || "-"}

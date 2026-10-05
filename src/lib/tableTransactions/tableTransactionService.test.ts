@@ -62,6 +62,49 @@ beforeEach(() => {
 });
 
 describe("TableTransactionsService payment method compatibility", () => {
+  it("passes date-only filter boundaries unchanged to the web RPC", async () => {
+    await TableTransactionsService.fetchTransactions({
+      offset: 0,
+      limit: 20,
+      filters: {
+        ...filters,
+        dateRange: { from: "2026-09-23", to: "2026-09-24" },
+      },
+      sorting: { field: "date", direction: "desc" },
+      platform: "web",
+    });
+
+    expect(mockRpc).toHaveBeenCalledWith(
+      "get_user_transactions",
+      expect.objectContaining({
+        p_date_from: "2026-09-23",
+        p_date_to: "2026-09-24",
+      }),
+    );
+  });
+
+  it("passes date-only filter boundaries unchanged to the desktop query", async () => {
+    await TableTransactionsService.fetchTransactions({
+      offset: 0,
+      limit: 20,
+      filters: {
+        ...filters,
+        dateRange: { from: "2026-09-23", to: "2026-09-24" },
+      },
+      sorting: { field: "date", direction: "desc" },
+      platform: "desktop",
+    });
+
+    expect(mockInvokeDesktopFilteredTransactions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filters: expect.objectContaining({
+          dateFrom: "2026-09-23",
+          dateTo: "2026-09-24",
+        }),
+      }),
+    );
+  });
+
   it("sends expanded payment method aliases to the web RPC", async () => {
     await TableTransactionsService.fetchTransactions({
       offset: 0,

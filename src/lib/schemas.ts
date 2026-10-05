@@ -156,6 +156,7 @@ export const createTransactionFormSchema = (t: TFunction) =>
           ),
         })
         .optional(),
+      recurring_calendar_type: z.enum(["gregorian", "hebrew"]).optional(),
       recurring_day_of_month: createDayOfMonthSchema(t),
       recurringTotalCount: createTotalOccurrencesSchema(t),
 
@@ -169,6 +170,18 @@ export const createTransactionFormSchema = (t: TFunction) =>
       conversion_date: z.string().optional().nullable(),
       rate_source: z.enum(["auto", "manual"]).optional().nullable(),
     })
+    .refine(
+      (data) =>
+        data.recurring_calendar_type !== "hebrew" ||
+        data.recurring_day_of_month == null ||
+        data.recurring_day_of_month <= 30,
+      {
+        message: t(
+          "transactions:transactionForm.validation.recurring.dayOfMonth.hebrewRange",
+        ),
+        path: ["recurring_day_of_month"],
+      },
+    )
     .refine(
       (data) => {
         if (data.type === "income" && data.isExempt && data.is_chomesh) {
@@ -313,13 +326,26 @@ export const createRecurringEditSchema = (t: TFunction) =>
     status: z.enum(["active", "paused", "completed", "cancelled"]),
     total_occurrences: createTotalOccurrencesSchema(t).nullable(),
     day_of_month: createDayOfMonthSchema(t).nullable(),
+    calendar_type: z.enum(["gregorian", "hebrew"]),
+    anchor_month_code: z.string().nullable().optional(),
     // Currency conversion fields
     original_amount: z.number().optional().nullable(),
     original_currency: z.string().optional().nullable(),
     conversion_rate: z.number().optional().nullable(),
     conversion_date: z.string().optional().nullable(),
     rate_source: z.enum(["auto", "manual"]).optional().nullable(),
-  });
+  }).refine(
+    (data) =>
+      data.calendar_type !== "hebrew" ||
+      data.day_of_month == null ||
+      data.day_of_month <= 30,
+    {
+      message: t(
+        "transactions:transactionForm.validation.recurring.dayOfMonth.hebrewRange",
+      ),
+      path: ["day_of_month"],
+    },
+  );
 
 export type RecurringEditFormValues = z.infer<
   ReturnType<typeof createRecurringEditSchema>

@@ -178,6 +178,10 @@ ALTER FUNCTION public.function_name(...) SET search_path = public;
 - `update_user_preferences`
 - `update_user_transaction`
 
+> Historical note: `calculate_new_next_due_date` and
+> `execute_due_recurring_transactions` were later retired and dropped by
+> `20260923114002_cleanup_legacy_calendar_and_recurring_rpcs.sql`.
+
 ---
 
 ## 5. RLS Policy Optimization

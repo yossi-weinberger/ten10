@@ -1,5 +1,5 @@
 import * as React from "react";
-import { format, parse } from "date-fns";
+import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { he, enUS } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
@@ -11,7 +11,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { formatDisplayDate } from "@/lib/calendar/display-date";
+import { useDonationStore } from "@/lib/store";
+import {
+  formatLocalDate,
+  getCalendarNavigationBounds,
+} from "@/lib/utils/local-date";
 import { Input } from "./input";
+import { parseExactGregorianDateInput } from "./gregorian-date-input";
 
 export function DatePicker({
   date,
@@ -23,26 +30,48 @@ export function DatePicker({
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>("");
   const [month, setMonth] = React.useState<Date | undefined>(date);
-  const { i18n } = useTranslation();
+  const { i18n } = useTranslation("dashboard");
+  const yearBounds = getCalendarNavigationBounds();
+  const calendarType = useDonationStore(
+    (state) => state.settings.calendarType,
+  );
+  const language = i18n.language.startsWith("he") ? "he" : "en";
+
+  const formatFieldDate = React.useCallback(
+    (value: Date): string => {
+      if (calendarType === "hebrew") {
+        return formatDisplayDate(formatLocalDate(value), {
+          calendarType: "hebrew",
+          showSecondaryDate: false,
+          language,
+          style: "long",
+        }).primary;
+      }
+
+      return format(value, "dd/MM/yyyy");
+    },
+    [calendarType, language],
+  );
 
   React.useEffect(() => {
     if (date && isValidDate(date)) {
-      setInputValue(format(date, "dd/MM/yyyy"));
+      setInputValue(formatFieldDate(date));
     } else {
       setInputValue("");
     }
     setMonth(date);
-  }, [date]);
+  }, [date, formatFieldDate]);
 
   function isValidDate(d: unknown): d is Date {
     return d instanceof Date && !isNaN(d.getTime());
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (calendarType === "hebrew") return;
     const value = e.target.value;
     setInputValue(value);
-    const parsedDate = parse(value, "dd/MM/yyyy", new Date());
-    if (isValidDate(parsedDate)) {
+    const parsedDate = parseExactGregorianDateInput(value);
+    if (parsedDate) {
       setDate(parsedDate);
       setMonth(parsedDate);
     } else if (value === "") {
@@ -53,7 +82,7 @@ export function DatePicker({
   const handleSelectDate = (selectedDate: Date | undefined) => {
     if (isValidDate(selectedDate)) {
       setDate(selectedDate);
-      setInputValue(format(selectedDate, "dd/MM/yyyy"));
+      setInputValue(formatFieldDate(selectedDate));
     } else {
       setDate(undefined);
       setInputValue("");
@@ -95,12 +124,13 @@ export function DatePicker({
     return date.getFullYear().toString();
   };
 
-  return (
+  const picker = (
     <div className="relative">
       <Input
-        placeholder="DD/MM/YYYY"
+        placeholder={calendarType === "hebrew" ? "" : "DD/MM/YYYY"}
         value={inputValue}
         onChange={handleInputChange}
+        readOnly={calendarType === "hebrew"}
         className="bg-background pr-10"
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") {
@@ -127,14 +157,15 @@ export function DatePicker({
         >
           <Calendar
             mode="single"
+            required
             selected={date}
             onSelect={handleSelectDate}
             month={month}
             onMonthChange={setMonth}
             initialFocus
             captionLayout="dropdown"
-            fromYear={1960}
-            toYear={new Date().getFullYear() + 5}
+            startMonth={yearBounds.startMonth}
+            endMonth={yearBounds.endMonth}
             dir={i18n.dir()}
             locale={i18n.language === "he" ? he : enUS}
             formatters={{
@@ -160,4 +191,6 @@ export function DatePicker({
       </Popover>
     </div>
   );
+
+  return picker;
 }

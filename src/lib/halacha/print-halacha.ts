@@ -1,5 +1,8 @@
 import i18n from "@/lib/i18n";
 import { getTypedTranslation } from "@/components/halacha/utils";
+import { formatDisplayDate } from "@/lib/calendar/display-date";
+import { useDonationStore } from "@/lib/store";
+import { getCurrentLocalDate } from "@/lib/utils/local-date";
 import {
   type HalachaPrintBlock,
   type HalachaPrintChapter,
@@ -143,9 +146,17 @@ function collectChapter(
 
 export function collectHalachaPrintModel(): HalachaPrintModel {
   const language = i18n.language.startsWith("en") ? "en" : "he";
-  const printedOnDate = new Date().toLocaleDateString(i18n.language, {
-    dateStyle: "long",
+  const { calendarType, showSecondaryDate } =
+    useDonationStore.getState().settings;
+  const displayDate = formatDisplayDate(getCurrentLocalDate(), {
+    calendarType,
+    showSecondaryDate,
+    language,
+    style: "long",
   });
+  const printedOnDate = displayDate.secondary
+    ? `${displayDate.primary} (${displayDate.secondary})`
+    : displayDate.primary;
 
   return {
     language,

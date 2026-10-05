@@ -14,3 +14,11 @@ verify_jwt = false
 # Admin monitoring endpoint - requires valid JWT for admin access verification
 verify_jwt = true
 
+# Shared calendar no longer uses a bare npm specifier. These maps keep the
+# standard `supabase functions deploy <name>` path working if one is added later.
+[functions.send-reminder-emails]
+import_map = "./functions/deno.json"
+
+[functions.process-recurring-transactions]
+import_map = "./functions/deno.json"
+

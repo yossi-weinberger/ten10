@@ -2,6 +2,8 @@
 
 **סטטוס כללי:** שלבי הווב (1-3) הושלמו במלואם. העבודה על שלב 4 (דסקטופ) החלה.
 
+**לוח עברי (2026):** `recurring_transactions.calendar_type` (ברירת מחדל `gregorian`) ו-`anchor_month_code` להו"ק שנתית. החישוב המשותף ב-`src/lib/calendar` / `_shared/calendar` משתמש ב-clamp. ראה `features/calendar/hebrew-calendar-guide.md`.
+
 מסמך זה מתאר את שלבי הפעולה המפורטים להטמעת מערכת ניהול הוראות קבע (Standing Orders) באפליקציה, עבור פלטפורמת הווב (Supabase) והדסקטופ (Tauri v2/SQLite).
 
 המדריך מבוסס על הדיון והדגשים הבאים:
@@ -112,6 +114,13 @@ COMMENT ON COLUMN public.transactions.source_recurring_id IS 'Links to the recur
 ## שלב 2: לוגיקת צד-שרת (Web)
 
 **סטטוס:** ✅ **בוצע**
+
+> **עדכון 2026-09-23:** המימוש הפעיל הוא
+> `supabase/functions/process-recurring-transactions/index.ts`, שנקרא מדי יום
+> על ידי `pg_cron` דרך HTTP. פונקציית ה-SQL הישנה
+> `execute_due_recurring_transactions()` אינה בשימוש והוסרה במיגרציה
+> `20260923114002_cleanup_legacy_calendar_and_recurring_rpcs.sql`. הסעיפים
+> הבאים מתעדים את התכנון ההיסטורי בלבד ואינם הוראות פריסה עדכניות.
 
 ### 2.1: יצירת פונקציית ה-Cron Job ב-SQL
 

@@ -162,21 +162,48 @@ function until this branch's migration and Edge Function are deployed.
 - `SES_FROM`: Sender email address (default: `reminder-noreply@ten10-app.com`)
 - `SES_FROM_NAME`: Optional display name
 - `SES_CONFIGURATION_SET`: Optional SES configuration set
-- `SUPABASE_URL`: Supabase project URL
+- `SUPABASE_URL`: Supabase project URL. The shared email guard treats a host containing `flpzqbvbymoluoeeeofg` as production.
 - `SUPABASE_SERVICE_ROLE_KEY`: Service role key
 - `SUPABASE_ANON_KEY`: Used for JWT validation only
+- `DRY_RUN`: When `true`, log a non-PII summary and do not call SES
+- `EMAIL_ALLOWLIST`: Comma-separated allowlist; other recipients are dropped
+- `EMAIL_ENV`: Optional override (`production` or any other value for non-prod)
+
+On the testing project (`bbcllewcotypedqsnwmi`), emails are held unless `DRY_RUN=true` or `EMAIL_ALLOWLIST` is set — including `{"test":true}` runs and contact/admin mail. See `supabase/MIGRATION_VAULT_SETUP.md`.
+
+`forceDate` (`YYYY-MM-DD`) is a **non-production-only** override for the Israel civil date used by reminder-day, Shabbat/Yom Tov skip, makeup, Friday early-send, and 29 Elul maaser-year logic. Production (`EMAIL_ENV=production` or a `SUPABASE_URL` containing `flpzqbvbymoluoeeeofg`) ignores it and logs that it was ignored. It never bypasses the email guard. Held/dry-run sends are counted as `emails_held`, not `emails_sent`. The HTTP `results` array returns masked addresses only.
 
 ### Reminder Days
 
-The existing reminder behavior supports days **1, 5, 10, 15, 20, 25**.
-Scheduling is not part of the pending localized-redesign rollout.
+Reminder profile values remain days **1, 5, 10, 15, 20, 25**. Each profile
+chooses whether that number is interpreted in the Gregorian or Hebrew
+calendar. Existing profiles default to Gregorian. The Edge function resolves
+both cohorts for the same Israel civil date, fetches only due cohorts, and
+deduplicates recipients before sending.
 
-The function uses `Asia/Jerusalem` for day-of-month and Shabbat handling:
+The function uses `Asia/Jerusalem` and a civil-midnight boundary. It does not
+use sunset or zmanim. Israel observance blocks Rosh Hashana (both days), Yom
+Kippur, the first day of Sukkot, Shemini Atzeret, the first and seventh days
+of Pesach, and Shavuot. Chol HaMoed, Purim, Chanukah, fasts, and Erev Yom Tov
+are not blocked. Diaspora second-day support remains a location-policy
+follow-up and is not implemented in this stage.
+
+The existing Friday/Saturday behavior is intentionally preserved:
 
 - Saturday (Israel): skipped entirely
 - Friday (Israel): skipped (cron fires after sunset)
 - Sunday: makeup for Saturday reminder days
 - Thursday: makeup for Friday reminder days
+
+The Friday rule is the existing sunset-based operational exception and is
+therefore inconsistent with the otherwise civil-midnight convention. Stage 5
+preserves it rather than redesigning established reminder behavior.
+
+Desktop reminders use the selected reminder calendar at the machine's local
+civil midnight and retain a Gregorian ISO local-storage key for once-per-day
+deduplication. They do not run the server's Israel Yom Tov/Shabbat makeup
+policy because the desktop app has no background scheduler; that policy
+remains specific to Web email delivery.
 
 ## Monitoring
 

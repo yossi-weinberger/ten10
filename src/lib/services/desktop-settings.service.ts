@@ -1,9 +1,14 @@
-import { useDonationStore, Settings } from "@/lib/store";
+import {
+  normalizeReminderCalendarType,
+  useDonationStore,
+  Settings,
+} from "@/lib/store";
 import { logger } from "@/lib/logger";
 import { getPlatform } from "@/lib/platformManager";
 import { CURRENCIES } from "@/lib/currencies";
 import type { CurrencyCode } from "@/lib/currencies";
 import type { Language } from "@/lib/store";
+import { normalizeCalendarSettings } from "@/lib/settings/calendar-settings";
 
 type Theme = "light" | "dark" | "system";
 
@@ -89,11 +94,21 @@ export async function restoreDesktopSettings(): Promise<RestoredDesktopSettings>
 
     if (storedPreferencesStr) {
       try {
-        const parsed = JSON.parse(storedPreferencesStr);
+        const parsed = JSON.parse(storedPreferencesStr) as Record<
+          string,
+          unknown
+        >;
+        delete parsed.maaserYearStart;
+        Object.assign(parsed, normalizeCalendarSettings(parsed));
+        parsed.reminderCalendarType = normalizeReminderCalendarType(
+          parsed.reminderCalendarType,
+        );
         logger.log("DesktopSettingsService: Restored client_preferences from SQLite.");
-        store.updateSettings(parsed);
-        if (isValidTheme(parsed.theme)) {
-          result.theme = parsed.theme;
+        store.updateSettings(parsed as Partial<Settings>);
+        const parsedTheme =
+          typeof parsed.theme === "string" ? parsed.theme : undefined;
+        if (isValidTheme(parsedTheme)) {
+          result.theme = parsedTheme;
         }
         return result;
       } catch (parseErr) {

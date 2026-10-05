@@ -795,10 +795,11 @@ const getAuthErrorMessage = (error: any) => {
 
 ### 2. Localized Date Picker
 
-We enhanced `src/components/ui/date-picker.tsx` to fully support localization.
+`src/components/ui/date-picker.tsx` and `date-range-picker.tsx` follow `settings.calendarType`.
 
-- **Format:** Displays dates as `DD/MM/YYYY`.
-- **Dropdowns:** Month and year selection dropdowns are localized.
+- **Hebrew primary calendar:** `react-day-picker` uses `src/lib/calendar/hebrew-date-lib.ts` so month grids are real Hebrew months (29/30 days, Adar I/II).
+- **Typed input:** stays Gregorian `DD/MM/YYYY` in both calendars.
+- **Displayed value:** `formatDisplayDate` / `useDisplayDate`. Secondary calendar text is display-only and must not look like a filter.
 
 This guide provides a roadmap. Each step will require careful implementation and testing.
 

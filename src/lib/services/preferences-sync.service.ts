@@ -1,6 +1,43 @@
 import { supabase } from "@/lib/supabaseClient";
 import { useDonationStore, Settings } from "@/lib/store";
 import { logger } from "@/lib/logger";
+import { sanitizeClientPreferences } from "@/lib/settings/client-preferences";
+
+type ReminderSettingsUpdate = Partial<
+  Pick<
+    Settings,
+    | "reminderEnabled"
+    | "reminderDayOfMonth"
+    | "reminderCalendarType"
+    | "mailingListConsent"
+  >
+>;
+
+export interface ReminderProfileUpdate {
+  reminder_enabled?: boolean;
+  reminder_day_of_month?: Settings["reminderDayOfMonth"];
+  reminder_calendar_type?: Settings["reminderCalendarType"];
+  mailing_list_consent?: boolean;
+}
+
+export function buildReminderProfileUpdate(
+  settings: ReminderSettingsUpdate,
+): ReminderProfileUpdate {
+  return {
+    ...(typeof settings.reminderEnabled === "boolean" && {
+      reminder_enabled: settings.reminderEnabled,
+    }),
+    ...(settings.reminderDayOfMonth !== undefined && {
+      reminder_day_of_month: settings.reminderDayOfMonth,
+    }),
+    ...(settings.reminderCalendarType !== undefined && {
+      reminder_calendar_type: settings.reminderCalendarType,
+    }),
+    ...(typeof settings.mailingListConsent === "boolean" && {
+      mailing_list_consent: settings.mailingListConsent,
+    }),
+  };
+}
 
 export const PreferencesSyncService = {
   /**
@@ -8,31 +45,23 @@ export const PreferencesSyncService = {
    * Fields that have dedicated columns in the profiles table are omitted.
    */
   extractClientPreferences(settings: Settings): Partial<Settings> {
-    const {
-      defaultCurrency,
-      reminderEnabled,
-      reminderDayOfMonth,
-      mailingListConsent,
-      lastSeenVersion,
-      termsAcceptedVersion,
-      ...preferences
-    } = settings;
-    return preferences;
+    return sanitizeClientPreferences(settings);
   },
 
   /**
    * Syncs the user preferences between local store and Supabase.
    * If DB has no preferences (null), local wins and is pushed to DB.
    * If DB has preferences, they are merged into local store.
-   * Also syncs dedicated profile columns (reminder_day_of_month, reminder_enabled,
-   * mailing_list_consent) which are excluded from client_preferences JSONB.
+   * Also syncs dedicated profile columns (reminder_day_of_month,
+   * reminder_calendar_type, reminder_enabled, mailing_list_consent) which are
+   * excluded from client_preferences JSONB.
    */
   async syncPreferences(userId: string) {
     try {
       const { data: profile, error } = await supabase
         .from("profiles")
         .select(
-          "client_preferences, reminder_day_of_month, reminder_enabled, mailing_list_consent",
+          "client_preferences, reminder_day_of_month, reminder_calendar_type, reminder_enabled, mailing_list_consent",
         )
         .eq("id", userId)
         .single();
@@ -45,8 +74,11 @@ export const PreferencesSyncService = {
         return;
       }
 
-      const dbPreferences =
-        profile?.client_preferences as Partial<Settings> | null;
+      const dbPreferences = profile?.client_preferences
+        ? sanitizeClientPreferences(
+            profile.client_preferences as Partial<Settings>,
+          )
+        : null;
       const localSettings = useDonationStore.getState().settings;
 
       // Build the dedicated-column overrides (reminder fields live in their own
@@ -56,6 +88,13 @@ export const PreferencesSyncService = {
       if (profile?.reminder_day_of_month != null) {
         dedicatedColumnUpdates.reminderDayOfMonth =
           profile.reminder_day_of_month as Settings["reminderDayOfMonth"];
+      }
+      if (
+        profile?.reminder_calendar_type === "gregorian" ||
+        profile?.reminder_calendar_type === "hebrew"
+      ) {
+        dedicatedColumnUpdates.reminderCalendarType =
+          profile.reminder_calendar_type;
       }
       if (profile?.reminder_enabled != null) {
         dedicatedColumnUpdates.reminderEnabled = profile.reminder_enabled;
@@ -86,10 +125,8 @@ export const PreferencesSyncService = {
 
       if (!dbPreferences) {
         // DB is empty (null). Local wins. Push client_preferences to DB.
-        // Note: dedicated profile columns (reminder_day_of_month, reminder_enabled,
-        // mailing_list_consent) are intentionally NOT pushed here — they have
-        // sensible DB defaults and are written explicitly by SettingsPage when
-        // the user changes notification settings.
+        // Dedicated profile columns are intentionally not pushed here. They
+        // have database defaults and SettingsPage writes explicit changes.
         logger.log(
           "PreferencesSyncService: DB preferences empty. Pushing local settings to DB.",
         );

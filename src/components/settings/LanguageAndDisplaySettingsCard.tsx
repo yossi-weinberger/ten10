@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Card,
@@ -16,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { SlidingToggleGroup } from "@/components/ui/sliding-toggle-group";
 import { Languages, Moon, Sun, MonitorSmartphone } from "lucide-react";
 
 type Theme = "light" | "dark" | "system";
@@ -46,33 +46,6 @@ export function LanguageAndDisplaySettingsCard({
 
   // Use the actual i18n language instead of Zustand to ensure sync
   const currentLanguage = (i18n.language || "he") as "he" | "en";
-
-  // Sliding indicator logic (inspired by Ibelick's sliding tab bar)
-  const toggleRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const [sliderLeft, setSliderLeft] = useState(0);
-  const [sliderWidth, setSliderWidth] = useState(0);
-
-  const getActiveIndex = () => {
-    const order: Array<Theme> = ["light", "dark", "system"];
-    const idx = order.indexOf(theme);
-    return idx === -1 ? 0 : idx;
-  };
-
-  useEffect(() => {
-    const index = getActiveIndex();
-    const current = toggleRefs.current[index];
-    if (!current) return;
-
-    const update = () => {
-      setSliderLeft(current.offsetLeft ?? 0);
-      setSliderWidth(current.clientWidth ?? 0);
-    };
-
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [theme]);
 
   return (
     <Card>
@@ -113,51 +86,28 @@ export function LanguageAndDisplaySettingsCard({
 
         <div className="grid gap-2">
           <Label>{t("languageAndDisplay.themeLabel")}</Label>
-          <ToggleGroup
-            type="single"
+          <SlidingToggleGroup
+            ariaLabel={t("languageAndDisplay.themeLabel")}
             value={theme}
-            onValueChange={(value: string) => {
-              if (value) setTheme(value as Theme);
-            }}
-            className="relative grid grid-cols-3 gap-1 rounded-md border p-1"
-            aria-label={t("languageAndDisplay.themeLabel")}
-          >
-            {/* sliding background */}
-            <span
-              className="absolute inset-y-1 z-0 rounded-md bg-accent shadow-sm transition-[left,width] duration-500 ease-in-out"
-              style={{ left: sliderLeft, width: sliderWidth }}
-            />
-            <ToggleGroupItem
-              value="light"
-              aria-label={t("languageAndDisplay.lightTheme")}
-              className="relative z-10 flex-1 justify-center hover:bg-transparent data-[state=on]:bg-transparent data-[state=on]:text-accent-foreground"
-              ref={(el) => {
-                toggleRefs.current[0] = el;
-              }}
-            >
-              <Sun className="h-5 w-5" />
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="dark"
-              aria-label={t("languageAndDisplay.darkTheme")}
-              className="relative z-10 flex-1 justify-center hover:bg-transparent data-[state=on]:bg-transparent data-[state=on]:text-accent-foreground"
-              ref={(el) => {
-                toggleRefs.current[1] = el;
-              }}
-            >
-              <Moon className="h-5 w-5" />
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="system"
-              aria-label={t("languageAndDisplay.systemTheme")}
-              className="relative z-10 flex-1 justify-center hover:bg-transparent data-[state=on]:bg-transparent data-[state=on]:text-accent-foreground"
-              ref={(el) => {
-                toggleRefs.current[2] = el;
-              }}
-            >
-              <MonitorSmartphone className="h-5 w-5" />
-            </ToggleGroupItem>
-          </ToggleGroup>
+            onValueChange={setTheme}
+            options={[
+              {
+                value: "light",
+                label: <Sun className="h-5 w-5" />,
+                ariaLabel: t("languageAndDisplay.lightTheme"),
+              },
+              {
+                value: "dark",
+                label: <Moon className="h-5 w-5" />,
+                ariaLabel: t("languageAndDisplay.darkTheme"),
+              },
+              {
+                value: "system",
+                label: <MonitorSmartphone className="h-5 w-5" />,
+                ariaLabel: t("languageAndDisplay.systemTheme"),
+              },
+            ]}
+          />
         </div>
       </CardContent>
     </Card>

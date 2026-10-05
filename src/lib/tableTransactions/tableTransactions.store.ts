@@ -22,6 +22,9 @@ import type {
   TransactionBulkPatch,
 } from "./bulkActions";
 import { getErrorMessage } from "@/lib/utils/error-message";
+import { parseLocalDate } from "@/lib/utils/local-date";
+import { useDonationStore } from "@/lib/store";
+import { useCalendarPreview } from "@/lib/calendar/calendar-preview";
 
 export interface TableTransactionsState {
   // State
@@ -401,6 +404,12 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
 
       try {
         const { filters, sorting } = get();
+        const savedCalendar = useDonationStore.getState().settings;
+        const preview = useCalendarPreview.getState().preview;
+        const calendarSettings = {
+          calendarType: preview ?? savedCalendar.calendarType,
+          showSecondaryDate: savedCalendar.showSecondaryDate,
+        };
         const { transactions: transactionsToExport, totalCount } =
           await TableTransactionsService.getDataForExport(filters, platform);
 
@@ -414,10 +423,10 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
           const exportFilters = {
             dateRange: {
               from: filters.dateRange.from
-                ? new Date(filters.dateRange.from)
+                ? parseLocalDate(filters.dateRange.from)
                 : undefined,
               to: filters.dateRange.to
-                ? new Date(filters.dateRange.to)
+                ? parseLocalDate(filters.dateRange.to)
                 : undefined,
             },
           };
@@ -426,19 +435,22 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
             exportFilters,
             totalCount,
             i18n.language,
-            sorting
+            sorting,
+            calendarSettings,
           );
         } else if (format === "excel") {
           saved = await exportTransactionsToExcel(
             transactionsToExport,
             "Ten10-transactions.xlsx",
-            i18n.language
+            i18n.language,
+            calendarSettings,
           );
         } else if (format === "csv") {
           saved = await exportTransactionsToCSV(
             transactionsToExport,
             "Ten10-transactions.csv",
-            i18n.language
+            i18n.language,
+            calendarSettings,
           );
         } else {
           const _exhaustive: never = format;

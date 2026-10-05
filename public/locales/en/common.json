@@ -107,6 +107,18 @@
     "zero": {
       "title": "Monthly Update Reminder",
       "body": "You've met your monthly tithe goal. Don't forget to update your latest data!"
+    },
+    "maaserYear": {
+      "title": "Close your maaser year",
+      "positive": {
+        "body": "Erev Rosh Hashanah is here. Review this year's income and donations before the new year begins. {{amount}} ILS is still left to give."
+      },
+      "negative": {
+        "body": "Erev Rosh Hashanah is here. Review the year before the new one begins. You have a credit of {{amount}} ILS."
+      },
+      "zero": {
+        "body": "Erev Rosh Hashanah is here. Review this year's income and donations. Your tithe balance is settled."
+      }
     }
   },
   "platform": {
@@ -128,6 +140,10 @@
     "feature_home_screen": "Home screen icon",
     "feature_full_screen": "Full screen without address bar",
     "feature_offline_support": "Offline support"
+  },
+  "calendarDay": {
+    "shabbat": "Shabbat",
+    "yomTov": "Yom Tov"
   },
   "feedback": {
     "title": "Help us improve",

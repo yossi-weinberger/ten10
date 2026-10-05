@@ -13,14 +13,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const FUNCTIONS_DIR = path.join(__dirname, "..", "supabase", "functions");
-const UNSAFE_PATTERNS = [
-  /@supabase\/supabase-js@2["']/g, // @2 without specific version
-  /@supabase\/supabase-js@latest["']/g, // @latest
-  /@supabase\/supabase-js@\^/g, // @^ (caret range)
-  /@supabase\/supabase-js@~/g, // @~ (tilde range)
-];
-
-const SAFE_VERSION = "@supabase/supabase-js@2.39.0";
+const SAFE_IMPORT = "npm:@supabase/supabase-js@2.116.0";
+const SUPABASE_IMPORT_PATTERN =
+  /from\s+["']([^"']*@supabase\/supabase-js[^"']*)["']/g;
 
 function findTsFiles(dir, fileList = []) {
   const files = fs.readdirSync(dir);
@@ -45,35 +40,22 @@ function findTsFiles(dir, fileList = []) {
 function checkFile(filePath) {
   const content = fs.readFileSync(filePath, "utf8");
   const issues = [];
+  let match;
 
-  UNSAFE_PATTERNS.forEach((pattern, index) => {
-    const matches = content.match(pattern);
-    if (matches) {
-      matches.forEach((match) => {
-        const lineNumber = content
-          .substring(0, content.indexOf(match))
-          .split("\n").length;
-        issues.push({
-          file: path.relative(process.cwd(), filePath),
-          line: lineNumber,
-          match: match,
-          issue: getIssueDescription(index),
-        });
+  while ((match = SUPABASE_IMPORT_PATTERN.exec(content)) !== null) {
+    const importSpecifier = match[1];
+    if (importSpecifier !== SAFE_IMPORT) {
+      const lineNumber = content.substring(0, match.index).split("\n").length;
+      issues.push({
+        file: path.relative(process.cwd(), filePath),
+        line: lineNumber,
+        match: importSpecifier,
+        issue: `Expected the pinned Edge import ${SAFE_IMPORT}`,
       });
     }
-  });
+  }
 
   return issues;
-}
-
-function getIssueDescription(index) {
-  const descriptions = [
-    "Using @2 without specific version - will break when esm.sh updates",
-    "Using @latest - will break when esm.sh updates",
-    "Using @^ (caret range) - not supported in esm.sh URLs",
-    "Using @~ (tilde range) - not supported in esm.sh URLs",
-  ];
-  return descriptions[index] || "Unsafe version pattern";
 }
 
 function main() {
@@ -93,8 +75,8 @@ function main() {
   });
 
   if (allIssues.length === 0) {
-    console.log("✅ All Supabase imports use specific versions!");
-    console.log(`   Current safe version: ${SAFE_VERSION}\n`);
+    console.log("✅ All Supabase imports use the pinned npm specifier!");
+    console.log(`   Current safe import: ${SAFE_IMPORT}\n`);
     process.exit(0);
   }
 
@@ -103,18 +85,15 @@ function main() {
     console.log(`   ${issue.file}:${issue.line}`);
     console.log(`   Issue: ${issue.issue}`);
     console.log(`   Found: ${issue.match}`);
-    console.log(`   Fix: Replace with ${SAFE_VERSION}\n`);
+    console.log(`   Fix: Replace with ${SAFE_IMPORT}\n`);
   });
 
-  console.log("\n💡 Tip: Always use specific versions in Edge Functions:");
-  console.log(`   ✅ ${SAFE_VERSION}`);
+  console.log("\n💡 Always use the pinned npm specifier in Edge Functions:");
+  console.log(`   ✅ ${SAFE_IMPORT}`);
   console.log(`   ❌ @supabase/supabase-js@2`);
   console.log(`   ❌ @supabase/supabase-js@latest`);
   console.log(
-    `\nTo check for newer versions, visit: https://www.npmjs.com/package/@supabase/supabase-js`,
-  );
-  console.log(
-    `If you update the version, remember to update SAFE_VERSION in this script.\n`,
+    `\nWhen updating, change the package dependency, Edge imports, and SAFE_IMPORT together.\n`,
   );
 
   process.exit(1);

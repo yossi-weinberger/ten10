@@ -1,12 +1,8 @@
-/**
- * Simple Email Service (SES v2 HTTP JSON) for Deno Edge — Raw MIME support
- * - Supports List-Unsubscribe / List-Unsubscribe-Post via Raw MIME
- * - Correct SigV4: service=ses, host=email.<region>.amazonaws.com
- * - Single X-Amz-Date for both header and signature
- * - Optional Configuration Set via SES_CONFIGURATION_SET
- * - Tags with user_id_hash (SHA-256 short) instead of raw user_id
- */
-
+import {
+  dryRunEmailResult,
+  guardEmailSend,
+  maskEmail,
+} from "../_shared/email-guard.ts";
 import {
   generateReminderEmailHTML,
   generateReminderEmailSubject,
@@ -18,14 +14,31 @@ import {
   ReminderLanguage,
 } from "./email-copy.ts";
 import { generateUnsubscribeUrls } from "./jwt-utils.ts";
+import {
+  base64Encode,
+  createSesAuthorization,
+  foldBase64,
+  getAmzDate,
+  sha256Hex,
+} from "../_shared/ses-v4.ts";
+
+/**
+ * Simple Email Service (SES v2 HTTP JSON) for Deno Edge — Raw MIME support
+ * - Supports List-Unsubscribe / List-Unsubscribe-Post via Raw MIME
+ * - Correct SigV4: service=ses, host=email.<region>.amazonaws.com
+ * - Single X-Amz-Date for both header and signature
+ * - Optional Configuration Set via SES_CONFIGURATION_SET
+ * - Tags with user_id_hash (SHA-256 short) instead of raw user_id
+ */
 
 export interface EmailResult {
   userId: string;
   email: string;
   titheBalance: number;
   messageId?: string;
-  status: "sent" | "failed";
+  status: "sent" | "failed" | "held";
   error?: string;
+  dryRun?: boolean;
 }
 
 export class SimpleEmailService {
@@ -56,7 +69,9 @@ export class SimpleEmailService {
       hasSecretKey: !!this.awsSecretAccessKey,
       hasFromEmail: !!this.fromEmail,
     });
+  }
 
+  private assertCanSend(): void {
     if (!this.awsAccessKeyId || !this.awsSecretAccessKey) {
       const error = "Missing AWS credentials (AWS_ACCESS_KEY_ID/SECRET).";
       console.error("[EMAIL_SERVICE]", error);
@@ -80,23 +95,12 @@ export class SimpleEmailService {
     language: ReminderLanguage,
     fullName: string | null,
     currency?: string | null,
+    kind: "monthly" | "maaser-year" = "monthly",
   ): Promise<EmailResult> {
     try {
-      console.log(`[EMAIL] Starting to send reminder email to ${userEmail}`);
+      const maskedEmail = maskEmail(userEmail);
+      console.log(`[EMAIL] Starting to send reminder email to ${maskedEmail}`);
 
-      // 1) Build template data
-      let unsubscribeUrls;
-      try {
-        unsubscribeUrls = await generateUnsubscribeUrls(userId, userEmail);
-        console.log(`[EMAIL] Generated unsubscribe URLs for ${userEmail}`);
-      } catch (error) {
-        console.error(
-          `[EMAIL] Failed to generate unsubscribe URLs for ${userEmail}:`,
-          error,
-        );
-        // Continue without unsubscribe URLs - email can still be sent
-        unsubscribeUrls = { reminderUrl: "", allUrl: "" };
-      }
       const templateData: EmailTemplateData = {
         titheBalance,
         maaserBalance,
@@ -105,9 +109,44 @@ export class SimpleEmailService {
         fullName,
         currency,
         israelMonth: getIsraelMonth(),
-        unsubscribeUrls,
+        kind,
+        unsubscribeUrls: { reminderUrl: "", allUrl: "" },
       };
       const subject = generateReminderEmailSubject(templateData);
+
+      const decision = guardEmailSend({
+        recipients: [userEmail],
+        subject,
+        functionName: "send-reminder-emails",
+      });
+      if (decision.action === "hold") {
+        const held = dryRunEmailResult();
+        return {
+          userId,
+          email: userEmail,
+          titheBalance,
+          messageId: held.MessageId,
+          status: "held",
+          dryRun: true,
+        };
+      }
+
+      this.assertCanSend();
+
+      // 1) Build template data
+      let unsubscribeUrls;
+      try {
+        unsubscribeUrls = await generateUnsubscribeUrls(userId, userEmail);
+        console.log(`[EMAIL] Generated unsubscribe URLs for ${maskedEmail}`);
+      } catch (error) {
+        console.error(
+          `[EMAIL] Failed to generate unsubscribe URLs for ${maskedEmail}:`,
+          error,
+        );
+        // Continue without unsubscribe URLs - email can still be sent
+        unsubscribeUrls = { reminderUrl: "", allUrl: "" };
+      }
+      templateData.unsubscribeUrls = unsubscribeUrls;
       const htmlBody = generateReminderEmailHTML(templateData);
       const textBody = generateReminderEmailText(templateData);
 
@@ -125,7 +164,7 @@ export class SimpleEmailService {
         FromEmailAddress: this.fromEmail,
         Destination: { ToAddresses: [userEmail] },
         Content: {
-          Raw: { Data: this.base64Encode(mimeBytes) },
+          Raw: { Data: base64Encode(mimeBytes) },
         },
         EmailTags: await this.buildEmailTagsSafe(userId),
       };
@@ -137,11 +176,13 @@ export class SimpleEmailService {
       const host = `email.${this.awsRegion}.amazonaws.com`;
       const path = "/v2/email/outbound-emails";
       const endpoint = `https://${host}${path}`;
-      const amzDate = this.getAmzDate();
+      const amzDate = getAmzDate();
       const bodyStr = JSON.stringify(topLevel);
 
-      // 4) SigV4 Authorization
-      const authorization = await this.createSigV4({
+      const authorization = await createSesAuthorization({
+        accessKeyId: this.awsAccessKeyId,
+        secretAccessKey: this.awsSecretAccessKey,
+        region: this.awsRegion,
         method: "POST",
         host,
         path,
@@ -151,7 +192,7 @@ export class SimpleEmailService {
       });
 
       // 5) Send
-      console.log(`[EMAIL] Sending email to ${userEmail} via AWS SES...`);
+      console.log(`[EMAIL] Sending email to ${maskedEmail} via AWS SES...`);
       const res = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -165,13 +206,13 @@ export class SimpleEmailService {
       if (!res.ok) {
         const t = await res.text();
         const errorMsg = `SES V2 error: ${res.status} ${t}`;
-        console.error(`[EMAIL] AWS SES error for ${userEmail}:`, errorMsg);
+        console.error(`[EMAIL] AWS SES error for ${maskedEmail}:`, errorMsg);
         throw new Error(errorMsg);
       }
 
       const json = (await res.json()) as { MessageId?: string };
       console.log(
-        `[EMAIL] Successfully sent email to ${userEmail}, MessageId: ${json?.MessageId}`,
+        `[EMAIL] Successfully sent email to ${maskedEmail}, MessageId: ${json?.MessageId}`,
       );
       return {
         userId,
@@ -181,7 +222,7 @@ export class SimpleEmailService {
         status: "sent",
       };
     } catch (error: any) {
-      console.error(`Error sending email to ${userEmail}:`, error);
+      console.error(`Error sending email to ${maskEmail(userEmail)}:`, error);
       return {
         userId,
         email: userEmail,
@@ -203,6 +244,7 @@ export class SimpleEmailService {
       full_name: string | null;
       default_currency?: string | null;
     }>,
+    kind: "monthly" | "maaser-year" = "monthly",
   ): Promise<EmailResult[]> {
     const results: EmailResult[] = [];
     // Sequential with a gentle delay; you can replace with a small concurrency pool if needed.
@@ -216,6 +258,7 @@ export class SimpleEmailService {
         u.language,
         u.full_name,
         u.default_currency,
+        kind,
       );
       results.push(r);
       await this.sleep(100);
@@ -255,11 +298,11 @@ export class SimpleEmailService {
     const boundary = `=_ten10_${cryptoRandomString(24)}`;
 
     // Each part will be base64-encoded (safe for UTF-8 content)
-    const textBase64 = this.foldBase64(
-      this.base64Encode(new TextEncoder().encode(textBody)),
+    const textBase64 = foldBase64(
+      base64Encode(new TextEncoder().encode(textBody)),
     );
-    const htmlBase64 = this.foldBase64(
-      this.base64Encode(new TextEncoder().encode(htmlBody)),
+    const htmlBase64 = foldBase64(
+      base64Encode(new TextEncoder().encode(htmlBody)),
     );
 
     // Build headers and body with CRLF per RFC 5322
@@ -302,128 +345,15 @@ export class SimpleEmailService {
   // RFC 2047 "encoded-word" for headers like Subject/From name
   private encodeMimeWord(text: string, charset = "utf-8"): string {
     const bytes = new TextEncoder().encode(text);
-    const b64 = this.base64Encode(bytes);
+    const b64 = base64Encode(bytes);
     return `=?${charset}?B?${b64}?=`;
     // (Q-encoding could be used for shorter ASCII-heavy strings; B64 is simpler & safe)
   }
 
-  // ---------------- SigV4 (generic for this class) ----------------
-
-  private async createSigV4(args: {
-    method: "POST" | "GET";
-    host: string;
-    path: string; // "/v2/email/outbound-emails"
-    amzDate: string; // YYYYMMDDTHHMMSSZ
-    contentType: string; // "application/json"
-    bodyStr: string;
-  }): Promise<string> {
-    const { method, host, path, amzDate, contentType, bodyStr } = args;
-    const dateStamp = amzDate.slice(0, 8);
-    const canonicalQueryString = "";
-    const canonicalHeaders =
-      `content-type:${contentType}\n` +
-      `host:${host}\n` +
-      `x-amz-date:${amzDate}\n`;
-    const signedHeaders = "content-type;host;x-amz-date";
-    const payloadHash = await this.sha256Hex(bodyStr);
-
-    const canonicalRequest = [
-      method,
-      path,
-      canonicalQueryString,
-      canonicalHeaders,
-      signedHeaders,
-      payloadHash,
-    ].join("\n");
-
-    const algorithm = "AWS4-HMAC-SHA256";
-    const credentialScope = `${dateStamp}/${this.awsRegion}/ses/aws4_request`;
-    const stringToSign = [
-      algorithm,
-      amzDate,
-      credentialScope,
-      await this.sha256Hex(canonicalRequest),
-    ].join("\n");
-
-    const signingKey = await this.getSignatureKey(
-      this.awsSecretAccessKey,
-      dateStamp,
-      this.awsRegion,
-      "ses",
-    );
-    const signature = await this.hmacHex(stringToSign, signingKey);
-
-    return `${algorithm} Credential=${this.awsAccessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
-  }
-
-  private getAmzDate(): string {
-    // YYYYMMDDTHHMMSSZ in UTC
-    return new Date().toISOString().replace(/[:\-]|\.\d{3}/g, "");
-  }
-
-  private async sha256Hex(message: string): Promise<string> {
-    const msg = new TextEncoder().encode(message);
-    const hash = await crypto.subtle.digest("SHA-256", msg);
-    return buf2hex(new Uint8Array(hash));
-  }
-
-  private async hmacHex(message: string, key: Uint8Array): Promise<string> {
-    const cryptoKey = await crypto.subtle.importKey(
-      "raw",
-      key,
-      { name: "HMAC", hash: "SHA-256" },
-      false,
-      ["sign"],
-    );
-    const sig = await crypto.subtle.sign(
-      "HMAC",
-      cryptoKey,
-      new TextEncoder().encode(message),
-    );
-    return buf2hex(new Uint8Array(sig));
-  }
-
-  private async getSignatureKey(
-    key: string,
-    dateStamp: string,
-    regionName: string,
-    serviceName: string,
-  ): Promise<Uint8Array> {
-    const kDate = await this.hmacBytes(
-      dateStamp,
-      new TextEncoder().encode("AWS4" + key),
-    );
-    const kRegion = await this.hmacBytes(regionName, kDate);
-    const kService = await this.hmacBytes(serviceName, kRegion);
-    const kSigning = await this.hmacBytes("aws4_request", kService);
-    return kSigning;
-  }
-
-  private async hmacBytes(
-    message: string,
-    key: Uint8Array,
-  ): Promise<Uint8Array> {
-    const cryptoKey = await crypto.subtle.importKey(
-      "raw",
-      key,
-      { name: "HMAC", hash: "SHA-256" },
-      false,
-      ["sign"],
-    );
-    const sig = await crypto.subtle.sign(
-      "HMAC",
-      cryptoKey,
-      new TextEncoder().encode(message),
-    );
-    return new Uint8Array(sig);
-  }
-
-  // ---------------- Helpers ----------------
-
   private async buildEmailTagsSafe(
     userId: string,
   ): Promise<Array<{ Name: string; Value: string }>> {
-    const hash = await this.sha256Hex(userId);
+    const hash = await sha256Hex(userId);
     const short = hash.slice(0, 12);
     return [
       { Name: "app", Value: "ten10" },
@@ -432,33 +362,12 @@ export class SimpleEmailService {
     ];
   }
 
-  private base64Encode(bytes: Uint8Array): string {
-    // Encode Uint8Array to base64 using btoa on a binary string
-    // Convert bytes to Latin1 string for btoa compatibility
-    let bin = "";
-    for (let i = 0; i < bytes.length; i++) {
-      bin += String.fromCharCode(bytes[i]);
-    }
-    // btoa expects Latin1; our input is raw bytes we just constructed
-    return btoa(bin);
-  }
-
-  private foldBase64(value: string): string {
-    return value.match(/.{1,76}/g)?.join("\r\n") ?? "";
-  }
-
   private sleep(ms: number): Promise<void> {
     return new Promise((r) => setTimeout(r, ms));
   }
 }
 
 // ---------------- Small utilities ----------------
-
-function buf2hex(buf: Uint8Array): string {
-  return Array.from(buf)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
 
 function cryptoRandomString(len = 24): string {
   const bytes = new Uint8Array(len);

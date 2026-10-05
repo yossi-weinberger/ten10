@@ -31,15 +31,20 @@ AnalyticsPage
 
 ### Date Range
 
-Controlled by `useDateControls`. Supports:
-- "From start of month"
-- "From start of year"
+Controlled by `useDateControls` using `settings.calendarType`. Supports:
+- "From start of month" / "From start of year" (Hebrew = Tishrei when primary calendar is Hebrew)
 - "All time" (`startDate === "1970-01-01"`, `isAllTime = true`)
 - Custom range
 
+Previous-period and monthly-chart grouping use `src/lib/calendar/calendar-period.ts`. The server receives Gregorian ISO boundaries.
+
+### Maaser Year Summary
+
+`MaaserYearSummaryCard` + `useMaaserYearSummary` report one Hebrew year (1 Tishrei–29 Elul). Opening/closing balances use the as-of tithe RPC/Tauri command. This does **not** reset the lifetime home-page balance.
+
 ### Period Comparison
 
-`usePeriodComparison` calls `getPreviousPeriodRange(startDate, endDate)` to compute a prior period of identical length immediately before the current range. Fetches income/expenses/donations for that prior period in parallel.
+`usePeriodComparison` calls `getPreviousPeriodRange(startDate, endDate, { selection, calendarType })` to compute a prior period of identical length immediately before the current range. Fetches income/expenses/donations for that prior period in parallel.
 
 The actual prior-period dates are passed as `prevPeriodStart`/`prevPeriodEnd` to `InsightsSummaryRow` for display in the tooltip.
 
@@ -49,15 +54,15 @@ The actual prior-period dates are passed as `prevPeriodStart`/`prevPeriodEnd` to
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│  Title + PDF Export button (same row as date filters) │
-│  Date Range Buttons + Custom Picker                   │
+│  Title + date filters + PDF export                    │
 ├─────────────────────────────────────────────────────┤
-│  InsightsSummaryRow  │  TransactionHeatmap            │
-│  TextInsightsCard    │                                │
-├───────────────────────┬─────────────────────────────┤
-│  CategoryBreakdownChart │  PaymentMethodInsight       │
-├───────────────────────┴─────────────────────────────┤
-│  RecurringForecastInsight │ RecurringRatioInsight │ DonationRecipientsInsight │
+│  InsightsSummaryRow / TextInsights │ RecurringRatio   │
+├─────────────────────────────────────────────────────┤
+│  Category │ Payment Methods │ Donation Recipients     │
+├─────────────────────────────────────────────────────┤
+│  MaaserYearSummaryCard                                │
+├─────────────────────────────────────────────────────┤
+│  RecurringForecastInsight │ TransactionHeatmap        │
 └─────────────────────────────────────────────────────┘
 ```
 

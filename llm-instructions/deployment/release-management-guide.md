@@ -140,27 +140,23 @@ Version numbers must be synchronized in **four files**:
 
 **Tip**: The release script (`npm run release`) automatically updates all four files. If updating manually, run `npm install --package-lock-only` after updating `package.json` to sync `package-lock.json`.
 
-### Step 2: Commit and Tag
+### Step 2: Open a release pull request, then tag after merge
+
+`main` rejects direct pushes. `npm run release` creates `release/vX.Y.Z`, pushes that branch, and opens a pull request. It does not create the tag.
+
+After the pull request merges:
 
 ```bash
-# Stage changes
-git add package.json src-tauri/Cargo.toml src-tauri/tauri.conf.json
-
-# Commit with conventional commit message
-git commit -m "chore: bump version to 0.3.0"
-
-# Create annotated tag
+git checkout main
+git pull
 git tag -a v0.3.0 -m "Release v0.3.0"
-
-# Push to GitHub
-git push origin main
 git push origin v0.3.0
 ```
 
 **Important**:
 
 - Tag must start with `v` (e.g., `v0.3.0`, not `0.3.0`)
-- This triggers the GitHub Actions workflow
+- The tag push triggers the GitHub Actions workflow
 
 ### Step 3: Monitor Build
 

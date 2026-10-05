@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Deploy only Supabase Edge Functions affected by the current change set.
-# Used by .github/workflows/deploy-supabase-functions.yml
+# Used by .github/workflows/deploy-supabase-production.yml
 #
 # Usage:
 #   ./supabase/scripts/deploy-changed-functions.sh              # deploy changed
@@ -11,14 +11,21 @@
 
 set -euo pipefail
 
-PROJECT_REF="${SUPABASE_PROJECT_REF:-flpzqbvbymoluoeeeofg}"
+PRODUCTION_PROJECT_REF="flpzqbvbymoluoeeeofg"
+PROJECT_REF="${SUPABASE_PROJECT_REF:?SUPABASE_PROJECT_REF must be set explicitly}"
+CURRENT_BRANCH="${GITHUB_REF_NAME:-$(git branch --show-current)}"
 PLAN_ONLY=false
 
 if [[ "${1:-}" == "--plan-only" ]]; then
   PLAN_ONLY=true
 fi
 
-# Functions managed by CI (keep in sync with deploy-supabase-functions.yml)
+if [[ "$PROJECT_REF" == "$PRODUCTION_PROJECT_REF" && "$CURRENT_BRANCH" != "main" ]]; then
+  echo "Refusing to deploy production functions from branch '$CURRENT_BRANCH'." >&2
+  exit 1
+fi
+
+# Functions managed by CI (keep in sync with deploy-supabase-production.yml)
 ALL_FUNCTIONS=(
   send-reminder-emails
   send-contact-email
@@ -39,6 +46,7 @@ SHARED_DEPENDENT=(
   send-new-user-email
   verify-captcha
   verify-unsubscribe-token
+  process-recurring-transactions
   process-email-request
   get-monitoring-data
   get-posthog-analytics

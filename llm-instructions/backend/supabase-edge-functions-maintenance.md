@@ -49,7 +49,7 @@ If you decide to update, follow this process:
 
 ## 4. CI Deploy Allowlist (Required for New Functions)
 
-Production deploys run via `.github/workflows/deploy-supabase-functions.yml` → `supabase/scripts/deploy-changed-functions.sh`.
+Production deploys run via `.github/workflows/deploy-supabase-production.yml` → `supabase/scripts/deploy-changed-functions.sh`.
 
 That script only deploys functions listed in **`ALL_FUNCTIONS`**. Functions that import `_shared` must also be listed in **`SHARED_DEPENDENT`**.
 

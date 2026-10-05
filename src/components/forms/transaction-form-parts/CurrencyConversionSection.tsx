@@ -17,6 +17,7 @@ import { ExchangeRateService } from "@/lib/services/exchange-rate.service";
 import { useDonationStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { getCurrentLocalDate } from "@/lib/utils/local-date";
 
 interface CurrencyConversionSectionProps {
   form: UseFormReturn<TransactionFormValues>;
@@ -74,7 +75,7 @@ export function CurrencyConversionSection({
               // If source is auto or not set, use this rate
               if (!currentRateSource || currentRateSource === 'auto') {
                 form.setValue('conversion_rate', rate);
-                form.setValue('conversion_date', new Date().toISOString().split('T')[0]);
+                form.setValue('conversion_date', getCurrentLocalDate());
                 form.setValue('rate_source', 'auto');
               }
           }
@@ -137,7 +138,7 @@ export function CurrencyConversionSection({
                         field.onChange(tab.id);
                         if (tab.id === 'auto' && autoRate) {
                             form.setValue('conversion_rate', autoRate);
-                            form.setValue('conversion_date', new Date().toISOString().split('T')[0]);
+                            form.setValue('conversion_date', getCurrentLocalDate());
                         }
                     }}
                     className={cn(
@@ -188,7 +189,7 @@ export function CurrencyConversionSection({
                                     onChange={(e) => {
                                         const val = parseFloat(e.target.value);
                                         field.onChange(isNaN(val) ? undefined : val);
-                                        form.setValue('conversion_date', new Date().toISOString().split('T')[0]);
+                                        form.setValue('conversion_date', getCurrentLocalDate());
                                     }}
                                     className={cn(
                                         "pl-14 pr-10 font-mono text-center h-10 text-lg transition-all", 

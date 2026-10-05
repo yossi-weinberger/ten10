@@ -28,6 +28,10 @@
     "credit": "Tithe reminder - {{amount}} credit",
     "settled": "Tithe reminder - your balance is settled"
   },
+  "maaserYear": {
+    "subject": "Close your maaser year",
+    "reminder": "Erev Rosh Hashanah is here. Review this year's income and donations before the new year begins."
+  },
   "monthlyEncouragements": [
     {
       "contentId": "TN10-0002",

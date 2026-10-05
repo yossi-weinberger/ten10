@@ -3,8 +3,6 @@ import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDonationStore } from "@/lib/store";
 import { useShallow } from "zustand/react/shallow";
-import { format, parse, subMonths } from "date-fns";
-import { he, enUS } from "date-fns/locale";
 import { fetchServerMonthlyChartData } from "@/lib/data-layer/chart.service";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,6 +14,16 @@ import {
 } from "@/components/charts/area-chart-interactive";
 import { ChartConfig } from "@/components/ui/chart";
 import { logger } from "@/lib/logger";
+import { buildPeriodBoundaries } from "@/lib/calendar/calendar-period";
+import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
+import { formatLocalDate } from "@/lib/utils/local-date";
+import {
+  chartBucketsNeedReload,
+  formatMonthlyChartData,
+  getLoadedChartCalendarType,
+  getPreviousChartAnchor,
+  shouldLoadInitialChart,
+} from "./monthly-chart.utils";
 
 const NUM_MONTHS_TO_FETCH = 6;
 
@@ -24,7 +32,7 @@ export function MonthlyChart() {
   const { user } = useAuth();
   const userId = user?.id;
   const { platform } = usePlatform();
-  const dateLocale = i18n.language === "he" ? he : enUS;
+  const language = i18n.language;
 
   const monthlyChartConfig: ChartConfig = {
     income: {
@@ -66,6 +74,7 @@ export function MonthlyChart() {
       setCanLoadMoreChartData: state.setCanLoadMoreChartData,
     }))
   );
+  const calendarType = useEffectiveCalendarType();
 
   const [initialLoadAttempted, setInitialLoadAttempted] = useState(false);
   const [platformReady, setPlatformReady] = useState(false);
@@ -90,25 +99,29 @@ export function MonthlyChart() {
       if (isReset) {
         setCurrentChartEndDate(null);
         setCanLoadMoreChartData(true);
+        setServerMonthlyChartData([], false);
       } else if (!loadMore) {
         setInitialLoadAttempted(true);
       }
 
-      let endDateForFetch;
+      let anchorDate: string;
       if (loadMore && currentChartEndDate && !isReset) {
-        const currentEarliestDate = parse(
+        anchorDate = getPreviousChartAnchor(
           currentChartEndDate,
-          "yyyy-MM-dd",
-          new Date()
+          calendarType,
         );
-        endDateForFetch = subMonths(currentEarliestDate, 1);
       } else {
-        endDateForFetch = new Date();
+        anchorDate = formatLocalDate(new Date());
       }
+      const boundaries = buildPeriodBoundaries(
+        anchorDate,
+        NUM_MONTHS_TO_FETCH,
+        calendarType,
+      );
 
       logger.log(
-        "MonthlyChart: Preparing to fetch data. endDateForFetch:",
-        endDateForFetch,
+        "MonthlyChart: Preparing to fetch data. boundaries:",
+        boundaries,
         "LoadMore:",
         loadMore,
         "IsReset:",
@@ -118,8 +131,8 @@ export function MonthlyChart() {
       try {
         const data = await fetchServerMonthlyChartData(
           userId ?? null,
-          endDateForFetch,
-          NUM_MONTHS_TO_FETCH
+          boundaries,
+          calendarType,
         );
         if (data) {
           if (data.length < NUM_MONTHS_TO_FETCH && (loadMore || !isReset)) {
@@ -128,13 +141,7 @@ export function MonthlyChart() {
           setServerMonthlyChartData(data, loadMore && !isReset);
 
           if (data.length > 0) {
-            const earliestMonthLabel = data[data.length - 1].month_label;
-            const newEarliestDate = parse(
-              earliestMonthLabel,
-              "yyyy-MM",
-              new Date()
-            );
-            setCurrentChartEndDate(format(newEarliestDate, "yyyy-MM-dd"));
+            setCurrentChartEndDate(data[0].period_start);
           } else if (loadMore && !isReset) {
             setCanLoadMoreChartData(false);
           }
@@ -157,6 +164,7 @@ export function MonthlyChart() {
       setCurrentChartEndDate,
       setCanLoadMoreChartData,
       currentChartEndDate,
+      calendarType,
     ]
   );
 
@@ -164,15 +172,23 @@ export function MonthlyChart() {
     loadData(false, true);
   };
 
-  useEffect(() => {
-    const canFetchData =
-      platformReady &&
-      (platform === "desktop" || (user?.id && platform === "web"));
+  const loadedCalendarType = getLoadedChartCalendarType(
+    serverMonthlyChartData,
+  );
 
+  useEffect(() => {
     if (
-      canFetchData &&
-      !isLoadingServerMonthlyChartData &&
-      !initialLoadAttempted
+      shouldLoadInitialChart({
+        platformReady,
+        platform,
+        userId: user?.id,
+        isLoading: isLoadingServerMonthlyChartData,
+        hasError: serverMonthlyChartDataError !== null,
+        initialLoadAttempted,
+        dataLength: serverMonthlyChartData.length,
+        calendarType,
+        loadedCalendarType,
+      })
     ) {
       logger.log(
         "[MonthlyChart] useEffect [platformReady, user, ...]: Initial data fetch conditions met. Platform:",
@@ -180,7 +196,10 @@ export function MonthlyChart() {
         "User ID:",
         user?.id
       );
-      loadData(false, false);
+      loadData(
+        false,
+        chartBucketsNeedReload(loadedCalendarType, calendarType),
+      );
       setInitialLoadAttempted(true);
     }
   }, [
@@ -190,40 +209,20 @@ export function MonthlyChart() {
     isLoadingServerMonthlyChartData,
     loadData,
     initialLoadAttempted,
+    serverMonthlyChartData.length,
+    serverMonthlyChartDataError,
+    calendarType,
+    loadedCalendarType,
   ]);
 
   const formattedChartDataForAreaChart: MonthlyChartDataPoint[] =
     React.useMemo(() => {
-      if (!serverMonthlyChartData) return [];
-
-      return serverMonthlyChartData
-        .slice()
-        .sort((itemA, itemB) => {
-          const dateA = parse(
-            itemA.month_label,
-            "yyyy-MM",
-            new Date()
-          ).getTime();
-          const dateB = parse(
-            itemB.month_label,
-            "yyyy-MM",
-            new Date()
-          ).getTime();
-          return dateA - dateB;
-        })
-        .map((item) => ({
-          month: format(
-            parse(item.month_label, "yyyy-MM", new Date()),
-            "MMM yyyy",
-            {
-              locale: dateLocale,
-            }
-          ),
-          income: item.income,
-          donations: item.donations,
-          expenses: item.expenses,
-        }));
-    }, [serverMonthlyChartData, i18n.language, dateLocale]);
+      return formatMonthlyChartData(
+        serverMonthlyChartData,
+        calendarType,
+        language,
+      );
+    }, [serverMonthlyChartData, calendarType, language]);
 
   // Consistent container height to prevent CLS
   const chartContainerHeight = "min-h-[400px] md:min-h-[500px]";
@@ -231,7 +230,6 @@ export function MonthlyChart() {
   if (
     !platformReady ||
     (isLoadingServerMonthlyChartData &&
-      !initialLoadAttempted &&
       serverMonthlyChartData.length === 0)
   ) {
     return (

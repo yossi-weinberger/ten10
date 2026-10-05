@@ -10,13 +10,16 @@ mod commands;
 mod models;
 mod transaction_types;
 
-use commands::chart_commands::get_desktop_monthly_financial_summary;
+use commands::chart_commands::{
+    get_desktop_period_financial_summary,
+};
 use commands::db_commands::{
     clear_all_data, delete_app_setting, get_app_setting, get_app_version, get_default_currency,
     infer_default_currency_from_transactions, init_db, set_app_setting, set_default_currency,
 };
 use commands::donation_commands::{
-    get_desktop_overall_tithe_balance, get_desktop_total_donations_in_range,
+    get_desktop_overall_tithe_balance, get_desktop_tithe_balance_as_of,
+    get_desktop_total_donations_in_range,
 };
 use commands::expense_commands::get_desktop_total_expenses_in_range;
 use commands::import_commands::import_desktop_data_bulk;
@@ -32,6 +35,7 @@ use commands::recurring_transaction_commands::{
     add_recurring_transaction_handler, bulk_delete_recurring_transactions_handler,
     bulk_update_recurring_transactions_handler, delete_recurring_transaction_handler,
     get_due_recurring_transactions_handler, get_recurring_transaction_by_id_handler,
+    recurring_occurrence_exists_handler,
     get_recurring_transactions_handler, update_recurring_transaction_handler,
 };
 use commands::transaction_commands::{
@@ -78,6 +82,7 @@ fn main() {
             get_desktop_total_expenses_in_range,
             get_desktop_total_donations_in_range,
             get_desktop_overall_tithe_balance,
+            get_desktop_tithe_balance_as_of,
             delete_transaction_handler,
             export_transactions_handler,
             get_filtered_transactions_handler,
@@ -86,8 +91,9 @@ fn main() {
             get_transactions_count,
             get_distinct_categories,
             get_distinct_payment_methods,
-            get_desktop_monthly_financial_summary,
+            get_desktop_period_financial_summary,
             get_due_recurring_transactions_handler,
+            recurring_occurrence_exists_handler,
             add_recurring_transaction_handler,
             get_recurring_transactions_handler,
             update_recurring_transaction_handler,

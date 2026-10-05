@@ -45,7 +45,7 @@ In both platforms, data is loaded from the respective database (Supabase for web
   - Automatic conversion to the user's Default Currency (e.g., ILS) for aggregation and reporting.
   - Conversion rates are fetched from a live API (with manual fallback for offline/custom scenarios).
   - Original transaction details (amount, currency, rate) are preserved.
-- **Calendar**: Gregorian calendar.
+- **Calendar**: Gregorian ISO dates in storage. Users can choose a primary Gregorian or Hebrew calendar for display, periods, pickers, recurring schedules, and reminders. Default remains Gregorian. See `features/calendar/hebrew-calendar-guide.md`.
 
 ## Pages / Views
 
