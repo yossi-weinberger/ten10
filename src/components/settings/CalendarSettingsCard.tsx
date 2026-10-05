@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { SlidingToggleGroup } from "@/components/ui/sliding-toggle-group";
 import type { CalendarType } from "@/lib/calendar";
 
 interface CalendarSettings {
@@ -40,30 +40,21 @@ export function CalendarSettingsCard({
       <CardContent className="grid gap-4">
         <div className="grid gap-2">
           <Label>{t("calendar.primaryCalendarLabel")}</Label>
-          <ToggleGroup
-            type="single"
+          <SlidingToggleGroup
+            ariaLabel={t("calendar.primaryCalendarLabel")}
             value={calendarSettings.calendarType}
-            onValueChange={(value) => {
-              if (value === "gregorian" || value === "hebrew") {
-                updateSettings({ calendarType: value });
-              }
-            }}
-            aria-label={t("calendar.primaryCalendarLabel")}
-            className="grid grid-cols-2 gap-1 rounded-md border p-1"
-          >
-            <ToggleGroupItem
-              value="gregorian"
-              className="flex-1 justify-center hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-            >
-              {t("calendar.options.gregorian")}
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="hebrew"
-              className="flex-1 justify-center hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-            >
-              {t("calendar.options.hebrew")}
-            </ToggleGroupItem>
-          </ToggleGroup>
+            onValueChange={(value) => updateSettings({ calendarType: value })}
+            options={[
+              {
+                value: "gregorian",
+                label: t("calendar.options.gregorian"),
+              },
+              {
+                value: "hebrew",
+                label: t("calendar.options.hebrew"),
+              },
+            ]}
+          />
         </div>
 
         <div className="flex items-center justify-between gap-4">

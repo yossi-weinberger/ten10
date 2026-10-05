@@ -141,6 +141,10 @@
     "feature_full_screen": "Full screen without address bar",
     "feature_offline_support": "Offline support"
   },
+  "calendarDay": {
+    "shabbat": "Shabbat",
+    "yomTov": "Yom Tov"
+  },
   "feedback": {
     "title": "Help us improve",
     "subtitle": "A few short questions — only if you want",

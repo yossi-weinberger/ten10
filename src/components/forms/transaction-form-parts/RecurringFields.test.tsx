@@ -44,21 +44,16 @@ function Harness({
 }
 
 describe("RecurringFields calendar controls", () => {
-  it("offers Gregorian and Hebrew overrides", async () => {
-    const user = userEvent.setup();
+  it("offers Gregorian and Hebrew overrides", () => {
     render(<Harness calendarType="gregorian" />);
 
-    await user.click(screen.getByRole("combobox", {
-      name: "transactionForm.recurringTransaction.calendar.label",
-    }));
-
     expect(
-      screen.getByRole("option", {
+      screen.getByRole("radio", {
         name: "transactionForm.recurringTransaction.calendar.gregorian",
       }),
     ).toBeTruthy();
     expect(
-      screen.getByRole("option", {
+      screen.getByRole("radio", {
         name: "transactionForm.recurringTransaction.calendar.hebrew",
       }),
     ).toBeTruthy();
@@ -80,10 +75,7 @@ describe("RecurringFields calendar controls", () => {
     const user = userEvent.setup();
     render(<Harness calendarType="gregorian" dayOfMonth={31} />);
 
-    await user.click(screen.getByRole("combobox", {
-      name: "transactionForm.recurringTransaction.calendar.label",
-    }));
-    await user.click(screen.getByRole("option", {
+    await user.click(screen.getByRole("radio", {
       name: "transactionForm.recurringTransaction.calendar.hebrew",
     }));
 

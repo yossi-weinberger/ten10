@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { SlidingToggleGroup } from "@/components/ui/sliding-toggle-group";
 import { BellRing, Mail, Monitor, Power } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -133,31 +133,25 @@ export function NotificationSettingsCard({
 
         <div className="ml-11 flex flex-wrap items-center justify-between gap-3">
           <Label>{t("notifications.reminderCalendarLabel")}</Label>
-          <ToggleGroup
-            type="single"
+          <SlidingToggleGroup
+            ariaLabel={t("notifications.reminderCalendarLabel")}
+            className="w-44"
             value={notificationSettings.reminderCalendarType}
-            onValueChange={(value) => {
-              if (value === "gregorian" || value === "hebrew") {
-                updateSettings({ reminderCalendarType: value });
-              }
-            }}
             disabled={disabled || !emailNotificationsOn}
-            aria-label={t("notifications.reminderCalendarLabel")}
-            className="grid w-36 grid-cols-2 gap-1 rounded-md border p-0.5"
-          >
-            <ToggleGroupItem
-              value="gregorian"
-              className="h-8 px-2 text-sm data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-            >
-              {t("notifications.calendarOptions.gregorian")}
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="hebrew"
-              className="h-8 px-2 text-sm data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-            >
-              {t("notifications.calendarOptions.hebrew")}
-            </ToggleGroupItem>
-          </ToggleGroup>
+            onValueChange={(value) =>
+              updateSettings({ reminderCalendarType: value })
+            }
+            options={[
+              {
+                value: "gregorian",
+                label: t("notifications.calendarOptions.gregorian"),
+              },
+              {
+                value: "hebrew",
+                label: t("notifications.calendarOptions.hebrew"),
+              },
+            ]}
+          />
         </div>
 
         {/* Day Selection - Always visible but disabled when notifications are off */}

@@ -22,9 +22,13 @@ vi.mock("react-i18next", () => ({
       const translations: Record<string, Record<string, string>> = {
         en: {
           "datePicker.selectDateRange": "Select date range",
+          "calendarDay.shabbat": "Shabbat",
+          "calendarDay.yomTov": "Yom Tov",
         },
         he: {
           "datePicker.selectDateRange": "בחר טווח תאריכים",
+          "calendarDay.shabbat": "שבת",
+          "calendarDay.yomTov": "יום טוב",
         },
       };
       return translations[language][key] ?? key;
@@ -142,8 +146,17 @@ describe("Hebrew calendar grid", () => {
       expect(firstDayCell).toHaveTextContent("א׳");
       expect(getDayButton("2026-09-12")).toHaveAttribute("data-yom-tov", "true");
       expect(getDayButton("2026-09-12")).toHaveAttribute("data-shabbat", "true");
+      expect(getDayButton("2026-09-12")).toHaveAccessibleName(
+        testLanguage === "he" ? "א׳, שבת, יום טוב" : "א׳, Shabbat, Yom Tov",
+      );
       expect(getDayButton("2026-09-19")).toHaveAttribute("data-shabbat", "true");
       expect(getDayButton("2026-09-19")).not.toHaveAttribute("data-yom-tov");
+      expect(getDayButton("2026-09-19").getAttribute("aria-label")).toContain(
+        testLanguage === "he" ? "שבת" : "Shabbat",
+      );
+      expect(getDayButton("2026-09-19").getAttribute("aria-label")).not.toContain(
+        testLanguage === "he" ? "יום טוב" : "Yom Tov",
+      );
       expect(getDayButton("2026-09-14")).not.toHaveAttribute("data-shabbat");
       expect(
         Array.from(firstDayCell?.parentElement?.children ?? []).indexOf(

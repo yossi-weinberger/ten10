@@ -140,6 +140,10 @@
     "feature_full_screen": "מסך מלא ללא סרגל כתובות",
     "feature_offline_support": "תמיכה במצב לא מקוון"
   },
+  "calendarDay": {
+    "shabbat": "שבת",
+    "yomTov": "יום טוב"
+  },
   "feedback": {
     "title": "עזרו לנו להשתפר",
     "subtitle": "כמה שאלות קצרות",

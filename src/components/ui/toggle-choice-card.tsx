@@ -166,6 +166,7 @@ export function ToggleChoiceCard({
                           : "text-green-900/70 hover:text-green-950"
                     : "text-muted-foreground/70 hover:text-foreground",
                 )}
+                aria-label={tooltip}
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();

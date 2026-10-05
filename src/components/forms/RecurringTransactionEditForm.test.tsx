@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { RecurringTransactionEditForm } from "./RecurringTransactionEditForm";
 import type { RecurringTransaction } from "@/types/transaction";
@@ -45,14 +45,11 @@ describe("RecurringTransactionEditForm calendar preservation", () => {
       />,
     );
 
-    const calendar = screen.getByRole("combobox", {
-      name: "transactionForm.recurringTransaction.calendar.label",
-    });
     expect(
-      within(calendar).getByText(
-        "transactionForm.recurringTransaction.calendar.hebrew",
-      ),
-    ).toBeTruthy();
+      screen.getByRole("radio", {
+        name: "transactionForm.recurringTransaction.calendar.hebrew",
+      }).getAttribute("data-state"),
+    ).toBe("on");
 
     const dayInput = screen.getByRole("spinbutton", {
       name: "transactionForm.recurringTransaction.dayOfMonth",

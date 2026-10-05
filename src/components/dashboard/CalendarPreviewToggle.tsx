@@ -1,12 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
-import {
-  useCalendarPreview,
-  useEffectiveCalendarType,
-} from "@/lib/calendar/calendar-preview";
+import { SlidingToggleGroup } from "@/components/ui/sliding-toggle-group";
+import { useCalendarPreview, useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import type { CalendarType } from "@/lib/calendar";
-
-const OPTIONS = ["gregorian", "hebrew"] as const satisfies readonly CalendarType[];
 
 export function CalendarPreviewToggle() {
   const { t } = useTranslation("dashboard");
@@ -14,31 +9,22 @@ export function CalendarPreviewToggle() {
   const setPreview = useCalendarPreview((state) => state.setPreview);
 
   return (
-    <div
-      className="inline-flex gap-1"
-      role="group"
-      aria-label={t("dateRange.calendarLabel")}
-    >
-      {OPTIONS.map((value) => (
-        <Button
-          key={value}
-          type="button"
-          size="sm"
-          variant={calendarType === value ? "default" : "outline"}
-          onClick={() => setPreview(value)}
-          className={
-            calendarType === value
-              ? ""
-              : "bg-transparent text-foreground hover:bg-muted/50"
-          }
-        >
-          {t(
-            value === "hebrew"
-              ? "dateRange.calendarHebrew"
-              : "dateRange.calendarGregorian",
-          )}
-        </Button>
-      ))}
-    </div>
+    <SlidingToggleGroup
+      ariaLabel={t("dateRange.calendarLabel")}
+      size="compact"
+      className="w-fit"
+      value={calendarType}
+      onValueChange={(value) => setPreview(value)}
+      options={[
+        {
+          value: "gregorian" satisfies CalendarType,
+          label: t("dateRange.calendarGregorian"),
+        },
+        {
+          value: "hebrew" satisfies CalendarType,
+          label: t("dateRange.calendarHebrew"),
+        },
+      ]}
+    />
   );
 }

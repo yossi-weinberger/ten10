@@ -236,6 +236,7 @@ function CalendarDayButton({
   modifiers,
   ...props
 }: React.ComponentProps<typeof DayButton>) {
+  const { t } = useTranslation();
   const defaultClassNames = getDefaultClassNames();
   const calendarType = useDonationStore(
     (state) => state.settings.calendarType,
@@ -245,6 +246,17 @@ function CalendarDayButton({
   const isShabbat = isHebrew && day.date.getDay() === 6;
   const isYomTov = isHebrew && getIsraelYomTov(isoDate) !== null;
   const marked = !modifiers.selected && (isShabbat || isYomTov);
+  const dayNumber = isHebrew
+    ? formatHebrewNumeral(
+        getCalendarAdapter("hebrew").fromIsoDate(isoDate).day,
+      )
+    : String(day.date.getDate());
+  const marks = [
+    isShabbat ? t("calendarDay.shabbat") : null,
+    isYomTov ? t("calendarDay.yomTov") : null,
+  ].filter((mark): mark is string => mark !== null);
+  const accessibleName =
+    marks.length > 0 ? `${dayNumber}, ${marks.join(", ")}` : undefined;
 
   const ref = React.useRef<HTMLButtonElement>(null);
   React.useEffect(() => {
@@ -276,6 +288,7 @@ function CalendarDayButton({
         className
       )}
       {...props}
+      aria-label={accessibleName ?? props["aria-label"]}
     />
   );
 }
