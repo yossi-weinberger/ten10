@@ -15,6 +15,7 @@ import {
 import { ChartConfig } from "@/components/ui/chart";
 import { logger } from "@/lib/logger";
 import { buildPeriodBoundaries } from "@/lib/calendar/calendar-period";
+import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import { formatLocalDate } from "@/lib/utils/local-date";
 import {
   formatMonthlyChartData,
@@ -56,7 +57,6 @@ export function MonthlyChart() {
     setIsLoadingServerMonthlyChartData,
     setServerMonthlyChartDataError,
     setCanLoadMoreChartData,
-    calendarType,
   } = useDonationStore(
     useShallow((state) => ({
       serverMonthlyChartData: state.serverMonthlyChartData,
@@ -70,9 +70,9 @@ export function MonthlyChart() {
         state.setIsLoadingServerMonthlyChartData,
       setServerMonthlyChartDataError: state.setServerMonthlyChartDataError,
       setCanLoadMoreChartData: state.setCanLoadMoreChartData,
-      calendarType: state.settings.calendarType,
     }))
   );
+  const calendarType = useEffectiveCalendarType();
 
   const [initialLoadAttempted, setInitialLoadAttempted] = useState(false);
   const [platformReady, setPlatformReady] = useState(false);

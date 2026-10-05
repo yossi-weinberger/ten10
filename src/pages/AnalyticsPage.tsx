@@ -27,16 +27,20 @@ import { formatCategory } from "@/lib/category-registry";
 import { toast } from "sonner";
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
-import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { formatDisplayDate } from "@/lib/calendar/display-date";
+import { CalendarPreviewToggle } from "@/components/dashboard/CalendarPreviewToggle";
+import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import { formatLocalDate } from "@/lib/utils/local-date";
 
 export function AnalyticsPage() {
   const { t, i18n } = useTranslation("dashboard");
-  const formatDisplayDate = useDisplayDate();
+  const calendarType = useEffectiveCalendarType();
+  const showSecondaryDate = useDonationStore(
+    (state) => state.settings.showSecondaryDate,
+  );
   const { user } = useAuth();
   const { platform } = usePlatform();
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
-  const calendarType = useDonationStore((s) => s.settings.calendarType);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
 
   useEffect(() => {
@@ -128,12 +132,17 @@ export function AnalyticsPage() {
 
   const formatDate = useCallback(
     (date: Date) => {
-      const displayDate = formatDisplayDate(formatLocalDate(date), "numeric");
+      const displayDate = formatDisplayDate(formatLocalDate(date), {
+        calendarType,
+        showSecondaryDate,
+        language: i18n.language.startsWith("he") ? "he" : "en",
+        style: "numeric",
+      });
       return displayDate.secondary
         ? `${displayDate.primary} (${displayDate.secondary})`
         : displayDate.primary;
     },
-    [formatDisplayDate]
+    [calendarType, i18n.language, showSecondaryDate],
   );
 
   const isAllTime = activeDateRangeObject.startDate === "1970-01-01";
@@ -150,7 +159,12 @@ export function AnalyticsPage() {
     const toastId = toast.loading(t("analytics.pdfGenerating"));
     try {
       const fmtDatePdf = (iso: string) => {
-        const displayDate = formatDisplayDate(iso, "short");
+        const displayDate = formatDisplayDate(iso, {
+          calendarType,
+          showSecondaryDate,
+          language: i18n.language.startsWith("he") ? "he" : "en",
+          style: "short",
+        });
         return displayDate.secondary
           ? `${displayDate.primary} (${displayDate.secondary})`
           : displayDate.primary;
@@ -238,6 +252,7 @@ export function AnalyticsPage() {
 
       {/* Date range bar + PDF button — same row */}
       <div className="flex flex-wrap gap-2 items-center">
+        <CalendarPreviewToggle />
         {(Object.keys(dateRangeLabels) as DateRangeSelectionType[])
           .filter((k) => k !== "custom")
           .map((rangeKey) => (

@@ -5,7 +5,7 @@ import {
   getCalendarAdapter,
   type CalendarType,
 } from "@/lib/calendar";
-import { useDonationStore } from "@/lib/store";
+import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import { formatLocalDate } from "@/lib/utils/local-date";
 
 export type DateRangeSelectionType = "month" | "year" | "all" | "custom";
@@ -91,9 +91,7 @@ export function calculateDateRange(
 
 export function useDateControls() {
   const { t } = useTranslation("dashboard");
-  const calendarType = useDonationStore(
-    (state) => state.settings.calendarType,
-  );
+  const calendarType = useEffectiveCalendarType();
   const [dateRangeSelection, setDateRangeSelection] =
     useState<DateRangeSelectionType>("month");
   const [customDateRange, setCustomDateRange] = useState<

@@ -8,14 +8,8 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { BellRing, Mail, Monitor, Power } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -40,13 +34,6 @@ interface NotificationSettingsCardProps {
   notificationSettings: NotificationSettings;
   updateSettings: (newSettings: Partial<NotificationSettings>) => void;
   disabled?: boolean;
-}
-
-function parseReminderCalendarType(value: string): CalendarType {
-  if (value === "gregorian" || value === "hebrew") {
-    return value;
-  }
-  throw new Error(`Unsupported reminder calendar type: ${value}`);
 }
 
 export function NotificationSettingsCard({
@@ -144,38 +131,33 @@ export function NotificationSettingsCard({
           />
         </div>
 
-        <div className="ml-11 grid gap-2">
-          <Label htmlFor="reminder-calendar">
-            {t("notifications.reminderCalendarLabel")}
-          </Label>
-          <Select
+        <div className="ml-11 flex flex-wrap items-center justify-between gap-3">
+          <Label>{t("notifications.reminderCalendarLabel")}</Label>
+          <ToggleGroup
+            type="single"
             value={notificationSettings.reminderCalendarType}
-            onValueChange={(value) =>
-              updateSettings({
-                reminderCalendarType: parseReminderCalendarType(value),
-              })
-            }
+            onValueChange={(value) => {
+              if (value === "gregorian" || value === "hebrew") {
+                updateSettings({ reminderCalendarType: value });
+              }
+            }}
             disabled={disabled || !emailNotificationsOn}
+            aria-label={t("notifications.reminderCalendarLabel")}
+            className="grid w-36 grid-cols-2 gap-1 rounded-md border p-0.5"
           >
-            <SelectTrigger
-              id="reminder-calendar"
-              aria-label={t("notifications.reminderCalendarLabel")}
+            <ToggleGroupItem
+              value="gregorian"
+              className="h-8 px-2 text-sm data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
             >
-              <SelectValue>
-                {t(
-                  `notifications.calendarOptions.${notificationSettings.reminderCalendarType}`,
-                )}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="gregorian">
-                {t("notifications.calendarOptions.gregorian")}
-              </SelectItem>
-              <SelectItem value="hebrew">
-                {t("notifications.calendarOptions.hebrew")}
-              </SelectItem>
-            </SelectContent>
-          </Select>
+              {t("notifications.calendarOptions.gregorian")}
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="hebrew"
+              className="h-8 px-2 text-sm data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+            >
+              {t("notifications.calendarOptions.hebrew")}
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
 
         {/* Day Selection - Always visible but disabled when notifications are off */}

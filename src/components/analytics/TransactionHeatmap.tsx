@@ -22,7 +22,8 @@ import {
   getCalendarAdapter,
   type CalendarLanguage,
 } from "@/lib/calendar";
-import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { formatDisplayDate } from "@/lib/calendar/display-date";
+import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import { formatLocalDate } from "@/lib/utils/local-date";
 import {
   filterHeatmapDataByCalendarYear,
@@ -136,9 +137,11 @@ export function TransactionHeatmap({
   className,
 }: TransactionHeatmapProps) {
   const { t, i18n } = useTranslation("dashboard");
-  const formatDisplayDate = useDisplayDate();
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
-  const calendarType = useDonationStore((s) => s.settings.calendarType);
+  const showSecondaryDate = useDonationStore(
+    (state) => state.settings.showSecondaryDate,
+  );
+  const calendarType = useEffectiveCalendarType();
   const calendarLanguage: CalendarLanguage =
     i18n.language.startsWith("he") ? "he" : "en";
   const fmt = (v: number) => formatCurrency(v, defaultCurrency, i18n.language);
@@ -292,7 +295,12 @@ export function TransactionHeatmap({
                             const intensity = cell.entry ? getIntensity(cell.entry.total_amount, maxAmount) : 0;
                             const displayDate = formatDisplayDate(
                               formatLocalDate(cell.date),
-                              "numeric",
+                              {
+                                calendarType,
+                                showSecondaryDate,
+                                language: calendarLanguage,
+                                style: "numeric",
+                              },
                             );
                             const dateText = displayDate.secondary
                               ? `${displayDate.primary} (${displayDate.secondary})`

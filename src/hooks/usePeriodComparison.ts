@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDonationStore } from "@/lib/store";
+import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import { fetchAnalyticsRangeStats } from "@/lib/data-layer";
 import { getPreviousPeriodRange } from "@/lib/utils/date-range";
 import {
@@ -33,9 +34,7 @@ export function usePeriodComparison(
   const lastDbFetchTimestamp = useDonationStore(
     (state) => state.lastDbFetchTimestamp
   );
-  const calendarType = useDonationStore(
-    (state) => state.settings.calendarType,
-  );
+  const calendarType = useEffectiveCalendarType();
 
   const { startDate, endDate } = activeDateRangeObject;
   const isAllTime = startDate === "1970-01-01";

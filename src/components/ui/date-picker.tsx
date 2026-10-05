@@ -13,7 +13,10 @@ import {
 } from "@/components/ui/popover";
 import { formatDisplayDate } from "@/lib/calendar/display-date";
 import { useDonationStore } from "@/lib/store";
-import { formatLocalDate } from "@/lib/utils/local-date";
+import {
+  formatLocalDate,
+  getCalendarNavigationBounds,
+} from "@/lib/utils/local-date";
 import { Input } from "./input";
 
 export function DatePicker({
@@ -27,6 +30,7 @@ export function DatePicker({
   const [inputValue, setInputValue] = React.useState<string>("");
   const [month, setMonth] = React.useState<Date | undefined>(date);
   const { i18n } = useTranslation("dashboard");
+  const yearBounds = getCalendarNavigationBounds();
   const calendarType = useDonationStore(
     (state) => state.settings.calendarType,
   );
@@ -157,8 +161,8 @@ export function DatePicker({
             onMonthChange={setMonth}
             initialFocus
             captionLayout="dropdown"
-            fromYear={1960}
-            toYear={new Date().getFullYear() + 5}
+            startMonth={yearBounds.startMonth}
+            endMonth={yearBounds.endMonth}
             dir={i18n.dir()}
             locale={i18n.language === "he" ? he : enUS}
             formatters={{

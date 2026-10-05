@@ -31,7 +31,9 @@ import { useAnimatedCounter } from "@/hooks/useAnimatedCounter";
 import { useEffect, useMemo, useState } from "react";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { notifyOnboardingBlockingModal } from "@/lib/onboarding/modalBridge";
-import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { formatDisplayDate } from "@/lib/calendar/display-date";
+import { CalendarPreviewToggle } from "@/components/dashboard/CalendarPreviewToggle";
+import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import { formatLocalDate } from "@/lib/utils/local-date";
 
 export function StatsCards({
@@ -42,13 +44,13 @@ export function StatsCards({
   const { user } = useAuth();
   const { platform } = usePlatform();
   const { t, i18n } = useTranslation("dashboard");
-  const formatDisplayDate = useDisplayDate();
+  const calendarType = useEffectiveCalendarType();
+  const showSecondaryDate = useDonationStore(
+    (state) => state.settings.showSecondaryDate,
+  );
   const navigate = useNavigate();
   const defaultCurrency = useDonationStore(
     (state) => state.settings.defaultCurrency,
-  );
-  const calendarType = useDonationStore(
-    (state) => state.settings.calendarType,
   );
 
   // Navigation functions for each stat card
@@ -86,7 +88,12 @@ export function StatsCards({
   } = useDateControls();
 
   const formatDate = (date: Date) => {
-    const displayDate = formatDisplayDate(formatLocalDate(date), "numeric");
+    const displayDate = formatDisplayDate(formatLocalDate(date), {
+      calendarType,
+      showSecondaryDate,
+      language: i18n.language.startsWith("he") ? "he" : "en",
+      style: "numeric",
+    });
     return displayDate.secondary
       ? `${displayDate.primary} (${displayDate.secondary})`
       : displayDate.primary;
@@ -380,11 +387,7 @@ export function StatsCards({
           className="inline-flex w-fit max-w-full flex-wrap items-center justify-end gap-2"
           data-onboarding="date-range"
         >
-        <span className="text-sm text-muted-foreground">
-          {calendarType === "hebrew"
-            ? t("dateRange.calendarHebrew")
-            : t("dateRange.calendarGregorian")}
-        </span>
+        <CalendarPreviewToggle />
         {(Object.keys(dateRangeLabels) as DateRangeSelectionType[])
           .filter((rangeKey) => rangeKey !== "custom")
           .map((rangeKey) => (

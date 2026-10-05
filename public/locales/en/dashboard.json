@@ -8,6 +8,7 @@
     "year": "From start of year",
     "all": "All time",
     "custom": "Custom range",
+    "calendarLabel": "Display calendar",
     "calendarHebrew": "Hebrew",
     "calendarGregorian": "Gregorian"
   },

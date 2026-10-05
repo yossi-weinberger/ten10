@@ -284,6 +284,17 @@ describe("Hebrew calendar grid", () => {
 });
 
 describe("Hebrew date pickers", () => {
+  it("offers Hebrew years after the current year in a new transaction picker", async () => {
+    const user = userEvent.setup();
+    render(
+      <DatePicker date={parseLocalDate("2026-09-12")} setDate={vi.fn()} />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Open calendar" }));
+
+    expect(screen.getByRole("option", { name: "תשפ״ח" })).toBeInTheDocument();
+  });
+
   it("shows the selected date in Hebrew letters and keeps day 12 selected", async () => {
     const user = userEvent.setup();
     const setDate = vi.fn();
