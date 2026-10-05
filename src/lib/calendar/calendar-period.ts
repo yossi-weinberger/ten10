@@ -4,12 +4,6 @@ import {
   type CalendarType,
 } from "@/lib/calendar";
 
-export interface CalendarMonthSeparator {
-  beforeIndex: number;
-  monthKey: string;
-  monthLabel: string;
-}
-
 function normalizeLanguage(language: string): CalendarLanguage {
   return language.startsWith("he") ? "he" : "en";
 }
@@ -63,37 +57,4 @@ export function isCalendarMonthTransition(
     previousMonthKey !== null &&
     previousMonthKey !== getCalendarMonthKey(isoDate, calendarType)
   );
-}
-
-export function getCalendarMonthSeparators(
-  dates: readonly string[],
-  calendarType: CalendarType,
-  language: string,
-): CalendarMonthSeparator[] {
-  const separators: CalendarMonthSeparator[] = [];
-  let previousMonthKey: string | null = null;
-
-  dates.forEach((isoDate, index) => {
-    const monthKey = getCalendarMonthKey(isoDate, calendarType);
-    if (
-      isCalendarMonthTransition(
-        previousMonthKey,
-        isoDate,
-        calendarType,
-      )
-    ) {
-      separators.push({
-        beforeIndex: index,
-        monthKey,
-        monthLabel: formatCalendarMonthLabel(
-          monthKey,
-          calendarType,
-          language,
-        ),
-      });
-    }
-    previousMonthKey = monthKey;
-  });
-
-  return separators;
 }

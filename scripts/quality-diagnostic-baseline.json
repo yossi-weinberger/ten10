@@ -10,7 +10,7 @@
         "@typescript-eslint/no-unused-vars": 24,
         "no-shadow-restricted-names": 1,
         "no-unsafe-finally": 1,
-        "no-useless-escape": 10,
+        "no-useless-escape": 8,
         "react-hooks/exhaustive-deps": 11,
         "react-hooks/immutability": 1,
         "react-hooks/incompatible-library": 4,
@@ -912,13 +912,6 @@
           "count": 1
         },
         {
-          "code": "no-useless-escape",
-          "file": "supabase/functions/_shared/simple-email-service.ts",
-          "message": "Unnecessary escape character: \\-.",
-          "severity": "error",
-          "count": 1
-        },
-        {
           "code": "@typescript-eslint/no-unused-vars",
           "file": "supabase/functions/get-monitoring-data/index.ts",
           "message": "'endpoint' is assigned a value but never used.",
@@ -971,13 +964,6 @@
           "code": "@typescript-eslint/no-explicit-any",
           "file": "supabase/functions/send-reminder-emails/simple-email-service.ts",
           "message": "Unexpected any. Specify a different type.",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "no-useless-escape",
-          "file": "supabase/functions/send-reminder-emails/simple-email-service.ts",
-          "message": "Unnecessary escape character: \\-.",
           "severity": "error",
           "count": 1
         },

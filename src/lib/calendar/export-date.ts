@@ -15,7 +15,6 @@ export type CalendarExportSettings = Pick<
 export interface ExportDate {
   gregorian: string;
   hebrew?: string;
-  pdfCell?: string;
 }
 
 export function formatExportDate(
@@ -41,16 +40,9 @@ export function formatExportDate(
     language: options.language,
     style: "long",
   }).primary;
-  const shortGregorian = formatDisplayDate(isoDate, {
-    calendarType: "gregorian",
-    showSecondaryDate: false,
-    language: options.language,
-    style: "short",
-  }).primary;
 
   return {
     gregorian,
     hebrew,
-    pdfCell: `${shortGregorian} · ${hebrew}`,
   };
 }

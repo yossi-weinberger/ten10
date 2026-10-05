@@ -31,14 +31,4 @@ describe("formatExportDate", () => {
       });
     },
   );
-
-  it("provides a layout-safe PDF cell with Gregorian first", () => {
-    expect(
-      formatExportDate("2026-09-12", {
-        calendarType: "hebrew",
-        showSecondaryDate: false,
-        language: "he",
-      }).pdfCell,
-    ).toBe("12/09/26 · א׳ בתשרי תשפ״ז");
-  });
 });

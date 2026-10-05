@@ -11,10 +11,6 @@ import {
 import {
   getCalendarAdapter as getSharedCalendarAdapter,
 } from "../../../supabase/functions/_shared/calendar/index.ts";
-import {
-  formatGregorianMonthLabel,
-  getGregorianMonthKey,
-} from "@/lib/utils/gregorian-month";
 
 const gregorian = getCalendarAdapter("gregorian");
 const hebrew = getCalendarAdapter("hebrew");
@@ -165,17 +161,11 @@ describe("calendar adapters", () => {
   });
 
   it("preserves Gregorian P4 month keys and labels", () => {
-    for (const isoDate of ["2024-02-29", "2026-09-12", "2100-12-31"]) {
-      expect(gregorian.monthKey(isoDate)).toBe(
-        getGregorianMonthKey(isoDate),
-      );
-    }
-
-    for (const language of ["he", "en"] as const) {
-      expect(gregorian.monthLabel("2026-09", language)).toBe(
-        formatGregorianMonthLabel("2026-09", language),
-      );
-    }
+    expect(gregorian.monthKey("2024-02-29")).toBe("2024-02");
+    expect(gregorian.monthKey("2026-09-12")).toBe("2026-09");
+    expect(gregorian.monthKey("2100-12-31")).toBe("2100-12");
+    expect(gregorian.monthLabel("2026-09", "en")).toBe("September 2026");
+    expect(gregorian.monthLabel("2026-09", "he")).toBe("ספטמבר 2026");
   });
 
   it("formats numeric and long dates with Intl in Hebrew and English", () => {

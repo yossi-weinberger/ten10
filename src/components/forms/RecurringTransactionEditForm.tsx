@@ -28,6 +28,10 @@ import {
   RecurringEditFormValues,
   createRecurringEditSchema,
 } from "@/lib/schemas";
+import {
+  clampRecurringDay,
+  maximumRecurringDay,
+} from "@/lib/recurring/recurring-day";
 import { CurrencyPicker } from "@/components/ui/CurrencyPicker";
 import { CurrencyConversionSection } from "./transaction-form-parts/CurrencyConversionSection";
 import { CategoryCombobox } from "@/components/ui/category-combobox";
@@ -364,11 +368,10 @@ export function RecurringTransactionEditForm({
                     <Select
                       onValueChange={(value) => {
                         field.onChange(value);
-                        if (
-                          value === "hebrew" &&
-                          (form.getValues("day_of_month") ?? 0) > 30
-                        ) {
-                          form.setValue("day_of_month", 30, {
+                        const day = form.getValues("day_of_month") ?? 0;
+                        const clamped = clampRecurringDay(value, day);
+                        if (clamped !== day) {
+                          form.setValue("day_of_month", clamped, {
                             shouldDirty: true,
                             shouldValidate: true,
                           });
@@ -413,7 +416,7 @@ export function RecurringTransactionEditForm({
                       <Input
                         type="number"
                         min={1}
-                        max={calendarType === "hebrew" ? 30 : 31}
+                        max={maximumRecurringDay(calendarType)}
                         {...field}
                         value={field.value ?? ""}
                         onChange={(e) => {

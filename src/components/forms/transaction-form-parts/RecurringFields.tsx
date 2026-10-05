@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TransactionFormValues } from "@/lib/schemas";
+import { maximumRecurringDay, clampRecurringDay } from "@/lib/recurring/recurring-day";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface RecurringFieldsProps {
@@ -30,7 +31,7 @@ export function RecurringFields({ form }: RecurringFieldsProps) {
   const { t } = useTranslation("transactions");
   const calendarType =
     form.watch("recurring_calendar_type") ?? "gregorian";
-  const maximumDay = calendarType === "hebrew" ? 30 : 31;
+  const maximumDay = maximumRecurringDay(calendarType);
   return (
     <div className="space-y-4 mt-4 p-4 border rounded-lg shadow-sm bg-muted/10">
       <Alert className="bg-blue-50 text-blue-900 border-blue-200 dark:bg-blue-950/30 dark:text-blue-100 dark:border-blue-800">
@@ -95,11 +96,10 @@ export function RecurringFields({ form }: RecurringFieldsProps) {
               <Select
                 onValueChange={(value) => {
                   field.onChange(value);
-                  if (
-                    value === "hebrew" &&
-                    (form.getValues("recurring_day_of_month") ?? 0) > 30
-                  ) {
-                    form.setValue("recurring_day_of_month", 30, {
+                  const day = form.getValues("recurring_day_of_month") ?? 0;
+                  const clamped = clampRecurringDay(value, day);
+                  if (clamped !== day) {
+                    form.setValue("recurring_day_of_month", clamped, {
                       shouldDirty: true,
                       shouldValidate: true,
                     });

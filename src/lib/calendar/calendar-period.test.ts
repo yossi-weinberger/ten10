@@ -3,7 +3,6 @@ import {
   buildPeriodBoundaries,
   formatCalendarMonthLabel,
   getCalendarMonthKey,
-  getCalendarMonthSeparators,
 } from "./calendar-period";
 
 describe("calendar period boundaries", () => {
@@ -71,23 +70,5 @@ describe("calendar month grouping", () => {
     expect(
       formatCalendarMonthLabel("2026-01", "gregorian", "he"),
     ).toBe("ינואר 2026");
-  });
-
-  it("does not split one Hebrew month at a Gregorian boundary", () => {
-    const dates = [
-      "2026-10-11",
-      "2026-10-01",
-      "2026-09-30",
-      "2026-09-12",
-      "2026-09-11",
-    ];
-
-    expect(getCalendarMonthSeparators(dates, "hebrew", "en")).toEqual([
-      {
-        beforeIndex: 4,
-        monthKey: "5786-12",
-        monthLabel: "Elul תשפ״ו",
-      },
-    ]);
   });
 });
