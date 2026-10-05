@@ -116,13 +116,13 @@ Functions:
 npm run release 0.3.0
 ```
 
-This single command does **everything**:
+This command opens the release pull request:
 
-1. ✅ Updates version in 3 files (package.json, Cargo.toml, tauri.conf.json)
-2. ✅ Commits changes
-3. ✅ Creates git tag
-4. ✅ Pushes to GitHub
-5. ✅ GitHub Actions builds automatically
+1. ✅ Updates version in package.json, Cargo.toml, Cargo.lock, and tauri.conf.json
+2. ✅ Commits the bump on `release/vX.Y.Z`
+3. ✅ Opens the pull request
+
+Merging the pull request creates the tag and starts the desktop build.
 
 **Wait time**: 5-15 minutes for GitHub Actions to complete
 
@@ -140,9 +140,9 @@ When you run `npm run release 0.3.0`, the following process occurs:
 
 #### 2. Git Operations (Local)
 
-- Commit: "chore: bump version to 0.3.0"
-- Tag: v0.3.0
-- Push to GitHub
+- Commit: "chore: bump version to 0.3.0" on `release/v0.3.0`
+- Open a pull request
+- After merge, GitHub tags `v0.3.0` and starts the build
 
 #### 3. GitHub Actions Workflow (CI/CD)
 
@@ -201,11 +201,8 @@ git add .
 git commit -m "chore: bump version to 0.3.0"
 git push -u origin release/v0.3.0
 
-# 3. After that pull request merges, tag the merge commit
-git checkout main
-git pull
-git tag -a v0.3.0 -m "Release v0.3.0"
-git push origin v0.3.0
+# 3. Merge the pull request.
+# GitHub creates tag v0.3.0 and starts the desktop build.
 ```
 
 ---

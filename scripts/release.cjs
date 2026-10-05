@@ -4,10 +4,10 @@
  * Release Script for Ten10
  *
  * Automates the release process:
- * 1. Updates version in all 3 files
+ * 1. Updates version in the app files and Cargo.lock
  * 2. Commits the bump on release/vX.Y.Z
  * 3. Pushes that branch and opens a pull request
- * 4. After the pull request merges, tag the merge commit manually
+ * 4. Merging the pull request creates the tag and starts the desktop build
  *
  * Usage: npm run release 0.3.0
  */
@@ -86,6 +86,21 @@ try {
   fs.writeFileSync(cargoTomlPath, cargoToml);
   console.log("   ✅ Cargo.toml updated\n");
 
+  console.log("📝 Updating Cargo.lock...");
+  try {
+    execSync(
+      "cargo metadata --offline --format-version 1 --manifest-path src-tauri/Cargo.toml",
+      {
+        stdio: ["ignore", "ignore", "inherit"],
+        cwd: path.join(__dirname, ".."),
+      }
+    );
+    console.log("   ✅ Cargo.lock updated\n");
+  } catch (error) {
+    console.log("   ⚠️  Warning: Failed to update Cargo.lock automatically");
+    console.log("   💡 Run a Cargo command locally so the lock matches Cargo.toml\n");
+  }
+
   // 3. Update tauri.conf.json
   console.log("📝 Updating tauri.conf.json...");
   const tauriConfPath = path.join(__dirname, "../src-tauri/tauri.conf.json");
@@ -111,7 +126,7 @@ try {
   // 5. Git add
   console.log("📦 Staging changes...");
   execSync(
-    "git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/tauri.conf.json",
+    "git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/Cargo.lock src-tauri/tauri.conf.json",
     { stdio: "inherit" }
   );
   console.log("   ✅ Files staged\n");
@@ -143,14 +158,7 @@ try {
   const prBody = [
     `Version bump for v${newVersion}.`,
     "",
-    "After this pull request merges, tag that merge commit:",
-    "",
-    "```",
-    "git checkout main",
-    "git pull",
-    `git tag -a v${newVersion} -m "Release v${newVersion}"`,
-    `git push origin v${newVersion}`,
-    "```",
+    "Merging this pull request creates the tag and starts the desktop build.",
   ].join("\n");
   const pullRequest = spawnSync(
     "gh",
@@ -177,7 +185,7 @@ try {
   console.log("═══════════════════════════════════════════════════");
   console.log(`\n📦 Version: ${newVersion}`);
   console.log(`🌿 Branch: ${releaseBranch}`);
-  console.log("\nThe desktop build starts only after the pull request merges and the tag is pushed.");
+  console.log("\nMerge the pull request. GitHub then creates the tag and starts the desktop build.");
   console.log("═══════════════════════════════════════════════════\n");
 } catch (error) {
   console.error("\n❌ Error during release process:", error.message);

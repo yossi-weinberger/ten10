@@ -4,13 +4,22 @@ on:
   push:
     tags:
       - "v*" # Trigger on version tags like v0.3.0
+  workflow_call:
+    inputs:
+      tag:
+        description: Version tag, including the v prefix
+        required: true
+        type: string
 
 env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
   TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
   TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
 
 jobs:
   release:
+    # A tag pushed by the merge workflow must not start a second build.
+    if: github.event_name == 'workflow_call' || github.actor != 'github-actions[bot]'
     permissions:
       contents: write
     strategy:
@@ -63,10 +72,10 @@ jobs:
           # WINDOWS_CERTIFICATE: ${{ secrets.WINDOWS_CERTIFICATE }}
           # WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "Ten10 ${{ github.ref_name }}"
+          tagName: ${{ env.RELEASE_TAG }}
+          releaseName: "Ten10 ${{ env.RELEASE_TAG }}"
           releaseBody: |
-            ## What's New in ${{ github.ref_name }}
+            ## What's New in ${{ env.RELEASE_TAG }}
 
             ### Installation
             Download the appropriate installer for your platform:
@@ -117,7 +126,7 @@ jobs:
       - name: Upload offline installer to release
         run: |
           $exe = Get-ChildItem -Filter "Ten10_*_x64_with_WebView2-setup.exe" | Select-Object -First 1 -ExpandProperty Name
-          gh release upload "${{ github.ref_name }}" $exe --clobber
+          gh release upload "${{ env.RELEASE_TAG }}" $exe --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -132,7 +141,7 @@ jobs:
   notify:
     needs: release
     runs-on: ubuntu-latest
-    if: always()
+    if: always() && needs.release.result != 'skipped'
     steps:
       - name: Check release status
         run: |
