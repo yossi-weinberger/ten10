@@ -40,7 +40,6 @@ export function useMaaserYearSummary(userId: string | null) {
   const currentYear = getCurrentMaaserYear(today);
   const [hebrewYear, setHebrewYear] = useState(currentYear);
   const [summary, setSummary] = useState<MaaserYearSummary | null>(null);
-  const [summary, setSummary] = useState<MaaserYearSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const lastDbFetchTimestamp = useDonationStore(
     (state) => state.lastDbFetchTimestamp,

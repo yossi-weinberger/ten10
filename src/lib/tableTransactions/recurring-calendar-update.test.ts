@@ -109,9 +109,14 @@ describe("recurring calendar edit payload", () => {
       },
     );
 
+    const nextChargeDate = payload.p_next_due_date;
+    if (nextChargeDate == null) {
+      throw new Error("expected p_next_due_date after calendar change");
+    }
+
     expect(switchedEarly < nextDueDate).toBe(true);
-    expect(payload.p_next_due_date).not.toBe(switchedEarly);
-    expect(payload.p_next_due_date >= nextDueDate).toBe(true);
-    expect(payload.p_next_due_date).toBe(hebrew.addMonths(switchedEarly, 1));
+    expect(nextChargeDate).not.toBe(switchedEarly);
+    expect(nextChargeDate >= nextDueDate).toBe(true);
+    expect(nextChargeDate).toBe(hebrew.addMonths(switchedEarly, 1));
   });
 });

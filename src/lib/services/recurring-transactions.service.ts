@@ -197,7 +197,7 @@ export const RecurringTransactionsService = {
 
             const occurrenceNumber = executionCount + 1;
             const nextDueDate = advanceDueDate(currentDueDateStr, rec);
-            let nextStatus = currentStatus;
+            let nextStatus: RecurringTransaction["status"] = currentStatus;
             if (
               rec.total_occurrences &&
               occurrenceNumber >= rec.total_occurrences
