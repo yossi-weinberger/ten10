@@ -76,8 +76,27 @@ describe("desktop reminder calendar", () => {
     expect(mocks.showDesktopNotification).toHaveBeenCalledOnce();
     expect(mocks.showDesktopNotification.mock.calls[0]?.[0]).toMatchObject({
       title: "reminders.maaserYear.title",
+      body: "reminders.maaserYear.positive.body",
     });
     expect(storage.get("lastReminderDate")).toBe("2026-09-11");
+  });
+
+  it("describes a maaser-year credit as a credit", async () => {
+    vi.setSystemTime(new Date(2026, 8, 11, 12));
+    mocks.fetchServerTitheBalance.mockResolvedValue({ total_balance: -500 });
+    useDonationStore.setState((state) => ({
+      settings: {
+        ...state.settings,
+        reminderDayOfMonth: 1,
+        reminderCalendarType: "gregorian",
+      },
+    }));
+
+    await checkAndSendDesktopReminder(vi.fn((key) => key));
+
+    expect(mocks.showDesktopNotification.mock.calls[0]?.[0]).toMatchObject({
+      body: "reminders.maaserYear.negative.body",
+    });
   });
 
   it("keeps the deduplication key as the Gregorian local civil ISO date", async () => {

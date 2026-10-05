@@ -110,7 +110,15 @@
     },
     "maaserYear": {
       "title": "Close your maaser year",
-      "body": "Erev Rosh Hashanah is here. Review this year's income and donations before the new year begins. Your current tithe balance is {{amount}} ILS."
+      "positive": {
+        "body": "Erev Rosh Hashanah is here. Review this year's income and donations before the new year begins. {{amount}} ILS is still left to give."
+      },
+      "negative": {
+        "body": "Erev Rosh Hashanah is here. Review the year before the new one begins. You have a credit of {{amount}} ILS."
+      },
+      "zero": {
+        "body": "Erev Rosh Hashanah is here. Review this year's income and donations. Your tithe balance is settled."
+      }
     }
   },
   "platform": {

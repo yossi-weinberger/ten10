@@ -13,7 +13,7 @@
         },
         "hebrewRecurring": {
           "title": "Hebrew recurring schedules and reminders",
-          "description": "Standing orders and reminders can use the Hebrew calendar. Reminder emails skip Friday, Saturday, and Israel Yom Tov, then make up on the next eligible civil day."
+          "description": "Standing orders and reminders can use the Hebrew calendar. Reminder emails skip the civil date of Friday, Saturday, and Israel Yom Tov, then make up on the next eligible civil day."
         },
         "maaserYear": {
           "title": "Maaser year summary",

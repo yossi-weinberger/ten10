@@ -25,11 +25,25 @@ function generateReminderContent(
   const absBalance = Math.abs(titheBalance).toFixed(2); // Always format to 2 decimal places
 
   switch (kind) {
-    case "maaser-year":
+    case "maaser-year": {
+      const title = t("reminders.maaserYear.title");
+      if (isPositive) {
+        return {
+          title,
+          body: t("reminders.maaserYear.positive.body", { amount: absBalance }),
+        };
+      }
+      if (isNegative) {
+        return {
+          title,
+          body: t("reminders.maaserYear.negative.body", { amount: absBalance }),
+        };
+      }
       return {
-        title: t("reminders.maaserYear.title"),
-        body: t("reminders.maaserYear.body", { amount: absBalance }),
+        title,
+        body: t("reminders.maaserYear.zero.body"),
       };
+    }
     case "monthly":
       if (isPositive) {
         return {
