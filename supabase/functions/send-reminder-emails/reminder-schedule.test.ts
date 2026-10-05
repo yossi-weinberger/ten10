@@ -4,10 +4,48 @@ import {
   REMINDER_CALENDAR_POLICY,
   resolveMaaserYearCloseReminder,
   resolveReminderSchedule,
+  type ReminderScheduleResolution,
 } from "./reminder-schedule.ts";
-import type { CalendarType } from "../_shared/calendar/index.ts";
+import {
+  addIsoDays,
+  getCalendarAdapter,
+  type CalendarType,
+} from "../_shared/calendar/index.ts";
+import { getIsraelYomTov } from "../_shared/calendar/israel-yom-tov.ts";
 
 const reminderDays = [1, 5, 10, 15, 20, 25];
+
+// The cron runs after sunset in Israel, so a run is blocked when the evening
+// is Shabbat or Yom Tov, or when the civil date is Saturday or Yom Tov.
+function isBlockedEvening(isoDate: string): boolean {
+  const dayOfWeek = new Date(`${isoDate}T00:00:00Z`).getUTCDay();
+  return (
+    dayOfWeek === 5 ||
+    dayOfWeek === 6 ||
+    getIsraelYomTov(isoDate) !== null ||
+    getIsraelYomTov(addIsoDays(isoDate, 1)) !== null
+  );
+}
+
+// Maps each due date to the dates its email was sent on.
+function collectSends(
+  resolve: (isoDate: string) => ReminderScheduleResolution,
+): Map<string, string[]> {
+  const sends = new Map<string, string[]>();
+  for (
+    let date = "2026-09-01";
+    date <= "2040-12-31";
+    date = addIsoDays(date, 1)
+  ) {
+    const resolution = resolve(date);
+    if (resolution.kind !== "send-today" && resolution.kind !== "makeup") {
+      continue;
+    }
+    const due = resolution.kind === "makeup" ? resolution.reminderDate : date;
+    sends.set(due, [...(sends.get(due) ?? []), date]);
+  }
+  return sends;
+}
 
 describe("resolveReminderSchedule", () => {
   it("skips a reminder due on Yom Tov and makes it up once after Rosh Hashana", () => {
@@ -94,9 +132,11 @@ describe("resolveReminderSchedule", () => {
     });
   });
 
-  it("does not advance a Friday Yom Tov reminder before the holiday", () => {
+  it("does not advance a Friday Yom Tov reminder to erev Yom Tov", () => {
     expect(resolveReminderSchedule("2039-04-14", reminderDays)).toEqual({
-      kind: "no-op",
+      kind: "skip",
+      reason: "yom-tov",
+      holidayLabel: "Erev Pesach",
     });
     expect(resolveReminderSchedule("2039-04-15", reminderDays)).toMatchObject({
       kind: "skip",
@@ -129,10 +169,52 @@ describe("resolveReminderSchedule", () => {
       kind: "send-today",
       reminderDay: 10,
     });
-    expect(resolveReminderSchedule("2028-10-11", reminderDays)).toEqual({
+    expect(resolveReminderSchedule("2028-10-16", reminderDays)).toEqual({
       kind: "no-op",
     });
   });
+
+  it.each([
+    ["2027-04-27", [20], "hebrew", "Erev Pesach", "2027-04-29"],
+    ["2027-06-10", [10], "gregorian", "Erev Shavuot", "2027-06-13"],
+    ["2027-06-10", [5], "hebrew", "Erev Shavuot", "2027-06-13"],
+    ["2027-10-10", [10], "gregorian", "Erev Yom Kippur", "2027-10-12"],
+    ["2028-09-20", [20], "gregorian", "Erev Rosh Hashana", "2028-09-24"],
+  ] as const)(
+    "skips erev Yom Tov on %s and makes up after the holiday",
+    (erevDate, days, calendarType, holidayLabel, makeupDate) => {
+      expect(
+        resolveReminderSchedule(erevDate, days, calendarType),
+      ).toMatchObject({ kind: "skip", holidayLabel });
+      expect(
+        resolveReminderSchedule(makeupDate, days, calendarType),
+      ).toMatchObject({ kind: "makeup", reminderDate: erevDate });
+    },
+  );
+
+  it.each(["gregorian", "hebrew"] as const)(
+    "sends each %s reminder day exactly once and never on a blocked evening",
+    (calendarType) => {
+      const calendar = getCalendarAdapter(calendarType);
+      for (const day of reminderDays) {
+        const sends = collectSends((date) =>
+          resolveReminderSchedule(date, [day], calendarType),
+        );
+
+        for (
+          let date = "2026-09-10";
+          date <= "2040-12-20";
+          date = addIsoDays(date, 1)
+        ) {
+          const isDue = calendar.fromIsoDate(date).day === day;
+          expect(sends.get(date)?.length ?? 0, date).toBe(isDue ? 1 : 0);
+        }
+        for (const sentOn of [...sends.values()].flat()) {
+          expect(isBlockedEvening(sentOn), sentOn).toBe(false);
+        }
+      }
+    },
+  );
 });
 
 describe("Hebrew reminder calendar scheduling", () => {
@@ -171,7 +253,8 @@ describe("Hebrew reminder calendar scheduling", () => {
   it("handles Tishrei rollover and makes up Hebrew day 1 after Rosh Hashana", () => {
     expect(resolveReminderSchedule("2026-09-11", [1], "hebrew")).toEqual({
       kind: "skip",
-      reason: "shabbat",
+      reason: "yom-tov-and-shabbat",
+      holidayLabel: "Erev Rosh Hashana",
     });
     expect(
       resolveReminderSchedule("2026-09-12", [1], "hebrew"),
@@ -257,11 +340,44 @@ describe("reminder run logging", () => {
     });
     expect(resolveMaaserYearCloseReminder("2026-09-11")).toMatchObject({
       kind: "skip",
-      reason: "shabbat",
+      reason: "yom-tov-and-shabbat",
     });
     expect(resolveMaaserYearCloseReminder("2026-09-23")).toEqual({
       kind: "no-op",
     });
+  });
+
+  it.each([
+    ["2028-09-19", "2028-09-20", "2028-09-24"],
+    ["2029-09-06", "2029-09-09", "2029-09-12"],
+  ] as const)(
+    "sends the maaser-year close reminder on %s, before Erev Rosh Hashanah %s",
+    (sendDate, erevDate, afterHolidayDate) => {
+      expect(resolveMaaserYearCloseReminder(sendDate)).toEqual({
+        kind: "makeup",
+        reason: "erev-yom-tov-advance",
+        reminderDate: erevDate,
+        reminderDay: 29,
+      });
+      expect(resolveMaaserYearCloseReminder(erevDate)).toMatchObject({
+        kind: "skip",
+        holidayLabel: "Erev Rosh Hashana",
+      });
+      expect(resolveMaaserYearCloseReminder(afterHolidayDate)).toEqual({
+        kind: "no-op",
+      });
+    },
+  );
+
+  it("sends the maaser-year close reminder once a year, never on a blocked evening", () => {
+    const sendsByTarget = collectSends(resolveMaaserYearCloseReminder);
+
+    expect(sendsByTarget.size).toBe(15);
+    for (const [target, sentOn] of sendsByTarget) {
+      expect(sentOn, target).toHaveLength(1);
+      expect(sentOn[0] <= target, target).toBe(true);
+      expect(isBlockedEvening(sentOn[0]), target).toBe(false);
+    }
   });
 
   it("documents the civil-midnight Israel-only stage boundary", () => {
