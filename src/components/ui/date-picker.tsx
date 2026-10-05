@@ -1,5 +1,5 @@
 import * as React from "react";
-import { format, parse } from "date-fns";
+import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { he, enUS } from "date-fns/locale";
 import { useTranslation } from "react-i18next";
@@ -18,6 +18,7 @@ import {
   getCalendarNavigationBounds,
 } from "@/lib/utils/local-date";
 import { Input } from "./input";
+import { parseExactGregorianDateInput } from "./gregorian-date-input";
 
 export function DatePicker({
   date,
@@ -66,10 +67,11 @@ export function DatePicker({
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (calendarType === "hebrew") return;
     const value = e.target.value;
     setInputValue(value);
-    const parsedDate = parse(value, "dd/MM/yyyy", new Date());
-    if (isValidDate(parsedDate)) {
+    const parsedDate = parseExactGregorianDateInput(value);
+    if (parsedDate) {
       setDate(parsedDate);
       setMonth(parsedDate);
     } else if (value === "") {
@@ -128,6 +130,7 @@ export function DatePicker({
         placeholder={calendarType === "hebrew" ? "" : "DD/MM/YYYY"}
         value={inputValue}
         onChange={handleInputChange}
+        readOnly={calendarType === "hebrew"}
         className="bg-background pr-10"
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") {

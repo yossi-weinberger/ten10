@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Deploy only Supabase Edge Functions affected by the current change set.
-# Used by .github/workflows/deploy-supabase-functions.yml
+# Used by .github/workflows/deploy-supabase-production.yml
 #
 # Usage:
 #   ./supabase/scripts/deploy-changed-functions.sh              # deploy changed
@@ -25,7 +25,7 @@ if [[ "$PROJECT_REF" == "$PRODUCTION_PROJECT_REF" && "$CURRENT_BRANCH" != "main"
   exit 1
 fi
 
-# Functions managed by CI (keep in sync with deploy-supabase-functions.yml)
+# Functions managed by CI (keep in sync with deploy-supabase-production.yml)
 ALL_FUNCTIONS=(
   send-reminder-emails
   send-contact-email

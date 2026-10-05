@@ -4,11 +4,16 @@ import i18n from "@/lib/i18n";
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { getRecurringExportInfo, getExportCategoryLabel } from "@/lib/utils/export-transaction-fields";
 import { saveOrDownloadExportedFile } from "@/lib/utils/save-export-file";
-import { parseLocalDate } from "@/lib/utils/local-date";
 import {
   formatExportDate,
   type CalendarExportSettings,
 } from "@/lib/calendar/export-date";
+
+/** UTC midnight so ExcelJS stores the calendar day, not the previous local day. */
+function excelDateFromIso(isoDate: string): Date {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
+}
 
 export async function exportTransactionsToExcel(
   transactions: Transaction[],
@@ -151,7 +156,7 @@ export async function exportTransactionsToExcel(
       language: isHebrew ? "he" : "en",
     });
     const rowData = {
-      date: parseLocalDate(transaction.date),
+      date: excelDateFromIso(transaction.date),
       ...(includeHebrewDate && { hebrew_date: exportDate.hebrew ?? "" }),
       type:
         i18n.t(`export.transactionTypes.${transaction.type}`, {

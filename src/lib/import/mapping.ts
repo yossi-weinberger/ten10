@@ -60,8 +60,14 @@ export function detectTen10Template(headers: string[]): boolean {
   });
 }
 
+const NON_IMPORTABLE_HEADERS = new Set([
+  normalizeHeaderName("תאריך עברי"),
+  normalizeHeaderName("Hebrew Date"),
+]);
+
 function matchHeaderToField(header: string): ImportTargetField | null {
   const normalized = normalizeHeaderName(header);
+  if (NON_IMPORTABLE_HEADERS.has(normalized)) return null;
 
   for (const [field, aliases] of Object.entries(FIELD_ALIASES) as [
     ImportTargetField,

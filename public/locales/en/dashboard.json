@@ -188,7 +188,7 @@
       "yearChangeTooltip": "Closing balance minus opening balance. This is a report, not a reset.",
       "income": "Income in year",
       "estimatedMaaser": "10% of income",
-      "estimatedMaaserTooltip": "A simple 10% of income recorded in this year. Recognized expenses and chomesh can change the actual obligation.",
+      "estimatedMaaserTooltip": "A simple 10% of titheable income in this year. Exempt income is not included. Recognized expenses and chomesh can change the actual obligation.",
       "donations": "Donations in year",
       "closeBanner": "Erev Rosh Hashanah is near. Review this year before the new year begins.",
       "balanceUnchangedNote": "This report does not reset your lifetime tithe balance.",

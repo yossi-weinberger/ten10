@@ -72,7 +72,7 @@ Open PR. Supabase Preview and Vercel Preview must pass before merge. Production 
 
 ### 5. Merge to main
 
-Merge. The push to `main` triggers `deploy-supabase-migrations.yml`, which applies pending migrations to production. Edge Function changes are deployed to production by `deploy-supabase-functions.yml`, also only from `main`.
+Merge. The push to `main` triggers `deploy-supabase-production.yml`, which applies pending migrations and then deploys changed Edge Functions. Production deployment runs only from `main`.
 
 ---
 
@@ -118,7 +118,7 @@ SELECT vault.create_secret('<value>', '<name>', '<description>');
 
 ## Edge Functions
 
-Pull requests deploy changed functions to testing through Supabase Preview. Production gets functions via GitHub Action (`deploy-supabase-functions.yml`) only on push to `main` when `supabase/functions/**` changes. Do not run the production deployment script from a feature branch.
+Pull requests deploy changed functions to testing through Supabase Preview. Production gets migrations and functions via GitHub Action (`deploy-supabase-production.yml`) only on push to `main`. Do not run the production deployment script from a feature branch.
 
 **CI allowlist:** `deploy-changed-functions.sh` only deploys names in `ALL_FUNCTIONS` (and redeploys `SHARED_DEPENDENT` when `_shared` changes). A new function that is not listed is skipped with a warning — CI can still be green while production returns **404** on that path (browsers often surface this as a CORS preflight failure). See `supabase-edge-functions-maintenance.md` §4.
 

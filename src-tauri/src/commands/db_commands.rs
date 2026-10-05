@@ -148,6 +148,32 @@ pub async fn init_db(db: State<'_, DbState>) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     }
 
+    conn.execute_batch(
+        "CREATE TRIGGER IF NOT EXISTS recurring_transactions_calendar_guard_insert
+         BEFORE INSERT ON recurring_transactions
+         WHEN NOT (
+           (NEW.calendar_type = 'gregorian'
+             AND NEW.day_of_month BETWEEN 1 AND 31
+             AND (NEW.anchor_month_code IS NULL OR NEW.anchor_month_code != 'M05L'))
+           OR (NEW.calendar_type = 'hebrew' AND NEW.day_of_month BETWEEN 1 AND 30)
+         )
+         BEGIN
+           SELECT RAISE(ABORT, 'invalid recurring calendar fields');
+         END;
+         CREATE TRIGGER IF NOT EXISTS recurring_transactions_calendar_guard_update
+         BEFORE UPDATE ON recurring_transactions
+         WHEN NOT (
+           (NEW.calendar_type = 'gregorian'
+             AND NEW.day_of_month BETWEEN 1 AND 31
+             AND (NEW.anchor_month_code IS NULL OR NEW.anchor_month_code != 'M05L'))
+           OR (NEW.calendar_type = 'hebrew' AND NEW.day_of_month BETWEEN 1 AND 30)
+         )
+         BEGIN
+           SELECT RAISE(ABORT, 'invalid recurring calendar fields');
+         END;",
+    )
+    .map_err(|e| e.to_string())?;
+
     // Add source_recurring_id to transactions table if it doesn't exist
     // Use a helper function to check for column existence to avoid errors on re-runs
     if !column_exists(&conn, "transactions", "source_recurring_id").map_err(|e| e.to_string())? {
@@ -563,5 +589,43 @@ mod tests {
             )
             .is_err()
         );
+    }
+
+    #[test]
+    fn recurring_calendar_guard_rejects_invalid_day_and_gregorian_leap_month() {
+        let app = mock_app();
+        tauri::async_runtime::block_on(init_db(app.state::<crate::DbState>()))
+            .expect("initialize database");
+        let db_state = app.state::<crate::DbState>();
+        let conn = db_state.0.lock().expect("db lock");
+
+        let insert = |id: &str, calendar: &str, day: i32, anchor: Option<&str>| {
+            conn.execute(
+                "INSERT INTO recurring_transactions (
+                    id, start_date, next_due_date, calendar_type, anchor_month_code,
+                    day_of_month, amount, currency, type, created_at, updated_at
+                 ) VALUES (?1, '2026-01-01', '2026-01-01', ?2, ?3, ?4, 10, 'ILS', 'expense', '2026-01-01', '2026-01-01')",
+                params_from(id, calendar, anchor, day),
+            )
+        };
+
+        fn params_from<'a>(
+            id: &'a str,
+            calendar: &'a str,
+            anchor: Option<&'a str>,
+            day: i32,
+        ) -> (&'a str, &'a str, Option<&'a str>, i32) {
+            (id, calendar, anchor, day)
+        }
+
+        let hebrew_leap = insert("hebrew-day", "hebrew", 30, Some("M05L"));
+        assert!(
+            hebrew_leap.is_ok(),
+            "hebrew leap month insert failed: {:?}",
+            hebrew_leap.err()
+        );
+        assert!(insert("hebrew-bad-day", "hebrew", 31, None).is_err());
+        assert!(insert("gregorian-adar", "gregorian", 8, Some("M05L")).is_err());
+        assert!(insert("gregorian-day", "gregorian", 31, None).is_ok());
     }
 }

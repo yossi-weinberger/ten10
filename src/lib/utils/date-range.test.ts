@@ -82,7 +82,7 @@ describe("getPreviousPeriodRange", () => {
     });
   });
 
-  it("compares a Gregorian month preset with the full previous month", () => {
+  it("compares a Gregorian month preset with the same elapsed days", () => {
     expect(
       getPreviousPeriodRange("2024-03-01", "2024-03-15", {
         selection: "month",
@@ -90,11 +90,23 @@ describe("getPreviousPeriodRange", () => {
       }),
     ).toEqual({
       startDate: "2024-02-01",
-      endDate: "2024-02-29",
+      endDate: "2024-02-15",
     });
   });
 
-  it("compares a Gregorian year preset with the full previous year", () => {
+  it("clamps a Gregorian month preset to the shorter previous month", () => {
+    expect(
+      getPreviousPeriodRange("2023-03-01", "2023-03-31", {
+        selection: "month",
+        calendarType: "gregorian",
+      }),
+    ).toEqual({
+      startDate: "2023-02-01",
+      endDate: "2023-02-28",
+    });
+  });
+
+  it("compares a Gregorian year preset with the same elapsed date", () => {
     expect(
       getPreviousPeriodRange("2024-01-01", "2024-06-15", {
         selection: "year",
@@ -102,11 +114,11 @@ describe("getPreviousPeriodRange", () => {
       }),
     ).toEqual({
       startDate: "2023-01-01",
-      endDate: "2023-12-31",
+      endDate: "2023-06-15",
     });
   });
 
-  it("compares Tishri 5787 with the full previous Hebrew month", () => {
+  it("compares Tishri 5787 with the same elapsed days of Elul", () => {
     expect(
       getPreviousPeriodRange("2026-09-12", "2026-09-23", {
         selection: "month",
@@ -114,11 +126,11 @@ describe("getPreviousPeriodRange", () => {
       }),
     ).toEqual({
       startDate: "2026-08-14",
-      endDate: "2026-09-11",
+      endDate: "2026-08-25",
     });
   });
 
-  it("compares Hebrew year 5787 with full Hebrew year 5786", () => {
+  it("compares Hebrew year 5787 with the same elapsed date in 5786", () => {
     expect(
       getPreviousPeriodRange("2026-09-12", "2027-01-01", {
         selection: "year",
@@ -126,7 +138,7 @@ describe("getPreviousPeriodRange", () => {
       }),
     ).toEqual({
       startDate: "2025-09-23",
-      endDate: "2026-09-11",
+      endDate: "2026-01-11",
     });
   });
 

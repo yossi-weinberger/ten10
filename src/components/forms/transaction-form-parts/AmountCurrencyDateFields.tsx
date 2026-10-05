@@ -161,6 +161,8 @@ export function AmountCurrencyDateFields({
                   setDate={(date) => {
                     if (date && !Number.isNaN(date.getTime())) {
                       field.onChange(formatLocalDate(date));
+                    } else {
+                      field.onChange("");
                     }
                   }}
                 />

@@ -7,7 +7,7 @@ import {
 } from "./recurringTable.store";
 import { logger } from "@/lib/logger";
 import { rescheduleBillingDayInMonth } from "@/lib/recurring/recurring-date.utils";
-import { getCalendarAdapter } from "@/lib/calendar";
+import { advanceRecurringDate, getCalendarAdapter } from "@/lib/calendar";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { invokeTauri } from "@/lib/tauri-invoke";
 import {
@@ -74,11 +74,42 @@ function prepareRecurringUpdates(
     (updates.day_of_month !== existing.day_of_month ||
       updates.calendar_type !== undefined)
   ) {
-    updates.next_due_date = rescheduleBillingDayInMonth(
+    const calendarType =
+      updates.calendar_type ?? existing.calendar_type ?? "gregorian";
+    let nextDueDate = rescheduleBillingDayInMonth(
       existing.next_due_date,
       updates.day_of_month,
-      updates.calendar_type ?? existing.calendar_type ?? "gregorian",
+      calendarType,
     );
+    const frequency = updates.frequency ?? existing.frequency;
+    const calendarChanged =
+      updates.calendar_type !== undefined &&
+      updates.calendar_type !== existing.calendar_type;
+    const anchorMonthCode =
+      frequency === "yearly" && calendarChanged
+        ? getCalendarAdapter(calendarType).fromIsoDate(nextDueDate).monthCode
+        : updates.anchor_month_code !== undefined
+          ? updates.anchor_month_code
+          : existing.anchor_month_code;
+    let guard = 0;
+    while (calendarChanged && nextDueDate < existing.next_due_date) {
+      if (guard >= 36) {
+        throw new RangeError("Recurring reschedule did not advance");
+      }
+      guard += 1;
+      const advanced = advanceRecurringDate(nextDueDate, {
+        calendarType,
+        frequency,
+        dayOfMonth: updates.day_of_month,
+        anchorMonthCode,
+        yearlyNormalization: "constrain",
+      });
+      if (advanced <= nextDueDate) {
+        throw new RangeError("Recurring reschedule did not advance");
+      }
+      nextDueDate = advanced;
+    }
+    updates.next_due_date = nextDueDate;
   }
 
   if (

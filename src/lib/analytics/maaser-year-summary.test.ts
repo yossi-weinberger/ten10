@@ -57,6 +57,23 @@ describe("maaser year summary", () => {
     expect(summary.estimatedMaaserFromIncome).toBe(300);
   });
 
+  it("estimates maaser from titheable income only", () => {
+    const range = getMaaserYearRange(5787);
+    const summary = buildMaaserYearSummary({
+      range,
+      reportEndDate: range.endDate,
+      today: "2027-10-01",
+      opening: { total_balance: 0, maaser_balance: 0, chomesh_balance: 0 },
+      closing: { total_balance: 0, maaser_balance: 0, chomesh_balance: 0 },
+      incomeInRange: 1500,
+      titheableIncomeInRange: 1000,
+      donationsInRange: 0,
+    });
+
+    expect(summary.incomeInRange).toBe(1500);
+    expect(summary.estimatedMaaserFromIncome).toBe(100);
+  });
+
   it("ignores the next Hebrew year and exempt or personal donations", () => {
     const range = getMaaserYearRange(5787);
     const nextYearStart = accumulateTitheBalance(seed, "2027-10-02");

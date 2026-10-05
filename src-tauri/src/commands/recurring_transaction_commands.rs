@@ -53,6 +53,24 @@ pub fn get_due_recurring_transactions_handler(
         .map_err(|e| format!("Failed to query due transactions: {}", e))
 }
 
+#[tauri::command]
+pub fn recurring_occurrence_exists_handler(
+    db_state: State<'_, DbState>,
+    source_recurring_id: String,
+    occurrence_number: i32,
+) -> std::result::Result<bool, String> {
+    let conn = db_state.0.lock().map_err(|e| e.to_string())?;
+    let count: i64 = conn
+        .query_row(
+            "SELECT COUNT(*) FROM transactions
+             WHERE source_recurring_id = ?1 AND occurrence_number = ?2",
+            params![source_recurring_id, occurrence_number],
+            |row| row.get(0),
+        )
+        .map_err(|e| e.to_string())?;
+    Ok(count > 0)
+}
+
 /// Shared INSERT for `recurring_transactions` (used by handler and bulk import).
 pub(crate) fn insert_recurring_transaction_row(
     conn: &Connection,

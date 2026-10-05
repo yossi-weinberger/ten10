@@ -417,6 +417,7 @@ async function fetchServerTitheBalanceDesktop(): Promise<TitheBalanceBreakdown |
 
 export interface AnalyticsRangeStats {
   total_income: number;
+  titheable_income?: number;
   chomesh_amount: number;
   total_expenses: number;
   total_donations: number;
@@ -440,7 +441,7 @@ async function fetchAnalyticsRangeStatsWeb(
       return data as AnalyticsRangeStats;
     }
     logger.warn("AnalyticsService: unexpected range stats shape:", data);
-    return { total_income: 0, chomesh_amount: 0, total_expenses: 0, total_donations: 0, non_tithe_donation_amount: 0 };
+    return { total_income: 0, titheable_income: 0, chomesh_amount: 0, total_expenses: 0, total_donations: 0, non_tithe_donation_amount: 0 };
   } catch (err) {
     logger.error("AnalyticsService: fetchAnalyticsRangeStatsWeb error:", err);
     return null;

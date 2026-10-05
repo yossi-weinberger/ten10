@@ -195,6 +195,38 @@ export const RecurringTransactionsService = {
               finalCurrency = defaultCurrency;
             }
 
+            const occurrenceNumber = executionCount + 1;
+            const nextDueDate = advanceDueDate(currentDueDateStr, rec);
+            let nextStatus = currentStatus;
+            if (
+              rec.total_occurrences &&
+              occurrenceNumber >= rec.total_occurrences
+            ) {
+              nextStatus = "completed";
+            }
+
+            const alreadyCharged = await invoke<boolean>(
+              "recurring_occurrence_exists_handler",
+              {
+                sourceRecurringId: rec.id,
+                occurrenceNumber,
+              },
+            );
+            if (alreadyCharged) {
+              executionCount = occurrenceNumber;
+              currentDueDate = nextDueDate;
+              currentStatus = nextStatus;
+              await invoke("update_recurring_transaction_handler", {
+                id: rec.id,
+                updates: {
+                  execution_count: executionCount,
+                  next_due_date: currentDueDate,
+                  status: currentStatus,
+                },
+              });
+              continue;
+            }
+
             // 2. Create Transaction
             const newTransaction: Transaction = {
               id: nanoid(),
@@ -209,8 +241,8 @@ export const RecurringTransactionsService = {
               recipient: rec.recipient || null,
               payment_method: rec.payment_method || null,
               source_recurring_id: rec.id,
-              execution_count: executionCount + 1,
-              occurrence_number: executionCount + 1,
+              execution_count: occurrenceNumber,
+              occurrence_number: occurrenceNumber,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
               original_amount: originalAmount,
@@ -222,15 +254,17 @@ export const RecurringTransactionsService = {
 
             await addTransaction(newTransaction);
 
-            // 3. Advance to next occurrence
-            executionCount++;
-            currentDueDate = advanceDueDate(currentDueDate, rec);
-            if (
-              rec.total_occurrences &&
-              executionCount >= rec.total_occurrences
-            ) {
-              currentStatus = "completed";
-            }
+            executionCount = occurrenceNumber;
+            currentDueDate = nextDueDate;
+            currentStatus = nextStatus;
+            await invoke("update_recurring_transaction_handler", {
+              id: rec.id,
+              updates: {
+                execution_count: executionCount,
+                next_due_date: currentDueDate,
+                status: currentStatus,
+              },
+            });
           }
 
           // 4. Update Recurring Definition in DB (after loop finishes or breaks)

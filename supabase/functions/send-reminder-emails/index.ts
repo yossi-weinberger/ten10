@@ -120,9 +120,9 @@ serve(async (req) => {
       tokenMatchesService,
     });
 
-    if (!tokenMatchesAnon && !tokenMatchesService) {
-      console.error("[REMINDER] API key validation failed - returning 403");
-      return new Response(JSON.stringify({ error: "Invalid token" }), {
+    if (!tokenMatchesService) {
+      console.error("[REMINDER] API key is not the service key - returning 403");
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: {
           ...getCorsHeaders(origin),
@@ -130,7 +130,7 @@ serve(async (req) => {
         },
       });
     }
-    console.log("[REMINDER] API key validated successfully");
+    console.log("[REMINDER] Service API key validated successfully");
   } else {
     // If it's a JWT token, validate it
     console.log("[REMINDER] Token is JWT, validating...");
@@ -202,33 +202,14 @@ serve(async (req) => {
         }
         console.log("[REMINDER] JWT validated successfully (service_role)");
       } else {
-        // For user tokens, validate with Supabase
-        console.log(
-          "[REMINDER] JWT is user token, validating with Supabase...",
-        );
-        const supabaseClient = createClient(supabaseUrl, validAnonKey ?? "", {
-          global: { headers: { Authorization: authorization } },
+        console.error("[REMINDER] JWT is not service_role - returning 403");
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403,
+          headers: {
+            ...getCorsHeaders(origin),
+            "Content-Type": "application/json",
+          },
         });
-
-        const {
-          data: { user },
-          error: userError,
-        } = await supabaseClient.auth.getUser();
-
-        if (userError || !user) {
-          console.error(
-            "[REMINDER] JWT validation failed:",
-            userError?.message,
-          );
-          return new Response(JSON.stringify({ error: "Invalid token" }), {
-            status: 403,
-            headers: {
-              ...getCorsHeaders(origin),
-              "Content-Type": "application/json",
-            },
-          });
-        }
-        console.log("[REMINDER] JWT validated successfully (user token)");
       }
     } catch (error) {
       console.error("[REMINDER] JWT validation error:", error);
@@ -433,9 +414,9 @@ serve(async (req) => {
       `[REMINDER] Due calendar cohorts on ${currentIsraelDate}: ${cohortContext || "none"}`,
     );
 
-    const cohortUsers = dueCohorts.length === 0
+    const cohortResults = dueCohorts.length === 0
       ? []
-      : await Promise.all(
+      : await Promise.allSettled(
         dueCohorts.map((cohort) =>
           userService.getUsersWithTitheBalances(
             cohort.reminderDay,
@@ -443,7 +424,24 @@ serve(async (req) => {
           )
         ),
       );
-    const usersWithBalances = deduplicateReminderUsers(cohortUsers.flat());
+    for (const result of cohortResults) {
+      if (result.status === "rejected") {
+        console.error("[REMINDER] Cohort fetch failed:", result.reason);
+      }
+    }
+    const failedCohorts = cohortResults.filter((result) => result.status === "rejected");
+    if (
+      dueCohorts.length > 0 &&
+      failedCohorts.length === cohortResults.length &&
+      !yearlyDue
+    ) {
+      throw new Error("All reminder cohorts failed");
+    }
+    const usersWithBalances = deduplicateReminderUsers(
+      cohortResults.flatMap((result) =>
+        result.status === "fulfilled" ? result.value : []
+      ),
+    );
     const primaryResolution = dueCohorts[0]?.resolution ?? yearlyResolution;
 
     if (usersWithBalances.length === 0 && !yearlyDue) {

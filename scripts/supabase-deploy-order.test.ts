@@ -1,26 +1,23 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const migrationsWorkflow = readFileSync(
-  ".github/workflows/deploy-supabase-migrations.yml",
-  "utf8",
-);
-const functionsWorkflow = readFileSync(
-  ".github/workflows/deploy-supabase-functions.yml",
+const workflow = readFileSync(
+  ".github/workflows/deploy-supabase-production.yml",
   "utf8",
 );
 
 describe("Supabase production deployment ordering", () => {
-  it("serializes migration and function workflows through one concurrency group", () => {
-    expect(migrationsWorkflow).toContain("group: supabase-production");
-    expect(functionsWorkflow).toContain("group: supabase-production");
+  it("uses one workflow so a queued run cannot cancel a sibling deploy", () => {
+    expect(existsSync(".github/workflows/deploy-supabase-migrations.yml")).toBe(false);
+    expect(existsSync(".github/workflows/deploy-supabase-functions.yml")).toBe(false);
+    expect(workflow).toContain("group: supabase-production");
+    expect(workflow).toContain("cancel-in-progress: false");
+    expect(workflow).toContain("needs: migrate");
   });
 
   it("applies pending migrations before deploying changed functions", () => {
-    const migrationStep = functionsWorkflow.indexOf(
-      "supabase db push --linked --yes",
-    );
-    const functionStep = functionsWorkflow.indexOf(
+    const migrationStep = workflow.indexOf("supabase db push --linked --yes");
+    const functionStep = workflow.indexOf(
       "bash supabase/scripts/deploy-changed-functions.sh",
     );
 

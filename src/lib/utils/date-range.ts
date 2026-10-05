@@ -11,8 +11,9 @@ export interface PreviousPeriodContext {
 }
 
 /**
- * Compute the "previous period" date range of the same length as the active one.
- * Used for delta % comparison on KPI cards.
+ * Previous period for KPI delta badges.
+ * Month and year presets use the same elapsed day in the previous period.
+ * Custom ranges keep the same inclusive length.
  */
 export function getPreviousPeriodRange(
   startDate: string,
@@ -23,27 +24,37 @@ export function getPreviousPeriodRange(
 
   switch (context.selection) {
     case "month": {
-      const previousMonthDate = adapter.addMonths(startDate, -1);
+      const current = adapter.fromIsoDate(endDate);
+      const previousMonthStart = adapter.startOfMonth(adapter.addMonths(startDate, -1));
+      const previous = adapter.fromIsoDate(previousMonthStart);
       return {
-        startDate: adapter.startOfMonth(previousMonthDate),
-        endDate: adapter.endOfMonth(previousMonthDate),
+        startDate: previousMonthStart,
+        endDate: adapter.toIsoDate(
+          {
+            year: previous.year,
+            month: previous.month,
+            day: current.day,
+          },
+          "constrain",
+        ),
       };
     }
     case "year": {
-      const currentYear = adapter.fromIsoDate(startDate).year;
-      const previousYearStart = adapter.toIsoDate({
-        year: currentYear - 1,
-        month: 1,
-        day: 1,
-      });
-      const previousYearEnd = new Date(
-        parseLocalDate(startDate).getFullYear(),
-        parseLocalDate(startDate).getMonth(),
-        parseLocalDate(startDate).getDate() - 1,
-      );
+      const current = adapter.fromIsoDate(endDate);
       return {
-        startDate: previousYearStart,
-        endDate: formatLocalDate(previousYearEnd),
+        startDate: adapter.toIsoDate({
+          year: current.year - 1,
+          month: 1,
+          day: 1,
+        }),
+        endDate: adapter.toIsoDate(
+          {
+            year: current.year - 1,
+            month: current.month,
+            day: current.day,
+          },
+          "constrain",
+        ),
       };
     }
     case "all":

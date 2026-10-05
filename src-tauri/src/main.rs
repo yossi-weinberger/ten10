@@ -35,6 +35,7 @@ use commands::recurring_transaction_commands::{
     add_recurring_transaction_handler, bulk_delete_recurring_transactions_handler,
     bulk_update_recurring_transactions_handler, delete_recurring_transaction_handler,
     get_due_recurring_transactions_handler, get_recurring_transaction_by_id_handler,
+    recurring_occurrence_exists_handler,
     get_recurring_transactions_handler, update_recurring_transaction_handler,
 };
 use commands::transaction_commands::{
@@ -93,6 +94,7 @@ fn main() {
             get_desktop_monthly_financial_summary,
             get_desktop_period_financial_summary,
             get_due_recurring_transactions_handler,
+            recurring_occurrence_exists_handler,
             add_recurring_transaction_handler,
             get_recurring_transactions_handler,
             update_recurring_transaction_handler,

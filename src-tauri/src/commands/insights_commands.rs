@@ -299,6 +299,7 @@ pub fn get_desktop_analytics_breakdowns(
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AnalyticsRangeStats {
     pub total_income: f64,
+    pub titheable_income: f64,
     pub chomesh_amount: f64,
     pub total_expenses: f64,
     pub total_donations: f64,
@@ -314,6 +315,7 @@ pub fn get_desktop_analytics_range_stats(
     let sql = format!(
         "SELECT
            COALESCE(SUM(CASE WHEN ({income}) THEN amount ELSE 0 END), 0) AS total_income,
+           COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS titheable_income,
            COALESCE(SUM(CASE WHEN is_chomesh THEN amount ELSE 0 END),  0) AS chomesh_amount,
            COALESCE(SUM(CASE WHEN ({expense}) THEN amount ELSE 0 END), 0) AS total_expenses,
            COALESCE(SUM(CASE WHEN ({donation}) THEN amount ELSE 0 END), 0) AS total_donations,
@@ -330,10 +332,11 @@ pub fn get_desktop_analytics_range_stats(
         .query_row(&sql, params![start_date, end_date], |row| {
             Ok(AnalyticsRangeStats {
                 total_income:              row.get(0)?,
-                chomesh_amount:            row.get(1)?,
-                total_expenses:            row.get(2)?,
-                total_donations:           row.get(3)?,
-                non_tithe_donation_amount: row.get(4)?,
+                titheable_income:          row.get(1)?,
+                chomesh_amount:            row.get(2)?,
+                total_expenses:            row.get(3)?,
+                total_donations:           row.get(4)?,
+                non_tithe_donation_amount: row.get(5)?,
             })
         })
         .map_err(|e| e.to_string())

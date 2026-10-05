@@ -1,6 +1,6 @@
 ---
 description: Supabase database migrations - staging, MCP, production workflow
-globs: supabase/migrations/**,supabase/**/*.md,.github/workflows/deploy-supabase-migrations.yml
+globs: supabase/migrations/**,supabase/**/*.md,.github/workflows/deploy-supabase-production.yml
 alwaysApply: false
 ---
 
@@ -49,7 +49,7 @@ VALUES ('20260423120000', 'migration_name', ARRAY['...']) ON CONFLICT DO NOTHING
 
 ⚠️ **`process-email-request` must always use `--no-verify-jwt`** — omitting it breaks Cloudflare email routing. The GitHub Action already handles this. Never redeploy it manually without the flag.
 
-The GitHub Action (`deploy-supabase-functions.yml`) triggers on push to `main` when `supabase/functions/**` changes. Do not run it manually against production.
+The GitHub Action (`deploy-supabase-production.yml`) triggers on push to `main` when migrations or functions change. It applies migrations first, then deploys changed functions. Do not run it manually against production.
 
 ## Do not
 

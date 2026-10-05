@@ -123,8 +123,10 @@ export function buildMaaserYearSummary(input: {
   opening: TitheBalanceBreakdown;
   closing: TitheBalanceBreakdown;
   incomeInRange: number;
+  titheableIncomeInRange?: number;
   donationsInRange: number;
 }): MaaserYearSummary {
+  const titheableIncome = input.titheableIncomeInRange ?? input.incomeInRange;
   return {
     range: input.range,
     reportEndDate: input.reportEndDate,
@@ -134,6 +136,6 @@ export function buildMaaserYearSummary(input: {
     yearDelta: subtractTitheBalance(input.closing, input.opening),
     incomeInRange: input.incomeInRange,
     donationsInRange: input.donationsInRange,
-    estimatedMaaserFromIncome: input.incomeInRange * 0.1,
+    estimatedMaaserFromIncome: titheableIncome * 0.1,
   };
 }

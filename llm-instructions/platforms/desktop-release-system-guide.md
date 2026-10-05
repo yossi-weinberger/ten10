@@ -195,13 +195,16 @@ The workflow is triggered by the tag `v*` and performs:
 #    - src-tauri/Cargo.toml
 #    - src-tauri/tauri.conf.json
 
-# 2. Commit
+# 2. Open a pull request. main rejects a direct push.
+git checkout -b release/v0.3.0
 git add .
 git commit -m "chore: bump version to 0.3.0"
+git push -u origin release/v0.3.0
 
-# 3. Tag and push
-git tag v0.3.0
-git push origin main
+# 3. After that pull request merges, tag the merge commit
+git checkout main
+git pull
+git tag -a v0.3.0 -m "Release v0.3.0"
 git push origin v0.3.0
 ```
 

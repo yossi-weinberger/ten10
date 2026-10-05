@@ -13,6 +13,7 @@ import {
   fetchServerTitheBalanceAsOf,
 } from "@/lib/data-layer";
 import { logger } from "@/lib/logger";
+import { useDonationStore } from "@/lib/store";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
 
 const EMPTY_BALANCE = {
@@ -39,8 +40,14 @@ export function useMaaserYearSummary(userId: string | null) {
   const currentYear = getCurrentMaaserYear(today);
   const [hebrewYear, setHebrewYear] = useState(currentYear);
   const [summary, setSummary] = useState<MaaserYearSummary | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [summary, setSummary] = useState<MaaserYearSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const lastDbFetchTimestamp = useDonationStore(
+    (state) => state.lastDbFetchTimestamp,
+  );
+  const requestKey = `${hebrewYear}:${today}:${userId ?? ""}:${lastDbFetchTimestamp}`;
+  const [loadedKey, setLoadedKey] = useState<string | null>(null);
+  const isLoading = loadedKey !== requestKey;
 
   useEffect(() => {
     let cancelled = false;
@@ -56,7 +63,7 @@ export function useMaaserYearSummary(userId: string | null) {
         if (cancelled) return;
         setSummary(nextSummary);
         setError(nextError);
-        setIsLoading(false);
+        setLoadedKey(requestKey);
         return;
       }
 
@@ -72,7 +79,7 @@ export function useMaaserYearSummary(userId: string | null) {
         if (!opening || !closing || !stats) {
           setError("load-failed");
           setSummary(null);
-          setIsLoading(false);
+          setLoadedKey(requestKey);
           return;
         }
 
@@ -84,29 +91,44 @@ export function useMaaserYearSummary(userId: string | null) {
             opening,
             closing,
             incomeInRange: stats.total_income,
+            titheableIncomeInRange:
+              typeof stats.titheable_income === "number"
+                ? stats.titheable_income
+                : stats.total_income,
             donationsInRange: stats.total_donations,
           }),
         );
         setError(null);
-        setIsLoading(false);
+        setLoadedKey(requestKey);
       } catch (err) {
         logger.error("useMaaserYearSummary: failed to load year", err);
         if (cancelled) return;
         setError("load-failed");
         setSummary(null);
-        setIsLoading(false);
+        setLoadedKey(requestKey);
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [hebrewYear, today, userId]);
+  }, [
+    hebrewYear,
+    today,
+    userId,
+    lastDbFetchTimestamp,
+    requestKey,
+    setSummary,
+    setError,
+    setLoadedKey,
+  ]);
 
   return {
     hebrewYear,
     currentYear,
-    summary: summary ?? emptySummary(hebrewYear, today),
+    summary: isLoading
+      ? emptySummary(hebrewYear, today)
+      : (summary ?? emptySummary(hebrewYear, today)),
     isLoading,
     error,
     canGoNext: hebrewYear < currentYear,

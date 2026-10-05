@@ -74,4 +74,44 @@ describe("recurring calendar edit payload", () => {
 
     expect(payload.p_anchor_month_code).toBe("M01");
   });
+
+  it("does not move the next charge onto an already reached date when the calendar changes", () => {
+    const hebrew = getCalendarAdapter("hebrew");
+    const nextDueDate = "2027-03-08";
+    const switchedEarly = hebrew.toIsoDate({
+      year: hebrew.fromIsoDate(nextDueDate).year,
+      month: hebrew.fromIsoDate(nextDueDate).month,
+      day: 1,
+    });
+
+    const payload = buildRecurringUpdateRpcParams(
+      "monthly-id",
+      "user-id",
+      {
+        frequency: "monthly",
+        calendar_type: "hebrew",
+        day_of_month: 1,
+      },
+      {
+        id: "monthly-id",
+        user_id: "user-id",
+        status: "active",
+        start_date: "2027-01-08",
+        next_due_date: nextDueDate,
+        frequency: "monthly",
+        calendar_type: "gregorian",
+        anchor_month_code: null,
+        day_of_month: 8,
+        execution_count: 1,
+        amount: 100,
+        currency: "ILS",
+        type: "expense",
+      },
+    );
+
+    expect(switchedEarly < nextDueDate).toBe(true);
+    expect(payload.p_next_due_date).not.toBe(switchedEarly);
+    expect(payload.p_next_due_date >= nextDueDate).toBe(true);
+    expect(payload.p_next_due_date).toBe(hebrew.addMonths(switchedEarly, 1));
+  });
 });
