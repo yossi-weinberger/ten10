@@ -14,7 +14,7 @@
       },
       "halacha": {
         "title": "Hebrew standing orders and reminders",
-        "description": "Set a Hebrew day of the month. Reminders skip Friday, Saturday, and Israel Yom Tov."
+        "description": "Set a Hebrew day of the month. Reminders skip Friday, Saturday, and Yom Tov."
       },
       "reminders": {
         "title": "Maaser year summary",
