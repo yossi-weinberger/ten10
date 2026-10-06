@@ -54,7 +54,7 @@ describe("AuthLearnMoreLink", () => {
   afterEach(cleanup);
 
   it("renders a same-tab link to /landing on web", () => {
-    render(<AuthLearnMoreLink variant="branded" />);
+    render(<AuthLearnMoreLink />);
 
     const link = screen.getByRole("link", { name: enAuth.layout.learnMore });
     expect(link.getAttribute("href")).toBe("/landing");
@@ -63,13 +63,13 @@ describe("AuthLearnMoreLink", () => {
 
   it("hides the link in the Tauri desktop build", () => {
     platformState.platform = "desktop";
-    render(<AuthLearnMoreLink variant="compact" />);
+    render(<AuthLearnMoreLink />);
 
     expect(screen.queryByRole("link")).toBeNull();
   });
 
   it("fires the existing product analytics event on click", () => {
-    render(<AuthLearnMoreLink variant="branded" />);
+    render(<AuthLearnMoreLink />);
 
     fireEvent.click(
       screen.getByRole("link", { name: enAuth.layout.learnMore }),

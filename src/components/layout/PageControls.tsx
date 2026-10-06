@@ -1,20 +1,22 @@
 import React from "react";
 import { Link } from "@tanstack/react-router";
-import { useTranslation } from "react-i18next";
 import { Home, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/ui/language-toggle";
+import { AuthLearnMoreLink } from "@/components/auth/AuthLearnMoreLink";
 import { useTheme, getNextToggledTheme } from "@/lib/theme";
 import { useDonationStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 interface PageControlsProps {
   showHome?: boolean;
+  showLearnMore?: boolean;
   className?: string;
 }
 
 export const PageControls: React.FC<PageControlsProps> = ({
   showHome = true,
+  showLearnMore = false,
   className,
 }) => {
   const { theme, setTheme } = useTheme();
@@ -28,7 +30,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
 
   // Base styling with increased shadow for better visibility
   const baseClass = cn(
-    "bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-md transition-all hover:shadow-lg", // Increased shadow from sm to md, and lg on hover
+    "bg-background/80 text-foreground backdrop-blur-sm shadow-md transition-all hover:shadow-lg",
     "border-0",
     "dark:hover:bg-accent dark:hover:text-accent-foreground"
   );
@@ -63,6 +65,16 @@ export const PageControls: React.FC<PageControlsProps> = ({
         variant="ghost"
         className={cn(baseClass, "rounded-full h-10 px-4")}
       />
+
+      {showLearnMore ? (
+        <AuthLearnMoreLink
+          variant="ghost"
+          className={cn(
+            baseClass,
+            "lg:hidden h-10 px-3 text-xs sm:px-4 sm:text-sm"
+          )}
+        />
+      ) : null}
     </div>
   );
 };
