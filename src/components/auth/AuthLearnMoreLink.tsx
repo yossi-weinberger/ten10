@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 interface AuthLearnMoreLinkProps {
   variant?: "outline" | "ghost";
   className?: string;
+  /** Mobile chip uses the short locale string; desktop pill keeps the full label. */
+  short?: boolean;
 }
 
 /**
@@ -18,6 +20,7 @@ interface AuthLearnMoreLinkProps {
 export function AuthLearnMoreLink({
   variant = "outline",
   className,
+  short = false,
 }: AuthLearnMoreLinkProps) {
   const { platform } = usePlatform();
   const { t, i18n } = useTranslation("auth");
@@ -28,6 +31,7 @@ export function AuthLearnMoreLink({
 
   const isRtl = i18n.dir() === "rtl";
   const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
+  const labelKey = short ? "layout.learnMoreShort" : "layout.learnMore";
 
   return (
     <Button variant={variant} size="sm" asChild className={cn("rounded-full", className)}>
@@ -37,7 +41,7 @@ export function AuthLearnMoreLink({
           trackProductEvent("login_learn_more_clicked");
         }}
       >
-        <span>{t("layout.learnMore")}</span>
+        <span>{t(labelKey)}</span>
         <ArrowIcon className="h-4 w-4" aria-hidden="true" />
       </Link>
     </Button>

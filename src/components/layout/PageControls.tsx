@@ -68,10 +68,11 @@ export const PageControls: React.FC<PageControlsProps> = ({
 
       {showLearnMore ? (
         <AuthLearnMoreLink
+          short
           variant="ghost"
           className={cn(
             baseClass,
-            "lg:hidden h-10 px-3 text-xs sm:px-4 sm:text-sm"
+            "lg:hidden h-10 px-3 text-xs sm:px-4 sm:text-sm max-[359px]:px-1.5"
           )}
         />
       ) : null}
