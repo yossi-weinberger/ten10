@@ -22,10 +22,10 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 
   return (
     <div
-      className="min-h-screen w-full flex flex-col items-center justify-center py-4 px-4 sm:p-8 relative bg-muted/30 overflow-y-auto"
+      className="min-h-screen w-full flex items-center justify-center py-4 px-4 sm:p-8 relative bg-muted/30 overflow-y-auto"
       dir={i18n.dir()}
     >
-      {/* In-flow on mobile so controls never overlap the card; absolute on desktop */}
+      {/* Navigation & Controls */}
       <AuthControls showHome={showHomeButton} />
 
       {/* Page Background Image (Mobile Only) */}
@@ -35,9 +35,9 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
       </div>
 
-      <div className="w-full max-w-[1400px] bg-card rounded-[32px] shadow-2xl grid lg:grid-cols-2 relative z-10 my-auto lg:min-h-[600px] overflow-hidden">
-        {/* Form Side — no overflow-y-auto: the page scrolls if the viewport is short */}
-        <div className="relative flex flex-col justify-start lg:justify-center p-8 md:p-12 lg:p-16 order-1">
+      <div className="w-full max-w-[1400px] bg-card rounded-[32px] shadow-2xl grid lg:grid-cols-2 relative z-10 my-auto lg:max-h-[85vh] lg:min-h-[600px] overflow-hidden">
+        {/* Form Side */}
+        <div className="relative flex flex-col justify-start lg:justify-center p-8 md:p-12 lg:p-16 order-1 overflow-y-auto">
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mt-8 mb-6 shrink-0">
             <div className="rounded-2xl bg-white/90 dark:bg-black/40 backdrop-blur-md shadow-lg p-3 border border-black/5 dark:border-white/10">
@@ -62,7 +62,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           </div>
         </div>
 
-        {/* Image Side (Hidden on mobile) — same flow as c4c4699; pill is out of flow */}
+        {/* Image Side (Hidden on mobile) */}
         <div className="hidden lg:flex flex-col justify-center p-12 relative bg-black text-white order-2">
           {/* Background Image */}
           <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black z-0">
@@ -99,7 +99,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
             </div>
           </div>
 
-          <div className="absolute inset-x-0 bottom-12 z-20 flex justify-center">
+          <div className="absolute start-0 end-0 bottom-12 z-20 flex justify-center">
             <AuthLearnMoreLink className="bg-card text-card-foreground shadow-md" />
           </div>
         </div>
