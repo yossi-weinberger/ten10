@@ -2,7 +2,7 @@
   "lang": "en",
   "source": "estimated",
   "audioFile": null,
-  "audioDuration": 78.786,
+  "audioDuration": 92.096,
   "phrases": [
     {"id": "hook1", "text": "Maaser sounds simple.", "start": 0.6, "end": 1.995, "words": [
       {"w": "Maaser", "start": 0.6, "end": 1.065},
@@ -65,141 +65,176 @@
       {"w": "any", "start": 23.087, "end": 23.32},
       {"w": "currency", "start": 23.32, "end": 23.94}
     ]},
-    {"id": "import", "text": "Import existing transactions,", "start": 24.79, "end": 26.805, "words": [
-      {"w": "Import", "start": 24.79, "end": 25.255},
-      {"w": "existing", "start": 25.255, "end": 25.875},
-      {"w": "transactions", "start": 25.875, "end": 26.805}
+    {"id": "hebrew", "text": "All on the Hebrew calendar too: dates, periods, and a maaser year.", "start": 24.79, "end": 28.983, "words": [
+      {"w": "All", "start": 24.79, "end": 25.022},
+      {"w": "on", "start": 25.022, "end": 25.178},
+      {"w": "the", "start": 25.178, "end": 25.41},
+      {"w": "Hebrew", "start": 25.41, "end": 25.875},
+      {"w": "calendar", "start": 25.875, "end": 26.495},
+      {"w": "too", "start": 26.495, "end": 26.728},
+      {"w": "dates", "start": 26.728, "end": 27.116},
+      {"w": "periods", "start": 27.236, "end": 27.778},
+      {"w": "and", "start": 27.898, "end": 28.131},
+      {"w": "a", "start": 28.131, "end": 28.208},
+      {"w": "maaser", "start": 28.208, "end": 28.673},
+      {"w": "year", "start": 28.673, "end": 28.983}
     ]},
-    {"id": "recurring", "text": "automate recurring entries,", "start": 27.355, "end": 29.216, "words": [
-      {"w": "automate", "start": 27.355, "end": 27.976},
-      {"w": "recurring", "start": 27.976, "end": 28.673},
-      {"w": "entries", "start": 28.673, "end": 29.216}
+    {"id": "import", "text": "Import existing transactions,", "start": 29.683, "end": 31.699, "words": [
+      {"w": "Import", "start": 29.683, "end": 30.149},
+      {"w": "existing", "start": 30.149, "end": 30.769},
+      {"w": "transactions", "start": 30.769, "end": 31.699}
     ]},
-    {"id": "reminders", "text": "and get reminders when you need them.", "start": 29.766, "end": 32.091, "words": [
-      {"w": "and", "start": 29.766, "end": 29.998},
-      {"w": "get", "start": 29.998, "end": 30.231},
-      {"w": "reminders", "start": 30.231, "end": 30.929},
-      {"w": "when", "start": 30.929, "end": 31.239},
-      {"w": "you", "start": 31.239, "end": 31.471},
-      {"w": "need", "start": 31.471, "end": 31.781},
-      {"w": "them", "start": 31.781, "end": 32.091}
+    {"id": "recurring", "text": "automate recurring entries,", "start": 32.249, "end": 34.109, "words": [
+      {"w": "automate", "start": 32.249, "end": 32.869},
+      {"w": "recurring", "start": 32.869, "end": 33.567},
+      {"w": "entries", "start": 33.567, "end": 34.109}
     ]},
-    {"id": "analytics", "text": "The analytics dashboard shows exactly where your household money goes.", "start": 32.941, "end": 37.593, "words": [
-      {"w": "The", "start": 32.941, "end": 33.174},
-      {"w": "analytics", "start": 33.174, "end": 33.872},
-      {"w": "dashboard", "start": 33.872, "end": 34.569},
-      {"w": "shows", "start": 34.569, "end": 34.957},
-      {"w": "exactly", "start": 34.957, "end": 35.5},
-      {"w": "where", "start": 35.5, "end": 35.887},
-      {"w": "your", "start": 35.887, "end": 36.197},
-      {"w": "household", "start": 36.197, "end": 36.895},
-      {"w": "money", "start": 36.895, "end": 37.283},
-      {"w": "goes", "start": 37.283, "end": 37.593}
+    {"id": "reminders", "text": "and get reminders when you need them.", "start": 34.659, "end": 36.985, "words": [
+      {"w": "and", "start": 34.659, "end": 34.892},
+      {"w": "get", "start": 34.892, "end": 35.124},
+      {"w": "reminders", "start": 35.124, "end": 35.822},
+      {"w": "when", "start": 35.822, "end": 36.132},
+      {"w": "you", "start": 36.132, "end": 36.365},
+      {"w": "need", "start": 36.365, "end": 36.675},
+      {"w": "them", "start": 36.675, "end": 36.985}
     ]},
-    {"id": "reports", "text": "Print reports, or export to Excel and PDF.", "start": 38.493, "end": 41.171, "words": [
-      {"w": "Print", "start": 38.493, "end": 38.88},
-      {"w": "reports", "start": 38.88, "end": 39.423},
-      {"w": "or", "start": 39.543, "end": 39.698},
-      {"w": "export", "start": 39.698, "end": 40.163},
-      {"w": "to", "start": 40.163, "end": 40.318},
-      {"w": "Excel", "start": 40.318, "end": 40.706},
-      {"w": "and", "start": 40.706, "end": 40.938},
-      {"w": "PDF", "start": 40.938, "end": 41.171}
+    {"id": "analytics", "text": "The analytics dashboard shows exactly where your household money goes.", "start": 37.835, "end": 42.486, "words": [
+      {"w": "The", "start": 37.835, "end": 38.068},
+      {"w": "analytics", "start": 38.068, "end": 38.765},
+      {"w": "dashboard", "start": 38.765, "end": 39.463},
+      {"w": "shows", "start": 39.463, "end": 39.85},
+      {"w": "exactly", "start": 39.85, "end": 40.393},
+      {"w": "where", "start": 40.393, "end": 40.781},
+      {"w": "your", "start": 40.781, "end": 41.091},
+      {"w": "household", "start": 41.091, "end": 41.788},
+      {"w": "money", "start": 41.788, "end": 42.176},
+      {"w": "goes", "start": 42.176, "end": 42.486}
     ]},
-    {"id": "notjust", "text": "And TEN10 is more than numbers.", "start": 42.021, "end": 43.959, "words": [
-      {"w": "And", "start": 42.021, "end": 42.253},
-      {"w": "TEN10", "start": 42.253, "end": 42.641},
-      {"w": "is", "start": 42.641, "end": 42.796},
-      {"w": "more", "start": 42.796, "end": 43.106},
-      {"w": "than", "start": 43.106, "end": 43.416},
-      {"w": "numbers", "start": 43.416, "end": 43.959}
+    {"id": "budget", "text": "For your household budget: cash flow, income versus expenses, and savings rate,", "start": 43.386, "end": 48.587, "words": [
+      {"w": "For", "start": 43.386, "end": 43.619},
+      {"w": "your", "start": 43.619, "end": 43.929},
+      {"w": "household", "start": 43.929, "end": 44.626},
+      {"w": "budget", "start": 44.626, "end": 45.092},
+      {"w": "cash", "start": 45.092, "end": 45.402},
+      {"w": "flow", "start": 45.402, "end": 45.712},
+      {"w": "income", "start": 45.832, "end": 46.297},
+      {"w": "versus", "start": 46.297, "end": 46.762},
+      {"w": "expenses", "start": 46.762, "end": 47.382},
+      {"w": "and", "start": 47.502, "end": 47.735},
+      {"w": "savings", "start": 47.735, "end": 48.277},
+      {"w": "rate", "start": 48.277, "end": 48.587}
     ]},
-    {"id": "halacha", "text": "Explore the Halachic Library for relevant guidance,", "start": 44.959, "end": 48.37, "words": [
-      {"w": "Explore", "start": 44.959, "end": 45.501},
-      {"w": "the", "start": 45.501, "end": 45.734},
-      {"w": "Halachic", "start": 45.734, "end": 46.354},
-      {"w": "Library", "start": 46.354, "end": 46.897},
-      {"w": "for", "start": 46.897, "end": 47.129},
-      {"w": "relevant", "start": 47.129, "end": 47.749},
-      {"w": "guidance", "start": 47.749, "end": 48.37}
+    {"id": "insights", "text": "with insights for every period.", "start": 48.937, "end": 50.953, "words": [
+      {"w": "with", "start": 48.937, "end": 49.247},
+      {"w": "insights", "start": 49.247, "end": 49.868},
+      {"w": "for", "start": 49.868, "end": 50.1},
+      {"w": "every", "start": 50.1, "end": 50.488},
+      {"w": "period", "start": 50.488, "end": 50.953}
     ]},
-    {"id": "rabbi", "text": "and when you still have a question, use Ask the Rabbi.", "start": 48.82, "end": 52.195, "words": [
-      {"w": "and", "start": 48.82, "end": 49.052},
-      {"w": "when", "start": 49.052, "end": 49.362},
-      {"w": "you", "start": 49.362, "end": 49.595},
-      {"w": "still", "start": 49.595, "end": 49.982},
-      {"w": "have", "start": 49.982, "end": 50.292},
-      {"w": "a", "start": 50.292, "end": 50.37},
-      {"w": "question", "start": 50.37, "end": 50.99},
-      {"w": "use", "start": 51.11, "end": 51.343},
-      {"w": "Ask", "start": 51.343, "end": 51.575},
-      {"w": "the", "start": 51.575, "end": 51.808},
-      {"w": "Rabbi", "start": 51.808, "end": 52.195}
+    {"id": "reports", "text": "Print reports, or export to Excel and PDF.", "start": 51.803, "end": 54.481, "words": [
+      {"w": "Print", "start": 51.803, "end": 52.19},
+      {"w": "reports", "start": 52.19, "end": 52.733},
+      {"w": "or", "start": 52.853, "end": 53.008},
+      {"w": "export", "start": 53.008, "end": 53.473},
+      {"w": "to", "start": 53.473, "end": 53.628},
+      {"w": "Excel", "start": 53.628, "end": 54.016},
+      {"w": "and", "start": 54.016, "end": 54.248},
+      {"w": "PDF", "start": 54.248, "end": 54.481}
     ]},
-    {"id": "trust", "text": "TEN10 was developed with the Torat Ha'adam La'adam Institute, and endorsed by leading rabbis.", "start": 53.045, "end": 59.057, "words": [
-      {"w": "TEN10", "start": 53.045, "end": 53.433},
-      {"w": "was", "start": 53.433, "end": 53.666},
-      {"w": "developed", "start": 53.666, "end": 54.363},
-      {"w": "with", "start": 54.363, "end": 54.673},
-      {"w": "the", "start": 54.673, "end": 54.906},
-      {"w": "Torat", "start": 54.906, "end": 55.293},
-      {"w": "Ha'adam", "start": 55.293, "end": 55.759},
-      {"w": "La'adam", "start": 55.759, "end": 56.224},
-      {"w": "Institute", "start": 56.224, "end": 56.921},
-      {"w": "and", "start": 57.041, "end": 57.274},
-      {"w": "endorsed", "start": 57.274, "end": 57.894},
-      {"w": "by", "start": 57.894, "end": 58.049},
-      {"w": "leading", "start": 58.049, "end": 58.592},
-      {"w": "rabbis", "start": 58.592, "end": 59.057}
+    {"id": "notjust", "text": "And TEN10 is more than numbers.", "start": 55.331, "end": 57.269, "words": [
+      {"w": "And", "start": 55.331, "end": 55.564},
+      {"w": "TEN10", "start": 55.564, "end": 55.951},
+      {"w": "is", "start": 55.951, "end": 56.106},
+      {"w": "more", "start": 56.106, "end": 56.416},
+      {"w": "than", "start": 56.416, "end": 56.726},
+      {"w": "numbers", "start": 56.726, "end": 57.269}
     ]},
-    {"id": "platforms", "text": "Use it on the web from anywhere, or as desktop software that works even offline.", "start": 59.957, "end": 65.038, "words": [
-      {"w": "Use", "start": 59.957, "end": 60.189},
-      {"w": "it", "start": 60.189, "end": 60.344},
-      {"w": "on", "start": 60.344, "end": 60.5},
-      {"w": "the", "start": 60.5, "end": 60.732},
-      {"w": "web", "start": 60.732, "end": 60.965},
-      {"w": "from", "start": 60.965, "end": 61.275},
-      {"w": "anywhere", "start": 61.275, "end": 61.895},
-      {"w": "or", "start": 62.015, "end": 62.17},
-      {"w": "as", "start": 62.17, "end": 62.325},
-      {"w": "desktop", "start": 62.325, "end": 62.868},
-      {"w": "software", "start": 62.868, "end": 63.488},
-      {"w": "that", "start": 63.488, "end": 63.798},
-      {"w": "works", "start": 63.798, "end": 64.185},
-      {"w": "even", "start": 64.185, "end": 64.496},
-      {"w": "offline", "start": 64.496, "end": 65.038}
+    {"id": "halacha", "text": "Explore the Halachic Library for relevant guidance,", "start": 58.269, "end": 61.68, "words": [
+      {"w": "Explore", "start": 58.269, "end": 58.812},
+      {"w": "the", "start": 58.812, "end": 59.044},
+      {"w": "Halachic", "start": 59.044, "end": 59.664},
+      {"w": "Library", "start": 59.664, "end": 60.207},
+      {"w": "for", "start": 60.207, "end": 60.44},
+      {"w": "relevant", "start": 60.44, "end": 61.06},
+      {"w": "guidance", "start": 61.06, "end": 61.68}
     ]},
-    {"id": "together", "text": "Your income, donations and obligations come together in one clear picture.", "start": 65.888, "end": 70.814, "words": [
-      {"w": "Your", "start": 65.888, "end": 66.198},
-      {"w": "income", "start": 66.198, "end": 66.663},
-      {"w": "donations", "start": 66.783, "end": 67.481},
-      {"w": "and", "start": 67.481, "end": 67.714},
-      {"w": "obligations", "start": 67.714, "end": 68.566},
-      {"w": "come", "start": 68.566, "end": 68.876},
-      {"w": "together", "start": 68.876, "end": 69.497},
-      {"w": "in", "start": 69.497, "end": 69.652},
-      {"w": "one", "start": 69.652, "end": 69.884},
-      {"w": "clear", "start": 69.884, "end": 70.272},
-      {"w": "picture", "start": 70.272, "end": 70.814}
+    {"id": "rabbi", "text": "and when you still have a question, use Ask the Rabbi.", "start": 62.13, "end": 65.506, "words": [
+      {"w": "and", "start": 62.13, "end": 62.362},
+      {"w": "when", "start": 62.362, "end": 62.672},
+      {"w": "you", "start": 62.672, "end": 62.905},
+      {"w": "still", "start": 62.905, "end": 63.293},
+      {"w": "have", "start": 63.293, "end": 63.603},
+      {"w": "a", "start": 63.603, "end": 63.68},
+      {"w": "question", "start": 63.68, "end": 64.3},
+      {"w": "use", "start": 64.42, "end": 64.653},
+      {"w": "Ask", "start": 64.653, "end": 64.886},
+      {"w": "the", "start": 64.886, "end": 65.118},
+      {"w": "Rabbi", "start": 65.118, "end": 65.506}
     ]},
-    {"id": "brand", "text": "TEN10.", "start": 71.664, "end": 72.364, "words": [
-      {"w": "TEN10", "start": 71.664, "end": 72.364}
+    {"id": "trust", "text": "TEN10 was developed with the Torat Ha'adam La'adam Institute, and endorsed by leading rabbis.", "start": 66.356, "end": 72.367, "words": [
+      {"w": "TEN10", "start": 66.356, "end": 66.743},
+      {"w": "was", "start": 66.743, "end": 66.976},
+      {"w": "developed", "start": 66.976, "end": 67.673},
+      {"w": "with", "start": 67.673, "end": 67.984},
+      {"w": "the", "start": 67.984, "end": 68.216},
+      {"w": "Torat", "start": 68.216, "end": 68.604},
+      {"w": "Ha'adam", "start": 68.604, "end": 69.069},
+      {"w": "La'adam", "start": 69.069, "end": 69.534},
+      {"w": "Institute", "start": 69.534, "end": 70.232},
+      {"w": "and", "start": 70.352, "end": 70.584},
+      {"w": "endorsed", "start": 70.584, "end": 71.204},
+      {"w": "by", "start": 71.204, "end": 71.359},
+      {"w": "leading", "start": 71.359, "end": 71.902},
+      {"w": "rabbis", "start": 71.902, "end": 72.367}
     ]},
-    {"id": "tagline", "text": "Simple and accurate tithe and financial budget management.", "start": 73.064, "end": 76.94, "words": [
-      {"w": "Simple", "start": 73.064, "end": 73.529},
-      {"w": "and", "start": 73.529, "end": 73.762},
-      {"w": "accurate", "start": 73.762, "end": 74.382},
-      {"w": "tithe", "start": 74.382, "end": 74.77},
-      {"w": "and", "start": 74.77, "end": 75.002},
-      {"w": "financial", "start": 75.002, "end": 75.7},
-      {"w": "budget", "start": 75.7, "end": 76.165},
-      {"w": "management", "start": 76.165, "end": 76.94}
+    {"id": "platforms", "text": "Use it on the web from anywhere, or as desktop software that works even offline.", "start": 73.267, "end": 78.348, "words": [
+      {"w": "Use", "start": 73.267, "end": 73.5},
+      {"w": "it", "start": 73.5, "end": 73.655},
+      {"w": "on", "start": 73.655, "end": 73.81},
+      {"w": "the", "start": 73.81, "end": 74.042},
+      {"w": "web", "start": 74.042, "end": 74.275},
+      {"w": "from", "start": 74.275, "end": 74.585},
+      {"w": "anywhere", "start": 74.585, "end": 75.205},
+      {"w": "or", "start": 75.325, "end": 75.48},
+      {"w": "as", "start": 75.48, "end": 75.635},
+      {"w": "desktop", "start": 75.635, "end": 76.178},
+      {"w": "software", "start": 76.178, "end": 76.798},
+      {"w": "that", "start": 76.798, "end": 77.108},
+      {"w": "works", "start": 77.108, "end": 77.496},
+      {"w": "even", "start": 77.496, "end": 77.806},
+      {"w": "offline", "start": 77.806, "end": 78.348}
     ]},
-    {"id": "free", "text": "Free for personal use.", "start": 77.39, "end": 78.786, "words": [
-      {"w": "Free", "start": 77.39, "end": 77.7},
-      {"w": "for", "start": 77.7, "end": 77.933},
-      {"w": "personal", "start": 77.933, "end": 78.553},
-      {"w": "use", "start": 78.553, "end": 78.786}
+    {"id": "together", "text": "Your income, donations and obligations come together in one clear picture.", "start": 79.198, "end": 84.125, "words": [
+      {"w": "Your", "start": 79.198, "end": 79.508},
+      {"w": "income", "start": 79.508, "end": 79.974},
+      {"w": "donations", "start": 80.094, "end": 80.791},
+      {"w": "and", "start": 80.791, "end": 81.024},
+      {"w": "obligations", "start": 81.024, "end": 81.877},
+      {"w": "come", "start": 81.877, "end": 82.187},
+      {"w": "together", "start": 82.187, "end": 82.807},
+      {"w": "in", "start": 82.807, "end": 82.962},
+      {"w": "one", "start": 82.962, "end": 83.194},
+      {"w": "clear", "start": 83.194, "end": 83.582},
+      {"w": "picture", "start": 83.582, "end": 84.125}
+    ]},
+    {"id": "brand", "text": "TEN10.", "start": 84.975, "end": 85.675, "words": [
+      {"w": "TEN10", "start": 84.975, "end": 85.675}
+    ]},
+    {"id": "tagline", "text": "Simple and accurate tithe and financial budget management.", "start": 86.375, "end": 90.251, "words": [
+      {"w": "Simple", "start": 86.375, "end": 86.84},
+      {"w": "and", "start": 86.84, "end": 87.072},
+      {"w": "accurate", "start": 87.072, "end": 87.692},
+      {"w": "tithe", "start": 87.692, "end": 88.08},
+      {"w": "and", "start": 88.08, "end": 88.313},
+      {"w": "financial", "start": 88.313, "end": 89.01},
+      {"w": "budget", "start": 89.01, "end": 89.475},
+      {"w": "management", "start": 89.475, "end": 90.251}
+    ]},
+    {"id": "free", "text": "Free for personal use.", "start": 90.701, "end": 92.096, "words": [
+      {"w": "Free", "start": 90.701, "end": 91.011},
+      {"w": "for", "start": 91.011, "end": 91.243},
+      {"w": "personal", "start": 91.243, "end": 91.863},
+      {"w": "use", "start": 91.863, "end": 92.096}
     ]}
   ]
 }

@@ -79,6 +79,8 @@
       pl: A.s("platforms"), web: B("webWord") - KW, desk: B("desktopWord") - KW, off: B("offlineWord") - KW,
       tog: A.s("together"), tInc: B("tIncome") - KW, tDon: B("tDonations") - KW, tObl: B("tObligations") - KW,
       brand: A.s("brand"), tag: A.s("tagline"), free: A.s("free"), freeW: B("freeWord") - KW,
+      heb: A.s("hebrew"), hebW: B("hebrewWord") - KW, datesW: B("datesWord") - KW, perW: B("periodsWord") - KW, myW: B("maaserYearWord") - KW,
+      bud: A.s("budget"), cashW: B("cashWord") - KW, ivsW: B("ivsWord") - KW, savW: B("savingsWord") - KW, ins: A.s("insights"), insW: B("insightsWord") - KW,
     };
     T.end = A.e("free") + 3.2;
     T.b = T.end;
@@ -91,7 +93,8 @@
     const S = V
       ? {
         hook: { x: 540, y: 760, r: 230, sw: 58 }, chaos: { x: 540, y: 900, r: 180, sw: 48 }, orbit: [1.02, 1.5],
-        mas: { x: 540, y: 1060, r: 262, sw: 50 },
+        mas: { x: 540, y: 1060, r: 262, sw: 50 }, heb: { x: 540, y: 1120, r: 250, sw: 44 }, bud: { x: 540, y: 1500, r: 160, sw: 34 },
+        cash: { x0: 120, x1: 960, y: 640, chart: [120, 960, 860, 1240], cards: [540, 1700, 74], cardsW: 900 },
         imp: { x: 540, y: 860, r: 200, sw: 56 }, rec: { x: 540, y: 1000, r: 262, sw: 54 },
         rem: { x: 540, y: 880, r: 215, sw: 52 }, an: { x: 540, y: 700, r: 122, sw: 38 },
         nj: { x: 540, y: 1000, r: 200, sw: 48 }, rab: { x: 540, y: 930, r: 210, sw: 44 }, tr: { x: 540, y: 780, r: 220, sw: 36 },
@@ -109,7 +112,8 @@
       }
       : {
         hook: { x: 960, y: 395, r: 215, sw: 56 }, chaos: { x: 960, y: 480, r: 170, sw: 48 }, orbit: [1.3, 0.8],
-        mas: { x: mx(690), y: 520, r: 250, sw: 50 },
+        mas: { x: mx(690), y: 520, r: 250, sw: 50 }, heb: { x: mx(690), y: 560, r: 225, sw: 42 }, bud: { x: mx(790), y: 700, r: 150, sw: 32 },
+        cash: { x0: RTL ? 110 : W - 990, x1: RTL ? 990 : W - 110, y: 170, chart: [RTL ? 110 : W - 590, RTL ? 590 : W - 110, 430, 880], cards: [mx(1460), 700, 76], cardsW: 760 },
         imp: { x: mx(640), y: 480, r: 210, sw: 58 }, rec: { x: mx(700), y: 530, r: 250, sw: 54 },
         rem: { x: mx(690), y: 470, r: 205, sw: 52 }, an: { x: mx(660), y: 205, r: 118, sw: 38 },
         nj: { x: mx(680), y: 500, r: 190, sw: 48 }, rab: { x: mx(660), y: 440, r: 185, sw: 42 }, tr: { x: 960, y: 320, r: 188, sw: 34 },
@@ -134,8 +138,8 @@
     const WIDE = logoPlace("wide"), STACK = logoPlace("stack");
     // ring keyframes: [time, state or state(t), half-width of the blend]
     const keys = () => [
-      [0, S.hook, 0.3], [T.c1 - 0.1, S.chaos, 0.45], [T.ord + 0.85, WIDE.ring, 0.4], [T.mas + 0.25, S.mas, 0.4],
-      [T.imp - 0.25, S.imp, 0.35], [T.rec, S.rec, 0.35], [T.rem, S.rem, 0.35], [T.an, S.an, 0.35],
+      [0, S.hook, 0.3], [T.c1 - 0.1, S.chaos, 0.45], [T.ord + 0.85, WIDE.ring, 0.4], [T.mas + 0.25, S.mas, 0.4], [T.heb, S.heb, 0.4],
+      [T.imp - 0.25, S.imp, 0.35], [T.rec, S.rec, 0.35], [T.rem, S.rem, 0.35], [T.an, S.an, 0.35], [T.bud + 0.1, S.bud, 0.4],
       [T.print + 0.75, (t) => sheetLogo(t).ring, 0.45], [T.nj + 0.15, S.nj, 0.4], [T.hal + 0.35, (t) => lensAt(t), 0.4],
       [T.rab + 0.05, S.rab, 0.4], [T.tr, S.tr, 0.4], [T.pl + 0.1, S.globe, 0.4], [T.tog + 0.05, S.tog, 0.4], [T.brand + 0.1, STACK.ring, 0.4],
     ];
@@ -269,7 +273,7 @@
       const a = o.alpha ?? 1; if (a <= 0.002) return;
       const v = Math.max(0, fn(t)), vp = Math.max(0, fn(t - 1 / 30)), target = Math.round(o.target ?? fn(1e6));
       const k = st.r / 210, bs = (o.bigSize || 100) * k;
-      const numS = target.toLocaleString("en-US"), pre = kind === "money" ? (RTL ? CUR + "\u2009" : CUR) : "";
+      const numS = o.pct ? (target / 10).toFixed(1) : target.toLocaleString("en-US"), pre = kind === "money" ? (RTL ? CUR + "\u2009" : CUR) : "";
       ctx.save(); ctx.globalAlpha *= a; ctx.font = font(800, bs); ctx.textBaseline = "alphabetic"; ctx.textAlign = "left"; ctx.direction = "ltr";
       const dw = Math.max(...[..."0123456789"].map((d) => ctx.measureText(d).width));
       // columns: digits from the right (ones = 0); commas belong to the digit on their left
@@ -299,6 +303,7 @@
         x += c.w * va;
       }
       ctx.globalAlpha = a;
+      if (o.pct) { ctx.globalAlpha = a; ctx.fillText("%", x, y); }
       if (small) { ctx.font = font(700, Math.min(28, Math.max(18, 27 * k))); ctx.direction = RTL ? "rtl" : "ltr"; ctx.textAlign = "center"; ctx.fillStyle = o.smallColor || "rgba(31,28,18,0.6)"; ctx.fillText(small, st.x, y + 44 * k + 6); }
       ctx.restore();
     }
@@ -313,7 +318,7 @@
       const center = o.mode === "center", Lc = S.center, Lt = S.tx;
       const small = center ? Lc.small : Lt.small, bigS = center ? Lc.big : Lt.big, maxW = center ? Lc.w : Lt.w;
       let items = [];
-      for (let i = i0; i < i1; i++) items.push({ w: words[i].replace(/^["“]+|[,;:—"”]+$/g, ""), t: p.words[i].start + 0.05, big: i >= b0 && i < b1 });
+      for (let i = i0; i < i1; i++) items.push({ w: words[i].replace(/^["“]+|[—"”]+$/g, "").replace(/["”]+(?=[,;:]$)/, ""), t: p.start + (p.words[i].start - p.start) * 0.5 + 0.05, big: i >= b0 && i < b1 });
       items = items.filter((it) => it.w.length);
       if (RTL) items[0].w = items[0].w.replace(/^ו-?(?=\S{2,})/, "");
       else { if (/^and$/i.test(items[0].w) && items.length > 1) items.shift(); items[0].w = items[0].w[0].toUpperCase() + items[0].w.slice(1); }
@@ -365,11 +370,14 @@
     makeBlock({ id: "hook1", big: cc.big.hook1, mode: "center", top: S.center.hook, tOut: T.c1 - 0.22 });
     makeBlock({ id: "complex1", words: [0, cc.lead.split(" ").length], mode: "center", top: S.center.lead, tOut: T.c2 - 0.4, halo: true, dot: false });
     makeBlock({ id: "complex2", big: cc.big.complex2, mode: "center", top: S.center.c2, tOut: T.ord - 0.1, halo: true });
-    makeBlock({ id: "maaser", big: cc.big.maaser, tOut: T.imp - 0.22 });
+    makeBlock({ id: "maaser", big: cc.big.maaser, tOut: T.heb - 0.22 });
+    makeBlock({ id: "hebrew", big: cc.big.hebrew, tOut: T.imp - 0.22 });
     makeBlock({ id: "import", big: bigFrom(cc.split.import), tOut: T.rec - 0.22 });
     makeBlock({ id: "recurring", big: bigFrom(cc.split.recurring), tOut: T.rem - 0.22 });
     makeBlock({ id: "reminders", big: bigFrom(cc.split.reminders), tOut: T.an - 0.22 });
-    makeBlock({ id: "analytics", big: bigFrom(cc.split.analytics), tOut: T.rep - 0.22 });
+    makeBlock({ id: "analytics", big: bigFrom(cc.split.analytics), tOut: T.bud - 0.22 });
+    makeBlock({ id: "budget", big: cc.big.budget, tOut: T.ins - 0.22 });
+    makeBlock({ id: "insights", big: cc.big.insights, tOut: T.rep - 0.22 });
     makeBlock({ id: "reports", big: cc.big.reports, tOut: T.nj - 0.22 });
     makeBlock({ id: "notjust", big: cc.big.notjust, tOut: T.hal - 0.22 });
     makeBlock({ id: "halacha", big: cc.big.halacha, tOut: T.rab - 0.22 });
@@ -642,13 +650,13 @@
       });
     })();
     function scenePour(t, st) {
-      const vis = prog(t, T.an - 0.2, T.an + 0.3) * (1 - prog(t, T.rep - 0.1, T.rep + 0.35)), keepBase = prog(t, T.an - 0.2, T.an + 0.3) * (t < T.nj ? 1 : 0);
-      const collapse = prog(t, T.rep - 0.45, T.rep + 0.1, E.inCubic);
+      const vis = prog(t, T.an - 0.2, T.an + 0.3) * (1 - prog(t, T.bud - 0.1, T.bud + 0.35)), keepBase = prog(t, T.an - 0.2, T.an + 0.3) * (1 - prog(t, T.bud + 0.1, T.bud + 0.5));
+      const collapse = prog(t, T.bud - 0.45, T.bud + 0.1, E.inCubic);
       if (keepBase <= 0) return;
       const { base, colW, gap, maxH } = S.cols, x0 = cols.reduce((a, c) => Math.min(a, c.x), 1e9), x1 = x0 + 4 * colW + 3 * gap;
       // baseline, ticks and quiet gridlines draw in from the centre
       const bl = prog(t, T.anW + 0.5, T.anW + 1.1, E.inOutCubic), mid = (x0 + x1) / 2, half = ((x1 - x0) / 2 + 60) * bl;
-      ctx.save(); ctx.globalAlpha = keepBase * (1 - prog(t, T.print - 0.2, T.print + 0.1));
+      ctx.save(); ctx.globalAlpha = keepBase;
       ctx.strokeStyle = "rgba(17,103,106,0.35)"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(mid - half, base + 1); ctx.lineTo(mid + half, base + 1); ctx.stroke();
       ctx.strokeStyle = "rgba(17,103,106,0.18)"; ctx.lineWidth = 1;
       for (let x = x0 - 60; x <= x1 + 60; x += 12) { if (Math.abs(x - mid) > half) continue; ctx.beginPath(); ctx.moveTo(x, base + 1); ctx.lineTo(x, base + ((x - x0 + 60) % 60 === 0 ? 12 : 6)); ctx.stroke(); }
@@ -706,8 +714,9 @@
       });
       // the ring counts the month's spending
       const spF = (tt) => spendTotal * prog(tt, T.anW + 0.2, T.anW + 1.4, E.outCubic);
-      odo(st, spF, t, "money", C.copy.sym.household, { alpha: vis * prog(t, T.anW + 0.1, T.anW + 0.4) * (1 - prog(t, T.rep - 0.3, T.rep)), bigSize: 88, target: spendTotal });
+      odo(st, spF, t, "money", C.copy.sym.household, { alpha: vis * prog(t, T.anW + 0.1, T.anW + 0.4) * (1 - prog(t, T.bud - 0.3, T.bud)), bigSize: 88, target: spendTotal });
     }
+
 
     // =========================================================== shared pieces for the new scenes
     const D = C.data, strip = (x) => x.replace(/<[^>]+>/g, "");
@@ -734,6 +743,155 @@
     };
     const checkGlyph = (x, y, s0, col = "#fff", lw = 5) => { ctx.save(); ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath(); ctx.moveTo(x - s0 * 0.45, y); ctx.lineTo(x - s0 * 0.1, y + s0 * 0.35); ctx.lineTo(x + s0 * 0.5, y - s0 * 0.35); ctx.stroke(); ctx.restore(); };
 
+    // =========================================================== Hebrew calendar: the same ring, read in the Hebrew calendar
+    const GEM = ["", "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט"], GEMT = ["", "י", "כ", "ל", "מ", "נ", "ס", "ע", "פ", "צ"], GEMH = ["", "ק", "ר", "ש", "ת"];
+    function gematria(n) {
+      let out = "", h = Math.floor(n / 100), r = n % 100;
+      while (h > 4) { out += "ת"; h -= 4; }
+      out += GEMH[h];
+      if (r === 15) out += "טו"; else if (r === 16) out += "טז"; else out += GEMT[Math.floor(r / 10)] + GEM[r % 10];
+      return out.length === 1 ? out + "׳" : out.slice(0, -1) + "״" + out.slice(-1);
+    }
+    /** the app's Hebrew date format: "א׳ בתשרי תשפ״ז" / "1 Tishri 5787" */
+    function hebDate(iso) {
+      const parts = new Intl.DateTimeFormat(cc.cal.monthLocale, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).formatToParts(new Date(iso + "T00:00:00Z"));
+      const get = (k) => (parts.find((x) => x.type === k) || {}).value || "";
+      if (!RTL) return `${get("day")} ${get("month")} ${get("year")}`;
+      return `${gematria(+get("day"))} ב${get("month")} ${gematria(+get("year") % 1000)}`;
+    }
+    const HEB_ISO = "2026-09-12", hebToday = hebDate(HEB_ISO), gregToday = "12/09/2026";
+    const flipText = (s0, x, y, u, o) => { // a split-flap flip: the old face folds away, the new one unfolds
+      const c = Math.cos(clamp(u) * Math.PI);
+      ctx.save(); ctx.translate(x, y); ctx.scale(1, Math.max(0.02, Math.abs(c))); txt(c >= 0 ? s0[0] : s0[1], 0, 0, { ...o, base: "middle" }); ctx.restore();
+    };
+    function sceneHebrew(t, st) {
+      if (t < T.heb - 0.4 || t > T.imp + 0.1) return;
+      const inA = prog(t, T.heb - 0.3, T.heb + 0.3), out = prog(t, T.imp - 0.45, T.imp - 0.05), a = inA * (1 - out);
+      if (a <= 0) return;
+      const cal = cc.cal, flip = prog(t, T.hebW, T.hebW + 0.45, E.inOutCubic);
+      // the app's display-calendar switch, sliding to Hebrew
+      {
+        const y = st.y - st.r - st.sw / 2 - (V ? 150 : 128), w = V ? 300 : 270, h = 54, x0 = st.x - w / 2;
+        ctx.save(); ctx.globalAlpha = a; shadow(20, 8, 0.12); ctx.fillStyle = "#fff"; rrect(x0, y - h / 2, w, h, h / 2); ctx.fill(); noShadow();
+        const kx = lerp(RTL ? x0 + w / 2 : x0 + 4, RTL ? x0 + 4 : x0 + w / 2, flip);
+        ctx.fillStyle = TEAL; rrect(kx, y - h / 2 + 4, w / 2 - 4, h - 8, (h - 8) / 2); ctx.fill(); ctx.restore();
+        const gx = RTL ? x0 + w * 0.75 : x0 + w * 0.25, hx = RTL ? x0 + w * 0.25 : x0 + w * 0.75;
+        txt(cal.greg, gx, y + 1, { alpha: a, size: 22, w: 800, color: flip < 0.5 ? "#fff" : "rgba(31,28,18,0.55)", base: "middle" });
+        txt(cal.heb, hx, y + 1, { alpha: a, size: 22, w: 800, color: flip >= 0.5 ? "#fff" : "rgba(31,28,18,0.55)", base: "middle" });
+        txt(cal.label, st.x, y - h / 2 - 16, { alpha: a * 0.8, size: 18, w: 700, color: "rgba(17,103,106,0.7)" });
+      }
+      // the months around the ring flip to the Hebrew year (13 months: a leap year)
+      const nG = 12, nH = 13, rr = st.r + st.sw / 2 + (V ? 46 : 40);
+      for (let k = 0; k < nH; k++) {
+        const u = prog(t, T.datesW + k * 0.04, T.datesW + 0.3 + k * 0.04, E.inOutCubic);
+        const ang = -Math.PI / 2 + (RTL ? -1 : 1) * (k / (u < 0.5 ? nG : nH)) * TAU;
+        if (u < 0.5 && k >= nG) continue;
+        const c = Math.abs(Math.cos(u * Math.PI)), lab = u < 0.5 ? cal.gregMonths[k] : cal.hebMonths[k];
+        const la = a * prog(t, T.heb + k * 0.03, T.heb + 0.3 + k * 0.03);
+        ctx.save(); ctx.translate(st.x + Math.cos(ang) * rr, st.y + Math.sin(ang) * rr); ctx.scale(1, Math.max(0.03, c));
+        txt(lab, 0, 0, { alpha: la, size: V ? 22 : 20, w: 700, color: u >= 0.5 ? TEAL : "rgba(17,103,106,0.6)", base: "middle" }); ctx.restore();
+      }
+      // periods: one Hebrew month lit on the ring, then the whole maaser year (Tishri to Elul) sweeps in gold
+      const pA = prog(t, T.perW, T.perW + 0.35) * (1 - prog(t, T.myW - 0.1, T.myW + 0.2)), step = TAU / nH;
+      if (pA > 0) {
+        const a0 = -Math.PI / 2 + (RTL ? -1 : 1) * (2 - 0.5) * step;
+        ctx.save(); ctx.globalAlpha = a * pA; ctx.strokeStyle = GOLD; ctx.lineWidth = st.sw * 0.55; ctx.lineCap = "round";
+        ctx.beginPath(); ctx.arc(st.x, st.y, st.r, Math.min(a0, a0 + (RTL ? -1 : 1) * step), Math.max(a0, a0 + (RTL ? -1 : 1) * step)); ctx.stroke(); ctx.restore();
+        const am = a0 + (RTL ? -1 : 1) * step * 0.5; pill(cal.period, st.x + Math.cos(am) * (st.r - st.sw / 2 - 70), st.y + Math.sin(am) * (st.r - st.sw / 2 - 40), { size: 22, alpha: a * pA, bg: GOLD, color: "#3d2f00", w: 800 });
+      }
+      const yA = prog(t, T.myW, T.myW + 0.9, E.inOutCubic);
+      if (yA > 0) {
+        ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = GOLD; ctx.lineWidth = 7; ctx.lineCap = "round";
+        const a0 = -Math.PI / 2 - (RTL ? -1 : 1) * step * 0.5, a1 = a0 + (RTL ? -1 : 1) * TAU * 0.999 * yA, ro = st.r - st.sw / 2 - 14;
+        ctx.beginPath(); ctx.arc(st.x, st.y, ro, Math.min(a0, a1), Math.max(a0, a1)); ctx.stroke();
+        ctx.fillStyle = GOLD; ctx.beginPath(); ctx.arc(st.x + Math.cos(a1) * ro, st.y + Math.sin(a1) * ro, 9, 0, TAU); ctx.fill(); ctx.restore();
+      }
+      // the date in the middle flips from Gregorian to Hebrew
+      const dsz = (V ? 50 : 46) * (st.r / 225);
+      flipText([gregToday, hebToday], st.x, st.y - (yA > 0 ? 26 : 0), flip, { alpha: a, size: dsz, w: 800, color: TEAL, dir: flip < 0.5 ? "ltr" : undefined });
+      const ya = prog(t, T.myW + 0.3, T.myW + 0.7, E.outCubic) * a;
+      if (ya > 0) {
+        txt(cal.yearTitle, st.x, st.y + 30, { alpha: ya, size: 24, w: 800, color: INK });
+        txt(cal.yearRange, st.x, st.y + 62, { alpha: ya, size: 20, w: 700, color: GOLD_D });
+      }
+    }
+
+    // =========================================================== household budget: cash flow, income vs expenses, savings rate, insights
+    const incT = D.incomeBase + D.chomeshIncome, net = incT - D.expenses - D.donations, savePct = Math.round((net / incT) * 1000) / 10;
+    const series = (() => { const f = incT / 12000; return { inc: [11200, 11800, 11500, 12400, 11900, 12000].map((v) => v * f), exp: [8300, 7900, 8100, 7500, 7700, 7920].map((v) => v * f) }; })();
+    const gaugeA = (t) => prog(t, T.savW - 0.5, T.savW - 0.1) * (1 - prog(t, T.rep - 0.5, T.rep - 0.15));
+    function sceneBudget(t, st) {
+      if (t < T.bud - 0.3 || t > T.rep + 0.1) return;
+      const out = prog(t, T.rep - 0.5, T.rep - 0.1), CS = S.cash, cash = cc.cash;
+      // cash flow: income in one bar; expenses, donations and what is left under it
+      const ca = prog(t, T.cashW - 0.1, T.cashW + 0.3) * (1 - out);
+      if (ca > 0) {
+        const X0 = CS.x0, X1 = CS.x1, Wd = X1 - X0, y = CS.y, bh = V ? 46 : 42, dir = RTL ? -1 : 1, start = RTL ? X1 : X0;
+        txt(cash.title, RTL ? X1 : X0, y - 18, { alpha: ca, size: 22, w: 800, color: "rgba(17,103,106,0.75)", align: RTL ? "right" : "left" });
+        const g1 = prog(t, T.cashW, T.cashW + 0.6, E.outCubic), g2 = prog(t, T.cashW + 0.35, T.cashW + 1.0, E.outCubic);
+        const seg = (from, len, yy, col, lab) => {
+          const xA = start + dir * from * Wd, xB = start + dir * (from + len) * Wd;
+          ctx.save(); ctx.globalAlpha = ca; ctx.fillStyle = col; rrect(Math.min(xA, xB), yy, Math.abs(xB - xA), bh, 8); ctx.fill(); ctx.restore();
+          if (lab && Math.abs(xB - xA) > 150) txt(lab, (xA + xB) / 2, yy + bh / 2 + 1, { alpha: ca, size: V ? 20 : 19, w: 800, color: "#fff", base: "middle" });
+        };
+        seg(0, g1, y, TEAL, `${cash.income} ${money(incT * g1)}`);
+        const e = (D.expenses / incT) * g2, d = (D.donations / incT) * g2, n = (net / incT) * prog(g2, 0.7, 1);
+        seg(0, e, y + bh + 10, "#c2453c", `${cash.expenses} ${money(D.expenses * g2)}`);
+        seg(e, d, y + bh + 10, "#e0a800", "");
+        if (n > 0.01) {
+          const xA = start + dir * (e + d) * Wd, xB = start + dir * (e + d + n) * Wd;
+          ctx.save(); ctx.globalAlpha = ca; ctx.setLineDash([6, 6]); ctx.strokeStyle = GOLD_D; ctx.lineWidth = 2; ctx.strokeRect(Math.min(xA, xB) + 1, y + bh + 11, Math.abs(xB - xA) - 2, bh - 2); ctx.restore();
+          txt(`${cash.net} ${money(net)}`, (xA + xB) / 2, y + bh + 10 + bh / 2 + 1, { alpha: ca * prog(g2, 0.85, 1), size: V ? 19 : 18, w: 800, color: GOLD_D, base: "middle" });
+        }
+      }
+      // income vs. expenses over time (the axis runs left to right, like the app's charts)
+      const ia = prog(t, T.ivsW - 0.1, T.ivsW + 0.3) * (1 - out) * (V ? 1 - prog(t, T.insW - 0.3, T.insW) : 1);
+      if (ia > 0) {
+        const [cx0, cx1, cy0, cy1] = CS.chart, mx0 = Math.max(...series.inc) * 1.15, n = series.inc.length;
+        const px = (i) => lerp(cx0 + 30, cx1 - 30, i / (n - 1)), py = (v) => lerp(cy1 - 40, cy0 + 40, v / mx0);
+        txt(cash.chart, RTL ? cx1 : cx0, cy0 + 4, { alpha: ia, size: 20, w: 800, color: "rgba(17,103,106,0.75)", align: RTL ? "right" : "left" });
+        ctx.save(); ctx.globalAlpha = ia * 0.5; ctx.strokeStyle = "rgba(17,103,106,0.25)"; ctx.lineWidth = 1; ctx.setLineDash([3, 7]);
+        for (const g of [0.33, 0.66]) { const yy = lerp(cy1 - 40, cy0 + 40, g); ctx.beginPath(); ctx.moveTo(cx0, yy); ctx.lineTo(cx1, yy); ctx.stroke(); }
+        ctx.restore();
+        const draw = (vals, col, tt) => {
+          const u = prog(t, tt, tt + 1.0, E.inOutCubic) * (n - 1);
+          ctx.save(); ctx.globalAlpha = ia; ctx.strokeStyle = col; ctx.lineWidth = 4; ctx.lineJoin = "round"; ctx.lineCap = "round";
+          ctx.beginPath(); ctx.moveTo(px(0), py(vals[0]));
+          for (let i = 1; i <= Math.ceil(u); i++) { const f = Math.min(1, u - (i - 1)); ctx.lineTo(lerp(px(i - 1), px(i), f), lerp(py(vals[i - 1]), py(vals[i]), f)); }
+          ctx.stroke();
+          ctx.fillStyle = col; for (let i = 0; i <= Math.floor(u); i++) { ctx.beginPath(); ctx.arc(px(i), py(vals[i]), 6, 0, TAU); ctx.fill(); }
+          ctx.restore();
+        };
+        draw(series.inc, TEAL, T.ivsW); draw(series.exp, "#c2453c", T.ivsW + 0.2);
+        cash.months.forEach((m, i) => txt(m, px(i), cy1 - 8, { alpha: ia * 0.8, size: 17, w: 700, color: "rgba(31,28,18,0.6)" }));
+        const lg = [[cash.income, TEAL], [cash.expenses, "#c2453c"]];
+        lg.forEach(([l, c], k) => { const lx = (RTL ? cx1 - 10 : cx0 + 10) + (RTL ? -1 : 1) * k * 130, ly = cy0 + 34;
+          ctx.save(); ctx.globalAlpha = ia; ctx.fillStyle = c; ctx.beginPath(); ctx.arc(lx, ly - 6, 6, 0, TAU); ctx.fill(); ctx.restore();
+          txt(l, lx + (RTL ? -14 : 14), ly, { alpha: ia, size: 17, w: 700, align: RTL ? "right" : "left", color: "rgba(31,28,18,0.7)" }); });
+      }
+      // savings rate: the ring becomes a gauge
+      const g = gaugeA(t);
+      if (g > 0) {
+        const fill = prog(t, T.savW, T.savW + 1.0, E.outCubic) * (savePct / 100);
+        ctx.save(); ctx.globalAlpha = g; shadow(40, 18, 0.14); ctx.strokeStyle = "#e7efe9"; ctx.lineWidth = st.sw; ctx.beginPath(); ctx.arc(st.x, st.y, st.r, 0, TAU); ctx.stroke(); noShadow();
+        ctx.strokeStyle = GOLD; ctx.lineCap = "round"; const a0 = -Math.PI / 2, a1 = a0 + (RTL ? -1 : 1) * TAU * Math.max(0.002, fill);
+        ctx.beginPath(); ctx.arc(st.x, st.y, st.r, Math.min(a0, a1), Math.max(a0, a1)); ctx.stroke(); ctx.restore();
+        odo(st, (tt) => savePct * 10 * prog(tt, T.savW, T.savW + 1.0, E.outCubic), t, "count", cash.savings, { alpha: g, bigSize: 96, target: savePct * 10, pct: true });
+      }
+      // insights: the app's own insight lines
+      const ins = C.ui.analytics.insights, [cx, cy, dy] = S.cash.cards;
+      ins.forEach((line, k) => {
+        const e = prog(t, T.insW + k * 0.16, T.insW + 0.5 + k * 0.16, E.outBack) * (1 - out);
+        if (e <= 0) return;
+        ctx.save(); ctx.font = font(700, V ? 24 : 22); const tw = Math.min(ctx.measureText(line).width, S.cash.cardsW - 90); ctx.restore();
+        const w = tw + 90, h = 58, y = cy + k * dy, x0 = cx - w / 2;
+        ctx.save(); ctx.globalAlpha = clamp(e); ctx.translate(cx, y); ctx.scale(lerp(0.85, 1, clamp(e)), lerp(0.85, 1, clamp(e))); ctx.translate(-cx, -y);
+        shadow(22, 8, 0.12); ctx.fillStyle = "#fff"; rrect(x0, y - h / 2, w, h, 16); ctx.fill(); noShadow();
+        const bx = RTL ? x0 + w - 32 : x0 + 32; ctx.fillStyle = GOLD; ctx.beginPath(); ctx.arc(bx, y, 11, 0, TAU); ctx.fill();
+        ctx.restore();
+        txt(line, RTL ? bx - 24 : bx + 24, y + 8, { alpha: clamp(e), size: V ? 24 : 22, w: 700, align: RTL ? "right" : "left" });
+      });
+    }
     // =========================================================== hook: the ring and its tenth
     const torus = (() => {
       const r = rng(41), out = [], NU = 132, NV = 11;
@@ -985,8 +1143,8 @@
 
     // =========================================================== maaser & chomesh on the ring
     function sceneMaaser(t, st) {
-      if (t < T.mas || t > T.imp) return;
-      const out = prog(t, T.imp - 0.65, T.imp - 0.3);
+      if (t < T.mas || t > T.heb) return;
+      const out = prog(t, T.heb - 0.45, T.heb - 0.1);
       const ia = prog(t, T.mas + 0.55, T.mas + 1.0) * (1 - out);
       pill(`${cc.income} · ${money(D.incomeBase)}`, st.x, st.y - st.r - st.sw / 2 - 52, { size: 26, alpha: ia, color: TYPE_COL.income, w: 800 });
       // maaser: the tenth, labelled
@@ -1534,6 +1692,7 @@
       if (t > T.ord + 1.24 && t < T.mas + 0.14) o.alpha = 0;
       if (t > T.masW - 0.1 && t < T.imp) o.lift = 24 * E.outBack(prog(t, T.masW, T.masW + 0.45)) * (1 - prog(t, T.imp - 0.7, T.imp - 0.3));
       if (sheetLogoA(t) >= 0.999) o.alpha = 0;
+      if (t > T.bud && t < T.rep) o.alpha = 1 - gaugeA(t);
       if (t > T.tInc - 0.15 && t < T.brand - 0.35) o.alpha = 0;
       if (t > T.brand + 0.5) o.alpha = 0;
       return o;
@@ -1579,10 +1738,12 @@
       sceneHook(t, st);
       sceneOrder(t);
       sceneMaaser(t, st);
+      sceneHebrew(t, st);
       sceneImport(t, st);
       sceneYear(t, st);
       sceneRemind(t, st, dkR);
       scenePour(t, st);
+      sceneBudget(t, st);
       sceneReports(t);
       sceneHalacha(t, st);
       sceneRabbi(t, st);
@@ -1625,6 +1786,12 @@
     cue(T.anW + 0.2, "whoosh", 0.2);
     cols.forEach((c) => cue(c.rs + 0.45, "arrive", 0.22));
     cue(T.house, "pop", 0.3);
+    cue(T.hebW, "tap", 0.34); cue(T.hebW + 0.2, "whoosh", 0.22);
+    for (let k = 0; k < 13; k++) cue(T.datesW + k * 0.04 + 0.15, "tick", 0.1);
+    cue(T.perW, "pop", 0.26); cue(T.myW, "sweep", 0.3); cue(T.myW + 0.35, "arrive", 0.24);
+    cue(T.bud - 0.1, "whoosh", 0.26); cue(T.cashW, "sweep", 0.24); cue(T.cashW + 0.4, "tick", 0.2);
+    cue(T.ivsW, "whoosh", 0.2); cue(T.savW, "sweep", 0.3); cue(T.savW + 1.0, "pop", 0.3);
+    [0, 1, 2].forEach((k) => cue(T.insW + k * 0.16, "pop", 0.24));
     cue(T.rep - 0.3, "sweep", 0.3);
     cue(T.print, "whoosh", 0.34);
     for (let k = 0; k < 8; k++) cue(T.print + 0.1 + k * 0.12, "tick", 0.12);

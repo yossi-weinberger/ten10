@@ -34,6 +34,11 @@
       "pauseAfter": 0.85
     },
     {
+      "id": "hebrew",
+      "text": "All on the Hebrew calendar too: dates, periods, and a maaser year.",
+      "pauseAfter": 0.7
+    },
+    {
       "id": "import",
       "text": "Import existing transactions,",
       "pauseAfter": 0.55
@@ -52,6 +57,16 @@
       "id": "analytics",
       "text": "The analytics dashboard shows exactly where your household money goes.",
       "pauseAfter": 0.9
+    },
+    {
+      "id": "budget",
+      "text": "For your household budget: cash flow, income versus expenses, and savings rate,",
+      "pauseAfter": 0.35
+    },
+    {
+      "id": "insights",
+      "text": "with insights for every period.",
+      "pauseAfter": 0.85
     },
     {
       "id": "reports",

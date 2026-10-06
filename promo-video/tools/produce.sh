@@ -38,7 +38,7 @@ DURATION="$(python3 -c "import json;print(json.load(open('$OUT/times.json'))['du
 echo "== 3. sound design"
 [[ -f audio/sfx/tap.wav ]] || python3 tools/audio/synth_sfx.py --out audio/sfx/
 MUSIC_FILE="${MUSIC:-audio/music_bed.$LANG_ID.wav}"
-if [[ -z "${MUSIC:-}" && ( "$CUT" == "film" || ! -f "$MUSIC_FILE" ) ]]; then   # a cut reuses the full film bed
+if [[ -z "${MUSIC:-}" && "$CUT" != "symbols" && "$CUT" != "cine" ]]; then   # prototypes reuse the film bed
   # MUSIC_GEN=synth_music.py for the calm bed; synth_drive.py (default) is the energetic score
   python3 "tools/audio/${MUSIC_GEN:-synth_drive.py}" --duration "$(python3 -c "print($DURATION + 0.5)")" \
     --timing "narration/timing.$LANG_ID.json" --out "$MUSIC_FILE"
