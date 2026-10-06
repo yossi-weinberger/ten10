@@ -98,10 +98,10 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
               </p>
             </div>
           </div>
+        </div>
 
-          <div className="absolute start-0 end-0 bottom-12 z-20 flex justify-center">
-            <AuthLearnMoreLink className="bg-card text-card-foreground shadow-md" />
-          </div>
+        <div className="hidden lg:flex absolute end-0 bottom-12 z-20 w-1/2 justify-center">
+          <AuthLearnMoreLink className="bg-card text-card-foreground shadow-md" />
         </div>
       </div>
     </div>
