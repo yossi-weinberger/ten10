@@ -1,5 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { AuthLearnMoreLink } from "@/components/auth/AuthLearnMoreLink";
 import { AuthControls } from "./AuthControls";
 
 interface AuthLayoutProps {
@@ -58,6 +59,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 
             {/* Standard form styling (no transparency overrides) */}
             <div>{children}</div>
+            <AuthLearnMoreLink />
           </div>
         </div>
 
