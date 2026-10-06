@@ -30,7 +30,7 @@ export const PageControls: React.FC<PageControlsProps> = ({
 
   // Base styling with increased shadow for better visibility
   const baseClass = cn(
-    "bg-card/90 text-foreground backdrop-blur-sm shadow-md transition-all hover:shadow-lg",
+    "bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-md transition-all hover:shadow-lg", // Increased shadow from sm to md, and lg on hover
     "border-0",
     "dark:hover:bg-accent dark:hover:text-accent-foreground"
   );
