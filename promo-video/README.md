@@ -45,6 +45,8 @@ Nothing in the film is timed in absolute seconds. `narration/script.<lang>.json`
 stable ids (`hook1 hook2 complex1 complex2 order maaser import recurring reminders analytics reports notjust halacha rabbi trust platforms together brand tagline free`).
 The scripts were revised after the first review: they now mention currencies in passing, analytics, the two platforms, and that the app
 is free. They close on the app's own slogan. `pauseAfter` doubles as a pacing direction for the voice-over (calm, unhurried).
+An optional `hold` on a phrase adds a reading beat after a topic has finished building on screen: the last frame of the
+topic stays put (silence in the voice-over) before the next topic starts.
 `narration/timing.<lang>.json` gives each phrase (and each word) a start and end. Every scene boundary and emphasis beat is
 derived from those anchors in `film/scenes.js` (`A.s(id)`, `A.e(id)`, `A.w(id, word)`). For example, the Chomesh toggle
 flips exactly when the word "חומש" / "Chomesh" is spoken.
@@ -53,6 +55,9 @@ flips exactly when the word "חומש" / "Chomesh" is spoken.
 * **When the recordings arrive:** `tools/sync_narration.py` detects speech and silence in the waveform and aligns the 20 phrases
   to the real pauses with dynamic programming. The whole film then re-times itself on the next render. The audio is never cut,
   sped up or stretched. Its t=0 is the film's t=0. Details, the report format and manual overrides are in `tools/AUDIO.md`.
+* **Synthetic voice:** `tools/audio/tts_elevenlabs.py --lang he --voice <id>` reads `ELEVENLABS_API_KEY` from the environment,
+  synthesises each phrase (with the pronunciation fixes of `VO_SCRIPT.md`) and lays them out with the script's pauses and holds
+  into `audio/narration_<lang>.wav`; then run `tools/produce.sh he audio/narration_he.wav`. `--list-voices` lists the account's voices.
 
 Keyword beats per language live in `film/content.js → beats`. They are the narration words that trigger visuals. If the
 voice-over reads a slightly different wording, update the word there, or use the overrides file.

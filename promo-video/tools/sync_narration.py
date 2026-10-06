@@ -486,7 +486,7 @@ def synth_narration(script: dict, seed: int, sr: int = SR, decoys: int = 3, long
                 all_bounds.append(len(events) - 1)
         phrase_spans.append((p0, t))
         word_starts.append(ws)
-        t += float(ph["pauseAfter"]) * rng.uniform(0.9, 1.15)
+        t += (float(ph["pauseAfter"]) + float(ph.get("hold", 0.0))) * rng.uniform(0.9, 1.15)
     # A couple of extra intra-phrase dips carved out at word joins, one of them
     # longer than --min-silence so the DP has a decoy gap to reject.
     for n, k in enumerate(rng.choice(all_bounds, size=decoys, replace=False)):

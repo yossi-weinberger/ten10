@@ -5,3 +5,4 @@ frames/
 audio/*.wav
 audio/sfx/
 __pycache__/
+audio/tts/

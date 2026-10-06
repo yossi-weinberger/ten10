@@ -16,7 +16,8 @@ Duration model (calm, warm, non-salesy read):
   * + 0.12 s for every comma inside the phrase, + 0.20 s for every em-dash
     inside the phrase (trailing punctuation belongs to the pause after it),
   * phrases never shorter than 0.70 s (e.g. the one-word "TEN10."),
-  * the gap after a phrase is its ``pauseAfter`` from the script,
+  * the gap after a phrase is its ``pauseAfter`` plus its optional reading
+    ``hold`` (a still beat once a topic has finished building on screen),
   * 0.6 s of silence before the first phrase.
 
 Words: phrase text split on whitespace, surrounding punctuation stripped from
@@ -192,7 +193,7 @@ def estimate(script: dict, rate: float | None = None, lead_in: float = LEAD_IN) 
         words, dur = phrase_model(ph["text"], lang, rate)
         spans = distribute(words, t, t + dur)
         phrases.append(make_phrase_entry(ph["id"], ph["text"], t, t + dur, spans, words))
-        t += dur + float(ph.get("pauseAfter", 0.0))
+        t += dur + float(ph.get("pauseAfter", 0.0)) + float(ph.get("hold", 0.0))
     return {
         "lang": lang,
         "source": "estimated",
