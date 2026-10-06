@@ -94,7 +94,7 @@
       ? {
         hook: { x: 540, y: 760, r: 230, sw: 58 }, chaos: { x: 540, y: 900, r: 180, sw: 48 }, orbit: [1.02, 1.5],
         mas: { x: 540, y: 1060, r: 262, sw: 50 }, heb: { x: 540, y: 1120, r: 250, sw: 44 }, bud: { x: 540, y: 1500, r: 160, sw: 34 },
-        cash: { x0: 120, x1: 960, y: 640, chart: [120, 960, 860, 1240], cards: [540, 1700, 74], cardsW: 900 },
+        cash: { x0: 120, x1: 960, y: 640, chart: [120, 960, 860, 1240], cards: [540, 930, 84], cardsW: 900 },
         imp: { x: 540, y: 860, r: 200, sw: 56 }, rec: { x: 540, y: 1000, r: 262, sw: 54 },
         rem: { x: 540, y: 880, r: 215, sw: 52 }, an: { x: 540, y: 700, r: 122, sw: 38 },
         nj: { x: 540, y: 1000, r: 200, sw: 48 }, rab: { x: 540, y: 930, r: 210, sw: 44 }, tr: { x: 540, y: 780, r: 220, sw: 36 },
@@ -251,6 +251,7 @@
       const a = o.alpha ?? 1; if (a <= 0.002) return;
       ctx.save(); ctx.globalAlpha *= a; ctx.font = font(o.w || 700, o.size || 26); ctx.direction = o.dir || (RTL ? "rtl" : "ltr");
       const w = ctx.measureText(text).width + (o.pad || 26) * 2, h = (o.size || 26) * 2.1;
+      if (o.clamp) x = clamp(x, (w / 2) * (o.s || 1) + 36, W - (w / 2) * (o.s || 1) - 36);
       ctx.translate(x, y); ctx.scale(o.s || 1, o.s || 1);
       shadow(24, 10, 0.14); ctx.fillStyle = o.bg || "#fff"; rrect(-w / 2, -h / 2, w, h, h / 2); ctx.fill(); noShadow();
       ctx.fillStyle = o.color || INK; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(text, 0, 1);
@@ -1070,7 +1071,7 @@
         const al = prog(t, f.ti, f.ti + 0.2) * (1 - melt) * (f.depth ? 0.8 : 1);
         if (al <= 0.01) continue;
         ctx.save(); if (f.depth) ctx.filter = "blur(2px)";
-        pill(f.text, x, y, { size: f.depth ? 26 : 23, color: f.g.col, alpha: al, s: lerp(1, 0.35, cv) * (f.depth ? 1.12 : 1), dir: f.g.ltr ? "ltr" : undefined, w: 800 });
+        pill(f.text, x, y, { size: f.depth ? 26 : 23, color: f.g.col, alpha: al, s: lerp(1, 0.35, cv) * (f.depth ? 1.12 : 1), dir: f.g.ltr ? "ltr" : undefined, w: 800, clamp: true });
         ctx.restore();
       }
       if (blobs.length && cv < 1) drawGoo(blobs, st);
@@ -1079,6 +1080,8 @@
         const a = prog(t, g.t0 - 0.05, g.t0 + 0.35, E.outCubic) * (1 - prog(t, g.t0 + 0.95, g.t0 + 1.4));
         if (a <= 0) continue;
         const P = [st.x + Math.cos(g.th) * 440 * ox, st.y + Math.sin(g.th) * 440 * oy];
+        ctx.save(); ctx.font = font(800, V ? 64 : 58); const lw2 = ctx.measureText(g.label).width / 2; ctx.restore();
+        P[0] = clamp(P[0], lw2 + 44, W - lw2 - 44);
         txt(g.label, P[0], P[1] + (1 - a) * 18, { alpha: a, size: V ? 64 : 58, w: 800, color: INK, halo: true, base: "middle" });
         ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = g.col; ctx.beginPath(); ctx.arc(P[0], P[1] + (V ? 50 : 44), 7, 0, TAU); ctx.fill(); ctx.restore();
       }
@@ -1312,7 +1315,6 @@
     function sceneHalacha(t, st) {
       if (t < T.hal - 0.4 || t > T.tr) return;
       const inA = prog(t, T.hal - 0.3, T.hal + 0.4, E.outCubic), out = prog(t, T.rab - 0.3, T.rab + 0.2);
-      drawBook(S.book.x, S.book.y + (1 - inA) * 30, S.book.w, S.book.h, prog(t, T.hal, T.hal + 1.0), inA * (1 - out));
       // topics rise out of the book into a list
       topics.forEach((name, i) => {
         const t0 = T.halW + i * 0.12, e = prog(t, t0, t0 + 0.6, E.outCubic);
@@ -1693,6 +1695,7 @@
       if (t > T.masW - 0.1 && t < T.imp) o.lift = 24 * E.outBack(prog(t, T.masW, T.masW + 0.45)) * (1 - prog(t, T.imp - 0.7, T.imp - 0.3));
       if (sheetLogoA(t) >= 0.999) o.alpha = 0;
       if (t > T.bud && t < T.rep) o.alpha = 1 - gaugeA(t);
+      if (t >= T.rep - 0.45 && t < T.print + 1.3) o.alpha = Math.min(o.alpha, prog(t, T.print + 0.6, T.print + 1.0));
       if (t > T.tInc - 0.15 && t < T.brand - 0.35) o.alpha = 0;
       if (t > T.brand + 0.5) o.alpha = 0;
       return o;
@@ -1713,6 +1716,7 @@
       sceneTorus(t, st);
       sceneChaos(t, st);
       sceneNotJust(t, st);
+      if (t > T.hal - 0.4 && t < T.tr) { const inA = prog(t, T.hal - 0.3, T.hal + 0.4, E.outCubic), out = prog(t, T.rab - 0.3, T.rab + 0.2); drawBook(S.book.x, S.book.y + (1 - inA) * 30, S.book.w, S.book.h, prog(t, T.hal, T.hal + 1.0), inA * (1 - out)); }
       lensGlass(t, st);
       bubbleUnder(t, st);
       trustUnder(t, st);
