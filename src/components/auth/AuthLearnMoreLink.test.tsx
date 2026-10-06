@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import type { ReactNode } from "react";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import enAuth from "../../../public/locales/en/auth.json";
@@ -16,7 +17,7 @@ vi.mock("@tanstack/react-router", () => ({
     className,
   }: {
     to: string;
-    children: string;
+    children: ReactNode;
     onClick?: () => void;
     className?: string;
   }) => (
@@ -30,6 +31,7 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) =>
       key === "layout.learnMore" ? enAuth.layout.learnMore : key,
+    i18n: { dir: () => "ltr" },
   }),
 }));
 
@@ -52,7 +54,7 @@ describe("AuthLearnMoreLink", () => {
   afterEach(cleanup);
 
   it("renders a same-tab link to /landing on web", () => {
-    render(<AuthLearnMoreLink />);
+    render(<AuthLearnMoreLink variant="branded" />);
 
     const link = screen.getByRole("link", { name: enAuth.layout.learnMore });
     expect(link.getAttribute("href")).toBe("/landing");
@@ -61,13 +63,13 @@ describe("AuthLearnMoreLink", () => {
 
   it("hides the link in the Tauri desktop build", () => {
     platformState.platform = "desktop";
-    render(<AuthLearnMoreLink />);
+    render(<AuthLearnMoreLink variant="compact" />);
 
     expect(screen.queryByRole("link")).toBeNull();
   });
 
   it("fires the existing product analytics event on click", () => {
-    render(<AuthLearnMoreLink />);
+    render(<AuthLearnMoreLink variant="branded" />);
 
     fireEvent.click(
       screen.getByRole("link", { name: enAuth.layout.learnMore }),
@@ -78,11 +80,7 @@ describe("AuthLearnMoreLink", () => {
   });
 
   it("keeps Hebrew and English copy in the auth locale files", () => {
-    expect(heAuth.layout.learnMore).toBe(
-      "מה זה Ten10? למידע נוסף על האפליקציה",
-    );
-    expect(enAuth.layout.learnMore).toBe(
-      "What is Ten10? Learn more about the app",
-    );
+    expect(heAuth.layout.learnMore).toBe("למד עוד על Ten10");
+    expect(enAuth.layout.learnMore).toBe("Learn more about Ten10");
   });
 });
