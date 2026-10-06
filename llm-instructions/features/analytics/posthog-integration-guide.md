@@ -114,7 +114,7 @@ All product events go through `trackProductEvent()` in `productAnalytics.ts`. Fu
 
 Highlights of expanded events:
 
-- Auth: `signup_completed`, `login_completed`, `logout_completed`, `password_reset_requested`, `terms_accepted`
+- Auth: `signup_completed`, `login_completed`, `login_learn_more_clicked`, `logout_completed`, `password_reset_requested`, `terms_accepted`
 - Transactions: `transaction_deleted`, `transaction_validation_failed` (submit blocked by client validation), recurring pause/resume/update/delete
 - Export: `transactions_exported`
 - Settings: `settings_changed`, `reminder_preference_changed`

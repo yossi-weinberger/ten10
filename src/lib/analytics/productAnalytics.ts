@@ -20,6 +20,7 @@ export type ProductAnalyticsEvent =
   | "transaction_import_failed"
   | "signup_completed"
   | "login_completed"
+  | "login_learn_more_clicked"
   | "logout_completed"
   | "password_reset_requested"
   | "terms_accepted"

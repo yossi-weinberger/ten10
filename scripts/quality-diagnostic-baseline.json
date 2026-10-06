@@ -7,7 +7,7 @@
         "@typescript-eslint/no-empty-object-type": 3,
         "@typescript-eslint/no-explicit-any": 50,
         "@typescript-eslint/no-unused-expressions": 1,
-        "@typescript-eslint/no-unused-vars": 24,
+        "@typescript-eslint/no-unused-vars": 23,
         "no-shadow-restricted-names": 1,
         "no-unsafe-finally": 1,
         "no-useless-escape": 8,
@@ -250,13 +250,6 @@
           "code": "react-hooks/set-state-in-effect",
           "file": "src/components/layout/ContactFAB.tsx",
           "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "@typescript-eslint/no-unused-vars",
-          "file": "src/components/layout/PageControls.tsx",
-          "message": "'useTranslation' is defined but never used.",
           "severity": "error",
           "count": 1
         },
@@ -983,10 +976,10 @@
         }
       ],
       "severities": {
-        "error": 166,
+        "error": 163,
         "warning": 25
       },
-      "total": 191
+      "total": 188
     },
     "typecheck:app": {
       "command": "tsc -p tsconfig.app.json --noEmit --pretty false",
@@ -1006,7 +999,7 @@
         "TS2739": 1,
         "TS2740": 2,
         "TS2741": 5,
-        "TS6133": 18,
+        "TS6133": 17,
         "TS6192": 1,
         "TS7006": 11
       },
@@ -1078,13 +1071,6 @@
           "code": "TS2322",
           "file": "src/components/import/steps/ImportReviewStep.tsx",
           "message": "Type '{ key: string; label: any; count: number; }[]' is not assignable to type '{ key: FilterMode; label: string; count: number; }[]'. Type '{ key: string; label: any; count: number; }' is not assignable to type '{ key: FilterMode; label: string; count: number; }'. Types of property 'key' are incompatible. Type 'string' is not assignable to type 'FilterMode'.",
-          "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "TS6133",
-          "file": "src/components/layout/PageControls.tsx",
-          "message": "'useTranslation' is declared but its value is never read.",
           "severity": "error",
           "count": 1
         },
@@ -1622,9 +1608,9 @@
         }
       ],
       "severities": {
-        "error": 102
+        "error": 101
       },
-      "total": 102
+      "total": 101
     }
   },
   "version": 1
