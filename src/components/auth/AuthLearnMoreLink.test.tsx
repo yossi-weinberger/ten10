@@ -29,8 +29,11 @@ vi.mock("@tanstack/react-router", () => ({
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string) =>
-      key === "layout.learnMore" ? enAuth.layout.learnMore : key,
+    t: (key: string) => {
+      if (key === "layout.learnMore") return enAuth.layout.learnMore;
+      if (key === "layout.learnMoreShort") return enAuth.layout.learnMoreShort;
+      return key;
+    },
     i18n: { dir: () => "ltr" },
   }),
 }));
@@ -79,8 +82,21 @@ describe("AuthLearnMoreLink", () => {
     expect(trackProductEvent).toHaveBeenCalledWith("login_learn_more_clicked");
   });
 
+  it("renders the short locale label when short is set", () => {
+    render(<AuthLearnMoreLink short />);
+
+    expect(
+      screen.getByRole("link", { name: enAuth.layout.learnMoreShort }),
+    ).toBeTruthy();
+    expect(
+      screen.queryByRole("link", { name: enAuth.layout.learnMore }),
+    ).toBeNull();
+  });
+
   it("keeps Hebrew and English copy in the auth locale files", () => {
     expect(heAuth.layout.learnMore).toBe("למד עוד על Ten10");
     expect(enAuth.layout.learnMore).toBe("Learn more about Ten10");
+    expect(heAuth.layout.learnMoreShort).toBe("עוד על Ten10");
+    expect(enAuth.layout.learnMoreShort).toBe("About Ten10");
   });
 });
