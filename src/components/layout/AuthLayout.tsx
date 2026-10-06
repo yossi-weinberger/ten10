@@ -35,9 +35,9 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
       </div>
 
-      <div className="w-full max-w-[1400px] bg-card rounded-[32px] shadow-2xl grid lg:grid-cols-2 relative z-10 my-auto lg:max-h-[85vh] lg:min-h-[600px] overflow-hidden">
+      <div className="w-full max-w-[1400px] bg-card rounded-[32px] shadow-2xl grid lg:grid-cols-2 lg:grid-rows-1 relative z-10 my-auto lg:h-[85vh] overflow-hidden">
         {/* Form Side */}
-        <div className="relative flex flex-col justify-start lg:justify-center p-8 md:p-12 lg:p-16 order-1 overflow-y-auto">
+        <div className="relative flex min-h-0 flex-col justify-start lg:justify-center p-8 md:p-12 lg:p-16 order-1 overflow-y-auto">
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mt-8 mb-6 shrink-0">
             <div className="rounded-2xl bg-white/90 dark:bg-black/40 backdrop-blur-md shadow-lg p-3 border border-black/5 dark:border-white/10">
@@ -62,15 +62,16 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           </div>
         </div>
 
-        {/* Image Side (Hidden on mobile) */}
-        <div className="hidden lg:flex flex-col p-12 relative bg-black text-white order-2">
+        {/* Image Side (Hidden on mobile). min-h-0 keeps this cell inside the
+            card's 85vh cap so the footer pill is not clipped when the form column is taller. */}
+        <div className="hidden lg:flex min-h-0 h-full flex-col p-8 xl:p-12 relative bg-black text-white order-2 overflow-hidden">
           {/* Background Image */}
           <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black z-0">
             <div className="absolute inset-0 bg-[url('/background.webp')] bg-cover bg-center bg-no-repeat" />
           </div>
 
           {/* Logo - Centered at the top relative to the image section */}
-          <div className="absolute top-16 left-0 right-0 flex justify-center z-20">
+          <div className="absolute top-10 left-0 right-0 flex justify-center z-20">
             <div className="rounded-2xl bg-white/90 dark:bg-black/70 backdrop-blur-md shadow-lg p-3 border border-black/5 dark:border-white/10">
               <img
                 src="/logo/logo-wide.svg"
@@ -80,9 +81,9 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
             </div>
           </div>
 
-          {/* Content Overlay */}
-          <div className="relative z-10 flex flex-1 flex-col items-center justify-center text-center space-y-8 mt-20">
-            <h1 className="text-4xl md:text-5xl font-medium leading-[1.2] tracking-tight">
+          {/* Content Overlay — padding, not margin, so it stays inside the flex item */}
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col items-center justify-center text-center space-y-6 pt-24">
+            <h1 className="text-4xl xl:text-5xl font-medium leading-[1.2] tracking-tight">
               {imageSideContent || (
                 <span className="whitespace-pre-line">
                   {t("layout.imageTitle")}
@@ -98,7 +99,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
               </p>
             </div>
           </div>
-          <div className="relative z-10 mt-auto flex justify-center pt-8">
+          <div className="relative z-10 mt-auto flex shrink-0 justify-center pt-4">
             <AuthLearnMoreLink className="bg-card text-card-foreground shadow-md" />
           </div>
         </div>
