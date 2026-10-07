@@ -781,6 +781,8 @@ pub fn bulk_update_recurring_transactions_handler(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::commands::transaction_commands::insert_transaction_row;
+    use crate::models::Transaction;
     use rusqlite::Connection;
     use serde_json::json;
     use std::sync::Mutex;
@@ -1192,5 +1194,66 @@ mod tests {
 
         assert_eq!(updated.calendar_type, "hebrew");
         assert_eq!(updated.anchor_month_code, Some("M05L".to_string()));
+    }
+
+    fn transaction_with_occurrence(
+        id: &str,
+        source_recurring_id: &str,
+        occurrence_number: Option<i32>,
+    ) -> Transaction {
+        Transaction {
+            id: id.to_string(),
+            user_id: None,
+            date: "2024-03-01".to_string(),
+            amount: 100.0,
+            currency: "ILS".to_string(),
+            description: None,
+            transaction_type: "donation".to_string(),
+            category: None,
+            is_chomesh: None,
+            recipient: None,
+            payment_method: None,
+            created_at: Some("2024-03-01".to_string()),
+            updated_at: Some("2024-03-01".to_string()),
+            source_recurring_id: Some(source_recurring_id.to_string()),
+            occurrence_number,
+            original_amount: None,
+            original_currency: None,
+            conversion_rate: None,
+            conversion_date: None,
+            rate_source: None,
+        }
+    }
+
+    #[test]
+    fn insert_transaction_row_persists_occurrence_number_for_duplicate_guard() {
+        let app = mock_app();
+        {
+            let db_state = app.state::<crate::DbState>();
+            let conn = db_state.0.lock().expect("db lock");
+            insert_transaction_row(
+                &conn,
+                &transaction_with_occurrence("tx-occ", "r1", Some(2)),
+            )
+            .expect("insert occurrence");
+            insert_transaction_row(&conn, &transaction_with_occurrence("tx-none", "r1", None))
+                .expect("insert without occurrence");
+        }
+
+        let found = recurring_occurrence_exists_handler(
+            app.state::<crate::DbState>(),
+            "r1".to_string(),
+            2,
+        )
+        .expect("exists query");
+        assert!(found);
+
+        let other = recurring_occurrence_exists_handler(
+            app.state::<crate::DbState>(),
+            "r1".to_string(),
+            3,
+        )
+        .expect("missing occurrence query");
+        assert!(!other);
     }
 }
