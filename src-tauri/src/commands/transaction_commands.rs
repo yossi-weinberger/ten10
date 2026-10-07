@@ -1077,8 +1077,8 @@ pub(crate) fn insert_transaction_row(
     transaction: &Transaction,
 ) -> RusqliteResult<()> {
     conn.execute(
-        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, payment_method, created_at, updated_at, source_recurring_id, original_amount, original_currency, conversion_rate, conversion_date, rate_source)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19)",
+        "INSERT INTO transactions (id, user_id, date, amount, currency, description, type, category, is_chomesh, recipient, payment_method, created_at, updated_at, source_recurring_id, occurrence_number, original_amount, original_currency, conversion_rate, conversion_date, rate_source)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20)",
         params![
             &transaction.id,
             &transaction.user_id,
@@ -1094,6 +1094,7 @@ pub(crate) fn insert_transaction_row(
             &transaction.created_at,
             &transaction.updated_at,
             &transaction.source_recurring_id,
+            &transaction.occurrence_number,
             &transaction.original_amount,
             &transaction.original_currency,
             &transaction.conversion_rate,
