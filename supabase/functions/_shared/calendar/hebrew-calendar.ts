@@ -5,6 +5,9 @@ import {
 
 type CalendarLanguage = "he" | "en";
 
+/** How English UI shows a Hebrew date: `א׳ Tishrei תשפ״ז`, `1 Tishrei 5787` or `א׳ תשרי תשפ״ז`. */
+export type HebrewEnglishDateFormat = "mixed" | "numbers" | "letters";
+
 const UNIX_EPOCH_JULIAN_DAY = 2_440_588;
 const HEBREW_EPOCH_OFFSET = 347_997;
 const MONTH_CODE_PATTERN = /^M(\d{2})(L?)$/;
@@ -44,8 +47,8 @@ const HEBREW_MONTH_NAMES = {
   },
   en: {
     common: [
-      "Tishri",
-      "Heshvan",
+      "Tishrei",
+      "Cheshvan",
       "Kislev",
       "Tevet",
       "Shevat",
@@ -53,13 +56,13 @@ const HEBREW_MONTH_NAMES = {
       "Nisan",
       "Iyar",
       "Sivan",
-      "Tamuz",
+      "Tammuz",
       "Av",
       "Elul",
     ],
     leap: [
-      "Tishri",
-      "Heshvan",
+      "Tishrei",
+      "Cheshvan",
       "Kislev",
       "Tevet",
       "Shevat",
@@ -68,7 +71,7 @@ const HEBREW_MONTH_NAMES = {
       "Nisan",
       "Iyar",
       "Sivan",
-      "Tamuz",
+      "Tammuz",
       "Av",
       "Elul",
     ],
@@ -391,13 +394,52 @@ export function hebrewMonthName(
   return name;
 }
 
+export function formatHebrewDayNumber(
+  day: number,
+  language: CalendarLanguage,
+  englishFormat: HebrewEnglishDateFormat = "mixed",
+): string {
+  return language === "en" && englishFormat === "numbers"
+    ? String(day)
+    : formatHebrewNumeral(day);
+}
+
+export function formatHebrewYearNumber(
+  year: number,
+  language: CalendarLanguage,
+  englishFormat: HebrewEnglishDateFormat = "mixed",
+): string {
+  return language === "en" && englishFormat === "numbers"
+    ? String(year)
+    : formatHebrewYear(year);
+}
+
+export function formatHebrewMonthName(
+  year: number,
+  month: number,
+  language: CalendarLanguage,
+  englishFormat: HebrewEnglishDateFormat = "mixed",
+): string {
+  return hebrewMonthName(
+    year,
+    month,
+    englishFormat === "letters" ? "he" : language,
+  );
+}
+
 export function formatHebrewDisplayDate(
   fields: HebrewDateFields,
   language: CalendarLanguage,
+  englishFormat: HebrewEnglishDateFormat = "mixed",
 ): string {
-  const day = formatHebrewNumeral(fields.day);
-  const monthName = hebrewMonthName(fields.year, fields.month, language);
-  const year = formatHebrewYear(fields.year);
+  const day = formatHebrewDayNumber(fields.day, language, englishFormat);
+  const monthName = formatHebrewMonthName(
+    fields.year,
+    fields.month,
+    language,
+    englishFormat,
+  );
+  const year = formatHebrewYearNumber(fields.year, language, englishFormat);
 
   switch (language) {
     case "he":
@@ -415,6 +457,7 @@ export function formatHebrewMonthLabel(
   year: number,
   month: number,
   language: CalendarLanguage,
+  englishFormat: HebrewEnglishDateFormat = "mixed",
 ): string {
-  return `${hebrewMonthName(year, month, language)} ${formatHebrewYear(year)}`;
+  return `${formatHebrewMonthName(year, month, language, englishFormat)} ${formatHebrewYearNumber(year, language, englishFormat)}`;
 }

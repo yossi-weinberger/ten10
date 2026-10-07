@@ -5,6 +5,7 @@ import {
   getCalendarAdapter,
   type CalendarLanguage,
   type CalendarType,
+  type HebrewEnglishDateFormat,
 } from "@/lib/calendar";
 import type { MonthlyDataPoint } from "@/lib/data-layer/chart.service";
 
@@ -78,6 +79,7 @@ export function formatMonthlyChartData(
   data: readonly MonthlyDataPoint[],
   calendarType: CalendarType,
   language: string,
+  hebrewEnglishFormat?: HebrewEnglishDateFormat,
 ): MonthlyChartDataPoint[] {
   const locale = language === "he" ? he : enUS;
   const calendarLanguage: CalendarLanguage =
@@ -98,7 +100,9 @@ export function formatMonthlyChartData(
               "MMM yyyy",
               { locale },
             )
-          : adapter.monthLabel(item.period_key, calendarLanguage),
+          : adapter.monthLabel(item.period_key, calendarLanguage, {
+              hebrewEnglishFormat,
+            }),
       income: item.income,
       donations: item.donations,
       expenses: item.expenses,

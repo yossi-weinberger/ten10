@@ -2,11 +2,20 @@ import {
   getCalendarAdapter,
   type CalendarLanguage,
   type CalendarType,
+  type HebrewEnglishDateFormat,
 } from "@/lib/calendar";
 
 export type DisplayDateStyle = "short" | "numeric" | "long";
 
-export interface DisplayDateOptions {
+/** `12/09/2026`, `09/12/2026` or `Sep 12, 2026`. */
+export type GregorianDateFormat = "day-month-year" | "month-day-year" | "written";
+
+export interface DateFormatSettings {
+  gregorianDateFormat: GregorianDateFormat;
+  hebrewEnglishDateFormat: HebrewEnglishDateFormat;
+}
+
+export interface DisplayDateOptions extends Partial<DateFormatSettings> {
   calendarType: CalendarType;
   showSecondaryDate: boolean;
   language: CalendarLanguage;
@@ -18,38 +27,81 @@ export interface DisplayDate {
   secondary?: string;
 }
 
+export function pickDateFormatSettings(
+  settings: DateFormatSettings,
+): DateFormatSettings {
+  return {
+    gregorianDateFormat: settings.gregorianDateFormat,
+    hebrewEnglishDateFormat: settings.hebrewEnglishDateFormat,
+  };
+}
+
 function assertNever(value: never): never {
   throw new Error(`Unsupported calendar type: ${String(value)}`);
 }
 
-function formatGregorian(isoDate: string, style: DisplayDateStyle): string {
-  const [year, month, day] = isoDate.split("-");
+function formatWrittenGregorian(
+  isoDate: string,
+  language: CalendarLanguage,
+): string {
+  return new Intl.DateTimeFormat(language, {
+    calendar: "gregory",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${isoDate}T00:00:00Z`));
+}
 
+function formatGregorian(
+  isoDate: string,
+  style: DisplayDateStyle,
+  language: CalendarLanguage,
+  format: GregorianDateFormat,
+): string {
+  if (format === "written") {
+    return formatWrittenGregorian(isoDate, language);
+  }
+
+  const [fullYear, month, day] = isoDate.split("-");
+  let year: string;
   switch (style) {
     case "short":
-      return `${day}/${month}/${year.slice(-2)}`;
+      year = fullYear.slice(-2);
+      break;
     case "numeric":
     case "long":
-      return `${day}/${month}/${year}`;
+      year = fullYear;
+      break;
     default:
       return assertNever(style);
   }
+
+  return format === "month-day-year"
+    ? `${month}/${day}/${year}`
+    : `${day}/${month}/${year}`;
 }
 
 function formatForCalendar(
   isoDate: string,
   calendarType: CalendarType,
-  language: CalendarLanguage,
   style: DisplayDateStyle,
+  options: DisplayDateOptions,
 ): string {
   switch (calendarType) {
     case "gregorian":
-      return formatGregorian(isoDate, style);
+      return formatGregorian(
+        isoDate,
+        style,
+        options.language,
+        options.gregorianDateFormat ?? "day-month-year",
+      );
     case "hebrew":
       return getCalendarAdapter("hebrew").formatDate(
         isoDate,
-        language,
+        options.language,
         "long",
+        { hebrewEnglishFormat: options.hebrewEnglishDateFormat },
       );
     default:
       return assertNever(calendarType);
@@ -80,8 +132,8 @@ export function formatDisplayDate(
   const primary = formatForCalendar(
     isoDate,
     options.calendarType,
-    options.language,
     options.style,
+    options,
   );
 
   if (!options.showSecondaryDate) {
@@ -94,8 +146,8 @@ export function formatDisplayDate(
     secondary: formatForCalendar(
       isoDate,
       secondaryCalendar,
-      options.language,
       secondaryCalendar === "hebrew" ? "long" : "numeric",
+      options,
     ),
   };
 }

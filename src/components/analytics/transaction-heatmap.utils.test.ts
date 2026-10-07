@@ -43,7 +43,7 @@ describe("transaction heatmap calendar labels", () => {
     ).toBe("Sep");
     expect(
       formatHeatmapMonthTick("2026-09-12", "hebrew", "en"),
-    ).toBe("Tishri");
+    ).toBe("Tishrei");
     expect(
       formatHeatmapMonthTick("2027-02-08", "hebrew", "he"),
     ).toContain("אדר");

@@ -5,6 +5,7 @@ import { ServerDonationData } from "./data-layer/stats.service";
 import { MonthlyDataPoint } from "./data-layer/chart.service";
 import { logger } from "./logger";
 import type { CalendarType } from "./calendar";
+import type { DateFormatSettings } from "./calendar/display-date";
 import {
   normalizeCalendarSettings,
   shouldResetCalendarChartCache,
@@ -15,7 +16,7 @@ export type { TransactionCurrency as Currency };
 
 export type Language = "he" | "en";
 
-export interface Settings {
+export interface Settings extends DateFormatSettings {
   theme: "light" | "dark" | "system";
   language: Language;
   defaultCurrency: TransactionCurrency;
@@ -93,6 +94,8 @@ const defaultSettings: Settings = {
   autoLockTimeoutMinutes: 10,
   calendarType: "gregorian",
   showSecondaryDate: false,
+  gregorianDateFormat: "day-month-year",
+  hebrewEnglishDateFormat: "mixed",
 };
 
 export const useDonationStore = create<DonationState>()(

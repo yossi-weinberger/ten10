@@ -15,7 +15,7 @@ describe("formatDisplayDate", () => {
 
   it.each([
     ["he", "א׳ בתשרי תשפ״ז"],
-    ["en", "א׳ Tishri תשפ״ז"],
+    ["en", "א׳ Tishrei תשפ״ז"],
   ] as const)("localizes Hebrew long output in %s", (language, primary) => {
     expect(
       formatDisplayDate("2026-09-12", {
@@ -37,7 +37,7 @@ describe("formatDisplayDate", () => {
       }),
     ).toEqual({
       primary: "12/09/2026",
-      secondary: "א׳ Tishri תשפ״ז",
+      secondary: "א׳ Tishrei תשפ״ז",
     });
   });
 
@@ -49,7 +49,7 @@ describe("formatDisplayDate", () => {
         language: "en",
         style: "numeric",
       }),
-    ).toEqual({ primary: "א׳ Tishri תשפ״ז" });
+    ).toEqual({ primary: "א׳ Tishrei תשפ״ז" });
   });
 
   it("adds Gregorian as the secondary display", () => {
@@ -75,6 +75,73 @@ describe("formatDisplayDate", () => {
         style: "short",
       }),
     ).toEqual({ primary: "12/09/26" });
+  });
+
+  it.each([
+    ["day-month-year", "numeric", "12/09/2026"],
+    ["month-day-year", "numeric", "09/12/2026"],
+    ["month-day-year", "short", "09/12/26"],
+    ["written", "numeric", "Sep 12, 2026"],
+  ] as const)(
+    "formats Gregorian %s dates in %s style",
+    (gregorianDateFormat, style, primary) => {
+      expect(
+        formatDisplayDate("2026-09-12", {
+          calendarType: "gregorian",
+          showSecondaryDate: false,
+          language: "en",
+          style,
+          gregorianDateFormat,
+        }),
+      ).toEqual({ primary });
+    },
+  );
+
+  it.each([
+    ["mixed", "א׳ Tishrei תשפ״ז"],
+    ["numbers", "1 Tishrei 5787"],
+    ["letters", "א׳ תשרי תשפ״ז"],
+  ] as const)(
+    "formats the Hebrew date in English as %s",
+    (hebrewEnglishDateFormat, primary) => {
+      expect(
+        formatDisplayDate("2026-09-12", {
+          calendarType: "hebrew",
+          showSecondaryDate: false,
+          language: "en",
+          style: "long",
+          hebrewEnglishDateFormat,
+        }),
+      ).toEqual({ primary });
+    },
+  );
+
+  it("keeps the Hebrew UI format when an English Hebrew format is set", () => {
+    expect(
+      formatDisplayDate("2026-09-12", {
+        calendarType: "hebrew",
+        showSecondaryDate: false,
+        language: "he",
+        style: "long",
+        hebrewEnglishDateFormat: "numbers",
+      }),
+    ).toEqual({ primary: "א׳ בתשרי תשפ״ז" });
+  });
+
+  it("applies both formats to the primary and secondary dates", () => {
+    expect(
+      formatDisplayDate("2027-02-10", {
+        calendarType: "gregorian",
+        showSecondaryDate: true,
+        language: "en",
+        style: "numeric",
+        gregorianDateFormat: "month-day-year",
+        hebrewEnglishDateFormat: "numbers",
+      }),
+    ).toEqual({
+      primary: "02/10/2027",
+      secondary: "3 Adar I 5787",
+    });
   });
 
   it.each(["", "not-a-date"])(

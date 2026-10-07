@@ -12,13 +12,17 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { formatDisplayDate } from "@/lib/calendar/display-date";
+import { useDateFormatSettings } from "@/lib/calendar/use-display-date";
 import { useDonationStore } from "@/lib/store";
 import {
   formatLocalDate,
   getCalendarNavigationBounds,
 } from "@/lib/utils/local-date";
 import { Input } from "./input";
-import { parseExactGregorianDateInput } from "./gregorian-date-input";
+import {
+  parseExactGregorianDateInput,
+  type GregorianDateInputPattern,
+} from "./gregorian-date-input";
 
 export function DatePicker({
   date,
@@ -36,6 +40,10 @@ export function DatePicker({
     (state) => state.settings.calendarType,
   );
   const language = i18n.language.startsWith("he") ? "he" : "en";
+  const { gregorianDateFormat, hebrewEnglishDateFormat } =
+    useDateFormatSettings();
+  const inputPattern: GregorianDateInputPattern =
+    gregorianDateFormat === "month-day-year" ? "MM/dd/yyyy" : "dd/MM/yyyy";
 
   const formatFieldDate = React.useCallback(
     (value: Date): string => {
@@ -45,12 +53,13 @@ export function DatePicker({
           showSecondaryDate: false,
           language,
           style: "long",
+          hebrewEnglishDateFormat,
         }).primary;
       }
 
-      return format(value, "dd/MM/yyyy");
+      return format(value, inputPattern);
     },
-    [calendarType, language],
+    [calendarType, hebrewEnglishDateFormat, inputPattern, language],
   );
 
   React.useEffect(() => {
@@ -70,7 +79,7 @@ export function DatePicker({
     if (calendarType === "hebrew") return;
     const value = e.target.value;
     setInputValue(value);
-    const parsedDate = parseExactGregorianDateInput(value);
+    const parsedDate = parseExactGregorianDateInput(value, inputPattern);
     if (parsedDate) {
       setDate(parsedDate);
       setMonth(parsedDate);
@@ -127,7 +136,7 @@ export function DatePicker({
   const picker = (
     <div className="relative">
       <Input
-        placeholder={calendarType === "hebrew" ? "" : "DD/MM/YYYY"}
+        placeholder={calendarType === "hebrew" ? "" : inputPattern.toUpperCase()}
         value={inputValue}
         onChange={handleInputChange}
         readOnly={calendarType === "hebrew"}

@@ -23,6 +23,7 @@ import {
   type CalendarLanguage,
 } from "@/lib/calendar";
 import { formatDisplayDate } from "@/lib/calendar/display-date";
+import { useDateFormatSettings } from "@/lib/calendar/use-display-date";
 import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import { formatLocalDate } from "@/lib/utils/local-date";
 import {
@@ -142,6 +143,7 @@ export function TransactionHeatmap({
     (state) => state.settings.showSecondaryDate,
   );
   const calendarType = useEffectiveCalendarType();
+  const dateFormat = useDateFormatSettings();
   const calendarLanguage: CalendarLanguage =
     i18n.language.startsWith("he") ? "he" : "en";
   const fmt = (v: number) => formatCurrency(v, defaultCurrency, i18n.language);
@@ -219,7 +221,12 @@ export function TransactionHeatmap({
               <TabsList className="h-7 p-0.5">
                 {availableYears.map((year) => (
                   <TabsTrigger key={year} value={year} className="text-[11px] px-2 h-6">
-                    {formatHeatmapYearLabel(year, calendarType)}
+                    {formatHeatmapYearLabel(
+                      year,
+                      calendarType,
+                      calendarLanguage,
+                      dateFormat.hebrewEnglishDateFormat,
+                    )}
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -288,6 +295,7 @@ export function TransactionHeatmap({
                                   formatLocalDate(week[0].date),
                                   calendarType,
                                   calendarLanguage,
+                                  dateFormat.hebrewEnglishDateFormat,
                                 )
                               : ""}
                           </div>
@@ -296,6 +304,7 @@ export function TransactionHeatmap({
                             const displayDate = formatDisplayDate(
                               formatLocalDate(cell.date),
                               {
+                                ...dateFormat,
                                 calendarType,
                                 showSecondaryDate,
                                 language: calendarLanguage,

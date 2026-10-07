@@ -9,6 +9,8 @@ describe("calendar settings migration", () => {
     expect(normalizeCalendarSettings({})).toEqual({
       calendarType: "gregorian",
       showSecondaryDate: false,
+      gregorianDateFormat: "day-month-year",
+      hebrewEnglishDateFormat: "mixed",
     });
   });
 
@@ -17,10 +19,14 @@ describe("calendar settings migration", () => {
       normalizeCalendarSettings({
         calendarType: "hebrew",
         showSecondaryDate: true,
+        gregorianDateFormat: "written",
+        hebrewEnglishDateFormat: "letters",
       }),
     ).toEqual({
       calendarType: "hebrew",
       showSecondaryDate: true,
+      gregorianDateFormat: "written",
+      hebrewEnglishDateFormat: "letters",
     });
   });
 
@@ -29,10 +35,14 @@ describe("calendar settings migration", () => {
       normalizeCalendarSettings({
         calendarType: "julian",
         showSecondaryDate: "yes",
+        gregorianDateFormat: "yyyy-mm-dd",
+        hebrewEnglishDateFormat: 7,
       }),
     ).toEqual({
       calendarType: "gregorian",
       showSecondaryDate: false,
+      gregorianDateFormat: "day-month-year",
+      hebrewEnglishDateFormat: "mixed",
     });
   });
 });

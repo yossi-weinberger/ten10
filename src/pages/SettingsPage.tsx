@@ -217,6 +217,8 @@ export function SettingsPage() {
       calendarSettings={{
         calendarType: settings.calendarType,
         showSecondaryDate: settings.showSecondaryDate,
+        gregorianDateFormat: settings.gregorianDateFormat,
+        hebrewEnglishDateFormat: settings.hebrewEnglishDateFormat,
       }}
       updateSettings={(calendarSettings) => {
         updateSettings(calendarSettings);
@@ -229,6 +231,18 @@ export function SettingsPage() {
         if (calendarSettings.showSecondaryDate !== undefined) {
           trackProductEvent("settings_changed", {
             setting_key: "show_secondary_date",
+          });
+        }
+        if (calendarSettings.gregorianDateFormat !== undefined) {
+          trackProductEvent("settings_changed", {
+            setting_key: "gregorian_date_format",
+            value: calendarSettings.gregorianDateFormat,
+          });
+        }
+        if (calendarSettings.hebrewEnglishDateFormat !== undefined) {
+          trackProductEvent("settings_changed", {
+            setting_key: "hebrew_english_date_format",
+            value: calendarSettings.hebrewEnglishDateFormat,
           });
         }
       }}

@@ -95,6 +95,19 @@
     "cardTitle": "Calendar",
     "cardDescription": "Choose the primary display calendar. Hebrew days change at civil midnight.",
     "primaryCalendarLabel": "Primary calendar",
+    "gregorianFormatLabel": "Gregorian date format",
+    "gregorianFormatOptions": {
+      "dayMonthYear": "DD/MM/YYYY",
+      "monthDayYear": "MM/DD/YYYY",
+      "written": "Month name"
+    },
+    "hebrewEnglishFormatLabel": "Hebrew date in English",
+    "hebrewEnglishFormatOptions": {
+      "mixed": "Mixed",
+      "numbers": "Numbers",
+      "letters": "Hebrew letters"
+    },
+    "formatExample": "Example: {{date}}",
     "showSecondaryDateLabel": "Show a secondary date",
     "showSecondaryDateDescription": "Display only — this does not affect filters or periods.",
     "options": {

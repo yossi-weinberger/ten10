@@ -9,6 +9,12 @@ describe("parseExactGregorianDateInput", () => {
     expect(parsed?.getDate()).toBe(12);
   });
 
+  it("accepts a complete MM/dd/yyyy date", () => {
+    const parsed = parseExactGregorianDateInput("09/12/2020", "MM/dd/yyyy");
+    expect(parsed?.getMonth()).toBe(8);
+    expect(parsed?.getDate()).toBe(12);
+  });
+
   it("rejects a partial year", () => {
     expect(parseExactGregorianDateInput("12/09/20")).toBeNull();
   });

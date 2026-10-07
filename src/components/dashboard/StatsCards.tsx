@@ -32,6 +32,7 @@ import { useEffect, useMemo, useState } from "react";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { notifyOnboardingBlockingModal } from "@/lib/onboarding/modalBridge";
 import { formatDisplayDate } from "@/lib/calendar/display-date";
+import { useDateFormatSettings } from "@/lib/calendar/use-display-date";
 import { CalendarPreviewToggle } from "@/components/dashboard/CalendarPreviewToggle";
 import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import { formatLocalDate } from "@/lib/utils/local-date";
@@ -48,6 +49,7 @@ export function StatsCards({
   const showSecondaryDate = useDonationStore(
     (state) => state.settings.showSecondaryDate,
   );
+  const dateFormat = useDateFormatSettings();
   const navigate = useNavigate();
   const defaultCurrency = useDonationStore(
     (state) => state.settings.defaultCurrency,
@@ -89,6 +91,7 @@ export function StatsCards({
 
   const formatDate = (date: Date) => {
     const displayDate = formatDisplayDate(formatLocalDate(date), {
+      ...dateFormat,
       calendarType,
       showSecondaryDate,
       language: i18n.language.startsWith("he") ? "he" : "en",

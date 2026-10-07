@@ -8,12 +8,19 @@ import {
   formatExportDate,
   type CalendarExportSettings,
 } from "@/lib/calendar/export-date";
+import type { GregorianDateFormat } from "@/lib/calendar/display-date";
 
 /** UTC midnight so ExcelJS stores the calendar day, not the previous local day. */
 function excelDateFromIso(isoDate: string): Date {
   const [year, month, day] = isoDate.split("-").map(Number);
   return new Date(Date.UTC(year, month - 1, day));
 }
+
+const EXCEL_DATE_FORMATS: Record<GregorianDateFormat, string> = {
+  "day-month-year": "dd/mm/yyyy",
+  "month-day-year": "mm/dd/yyyy",
+  written: "mmm d, yyyy",
+};
 
 export async function exportTransactionsToExcel(
   transactions: Transaction[],
@@ -53,7 +60,11 @@ export async function exportTransactionsToExcel(
       }),
       key: "date",
       width: 12,
-      style: { numFmt: "dd/mm/yyyy" },
+      style: {
+        numFmt: EXCEL_DATE_FORMATS[
+          calendarSettings.gregorianDateFormat ?? "day-month-year"
+        ],
+      },
     },
     ...(includeHebrewDate
       ? [

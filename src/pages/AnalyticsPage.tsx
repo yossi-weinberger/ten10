@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { formatDisplayDate } from "@/lib/calendar/display-date";
+import { useDateFormatSettings } from "@/lib/calendar/use-display-date";
 import { CalendarPreviewToggle } from "@/components/dashboard/CalendarPreviewToggle";
 import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
 import { formatLocalDate } from "@/lib/utils/local-date";
@@ -38,6 +39,7 @@ export function AnalyticsPage() {
   const showSecondaryDate = useDonationStore(
     (state) => state.settings.showSecondaryDate,
   );
+  const dateFormat = useDateFormatSettings();
   const { user } = useAuth();
   const { platform } = usePlatform();
   const defaultCurrency = useDonationStore((s) => s.settings.defaultCurrency);
@@ -133,6 +135,7 @@ export function AnalyticsPage() {
   const formatDate = useCallback(
     (date: Date) => {
       const displayDate = formatDisplayDate(formatLocalDate(date), {
+        ...dateFormat,
         calendarType,
         showSecondaryDate,
         language: i18n.language.startsWith("he") ? "he" : "en",
@@ -142,7 +145,7 @@ export function AnalyticsPage() {
         ? `${displayDate.primary} (${displayDate.secondary})`
         : displayDate.primary;
     },
-    [calendarType, i18n.language, showSecondaryDate],
+    [calendarType, dateFormat, i18n.language, showSecondaryDate],
   );
 
   const isAllTime = activeDateRangeObject.startDate === "1970-01-01";
@@ -160,6 +163,7 @@ export function AnalyticsPage() {
     try {
       const fmtDatePdf = (iso: string) => {
         const displayDate = formatDisplayDate(iso, {
+          ...dateFormat,
           calendarType,
           showSecondaryDate,
           language: i18n.language.startsWith("he") ? "he" : "en",

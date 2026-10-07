@@ -76,9 +76,9 @@ describe("Hebrew DayPicker DateLib", () => {
     const tishrei = parseLocalDate("2026-09-12");
 
     expect(formatHebrewCalendarCaption(tishrei, "he")).toContain("תשרי");
-    expect(formatHebrewCalendarCaption(tishrei, "en")).toContain("Tishri");
+    expect(formatHebrewCalendarCaption(tishrei, "en")).toContain("Tishrei");
     expect(formatHebrewCalendarMonth(tishrei, "he")).toBe("תשרי");
-    expect(formatHebrewCalendarMonth(tishrei, "en")).toBe("Tishri");
+    expect(formatHebrewCalendarMonth(tishrei, "en")).toBe("Tishrei");
     expect(dateLib.format(tishrei, "d")).toBe("א׳");
     expect(dateLib.format(tishrei, "yyyy-MM-dd")).toBe("2026-09-12");
   });
