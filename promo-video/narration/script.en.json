@@ -1,0 +1,139 @@
+{
+  "lang": "en",
+  "dir": "ltr",
+  "note": "English narration split into phrases. Phrase ids are the anchors the film's timeline hangs on; do not rename them. 'pauseAfter' is the intended pause after each phrase (a direction for the voice-over as well as the provisional timing estimate). Calm, unhurried read. 'hold' (optional) is a reading hold added after 'pauseAfter' once a topic has finished building on screen: silence in the voice-over, a still beat in the film.",
+  "phrases": [
+    {
+      "id": "hook1",
+      "text": "Maaser sounds simple.",
+      "pauseAfter": 0.45
+    },
+    {
+      "id": "hook2",
+      "text": "Ten percent.",
+      "pauseAfter": 1.0,
+      "hold": 0.5
+    },
+    {
+      "id": "complex1",
+      "text": "But once you add income, donations, currencies, different months, recurring commitments and everything that changes along the way,",
+      "pauseAfter": 0.35
+    },
+    {
+      "id": "complex2",
+      "text": "it quickly becomes harder to keep track.",
+      "pauseAfter": 0.85,
+      "hold": 1.0
+    },
+    {
+      "id": "order",
+      "text": "TEN10 brings it all into one clear system,",
+      "pauseAfter": 0.4
+    },
+    {
+      "id": "maaser",
+      "text": "with full support for both Maaser and Chomesh, in any currency.",
+      "pauseAfter": 0.85,
+      "hold": 1.4
+    },
+    {
+      "id": "hebrew",
+      "text": "All on the Hebrew calendar too: dates, periods, and a maaser year.",
+      "pauseAfter": 0.7,
+      "hold": 1.8
+    },
+    {
+      "id": "import",
+      "text": "Import existing transactions,",
+      "pauseAfter": 0.55,
+      "hold": 0.6
+    },
+    {
+      "id": "recurring",
+      "text": "automate recurring entries,",
+      "pauseAfter": 0.55,
+      "hold": 0.6
+    },
+    {
+      "id": "reminders",
+      "text": "and get reminders when you need them.",
+      "pauseAfter": 0.85,
+      "hold": 1.0
+    },
+    {
+      "id": "analytics",
+      "text": "The analytics dashboard shows exactly where your household money goes.",
+      "pauseAfter": 0.9,
+      "hold": 1.4
+    },
+    {
+      "id": "budget",
+      "text": "For your household budget: cash flow, income versus expenses, and savings rate,",
+      "pauseAfter": 0.35,
+      "hold": 0.6
+    },
+    {
+      "id": "insights",
+      "text": "with insights for every period.",
+      "pauseAfter": 0.85,
+      "hold": 1.8
+    },
+    {
+      "id": "reports",
+      "text": "Print reports, or export to Excel and PDF.",
+      "pauseAfter": 0.85,
+      "hold": 1.2
+    },
+    {
+      "id": "notjust",
+      "text": "And TEN10 is more than numbers.",
+      "pauseAfter": 1.0,
+      "hold": 0.4
+    },
+    {
+      "id": "halacha",
+      "text": "Explore the Halacha Library for relevant guidance,",
+      "pauseAfter": 0.45,
+      "hold": 0.5
+    },
+    {
+      "id": "rabbi",
+      "text": "and when you still have a question, use Ask the Rabbi.",
+      "pauseAfter": 0.85,
+      "hold": 1.2
+    },
+    {
+      "id": "trust",
+      "text": "TEN10 was developed with the Torat Ha'adam La'adam Institute, and endorsed by leading rabbis.",
+      "pauseAfter": 0.9,
+      "hold": 1.4
+    },
+    {
+      "id": "platforms",
+      "text": "Use it on the web from anywhere, or as desktop software that works even offline.",
+      "pauseAfter": 0.85,
+      "hold": 1.4
+    },
+    {
+      "id": "together",
+      "text": "Your income, donations and obligations come together in one clear picture.",
+      "pauseAfter": 0.85,
+      "hold": 1.2
+    },
+    {
+      "id": "brand",
+      "text": "TEN10.",
+      "pauseAfter": 0.7
+    },
+    {
+      "id": "tagline",
+      "text": "Simple and accurate tithe and financial budget management.",
+      "pauseAfter": 0.45
+    },
+    {
+      "id": "free",
+      "text": "Free for personal use.",
+      "pauseAfter": 0
+    }
+  ]
+}
