@@ -1,9 +1,11 @@
 import {
+  formatHebrewMonthName,
+  formatHebrewYearNumber,
   getCalendarAdapter,
   type CalendarLanguage,
   type CalendarType,
+  type HebrewEnglishDateFormat,
 } from "@/lib/calendar";
-import { formatHebrewYear } from "@/lib/halacha/hebrew-numeral";
 import type { DailyHeatmapResponse } from "@/lib/data-layer/insights.service";
 
 function getCalendarYear(
@@ -42,21 +44,34 @@ export function filterHeatmapDataByCalendarYear(
 export function formatHeatmapYearLabel(
   year: string,
   calendarType: CalendarType,
+  language: CalendarLanguage = "he",
+  hebrewEnglishFormat?: HebrewEnglishDateFormat,
 ): string {
   if (calendarType !== "hebrew") {
     return year;
   }
 
-  return formatHebrewYear(Number(year));
+  return formatHebrewYearNumber(Number(year), language, hebrewEnglishFormat);
 }
 
 export function formatHeatmapMonthTick(
   isoDate: string,
   calendarType: CalendarType,
   language: CalendarLanguage,
+  hebrewEnglishFormat?: HebrewEnglishDateFormat,
 ): string {
+  if (calendarType === "hebrew") {
+    const date = getCalendarAdapter("hebrew").fromIsoDate(isoDate);
+    return formatHebrewMonthName(
+      date.year,
+      date.month,
+      language,
+      hebrewEnglishFormat,
+    );
+  }
+
   return new Intl.DateTimeFormat(language, {
-    calendar: calendarType === "hebrew" ? "hebrew" : "gregory",
+    calendar: "gregory",
     month: "short",
     timeZone: "UTC",
   }).format(new Date(`${isoDate}T00:00:00Z`));

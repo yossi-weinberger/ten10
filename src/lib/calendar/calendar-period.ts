@@ -1,5 +1,6 @@
 import {
   getCalendarAdapter,
+  type CalendarFormatOptions,
   type CalendarLanguage,
   type CalendarType,
 } from "@/lib/calendar";
@@ -41,10 +42,12 @@ export function formatCalendarMonthLabel(
   monthKey: string,
   calendarType: CalendarType,
   language: string,
+  options?: CalendarFormatOptions,
 ): string {
   return getCalendarAdapter(calendarType).monthLabel(
     monthKey,
     normalizeLanguage(language),
+    options,
   );
 }
 

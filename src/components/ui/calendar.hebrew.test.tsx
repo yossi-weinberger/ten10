@@ -127,7 +127,7 @@ afterEach(() => {
 describe("Hebrew calendar grid", () => {
   it.each([
     ["he", "תשרי"],
-    ["en", "Tishri"],
+    ["en", "Tishrei"],
   ] as const)(
     "renders all 30 Tishrei 5787 days with correct weekday alignment in %s",
     (testLanguage, expectedCaption) => {

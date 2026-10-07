@@ -33,6 +33,9 @@ export function MonthlyChart() {
   const userId = user?.id;
   const { platform } = usePlatform();
   const language = i18n.language;
+  const hebrewEnglishDateFormat = useDonationStore(
+    (state) => state.settings.hebrewEnglishDateFormat,
+  );
 
   const monthlyChartConfig: ChartConfig = {
     income: {
@@ -221,8 +224,9 @@ export function MonthlyChart() {
         serverMonthlyChartData,
         calendarType,
         language,
+        hebrewEnglishDateFormat,
       );
-    }, [serverMonthlyChartData, calendarType, language]);
+    }, [serverMonthlyChartData, calendarType, language, hebrewEnglishDateFormat]);
 
   // Consistent container height to prevent CLS
   const chartContainerHeight = "min-h-[400px] md:min-h-[500px]";

@@ -4,6 +4,7 @@ import {
   formatHebrewDisplayDate,
   formatHebrewMonthLabel,
   hebrewDaysInMonth,
+  type HebrewEnglishDateFormat,
   hebrewFromIsoDate,
   hebrewToIsoDate,
 } from "./hebrew-calendar.ts";
@@ -11,6 +12,12 @@ import {
 export type CalendarType = "gregorian" | "hebrew";
 export type CalendarLanguage = "he" | "en";
 export type CalendarFormatStyle = "numeric" | "long";
+export type { HebrewEnglishDateFormat };
+export {
+  formatHebrewDayNumber,
+  formatHebrewMonthName,
+  formatHebrewYearNumber,
+} from "./hebrew-calendar.ts";
 export type CalendarOverflow = "constrain" | "reject";
 export type RecurrenceFrequency = "daily" | "weekly" | "monthly" | "yearly";
 export type YearlyNormalizationPolicy = "constrain" | "reject";
@@ -45,6 +52,11 @@ export interface CalendarDateRepresentation {
   monthsInYear: number;
 }
 
+export interface CalendarFormatOptions {
+  /** Used only by the Hebrew calendar when the language is English. */
+  hebrewEnglishFormat?: HebrewEnglishDateFormat;
+}
+
 export interface CalendarAdapter {
   readonly calendarType: CalendarType;
   fromIsoDate(isoDate: string): CalendarDateRepresentation;
@@ -56,6 +68,7 @@ export interface CalendarAdapter {
     isoDate: string,
     language: CalendarLanguage,
     style: CalendarFormatStyle,
+    options?: CalendarFormatOptions,
   ): string;
   startOfMonth(isoDate: string): string;
   endOfMonth(isoDate: string): string;
@@ -64,7 +77,11 @@ export interface CalendarAdapter {
   daysInMonth(year: number, month: number): number;
   clampDay(year: number, month: number, day: number): number;
   monthKey(isoDate: string): string;
-  monthLabel(monthKey: string, language: CalendarLanguage): string;
+  monthLabel(
+    monthKey: string,
+    language: CalendarLanguage,
+    options?: CalendarFormatOptions,
+  ): string;
 }
 
 const ISO_DATE_PATTERN = /^(-?\d{4,})-(\d{2})-(\d{2})$/;
@@ -341,8 +358,12 @@ function createHebrewAdapter(): CalendarAdapter {
       return hebrewToIsoDate(date, overflow);
     },
 
-    formatDate(isoDate, language) {
-      return formatHebrewDisplayDate(hebrewFromIsoDate(isoDate), language);
+    formatDate(isoDate, language, _style, options) {
+      return formatHebrewDisplayDate(
+        hebrewFromIsoDate(isoDate),
+        language,
+        options?.hebrewEnglishFormat,
+      );
     },
 
     startOfMonth(isoDate) {
@@ -397,10 +418,15 @@ function createHebrewAdapter(): CalendarAdapter {
       return `${date.year}-${padMonth(date.month)}`;
     },
 
-    monthLabel(monthKey, language) {
+    monthLabel(monthKey, language, options) {
       const { year, month } = parseMonthKey(monthKey);
       createHebrewDate({ year, month, day: 1 }, "reject");
-      return formatHebrewMonthLabel(year, month, language);
+      return formatHebrewMonthLabel(
+        year,
+        month,
+        language,
+        options?.hebrewEnglishFormat,
+      );
     },
   };
 }

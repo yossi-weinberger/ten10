@@ -549,6 +549,7 @@ export async function exportTransactionsToPDF(
           currentMonthKey,
           calendarSettings.calendarType,
           currentLanguage,
+          { hebrewEnglishFormat: calendarSettings.hebrewEnglishDateFormat },
         );
         const labelFontSize = LAYOUT.fontSize.cell - 1;
         const labelPadding = 4;
@@ -663,6 +664,7 @@ export async function exportTransactionsToPDF(
         language: calendarLanguage,
       });
       const gregorianPdfDate = formatDisplayDate(t.date, {
+        ...calendarSettings,
         calendarType: "gregorian",
         showSecondaryDate: false,
         language: calendarLanguage,

@@ -1,5 +1,6 @@
 import {
   getCalendarAdapter,
+  type CalendarFormatOptions,
   type CalendarFormatStyle,
   type CalendarLanguage,
   type CalendarType,
@@ -10,6 +11,7 @@ export interface CalendarParityFixture {
   isoDate: string;
   language: CalendarLanguage;
   style: CalendarFormatStyle;
+  options?: CalendarFormatOptions;
 }
 
 export const CALENDAR_PARITY_FIXTURES: readonly CalendarParityFixture[] = [
@@ -30,6 +32,20 @@ export const CALENDAR_PARITY_FIXTURES: readonly CalendarParityFixture[] = [
     isoDate: "2027-03-10",
     language: "en",
     style: "long",
+  },
+  {
+    calendarType: "hebrew",
+    isoDate: "2026-09-12",
+    language: "en",
+    style: "long",
+    options: { hebrewEnglishFormat: "numbers" },
+  },
+  {
+    calendarType: "hebrew",
+    isoDate: "2027-03-10",
+    language: "en",
+    style: "long",
+    options: { hebrewEnglishFormat: "letters" },
   },
 ] as const;
 
@@ -79,6 +95,36 @@ export const CALENDAR_PARITY_EXPECTED = [
     monthLabel: "Adar II תשפ״ז",
     formatted: "א׳ Adar II תשפ״ז",
   },
+  {
+    representation: {
+      calendarType: "hebrew",
+      isoDate: "2026-09-12",
+      year: 5787,
+      month: 1,
+      monthCode: "M01",
+      day: 1,
+      inLeapYear: true,
+      monthsInYear: 13,
+    },
+    monthKey: "5787-01",
+    monthLabel: "Tishrei 5787",
+    formatted: "1 Tishrei 5787",
+  },
+  {
+    representation: {
+      calendarType: "hebrew",
+      isoDate: "2027-03-10",
+      year: 5787,
+      month: 7,
+      monthCode: "M06",
+      day: 1,
+      inLeapYear: true,
+      monthsInYear: 13,
+    },
+    monthKey: "5787-07",
+    monthLabel: "אדר ב׳ תשפ״ז",
+    formatted: "א׳ אדר ב׳ תשפ״ז",
+  },
 ] as const;
 
 export function evaluateCalendarFixtures(
@@ -90,11 +136,16 @@ export function evaluateCalendarFixtures(
     return {
       representation: adapter.fromIsoDate(fixture.isoDate),
       monthKey,
-      monthLabel: adapter.monthLabel(monthKey, fixture.language),
+      monthLabel: adapter.monthLabel(
+        monthKey,
+        fixture.language,
+        fixture.options,
+      ),
       formatted: adapter.formatDate(
         fixture.isoDate,
         fixture.language,
         fixture.style,
+        fixture.options,
       ),
     };
   });

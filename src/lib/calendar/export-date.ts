@@ -1,16 +1,16 @@
-import { formatDisplayDate } from "@/lib/calendar/display-date";
+import {
+  formatDisplayDate,
+  type DateFormatSettings,
+} from "@/lib/calendar/display-date";
 import type { CalendarLanguage, CalendarType } from "@/lib/calendar";
 
-export interface ExportDateOptions {
+export interface ExportDateOptions extends Partial<DateFormatSettings> {
   calendarType: CalendarType;
   showSecondaryDate: boolean;
   language: CalendarLanguage;
 }
 
-export type CalendarExportSettings = Pick<
-  ExportDateOptions,
-  "calendarType" | "showSecondaryDate"
->;
+export type CalendarExportSettings = Omit<ExportDateOptions, "language">;
 
 export interface ExportDate {
   gregorian: string;
@@ -22,9 +22,9 @@ export function formatExportDate(
   options: ExportDateOptions,
 ): ExportDate {
   const gregorian = formatDisplayDate(isoDate, {
+    ...options,
     calendarType: "gregorian",
     showSecondaryDate: false,
-    language: options.language,
     style: "numeric",
   }).primary;
   const includeHebrew =
@@ -35,9 +35,9 @@ export function formatExportDate(
   }
 
   const hebrew = formatDisplayDate(isoDate, {
+    ...options,
     calendarType: "hebrew",
     showSecondaryDate: false,
-    language: options.language,
     style: "long",
   }).primary;
 

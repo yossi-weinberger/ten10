@@ -2,10 +2,12 @@ import { format as formatDateFns, toDate as toDateFns } from "date-fns";
 import { type DateLib } from "react-day-picker";
 
 import {
+  formatHebrewDayNumber,
+  formatHebrewMonthName,
   getCalendarAdapter,
   type CalendarLanguage,
+  type HebrewEnglishDateFormat,
 } from "@/lib/calendar";
-import { formatHebrewNumeral } from "@/lib/halacha/hebrew-numeral";
 import { formatLocalDate, parseLocalDate } from "@/lib/utils/local-date";
 
 const hebrewCalendar = getCalendarAdapter("hebrew");
@@ -26,27 +28,33 @@ function compareDates(left: Date, right: Date): number {
 export function formatHebrewCalendarCaption(
   date: Date,
   language: CalendarLanguage,
+  hebrewEnglishFormat?: HebrewEnglishDateFormat,
 ): string {
   const isoDate = formatLocalDate(date);
   return hebrewCalendar.monthLabel(
     hebrewCalendar.monthKey(isoDate),
     language,
+    { hebrewEnglishFormat },
   );
 }
 
 export function formatHebrewCalendarMonth(
   date: Date,
   language: CalendarLanguage,
+  hebrewEnglishFormat?: HebrewEnglishDateFormat,
 ): string {
-  return new Intl.DateTimeFormat(language, {
-    calendar: "hebrew",
-    month: "long",
-    timeZone: "UTC",
-  }).format(new Date(`${formatLocalDate(date)}T00:00:00Z`));
+  const hebrewDate = toHebrewDate(date);
+  return formatHebrewMonthName(
+    hebrewDate.year,
+    hebrewDate.month,
+    language,
+    hebrewEnglishFormat,
+  );
 }
 
 export function createHebrewDateLib(
   language: CalendarLanguage,
+  hebrewEnglishFormat?: HebrewEnglishDateFormat,
 ): Partial<typeof DateLib.prototype> {
   const startOfMonth = (date: Date) =>
     toLocalDate(hebrewCalendar.startOfMonth(formatLocalDate(date)));
@@ -201,15 +209,24 @@ export function createHebrewDateLib(
     format: (date, formatString, options) => {
       switch (formatString) {
         case "d":
-          return formatHebrewNumeral(toHebrewDate(date).day);
+          return formatHebrewDayNumber(
+            toHebrewDate(date).day,
+            language,
+            hebrewEnglishFormat,
+          );
         case "LLLL y":
         case "y LLLL":
-          return formatHebrewCalendarCaption(date, language);
+          return formatHebrewCalendarCaption(
+            date,
+            language,
+            hebrewEnglishFormat,
+          );
         case "PPPP":
           return `${formatDateFns(date, "EEEE", options)}, ${hebrewCalendar.formatDate(
             formatLocalDate(date),
             language,
             "long",
+            { hebrewEnglishFormat },
           )}`;
         default:
           return formatDateFns(date, formatString, options);

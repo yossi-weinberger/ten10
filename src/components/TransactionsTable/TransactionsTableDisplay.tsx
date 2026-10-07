@@ -33,7 +33,10 @@ import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { TableTransactionsService } from "@/lib/tableTransactions/tableTransactionService";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 import { BulkEditDialog } from "./BulkEditDialog";
-import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import {
+  useDateFormatSettings,
+  useDisplayDate,
+} from "@/lib/calendar/use-display-date";
 import { BulkEditFields } from "./BulkEditFields";
 import { useLoadedRowSelection } from "@/hooks/useLoadedRowSelection";
 import {
@@ -66,6 +69,7 @@ export function TransactionsTableDisplay() {
     (state) => state.settings.trackChomeshSeparately,
   );
   const calendarType = useEffectiveCalendarType();
+  const { hebrewEnglishDateFormat } = useDateFormatSettings();
 
   // sortableColumns definition with translations
   const sortableColumns: { label: string; field: SortableField }[] = [
@@ -521,6 +525,7 @@ export function TransactionsTableDisplay() {
             currentMonthKey,
             calendarType,
             i18n.language,
+            { hebrewEnglishFormat: hebrewEnglishDateFormat },
           ),
         });
       }
@@ -534,7 +539,13 @@ export function TransactionsTableDisplay() {
     });
 
     return result;
-  }, [transactions, sorting.field, i18n.language, calendarType]);
+  }, [
+    transactions,
+    sorting.field,
+    i18n.language,
+    calendarType,
+    hebrewEnglishDateFormat,
+  ]);
 
   const bulkDeleteWarnings = [
     selectedHasInitialBalance

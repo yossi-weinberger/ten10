@@ -10,6 +10,7 @@ import {
 } from "./tableTransactions.types"; // Updated path
 import { TableTransactionsService } from "./tableTransactionService"; // Updated path
 import { Platform } from "@/contexts/PlatformContext"; // Path should be relative to new location
+import { pickDateFormatSettings } from "../calendar/display-date";
 import { exportTransactionsToPDF } from "../utils/export-pdf"; // Updated path
 import { exportTransactionsToExcel } from "../utils/export-excel"; // Updated path
 import { exportTransactionsToCSV } from "../utils/export-csv"; // Updated path
@@ -407,6 +408,7 @@ export const useTableTransactionsStore = create<TableTransactionsState>()(
         const savedCalendar = useDonationStore.getState().settings;
         const preview = useCalendarPreview.getState().preview;
         const calendarSettings = {
+          ...pickDateFormatSettings(savedCalendar),
           calendarType: preview ?? savedCalendar.calendarType,
           showSecondaryDate: savedCalendar.showSecondaryDate,
         };

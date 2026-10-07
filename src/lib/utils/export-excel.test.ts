@@ -65,7 +65,7 @@ describe("exportTransactionsToExcel", () => {
     expect((sheet.getRow(2).getCell(1).value as Date).toISOString()).toBe(
       "2026-09-12T00:00:00.000Z",
     );
-    expect(sheet.getRow(2).getCell(2).value).toBe("א׳ Tishri תשפ״ז");
+    expect(sheet.getRow(2).getCell(2).value).toBe("א׳ Tishrei תשפ״ז");
     expect(sheet.columnCount).toBe(11);
   });
 });

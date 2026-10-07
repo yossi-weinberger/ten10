@@ -46,6 +46,8 @@ describe("PreferencesSyncService.extractClientPreferences", () => {
       calendarType: "hebrew",
       reminderCalendarType: "hebrew",
       showSecondaryDate: true,
+      gregorianDateFormat: "month-day-year",
+      hebrewEnglishDateFormat: "numbers",
       onboarding: {
         version: 2,
         status: "completed",
@@ -85,6 +87,8 @@ describe("PreferencesSyncService.extractClientPreferences", () => {
       calendarType: "hebrew",
       reminderCalendarType: "hebrew",
       showSecondaryDate: true,
+      gregorianDateFormat: "month-day-year",
+      hebrewEnglishDateFormat: "numbers",
       onboarding: {
         version: 2,
         status: "completed",
@@ -110,6 +114,8 @@ describe("PreferencesSyncService.extractClientPreferences", () => {
       autoLockTimeoutMinutes: 30,
       calendarType: "hebrew",
       showSecondaryDate: true,
+      gregorianDateFormat: "month-day-year",
+      hebrewEnglishDateFormat: "numbers",
       onboarding: {
         version: 2,
         status: "completed",
@@ -124,6 +130,8 @@ describe("PreferencesSyncService.extractClientPreferences", () => {
       PreferencesSyncService.extractClientPreferences({
         calendarType: "julian",
         showSecondaryDate: "yes",
+        gregorianDateFormat: "yyyy-mm-dd",
+        hebrewEnglishDateFormat: "roman",
       } as unknown as Settings),
     ).toEqual({});
   });

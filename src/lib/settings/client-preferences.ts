@@ -1,4 +1,8 @@
 import type { Settings } from "@/lib/store";
+import {
+  isGregorianDateFormat,
+  isHebrewEnglishDateFormat,
+} from "@/lib/settings/calendar-settings";
 
 export function sanitizeClientPreferences(
   settings: Partial<Settings>,
@@ -30,6 +34,12 @@ export function sanitizeClientPreferences(
     }),
     ...(typeof settings.showSecondaryDate === "boolean" && {
       showSecondaryDate: settings.showSecondaryDate,
+    }),
+    ...(isGregorianDateFormat(settings.gregorianDateFormat) && {
+      gregorianDateFormat: settings.gregorianDateFormat,
+    }),
+    ...(isHebrewEnglishDateFormat(settings.hebrewEnglishDateFormat) && {
+      hebrewEnglishDateFormat: settings.hebrewEnglishDateFormat,
     }),
     ...(settings.onboarding !== undefined && {
       onboarding: settings.onboarding,

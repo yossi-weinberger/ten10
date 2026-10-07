@@ -95,6 +95,19 @@
     "cardTitle": "לוח שנה",
     "cardDescription": "בחר את לוח התצוגה הראשי. היום העברי מתחלף בחצות.",
     "primaryCalendarLabel": "לוח ראשי",
+    "gregorianFormatLabel": "תבנית תאריך לועזי",
+    "gregorianFormatOptions": {
+      "dayMonthYear": "יום/חודש/שנה",
+      "monthDayYear": "חודש/יום/שנה",
+      "written": "שם החודש"
+    },
+    "hebrewEnglishFormatLabel": "תאריך עברי באנגלית",
+    "hebrewEnglishFormatOptions": {
+      "mixed": "משולב",
+      "numbers": "ספרות",
+      "letters": "אותיות עבריות"
+    },
+    "formatExample": "לדוגמה: {{date}}",
     "showSecondaryDateLabel": "הצג גם תאריך משני",
     "showSecondaryDateDescription": "לתצוגה בלבד — אינו משנה סינונים או תקופות.",
     "options": {

@@ -16,11 +16,13 @@ import {
   formatHebrewCalendarCaption,
   formatHebrewCalendarMonth,
 } from "@/lib/calendar/hebrew-date-lib";
-import { getCalendarAdapter, getIsraelYomTov, type CalendarLanguage } from "@/lib/calendar";
 import {
-  formatHebrewNumeral,
-  formatHebrewYear,
-} from "@/lib/halacha/hebrew-numeral";
+  formatHebrewDayNumber,
+  formatHebrewYearNumber,
+  getCalendarAdapter,
+  getIsraelYomTov,
+  type CalendarLanguage,
+} from "@/lib/calendar";
 import { useDonationStore } from "@/lib/store";
 import { formatLocalDate } from "@/lib/utils/local-date";
 
@@ -44,12 +46,15 @@ function Calendar({
   const calendarType = useDonationStore(
     (state) => state.settings.calendarType,
   );
+  const hebrewEnglishDateFormat = useDonationStore(
+    (state) => state.settings.hebrewEnglishDateFormat,
+  );
   const language: CalendarLanguage = i18n.language.startsWith("he")
     ? "he"
     : "en";
   const hebrewDateLib = React.useMemo(
-    () => createHebrewDateLib(language),
-    [language],
+    () => createHebrewDateLib(language, hebrewEnglishDateFormat),
+    [language, hebrewEnglishDateFormat],
   );
   const hebrewCalendar = getCalendarAdapter("hebrew");
   const resolvedFormatters =
@@ -57,16 +62,28 @@ function Calendar({
       ? {
           ...formatters,
           formatCaption: (date: Date) =>
-            formatHebrewCalendarCaption(date, language),
+            formatHebrewCalendarCaption(
+              date,
+              language,
+              hebrewEnglishDateFormat,
+            ),
           formatDay: (date: Date) =>
-            formatHebrewNumeral(
+            formatHebrewDayNumber(
               hebrewCalendar.fromIsoDate(formatLocalDate(date)).day,
+              language,
+              hebrewEnglishDateFormat,
             ),
           formatMonthDropdown: (date: Date) =>
-            formatHebrewCalendarMonth(date, language),
+            formatHebrewCalendarMonth(
+              date,
+              language,
+              hebrewEnglishDateFormat,
+            ),
           formatYearDropdown: (date: Date) =>
-            formatHebrewYear(
+            formatHebrewYearNumber(
               hebrewCalendar.fromIsoDate(formatLocalDate(date)).year,
+              language,
+              hebrewEnglishDateFormat,
             ),
         }
       : {
@@ -79,7 +96,11 @@ function Calendar({
       ? {
           ...labels,
           labelGrid: (date: Date) =>
-            formatHebrewCalendarCaption(date, language),
+            formatHebrewCalendarCaption(
+              date,
+              language,
+              hebrewEnglishDateFormat,
+            ),
         }
       : labels;
 
@@ -236,10 +257,13 @@ function CalendarDayButton({
   modifiers,
   ...props
 }: React.ComponentProps<typeof DayButton>) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const defaultClassNames = getDefaultClassNames();
   const calendarType = useDonationStore(
     (state) => state.settings.calendarType,
+  );
+  const hebrewEnglishDateFormat = useDonationStore(
+    (state) => state.settings.hebrewEnglishDateFormat,
   );
   const isoDate = formatLocalDate(day.date);
   const isHebrew = calendarType === "hebrew";
@@ -247,8 +271,10 @@ function CalendarDayButton({
   const isYomTov = isHebrew && getIsraelYomTov(isoDate) !== null;
   const marked = !modifiers.selected && (isShabbat || isYomTov);
   const dayNumber = isHebrew
-    ? formatHebrewNumeral(
+    ? formatHebrewDayNumber(
         getCalendarAdapter("hebrew").fromIsoDate(isoDate).day,
+        i18n.language.startsWith("he") ? "he" : "en",
+        hebrewEnglishDateFormat,
       )
     : String(day.date.getDate());
   const marks = [

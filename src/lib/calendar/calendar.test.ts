@@ -186,7 +186,7 @@ describe("calendar adapters", () => {
       }).format(new Date("2026-09-12T00:00:00Z")),
     );
     expect(hebrew.formatDate("2026-09-12", "en", "long")).toContain(
-      "Tishri",
+      "Tishrei",
     );
     expect(hebrew.formatDate("2026-09-12", "he", "long")).toContain(
       "תשרי",
@@ -210,11 +210,13 @@ describe("calendar adapters", () => {
           monthLabel: adapter.monthLabel(
             adapter.monthKey(fixture.isoDate),
             fixture.language,
+            fixture.options,
           ),
           formatted: adapter.formatDate(
             fixture.isoDate,
             fixture.language,
             fixture.style,
+            fixture.options,
           ),
         };
       }),
@@ -229,11 +231,13 @@ describe("calendar adapters", () => {
           monthLabel: adapter.monthLabel(
             adapter.monthKey(fixture.isoDate),
             fixture.language,
+            fixture.options,
           ),
           formatted: adapter.formatDate(
             fixture.isoDate,
             fixture.language,
             fixture.style,
+            fixture.options,
           ),
         };
       }),
