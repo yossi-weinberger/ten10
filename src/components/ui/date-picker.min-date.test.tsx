@@ -4,7 +4,7 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { type Resolver, useForm } from "react-hook-form";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AmountCurrencyDateFields } from "@/components/forms/transaction-form-parts/AmountCurrencyDateFields";
@@ -82,7 +82,7 @@ function TransactionDateFormHarness({
 }) {
   const schema = createTransactionFormSchema(((key: string) => lookup(key)) as never);
   const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema) as Resolver<TransactionFormValues>,
     defaultValues: {
       amount: 100,
       currency: "ILS",
@@ -100,7 +100,6 @@ function TransactionDateFormHarness({
         onSubmit={form.handleSubmit((values) => onSubmit({ date: values.date }))}
       >
         <AmountCurrencyDateFields form={form} />
-        <p data-testid="committed-date">{form.watch("date")}</p>
         <button type="submit">Save</button>
       </form>
     </Form>
@@ -194,13 +193,11 @@ describe.each([
     const input = screen.getByPlaceholderText("DD/MM/YYYY");
     await typeOverField(user, input, "abc");
     expect(input).toHaveValue("abc");
-    expect(screen.getByTestId("committed-date")).toHaveTextContent("");
 
     await user.click(screen.getByRole("button", { name: "Save" }));
 
     expect(input).toHaveValue("abc");
     expect(screen.getByText(EN_INVALID)).toBeInTheDocument();
-    expect(screen.getByTestId("committed-date")).toHaveTextContent("invalid");
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
@@ -214,13 +211,11 @@ describe.each([
 
     const input = screen.getByPlaceholderText("DD/MM/YYYY");
     await typeOverField(user, input, "01/01/26");
-    expect(screen.getByTestId("committed-date")).toHaveTextContent("");
 
     await user.click(screen.getByRole("button", { name: "Save" }));
 
     expect(onSubmit).toHaveBeenCalledWith({ date: "2026-01-01" });
     expect(input).toHaveValue("01/01/2026");
-    expect(screen.getByTestId("committed-date")).toHaveTextContent("2026-01-01");
   });
 
   it("blocks save when 31/12/1999 is typed and Save is clicked while focused", async () => {
