@@ -19,7 +19,11 @@ import {
 } from "@/lib/utils/local-date";
 import { minTransactionDateLocal } from "@/lib/utils/transaction-date";
 import { Input } from "./input";
-import { parseExactGregorianDateInput } from "./gregorian-date-input";
+import {
+  formatGregorianDateInput,
+  parseFlexibleGregorianDateInput,
+  type GregorianDateParseResult,
+} from "./gregorian-date-input";
 
 export function DatePicker({
   date,
@@ -32,8 +36,9 @@ export function DatePicker({
 }) {
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>("");
-  const [minDateError, setMinDateError] = React.useState<string | null>(null);
+  const [inputError, setInputError] = React.useState<string | null>(null);
   const [month, setMonth] = React.useState<Date | undefined>(date);
+  const keepTypedValueRef = React.useRef(false);
   const { t, i18n } = useTranslation(["dashboard", "transactions"]);
   const resolvedMinDate = React.useMemo(
     () => minDate ?? minTransactionDateLocal(),
@@ -56,55 +61,100 @@ export function DatePicker({
         }).primary;
       }
 
-      return format(value, "dd/MM/yyyy");
+      return formatGregorianDateInput(value);
     },
     [calendarType, language],
   );
 
   React.useEffect(() => {
+    if (keepTypedValueRef.current) {
+      keepTypedValueRef.current = false;
+      return;
+    }
     if (date && isValidDate(date)) {
       setInputValue(formatFieldDate(date));
       if (date >= resolvedMinDate) {
-        setMinDateError(null);
+        setInputError(null);
       }
-    } else {
+    } else if (!inputError) {
       setInputValue("");
     }
     setMonth(date);
-  }, [date, formatFieldDate, resolvedMinDate]);
+  }, [date, formatFieldDate, resolvedMinDate, inputError]);
 
   function isValidDate(d: unknown): d is Date {
     return d instanceof Date && !isNaN(d.getTime());
+  }
+
+  function applyParseResult(
+    result: GregorianDateParseResult,
+    rawValue: string,
+    options: { allowIncomplete: boolean },
+  ) {
+    switch (result.status) {
+      case "empty":
+        setInputError(null);
+        setDate(undefined);
+        return;
+      case "parsed": {
+        const parsedDate = result.date;
+        setInputValue(formatFieldDate(parsedDate));
+        setMonth(parsedDate);
+        if (parsedDate < resolvedMinDate) {
+          setInputError(t("transactions:transactionForm.validation.date.min"));
+        } else {
+          setInputError(null);
+        }
+        setDate(parsedDate);
+        return;
+      }
+      case "invalid":
+        if (options.allowIncomplete) {
+          setInputError(null);
+          return;
+        }
+        keepTypedValueRef.current = true;
+        setInputValue(rawValue);
+        setInputError(t("transactions:transactionForm.validation.date.invalid"));
+        setDate(undefined);
+        return;
+      default: {
+        const exhaustive: never = result;
+        return exhaustive;
+      }
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (calendarType === "hebrew") return;
     const value = e.target.value;
     setInputValue(value);
-    const parsedDate = parseExactGregorianDateInput(value);
-    if (parsedDate && parsedDate >= resolvedMinDate) {
-      setMinDateError(null);
-      setDate(parsedDate);
-      setMonth(parsedDate);
-    } else if (parsedDate) {
-      setMinDateError(t("transactions:transactionForm.validation.date.min"));
-    } else if (value === "") {
-      setMinDateError(null);
-      setDate(undefined);
+    const result = parseFlexibleGregorianDateInput(value);
+    if (result.status === "parsed" || result.status === "empty") {
+      applyParseResult(result, value, { allowIncomplete: true });
     } else {
-      setMinDateError(null);
+      setInputError(null);
     }
+  };
+
+  const commitInput = (rawValue: string) => {
+    if (calendarType === "hebrew") return;
+    applyParseResult(parseFlexibleGregorianDateInput(rawValue), rawValue, {
+      allowIncomplete: false,
+    });
   };
 
   const handleSelectDate = (selectedDate: Date | undefined) => {
     if (isValidDate(selectedDate) && selectedDate >= resolvedMinDate) {
-      setMinDateError(null);
+      setInputError(null);
       setDate(selectedDate);
       setInputValue(formatFieldDate(selectedDate));
     } else if (isValidDate(selectedDate)) {
-      setMinDateError(t("transactions:transactionForm.validation.date.min"));
+      setInputError(t("transactions:transactionForm.validation.date.min"));
+      setDate(selectedDate);
+      setInputValue(formatFieldDate(selectedDate));
     } else {
-      setMinDateError(null);
+      setInputError(null);
       setDate(undefined);
       setInputValue("");
     }
@@ -112,17 +162,14 @@ export function DatePicker({
   };
 
   const formatCaption = (date: Date) => {
-    // Use i18n language for locale selection
     const currentLocale = i18n.language === "he" ? he : enUS;
-    // Format: "MonthName MonthNumber Year" (e.g., "January 1 2024" or "ינואר 1 2024")
     const monthName = format(date, "LLLL", { locale: currentLocale });
-    const monthNumber = date.getMonth() + 1; // JavaScript months are 0-based
+    const monthNumber = date.getMonth() + 1;
     const year = date.getFullYear();
     return `${monthName} ${monthNumber} ${year}`;
   };
 
   const formatWeekday = (date: Date) => {
-    // Use i18n language for locale selection
     const currentLocale = i18n.language === "he" ? he : enUS;
     return format(date, "EEEEEE", { locale: currentLocale });
   };
@@ -131,16 +178,13 @@ export function DatePicker({
     return format(date, "d");
   };
 
-  // Format month name for dropdown (used when captionLayout="dropdown")
   const formatMonthDropdown = (date: Date) => {
-    // Use i18n language for locale selection
     const currentLocale = i18n.language === "he" ? he : enUS;
     const monthName = format(date, "LLLL", { locale: currentLocale });
     const monthNumber = date.getMonth() + 1;
     return `${monthName} ${monthNumber}`;
   };
 
-  // Format year for dropdown
   const formatYearDropdown = (date: Date) => {
     return date.getFullYear().toString();
   };
@@ -151,19 +195,25 @@ export function DatePicker({
         placeholder={calendarType === "hebrew" ? "" : "DD/MM/YYYY"}
         value={inputValue}
         onChange={handleInputChange}
+        onBlur={() => commitInput(inputValue)}
         readOnly={calendarType === "hebrew"}
         className="bg-background pr-10"
-        aria-invalid={minDateError ? true : undefined}
+        aria-invalid={inputError ? true : undefined}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") {
             e.preventDefault();
             setOpen(true);
+          }
+          if (e.key === "Enter") {
+            e.preventDefault();
+            commitInput(inputValue);
           }
         }}
       />
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
+            type="button"
             variant="ghost"
             className="absolute top-1/2 right-2 size-7 -translate-y-1/2 p-0"
           >
@@ -222,11 +272,13 @@ export function DatePicker({
   return (
     <div>
       {picker}
-      {minDateError ? (
-        <p role="alert" className="mt-1 text-sm text-destructive">
-          {minDateError}
-        </p>
-      ) : null}
+      <div className="mt-1 min-h-5 text-sm leading-snug">
+        {inputError ? (
+          <p role="alert" className="break-words font-medium text-destructive">
+            {inputError}
+          </p>
+        ) : null}
+      </div>
     </div>
   );
 }

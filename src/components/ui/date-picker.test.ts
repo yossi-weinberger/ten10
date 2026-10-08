@@ -9,7 +9,8 @@ describe("parseExactGregorianDateInput", () => {
     expect(parsed?.getDate()).toBe(12);
   });
 
-  it("rejects a partial year", () => {
+  it("rejects a two-digit year so blur/commit must normalize it", () => {
     expect(parseExactGregorianDateInput("12/09/20")).toBeNull();
+    expect(parseExactGregorianDateInput("01/01/26")).toBeNull();
   });
 });

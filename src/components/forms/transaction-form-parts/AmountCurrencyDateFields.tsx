@@ -160,16 +160,21 @@ export function AmountCurrencyDateFields({
                   }
                   setDate={(date) => {
                     if (date && !Number.isNaN(date.getTime())) {
-                      field.onChange(formatLocalDate(date));
+                      form.setValue("date", formatLocalDate(date), {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
                     } else {
-                      field.onChange("");
+                      form.setValue("date", "", {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
                     }
                   }}
                 />
               </FormControl>
-              <div className={FIELD_MESSAGE_SLOT_CLASS}>
-                <FormMessage className="break-words" />
-              </div>
             </FormItem>
           )}
         />
