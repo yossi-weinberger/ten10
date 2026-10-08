@@ -176,7 +176,7 @@
       "date": {
         "required": "Date is required",
         "invalid": "Invalid date",
-        "min": "Date must be on or after January 1, 2000"
+        "min": "Dates before 2000 are not allowed"
       },
       "description": {
         "maxLength": "Description can contain up to 100 characters"
