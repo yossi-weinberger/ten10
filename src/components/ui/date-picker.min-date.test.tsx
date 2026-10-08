@@ -56,8 +56,7 @@ function DateFormHarness({
   onSubmit: (values: { date: string }) => void;
 }) {
   const [date, setDate] = React.useState(initialDate);
-  const dateRef = React.useRef(date);
-  dateRef.current = date;
+  const dateRef = React.useRef(initialDate);
 
   return (
     <form
@@ -78,8 +77,11 @@ function DateFormHarness({
         date={date ? parseLocalDate(date) : undefined}
         setDate={(next) => {
           if (next && !Number.isNaN(next.getTime())) {
-            setDate(formatLocalDate(next));
+            const nextDate = formatLocalDate(next);
+            dateRef.current = nextDate;
+            setDate(nextDate);
           } else {
+            dateRef.current = "";
             setDate("");
           }
         }}
