@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { getPlatform } from "../platformManager";
 import { logger } from "@/lib/logger";
 import { RecurringTransaction } from "@/types/transaction";
+import { toRpcDateRangeArgs } from "@/lib/utils/all-time-date";
 
 /**
  * Runs the web or desktop implementation for the current platform, with the
@@ -76,12 +77,11 @@ export interface AnalyticsBreakdownsBundle {
 }
 
 async function fetchAnalyticsBreakdownsWeb(
-  startDate: string | null,
+  startDate: string,
   endDate: string
 ): Promise<AnalyticsBreakdownsBundle> {
   const { data, error } = await supabase.rpc("get_analytics_breakdowns", {
-    p_start_date: startDate,
-    p_end_date: endDate,
+    ...toRpcDateRangeArgs(startDate, endDate),
   });
   if (error) {
     logger.error("InsightsService: analytics breakdowns RPC error:", error);
@@ -95,7 +95,7 @@ async function fetchAnalyticsBreakdownsWeb(
 }
 
 async function fetchAnalyticsBreakdownsDesktop(
-  startDate: string | null,
+  startDate: string,
   endDate: string
 ): Promise<AnalyticsBreakdownsBundle> {
   // Inline import intentional: Tauri APIs are unavailable in web context.
@@ -107,7 +107,7 @@ async function fetchAnalyticsBreakdownsDesktop(
 }
 
 export async function fetchAnalyticsBreakdowns(
-  startDate: string | null,
+  startDate: string,
   endDate: string
 ): Promise<AnalyticsBreakdownsBundle> {
   return fetchByPlatform(
@@ -162,13 +162,12 @@ export type CategoryType = "expense" | "income" | "donation";
 // ─── 1. Category Breakdown ───────────────────────────────────────────────────
 
 async function fetchCategoryBreakdownWeb(
-  startDate: string | null,
+  startDate: string,
   endDate: string,
   type: CategoryType
 ): Promise<CategoryBreakdownResponse> {
   const { data, error } = await supabase.rpc("get_category_breakdown", {
-    p_start_date: startDate,
-    p_end_date: endDate,
+    ...toRpcDateRangeArgs(startDate, endDate),
     p_type: type,
   });
   if (error) {
@@ -179,7 +178,7 @@ async function fetchCategoryBreakdownWeb(
 }
 
 async function fetchCategoryBreakdownDesktop(
-  startDate: string | null,
+  startDate: string,
   endDate: string,
   type: CategoryType
 ): Promise<CategoryBreakdownResponse> {
@@ -191,7 +190,7 @@ async function fetchCategoryBreakdownDesktop(
 }
 
 export async function fetchCategoryBreakdown(
-  startDate: string | null,
+  startDate: string,
   endDate: string,
   type: CategoryType
 ): Promise<CategoryBreakdownResponse> {
@@ -210,13 +209,12 @@ export async function fetchCategoryBreakdown(
 export type HeatmapTypeGroup = "all" | "income" | "expense" | "donation";
 
 async function fetchDailyHeatmapWeb(
-  startDate: string | null,
+  startDate: string,
   endDate: string,
   typeGroup: HeatmapTypeGroup
 ): Promise<DailyHeatmapResponse> {
   const { data, error } = await supabase.rpc("get_daily_transaction_heatmap", {
-    p_start_date: startDate,
-    p_end_date: endDate,
+    ...toRpcDateRangeArgs(startDate, endDate),
     p_type_group: typeGroup,
   });
   if (error) {
@@ -227,7 +225,7 @@ async function fetchDailyHeatmapWeb(
 }
 
 async function fetchDailyHeatmapDesktop(
-  startDate: string | null,
+  startDate: string,
   endDate: string,
   typeGroup: HeatmapTypeGroup
 ): Promise<DailyHeatmapResponse> {
@@ -240,7 +238,7 @@ async function fetchDailyHeatmapDesktop(
 }
 
 export async function fetchDailyHeatmap(
-  startDate: string | null,
+  startDate: string,
   endDate: string,
   typeGroup: HeatmapTypeGroup = "all"
 ): Promise<DailyHeatmapResponse> {

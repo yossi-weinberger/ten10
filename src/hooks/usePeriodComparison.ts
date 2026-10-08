@@ -53,7 +53,7 @@ export function usePeriodComparison(
       setIsLoading(false);
       return;
     }
-    if (isAllTime || !startDate) {
+    if (isAllTime) {
       setPrevIncome(null);
       setPrevExpenses(null);
       setIsLoading(false);

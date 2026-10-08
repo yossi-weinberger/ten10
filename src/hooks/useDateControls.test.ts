@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ALL_TIME_START_DATE, toRpcDateRangeArgs } from "@/lib/utils/all-time-date";
 import {
   calculateDateRange,
+  isAllTimeRange,
   type DateRangeSelectionType,
 } from "./useDateControls";
 
@@ -79,21 +81,25 @@ describe("calculateDateRange", () => {
       });
     });
 
-    it(`keeps the all preset unbounded on ${boundary.name}`, () => {
+    it(`maps the all preset to the BETWEEN-compatible sentinel on ${boundary.name}`, () => {
       vi.setSystemTime(boundary.now);
 
-      expect(
-        calculateDateRange(
-          "all",
-          undefined,
-          labels,
-          "gregorian",
-        ),
-      ).toEqual({
-        startDate: null,
+      const range = calculateDateRange(
+        "all",
+        undefined,
+        labels,
+        "gregorian",
+      );
+      expect(range).toEqual({
+        startDate: ALL_TIME_START_DATE,
         endDate: boundary.today,
         label: "all",
       });
+      expect(toRpcDateRangeArgs(range.startDate, range.endDate)).toEqual({
+        p_start_date: "0001-01-01",
+        p_end_date: boundary.today,
+      });
+      expect(isAllTimeRange(range)).toBe(true);
     });
   }
 
@@ -177,7 +183,7 @@ describe("calculateDateRange", () => {
     expect(
       calculateDateRange("all", undefined, labels, "hebrew"),
     ).toEqual({
-      startDate: null,
+      startDate: ALL_TIME_START_DATE,
       endDate: "2026-09-23",
       label: "all",
     });

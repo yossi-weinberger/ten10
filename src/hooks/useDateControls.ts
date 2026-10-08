@@ -6,19 +6,20 @@ import {
   type CalendarType,
 } from "@/lib/calendar";
 import { useEffectiveCalendarType } from "@/lib/calendar/calendar-preview";
+import { ALL_TIME_START_DATE, isAllTimeStartDate } from "@/lib/utils/all-time-date";
 import { formatLocalDate } from "@/lib/utils/local-date";
 
 export type DateRangeSelectionType = "month" | "year" | "all" | "custom";
 
 export interface DateRangeObject {
-  /** YYYY-MM-DD (local). Null means an unbounded all-time start. */
-  startDate: string | null;
+  /** YYYY-MM-DD (local). All-time uses ALL_TIME_START_DATE. */
+  startDate: string;
   endDate: string; // YYYY-MM-DD (local) - typically "today"
   label?: string;
 }
 
 export function isAllTimeRange(range: Pick<DateRangeObject, "startDate">): boolean {
-  return range.startDate === null;
+  return isAllTimeStartDate(range.startDate);
 }
 
 // Helper: get "today" as a Date (local)
@@ -54,7 +55,7 @@ export function calculateDateRange(
     }
     case "all":
       return {
-        startDate: null,
+        startDate: ALL_TIME_START_DATE,
         endDate,
         label: labels.all,
       };

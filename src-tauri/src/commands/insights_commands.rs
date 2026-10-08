@@ -438,4 +438,13 @@ mod range_stats_tests {
         assert_eq!(unbounded.total_income, 4000.0);
         assert_eq!(unbounded.titheable_income, 4000.0);
     }
+
+    #[test]
+    fn sentinel_start_includes_pre_1970_income() {
+        let conn = seed_conn();
+        let sentinel =
+            query_analytics_range_stats(&conn, Some("0001-01-01"), "2026-12-31").unwrap();
+        assert_eq!(sentinel.total_income, 4000.0);
+        assert_eq!(sentinel.titheable_income, 4000.0);
+    }
 }

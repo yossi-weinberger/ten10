@@ -72,7 +72,7 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
         const startDate =
           dateRangeSelection === "all"
             ? earliestDate
-            : (activeDateRangeObject.startDate ?? earliestDate);
+            : activeDateRangeObject.startDate;
 
         const data = await fetchAdminMonthlyTrends(
           startDate,

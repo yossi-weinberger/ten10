@@ -2,6 +2,7 @@ import { getPlatform } from "../platformManager";
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
 import { invokeTauri } from "@/lib/tauri-invoke";
+import { toRpcDateRangeArgs } from "@/lib/utils/all-time-date";
 
 // Define a type for the data structure returned by server-side calculations
 export interface ServerIncomeData {
@@ -20,7 +21,7 @@ export interface ServerDonationData {
 // Web: Fetch total income and chomesh for a user from Supabase
 async function fetchTotalIncomeForUserWeb(
   userId: string,
-  startDate: string | null, // YYYY-MM-DD; null = unbounded start
+  startDate: string, // YYYY-MM-DD; All-time uses ALL_TIME_START_DATE
   endDate: string // YYYY-MM-DD
 ): Promise<ServerIncomeData | null> {
   logger.log(
@@ -31,8 +32,7 @@ async function fetchTotalIncomeForUserWeb(
       "get_total_income_and_chomesh_for_user",
       {
         p_user_id: userId,
-        p_start_date: startDate,
-        p_end_date: endDate,
+        ...toRpcDateRangeArgs(startDate, endDate),
       }
     );
 
@@ -69,7 +69,7 @@ async function fetchTotalIncomeForUserWeb(
 // Web: Fetch total expenses for a user from Supabase
 async function fetchTotalExpensesForUserWeb(
   userId: string,
-  startDate: string | null, // YYYY-MM-DD; null = unbounded start
+  startDate: string, // YYYY-MM-DD; All-time uses ALL_TIME_START_DATE
   endDate: string // YYYY-MM-DD
 ): Promise<number | null> {
   logger.log(
@@ -78,8 +78,7 @@ async function fetchTotalExpensesForUserWeb(
   try {
     const { data, error } = await supabase.rpc("get_total_expenses_for_user", {
       p_user_id: userId,
-      p_start_date: startDate,
-      p_end_date: endDate,
+      ...toRpcDateRangeArgs(startDate, endDate),
     });
 
     if (error) {
@@ -103,7 +102,7 @@ async function fetchTotalExpensesForUserWeb(
 
 // Desktop: Fetch total income and chomesh in a date range from SQLite
 async function fetchTotalIncomeForUserDesktop(
-  startDate: string | null, // YYYY-MM-DD; null = unbounded start
+  startDate: string, // YYYY-MM-DD; All-time uses ALL_TIME_START_DATE
   endDate: string // YYYY-MM-DD
 ): Promise<ServerIncomeData> {
   logger.log(
@@ -127,7 +126,7 @@ async function fetchTotalIncomeForUserDesktop(
 
 // Desktop: Fetch total expenses in a date range from SQLite
 async function fetchTotalExpensesForUserDesktop(
-  startDate: string | null, // YYYY-MM-DD; null = unbounded start
+  startDate: string, // YYYY-MM-DD; All-time uses ALL_TIME_START_DATE
   endDate: string // YYYY-MM-DD
 ): Promise<number> {
   logger.log(
@@ -149,7 +148,7 @@ async function fetchTotalExpensesForUserDesktop(
 // Wrapper function to fetch total income based on platform
 export async function fetchTotalIncomeInRange(
   userId: string | null, // userId is only needed for web
-  startDate: string | null,
+  startDate: string,
   endDate: string
 ): Promise<ServerIncomeData | null> {
   const currentPlatform = getPlatform();
@@ -180,7 +179,7 @@ export async function fetchTotalIncomeInRange(
 // Wrapper function to fetch total expenses based on platform
 export async function fetchTotalExpensesInRange(
   userId: string | null, // userId is only needed for web
-  startDate: string | null,
+  startDate: string,
   endDate: string
 ): Promise<number | null> {
   const currentPlatform = getPlatform();
@@ -211,7 +210,7 @@ export async function fetchTotalExpensesInRange(
 // --- DONATIONS FUNCTIONS ---
 async function fetchTotalDonationsForUserWeb(
   userId: string,
-  startDate: string | null, // YYYY-MM-DD; null = unbounded start
+  startDate: string, // YYYY-MM-DD; All-time uses ALL_TIME_START_DATE
   endDate: string // YYYY-MM-DD
 ): Promise<ServerDonationData | null> {
   logger.log(
@@ -220,8 +219,7 @@ async function fetchTotalDonationsForUserWeb(
   try {
     const { data, error } = await supabase.rpc("get_total_donations_for_user", {
       p_user_id: userId,
-      p_start_date: startDate,
-      p_end_date: endDate,
+      ...toRpcDateRangeArgs(startDate, endDate),
     });
 
     if (error) {
@@ -255,7 +253,7 @@ async function fetchTotalDonationsForUserWeb(
 }
 
 async function fetchTotalDonationsForUserDesktop(
-  startDate: string | null, // YYYY-MM-DD; null = unbounded start
+  startDate: string, // YYYY-MM-DD; All-time uses ALL_TIME_START_DATE
   endDate: string // YYYY-MM-DD
 ): Promise<ServerDonationData | null> {
   logger.log(
@@ -290,7 +288,7 @@ async function fetchTotalDonationsForUserDesktop(
 
 export async function fetchTotalDonationsInRange(
   userId: string | null, // userId is only needed for web
-  startDate: string | null,
+  startDate: string,
   endDate: string
 ): Promise<ServerDonationData | null> {
   const currentPlatform = getPlatform();
@@ -425,13 +423,12 @@ export interface AnalyticsRangeStats {
 }
 
 async function fetchAnalyticsRangeStatsWeb(
-  startDate: string | null,
+  startDate: string,
   endDate: string
 ): Promise<AnalyticsRangeStats | null> {
   try {
     const { data, error } = await supabase.rpc("get_analytics_range_stats", {
-      p_start_date: startDate,
-      p_end_date: endDate,
+      ...toRpcDateRangeArgs(startDate, endDate),
     });
     if (error) {
       logger.error("AnalyticsService: range stats RPC error:", error);
@@ -449,7 +446,7 @@ async function fetchAnalyticsRangeStatsWeb(
 }
 
 async function fetchAnalyticsRangeStatsDesktop(
-  startDate: string | null,
+  startDate: string,
   endDate: string
 ): Promise<AnalyticsRangeStats | null> {
   try {
@@ -466,7 +463,7 @@ async function fetchAnalyticsRangeStatsDesktop(
 }
 
 export async function fetchAnalyticsRangeStats(
-  startDate: string | null,
+  startDate: string,
   endDate: string
 ): Promise<AnalyticsRangeStats | null> {
   const platform = getPlatform();

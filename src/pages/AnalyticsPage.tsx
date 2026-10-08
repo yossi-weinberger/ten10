@@ -100,7 +100,7 @@ export function AnalyticsPage() {
 
   const prevPeriodDates = useMemo(() => {
     const { startDate, endDate } = activeDateRangeObject;
-    if (!startDate || !endDate) return null;
+    if (!endDate || isAllTimeRange(activeDateRangeObject)) return null;
     return getPreviousPeriodRange(startDate, endDate, {
       selection: dateRangeSelection,
       calendarType,
