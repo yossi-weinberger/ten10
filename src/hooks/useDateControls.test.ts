@@ -79,7 +79,7 @@ describe("calculateDateRange", () => {
       });
     });
 
-    it(`keeps the all preset anchored at the Unix epoch on ${boundary.name}`, () => {
+    it(`keeps the all preset unbounded on ${boundary.name}`, () => {
       vi.setSystemTime(boundary.now);
 
       expect(
@@ -90,7 +90,7 @@ describe("calculateDateRange", () => {
           "gregorian",
         ),
       ).toEqual({
-        startDate: "1970-01-01",
+        startDate: null,
         endDate: boundary.today,
         label: "all",
       });
@@ -177,7 +177,7 @@ describe("calculateDateRange", () => {
     expect(
       calculateDateRange("all", undefined, labels, "hebrew"),
     ).toEqual({
-      startDate: "1970-01-01",
+      startDate: null,
       endDate: "2026-09-23",
       label: "all",
     });

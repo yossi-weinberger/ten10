@@ -107,7 +107,6 @@ export function useInsights(
   const isReady =
     platform !== undefined &&
     platform !== "loading" &&
-    !!startDate &&
     !!endDate;
 
   // ─── Category (own effect — also depends on categoryType) ─────────────────
@@ -209,7 +208,7 @@ export function useInsights(
       // Always fetch full history so the heatmap shows meaningful density
       // regardless of the active date filter.
       const todayStr = getCurrentLocalDate();
-      const data = await fetchDailyHeatmap("1970-01-01", todayStr, heatmapTypeGroup);
+      const data = await fetchDailyHeatmap(null, todayStr, heatmapTypeGroup);
       setHeatmapData(data);
     } catch (err) {
       logger.error("useInsights: heatmap error:", err);

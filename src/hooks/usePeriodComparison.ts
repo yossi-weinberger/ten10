@@ -5,6 +5,7 @@ import { fetchAnalyticsRangeStats } from "@/lib/data-layer";
 import { getPreviousPeriodRange } from "@/lib/utils/date-range";
 import {
   DateRangeObject,
+  isAllTimeRange,
   type DateRangeSelectionType,
 } from "./useDateControls";
 import { Platform } from "@/contexts/PlatformContext";
@@ -37,13 +38,12 @@ export function usePeriodComparison(
   const calendarType = useEffectiveCalendarType();
 
   const { startDate, endDate } = activeDateRangeObject;
-  const isAllTime = startDate === "1970-01-01";
+  const isAllTime = isAllTimeRange(activeDateRangeObject);
 
   useEffect(() => {
     const isReady =
       platform !== undefined &&
       platform !== "loading" &&
-      !!startDate &&
       !!endDate;
 
     if (!isReady) return;
@@ -53,7 +53,7 @@ export function usePeriodComparison(
       setIsLoading(false);
       return;
     }
-    if (isAllTime) {
+    if (isAllTime || !startDate) {
       setPrevIncome(null);
       setPrevExpenses(null);
       setIsLoading(false);

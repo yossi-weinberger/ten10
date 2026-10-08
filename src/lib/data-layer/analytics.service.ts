@@ -20,7 +20,7 @@ export interface ServerDonationData {
 // Web: Fetch total income and chomesh for a user from Supabase
 async function fetchTotalIncomeForUserWeb(
   userId: string,
-  startDate: string, // YYYY-MM-DD
+  startDate: string | null, // YYYY-MM-DD; null = unbounded start
   endDate: string // YYYY-MM-DD
 ): Promise<ServerIncomeData | null> {
   logger.log(
@@ -69,7 +69,7 @@ async function fetchTotalIncomeForUserWeb(
 // Web: Fetch total expenses for a user from Supabase
 async function fetchTotalExpensesForUserWeb(
   userId: string,
-  startDate: string, // YYYY-MM-DD
+  startDate: string | null, // YYYY-MM-DD; null = unbounded start
   endDate: string // YYYY-MM-DD
 ): Promise<number | null> {
   logger.log(
@@ -103,7 +103,7 @@ async function fetchTotalExpensesForUserWeb(
 
 // Desktop: Fetch total income and chomesh in a date range from SQLite
 async function fetchTotalIncomeForUserDesktop(
-  startDate: string, // YYYY-MM-DD
+  startDate: string | null, // YYYY-MM-DD; null = unbounded start
   endDate: string // YYYY-MM-DD
 ): Promise<ServerIncomeData> {
   logger.log(
@@ -127,7 +127,7 @@ async function fetchTotalIncomeForUserDesktop(
 
 // Desktop: Fetch total expenses in a date range from SQLite
 async function fetchTotalExpensesForUserDesktop(
-  startDate: string, // YYYY-MM-DD
+  startDate: string | null, // YYYY-MM-DD; null = unbounded start
   endDate: string // YYYY-MM-DD
 ): Promise<number> {
   logger.log(
@@ -149,7 +149,7 @@ async function fetchTotalExpensesForUserDesktop(
 // Wrapper function to fetch total income based on platform
 export async function fetchTotalIncomeInRange(
   userId: string | null, // userId is only needed for web
-  startDate: string,
+  startDate: string | null,
   endDate: string
 ): Promise<ServerIncomeData | null> {
   const currentPlatform = getPlatform();
@@ -180,7 +180,7 @@ export async function fetchTotalIncomeInRange(
 // Wrapper function to fetch total expenses based on platform
 export async function fetchTotalExpensesInRange(
   userId: string | null, // userId is only needed for web
-  startDate: string,
+  startDate: string | null,
   endDate: string
 ): Promise<number | null> {
   const currentPlatform = getPlatform();
@@ -211,7 +211,7 @@ export async function fetchTotalExpensesInRange(
 // --- DONATIONS FUNCTIONS ---
 async function fetchTotalDonationsForUserWeb(
   userId: string,
-  startDate: string, // YYYY-MM-DD
+  startDate: string | null, // YYYY-MM-DD; null = unbounded start
   endDate: string // YYYY-MM-DD
 ): Promise<ServerDonationData | null> {
   logger.log(
@@ -255,7 +255,7 @@ async function fetchTotalDonationsForUserWeb(
 }
 
 async function fetchTotalDonationsForUserDesktop(
-  startDate: string, // YYYY-MM-DD
+  startDate: string | null, // YYYY-MM-DD; null = unbounded start
   endDate: string // YYYY-MM-DD
 ): Promise<ServerDonationData | null> {
   logger.log(
@@ -290,7 +290,7 @@ async function fetchTotalDonationsForUserDesktop(
 
 export async function fetchTotalDonationsInRange(
   userId: string | null, // userId is only needed for web
-  startDate: string,
+  startDate: string | null,
   endDate: string
 ): Promise<ServerDonationData | null> {
   const currentPlatform = getPlatform();
@@ -425,7 +425,7 @@ export interface AnalyticsRangeStats {
 }
 
 async function fetchAnalyticsRangeStatsWeb(
-  startDate: string,
+  startDate: string | null,
   endDate: string
 ): Promise<AnalyticsRangeStats | null> {
   try {
@@ -449,7 +449,7 @@ async function fetchAnalyticsRangeStatsWeb(
 }
 
 async function fetchAnalyticsRangeStatsDesktop(
-  startDate: string,
+  startDate: string | null,
   endDate: string
 ): Promise<AnalyticsRangeStats | null> {
   try {
@@ -466,7 +466,7 @@ async function fetchAnalyticsRangeStatsDesktop(
 }
 
 export async function fetchAnalyticsRangeStats(
-  startDate: string,
+  startDate: string | null,
   endDate: string
 ): Promise<AnalyticsRangeStats | null> {
   const platform = getPlatform();

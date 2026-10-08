@@ -2,7 +2,11 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
-import { useDateControls, DateRangeSelectionType } from "@/hooks/useDateControls";
+import {
+  useDateControls,
+  isAllTimeRange,
+  DateRangeSelectionType,
+} from "@/hooks/useDateControls";
 import { useInsights } from "@/hooks/useInsights";
 import { getPreviousPeriodRange } from "@/lib/utils/date-range";
 import { useServerStats } from "@/hooks/useServerStats";
@@ -96,7 +100,7 @@ export function AnalyticsPage() {
 
   const prevPeriodDates = useMemo(() => {
     const { startDate, endDate } = activeDateRangeObject;
-    if (!startDate || !endDate || startDate === "1970-01-01") return null;
+    if (!startDate || !endDate) return null;
     return getPreviousPeriodRange(startDate, endDate, {
       selection: dateRangeSelection,
       calendarType,
@@ -145,7 +149,7 @@ export function AnalyticsPage() {
     [calendarType, i18n.language, showSecondaryDate],
   );
 
-  const isAllTime = activeDateRangeObject.startDate === "1970-01-01";
+  const isAllTime = isAllTimeRange(activeDateRangeObject);
 
   const recurringTotals = useMemo(
     () => computeRecurringTotals(activeRecurring),
@@ -169,9 +173,11 @@ export function AnalyticsPage() {
           ? `${displayDate.primary} (${displayDate.secondary})`
           : displayDate.primary;
       };
-      const displayRange = isAllTime
-        ? t("dateRange.all")
-        : `${fmtDatePdf(activeDateRangeObject.startDate)} – ${fmtDatePdf(activeDateRangeObject.endDate)}`;
+      const rangeStart = activeDateRangeObject.startDate;
+      const displayRange =
+        isAllTime || !rangeStart
+          ? t("dateRange.all")
+          : `${fmtDatePdf(rangeStart)} – ${fmtDatePdf(activeDateRangeObject.endDate)}`;
 
       // Build text insights for PDF
       const fmt = (v: number) => formatCurrency(v, defaultCurrency, i18n.language);

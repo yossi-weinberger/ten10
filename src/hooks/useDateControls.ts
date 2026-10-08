@@ -11,9 +11,14 @@ import { formatLocalDate } from "@/lib/utils/local-date";
 export type DateRangeSelectionType = "month" | "year" | "all" | "custom";
 
 export interface DateRangeObject {
-  startDate: string; // YYYY-MM-DD (local)
+  /** YYYY-MM-DD (local). Null means an unbounded all-time start. */
+  startDate: string | null;
   endDate: string; // YYYY-MM-DD (local) - typically "today"
   label?: string;
+}
+
+export function isAllTimeRange(range: Pick<DateRangeObject, "startDate">): boolean {
+  return range.startDate === null;
 }
 
 // Helper: get "today" as a Date (local)
@@ -49,7 +54,7 @@ export function calculateDateRange(
     }
     case "all":
       return {
-        startDate: "1970-01-01",
+        startDate: null,
         endDate,
         label: labels.all,
       };

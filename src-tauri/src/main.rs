@@ -7,6 +7,7 @@ use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 use tauri_plugin_clipboard_manager;
 
 mod commands;
+mod date_range;
 mod models;
 mod transaction_types;
 

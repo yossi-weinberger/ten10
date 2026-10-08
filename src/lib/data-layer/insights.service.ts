@@ -76,7 +76,7 @@ export interface AnalyticsBreakdownsBundle {
 }
 
 async function fetchAnalyticsBreakdownsWeb(
-  startDate: string,
+  startDate: string | null,
   endDate: string
 ): Promise<AnalyticsBreakdownsBundle> {
   const { data, error } = await supabase.rpc("get_analytics_breakdowns", {
@@ -95,7 +95,7 @@ async function fetchAnalyticsBreakdownsWeb(
 }
 
 async function fetchAnalyticsBreakdownsDesktop(
-  startDate: string,
+  startDate: string | null,
   endDate: string
 ): Promise<AnalyticsBreakdownsBundle> {
   // Inline import intentional: Tauri APIs are unavailable in web context.
@@ -107,7 +107,7 @@ async function fetchAnalyticsBreakdownsDesktop(
 }
 
 export async function fetchAnalyticsBreakdowns(
-  startDate: string,
+  startDate: string | null,
   endDate: string
 ): Promise<AnalyticsBreakdownsBundle> {
   return fetchByPlatform(
@@ -162,7 +162,7 @@ export type CategoryType = "expense" | "income" | "donation";
 // ─── 1. Category Breakdown ───────────────────────────────────────────────────
 
 async function fetchCategoryBreakdownWeb(
-  startDate: string,
+  startDate: string | null,
   endDate: string,
   type: CategoryType
 ): Promise<CategoryBreakdownResponse> {
@@ -179,7 +179,7 @@ async function fetchCategoryBreakdownWeb(
 }
 
 async function fetchCategoryBreakdownDesktop(
-  startDate: string,
+  startDate: string | null,
   endDate: string,
   type: CategoryType
 ): Promise<CategoryBreakdownResponse> {
@@ -191,7 +191,7 @@ async function fetchCategoryBreakdownDesktop(
 }
 
 export async function fetchCategoryBreakdown(
-  startDate: string,
+  startDate: string | null,
   endDate: string,
   type: CategoryType
 ): Promise<CategoryBreakdownResponse> {
@@ -210,7 +210,7 @@ export async function fetchCategoryBreakdown(
 export type HeatmapTypeGroup = "all" | "income" | "expense" | "donation";
 
 async function fetchDailyHeatmapWeb(
-  startDate: string,
+  startDate: string | null,
   endDate: string,
   typeGroup: HeatmapTypeGroup
 ): Promise<DailyHeatmapResponse> {
@@ -227,7 +227,7 @@ async function fetchDailyHeatmapWeb(
 }
 
 async function fetchDailyHeatmapDesktop(
-  startDate: string,
+  startDate: string | null,
   endDate: string,
   typeGroup: HeatmapTypeGroup
 ): Promise<DailyHeatmapResponse> {
@@ -240,7 +240,7 @@ async function fetchDailyHeatmapDesktop(
 }
 
 export async function fetchDailyHeatmap(
-  startDate: string,
+  startDate: string | null,
   endDate: string,
   typeGroup: HeatmapTypeGroup = "all"
 ): Promise<DailyHeatmapResponse> {

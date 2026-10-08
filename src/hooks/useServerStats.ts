@@ -115,7 +115,7 @@ export function useServerStats(
       return;
     }
 
-    if (canFetch && activeDateRangeObject.startDate && activeDateRangeObject.endDate) {
+    if (canFetch && activeDateRangeObject.endDate) {
       let cancelled = false;
 
       const loadRangeStats = async () => {
