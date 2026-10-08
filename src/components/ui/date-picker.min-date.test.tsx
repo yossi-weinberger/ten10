@@ -2,6 +2,7 @@
 
 import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -55,19 +56,22 @@ function DateFormHarness({
   onSubmit: (values: { date: string }) => void;
 }) {
   const [date, setDate] = React.useState(initialDate);
+  const dateRef = React.useRef(date);
+  dateRef.current = date;
 
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
+        const submitted = dateRef.current;
         if (
-          !date ||
-          Number.isNaN(Date.parse(date)) ||
-          !isOnOrAfterMinTransactionDate(date)
+          !submitted ||
+          Number.isNaN(Date.parse(submitted)) ||
+          !isOnOrAfterMinTransactionDate(submitted)
         ) {
           return;
         }
-        onSubmit({ date });
+        onSubmit({ date: submitted });
       }}
     >
       <DatePicker
@@ -86,54 +90,106 @@ function DateFormHarness({
   );
 }
 
+async function typeOverField(
+  user: ReturnType<typeof userEvent.setup>,
+  input: HTMLElement,
+  value: string,
+) {
+  await user.click(input);
+  for (let index = 0; index < value.length; index += 1) {
+    const options =
+      index === 0
+        ? {
+            initialSelectionStart: 0,
+            initialSelectionEnd: (input as HTMLInputElement).value.length,
+          }
+        : undefined;
+    await user.type(input, value[index]!, options);
+  }
+}
+
 describe("DatePicker typed dates", () => {
-  it("commits 01/01/26 to setDate as 1 Jan 2026", () => {
+  it("types 15/03/2026 character by character without rewriting the field", async () => {
     useGregorian();
-    const setDate = vi.fn();
-    render(
-      <DatePicker
-        date={parseLocalDate("2026-10-08")}
-        setDate={setDate}
-      />,
-    );
-
-    fireEvent.change(screen.getByPlaceholderText("DD/MM/YYYY"), {
-      target: { value: "01/01/26" },
-    });
-
-    expect(setDate).toHaveBeenCalled();
-    const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
-    expect(formatLocalDate(committed)).toBe("2026-01-01");
-    expect(screen.getByPlaceholderText("DD/MM/YYYY")).toHaveValue("01/01/2026");
-  });
-
-  it("writes 2026-01-01 to the form and display when 01/01/26 is typed", () => {
-    useGregorian();
+    const user = userEvent.setup();
     const onSubmit = vi.fn();
     render(
       <DateFormHarness initialDate="2026-10-08" onSubmit={onSubmit} />,
     );
 
     const input = screen.getByPlaceholderText("DD/MM/YYYY");
-    fireEvent.change(input, { target: { value: "01/01/26" } });
-    fireEvent.blur(input);
+    const typed = "15/03/2026";
+    await user.click(input);
+    for (let index = 0; index < typed.length; index += 1) {
+      const options =
+        index === 0
+          ? {
+              initialSelectionStart: 0,
+              initialSelectionEnd: (input as HTMLInputElement).value.length,
+            }
+          : undefined;
+      await user.type(input, typed[index]!, options);
+      expect(input).toHaveValue(typed.slice(0, index + 1));
+      if (typed.slice(0, index + 1) === "15/03/20") {
+        expect(screen.getByTestId("committed-date")).toHaveTextContent(
+          "2026-10-08",
+        );
+      }
+    }
+
+    expect(input).toHaveValue("15/03/2026");
+    expect(screen.getByTestId("committed-date")).toHaveTextContent("2026-03-15");
+  });
+
+  it("normalizes 01/01/26 on blur to 01/01/2026 and 2026-01-01", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(
+      <DateFormHarness initialDate="2026-10-08" onSubmit={onSubmit} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await typeOverField(user, input, "01/01/26");
+
+    expect(input).toHaveValue("01/01/26");
+    expect(screen.getByTestId("committed-date")).toHaveTextContent("2026-10-08");
+
+    await user.tab();
 
     expect(input).toHaveValue("01/01/2026");
     expect(screen.getByTestId("committed-date")).toHaveTextContent("2026-01-01");
-    fireEvent.submit(input.closest("form")!);
-    expect(onSubmit).toHaveBeenCalledWith({ date: "2026-01-01" });
   });
 
-  it("shows an invalid-date error and blocks submit for garbage input", () => {
+  it("shows the min-date error when 31/12/1999 is blurred", async () => {
     useGregorian();
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(
+      <DateFormHarness initialDate="2026-03-15" onSubmit={onSubmit} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await typeOverField(user, input, "31/12/1999");
+    await user.tab();
+
+    expect(input).toHaveValue("31/12/1999");
+    expect(screen.getByText(MIN_DATE_MESSAGE)).toBeInTheDocument();
+    fireEvent.submit(input.closest("form")!);
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("shows an invalid-date error and blocks submit for garbage", async () => {
+    useGregorian();
+    const user = userEvent.setup();
     const onSubmit = vi.fn();
     render(
       <DateFormHarness initialDate="2026-10-08" onSubmit={onSubmit} />,
     );
 
     const input = screen.getByPlaceholderText("DD/MM/YYYY");
-    fireEvent.change(input, { target: { value: "not-a-date" } });
-    fireEvent.blur(input);
+    await typeOverField(user, input, "not-a-date");
+    await user.tab();
 
     expect(input).toHaveValue("not-a-date");
     expect(screen.getByText(INVALID_DATE_MESSAGE)).toBeInTheDocument();
@@ -142,24 +198,47 @@ describe("DatePicker typed dates", () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it("shows the min-date validation message when a date before 2000 is typed", () => {
+  it("replaces an existing date when the field is selected and retyped", async () => {
     useGregorian();
+    const user = userEvent.setup();
     const onSubmit = vi.fn();
     render(
-      <DateFormHarness initialDate="2026-03-15" onSubmit={onSubmit} />,
+      <DateFormHarness initialDate="2026-10-08" onSubmit={onSubmit} />,
     );
 
-    fireEvent.change(screen.getByPlaceholderText("DD/MM/YYYY"), {
-      target: { value: "01/01/1999" },
-    });
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    expect(input).toHaveValue("08/10/2026");
 
-    expect(screen.getByText(MIN_DATE_MESSAGE)).toBeInTheDocument();
-    fireEvent.submit(screen.getByPlaceholderText("DD/MM/YYYY").closest("form")!);
-    expect(onSubmit).not.toHaveBeenCalled();
+    await typeOverField(user, input, "15/03/2026");
+
+    expect(input).toHaveValue("15/03/2026");
+    expect(screen.getByTestId("committed-date")).toHaveTextContent("2026-03-15");
   });
 
-  it("does not show the min-date message for a valid typed date", () => {
+  it("commits uncommitted typed text before submit", async () => {
     useGregorian();
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(
+      <DateFormHarness initialDate="2026-10-08" onSubmit={onSubmit} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await typeOverField(user, input, "01/01/26");
+
+    expect(input).toHaveValue("01/01/26");
+    expect(screen.getByTestId("committed-date")).toHaveTextContent("2026-10-08");
+
+    fireEvent.submit(input.closest("form")!);
+
+    expect(onSubmit).toHaveBeenCalledWith({ date: "2026-01-01" });
+    expect(input).toHaveValue("01/01/2026");
+    expect(screen.getByTestId("committed-date")).toHaveTextContent("2026-01-01");
+  });
+
+  it("does not show the min-date message for a valid typed date", async () => {
+    useGregorian();
+    const user = userEvent.setup();
     const setDate = vi.fn();
     render(
       <DatePicker
@@ -168,11 +247,12 @@ describe("DatePicker typed dates", () => {
       />,
     );
 
-    fireEvent.change(screen.getByPlaceholderText("DD/MM/YYYY"), {
-      target: { value: "01/01/2000" },
-    });
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await typeOverField(user, input, "01/01/2000");
 
     expect(screen.queryByText(MIN_DATE_MESSAGE)).not.toBeInTheDocument();
     expect(setDate).toHaveBeenCalled();
+    const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
+    expect(formatLocalDate(committed)).toBe("2000-01-01");
   });
 });

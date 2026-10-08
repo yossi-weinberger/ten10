@@ -1,4 +1,5 @@
 import * as React from "react";
+import { flushSync } from "react-dom";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { he, enUS } from "date-fns/locale";
@@ -21,6 +22,7 @@ import { minTransactionDateLocal } from "@/lib/utils/transaction-date";
 import { Input } from "./input";
 import {
   formatGregorianDateInput,
+  parseCompleteFourDigitGregorianDateInput,
   parseFlexibleGregorianDateInput,
   type GregorianDateParseResult,
 } from "./gregorian-date-input";
@@ -39,6 +41,10 @@ export function DatePicker({
   const [inputError, setInputError] = React.useState<string | null>(null);
   const [month, setMonth] = React.useState<Date | undefined>(date);
   const keepTypedValueRef = React.useRef(false);
+  const isEditingRef = React.useRef(false);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const inputValueRef = React.useRef(inputValue);
+  inputValueRef.current = inputValue;
   const { t, i18n } = useTranslation(["dashboard", "transactions"]);
   const resolvedMinDate = React.useMemo(
     () => minDate ?? minTransactionDateLocal(),
@@ -67,7 +73,7 @@ export function DatePicker({
   );
 
   React.useEffect(() => {
-    if (keepTypedValueRef.current) {
+    if (isEditingRef.current || keepTypedValueRef.current) {
       keepTypedValueRef.current = false;
       return;
     }
@@ -86,14 +92,14 @@ export function DatePicker({
     return d instanceof Date && !isNaN(d.getTime());
   }
 
-  function applyParseResult(
+  function applyCommittedResult(
     result: GregorianDateParseResult,
     rawValue: string,
-    options: { allowIncomplete: boolean },
   ) {
     switch (result.status) {
       case "empty":
         setInputError(null);
+        setInputValue("");
         setDate(undefined);
         return;
       case "parsed": {
@@ -109,10 +115,6 @@ export function DatePicker({
         return;
       }
       case "invalid":
-        if (options.allowIncomplete) {
-          setInputError(null);
-          return;
-        }
         keepTypedValueRef.current = true;
         setInputValue(rawValue);
         setInputError(t("transactions:transactionForm.validation.date.invalid"));
@@ -125,24 +127,63 @@ export function DatePicker({
     }
   }
 
+  const commitInput = (rawValue: string) => {
+    if (calendarType === "hebrew") return;
+    isEditingRef.current = false;
+    applyCommittedResult(parseFlexibleGregorianDateInput(rawValue), rawValue);
+  };
+  const commitInputRef = React.useRef(commitInput);
+  commitInputRef.current = commitInput;
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (calendarType === "hebrew") return;
     const value = e.target.value;
+    isEditingRef.current = true;
+    keepTypedValueRef.current = true;
     setInputValue(value);
-    const result = parseFlexibleGregorianDateInput(value);
-    if (result.status === "parsed" || result.status === "empty") {
-      applyParseResult(result, value, { allowIncomplete: true });
-    } else {
-      setInputError(null);
+
+    const result = parseCompleteFourDigitGregorianDateInput(value);
+    switch (result.status) {
+      case "empty":
+        setInputError(null);
+        setDate(undefined);
+        return;
+      case "parsed": {
+        setMonth(result.date);
+        if (result.date < resolvedMinDate) {
+          setInputError(t("transactions:transactionForm.validation.date.min"));
+        } else {
+          setInputError(null);
+        }
+        if (result.date >= resolvedMinDate) {
+          setDate(result.date);
+        }
+        return;
+      }
+      case "invalid":
+        setInputError(null);
+        return;
+      default: {
+        const exhaustive: never = result;
+        return exhaustive;
+      }
     }
   };
 
-  const commitInput = (rawValue: string) => {
-    if (calendarType === "hebrew") return;
-    applyParseResult(parseFlexibleGregorianDateInput(rawValue), rawValue, {
-      allowIncomplete: false,
-    });
-  };
+  React.useEffect(() => {
+    const input = inputRef.current;
+    const form = input?.form;
+    if (!form) return;
+
+    const onSubmit = () => {
+      flushSync(() => {
+        commitInputRef.current(inputValueRef.current);
+      });
+    };
+
+    form.addEventListener("submit", onSubmit, true);
+    return () => form.removeEventListener("submit", onSubmit, true);
+  }, []);
 
   const handleSelectDate = (selectedDate: Date | undefined) => {
     if (isValidDate(selectedDate) && selectedDate >= resolvedMinDate) {
@@ -192,6 +233,7 @@ export function DatePicker({
   const picker = (
     <div className="relative">
       <Input
+        ref={inputRef}
         placeholder={calendarType === "hebrew" ? "" : "DD/MM/YYYY"}
         value={inputValue}
         onChange={handleInputChange}

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   formatGregorianDateInput,
+  parseCompleteFourDigitGregorianDateInput,
   parseExactGregorianDateInput,
   parseFlexibleGregorianDateInput,
 } from "./gregorian-date-input";
@@ -16,6 +17,34 @@ describe("parseExactGregorianDateInput", () => {
   it("rejects a partial year", () => {
     expect(parseExactGregorianDateInput("12/09/20")).toBeNull();
     expect(parseExactGregorianDateInput("01/01/26")).toBeNull();
+  });
+});
+
+describe("parseCompleteFourDigitGregorianDateInput", () => {
+  it("accepts d/M/yyyy and dd/MM/yyyy", () => {
+    const padded = parseCompleteFourDigitGregorianDateInput("15/03/2026");
+    expect(padded.status).toBe("parsed");
+    if (padded.status === "parsed") {
+      expect(formatGregorianDateInput(padded.date)).toBe("15/03/2026");
+    }
+
+    const short = parseCompleteFourDigitGregorianDateInput("1/3/2026");
+    expect(short.status).toBe("parsed");
+    if (short.status === "parsed") {
+      expect(formatGregorianDateInput(short.date)).toBe("01/03/2026");
+    }
+  });
+
+  it("does not treat a two-digit year as complete", () => {
+    expect(parseCompleteFourDigitGregorianDateInput("15/03/20").status).toBe(
+      "invalid",
+    );
+    expect(parseCompleteFourDigitGregorianDateInput("01/01/26").status).toBe(
+      "invalid",
+    );
+    expect(parseCompleteFourDigitGregorianDateInput("15/03/202").status).toBe(
+      "invalid",
+    );
   });
 });
 

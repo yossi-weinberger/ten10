@@ -38,20 +38,19 @@ export function parseExactGregorianDateInput(value: string): Date | null {
   return parsedDate;
 }
 
-/**
- * Parse typed Gregorian input for commit (change/blur/Enter).
- * Accepts d/M/yyyy, dd/MM/yyyy, d/M/yy, and dd/MM/yy.
- * Two-digit years become 20yy.
- */
-export function parseFlexibleGregorianDateInput(
+const COMPLETE_FOUR_DIGIT_DATE = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
+const FLEXIBLE_COMMIT_DATE = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/;
+
+function parseSlashDate(
   value: string,
+  pattern: RegExp,
 ): GregorianDateParseResult {
   const trimmed = value.trim();
   if (trimmed === "") {
     return { status: "empty" };
   }
 
-  const match = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.exec(trimmed);
+  const match = pattern.exec(trimmed);
   if (!match) {
     return { status: "invalid" };
   }
@@ -66,6 +65,26 @@ export function parseFlexibleGregorianDateInput(
     return { status: "invalid" };
   }
   return { status: "parsed", date };
+}
+
+/**
+ * Live typing: accept only a complete d/M/yyyy or dd/MM/yyyy value.
+ * Two-digit years stay unparsed so "15/03/20" is not rewritten to 2020.
+ */
+export function parseCompleteFourDigitGregorianDateInput(
+  value: string,
+): GregorianDateParseResult {
+  return parseSlashDate(value, COMPLETE_FOUR_DIGIT_DATE);
+}
+
+/**
+ * Commit (blur/Enter/submit) only. Accepts d/M/yyyy, dd/MM/yyyy, d/M/yy, and dd/MM/yy.
+ * Two-digit years become 20yy.
+ */
+export function parseFlexibleGregorianDateInput(
+  value: string,
+): GregorianDateParseResult {
+  return parseSlashDate(value, FLEXIBLE_COMMIT_DATE);
 }
 
 export function formatGregorianDateInput(date: Date): string {
