@@ -24,7 +24,7 @@ import { parseExactGregorianDateInput } from "./gregorian-date-input";
 export function DatePicker({
   date,
   setDate,
-  minDate = minTransactionDateLocal(),
+  minDate,
 }: {
   date?: Date;
   setDate: (date?: Date) => void;
@@ -35,6 +35,10 @@ export function DatePicker({
   const [minDateError, setMinDateError] = React.useState<string | null>(null);
   const [month, setMonth] = React.useState<Date | undefined>(date);
   const { t, i18n } = useTranslation(["dashboard", "transactions"]);
+  const resolvedMinDate = React.useMemo(
+    () => minDate ?? minTransactionDateLocal(),
+    [minDate],
+  );
   const yearBounds = getCalendarNavigationBounds();
   const calendarType = useDonationStore(
     (state) => state.settings.calendarType,
@@ -60,14 +64,14 @@ export function DatePicker({
   React.useEffect(() => {
     if (date && isValidDate(date)) {
       setInputValue(formatFieldDate(date));
-      if (date >= minDate) {
+      if (date >= resolvedMinDate) {
         setMinDateError(null);
       }
     } else {
       setInputValue("");
     }
     setMonth(date);
-  }, [date, formatFieldDate, minDate]);
+  }, [date, formatFieldDate, resolvedMinDate]);
 
   function isValidDate(d: unknown): d is Date {
     return d instanceof Date && !isNaN(d.getTime());
@@ -78,7 +82,7 @@ export function DatePicker({
     const value = e.target.value;
     setInputValue(value);
     const parsedDate = parseExactGregorianDateInput(value);
-    if (parsedDate && parsedDate >= minDate) {
+    if (parsedDate && parsedDate >= resolvedMinDate) {
       setMinDateError(null);
       setDate(parsedDate);
       setMonth(parsedDate);
@@ -93,7 +97,7 @@ export function DatePicker({
   };
 
   const handleSelectDate = (selectedDate: Date | undefined) => {
-    if (isValidDate(selectedDate) && selectedDate >= minDate) {
+    if (isValidDate(selectedDate) && selectedDate >= resolvedMinDate) {
       setMinDateError(null);
       setDate(selectedDate);
       setInputValue(formatFieldDate(selectedDate));
@@ -183,10 +187,12 @@ export function DatePicker({
             initialFocus
             captionLayout="dropdown"
             startMonth={
-              yearBounds.startMonth > minDate ? yearBounds.startMonth : minDate
+              yearBounds.startMonth > resolvedMinDate
+                ? yearBounds.startMonth
+                : resolvedMinDate
             }
             endMonth={yearBounds.endMonth}
-            disabled={{ before: minDate }}
+            disabled={{ before: resolvedMinDate }}
             dir={i18n.dir()}
             locale={i18n.language === "he" ? he : enUS}
             formatters={{

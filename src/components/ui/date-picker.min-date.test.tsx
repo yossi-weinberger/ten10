@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { DatePicker } from "@/components/ui/date-picker";
@@ -32,8 +31,7 @@ afterEach(() => {
 });
 
 describe("DatePicker min-date typed input", () => {
-  it("shows the min-date validation message when a date before 2000 is typed", async () => {
-    const user = userEvent.setup();
+  it("shows the min-date validation message when a date before 2000 is typed", () => {
     useDonationStore.setState({
       settings: {
         ...initialSettings,
@@ -48,15 +46,15 @@ describe("DatePicker min-date typed input", () => {
       />,
     );
 
-    const input = screen.getByPlaceholderText("DD/MM/YYYY");
-    await user.clear(input);
-    await user.type(input, "01/01/1999");
+    fireEvent.change(screen.getByPlaceholderText("DD/MM/YYYY"), {
+      target: { value: "01/01/1999" },
+    });
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(MIN_DATE_MESSAGE);
+    expect(screen.getByRole("alert")).toHaveTextContent(MIN_DATE_MESSAGE);
   });
 
-  it("does not show the min-date message for a valid typed date", async () => {
-    const user = userEvent.setup();
+  it("does not show the min-date message for a valid typed date", () => {
+    const setDate = vi.fn();
     useDonationStore.setState({
       settings: {
         ...initialSettings,
@@ -67,14 +65,15 @@ describe("DatePicker min-date typed input", () => {
     render(
       <DatePicker
         date={parseLocalDate("2026-03-15")}
-        setDate={vi.fn()}
+        setDate={setDate}
       />,
     );
 
-    const input = screen.getByPlaceholderText("DD/MM/YYYY");
-    await user.clear(input);
-    await user.type(input, "01/01/2000");
+    fireEvent.change(screen.getByPlaceholderText("DD/MM/YYYY"), {
+      target: { value: "01/01/2000" },
+    });
 
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(setDate).toHaveBeenCalled();
   });
 });
