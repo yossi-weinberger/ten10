@@ -1,10 +1,18 @@
 export function parseLocalDate(dateString: string): Date {
   const [year, month, day] = dateString.split("-").map(Number);
+  // Years 0-99 are reserved by the JS Date constructor as 1900-1999.
+  // Reject them so a value like 0026 never becomes 1926-01-01.
+  if (!Number.isInteger(year) || year < 100) {
+    return new Date(Number.NaN);
+  }
   return new Date(year, month - 1, day);
 }
 
 export function formatLocalDate(date: Date): string {
   const year = date.getFullYear();
+  if (!Number.isFinite(year) || year < 100) {
+    throw new RangeError("Local date year must be 100 or greater");
+  }
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;

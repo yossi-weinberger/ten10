@@ -24,4 +24,13 @@ describe("local date-only values", () => {
     expect(formatLocalDate(date)).toBe("2026-09-23");
     expect(date.getHours()).toBe(0);
   });
+
+  it("rejects years below 100 so they never become 1900-based dates", () => {
+    const parsed = parseLocalDate("0026-01-01");
+    const twoDigitYear = new Date(2000, 0, 1);
+    twoDigitYear.setFullYear(26);
+
+    expect(Number.isNaN(parsed.getTime())).toBe(true);
+    expect(() => formatLocalDate(twoDigitYear)).toThrow(RangeError);
+  });
 });

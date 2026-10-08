@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { transactionTypes } from "../types/transaction";
 import type { TFunction } from "i18next";
+import { isOnOrAfterMinTransactionDate } from "@/lib/utils/transaction-date";
 
 // =======================================================================
 // VALIDATION CONSTANTS
@@ -100,9 +101,14 @@ export const createTransactionFormSchema = (t: TFunction) =>
     .object({
       amount: createAmountSchema(t),
       currency: createCurrencySchema(t),
-      date: z.string().refine((date) => !isNaN(Date.parse(date)), {
-        message: t("transactions:transactionForm.validation.date.invalid"),
-      }),
+      date: z
+        .string()
+        .refine((date) => !isNaN(Date.parse(date)), {
+          message: t("transactions:transactionForm.validation.date.invalid"),
+        })
+        .refine((date) => isOnOrAfterMinTransactionDate(date), {
+          message: t("transactions:transactionForm.validation.date.min"),
+        }),
       description: z
         .string()
         .max(100, {

@@ -17,15 +17,18 @@ import {
   formatLocalDate,
   getCalendarNavigationBounds,
 } from "@/lib/utils/local-date";
+import { minTransactionDateLocal } from "@/lib/utils/transaction-date";
 import { Input } from "./input";
 import { parseExactGregorianDateInput } from "./gregorian-date-input";
 
 export function DatePicker({
   date,
   setDate,
+  minDate = minTransactionDateLocal(),
 }: {
   date?: Date;
   setDate: (date?: Date) => void;
+  minDate?: Date;
 }) {
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>("");
@@ -71,7 +74,7 @@ export function DatePicker({
     const value = e.target.value;
     setInputValue(value);
     const parsedDate = parseExactGregorianDateInput(value);
-    if (parsedDate) {
+    if (parsedDate && parsedDate >= minDate) {
       setDate(parsedDate);
       setMonth(parsedDate);
     } else if (value === "") {
@@ -80,7 +83,7 @@ export function DatePicker({
   };
 
   const handleSelectDate = (selectedDate: Date | undefined) => {
-    if (isValidDate(selectedDate)) {
+    if (isValidDate(selectedDate) && selectedDate >= minDate) {
       setDate(selectedDate);
       setInputValue(formatFieldDate(selectedDate));
     } else {
@@ -164,8 +167,11 @@ export function DatePicker({
             onMonthChange={setMonth}
             initialFocus
             captionLayout="dropdown"
-            startMonth={yearBounds.startMonth}
+            startMonth={
+              yearBounds.startMonth > minDate ? yearBounds.startMonth : minDate
+            }
             endMonth={yearBounds.endMonth}
+            disabled={{ before: minDate }}
             dir={i18n.dir()}
             locale={i18n.language === "he" ? he : enUS}
             formatters={{

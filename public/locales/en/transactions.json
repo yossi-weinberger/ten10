@@ -174,7 +174,8 @@
         "required": "Currency must be selected"
       },
       "date": {
-        "invalid": "Invalid date"
+        "invalid": "Invalid date",
+        "min": "Date must be on or after January 1, 2000"
       },
       "description": {
         "maxLength": "Description can contain up to 100 characters"
