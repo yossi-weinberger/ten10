@@ -108,7 +108,7 @@ def main() -> int:
     ap.add_argument("--similarity", type=float, default=0.75)
     ap.add_argument("--style", type=float, default=0.0, help="not used by v4")
     ap.add_argument("--speed", type=float, default=1.0, help="not used by v4")
-    ap.add_argument("--spoken", help="JSON {phrase id: spoken text} overriding the built-in rewrite (e.g. narration/spoken.he.json)")
+    ap.add_argument("--spoken", help="JSON {phrase id: spoken text, or {text, direction}} overriding the built-in rewrite (e.g. narration/spoken.he.json)")
     ap.add_argument("--direction", default="", help='audio tag prefixed to every phrase, e.g. "[calm, warm narration]"')
     ap.add_argument("--out", help="output wav (default audio/narration_<lang>.wav)")
     ap.add_argument("--list-voices", action="store_true")
@@ -139,7 +139,9 @@ def main() -> int:
     parts = [np.zeros((int(LEAD_IN * SR), 2), np.float32)]
     spans = {}
     for ph in script["phrases"]:
-        text = (args.direction + " " + overrides.get(ph["id"], spoken(ph["text"], args.lang))).strip()
+        o = overrides.get(ph["id"], spoken(ph["text"], args.lang))
+        o = o if isinstance(o, dict) else {"text": o}  # {"text", "direction"} replaces the global direction for one phrase
+        text = (o.get("direction", args.direction) + " " + o["text"]).strip()
         h = hashlib.sha1(json.dumps([text, voice, args.model, settings], ensure_ascii=False).encode()).hexdigest()[:12]
         f = cache / f"{ph['id']}_{h}.mp3"
         if not f.exists():

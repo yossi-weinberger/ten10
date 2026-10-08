@@ -24,6 +24,9 @@
 (function () {
   const { clamp, lerp, E, prog, win, makeAnchors, cue, sfx } = window.ENGINE;
   const KW = 0.14, TAU = Math.PI * 2;
+  // The brand name is spoken as its logo finishes: each logo build starts this long before the word
+  // (T.ord / T.brand are the build's start; the build itself runs ~1.85 s / ~1.1 s).
+  const ORD_LEAD = 1.85, BRAND_LEAD = 1.1;
   const TEAL = "#11676a", TEAL_D = "#0c4a4c", GOLD = "#f0c000", GOLD_D = "#b58c00", INK = "#1f1c12", BG = "#fcfaf1";
   const TYPE_COL = { income: "#16a34a", donation: "#e0a800", expense: "#dc2626" };
   // centred on the logo's own wedge (measured from public/logo: -0.776 rad), 36° wide
@@ -44,7 +47,7 @@
     await Promise.all(["600", "700", "800"].map((w) => document.fonts.load(`${w} 60px ${F}`)));
     stage.className = (RTL ? "rtl" : "ltr-stage") + (V ? " vertical" : "") + " geo";
     const img = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
-    const [logoWide, logoStack, machon] = await Promise.all([img("../../public/logo/logo-wide.svg"), img("../../public/logo/logo.svg"), img("assets/machon-semel@3x.png")]);
+    const [logoWide, logoStack, machon, qr] = await Promise.all([img("../../public/logo/logo-wide.svg"), img("../../public/logo/logo.svg"), img("assets/machon-semel@3x.png"), img("assets/qr-ten10-app.svg")]);
     const ICON = {};
     await Promise.all(["globe", "cloud", "smartphone", "wifi-off", "hard-drive", "user-round-x"].map(async (n) => {
       const svgs = (col) => `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${window.ICONS[n]}</svg>`;
@@ -67,7 +70,7 @@
       a: 0,
       h1: A.s("hook1"), h2w: A.s("hook2") - KW,
       c1: A.s("complex1"), c2: A.s("complex2"), harder: B("harder") - KW,
-      ord: A.s("order"), mas: A.s("maaser"), masW: B("maaser") - KW, chW: B("chomesh") - KW, cur: B("anyCurrency") - KW,
+      ord: A.s("order") - ORD_LEAD, mas: A.s("maaser"), masW: B("maaser") - KW, chW: B("chomesh") - KW, cur: B("anyCurrency") - KW,
       imp: A.s("import"), impW: B("importWord") - KW,
       rec: A.s("recurring"), recW: B("recurringWord") - KW, auto: B("autoWord") - KW,
       rem: A.s("reminders"), remW: B("remindWord") - KW, remEnd: lastWord("reminders") - KW,
@@ -79,7 +82,7 @@
       tr: A.s("trust"), trW: B("trustWord") - KW, rabbis: B("rabbisWord") - KW,
       pl: A.s("platforms"), web: B("webWord") - KW, desk: B("desktopWord") - KW, off: B("offlineWord") - KW,
       tog: A.s("together"), tInc: B("tIncome") - KW, tDon: B("tDonations") - KW, tObl: B("tObligations") - KW,
-      brand: A.s("brand"), tag: A.s("tagline"), free: A.s("free"), freeW: B("freeWord") - KW,
+      brand: A.s("brand") - BRAND_LEAD, tag: A.s("tagline"), free: A.s("free"), freeW: B("freeWord") - KW,
       heb: A.s("hebrew"), hebW: B("hebrewWord") - KW, datesW: B("datesWord") - KW, perW: B("periodsWord") - KW, myW: B("maaserYearWord") - KW,
       bud: A.s("budget"), cashW: B("cashWord") - KW, ivsW: B("ivsWord") - KW, savW: B("savingsWord") - KW, ins: A.s("insights"), insW: B("insightsWord") - KW,
     };
@@ -101,15 +104,15 @@
         nj: { x: 540, y: 1000, r: 200, sw: 48 }, rab: { x: 540, y: 930, r: 210, sw: 44 }, tr: { x: 540, y: 780, r: 220, sw: 36 },
         tog: { x: 540, y: 1060, r: 205, sw: 50 },
         tx: { x: RTL ? W - 116 : 116, top: 200, w: 848, small: RTL ? 48 : 42, big: RTL ? 98 : 84 },
-        center: { hook: 1090, lead: 130, c2: 1420, tag: 1060, w: 860, small: RTL ? 50 : 44, big: RTL ? 88 : 76 },
-        wide: { w: 900, cy: 880 }, stack: { w: 430, cy: 700 },
+        center: { hook: 1090, lead: 130, c2: 1420, tag: 980, w: 860, small: RTL ? 50 : 44, big: RTL ? 88 : 76 },
+        wide: { w: 900, cy: 880 }, stack: { w: 430, cy: 590 },
         src: [RTL ? 820 : 260, 1760], path: [[RTL ? 820 : 260, 1720], [RTL ? 1000 : 80, 1330], [RTL ? 150 : 930, 1380], [540, 1060]],
         card: [540, 1300], cols: { base: 1540, colW: 150, gap: 48, maxH: 520 },
         sheet: { cx: 540, w: 640, h: 880 }, xch: { x: 540, y: 1660, dx: 230, dy: 0 },
         book: { x: 540, y: 1420, w: 700, h: 300 }, list: { x: 540, y0: 700, dy: 78 },
         pill: [540, 1250], msg: [540, 1420],
         trustL: [1130, 1250, 1360], plat: { vertical: true, web: 540, desk: 540, webY: 610, deskY: 1310, bw: 500, bh: 290, title: 890, sub: 926, badge0: 980, dy: 46, divider: [1122], phone: [118, 214] }, globe: { x: 800, y: 455, r: 54, sw: 14 },
-        medal: [400, 430], endFree: [1330, 1420, 1530],
+        medal: [400, 430], endFree: [1250, 1370], qr: [RTL ? 770 : 310, 1600, 250], credit: [RTL ? 310 : 770, 1600, 250],
       }
       : {
         hook: { x: 960, y: 395, r: 215, sw: 56 }, chaos: { x: 960, y: 480, r: 170, sw: 48 }, orbit: [1.3, 0.8],
@@ -128,7 +131,7 @@
         book: { x: mx(640), y: 790, w: 660, h: 250 }, list: { x: mx(640), y0: 170, dy: 74 },
         pill: [mx(660), 720], msg: [mx(660), 860],
         trustL: [640, 722, 812], plat: { web: mx(815), desk: mx(330), devY: 330, bw: 400, bh: 250, title: 590, sub: 626, badge0: 690, dy: 56, divider: [mx(572), 200, 860], phone: [118, 214] }, globe: { x: mx(1000), y: 190, r: 54, sw: 14 },
-        medal: [350, 290], endFree: [790, 872, 962],
+        medal: [350, 290], endFree: [790, 895], qr: [mx(1715), 820, 250], credit: [mx(205), 820, 250],
       };
     // the ring as the "0" of a logo file (wide or stacked), placed by its width and centre height
     const logoPlace = (kind) => {
@@ -247,6 +250,14 @@
       ctx.fillText(money(rw.amt), RTL ? pad : w - pad, h / 2 - 9 * s);
       ctx.font = font(600, 16 * s); ctx.fillStyle = "rgba(31,28,18,0.45)"; ctx.fillText(rw.d, RTL ? pad : w - pad, h / 2 + 15 * s);
       ctx.restore();
+    }
+    /** a white square card holding an image (fill: edge to edge, else fitted), with caption lines under it */
+    function card(im, [x, y, sz], lines, a, fill) {
+      if (a <= 0.002) return;
+      const pad = sz * 0.08, k = fill ? 1 : 0.84, iw = Math.min(sz * k, (sz * k * im.width) / im.height), ih = (iw * im.height) / im.width;
+      ctx.save(); ctx.globalAlpha *= a; shadow(24, 10, 0.14); ctx.fillStyle = "#fff"; rrect(x - sz / 2 - pad, y - sz / 2 - pad, sz + pad * 2, sz + pad * 2, 18); ctx.fill(); noShadow();
+      ctx.drawImage(im, x - iw / 2, y - ih / 2, iw, ih); ctx.restore();
+      lines.forEach((l, i) => txt(l, x, y + sz / 2 + pad + 34 + i * 28, { alpha: a, size: 22, w: i ? 600 : 700, color: i ? "rgba(31,28,18,0.6)" : TEAL }));
     }
     function pill(text, x, y, o = {}) {
       const a = o.alpha ?? 1; if (a <= 0.002) return;
@@ -1666,21 +1677,19 @@
       }
       drawTagline(t);
       // free, where, and with whom
-      const fa = prog(t, T.freeW - 0.05, T.freeW + 0.4, E.outBack), [yF, yU, yC] = S.endFree;
+      const fa = prog(t, T.freeW - 0.05, T.freeW + 0.4, E.outBack), [yF, yU] = S.endFree;
       if (fa > 0) {
         ctx.save(); ctx.font = font(800, 30); const w1 = ctx.measureText(cp.free).width + 60; ctx.font = font(600, 30); const w2 = ctx.measureText(cp.freeSub).width; ctx.restore();
         const tot = w1 + 24 + w2, sx = W / 2 + (RTL ? tot / 2 : -tot / 2);
         pill(cp.free, sx + (RTL ? -w1 / 2 : w1 / 2), yF, { size: 30, bg: TEAL, color: "#fff", w: 800, alpha: clamp(fa), s: lerp(0.8, 1, clamp(fa)) });
         txt(cp.freeSub, sx + (RTL ? -w1 - 24 : w1 + 24), yF + 10, { alpha: clamp(fa), size: 30, w: 600, color: "rgba(31,28,18,0.7)", align: RTL ? "right" : "left" });
       }
-      txt(cp.url, W / 2, yU, { alpha: prog(t, T.freeW + 0.7, T.freeW + 1.1), size: 32, w: 700, color: TEAL, dir: "ltr" });
-      const ca = prog(t, T.freeW + 1.1, T.freeW + 1.5);
-      if (ca > 0) {
-        ctx.save(); ctx.font = font(600, 22); const ct = cp.trust.endCredit, cw2 = ctx.measureText(ct).width; ctx.restore();
-        const mh = 58, mw = (mh * machon.width) / machon.height, gx = W / 2 - (cw2 + mw + 16) / 2;
-        ctx.save(); ctx.globalAlpha = ca; ctx.drawImage(machon, RTL ? gx + cw2 + 16 : gx, yC - mh / 2, mw, mh); ctx.restore();
-        txt(ct, RTL ? gx + cw2 : gx + mw + 16, yC + 8, { alpha: ca, size: 22, w: 600, color: "rgba(31,28,18,0.6)", align: RTL ? "right" : "left" });
-      }
+      // the address is the call to action: a gold pill, and a QR to the landing page beside it
+      const ua = prog(t, T.freeW + 0.7, T.freeW + 1.1, E.outBack);
+      pill(cp.url, W / 2, yU, { size: 40, bg: GOLD, color: TEAL_D, w: 800, dir: "ltr", alpha: clamp(ua), s: lerp(0.85, 1, clamp(ua)) });
+      // two cards flank it: the QR to the landing page, and the institute
+      card(qr, S.qr, [cp.qr], clamp(ua), true);
+      card(machon, S.credit, cp.trust.endCreditV, prog(t, T.freeW + 1.1, T.freeW + 1.5), false);
     }
 
     // =========================================================== the ring's own look over time

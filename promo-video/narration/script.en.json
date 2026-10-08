@@ -23,7 +23,7 @@
       "id": "complex2",
       "text": "it quickly becomes harder to keep track.",
       "pauseAfter": 0.85,
-      "hold": 1.0
+      "hold": 2.0
     },
     {
       "id": "order",

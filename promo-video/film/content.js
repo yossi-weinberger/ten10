@@ -27,7 +27,7 @@
       analyticsLines: ["ניתוח נתונים", "לכלכלת הבית."],
       reportsLines: ["הדפסת דוחות", "וייצוא נתונים."],
       // landing.json → about (partnership + endorsements)
-      trust: { line1: "פותח בשיתוף עם מכון תורת האדם לאדם", line1V: ["פותח בשיתוף עם", "מכון תורת האדם לאדם"], line2: "ובהסכמת רבנים מובילים", verified: "מאושר הלכתית", endCredit: "בשיתוף מכון תורת האדם לאדם" },
+      trust: { line1: "פותח בשיתוף עם מכון תורת האדם לאדם", line1V: ["פותח בשיתוף עם", "מכון תורת האדם לאדם"], line2: "ובהסכמת רבנים מובילים", verified: "מאושר הלכתית", endCredit: "בשיתוף מכון תורת האדם לאדם", endCreditV: ["בשיתוף מכון", "תורת האדם לאדם"] },
       platformsTitle: "בחר את הגרסה המתאימה לך",
       halachaLine: "מאגר הלכות",
       questionLine: "שאלה שלא מצאת עליה תשובה?",
@@ -36,7 +36,7 @@
       tagline: ["ניהול מעשרות ותקציב פיננסי,", "פשוט ומדויק."],
       free: "חינם לשימוש אישי",
       freeSub: "באתר ובתוכנה למחשב",
-      url: "ten10-app.com",
+      url: "ten10-app.com", qr: "סרקו לאתר",
       // "symbols" cut (no app screens): captions inside the ring
       sym: { imported: "תנועות יובאו", file: "תנועות.xlsx", monthly: "כל חודש", household: "הוצאות הבית", other: "אחר" },
       // "cine" cut: chapter marks, and how many narration words stay small before the key words slam in
@@ -285,7 +285,7 @@
       remindLines: ["And reminders", "when you need them."],
       analyticsLines: ["Analytics", "for your household budget."],
       reportsLines: ["Print reports", "and export your data."],
-      trust: { line1: "Developed in partnership with Torat Ha’adam La’adam Institute", line1V: ["Developed in partnership with", "Torat Ha’adam La’adam Institute"], line2: "and endorsed by leading rabbis", verified: "Halachically Verified", endCredit: "In partnership with Torat Ha’adam La’adam Institute" },
+      trust: { line1: "Developed in partnership with Torat Ha’adam La’adam Institute", line1V: ["Developed in partnership with", "Torat Ha’adam La’adam Institute"], line2: "and endorsed by leading rabbis", verified: "Halachically Verified", endCredit: "In partnership with Torat Ha’adam La’adam Institute", endCreditV: ["In partnership with", "Torat Ha’adam La’adam Institute"] },
       platformsTitle: "Choose the Right Version for You",
       halachaLine: "Halacha Library",
       questionLine: "Still have a question?",
@@ -294,7 +294,7 @@
       tagline: ["Simple and Accurate Tithe", "and Financial Budget Management"],
       free: "Free for personal use",
       freeSub: "On the web and as desktop software",
-      url: "ten10-app.com",
+      url: "ten10-app.com", qr: "Scan to visit",
       sym: { imported: "transactions imported", file: "transactions.xlsx", monthly: "every month", household: "household spending", other: "Other" },
       cine: { chapters: { import: "Import", recurring: "Recurring", reminders: "Reminders", analytics: "Analytics" },
         split: { import: 1, recurring: 1, reminders: 2, analytics: 5 }, brand: "TEN10 · Maaser management", balance: "Overall Required",

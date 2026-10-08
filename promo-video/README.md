@@ -64,6 +64,10 @@ when "חומש" / "Chomesh" is spoken.
   - voice-only rewordings, which are allowed to differ from the screen;
   - Hebrew vowel points on the words TTS misreads (מַעֲשֵׂר, מְרַכֵּז);
   - English "Khomesh" and "Halakha", because "Chomesh" comes out as Chumash/Chometz.
+- An entry can also be `{"text", "direction"}`, which replaces the global direction for that one phrase. The closing "Ten Ten"
+  uses `[calm, assured, understated]`; under the energetic global direction it sounded hyped.
+- Very short phrases sometimes come back with the word repeated, so check them with speech-to-text. To get a new take,
+  delete the phrase's file in `audio/tts/<lang>/`.
 - The chosen read for both languages is the voice "Omer":
 
 ```bash
@@ -105,6 +109,22 @@ It is one continuous shot on one canvas. The logo's ring (the "0") never leaves 
 
 All copy comes from `content.js` (`copy.cine.big` sets which narration words are set large per phrase). Words appear as
 they are spoken, and each block stays until the next phrase begins.
+
+**The ending** is the call to action. The address is a gold pill. Two cards flank it: a QR to the landing page and the
+institute's emblem. The QR (`film/assets/qr-ten10-app.svg`) opens
+`https://ten10-app.com/landing?utm_source=promo-video&utm_medium=qr`, so visits from it show up in PostHog under
+`utm_source = promo-video`. To change the address, regenerate it with the `qrcode` package and recolour it:
+
+```bash
+python3 -c "import qrcode, qrcode.image.svg as s; q = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, border=1, image_factory=s.SvgPathFillImage); q.add_data('https://ten10-app.com/landing?utm_source=promo-video&utm_medium=qr'); open('film/assets/qr-ten10-app.svg', 'w').write(q.make_image().to_string(encoding='unicode'))"
+# then set width/height="540", fill="#0c4a4c" and shape-rendering="crispEdges" on the path
+```
+
+Check that it still scans from a rendered still (`stills.mjs`) at half resolution.
+
+The brand name is spoken as its logo finishes. Both logo builds (`order` and `brand`) start in the silence before the
+name, set by `ORD_LEAD` and `BRAND_LEAD` in `geo.js`. The pause before `order` (`complex2.hold`) is long enough for a beat to
+read "harder to keep track", then the ~1.85 s build.
 
 **Localisation.** Hebrew is authored first (RTL), and English is mirrored and then rebalanced. Hebrew text is animated
 only by words and lines, never letter by letter, so shaping is never broken. Amounts use `Intl.NumberFormat` (`he-IL`/ILS,
