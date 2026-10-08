@@ -1,0 +1,8 @@
+{
+  "name": "ten10-e2e-date-commit",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@playwright/test": "1.55.1"
+  }
+}

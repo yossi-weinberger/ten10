@@ -133,9 +133,7 @@ describe("DatePicker typed dates", () => {
       await user.type(input, typed[index]!, options);
       expect(input).toHaveValue(typed.slice(0, index + 1));
       if (typed.slice(0, index + 1) === "15/03/20") {
-        expect(screen.getByTestId("committed-date")).toHaveTextContent(
-          "2026-10-08",
-        );
+        expect(screen.getByTestId("committed-date")).toHaveTextContent("");
       }
     }
 
@@ -155,7 +153,7 @@ describe("DatePicker typed dates", () => {
     await typeOverField(user, input, "01/01/26");
 
     expect(input).toHaveValue("01/01/26");
-    expect(screen.getByTestId("committed-date")).toHaveTextContent("2026-10-08");
+    expect(screen.getByTestId("committed-date")).toHaveTextContent("");
 
     await user.tab();
 
@@ -229,7 +227,7 @@ describe("DatePicker typed dates", () => {
     await typeOverField(user, input, "01/01/26");
 
     expect(input).toHaveValue("01/01/26");
-    expect(screen.getByTestId("committed-date")).toHaveTextContent("2026-10-08");
+    expect(screen.getByTestId("committed-date")).toHaveTextContent("");
 
     fireEvent.submit(input.closest("form")!);
 
@@ -256,5 +254,63 @@ describe("DatePicker typed dates", () => {
     expect(setDate).toHaveBeenCalled();
     const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
     expect(formatLocalDate(committed)).toBe("2000-01-01");
+  });
+
+  it("blocks save when abc is typed and Save is clicked while the field is focused", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(
+      <DateFormHarness initialDate="2026-10-08" onSubmit={onSubmit} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await typeOverField(user, input, "abc");
+    expect(input).toHaveValue("abc");
+    expect(screen.getByTestId("committed-date")).toHaveTextContent("");
+
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(input).toHaveValue("abc");
+    expect(screen.getByText(INVALID_DATE_MESSAGE)).toBeInTheDocument();
+    expect(screen.getByTestId("committed-date")).toHaveTextContent("");
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("saves 2026-01-01 when 01/01/26 is typed and Save is clicked while focused", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(
+      <DateFormHarness initialDate="2026-10-08" onSubmit={onSubmit} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await typeOverField(user, input, "01/01/26");
+    expect(screen.getByTestId("committed-date")).toHaveTextContent("");
+
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(onSubmit).toHaveBeenCalledWith({ date: "2026-01-01" });
+    expect(input).toHaveValue("01/01/2026");
+    expect(screen.getByTestId("committed-date")).toHaveTextContent("2026-01-01");
+  });
+
+  it("blocks save when 31/12/1999 is typed and Save is clicked while focused", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(
+      <DateFormHarness initialDate="2026-03-15" onSubmit={onSubmit} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await typeOverField(user, input, "31/12/1999");
+
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(input).toHaveValue("31/12/1999");
+    expect(screen.getByText(MIN_DATE_MESSAGE)).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });

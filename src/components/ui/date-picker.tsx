@@ -17,6 +17,7 @@ import { useDonationStore } from "@/lib/store";
 import {
   formatLocalDate,
   getCalendarNavigationBounds,
+  parseLocalDate,
 } from "@/lib/utils/local-date";
 import { minTransactionDateLocal } from "@/lib/utils/transaction-date";
 import { Input } from "./input";
@@ -24,8 +25,9 @@ import {
   formatGregorianDateInput,
   parseCompleteFourDigitGregorianDateInput,
   parseFlexibleGregorianDateInput,
-  type GregorianDateParseResult,
 } from "./gregorian-date-input";
+
+type DateCommitOutcome = "empty" | "valid" | "min" | "invalid";
 
 export function DatePicker({
   date,
@@ -40,11 +42,9 @@ export function DatePicker({
   const [inputValue, setInputValue] = React.useState<string>("");
   const [inputError, setInputError] = React.useState<string | null>(null);
   const [month, setMonth] = React.useState<Date | undefined>(date);
-  const keepTypedValueRef = React.useRef(false);
-  const isEditingRef = React.useRef(false);
+  const dirtyRef = React.useRef(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const inputValueRef = React.useRef(inputValue);
-  inputValueRef.current = inputValue;
   const { t, i18n } = useTranslation(["dashboard", "transactions"]);
   const resolvedMinDate = React.useMemo(
     () => minDate ?? minTransactionDateLocal(),
@@ -72,75 +72,81 @@ export function DatePicker({
     [calendarType, language],
   );
 
-  React.useEffect(() => {
-    if (isEditingRef.current || keepTypedValueRef.current) {
-      keepTypedValueRef.current = false;
-      return;
-    }
-    if (date && isValidDate(date)) {
-      setInputValue(formatFieldDate(date));
-      if (date >= resolvedMinDate) {
-        setInputError(null);
-      }
-    } else if (!inputError) {
-      setInputValue("");
-    }
-    setMonth(date);
-  }, [date, formatFieldDate, resolvedMinDate, inputError]);
-
   function isValidDate(d: unknown): d is Date {
     return d instanceof Date && !isNaN(d.getTime());
   }
 
-  function applyCommittedResult(
-    result: GregorianDateParseResult,
-    rawValue: string,
-  ) {
+  const dateKey = date && isValidDate(date) ? formatLocalDate(date) : "";
+
+  const setFieldText = (value: string) => {
+    inputValueRef.current = value;
+    setInputValue(value);
+  };
+
+  React.useEffect(() => {
+    if (dirtyRef.current) {
+      return;
+    }
+    if (dateKey) {
+      const synced = parseLocalDate(dateKey);
+      setFieldText(formatFieldDate(synced));
+      if (synced >= resolvedMinDate) {
+        setInputError(null);
+      }
+      setMonth(synced);
+      return;
+    }
+    if (!inputError) {
+      setFieldText("");
+    }
+    setMonth(undefined);
+  }, [dateKey, formatFieldDate, resolvedMinDate, inputError]);
+
+  const commitInput = (rawValue: string): DateCommitOutcome => {
+    if (calendarType === "hebrew") return "valid";
+    const result = parseFlexibleGregorianDateInput(rawValue);
     switch (result.status) {
       case "empty":
+        dirtyRef.current = false;
         setInputError(null);
-        setInputValue("");
+        setFieldText("");
         setDate(undefined);
-        return;
+        return "empty";
       case "parsed": {
+        dirtyRef.current = false;
         const parsedDate = result.date;
-        setInputValue(formatFieldDate(parsedDate));
+        setFieldText(formatFieldDate(parsedDate));
         setMonth(parsedDate);
+        setDate(parsedDate);
         if (parsedDate < resolvedMinDate) {
           setInputError(t("transactions:transactionForm.validation.date.min"));
-        } else {
-          setInputError(null);
+          return "min";
         }
-        setDate(parsedDate);
-        return;
+        setInputError(null);
+        return "valid";
       }
       case "invalid":
-        keepTypedValueRef.current = true;
-        setInputValue(rawValue);
+        dirtyRef.current = true;
+        setFieldText(rawValue);
         setInputError(t("transactions:transactionForm.validation.date.invalid"));
         setDate(undefined);
-        return;
+        return "invalid";
       default: {
         const exhaustive: never = result;
         return exhaustive;
       }
     }
-  }
-
-  const commitInput = (rawValue: string) => {
-    if (calendarType === "hebrew") return;
-    isEditingRef.current = false;
-    applyCommittedResult(parseFlexibleGregorianDateInput(rawValue), rawValue);
   };
   const commitInputRef = React.useRef(commitInput);
-  commitInputRef.current = commitInput;
+  React.useEffect(() => {
+    commitInputRef.current = commitInput;
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (calendarType === "hebrew") return;
     const value = e.target.value;
-    isEditingRef.current = true;
-    keepTypedValueRef.current = true;
-    setInputValue(value);
+    dirtyRef.current = true;
+    setFieldText(value);
 
     const result = parseCompleteFourDigitGregorianDateInput(value);
     switch (result.status) {
@@ -155,13 +161,12 @@ export function DatePicker({
         } else {
           setInputError(null);
         }
-        if (result.date >= resolvedMinDate) {
-          setDate(result.date);
-        }
+        setDate(result.date);
         return;
       }
       case "invalid":
         setInputError(null);
+        setDate(undefined);
         return;
       default: {
         const exhaustive: never = result;
@@ -175,29 +180,63 @@ export function DatePicker({
     const form = input?.form;
     if (!form) return;
 
-    const onSubmit = () => {
+    const isSubmitControl = (target: EventTarget | null) => {
+      if (!(target instanceof Element)) return false;
+      return Boolean(target.closest('button[type="submit"], input[type="submit"]'));
+    };
+
+    const onSubmitPointerDown = (event: Event) => {
+      if (!isSubmitControl(event.target)) return;
       flushSync(() => {
         commitInputRef.current(inputValueRef.current);
       });
     };
 
+    const onSubmit = (event: Event) => {
+      let outcome!: DateCommitOutcome;
+      flushSync(() => {
+        outcome = commitInputRef.current(inputValueRef.current);
+      });
+      switch (outcome) {
+        case "valid":
+          return;
+        case "empty":
+        case "min":
+        case "invalid":
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          return;
+        default: {
+          const exhaustive: never = outcome;
+          return exhaustive;
+        }
+      }
+    };
+
+    form.addEventListener("pointerdown", onSubmitPointerDown, true);
+    form.addEventListener("mousedown", onSubmitPointerDown, true);
     form.addEventListener("submit", onSubmit, true);
-    return () => form.removeEventListener("submit", onSubmit, true);
+    return () => {
+      form.removeEventListener("pointerdown", onSubmitPointerDown, true);
+      form.removeEventListener("mousedown", onSubmitPointerDown, true);
+      form.removeEventListener("submit", onSubmit, true);
+    };
   }, []);
 
   const handleSelectDate = (selectedDate: Date | undefined) => {
+    dirtyRef.current = false;
     if (isValidDate(selectedDate) && selectedDate >= resolvedMinDate) {
       setInputError(null);
       setDate(selectedDate);
-      setInputValue(formatFieldDate(selectedDate));
+      setFieldText(formatFieldDate(selectedDate));
     } else if (isValidDate(selectedDate)) {
       setInputError(t("transactions:transactionForm.validation.date.min"));
       setDate(selectedDate);
-      setInputValue(formatFieldDate(selectedDate));
+      setFieldText(formatFieldDate(selectedDate));
     } else {
       setInputError(null);
       setDate(undefined);
-      setInputValue("");
+      setFieldText("");
     }
     setOpen(false);
   };
@@ -237,7 +276,9 @@ export function DatePicker({
         placeholder={calendarType === "hebrew" ? "" : "DD/MM/YYYY"}
         value={inputValue}
         onChange={handleInputChange}
-        onBlur={() => commitInput(inputValue)}
+        onBlur={() => {
+          commitInput(inputValueRef.current);
+        }}
         readOnly={calendarType === "hebrew"}
         className="bg-background pr-10"
         aria-invalid={inputError ? true : undefined}
@@ -248,7 +289,7 @@ export function DatePicker({
           }
           if (e.key === "Enter") {
             e.preventDefault();
-            commitInput(inputValue);
+            commitInput(inputValueRef.current);
           }
         }}
       />
