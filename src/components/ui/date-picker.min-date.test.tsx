@@ -218,6 +218,24 @@ describe.each([
     expect(input).toHaveValue("01/01/2026");
   });
 
+  it("blocks save when 01/01/0999 is typed and Save is clicked while focused", async () => {
+    useGregorian();
+    const user = userEvent.setup();
+    const onSubmit = vi.fn();
+    render(
+      <TransactionDateFormHarness initialDate={initialDate} onSubmit={onSubmit} />,
+    );
+
+    const input = screen.getByPlaceholderText("DD/MM/YYYY");
+    await typeOverField(user, input, "01/01/0999");
+
+    await user.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(input).toHaveValue("01/01/0999");
+    expect(screen.getByText(EN_MIN)).toBeInTheDocument();
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
   it("blocks save when 31/12/1999 is typed and Save is clicked while focused", async () => {
     useGregorian();
     const user = userEvent.setup();

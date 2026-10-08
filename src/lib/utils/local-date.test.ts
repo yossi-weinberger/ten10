@@ -26,6 +26,10 @@ describe("local date-only values", () => {
     expect(date.getHours()).toBe(0);
   });
 
+  it("pads years below 1000 to four digits", () => {
+    expect(formatLocalDate(new Date(999, 0, 1))).toBe("0999-01-01");
+  });
+
   it("rejects years below 100 so they never become 1900-based dates", () => {
     const parsed = parseLocalDate("0026-01-01");
     const twoDigitYear = new Date(2000, 0, 1);

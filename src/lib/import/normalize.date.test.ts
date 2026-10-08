@@ -20,6 +20,33 @@ describe("import date minimum", () => {
     });
   });
 
+  it("rejects a padded year-999 ISO date", () => {
+    const result = normalizeRow(
+      { date: "0999-01-01", amount: "100" },
+      "ILS",
+    );
+
+    expect(result.normalized).toBeNull();
+    expect(result.issues).toContainEqual({
+      code: "date_before_minimum",
+      field: "date",
+    });
+  });
+
+  it("rejects 01/01/0999 from slash-format import input", () => {
+    expect(parseDate("01/01/0999")).toBe("0999-01-01");
+    const result = normalizeRow(
+      { date: "01/01/0999", amount: "100" },
+      "ILS",
+    );
+
+    expect(result.normalized).toBeNull();
+    expect(result.issues).toContainEqual({
+      code: "date_before_minimum",
+      field: "date",
+    });
+  });
+
   it("accepts the minimum allowed date", () => {
     const result = normalizeRow(
       { date: MIN_TRANSACTION_DATE, amount: "100" },
