@@ -32,8 +32,9 @@ export function DatePicker({
 }) {
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>("");
+  const [minDateError, setMinDateError] = React.useState<string | null>(null);
   const [month, setMonth] = React.useState<Date | undefined>(date);
-  const { i18n } = useTranslation("dashboard");
+  const { t, i18n } = useTranslation(["dashboard", "transactions"]);
   const yearBounds = getCalendarNavigationBounds();
   const calendarType = useDonationStore(
     (state) => state.settings.calendarType,
@@ -59,11 +60,14 @@ export function DatePicker({
   React.useEffect(() => {
     if (date && isValidDate(date)) {
       setInputValue(formatFieldDate(date));
+      if (date >= minDate) {
+        setMinDateError(null);
+      }
     } else {
       setInputValue("");
     }
     setMonth(date);
-  }, [date, formatFieldDate]);
+  }, [date, formatFieldDate, minDate]);
 
   function isValidDate(d: unknown): d is Date {
     return d instanceof Date && !isNaN(d.getTime());
@@ -75,18 +79,28 @@ export function DatePicker({
     setInputValue(value);
     const parsedDate = parseExactGregorianDateInput(value);
     if (parsedDate && parsedDate >= minDate) {
+      setMinDateError(null);
       setDate(parsedDate);
       setMonth(parsedDate);
+    } else if (parsedDate) {
+      setMinDateError(t("transactions:transactionForm.validation.date.min"));
     } else if (value === "") {
+      setMinDateError(null);
       setDate(undefined);
+    } else {
+      setMinDateError(null);
     }
   };
 
   const handleSelectDate = (selectedDate: Date | undefined) => {
     if (isValidDate(selectedDate) && selectedDate >= minDate) {
+      setMinDateError(null);
       setDate(selectedDate);
       setInputValue(formatFieldDate(selectedDate));
+    } else if (isValidDate(selectedDate)) {
+      setMinDateError(t("transactions:transactionForm.validation.date.min"));
     } else {
+      setMinDateError(null);
       setDate(undefined);
       setInputValue("");
     }
@@ -135,6 +149,7 @@ export function DatePicker({
         onChange={handleInputChange}
         readOnly={calendarType === "hebrew"}
         className="bg-background pr-10"
+        aria-invalid={minDateError ? true : undefined}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") {
             e.preventDefault();
@@ -198,5 +213,14 @@ export function DatePicker({
     </div>
   );
 
-  return picker;
+  return (
+    <div>
+      {picker}
+      {minDateError ? (
+        <p role="alert" className="mt-1 text-sm text-destructive">
+          {minDateError}
+        </p>
+      ) : null}
+    </div>
+  );
 }
