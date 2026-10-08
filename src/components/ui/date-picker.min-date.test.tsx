@@ -102,7 +102,7 @@ describe("DatePicker typed dates", () => {
     });
 
     expect(setDate).toHaveBeenCalled();
-    const committed = setDate.mock.calls.at(-1)?.[0] as Date;
+    const committed = setDate.mock.calls[setDate.mock.calls.length - 1]?.[0] as Date;
     expect(formatLocalDate(committed)).toBe("2026-01-01");
     expect(screen.getByPlaceholderText("DD/MM/YYYY")).toHaveValue("01/01/2026");
   });
