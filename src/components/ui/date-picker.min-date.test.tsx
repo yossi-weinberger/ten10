@@ -1,18 +1,10 @@
 // @vitest-environment jsdom
 
 import "@testing-library/jest-dom/vitest";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import * as React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { z } from "zod";
 
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-} from "@/components/ui/form";
 import { DatePicker } from "@/components/ui/date-picker";
 import { useDonationStore } from "@/lib/store";
 import { formatLocalDate, parseLocalDate } from "@/lib/utils/local-date";
@@ -55,77 +47,42 @@ function useGregorian() {
   });
 }
 
-const dateSchema = z.object({
-  date: z
-    .string()
-    .min(1, { message: INVALID_DATE_MESSAGE })
-    .refine((value) => !Number.isNaN(Date.parse(value)), {
-      message: INVALID_DATE_MESSAGE,
-    })
-    .refine((value) => isOnOrAfterMinTransactionDate(value), {
-      message: MIN_DATE_MESSAGE,
-    }),
-});
-
 function DateFormHarness({
   initialDate,
   onSubmit,
-  schema = dateSchema,
 }: {
   initialDate: string;
   onSubmit: (values: { date: string }) => void;
-  schema?: z.ZodType<{ date: string }>;
 }) {
-  const form = useForm<{ date: string }>({
-    resolver: zodResolver(schema),
-    mode: "onChange",
-    defaultValues: { date: initialDate },
-  });
+  const [date, setDate] = React.useState(initialDate);
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <FormField
-          control={form.control}
-          name="date"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <DatePicker
-                  date={
-                    field.value ? parseLocalDate(field.value) : undefined
-                  }
-                  setDate={(next) => {
-                    if (next && !Number.isNaN(next.getTime())) {
-                      form.setValue("date", formatLocalDate(next), {
-                        shouldValidate: true,
-                        shouldDirty: true,
-                        shouldTouch: true,
-                      });
-                    } else {
-                      form.setValue("date", "", {
-                        shouldValidate: true,
-                        shouldDirty: true,
-                        shouldTouch: true,
-                      });
-                    }
-                  }}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <p data-testid="committed-date">{form.watch("date")}</p>
-        <button
-          type="button"
-          onClick={() => {
-            void form.handleSubmit(onSubmit)();
-          }}
-        >
-          Save
-        </button>
-      </form>
-    </Form>
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (
+          !date ||
+          Number.isNaN(Date.parse(date)) ||
+          !isOnOrAfterMinTransactionDate(date)
+        ) {
+          return;
+        }
+        onSubmit({ date });
+      }}
+    >
+      <DatePicker
+        date={date ? parseLocalDate(date) : undefined}
+        setDate={(next) => {
+          if (next && !Number.isNaN(next.getTime())) {
+            setDate(formatLocalDate(next));
+          } else {
+            setDate("");
+          }
+        }}
+      />
+      <p data-testid="committed-date">{date}</p>
+      <button type="submit">Save</button>
+    </form>
   );
 }
 
@@ -150,7 +107,7 @@ describe("DatePicker typed dates", () => {
     expect(screen.getByPlaceholderText("DD/MM/YYYY")).toHaveValue("01/01/2026");
   });
 
-  it("writes 2026-01-01 to the form and display when 01/01/26 is typed", async () => {
+  it("writes 2026-01-01 to the form and display when 01/01/26 is typed", () => {
     useGregorian();
     const onSubmit = vi.fn();
     render(
@@ -163,13 +120,11 @@ describe("DatePicker typed dates", () => {
 
     expect(input).toHaveValue("01/01/2026");
     expect(screen.getByTestId("committed-date")).toHaveTextContent("2026-01-01");
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Save" }));
-    });
-    expect(onSubmit.mock.calls[0]?.[0]).toEqual({ date: "2026-01-01" });
+    fireEvent.submit(input.closest("form")!);
+    expect(onSubmit).toHaveBeenCalledWith({ date: "2026-01-01" });
   });
 
-  it("shows an invalid-date error and blocks submit for garbage input", async () => {
+  it("shows an invalid-date error and blocks submit for garbage input", () => {
     useGregorian();
     const onSubmit = vi.fn();
     render(
@@ -182,13 +137,12 @@ describe("DatePicker typed dates", () => {
 
     expect(input).toHaveValue("not-a-date");
     expect(screen.getByText(INVALID_DATE_MESSAGE)).toBeInTheDocument();
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Save" }));
-    });
+    expect(screen.getByTestId("committed-date")).toHaveTextContent("");
+    fireEvent.submit(input.closest("form")!);
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it("shows the min-date validation message when a date before 2000 is typed", async () => {
+  it("shows the min-date validation message when a date before 2000 is typed", () => {
     useGregorian();
     const onSubmit = vi.fn();
     render(
@@ -200,9 +154,7 @@ describe("DatePicker typed dates", () => {
     });
 
     expect(screen.getByText(MIN_DATE_MESSAGE)).toBeInTheDocument();
-    await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Save" }));
-    });
+    fireEvent.submit(screen.getByPlaceholderText("DD/MM/YYYY").closest("form")!);
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
