@@ -18,6 +18,7 @@ export type ImportTargetField =
 export type ImportIssueCode =
   | "missing_required_field"
   | "invalid_date"
+  | "date_before_minimum"
   | "invalid_amount"
   | "zero_amount"
   | "unsupported_currency"

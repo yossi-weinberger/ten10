@@ -212,6 +212,7 @@
   "issues": {
     "missing_required_field": "Missing: {{field}}",
     "invalid_date": "Invalid date",
+    "date_before_minimum": "Dates before 2000 are not allowed",
     "invalid_amount": "Invalid amount",
     "zero_amount": "Amount cannot be zero",
     "unsupported_currency": "Unsupported currency: {{currency}}",

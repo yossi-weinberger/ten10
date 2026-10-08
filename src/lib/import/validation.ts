@@ -32,6 +32,7 @@ function isFatalIssue(issue: ImportRowIssue): boolean {
   const fatal: ImportRowIssue["code"][] = [
     "missing_required_field",
     "invalid_date",
+    "date_before_minimum",
     "invalid_amount",
     "zero_amount",
     "unsupported_currency",

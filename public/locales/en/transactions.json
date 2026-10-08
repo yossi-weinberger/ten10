@@ -174,7 +174,9 @@
         "required": "Currency must be selected"
       },
       "date": {
-        "invalid": "Invalid date"
+        "required": "Date is required",
+        "invalid": "Invalid date",
+        "min": "Dates before 2000 are not allowed"
       },
       "description": {
         "maxLength": "Description can contain up to 100 characters"

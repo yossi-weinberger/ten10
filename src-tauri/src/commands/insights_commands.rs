@@ -391,3 +391,37 @@ pub fn get_desktop_donation_recipients_breakdown(
     rows.collect::<Result<Vec<_>, _>>()
         .map_err(|e| e.to_string())
 }
+
+#[cfg(test)]
+mod all_time_sentinel_tests {
+    use rusqlite::{params, Connection};
+
+    #[test]
+    fn sentinel_start_includes_pre_1970_rows() {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch(
+            "CREATE TABLE transactions (
+                id TEXT PRIMARY KEY,
+                date TEXT NOT NULL,
+                amount REAL NOT NULL
+            );
+            INSERT INTO transactions (id, date, amount) VALUES
+                ('pre_1970', '1926-01-01', 4000),
+                ('epoch', '1970-01-01', 3000),
+                ('recent', '2026-01-01', 1000);",
+        )
+        .unwrap();
+
+        let sql =
+            "SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE date >= ?1 AND date <= ?2";
+        let all_time: f64 = conn
+            .query_row(sql, params!["0001-01-01", "2026-10-08"], |row| row.get(0))
+            .unwrap();
+        let from_1970: f64 = conn
+            .query_row(sql, params!["1970-01-01", "2026-10-08"], |row| row.get(0))
+            .unwrap();
+
+        assert_eq!(all_time, 8000.0);
+        assert_eq!(from_1970, 4000.0);
+    }
+}

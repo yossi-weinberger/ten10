@@ -212,6 +212,7 @@
   "issues": {
     "missing_required_field": "חסר: {{field}}",
     "invalid_date": "תאריך לא תקין",
+    "date_before_minimum": "לא ניתן להזין תאריך לפני שנת 2000",
     "invalid_amount": "סכום לא תקין",
     "zero_amount": "הסכום לא יכול להיות אפס",
     "unsupported_currency": "מטבע לא נתמך: {{currency}}",

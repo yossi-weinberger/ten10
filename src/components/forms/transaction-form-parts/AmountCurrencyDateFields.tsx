@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { UseFormReturn } from "react-hook-form";
 import {
@@ -14,6 +15,7 @@ import { CurrencyCode } from "@/lib/currencies";
 import { TransactionFormValues } from "@/lib/schemas";
 import { DatePicker } from "@/components/ui/date-picker";
 import { formatLocalDate, parseLocalDate } from "@/lib/utils/local-date";
+import { minTransactionDateLocal } from "@/lib/utils/transaction-date";
 import { HelpCircle } from "lucide-react";
 import {
   Tooltip,
@@ -40,6 +42,7 @@ export function AmountCurrencyDateFields({
 }: AmountCurrencyDateFieldsProps) {
   const { t } = useTranslation("transactions");
   const defaultCurrency = useDonationStore((state) => state.settings.defaultCurrency);
+  const minDate = useMemo(() => minTransactionDateLocal(), []);
   
   const selectedCurrency = form.watch("currency");
   const amount = form.watch("amount");
@@ -158,12 +161,29 @@ export function AmountCurrencyDateFields({
                       ? parseLocalDate(field.value)
                       : undefined
                   }
+                  minDate={minDate}
                   setDate={(date) => {
                     if (date && !Number.isNaN(date.getTime())) {
-                      field.onChange(formatLocalDate(date));
-                    } else {
-                      field.onChange("");
+                      form.setValue("date", formatLocalDate(date) || "invalid", {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
+                      return;
                     }
+                    if (date) {
+                      form.setValue("date", "invalid", {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                        shouldTouch: true,
+                      });
+                      return;
+                    }
+                    form.setValue("date", "", {
+                      shouldValidate: false,
+                      shouldDirty: true,
+                      shouldTouch: true,
+                    });
                   }}
                 />
               </FormControl>

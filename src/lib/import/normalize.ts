@@ -9,6 +9,7 @@ import { normalizeCategoryValue } from "@/lib/category-registry";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 import { resolveTypeWithIssues } from "./type-resolver";
 import { BOOLEAN_TRUTHY_VALUES } from "./import-locale-aliases";
+import { isOnOrAfterMinTransactionDate } from "@/lib/utils/transaction-date";
 
 const MAX_DESCRIPTION_LENGTH = 500;
 const MAX_CATEGORY_LENGTH = 100;
@@ -177,6 +178,10 @@ export function normalizeRow(
     if (rawDate === null || rawDate === undefined || rawDate === "") {
       issues.push({ code: "missing_required_field", field: "date" });
     }
+    return { normalized: null, issues };
+  }
+  if (!isOnOrAfterMinTransactionDate(dateStr)) {
+    issues.push({ code: "date_before_minimum", field: "date" });
     return { normalized: null, issues };
   }
 
