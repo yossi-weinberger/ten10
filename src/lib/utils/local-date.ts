@@ -11,7 +11,7 @@ export function parseLocalDate(dateString: string): Date {
 export function formatLocalDate(date: Date): string {
   const year = date.getFullYear();
   if (!Number.isFinite(year) || year < 100) {
-    throw new RangeError("Local date year must be 100 or greater");
+    return "";
   }
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");

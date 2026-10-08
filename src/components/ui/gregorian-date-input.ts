@@ -1,4 +1,4 @@
-import { format, parse } from "date-fns";
+import { format } from "date-fns";
 
 /**
  * Two-digit years always expand to 20yy (not date-fns' 1969–2068 window).
@@ -24,18 +24,6 @@ function localDateIfValid(year: number, month: number, day: number): Date | null
     return null;
   }
   return date;
-}
-
-/** Accept only a full dd/MM/yyyy value. Partial years such as 12/09/20 do not round-trip. */
-export function parseExactGregorianDateInput(value: string): Date | null {
-  const parsedDate = parse(value, "dd/MM/yyyy", new Date(2020, 0, 1));
-  if (!(parsedDate instanceof Date) || Number.isNaN(parsedDate.getTime())) {
-    return null;
-  }
-  if (format(parsedDate, "dd/MM/yyyy") !== value) {
-    return null;
-  }
-  return parsedDate;
 }
 
 const COMPLETE_FOUR_DIGIT_DATE = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;

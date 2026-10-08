@@ -2,7 +2,6 @@ import { supabase } from "@/lib/supabaseClient";
 import { getPlatform } from "../platformManager";
 import { logger } from "@/lib/logger";
 import { RecurringTransaction } from "@/types/transaction";
-import { toRpcDateRangeArgs } from "@/lib/utils/all-time-date";
 
 /**
  * Runs the web or desktop implementation for the current platform, with the
@@ -81,7 +80,8 @@ async function fetchAnalyticsBreakdownsWeb(
   endDate: string
 ): Promise<AnalyticsBreakdownsBundle> {
   const { data, error } = await supabase.rpc("get_analytics_breakdowns", {
-    ...toRpcDateRangeArgs(startDate, endDate),
+    p_start_date: startDate,
+    p_end_date: endDate,
   });
   if (error) {
     logger.error("InsightsService: analytics breakdowns RPC error:", error);
@@ -167,7 +167,8 @@ async function fetchCategoryBreakdownWeb(
   type: CategoryType
 ): Promise<CategoryBreakdownResponse> {
   const { data, error } = await supabase.rpc("get_category_breakdown", {
-    ...toRpcDateRangeArgs(startDate, endDate),
+    p_start_date: startDate,
+    p_end_date: endDate,
     p_type: type,
   });
   if (error) {
@@ -214,7 +215,8 @@ async function fetchDailyHeatmapWeb(
   typeGroup: HeatmapTypeGroup
 ): Promise<DailyHeatmapResponse> {
   const { data, error } = await supabase.rpc("get_daily_transaction_heatmap", {
-    ...toRpcDateRangeArgs(startDate, endDate),
+    p_start_date: startDate,
+    p_end_date: endDate,
     p_type_group: typeGroup,
   });
   if (error) {

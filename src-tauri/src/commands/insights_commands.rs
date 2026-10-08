@@ -1,8 +1,7 @@
-use rusqlite::{params, Connection};
+use rusqlite::params;
 use serde::{Deserialize, Serialize};
 use tauri::State;
 
-use crate::date_range::sql_optional_start_date_predicate;
 use crate::DbState;
 use crate::transaction_types::{
     donation_types_condition, expense_types_condition, income_types_condition,
@@ -42,7 +41,7 @@ pub struct DonationRecipientItem {
 #[tauri::command]
 pub fn get_desktop_category_breakdown(
     db_state: State<'_, DbState>,
-    start_date: Option<String>,
+    start_date: String,
     end_date: String,
     transaction_type: String,
 ) -> Result<Vec<CategoryBreakdownItem>, String> {
@@ -56,12 +55,11 @@ pub fn get_desktop_category_breakdown(
     let sql = format!(
         "SELECT COALESCE(category, 'other') AS category, SUM(amount) AS total_amount
          FROM transactions
-         WHERE {} AND {}
+         WHERE {} AND date >= ?1 AND date <= ?2
          GROUP BY COALESCE(category, 'other')
          ORDER BY total_amount DESC
          LIMIT 10",
-        type_condition,
-        sql_optional_start_date_predicate(1, 2)
+        type_condition
     );
 
     let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
@@ -84,14 +82,14 @@ pub fn get_desktop_category_breakdown(
 #[tauri::command]
 pub fn get_desktop_payment_method_breakdown(
     db_state: State<'_, DbState>,
-    start_date: Option<String>,
+    start_date: String,
     end_date: String,
 ) -> Result<Vec<PaymentMethodBreakdownItem>, String> {
     let expense_cond = expense_types_condition();
     let sql = format!(
         "SELECT COALESCE(payment_method, 'other') AS payment_method, SUM(amount) AS total_amount
          FROM transactions
-         WHERE {} AND (?1 IS NULL OR date >= ?1) AND date <= ?2
+         WHERE {} AND date >= ?1 AND date <= ?2
          GROUP BY COALESCE(payment_method, 'other')
          ORDER BY total_amount DESC
          LIMIT 20",
@@ -118,7 +116,7 @@ pub fn get_desktop_payment_method_breakdown(
 #[tauri::command]
 pub fn get_desktop_recurring_vs_onetime(
     db_state: State<'_, DbState>,
-    start_date: Option<String>,
+    start_date: String,
     end_date: String,
 ) -> Result<Vec<RecurringVsOnetimeItem>, String> {
     let sql =
@@ -126,7 +124,7 @@ pub fn get_desktop_recurring_vs_onetime(
                 SUM(amount) AS total_amount,
                 COUNT(*) AS tx_count
          FROM transactions
-         WHERE type != 'initial_balance' AND (?1 IS NULL OR date >= ?1) AND date <= ?2
+         WHERE type != 'initial_balance' AND date >= ?1 AND date <= ?2
          GROUP BY (source_recurring_id IS NOT NULL)";
 
     let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
@@ -158,7 +156,7 @@ pub struct DailyHeatmapItem {
 #[tauri::command]
 pub fn get_desktop_daily_heatmap(
     db_state: State<'_, DbState>,
-    start_date: Option<String>,
+    start_date: String,
     end_date: String,
     type_group: Option<String>,
 ) -> Result<Vec<DailyHeatmapItem>, String> {
@@ -172,7 +170,7 @@ pub fn get_desktop_daily_heatmap(
     let sql = format!(
         "SELECT date AS tx_date, COUNT(*) AS tx_count, SUM(amount) AS total_amount
          FROM transactions
-         WHERE type != 'initial_balance' AND (?1 IS NULL OR date >= ?1) AND date <= ?2{}
+         WHERE type != 'initial_balance' AND date >= ?1 AND date <= ?2{}
          GROUP BY date
          ORDER BY date",
         type_filter
@@ -208,7 +206,7 @@ pub struct AnalyticsBreakdownsBundle {
 #[tauri::command]
 pub fn get_desktop_analytics_breakdowns(
     db_state: State<'_, DbState>,
-    start_date: Option<String>,
+    start_date: String,
     end_date: String,
 ) -> Result<AnalyticsBreakdownsBundle, String> {
     let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
@@ -218,7 +216,7 @@ pub fn get_desktop_analytics_breakdowns(
     let pm_sql = format!(
         "SELECT COALESCE(payment_method, 'other') AS payment_method, SUM(amount) AS total_amount
          FROM transactions
-         WHERE {} AND (?1 IS NULL OR date >= ?1) AND date <= ?2
+         WHERE {} AND date >= ?1 AND date <= ?2
          GROUP BY COALESCE(payment_method, 'other')
          ORDER BY total_amount DESC
          LIMIT 20",
@@ -242,7 +240,7 @@ pub fn get_desktop_analytics_breakdowns(
                 SUM(amount) AS total_amount,
                 COUNT(*) AS tx_count
          FROM transactions
-         WHERE type != 'initial_balance' AND (?1 IS NULL OR date >= ?1) AND date <= ?2
+         WHERE type != 'initial_balance' AND date >= ?1 AND date <= ?2
          GROUP BY (source_recurring_id IS NOT NULL)";
     let mut rvo_stmt = conn_guard.prepare(rvo_sql).map_err(|e| e.to_string())?;
     let recurring_vs_onetime: Vec<RecurringVsOnetimeItem> = rvo_stmt
@@ -269,7 +267,7 @@ pub fn get_desktop_analytics_breakdowns(
              SUM(amount) AS total_amount
            FROM transactions
            WHERE {}
-             AND (?1 IS NULL OR date >= ?1) AND date <= ?2
+             AND date >= ?1 AND date <= ?2
            GROUP BY COALESCE(NULLIF(TRIM(COALESCE(description,'')), ''),
                               NULLIF(TRIM(COALESCE(recipient,'')), ''),
                               'other')
@@ -308,10 +306,11 @@ pub struct AnalyticsRangeStats {
     pub non_tithe_donation_amount: f64,
 }
 
-fn query_analytics_range_stats(
-    conn: &Connection,
-    start_date: Option<&str>,
-    end_date: &str,
+#[tauri::command]
+pub fn get_desktop_analytics_range_stats(
+    db_state: State<'_, DbState>,
+    start_date: String,
+    end_date: String,
 ) -> Result<AnalyticsRangeStats, String> {
     let sql = format!(
         "SELECT
@@ -322,38 +321,25 @@ fn query_analytics_range_stats(
            COALESCE(SUM(CASE WHEN ({donation}) THEN amount ELSE 0 END), 0) AS total_donations,
            COALESCE(SUM(CASE WHEN type = 'non_tithe_donation' THEN amount ELSE 0 END), 0) AS non_tithe_donation_amount
          FROM transactions
-         WHERE {date_pred}",
+         WHERE date >= ?1 AND date <= ?2",
         income = income_types_condition().trim_matches(|c| c == '(' || c == ')'),
         expense = expense_types_condition().trim_matches(|c| c == '(' || c == ')'),
-        donation = donation_types_condition().trim_matches(|c| c == '(' || c == ')'),
-        date_pred = sql_optional_start_date_predicate(1, 2)
+        donation = donation_types_condition().trim_matches(|c| c == '(' || c == ')')
     );
 
-    conn.query_row(&sql, params![start_date, end_date], |row| {
-        Ok(AnalyticsRangeStats {
-            total_income:              row.get(0)?,
-            titheable_income:          row.get(1)?,
-            chomesh_amount:            row.get(2)?,
-            total_expenses:            row.get(3)?,
-            total_donations:           row.get(4)?,
-            non_tithe_donation_amount: row.get(5)?,
-        })
-    })
-    .map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-pub fn get_desktop_analytics_range_stats(
-    db_state: State<'_, DbState>,
-    start_date: Option<String>,
-    end_date: String,
-) -> Result<AnalyticsRangeStats, String> {
     let conn_guard = db_state.0.lock().map_err(|e| e.to_string())?;
-    query_analytics_range_stats(
-        &conn_guard,
-        start_date.as_deref(),
-        &end_date,
-    )
+    conn_guard
+        .query_row(&sql, params![start_date, end_date], |row| {
+            Ok(AnalyticsRangeStats {
+                total_income:              row.get(0)?,
+                titheable_income:          row.get(1)?,
+                chomesh_amount:            row.get(2)?,
+                total_expenses:            row.get(3)?,
+                total_donations:           row.get(4)?,
+                non_tithe_donation_amount: row.get(5)?,
+            })
+        })
+        .map_err(|e| e.to_string())
 }
 
 // ─── 5. Donation Recipients Breakdown ─────────────────────────────────────────
@@ -361,7 +347,7 @@ pub fn get_desktop_analytics_range_stats(
 #[tauri::command]
 pub fn get_desktop_donation_recipients_breakdown(
     db_state: State<'_, DbState>,
-    start_date: Option<String>,
+    start_date: String,
     end_date: String,
 ) -> Result<Vec<DonationRecipientItem>, String> {
     // Group by COALESCE(description, recipient, 'other') — uses description first.
@@ -379,7 +365,7 @@ pub fn get_desktop_donation_recipients_breakdown(
              SUM(amount) AS total_amount
            FROM transactions
            WHERE {}
-             AND (?1 IS NULL OR date >= ?1) AND date <= ?2
+             AND date >= ?1 AND date <= ?2
            GROUP BY COALESCE(NULLIF(TRIM(COALESCE(description,'')), ''),
                               NULLIF(TRIM(COALESCE(recipient,'')), ''),
                               'other')
@@ -407,44 +393,35 @@ pub fn get_desktop_donation_recipients_breakdown(
 }
 
 #[cfg(test)]
-mod range_stats_tests {
-    use super::*;
+mod all_time_sentinel_tests {
+    use rusqlite::{params, Connection};
 
-    fn seed_conn() -> Connection {
+    #[test]
+    fn sentinel_start_includes_pre_1970_rows() {
         let conn = Connection::open_in_memory().unwrap();
         conn.execute_batch(
             "CREATE TABLE transactions (
                 id TEXT PRIMARY KEY,
                 date TEXT NOT NULL,
-                amount REAL NOT NULL,
-                type TEXT NOT NULL,
-                is_chomesh INTEGER
+                amount REAL NOT NULL
             );
-            INSERT INTO transactions (id, date, amount, type, is_chomesh) VALUES
-                ('pre1970', '1926-01-01', 1000, 'income', 0),
-                ('recent', '2026-09-12', 3000, 'income', 0);",
+            INSERT INTO transactions (id, date, amount) VALUES
+                ('pre_1970', '1926-01-01', 4000),
+                ('epoch', '1970-01-01', 3000),
+                ('recent', '2026-01-01', 1000);",
         )
         .unwrap();
-        conn
-    }
 
-    #[test]
-    fn unbounded_start_includes_pre_1970_income() {
-        let conn = seed_conn();
-        let bounded = query_analytics_range_stats(&conn, Some("1970-01-01"), "2026-12-31").unwrap();
-        let unbounded = query_analytics_range_stats(&conn, None, "2026-12-31").unwrap();
+        let sql =
+            "SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE date >= ?1 AND date <= ?2";
+        let all_time: f64 = conn
+            .query_row(sql, params!["0001-01-01", "2026-10-08"], |row| row.get(0))
+            .unwrap();
+        let from_1970: f64 = conn
+            .query_row(sql, params!["1970-01-01", "2026-10-08"], |row| row.get(0))
+            .unwrap();
 
-        assert_eq!(bounded.total_income, 3000.0);
-        assert_eq!(unbounded.total_income, 4000.0);
-        assert_eq!(unbounded.titheable_income, 4000.0);
-    }
-
-    #[test]
-    fn sentinel_start_includes_pre_1970_income() {
-        let conn = seed_conn();
-        let sentinel =
-            query_analytics_range_stats(&conn, Some("0001-01-01"), "2026-12-31").unwrap();
-        assert_eq!(sentinel.total_income, 4000.0);
-        assert_eq!(sentinel.titheable_income, 4000.0);
+        assert_eq!(all_time, 8000.0);
+        assert_eq!(from_1970, 4000.0);
     }
 }

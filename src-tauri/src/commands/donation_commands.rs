@@ -2,7 +2,6 @@ use rusqlite::{params, Connection};
 use serde::Serialize;
 use tauri::State;
 
-use crate::date_range::sql_optional_start_date_predicate;
 use crate::DbState;
 use crate::models::TitheBalanceBreakdown;
 use crate::transaction_types::{donation_types_case_condition, donation_types_condition};
@@ -17,7 +16,7 @@ pub struct DesktopDonationData {
 #[tauri::command]
 pub async fn get_desktop_total_donations_in_range(
     db_state: State<'_, DbState>,
-    start_date: Option<String>,
+    start_date: String,
     end_date: String,
 ) -> Result<DesktopDonationData, String> {
     let query_sql = format!(
@@ -28,14 +27,14 @@ pub async fn get_desktop_total_donations_in_range(
             transactions
         WHERE
             {} AND
-            {};",
+            date >= ?1 AND
+            date <= ?2;",
         donation_types_case_condition(),
-        donation_types_condition(),
-        sql_optional_start_date_predicate(1, 2)
+        donation_types_condition()
     );
 
     println!(
-        "Desktop Query (donation_commands.rs): Fetching detailed donations between {:?} and {}",
+        "Desktop Query (donation_commands.rs): Fetching detailed donations between {} and {}",
         start_date, end_date
     );
 

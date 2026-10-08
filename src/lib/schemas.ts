@@ -103,6 +103,9 @@ export const createTransactionFormSchema = (t: TFunction) =>
       currency: createCurrencySchema(t),
       date: z
         .string()
+        .min(1, {
+          message: t("transactions:transactionForm.validation.date.required"),
+        })
         .refine((date) => !isNaN(Date.parse(date)), {
           message: t("transactions:transactionForm.validation.date.invalid"),
         })

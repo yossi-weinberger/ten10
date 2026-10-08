@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ALL_TIME_START_DATE, toRpcDateRangeArgs } from "@/lib/utils/all-time-date";
+import { ALL_TIME_START_DATE } from "@/lib/utils/date-range";
 import {
   calculateDateRange,
   isAllTimeRange,
@@ -94,10 +94,6 @@ describe("calculateDateRange", () => {
         startDate: ALL_TIME_START_DATE,
         endDate: boundary.today,
         label: "all",
-      });
-      expect(toRpcDateRangeArgs(range.startDate, range.endDate)).toEqual({
-        p_start_date: "0001-01-01",
-        p_end_date: boundary.today,
       });
       expect(isAllTimeRange(range)).toBe(true);
     });

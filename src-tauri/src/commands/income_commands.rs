@@ -1,4 +1,3 @@
-use crate::date_range::sql_optional_start_date_predicate;
 use crate::DbState; // Assuming DbState is defined in main.rs or lib.rs and made public from there
 use serde::Serialize;
 use tauri::State; // Import Serialize
@@ -16,8 +15,8 @@ pub struct IncomeAggregationResult {
 #[tauri::command]
 pub fn get_desktop_total_income_in_range(
     db_state: State<'_, DbState>,
-    start_date: Option<String>, // YYYY-MM-DD; None = unbounded start
-    end_date: String,           // Expecting "YYYY-MM-DD"
+    start_date: String, // Expecting "YYYY-MM-DD"
+    end_date: String,   // Expecting "YYYY-MM-DD"
 ) -> Result<IncomeAggregationResult, String> {
     let conn_guard = db_state
         .0
@@ -34,13 +33,13 @@ pub fn get_desktop_total_income_in_range(
         FROM transactions
         WHERE
             {} AND
-            {};",
-        income_types_condition(),
-        sql_optional_start_date_predicate(1, 2)
+            date >= ?1 AND
+            date <= ?2;",
+        income_types_condition()
     );
 
     println!(
-        "Desktop Query (income_commands.rs): Fetching income and chomesh between {:?} and {}",
+        "Desktop Query (income_commands.rs): Fetching income and chomesh between {} and {}",
         start_date, end_date
     );
 

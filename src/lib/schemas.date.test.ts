@@ -45,4 +45,32 @@ describe("transaction form date minimum", () => {
     const result = schema.safeParse(validTransaction({ date: "1926-01-01" }));
     expect(result.success).toBe(false);
   });
+
+  it("rejects an empty date with the required message", () => {
+    const result = schema.safeParse(validTransaction({ date: "" }));
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.issues.some(
+          (issue) =>
+            issue.message ===
+            "transactions:transactionForm.validation.date.required",
+        ),
+      ).toBe(true);
+    }
+  });
+
+  it("rejects garbage dates with the invalid message", () => {
+    const result = schema.safeParse(validTransaction({ date: "invalid" }));
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.issues.some(
+          (issue) =>
+            issue.message ===
+            "transactions:transactionForm.validation.date.invalid",
+        ),
+      ).toBe(true);
+    }
+  });
 });

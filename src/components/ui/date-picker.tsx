@@ -19,7 +19,6 @@ import {
   getCalendarNavigationBounds,
   parseLocalDate,
 } from "@/lib/utils/local-date";
-import { minTransactionDateLocal } from "@/lib/utils/transaction-date";
 import { Input } from "./input";
 import {
   formatGregorianDateInput,
@@ -27,7 +26,49 @@ import {
   parseFlexibleGregorianDateInput,
 } from "./gregorian-date-input";
 
-type DateCommitOutcome = "empty" | "valid" | "min" | "invalid";
+function isValidDate(d: unknown): d is Date {
+  return d instanceof Date && !Number.isNaN(d.getTime());
+}
+
+function useCommitOnFormSubmit(
+  inputRef: React.RefObject<HTMLInputElement | null>,
+  inputValueRef: React.MutableRefObject<string>,
+  commit: (raw: string) => void,
+) {
+  const commitRef = React.useRef(commit);
+  React.useEffect(() => {
+    commitRef.current = commit;
+  });
+
+  React.useEffect(() => {
+    const form = inputRef.current?.form;
+    if (!form) return;
+
+    const isSubmitControl = (target: EventTarget | null) =>
+      target instanceof Element &&
+      Boolean(target.closest('button[type="submit"], input[type="submit"]'));
+
+    const commitNow = () => {
+      flushSync(() => {
+        commitRef.current(inputValueRef.current);
+      });
+    };
+
+    const onSubmitPointerDown = (event: Event) => {
+      if (!isSubmitControl(event.target)) return;
+      commitNow();
+    };
+
+    form.addEventListener("pointerdown", onSubmitPointerDown, true);
+    form.addEventListener("mousedown", onSubmitPointerDown, true);
+    form.addEventListener("submit", commitNow, true);
+    return () => {
+      form.removeEventListener("pointerdown", onSubmitPointerDown, true);
+      form.removeEventListener("mousedown", onSubmitPointerDown, true);
+      form.removeEventListener("submit", commitNow, true);
+    };
+  }, [inputRef, inputValueRef]);
+}
 
 export function DatePicker({
   date,
@@ -40,21 +81,20 @@ export function DatePicker({
 }) {
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState<string>("");
-  const [inputError, setInputError] = React.useState<string | null>(null);
   const [month, setMonth] = React.useState<Date | undefined>(date);
   const dirtyRef = React.useRef(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const inputValueRef = React.useRef(inputValue);
-  const { t, i18n } = useTranslation(["dashboard", "transactions"]);
-  const resolvedMinDate = React.useMemo(
-    () => minDate ?? minTransactionDateLocal(),
-    [minDate],
-  );
+  const { i18n } = useTranslation(["dashboard", "transactions"]);
   const yearBounds = getCalendarNavigationBounds();
   const calendarType = useDonationStore(
     (state) => state.settings.calendarType,
   );
   const language = i18n.language.startsWith("he") ? "he" : "en";
+  const calendarStartMonth =
+    minDate && minDate > yearBounds.startMonth
+      ? minDate
+      : yearBounds.startMonth;
 
   const formatFieldDate = React.useCallback(
     (value: Date): string => {
@@ -72,10 +112,6 @@ export function DatePicker({
     [calendarType, language],
   );
 
-  function isValidDate(d: unknown): d is Date {
-    return d instanceof Date && !isNaN(d.getTime());
-  }
-
   const dateKey = date && isValidDate(date) ? formatLocalDate(date) : "";
 
   const setFieldText = (value: string) => {
@@ -90,57 +126,42 @@ export function DatePicker({
     if (dateKey) {
       const synced = parseLocalDate(dateKey);
       setFieldText(formatFieldDate(synced));
-      if (synced >= resolvedMinDate) {
-        setInputError(null);
-      }
       setMonth(synced);
       return;
     }
-    if (!inputError) {
-      setFieldText("");
-    }
+    setFieldText("");
     setMonth(undefined);
-  }, [dateKey, formatFieldDate, resolvedMinDate, inputError]);
+  }, [dateKey, formatFieldDate]);
 
-  const commitInput = (rawValue: string): DateCommitOutcome => {
-    if (calendarType === "hebrew") return "valid";
+  const commitInput = (rawValue: string) => {
+    if (calendarType === "hebrew") return;
     const result = parseFlexibleGregorianDateInput(rawValue);
     switch (result.status) {
       case "empty":
         dirtyRef.current = false;
-        setInputError(null);
         setFieldText("");
         setDate(undefined);
-        return "empty";
+        return;
       case "parsed": {
         dirtyRef.current = false;
-        const parsedDate = result.date;
-        setFieldText(formatFieldDate(parsedDate));
-        setMonth(parsedDate);
-        setDate(parsedDate);
-        if (parsedDate < resolvedMinDate) {
-          setInputError(t("transactions:transactionForm.validation.date.min"));
-          return "min";
-        }
-        setInputError(null);
-        return "valid";
+        setFieldText(formatFieldDate(result.date));
+        setMonth(result.date);
+        setDate(result.date);
+        return;
       }
       case "invalid":
         dirtyRef.current = true;
         setFieldText(rawValue);
-        setInputError(t("transactions:transactionForm.validation.date.invalid"));
-        setDate(undefined);
-        return "invalid";
+        setDate(new Date(Number.NaN));
+        return;
       default: {
         const exhaustive: never = result;
         return exhaustive;
       }
     }
   };
-  const commitInputRef = React.useRef(commitInput);
-  React.useEffect(() => {
-    commitInputRef.current = commitInput;
-  });
+
+  useCommitOnFormSubmit(inputRef, inputValueRef, commitInput);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (calendarType === "hebrew") return;
@@ -151,21 +172,13 @@ export function DatePicker({
     const result = parseCompleteFourDigitGregorianDateInput(value);
     switch (result.status) {
       case "empty":
-        setInputError(null);
         setDate(undefined);
         return;
-      case "parsed": {
+      case "parsed":
         setMonth(result.date);
-        if (result.date < resolvedMinDate) {
-          setInputError(t("transactions:transactionForm.validation.date.min"));
-        } else {
-          setInputError(null);
-        }
         setDate(result.date);
         return;
-      }
       case "invalid":
-        setInputError(null);
         setDate(undefined);
         return;
       default: {
@@ -175,101 +188,47 @@ export function DatePicker({
     }
   };
 
-  React.useEffect(() => {
-    const input = inputRef.current;
-    const form = input?.form;
-    if (!form) return;
-
-    const isSubmitControl = (target: EventTarget | null) => {
-      if (!(target instanceof Element)) return false;
-      return Boolean(target.closest('button[type="submit"], input[type="submit"]'));
-    };
-
-    const onSubmitPointerDown = (event: Event) => {
-      if (!isSubmitControl(event.target)) return;
-      flushSync(() => {
-        commitInputRef.current(inputValueRef.current);
-      });
-    };
-
-    const onSubmit = (event: Event) => {
-      let outcome!: DateCommitOutcome;
-      flushSync(() => {
-        outcome = commitInputRef.current(inputValueRef.current);
-      });
-      switch (outcome) {
-        case "valid":
-          return;
-        case "empty":
-        case "min":
-        case "invalid":
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          return;
-        default: {
-          const exhaustive: never = outcome;
-          return exhaustive;
-        }
-      }
-    };
-
-    form.addEventListener("pointerdown", onSubmitPointerDown, true);
-    form.addEventListener("mousedown", onSubmitPointerDown, true);
-    form.addEventListener("submit", onSubmit, true);
-    return () => {
-      form.removeEventListener("pointerdown", onSubmitPointerDown, true);
-      form.removeEventListener("mousedown", onSubmitPointerDown, true);
-      form.removeEventListener("submit", onSubmit, true);
-    };
-  }, []);
-
   const handleSelectDate = (selectedDate: Date | undefined) => {
     dirtyRef.current = false;
-    if (isValidDate(selectedDate) && selectedDate >= resolvedMinDate) {
-      setInputError(null);
-      setDate(selectedDate);
-      setFieldText(formatFieldDate(selectedDate));
-    } else if (isValidDate(selectedDate)) {
-      setInputError(t("transactions:transactionForm.validation.date.min"));
+    if (isValidDate(selectedDate)) {
       setDate(selectedDate);
       setFieldText(formatFieldDate(selectedDate));
     } else {
-      setInputError(null);
       setDate(undefined);
       setFieldText("");
     }
     setOpen(false);
   };
 
-  const formatCaption = (date: Date) => {
+  const formatCaption = (captionDate: Date) => {
     const currentLocale = i18n.language === "he" ? he : enUS;
-    const monthName = format(date, "LLLL", { locale: currentLocale });
-    const monthNumber = date.getMonth() + 1;
-    const year = date.getFullYear();
+    const monthName = format(captionDate, "LLLL", { locale: currentLocale });
+    const monthNumber = captionDate.getMonth() + 1;
+    const year = captionDate.getFullYear();
     return `${monthName} ${monthNumber} ${year}`;
   };
 
-  const formatWeekday = (date: Date) => {
+  const formatWeekday = (weekdayDate: Date) => {
     const currentLocale = i18n.language === "he" ? he : enUS;
-    return format(date, "EEEEEE", { locale: currentLocale });
+    return format(weekdayDate, "EEEEEE", { locale: currentLocale });
   };
 
-  const formatDay = (date: Date) => {
-    return format(date, "d");
+  const formatDay = (dayDate: Date) => {
+    return format(dayDate, "d");
   };
 
-  const formatMonthDropdown = (date: Date) => {
+  const formatMonthDropdown = (monthDate: Date) => {
     const currentLocale = i18n.language === "he" ? he : enUS;
-    const monthName = format(date, "LLLL", { locale: currentLocale });
-    const monthNumber = date.getMonth() + 1;
+    const monthName = format(monthDate, "LLLL", { locale: currentLocale });
+    const monthNumber = monthDate.getMonth() + 1;
     return `${monthName} ${monthNumber}`;
   };
 
-  const formatYearDropdown = (date: Date) => {
-    return date.getFullYear().toString();
+  const formatYearDropdown = (yearDate: Date) => {
+    return yearDate.getFullYear().toString();
   };
 
-  const picker = (
+  return (
     <div className="relative">
       <Input
         ref={inputRef}
@@ -281,7 +240,6 @@ export function DatePicker({
         }}
         readOnly={calendarType === "hebrew"}
         className="bg-background pr-10"
-        aria-invalid={inputError ? true : undefined}
         onKeyDown={(e) => {
           if (e.key === "ArrowDown") {
             e.preventDefault();
@@ -319,13 +277,9 @@ export function DatePicker({
             onMonthChange={setMonth}
             initialFocus
             captionLayout="dropdown"
-            startMonth={
-              yearBounds.startMonth > resolvedMinDate
-                ? yearBounds.startMonth
-                : resolvedMinDate
-            }
+            startMonth={calendarStartMonth}
             endMonth={yearBounds.endMonth}
-            disabled={{ before: resolvedMinDate }}
+            disabled={minDate ? { before: minDate } : undefined}
             dir={i18n.dir()}
             locale={i18n.language === "he" ? he : enUS}
             formatters={{
@@ -349,19 +303,6 @@ export function DatePicker({
           />
         </PopoverContent>
       </Popover>
-    </div>
-  );
-
-  return (
-    <div>
-      {picker}
-      <div className="mt-1 min-h-5 text-sm leading-snug">
-        {inputError ? (
-          <p role="alert" className="break-words font-medium text-destructive">
-            {inputError}
-          </p>
-        ) : null}
-      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { calculateDateRange } from "@/hooks/useDateControls";
 import {
   formatLocalDate,
   getCurrentLocalDate,
@@ -31,6 +32,30 @@ describe("local date-only values", () => {
     twoDigitYear.setFullYear(26);
 
     expect(Number.isNaN(parsed.getTime())).toBe(true);
-    expect(() => formatLocalDate(twoDigitYear)).toThrow(RangeError);
+    expect(formatLocalDate(twoDigitYear)).toBe("");
+    expect(formatLocalDate(new Date(Number.NaN))).toBe("");
+  });
+
+  it("does not throw from render paths when the year is below 100", () => {
+    const twoDigitYear = new Date(2000, 0, 1);
+    twoDigitYear.setFullYear(26);
+
+    expect(() => formatLocalDate(twoDigitYear)).not.toThrow();
+    expect(() =>
+      calculateDateRange(
+        "all",
+        { from: twoDigitYear, to: twoDigitYear },
+        { month: "month", year: "year", all: "all", custom: "custom" },
+        "gregorian",
+      ),
+    ).not.toThrow();
+    expect(() =>
+      calculateDateRange(
+        "custom",
+        { from: twoDigitYear, to: twoDigitYear },
+        { month: "month", year: "year", all: "all", custom: "custom" },
+        "gregorian",
+      ),
+    ).not.toThrow();
   });
 });

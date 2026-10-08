@@ -17,7 +17,7 @@ import { RecurringTransaction } from "@/types/transaction";
 import { DateRangeObject } from "./useDateControls";
 import { Platform } from "@/contexts/PlatformContext";
 import { logger } from "@/lib/logger";
-import { ALL_TIME_START_DATE } from "@/lib/utils/all-time-date";
+import { ALL_TIME_START_DATE } from "@/lib/utils/date-range";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
 
 // Re-export so existing callers don't break
@@ -108,6 +108,7 @@ export function useInsights(
   const isReady =
     platform !== undefined &&
     platform !== "loading" &&
+    !!startDate &&
     !!endDate;
 
   // ─── Category (own effect — also depends on categoryType) ─────────────────

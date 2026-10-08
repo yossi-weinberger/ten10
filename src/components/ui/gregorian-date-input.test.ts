@@ -2,25 +2,20 @@ import { describe, expect, it } from "vitest";
 import {
   formatGregorianDateInput,
   parseCompleteFourDigitGregorianDateInput,
-  parseExactGregorianDateInput,
   parseFlexibleGregorianDateInput,
 } from "./gregorian-date-input";
 
-describe("parseExactGregorianDateInput", () => {
-  it("accepts a complete dd/MM/yyyy date", () => {
-    const parsed = parseExactGregorianDateInput("12/09/2020");
-    expect(parsed?.getFullYear()).toBe(2020);
-    expect(parsed?.getMonth()).toBe(8);
-    expect(parsed?.getDate()).toBe(12);
-  });
-
-  it("rejects a partial year", () => {
-    expect(parseExactGregorianDateInput("12/09/20")).toBeNull();
-    expect(parseExactGregorianDateInput("01/01/26")).toBeNull();
-  });
-});
-
 describe("parseCompleteFourDigitGregorianDateInput", () => {
+  it("accepts a complete dd/MM/yyyy date", () => {
+    const parsed = parseCompleteFourDigitGregorianDateInput("12/09/2020");
+    expect(parsed.status).toBe("parsed");
+    if (parsed.status === "parsed") {
+      expect(parsed.date.getFullYear()).toBe(2020);
+      expect(parsed.date.getMonth()).toBe(8);
+      expect(parsed.date.getDate()).toBe(12);
+    }
+  });
+
   it("accepts d/M/yyyy and dd/MM/yyyy", () => {
     const padded = parseCompleteFourDigitGregorianDateInput("15/03/2026");
     expect(padded.status).toBe("parsed");
@@ -36,6 +31,9 @@ describe("parseCompleteFourDigitGregorianDateInput", () => {
   });
 
   it("does not treat a two-digit year as complete", () => {
+    expect(parseCompleteFourDigitGregorianDateInput("12/09/20").status).toBe(
+      "invalid",
+    );
     expect(parseCompleteFourDigitGregorianDateInput("15/03/20").status).toBe(
       "invalid",
     );
@@ -79,6 +77,7 @@ describe("parseFlexibleGregorianDateInput", () => {
 
   it("rejects garbage and incomplete values", () => {
     expect(parseFlexibleGregorianDateInput("not-a-date").status).toBe("invalid");
+    expect(parseFlexibleGregorianDateInput("abc").status).toBe("invalid");
     expect(parseFlexibleGregorianDateInput("01/01").status).toBe("invalid");
     expect(parseFlexibleGregorianDateInput("31/02/26").status).toBe("invalid");
     expect(parseFlexibleGregorianDateInput("").status).toBe("empty");

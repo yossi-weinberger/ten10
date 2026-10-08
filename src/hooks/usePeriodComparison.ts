@@ -44,6 +44,7 @@ export function usePeriodComparison(
     const isReady =
       platform !== undefined &&
       platform !== "loading" &&
+      !!startDate &&
       !!endDate;
 
     if (!isReady) return;

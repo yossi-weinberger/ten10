@@ -1,14 +1,13 @@
 use rusqlite::{params, Connection};
 use tauri::State;
 
-use crate::date_range::sql_optional_start_date_predicate;
 use crate::DbState;
 use crate::transaction_types::expense_types_condition;
 
 #[tauri::command]
 pub async fn get_desktop_total_expenses_in_range(
     db_state: State<'_, DbState>,
-    start_date: Option<String>,
+    start_date: String,
     end_date: String,
 ) -> Result<f64, String> {
     // SQL query directly embedded
@@ -19,13 +18,13 @@ pub async fn get_desktop_total_expenses_in_range(
             transactions
         WHERE
             {} AND
-            {};",
-        expense_types_condition(),
-        sql_optional_start_date_predicate(1, 2)
+            date >= ?1 AND
+            date <= ?2;",
+        expense_types_condition()
     );
 
     println!(
-        "Desktop Query (expense_commands.rs): Fetching expenses between {:?} and {}",
+        "Desktop Query (expense_commands.rs): Fetching expenses between {} and {}",
         start_date, end_date
     );
 
