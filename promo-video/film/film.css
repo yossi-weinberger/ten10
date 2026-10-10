@@ -1,0 +1,33 @@
+/* TEN10 promo film — page styles. The film itself is drawn on a canvas by geo.js; this file only
+   loads the app's font and sizes the stage. Colours mirror the app (src/index.css :root, light theme). */
+@font-face {
+  font-family: "Assistant";
+  src: url("../../public/fonts/Assistant-VariableFont_wght.ttf") format("truetype");
+  font-weight: 200 800;
+  font-display: block;
+}
+
+:root {
+  --bg: hsl(48 79% 98%);  /* --background */
+  --fg: hsl(47 37% 7%);   /* --foreground */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background: #1c1b17; overflow: hidden; }
+body { font-family: "Assistant", system-ui, sans-serif; color: var(--fg); -webkit-font-smoothing: antialiased; }
+
+#stage {
+  position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden;
+  background: var(--bg); transform-origin: 0 0;
+}
+#stage.rtl { direction: rtl; }
+#stage.vertical { width: 1080px; height: 1920px; }
+
+/* preview controls (hidden while rendering) */
+#controls {
+  position: fixed; left: 0; right: 0; bottom: 0; height: 54px; display: flex; align-items: center; gap: 12px; padding: 0 16px;
+  background: rgba(20, 20, 18, 0.92); color: #eee; font: 13px system-ui, sans-serif; z-index: 10;
+}
+#controls input[type="range"] { flex: 1; }
+#controls button, #controls select { background: #333; color: #eee; border: 1px solid #555; border-radius: 6px; padding: 4px 10px; font: inherit; }
+body.render #controls { display: none; }
