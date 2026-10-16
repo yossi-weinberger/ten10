@@ -89,8 +89,6 @@ function Calendar({
       className={cn(
         "bg-background group/calendar p-3 [--cell-size:2rem] [[data-slot=card-content]_&]:bg-transparent [[data-slot=popover-content]_&]:bg-transparent",
         calendarType === "hebrew" && "[--cell-size:2.75rem]",
-        String.raw`rtl:**:[.rdp-button\_next>svg]:rotate-180`,
-        String.raw`rtl:**:[.rdp-button\_previous>svg]:rotate-180`,
         className
       )}
       captionLayout={captionLayout}
@@ -194,19 +192,16 @@ function Calendar({
           );
         },
         Chevron: ({ className, orientation, ...props }) => {
+          const isRtl = i18n.dir() === "rtl";
+
           if (orientation === "left") {
-            return (
-              <ChevronLeftIcon className={cn("size-4", className)} {...props} />
-            );
+            const Icon = isRtl ? ChevronRightIcon : ChevronLeftIcon;
+            return <Icon className={cn("size-4", className)} {...props} />;
           }
 
           if (orientation === "right") {
-            return (
-              <ChevronRightIcon
-                className={cn("size-4", className)}
-                {...props}
-              />
-            );
+            const Icon = isRtl ? ChevronLeftIcon : ChevronRightIcon;
+            return <Icon className={cn("size-4", className)} {...props} />;
           }
 
           return (

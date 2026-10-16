@@ -215,6 +215,7 @@ export function AdminTrendsChart({ earliestDate }: AdminTrendsChartProps) {
             )
           )}
           <DatePickerWithRange
+            align="end"
             date={customDateRange}
             onDateChange={(range) => {
               setCustomDateRange(range);

@@ -24,6 +24,7 @@ interface DatePickerWithRangeProps {
   date: DateRange | undefined;
   onDateChange: (date: DateRange | undefined) => void;
   triggerButton?: React.ReactNode;
+  align?: React.ComponentProps<typeof PopoverContent>["align"];
 }
 
 export function DatePickerWithRange({
@@ -31,6 +32,7 @@ export function DatePickerWithRange({
   date,
   onDateChange,
   triggerButton,
+  align,
 }: DatePickerWithRangeProps) {
   const { i18n, t } = useTranslation("dashboard");
   const formatDisplayDate = useDisplayDate();
@@ -213,7 +215,10 @@ export function DatePickerWithRange({
             </Button>
           )}
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent
+          className="w-auto p-0"
+          align={align ?? (i18n.dir() === "rtl" ? "end" : "start")}
+        >
           <Calendar
             initialFocus
             mode="range"
