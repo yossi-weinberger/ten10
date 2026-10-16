@@ -1,0 +1,9 @@
+node_modules/
+renders/
+frames/
+# generated audio (reproducible from tools/audio/*.py; seeds are fixed)
+audio/*.wav
+audio/*.spans.json
+audio/sfx/
+__pycache__/
+audio/tts/
