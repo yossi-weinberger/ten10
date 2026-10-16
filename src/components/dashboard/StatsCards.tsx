@@ -406,6 +406,7 @@ export function StatsCards({
             </Button>
           ))}
         <DatePickerWithRange
+          align="end"
           date={customDateRange}
           onDateChange={(range) => {
             setCustomDateRange(range);

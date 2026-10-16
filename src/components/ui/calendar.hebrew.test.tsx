@@ -379,10 +379,28 @@ describe("Hebrew date pickers", () => {
     expect(formatLocalDate(range.to!)).toBe("2026-09-12");
   });
 
-  it("anchors the range popover to the trigger start edge in RTL", async () => {
+  it("defaults the range popover to end-align in RTL", async () => {
     const user = userEvent.setup();
     render(
       <DatePickerWithRange
+        date={{ from: parseLocalDate("2026-09-11"), to: undefined }}
+        onDateChange={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /אלול/ }));
+
+    expect(document.querySelector("[data-align]")).toHaveAttribute(
+      "data-align",
+      "end",
+    );
+  });
+
+  it("honors an explicit end align in RTL", async () => {
+    const user = userEvent.setup();
+    render(
+      <DatePickerWithRange
+        align="end"
         date={{ from: parseLocalDate("2026-09-11"), to: undefined }}
         onDateChange={vi.fn()}
       />,
@@ -444,7 +462,7 @@ describe("calendar month navigation chevrons", () => {
 });
 
 describe("Gregorian calendar regression", () => {
-  it("keeps the range popover start-aligned in LTR", async () => {
+  it("defaults the range popover to start-align in LTR", async () => {
     language = "en";
     setCalendarType("gregorian");
     const user = userEvent.setup();
@@ -460,6 +478,26 @@ describe("Gregorian calendar regression", () => {
     expect(document.querySelector("[data-align]")).toHaveAttribute(
       "data-align",
       "start",
+    );
+  });
+
+  it("honors an explicit end align in LTR", async () => {
+    language = "en";
+    setCalendarType("gregorian");
+    const user = userEvent.setup();
+    render(
+      <DatePickerWithRange
+        align="end"
+        date={{ from: parseLocalDate("2026-09-11"), to: undefined }}
+        onDateChange={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button"));
+
+    expect(document.querySelector("[data-align]")).toHaveAttribute(
+      "data-align",
+      "end",
     );
   });
 
