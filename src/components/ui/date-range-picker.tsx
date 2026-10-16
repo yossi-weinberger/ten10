@@ -213,7 +213,10 @@ export function DatePickerWithRange({
             </Button>
           )}
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent
+          className="w-auto p-0"
+          align={i18n.dir() === "rtl" ? "end" : "start"}
+        >
           <Calendar
             initialFocus
             mode="range"

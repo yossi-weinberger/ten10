@@ -378,6 +378,23 @@ describe("Hebrew date pickers", () => {
     expect(formatLocalDate(range.from)).toBe("2026-09-11");
     expect(formatLocalDate(range.to!)).toBe("2026-09-12");
   });
+
+  it("anchors the range popover to the trigger start edge in RTL", async () => {
+    const user = userEvent.setup();
+    render(
+      <DatePickerWithRange
+        date={{ from: parseLocalDate("2026-09-11"), to: undefined }}
+        onDateChange={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: /אלול/ }));
+
+    expect(document.querySelector("[data-align]")).toHaveAttribute(
+      "data-align",
+      "end",
+    );
+  });
 });
 
 describe("calendar month navigation chevrons", () => {
@@ -427,6 +444,25 @@ describe("calendar month navigation chevrons", () => {
 });
 
 describe("Gregorian calendar regression", () => {
+  it("keeps the range popover start-aligned in LTR", async () => {
+    language = "en";
+    setCalendarType("gregorian");
+    const user = userEvent.setup();
+    render(
+      <DatePickerWithRange
+        date={{ from: parseLocalDate("2026-09-11"), to: undefined }}
+        onDateChange={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button"));
+
+    expect(document.querySelector("[data-align]")).toHaveAttribute(
+      "data-align",
+      "start",
+    );
+  });
+
   it("retains current Gregorian caption, day numbering, and selection output", async () => {
     setCalendarType("gregorian");
     language = "en";
