@@ -380,6 +380,52 @@ describe("Hebrew date pickers", () => {
   });
 });
 
+describe("calendar month navigation chevrons", () => {
+  const chevronLeftPath = "m15 18-6-6 6-6";
+  const chevronRightPath = "m9 18 6-6-6-6";
+
+  function getNavChevronPath(container: HTMLElement, buttonClass: string) {
+    return container
+      .querySelector(`.${buttonClass} svg path`)
+      ?.getAttribute("d");
+  }
+
+  it("points previous left and next right in LTR", () => {
+    language = "en";
+    setCalendarType("gregorian");
+    const { container } = renderCalendar(parseLocalDate("2026-09-12"));
+
+    expect(getNavChevronPath(container, "rdp-button_previous")).toBe(
+      chevronLeftPath,
+    );
+    expect(getNavChevronPath(container, "rdp-button_next")).toBe(
+      chevronRightPath,
+    );
+  });
+
+  it.each([
+    ["gregorian", "label"],
+    ["gregorian", "dropdown"],
+    ["hebrew", "label"],
+  ] as const)(
+    "points previous right and next left in RTL for %s %s calendar so both face outward",
+    (calendarType, captionLayout) => {
+      language = "he";
+      setCalendarType(calendarType);
+      const { container } = renderCalendar(parseLocalDate("2026-09-12"), {
+        captionLayout,
+      });
+
+      expect(getNavChevronPath(container, "rdp-button_previous")).toBe(
+        chevronRightPath,
+      );
+      expect(getNavChevronPath(container, "rdp-button_next")).toBe(
+        chevronLeftPath,
+      );
+    },
+  );
+});
+
 describe("Gregorian calendar regression", () => {
   it("retains current Gregorian caption, day numbering, and selection output", async () => {
     setCalendarType("gregorian");
