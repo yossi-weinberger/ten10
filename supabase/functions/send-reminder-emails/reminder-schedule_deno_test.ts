@@ -52,3 +52,12 @@ Deno.test("maaser-year close reminder has Deno parity for Friday Erev Rosh Hasha
     reminderDay: 29,
   });
 });
+
+Deno.test("maaser-year close reminder has Deno parity for erev Yom Tov advance", () => {
+  assertEquals(resolveMaaserYearCloseReminder("2029-09-06"), {
+    kind: "makeup",
+    reason: "erev-yom-tov-advance",
+    reminderDate: "2029-09-09",
+    reminderDay: 29,
+  });
+});
