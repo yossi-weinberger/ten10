@@ -12,7 +12,7 @@
 | PR | תוכנית | סוג | תלות | מצב | ענף |
 |---|---|---|---|---|---|
 | 1 | `2026-10-18-ai-pr01-foundation-audit.md` | בדיקות ותשתית, בלי שינוי התנהגות | — | חלקית: משימות 4–5 נבדקו | |
-| 2.0 | `2026-10-18-ai-pr02-0-characterization-tests.md` | בדיקות ו־CI בלבד | — | לא התחיל | |
+| 2.0 | `2026-10-18-ai-pr02-0-characterization-tests.md` | בדיקות ו־CI בלבד | — | PR draft, CI ירוק | `test/ai-pr02-0-characterization` ([#443](https://github.com/yossi-weinberger/ten10/pull/443)) |
 | 2 (2a, 2b) | `2026-10-18-ai-pr02-transaction-domain.md` | קוד בלבד | PR 2.0 | לא התחיל | |
 | 1c | `2026-10-18-ai-pr01c-get-user-transactions-cleanup.md` | DB, רצוי ולא חסם | PR 1 | לא התחיל | |
 | 1b | `2026-10-18-ai-pr01b-delete-account.md` | DB + UI + Edge, מסלול צדדי | PR 1 + החלטת מדיניות | לא התחיל | |
@@ -36,9 +36,18 @@
 
 - **מדיניות מחיקת תנועות במחיקת חשבון:** מחיקה מלאה, או שמירה לתקופה מוגדרת? נדרשת לפני PR 1b (§13.6).
 - **מה עושים עם הפונקציה `unsubscribe`** שפרוסה בייצור ואינה ב־repo (לא נפרסה מאז ספטמבר 2025): שחזור ל־repo, או הסרה מתועדת? (PR 1)
+- **התנהגויות שנראות כמו באגים, שנמצאו בבדיקות האפיון (PR 2.0).** הבדיקות מקבעות אותן כמו שהן; לכל אחת צריך להחליט אם מתקנים, ב־PR נפרד ולא בתוך PR 2:
+  1. `type-resolver.ts:80` מתאים מילות הכנסה לפי תת־מחרוזת (`includes`): "Homework" או "network fee" עם סכום שלילי הופכים להכנסה. באג בייבוא CSV גם בלי קשר ל־AI.
+  2. `category-registry.ts:134-141`: מפת הנרמול נשמרת בקריאה הראשונה. אם ה־namespace `transactions` עוד לא נטען, "מזון" לא יתמפה ל־`food` עד סוף הסשן. כדאי לבדוק בייצור.
+  3. `recognized-expense`, `exempt-income`, `non_tithe_donation` ו־`initial_balance` כפי שהם אינם aliases; הסוג נקבע לפי סימן. רק "recognized expense" עם רווח מזוהה.
+  4. שער 0: הלקוח מדלג לספק הבא, אבל `process-recurring-transactions/index.ts:69` מקבל 0, ואז הסכום המומר שנשמר הוא 0. סיכון אמיתי (נדיר) ב־cron שכותב תנועות.
+  5. `toFixed(2)` בטופס אינו "עיגול חצי למעלה" (1.005 נותן 1, 2.675 נותן 2.67). `applyConversion` של ה־AI חייב לשחזר בדיוק את זה, או שמחליטים לתקן את כל המסלולים יחד (כלל 6 ב־RULE).
+  6. השער ההפוך ב־cache מחושב מהשער לפני העיגול.
+  7. `fromDebitCredit`, `debitValue` ו־`creditValue` מועברים ל־`resolveTypeWithIssues` ולא משפיעים.
 - **שיפור סקריפט הפריסה:** היום כל שינוי ב־`_shared` פורס את כל 10 הפונקציות. האם לפרוס רק את הפונקציות שמייבאות את הקובץ שהשתנה? לא חוסם; מחליטים לפני PR 2a.
 
 ## יומן
 
 - **2026-10-18:** נוצרה הערכה. המסמך v2.5 הועתק לריפו, ונוספו ה־rule, היומן ותוכניות ל־PRs 1, 1b, 1c ו־2.
 - **2026-10-18:** אימות מול ה־DB החי (קריאות קטלוג בלבד), ה־CI והקוד. המסמך עודכן ל־v2.6 (נספח ו׳). עיקרי הממצאים: `track_functions=none`; PR 1c אינו חסם; ב־Vault של testing צריך להחליף גם את `functions_base_url`; אין bucket בשם `avatars`; שינוי ב־`_shared` פורס את כל פונקציות ה־Edge; כיסוי הבדיקות דל. נוסף PR 2.0, PR 2 פוצל ל־2a ו־2b, והמעבר של `process-recurring-transactions` הוצא ממנו. הצעד הבא: PR 1 המקוצר ו־PR 2.0.
+- **2026-10-18:** PR 2.0 נפתח כ־draft ([#443](https://github.com/yossi-weinberger/ten10/pull/443)): 140 בדיקות אפיון, שלב ה־Deno ב־CI מריץ כל `*_deno_test.ts`, בלי שינוי בקוד מוצר, CI ירוק. parity של השערים ב־`process-recurring-transactions` לא נבדק, כי הקובץ מפעיל `Deno.serve` בייבוא; ה־fixture מוכן ל־PR 2. נמצאו 7 התנהגויות חשודות (בהחלטות הפתוחות). בדיקת "Supabase Preview" מופיעה ב־PR (skipping, כי אין migrations): סימן שהאינטגרציה פעילה ל־PRs חדשים.
