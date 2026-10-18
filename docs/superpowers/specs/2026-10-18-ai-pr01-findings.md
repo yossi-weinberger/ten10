@@ -9,7 +9,7 @@
 - **`SECURITY DEFINER` שמשתמש מחובר יכול להריץ:** 15, כולן עם `search_path` קשיח ובלי הרשאה ל־`anon` ול־`PUBLIC`.
 - **`update_user_transaction`:** `SECURITY INVOKER`, רשימה סגורה של עמודות בלי `origin` (גוף מלא בסעיף 5).
 - **`get_user_transactions`:** לחתימה עם 9 פרמטרים יש 8 ברירות מחדל, ולחתימות עם 12 ו־13 אין. קורא יחיד: `src/lib/tableTransactions/tableTransactionService.ts`, ששולח תמיד 13 שמות. `track_functions=none`.
-- **testing:** 183 migrations כמו בייצור. ב־Vault יש `service_role_key` ו־`functions_base_url`.
+- **testing:** 183 migrations כמו בייצור. ב־Vault יש `service_role_key` ו־`functions_base_url`, ושניהם כבר של testing (אומת על ידי המשתמש).
 - **Storage:** רק `contact-attachments` (פרטי, 5MB, PNG/JPEG/PDF/TXT/ZIP). אין bucket בשם `avatars`.
 
 ## 2. Deploy: single source of truth (task 1) — done
@@ -361,17 +361,18 @@ $function$
 
 ## 7. Testing environment (task 6, partial)
 
-- **Vercel Preview מצביע על הייצור, לא על testing.** ב־bundle של deployment ה־Preview האחרון שנבדק (`ten10-5nvri07ho…`, ענף `cursor/rtl-calendar-chevrons-77b5`) ה־`VITE_SUPABASE_URL` המוטמע הוא `https://flpzqbvbymoluoeeeofg.supabase.co`, וה־ref של testing לא מופיע בכלל. MCP של Vercel החזיר 403 על רשימת משתני הסביבה, לכן הבדיקה נעשתה על ה־bundle (ה־URL ציבורי בכל מקרה). נבדק deployment אחד; override לפי ענף לא נבדק.
+- **Vercel Preview מצביע על הייצור, לא על testing.** ב־bundle של deployment ה־Preview האחרון שנבדק (`ten10-5nvri07ho…`, ענף `cursor/rtl-calendar-chevrons-77b5`) ה־`VITE_SUPABASE_URL` המוטמע הוא `https://flpzqbvbymoluoeeeofg.supabase.co`, וה־ref של testing לא מופיע בכלל. MCP של Vercel החזיר 403 על רשימת משתני הסביבה, לכן הבדיקה נעשתה על ה־bundle (ה־URL ציבורי בכל מקרה).
+  - **הסיבה (אומת על ידי המשתמש בדשבורד של Vercel, 18/10/2026):** `VITE_SUPABASE_URL` של testing מוגדר ל־Preview רק עבור הענף `feat/hebrew-calendar-foundation`. המשתנה של הייצור מוגדר ל־"All Environments", ולכן כל ענף Preview אחר מקבל את הייצור.
 - **crons ב־testing:** ארבעתם `active=false` (`monitor-cron-failures`, `daily-recurring-executor`, `send-reminder-emails`, `send-new-user-email-daily`).
 - **trigger של `contact_messages` ב־testing** קורא לייצור (סעיף 3.2).
 - אינטגרציית GitHub של Supabase: לא ניתנת לבדיקה מכאן. פעולת משתמש.
 
 ## 8. User actions (only the user can do these)
 
-1. **Vault של testing:** להחליף **גם** את `service_role_key` **וגם** את `functions_base_url` לערכי testing. בלי זה, cron שיודלק ב־testing יקרא לפונקציות של הייצור.
-2. **Vercel Preview:** להגדיר `VITE_SUPABASE_URL` ו־`VITE_SUPABASE_ANON_KEY` (וכל משתנה Supabase אחר) ל־Preview כך שיצביעו על `bbcllewcotypedqsnwmi`. היום Preview מדבר עם הייצור.
-3. **webhook של `contact_messages` ב־testing:** להחליף ל־URL ולמפתח של testing, או למחוק אותו ב־testing. בייצור: לשקול העברה של ה־header ל־Vault במקום JWT קבוע בהגדרת ה־trigger.
-4. **אינטגרציית GitHub של Supabase:** לוודא בדשבורד שהיא פעילה ומריצה migrations של PRs חדשים על ענף ה־testing. התיעוד משייך אותה ל־`feat/hebrew-calendar-foundation`.
-5. **`unsubscribe`:** להחליט לפי סעיף 6 (לבדוק 90 ימי הפעלות בדשבורד, ואז למחוק או לשחזר ל־repo).
-6. **משתמשי ניסוי:** לרשום ב־`ai-progress.md` את ה־`user_id` של משתמשי הניסוי ב־testing.
+1. ~~**Vault של testing**~~: **תקין.** המשתמש אימת בדשבורד ש־`service_role_key` הוא של testing ו־`functions_base_url` מצביע על `bbcllewcotypedqsnwmi`.
+2. **Vercel Preview:** להפוך את המשתנים של testing (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` וכל משתנה Supabase אחר) ל־Preview לכל הענפים, לא רק ל־`feat/hebrew-calendar-foundation`, ולצמצם את משתני הייצור ל־Production (ו־Development לפי הצורך).
+3. **webhook של `contact_messages` ב־testing:** ב־Database → Triggers → "Trigger Contact Email", לשנות את Enabled mode ל־Disabled. בייצור: לשקול העברה של ה־header ל־Vault במקום JWT קבוע בהגדרת ה־trigger.
+4. **אינטגרציית GitHub של Supabase:** בדיקת "Supabase Preview" מופיעה ב־PRs החדשים (#443, #444), כלומר האינטגרציה פעילה.
+5. **`unsubscribe`:** המשתמש אימת שאין הפעלות בהיסטוריה. אפשר למחוק אותה מהדשבורד.
+6. **משתמשי ניסוי:** נרשמו ב־`ai-progress.md` (מזהים בלבד).
 7. **`handle_contact_form`:** לאשר פתיחת PR נפרד לאימות CAPTCHA בצד שרת (סעיף 3.1).
