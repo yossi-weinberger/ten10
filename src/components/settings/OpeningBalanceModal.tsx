@@ -54,6 +54,7 @@ import { CurrencyConversionSection } from "@/components/forms/transaction-form-p
 import { OpeningBalanceHomeStyleStatCard } from "@/components/settings/OpeningBalanceHomeStyleStatCard";
 import { ToggleChoiceCard } from "@/components/ui/toggle-choice-card";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
+import { applyConversion } from "../../../supabase/functions/_shared/transaction-domain/currency-rules.ts";
 
 // Derive currency codes tuple from CURRENCIES for type-safe Zod enum
 const CURRENCY_CODES = CURRENCIES.map((c) => c.code) as [CurrencyCode, ...CurrencyCode[]];
@@ -252,13 +253,21 @@ export function OpeningBalanceModal({
         const conversionRate = values.conversion_rate;
         const originalSignedAmount =
           values.balanceType === "debt" ? amount : -amount;
-        const convertedMagnitude = Number((amount * conversionRate).toFixed(2));
+        const converted = applyConversion({
+          originalAmount: amount,
+          originalCurrency: values.currency,
+          defaultCurrency: normalizeCurrencyCode(settings.defaultCurrency),
+          rate: conversionRate,
+          conversionDate: values.conversion_date || getCurrentLocalDate(),
+          rateSource: values.rate_source,
+        });
+        const convertedMagnitude = converted.amount;
         finalAmount = values.balanceType === "debt" ? convertedMagnitude : -convertedMagnitude;
 
         transactionPayload.amount = finalAmount;
         transactionPayload.original_amount = originalSignedAmount;
         transactionPayload.original_currency = values.currency;
-        transactionPayload.conversion_rate = conversionRate;
+        transactionPayload.conversion_rate = converted.conversion_rate;
         transactionPayload.conversion_date =
           values.conversion_date || getCurrentLocalDate();
         transactionPayload.rate_source = values.rate_source;

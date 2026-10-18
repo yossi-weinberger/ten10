@@ -1,4 +1,5 @@
 import { normalizeCategoryAlias } from "./category-keys.ts";
+import type { RateSource } from "./currency-rules.ts";
 import { BOOLEAN_TRUTHY_VALUES } from "./parsing-aliases.ts";
 import { normalizePaymentMethodValue } from "./payment-method-keys.ts";
 import {
@@ -36,7 +37,8 @@ const CURRENCIES = [
   { code: "UAH", symbol: "₴" },
 ] as const;
 
-type CurrencyCode = (typeof CURRENCIES)[number]["code"];
+export type SupportedCurrencyCode = (typeof CURRENCIES)[number]["code"];
+type CurrencyCode = SupportedCurrencyCode;
 
 export interface MappedTransactionInput {
   date?: unknown;
@@ -79,9 +81,9 @@ export interface NormalizedTransactionRow {
   is_chomesh: boolean;
   original_amount: number | null;
   original_currency: string | null;
-  conversion_rate: null;
-  conversion_date: null;
-  rate_source: null;
+  conversion_rate: number | null;
+  conversion_date: string | null;
+  rate_source: RateSource | null;
   source_recurring_id: null;
   occurrence_number: null;
 }

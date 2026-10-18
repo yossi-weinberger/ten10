@@ -18,80 +18,20 @@ import { TransactionForm } from "@/components/forms/TransactionForm";
 import type { TransactionFormValues } from "@/lib/schemas";
 import { determineFinalType } from "@/lib/data-layer/transactionForm.service";
 import { revalidateAfterEdit } from "@/lib/import/validation";
+import {
+  formValuesToNormalized,
+  previewRowToTransaction,
+} from "@/lib/import/row-edit-adapter";
 import { useDonationStore } from "@/lib/store";
 import type {
   ImportPreviewRow,
   ImportNormalizedRow,
 } from "@/lib/import/import-session.types";
 import type { Currency, Transaction, RecurringTransaction } from "@/types/transaction";
-
-// ---------------------------------------------------------------------------
-// Conversion helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Build a fake Transaction from a preview row so TransactionForm can use it
- * as initialData. All recurring / system fields are left null/undefined.
- */
-function previewRowToTransaction(row: ImportPreviewRow): Transaction {
-  const n = row.normalized!;
-  return {
-    id: row.id,
-    user_id: null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    date: n.date,
-    amount: n.amount,
-    currency: n.currency,
-    description: n.description,
-    type: n.type,
-    category: n.category,
-    is_chomesh: n.is_chomesh,
-    recipient: n.recipient,
-    payment_method: n.payment_method,
-    original_amount: null,
-    original_currency: null,
-    conversion_rate: null,
-    conversion_date: null,
-    rate_source: null,
-    source_recurring_id: null,
-  };
-}
-
-/**
- * Convert validated form values back into an ImportNormalizedRow.
- * determineFinalType handles the checkbox → derived-type logic.
- */
-function formValuesToNormalized(
-  values: TransactionFormValues,
-  defaultCurrency: Currency,
-  existing: ImportNormalizedRow
-): ImportNormalizedRow {
-  const finalType = determineFinalType(values);
-  const isDonation =
-    finalType === "donation" || finalType === "non_tithe_donation";
-
-  return {
-    ...existing,
-    date: values.date,
-    amount: values.amount,
-    currency: (values.currency as Currency) ?? defaultCurrency,
-    description: values.description ?? null,
-    type: finalType,
-    category: isDonation ? null : (values.category ?? null),
-    recipient: values.recipient ?? null,
-    payment_method: values.payment_method ?? null,
-    is_chomesh: values.is_chomesh ?? false,
-    // Imports never carry conversion data
-    original_amount: null,
-    original_currency: null,
-    conversion_rate: null,
-    conversion_date: null,
-    rate_source: null,
-    source_recurring_id: null,
-    occurrence_number: null,
-  };
-}
+import {
+  FILE_IMPORT,
+  type ValidationProfile,
+} from "../../../supabase/functions/_shared/transaction-domain/transaction-types.ts";
 
 // ---------------------------------------------------------------------------
 // Modal component
@@ -104,6 +44,8 @@ interface ImportRowEditModalProps {
   onSave: (id: string, updates: Partial<ImportPreviewRow>) => void;
   existingTransactions?: Transaction[];
   recurringTransactions?: RecurringTransaction[];
+  /** CSV review stays on FILE_IMPORT. AI drafts pass AI_DRAFT. */
+  profile?: ValidationProfile;
 }
 
 export function ImportRowEditModal({
@@ -113,6 +55,7 @@ export function ImportRowEditModal({
   onSave,
   existingTransactions,
   recurringTransactions,
+  profile = FILE_IMPORT,
 }: ImportRowEditModalProps) {
   const { t, i18n } = useTranslation("import");
   const isSmall = useMediaQuery("(max-width: 767px)");
@@ -122,14 +65,17 @@ export function ImportRowEditModal({
 
   if (!isOpen || !row || !row.normalized) return null;
 
-  const transactionForForm = previewRowToTransaction(row);
+  const normalized = row.normalized;
+  const transactionForForm = previewRowToTransaction({ id: row.id, normalized }, profile);
 
   const handleOverrideSubmit = (values: TransactionFormValues) => {
     const updatedNormalized = formValuesToNormalized(
       values,
       defaultCurrency,
-      row.normalized!
-    );
+      normalized,
+      profile,
+      determineFinalType(values),
+    ) as ImportNormalizedRow;
 
     const updated: ImportPreviewRow = {
       ...row,
