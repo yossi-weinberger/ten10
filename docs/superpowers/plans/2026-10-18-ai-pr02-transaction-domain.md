@@ -59,6 +59,7 @@ supabase/functions/_shared/intake/
 - [ ] `src/lib/services/exchange-rate.service.ts` צורך אותה, ומשאיר אצלו את ה־cache, מצב ה־offline, ה־last-known וההחזרה המיידית כשהמטבעות זהים.
 - [ ] `currency-rules.ts`: `applyConversion` = `amount = round2(original × rate)`, עם שער מעוגל ל־4 ספרות. היום העיגול ל־4 נעשה בשירות והעיגול ל־2 בטופס; התוצאה חייבת להיות זהה.
 - [ ] בדיקות עם תגובות שמורות, כולל ספק שנכשל ומעבר לבא בתור.
+- [ ] `TransactionForm` (ושאר המקומות שמחשבים `Number((originalAmount * conversionRate).toFixed(2))`: `OpeningBalanceModal`, `RecurringTransactionEditForm`, `recurring-transactions.service`) מייבאים את `applyConversion` במקום הביטוי ה־inline, עם אותה סמנטיקה בדיוק (כולל ההתנהגות של `toFixed`). אחר כך מחליפים את `TransactionForm.conversion.characterization.test.ts`, שהיום מעתיק את הנוסחה, בבדיקה שמייבאת את `applyConversion`. כך הבדיקה מגינה על קוד המוצר. `process-recurring-transactions` לא כלול.
 
 ### משימה 5: טיפוס משותף ועורך (2b)
 - [ ] `NormalizedTransactionRow`: שדות ההמרה הם ערך או `null`. `ImportNormalizedRow` הופך לטיפוס צר מעליו, ששדות ההמרה בו נשארים `null`.

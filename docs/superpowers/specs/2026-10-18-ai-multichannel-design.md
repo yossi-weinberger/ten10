@@ -113,7 +113,7 @@ flowchart TD
 ### 3.2 Supabase חי
 
 - Production: `flpzqbvbymoluoeeeofg`, אזור `eu-central-1`, PostgreSQL 17.
-- Testing: `bbcllewcotypedqsnwmi`; cron jobs קיימים שמסוכנים ל־Production נשארים כבויים. ב־Vault של testing יש שני סודות, `service_role_key` ו־`functions_base_url`, ושניהם הועתקו מהייצור. בשלב 0 מחליפים את **שניהם** בערכי testing, ומאפשרים רק jobs מבודדים של ה־AI pipeline. אחרת cron של testing יקרא לפונקציות הייצור.
+- Testing: `bbcllewcotypedqsnwmi`; cron jobs קיימים שמסוכנים ל־Production נשארים כבויים. ב־Vault של testing יש שני סודות, `service_role_key` ו־`functions_base_url`, ושניהם כבר של testing (אומת בדשבורד, 18/10/2026). מאפשרים שם רק jobs מבודדים של ה־AI pipeline. ה־Database Webhook "Trigger Contact Email" שוכפל מהייצור עם URL ומפתח של הייצור, ולכן מכובה ב־testing.
 - Storage: בייצור וב־testing קיים רק ה־bucket `contact-attachments`. ה־bucket `avatars` שהקוד מזכיר (`profile.service.ts`) אינו קיים.
 - `track_functions` בייצור הוא `none`, ולכן `pg_stat_user_functions` אינו זמין למיפוי שימוש בפונקציות.
 - קיימים Auth, RLS, Edge Functions, Storage, `pg_cron` ו־`pg_net`.
@@ -1941,7 +1941,8 @@ WhatsApp ממוקם אחרי Web/Email בגלל אישורי Meta, pricing, temp
 - [ ] `timezone` ב־`intake_messages` ופירוש תאריכים יחסיים לפיו.
 - [ ] וידוא שאינטגרציית ה־Preview של Supabase חלה על PRs חדשים.
 - [x] בדיקה ש־`update_user_transaction` אינו מעדכן עמודות מחוץ לרשימה שלו (נבדק בקוד וב־DB החי, 18/10/2026).
-- [ ] Vault של testing: החלפת `service_role_key` **וגם** `functions_base_url`.
+- [x] Vault של testing: `service_role_key` ו־`functions_base_url` של testing (אומת).
+- [ ] Vercel Preview: משתני Supabase של testing לכל ענפי ה־Preview, ומשתני הייצור ל־Production בלבד.
 - [ ] logger משותף ל־Edge ב־`_shared`, ו־allowlist/entitlement בצד השרת, לפני קוד AI ראשון.
 - [ ] כל בדיקת Deno חדשה נוספת ל־`ci.yml`.
 - [ ] `ValidationProfile` עם fixtures שמוכיחים ש־`FILE_IMPORT` לא שינה את תוצאות ה־CSV.
@@ -2116,7 +2117,9 @@ WhatsApp ממוקם אחרי Web/Email בגלל אישורי Meta, pricing, temp
 | `track_functions=none` בייצור | `pg_stat_user_functions` אינו זמין. מיפוי החתימות לפי הקוד (קורא יחיד) ו־API logs (§6.1). |
 | ברירות המחדל של `get_user_transactions`: לחתימה עם 9 יש 8, ולחתימות עם 12 ו־13 אין | drop+create של החתימה עם 13 לא יוצר עמימות. PR 1c הוא ניקיון רצוי ולא חסם, ואפשר לאחד אותו עם PR 4 (§6.1, §24.1). |
 | `update_user_transaction` מוגדר ב־repo, `SECURITY INVOKER`, רשימה סגורה בלי `origin` | בדיקת שלב 0 הושלמה (§6.1, §29). |
-| ב־Vault של testing גם `functions_base_url` הועתק מהייצור | מחליפים את שני הסודות, לא רק את המפתח (§3.2, §29). |
+| Vault של testing: נבדק שגם `functions_base_url` קיים | נמצא בהמשך שני הסודות כבר של testing; אין צורך בהחלפה (§3.2, §29). |
+| Vercel Preview: משתני testing מוגדרים רק לענף `feat/hebrew-calendar-foundation` | כל Preview אחר עובד מול הייצור. מתקנים בהגדרות Vercel (§29). |
+| Database Webhook של `contact_messages` מכיל URL ו־JWT של הייצור, ושוכפל ל־testing | ב־testing מכבים; בייצור מעבירים ל־Vault ושוקלים סיבוב מפתח. |
 | ה־bucket `avatars` אינו קיים | הוסר משלבי המחיקה ומ־Storage-as-code (§3.2, §13.6). |
 | `isImportableType` ו־`isSpecialType` אינם נקראים; השער בפועל הוא aliases והסקה לפי סימן | PR 2 מכוון לשער האמיתי (§3.1). |
 | כל שינוי ב־`_shared` או ב־`config.toml` פורס מחדש את כל פונקציות ה־Edge לייצור | מיזוג בשעה רחוקה מה־crons, ובדיקת בריאות אחרי הפריסה (§3.1, §6.0, §24.1). |
