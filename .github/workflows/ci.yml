@@ -117,11 +117,16 @@ jobs:
         env:
           TZ: UTC
 
-      - name: Run shared calendar Deno parity test
-        run: >-
-          deno test --config supabase/functions/deno.json
-          supabase/functions/_shared/calendar/index_deno_test.ts
-          supabase/functions/send-reminder-emails/reminder-schedule_deno_test.ts
+      # Explicit file list: a bare `deno test <dir>` would also pick up Vitest *.test.ts files.
+      - name: Run Deno parity tests
+        run: |
+          mapfile -t deno_tests < <(find supabase/functions -name '*_deno_test.ts' | sort)
+          if [ "${#deno_tests[@]}" -eq 0 ]; then
+            echo "No *_deno_test.ts files found" >&2
+            exit 1
+          fi
+          printf 'Deno test: %s\n' "${deno_tests[@]}"
+          deno test --config supabase/functions/deno.json "${deno_tests[@]}"
 
   rust-tests:
     name: Rust tests
