@@ -29,6 +29,13 @@ alwaysApply: false
 11. אין תוכן קבלות, טקסט הודעות או פרומפטים בלוגים וב־PostHog. ב־`src` משתמשים ב־`src/lib/logger.ts`, לא ב־`console`. ב־Edge אין עדיין logger משותף; מוסיפים אחד ל־`_shared` לפני קוד AI ראשון, ולא כותבים `console.*` חדש.
 12. ב־testing, עבודת AI רק על משתמשי הניסוי, דרך allowlist בצד השרת (§22.1). ענף ה־testing מכיל נתוני ייצור.
 
+## ענפים
+
+- כל עבודת ה־AI נפתחת מ־`feat/ai-intake`, וה־PR שלה מכוון אליו, לא ל־`main`.
+- `feat/ai-intake` ממוזג ל־`main` רק כשיכולת שלמה עובדת בפני עצמה, מאחורי flags כבויים.
+- ממזגים את `main` לתוך `feat/ai-intake` בערך פעם בשבוע, כדי שהמיזוג הסופי יהיה קטן.
+- תיקון שאינו AI (באג, אבטחה, תשתית כללית) הולך ישר ל־`main` ב־PR נפרד.
+
 ## לפני PR
 
 - `npm run typecheck`, `npm run lint:ratchet`, `npm test` (כולל `scripts/tauri-web-boundary.test.ts`), ו־`npm run check-supabase-imports`.

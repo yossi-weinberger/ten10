@@ -11,18 +11,20 @@
 
 | PR | תוכנית | סוג | תלות | מצב | ענף |
 |---|---|---|---|---|---|
-| 1 | `2026-10-18-ai-pr01-foundation-audit.md` | בדיקות ותשתית, בלי שינוי התנהגות | — | PR draft, CI ירוק; נשארו פעולות משתמש | `chore/ai-pr01-foundation-audit` ([#444](https://github.com/yossi-weinberger/ten10/pull/444)) |
-| 2.0 | `2026-10-18-ai-pr02-0-characterization-tests.md` | בדיקות ו־CI בלבד | — | PR draft, CI ירוק | `test/ai-pr02-0-characterization` ([#443](https://github.com/yossi-weinberger/ten10/pull/443)) |
+| 1 | `2026-10-18-ai-pr01-foundation-audit.md` | בדיקות ותשתית, בלי שינוי התנהגות | — | מוזג ל־main; נשארו פעולות משתמש | [#444](https://github.com/yossi-weinberger/ten10/pull/444) |
+| 2.0 | `2026-10-18-ai-pr02-0-characterization-tests.md` | בדיקות ו־CI בלבד | — | מוזג ל־main | [#443](https://github.com/yossi-weinberger/ten10/pull/443) |
 | 2 (2a, 2b) | `2026-10-18-ai-pr02-transaction-domain.md` | קוד בלבד | PR 2.0 | לא התחיל | |
 | 1c | `2026-10-18-ai-pr01c-get-user-transactions-cleanup.md` | DB, רצוי ולא חסם | PR 1 | לא התחיל | |
 | 1b | `2026-10-18-ai-pr01b-delete-account.md` | DB + UI + Edge, מסלול צדדי | PR 1 + החלטת מדיניות | לא התחיל | |
 | 3 | נכתבת בהמשך | eval harness, offline | contracts מ־PR 2b | | |
 | 4–12 | נכתבות כשהגל הקודם נסגר | | §24.1 במסמך | | |
 
+**ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
+
 **סדר מומלץ:**
-1. במקביל, בלי השפעה על הייצור: PR 1 (מקוצר), PR 2.0, והמשימות שאינן קוד. ה־eval harness (PR 3) יכול להתחיל offline על הקבלות.
-2. PR 2a ואחריו PR 2b. ממזגים בשעה רחוקה מה־crons, כי שינוי ב־`_shared` פורס את כל פונקציות ה־Edge.
-3. מסלול DB, אחד אחד כי ענף ה־testing משותף: PR 1c (או בתוך PR 4), ו־PR 1b כשמדיניות המחיקה הוחלטה.
+1. PR 2a ואחריו PR 2b, מול `feat/ai-intake`. במקביל: המשימות שאינן קוד, וה־eval harness (PR 3) offline על הקבלות.
+2. מסלול DB, אחד אחד כי ענף ה־testing משותף: PR 1c (או בתוך PR 4), ו־PR 1b כשמדיניות המחיקה הוחלטה. לבדוק אם אינטגרציית ה־Preview של Supabase מריצה migrations גם ל־PRs שמכוונים ל־`feat/ai-intake`.
+3. כשממזגים את `feat/ai-intake` ל־`main` עם שינוי ב־`_shared`: בשעה רחוקה מה־crons, כי כל פונקציות ה־Edge נפרסות.
 
 ## משימות בלי קוד (להתחיל עכשיו, לוקחות זמן קלנדרי)
 
@@ -51,7 +53,6 @@
 - **`handle_contact_form`:** קובע `verified_captcha = true` בלי בדיקה בשרת; ה־CAPTCHA נאכף רק בלקוח. חומרה נמוכה–בינונית (ספאם למייל התמיכה, בלי חשיפת נתונים). לתקן ב־PR נפרד.
 
 - **מדיניות מחיקת תנועות במחיקת חשבון:** מחיקה מלאה, או שמירה לתקופה מוגדרת? נדרשת לפני PR 1b (§13.6).
-- **מה עושים עם הפונקציה `unsubscribe`** שפרוסה בייצור ואינה ב־repo (לא נפרסה מאז ספטמבר 2025): שחזור ל־repo, או הסרה מתועדת? (PR 1)
 - **התנהגויות שנראות כמו באגים, שנמצאו בבדיקות האפיון (PR 2.0).** הבדיקות מקבעות אותן כמו שהן; לכל אחת צריך להחליט אם מתקנים, ב־PR נפרד ולא בתוך PR 2:
   1. `type-resolver.ts:80` מתאים מילות הכנסה לפי תת־מחרוזת (`includes`): "Homework" או "network fee" עם סכום שלילי הופכים להכנסה. באג בייבוא CSV גם בלי קשר ל־AI.
   2. `category-registry.ts:134-141`: מפת הנרמול נשמרת בקריאה הראשונה. אם ה־namespace `transactions` עוד לא נטען, "מזון" לא יתמפה ל־`food` עד סוף הסשן. כדאי לבדוק בייצור.
@@ -68,3 +69,4 @@
 - **2026-10-18:** אימות מול ה־DB החי (קריאות קטלוג בלבד), ה־CI והקוד. המסמך עודכן ל־v2.6 (נספח ו׳). עיקרי הממצאים: `track_functions=none`; PR 1c אינו חסם; ב־Vault של testing צריך להחליף גם את `functions_base_url`; אין bucket בשם `avatars`; שינוי ב־`_shared` פורס את כל פונקציות ה־Edge; כיסוי הבדיקות דל. נוסף PR 2.0, PR 2 פוצל ל־2a ו־2b, והמעבר של `process-recurring-transactions` הוצא ממנו. הצעד הבא: PR 1 המקוצר ו־PR 2.0.
 - **2026-10-18:** PR 2.0 נפתח כ־draft ([#443](https://github.com/yossi-weinberger/ten10/pull/443)): 140 בדיקות אפיון, שלב ה־Deno ב־CI מריץ כל `*_deno_test.ts`, בלי שינוי בקוד מוצר, CI ירוק. parity של השערים ב־`process-recurring-transactions` לא נבדק, כי הקובץ מפעיל `Deno.serve` בייבוא; ה־fixture מוכן ל־PR 2. נמצאו 7 התנהגויות חשודות (בהחלטות הפתוחות). בדיקת "Supabase Preview" מופיעה ב־PR (skipping, כי אין migrations): סימן שהאינטגרציה פעילה ל־PRs חדשים.
 - **2026-10-18:** PR 1 נפתח כ־draft ([#444](https://github.com/yossi-weinberger/ten10/pull/444)): נמחקו `deploy-functions.js` והסקריפט `deploy-supabase`, התיעוד עודכן, ונוסף קובץ הממצאים. ה־audit של 15 פונקציות `SECURITY DEFINER` לא מצא חור קריטי. לפי לוגים של 85 יום (דגימה), כל הקריאות ל־`get_user_transactions` הן עם 13 הפרמטרים. ממצאים חדשים: Vercel Preview מצביע על הייצור, ה־webhook של טופס יצירת הקשר מכיל מפתח ייצור (אומת בקטלוג), וה־CAPTCHA נאכף רק בלקוח. הצעד הבא: פעולות המשתמש, ואחרי מיזוג PR 2.0 להתחיל את PR 2a.
+- **2026-10-18:** #442, #443 ו־#444 מוזגו ל־`main` (בלי פריסת Supabase ובלי תגית שחרור). Vault של testing נמצא תקין. הוחלט על ענף אינטגרציה `feat/ai-intake` מ־`main`, ו־CI הורחב אליו. הצעד הבא: PR 2a מול `feat/ai-intake`.
