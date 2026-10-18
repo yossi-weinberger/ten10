@@ -31,6 +31,7 @@ import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { toast } from "sonner";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
+import { applyConversion } from "../../../supabase/functions/_shared/transaction-domain/currency-rules.ts";
 
 interface TransactionFormProps {
   initialData?: Transaction | null; // For editing
@@ -264,17 +265,26 @@ export function TransactionForm({
         const originalAmount = values.amount;
         const originalCurrency = values.currency;
         const conversionRate = values.conversion_rate;
-        const convertedAmount = Number((originalAmount * conversionRate).toFixed(2));
+        const converted = applyConversion({
+            originalAmount,
+            originalCurrency,
+            defaultCurrency,
+            rate: conversionRate,
+            conversionDate: values.conversion_date,
+            rateSource: values.rate_source,
+        });
         
         submissionValues = {
             ...values,
-            amount: convertedAmount,
+            amount: converted.amount,
             currency: defaultCurrency,
-            original_amount: originalAmount,
-            original_currency: originalCurrency,
-            // conversion_rate, date, source are already in values
+            original_amount: converted.original_amount,
+            original_currency: converted.original_currency,
+            conversion_rate: converted.conversion_rate,
+            conversion_date: converted.conversion_date,
+            rate_source: converted.rate_source,
         };
-        logger.log("Applying currency conversion:", { original: originalAmount, rate: conversionRate, converted: convertedAmount });
+        logger.log("Applying currency conversion:", { original: originalAmount, rate: conversionRate, converted: converted.amount });
     } else {
         // Default currency - ensure clean state (no conversion fields)
         submissionValues.original_amount = null;

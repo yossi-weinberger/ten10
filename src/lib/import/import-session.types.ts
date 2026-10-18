@@ -1,4 +1,5 @@
 import type { Currency, TransactionType } from "@/types/transaction";
+import type { NormalizedTransactionRow as DomainNormalizedTransactionRow } from "../../../supabase/functions/_shared/transaction-domain/normalize-core.ts";
 
 export type ImportRowStatus = "ready" | "needs_review" | "invalid";
 
@@ -87,23 +88,31 @@ export interface ImportMappedRow {
   is_chomesh?: unknown;
 }
 
-export interface ImportNormalizedRow {
-  date: string;
-  amount: number;
+export interface NormalizedTransactionRow
+  extends Omit<
+    DomainNormalizedTransactionRow,
+    "currency" | "type" | "original_currency"
+  > {
   currency: Currency;
-  description: string | null;
   type: TransactionType;
-  category: string | null;
-  recipient: string | null;
-  payment_method: string | null;
-  is_chomesh: boolean;
+  original_currency: Currency | null;
+}
+
+/** File import never carries conversion data. */
+export interface ImportNormalizedRow
+  extends Omit<
+    NormalizedTransactionRow,
+    | "original_amount"
+    | "original_currency"
+    | "conversion_rate"
+    | "conversion_date"
+    | "rate_source"
+  > {
   original_amount: null;
   original_currency: null;
   conversion_rate: null;
   conversion_date: null;
   rate_source: null;
-  source_recurring_id: null;
-  occurrence_number: null;
 }
 
 export interface ImportPreviewRow {

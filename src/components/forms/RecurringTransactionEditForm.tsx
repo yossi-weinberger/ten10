@@ -40,6 +40,7 @@ import { CategoryCombobox } from "@/components/ui/category-combobox";
 import { useDonationStore } from "@/lib/store";
 import { PaymentMethodCombobox } from "@/components/ui/payment-method-combobox";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
+import { applyConversion } from "../../../supabase/functions/_shared/transaction-domain/currency-rules.ts";
 
 interface RecurringTransactionEditFormProps {
   initialData: RecurringTransaction;
@@ -113,22 +114,29 @@ export function RecurringTransactionEditForm({
       const originalAmount = values.amount;
       const originalCurrency = values.currency;
       const conversionRate = values.conversion_rate;
-      const convertedAmount = Number(
-        (originalAmount * conversionRate).toFixed(2),
-      );
+      const converted = applyConversion({
+        originalAmount,
+        originalCurrency,
+        defaultCurrency,
+        rate: conversionRate,
+        conversionDate: values.conversion_date,
+        rateSource: values.rate_source,
+      });
 
       submissionValues = {
         ...submissionValues,
-        amount: convertedAmount,
+        amount: converted.amount,
         currency: defaultCurrency as CurrencyCode,
-        original_amount: originalAmount,
-        original_currency: originalCurrency,
-        // conversion_rate, date, source are already in values
+        original_amount: converted.original_amount,
+        original_currency: converted.original_currency,
+        conversion_rate: converted.conversion_rate,
+        conversion_date: converted.conversion_date,
+        rate_source: converted.rate_source,
       };
       logger.log("Applying currency conversion:", {
         original: originalAmount,
         rate: conversionRate,
-        converted: convertedAmount,
+        converted: converted.amount,
       });
     } else {
       // Default currency - clear conversion fields

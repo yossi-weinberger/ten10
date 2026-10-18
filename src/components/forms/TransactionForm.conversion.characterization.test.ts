@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
+import { applyConversion } from "../../../supabase/functions/_shared/transaction-domain/currency-rules.ts";
 
-// TransactionForm.onSubmit computes the converted amount inline and exports no
-// helper for it, so this test pins the exact expression it uses:
-//   Number((originalAmount * conversionRate).toFixed(2))
-// The same expression appears in OpeningBalanceModal, RecurringTransactionEditForm,
-// recurring-transactions.service and the process-recurring-transactions Edge Function.
-// If any of them changes, update this formula and the cases below together.
 function transactionFormConvertedAmount(originalAmount: number, conversionRate: number): number {
-  return Number((originalAmount * conversionRate).toFixed(2));
+  return applyConversion({
+    originalAmount,
+    originalCurrency: "USD",
+    defaultCurrency: "ILS",
+    rate: conversionRate,
+  }).amount;
 }
 
 describe("TransactionForm conversion formula (characterization)", () => {
