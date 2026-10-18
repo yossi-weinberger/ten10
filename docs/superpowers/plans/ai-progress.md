@@ -13,8 +13,8 @@
 |---|---|---|---|---|---|
 | 1 | `2026-10-18-ai-pr01-foundation-audit.md` | בדיקות ותשתית, בלי שינוי התנהגות | — | מוזג ל־main; נשארו פעולות משתמש | [#444](https://github.com/yossi-weinberger/ten10/pull/444) |
 | 2.0 | `2026-10-18-ai-pr02-0-characterization-tests.md` | בדיקות ו־CI בלבד | — | מוזג ל־main | [#443](https://github.com/yossi-weinberger/ten10/pull/443) |
-| 2a | `2026-10-18-ai-pr02-transaction-domain.md` משימות 1–3 | קוד, בלי שינוי התנהגות | PR 2.0 | PR פתוח מול `feat/ai-intake`, לא מוזג | [#446](https://github.com/yossi-weinberger/ten10/pull/446) |
-| 2b | אותו קובץ, משימות 4–6 | קוד | PR 2a | לא התחיל | |
+| 2a | `2026-10-18-ai-pr02-transaction-domain.md` משימות 1–3 | קוד, בלי שינוי התנהגות | PR 2.0 | מוזג ל־`feat/ai-intake` | [#446](https://github.com/yossi-weinberger/ten10/pull/446) |
+| 2b | אותו קובץ, משימות 4–6 | קוד | PR 2a | PR פתוח מול `feat/ai-intake`, לא מוזג | [#447](https://github.com/yossi-weinberger/ten10/pull/447) |
 | 1c | `2026-10-18-ai-pr01c-get-user-transactions-cleanup.md` | DB, רצוי ולא חסם | PR 1 | לא התחיל | |
 | 1b | `2026-10-18-ai-pr01b-delete-account.md` | DB + UI + Edge, מסלול צדדי | PR 1 + החלטת מדיניות | לא התחיל | |
 | 3 | נכתבת בהמשך | eval harness, offline | contracts מ־PR 2b | | |
@@ -74,3 +74,4 @@
 - **2026-10-18:** יושרו המסמכים לגבי Vault של testing (תקין). נוספה ל־PR 2b משימה להחליף את הביטוי ה־inline של ההמרה ב־`applyConversion` ואת בדיקת הנוסחה המועתקת. ה־MCP של Supabase לייצור הוגדר `read_only=true`. הצעד הבא: PR קטן ל־`main` שמתקן את שער 0 ב־`process-recurring-transactions`, ואז PR 2a.
 - **2026-10-18:** נפתח [#445](https://github.com/yossi-weinberger/ten10/pull/445) מול `main` (לא מוזג): שער לא חיובי, כולל שער שמתעגל ל־0, מדלג לספק הבא ב־`process-recurring-transactions`. CI ירוק חוץ מ־Rust שעוד רץ. המיזוג פורס רק את הפונקציה הזו, ועדיף מחוץ לשעות ה־crons.
 - **2026-10-18:** נפתח [#446](https://github.com/yossi-weinberger/ten10/pull/446) (PR 2a) מול `feat/ai-intake`: מפתחות, כינויי parsing ו־`normalize-core` ב־`_shared`, עם `FILE_IMPORT` ו־`AI_DRAFT`. בדיקות האפיון נשארו ירוקות. מקטע `parsing` הוסר מ־`import.json` (לא היה בשימוש ב־UI). נרמול קטגוריות באפליקציה עדיין עובר דרך i18n, כדי שבדיקת "בלי תרגום" תישאר נכונה; ב־Deno הרשימה סטטית. לא מוזג: מיזוג ל־`main` היה פורס את כל פונקציות ה־Edge.
+- **2026-10-19:** #446 (PR 2a) מוזג ל־`feat/ai-intake`. נפתח [#447](https://github.com/yossi-weinberger/ten10/pull/447) (PR 2b) מול `feat/ai-intake`, לא מוזג: המרת מטבע משותפת וחוזה הטיוטה (משימות 4–6). `applyConversion` שומר את `toFixed(2)`. התנהגות CSV/`FILE_IMPORT` ללא שינוי, ו־`process-recurring-transactions` לא נגע. לא ל־`main`.
