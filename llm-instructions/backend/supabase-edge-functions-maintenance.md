@@ -38,8 +38,8 @@ If you decide to update, follow this process:
 1.  **Check Latest Version:** Visit [npmjs.com/package/@supabase/supabase-js](https://www.npmjs.com/package/@supabase/supabase-js) to see the latest version.
 2.  **Update One Function First:**
     - Change the import in _one_ non-critical function (e.g., `send-cron-alerts`).
-    - Deploy it: `npx supabase functions deploy send-cron-alerts`
-    - **TEST IT:** Run the function manually (curl/Postman) or trigger it.
+    - Open a PR: Supabase Preview deploys it to the testing branch (`bbcllewcotypedqsnwmi`).
+    - **TEST IT:** Run the function on testing (curl/Postman) or trigger it.
     - Check logs for "Module not found" or "URL" errors.
 3.  **Update All Functions:**
     - If the test passes, update all other functions.
@@ -49,7 +49,7 @@ If you decide to update, follow this process:
 
 ## 4. CI Deploy Allowlist (Required for New Functions)
 
-Production deploys run via `.github/workflows/deploy-supabase-production.yml` → `supabase/scripts/deploy-changed-functions.sh`.
+Production deploys run **only** via `.github/workflows/deploy-supabase-production.yml` → `supabase/scripts/deploy-changed-functions.sh`, on push to `main`. This is the single source of truth for which functions are deployed and with which flags (e.g. `--no-verify-jwt` for `process-email-request`). There is no manual production deploy script. Testing deploys come from the Supabase GitHub Preview integration when a PR is opened.
 
 That script only deploys functions listed in **`ALL_FUNCTIONS`**. Functions that import `_shared` must also be listed in **`SHARED_DEPENDENT`**.
 
@@ -57,16 +57,11 @@ When adding a new Edge Function under `supabase/functions/<name>/`:
 
 1. Add `<name>` to `ALL_FUNCTIONS` in `deploy-changed-functions.sh`.
 2. If it imports `supabase/functions/_shared/**`, also add it to `SHARED_DEPENDENT`.
-3. Merge to `main` (or deploy manually once).
+3. Merge to `main`.
 
 If you skip the allowlist, CI may report success while **skipping** the new function. In the browser this often looks like a CORS failure: `OPTIONS` returns **404** (function missing), so the preflight has no CORS headers.
 
-Manual deploy (bypass CI):
-
-```bash
-npx supabase functions deploy <function-name> --project-ref flpzqbvbymoluoeeeofg
-# Prefer --use-api when local Docker networking fails
-```
+Do not deploy to production manually (`supabase functions deploy --project-ref flpzqbvbymoluoeeeofg`). The script refuses to deploy production from any branch other than `main`.
 
 ## 5. Routine Maintenance (Optional)
 

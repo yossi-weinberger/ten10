@@ -14,7 +14,6 @@
     "lint": "eslint src supabase/functions vite.config.ts vitest.config.ts",
     "preview": "vite preview",
     "tauri": "node scripts/tauri-cli.cjs",
-    "deploy-supabase": "node supabase/scripts/deploy-functions.js",
     "release": "node scripts/release.cjs",
     "check-supabase-imports": "node scripts/check-supabase-imports.js",
     "typecheck": "npm run typecheck:node && npm run typecheck:app:ratchet",
