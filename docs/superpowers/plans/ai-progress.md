@@ -30,15 +30,21 @@
 - [ ] איסוף 50–100 קבלות ישראליות אמיתיות, באישור ובאנונימיזציה, ל־evals (§21.2)
 - [ ] החלטת פרטיות: אילו נתונים מותר לשלוח לספקי AI, ולאילו ספקים (§9.5)
 - [ ] פתיחת חשבונות ומפתחות אצל ספקי AI, עם תקרת תקציב לכל סביבה
-- [ ] רשימת `user_id` של משתמשי הניסוי ב־testing, ל־allowlist (§22.1)
+- [x] רשימת `user_id` של משתמשי הניסוי ב־testing, ל־allowlist (§22.1)
 
 ## פעולות משתמש פתוחות (מ־PR 1, פירוט ב־`docs/superpowers/specs/2026-10-18-ai-pr01-findings.md`)
 
-- [ ] **Vercel Preview מצביע על הייצור** (`VITE_SUPABASE_URL` של `flpzqbvbymoluoeeeofg` ב־bundle של Preview). להגדיר את משתני Supabase של סביבת Preview ל־`bbcllewcotypedqsnwmi`. עד אז Preview של כל PR עובד מול נתוני הייצור, ו־§22.1 לא מתקיים.
-- [ ] Vault של testing: להחליף את `service_role_key` ואת `functions_base_url` לערכי testing.
-- [ ] ה־Database Webhook "Trigger Contact Email" על `contact_messages` מכיל URL של הייצור ו־JWT של `service_role` של הייצור בתוך הגדרת ה־trigger, וקיים גם ב־testing. ב־testing: לתקן או להסיר. בייצור: להעביר לקריאה דרך Vault כמו ה־crons, ולשקול סיבוב מפתח.
-- [ ] `unsubscribe`: לבדוק בדשבורד הפעלות ב־90 יום ולהחליט (אין קריאות בדגימה של 10 ימים).
-- [ ] רשימת `user_id` של משתמשי הניסוי.
+- [ ] **Vercel Preview מצביע על הייצור.** הסיבה: משתני Supabase של testing מוגדרים ל־Preview רק לענף `feat/hebrew-calendar-foundation`, ומשתני הייצור ל־"All Environments". להפוך את משתני testing ל־Preview לכל הענפים, ולצמצם את משתני הייצור ל־Production. עד אז Preview של כל PR עובד מול נתוני הייצור, ו־§22.1 לא מתקיים.
+- [x] Vault של testing: שני הסודות כבר של testing (אומת בדשבורד).
+- [ ] ה־Database Webhook "Trigger Contact Email" על `contact_messages` מכיל URL של הייצור ו־JWT של `service_role` של הייצור, וקיים גם ב־testing. ב־testing: Database → Triggers → Enabled mode = Disabled. בייצור: להעביר לקריאה דרך Vault כמו ה־crons, ולשקול סיבוב מפתח.
+- [ ] `unsubscribe`: אין הפעלות בהיסטוריה (אומת בדשבורד). למחוק מהדשבורד.
+- [x] משתמשי הניסוי ב־testing (מזהים בלבד; לנתונים נוספים אפשר לייצר משתמשים סינתטיים):
+  - `01665dce-d261-4a9b-b89d-04ce2460859b`
+  - `45e3efc0-171b-48ce-9f15-4468394dfaeb`
+  - `a0a4fdd4-49bf-48a0-a3b0-4c76d60597e4`
+  - `5403d7d1-3f44-4243-a84a-f905c4aad30c`
+  - `f336e5d1-4dc2-40c6-b176-c0b199ee836d`
+  - `a3f81dec-f634-4784-9cc0-9921838a6037`
 
 ## החלטות פתוחות
 
