@@ -11,7 +11,7 @@
 
 | PR | תוכנית | סוג | תלות | מצב | ענף |
 |---|---|---|---|---|---|
-| 1 | `2026-10-18-ai-pr01-foundation-audit.md` | בדיקות ותשתית, בלי שינוי התנהגות | — | חלקית: משימות 4–5 נבדקו | |
+| 1 | `2026-10-18-ai-pr01-foundation-audit.md` | בדיקות ותשתית, בלי שינוי התנהגות | — | PR draft, CI ירוק; נשארו פעולות משתמש | `chore/ai-pr01-foundation-audit` ([#444](https://github.com/yossi-weinberger/ten10/pull/444)) |
 | 2.0 | `2026-10-18-ai-pr02-0-characterization-tests.md` | בדיקות ו־CI בלבד | — | PR draft, CI ירוק | `test/ai-pr02-0-characterization` ([#443](https://github.com/yossi-weinberger/ten10/pull/443)) |
 | 2 (2a, 2b) | `2026-10-18-ai-pr02-transaction-domain.md` | קוד בלבד | PR 2.0 | לא התחיל | |
 | 1c | `2026-10-18-ai-pr01c-get-user-transactions-cleanup.md` | DB, רצוי ולא חסם | PR 1 | לא התחיל | |
@@ -32,7 +32,17 @@
 - [ ] פתיחת חשבונות ומפתחות אצל ספקי AI, עם תקרת תקציב לכל סביבה
 - [ ] רשימת `user_id` של משתמשי הניסוי ב־testing, ל־allowlist (§22.1)
 
+## פעולות משתמש פתוחות (מ־PR 1, פירוט ב־`docs/superpowers/specs/2026-10-18-ai-pr01-findings.md`)
+
+- [ ] **Vercel Preview מצביע על הייצור** (`VITE_SUPABASE_URL` של `flpzqbvbymoluoeeeofg` ב־bundle של Preview). להגדיר את משתני Supabase של סביבת Preview ל־`bbcllewcotypedqsnwmi`. עד אז Preview של כל PR עובד מול נתוני הייצור, ו־§22.1 לא מתקיים.
+- [ ] Vault של testing: להחליף את `service_role_key` ואת `functions_base_url` לערכי testing.
+- [ ] ה־Database Webhook "Trigger Contact Email" על `contact_messages` מכיל URL של הייצור ו־JWT של `service_role` של הייצור בתוך הגדרת ה־trigger, וקיים גם ב־testing. ב־testing: לתקן או להסיר. בייצור: להעביר לקריאה דרך Vault כמו ה־crons, ולשקול סיבוב מפתח.
+- [ ] `unsubscribe`: לבדוק בדשבורד הפעלות ב־90 יום ולהחליט (אין קריאות בדגימה של 10 ימים).
+- [ ] רשימת `user_id` של משתמשי הניסוי.
+
 ## החלטות פתוחות
+
+- **`handle_contact_form`:** קובע `verified_captcha = true` בלי בדיקה בשרת; ה־CAPTCHA נאכף רק בלקוח. חומרה נמוכה–בינונית (ספאם למייל התמיכה, בלי חשיפת נתונים). לתקן ב־PR נפרד.
 
 - **מדיניות מחיקת תנועות במחיקת חשבון:** מחיקה מלאה, או שמירה לתקופה מוגדרת? נדרשת לפני PR 1b (§13.6).
 - **מה עושים עם הפונקציה `unsubscribe`** שפרוסה בייצור ואינה ב־repo (לא נפרסה מאז ספטמבר 2025): שחזור ל־repo, או הסרה מתועדת? (PR 1)
@@ -51,3 +61,4 @@
 - **2026-10-18:** נוצרה הערכה. המסמך v2.5 הועתק לריפו, ונוספו ה־rule, היומן ותוכניות ל־PRs 1, 1b, 1c ו־2.
 - **2026-10-18:** אימות מול ה־DB החי (קריאות קטלוג בלבד), ה־CI והקוד. המסמך עודכן ל־v2.6 (נספח ו׳). עיקרי הממצאים: `track_functions=none`; PR 1c אינו חסם; ב־Vault של testing צריך להחליף גם את `functions_base_url`; אין bucket בשם `avatars`; שינוי ב־`_shared` פורס את כל פונקציות ה־Edge; כיסוי הבדיקות דל. נוסף PR 2.0, PR 2 פוצל ל־2a ו־2b, והמעבר של `process-recurring-transactions` הוצא ממנו. הצעד הבא: PR 1 המקוצר ו־PR 2.0.
 - **2026-10-18:** PR 2.0 נפתח כ־draft ([#443](https://github.com/yossi-weinberger/ten10/pull/443)): 140 בדיקות אפיון, שלב ה־Deno ב־CI מריץ כל `*_deno_test.ts`, בלי שינוי בקוד מוצר, CI ירוק. parity של השערים ב־`process-recurring-transactions` לא נבדק, כי הקובץ מפעיל `Deno.serve` בייבוא; ה־fixture מוכן ל־PR 2. נמצאו 7 התנהגויות חשודות (בהחלטות הפתוחות). בדיקת "Supabase Preview" מופיעה ב־PR (skipping, כי אין migrations): סימן שהאינטגרציה פעילה ל־PRs חדשים.
+- **2026-10-18:** PR 1 נפתח כ־draft ([#444](https://github.com/yossi-weinberger/ten10/pull/444)): נמחקו `deploy-functions.js` והסקריפט `deploy-supabase`, התיעוד עודכן, ונוסף קובץ הממצאים. ה־audit של 15 פונקציות `SECURITY DEFINER` לא מצא חור קריטי. לפי לוגים של 85 יום (דגימה), כל הקריאות ל־`get_user_transactions` הן עם 13 הפרמטרים. ממצאים חדשים: Vercel Preview מצביע על הייצור, ה־webhook של טופס יצירת הקשר מכיל מפתח ייצור (אומת בקטלוג), וה־CAPTCHA נאכף רק בלקוח. הצעד הבא: פעולות המשתמש, ואחרי מיזוג PR 2.0 להתחיל את PR 2a.
