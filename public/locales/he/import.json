@@ -246,44 +246,5 @@
     "entryDescription": "הוסף תנועות מקובץ CSV או Excel. כל השורות נסקרות לפני שנשמר דבר.",
     "entryButton": "ייבוא מקובץ",
     "note": "זה מייבא תנועות מגיליונות חיצוניים. לשחזור גיבוי Ten10, השתמש בחלק הגיבוי למעלה."
-  },
-  "parsing": {
-    "typeAliases": {
-      "income":   ["הכנסה", "זיכוי"],
-      "expense":  ["הוצאה", "חיוב"],
-      "donation": ["תרומה", "צדקה"],
-      "recognized-expense": ["הוצאה כנגד הכנסה", "הוצאה מוכרת"]
-    },
-    "incomeDescriptionKeywords": ["כולל אברכים", "ביטוח לאומי", "עבודה"],
-    "booleanTruthy": ["כן"],
-    "templateColumnLabels": {
-      "date":           "תאריך",
-      "amount":         "סכום",
-      "description":    "תיאור",
-      "currency":       "מטבע",
-      "type":           "סוג",
-      "category":       "קטגוריה",
-      "recipient":      "נמען/משלם",
-      "payment_method": "אמצעי תשלום",
-      "is_chomesh":     "חומש?"
-    },
-    "columnAliases": {
-      "date":           ["תאריך", "תאריך עסקה", "תאריך רכישה", "תאריך פעולה", "תאריך ערך"],
-      "amount":         ["סכום", "סה\"כ", "שווי", "סכום עסקה", "סכום בש\"ח"],
-      "debit":          ["חיוב", "חובה", "הוצאה", "סכום חיוב", "חיוב ₪", "משיכה"],
-      "credit":         ["זיכוי", "זכות", "הכנסה", "סכום זיכוי", "זיכוי ₪", "הפקדה"],
-      "description":    ["תיאור", "פרטים", "הערה", "שם", "הפעולה", "פעולה", "שם בית עסק", "שם בית העסק", "בית עסק", "מוטב", "נהנה", "תיאור הפעולה", "פרטי פעולה"],
-      "currency":       ["מטבע", "מטבע חיוב", "מטבע עסקה"],
-      "type":           ["סוג", "סוג עסקה"],
-      "category":       ["קטגוריה"],
-      "recipient":      ["נמען", "מוטב", "גוף", "לטובת", "עבור", "שם מוטב", "נמען/משלם"],
-      "payment_method": ["אמצעי תשלום", "תשלום", "אמצעי"],
-      "is_chomesh":     ["חומש", "חומש?"]
-    },
-    "templateSamples": [
-      { "date": "2025-01-15", "amount": "5000",  "description": "משכורת חודשית",  "currency": "ILS", "type": "income",   "category": "salary", "recipient": "",        "payment_method": "bank_transfer", "is_chomesh": "לא" },
-      { "date": "2025-01-20", "amount": "-350",  "description": "קניות סופרמרקט", "currency": "ILS", "type": "expense",  "category": "food",   "recipient": "",        "payment_method": "credit_card",   "is_chomesh": "לא" },
-      { "date": "2025-01-25", "amount": "500",   "description": "צדקה",            "currency": "ILS", "type": "donation", "category": "",       "recipient": "בית הכנסת", "payment_method": "bank_transfer", "is_chomesh": "כן"  }
-    ]
   }
 }

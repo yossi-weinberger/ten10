@@ -1,62 +1,21 @@
 import i18n from "@/lib/i18n";
+import {
+  CATEGORY_KEYS_BY_TYPE,
+  isPredefinedCategory,
+} from "../../supabase/functions/_shared/transaction-domain/category-keys.ts";
 
-// ---------------------------------------------------------------------------
-// Predefined category keys per base transaction type.
-// The DB stores these exact stable keys; the UI resolves them to localized
-// labels at render time via formatCategory().
-//
+export {
+  CATEGORY_KEYS_BY_TYPE,
+  EXPENSE_CATEGORY_KEYS,
+  INCOME_CATEGORY_KEYS,
+  isPredefinedCategory,
+  type ExpenseCategoryKey,
+  type IncomeCategoryKey,
+  type PredefinedCategoryKey,
+} from "../../supabase/functions/_shared/transaction-domain/category-keys.ts";
+
 // Donations: categories are NOT supported for donation transactions.
-// Donations use the recipient field instead.
-// ---------------------------------------------------------------------------
-
-export const INCOME_CATEGORY_KEYS = [
-  "salary",
-  "business",
-  "freelance",
-  "investment",
-  "allowance",
-  "gift",
-  "other",
-] as const;
-
-export const EXPENSE_CATEGORY_KEYS = [
-  "food",
-  "transportation",
-  "housing",
-  "utilities",
-  "healthcare",
-  "education",
-  "leisure",
-  "shopping",
-  "other",
-] as const;
-
-export type IncomeCategoryKey = (typeof INCOME_CATEGORY_KEYS)[number];
-export type ExpenseCategoryKey = (typeof EXPENSE_CATEGORY_KEYS)[number];
-
-export type PredefinedCategoryKey = IncomeCategoryKey | ExpenseCategoryKey;
-
-const ALL_PREDEFINED_KEYS = new Set<string>([
-  ...INCOME_CATEGORY_KEYS,
-  ...EXPENSE_CATEGORY_KEYS,
-]);
-
-export const CATEGORY_KEYS_BY_TYPE: Record<
-  "income" | "expense",
-  readonly string[]
-> = {
-  income: INCOME_CATEGORY_KEYS,
-  expense: EXPENSE_CATEGORY_KEYS,
-};
-
-// ---------------------------------------------------------------------------
-// isPredefinedCategory
-// ---------------------------------------------------------------------------
-export function isPredefinedCategory(
-  value: string | null | undefined
-): value is PredefinedCategoryKey {
-  return !!value && ALL_PREDEFINED_KEYS.has(value);
-}
+// Donations use the recipient field instead. Labels stay in i18n.
 
 // ---------------------------------------------------------------------------
 // formatCategory
