@@ -1,7 +1,7 @@
 # Ten10 — תוכנית ארכיטקטורה וביצוע מתוקנת למערכת AI רב־ערוצית
 
-**גרסה:** 2.5 (תיקונים מול הקוד: עורך ההמרה, החלת כללים, חתימות ה־RPC, רענון, אזור זמן, הרשאות)  
-**תאריך:** 7 באוקטובר 2026  
+**גרסה:** 2.6 (אימות מול ה־DB החי וה־CI: חתימות `get_user_transactions`, Vault של testing, פריסת `_shared`, בדיקות אפיון; ראו נספח ו׳)  
+**תאריך:** 18 באוקטובר 2026  
 **סטטוס:** תוכנית Production סופית לביצוע מדורג, ללא קוד חד־פעמי  
 **תחולה:** Web/PWA/TWA, Supabase, Cloudflare, AWS SES, PostHog, WhatsApp Business Platform, ותאימות ל־Desktop/Tauri
 
@@ -93,21 +93,29 @@ flowchart TD
 - לוח עברי/זמני חג דרך `src/lib/calendar`; אין להוסיף Hebcal כמסלול מקביל.
 - בדיקות frontend/domain באמצעות Vitest.
 - ייבוא תנועות קיים עובד במסלול upload → parse → mapping → normalize → validate → review → approval → persist.
-- ייבוא CSV/XLSX מקבל במכוון רק `income`, `expense`, `donation` ו־`recognized-expense` (`isImportableType`), ו־`recognized-expense` רק כשהוא כתוב במפורש בקובץ. `exempt-income` ו־`non_tithe_donation` מסומנים "מיוחדים" ונחסמים, ומטבע זר נדחה בלי המרה (`transaction-import-guide.md`). אלה החלטות מוצר נכונות לדף בנק, שאינו יודע הכרעות הלכתיות ואינו מתאים להמרה בשער של היום. לכן טיוטות AI אינן משתמשות בהן כפי שהן, אלא בפרופיל validation משלהן (סעיף 10.1).
+- ייבוא CSV/XLSX מקבל במכוון רק `income`, `expense`, `donation` ו־`recognized-expense`, ו־`recognized-expense` רק כשהוא כתוב במפורש בקובץ. השער בפועל הוא `TYPE_LOCALE_ALIASES` והסקה לפי סימן הסכום ב־`resolveTypeWithIssues`; הפונקציות `isImportableType` ו־`isSpecialType` (שכוללת גם `initial_balance`) מוגדרות ב־`type-resolver.ts` אך אינן נקראות. `exempt-income` ו־`non_tithe_donation` מסומנים "מיוחדים" ונחסמים, ומטבע זר נדחה בלי המרה (`transaction-import-guide.md`). אלה החלטות מוצר נכונות לדף בנק, שאינו יודע הכרעות הלכתיות ואינו מתאים להמרה בשער של היום. לכן טיוטות AI אינן משתמשות בהן כפי שהן, אלא בפרופיל validation משלהן (סעיף 10.1).
 - `persist-approved-import.ts` שומר Web באצוות של 100 ו־Desktop דרך פקודת bulk מקומית.
 - `ImportNormalizedRow` מגדיר את שדות ההמרה כ־`null` בלבד, ו־`ImportRowEditModal` מאפס אותם גם בפתיחת הטופס וגם בהחזרת העריכה ("Imports never carry conversion data"). לכן העורך אינו שומר המרת מטבע כפי שהוא (סעיף 10.1).
 - ה־bulk update (`bulk_update_user_transactions`) מאפשר לשנות רק `payment_method`, `category`, `description`, `recipient` ו־`is_chomesh`, ולא `type`.
-- ל־`get_user_transactions` יש שלוש חתימות (9, 12 ו־13 פרמטרים, לפי `20260715090000_harden_user_transaction_rpcs.sql`), והאפליקציה קוראת לאחת מהן דרך `tableTransactionService.ts`.
+- ל־`get_user_transactions` יש שלוש חתימות (9, 12 ו־13 פרמטרים, לפי `20260715090000_harden_user_transaction_rpcs.sql`). ב־DB החי, לחתימה עם 9 הפרמטרים יש 8 ברירות מחדל, ולחתימות עם 12 ו־13 אין אף אחת. הקורא היחיד הוא `tableTransactionService.ts`, והוא תמיד שולח את כל 13 הפרמטרים בשמם, כך שהיום אין עמימות.
+- `update_user_transaction(uuid, uuid, jsonb)` מוגדר ב־`20260122_update_transaction_rpc_currency_fields.sql`, רץ כ־`SECURITY INVOKER` (כפוף ל־RLS) ומעדכן רק רשימה סגורה של עמודות. נבדק גם ב־DB החי.
+- סכמת הבסיס של `transactions` אינה ב־migrations, וגם ה־trigger `on_transaction_update` (`handle_updated_at`) קיים רק ב־DB החי.
 - רכיבי הנתונים (טבלה, כרטיסים, גרפים) מתרעננים לפי `lastDbFetchTimestamp` ב־Zustand, שפעולות שמירה בדפדפן מעדכנות.
 - `local-date` משתמש באזור הזמן של סביבת הריצה. בדפדפן זה אזור הזמן של המשתמש, וב־Edge זה UTC. בשרת קיים `_shared/israel-date.ts` שמחשב תאריך לפי `Asia/Jerusalem`.
 - מטבע זר: הטופס הידני (`TransactionForm` + `CurrencyConversionSection`) תומך בתנועה במטבע זר שמומרת למטבע ברירת המחדל. שער `auto` נשלף מ־`ExchangeRateService` (exchangerate-api → frankfurter → floatrates, שער `latest`, עיגול ל־4 ספרות) או מוזן ידנית (`manual`). נשמרים `amount` מומר (עיגול ל־2 ספרות), `currency` = מטבע ברירת המחדל, `original_amount`, `original_currency`, `conversion_rate`, `conversion_date` ו־`rate_source`.
 - לעומת זאת, ייבוא CSV/XLSX דוחה מטבע זר כשגיאה fatal (`foreign_currency_not_supported` ב־`normalize.ts`), ולכן שימוש עיוור בכללי הייבוא היה חוסם קבלות במטבע זר.
-- רשימת ספקי השערים משוכפלת כיום: `src/lib/services/exchange-rate.service.ts` בצד הלקוח ו־`fetchExchangeRate` ב־`process-recurring-transactions`, שקורא את `profiles.default_currency` בצד השרת.
+- רשימת ספקי השערים משוכפלת כיום: `src/lib/services/exchange-rate.service.ts` בצד הלקוח ו־`fetchExchangeRate` ב־`process-recurring-transactions`, שקורא את `profiles.default_currency` בצד השרת. הספקים, ה־parsing והעיגול זהים, אבל ההתנהגות לא: בלקוח יש החזרה מיידית כשהמטבעות זהים, cache של שעה, offline ו־last-known; בשרת רק cache לכל invocation. העיגול לארבע ספרות נעשה בשירות, לא בטופס.
+- כיסוי הבדיקות של הייבוא דל: ל־`normalize` כ־5 בדיקות (תאריכים בלבד), ואין בדיקות ל־`type-resolver`, לשירות השערים ולחישוב ההמרה בטופס, ואין fixtures לייבוא.
+- אין logger משותף ב־`supabase/functions/_shared`; הפונקציות כותבות ל־`console`. אין מנגנון entitlement כללי בצד השרת, רק `EMAIL_ALLOWLIST` ובדיקת admin.
+- CI מריץ `deno test` רק על `_shared/calendar/index_deno_test.ts` ועל `reminder-schedule_deno_test.ts`. בדיקת Deno חדשה דורשת הוספה מפורשת ל־`ci.yml`.
+- כל שינוי תחת `supabase/functions/_shared/`, גם תיקייה חדשה, פורס מחדש לייצור את כל `SHARED_DEPENDENT` (היום כל 10 הפונקציות, כולל `process-recurring-transactions` ו־`process-email-request`). שינוי ב־`supabase/config.toml` פורס את כולן.
 
 ### 3.2 Supabase חי
 
 - Production: `flpzqbvbymoluoeeeofg`, אזור `eu-central-1`, PostgreSQL 17.
-- Testing: `bbcllewcotypedqsnwmi`; cron jobs קיימים שמסוכנים ל־Production נשארים כבויים. בשלב 0 יוצרים Vault secrets ייעודיים ל־testing ומאפשרים רק jobs מבודדים של ה־AI pipeline.
+- Testing: `bbcllewcotypedqsnwmi`; cron jobs קיימים שמסוכנים ל־Production נשארים כבויים. ב־Vault של testing יש שני סודות, `service_role_key` ו־`functions_base_url`, ושניהם הועתקו מהייצור. בשלב 0 מחליפים את **שניהם** בערכי testing, ומאפשרים רק jobs מבודדים של ה־AI pipeline. אחרת cron של testing יקרא לפונקציות הייצור.
+- Storage: בייצור וב־testing קיים רק ה־bucket `contact-attachments`. ה־bucket `avatars` שהקוד מזכיר (`profile.service.ts`) אינו קיים.
+- `track_functions` בייצור הוא `none`, ולכן `pg_stat_user_functions` אינו זמין למיפוי שימוש בפונקציות.
 - קיימים Auth, RLS, Edge Functions, Storage, `pg_cron` ו־`pg_net`.
 - `pgmq` זמין אך טרם מותקן; הוא הבסיס המומלץ ל־Supabase Queues.
 - קיימים cron jobs לתנועות מחזוריות, תזכורות ומעקב תקלות.
@@ -336,6 +344,8 @@ stateDiagram-v2
   - הקבצים, ב־bucket `intake-artifacts` של Storage.
 - **קשר בין schemas:** `ai.transaction_source_links.transaction_id` הוא FK ל־`public.transactions(id)` עם `ON DELETE CASCADE`: מחיקת תנועה באפליקציה מוחקת גם את הקישור למקור. ה־commit כותב לשני ה־schemas באותה טרנזקציה.
 - **חשיפה ל־API:** `ai` נוסף ל־Exposed schemas בהגדרות ה־API, כדי ש־supabase-js יוכל לפנות אליו מה־Edge Functions ומה־UI (`.schema("ai")`). האבטחה זהה ל־`public`: GRANT מפורש לכל טבלה ו־RLS בכל טבלה. טבלאות פנימיות כמו `intake_events` אינן מקבלות grant ל־`anon`/`authenticated`.
+  - ה־migration כולל `grant usage on schema ai` ל־`authenticated` ול־`service_role` בלבד, ו־`revoke execute ... from public` לכל פונקציה, כי Postgres מעניק EXECUTE ל־PUBLIC כברירת מחדל.
+  - החשיפה עצמה היא הגדרה ולא migration: ב־dashboard של הייצור, וב־`[api] schemas` ב־`supabase/config.toml` עבור ענפים. שינוי ב־`config.toml` פורס מחדש את כל פונקציות ה־Edge בייצור, ולכן ממזגים אותו בשעה רחוקה מה־crons.
 - **ביצועים:** schema אינה משפיעה על עומס. היא שכבת ארגון והרשאות בלבד.
 - **types:** `supabase gen types` מורץ עם `--schema public,ai`. Desktop לא מושפע.
 - **שמות:** במסמך זה שמות הטבלאות מופיעים בלי הקידומת `ai.`. `ai_insights` הופכת ל־`ai.insights`.
@@ -360,13 +370,13 @@ stateDiagram-v2
 **כללי כתיבה:**
 - רק `ai.commit_intake_items` כותב `origin`, באותה טרנזקציה.
 - עריכה של תנועה לא משנה את הערך, וביטול מוחק את השורה.
-- `origin` אינו בשדות שה־bulk update מקבל: הוא מגביל לרשימה סגורה (`payment_method`, `category`, `description`, `recipient`, `is_chomesh`), וזה נבדק. בשלב 0 בודקים שגם `update_user_transaction(uuid, uuid, jsonb)` אינו מעדכן עמודות מחוץ לרשימה שלו.
+- `origin` אינו בשדות שה־bulk update מקבל: הוא מגביל לרשימה סגורה (`payment_method`, `category`, `description`, `recipient`, `is_chomesh`), וזה נבדק. גם `update_user_transaction(uuid, uuid, jsonb)` מעדכן רק רשימה סגורה שאינה כוללת `origin` (נבדק בקוד וב־DB החי).
 - `origin` הוא סימון תצוגה ולא שדה אבטחה. משתמש שמשנה אותו ידנית משפיע רק על התצוגה שלו, ולכן אין trigger מגן.
 
-**שינוי ב־`get_user_transactions`:** לפונקציה יש היום שלוש חתימות (9, 12 ו־13 פרמטרים). הוספת פרמטר עם ברירת מחדל לצד חתימות קיימות עלולה לגרום ל־PostgREST לא לדעת לאיזו גרסה לפנות. לכן השינוי נעשה בשני צעדים:
+**שינוי ב־`get_user_transactions`:** לפונקציה יש היום שלוש חתימות (9, 12 ו־13 פרמטרים). הוספת פרמטר עם ברירת מחדל **לצד** חתימה קיימת (create בלי drop) הייתה יוצרת עמימות ב־PostgREST. לכן החתימה עם 13 הפרמטרים מוחלפת ב־drop+create. לפי ה־DB החי, אחרי ההחלפה קריאה עם 13 שמות מתאימה רק לחתימה החדשה: לחתימה עם 12 חסר `p_recurring_frequencies`, ולחתימה עם 9 חסרים פרמטרים אחרים. לכן הניקוי רצוי אך אינו חסם:
 
-1. **ניקוי (PR 1c, לפני כל שינוי אחר):** בודקים איזו חתימה נקראת בפועל, לפי הקוד ו־`pg_stat_user_functions` ב־Production. חתימות שאינן בשימוש נמחקות ב־migration נפרדת. אם מתגלה צרכן, משאירים wrapper דק שמפנה לחתימה הקנונית.
-2. **הרחבה (PR 4):** החתימה הקנונית היחידה מוחלפת ב־drop+create באותה migration. היא מחזירה גם `origin` ומקבלת `p_origin` עם ברירת מחדל `NULL`, וה־grants מחודשים. קריאה קיימת בלי הפרמטר ממשיכה לעבוד.
+1. **ניקוי (PR 1c, אפשר כחלק מ־PR 4):** הקורא היחיד לפי הקוד הוא `tableTransactionService.ts`. `pg_stat_user_functions` אינו זמין (`track_functions=none`), ולכן משלימים מ־API logs של הייצור לפי שמות הפרמטרים, בטווח שה־plan שומר. חתימות שאינן בשימוש נמחקות. אם מתגלה צרכן, משאירים wrapper דק שמפנה לחתימה הקנונית.
+2. **הרחבה (PR 4):** החתימה הקנונית מוחלפת ב־drop+create באותה migration. היא מחזירה גם `origin` ומקבלת `p_origin` עם ברירת מחדל `NULL`, וה־grants מחודשים. קריאה קיימת בלי הפרמטר ממשיכה לעבוד.
 
 **מה לא משתנה:**
 - ה־RPCs של האנליטיקה והמעשר.
@@ -897,7 +907,7 @@ supabase/functions/_shared/transaction-domain/
 ```
 
 - המודולים המשותפים טהורים ואינם מייבאים React, browser APIs, `i18n`, קבצי `public/` או APIs ייחודיים ל־Deno.
-- `exchange-rates.ts` מחליף את שתי רשימות הספקים הקיימות. `ExchangeRateService` בצד הלקוח ממשיך לנהל cache, מצב offline ו־last-known rate, ו־`process-recurring-transactions` ממשיך לנהל cache לכל invocation. שניהם צורכים את אותה רשימת ספקים ואת אותו parsing.
+- `exchange-rates.ts` מחליף את שתי רשימות הספקים הקיימות. `ExchangeRateService` בצד הלקוח ממשיך לנהל cache, מצב offline, last-known rate וההחזרה המיידית כשהמטבעות זהים, ו־`process-recurring-transactions` ממשיך לנהל cache לכל invocation. שניהם צורכים את אותה רשימת ספקים ואת אותו parsing. `process-recurring-transactions` הוא cron שכותב תנועות בייצור, ולכן המעבר שלו נעשה ב־PR נפרד עם בדיקות parity, ולא כחלק מ־PR 2.
 - הנרמול וה־validation מקבלים **פרופיל** מפורש, `ValidationProfile`, במקום אופציות נפרדות. בו `allowedTypes` ו־`foreignCurrency: "reject" | "convert"`. יש שני פרופילים קבועים:
   - `FILE_IMPORT`: בדיוק ההתנהגות הנוכחית של CSV/XLSX. ארבעת הסוגים של `isImportableType`, `recognized-expense` רק כשהוא כתוב במפורש, ודחיית מטבע זר. fixtures מוכיחים שאין שינוי.
   - `AI_DRAFT`: שישה סוגים (הכול חוץ מ־`initial_balance`) ו־`"convert"`. שורה במטבע זר יוצאת עם `original_amount` ו־`original_currency` וממתינה לשלב ההמרה במקום להיחסם.
@@ -920,7 +930,7 @@ supabase/functions/_shared/transaction-domain/
 
   בדיקת round-trip מוכיחה שטיוטה במטבע זר שנפתחה ונשמרה בעורך שומרת את כל חמשת השדות.
 
-אין להעביר את `duplicate-detector.ts` הקיים כמו שהוא ל־Edge: הוא client-side וטוען עד 5,000 שורות לזיכרון. לליבת multi-channel מוסיפים RPC ממוקד שמחזיר מועמדי כפילות ב־DB לפי user, type, טווח תאריכים וסבילות סכום, ומעליו שיפוט סמנטי (סעיף 10.5). מסלול CSV הקיים נשאר ללא שינוי עד refactor בטוח ונפרד.
+אין להעביר את מסלול הכפילויות של הייבוא כמו שהוא ל־Edge: `persist-approved-import.ts` טוען עד 5,000 שורות לזיכרון (`fetchExistingForDedup`), ו־`duplicate-detector.ts` משווה fingerprints בצד הלקוח. לליבת multi-channel מוסיפים RPC ממוקד שמחזיר מועמדי כפילות ב־DB לפי user, type, טווח תאריכים וסבילות סכום, ומעליו שיפוט סמנטי (סעיף 10.5). מסלול CSV הקיים נשאר ללא שינוי עד refactor בטוח ונפרד.
 
 ### 10.2 מטבע זר והמרה למטבע ברירת המחדל
 
@@ -1207,7 +1217,7 @@ AI אינו מחליט לבדו לשלוח הודעה.
 
 ה־workflow idempotent ושומר checkpoint לא־רגיש כדי שיוכל להמשיך לאחר כשל חלקי. job תקופתי מאתר `deletion_requested` תקועים ו־Storage יתום. בדיקת end-to-end חייבת להוכיח שאין DB rows, אובייקטי Storage או חיבורי channel שנותרו.
 
-**מיקום בתוכנית:** delete-account הוא יכולת של האפליקציה כולה, לא של AI. הוא נמסר כ־PR עצמאי (PR 1b) לפני טבלאות ה־AI. הוא כולל את מדיניות מחיקת התנועות, את ה־profile ואת הנתונים הקיימים (`contact-attachments`, avatars, recurring ו־PostHog person), כרשימת שלבי ניקוי מודולרית. PR 5 מוסיף לרשימה הזו את שלבי ה־intake (`intake-artifacts/<user_id>/`, items, messages, links, events ו־channel connections). כך ה־gate של שמירת מקורות נפתח מוקדם, והמשתמשים מקבלים יכולת מחיקת חשבון גם ללא AI.
+**מיקום בתוכנית:** delete-account הוא יכולת של האפליקציה כולה, לא של AI. הוא נמסר כ־PR עצמאי (PR 1b) לפני טבלאות ה־AI. הוא כולל את מדיניות מחיקת התנועות, את ה־profile ואת הנתונים הקיימים (`contact-attachments`, recurring ו־PostHog person; ה־bucket `avatars` אינו קיים כיום), כרשימת שלבי ניקוי מודולרית. PR 5 מוסיף לרשימה הזו את שלבי ה־intake (`intake-artifacts/<user_id>/`, items, messages, links, events ו־channel connections). כך ה־gate של שמירת מקורות נפתח מוקדם, והמשתמשים מקבלים יכולת מחיקת חשבון גם ללא AI.
 
 data export כולל את עמודת `origin` ורשימת מקורות, אך לא signed URLs ארוכי־חיים. שחזור מגיבוי JSON ב־Web שומר את `origin`, וב־Desktop השדה מתעלם. אם המשתמש מבקש את הקבצים עצמם, מייצרים export זמני ומוגן בנפרד.
 
@@ -1322,7 +1332,7 @@ monthly_channel_cost =
 - PDF page cap ודגימת עמודים רק לפי צורך.
 - cache לפי content hash + prompt version, בכפוף ל־ownership.
 - תובנות batch ולא generation בכל page view.
-- WhatsApp: הודעה יוצאת אחת לכל intake (סיכום + deep link), בלי acknowledgment נפרד ובלי אישור commit, ובלי transcript ארוך.
+- WhatsApp: עד שתי הודעות יוצאות לכל intake (סיכום עם כפתורים, ואישור אחרי לחיצה), ואחת בשמירה אוטומטית, כמו בסעיף 8.3. בלי acknowledgment נפרד ובלי transcript ארוך.
 - דשבורד עלות WhatsApp סופר הודעות שירות מול 1,000 החינמיות בחודש לכל מספר, ומציג מתי המכסה תיגמר בקצב הנוכחי.
 
 ### 15.4 החלטת go/no-go לספק
@@ -1701,7 +1711,7 @@ Schema cleanup מתבצע רק במיגרציה עתידית לאחר תקופת
 - **עבודת AI ב־testing נעשית רק על משתמשי הניסוי של בעל המוצר.** ה־allowlist של ה־entitlement בצד השרת מכיל ב־testing רק את ה־`user_id` שלהם. כך שום RPC, consumer או Edge Function לא שולחים לספק AI נתונים של משתמש אחר.
 - **עבודות רוחביות** (סריקת כפילויות, תובנות, purge, תזכורות) מסוננות לפי אותו allowlist ב־testing, ולא רצות על כל המשתמשים.
 - **ענף ה־testing:** מוודאים שהוא עדיין מקושר לאינטגרציית ה־Preview, ומגדירים בו Vault secrets של testing (סעיף 3.2).
-- **פיתוח מקומי:** Supabase מקומי (Docker) עם נתוני seed מדומים הוא אופציה ל־migrations ול־RPCs. הוא אינו תנאי, כי משתמשי הניסוי ב־testing מספיקים.
+- **פיתוח מקומי:** Supabase מקומי (Docker) עם נתוני seed מדומים הוא אופציה ל־migrations ול־RPCs, אבל דורש קודם dump של סכמת הבסיס, כי `transactions` וה־trigger שלה אינם ב־migrations. הוא אינו תנאי, כי משתמשי הניסוי ב־testing מספיקים.
 
 | רכיב | סביבת בדיקה |
 |---|---|
@@ -1756,8 +1766,8 @@ Schema cleanup מתבצע רק במיגרציה עתידית לאחר תקופת
 3. Supabase foundation ו־Web text/media, משום שזה הערוץ הישיר ביותר ואינו תלוי בספק messaging חיצוני.
 4. Gate שטח: שימוש אמיתי ומדידה לפני ערוצים חיצוניים (סעיף 23).
 5. Share Target, מייל ו־WhatsApp כ־adapters על ליבה יציבה.
-5. unified notifications ותזכורות על בסיס channels מאומתים.
-6. תובנות AI על בסיס aggregate contracts יציבים.
+6. unified notifications ותזכורות על בסיס channels מאומתים.
+7. תובנות AI על בסיס aggregate contracts יציבים.
 
 WhatsApp ממוקם אחרי Web/Email בגלל אישורי Meta, pricing, template policy, quality rating וסיכון number restriction—לא משום שהוא אופציונלי או “בדיקה”. מתחילים את תהליך Meta כבר בשלב 0 כדי שלא יהיה בנתיב הקריטי בהמשך.
 
@@ -1767,9 +1777,10 @@ WhatsApp ממוקם אחרי Web/Email בגלל אישורי Meta, pricing, temp
 |---|---|---|---|
 | 1 | deploy inventory, ADRs, testing Vault, audit ל־`unsubscribe` ו־security fixes ממוקדים | אין | revert קוד/מיגרציה additive; אין מחיקה לפני audit |
 | 1b | delete-account כללי לאפליקציה עם רשימת שלבי ניקוי מודולרית | PR1 | flag על כפתור המחיקה; reconciliation נשאר פעיל |
-| 1c | ניקוי החתימות המתות של `get_user_transactions`, אחרי מיפוי הצרכנים | PR1 | migration הפוכה שמחזירה את החתימה; wrapper אם התגלה צרכן |
-| 2 | `transaction-domain` טהור כולל `exchange-rates`/`applyConversion`, contract קנוני, adapter ל־import ו־cross-runtime fixtures | PR1 | re-exports שומרים תאימות; אין שינוי נתונים או התנהגות |
-| 3 | eval harness, generic decision/extraction adapters, Jev כמועמד ו־privacy events | PR2 | disable provider route; אין persistence חדש |
+| 1c | ניקוי החתימות המתות של `get_user_transactions`, אחרי מיפוי הצרכנים. רצוי אך אינו חסם; אפשר לאחד עם PR 4 | PR1 | migration הפוכה שמחזירה את החתימה; wrapper אם התגלה צרכן |
+| 2.0 | בדיקות אפיון בלבד: ההתנהגות הנוכחית של `normalize`, זיהוי סוג, parsing של ספקי השערים וחישוב ההמרה בטופס; שלב Deno ב־`ci.yml` | אין | אין שינוי קוד מוצר |
+| 2 | `transaction-domain` טהור כולל `exchange-rates`/`applyConversion`, contract קנוני, adapter ל־import ו־cross-runtime fixtures. מפוצל ל־2a (מפתחות, aliases, `normalize-core`) ו־2b (פרופיל, טיפוס משותף, עורך). המעבר של `process-recurring-transactions` לספקים המשותפים הוא PR נפרד, כשנדרשת המרה בשרת (PR 5) | PR 2.0 | re-exports שומרים תאימות; אין שינוי נתונים או התנהגות. שינוי ב־`_shared` פורס את כל פונקציות ה־Edge, ולכן ממזגים בשעה רחוקה מה־crons |
+| 3 | eval harness, generic decision/extraction adapters, Jev כמועמד ו־privacy events. ה־harness רץ offline ויכול להתחיל במקביל ל־PR 2.0 | PR2 (contracts) | disable provider route; אין persistence חדש |
 | 4 | schema `ai`, טבלאות ליבה, RLS, grants, indexes, Storage policies, עמודת `origin` ו־`p_origin` ב־`get_user_transactions` | PR2–3 | flags false; אין drop; הקריאה הקיימת ל־RPC ממשיכה לעבוד |
 | 5 | atomic queue, consumer/backstop, state/edit/version, commit/provenance, purge ושלבי intake ב־delete-account | PR1b, PR4 | pause consumers; reconciliation נשאר פעיל |
 | 6 | Web chat text + existing review, נתב כוונות, כללים, אישור בכרטיס, undo, חישוב צל, אייקון וסינון AI בטבלה | PR3–5 | `ai_intake_web=false`, `ai_rules=false` |
@@ -1929,7 +1940,10 @@ WhatsApp ממוקם אחרי Web/Email בגלל אישורי Meta, pricing, temp
 - [ ] `NormalizedTransactionRow` ומתאם עורך תלוי פרופיל, עם בדיקת round-trip להמרה.
 - [ ] `timezone` ב־`intake_messages` ופירוש תאריכים יחסיים לפיו.
 - [ ] וידוא שאינטגרציית ה־Preview של Supabase חלה על PRs חדשים.
-- [ ] בדיקה ש־`update_user_transaction` אינו מעדכן עמודות מחוץ לרשימה שלו.
+- [x] בדיקה ש־`update_user_transaction` אינו מעדכן עמודות מחוץ לרשימה שלו (נבדק בקוד וב־DB החי, 18/10/2026).
+- [ ] Vault של testing: החלפת `service_role_key` **וגם** `functions_base_url`.
+- [ ] logger משותף ל־Edge ב־`_shared`, ו־allowlist/entitlement בצד השרת, לפני קוד AI ראשון.
+- [ ] כל בדיקת Deno חדשה נוספת ל־`ci.yml`.
 - [ ] `ValidationProfile` עם fixtures שמוכיחים ש־`FILE_IMPORT` לא שינה את תוצאות ה־CSV.
 - [ ] `ai.undo_intake_commit` עם בדיקת בעלות, שינוי מאז commit וחלון ביטול, ומעבר `reverted`.
 - [ ] טבלת `user_rules` עם מצב `draft` שאינו פעיל עד אישור.
@@ -2090,3 +2104,25 @@ WhatsApp ממוקם אחרי Web/Email בגלל אישורי Meta, pricing, temp
 | ניסוח נחרץ מדי על Jev | אומצה | "זול ומהיר מכל חלופה" רוכך ל"צפוי", וה־benchmark מכריע (§9.3, §10.5). |
 | מסלול מלא אחד לפני יכולות נוספות | אומצה חלקית | המסלול המלא (כולל רענון וצפייה במקור) כבר בשלבים 4–5, וה־gate אחריהם. החלה לאחור של כללים נדחתה אחריו; הנתב וכללים קדימה נשארים בשלב 4. |
 | הערכת זמן | עודכנה | שלבים 0, 1, 3 ו־9 הורחבו. שלב 4 נשאר: הרענון ואזור הזמן נוספו, וההחלה לאחור יצאה. הסה״כ עודכן ל־89–140 ימי פיתוח נטו. |
+
+---
+
+## נספח ו׳ — שינויים ב־v2.6 (אימות מול ה־DB החי, ה־CI והקוד, 18/10/2026)
+
+כל הבדיקות מול ה־DB היו קריאות קטלוג בלבד, בלי נתוני משתמשים.
+
+| ממצא | השפעה על התוכנית |
+|---|---|
+| `track_functions=none` בייצור | `pg_stat_user_functions` אינו זמין. מיפוי החתימות לפי הקוד (קורא יחיד) ו־API logs (§6.1). |
+| ברירות המחדל של `get_user_transactions`: לחתימה עם 9 יש 8, ולחתימות עם 12 ו־13 אין | drop+create של החתימה עם 13 לא יוצר עמימות. PR 1c הוא ניקיון רצוי ולא חסם, ואפשר לאחד אותו עם PR 4 (§6.1, §24.1). |
+| `update_user_transaction` מוגדר ב־repo, `SECURITY INVOKER`, רשימה סגורה בלי `origin` | בדיקת שלב 0 הושלמה (§6.1, §29). |
+| ב־Vault של testing גם `functions_base_url` הועתק מהייצור | מחליפים את שני הסודות, לא רק את המפתח (§3.2, §29). |
+| ה־bucket `avatars` אינו קיים | הוסר משלבי המחיקה ומ־Storage-as-code (§3.2, §13.6). |
+| `isImportableType` ו־`isSpecialType` אינם נקראים; השער בפועל הוא aliases והסקה לפי סימן | PR 2 מכוון לשער האמיתי (§3.1). |
+| כל שינוי ב־`_shared` או ב־`config.toml` פורס מחדש את כל פונקציות ה־Edge לייצור | מיזוג בשעה רחוקה מה־crons, ובדיקת בריאות אחרי הפריסה (§3.1, §6.0, §24.1). |
+| כיסוי בדיקות דל לייבוא ולשערים, ו־CI מריץ Deno רק לשני קבצים | נוסף PR 2.0 של בדיקות אפיון ושלב Deno ב־CI לפני ה־refactor (§24.1). |
+| שירותי השערים שונים בהתנהגות (cache, offline, החזרה כשהמטבעות זהים) | המעבר של `process-recurring-transactions`, cron שכותב תנועות, הוא PR נפרד (§10.1, §24.1). |
+| אין logger משותף ב־Edge ואין entitlement בצד השרת | נוספו ל־checklist לפני קוד AI ראשון (§3.1, §29). |
+| חשיפת `ai` דורשת `grant usage` והגדרה ב־dashboard וב־`config.toml` | נוסף ל־§6.0. |
+| סכמת הבסיס של `transactions` וה־trigger שלה אינם ב־migrations | Supabase מקומי דורש dump של הסכמה (§22.1). ה־trigger של `updated_at` מאפשר את תנאי ה־undo. |
+| סתירה: §15.3 דיבר על הודעת WhatsApp אחת | יושר עם §8.3: עד שתיים. |

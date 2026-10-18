@@ -8,7 +8,9 @@
 
 **תלות:**
 - **החלטה:** מדיניות מחיקת התנועות (ב־`ai-progress.md`, "החלטות פתוחות"). לא מתחילים את משימה 3 בלי ההחלטה.
-- **PRs:** PR 1, ו־PR 1c ממוזג, כי שניהם עם migrations ו־testing משותף.
+- **PRs:** PR 1. אם PR 1c נפתח לפניו, לחכות שימוזג, כי שניהם עם migrations ו־testing משותף.
+- **נתיב קריטי:** PR 1b אינו חוסם את ה־AI עצמו. הוא חוסם רק שמירת מקורות מעבר ל־30 יום ("שמור כקבלה", §7.3), ולכן רץ במסלול צדדי.
+- **Edge:** אין logger משותף ב־`_shared`. אם PR 1b הוא הראשון שצריך אחד, מוסיפים אותו כאן ב־commit נפרד.
 
 **ענף:** `feat/ai-pr01b-delete-account`
 
@@ -25,7 +27,7 @@
 
 ### משימה 1: מיפוי מידע של משתמש
 - [ ] על testing: כל הטבלאות שיש בהן `user_id`, או אימייל, או FK ל־`auth.users`, עם `information_schema`. למשל `transactions`, `recurring_transactions`, `profiles`, `contact_messages`, `download_requests` לפי אימייל, ו־`app_kv_store` אם יש בו מפתחות של משתמש.
-- [ ] Storage: ה־prefixes של המשתמש ב־`contact-attachments` וב־`avatars`.
+- [ ] Storage: ה־prefixes של המשתמש ב־`contact-attachments`. אין bucket בשם `avatars` (נבדק 18/10/2026); אם ייווצר בעתיד, מוסיפים שלב.
 - [ ] צדדים שלישיים: PostHog person, ורשימות SES אם יש.
 - [ ] לשמור טבלה ב־`docs/superpowers/specs/2026-10-18-ai-pr01b-data-map.md`.
 

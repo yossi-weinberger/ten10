@@ -6,7 +6,7 @@ alwaysApply: false
 
 # Ten10 AI Multichannel — חוקי עבודה
 
-- **המסמך המלא:** `docs/superpowers/specs/2026-10-18-ai-multichannel-design.md` (v2.5). אל תקרא אותו כולו. פתח רק סעיפים לפי הפניה (§).
+- **המסמך המלא:** `docs/superpowers/specs/2026-10-18-ai-multichannel-design.md` (v2.6). אל תקרא אותו כולו. פתח רק סעיפים לפי הפניה (§).
 - **התקדמות והחלטות:** `docs/superpowers/plans/ai-progress.md`. קרא בתחילת כל סשן, ועדכן בסוף.
 - **תוכנית לכל PR:** `docs/superpowers/plans/2026-10-18-ai-pr*.md`. עבוד רק על המשימה שהוגדרה לסשן.
 
@@ -26,13 +26,15 @@ alwaysApply: false
 8. קוד ב־`supabase/functions/_shared/` טהור: בלי Tauri, browser APIs, `i18n`, קבצים מ־`public/`, ובלי aliases מסוג `@/`. `src` מייבא ממנו, כמו `src/lib/calendar/index.ts`.
 9. Desktop/Tauri ו־SQLite לא משתנים.
 10. אין שם ספק ב־interface. משתמשים ב־`decide<TChoice>()`, ו־Jev הוא adapter מועמד (§9.2, §9.3).
-11. אין תוכן קבלות, טקסט הודעות או פרומפטים בלוגים וב־PostHog. משתמשים ב־`logger`, לא ב־`console`.
+11. אין תוכן קבלות, טקסט הודעות או פרומפטים בלוגים וב־PostHog. ב־`src` משתמשים ב־`src/lib/logger.ts`, לא ב־`console`. ב־Edge אין עדיין logger משותף; מוסיפים אחד ל־`_shared` לפני קוד AI ראשון, ולא כותבים `console.*` חדש.
 12. ב־testing, עבודת AI רק על משתמשי הניסוי, דרך allowlist בצד השרת (§22.1). ענף ה־testing מכיל נתוני ייצור.
 
 ## לפני PR
 
 - `npm run typecheck`, `npm run lint:ratchet`, `npm test` (כולל `scripts/tauri-web-boundary.test.ts`), ו־`npm run check-supabase-imports`.
 - Edge Function חדשה נוספת ל־`ALL_FUNCTIONS`, ול־`SHARED_DEPENDENT` אם היא משתמשת ב־`_shared`, ב־`supabase/scripts/deploy-changed-functions.sh`.
+- כל שינוי ב־`supabase/functions/_shared/` או ב־`supabase/config.toml` פורס במיזוג את **כל** פונקציות ה־Edge לייצור, כולל `process-recurring-transactions`. ממזגים בשעה רחוקה מה־crons (00:00, 07:00, 18:00, 19:00 UTC) ובודקים בריאות אחרי הפריסה.
+- כל `*_deno_test.ts` חדש חייב לרוץ בשלב ה־Deno ב־`.github/workflows/ci.yml`.
 - PR עם migrations: רק אחד בכל פעם מול ענף ה־testing, כי הענף הזה משותף לכל ה־PRs.
 
 ## עבודה בסשנים
