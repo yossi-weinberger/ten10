@@ -226,7 +226,7 @@ Unsubscribe מעדכן רק עמודות ייעודיות ב־`profiles` (`remin
 
 ### 4. Deployment
 
-- `supabase/scripts/deploy-functions.js`
+- `.github/workflows/deploy-supabase-production.yml` → `supabase/scripts/deploy-changed-functions.sh` (CI only)
 
 ## משתני סביבה נדרשים
 
@@ -244,15 +244,9 @@ SUPABASE_SERVICE_ROLE_KEY="..."
 
 ## פריסה והפעלה
 
-### 1. פקודות פריסה
+### 1. פריסה
 
-```bash
-# פריסה אוטומטית של כל הפונקציות
-npm run deploy-supabase
-
-# פריסה ידנית של פונקציית האימות/עדכון
-npx supabase@latest functions deploy verify-unsubscribe-token --project-ref PROJECT_ID
-```
+אין פריסה ידנית לייצור. PR מפרוס את הפונקציות שהשתנו ל־testing דרך Supabase Preview. מיזוג ל־`main` מריץ את `.github/workflows/deploy-supabase-production.yml`, שפורס לייצור דרך `supabase/scripts/deploy-changed-functions.sh`.
 
 ### 2. הגדרות פונקציות
 
@@ -408,13 +402,13 @@ SDK ישן). `_shared/simple-email-service.ts` אינו מוסיף כותרות 
 ### 1. עדכון תבניות מייל
 
 1. ערוך `email-templates.ts`
-2. הרץ `npm run deploy-supabase`
-3. בדוק במייל טסט
+2. פתח PR ובדוק ב־testing (Supabase Preview)
+3. בדוק במייל טסט, ומזג ל־`main` לפריסה לייצור
 
 ### 2. שינוי הגדרות אבטחה
 
-1. עדכן JWT_SECRET ב-Supabase secrets
-2. פרוס מחדש את `verify-unsubscribe-token` ו־`send-reminder-emails`
+1. עדכן JWT_SECRET ב-Supabase secrets (דשבורד או `supabase secrets set`)
+2. שינוי קוד ב־`verify-unsubscribe-token` או `send-reminder-emails` נפרס רק דרך מיזוג ל־`main` (`deploy-supabase-production.yml`)
 
 ### 3. הוספת שפות חדשות
 

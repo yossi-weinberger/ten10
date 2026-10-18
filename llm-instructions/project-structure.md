@@ -149,7 +149,7 @@ This section details how the different parts of the project interact with each o
 │   │   └── send-contact-email/
 │   │       └── index.ts
 │   └── scripts/
-│       └── deploy-functions.js
+│       └── deploy-changed-functions.sh  # CI-only production edge deploy
 ├── src/                   # Frontend source code (React + TypeScript)
 │   ├── components/        # Reusable UI components
 │   │   ├── charts/
