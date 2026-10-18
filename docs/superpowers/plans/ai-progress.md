@@ -17,8 +17,9 @@
 | 2b | אותו קובץ, משימות 4–6 | קוד | PR 2a | מוזג ל־`feat/ai-intake` | [#447](https://github.com/yossi-weinberger/ten10/pull/447) |
 | 1c | `2026-10-18-ai-pr01c-get-user-transactions-cleanup.md` | DB, רצוי ולא חסם | PR 1 | לא התחיל | |
 | 1b | `2026-10-18-ai-pr01b-delete-account.md` | DB + UI + Edge, מסלול צדדי | PR 1 + החלטת מדיניות | לא התחיל | |
-| 3 | `2026-10-19-ai-pr03-eval-harness.md` | eval harness, offline | contracts מ־PR 2b | PR פתוח מול `feat/ai-intake`, לא מוזג | [#448](https://github.com/yossi-weinberger/ten10/pull/448) |
-| 4–12 | נכתבות כשהגל הקודם נסגר | | §24.1 במסמך | | |
+| 3 | `2026-10-19-ai-pr03-eval-harness.md` | eval harness, offline | contracts מ־PR 2b | מוזג ל־`feat/ai-intake` | [#448](https://github.com/yossi-weinberger/ten10/pull/448) |
+| 4 | `20261019020000_ai_schema_foundation.sql` | schema `ai`, עמודת `origin`, `p_origin` | PR 2–3 | PR פתוח מול `feat/ai-intake`, לא מוזג | [#449](https://github.com/yossi-weinberger/ten10/pull/449) |
+| 5–12 | נכתבות כשהגל הקודם נסגר | | §24.1 במסמך | | |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -76,3 +77,4 @@
 - **2026-10-18:** נפתח [#446](https://github.com/yossi-weinberger/ten10/pull/446) (PR 2a) מול `feat/ai-intake`: מפתחות, כינויי parsing ו־`normalize-core` ב־`_shared`, עם `FILE_IMPORT` ו־`AI_DRAFT`. בדיקות האפיון נשארו ירוקות. מקטע `parsing` הוסר מ־`import.json` (לא היה בשימוש ב־UI). נרמול קטגוריות באפליקציה עדיין עובר דרך i18n, כדי שבדיקת "בלי תרגום" תישאר נכונה; ב־Deno הרשימה סטטית. לא מוזג: מיזוג ל־`main` היה פורס את כל פונקציות ה־Edge.
 - **2026-10-19:** #446 (PR 2a) מוזג ל־`feat/ai-intake`. נפתח [#447](https://github.com/yossi-weinberger/ten10/pull/447) (PR 2b) מול `feat/ai-intake`, לא מוזג: המרת מטבע משותפת וחוזה הטיוטה (משימות 4–6). `applyConversion` שומר את `toFixed(2)`. התנהגות CSV/`FILE_IMPORT` ללא שינוי, ו־`process-recurring-transactions` לא נגע. לא ל־`main`.
 - **2026-10-19:** #445 מוזג ל־`main`. #447 (PR 2b) מוזג ל־`feat/ai-intake`, ואז `origin/main` מוזג לתוכו עם תיקון שער 0. נפתח [#448](https://github.com/yossi-weinberger/ten10/pull/448) (PR 3) מול `feat/ai-intake`, לא מוזג: harness אופליין, בלי ספק ובלי קבלות.
+- **2026-10-19:** #448 מוזג ל־`feat/ai-intake`. נפתח PR 4 מול אותו ענף: schema `ai` (קריאה בלבד למשתמש), עמודת `transactions.origin`, והחלפת החתימה שבשימוש של `get_user_transactions` עם `p_origin` שברירת המחדל שלו NULL. החתימות המתות נשארו. לא ל־`main`.
