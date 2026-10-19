@@ -45,7 +45,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from _ffmpeg import PROJECT_ROOT, decode_audio  # noqa: E402
+from _ffmpeg import PROJECT_ROOT, decode_audio, run_ffmpeg  # noqa: E402
 from _dsp import write_wav  # noqa: E402
 
 API = "https://api.elevenlabs.io/v1"
@@ -110,6 +110,7 @@ def main() -> int:
     ap.add_argument("--speed", type=float, default=1.0, help="not used by v4")
     ap.add_argument("--spoken", help="JSON {phrase id: spoken text, or {text, direction}} overriding the built-in rewrite (e.g. narration/spoken.he.json)")
     ap.add_argument("--direction", default="", help='audio tag prefixed to every phrase, e.g. "[calm, warm narration]"')
+    ap.add_argument("--tempo", type=float, default=1.0, help="speed up the whole read, pauses included (1.05 = 5%% faster, pitch kept)")
     ap.add_argument("--out", help="output wav (default audio/narration_<lang>.wav)")
     ap.add_argument("--list-voices", action="store_true")
     args = ap.parse_args()
@@ -163,10 +164,15 @@ def main() -> int:
     y *= 10 ** (-1.0 / 20) / max(np.abs(y).max(), 1e-9)       # peak -1 dBFS; mix.py sets loudness
     out = Path(args.out) if args.out else PROJECT_ROOT / "audio" / f"narration_{args.lang}.wav"
     write_wav(out, y, SR)
+    if args.tempo != 1.0:  # v4 has no speed control: time-stretch the assembled read (atempo keeps the pitch)
+        tmp = out.with_suffix(".tmp.wav")
+        run_ffmpeg(["-y", "-i", str(out), "-af", f"atempo={args.tempo}", "-c:a", "pcm_s24le", str(tmp)])
+        os.replace(tmp, out)
+        spans = {k: {"start": round(v["start"] / args.tempo, 3), "end": round(v["end"] / args.tempo, 3)} for k, v in spans.items()}
     # The phrase edges are known exactly here; expressive pauses inside a phrase (a "?" beat,
     # a sigh) can fool silence detection, so sync_narration.py takes these as overrides.
     out.with_suffix(".spans.json").write_text(json.dumps({"phrases": spans}, indent=1), encoding="utf-8")
-    print(f"wrote {out} ({len(y) / SR:.2f}s) + {out.with_suffix('.spans.json').name}")
+    print(f"wrote {out} ({len(y) / SR / args.tempo:.2f}s) + {out.with_suffix('.spans.json').name}")
     return 0
 
 

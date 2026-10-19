@@ -71,13 +71,14 @@ when "חומש" / "Chomesh" is spoken.
 - The chosen read for both languages is the voice "Omer":
 
 ```bash
-FAL_KEY=... python3 tools/audio/tts_elevenlabs.py --lang he --fal --voice k77ZRVqAFg9Hd0ltAuON --stability 0.35 \
+FAL_KEY=... python3 tools/audio/tts_elevenlabs.py --lang he --fal --voice k77ZRVqAFg9Hd0ltAuON --stability 0.35 --tempo 1.05 \
     --spoken narration/spoken.he.json --direction "[upbeat, warm, confident, energetic]"
-FAL_KEY=... python3 tools/audio/tts_elevenlabs.py --lang en --fal --voice k77ZRVqAFg9Hd0ltAuON --stability 0.35 \
+FAL_KEY=... python3 tools/audio/tts_elevenlabs.py --lang en --fal --voice k77ZRVqAFg9Hd0ltAuON --stability 0.35 --tempo 1.05 \
     --spoken narration/spoken.en.json --direction "[upbeat, warm, confident, energetic]"
 ```
 
-v4 has no SSML, style or speed controls; direct the read with tags. Avoid "smile"/"smiling" in tags, because v4 renders
+v4 has no SSML, style or speed controls; direct the read with tags. `--tempo 1.05` speeds the assembled read up by 5%
+(pauses included, pitch kept), which trims ~5 s without the voice sounding rushed. Avoid "smile"/"smiling" in tags, because v4 renders
 them as a laugh. Without `--fal` the tool calls ElevenLabs directly (`ELEVENLABS_API_KEY`); library voices need a paid plan.
 
 **A studio recording** works the same way: `tools/sync_narration.py` detects speech and silence and aligns the phrases to
