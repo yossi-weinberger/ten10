@@ -103,7 +103,25 @@ export const RULE_NAME_STOP_WORDS = [
 
 export const DATE_MINUS_TWO = ["שלשום", "day before yesterday"] as const;
 export const DATE_MINUS_ONE = ["אתמול", "yesterday"] as const;
-export const DATE_WORDS = ["שלשום", "אתמול", "היום", "day before yesterday", "yesterday", "today"] as const;
+/** weekday: 0 is Sunday. The phrase means the previous such day, never today. */
+export const LAST_WEEKDAYS = [
+  { weekday: 0, phrases: ["ביום ראשון שעבר", "יום ראשון שעבר", "last sunday"] },
+  { weekday: 1, phrases: ["ביום שני שעבר", "יום שני שעבר", "last monday"] },
+  { weekday: 2, phrases: ["ביום שלישי שעבר", "יום שלישי שעבר", "last tuesday"] },
+  { weekday: 3, phrases: ["ביום רביעי שעבר", "יום רביעי שעבר", "last wednesday"] },
+  { weekday: 4, phrases: ["ביום חמישי שעבר", "יום חמישי שעבר", "last thursday"] },
+  { weekday: 5, phrases: ["ביום שישי שעבר", "יום שישי שעבר", "last friday"] },
+  { weekday: 6, phrases: ["בשבת שעברה", "שבת שעברה", "last saturday"] },
+] as const;
+export const DATE_WORDS = [
+  "שלשום",
+  "אתמול",
+  "היום",
+  "day before yesterday",
+  "yesterday",
+  "today",
+  ...LAST_WEEKDAYS.flatMap((entry) => entry.phrases),
+] as const;
 
 export const USD_MARKERS = ["דולר", "dollar", "usd", "$"] as const;
 export const EUR_MARKERS = ["אירו", "euro", "eur", "€"] as const;
