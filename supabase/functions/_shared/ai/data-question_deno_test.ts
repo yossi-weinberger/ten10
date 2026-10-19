@@ -1,3 +1,4 @@
+import { clampMaaserYearReportEnd, getCurrentMaaserYear, getMaaserYearRange } from "../calendar/maaser-year.ts";
 import { parseYearTypeSum, periodLabel } from "./data-question.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
@@ -66,6 +67,17 @@ Deno.test("tithe wording and last year do not change the window", () => {
   assert(half?.from === "2026-04-20" && half.month === null, "half year");
   const lastMonth = parseYearTypeSum("כמה תרמתי בחודש האחרון", TODAY);
   assert(lastMonth?.from === "2026-09-20", "last month");
+});
+
+Deno.test("a recipient, a tithe year, and a date span stay closed questions", () => {
+  const yeshiva = parseYearTypeSum("כמה תרמתי לישיבה השנה", TODAY);
+  assert(yeshiva?.recipient === "ישיבה" && yeshiva.type === "donation", "recipient");
+  assert(parseYearTypeSum("כמה תרמתי לצדקה השנה", TODAY)?.recipient === null, "charity is not a recipient");
+  const range = getMaaserYearRange(getCurrentMaaserYear(TODAY));
+  const tithe = parseYearTypeSum("כמה תרמתי בשנת המעשר", TODAY);
+  assert(tithe?.from === range.startDate && tithe.to === clampMaaserYearReportEnd(range, TODAY), "tithe year");
+  const span = parseYearTypeSum("כמה הוצאתי מ-1.1.2025 עד 31.3.2025", TODAY);
+  assert(span?.from === "2025-01-01" && span.to === "2025-03-31" && span.type === "expense", "custom span");
 });
 
 Deno.test("על names a category topic and a plain question does not", () => {

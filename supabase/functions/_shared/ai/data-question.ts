@@ -2,6 +2,7 @@
  * A closed question about saved transactions. The model does not compute the number.
  */
 
+import { clampMaaserYearReportEnd, getCurrentMaaserYear, getMaaserYearRange } from "../calendar/maaser-year.ts";
 import {
   DONATION_TYPE_MARKERS,
   EXPENSE_TYPE_MARKERS,
@@ -20,6 +21,7 @@ export type YearTypeSum = {
   months: number;
   paymentMethod: string | null;
   topic: string | null;
+  recipient: string | null;
   from: string;
   to: string;
 };
@@ -207,6 +209,45 @@ function isTopicTail(word: string): boolean {
   ].includes(compact);
 }
 
+function recipientPhrase(text: string): string | null {
+  const hebrew = text.match(/(?:^|\s)ל([א-ת][\u0590-\u05FF]*)/);
+  const english = text.match(/\bto\s+([a-z][a-z0-9]*)/i);
+  const raw = hebrew?.[1] ?? english?.[1] ?? "";
+  const word = cleanTopicWord(raw);
+  if (word.length < 2 || isTopicTail(word)) return null;
+  if (["צדקה", "תרומה", "charity", "tzedaka", "tzedakah", "donation"].includes(word.toLowerCase())) return null;
+  return word;
+}
+
+function parseDmy(day: string, month: string, year: string): string | null {
+  const d = Number(day);
+  const m = Number(month);
+  const y = Number(year);
+  if (y < 2000 || y > 2099 || m < 1 || m > 12 || d < 1 || d > 31) return null;
+  const iso = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  const check = new Date(Date.UTC(y, m - 1, d));
+  if (check.getUTCFullYear() !== y || check.getUTCMonth() !== m - 1 || check.getUTCDate() !== d) return null;
+  return iso;
+}
+
+function customRange(text: string): { from: string; to: string } | null {
+  const iso = text.match(/(20\d{2}-\d{2}-\d{2}).{0,16}(20\d{2}-\d{2}-\d{2})/);
+  if (iso?.[1] && iso[2] && iso[1] <= iso[2]) return { from: iso[1], to: iso[2] };
+  const dmy = text.match(/(\d{1,2})[./](\d{1,2})[./](20\d{2})\D+(\d{1,2})[./](\d{1,2})[./](20\d{2})/);
+  if (!dmy) return null;
+  const from = parseDmy(dmy[1], dmy[2], dmy[3]);
+  const to = parseDmy(dmy[4], dmy[5], dmy[6]);
+  if (!from || !to || from > to) return null;
+  return { from, to };
+}
+
+function monthsBetween(from: string, to: string): number {
+  const span = (Number(to.slice(0, 4)) - Number(from.slice(0, 4))) * 12
+    + (Number(to.slice(5, 7)) - Number(from.slice(5, 7)))
+    + 1;
+  return span < 1 ? 1 : span;
+}
+
 function topicPhrase(text: string): string | null {
   const match = text.match(/(?:^|\s)על\s+(.+)$/) ?? text.match(/\bon\s+(.+)$/);
   if (!match?.[1]) return null;
@@ -258,8 +299,43 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
   const paymentMethod = paymentMethodOf(normalized);
   if (paymentMethod === "ambiguous") return null;
   const topic = topicPhrase(normalized);
+  const recipient = type === "donation" ? recipientPhrase(normalized) : null;
   const todayYear = Number(today.slice(0, 4));
   const todayMonth = Number(today.slice(5, 7));
+  const span = customRange(normalized);
+  if (span) {
+    return {
+      type,
+      measure,
+      months: monthsBetween(span.from, span.to),
+      paymentMethod,
+      topic,
+      recipient,
+      year: Number(span.from.slice(0, 4)),
+      month: null,
+      from: span.from,
+      to: span.to,
+    };
+  }
+  if (normalized.includes("שנת מעשר") || normalized.includes("שנת המעשר") || normalized.includes("maaser year") || normalized.includes("tithe year")) {
+    const hebrewYear = normalized.includes("שעברה") || normalized.includes("last year")
+      ? getCurrentMaaserYear(today) - 1
+      : getCurrentMaaserYear(today);
+    const range = getMaaserYearRange(hebrewYear);
+    const to = clampMaaserYearReportEnd(range, today);
+    return {
+      type,
+      measure,
+      months: monthsBetween(range.startDate, to),
+      paymentMethod,
+      topic,
+      recipient,
+      year: hebrewYear,
+      month: null,
+      from: range.startDate,
+      to,
+    };
+  }
   const recentMonths = recentMonthCount(normalized);
   if (recentMonths !== null) {
     return {
@@ -268,6 +344,7 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
       months: recentMonths,
       paymentMethod,
       topic,
+      recipient,
       year: todayYear,
       month: null,
       from: addDays(shiftMonths(today, -recentMonths), 1),
@@ -282,6 +359,7 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
       months: 1,
       paymentMethod,
       topic,
+      recipient,
       year: todayYear,
       month: todayMonth,
       from: `${todayYear}-${month}-01`,
@@ -303,7 +381,7 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
   const from = `${year}-01-01`;
   const to = `${year}-12-31`;
   const months = year === todayYear ? todayMonth : 12;
-  return { type, measure, months, paymentMethod, topic, year, month: null, from, to };
+  return { type, measure, months, paymentMethod, topic, recipient, year, month: null, from, to };
 }
 
 export function periodLabel(question: Pick<YearTypeSum, "year" | "month" | "from" | "to">): string {

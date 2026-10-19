@@ -10,6 +10,12 @@ export type YearTypeSumResult =
 export type QuestionFilter = {
   category: string | null;
   description: string | null;
+  recipient: string | null;
+};
+
+export type MissingName = {
+  missing: "category" | "recipient";
+  name: string;
 };
 
 async function categoriesForFamily(type: YearTypeSum["type"]): Promise<string[]> {
@@ -43,15 +49,33 @@ function readTotals(data: unknown): { total: number; count: number; maxAmount: n
   return { total, count, maxAmount, currencies };
 }
 
+async function recipientsForUser(): Promise<string[]> {
+  const { data, error } = await supabase.rpc("list_ai_recipients");
+  if (error || !Array.isArray(data)) return [];
+  return data.flatMap((name) => typeof name === "string" && name.trim() ? [name] : []);
+}
+
+function matchSavedName(topic: string, names: readonly string[]): string | null {
+  const needle = topic.trim().toLowerCase();
+  const hits = [...new Set(names.map((name) => name.trim()).filter((name) => name.toLowerCase() === needle))];
+  return hits.length === 1 ? hits[0] : null;
+}
+
 export async function resolveQuestionFilter(
   question: YearTypeSum,
   searchDescriptions: boolean,
-): Promise<QuestionFilter | "MISSING"> {
-  if (!question.topic) return { category: null, description: null };
+): Promise<QuestionFilter | MissingName> {
+  if (question.recipient) {
+    const matched = matchSavedName(question.recipient, await recipientsForUser());
+    if (matched) return { category: null, description: null, recipient: matched };
+    if (searchDescriptions) return { category: null, description: question.recipient, recipient: null };
+    return { missing: "recipient", name: question.recipient };
+  }
+  if (!question.topic) return { category: null, description: null, recipient: null };
   const matched = matchUserCategory(question.topic, await categoriesForFamily(question.type));
-  if (matched) return { category: matched, description: null };
-  if (searchDescriptions) return { category: null, description: question.topic };
-  return "MISSING";
+  if (matched) return { category: matched, description: null, recipient: null };
+  if (searchDescriptions) return { category: null, description: question.topic, recipient: null };
+  return { missing: "category", name: question.topic };
 }
 
 export async function sumYearType(
@@ -65,6 +89,7 @@ export async function sumYearType(
     p_payment_method: question.paymentMethod,
     p_category: filter.category,
     p_description: filter.description,
+    p_recipient: filter.recipient,
   });
   if (error) return { ok: false, reason: "FAILED" };
   const totals = readTotals(data);
