@@ -9,6 +9,8 @@ const draft: TextTransactionDraft = {
   type: "income",
   requestedRate: 3.5,
   description: "אתמול קיבלתי 200 דולר לפי שער 3.5",
+  category: null,
+  paymentMethod: null,
 };
 
 describe("buildCommitPayload", () => {
@@ -28,6 +30,8 @@ describe("buildCommitPayload", () => {
     expect(result.payload.original_amount).toBe(200);
     expect(result.payload.original_currency).toBe("USD");
     expect(result.payload.rate_source).toBe("manual");
+    expect(result.payload.category).toBeNull();
+    expect(result.payload.payment_method).toBeNull();
   });
 
   it("refuses a foreign amount when no rate exists", () => {
