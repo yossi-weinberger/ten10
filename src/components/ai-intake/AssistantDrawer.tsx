@@ -34,6 +34,7 @@ import {
 } from "@/lib/ai/duplicate-candidates";
 import { orderCandidatesByRank } from "@/lib/ai/duplicate-rank";
 import { rankDuplicateCandidates } from "@/lib/ai/rank-duplicates";
+import { recordShadowType } from "@/lib/ai/shadow-type";
 
 interface AssistantDrawerProps {
   open: boolean;
@@ -213,6 +214,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       return;
     }
     if (result.ok) {
+      if (chosenType) void recordShadowType(result.itemId);
       setSavedItemId(result.itemId);
       refreshAfterIntakeSave();
       setSaveMessage(t("aiIntake.saved"));
