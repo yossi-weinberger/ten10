@@ -21,6 +21,10 @@
     "send": "Send",
     "notSaved": "Nothing was saved.",
     "noRate": "none",
+    "save": "Approve and save",
+    "saved": "Saved.",
+    "noRateAvailable": "No exchange rate. Nothing was saved.",
+    "saveFailed": "Save failed. Nothing was saved.",
     "draftLine": "{{date}} · {{amount}} {{currency}} · {{type}} · rate {{rate}}",
     "types": {
       "expense": "expense",

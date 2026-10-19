@@ -86,3 +86,4 @@
 - **2026-10-19:** #451 מוזג ל־`feat/ai-intake`. שתי המיגרציות רצו על testing בלבד. Vercel Preview הועבר ל־testing, `unsubscribe` נמחקה, וה־webhook של יצירת הקשר ב־testing מצביע על testing. נוסף `llm-instructions/features/ai/ai-intake-how-it-works.md` כתיעוד איך הפיצ'ר עובד היום.
 - **2026-10-19:** על testing, `get_user_transactions` עם 13 ארגומנטים ועם `p_origin` ריק החזיר אותו מספר שורות למשתמש ניסוי, ואפס שורות עם `origin`. נוספה מעטפת צ'אט מאחורי הדגל `ai_intake_web`. היא מסווגת טקסט ולא שומרת.
 - **2026-10-19:** תוקן `replaceAll` ששבר את ה-typecheck. לתנועה שזוהתה נוסף חילוץ דטרמיניסטי של סכום, מטבע, סוג, אתמול/שלשום ושער שנכתב בטקסט. עדיין בלי שמירה.
+- **2026-10-19:** על testing נוספו `create_ai_text_intake` ו-`commit_ai_intake_items`. בכפתור "אשר ושמור" הטיוטה נרשמת אחרי המרה. בלי שער אין שמירה. הייצור לא נגע.

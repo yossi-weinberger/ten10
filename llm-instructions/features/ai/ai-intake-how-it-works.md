@@ -25,7 +25,7 @@
 
 Desktop לא מקבל את העמודה ב-SQLite.
 
-מעטפת צ'אט קיימת ב-`src/components/ai-intake/AssistantDrawer.tsx`. היא נפתחת מהתפריט רק כשדגל PostHog `ai_intake_web` דולק, ורק ב-Web. בלי הדגל אין כפתור. השליחה מריצה את `classifyIntent`. אם הכוונה היא תנועה, `draftFromText` מחלץ סכום, מטבע, סוג, תאריך יחסי ושער שנכתב במשפט, ומציג אותם. אין המרה, אין קריאה ל-`ai.commit_intake_items`, ואין שמירה.
+מעטפת צ'אט קיימת ב-`src/components/ai-intake/AssistantDrawer.tsx`. היא נפתחת מהתפריט רק כשדגל PostHog `ai_intake_web` דולק, ורק ב-Web. בלי הדגל אין כפתור. השליחה מריצה את `classifyIntent`. אם הכוונה היא תנועה, `draftFromText` מחלץ סכום, מטבע, סוג, תאריך יחסי ושער שנכתב במשפט. כפתור "אשר ושמור" ממיר למטבע ברירת המחדל (שער מהמשפט, או שער עדכני אם לא נכתב) וקורא ל-`public.create_ai_text_intake` ואז ל-`public.commit_ai_intake_items`. אלה מעטפות לפונקציות ב-schema `ai`, כי ה-schema עדיין לא חשוף ב-Data API. בלי שער השמירה נעצרת.
 
 ## סיווג כוונות
 

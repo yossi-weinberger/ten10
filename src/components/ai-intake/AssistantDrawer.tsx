@@ -14,6 +14,7 @@ import {
   type IntakeIntent,
   type TextTransactionDraft,
 } from "@/lib/ai/classify-intake";
+import { saveTextDraft } from "@/lib/ai/save-text-draft";
 
 interface AssistantDrawerProps {
   open: boolean;
@@ -25,6 +26,8 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [text, setText] = useState("");
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
   const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   function handleSubmit() {
     const nextIntent = classifyIntent(text);
@@ -34,6 +37,20 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
         ? draftFromText(text, new Intl.DateTimeFormat("en-CA").format(new Date()))
         : null,
     );
+    setSaveMessage(null);
+  }
+
+  async function handleSave() {
+    if (!draft || saving) return;
+    setSaving(true);
+    setSaveMessage(null);
+    const result = await saveTextDraft(draft);
+    setSaving(false);
+    if (result.ok) {
+      setSaveMessage(t("aiIntake.saved"));
+      return;
+    }
+    setSaveMessage(t(result.reason === "NO_RATE" ? "aiIntake.noRateAvailable" : "aiIntake.saveFailed"));
   }
 
   return (
@@ -59,19 +76,25 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
           {intent ? (
             <div className="flex flex-col gap-1 text-sm">
               <p>
-                {t(`aiIntake.intents.${intent}`)} {t("aiIntake.notSaved")}
+                {t(`aiIntake.intents.${intent}`)} {saveMessage ? "" : t("aiIntake.notSaved")}
               </p>
               {draft ? (
-                <p>
-                  {t("aiIntake.draftLine", {
-                    date: draft.date,
-                    amount: draft.amount,
-                    currency: draft.currency,
-                    type: t(`aiIntake.types.${draft.type}`),
-                    rate: draft.requestedRate ?? t("aiIntake.noRate"),
-                  })}
-                </p>
+                <>
+                  <p>
+                    {t("aiIntake.draftLine", {
+                      date: draft.date,
+                      amount: draft.amount,
+                      currency: draft.currency,
+                      type: t(`aiIntake.types.${draft.type}`),
+                      rate: draft.requestedRate ?? t("aiIntake.noRate"),
+                    })}
+                  </p>
+                  <Button type="button" disabled={saving} onClick={() => void handleSave()}>
+                    {t("aiIntake.save")}
+                  </Button>
+                </>
               ) : null}
+              {saveMessage ? <p>{saveMessage}</p> : null}
             </div>
           ) : null}
         </form>
