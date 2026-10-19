@@ -80,10 +80,31 @@ function cleanDescription(original: string): string {
   return cleaned || original.trim();
 }
 
+const TYPE_PATTERNS: ReadonlyArray<[RegExp, TextTransactionDraft["type"]]> = [
+  [/תרמתי|צדקה|donation|tzedak/, "donation"],
+  [/קיבלתי|משכורת|salary|received/, "income"],
+  [/קניתי|שילמתי|bought|paid|spent/, "expense"],
+];
+
+function explicitType(normalized: string): TextTransactionDraft["type"] | null {
+  for (const [pattern, type] of TYPE_PATTERNS) {
+    if (pattern.test(normalized)) return type;
+  }
+  return null;
+}
+
 function resolveType(text: string): TextTransactionDraft["type"] {
-  if (/תרמתי|צדקה|donation|tzedak/.test(text)) return "donation";
-  if (/קיבלתי|משכורת|salary|received/.test(text)) return "income";
-  return "expense";
+  return explicitType(text) ?? "expense";
+}
+
+export type ClarificationField = "type" | "amount";
+
+/** One question, type before amount. Null means the draft can be shown. */
+export function clarificationField(text: string, today: string): ClarificationField | null {
+  const normalized = text.trim().toLowerCase().replace(/־/g, " ").replace(/\s+/g, " ");
+  if (explicitType(normalized) === null) return "type";
+  if (draftFromText(text, today) === null) return "amount";
+  return null;
 }
 
 /** Returns null when the text has no amount. `today` is YYYY-MM-DD in the user's zone. */

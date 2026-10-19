@@ -1,4 +1,4 @@
-import { draftFromText } from "./text-draft.ts";
+import { clarificationField, draftFromText } from "./text-draft.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -36,4 +36,16 @@ Deno.test("the description keeps the purchase, not the command or the amount", (
 
 Deno.test("text without an amount is not a draft", () => {
   assert(draftFromText("מה אפשר לעשות", TODAY) === null, "help has no amount");
+});
+
+Deno.test("a clear purchase does not need a question", () => {
+  assert(clarificationField("קניתי מאפים ב-15 שח", TODAY) === null, "complete");
+});
+
+Deno.test("an amount without a verb asks for the type first", () => {
+  assert(clarificationField("מאפים ב-15 שח", TODAY) === "type", "type before amount");
+});
+
+Deno.test("a verb without an amount asks for the amount", () => {
+  assert(clarificationField("קניתי מאפים", TODAY) === "amount", "amount");
 });
