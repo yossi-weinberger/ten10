@@ -69,7 +69,7 @@
 | 52 | קטגוריה וסכום ב-SQL | DB על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#522](https://github.com/yossi-weinberger/ten10/pull/522) |
 | 54 | התאמת קטגוריה בעברית | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#524](https://github.com/yossi-weinberger/ten10/pull/524) |
 | 55 | נמען, שנת מעשר וטווח | DB על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#525](https://github.com/yossi-weinberger/ten10/pull/525) |
-| 56 | תיקון נמען וטווח | UI, קריאה בלבד | §9.9 | נפתח | |
+| 56 | תיקון נמען וטווח | UI, קריאה בלבד | §9.9 | נפתח | [#526](https://github.com/yossi-weinberger/ten10/pull/526) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
