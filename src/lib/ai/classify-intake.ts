@@ -10,7 +10,7 @@ export { selectHalachaPage } from "../../../supabase/functions/_shared/ai/halach
 export { intentIsConfident } from "../../../supabase/functions/_shared/ai/jev-intent.ts";
 export type { HalachaPage } from "../../../supabase/functions/_shared/ai/halacha-page.ts";
 export { clarificationField, draftFromText } from "../../../supabase/functions/_shared/ai/text-draft.ts";
-export { parseYearTypeSum, typesForFamily } from "../../../supabase/functions/_shared/ai/data-question.ts";
+export { parseYearTypeSum, periodLabel, typesForFamily } from "../../../supabase/functions/_shared/ai/data-question.ts";
 export type { YearTypeSum } from "../../../supabase/functions/_shared/ai/data-question.ts";
 export type {
   ClarificationField,

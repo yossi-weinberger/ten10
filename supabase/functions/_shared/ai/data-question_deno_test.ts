@@ -1,4 +1,4 @@
-import { parseYearTypeSum } from "./data-question.ts";
+import { parseYearTypeSum, periodLabel } from "./data-question.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -35,9 +35,31 @@ Deno.test("how many counts transactions and a verb still sums", () => {
 
 Deno.test("last N months is a rolling window from the supplied date", () => {
   const hebrew = parseYearTypeSum("כמה תרמתי ב-3 חודשים אחרונים", TODAY);
-  assert(hebrew?.from === "2026-07-19" && hebrew.to === "2026-10-19", "three months");
+  assert(hebrew?.from === "2026-07-20" && hebrew.to === "2026-10-19", "three months");
+  assert(periodLabel(hebrew!) === "20.7.2026–19.10.2026", "label");
   const english = parseYearTypeSum("how many expenses in the last 2 months", TODAY);
   assert(english?.measure === "count" && english.type === "expense", "count expenses");
-  assert(english?.from === "2026-08-19", "two months");
+  assert(english?.from === "2026-08-20", "two months");
   assert(parseYearTypeSum("כמה תרמתי ב-0 חודשים אחרונים", TODAY) === null, "zero");
+});
+
+Deno.test("a giving verb stays a sum, and החודש is not החודשים", () => {
+  assert(parseYearTypeSum("כמה נתתי לצדקה השנה", TODAY)?.measure === "sum", "gave charity");
+  assert(parseYearTypeSum("כמה נתתי צדקה ב-2025", TODAY)?.measure === "sum", "gave in 2025");
+  assert(parseYearTypeSum("כמה הכנסתי השנה", TODAY)?.measure === "sum", "income verb");
+  assert(parseYearTypeSum("כמה יצא לי על הוצאות השנה", TODAY)?.measure === "sum", "spent");
+  const definite = parseYearTypeSum("כמה תרמתי ב-3 החודשים האחרונים", TODAY);
+  assert(definite?.from === "2026-07-20" && definite.month === null, "definite months");
+  const words = parseYearTypeSum("כמה תרמתי בשלושת החודשים האחרונים", TODAY);
+  assert(words?.from === "2026-07-20", "three in words");
+  assert(parseYearTypeSum("כמה תרמתי החודש", TODAY)?.month === 10, "this month");
+});
+
+Deno.test("a monthly average divides the saved total by the months in the window", () => {
+  const year = parseYearTypeSum("ממוצע תרומות השנה", TODAY);
+  assert(year?.measure === "average" && year.months === 12, "hebrew average");
+  const english = parseYearTypeSum("average donations this year", TODAY);
+  assert(english?.measure === "average" && english.months === 12, "english average");
+  const end = parseYearTypeSum("כמה תרמתי ב-1 חודשים אחרונים", "2026-03-31");
+  assert(end?.from === "2026-03-01" && end.to === "2026-03-31", "month end does not overflow");
 });

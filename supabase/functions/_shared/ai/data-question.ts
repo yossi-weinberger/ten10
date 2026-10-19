@@ -15,7 +15,8 @@ export type YearTypeSum = {
   year: number;
   month: number | null;
   type: "donation" | "expense" | "income";
-  measure: "sum" | "count";
+  measure: "sum" | "count" | "average";
+  months: number;
   from: string;
   to: string;
 };
@@ -34,21 +35,84 @@ function shiftMonths(iso: string, delta: number): string {
   const year = Number(iso.slice(0, 4));
   const month = Number(iso.slice(5, 7));
   const day = Number(iso.slice(8, 10));
-  const shifted = new Date(Date.UTC(year, month - 1 + delta, day));
+  const index = month - 1 + delta;
+  const targetYear = year + Math.floor(index / 12);
+  const targetMonth = ((index % 12) + 12) % 12;
+  const lastDay = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+  const clamped = Math.min(day, lastDay);
+  return `${targetYear}-${String(targetMonth + 1).padStart(2, "0")}-${String(clamped).padStart(2, "0")}`;
+}
+
+function addDays(iso: string, days: number): string {
+  const year = Number(iso.slice(0, 4));
+  const month = Number(iso.slice(5, 7));
+  const day = Number(iso.slice(8, 10));
+  const shifted = new Date(Date.UTC(year, month - 1, day + days));
   const y = shifted.getUTCFullYear();
   const m = String(shifted.getUTCMonth() + 1).padStart(2, "0");
   const d = String(shifted.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
 
+const HEBREW_MONTH_WORDS: readonly (readonly [number, string])[] = [
+  [10, "עשרת"],
+  [10, "עשרה"],
+  [10, "עשר"],
+  [9, "תשעת"],
+  [9, "תשעה"],
+  [9, "תשע"],
+  [8, "שמונת"],
+  [8, "שמונה"],
+  [7, "שבעת"],
+  [7, "שבעה"],
+  [7, "שבע"],
+  [6, "ששת"],
+  [6, "שישה"],
+  [6, "שש"],
+  [5, "חמשת"],
+  [5, "חמישה"],
+  [5, "חמש"],
+  [4, "ארבעת"],
+  [4, "ארבעה"],
+  [4, "ארבע"],
+  [3, "שלושת"],
+  [3, "שלושה"],
+  [3, "שלוש"],
+];
+
+function hasHebrewForm(text: string, word: string): boolean {
+  let from = 0;
+  while (from < text.length) {
+    const at = text.indexOf(word, from);
+    if (at < 0) return false;
+    const after = text[at + word.length] ?? "";
+    if (!/[א-ת]/.test(after)) return true;
+    from = at + 1;
+  }
+  return false;
+}
+
 function recentMonthCount(text: string): number | null {
-  const hebrew = text.match(/(\d{1,2})\s*חודשים אחרונים/);
-  const english = text.match(/last\s+(\d{1,2})\s+months?/);
-  const raw = hebrew?.[1] ?? english?.[1];
-  if (!raw) return null;
-  const count = Number(raw);
-  if (count < 1 || count > 24) return null;
-  return count;
+  const digit = text.match(/(\d{1,2})\s*ה?חודשים\s+ה?אחרונים/)
+    ?? text.match(/last\s+(\d{1,2})\s+months?/);
+  if (digit?.[1]) {
+    const count = Number(digit[1]);
+    if (count < 1 || count > 24) return null;
+    return count;
+  }
+  if (!text.includes("אחרון") && !text.includes("אחרונים")) return null;
+  if (text.includes("חודשיים")) return 2;
+  if (text.includes("חודש אחרון") || text.includes("החודש האחרון")) return 1;
+  if (!text.includes("חודשים")) return null;
+  for (const [count, word] of HEBREW_MONTH_WORDS) {
+    if (hasHebrewForm(text, word)) return count;
+  }
+  return null;
+}
+
+function isThisMonth(text: string): boolean {
+  if (text.includes("חודשים") || text.includes("חודשיים") || text.includes("אחרון") || text.includes("אחרונים")) return false;
+  return includesAlias(text, THIS_MONTH);
 }
 
 function monthEnd(year: number, month: number): string {
@@ -56,13 +120,15 @@ function monthEnd(year: number, month: number): string {
   return `${year}-${String(month).padStart(2, "0")}-${String(last).padStart(2, "0")}`;
 }
 
-const SUM_VERBS = [...TRANSACTION_VERBS, "הוצאתי", "spend"] as const;
+const SUM_VERBS = [...TRANSACTION_VERBS, "הוצאתי", "spend", "נתתי", "הכנסתי", "יצא"] as const;
+const COUNT_NOUNS = ["תרומות", "הוצאות", "הכנסות", "donations", "expenses"] as const;
 
 function measureOf(text: string): YearTypeSum["measure"] {
+  if (includesAlias(text, ["ממוצע", "average"])) return "average";
   if (includesAlias(text, ["how many"])) return "count";
-  if (includesAlias(text, ["how much"])) return "sum";
-  if (includesAlias(text, SUM_VERBS)) return "sum";
-  return "count";
+  if (includesAlias(text, ["how much"]) || includesAlias(text, SUM_VERBS)) return "sum";
+  if (includesAlias(text, COUNT_NOUNS)) return "count";
+  return "sum";
 }
 
 function family(text: string): YearTypeSum["type"] | null {
@@ -87,17 +153,19 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
     return {
       type,
       measure,
+      months: recentMonths,
       year: todayYear,
       month: null,
-      from: shiftMonths(today, -recentMonths),
+      from: addDays(shiftMonths(today, -recentMonths), 1),
       to: today,
     };
   }
-  if (includesAlias(normalized, THIS_MONTH)) {
+  if (isThisMonth(normalized)) {
     const month = String(todayMonth).padStart(2, "0");
     return {
       type,
       measure,
+      months: 1,
       year: todayYear,
       month: todayMonth,
       from: `${todayYear}-${month}-01`,
@@ -107,7 +175,19 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
   const yearMatch = normalized.match(/\b(20\d{2})\b/);
   const year = yearMatch ? Number(yearMatch[1]) : includesAlias(normalized, THIS_YEAR) ? todayYear : null;
   if (year === null || year < 2000 || year > 2099) return null;
-  return { type, measure, year, month: null, from: `${year}-01-01`, to: `${year}-12-31` };
+  const from = `${year}-01-01`;
+  const to = `${year}-12-31`;
+  return { type, measure, months: 12, year, month: null, from, to };
+}
+
+export function periodLabel(question: Pick<YearTypeSum, "year" | "month" | "from" | "to">): string {
+  if (question.month) return `${question.month}/${question.year}`;
+  if (question.from.endsWith("-01-01") && question.to.endsWith("-12-31")) return String(question.year);
+  const day = (iso: string) => {
+    const [year, month, date] = iso.split("-");
+    return `${Number(date)}.${Number(month)}.${year}`;
+  };
+  return `${day(question.from)}–${day(question.to)}`;
 }
 
 export function typesForFamily(type: YearTypeSum["type"]): readonly string[] {
