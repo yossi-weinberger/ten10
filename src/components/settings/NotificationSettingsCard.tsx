@@ -69,8 +69,8 @@ export function NotificationSettingsCard({
     setAutostartStatus(enabled);
   };
 
-  // Display state based on reminderEnabled only (decoupled from marketing consent).
-  const emailNotificationsOn = Boolean(notificationSettings.reminderEnabled);
+  const reminderNotificationsOn = Boolean(notificationSettings.reminderEnabled);
+  const marketingNotificationsOn = Boolean(notificationSettings.mailingListConsent);
 
   return (
     <Card className={disabled ? "opacity-50 pointer-events-none" : ""}>
@@ -90,7 +90,7 @@ export function NotificationSettingsCard({
         <CardDescription>{t("notifications.cardDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">
-        {/* Platform-specific Notifications */}
+        {/* Monthly Reminder Notifications */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-md border">
@@ -103,18 +103,18 @@ export function NotificationSettingsCard({
             <div>
               <Label>
                 {isWeb
-                  ? t("notifications.emailNotificationsLabel")
-                  : t("notifications.desktopNotificationsLabel")}
+                  ? t("notifications.reminderEmailsLabel")
+                  : t("notifications.reminderNotificationsLabel")}
               </Label>
               <p className="text-sm text-muted-foreground">
                 {isWeb
-                  ? t("notifications.emailNotificationsDescription")
-                  : t("notifications.desktopNotificationsDescription")}
+                  ? t("notifications.reminderEmailsDescription")
+                  : t("notifications.reminderNotificationsDescription")}
               </p>
             </div>
           </div>
           <Switch
-            checked={emailNotificationsOn}
+            checked={reminderNotificationsOn}
             onCheckedChange={(checked) =>
               updateSettings({
                 notifications: checked,
@@ -125,13 +125,39 @@ export function NotificationSettingsCard({
           />
         </div>
 
+        {/* Marketing and News Emails - Web only */}
+        {isWeb && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-md border">
+                <Mail className="h-5 w-5" />
+              </div>
+              <div>
+                <Label>{t("notifications.marketingEmailsLabel")}</Label>
+                <p className="text-sm text-muted-foreground">
+                  {t("notifications.marketingEmailsDescription")}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={marketingNotificationsOn}
+              onCheckedChange={(checked) =>
+                updateSettings({
+                  mailingListConsent: checked,
+                })
+              }
+              disabled={disabled}
+            />
+          </div>
+        )}
+
         <div className="ml-11 flex flex-wrap items-center justify-between gap-3">
           <Label>{t("notifications.reminderCalendarLabel")}</Label>
           <SlidingToggleGroup
             ariaLabel={t("notifications.reminderCalendarLabel")}
             className="w-44"
             value={notificationSettings.reminderCalendarType}
-            disabled={disabled || !emailNotificationsOn}
+            disabled={disabled || !reminderNotificationsOn}
             onValueChange={(value) =>
               updateSettings({ reminderCalendarType: value })
             }
@@ -158,7 +184,7 @@ export function NotificationSettingsCard({
               <button
                 key={day}
                 onClick={() => handleDayChange(day)}
-                disabled={disabled || !emailNotificationsOn}
+                disabled={disabled || !reminderNotificationsOn}
                 className={`
                   px-2 py-2 text-xs sm:text-sm font-medium rounded-md border transition-colors
                   ${
@@ -167,7 +193,7 @@ export function NotificationSettingsCard({
                       : "bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground"
                   }
                   ${
-                    disabled || !emailNotificationsOn
+                    disabled || !reminderNotificationsOn
                       ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer"
                   }
