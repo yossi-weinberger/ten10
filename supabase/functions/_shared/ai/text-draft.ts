@@ -12,6 +12,7 @@ import {
   DATE_MINUS_ONE,
   DATE_MINUS_TWO,
   DATE_WORDS,
+  LAST_WEEKDAYS,
   DONATION_TYPE_MARKERS,
   EUR_MARKERS,
   EXPENSE_TYPE_MARKERS,
@@ -71,7 +72,21 @@ function wordsPattern(aliases: readonly string[]): string {
   return aliases.map(escapeRegExp).join("|");
 }
 
+function weekdayOf(isoDate: string): number {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
+/** Previous occurrence of weekday. Sunday is 0. Today itself counts as seven days ago. */
+function previousWeekday(today: string, weekday: number): string {
+  const delta = (weekdayOf(today) - weekday + 7) % 7 || 7;
+  return addIsoDays(today, -delta);
+}
+
 function resolveDate(text: string, today: string): string {
+  for (const entry of LAST_WEEKDAYS) {
+    if (includesAlias(text, entry.phrases)) return previousWeekday(today, entry.weekday);
+  }
   if (includesAlias(text, DATE_MINUS_TWO)) return addIsoDays(today, -2);
   if (includesAlias(text, DATE_MINUS_ONE)) return addIsoDays(today, -1);
   return today;

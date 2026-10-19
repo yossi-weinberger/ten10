@@ -62,3 +62,11 @@ Deno.test("an English grocery purchase uses the same alias lists", () => {
   assert(!draft.description.includes("bought"), "drops the verb");
   assert(!draft.description.includes("15"), "drops the amount");
 });
+
+Deno.test("last weekday is the previous one, and today rolls back a week", () => {
+  const sunday = draftFromText("ביום ראשון שעבר קניתי לחם ב-10", TODAY);
+  const monday = draftFromText("last monday I bought bread for 10", TODAY);
+  assert(sunday !== null && sunday.date === "2026-10-18", "last Sunday before Monday");
+  assert(monday !== null && monday.date === "2026-10-12", "last Monday is a week ago");
+  assert(sunday !== null && !sunday.description.includes("ראשון"), "date phrase leaves the description");
+});
