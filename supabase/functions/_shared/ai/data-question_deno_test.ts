@@ -69,6 +69,28 @@ Deno.test("tithe wording and last year do not change the window", () => {
   assert(lastMonth?.from === "2026-09-20", "last month");
 });
 
+Deno.test("a bad date does not fall through to the whole year", () => {
+  assert(parseYearTypeSum("כמה הוצאתי ב-31.2.2025", TODAY) === null, "impossible day");
+  assert(parseYearTypeSum("כמה הוצאתי מ-31.3.2025 עד 1.1.2025", TODAY) === null, "reversed");
+  assert(parseYearTypeSum("how much did I spend from 1/1/2025 to 3/31/2025", TODAY) === null, "american order");
+});
+
+Deno.test("previous tithe year, a full recipient, and a date stay out of the name", () => {
+  const current = getMaaserYearRange(getCurrentMaaserYear(TODAY));
+  const previous = getMaaserYearRange(getCurrentMaaserYear(TODAY) - 1);
+  const last = parseYearTypeSum("כמה תרמתי בשנת המעשר הקודמת", TODAY);
+  assert(last?.from === previous.startDate, "previous hebrew");
+  assert(parseYearTypeSum("how much did I donate last maaser year", TODAY)?.from === previous.startDate, "last maaser");
+  assert(parseYearTypeSum("כמה תרמתי ל-ישיבה השנה", TODAY)?.recipient === "ישיבה", "hyphen");
+  assert(parseYearTypeSum("how much did I donate to the yeshiva this year", TODAY)?.recipient === "yeshiva", "the");
+  assert(parseYearTypeSum("כמה תרמתי לישיבת מיר השנה", TODAY)?.recipient === "ישיבת מיר", "two words");
+  assert(parseYearTypeSum("כמה תרמתי לעניים השנה", TODAY)?.recipient === null, "poor is not a name");
+  assert(parseYearTypeSum("כמה תרמתי למעשר השנה", TODAY)?.recipient === null, "tithe is not a name");
+  assert(parseYearTypeSum("כמה תרמתי לפי שנת המעשר", TODAY)?.from === current.startDate, "according to the year");
+  const food = parseYearTypeSum("כמה הוצאתי על אוכל מ-1.1.2025 עד 31.3.2025", TODAY);
+  assert(food?.topic === "אוכל" && food.from === "2025-01-01" && food.to === "2025-03-31", "topic stops");
+});
+
 Deno.test("a recipient, a tithe year, and a date span stay closed questions", () => {
   const yeshiva = parseYearTypeSum("כמה תרמתי לישיבה השנה", TODAY);
   assert(yeshiva?.recipient === "ישיבה" && yeshiva.type === "donation", "recipient");

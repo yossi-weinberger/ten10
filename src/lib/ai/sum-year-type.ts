@@ -55,10 +55,18 @@ async function recipientsForUser(): Promise<string[]> {
   return data.flatMap((name) => typeof name === "string" && name.trim() ? [name] : []);
 }
 
+function foldName(value: string): string {
+  return value.trim().toLowerCase().replace(/["״׳']/g, "").replace(/[-־]/g, " ").replace(/\s+/g, " ").trim();
+}
+
 function matchSavedName(topic: string, names: readonly string[]): string | null {
-  const needle = topic.trim().toLowerCase();
-  const hits = [...new Set(names.map((name) => name.trim()).filter((name) => name.toLowerCase() === needle))];
-  return hits.length === 1 ? hits[0] : null;
+  const needle = foldName(topic);
+  const hits = names
+    .map((name) => ({ raw: name.trim(), key: foldName(name) }))
+    .filter((name) => name.key.length > 1 && (name.key === needle || needle.startsWith(`${name.key} `)))
+    .sort((left, right) => right.key.length - left.key.length);
+  if (hits.length === 0) return null;
+  return hits[0]?.raw ?? null;
 }
 
 export async function resolveQuestionFilter(

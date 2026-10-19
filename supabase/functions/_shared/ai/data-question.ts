@@ -2,6 +2,7 @@
  * A closed question about saved transactions. The model does not compute the number.
  */
 
+import { getCalendarAdapter } from "../calendar/index.ts";
 import { clampMaaserYearReportEnd, getCurrentMaaserYear, getMaaserYearRange } from "../calendar/maaser-year.ts";
 import {
   DONATION_TYPE_MARKERS,
@@ -197,26 +198,48 @@ function cleanTopicWord(word: string): string {
   return word.replace(/^[^0-9A-Za-z\u0590-\u05FF]+|[^0-9A-Za-z\u0590-\u05FF]+$/g, "").replace(/[-־]/g, "");
 }
 
+function looksLikeDateToken(word: string): boolean {
+  const compact = word.replace(/[-־]/g, "");
+  return /\d{1,2}[./]\d{1,2}[./]\d{4}/.test(compact)
+    || /20\d{2}-\d{2}-\d{2}/.test(word)
+    || compact === "עד"
+    || compact === "מ"
+    || /^מ\d/.test(compact);
+}
+
 function isTopicTail(word: string): boolean {
   const compact = cleanTopicWord(word).toLowerCase();
   const withoutBet = compact.startsWith("ב") ? compact.slice(1) : compact;
   if (TOPIC_TAIL.has(compact) || TOPIC_TAIL.has(withoutBet)) return true;
   if (/^20\d{2}$/.test(compact) || /^20\d{2}$/.test(withoutBet)) return true;
   if (compact === "in" || compact === "of" || compact === "the" || compact === "שנה" || withoutBet === "שנה") return true;
+  if (looksLikeDateToken(word)) return true;
   return [
     "באשראי", "אשראי", "במזומן", "מזומן", "בביט", "ביט", "בדביט", "דביט",
     "בהעברה", "העברה", "cash", "credit", "debit", "transfer", "cheque",
   ].includes(compact);
 }
 
+const RECIPIENT_STOP = new Set([
+  "צדקה", "תרומה", "עניים", "מעשר", "כל", "פי", "לפי",
+  "charity", "the", "donation", "tzedaka", "tzedakah",
+]);
+
 function recipientPhrase(text: string): string | null {
-  const hebrew = text.match(/(?:^|\s)ל([א-ת][\u0590-\u05FF]*)/);
-  const english = text.match(/\bto\s+([a-z][a-z0-9]*)/i);
+  const prepared = text.replace(/ל[-־]/g, "ל");
+  const hebrew = prepared.match(/(?:^|\s)ל([א-ת][א-ת"״׳']*(?:\s+[א-ת][א-ת"״׳']*)*)/);
+  const english = prepared.match(/\bto\s+(?:the\s+)?([a-z][a-z0-9'"]*(?:\s+[a-z][a-z0-9'"]*)*)/i);
   const raw = hebrew?.[1] ?? english?.[1] ?? "";
-  const word = cleanTopicWord(raw);
-  if (word.length < 2 || isTopicTail(word)) return null;
-  if (["צדקה", "תרומה", "charity", "tzedaka", "tzedakah", "donation"].includes(word.toLowerCase())) return null;
-  return word;
+  if (!raw || raw.startsWith("פי") || raw.startsWith("כל")) return null;
+  const words: string[] = [];
+  for (const part of raw.split(/\s+/)) {
+    const word = cleanTopicWord(part);
+    if (!word) continue;
+    if (isTopicTail(word)) break;
+    words.push(word);
+  }
+  if (words.length === 0 || RECIPIENT_STOP.has(words[0].toLowerCase())) return null;
+  return words.join(" ");
 }
 
 function parseDmy(day: string, month: string, year: string): string | null {
@@ -239,6 +262,32 @@ function customRange(text: string): { from: string; to: string } | null {
   const to = parseDmy(dmy[4], dmy[5], dmy[6]);
   if (!from || !to || from > to) return null;
   return { from, to };
+}
+
+function hasDateAttempt(text: string): boolean {
+  return /\d{1,2}[./]\d{1,2}[./]\d{2,4}/.test(text) || /20\d{2}-\d{2}-\d{2}/.test(text);
+}
+
+function hebrewMonthsBetween(from: string, to: string): number {
+  const hebrew = getCalendarAdapter("hebrew");
+  const start = hebrew.fromIsoDate(from);
+  const end = hebrew.fromIsoDate(to);
+  let year = start.year;
+  let month = start.month;
+  let count = 0;
+  while (count < 16) {
+    count += 1;
+    if (year === end.year && month === end.month) break;
+    const yearLength = hebrew.fromIsoDate(
+      hebrew.toIsoDate({ year, month: 1, day: 1 }, "reject"),
+    ).monthsInYear;
+    month += 1;
+    if (month > yearLength) {
+      month = 1;
+      year += 1;
+    }
+  }
+  return count < 1 ? 1 : count;
 }
 
 function monthsBetween(from: string, to: string): number {
@@ -303,6 +352,7 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
   const todayYear = Number(today.slice(0, 4));
   const todayMonth = Number(today.slice(5, 7));
   const span = customRange(normalized);
+  if (!span && hasDateAttempt(normalized)) return null;
   if (span) {
     return {
       type,
@@ -318,7 +368,13 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
     };
   }
   if (normalized.includes("שנת מעשר") || normalized.includes("שנת המעשר") || normalized.includes("maaser year") || normalized.includes("tithe year")) {
-    const hebrewYear = normalized.includes("שעברה") || normalized.includes("last year")
+    const previous = normalized.includes("שעברה")
+      || normalized.includes("הקודמת")
+      || normalized.includes("הקודם")
+      || normalized.includes("last maaser")
+      || normalized.includes("last tithe")
+      || normalized.includes("previous");
+    const hebrewYear = previous
       ? getCurrentMaaserYear(today) - 1
       : getCurrentMaaserYear(today);
     const range = getMaaserYearRange(hebrewYear);
@@ -326,7 +382,7 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
     return {
       type,
       measure,
-      months: monthsBetween(range.startDate, to),
+      months: hebrewMonthsBetween(range.startDate, to),
       paymentMethod,
       topic,
       recipient,
