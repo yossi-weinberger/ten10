@@ -23,3 +23,11 @@ export async function undoTextIntake(itemId: string): Promise<UndoTextIntakeResu
   if (error) return { ok: false, reason: "FAILED" };
   return readUndoPayload(data as UndoPayload | null);
 }
+
+export async function undoAiTransaction(transactionId: string): Promise<UndoTextIntakeResult> {
+  const { data, error } = await supabase.rpc("undo_ai_transaction", {
+    p_transaction_id: transactionId,
+  });
+  if (error) return { ok: false, reason: "FAILED" };
+  return readUndoPayload(data as UndoPayload | null);
+}
