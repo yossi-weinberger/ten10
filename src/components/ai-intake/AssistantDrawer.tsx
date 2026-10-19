@@ -35,6 +35,7 @@ import {
 import { orderCandidatesByRank } from "@/lib/ai/duplicate-rank";
 import { rankDuplicateCandidates } from "@/lib/ai/rank-duplicates";
 import { recordShadowType } from "@/lib/ai/shadow-type";
+import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 
 interface AssistantDrawerProps {
   open: boolean;
@@ -66,6 +67,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [appliedRuleName, setAppliedRuleName] = useState<string | null>(null);
   const [halachaNamespace, setHalachaNamespace] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [undoing, setUndoing] = useState(false);
   const [savedItemId, setSavedItemId] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -133,8 +135,20 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     refreshDuplicates(applied.draft, String(applied.draft.amount));
   }
 
-  function handleSubmit() {
-    const nextIntent = classifyIntent(text);
+  async function handleSubmit() {
+    let nextIntent = classifyIntent(text);
+    if (nextIntent === "out_of_scope" && text.trim()) {
+      setChecking(true);
+      const decided = await classifyIntentFallback(text);
+      setChecking(false);
+      if (decided && decided !== "out_of_scope") {
+        const page = decided === "domain_adjacent" ? selectHalachaPage(text) : null;
+        const rule = decided === "create_rule" ? parseUserRule(text) : null;
+        if (decided === "domain_adjacent" && !page) nextIntent = "out_of_scope";
+        else if (decided === "create_rule" && !rule) nextIntent = "out_of_scope";
+        else nextIntent = decided;
+      }
+    }
     const today = todayIso();
     const field = nextIntent === "add_transaction" ? clarificationField(text, today) : null;
     setIntent(nextIntent);
@@ -253,7 +267,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               handleAmountReply();
               return;
             }
-            handleSubmit();
+            void handleSubmit();
           }}
         >
           <Textarea
@@ -262,7 +276,8 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
             placeholder={t("aiIntake.placeholder")}
             aria-label={t("aiIntake.placeholder")}
           />
-          <Button type="submit">{t("aiIntake.send")}</Button>
+          <Button type="submit" disabled={checking}>{t("aiIntake.send")}</Button>
+          {checking ? <p>{t("aiIntake.checking")}</p> : null}
           {intent ? (
             <div className="flex flex-col gap-1 text-sm">
               <p>

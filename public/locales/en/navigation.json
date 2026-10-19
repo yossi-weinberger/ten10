@@ -19,6 +19,7 @@
     "title": "Ten10 assistant",
     "placeholder": "What should I record?",
     "send": "Send",
+    "checking": "Checking the sentence.",
     "notSaved": "Nothing was saved.",
     "noRate": "none",
     "save": "Approve and save",
