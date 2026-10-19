@@ -8,6 +8,7 @@ import {
   readShadowChoice,
   readTypeChoice,
 } from "../_shared/ai/jev-type-choice.ts";
+import { isTrialUser } from "../_shared/ai/trial-users.ts";
 
 function corsHeaders(origin: string | null): Record<string, string> {
   const headers = getCorsHeaders(origin);
@@ -46,6 +47,7 @@ Deno.serve(async (req: Request) => {
     authHeader.replace("Bearer ", ""),
   );
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
+  if (!isTrialUser(userData.user.id)) return json(origin, { recorded: false }, 200);
 
   const body = await req.json().catch(() => null) as { item_id?: unknown; shadow_type?: unknown } | null;
   const itemId = typeof body?.item_id === "string" ? body.item_id : "";
@@ -79,9 +81,8 @@ Deno.serve(async (req: Request) => {
   }
 
   const base = categoryBase(record.type);
-  const categoryMissing = typeof record.category !== "string" || record.category.trim().length === 0;
   let categories: string[] = [];
-  if (base && categoryMissing) {
+  if (base) {
     const { data } = await userClient.rpc("get_user_categories", { p_type: base });
     const custom = Array.isArray(data)
       ? data.flatMap((row) => {
@@ -101,7 +102,7 @@ Deno.serve(async (req: Request) => {
     currency: record.currency,
     date: record.date,
     includeType: body?.shadow_type === true,
-    categoryBase: base && categoryMissing ? base : null,
+    categoryBase: base,
     categories,
   });
   if (!request) return json(origin, { recorded: false }, 200);
@@ -124,12 +125,16 @@ Deno.serve(async (req: Request) => {
       return json(origin, { recorded: false }, 200);
     }
     const payload = await response.json();
+    const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+    if (!serviceKey) return json(origin, { recorded: false }, 200);
+    const adminClient = createClient(Deno.env.get("SUPABASE_URL") ?? "", serviceKey);
     let recorded = false;
     if (request.questions.transaction_type) {
       const choice = readTypeChoice(payload);
       if (choice) {
-        const { error } = await userClient.rpc("record_ai_shadow_type", {
+        const { error } = await adminClient.rpc("record_ai_shadow_type", {
           p_item_id: itemId,
+          p_user_id: userData.user.id,
           p_choice: choice.choice,
           p_confidence: choice.confidence,
         });
@@ -139,8 +144,9 @@ Deno.serve(async (req: Request) => {
     if (request.questions.category) {
       const choice = readShadowChoice(payload, "category", Object.keys(request.questions.category.criteria));
       if (choice) {
-        const { error } = await userClient.rpc("record_ai_shadow_category", {
+        const { error } = await adminClient.rpc("record_ai_shadow_category", {
           p_item_id: itemId,
+          p_user_id: userData.user.id,
           p_choice: choice.choice,
           p_confidence: choice.confidence,
         });

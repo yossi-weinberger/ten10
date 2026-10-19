@@ -32,6 +32,7 @@ import { DeleteConfirmationDialog } from "../ui/DeleteConfirmationDialog";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { TableTransactionsService } from "@/lib/tableTransactions/tableTransactionService";
 import { refreshAfterIntakeSave } from "@/lib/ai/refresh-after-intake";
+import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { undoAiTransaction } from "@/lib/ai/undo-text-intake";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 import { BulkEditDialog } from "./BulkEditDialog";
@@ -690,7 +691,7 @@ export function TransactionsTableDisplay() {
                       onEdit={handleEditInitiate}
                       onDelete={handleDeleteInitiate}
                       onEditRecurring={handleEditRecurringInitiate}
-                      onUndoAi={platform === "web" ? handleUndoAi : undefined}
+                      onUndoAi={platform === "web" && isAiIntakeEnabled() ? handleUndoAi : undefined}
                       isFetchingRec={isFetchingRec}
                       selected={selection.selectedIds.has(item.transaction.id)}
                       onToggleSelected={selection.toggle}

@@ -82,8 +82,10 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   }, [open]);
 
   const duplicateRequest = useRef(0);
+  const duplicateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function refreshDuplicates(next: TextTransactionDraft | null, amountText: string) {
+    if (duplicateTimer.current) clearTimeout(duplicateTimer.current);
     const request = duplicateRequest.current + 1;
     duplicateRequest.current = request;
     const amount = Number(amountText.replace(",", "."));
@@ -92,27 +94,29 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       setDuplicatesRanked(false);
       return;
     }
-    void listDuplicateCandidates({
-      type: next.type,
-      date: next.date,
-      amount,
-      currency: next.currency,
-    }).then(async (rows) => {
-      if (duplicateRequest.current !== request) return;
-      setDuplicates(rows);
-      setDuplicatesRanked(false);
-      if (rows.length === 0) return;
-      const scores = await rankDuplicateCandidates({
+    duplicateTimer.current = setTimeout(() => {
+      void listDuplicateCandidates({
         type: next.type,
         date: next.date,
         amount,
         currency: next.currency,
-        description: next.description,
+      }).then(async (rows) => {
+        if (duplicateRequest.current !== request) return;
+        setDuplicates(rows);
+        setDuplicatesRanked(false);
+        if (rows.length === 0) return;
+        const scores = await rankDuplicateCandidates({
+          type: next.type,
+          date: next.date,
+          amount,
+          currency: next.currency,
+          description: next.description,
+        });
+        if (duplicateRequest.current !== request || !scores || scores.length === 0) return;
+        setDuplicates(orderCandidatesByRank(rows, scores));
+        setDuplicatesRanked(true);
       });
-      if (duplicateRequest.current !== request || !scores || scores.length === 0) return;
-      setDuplicates(orderCandidatesByRank(rows, scores));
-      setDuplicatesRanked(true);
-    });
+    }, 400);
   }
 
   function showDraft(next: TextTransactionDraft | null, source: string) {

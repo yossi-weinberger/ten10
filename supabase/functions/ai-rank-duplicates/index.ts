@@ -7,6 +7,7 @@ import {
   JEV_SYSTEMONE_URL,
   readDuplicateRanks,
 } from "../_shared/ai/jev-duplicate-rank.ts";
+import { isTrialUser } from "../_shared/ai/trial-users.ts";
 
 const ALLOWED_TYPES = new Set<string>(AI_DRAFT_ALLOWED_TYPES);
 
@@ -75,6 +76,7 @@ Deno.serve(async (req: Request) => {
     authHeader.replace("Bearer ", ""),
   );
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
+  if (!isTrialUser(userData.user.id)) return json(origin, { ranked: false, scores: [] }, 200);
 
   const input = readInput(await req.json().catch(() => null));
   if (!input) return json(origin, { ranked: false, scores: [] }, 400);
