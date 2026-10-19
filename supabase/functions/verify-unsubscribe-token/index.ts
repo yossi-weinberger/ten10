@@ -99,7 +99,7 @@ serve(async (req) => {
       "update_user_preferences",
       {
         p_user_id: payload.userId,
-        p_reminder_enabled: unsubscribeType === "reminder" ? false : null,
+        p_reminder_enabled: unsubscribeType === "all" || unsubscribeType === "reminder" ? false : null,
         p_mailing_list_consent: unsubscribeType === "all" ? false : null,
       },
     );
