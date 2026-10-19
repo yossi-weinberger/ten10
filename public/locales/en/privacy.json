@@ -60,7 +60,7 @@
     },
     "marketing": {
       "title": "Updates and News (Marketing)",
-      "description": "Updates about new features and project news. Default: enabled (opt-out). You can opt out during signup or in Settings."
+      "description": "Updates about new features and project news. Default: enabled (opt-out). ⚠️ PENDING LAWYER APPROVAL"
     },
     "unsubscribe": "To unsubscribe from reminders, marketing, or both, click the appropriate links in any email, or change your preferences in Settings, or contact us: contact@ten10-app.com"
   },
@@ -94,4 +94,6 @@
     "title": "Contact",
     "description": "If you have questions or concerns about the privacy policy, please contact us:"
   }
+,
+  "footer": "© {year} Ten10. All rights reserved."
 }

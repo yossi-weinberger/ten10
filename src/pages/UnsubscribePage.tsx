@@ -50,12 +50,17 @@ export default function UnsubscribePage() {
       if (error || data?.error || !data?.success) {
         logger.error("Unsubscribe failed:", error ?? data?.error);
         setStatus("error");
-        const looksExpired =
-          typeof data?.error === "string" &&
-          data.error.toLowerCase().includes("expired");
-        if (looksExpired || error?.message?.toLowerCase().includes("401")) {
+        
+        const errorMsg = (typeof data?.error === "string" ? data.error : error?.message || "").toLowerCase();
+        const looksExpired = errorMsg.includes("expired");
+        const looksInvalid = errorMsg.includes("invalid") || errorMsg.includes("malformed") || error?.message?.toLowerCase().includes("401");
+        
+        if (looksExpired) {
           setTitle(t("unsubscribe.error.expiredToken.title"));
           setMessage(t("unsubscribe.error.expiredToken.message"));
+        } else if (looksInvalid) {
+          setTitle(t("unsubscribe.error.invalidToken.title"));
+          setMessage(t("unsubscribe.error.invalidToken.message"));
         } else {
           setTitle(t("unsubscribe.error.updateFailed.title"));
           setMessage(t("unsubscribe.error.updateFailed.message"));

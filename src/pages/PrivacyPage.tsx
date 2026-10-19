@@ -338,7 +338,7 @@ export function PrivacyPage() {
 
         {/* Footer */}
         <div className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>© {new Date().getFullYear()} Ten10. {t("footer", "All rights reserved.")}</p>
+          <p>{t("footer", { year: new Date().getFullYear() })}</p>
         </div>
       </div>
     </div>
