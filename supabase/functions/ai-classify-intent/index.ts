@@ -52,7 +52,9 @@ Deno.serve(async (req: Request) => {
       logger.error(`jev intent failed: ${response.status}`);
       return json(origin, { intent: null, reason: "unavailable" }, 200);
     }
-    return json(origin, { intent: readIntentChoice(await response.json()) }, 200);
+    const choice = readIntentChoice(await response.json());
+    if (!choice) return json(origin, { intent: null }, 200);
+    return json(origin, { intent: choice.intent, confidence: choice.confidence }, 200);
   } catch {
     logger.error("jev intent failed");
     return json(origin, { intent: null, reason: "unavailable" }, 200);

@@ -1,4 +1,4 @@
-import { INTAKE_INTENTS, classifyIntent, type IntakeIntent } from "./intent.ts";
+import { INTAKE_INTENTS, classifyIntent, fallbackIntent, type IntakeIntent } from "./intent.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) {
@@ -35,6 +35,14 @@ Deno.test("intent labels stay inside the closed set", () => {
     assert(INTAKE_INTENTS.includes(intent), `${text} produced an unknown intent`);
     assert(intent === expected, `"${text}" => ${intent}, expected ${expected}`);
   }
+});
+
+Deno.test("fallback accepts an explicit purchase and rejects a bare amount", () => {
+  const today = "2026-10-19";
+  assert(fallbackIntent("קניתי מאפים ב-15 שח", today) === "add_transaction", "explicit");
+  assert(fallbackIntent("קניתי מאפים", today) === "add_transaction", "verb without an amount still asks");
+  assert(fallbackIntent("200 דולר", today) === "out_of_scope", "bare amount");
+  assert(fallbackIntent("כמה תרמתי ב-2025?", today) === "ask_data", "question");
 });
 
 Deno.test("a purchase mentioned inside an injection is still a transaction", () => {

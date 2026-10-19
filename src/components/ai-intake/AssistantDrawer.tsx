@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   applyForwardRule,
   clarificationField,
-  classifyIntent,
+  fallbackIntent,
   draftFromText,
   parseUserRule,
   selectHalachaPage,
@@ -309,29 +309,22 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
 
   async function handleSubmit(spoken?: string) {
     const source = spoken ?? text;
-    let nextIntent = classifyIntent(source);
-    if (nextIntent === "out_of_scope" && source.trim()) {
+    const today = todayIso();
+    let nextIntent: IntakeIntent = "out_of_scope";
+    if (source.trim()) {
       setChecking(true);
       const decided = await classifyIntentFallback(source);
       setChecking(false);
-      if (!decided.ok) {
-        setIntent(null);
-        setReceiptFields(null);
-        setClarification(null);
-        showDraft(null, "");
-        setSaveMessage(t("aiIntake.providerFailed"));
-        setSavedItemId(null);
-        return;
-      }
-      if (decided.intent && decided.intent !== "out_of_scope") {
+      if (decided.ok && decided.intent) {
         const page = decided.intent === "domain_adjacent" ? selectHalachaPage(source) : null;
         const rule = decided.intent === "create_rule" ? parseUserRule(source) : null;
         if (decided.intent === "domain_adjacent" && !page) nextIntent = "out_of_scope";
         else if (decided.intent === "create_rule" && !rule) nextIntent = "out_of_scope";
         else nextIntent = decided.intent;
+      } else {
+        nextIntent = fallbackIntent(source, today);
       }
     }
-    const today = todayIso();
     const field = nextIntent === "add_transaction" ? clarificationField(source, today) : null;
     setIntent(nextIntent);
     setReceiptFields(null);
