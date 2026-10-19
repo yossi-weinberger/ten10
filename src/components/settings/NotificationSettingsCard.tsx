@@ -118,8 +118,7 @@ export function NotificationSettingsCard({
             onCheckedChange={(checked) =>
               updateSettings({
                 notifications: checked,
-                reminderEnabled: checked, // Also update reminder enabled when notifications change
-                mailingListConsent: checked, // Sync mailing list consent with notifications
+                reminderEnabled: checked,
               })
             }
             disabled={disabled}
