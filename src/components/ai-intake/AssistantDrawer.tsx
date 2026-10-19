@@ -17,6 +17,7 @@ import {
   intentIsConfident,
   draftFromText,
   parseYearTypeSum,
+  periodLabel,
   parseUserRule,
   selectHalachaPage,
   type ActiveUserRule,
@@ -91,7 +92,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [askIntent, setAskIntent] = useState(false);
   const [dataReply, setDataReply] = useState<
-    | { status: "ready"; year: number; month: number | null; measure: "sum" | "count"; type: "donation" | "expense" | "income"; from: string; to: string; total: number; count: number; currency: string | null }
+    | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average"; type: "donation" | "expense" | "income"; from: string; to: string; total: number; count: number; currency: string | null }
     | { status: "mixed" | "unsupported" | "failed" }
     | null
   >(null);
@@ -592,12 +593,8 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               </p>
               {intent === "ask_data" && dataReply?.status === "ready" ? (
                 <p>
-                  {t(dataReply.measure === "count" ? "aiIntake.dataCount" : "aiIntake.dataAnswer", {
-                    year: dataReply.month
-                      ? `${dataReply.month}/${dataReply.year}`
-                      : dataReply.from.endsWith("-01-01") && dataReply.to.endsWith("-12-31")
-                        ? String(dataReply.year)
-                        : `${dataReply.from}–${dataReply.to}`,
+                  {t(dataReply.measure === "count" ? "aiIntake.dataCount" : dataReply.measure === "average" ? "aiIntake.dataAverage" : "aiIntake.dataAnswer", {
+                    year: periodLabel(dataReply),
                     type: t(`aiIntake.types.${dataReply.type}`),
                     total: dataReply.total,
                     count: dataReply.count,

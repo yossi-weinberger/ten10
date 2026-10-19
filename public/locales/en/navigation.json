@@ -36,6 +36,7 @@
     "askIntent": "Not sure what you meant. What is this message?",
     "dataAnswer": "In {{year}}, {{count}} saved {{type}} transactions total {{total}} {{currency}}. This is the saved total.",
     "dataCount": "In {{year}}, {{count}} {{type}} transactions were saved.",
+    "dataAverage": "In {{year}} the monthly average of {{type}} is {{total}} {{currency}}.",
     "dataUnsupported": "You can ask how much you donated or how many donations in a year, this year, this month, or the last N months. For example: how much did I donate in 2025?",
     "dataMixed": "That year has more than one currency. They were not added together.",
     "dataFailed": "The total could not be calculated. Nothing was saved.",
