@@ -164,6 +164,11 @@ export function OptInPromptDialog() {
   const needsReminder = settings.reminderEnabled === false;
   const needsMarketing = settings.mailingListConsent === false;
 
+  // Don't render until hydrated to prevent stale initial state
+  if (!_hasHydrated) {
+    return null;
+  }
+
   return (
     <Dialog open={shouldShow} onOpenChange={(open) => !open && handleDismiss()}>
       <DialogContent className="sm:max-w-[440px]">
