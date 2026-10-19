@@ -42,7 +42,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
-  if (!apiKey) return json(origin, { text: null }, 200);
+  if (!apiKey) return json(origin, { text: null, reason: "unavailable" }, 200);
 
   try {
     const response = await fetch(TRANSCRIBE_URL, {
@@ -59,12 +59,12 @@ Deno.serve(async (req: Request) => {
     });
     if (!response.ok) {
       logger.error(`speech transcribe failed: ${response.status}`);
-      return json(origin, { text: null }, 200);
+      return json(origin, { text: null, reason: "unavailable" }, 200);
     }
     const text = readTranscript(await response.json());
     return json(origin, { text }, 200);
   } catch {
     logger.error("speech transcribe failed");
-    return json(origin, { text: null }, 200);
+    return json(origin, { text: null, reason: "unavailable" }, 200);
   }
 });

@@ -5,7 +5,7 @@ const MAX_BYTES = 2 * 1024 * 1024;
 
 export type TranscribeSpeechResult =
   | { ok: true; text: string }
-  | { ok: false; reason: "TOO_LONG" | "UNHEARD" };
+  | { ok: false; reason: "TOO_LONG" | "UNHEARD" | "UNAVAILABLE" };
 
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -29,7 +29,8 @@ export async function transcribeSpeech(blob: Blob): Promise<TranscribeSpeechResu
   const { data: payload, error } = await supabase.functions.invoke("ai-transcribe-speech", {
     body: { media_type: mediaType, data },
   });
-  if (error || !payload || typeof payload !== "object") return { ok: false, reason: "UNHEARD" };
+  if (error || !payload || typeof payload !== "object") return { ok: false, reason: "UNAVAILABLE" };
+  if ((payload as { reason?: unknown }).reason === "unavailable") return { ok: false, reason: "UNAVAILABLE" };
   const text = readTranscript(payload);
   if (!text) return { ok: false, reason: "UNHEARD" };
   return { ok: true, text };

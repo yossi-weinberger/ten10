@@ -2,11 +2,16 @@ import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
-import { readModelText, readReceiptDraft, receiptFilePart, RECEIPT_VISION_MODEL } from "../_shared/ai/receipt-draft.ts";
+import {
+  readModelText,
+  readReceiptDraft,
+  receiptFilePart,
+  RECEIPT_MAX_BASE64_CHARS,
+  RECEIPT_VISION_MODEL,
+} from "../_shared/ai/receipt-draft.ts";
 
 const RESPONSES_URL = "https://ai-gateway.vercel.sh/v1/responses";
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
-const MAX_BASE64_CHARS = 5_500_000;
 
 const PROMPT = [
   "Read this receipt. It may be written in Hebrew, English, or both.",
@@ -49,12 +54,13 @@ Deno.serve(async (req: Request) => {
   const mediaType = typeof body?.media_type === "string" ? body.media_type : "";
   const data = typeof body?.data === "string" ? body.data : "";
   const filePart = receiptFilePart(mediaType, data);
-  if (!ALLOWED_TYPES.has(mediaType) || !filePart || data.length === 0 || data.length > MAX_BASE64_CHARS) {
+  if (data.length > RECEIPT_MAX_BASE64_CHARS) return json(origin, { draft: null, reason: "too_large" }, 200);
+  if (!ALLOWED_TYPES.has(mediaType) || !filePart || data.length === 0) {
     return json(origin, { draft: null }, 400);
   }
 
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
-  if (!apiKey) return json(origin, { draft: null }, 200);
+  if (!apiKey) return json(origin, { draft: null, reason: "unavailable" }, 200);
 
   try {
     const response = await fetch(RESPONSES_URL, {
@@ -84,12 +90,12 @@ Deno.serve(async (req: Request) => {
     });
     if (!response.ok) {
       logger.error(`receipt read failed: ${response.status}`);
-      return json(origin, { draft: null }, 200);
+      return json(origin, { draft: null, reason: "unavailable" }, 200);
     }
     const draft = readReceiptDraft(readModelText(await response.json()));
     return json(origin, { draft }, 200);
   } catch {
     logger.error("receipt read failed");
-    return json(origin, { draft: null }, 200);
+    return json(origin, { draft: null, reason: "unavailable" }, 200);
   }
 });

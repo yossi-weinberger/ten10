@@ -58,13 +58,11 @@ export function classifyIntent(text: string): IntakeIntent {
     return "create_rule";
   }
 
-  const asksAboutData = includesAlias(normalized, QUESTION_MARKERS);
-  const statesATransaction = includesAlias(normalized, TRANSACTION_VERBS);
-  if (asksAboutData && !hasMoneyAmount(normalized)) {
+  if (includesAlias(normalized, QUESTION_MARKERS)) {
     return "ask_data";
   }
 
-  if (statesATransaction || hasMoneyAmount(normalized)) {
+  if (includesAlias(normalized, TRANSACTION_VERBS) || hasMoneyAmount(normalized)) {
     return "add_transaction";
   }
 

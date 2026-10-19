@@ -58,8 +58,18 @@ function extractName(normalized: string): string | null {
   }
 
   const prefixes = HEBREW_NAME_PREFIXES.join("");
-  const prefixed = normalized.match(new RegExp(`\\s[${prefixes}]([א-תa-z0-9][א-תa-z0-9"']*)`));
-  return prefixed?.[1] ? nameFromWords(prefixed[1]) : null;
+  const prefixed = new RegExp(`\\s[${prefixes}]([א-תa-z0-9][א-תa-z0-9"']*)`, "g");
+  let match: RegExpExecArray | null;
+  while ((match = prefixed.exec(normalized)) !== null) {
+    const full = match[0].trim();
+    if ((RULE_NAME_STOP_WORDS as readonly string[]).includes(full)) continue;
+    const name = nameFromWords(match[1]);
+    if (name && !(RULE_NAME_STOP_WORDS as readonly string[]).includes(name)) return name;
+  }
+
+  const onName = normalized.match(/(?:^|\s)על\s+([א-תa-z0-9][א-תa-z0-9"']*)/);
+  if (!onName?.[1] || (RULE_NAME_STOP_WORDS as readonly string[]).includes(onName[1])) return null;
+  return nameFromWords(onName[1]);
 }
 
 /** Null when the sentence is not a rule we can store. */

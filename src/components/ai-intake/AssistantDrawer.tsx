@@ -39,6 +39,13 @@ import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 import { readReceiptImage } from "@/lib/ai/read-receipt";
 import { isIsoDate, receiptAsDraft, receiptRuledDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
+import { isOnOrAfterMinTransactionDate, MIN_TRANSACTION_DATE } from "@/lib/utils/transaction-date";
+
+function draftDateProblem(date: string): "invalid" | "min" | null {
+  if (!isIsoDate(date)) return "invalid";
+  if (!isOnOrAfterMinTransactionDate(date)) return "min";
+  return null;
+}
 
 interface AssistantDrawerProps {
   open: boolean;
@@ -48,6 +55,7 @@ interface AssistantDrawerProps {
 export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const { t } = useTranslation([
     "navigation",
+    "transactions",
     "halacha-expenses",
     "halacha-income",
     "halacha-chomesh",
@@ -81,15 +89,67 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     return new Intl.DateTimeFormat("en-CA").format(new Date());
   }
 
+  const recorder = useRef<MediaRecorder | null>(null);
+  const discardRecording = useRef(false);
+  const recordTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function stopRecording() {
+    discardRecording.current = true;
+    if (recordTimer.current) {
+      clearTimeout(recordTimer.current);
+      recordTimer.current = null;
+    }
+    const active = recorder.current;
+    if (active && active.state !== "inactive") active.stop();
+  }
+
+  function clearConversation() {
+    setText("");
+    setIntent(null);
+    setDraft(null);
+    originalDraft.current = null;
+    setAmountInput("");
+    setDuplicates([]);
+    setDuplicatesRanked(false);
+    setClarification(null);
+    setPendingText("");
+    setChosenType(null);
+    setReceiptFields(null);
+    setAmountReply("");
+    setParsedRule(null);
+    setRuleChoice(null);
+    setAppliedRuleName(null);
+    setHalachaNamespace(null);
+    setChecking(false);
+    setSaveMessage(null);
+    setSavedItemId(null);
+  }
+
+  function handleOpenChange(next: boolean) {
+    if (next) discardRecording.current = false;
+    else {
+      stopRecording();
+      clearConversation();
+    }
+    onOpenChange(next);
+  }
+
   useEffect(() => {
     if (!open) return;
     void listActiveUserRules().then(setRules);
   }, [open]);
 
+  useEffect(() => {
+    return () => {
+      discardRecording.current = true;
+      if (recordTimer.current) clearTimeout(recordTimer.current);
+      const active = recorder.current;
+      if (active && active.state !== "inactive") active.stop();
+    };
+  }, []);
+
   const duplicateRequest = useRef(0);
   const receiptInput = useRef<HTMLInputElement | null>(null);
-  const recorder = useRef<MediaRecorder | null>(null);
-  const recordTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const duplicateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function refreshDuplicates(next: TextTransactionDraft | null, amountText: string) {
@@ -158,7 +218,13 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       setIntent(null);
       setReceiptFields(null);
       showDraft(null, "");
-      setSaveMessage(t(result.reason === "TOO_LARGE" ? "aiIntake.receiptTooLarge" : "aiIntake.receiptUnreadable"));
+      setSaveMessage(t(
+        result.reason === "TOO_LARGE"
+          ? "aiIntake.receiptTooLarge"
+          : result.reason === "UNAVAILABLE"
+            ? "aiIntake.providerFailed"
+            : "aiIntake.receiptUnreadable",
+      ));
       return;
     }
     setIntent("add_transaction");
@@ -185,7 +251,13 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     const heard = await transcribeSpeech(blob);
     setChecking(false);
     if (!heard.ok) {
-      setSaveMessage(t(heard.reason === "TOO_LONG" ? "aiIntake.voiceTooLong" : "aiIntake.voiceUnheard"));
+      setSaveMessage(t(
+        heard.reason === "TOO_LONG"
+          ? "aiIntake.voiceTooLong"
+          : heard.reason === "UNAVAILABLE"
+            ? "aiIntake.providerFailed"
+            : "aiIntake.voiceUnheard",
+      ));
       return;
     }
     setText(heard.text);
@@ -224,6 +296,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       if (recordTimer.current) clearTimeout(recordTimer.current);
       recorder.current = null;
       setRecording(false);
+      if (discardRecording.current) return;
       void finishVoice(new Blob(chunks, { type: media.mimeType || "audio/webm" }));
     };
     media.start();
@@ -241,12 +314,21 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       setChecking(true);
       const decided = await classifyIntentFallback(source);
       setChecking(false);
-      if (decided && decided !== "out_of_scope") {
-        const page = decided === "domain_adjacent" ? selectHalachaPage(source) : null;
-        const rule = decided === "create_rule" ? parseUserRule(source) : null;
-        if (decided === "domain_adjacent" && !page) nextIntent = "out_of_scope";
-        else if (decided === "create_rule" && !rule) nextIntent = "out_of_scope";
-        else nextIntent = decided;
+      if (!decided.ok) {
+        setIntent(null);
+        setReceiptFields(null);
+        setClarification(null);
+        showDraft(null, "");
+        setSaveMessage(t("aiIntake.providerFailed"));
+        setSavedItemId(null);
+        return;
+      }
+      if (decided.intent && decided.intent !== "out_of_scope") {
+        const page = decided.intent === "domain_adjacent" ? selectHalachaPage(source) : null;
+        const rule = decided.intent === "create_rule" ? parseUserRule(source) : null;
+        if (decided.intent === "domain_adjacent" && !page) nextIntent = "out_of_scope";
+        else if (decided.intent === "create_rule" && !rule) nextIntent = "out_of_scope";
+        else nextIntent = decided.intent;
       }
     }
     const today = todayIso();
@@ -320,6 +402,10 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       setSaveMessage(t("aiIntake.editDateInvalid"));
       return;
     }
+    if (!isOnOrAfterMinTransactionDate(draft.date)) {
+      setSaveMessage(t("transactionForm.validation.date.min", { ns: "transactions" }));
+      return;
+    }
     const amount = Number(amountInput.replace(",", "."));
     if (!Number.isFinite(amount) || amount === 0) {
       setSaveMessage(t("aiIntake.editAmountInvalid"));
@@ -366,7 +452,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
+    <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>{t("aiIntake.title")}</DrawerTitle>
@@ -494,6 +580,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                   </p>
                   <Input
                     type="date"
+                    min={MIN_TRANSACTION_DATE}
                     value={draft.date}
                     aria-label={t("aiIntake.editDate")}
                     onChange={(event) => {
@@ -502,6 +589,10 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                       refreshDuplicates(next, amountInput);
                     }}
                   />
+                  {draftDateProblem(draft.date) === "invalid" ? <p>{t("aiIntake.editDateInvalid")}</p> : null}
+                  {draftDateProblem(draft.date) === "min" ? (
+                    <p>{t("transactionForm.validation.date.min", { ns: "transactions" })}</p>
+                  ) : null}
                   <Input
                     value={draft.description}
                     aria-label={t("aiIntake.editDescription")}
@@ -536,7 +627,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                   ) : null}
                   <Button
                     type="button"
-                    disabled={saving}
+                    disabled={saving || draftDateProblem(draft.date) !== null}
                     onClick={() => void handleSave(duplicates.length > 0 ? "saved_anyway" : undefined)}
                   >
                     {t(duplicates.length > 0 ? "aiIntake.saveAnyway" : "aiIntake.save")}
@@ -545,7 +636,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                     <Button
                       type="button"
                       variant="outline"
-                      disabled={saving}
+                      disabled={saving || draftDateProblem(draft.date) !== null}
                       onClick={() => void handleSave("same_event")}
                     >
                       {t("aiIntake.sameEvent")}

@@ -36,7 +36,7 @@ Deno.serve(async (req: Request) => {
   if (!text) return json(origin, { intent: "out_of_scope" }, 200);
 
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
-  if (!apiKey) return json(origin, { intent: null }, 200);
+  if (!apiKey) return json(origin, { intent: null, reason: "unavailable" }, 200);
 
   try {
     const response = await fetch(JEV_SYSTEMONE_URL, {
@@ -50,11 +50,11 @@ Deno.serve(async (req: Request) => {
     });
     if (!response.ok) {
       logger.error(`jev intent failed: ${response.status}`);
-      return json(origin, { intent: null }, 200);
+      return json(origin, { intent: null, reason: "unavailable" }, 200);
     }
     return json(origin, { intent: readIntentChoice(await response.json()) }, 200);
   } catch {
     logger.error("jev intent failed");
-    return json(origin, { intent: null }, 200);
+    return json(origin, { intent: null, reason: "unavailable" }, 200);
   }
 });
