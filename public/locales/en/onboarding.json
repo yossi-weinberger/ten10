@@ -1,8 +1,4 @@
 {
-  "arrivalCode": {
-    "label": "Arrival code (optional)",
-    "placeholder": "MACHON"
-  },
   "welcome": {
     "title": "Welcome to Ten10",
     "description": "If you'd like to learn the system, you can start a tour now.",

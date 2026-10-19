@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { logger } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,10 +20,6 @@ import {
 } from "@/components/ui/card";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
-import { ArrivalCodeField } from "@/components/attribution/ArrivalCodeField";
-import { readFirstTouch } from "@/lib/attribution/capture";
-import { buildEmailSignupPayload } from "@/lib/attribution/signup";
-import { logger } from "@/lib/logger";
 
 const SignupPage: React.FC = () => {
   const { platform } = usePlatform();
@@ -35,9 +32,6 @@ const SignupPage: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [mailingListConsent, setMailingListConsent] = useState(false);
-  const [arrivalCode, setArrivalCode] = useState(
-    () => readFirstTouch()?.code ?? ""
-  );
   const [loading, setLoading] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
 
@@ -82,17 +76,14 @@ const SignupPage: React.FC = () => {
     let signedUpUserId: string | undefined = undefined;
 
     try {
-      const { authMetadata, profileUpdate, attributionUpdate } =
-        buildEmailSignupPayload({
-          fullName,
-          mailingListConsent,
-          arrivalCode,
-        });
+      const trimmedFullName = fullName.trim();
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: authMetadata,
+          data: {
+            full_name: trimmedFullName,
+          },
         },
       });
 
@@ -104,7 +95,10 @@ const SignupPage: React.FC = () => {
         sessionStorage.setItem("forceDbFetchOnLoad", "true");
         const { error: updateError } = await supabase
           .from("profiles")
-          .update(profileUpdate)
+          .update({
+            full_name: trimmedFullName,
+            mailing_list_consent: mailingListConsent,
+          })
           .eq("id", signedUpUserId);
 
         if (updateError) {
@@ -113,23 +107,9 @@ const SignupPage: React.FC = () => {
         } else {
           toast.success(t("signup.toasts.signupSuccess"));
         }
-
-        if (attributionUpdate) {
-          const { error: attributionError } = await supabase
-            .from("profiles")
-            .update(attributionUpdate)
-            .eq("id", signedUpUserId);
-          if (attributionError) {
-            logger.error(
-              "Failed to persist arrival attribution after signup:",
-              attributionError
-            );
-          }
-        }
         trackProductEvent("signup_completed", {
           method: "email",
           requires_email_confirm: false,
-          arrival_code: attributionUpdate?.arrival_code,
         });
         navigate({ to: "/" });
       } else if (data.user) {
@@ -137,14 +117,12 @@ const SignupPage: React.FC = () => {
         trackProductEvent("signup_completed", {
           method: "email",
           requires_email_confirm: true,
-          arrival_code: attributionUpdate?.arrival_code,
         });
         setEmail("");
         setPassword("");
         setConfirmPassword("");
         setFullName("");
         setMailingListConsent(false);
-        setArrivalCode(readFirstTouch()?.code ?? "");
       } else {
         toast.error(t("signup.toasts.unexpectedError"));
       }
@@ -269,12 +247,6 @@ const SignupPage: React.FC = () => {
               />
             </div>
           </div>
-
-          <ArrivalCodeField
-            value={arrivalCode}
-            onChange={setArrivalCode}
-            disabled={isAnyLoading}
-          />
 
           <div className="flex items-center space-x-2 rtl:space-x-reverse py-2">
             <Checkbox
