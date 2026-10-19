@@ -37,6 +37,7 @@ import { rankDuplicateCandidates } from "@/lib/ai/rank-duplicates";
 import { recordShadowType } from "@/lib/ai/shadow-type";
 import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 import { readReceiptImage } from "@/lib/ai/read-receipt";
+import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
 
 interface AssistantDrawerProps {
   open: boolean;
@@ -69,6 +70,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [halachaNamespace, setHalachaNamespace] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [recording, setRecording] = useState(false);
   const [undoing, setUndoing] = useState(false);
   const [savedItemId, setSavedItemId] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -84,6 +86,8 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
 
   const duplicateRequest = useRef(0);
   const receiptInput = useRef<HTMLInputElement | null>(null);
+  const recorder = useRef<MediaRecorder | null>(null);
+  const recordTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const duplicateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function refreshDuplicates(next: TextTransactionDraft | null, amountText: string) {
@@ -165,35 +169,90 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     showDraft(result.draft, result.draft.description);
   }
 
-  async function handleSubmit() {
-    let nextIntent = classifyIntent(text);
-    if (nextIntent === "out_of_scope" && text.trim()) {
+  async function finishVoice(blob: Blob) {
+    setChecking(true);
+    const heard = await transcribeSpeech(blob);
+    setChecking(false);
+    if (!heard.ok) {
+      setSaveMessage(t(heard.reason === "TOO_LONG" ? "aiIntake.voiceTooLong" : "aiIntake.voiceUnheard"));
+      return;
+    }
+    setText(heard.text);
+    await handleSubmit(heard.text);
+  }
+
+  async function toggleRecording() {
+    if (checking) return;
+    const active = recorder.current;
+    if (active && active.state !== "inactive") {
+      active.stop();
+      return;
+    }
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setSaveMessage(t("aiIntake.voiceDenied"));
+      return;
+    }
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      setSaveMessage(t("aiIntake.voiceDenied"));
+      return;
+    }
+    const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+      ? "audio/webm;codecs=opus"
+      : "";
+    const media = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+    const chunks: Blob[] = [];
+    recorder.current = media;
+    media.ondataavailable = (event) => {
+      if (event.data.size > 0) chunks.push(event.data);
+    };
+    media.onstop = () => {
+      stream.getTracks().forEach((track) => track.stop());
+      if (recordTimer.current) clearTimeout(recordTimer.current);
+      recorder.current = null;
+      setRecording(false);
+      void finishVoice(new Blob(chunks, { type: media.mimeType || "audio/webm" }));
+    };
+    media.start();
+    setRecording(true);
+    setSaveMessage(null);
+    recordTimer.current = setTimeout(() => {
+      if (media.state !== "inactive") media.stop();
+    }, 60_000);
+  }
+
+  async function handleSubmit(spoken?: string) {
+    const source = spoken ?? text;
+    let nextIntent = classifyIntent(source);
+    if (nextIntent === "out_of_scope" && source.trim()) {
       setChecking(true);
-      const decided = await classifyIntentFallback(text);
+      const decided = await classifyIntentFallback(source);
       setChecking(false);
       if (decided && decided !== "out_of_scope") {
-        const page = decided === "domain_adjacent" ? selectHalachaPage(text) : null;
-        const rule = decided === "create_rule" ? parseUserRule(text) : null;
+        const page = decided === "domain_adjacent" ? selectHalachaPage(source) : null;
+        const rule = decided === "create_rule" ? parseUserRule(source) : null;
         if (decided === "domain_adjacent" && !page) nextIntent = "out_of_scope";
         else if (decided === "create_rule" && !rule) nextIntent = "out_of_scope";
         else nextIntent = decided;
       }
     }
     const today = todayIso();
-    const field = nextIntent === "add_transaction" ? clarificationField(text, today) : null;
+    const field = nextIntent === "add_transaction" ? clarificationField(source, today) : null;
     setIntent(nextIntent);
     setClarification(field);
-    setPendingText(text);
+    setPendingText(source);
     setChosenType(null);
     setAmountReply("");
-    setParsedRule(nextIntent === "create_rule" ? parseUserRule(text) : null);
+    setParsedRule(nextIntent === "create_rule" ? parseUserRule(source) : null);
     setRuleChoice(null);
     setHalachaNamespace(
-      nextIntent === "domain_adjacent" ? selectHalachaPage(text)?.namespace ?? null : null,
+      nextIntent === "domain_adjacent" ? selectHalachaPage(source)?.namespace ?? null : null,
     );
     showDraft(
-      field === null && nextIntent === "add_transaction" ? draftFromText(text, today) : null,
-      text,
+      field === null && nextIntent === "add_transaction" ? draftFromText(source, today) : null,
+      source,
     );
     setSaveMessage(null);
     setSavedItemId(null);
@@ -306,7 +365,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
             placeholder={t("aiIntake.placeholder")}
             aria-label={t("aiIntake.placeholder")}
           />
-          <Button type="submit" disabled={checking}>{t("aiIntake.send")}</Button>
+          <Button type="submit" disabled={checking || recording}>{t("aiIntake.send")}</Button>
           <input
             ref={receiptInput}
             type="file"
@@ -316,8 +375,11 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               void handleReceipt(event.target.files?.[0]);
             }}
           />
-          <Button type="button" disabled={checking} onClick={() => receiptInput.current?.click()}>
+          <Button type="button" disabled={checking || recording} onClick={() => receiptInput.current?.click()}>
             {t("aiIntake.receipt")}
+          </Button>
+          <Button type="button" disabled={checking} onClick={() => void toggleRecording()}>
+            {t(recording ? "aiIntake.voiceStop" : "aiIntake.voice")}
           </Button>
           {checking ? <p>{t("aiIntake.checking")}</p> : null}
           {intent ? (
