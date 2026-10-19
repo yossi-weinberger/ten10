@@ -1,7 +1,9 @@
-import { normalizeArrivalCode } from "./arrival-code";
 import { findShortLinkByCode } from "./short-links";
 
 export const FIRST_TOUCH_STORAGE_KEY = "ten10_attribution_first_touch";
+
+const CAMPAIGN_REF_MAX_LENGTH = 32;
+const CAMPAIGN_REF_PATTERN = /^[A-Z0-9_-]+$/;
 
 export type SignupUtm = {
   utm_source: string;
@@ -26,19 +28,27 @@ function getLocalStorage(): StorageLike | null {
   }
 }
 
-function emptyUtm(): SignupUtm {
-  return { utm_source: "", utm_medium: "", utm_campaign: "" };
-}
-
 function hasUtmValues(utm: SignupUtm): boolean {
   return Boolean(utm.utm_source || utm.utm_medium || utm.utm_campaign);
+}
+
+/** Trim, uppercase, and accept only `[A-Z0-9_-]` up to 32 chars. */
+export function normalizeCampaignRef(
+  raw: string | null | undefined
+): string | null {
+  if (typeof raw !== "string") return null;
+  const normalized = raw.trim().toUpperCase();
+  if (!normalized) return null;
+  if (normalized.length > CAMPAIGN_REF_MAX_LENGTH) return null;
+  if (!CAMPAIGN_REF_PATTERN.test(normalized)) return null;
+  return normalized;
 }
 
 function parseStoredTouch(raw: string | null): FirstTouchAttribution | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as Partial<FirstTouchAttribution>;
-    const code = normalizeArrivalCode(parsed.code) ?? "";
+    const code = normalizeCampaignRef(parsed.code) ?? "";
     const utm: SignupUtm = {
       utm_source:
         typeof parsed.utm?.utm_source === "string" ? parsed.utm.utm_source : "",
@@ -89,9 +99,7 @@ export function parseAttributionSearch(
       ? new URLSearchParams(search.startsWith("?") ? search.slice(1) : search)
       : search;
 
-  const code = normalizeArrivalCode(
-    params.get("ref") ?? params.get("arrival_code")
-  );
+  const code = normalizeCampaignRef(params.get("ref"));
   const fromRegistry = code ? findShortLinkByCode(code) : null;
 
   const utm: SignupUtm = {
@@ -144,20 +152,34 @@ export function captureAttributionFromLocation(
   return readFirstTouch(storage);
 }
 
-export function firstTouchUtmOrEmpty(
-  touch: FirstTouchAttribution | null
-): SignupUtm {
-  return touch?.utm ?? emptyUtm();
-}
-
-export function attributionProperties(
+/** Super-properties / event properties. No PII — campaign codes and UTMs only. */
+export function attributionEventProperties(
   touch: FirstTouchAttribution | null = readFirstTouch()
 ): Record<string, string> {
   if (!touch) return {};
   const properties: Record<string, string> = {};
-  if (touch.code) properties.arrival_code = touch.code;
+  if (touch.code) properties.ref = touch.code;
   if (touch.utm.utm_source) properties.utm_source = touch.utm.utm_source;
   if (touch.utm.utm_medium) properties.utm_medium = touch.utm.utm_medium;
   if (touch.utm.utm_campaign) properties.utm_campaign = touch.utm.utm_campaign;
+  return properties;
+}
+
+/** Person `$set_once` first-touch traits. */
+export function attributionPersonSetOnceProperties(
+  touch: FirstTouchAttribution | null = readFirstTouch()
+): Record<string, string> {
+  if (!touch) return {};
+  const properties: Record<string, string> = {};
+  if (touch.code) properties.initial_ref = touch.code;
+  if (touch.utm.utm_source) {
+    properties.first_touch_utm_source = touch.utm.utm_source;
+  }
+  if (touch.utm.utm_medium) {
+    properties.first_touch_utm_medium = touch.utm.utm_medium;
+  }
+  if (touch.utm.utm_campaign) {
+    properties.first_touch_utm_campaign = touch.utm.utm_campaign;
+  }
   return properties;
 }

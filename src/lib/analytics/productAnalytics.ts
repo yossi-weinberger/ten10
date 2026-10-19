@@ -1,5 +1,6 @@
 import posthog from "posthog-js";
 import { isPostHogSupported } from "@/lib/analytics/posthogClient";
+import { attributionEventProperties } from "@/lib/attribution/capture";
 
 export type ProductAnalyticsEvent =
   | "transaction_created"
@@ -48,8 +49,12 @@ export function trackProductEvent(
 ) {
   if (!isPostHogSupported()) return;
 
+  const attribution =
+    event === "signup_completed" ? attributionEventProperties() : {};
+
   posthog.capture(event, {
     platform: "web",
+    ...attribution,
     ...properties,
   });
 }

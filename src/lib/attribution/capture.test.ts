@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   FIRST_TOUCH_STORAGE_KEY,
-  attributionProperties,
+  attributionEventProperties,
+  attributionPersonSetOnceProperties,
   captureAttributionFromLocation,
   getLocationSearchParams,
+  normalizeCampaignRef,
   parseAttributionSearch,
   persistFirstTouchIfEmpty,
   readFirstTouch,
@@ -18,6 +20,30 @@ function memoryStorage(initial?: Record<string, string>) {
     },
   };
 }
+
+const machonTouch = {
+  code: "MACHON",
+  utm: {
+    utm_source: "institute",
+    utm_medium: "email",
+    utm_campaign: "update_2026",
+  },
+  capturedAt: "2026-10-19T08:00:00.000Z",
+};
+
+describe("normalizeCampaignRef", () => {
+  it("trims and uppercases a valid short-link code", () => {
+    expect(normalizeCampaignRef("  machon  ")).toBe("MACHON");
+    expect(normalizeCampaignRef("A1_-Z")).toBe("A1_-Z");
+  });
+
+  it("rejects empty or illegal codes", () => {
+    expect(normalizeCampaignRef("")).toBeNull();
+    expect(normalizeCampaignRef("bad code")).toBeNull();
+    expect(normalizeCampaignRef("MACHON!")).toBeNull();
+    expect(normalizeCampaignRef("A".repeat(33))).toBeNull();
+  });
+});
 
 describe("parseAttributionSearch", () => {
   it("reads ref and UTM params from a landing redirect", () => {
@@ -46,10 +72,8 @@ describe("parseAttributionSearch", () => {
     });
   });
 
-  it("accepts arrival_code as an alias for ref", () => {
-    expect(parseAttributionSearch("arrival_code=FORUMS")).toMatchObject({
-      code: "FORUMS",
-    });
+  it("ignores the old arrival_code query alias", () => {
+    expect(parseAttributionSearch("arrival_code=FORUMS")).toBeNull();
   });
 
   it("returns null when there is nothing to persist", () => {
@@ -94,23 +118,20 @@ describe("first-touch survival", () => {
     ).toBe("MACHON");
   });
 
-  it("exposes PostHog person/super properties from the stored touch", () => {
-    expect(
-      attributionProperties({
-        code: "MACHON",
-        utm: {
-          utm_source: "institute",
-          utm_medium: "email",
-          utm_campaign: "update_2026",
-        },
-        capturedAt: "2026-10-19T08:00:00.000Z",
-      })
-    ).toEqual({
-      arrival_code: "MACHON",
+  it("exposes PostHog event/super and $set_once properties", () => {
+    expect(attributionEventProperties(machonTouch)).toEqual({
+      ref: "MACHON",
       utm_source: "institute",
       utm_medium: "email",
       utm_campaign: "update_2026",
     });
-    expect(attributionProperties(null)).toEqual({});
+    expect(attributionPersonSetOnceProperties(machonTouch)).toEqual({
+      initial_ref: "MACHON",
+      first_touch_utm_source: "institute",
+      first_touch_utm_medium: "email",
+      first_touch_utm_campaign: "update_2026",
+    });
+    expect(attributionEventProperties(null)).toEqual({});
+    expect(attributionPersonSetOnceProperties(null)).toEqual({});
   });
 });

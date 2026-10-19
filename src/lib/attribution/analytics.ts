@@ -1,11 +1,6 @@
-import posthog from "posthog-js";
-import { isPostHogSupported } from "@/lib/analytics/posthogClient";
-import { attributionProperties } from "./capture";
+import { applyStoredAttributionToPostHog } from "@/lib/analytics/posthogClient";
 
-/** Super-properties so later events (including signup) carry the source. */
+/** Super-properties + first-touch `$set_once` so later events carry the source. */
 export function registerAttributionWithPostHog(): void {
-  if (!isPostHogSupported()) return;
-  const properties = attributionProperties();
-  if (Object.keys(properties).length === 0) return;
-  posthog.register(properties);
+  applyStoredAttributionToPostHog();
 }

@@ -2,8 +2,8 @@
  * Typed registry of campaign short links.
  *
  * Adding a channel (local paper, phone line, forum) is one extra entry.
- * Keep `vercel.json` redirects in sync — `short-links.test.ts` asserts every
- * registry path has matching Vercel redirects (case + trailing slash).
+ * Keep `vercel.json` redirects in sync — `scripts/short-link-vercel-sync.test.ts`
+ * asserts every registry path has matching Vercel redirects (case + trailing slash).
  */
 
 export type ShortLinkCampaign = {
