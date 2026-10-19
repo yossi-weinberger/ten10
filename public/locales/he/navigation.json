@@ -43,6 +43,7 @@
     "dataMixed": "יש יותר ממטבע אחד בשנה הזו. לא חיברתי אותם.",
     "dataFailed": "לא הצלחתי לחשב. לא נשמר.",
     "categoryMissing": "לא מצאתי קטגוריה «{{topic}}». לחפש בתיאור התנועות?",
+    "recipientMissing": "לא מצאתי נמען «{{topic}}». לחפש בתיאור התנועות?",
     "categorySearch": "חפש בתיאור",
     "duplicateScanPending": "מחפש…",
     "duplicateScanCountOne": "נמצא זוג אחד דומה בתנועות שנשמרו. לא נמחק כלום.",

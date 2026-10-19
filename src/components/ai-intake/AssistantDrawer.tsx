@@ -93,7 +93,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [askIntent, setAskIntent] = useState(false);
   const [dataReply, setDataReply] = useState<
     | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; paymentMethod: string | null; topic: string | null; from: string; to: string; total: number; count: number; currency: string | null }
-    | { status: "category_missing"; topic: string; source: string }
+    | { status: "category_missing"; topic: string; source: string; kind: "category" | "recipient" }
     | { status: "mixed" | "unsupported" | "failed" }
     | null
   >(null);
@@ -372,8 +372,8 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       return;
     }
     const filter = await resolveQuestionFilter(question, searchDescriptions);
-    if (filter === "MISSING") {
-      setDataReply({ status: "category_missing", topic: question.topic ?? "", source });
+    if ("missing" in filter) {
+      setDataReply({ status: "category_missing", topic: filter.name, source, kind: filter.missing });
       return;
     }
     const result = await sumYearType(question, filter);
@@ -388,7 +388,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       measure: question.measure,
       type: question.type,
       paymentMethod: question.paymentMethod,
-      topic: question.topic,
+      topic: question.recipient ?? question.topic,
       from: question.from,
       to: question.to,
       total: result.total,
@@ -622,7 +622,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               ) : null}
               {intent === "ask_data" && dataReply?.status === "category_missing" ? (
                 <div className="flex flex-col gap-2">
-                  <p>{t("aiIntake.categoryMissing", { topic: dataReply.topic })}</p>
+                  <p>{t(dataReply.kind === "recipient" ? "aiIntake.recipientMissing" : "aiIntake.categoryMissing", { topic: dataReply.topic })}</p>
                   <Button type="button" onClick={() => void loadDataAnswer(dataReply.source, true)}>
                     {t("aiIntake.categorySearch")}
                   </Button>
