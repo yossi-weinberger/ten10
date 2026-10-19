@@ -9,7 +9,7 @@ export const getCorsHeaders = (
     "http://localhost:5173",
     "http://127.0.0.1:54321",
   ];
-  const PREVIEW_ORIGIN = /^https:\/\/ten10-[a-z0-9-]+\.vercel\.app$/;
+  const PREVIEW_ORIGIN = /^https:\/\/ten10-[a-z0-9-]+-yossi-weinbergers-projects\.vercel\.app$/;
 
   // If origin is allowed, return it. Preview deploys are ten10-<name>.vercel.app.
   if (origin && (ALLOWED_ORIGINS.includes(origin) || PREVIEW_ORIGIN.test(origin))) {
