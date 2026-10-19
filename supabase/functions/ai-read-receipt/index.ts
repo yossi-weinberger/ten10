@@ -1,19 +1,20 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
-import { readModelText, readReceiptDraft, RECEIPT_VISION_MODEL } from "../_shared/ai/receipt-draft.ts";
+import { readModelText, readReceiptDraft, receiptFilePart, RECEIPT_VISION_MODEL } from "../_shared/ai/receipt-draft.ts";
 
 const RESPONSES_URL = "https://ai-gateway.vercel.sh/v1/responses";
-const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 const MAX_BASE64_CHARS = 5_500_000;
 
 const PROMPT = [
-  "Read this receipt image.",
+  "Read this receipt. It may be written in Hebrew, English, or both.",
   "Reply with JSON only, no markdown.",
   '{"description":"merchant name","date":"YYYY-MM-DD","amount":12.34,"currency":"ILS"}',
   "currency is ILS, USD, or EUR.",
   "amount is the total paid, as a positive number.",
-  "description is the merchant, without the amount or currency.",
+  "description is the merchant name exactly as printed. Keep Hebrew in Hebrew and English in English. Do not translate.",
+  "Israeli dates are day/month/year. Return the date as YYYY-MM-DD.",
   "If you cannot read a total, reply {\"description\":null}.",
 ].join(" ");
 
@@ -59,7 +60,8 @@ Deno.serve(async (req: Request) => {
   const body = await req.json().catch(() => null) as { media_type?: unknown; data?: unknown } | null;
   const mediaType = typeof body?.media_type === "string" ? body.media_type : "";
   const data = typeof body?.data === "string" ? body.data : "";
-  if (!ALLOWED_TYPES.has(mediaType) || data.length === 0 || data.length > MAX_BASE64_CHARS) {
+  const filePart = receiptFilePart(mediaType, data);
+  if (!ALLOWED_TYPES.has(mediaType) || !filePart || data.length === 0 || data.length > MAX_BASE64_CHARS) {
     return json(origin, { draft: null }, 400);
   }
 
@@ -80,7 +82,7 @@ Deno.serve(async (req: Request) => {
           role: "user",
           content: [
             { type: "input_text", text: PROMPT },
-            { type: "input_image", image_url: `data:${mediaType};base64,${data}` },
+            filePart,
           ],
         }],
         providerOptions: {
