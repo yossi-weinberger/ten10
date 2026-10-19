@@ -30,6 +30,27 @@ function normalize(text: string): string {
   return text.trim().toLowerCase().replace(/־/g, " ").replace(/\s+/g, " ");
 }
 
+function shiftMonths(iso: string, delta: number): string {
+  const year = Number(iso.slice(0, 4));
+  const month = Number(iso.slice(5, 7));
+  const day = Number(iso.slice(8, 10));
+  const shifted = new Date(Date.UTC(year, month - 1 + delta, day));
+  const y = shifted.getUTCFullYear();
+  const m = String(shifted.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(shifted.getUTCDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function recentMonthCount(text: string): number | null {
+  const hebrew = text.match(/(\d{1,2})\s*חודשים אחרונים/);
+  const english = text.match(/last\s+(\d{1,2})\s+months?/);
+  const raw = hebrew?.[1] ?? english?.[1];
+  if (!raw) return null;
+  const count = Number(raw);
+  if (count < 1 || count > 24) return null;
+  return count;
+}
+
 function monthEnd(year: number, month: number): string {
   const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
   return `${year}-${String(month).padStart(2, "0")}-${String(last).padStart(2, "0")}`;
@@ -61,6 +82,17 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
   const measure = measureOf(normalized);
   const todayYear = Number(today.slice(0, 4));
   const todayMonth = Number(today.slice(5, 7));
+  const recentMonths = recentMonthCount(normalized);
+  if (recentMonths !== null) {
+    return {
+      type,
+      measure,
+      year: todayYear,
+      month: null,
+      from: shiftMonths(today, -recentMonths),
+      to: today,
+    };
+  }
   if (includesAlias(normalized, THIS_MONTH)) {
     const month = String(todayMonth).padStart(2, "0");
     return {

@@ -32,3 +32,12 @@ Deno.test("how many counts transactions and a verb still sums", () => {
   assert(english?.measure === "count" && english.from === "2026-01-01", "english count");
   assert(parseYearTypeSum("כמה תרמתי ב-2025", TODAY)?.measure === "sum", "verb stays a sum");
 });
+
+Deno.test("last N months is a rolling window from the supplied date", () => {
+  const hebrew = parseYearTypeSum("כמה תרמתי ב-3 חודשים אחרונים", TODAY);
+  assert(hebrew?.from === "2026-07-19" && hebrew.to === "2026-10-19", "three months");
+  const english = parseYearTypeSum("how many expenses in the last 2 months", TODAY);
+  assert(english?.measure === "count" && english.type === "expense", "count expenses");
+  assert(english?.from === "2026-08-19", "two months");
+  assert(parseYearTypeSum("כמה תרמתי ב-0 חודשים אחרונים", TODAY) === null, "zero");
+});
