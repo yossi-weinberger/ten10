@@ -3,17 +3,12 @@
  */
 
 import {
-  BIT_MARKERS,
-  CASH_MARKERS,
-  CHECK_MARKERS,
-  CREDIT_MARKERS,
   DONATION_TYPE_MARKERS,
   EXPENSE_TYPE_MARKERS,
   INCOME_TYPE_MARKERS,
   MAX_MARKERS,
   QUESTION_MARKERS,
   TRANSACTION_VERBS,
-  TRANSFER_MARKERS,
   includesAlias,
 } from "./phrase-aliases.ts";
 
@@ -88,18 +83,33 @@ const HEBREW_MONTH_WORDS: readonly (readonly [number, string])[] = [
 ];
 
 function hasHebrewForm(text: string, word: string): boolean {
+  const prefixes = "בהוכלמש";
   let from = 0;
   while (from < text.length) {
     const at = text.indexOf(word, from);
     if (at < 0) return false;
+    const before = at === 0 ? "" : text[at - 1] ?? "";
     const after = text[at + word.length] ?? "";
-    if (!/[א-ת]/.test(after)) return true;
+    const afterOk = after === "" || !/[א-ת]/.test(after);
+    const beforeIsLetter = /[א-ת]/.test(before);
+    const singlePrefix = beforeIsLetter && prefixes.includes(before) && (at < 2 || !/[א-ת]/.test(text[at - 2] ?? ""));
+    const beforeOk = !beforeIsLetter || singlePrefix;
+    const maaser = before === "מ" && (word === "עשר" || word === "עשרה" || word === "עשרת");
+    if (afterOk && beforeOk && !maaser) return true;
     from = at + 1;
   }
   return false;
 }
 
 function recentMonthCount(text: string): number | null {
+  if (
+    text.includes("חצי השנה")
+    || text.includes("חצי שנה")
+    || text.includes("last six months")
+    || text.includes("past six months")
+  ) {
+    return 6;
+  }
   const digit = text.match(/(\d{1,2})\s*ה?חודשים\s+ה?אחרונים/)
     ?? text.match(/last\s+(\d{1,2})\s+months?/);
   if (digit?.[1]) {
@@ -107,10 +117,18 @@ function recentMonthCount(text: string): number | null {
     if (count < 1 || count > 24) return null;
     return count;
   }
-  if (!text.includes("אחרון") && !text.includes("אחרונים")) return null;
+  if (!text.includes("אחרון") && !text.includes("אחרונים") && !text.includes("אחרונה")) return null;
   if (text.includes("חודשיים")) return 2;
-  if (text.includes("חודש אחרון") || text.includes("החודש האחרון")) return 1;
+  if (text.includes("חודש אחרון") || text.includes("החודש האחרון") || text.includes("חודש האחרון")) return 1;
   if (!text.includes("חודשים")) return null;
+  if (
+    hasHebrewForm(text, "שנים עשר")
+    || hasHebrewForm(text, "שניים עשר")
+    || hasHebrewForm(text, "שתים עשרה")
+    || hasHebrewForm(text, "שתיים עשרה")
+  ) {
+    return 12;
+  }
   for (const [count, word] of HEBREW_MONTH_WORDS) {
     if (hasHebrewForm(text, word)) return count;
   }
@@ -127,18 +145,35 @@ function monthEnd(year: number, month: number): string {
   return `${year}-${String(month).padStart(2, "0")}-${String(last).padStart(2, "0")}`;
 }
 
-const DEBIT_MARKERS = ["דביט", "debit"] as const;
 const PAYMENT_TOPICS = [
-  ["debit_card", DEBIT_MARKERS],
-  ["bank_transfer", TRANSFER_MARKERS],
-  ["bit_paybox", BIT_MARKERS],
-  ["credit_card", CREDIT_MARKERS],
-  ["cash", CASH_MARKERS],
-  ["check", CHECK_MARKERS],
+  ["debit_card", ["בכרטיס דביט", "כרטיס דביט", "בדביט", "דביט", "debit"]],
+  ["bank_transfer", ["העברה בנקאית", "בהעברה", "העברה", "transfer"]],
+  ["bit_paybox", ["בביט", "ביט", "פייבוקס", "paybox"]],
+  ["paypal", ["paypal", "פייפאל"]],
+  ["credit_card", ["באשראי", "אשראי", "credit"]],
+  ["cash", ["במזומן", "מזומן", "cash"]],
+  ["check", ["בצ'ק", "בצ׳ק", "צ'ק", "צ׳ק", "cheque", "by check"]],
 ] as const;
 
+function hasToken(text: string, token: string): boolean {
+  let from = 0;
+  while (from < text.length) {
+    const at = text.indexOf(token, from);
+    if (at < 0) return false;
+    const before = at === 0 ? "" : text[at - 1] ?? "";
+    const after = text[at + token.length] ?? "";
+    const letter = /[א-תa-z0-9]/i;
+    const singlePrefix = (before === "ו" || before === "ב") && (at < 2 || !letter.test(text[at - 2] ?? ""));
+    const beforeOk = before === "" || !letter.test(before) || singlePrefix;
+    const afterOk = after === "" || !letter.test(after);
+    if (beforeOk && afterOk) return true;
+    from = at + 1;
+  }
+  return false;
+}
+
 function paymentMethodOf(text: string): string | null | "ambiguous" {
-  const hits = PAYMENT_TOPICS.filter(([, markers]) => includesAlias(text, markers));
+  const hits = PAYMENT_TOPICS.filter(([, markers]) => markers.some((marker) => hasToken(text, marker)));
   if (hits.length > 1) return "ambiguous";
   return hits[0]?.[0] ?? null;
 }
@@ -200,12 +235,22 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
       to: monthEnd(todayYear, todayMonth),
     };
   }
+  const lastYear = normalized.includes("השנה שעברה")
+    || normalized.includes("שנה שעברה")
+    || normalized.includes("last year");
   const yearMatch = normalized.match(/\b(20\d{2})\b/);
-  const year = yearMatch ? Number(yearMatch[1]) : includesAlias(normalized, THIS_YEAR) ? todayYear : null;
+  const year = lastYear
+    ? todayYear - 1
+    : yearMatch
+      ? Number(yearMatch[1])
+      : includesAlias(normalized, THIS_YEAR)
+        ? todayYear
+        : null;
   if (year === null || year < 2000 || year > 2099) return null;
   const from = `${year}-01-01`;
   const to = `${year}-12-31`;
-  return { type, measure, months: 12, paymentMethod, year, month: null, from, to };
+  const months = year === todayYear ? todayMonth : 12;
+  return { type, measure, months, paymentMethod, year, month: null, from, to };
 }
 
 export function periodLabel(question: Pick<YearTypeSum, "year" | "month" | "from" | "to">): string {

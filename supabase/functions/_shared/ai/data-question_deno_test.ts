@@ -55,6 +55,28 @@ Deno.test("a giving verb stays a sum, and החודש is not החודשים", () 
   assert(parseYearTypeSum("כמה תרמתי החודש", TODAY)?.month === 10, "this month");
 });
 
+Deno.test("tithe wording and last year do not change the window", () => {
+  const tithe = parseYearTypeSum("כמה תרמתי למעשר בשלושת החודשים האחרונים", TODAY);
+  assert(tithe?.from === "2026-07-20" && tithe.to === "2026-10-19", "maaser is not ten");
+  const twelve = parseYearTypeSum("כמה תרמתי בשנים עשר החודשים האחרונים", TODAY);
+  assert(twelve?.from === "2025-10-20", "twelve months");
+  const previous = parseYearTypeSum("כמה תרמתי השנה שעברה", TODAY);
+  assert(previous?.year === 2025 && previous.from === "2025-01-01", "last year");
+  const half = parseYearTypeSum("כמה תרמתי בחצי השנה האחרונה", TODAY);
+  assert(half?.from === "2026-04-20" && half.month === null, "half year");
+  const lastMonth = parseYearTypeSum("כמה תרמתי בחודש האחרון", TODAY);
+  assert(lastMonth?.from === "2026-09-20", "last month");
+});
+
+Deno.test("a payment method is a whole word", () => {
+  assert(parseYearTypeSum("כמה הוצאתי על ביטוח השנה", TODAY)?.paymentMethod === null, "insurance");
+  assert(parseYearTypeSum("כמה הוצאתי על ביטול השנה", TODAY)?.paymentMethod === null, "cancellation");
+  const debit = parseYearTypeSum("כמה הוצאתי בכרטיס דביט השנה", TODAY);
+  assert(debit?.paymentMethod === "debit_card", "debit");
+  assert(parseYearTypeSum("check how much I donated this year", TODAY)?.paymentMethod === null, "verb check");
+  assert(parseYearTypeSum("כמה הוצאתי על בצק השנה", TODAY)?.paymentMethod === null, "dough");
+});
+
 Deno.test("a payment method narrows the question, and two methods do not", () => {
   const credit = parseYearTypeSum("כמה הוצאתי באשראי השנה", TODAY);
   assert(credit?.paymentMethod === "credit_card" && credit.measure === "sum" && credit.type === "expense", "credit");
@@ -74,9 +96,10 @@ Deno.test("the largest saved transaction is a max, and a plain total stays a sum
 
 Deno.test("a monthly average divides the saved total by the months in the window", () => {
   const year = parseYearTypeSum("ממוצע תרומות השנה", TODAY);
-  assert(year?.measure === "average" && year.months === 12, "hebrew average");
+  assert(year?.measure === "average" && year.months === 10, "hebrew average");
   const english = parseYearTypeSum("average donations this year", TODAY);
-  assert(english?.measure === "average" && english.months === 12, "english average");
+  assert(english?.measure === "average" && english.months === 10, "english average");
+  assert(parseYearTypeSum("ממוצע תרומות ב-2025", TODAY)?.months === 12, "a past year stays twelve");
   const end = parseYearTypeSum("כמה תרמתי ב-1 חודשים אחרונים", "2026-03-31");
   assert(end?.from === "2026-03-01" && end.to === "2026-03-31", "month end does not overflow");
 });
