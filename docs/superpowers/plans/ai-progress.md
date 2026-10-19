@@ -39,7 +39,7 @@
 | 22 | אזהרת כפילות לפני שמירה | DB על testing + UI, בלי מודל | §10.5 | מוזג ל־`feat/ai-intake` | [#474](https://github.com/yossi-weinberger/ten10/pull/474) |
 | 23 | תשובה לאזהרת כפילות | DB על testing + UI, בלי מודל | §10.5 | מוזג ל־`feat/ai-intake` | [#475](https://github.com/yossi-weinberger/ten10/pull/475) |
 | 24 | טיוטה פתוחה באזהרת כפילות | DB על testing + UI, בלי מודל | §10.5 | מוזג ל־`feat/ai-intake` | [#476](https://github.com/yossi-weinberger/ten10/pull/476) |
-| 25 | דירוג כפילות עם Jev | Edge על testing + UI | §10.5 | נפתח מול `feat/ai-intake` | |
+| 25 | דירוג כפילות עם Jev | Edge על testing + UI | §10.5 | נפתח מול `feat/ai-intake` | [#478](https://github.com/yossi-weinberger/ten10/pull/478) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
