@@ -1,6 +1,7 @@
 import { Transaction } from "../../types/transaction"; // Updated path
 
 export type IsRecurringFilter = "all" | "recurring" | "non-recurring";
+export type OriginFilter = "all" | "ai" | "ai_auto";
 
 export interface TableTransactionFilters {
   dateRange: {
@@ -13,6 +14,7 @@ export interface TableTransactionFilters {
   isRecurring: IsRecurringFilter;
   recurringStatuses: string[];
   recurringFrequencies: string[];
+  origin: OriginFilter;
 }
 
 export interface TableSortConfig {
@@ -36,6 +38,7 @@ export const initialTableTransactionFilters: TableTransactionFilters = {
   isRecurring: "all",
   recurringStatuses: [],
   recurringFrequencies: [],
+  origin: "all",
 };
 
 export const initialTableSortConfig: TableSortConfig = {

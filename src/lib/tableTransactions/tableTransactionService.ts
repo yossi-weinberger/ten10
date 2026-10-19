@@ -95,6 +95,9 @@ export class TableTransactionsService {
             filters.recurringFrequencies.length > 0
               ? filters.recurringFrequencies
               : null,
+          ...(filters.origin && filters.origin !== "all"
+            ? { p_origin: filters.origin }
+            : {}),
         };
 
         logger.log(
