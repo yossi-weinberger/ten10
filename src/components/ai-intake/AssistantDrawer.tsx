@@ -93,13 +93,17 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const discardRecording = useRef(false);
   const recordTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    if (open) {
-      discardRecording.current = false;
-      void listActiveUserRules().then(setRules);
-      return;
-    }
+  function stopRecording() {
     discardRecording.current = true;
+    if (recordTimer.current) {
+      clearTimeout(recordTimer.current);
+      recordTimer.current = null;
+    }
+    const active = recorder.current;
+    if (active && active.state !== "inactive") active.stop();
+  }
+
+  function clearConversation() {
     setText("");
     setIntent(null);
     setDraft(null);
@@ -119,12 +123,20 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setChecking(false);
     setSaveMessage(null);
     setSavedItemId(null);
-    if (recordTimer.current) {
-      clearTimeout(recordTimer.current);
-      recordTimer.current = null;
+  }
+
+  function handleOpenChange(next: boolean) {
+    if (next) discardRecording.current = false;
+    else {
+      stopRecording();
+      clearConversation();
     }
-    const active = recorder.current;
-    if (active && active.state !== "inactive") active.stop();
+    onOpenChange(next);
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    void listActiveUserRules().then(setRules);
   }, [open]);
 
   useEffect(() => {
@@ -433,7 +445,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
+    <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>{t("aiIntake.title")}</DrawerTitle>
