@@ -42,7 +42,8 @@ import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 import { readReceiptImage } from "@/lib/ai/read-receipt";
 import { isIsoDate, receiptAsDraft, receiptRuledDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
 import { dismissDuplicatePair, loadDuplicateScan } from "@/lib/ai/load-duplicate-scan";
-import { deleteTransaction } from "@/lib/data-layer";
+import { getPlatform } from "@/lib/platformManager";
+import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import { resolveQuestionFilter, sumYearType } from "@/lib/ai/sum-year-type";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
@@ -99,6 +100,8 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     | null
   >(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [duplicateNote, setDuplicateNote] = useState<string | null>(null);
+  const confirmArmedAt = useRef(0);
   const [duplicateScan, setDuplicateScan] = useState<
     | { status: "pending" }
     | { status: "ready"; count: number; pairs: DuplicatePair[] }
@@ -368,16 +371,27 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setDuplicateScan({ status: "ready", count: result.count, pairs: result.pairs });
   }
 
+  function askDelete(id: string) {
+    confirmArmedAt.current = Date.now();
+    setConfirmDeleteId(id);
+    setDuplicateNote(null);
+  }
+
   async function dismissPair(pair: DuplicatePair) {
     const saved = await dismissDuplicatePair(pair.left.id, pair.right.id);
-    if (!saved) return;
+    if (!saved) {
+      setDuplicateNote(t("aiIntake.duplicateActionFailed"));
+      return;
+    }
     await loadScan();
   }
 
   async function confirmDelete(id: string) {
+    if (Date.now() - confirmArmedAt.current < 500) return;
     try {
-      await deleteTransaction(id);
+      await useTableTransactionsStore.getState().deleteTransaction(id, getPlatform());
     } catch {
+      setDuplicateNote(t("aiIntake.duplicateActionFailed"));
       return;
     }
     setConfirmDeleteId(null);
@@ -666,15 +680,19 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                             {side.date} · {side.amount} {side.currency}
                             {side.description ? ` · ${side.description}` : ""}
                           </span>
+                          <Button type="button" onClick={() => askDelete(side.id)}>
+                            {t("aiIntake.duplicateDelete")}
+                          </Button>
                           {confirmDeleteId === side.id ? (
-                            <Button type="button" onClick={() => void confirmDelete(side.id)}>
-                              {t("aiIntake.duplicateConfirm")}
-                            </Button>
-                          ) : (
-                            <Button type="button" onClick={() => setConfirmDeleteId(side.id)}>
-                              {t("aiIntake.duplicateDelete")}
-                            </Button>
-                          )}
+                            <>
+                              <Button type="button" onClick={() => void confirmDelete(side.id)}>
+                                {t("aiIntake.duplicateConfirm")}
+                              </Button>
+                              <Button type="button" onClick={() => setConfirmDeleteId(null)}>
+                                {t("aiIntake.duplicateCancel")}
+                              </Button>
+                            </>
+                          ) : null}
                         </div>
                       ))}
                       <Button type="button" onClick={() => void dismissPair(pair)}>
@@ -682,6 +700,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                       </Button>
                     </div>
                   ))}
+                  {duplicateNote ? <p>{duplicateNote}</p> : null}
                 </div>
               ) : null}
               {halachaNamespace ? (

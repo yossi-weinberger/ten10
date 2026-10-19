@@ -204,7 +204,8 @@ function looksLikeDateToken(word: string): boolean {
     || /20\d{2}-\d{2}-\d{2}/.test(word)
     || compact === "עד"
     || compact === "מ"
-    || /^מ\d/.test(compact);
+    || compact === "ב"
+    || /^[מב]\d/.test(compact);
 }
 
 function isTopicTail(word: string): boolean {
@@ -213,11 +214,11 @@ function isTopicTail(word: string): boolean {
   if (TOPIC_TAIL.has(compact) || TOPIC_TAIL.has(withoutBet)) return true;
   if (/^20\d{2}$/.test(compact) || /^20\d{2}$/.test(withoutBet)) return true;
   if (
-    compact === "in" || compact === "of" || compact === "the" || compact === "from" || compact === "to"
+    compact === "in" || compact === "of" || compact === "the" || compact === "from" || compact === "to" || compact === "and"
     || compact === "שנה" || withoutBet === "שנה" || compact === "שנת" || withoutBet === "שנת"
     || compact === "מעשר" || compact === "המעשר"
   ) return true;
-  if (looksLikeDateToken(word)) return true;
+  if (looksLikeDateToken(word) || monthNumber(word) || /^\d+$/.test(compact) || compact === "ב") return true;
   return [
     "באשראי", "אשראי", "במזומן", "מזומן", "בביט", "ביט", "בדביט", "דביט",
     "בהעברה", "העברה", "cash", "credit", "debit", "transfer", "cheque",
@@ -245,13 +246,17 @@ function recipientPhrase(text: string): string | null | "ambiguous" {
   const prepared = text.replace(/ל[-־]/g, "ל");
   const names: string[] = [];
   for (let i = 0; i < prepared.length; i++) {
+    if (prepared[i] !== "ל") continue;
     const prev = i === 0 ? " " : prepared[i - 1];
-    if (prepared[i] !== "ל" || (prev !== " " && prev !== "ו")) continue;
+    const beforePrev = i < 2 ? " " : prepared[i - 2];
+    const wordStart = prev === " " || (prev === "ו" && beforePrev === " ");
+    if (!wordStart) continue;
     const name = readName(prepared.slice(i + 1));
     if (name) names.push(name);
   }
-  const english = prepared.match(/\bto\s+(?:the\s+)?(.+)$/i);
-  if (english?.[1]) {
+  for (const part of prepared.split(/\band\b/i)) {
+    const english = part.match(/\bto\s+(?:the\s+)?(.+)$/i);
+    if (!english?.[1]) continue;
     const name = readName(english[1]);
     if (name) names.push(name);
   }
@@ -293,7 +298,9 @@ const ENGLISH_MONTHS = [
 
 function monthNumber(word: string): number | null {
   const compact = cleanTopicWord(word).toLowerCase();
-  const bare = compact.startsWith("מ") && compact.length > 3 ? compact.slice(1) : compact;
+  const bare = (compact.startsWith("מ") || compact.startsWith("ב")) && compact.length > 3
+    ? compact.slice(1)
+    : compact;
   const hebrew = HEBREW_MONTHS.indexOf(bare);
   if (hebrew >= 0) return hebrew + 1;
   const english = ENGLISH_MONTHS.indexOf(compact);
@@ -311,10 +318,11 @@ function monthNameRange(text: string): { from: string; to: string } | "attempt" 
     if (found) year = Number(found[1]);
   }
   if (months.length === 0) return null;
-  if (months.length !== 2 || year === null || months[0] > months[1]) return "attempt";
+  if (year === null || months.length > 2 || (months.length === 2 && months[0] > months[1])) return "attempt";
+  const endMonth = months.length === 2 ? months[1] : months[0];
   const from = `${year}-${String(months[0]).padStart(2, "0")}-01`;
-  const last = new Date(Date.UTC(year, months[1], 0)).getUTCDate();
-  return { from, to: `${year}-${String(months[1]).padStart(2, "0")}-${String(last).padStart(2, "0")}` };
+  const last = new Date(Date.UTC(year, endMonth, 0)).getUTCDate();
+  return { from, to: `${year}-${String(endMonth).padStart(2, "0")}-${String(last).padStart(2, "0")}` };
 }
 
 function hasDateAttempt(text: string): boolean {
@@ -424,7 +432,25 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
     };
   }
   if (normalized.includes("שנת מעשר") || normalized.includes("שנת המעשר") || normalized.includes("maaser year") || normalized.includes("tithe year")) {
+    const hebrewMention = normalized.match(/\b(5\d{3})\b/);
     if (/\b20\d{2}\b/.test(normalized)) return null;
+    if (hebrewMention?.[1]) {
+      const named = Number(hebrewMention[1]);
+      const range = getMaaserYearRange(named);
+      const to = clampMaaserYearReportEnd(range, today);
+      return {
+        type,
+        measure,
+        months: hebrewMonthsBetween(range.startDate, to),
+        paymentMethod,
+        topic,
+        recipient,
+        year: named,
+        month: null,
+        from: range.startDate,
+        to,
+      };
+    }
     const previous = normalized.includes("שעברה")
       || normalized.includes("הקודמת")
       || normalized.includes("הקודם")
