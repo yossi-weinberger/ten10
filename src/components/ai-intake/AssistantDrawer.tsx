@@ -75,29 +75,25 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     void listActiveUserRules().then(setRules);
   }, [open]);
 
-  useEffect(() => {
-    if (!draft) {
+  const duplicateRequest = useRef(0);
+
+  function refreshDuplicates(next: TextTransactionDraft | null, amountText: string) {
+    const request = duplicateRequest.current + 1;
+    duplicateRequest.current = request;
+    const amount = Number(amountText.replace(",", "."));
+    if (!next || !Number.isFinite(amount) || amount === 0) {
       setDuplicates([]);
       return;
     }
-    const amount = Number(amountInput.replace(",", "."));
-    if (!Number.isFinite(amount) || amount === 0) {
-      setDuplicates([]);
-      return;
-    }
-    let cancelled = false;
     void listDuplicateCandidates({
-      type: draft.type,
-      date: draft.date,
+      type: next.type,
+      date: next.date,
       amount,
-      currency: draft.currency,
+      currency: next.currency,
     }).then((rows) => {
-      if (!cancelled) setDuplicates(rows);
+      if (duplicateRequest.current === request) setDuplicates(rows);
     });
-    return () => {
-      cancelled = true;
-    };
-  }, [amountInput, draft]);
+  }
 
   function showDraft(next: TextTransactionDraft | null, source: string) {
     if (!next) {
@@ -105,6 +101,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       originalDraft.current = null;
       setAmountInput("");
       setAppliedRuleName(null);
+      refreshDuplicates(null, "");
       return;
     }
     const applied = applyForwardRule(next, rules, source);
@@ -115,6 +112,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       amount: applied.draft.amount,
     };
     setAppliedRuleName(applied.ruleName);
+    refreshDuplicates(applied.draft, String(applied.draft.amount));
   }
 
   function handleSubmit() {
@@ -328,7 +326,10 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                     value={amountInput}
                     inputMode="decimal"
                     aria-label={t("aiIntake.editAmount")}
-                    onChange={(event) => setAmountInput(event.target.value)}
+                    onChange={(event) => {
+                      setAmountInput(event.target.value);
+                      refreshDuplicates(draft, event.target.value);
+                    }}
                   />
                   {appliedRuleName ? (
                     <p>{t("aiIntake.ruleApplied", { name: appliedRuleName })}</p>
