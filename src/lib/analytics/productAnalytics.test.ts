@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const capture = vi.fn();
+const { capture } = vi.hoisted(() => ({
+  capture: vi.fn(),
+}));
 
 vi.mock("posthog-js", () => ({
   default: { capture },
