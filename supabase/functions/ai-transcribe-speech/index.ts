@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { logger } from "../_shared/logger.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { readTranscript, SPEECH_MODEL } from "../_shared/ai/speech-transcript.ts";
 
@@ -7,29 +8,16 @@ const TRANSCRIBE_URL = "https://ai-gateway.vercel.sh/v4/ai/transcription-model";
 const ALLOWED_TYPES = new Set(["audio/webm", "audio/mp4", "audio/mpeg", "audio/wav", "audio/ogg"]);
 const MAX_BASE64_CHARS = 3_000_000;
 
-function corsHeaders(origin: string | null): Record<string, string> {
-  const headers = getCorsHeaders(origin);
-  if (headers["Access-Control-Allow-Origin"] || !origin) return headers;
-  if (/^https:\/\/ten10-[a-z0-9-]+\.vercel\.app$/.test(origin)) {
-    return {
-      "Access-Control-Allow-Origin": origin,
-      "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-      "Access-Control-Allow-Credentials": "true",
-    };
-  }
-  return headers;
-}
-
 function json(origin: string | null, body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
+    headers: { ...getCorsHeaders(origin), "Content-Type": "application/json" },
   });
 }
 
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin");
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders(origin) });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: getCorsHeaders(origin) });
   if (req.method !== "POST") return json(origin, { text: null }, 405);
 
   const authHeader = req.headers.get("Authorization");
@@ -70,13 +58,13 @@ Deno.serve(async (req: Request) => {
       signal: AbortSignal.timeout(20000),
     });
     if (!response.ok) {
-      console.error(`speech transcribe failed: ${response.status}`);
+      logger.error(`speech transcribe failed: ${response.status}`);
       return json(origin, { text: null }, 200);
     }
     const text = readTranscript(await response.json());
     return json(origin, { text }, 200);
   } catch {
-    console.error("speech transcribe failed");
+    logger.error("speech transcribe failed");
     return json(origin, { text: null }, 200);
   }
 });
