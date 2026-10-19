@@ -10,7 +10,28 @@ export interface ReceiptDraft {
   currency: ReceiptCurrency;
 }
 
-export const RECEIPT_VISION_MODEL = "anthropic/claude-haiku-4.5";
+/** Locked vision model. Reads Hebrew and English receipts, including PDFs. */
+export const RECEIPT_VISION_MODEL = "anthropic/claude-sonnet-5";
+
+export function receiptFilePart(
+  mediaType: string,
+  data: string,
+):
+  | { type: "input_image"; image_url: string }
+  | { type: "input_file"; filename: string; file_data: string }
+  | null {
+  if (mediaType === "application/pdf") {
+    return {
+      type: "input_file",
+      filename: "receipt.pdf",
+      file_data: `data:application/pdf;base64,${data}`,
+    };
+  }
+  if (mediaType === "image/jpeg" || mediaType === "image/png" || mediaType === "image/webp") {
+    return { type: "input_image", image_url: `data:${mediaType};base64,${data}` };
+  }
+  return null;
+}
 
 export function readModelText(payload: unknown): string {
   if (!payload || typeof payload !== "object") return "";

@@ -310,7 +310,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
           <input
             ref={receiptInput}
             type="file"
-            accept="image/jpeg,image/png,image/webp"
+            accept="image/jpeg,image/png,image/webp,application/pdf"
             className="hidden"
             onChange={(event) => {
               void handleReceipt(event.target.files?.[0]);

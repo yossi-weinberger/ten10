@@ -3,7 +3,7 @@ import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
 import { readReceiptDraft } from "../../../supabase/functions/_shared/ai/receipt-draft.ts";
 
 const MAX_BYTES = 4 * 1024 * 1024;
-const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 
 export type ReadReceiptResult =
   | { ok: true; draft: TextTransactionDraft }
