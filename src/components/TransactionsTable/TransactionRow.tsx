@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { MoreHorizontal, Trash2, Edit3, Repeat } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit3, Repeat, Sparkles } from "lucide-react";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
@@ -21,6 +21,7 @@ import { CurrencyConversionInfo } from "@/components/Currency/CurrencyConversion
 import { formatPaymentMethod } from "@/lib/payment-methods";
 import { formatCategory } from "@/lib/category-registry";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { usePlatform } from "@/contexts/PlatformContext";
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
@@ -46,6 +47,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   selectionDisabled = false,
 }) => {
   const { t, i18n } = useTranslation(["data-tables", "transactions"]);
+  const { platform } = usePlatform();
   const formatDisplayDate = useDisplayDate();
   const displayDate = formatDisplayDate(transaction.date, "numeric");
 
@@ -60,7 +62,20 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
         )}
       </TableCell>
       <TableCell className="text-start">
-        {transaction.description || "-"}
+        <span className="inline-flex items-center gap-1">
+          {transaction.description || "-"}
+          {platform === "web" &&
+          (transaction.origin === "ai" || transaction.origin === "ai_auto") ? (
+            <Sparkles
+              className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+              aria-label={t(
+                transaction.origin === "ai_auto"
+                  ? "filters.originAuto"
+                  : "filters.originAi",
+              )}
+            />
+          ) : null}
+        </span>
       </TableCell>
       <TableCell className="text-center font-medium whitespace-nowrap">
         <CurrencyConversionInfo

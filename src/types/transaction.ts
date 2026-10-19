@@ -75,6 +75,7 @@ export interface Transaction {
   recurring_status?: "active" | "paused" | "completed" | "cancelled" | null;
   recurring_frequency?: string | null;
   occurrence_number?: number | null;
+  origin?: "ai" | "ai_auto" | null;
 }
 
 export interface TransactionForTable extends Transaction {

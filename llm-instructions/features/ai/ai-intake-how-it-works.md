@@ -21,7 +21,7 @@
 | החלטת סוג מרשימה סגורה | `supabase/functions/_shared/ai/decision.ts` | `decide()`. מתאם כללים טהור. מתאמי Jev ו-LLM זורקים שגיאה בלי מפתח |
 | סכמה | `ai` ב-testing | טבלאות intake. משתמש מחובר יכול רק לקרוא את השורות שלו |
 | רישום | `ai.commit_intake_items` ב-testing | כותב תנועה אחת או יותר. כשל אחד מבטל את כל הקריאה |
-| עמודה בטבלת התנועות | `public.transactions.origin` | `NULL`, `ai`, או `ai_auto`. קיימת ב-testing |
+| עמודה בטבלת התנועות | `public.transactions.origin` | `NULL`, `ai`, או `ai_auto`. קיימת ב-testing. ב-Web מוצג אייקון כשהערך `ai` או `ai_auto`, ומסנן "מקור" שולח `p_origin` רק כשהוא לא "הכל". ב-Desktop אין אייקון ואין מסנן |
 
 Desktop לא מקבל את העמודה ב-SQLite.
 
@@ -46,7 +46,7 @@ Desktop לא מקבל את העמודה ב-SQLite.
 
 פריט שכבר נרשם מחזיר את אותה תנועה. `anon` לא יכול להריץ את הפונקציה.
 
-ה-schema `ai` עדיין לא חשוף ב-Data API, אז הלקוח עדיין לא קורא לפונקציה.
+ה-schema `ai` עדיין לא חשוף ב-Data API. הלקוח קורא לעטיפות `public.create_ai_text_intake` ו-`public.commit_ai_intake_items`.
 
 ## מה לא לגעת בו
 

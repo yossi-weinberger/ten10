@@ -168,6 +168,35 @@ describe("TableTransactionsService payment method compatibility", () => {
     );
   });
 
+  it("omits p_origin when the source filter is all", async () => {
+    await TableTransactionsService.fetchTransactions({
+      offset: 0,
+      limit: 20,
+      filters,
+      sorting: { field: "date", direction: "desc" },
+      platform: "web",
+    });
+
+    const calls = mockRpc.mock.calls;
+    const params = calls[calls.length - 1]?.[1] as Record<string, unknown>;
+    expect(params).not.toHaveProperty("p_origin");
+  });
+
+  it("sends p_origin only when the AI source filter is set", async () => {
+    await TableTransactionsService.fetchTransactions({
+      offset: 0,
+      limit: 20,
+      filters: { ...filters, origin: "ai" },
+      sorting: { field: "date", direction: "desc" },
+      platform: "web",
+    });
+
+    expect(mockRpc).toHaveBeenCalledWith(
+      "get_user_transactions",
+      expect.objectContaining({ p_origin: "ai" }),
+    );
+  });
+
   it("falls back to official aliases when observed method retrieval fails", async () => {
     mockGetUserPaymentMethods.mockRejectedValueOnce(new Error("Unavailable"));
 
