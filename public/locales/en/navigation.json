@@ -20,6 +20,13 @@
     "placeholder": "What should I record?",
     "send": "Send",
     "notSaved": "Nothing was saved.",
+    "noRate": "none",
+    "draftLine": "{{date}} · {{amount}} {{currency}} · {{type}} · rate {{rate}}",
+    "types": {
+      "expense": "expense",
+      "income": "income",
+      "donation": "donation"
+    },
     "intents": {
       "add_transaction": "This looks like a transaction.",
       "create_rule": "This looks like a rule.",

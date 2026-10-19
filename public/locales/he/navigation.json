@@ -20,6 +20,13 @@
     "placeholder": "מה תרצה לרשום?",
     "send": "שלח",
     "notSaved": "שום דבר לא נשמר.",
+    "noRate": "אין",
+    "draftLine": "{{date}} · {{amount}} {{currency}} · {{type}} · שער {{rate}}",
+    "types": {
+      "expense": "הוצאה",
+      "income": "הכנסה",
+      "donation": "תרומה"
+    },
     "intents": {
       "add_transaction": "זו נראית כמו תנועה.",
       "create_rule": "זו נראית כמו בקשה לכלל.",

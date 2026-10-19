@@ -8,7 +8,12 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Textarea } from "@/components/ui/textarea";
-import { classifyIntent, type IntakeIntent } from "@/lib/ai/classify-intake";
+import {
+  classifyIntent,
+  draftFromText,
+  type IntakeIntent,
+  type TextTransactionDraft,
+} from "@/lib/ai/classify-intake";
 
 interface AssistantDrawerProps {
   open: boolean;
@@ -19,9 +24,16 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const { t } = useTranslation("navigation");
   const [text, setText] = useState("");
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
+  const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
 
   function handleSubmit() {
-    setIntent(classifyIntent(text));
+    const nextIntent = classifyIntent(text);
+    setIntent(nextIntent);
+    setDraft(
+      nextIntent === "add_transaction"
+        ? draftFromText(text, new Intl.DateTimeFormat("en-CA").format(new Date()))
+        : null,
+    );
   }
 
   return (
@@ -45,9 +57,22 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
           />
           <Button type="submit">{t("aiIntake.send")}</Button>
           {intent ? (
-            <p>
-              {t(`aiIntake.intents.${intent}`)} {t("aiIntake.notSaved")}
-            </p>
+            <div className="flex flex-col gap-1 text-sm">
+              <p>
+                {t(`aiIntake.intents.${intent}`)} {t("aiIntake.notSaved")}
+              </p>
+              {draft ? (
+                <p>
+                  {t("aiIntake.draftLine", {
+                    date: draft.date,
+                    amount: draft.amount,
+                    currency: draft.currency,
+                    type: t(`aiIntake.types.${draft.type}`),
+                    rate: draft.requestedRate ?? t("aiIntake.noRate"),
+                  })}
+                </p>
+              ) : null}
+            </div>
           ) : null}
         </form>
       </DrawerContent>
