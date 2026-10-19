@@ -22,8 +22,9 @@
 | 5 | `20261019033000_ai_commit_intake_items.sql` | RPC רישום, בלי שמירה אוטומטית ובלי UI | PR 4 | מוזג ל־`feat/ai-intake`, ורץ על testing | [#450](https://github.com/yossi-weinberger/ten10/pull/450) |
 | 6 | `supabase/functions/_shared/ai/intent.ts` | סיווג כוונות, בלי רשת ובלי DB | PR 3 | מוזג ל־`feat/ai-intake` | [#451](https://github.com/yossi-weinberger/ten10/pull/451) |
 | 7 | מעטפת צ'אט מאחורי `ai_intake_web` | UI + רישום טקסט | PR 6 | מוזג ל־`feat/ai-intake` | [#458](https://github.com/yossi-weinberger/ten10/pull/458) |
-| 8 | אייקון ומסנן מקור בטבלת התנועות | UI, Web בלבד | PR 4 + PR 7 | נפתח מול `feat/ai-intake` | |
-| 9–12 | נכתבות כשהגל הקודם נסגר | | §24.1 במסמך | | |
+| 8 | אייקון ומסנן מקור בטבלת התנועות | UI, Web בלבד | PR 4 + PR 7 | מוזג ל־`feat/ai-intake` | [#459](https://github.com/yossi-weinberger/ten10/pull/459) |
+| 9 | רענון אחרי שמירת טקסט | UI | PR 7–8 | נפתח מול `feat/ai-intake` | |
+| 10–12 | נכתבות כשהגל הקודם נסגר | | §24.1 במסמך | | |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -90,3 +91,4 @@
 - **2026-10-19:** על testing נוספו `create_ai_text_intake` ו-`commit_ai_intake_items`. בכפתור "אשר ושמור" הטיוטה נרשמת אחרי המרה. בלי שער אין שמירה. הייצור לא נגע.
 - **2026-10-19:** התיאור נוקה מפקודה, סכום ומטבע. "קניתי מאפים באליס ב-15 שח" נשמר כ"מאפים באליס". קטגוריה ואמצעי תשלום רק ממילים ברורות.
 - **2026-10-19:** #458 מוזג ל־`feat/ai-intake`. בטבלת התנועות ב-Web נוסף אייקון כש-`origin` הוא `ai` או `ai_auto`, ומסנן מקור. `p_origin` נשלח רק כשהמסנן לא "הכל". Desktop בלי האייקון ובלי המסנן.
+- **2026-10-19:** #459 מוזג ל־`feat/ai-intake`. אחרי שמירת טקסט מוצלחת מתעדכן `lastDbFetchTimestamp` וטבלת התנועות נטענת מחדש.

@@ -14,6 +14,7 @@ import {
   type IntakeIntent,
   type TextTransactionDraft,
 } from "@/lib/ai/classify-intake";
+import { refreshAfterIntakeSave } from "@/lib/ai/refresh-after-intake";
 import { saveTextDraft } from "@/lib/ai/save-text-draft";
 
 interface AssistantDrawerProps {
@@ -47,6 +48,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     const result = await saveTextDraft(draft);
     setSaving(false);
     if (result.ok) {
+      refreshAfterIntakeSave();
       setSaveMessage(t("aiIntake.saved"));
       return;
     }
