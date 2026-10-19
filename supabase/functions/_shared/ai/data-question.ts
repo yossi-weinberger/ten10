@@ -6,6 +6,7 @@ import {
   DONATION_TYPE_MARKERS,
   EXPENSE_TYPE_MARKERS,
   INCOME_TYPE_MARKERS,
+  MAX_MARKERS,
   QUESTION_MARKERS,
   TRANSACTION_VERBS,
   includesAlias,
@@ -15,7 +16,7 @@ export type YearTypeSum = {
   year: number;
   month: number | null;
   type: "donation" | "expense" | "income";
-  measure: "sum" | "count" | "average";
+  measure: "sum" | "count" | "average" | "max";
   months: number;
   from: string;
   to: string;
@@ -125,6 +126,7 @@ const COUNT_NOUNS = ["תרומות", "הוצאות", "הכנסות", "donations"
 
 function measureOf(text: string): YearTypeSum["measure"] {
   if (includesAlias(text, ["ממוצע", "average"])) return "average";
+  if (includesAlias(text, MAX_MARKERS)) return "max";
   if (includesAlias(text, ["how many"])) return "count";
   if (includesAlias(text, ["how much"]) || includesAlias(text, SUM_VERBS)) return "sum";
   if (includesAlias(text, COUNT_NOUNS)) return "count";

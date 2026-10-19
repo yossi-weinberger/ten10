@@ -37,6 +37,8 @@
     "dataAnswer": "ב-{{year}} נשמרו {{count}} {{type}} בסך {{total}} {{currency}}. זה סכום התנועות שנשמרו.",
     "dataCount": "ב-{{year}} נשמרו {{count}} {{type}}.",
     "dataAverage": "ב-{{year}} הממוצע החודשי של {{type}} הוא {{total}} {{currency}}.",
+    "dataMax": "ב-{{year}} התנועה הגדולה מבין {{count}} {{type}} היא {{total}} {{currency}}.",
+    "dataMaxEmpty": "ב-{{year}} לא נמצאו {{type}} שנשמרו.",
     "dataUnsupported": "אפשר לשאול כמה תרמתי או כמה תרומות בשנה, השנה, החודש, או ב-N חודשים אחרונים. למשל: כמה תרמתי ב-2025?",
     "dataMixed": "יש יותר ממטבע אחד בשנה הזו. לא חיברתי אותם.",
     "dataFailed": "לא הצלחתי לחשב. לא נשמר.",

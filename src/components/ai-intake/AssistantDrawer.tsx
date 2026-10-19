@@ -92,7 +92,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [askIntent, setAskIntent] = useState(false);
   const [dataReply, setDataReply] = useState<
-    | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average"; type: "donation" | "expense" | "income"; from: string; to: string; total: number; count: number; currency: string | null }
+    | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; from: string; to: string; total: number; count: number; currency: string | null }
     | { status: "mixed" | "unsupported" | "failed" }
     | null
   >(null);
@@ -593,7 +593,13 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               </p>
               {intent === "ask_data" && dataReply?.status === "ready" ? (
                 <p>
-                  {t(dataReply.measure === "count" ? "aiIntake.dataCount" : dataReply.measure === "average" ? "aiIntake.dataAverage" : "aiIntake.dataAnswer", {
+                  {t(dataReply.measure === "count"
+                    ? "aiIntake.dataCount"
+                    : dataReply.measure === "average"
+                      ? "aiIntake.dataAverage"
+                      : dataReply.measure === "max"
+                        ? (dataReply.count === 0 ? "aiIntake.dataMaxEmpty" : "aiIntake.dataMax")
+                        : "aiIntake.dataAnswer", {
                     year: periodLabel(dataReply),
                     type: t(`aiIntake.types.${dataReply.type}`),
                     total: dataReply.total,
