@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,8 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [text, setText] = useState("");
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
   const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
+  const originalDraft = useRef<{ description: string; amount: number } | null>(null);
+  const [amountInput, setAmountInput] = useState("");
   const [clarification, setClarification] = useState<ClarificationField | null>(null);
   const [pendingText, setPendingText] = useState("");
   const [chosenType, setChosenType] = useState<TextTransactionDraft["type"] | null>(null);
@@ -71,11 +73,18 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   function showDraft(next: TextTransactionDraft | null, source: string) {
     if (!next) {
       setDraft(null);
+      originalDraft.current = null;
+      setAmountInput("");
       setAppliedRuleName(null);
       return;
     }
     const applied = applyForwardRule(next, rules, source);
     setDraft(applied.draft);
+    setAmountInput(String(applied.draft.amount));
+    originalDraft.current = {
+      description: applied.draft.description,
+      amount: applied.draft.amount,
+    };
     setAppliedRuleName(applied.ruleName);
   }
 
@@ -140,9 +149,17 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
 
   async function handleSave() {
     if (!draft || saving) return;
+    const amount = Number(amountInput.replace(",", "."));
+    if (!Number.isFinite(amount) || amount === 0) {
+      setSaveMessage(t("aiIntake.editAmountInvalid"));
+      return;
+    }
     setSaving(true);
     setSaveMessage(null);
-    const result = await saveTextDraft(draft);
+    const result = await saveTextDraft(
+      { ...draft, amount },
+      originalDraft.current ?? { description: draft.description, amount },
+    );
     setSaving(false);
     if (result.ok) {
       setSavedItemId(result.itemId);
@@ -264,15 +281,26 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               {draft ? (
                 <>
                   <p>
-                    {t("aiIntake.draftLine", {
-                      description: draft.description,
+                    {t("aiIntake.draftMeta", {
                       date: draft.date,
-                      amount: draft.amount,
                       currency: draft.currency,
                       type: t(`aiIntake.types.${draft.type}`),
                       rate: draft.requestedRate ?? t("aiIntake.noRate"),
                     })}
                   </p>
+                  <Input
+                    value={draft.description}
+                    aria-label={t("aiIntake.editDescription")}
+                    onChange={(event) =>
+                      setDraft({ ...draft, description: event.target.value })
+                    }
+                  />
+                  <Input
+                    value={amountInput}
+                    inputMode="decimal"
+                    aria-label={t("aiIntake.editAmount")}
+                    onChange={(event) => setAmountInput(event.target.value)}
+                  />
                   {appliedRuleName ? (
                     <p>{t("aiIntake.ruleApplied", { name: appliedRuleName })}</p>
                   ) : null}

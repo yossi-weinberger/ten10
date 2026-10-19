@@ -41,6 +41,10 @@
     "noRateAvailable": "אין שער. לא נשמר.",
     "saveFailed": "השמירה נכשלה. לא נשמר.",
     "draftLine": "{{description}} · {{date}} · {{amount}} {{currency}} · {{type}} · שער {{rate}}",
+    "draftMeta": "{{date}} · {{currency}} · {{type}} · שער {{rate}}",
+    "editDescription": "תיאור",
+    "editAmount": "סכום",
+    "editAmountInvalid": "הסכום לא תקין. לא נשמר.",
     "types": {
       "expense": "הוצאה",
       "income": "הכנסה",
