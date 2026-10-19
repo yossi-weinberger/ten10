@@ -174,7 +174,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setSaveMessage(t("aiIntake.ruleSaved"));
   }
 
-  async function handleSave() {
+  async function handleSave(choice?: "saved_anyway" | "same_event") {
     if (!draft || saving) return;
     const amount = Number(amountInput.replace(",", "."));
     if (!Number.isFinite(amount) || amount === 0) {
@@ -186,8 +186,15 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     const result = await saveTextDraft(
       { ...draft, amount },
       originalDraft.current ?? { description: draft.description, amount },
+      duplicates.length > 0 && choice
+        ? { choice, candidateIds: duplicates.map((row) => row.id) }
+        : undefined,
     );
     setSaving(false);
+    if (result.ok && result.sameEvent) {
+      setSaveMessage(t("aiIntake.duplicateKept"));
+      return;
+    }
     if (result.ok) {
       setSavedItemId(result.itemId);
       refreshAfterIntakeSave();
@@ -338,16 +345,30 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                     <div className="flex flex-col gap-1">
                       <p>{t("aiIntake.duplicateWarning", { count: duplicates.length })}</p>
                       {duplicates.slice(0, 3).map((row) => (
-                        <p key={`${row.date}:${row.amount}:${row.description}`}>
+                        <p key={row.id}>
                           {row.date} · {row.amount}
                           {row.description ? ` · ${row.description}` : ""}
                         </p>
                       ))}
                     </div>
                   ) : null}
-                  <Button type="button" disabled={saving} onClick={() => void handleSave()}>
-                    {t("aiIntake.save")}
+                  <Button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => void handleSave(duplicates.length > 0 ? "saved_anyway" : undefined)}
+                  >
+                    {t(duplicates.length > 0 ? "aiIntake.saveAnyway" : "aiIntake.save")}
                   </Button>
+                  {duplicates.length > 0 ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={saving}
+                      onClick={() => void handleSave("same_event")}
+                    >
+                      {t("aiIntake.sameEvent")}
+                    </Button>
+                  ) : null}
                 </>
               ) : null}
               {saveMessage ? <p>{saveMessage}</p> : null}

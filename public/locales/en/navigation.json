@@ -46,6 +46,9 @@
     "editAmount": "Amount",
     "editAmountInvalid": "The amount is not valid. Nothing was saved.",
     "duplicateWarning": "Found {{count}} similar transactions. You can still save.",
+    "saveAnyway": "Save anyway",
+    "sameEvent": "This is the same transaction",
+    "duplicateKept": "No new transaction was saved.",
     "types": {
       "expense": "expense",
       "income": "income",
