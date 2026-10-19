@@ -12,12 +12,16 @@ export async function sumYearType(question: YearTypeSum): Promise<YearTypeSumRes
   const rows: { amount: number; currency: string }[] = [];
   for (let page = 0; page < MAX_PAGES; page++) {
     const from = page * PAGE_SIZE;
-    const { data, error } = await supabase
+    const scoped = supabase
       .from("transactions")
       .select("amount, currency")
       .in("type", [...typesForFamily(question.type)])
       .gte("date", question.from)
-      .lte("date", question.to)
+      .lte("date", question.to);
+    const filtered = question.paymentMethod
+      ? scoped.eq("payment_method", question.paymentMethod)
+      : scoped;
+    const { data, error } = await filtered
       .order("id", { ascending: true })
       .range(from, from + PAGE_SIZE - 1);
     if (error || !data) return { ok: false, reason: "FAILED" };
