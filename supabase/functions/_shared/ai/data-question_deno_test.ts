@@ -8,7 +8,7 @@ const TODAY = "2026-10-19";
 
 Deno.test("a donation year question is a sum, not a draft", () => {
   const donation = parseYearTypeSum("כמה תרמתי ב-2025?", TODAY);
-  assert(donation?.type === "donation", "donation");
+  assert(donation?.type === "donation" && donation.measure === "sum", "donation");
   assert(donation?.year === 2025 && donation.month === null, "year");
   assert(donation?.from === "2025-01-01" && donation.to === "2025-12-31", "span");
   assert(parseYearTypeSum("how much did I spend in 2025", TODAY)?.type === "expense", "spend");
@@ -23,4 +23,21 @@ Deno.test("this year and this month follow the supplied date", () => {
   const month = parseYearTypeSum("how much did I donate this month", TODAY);
   assert(month?.from === "2026-10-01" && month.to === "2026-10-31", "this month");
   assert(month?.month === 10, "october");
+});
+
+Deno.test("how many counts transactions and a verb still sums", () => {
+  const counted = parseYearTypeSum("כמה תרומות ב-2025", TODAY);
+  assert(counted?.measure === "count" && counted.type === "donation", "hebrew count");
+  const english = parseYearTypeSum("how many donations this year", TODAY);
+  assert(english?.measure === "count" && english.from === "2026-01-01", "english count");
+  assert(parseYearTypeSum("כמה תרמתי ב-2025", TODAY)?.measure === "sum", "verb stays a sum");
+});
+
+Deno.test("last N months is a rolling window from the supplied date", () => {
+  const hebrew = parseYearTypeSum("כמה תרמתי ב-3 חודשים אחרונים", TODAY);
+  assert(hebrew?.from === "2026-07-19" && hebrew.to === "2026-10-19", "three months");
+  const english = parseYearTypeSum("how many expenses in the last 2 months", TODAY);
+  assert(english?.measure === "count" && english.type === "expense", "count expenses");
+  assert(english?.from === "2026-08-19", "two months");
+  assert(parseYearTypeSum("כמה תרמתי ב-0 חודשים אחרונים", TODAY) === null, "zero");
 });

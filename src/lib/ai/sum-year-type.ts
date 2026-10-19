@@ -19,7 +19,7 @@ export async function sumYearType(question: YearTypeSum): Promise<YearTypeSumRes
       .map((row) => (typeof row.currency === "string" ? row.currency.toUpperCase() : ""))
       .filter((currency) => currency.length > 0),
   );
-  if (currencies.size > 1) return { ok: false, reason: "MIXED" };
+  if (question.measure === "sum" && currencies.size > 1) return { ok: false, reason: "MIXED" };
 
   const total = data.reduce((sum, row) => sum + Number(row.amount), 0);
   const currency = currencies.values().next().value;
