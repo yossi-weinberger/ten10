@@ -69,13 +69,8 @@ export function NotificationSettingsCard({
     setAutostartStatus(enabled);
   };
 
-  // Web email needs both columns; desktop reminders only check reminderEnabled.
-  const emailNotificationsOn = isWeb
-    ? Boolean(
-        notificationSettings.reminderEnabled &&
-          notificationSettings.mailingListConsent,
-      )
-    : Boolean(notificationSettings.reminderEnabled);
+  // Display state based on reminderEnabled only (decoupled from marketing consent).
+  const emailNotificationsOn = Boolean(notificationSettings.reminderEnabled);
 
   return (
     <Card className={disabled ? "opacity-50 pointer-events-none" : ""}>
