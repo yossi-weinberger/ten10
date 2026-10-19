@@ -1,8 +1,13 @@
-export function textIntakePayload(
-  payload: Record<string, unknown>,
+export function textIntakePayload<T extends object>(
+  payload: T,
   original: { description: string; amount: number },
   duplicate?: { choice: "saved_anyway" | "same_event"; candidateIds: string[] },
-): Record<string, unknown> {
+): T & {
+  original_description: string;
+  extracted_amount: number;
+  duplicate_choice?: "saved_anyway" | "same_event";
+  duplicate_candidate_ids?: string[];
+} {
   return {
     ...payload,
     original_description: original.description,
