@@ -34,6 +34,15 @@ Deno.test("the description keeps the purchase, not the command or the amount", (
   assert(draft.category === "food", "bakery is food");
 });
 
+Deno.test("shekel abbreviations leave the description", () => {
+  for (const text of ["קניתי מאפים ב-15 ש\"ח", "קניתי מאפים ב-15 ש״ח", "קניתי מאפים ב-15 שח"]) {
+    const draft = draftFromText(text, TODAY);
+    assert(draft?.description === "מאפים", text);
+    assert(draft?.amount === 15, "amount");
+    assert(draft?.currency === "ILS", "shekel");
+  }
+});
+
 Deno.test("text without an amount is not a draft", () => {
   assert(draftFromText("מה אפשר לעשות", TODAY) === null, "help has no amount");
 });

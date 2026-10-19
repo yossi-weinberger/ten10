@@ -114,7 +114,7 @@ function resolvePaymentMethod(text: string): TextTransactionDraft["paymentMethod
 }
 
 function cleanDescription(original: string): string {
-  let text = original.replace(/־/g, " ");
+  let text = original.replace(/־/g, " ").replace(/ש(?:["״]|'')ח/g, "ש\"ח");
   const rateWords = wordsPattern(RATE_MARKERS);
   const currencyWords = wordsPattern(AMOUNT_CURRENCY_WORDS);
   const verbs = wordsPattern([...DONATION_TYPE_MARKERS, ...INCOME_TYPE_MARKERS, ...EXPENSE_TYPE_MARKERS]);
