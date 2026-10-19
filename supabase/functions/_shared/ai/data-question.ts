@@ -19,6 +19,7 @@ export type YearTypeSum = {
   measure: "sum" | "count" | "average" | "max";
   months: number;
   paymentMethod: string | null;
+  topic: string | null;
   from: string;
   to: string;
 };
@@ -172,6 +173,33 @@ function hasToken(text: string, token: string): boolean {
   return false;
 }
 
+const TOPIC_TAIL = new Set([
+  "השנה",
+  "החודש",
+  "האחרונים",
+  "האחרון",
+  "האחרונה",
+  "שעברה",
+  "שעבר",
+  "חודשים",
+  "חודש",
+  "החודשים",
+  "months",
+  "month",
+  "last",
+  "this",
+  "year",
+]);
+
+function topicPhrase(text: string): string | null {
+  const match = text.match(/(?:^|\s)על\s+(.+)$/) ?? text.match(/\bon\s+(.+)$/);
+  if (!match?.[1]) return null;
+  const words = match[1].split(" ").filter((word) => word.length > 0 && !TOPIC_TAIL.has(word) && !/^20\d{2}$/.test(word));
+  const phrase = words.join(" ").trim();
+  if (phrase.length < 2) return null;
+  return phrase;
+}
+
 function paymentMethodOf(text: string): string | null | "ambiguous" {
   const hits = PAYMENT_TOPICS.filter(([, markers]) => markers.some((marker) => hasToken(text, marker)));
   if (hits.length > 1) return "ambiguous";
@@ -207,6 +235,7 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
   const measure = measureOf(normalized);
   const paymentMethod = paymentMethodOf(normalized);
   if (paymentMethod === "ambiguous") return null;
+  const topic = topicPhrase(normalized);
   const todayYear = Number(today.slice(0, 4));
   const todayMonth = Number(today.slice(5, 7));
   const recentMonths = recentMonthCount(normalized);
@@ -216,6 +245,7 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
       measure,
       months: recentMonths,
       paymentMethod,
+      topic,
       year: todayYear,
       month: null,
       from: addDays(shiftMonths(today, -recentMonths), 1),
@@ -229,6 +259,7 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
       measure,
       months: 1,
       paymentMethod,
+      topic,
       year: todayYear,
       month: todayMonth,
       from: `${todayYear}-${month}-01`,
@@ -250,7 +281,7 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
   const from = `${year}-01-01`;
   const to = `${year}-12-31`;
   const months = year === todayYear ? todayMonth : 12;
-  return { type, measure, months, paymentMethod, year, month: null, from, to };
+  return { type, measure, months, paymentMethod, topic, year, month: null, from, to };
 }
 
 export function periodLabel(question: Pick<YearTypeSum, "year" | "month" | "from" | "to">): string {

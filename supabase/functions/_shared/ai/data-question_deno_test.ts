@@ -68,6 +68,12 @@ Deno.test("tithe wording and last year do not change the window", () => {
   assert(lastMonth?.from === "2026-09-20", "last month");
 });
 
+Deno.test("על names a category topic and a plain question does not", () => {
+  const food = parseYearTypeSum("כמה הוצאתי על אוכל השנה", TODAY);
+  assert(food?.topic === "אוכל" && food.type === "expense", "food");
+  assert(parseYearTypeSum("כמה תרמתי השנה", TODAY)?.topic === null, "no topic");
+});
+
 Deno.test("a payment method is a whole word", () => {
   assert(parseYearTypeSum("כמה הוצאתי על ביטוח השנה", TODAY)?.paymentMethod === null, "insurance");
   assert(parseYearTypeSum("כמה הוצאתי על ביטול השנה", TODAY)?.paymentMethod === null, "cancellation");
