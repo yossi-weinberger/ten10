@@ -28,6 +28,10 @@ import { refreshAfterIntakeSave } from "@/lib/ai/refresh-after-intake";
 import { saveTextDraft } from "@/lib/ai/save-text-draft";
 import { undoTextIntake } from "@/lib/ai/undo-text-intake";
 import { approveUserRule, listActiveUserRules } from "@/lib/ai/user-rules";
+import {
+  listDuplicateCandidates,
+  type DuplicateCandidate,
+} from "@/lib/ai/duplicate-candidates";
 
 interface AssistantDrawerProps {
   open: boolean;
@@ -47,6 +51,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
   const originalDraft = useRef<{ description: string; amount: number } | null>(null);
   const [amountInput, setAmountInput] = useState("");
+  const [duplicates, setDuplicates] = useState<DuplicateCandidate[]>([]);
   const [clarification, setClarification] = useState<ClarificationField | null>(null);
   const [pendingText, setPendingText] = useState("");
   const [chosenType, setChosenType] = useState<TextTransactionDraft["type"] | null>(null);
@@ -70,12 +75,33 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     void listActiveUserRules().then(setRules);
   }, [open]);
 
+  const duplicateRequest = useRef(0);
+
+  function refreshDuplicates(next: TextTransactionDraft | null, amountText: string) {
+    const request = duplicateRequest.current + 1;
+    duplicateRequest.current = request;
+    const amount = Number(amountText.replace(",", "."));
+    if (!next || !Number.isFinite(amount) || amount === 0) {
+      setDuplicates([]);
+      return;
+    }
+    void listDuplicateCandidates({
+      type: next.type,
+      date: next.date,
+      amount,
+      currency: next.currency,
+    }).then((rows) => {
+      if (duplicateRequest.current === request) setDuplicates(rows);
+    });
+  }
+
   function showDraft(next: TextTransactionDraft | null, source: string) {
     if (!next) {
       setDraft(null);
       originalDraft.current = null;
       setAmountInput("");
       setAppliedRuleName(null);
+      refreshDuplicates(null, "");
       return;
     }
     const applied = applyForwardRule(next, rules, source);
@@ -86,6 +112,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       amount: applied.draft.amount,
     };
     setAppliedRuleName(applied.ruleName);
+    refreshDuplicates(applied.draft, String(applied.draft.amount));
   }
 
   function handleSubmit() {
@@ -299,10 +326,24 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                     value={amountInput}
                     inputMode="decimal"
                     aria-label={t("aiIntake.editAmount")}
-                    onChange={(event) => setAmountInput(event.target.value)}
+                    onChange={(event) => {
+                      setAmountInput(event.target.value);
+                      refreshDuplicates(draft, event.target.value);
+                    }}
                   />
                   {appliedRuleName ? (
                     <p>{t("aiIntake.ruleApplied", { name: appliedRuleName })}</p>
+                  ) : null}
+                  {duplicates.length > 0 ? (
+                    <div className="flex flex-col gap-1">
+                      <p>{t("aiIntake.duplicateWarning", { count: duplicates.length })}</p>
+                      {duplicates.slice(0, 3).map((row) => (
+                        <p key={`${row.date}:${row.amount}:${row.description}`}>
+                          {row.date} · {row.amount}
+                          {row.description ? ` · ${row.description}` : ""}
+                        </p>
+                      ))}
+                    </div>
                   ) : null}
                   <Button type="button" disabled={saving} onClick={() => void handleSave()}>
                     {t("aiIntake.save")}

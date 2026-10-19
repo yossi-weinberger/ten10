@@ -45,6 +45,7 @@
     "editDescription": "תיאור",
     "editAmount": "סכום",
     "editAmountInvalid": "הסכום לא תקין. לא נשמר.",
+    "duplicateWarning": "נמצאו {{count}} תנועות דומות. אפשר עדיין לשמור.",
     "types": {
       "expense": "הוצאה",
       "income": "הכנסה",
