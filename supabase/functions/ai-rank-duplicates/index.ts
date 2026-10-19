@@ -91,8 +91,10 @@ Deno.serve(async (req: Request) => {
 
   const candidates = data.flatMap((row) => {
     if (!row || typeof row !== "object") return [];
-    const record = row as { id?: unknown; date?: unknown; description?: unknown };
+    const record = row as { id?: unknown; date?: unknown; description?: unknown; amount?: unknown };
+    const amount = typeof record.amount === "number" ? record.amount : Number(record.amount);
     if (typeof record.id !== "string" || typeof record.date !== "string") return [];
+    if (!Number.isFinite(amount)) return [];
     const gap = dayGap(input.date, record.date);
     if (gap === null) return [];
     return [{
@@ -100,6 +102,8 @@ Deno.serve(async (req: Request) => {
       description: typeof record.description === "string" ? record.description : "",
       type: input.type,
       dayGap: gap,
+      amount,
+      currency: input.currency,
     }];
   });
   if (candidates.length === 0 || input.description.trim().length === 0) {
@@ -112,6 +116,8 @@ Deno.serve(async (req: Request) => {
   const { body, idsByKey } = buildDuplicateRankBody({
     description: input.description,
     type: input.type,
+    amount: input.amount,
+    currency: input.currency,
     candidates,
   });
 
