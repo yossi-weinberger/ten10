@@ -1,6 +1,6 @@
 {
   "title": "Terms of Service",
-  "lastUpdated": "Last updated: January 2026",
+  "lastUpdated": "Last updated: October 2026",
   "acceptance": {
     "title": "Acceptance of Terms",
     "description": "By accessing or using Ten10 (web app or desktop app), you agree to these Terms. If you do not agree, do not use the service."
@@ -80,9 +80,9 @@
   "communications": {
     "title": "Communications",
     "description": "By using Ten10, you agree that we may send you service-related messages.",
-    "item1": "Service emails may include account verification, reminders, and essential service notices",
-    "item2": "You can opt out of certain emails where applicable (for example, reminders)",
-    "item3": "Do not reply to no-reply addresses; contact us via the support email instead"
+    "item1": "Service emails (monthly reminders): Independent service emails that can be disabled in Settings. Separate from marketing preferences",
+    "item2": "Marketing emails (updates and news): Default enabled (opt-out) at signup. Can be unsubscribed in Settings or via link in any email",
+    "item3": "Separate unsubscribe links: for reminders only, marketing only, or both. Do not reply to no-reply addresses; contact us via the support email instead"
   },
   "openSource": {
     "title": "Open Source & Intellectual Property",

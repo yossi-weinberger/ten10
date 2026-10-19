@@ -1,6 +1,6 @@
 {
   "title": "Privacy Policy",
-  "lastUpdated": "Last updated: January 2026",
+  "lastUpdated": "Last updated: October 2026",
   "serviceOwner": {
     "title": "Service Provider",
     "description": "Ten10 is an open-source software for managing tithes and personal budgets. The service is operated as a non-profit community project.",
@@ -53,8 +53,16 @@
   },
   "communications": {
     "title": "Communications",
-    "description": "If you have chosen to receive email reminders, we will send you monthly messages about your tithe status. You can unsubscribe at any time.",
-    "unsubscribe": "To unsubscribe, click the link in any reminder email, or contact us at: contact@ten10-app.com"
+    "description": "We send two types of emails:",
+    "reminder": {
+      "title": "Monthly Reminders (Service Emails)",
+      "description": "Reminders about your tithe status are sent as an independent service email. You can enable or disable reminders in Settings, independent of marketing preferences."
+    },
+    "marketing": {
+      "title": "Updates and News (Marketing)",
+      "description": "Updates about new features and project news. Default: enabled (opt-out). You can opt out during signup or in Settings."
+    },
+    "unsubscribe": "To unsubscribe from reminders, marketing, or both, click the appropriate links in any email, or change your preferences in Settings, or contact us: contact@ten10-app.com"
   },
   "analytics": {
     "title": "Analytics",
