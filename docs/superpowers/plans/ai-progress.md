@@ -19,7 +19,8 @@
 | 1b | `2026-10-18-ai-pr01b-delete-account.md` | DB + UI + Edge, מסלול צדדי | PR 1 + החלטת מדיניות | לא התחיל | |
 | 3 | `2026-10-19-ai-pr03-eval-harness.md` | eval harness, offline | contracts מ־PR 2b | מוזג ל־`feat/ai-intake` | [#448](https://github.com/yossi-weinberger/ten10/pull/448) |
 | 4 | `20261019020000_ai_schema_foundation.sql` | schema `ai`, עמודת `origin`, `p_origin` | PR 2–3 | מוזג ל־`feat/ai-intake`. Preview דילג, אז לא רץ על testing | [#449](https://github.com/yossi-weinberger/ten10/pull/449) |
-| 5 | `20261019033000_ai_commit_intake_items.sql` | RPC רישום, בלי שמירה אוטומטית ובלי UI | PR 4 | PR פתוח מול `feat/ai-intake`, לא מוזג | [#450](https://github.com/yossi-weinberger/ten10/pull/450) |
+| 5 | `20261019033000_ai_commit_intake_items.sql` | RPC רישום, בלי שמירה אוטומטית ובלי UI | PR 4 | מוזג ל־`feat/ai-intake`. Preview דילג | [#450](https://github.com/yossi-weinberger/ten10/pull/450) |
+| 6 | `supabase/functions/_shared/ai/intent.ts` | סיווג כוונות, בלי רשת ובלי DB | PR 3 | PR פתוח מול `feat/ai-intake`, לא מוזג | [#451](https://github.com/yossi-weinberger/ten10/pull/451) |
 | 5–12 | נכתבות כשהגל הקודם נסגר | | §24.1 במסמך | | |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
@@ -80,3 +81,4 @@
 - **2026-10-19:** #445 מוזג ל־`main`. #447 (PR 2b) מוזג ל־`feat/ai-intake`, ואז `origin/main` מוזג לתוכו עם תיקון שער 0. נפתח [#448](https://github.com/yossi-weinberger/ten10/pull/448) (PR 3) מול `feat/ai-intake`, לא מוזג: harness אופליין, בלי ספק ובלי קבלות.
 - **2026-10-19:** #448 מוזג ל־`feat/ai-intake`. נפתח PR 4 מול אותו ענף: schema `ai` (קריאה בלבד למשתמש), עמודת `transactions.origin`, והחלפת החתימה שבשימוש של `get_user_transactions` עם `p_origin` שברירת המחדל שלו NULL. החתימות המתות נשארו. לא ל־`main`.
 - **2026-10-19:** #449 מוזג ל־`feat/ai-intake` אחרי CI ירוק. Supabase Preview דילג, כך שהמיגרציה לא רצה על testing ולא על הייצור. נפתח PR של `ai.commit_intake_items`: רישום רק למשתמש המחובר, בלי שמירה אוטומטית. כשל אחד מבטל את כל הקריאה.
+- **2026-10-19:** #450 מוזג ל־`feat/ai-intake`. נוסף סיווג כוונות דטרמיניסטי (`classifyIntent`) עם בדיקות Deno. הוא מחזיר תווית בלבד, בלי רשת ובלי כתיבה.
