@@ -191,10 +191,32 @@ const TOPIC_TAIL = new Set([
   "year",
 ]);
 
+function cleanTopicWord(word: string): string {
+  return word.replace(/^[^0-9A-Za-z\u0590-\u05FF]+|[^0-9A-Za-z\u0590-\u05FF]+$/g, "").replace(/[-־]/g, "");
+}
+
+function isTopicTail(word: string): boolean {
+  const compact = cleanTopicWord(word).toLowerCase();
+  const withoutBet = compact.startsWith("ב") ? compact.slice(1) : compact;
+  if (TOPIC_TAIL.has(compact) || TOPIC_TAIL.has(withoutBet)) return true;
+  if (/^20\d{2}$/.test(compact) || /^20\d{2}$/.test(withoutBet)) return true;
+  if (compact === "in" || compact === "of" || compact === "the" || compact === "שנה" || withoutBet === "שנה") return true;
+  return [
+    "באשראי", "אשראי", "במזומן", "מזומן", "בביט", "ביט", "בדביט", "דביט",
+    "בהעברה", "העברה", "cash", "credit", "debit", "transfer", "cheque",
+  ].includes(compact);
+}
+
 function topicPhrase(text: string): string | null {
   const match = text.match(/(?:^|\s)על\s+(.+)$/) ?? text.match(/\bon\s+(.+)$/);
   if (!match?.[1]) return null;
-  const words = match[1].split(" ").filter((word) => word.length > 0 && !TOPIC_TAIL.has(word) && !/^20\d{2}$/.test(word));
+  const words: string[] = [];
+  for (const raw of match[1].split(" ")) {
+    const word = cleanTopicWord(raw);
+    if (!word) continue;
+    if (isTopicTail(word)) break;
+    words.push(word);
+  }
   const phrase = words.join(" ").trim();
   if (phrase.length < 2) return null;
   return phrase;
