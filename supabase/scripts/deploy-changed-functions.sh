@@ -40,6 +40,7 @@ ALL_FUNCTIONS=(
   ai-rank-duplicates
   ai-shadow-type
   ai-classify-intent
+  ai-read-receipt
 )
 
 # Redeploy when supabase/functions/_shared changes
@@ -57,6 +58,7 @@ SHARED_DEPENDENT=(
   ai-rank-duplicates
   ai-shadow-type
   ai-classify-intent
+  ai-read-receipt
 )
 
 is_managed_function() {
