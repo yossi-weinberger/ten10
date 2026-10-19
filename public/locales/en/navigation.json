@@ -50,6 +50,7 @@
     "sameEvent": "This is the same transaction",
     "duplicateKept": "No new transaction was saved.",
     "draftCandidate": "Unsaved draft",
+    "duplicateRanked": "Ordered by how similar they look.",
     "types": {
       "expense": "expense",
       "income": "income",
