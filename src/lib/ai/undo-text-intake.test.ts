@@ -1,4 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/lib/supabaseClient", () => ({
+  supabase: { rpc: vi.fn() },
+}));
+
 import { readUndoPayload } from "./undo-text-intake";
 
 describe("readUndoPayload", () => {
