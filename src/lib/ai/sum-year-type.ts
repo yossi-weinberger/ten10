@@ -63,7 +63,7 @@ function matchSavedName(topic: string, names: readonly string[]): string | null 
   const needle = foldName(topic);
   const hits = names
     .map((name) => ({ raw: name.trim(), key: foldName(name) }))
-    .filter((name) => name.key.length > 1 && (name.key === needle || needle.startsWith(`${name.key} `)))
+    .filter((name) => name.key.length > 1 && name.key === needle)
     .sort((left, right) => right.key.length - left.key.length);
   if (hits.length === 0) return null;
   return hits[0]?.raw ?? null;

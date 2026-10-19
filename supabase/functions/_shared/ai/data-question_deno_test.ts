@@ -69,6 +69,17 @@ Deno.test("tithe wording and last year do not change the window", () => {
   assert(lastMonth?.from === "2026-09-20", "last month");
 });
 
+Deno.test("english from and a month span do not swallow the question", () => {
+  const food = parseYearTypeSum("how much did I spend on food from 1.1.2025 to 31.3.2025", TODAY);
+  assert(food?.topic === "food" && food.from === "2025-01-01" && food.to === "2025-03-31", "food from");
+  const months = parseYearTypeSum("כמה הוצאתי מינואר עד מרץ 2025", TODAY);
+  assert(months?.from === "2025-01-01" && months.to === "2025-03-31", "month names");
+  assert(parseYearTypeSum("כמה תרמתי לישיבה ולבית חבד השנה", TODAY) === null, "two recipients");
+  assert(parseYearTypeSum("כמה תרמתי לפינת חי השנה", TODAY)?.recipient === "פינת חי", "starts with pi");
+  assert(parseYearTypeSum("כמה תרמתי לישיבה בשנת המעשר", TODAY)?.recipient === "ישיבה", "name stops");
+  assert(parseYearTypeSum("כמה תרמתי בשנת המעשר 2025", TODAY) === null, "numbered tithe year");
+});
+
 Deno.test("a bad date does not fall through to the whole year", () => {
   assert(parseYearTypeSum("כמה הוצאתי ב-31.2.2025", TODAY) === null, "impossible day");
   assert(parseYearTypeSum("כמה הוצאתי מ-31.3.2025 עד 1.1.2025", TODAY) === null, "reversed");
