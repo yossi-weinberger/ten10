@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,7 @@ import {
   classifyIntent,
   draftFromText,
   parseUserRule,
+  selectHalachaPage,
   type ActiveUserRule,
   type ClarificationField,
   type IntakeIntent,
@@ -33,7 +35,13 @@ interface AssistantDrawerProps {
 }
 
 export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
-  const { t } = useTranslation("navigation");
+  const { t } = useTranslation([
+    "navigation",
+    "halacha-expenses",
+    "halacha-income",
+    "halacha-chomesh",
+    "halacha-tithes",
+  ]);
   const [text, setText] = useState("");
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
   const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
@@ -45,6 +53,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [parsedRule, setParsedRule] = useState<ParsedUserRule | null>(null);
   const [ruleChoice, setRuleChoice] = useState<RuleActionType | null>(null);
   const [appliedRuleName, setAppliedRuleName] = useState<string | null>(null);
+  const [halachaNamespace, setHalachaNamespace] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [undoing, setUndoing] = useState(false);
   const [savedItemId, setSavedItemId] = useState<string | null>(null);
@@ -81,6 +90,9 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setAmountReply("");
     setParsedRule(nextIntent === "create_rule" ? parseUserRule(text) : null);
     setRuleChoice(null);
+    setHalachaNamespace(
+      nextIntent === "domain_adjacent" ? selectHalachaPage(text)?.namespace ?? null : null,
+    );
     showDraft(
       field === null && nextIntent === "add_transaction" ? draftFromText(text, today) : null,
       text,
@@ -186,6 +198,15 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               <p>
                 {t(`aiIntake.intents.${intent}`)} {saveMessage ? "" : t("aiIntake.notSaved")}
               </p>
+              {halachaNamespace ? (
+                <div className="flex flex-col gap-2">
+                  <p>{t("introduction.body", { ns: halachaNamespace })}</p>
+                  <p>{t("aiIntake.halachaDisclaimer")}</p>
+                  <Link to="/halacha" className="text-sm underline">
+                    {t("aiIntake.halachaLink")}
+                  </Link>
+                </div>
+              ) : null}
               {parsedRule ? (
                 <div className="flex flex-col gap-2">
                   {parsedRule.action === "ambiguous" && !ruleChoice ? (

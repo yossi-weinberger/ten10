@@ -138,6 +138,26 @@ export const TRANSFER_MARKERS = ["העברה בנקאית", "בהעברה", "ה�
 export const BIT_MARKERS = ["בביט", "ביט", "פייבוקס", "paybox", " bit"] as const;
 export const CHECK_MARKERS = ["צ'ק", "צ׳ק", "צק", "check", "cheque"] as const;
 
+export const PERSONAL_PSAK_MARKERS = [
+  "מותר לי",
+  "במקרה שלי",
+  "אצלי",
+  "for me",
+  "in my case",
+] as const;
+
+export const HALACHA_EXPENSES_MARKERS = [
+  "הוצאה מוכרת",
+  "הוצאות מוכרות",
+  "recognized expense",
+] as const;
+
+export const HALACHA_CHOMESH_MARKERS = ["חומש", "chomesh"] as const;
+
+export const HALACHA_INCOME_MARKERS = ["הכנסה פטורה", "exempt income"] as const;
+
+export const HALACHA_TITHE_MARKERS = ["מעשר", "maaser", "tithe"] as const;
+
 export function includesAlias(text: string, aliases: readonly string[]): boolean {
   return aliases.some((alias) => text.includes(alias));
 }

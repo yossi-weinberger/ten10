@@ -5,6 +5,8 @@ export {
 export type { IntakeIntent } from "../../../supabase/functions/_shared/ai/intent.ts";
 export { applyForwardRule, parseUserRule } from "../../../supabase/functions/_shared/ai/rule-draft.ts";
 export type { ActiveUserRule, ParsedUserRule, RuleActionType } from "../../../supabase/functions/_shared/ai/rule-draft.ts";
+export { selectHalachaPage } from "../../../supabase/functions/_shared/ai/halacha-page.ts";
+export type { HalachaPage } from "../../../supabase/functions/_shared/ai/halacha-page.ts";
 export { clarificationField, draftFromText } from "../../../supabase/functions/_shared/ai/text-draft.ts";
 export type {
   ClarificationField,

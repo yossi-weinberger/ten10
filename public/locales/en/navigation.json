@@ -31,6 +31,8 @@
     "ruleFailed": "The rule was not saved.",
     "ruleSentence": "{{name}} · {{type}}. The rule applies only to new transactions.",
     "ruleApplied": "According to your rule: {{name}}",
+    "halachaDisclaimer": "This is what Ten10's halacha page says. For a personal question, ask a rabbi.",
+    "halachaLink": "Open the halacha page",
     "saved": "Saved.",
     "undo": "Undo",
     "undone": "Undone. The transaction was deleted.",
@@ -53,7 +55,8 @@
       "ask_data": "This looks like a question about your data.",
       "find_duplicates": "This looks like a duplicate search.",
       "help": "You can send a transaction, a rule, a data question, or a duplicate search.",
-      "out_of_scope": "I only handle your transactions and your data."
+      "out_of_scope": "I only handle your transactions and your data.",
+      "domain_adjacent": "This is what Ten10's halacha page says."
     }
   },
   "user": {

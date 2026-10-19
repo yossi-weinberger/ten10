@@ -3,6 +3,7 @@
  * It does not write, call a provider, or follow instructions inside the text.
  */
 
+import { selectHalachaPage } from "./halacha-page.ts";
 import {
   CURRENCY_MARKERS,
   DUPLICATE_MARKERS,
@@ -19,6 +20,7 @@ export const INTAKE_INTENTS = [
   "ask_data",
   "find_duplicates",
   "help",
+  "domain_adjacent",
   "out_of_scope",
 ] as const;
 
@@ -64,6 +66,10 @@ export function classifyIntent(text: string): IntakeIntent {
 
   if (statesATransaction || hasMoneyAmount(normalized)) {
     return "add_transaction";
+  }
+
+  if (selectHalachaPage(normalized)) {
+    return "domain_adjacent";
   }
 
   return "out_of_scope";
