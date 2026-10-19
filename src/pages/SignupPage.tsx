@@ -83,6 +83,7 @@ const SignupPage: React.FC = () => {
         options: {
           data: {
             full_name: trimmedFullName,
+            mailing_list_consent: mailingListConsent,
           },
         },
       });
