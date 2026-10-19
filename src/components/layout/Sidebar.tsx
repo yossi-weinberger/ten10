@@ -10,6 +10,7 @@ import {
   Book,
   Table,
   PieChart,
+  MessageSquare,
 } from "lucide-react";
 import {
   Tooltip,
@@ -26,6 +27,8 @@ import { supabase } from "@/lib/supabaseClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
 import { HomeFeedbackCard } from "@/components/feedback/HomeFeedbackCard";
+import { AssistantDrawer } from "@/components/ai-intake/AssistantDrawer";
+import { isAiIntakeEnabled } from "@/lib/ai/flags";
 
 interface SidebarProps {
   expanded?: boolean;
@@ -48,6 +51,8 @@ export function Sidebar({
   const [profileFullName, setProfileFullName] = useState<string | null>(null);
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState<boolean>(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const showAssistant = isAiIntakeEnabled();
 
   // Parent wrapper (non-scroll) that contains: scrollable nav + bottom profile card
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -399,6 +404,19 @@ export function Sidebar({
             <NavLink to="/about" icon={Info}>
               {t("menu.about")}
             </NavLink>
+            {showAssistant ? (
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full h-12 justify-start px-4"
+                onClick={() => setAssistantOpen(true)}
+              >
+                <MessageSquare className="h-6 w-6" />
+                <span className={expanded ? "ms-4" : "sr-only"}>
+                  {t("menu.assistant")}
+                </span>
+              </Button>
+            ) : null}
 
             {/* Support Us Button - Standard Style */}
             <NavLink
@@ -527,6 +545,9 @@ export function Sidebar({
       <div className="mt-auto pt-4 border-t border-border/20 px-1">
         <PlatformIndicator expanded={expanded} />
       </div>
+      {showAssistant ? (
+        <AssistantDrawer open={assistantOpen} onOpenChange={setAssistantOpen} />
+      ) : null}
     </div>
   );
 }

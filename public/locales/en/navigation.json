@@ -12,7 +12,22 @@
     "logout": "Logout",
     "supportUs": "Donate to Institute",
     "donateTooltip": "The donation to the institute and Ten10 can be from ma'aser funds",
-    "feedback": "Feedback"
+    "feedback": "Feedback",
+    "assistant": "Assistant"
+  },
+  "aiIntake": {
+    "title": "Ten10 assistant",
+    "placeholder": "What should I record?",
+    "send": "Send",
+    "notSaved": "Nothing was saved.",
+    "intents": {
+      "add_transaction": "This looks like a transaction.",
+      "create_rule": "This looks like a rule.",
+      "ask_data": "This looks like a question about your data.",
+      "find_duplicates": "This looks like a duplicate search.",
+      "help": "You can send a transaction, a rule, a data question, or a duplicate search.",
+      "out_of_scope": "I only handle your transactions and your data."
+    }
   },
   "user": {
     "loading": "Loading...",

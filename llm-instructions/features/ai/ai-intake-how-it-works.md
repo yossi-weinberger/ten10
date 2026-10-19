@@ -23,7 +23,9 @@
 | רישום | `ai.commit_intake_items` ב-testing | כותב תנועה אחת או יותר. כשל אחד מבטל את כל הקריאה |
 | עמודה בטבלת התנועות | `public.transactions.origin` | `NULL`, `ai`, או `ai_auto`. קיימת ב-testing |
 
-Desktop לא מקבל את העמודה ב-SQLite. אין צ'אט בממשק.
+Desktop לא מקבל את העמודה ב-SQLite.
+
+מעטפת צ'אט קיימת ב-`src/components/ai-intake/AssistantDrawer.tsx`. היא נפתחת מהתפריט רק כשדגל PostHog `ai_intake_web` דולק, ורק ב-Web. בלי הדגל אין כפתור. השליחה מריצה את `classifyIntent` ומציגה את התווית. היא לא קוראת ל-`ai.commit_intake_items` ולא שומרת תנועה.
 
 ## סיווג כוונות
 
