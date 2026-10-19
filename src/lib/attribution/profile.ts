@@ -3,21 +3,9 @@ import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
 import { normalizeArrivalCode } from "./arrival-code";
 import { readFirstTouch } from "./capture";
+import { isRecentAuthUser } from "./recent-user";
 
-export const RECENT_SIGNUP_WINDOW_MS = 48 * 60 * 60 * 1000;
-
-export function isRecentAuthUser(
-  createdAt: string | undefined,
-  now = Date.now()
-): boolean {
-  if (!createdAt) return false;
-  const timestamp = Date.parse(createdAt);
-  return (
-    Number.isFinite(timestamp) &&
-    now - timestamp >= 0 &&
-    now - timestamp < RECENT_SIGNUP_WINDOW_MS
-  );
-}
+export { isRecentAuthUser, RECENT_SIGNUP_WINDOW_MS } from "./recent-user";
 
 /**
  * Best-effort first-touch write for Google OAuth and email-confirm returns.

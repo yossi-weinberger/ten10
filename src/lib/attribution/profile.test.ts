@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isRecentAuthUser, RECENT_SIGNUP_WINDOW_MS } from "./profile";
+import { isRecentAuthUser, RECENT_SIGNUP_WINDOW_MS } from "./recent-user";
 
 describe("isRecentAuthUser", () => {
   const now = Date.parse("2026-10-19T12:00:00.000Z");
