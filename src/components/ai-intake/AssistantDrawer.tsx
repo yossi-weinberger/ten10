@@ -16,6 +16,7 @@ import {
 } from "@/lib/ai/classify-intake";
 import { refreshAfterIntakeSave } from "@/lib/ai/refresh-after-intake";
 import { saveTextDraft } from "@/lib/ai/save-text-draft";
+import { undoTextIntake } from "@/lib/ai/undo-text-intake";
 
 interface AssistantDrawerProps {
   open: boolean;
@@ -28,6 +29,8 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
   const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
   const [saving, setSaving] = useState(false);
+  const [undoing, setUndoing] = useState(false);
+  const [savedItemId, setSavedItemId] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   function handleSubmit() {
@@ -39,6 +42,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
         : null,
     );
     setSaveMessage(null);
+    setSavedItemId(null);
   }
 
   async function handleSave() {
@@ -48,11 +52,28 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     const result = await saveTextDraft(draft);
     setSaving(false);
     if (result.ok) {
+      setSavedItemId(result.itemId);
       refreshAfterIntakeSave();
       setSaveMessage(t("aiIntake.saved"));
       return;
     }
     setSaveMessage(t(result.reason === "NO_RATE" ? "aiIntake.noRateAvailable" : "aiIntake.saveFailed"));
+  }
+
+  async function handleUndo() {
+    if (!savedItemId || undoing) return;
+    setUndoing(true);
+    const result = await undoTextIntake(savedItemId);
+    setUndoing(false);
+    if (result.ok) {
+      setSavedItemId(null);
+      refreshAfterIntakeSave();
+      setSaveMessage(t("aiIntake.undone"));
+      return;
+    }
+    setSaveMessage(
+      t(result.reason === "NOT_ALLOWED" ? "aiIntake.undoNotAllowed" : "aiIntake.undoFailed"),
+    );
   }
 
   return (
@@ -98,6 +119,11 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                 </>
               ) : null}
               {saveMessage ? <p>{saveMessage}</p> : null}
+              {savedItemId ? (
+                <Button type="button" disabled={undoing} onClick={() => void handleUndo()}>
+                  {t("aiIntake.undo")}
+                </Button>
+              ) : null}
             </div>
           ) : null}
         </form>

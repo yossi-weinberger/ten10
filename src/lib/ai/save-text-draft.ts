@@ -5,7 +5,7 @@ import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
 import { buildCommitPayload } from "./build-commit-payload";
 
 export type SaveTextDraftResult =
-  | { ok: true; transactionId: string }
+  | { ok: true; transactionId: string; itemId: string }
   | { ok: false; reason: "NO_RATE" | "AUTH" | "SAVE_FAILED" };
 
 export async function saveTextDraft(draft: TextTransactionDraft): Promise<SaveTextDraftResult> {
@@ -53,5 +53,5 @@ export async function saveTextDraft(draft: TextTransactionDraft): Promise<SaveTe
   const transactionId = committed?.transaction_ids?.[0] ?? committed?.already_committed?.[0];
   if (commitError || !transactionId) return { ok: false, reason: "SAVE_FAILED" };
 
-  return { ok: true, transactionId };
+  return { ok: true, transactionId, itemId: created.item_id };
 }
