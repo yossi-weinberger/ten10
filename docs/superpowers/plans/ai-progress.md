@@ -51,7 +51,7 @@
 | 34 | PDF וקריאה בעברית ובאנגלית | Edge על testing + UI | §4.2 | מוזג ל־`feat/ai-intake` | [#497](https://github.com/yossi-weinberger/ten10/pull/497) |
 | 35 | תמלול דיבור | Edge על testing + UI | §4.3 | מוזג ל־`feat/ai-intake` | [#499](https://github.com/yossi-weinberger/ten10/pull/499) |
 | 36 | משתמש בדיקות ב-allowlist | Edge על testing | §22.1 | מוזג ל־`feat/ai-intake` | [#501](https://github.com/yossi-weinberger/ten10/pull/501) |
-| 37 | logger ו-CORS משותפים ב-Edge | בלי שינוי התנהגות למשתמש | כלל 11 | נפתח | |
+| 37 | logger ו-CORS משותפים ב-Edge | בלי שינוי התנהגות למשתמש | כלל 11 | מוזג ל־`feat/ai-intake` | [#503](https://github.com/yossi-weinberger/ten10/pull/503) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -149,4 +149,4 @@
 - **2026-10-19:** [#497](https://github.com/yossi-weinberger/ten10/pull/497) מוזג ל־`feat/ai-intake`. קריאת הקבלה עברה ל-`anthropic/claude-sonnet-5`, שנעול ובלי מודל חלופי, כדי לקרוא עברית ואנגלית. נוסף PDF. השם נשאר בשפה שכתובה על הקבלה. הקלטה עדיין לא.
 - **2026-10-19:** [#499](https://github.com/yossi-weinberger/ten10/pull/499) מוזג ל־`feat/ai-intake`. כפתור "דבר" מתמלל עד דקה עם `microsoft/mai-transcribe-2`. המשפט נכנס למסלול הטקסט. ההקלטה לא נשמרת, והשמירה נשארת בלחיצה. המיקום מאפשר מיקרופון לאתר עצמו.
 - **2026-10-19:** [#501](https://github.com/yossi-weinberger/ten10/pull/501) מוזג ל־`feat/ai-intake`. נוסף משתמש בדיקות ל-allowlist של קריאות ה-AI על testing, ונוסף לדגל `ai_intake_web`. המזהה בקוד, בלי כתובת מייל.
-- **2026-10-19:** לוגים של פונקציות ה-AI עברו ל-`_shared/logger.ts`. חריגת ה-Preview של CORS עברה ל-`getCorsHeaders`, פעם אחת.
+- **2026-10-19:** [#503](https://github.com/yossi-weinberger/ten10/pull/503) מוזג ל־`feat/ai-intake`. לוגים של פונקציות ה-AI עברו ל-`_shared/logger.ts`. חריגת ה-Preview של CORS עברה ל-`getCorsHeaders`, פעם אחת.
