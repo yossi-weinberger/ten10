@@ -39,5 +39,14 @@ export function findDuplicatePairs(rows: readonly SavedTransactionRow[]): Duplic
       pairs.push({ left, right });
     }
   }
+  pairs.sort((a, b) => {
+    const byDate = laterDate(b).localeCompare(laterDate(a));
+    if (byDate !== 0) return byDate;
+    return `${a.left.id}:${a.right.id}`.localeCompare(`${b.left.id}:${b.right.id}`);
+  });
   return pairs;
+}
+
+function laterDate(pair: DuplicatePair): string {
+  return pair.left.date > pair.right.date ? pair.left.date : pair.right.date;
 }

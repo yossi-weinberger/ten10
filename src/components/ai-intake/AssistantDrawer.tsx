@@ -96,6 +96,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     | null
   >(null);
   const [duplicateScan, setDuplicateScan] = useState<
+    | { status: "pending" }
     | { status: "ready"; pairs: DuplicatePair[] }
     | { status: "failed" }
     | null
@@ -353,6 +354,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   }
 
   async function loadScan() {
+    setDuplicateScan({ status: "pending" });
     const result = await loadDuplicateScan();
     if (!result.ok) {
       setDuplicateScan({ status: "failed" });
@@ -423,7 +425,13 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   }
 
   function handleChooseIntent(nextIntent: IntakeIntent) {
-    showIntent(pendingText, todayIso(), nextIntent);
+    const source = pendingText;
+    const today = todayIso();
+    if (nextIntent === "create_rule" && !parseUserRule(source)) {
+      showIntent(source, today, "out_of_scope");
+      return;
+    }
+    showIntent(source, today, nextIntent);
   }
 
   function handleChooseType(type: TextTransactionDraft["type"]) {
@@ -571,7 +579,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               <div className="flex flex-wrap gap-2">
                 {(["add_transaction", "ask_data", "create_rule"] as const).map((intentChoice) => (
                   <Button key={intentChoice} type="button" onClick={() => handleChooseIntent(intentChoice)}>
-                    {t(`aiIntake.intents.${intentChoice}`)}
+                    {t(`aiIntake.intentChoices.${intentChoice}`)}
                   </Button>
                 ))}
               </div>
@@ -600,19 +608,20 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               {intent === "ask_data" && dataReply?.status === "unsupported" ? <p>{t("aiIntake.dataUnsupported")}</p> : null}
               {intent === "ask_data" && dataReply?.status === "mixed" ? <p>{t("aiIntake.dataMixed")}</p> : null}
               {intent === "ask_data" && dataReply?.status === "failed" ? <p>{t("aiIntake.dataFailed")}</p> : null}
+              {intent === "find_duplicates" && duplicateScan?.status === "pending" ? <p>{t("aiIntake.duplicateScanPending")}</p> : null}
               {intent === "find_duplicates" && duplicateScan?.status === "failed" ? <p>{t("aiIntake.duplicateScanFailed")}</p> : null}
               {intent === "find_duplicates" && duplicateScan?.status === "ready" && duplicateScan.pairs.length === 0 ? (
                 <p>{t("aiIntake.duplicateScanEmpty")}</p>
               ) : null}
               {intent === "find_duplicates" && duplicateScan?.status === "ready" && duplicateScan.pairs.length > 0 ? (
                 <div className="flex flex-col gap-1">
-                  <p>{t("aiIntake.duplicateScanCount", { count: duplicateScan.pairs.length })}</p>
+                  <p>{t(duplicateScan.pairs.length === 1 ? "aiIntake.duplicateScanCountOne" : "aiIntake.duplicateScanCount", { count: duplicateScan.pairs.length })}</p>
                   {duplicateScan.pairs.slice(0, 5).map((pair) => (
                     <p key={`${pair.left.id}-${pair.right.id}`}>
                       {pair.left.date} · {pair.left.amount} {pair.left.currency}
                       {pair.left.description ? ` · ${pair.left.description}` : ""}
                       {" · "}
-                      {pair.right.date} · {pair.right.amount}
+                      {pair.right.date} · {pair.right.amount} {pair.right.currency}
                       {pair.right.description ? ` · ${pair.right.description}` : ""}
                     </p>
                   ))}
