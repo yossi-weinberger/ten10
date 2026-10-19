@@ -212,7 +212,11 @@ function isTopicTail(word: string): boolean {
   const withoutBet = compact.startsWith("ב") ? compact.slice(1) : compact;
   if (TOPIC_TAIL.has(compact) || TOPIC_TAIL.has(withoutBet)) return true;
   if (/^20\d{2}$/.test(compact) || /^20\d{2}$/.test(withoutBet)) return true;
-  if (compact === "in" || compact === "of" || compact === "the" || compact === "שנה" || withoutBet === "שנה") return true;
+  if (
+    compact === "in" || compact === "of" || compact === "the" || compact === "from" || compact === "to"
+    || compact === "שנה" || withoutBet === "שנה" || compact === "שנת" || withoutBet === "שנת"
+    || compact === "מעשר" || compact === "המעשר"
+  ) return true;
   if (looksLikeDateToken(word)) return true;
   return [
     "באשראי", "אשראי", "במזומן", "מזומן", "בביט", "ביט", "בדביט", "דביט",
@@ -225,12 +229,7 @@ const RECIPIENT_STOP = new Set([
   "charity", "the", "donation", "tzedaka", "tzedakah",
 ]);
 
-function recipientPhrase(text: string): string | null {
-  const prepared = text.replace(/ל[-־]/g, "ל");
-  const hebrew = prepared.match(/(?:^|\s)ל([א-ת][א-ת"״׳']*(?:\s+[א-ת][א-ת"״׳']*)*)/);
-  const english = prepared.match(/\bto\s+(?:the\s+)?([a-z][a-z0-9'"]*(?:\s+[a-z][a-z0-9'"]*)*)/i);
-  const raw = hebrew?.[1] ?? english?.[1] ?? "";
-  if (!raw || raw.startsWith("פי") || raw.startsWith("כל")) return null;
+function readName(raw: string): string | null {
   const words: string[] = [];
   for (const part of raw.split(/\s+/)) {
     const word = cleanTopicWord(part);
@@ -240,6 +239,25 @@ function recipientPhrase(text: string): string | null {
   }
   if (words.length === 0 || RECIPIENT_STOP.has(words[0].toLowerCase())) return null;
   return words.join(" ");
+}
+
+function recipientPhrase(text: string): string | null | "ambiguous" {
+  const prepared = text.replace(/ל[-־]/g, "ל");
+  const names: string[] = [];
+  for (let i = 0; i < prepared.length; i++) {
+    const prev = i === 0 ? " " : prepared[i - 1];
+    if (prepared[i] !== "ל" || (prev !== " " && prev !== "ו")) continue;
+    const name = readName(prepared.slice(i + 1));
+    if (name) names.push(name);
+  }
+  const english = prepared.match(/\bto\s+(?:the\s+)?(.+)$/i);
+  if (english?.[1]) {
+    const name = readName(english[1]);
+    if (name) names.push(name);
+  }
+  const unique = [...new Set(names)];
+  if (unique.length > 1) return "ambiguous";
+  return unique[0] ?? null;
 }
 
 function parseDmy(day: string, month: string, year: string): string | null {
@@ -262,6 +280,41 @@ function customRange(text: string): { from: string; to: string } | null {
   const to = parseDmy(dmy[4], dmy[5], dmy[6]);
   if (!from || !to || from > to) return null;
   return { from, to };
+}
+
+const HEBREW_MONTHS = [
+  "ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני",
+  "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר",
+];
+const ENGLISH_MONTHS = [
+  "january", "february", "march", "april", "may", "june",
+  "july", "august", "september", "october", "november", "december",
+];
+
+function monthNumber(word: string): number | null {
+  const compact = cleanTopicWord(word).toLowerCase();
+  const bare = compact.startsWith("מ") && compact.length > 3 ? compact.slice(1) : compact;
+  const hebrew = HEBREW_MONTHS.indexOf(bare);
+  if (hebrew >= 0) return hebrew + 1;
+  const english = ENGLISH_MONTHS.indexOf(compact);
+  if (english >= 0) return english + 1;
+  return null;
+}
+
+function monthNameRange(text: string): { from: string; to: string } | "attempt" | null {
+  const months: number[] = [];
+  let year: number | null = null;
+  for (const word of text.split(/\s+/)) {
+    const month = monthNumber(word);
+    if (month) months.push(month);
+    const found = cleanTopicWord(word).match(/^(20\d{2})$/);
+    if (found) year = Number(found[1]);
+  }
+  if (months.length === 0) return null;
+  if (months.length !== 2 || year === null || months[0] > months[1]) return "attempt";
+  const from = `${year}-${String(months[0]).padStart(2, "0")}-01`;
+  const last = new Date(Date.UTC(year, months[1], 0)).getUTCDate();
+  return { from, to: `${year}-${String(months[1]).padStart(2, "0")}-${String(last).padStart(2, "0")}` };
 }
 
 function hasDateAttempt(text: string): boolean {
@@ -349,9 +402,12 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
   if (paymentMethod === "ambiguous") return null;
   const topic = topicPhrase(normalized);
   const recipient = type === "donation" ? recipientPhrase(normalized) : null;
+  if (recipient === "ambiguous") return null;
   const todayYear = Number(today.slice(0, 4));
   const todayMonth = Number(today.slice(5, 7));
-  const span = customRange(normalized);
+  const namedMonths = monthNameRange(normalized);
+  if (namedMonths === "attempt") return null;
+  const span = customRange(normalized) ?? (namedMonths ?? null);
   if (!span && hasDateAttempt(normalized)) return null;
   if (span) {
     return {
@@ -368,6 +424,7 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
     };
   }
   if (normalized.includes("שנת מעשר") || normalized.includes("שנת המעשר") || normalized.includes("maaser year") || normalized.includes("tithe year")) {
+    if (/\b20\d{2}\b/.test(normalized)) return null;
     const previous = normalized.includes("שעברה")
       || normalized.includes("הקודמת")
       || normalized.includes("הקודם")
