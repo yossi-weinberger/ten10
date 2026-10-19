@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,16 +10,22 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  applyForwardRule,
   clarificationField,
   classifyIntent,
   draftFromText,
+  parseUserRule,
+  type ActiveUserRule,
   type ClarificationField,
   type IntakeIntent,
+  type ParsedUserRule,
+  type RuleActionType,
   type TextTransactionDraft,
 } from "@/lib/ai/classify-intake";
 import { refreshAfterIntakeSave } from "@/lib/ai/refresh-after-intake";
 import { saveTextDraft } from "@/lib/ai/save-text-draft";
 import { undoTextIntake } from "@/lib/ai/undo-text-intake";
+import { approveUserRule, listActiveUserRules } from "@/lib/ai/user-rules";
 
 interface AssistantDrawerProps {
   open: boolean;
@@ -35,6 +41,10 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [pendingText, setPendingText] = useState("");
   const [chosenType, setChosenType] = useState<TextTransactionDraft["type"] | null>(null);
   const [amountReply, setAmountReply] = useState("");
+  const [rules, setRules] = useState<ActiveUserRule[]>([]);
+  const [parsedRule, setParsedRule] = useState<ParsedUserRule | null>(null);
+  const [ruleChoice, setRuleChoice] = useState<RuleActionType | null>(null);
+  const [appliedRuleName, setAppliedRuleName] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [undoing, setUndoing] = useState(false);
   const [savedItemId, setSavedItemId] = useState<string | null>(null);
@@ -42,6 +52,22 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
 
   function todayIso(): string {
     return new Intl.DateTimeFormat("en-CA").format(new Date());
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    void listActiveUserRules().then(setRules);
+  }, [open]);
+
+  function showDraft(next: TextTransactionDraft | null, source: string) {
+    if (!next) {
+      setDraft(null);
+      setAppliedRuleName(null);
+      return;
+    }
+    const applied = applyForwardRule(next, rules, source);
+    setDraft(applied.draft);
+    setAppliedRuleName(applied.ruleName);
   }
 
   function handleSubmit() {
@@ -53,8 +79,11 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setPendingText(text);
     setChosenType(null);
     setAmountReply("");
-    setDraft(
+    setParsedRule(nextIntent === "create_rule" ? parseUserRule(text) : null);
+    setRuleChoice(null);
+    showDraft(
       field === null && nextIntent === "add_transaction" ? draftFromText(text, today) : null,
+      text,
     );
     setSaveMessage(null);
     setSavedItemId(null);
@@ -64,19 +93,37 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     const next = draftFromText(pendingText, todayIso());
     setChosenType(type);
     if (next) {
-      setDraft({ ...next, type });
+      showDraft({ ...next, type }, pendingText);
       setClarification(null);
       return;
     }
-    setDraft(null);
+    showDraft(null, pendingText);
     setClarification("amount");
   }
 
   function handleAmountReply() {
-    const next = draftFromText(`${pendingText} ${amountReply}`, todayIso());
+    const source = `${pendingText} ${amountReply}`;
+    const next = draftFromText(source, todayIso());
     if (!next) return;
-    setDraft(chosenType ? { ...next, type: chosenType } : next);
+    showDraft(chosenType ? { ...next, type: chosenType } : next, source);
     setClarification(null);
+  }
+
+  async function handleApproveRule() {
+    if (!parsedRule || saving) return;
+    const type = parsedRule.action === "ambiguous" ? ruleChoice : parsedRule.action;
+    if (!type) return;
+    setSaving(true);
+    const saved = await approveUserRule(parsedRule.name, type, todayIso());
+    setSaving(false);
+    if (!saved) {
+      setSaveMessage(t("aiIntake.ruleFailed"));
+      return;
+    }
+    setRules((current) => [...current, { name: parsedRule.name, type }]);
+    setParsedRule(null);
+    setRuleChoice(null);
+    setSaveMessage(t("aiIntake.ruleSaved"));
   }
 
   async function handleSave() {
@@ -139,6 +186,34 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               <p>
                 {t(`aiIntake.intents.${intent}`)} {saveMessage ? "" : t("aiIntake.notSaved")}
               </p>
+              {parsedRule ? (
+                <div className="flex flex-col gap-2">
+                  {parsedRule.action === "ambiguous" && !ruleChoice ? (
+                    <>
+                      <p>{t("aiIntake.askRule")}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {(["exempt-income", "recognized-expense", "non_tithe_donation"] as const).map((type) => (
+                          <Button key={type} type="button" onClick={() => setRuleChoice(type)}>
+                            {t(`aiIntake.types.${type}`)}
+                          </Button>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p>
+                        {t("aiIntake.ruleSentence", {
+                          name: parsedRule.name,
+                          type: t(`aiIntake.types.${ruleChoice ?? parsedRule.action}`),
+                        })}
+                      </p>
+                      <Button type="button" disabled={saving} onClick={() => void handleApproveRule()}>
+                        {t("aiIntake.ruleApprove")}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              ) : null}
               {clarification === "type" ? (
                 <div className="flex flex-col gap-2">
                   <p>{t("aiIntake.askType")}</p>
@@ -177,6 +252,9 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                       rate: draft.requestedRate ?? t("aiIntake.noRate"),
                     })}
                   </p>
+                  {appliedRuleName ? (
+                    <p>{t("aiIntake.ruleApplied", { name: appliedRuleName })}</p>
+                  ) : null}
                   <Button type="button" disabled={saving} onClick={() => void handleSave()}>
                     {t("aiIntake.save")}
                   </Button>
