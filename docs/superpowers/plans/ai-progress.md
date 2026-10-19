@@ -66,7 +66,7 @@
 | 49 | התנועה הגדולה ביותר | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#519](https://github.com/yossi-weinberger/ten10/pull/519) |
 | 50 | שאלה לפי אמצעי תשלום | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#520](https://github.com/yossi-weinberger/ten10/pull/520) |
 | 51 | תיקון חלונות ומילים שלמות | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#521](https://github.com/yossi-weinberger/ten10/pull/521) |
-| 52 | קטגוריה וסכום ב-SQL | DB על testing + UI | §9.9 | נפתח | |
+| 52 | קטגוריה וסכום ב-SQL | DB על testing + UI | §9.9 | נפתח | [#522](https://github.com/yossi-weinberger/ten10/pull/522) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
