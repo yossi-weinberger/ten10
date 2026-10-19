@@ -28,6 +28,9 @@ export default {
       },
     },
     extend: {
+      screens: {
+        short: { raw: '(min-width: 1024px) and (max-height: 799px)' },
+      },
       colors: {
         border: "hsl(var(--border) / <alpha-value>)",
         input: "hsl(var(--input) / <alpha-value>)",

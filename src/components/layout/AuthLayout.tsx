@@ -37,7 +37,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
 
       <div className="w-full max-w-[1400px] bg-card rounded-[32px] shadow-2xl grid lg:grid-cols-2 relative z-10 my-auto lg:max-h-[85vh] lg:min-h-[600px] overflow-hidden">
         {/* Form Side */}
-        <div className="relative flex flex-col justify-start lg:justify-center p-8 md:p-12 lg:p-16 [@media(min-width:1024px)_and_(max-height:799px)]:p-6 order-1">
+        <div className="relative flex flex-col justify-start lg:justify-center p-8 md:p-12 lg:p-16 short:p-6 order-1 overflow-y-auto">
           {/* Mobile Logo */}
           <div className="lg:hidden flex justify-center mt-8 mb-6 shrink-0">
             <div className="rounded-2xl bg-white/90 dark:bg-black/40 backdrop-blur-md shadow-lg p-3 border border-black/5 dark:border-white/10">
@@ -49,8 +49,8 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
             </div>
           </div>
 
-          <div className="w-full max-w-md mx-auto space-y-6 [@media(min-width:1024px)_and_(max-height:799px)]:space-y-3 pb-8 [@media(min-width:1024px)_and_(max-height:799px)]:pb-4">
-            <div className="space-y-2 [@media(min-width:1024px)_and_(max-height:799px)]:space-y-1 text-center lg:text-start">
+          <div className="w-full max-w-md mx-auto space-y-6 short:space-y-3 pb-8 short:pb-4">
+            <div className="space-y-2 short:space-y-1 text-center lg:text-start">
               {title && (
                 <h2 className="text-3xl font-bold tracking-tight">{title}</h2>
               )}
