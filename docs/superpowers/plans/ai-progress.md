@@ -63,7 +63,7 @@
 | 46 | ספירת תנועות וחלון חודשים | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#515](https://github.com/yossi-weinberger/ten10/pull/515) |
 | 47 | סריקה מלאה ותוויות כוונה קצרות | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#516](https://github.com/yossi-weinberger/ten10/pull/516) |
 | 48 | תיקון שאלות: סכום, חלון וממוצע | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#517](https://github.com/yossi-weinberger/ten10/pull/517) |
-| 49 | התנועה הגדולה ביותר | UI, קריאה בלבד | §9.9 | נפתח | |
+| 49 | התנועה הגדולה ביותר | UI, קריאה בלבד | §9.9 | נפתח | [#519](https://github.com/yossi-weinberger/ten10/pull/519) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
