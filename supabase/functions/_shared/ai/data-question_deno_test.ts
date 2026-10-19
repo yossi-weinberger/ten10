@@ -76,6 +76,16 @@ Deno.test("english from and a month span do not swallow the question", () => {
   assert(months?.from === "2025-01-01" && months.to === "2025-03-31", "month names");
   assert(parseYearTypeSum("כמה תרמתי לישיבה ולבית חבד השנה", TODAY) === null, "two recipients");
   assert(parseYearTypeSum("כמה תרמתי לפינת חי השנה", TODAY)?.recipient === "פינת חי", "starts with pi");
+  assert(parseYearTypeSum("כמה תרמתי לכולל השנה", TODAY)?.recipient === "כולל", "kollel");
+  assert(parseYearTypeSum("כמה תרמתי לישיבה ב-3 החודשים האחרונים", TODAY)?.recipient === "ישיבה", "months do not stick");
+  const march = parseYearTypeSum("כמה הוצאתי במרץ 2025", TODAY);
+  assert(march?.from === "2025-03-01" && march.to === "2025-03-31", "one month");
+  const foodMonths = parseYearTypeSum("כמה הוצאתי על אוכל מינואר עד מרץ 2025", TODAY);
+  assert(foodMonths?.topic === "אוכל" && foodMonths.from === "2025-01-01", "food months");
+  assert(parseYearTypeSum("כמה תרמתי בשנת המעשר 5786", TODAY)?.year === 5786, "named hebrew year");
+  assert(parseYearTypeSum("how much did I donate to Chabad and to Mir this year", TODAY) === null, "english and");
+  const twoYears = parseYearTypeSum("כמה תרמתי מינואר 2024 עד מרץ 2025", TODAY);
+  assert(twoYears?.from === "2024-01-01" && twoYears.to === "2025-03-31", "span across years");
   assert(parseYearTypeSum("כמה תרמתי לישיבה בשנת המעשר", TODAY)?.recipient === "ישיבה", "name stops");
   assert(parseYearTypeSum("כמה תרמתי בשנת המעשר 2025", TODAY) === null, "numbered tithe year");
 });
