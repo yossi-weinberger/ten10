@@ -392,6 +392,11 @@ export function TermsPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Footer */}
+        <div className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
+          <p>© {new Date().getFullYear()} Ten10. {t("footer", "All rights reserved.")}</p>
+        </div>
       </div>
     </div>
   );

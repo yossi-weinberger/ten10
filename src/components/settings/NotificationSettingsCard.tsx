@@ -125,6 +125,73 @@ export function NotificationSettingsCard({
           />
         </div>
 
+        {/* Calendar Type and Reminder Day - shown only when reminders are enabled */}
+        {reminderNotificationsOn && (
+          <div className="space-y-4 mt-2 pl-11 border-l-2 border-muted">
+            {/* Calendar Type Selection */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <Label>{t("notifications.reminderCalendarLabel")}</Label>
+              <SlidingToggleGroup
+                ariaLabel={t("notifications.reminderCalendarLabel")}
+                className="w-44"
+                value={notificationSettings.reminderCalendarType}
+                disabled={disabled}
+                onValueChange={(value) =>
+                  updateSettings({ reminderCalendarType: value })
+                }
+                options={[
+                  {
+                    value: "gregorian",
+                    label: t("notifications.calendarOptions.gregorian"),
+                  },
+                  {
+                    value: "hebrew",
+                    label: t("notifications.calendarOptions.hebrew"),
+                  },
+                ]}
+              />
+            </div>
+
+            {/* Day of Month Selection */}
+            <div className="space-y-2">
+              <Label className="text-sm">
+                {t("notifications.reminderDayLabel")}
+              </Label>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                {([1, 5, 10, 15, 20, 25] as const).map((day) => (
+                  <button
+                    key={day}
+                    onClick={() => handleDayChange(day)}
+                    disabled={disabled}
+                    className={`
+                      px-2 py-2 text-xs sm:text-sm font-medium rounded-md border transition-colors
+                      ${
+                        notificationSettings.reminderDayOfMonth === day
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground"
+                      }
+                      ${
+                        disabled
+                          ? "opacity-50 cursor-not-allowed"
+                          : "cursor-pointer"
+                      }
+                    `}
+                  >
+                    <span className="hidden sm:inline">
+                      {t(
+                        notificationSettings.reminderCalendarType === "hebrew"
+                          ? `notifications.hebrewDay${day}`
+                          : `notifications.day${day}`,
+                      )}
+                    </span>
+                    <span className="sm:hidden">{day}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Marketing and News Emails - Web only */}
         {isWeb && (
           <div className="flex items-center justify-between">
@@ -150,67 +217,6 @@ export function NotificationSettingsCard({
             />
           </div>
         )}
-
-        <div className="ml-11 flex flex-wrap items-center justify-between gap-3">
-          <Label>{t("notifications.reminderCalendarLabel")}</Label>
-          <SlidingToggleGroup
-            ariaLabel={t("notifications.reminderCalendarLabel")}
-            className="w-44"
-            value={notificationSettings.reminderCalendarType}
-            disabled={disabled || !reminderNotificationsOn}
-            onValueChange={(value) =>
-              updateSettings({ reminderCalendarType: value })
-            }
-            options={[
-              {
-                value: "gregorian",
-                label: t("notifications.calendarOptions.gregorian"),
-              },
-              {
-                value: "hebrew",
-                label: t("notifications.calendarOptions.hebrew"),
-              },
-            ]}
-          />
-        </div>
-
-        {/* Day Selection - Always visible but disabled when notifications are off */}
-        <div className="ml-11 space-y-2">
-          <Label className="text-sm">
-            {t("notifications.reminderDayLabel")}
-          </Label>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-            {([1, 5, 10, 15, 20, 25] as const).map((day) => (
-              <button
-                key={day}
-                onClick={() => handleDayChange(day)}
-                disabled={disabled || !reminderNotificationsOn}
-                className={`
-                  px-2 py-2 text-xs sm:text-sm font-medium rounded-md border transition-colors
-                  ${
-                    notificationSettings.reminderDayOfMonth === day
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground"
-                  }
-                  ${
-                    disabled || !reminderNotificationsOn
-                      ? "opacity-50 cursor-not-allowed"
-                      : "cursor-pointer"
-                  }
-                `}
-              >
-                <span className="hidden sm:inline">
-                  {t(
-                    notificationSettings.reminderCalendarType === "hebrew"
-                      ? `notifications.hebrewDay${day}`
-                      : `notifications.day${day}`,
-                  )}
-                </span>
-                <span className="sm:hidden">{day}</span>
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Autostart Toggle - Desktop only */}
         {isDesktop && (

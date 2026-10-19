@@ -199,14 +199,35 @@ export function PrivacyPage() {
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-start gap-3">
                 <Mail className="h-6 w-6 text-orange-600 flex-shrink-0 mt-1" />
-                <div>
+                <div className="space-y-4">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                     {t("communications.title")}
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300">
                     {t("communications.description")}
                   </p>
-                  <p className="text-gray-600 dark:text-gray-300">
+                  
+                  {/* Reminders Section */}
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 space-y-2">
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {t("communications.reminder.title")}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {t("communications.reminder.description")}
+                    </p>
+                  </div>
+
+                  {/* Marketing Section */}
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 space-y-2">
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {t("communications.marketing.title")}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {t("communications.marketing.description")}
+                    </p>
+                  </div>
+
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
                     {t("communications.unsubscribe")}
                   </p>
                 </div>
@@ -313,6 +334,11 @@ export function PrivacyPage() {
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Footer */}
+        <div className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
+          <p>© {new Date().getFullYear()} Ten10. {t("footer", "All rights reserved.")}</p>
         </div>
       </div>
     </div>

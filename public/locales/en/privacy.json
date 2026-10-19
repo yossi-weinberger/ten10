@@ -48,8 +48,8 @@
     "description": "We use your data for the following purposes:",
     "item1": "Providing system services: Tithe calculations, budget management, and reports",
     "item2": "Service improvement: Understanding user needs and improving functionality",
-    "item3": "Reminders: Sending monthly reminders (only if you have opted in)",
-    "item4": "Technical support: Helping resolve issues and questions"
+    "item3": "Sending monthly reminders (independent service email, can be disabled in Settings)",
+    "item4": "Sending updates and project news (marketing, can be unsubscribed)"
   },
   "communications": {
     "title": "Communications",

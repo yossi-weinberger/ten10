@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 
-type UnsubscribeType = "reminder" | "all";
+type UnsubscribeType = "reminder" | "marketing" | "all";
 
 export default function UnsubscribePage() {
   const { t } = useTranslation("auth");
@@ -64,12 +64,17 @@ export default function UnsubscribePage() {
       }
 
       const resolvedType: UnsubscribeType =
-        data.type === "reminder" || data.type === "all" ? data.type : type;
+        data.type === "reminder" || data.type === "marketing" || data.type === "all" 
+          ? data.type 
+          : type;
 
       setStatus("success");
       if (resolvedType === "reminder") {
         setTitle(t("unsubscribe.success.reminder.title"));
         setMessage(t("unsubscribe.success.reminder.message"));
+      } else if (resolvedType === "marketing") {
+        setTitle(t("unsubscribe.success.marketing.title"));
+        setMessage(t("unsubscribe.success.marketing.message"));
       } else {
         setTitle(t("unsubscribe.success.all.title"));
         setMessage(t("unsubscribe.success.all.message"));

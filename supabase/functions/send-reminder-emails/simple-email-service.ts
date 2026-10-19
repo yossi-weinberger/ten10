@@ -110,7 +110,7 @@ export class SimpleEmailService {
         currency,
         israelMonth: getIsraelMonth(),
         kind,
-        unsubscribeUrls: { reminderUrl: "", allUrl: "" },
+        unsubscribeUrls: { reminderUrl: "", marketingUrl: "", allUrl: "" },
       };
       const subject = generateReminderEmailSubject(templateData);
 
@@ -144,7 +144,7 @@ export class SimpleEmailService {
           error,
         );
         // Continue without unsubscribe URLs - email can still be sent
-        unsubscribeUrls = { reminderUrl: "", allUrl: "" };
+        unsubscribeUrls = { reminderUrl: "", marketingUrl: "", allUrl: "" };
       }
       templateData.unsubscribeUrls = unsubscribeUrls;
       const htmlBody = generateReminderEmailHTML(templateData);

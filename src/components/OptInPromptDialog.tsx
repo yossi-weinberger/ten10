@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useDonationStore } from "@/lib/store";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +21,7 @@ import { Mail } from "lucide-react";
 import { buildReminderProfileUpdate } from "@/lib/services/preferences-sync.service";
 
 const STORAGE_KEY_PREFIX = "ten10_opt_in_prompt_shown_";
+const NEW_USER_GRACE_PERIOD_MS = 24 * 60 * 60 * 1000; // 1 day
 
 function getStorageKey(userId: string): string {
   return `${STORAGE_KEY_PREFIX}${userId}`;
@@ -42,25 +43,59 @@ function markPromptAsShown(userId: string): void {
   }
 }
 
+async function isNewUser(userId: string): Promise<boolean> {
+  try {
+    const { data: userData, error } = await supabase.auth.getUser();
+    if (error || !userData?.user?.created_at) return false;
+    
+    const createdAt = new Date(userData.user.created_at).getTime();
+    const now = Date.now();
+    return (now - createdAt) < NEW_USER_GRACE_PERIOD_MS;
+  } catch {
+    return false;
+  }
+}
+
 export function OptInPromptDialog() {
   const { t } = useTranslation("common");
   const { user } = useAuth();
   const { platform } = usePlatform();
-  const { settings, updateSettings } = useDonationStore();
+  const { settings, updateSettings, _hasHydrated } = useDonationStore();
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [isNewUserState, setIsNewUserState] = useState(true); // Assume new until verified
 
-  // Derive initial checkbox state from settings
-  const initialReminderState = settings.reminderEnabled !== false;
-  const initialMarketingState = settings.mailingListConsent !== false;
+  // Check if user is brand new
+  useEffect(() => {
+    if (user) {
+      isNewUser(user.id).then(setIsNewUserState);
+    }
+  }, [user]);
+
+  // Derive initial checkbox state from loaded server settings only
+  const initialReminderState = settings.reminderEnabled === true;
+  const initialMarketingState = settings.mailingListConsent === true;
 
   const [enableReminders, setEnableReminders] = useState(initialReminderState);
   const [enableMarketing, setEnableMarketing] = useState(initialMarketingState);
 
+  // Update checkboxes when settings load from server
+  useEffect(() => {
+    if (_hasHydrated) {
+      setEnableReminders(settings.reminderEnabled === true);
+      setEnableMarketing(settings.mailingListConsent === true);
+    }
+  }, [_hasHydrated, settings.reminderEnabled, settings.mailingListConsent]);
+
   // Compute whether dialog should be shown
   const shouldShow = useMemo(() => {
-    if (platform !== "web" || !user || dismissed) {
+    // Wait for store to hydrate from server
+    if (!_hasHydrated) {
+      return false;
+    }
+
+    if (platform !== "web" || !user || dismissed || isNewUserState) {
       return false;
     }
 
@@ -68,12 +103,15 @@ export function OptInPromptDialog() {
       return false;
     }
 
-    const needsPrompt =
-      settings.reminderEnabled === false ||
-      settings.mailingListConsent === false;
+    // Show only if at least ONE field is enabled (user is engaged) AND at least ONE is disabled
+    // This avoids showing to users who deliberately unsubscribed from everything via email
+    const hasReminderEnabled = settings.reminderEnabled === true;
+    const hasMarketingEnabled = settings.mailingListConsent === true;
+    const hasAtLeastOneEnabled = hasReminderEnabled || hasMarketingEnabled;
+    const hasAtLeastOneDisabled = !hasReminderEnabled || !hasMarketingEnabled;
 
-    return needsPrompt;
-  }, [user, platform, settings.reminderEnabled, settings.mailingListConsent, dismissed]);
+    return hasAtLeastOneEnabled && hasAtLeastOneDisabled;
+  }, [_hasHydrated, user, platform, settings.reminderEnabled, settings.mailingListConsent, dismissed, isNewUserState]);
 
   const handleNotNow = () => {
     if (user) {
@@ -82,22 +120,35 @@ export function OptInPromptDialog() {
     setDismissed(true);
   };
 
+  const handleDismiss = () => {
+    handleNotNow();
+  };
+
   const handleUpdate = async () => {
     if (!user) return;
 
     setIsUpdating(true);
     try {
-      const newSettings = {
-        reminderEnabled: enableReminders,
-        notifications: enableReminders,
-        mailingListConsent: enableMarketing,
-      };
+      // Only update fields that changed from their loaded server values
+      const updates: Partial<typeof settings> = {};
+      
+      if (enableReminders !== (settings.reminderEnabled === true)) {
+        updates.reminderEnabled = enableReminders;
+        updates.notifications = enableReminders;
+      }
+      
+      if (enableMarketing !== (settings.mailingListConsent === true)) {
+        updates.mailingListConsent = enableMarketing;
+      }
 
       // Update local settings
-      updateSettings(newSettings);
+      updateSettings(updates);
 
       // Update Supabase
-      const profileUpdate = buildReminderProfileUpdate(newSettings);
+      const profileUpdate = buildReminderProfileUpdate({
+        ...settings,
+        ...updates,
+      });
       const { error } = await supabase
         .from("profiles")
         .update(profileUpdate)
@@ -122,7 +173,7 @@ export function OptInPromptDialog() {
   const needsMarketing = settings.mailingListConsent === false;
 
   return (
-    <Dialog open={shouldShow} onOpenChange={(open) => !open && setDismissed(true)}>
+    <Dialog open={shouldShow} onOpenChange={(open) => !open && handleDismiss()}>
       <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
