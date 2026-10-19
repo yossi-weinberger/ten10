@@ -13,7 +13,8 @@
       "clearDataSuccess": "הנתונים נמחקו בהצלחה",
       "clearDataError": "שגיאה במחיקת הנתונים",
       "clearDataConfirm": "האם אתה בטוח שברצונך למחוק את כל הנתונים?",
-      "updateError": "שגיאה בעדכון ההגדרות"
+      "updateError": "שגיאה בעדכון ההגדרות",
+      "updateSuccess": "ההגדרות עודכנו בהצלחה"
     },
     "transaction": {
       "addSuccess": "התנועה נוספה בהצלחה",
@@ -46,6 +47,17 @@
     "success": "הצלחה",
     "warning": "אזהרה",
     "info": "מידע"
+  },
+  "optInPrompt": {
+    "title": "האם תרצה להפעיל עדכונים?",
+    "description": "נשמח לעדכן אותך על תכונות חדשות ולשלוח תזכורות חודשיות.",
+    "reminderLabel": "הפעל תזכורות חודשיות",
+    "reminderDescription": "קבל תזכורת במייל בתחילת כל חודש לבדיקת יתרת המעשר",
+    "marketingLabel": "הפעל עדכונים וחדשות",
+    "marketingDescription": "קבל עדכונים על תכונות חדשות ושיפורים",
+    "notNow": "לא עכשיו",
+    "updatePreferences": "עדכן העדפות",
+    "updating": "מעדכן..."
   },
   "dataLoadError": "שגיאה בטעינת נתונים.",
   "export": {

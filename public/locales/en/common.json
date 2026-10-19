@@ -13,7 +13,8 @@
       "clearDataSuccess": "Data cleared successfully",
       "clearDataError": "Error clearing data",
       "clearDataConfirm": "Are you sure you want to clear all data?",
-      "updateError": "Error updating settings"
+      "updateError": "Error updating settings",
+      "updateSuccess": "Settings updated successfully"
     },
     "transaction": {
       "addSuccess": "Transaction added successfully",
@@ -46,6 +47,17 @@
     "success": "Success",
     "warning": "Warning",
     "info": "Info"
+  },
+  "optInPrompt": {
+    "title": "Would you like to enable updates?",
+    "description": "We'd love to keep you updated on new features and send you monthly reminders.",
+    "reminderLabel": "Enable monthly reminders",
+    "reminderDescription": "Receive an email reminder at the start of each month to check your Ma'aser balance",
+    "marketingLabel": "Enable updates and news",
+    "marketingDescription": "Receive updates about new features and improvements",
+    "notNow": "Not now",
+    "updatePreferences": "Update preferences",
+    "updating": "Updating..."
   },
   "dataLoadError": "Error loading data.",
   "export": {

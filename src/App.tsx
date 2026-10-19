@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils/index";
 import ContactFAB from "./components/layout/ContactFAB";
 import { TermsAcceptanceModal } from "./components/auth/TermsAcceptanceModal";
 import { WhatsNewModal } from "./components/WhatsNewModal";
+import { OptInPromptDialog } from "./components/OptInPromptDialog";
 import { OnboardingHost } from "./components/onboarding/OnboardingHost";
 import { Footer } from "@/pages/landing/sections/Footer";
 import AppLoader from "./components/layout/AppLoader";
@@ -426,6 +427,7 @@ function App() {
       {shouldShowContactFab && <ContactFAB />}
       <TermsAcceptanceModal />
       <WhatsNewModal />
+      <OptInPromptDialog />
     </TooltipProvider>
     </OnboardingHost>
   );
