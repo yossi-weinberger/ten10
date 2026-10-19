@@ -8,6 +8,7 @@ import { TWAProvider } from "./contexts/TWAContext";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 import { AuthProvider } from "./contexts/AuthContext";
+import { RefreshOnReturn } from "./components/refresh-on-return";
 import posthog from "posthog-js";
 import { PostHogProvider } from "posthog-js/react";
 import {
@@ -48,6 +49,7 @@ const appTree = (
     <PlatformProvider>
       <TWAProvider>
         <AuthProvider>
+          <RefreshOnReturn />
           <RouterProvider router={router} />
           <SpeedInsights />
           <Analytics />

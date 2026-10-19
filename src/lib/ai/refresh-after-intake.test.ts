@@ -15,7 +15,7 @@ vi.mock("@/lib/tableTransactions/tableTransactions.store", () => ({
   },
 }));
 
-import { refreshAfterIntakeSave } from "./refresh-after-intake";
+import { refreshAfterIntakeSave, refreshOnVisible } from "./refresh-after-intake";
 
 describe("refreshAfterIntakeSave", () => {
   beforeEach(() => {
@@ -28,6 +28,14 @@ describe("refreshAfterIntakeSave", () => {
 
     expect(setLastDbFetchTimestamp).toHaveBeenCalledOnce();
     expect(setLastDbFetchTimestamp.mock.calls[0]?.[0]).toEqual(expect.any(Number));
+    expect(fetchTransactions).toHaveBeenCalledWith(true, "web");
+  });
+
+  it("refreshes when the document becomes visible again", () => {
+    refreshOnVisible("hidden");
+    expect(fetchTransactions).not.toHaveBeenCalled();
+
+    refreshOnVisible("visible");
     expect(fetchTransactions).toHaveBeenCalledWith(true, "web");
   });
 });

@@ -25,8 +25,8 @@
 | 8 | אייקון ומסנן מקור בטבלת התנועות | UI, Web בלבד | PR 4 + PR 7 | מוזג ל־`feat/ai-intake` | [#459](https://github.com/yossi-weinberger/ten10/pull/459) |
 | 9 | רענון אחרי שמירת טקסט | UI | PR 7–8 | מוזג ל־`feat/ai-intake` | [#460](https://github.com/yossi-weinberger/ten10/pull/460) |
 | 10 | `ai.undo_intake_commit` וכפתור בטל בצ'אט | DB על testing + UI | PR 5 + PR 9 | מוזג ל־`feat/ai-intake` | [#462](https://github.com/yossi-weinberger/ten10/pull/462) |
-| 11 | ביטול מתפריט השורה בטבלה | DB על testing + UI | PR 10 | נפתח מול `feat/ai-intake` | |
-| 12 | נכתב כשהגל הקודם נסגר | | §24.1 במסמך | | |
+| 11 | ביטול מתפריט השורה בטבלה | DB על testing + UI | PR 10 | מוזג ל־`feat/ai-intake` | [#463](https://github.com/yossi-weinberger/ten10/pull/463) |
+| 12 | רענון בחזרה ללשונית | UI, Web בלבד | §4.6 | נפתח מול `feat/ai-intake` | |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -97,3 +97,4 @@
 - **2026-10-19:** #460 מוזג ל־`feat/ai-intake`. המסמך עודכן ל־v2.7: `domain_adjacent` מציג סעיף הלכה שפורסם בלי ניסוח מודל, בדיקת grounding למספרים לפני טקסט חופשי, ושמירת שאילתה מובנית אחת להמשך. סדר הבנייה לא השתנה.
 - **2026-10-19:** נוסף `ai.undo_intake_commit` על testing, וכפתור "בטל" בצ'אט אחרי שמירה. ביטול מותר 7 ימים ורק אם התנועה לא נערכה. כפתור בטבלה עדיין לא קיים.
 - **2026-10-19:** #462 מוזג ל־`feat/ai-intake`. בתפריט השורה ב-Web נוסף "בטל שמירת AI", דרך `undo_ai_transaction`. אותם תנאים כמו בצ'אט. Desktop בלי הפריט.
+- **2026-10-19:** #463 מוזג ל־`feat/ai-intake`. ב-Web, חזרה ללשונית אחרי שהייתה מוסתרת מרעננת את הכרטיסים ואת טבלת התנועות. Desktop לא.
