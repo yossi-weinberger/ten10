@@ -84,6 +84,8 @@ Deno.test("english from and a month span do not swallow the question", () => {
   assert(foodMonths?.topic === "אוכל" && foodMonths.from === "2025-01-01", "food months");
   assert(parseYearTypeSum("כמה תרמתי בשנת המעשר 5786", TODAY)?.year === 5786, "named hebrew year");
   assert(parseYearTypeSum("how much did I donate to Chabad and to Mir this year", TODAY) === null, "english and");
+  const twoYears = parseYearTypeSum("כמה תרמתי מינואר 2024 עד מרץ 2025", TODAY);
+  assert(twoYears?.from === "2024-01-01" && twoYears.to === "2025-03-31", "span across years");
   assert(parseYearTypeSum("כמה תרמתי לישיבה בשנת המעשר", TODAY)?.recipient === "ישיבה", "name stops");
   assert(parseYearTypeSum("כמה תרמתי בשנת המעשר 2025", TODAY) === null, "numbered tithe year");
 });

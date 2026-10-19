@@ -308,21 +308,34 @@ function monthNumber(word: string): number | null {
   return null;
 }
 
+function monthSpan(
+  startYear: number,
+  startMonth: number,
+  endYear: number,
+  endMonth: number,
+): { from: string; to: string } | "attempt" {
+  if (startYear > endYear || (startYear === endYear && startMonth > endMonth)) return "attempt";
+  const from = `${startYear}-${String(startMonth).padStart(2, "0")}-01`;
+  const last = new Date(Date.UTC(endYear, endMonth, 0)).getUTCDate();
+  return { from, to: `${endYear}-${String(endMonth).padStart(2, "0")}-${String(last).padStart(2, "0")}` };
+}
+
 function monthNameRange(text: string): { from: string; to: string } | "attempt" | null {
   const months: number[] = [];
-  let year: number | null = null;
+  const years: number[] = [];
   for (const word of text.split(/\s+/)) {
     const month = monthNumber(word);
     if (month) months.push(month);
     const found = cleanTopicWord(word).match(/^(20\d{2})$/);
-    if (found) year = Number(found[1]);
+    if (found) years.push(Number(found[1]));
   }
   if (months.length === 0) return null;
-  if (year === null || months.length > 2 || (months.length === 2 && months[0] > months[1])) return "attempt";
-  const endMonth = months.length === 2 ? months[1] : months[0];
-  const from = `${year}-${String(months[0]).padStart(2, "0")}-01`;
-  const last = new Date(Date.UTC(year, endMonth, 0)).getUTCDate();
-  return { from, to: `${year}-${String(endMonth).padStart(2, "0")}-${String(last).padStart(2, "0")}` };
+  if (months.length > 2 || years.length === 0 || years.length > 2) return "attempt";
+  if (months.length === 1) {
+    return years.length === 1 ? monthSpan(years[0], months[0], years[0], months[0]) : "attempt";
+  }
+  if (years.length === 1) return monthSpan(years[0], months[0], years[0], months[1]);
+  return monthSpan(years[0], months[0], years[1], months[1]);
 }
 
 function hasDateAttempt(text: string): boolean {
