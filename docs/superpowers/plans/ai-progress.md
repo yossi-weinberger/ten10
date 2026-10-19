@@ -61,7 +61,7 @@
 | 44 | שאלה על השנה ועל החודש | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#513](https://github.com/yossi-weinberger/ten10/pull/513) |
 | 45 | סריקת כפילויות בתנועות שנשמרו | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#514](https://github.com/yossi-weinberger/ten10/pull/514) |
 | 46 | ספירת תנועות וחלון חודשים | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#515](https://github.com/yossi-weinberger/ten10/pull/515) |
-| 47 | סריקה מלאה ותוויות כוונה קצרות | UI, קריאה בלבד | §9.9 | נפתח | |
+| 47 | סריקה מלאה ותוויות כוונה קצרות | UI, קריאה בלבד | §9.9 | נפתח | [#516](https://github.com/yossi-weinberger/ten10/pull/516) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
