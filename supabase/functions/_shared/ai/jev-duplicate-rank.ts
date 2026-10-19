@@ -1,4 +1,4 @@
-/** Jev Noul request for "same event". Amounts and user ids stay out of the body. */
+/** Jev Noul request for "same event". User ids stay out of the body. Amounts are included. */
 
 export const JEV_DUPLICATE_MODEL = "jev-1.13.0";
 export const JEV_SYSTEMONE_URL = "https://api.typesafe.ai/v1/systemone";
@@ -10,11 +10,15 @@ export interface DuplicateRankCandidate {
   description: string;
   type: string;
   dayGap: number;
+  amount: number;
+  currency: string;
 }
 
 export interface DuplicateRankRequest {
   description: string;
   type: string;
+  amount: number;
+  currency: string;
   candidates: readonly DuplicateRankCandidate[];
 }
 
@@ -26,6 +30,8 @@ interface NoulQuestion {
       description: string;
       type: string;
       day_difference: number;
+      amount: number;
+      currency: string;
     };
   };
   criteria: { true: string; false: string };
@@ -33,7 +39,7 @@ interface NoulQuestion {
 
 export interface DuplicateRankBody {
   model: string;
-  state: { description: string; type: string };
+  state: { description: string; type: string; amount: number; currency: string };
   questions: Record<string, NoulQuestion>;
 }
 
@@ -56,6 +62,8 @@ export function buildDuplicateRankBody(input: DuplicateRankRequest): {
           description: candidate.description.slice(0, MAX_DESCRIPTION),
           type: candidate.type,
           day_difference: candidate.dayGap,
+          amount: candidate.amount,
+          currency: candidate.currency.trim().toUpperCase().slice(0, 8),
         },
       },
       criteria: {
@@ -72,6 +80,8 @@ export function buildDuplicateRankBody(input: DuplicateRankRequest): {
       state: {
         description: input.description.slice(0, MAX_DESCRIPTION),
         type: input.type,
+        amount: input.amount,
+        currency: input.currency.trim().toUpperCase().slice(0, 8),
       },
       questions,
     },

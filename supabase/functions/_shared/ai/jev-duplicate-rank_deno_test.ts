@@ -4,22 +4,27 @@ function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
 
-Deno.test("duplicate rank body keeps amounts and ids out of the model text", () => {
+Deno.test("duplicate rank body sends amounts and keeps ids out of the model text", () => {
   const { body, idsByKey } = buildDuplicateRankBody({
     description: "מאפים באליס",
     type: "expense",
+    amount: 15,
+    currency: "ILS",
     candidates: [{
       id: "11111111-1111-1111-1111-111111111111",
       description: "מאפים",
       type: "expense",
       dayGap: 1,
+      amount: 15,
+      currency: "ILS",
     }],
   });
 
   const serialized = JSON.stringify(body);
   assert(body.model === "jev-1.13.0", "model pin");
   assert(!serialized.includes("11111111"), "candidate id leaked into the body");
-  assert(!serialized.includes("amount"), "amount leaked into the body");
+  assert(body.state.amount === 15 && body.state.currency === "ILS", "draft amount");
+  assert(body.questions.q0.instructions.candidate.amount === 15, "candidate amount");
   assert(body.state.description === "מאפים באליס", "state description");
   assert(idsByKey.q0 === "11111111-1111-1111-1111-111111111111", "key map");
   assert(body.questions.q0.instructions.candidate.day_difference === 1, "day gap");
