@@ -32,6 +32,8 @@ import {
   listDuplicateCandidates,
   type DuplicateCandidate,
 } from "@/lib/ai/duplicate-candidates";
+import { orderCandidatesByRank } from "@/lib/ai/duplicate-rank";
+import { rankDuplicateCandidates } from "@/lib/ai/rank-duplicates";
 
 interface AssistantDrawerProps {
   open: boolean;
@@ -52,6 +54,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const originalDraft = useRef<{ description: string; amount: number } | null>(null);
   const [amountInput, setAmountInput] = useState("");
   const [duplicates, setDuplicates] = useState<DuplicateCandidate[]>([]);
+  const [duplicatesRanked, setDuplicatesRanked] = useState(false);
   const [clarification, setClarification] = useState<ClarificationField | null>(null);
   const [pendingText, setPendingText] = useState("");
   const [chosenType, setChosenType] = useState<TextTransactionDraft["type"] | null>(null);
@@ -83,6 +86,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     const amount = Number(amountText.replace(",", "."));
     if (!next || !Number.isFinite(amount) || amount === 0) {
       setDuplicates([]);
+      setDuplicatesRanked(false);
       return;
     }
     void listDuplicateCandidates({
@@ -90,8 +94,21 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       date: next.date,
       amount,
       currency: next.currency,
-    }).then((rows) => {
-      if (duplicateRequest.current === request) setDuplicates(rows);
+    }).then(async (rows) => {
+      if (duplicateRequest.current !== request) return;
+      setDuplicates(rows);
+      setDuplicatesRanked(false);
+      if (rows.length === 0) return;
+      const scores = await rankDuplicateCandidates({
+        type: next.type,
+        date: next.date,
+        amount,
+        currency: next.currency,
+        description: next.description,
+      });
+      if (duplicateRequest.current !== request || !scores || scores.length === 0) return;
+      setDuplicates(orderCandidatesByRank(rows, scores));
+      setDuplicatesRanked(true);
     });
   }
 
@@ -344,6 +361,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                   {duplicates.length > 0 ? (
                     <div className="flex flex-col gap-1">
                       <p>{t("aiIntake.duplicateWarning", { count: duplicates.length })}</p>
+                      {duplicatesRanked ? <p>{t("aiIntake.duplicateRanked")}</p> : null}
                       {duplicates.slice(0, 3).map((row) => (
                         <p key={row.id}>
                           {row.date} · {row.amount}

@@ -18,7 +18,7 @@
 | המרת מטבע | `currency-rules.ts` (`applyConversion`), `exchange-rates.ts` | הטופס, יתרת פתיחה, עריכת הוראת קבע והשירות בלקוח קוראים ל-`applyConversion`. ה-cron של הוראות הקבע לא עבר למודול הזה |
 | חוזה טיוטה | `supabase/functions/_shared/intake/contracts.ts` | `TransactionDraftV1`. הלקוח מייצא מחדש מ-`src/lib/intake/contracts.ts` |
 | סיווג כוונות | `supabase/functions/_shared/ai/intent.ts` | `classifyIntent` מחזיר תווית בלבד, בלי רשת ובלי כתיבה |
-| החלטת סוג מרשימה סגורה | `supabase/functions/_shared/ai/decision.ts` | `decide()`. מתאם כללים טהור. מתאמי Jev ו-LLM זורקים שגיאה בלי מפתח |
+| החלטת סוג מרשימה סגורה | `supabase/functions/_shared/ai/decision.ts` | `decide()` לסוג עדיין מתאם כללים. דירוג "אותו אירוע" קורא ל-Jev מפונקציית Edge `ai-rank-duplicates` |
 | סכמה | `ai` ב-testing | טבלאות intake. משתמש מחובר יכול רק לקרוא את השורות שלו |
 | רישום | `ai.commit_intake_items` ב-testing | כותב תנועה אחת או יותר. כשל אחד מבטל את כל הקריאה |
 | עמודה בטבלת התנועות | `public.transactions.origin` | `NULL`, `ai`, או `ai_auto`. קיימת ב-testing. ב-Web מוצג אייקון כשהערך `ai` או `ai_auto`, ומסנן "מקור" שולח `p_origin` רק כשהוא לא "הכל". ב-Desktop אין אייקון ואין מסנן |
@@ -48,7 +48,7 @@ Desktop לא מקבל את העמודה ב-SQLite.
 
 ה-schema `ai` עדיין לא חשוף ב-Data API. הלקוח קורא לעטיפות `public.create_ai_text_intake` ו-`public.commit_ai_intake_items`.
 
-לפני השמירה, אם יש תנועה שמורה או טיוטה פתוחה מאותו סוג בטווח של שלושה ימים ובסכום קרוב עד 2%, מוצגת אזהרה. טיוטה מסומנת ככזו. "שמור בכל זאת" רושם את התנועה ומסמן `saved_anyway`. "זו אותה תנועה" לא רושמת תנועה ומסמנת `same_event`. השרת שומר רק מזהים ששייכים למשתמש ועומדים באותו חלון. אין שיפוט של מודל. לפני השמירה אפשר לתקן את התיאור ואת הסכום. השרת משווה אותם למה שחולץ, ורושם `user_edited`. כשהפריט עובר ל-`committed`, נרשם `quality_signals.outcome = approved`. בביטול נרשם `reverted`. עריכה אחרי השמירה לא נרשמת שם: היא נראית ב-`transactions.updated_at`.
+לפני השמירה, אם יש תנועה שמורה או טיוטה פתוחה מאותו סוג בטווח של שלושה ימים ובסכום קרוב עד 2%, מוצגת אזהרה. טיוטה מסומנת ככזו. כשיש מועמדים, שרת ה-testing שולח ל-Jev רק תיאור, סוג והפרש ימים, ומסדר את האזהרה לפי ההסתברות שזה אותו אירוע. הסכום ומזהה המשתמש לא נשלחים. אם Jev לא עונה, האזהרה נשארת לפי תאריך. השמירה לא נחסמת. "שמור בכל זאת" רושם את התנועה ומסמן `saved_anyway`. "זו אותה תנועה" לא רושמת תנועה ומסמנת `same_event`. השרת שומר רק מזהים ששייכים למשתמש ועומדים באותו חלון. לפני השמירה אפשר לתקן את התיאור ואת הסכום. השרת משווה אותם למה שחולץ, ורושם `user_edited`. כשהפריט עובר ל-`committed`, נרשם `quality_signals.outcome = approved`. בביטול נרשם `reverted`. עריכה אחרי השמירה לא נרשמת שם: היא נראית ב-`transactions.updated_at`.
 
 ## מה לא לגעת בו
 

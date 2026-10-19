@@ -50,6 +50,7 @@
     "sameEvent": "זו אותה תנועה",
     "duplicateKept": "לא נשמרה תנועה חדשה.",
     "draftCandidate": "טיוטה שלא נשמרה",
+    "duplicateRanked": "הסדר הוא לפי מידת הדמיון.",
     "types": {
       "expense": "הוצאה",
       "income": "הכנסה",
