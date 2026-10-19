@@ -21,7 +21,7 @@
 | 4 | `20261019020000_ai_schema_foundation.sql` | schema `ai`, עמודת `origin`, `p_origin` | PR 2–3 | מוזג ל־`feat/ai-intake`, ורץ על testing | [#449](https://github.com/yossi-weinberger/ten10/pull/449) |
 | 5 | `20261019033000_ai_commit_intake_items.sql` | RPC רישום, בלי שמירה אוטומטית ובלי UI | PR 4 | מוזג ל־`feat/ai-intake`, ורץ על testing | [#450](https://github.com/yossi-weinberger/ten10/pull/450) |
 | 6 | `supabase/functions/_shared/ai/intent.ts` | סיווג כוונות, בלי רשת ובלי DB | PR 3 | מוזג ל־`feat/ai-intake` | [#451](https://github.com/yossi-weinberger/ten10/pull/451) |
-| 7 | מעטפת צ'אט מאחורי `ai_intake_web` | UI, בלי רישום | PR 6 | PR פתוח מול `feat/ai-intake` | |
+| 7 | מעטפת צ'אט מאחורי `ai_intake_web` | UI, בלי רישום | PR 6 | PR פתוח מול `feat/ai-intake`, לא מוזג | [#458](https://github.com/yossi-weinberger/ten10/pull/458) |
 | 8–12 | נכתבות כשהגל הקודם נסגר | | §24.1 במסמך | | |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
