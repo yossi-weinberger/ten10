@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { logger } from "../_shared/logger.ts";
 import { AI_DRAFT_ALLOWED_TYPES } from "../_shared/transaction-domain/transaction-types.ts";
 import {
   buildDuplicateRankBody,
@@ -12,23 +13,10 @@ import { isTrialUser } from "../_shared/ai/trial-users.ts";
 
 const ALLOWED_TYPES = new Set<string>(AI_DRAFT_ALLOWED_TYPES);
 
-function corsHeaders(origin: string | null): Record<string, string> {
-  const headers = getCorsHeaders(origin);
-  if (headers["Access-Control-Allow-Origin"] || !origin) return headers;
-  if (/^https:\/\/ten10-[a-z0-9-]+\.vercel\.app$/.test(origin)) {
-    return {
-      "Access-Control-Allow-Origin": origin,
-      "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-      "Access-Control-Allow-Credentials": "true",
-    };
-  }
-  return headers;
-}
-
 function json(origin: string | null, body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders(origin), "Content-Type": "application/json" },
+    headers: { ...getCorsHeaders(origin), "Content-Type": "application/json" },
   });
 }
 
@@ -61,7 +49,7 @@ function readInput(value: unknown): RankInput | null {
 Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin");
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders(origin) });
+    return new Response("ok", { headers: getCorsHeaders(origin) });
   }
   if (req.method !== "POST") return json(origin, { ranked: false, scores: [] }, 405);
 
@@ -135,13 +123,13 @@ Deno.serve(async (req: Request) => {
       signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) {
-      console.error(`jev rank failed: ${response.status}`);
+      logger.error(`jev rank failed: ${response.status}`);
       return json(origin, { ranked: false, scores: [] }, 200);
     }
     const scores = readDuplicateRanks(await response.json(), idsByKey);
     return json(origin, { ranked: scores.length > 0, scores }, 200);
   } catch {
-    console.error("jev rank failed");
+    logger.error("jev rank failed");
     return json(origin, { ranked: false, scores: [] }, 200);
   }
 });
