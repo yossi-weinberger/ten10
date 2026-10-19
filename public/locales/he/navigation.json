@@ -49,6 +49,7 @@
     "saveAnyway": "שמור בכל זאת",
     "sameEvent": "זו אותה תנועה",
     "duplicateKept": "לא נשמרה תנועה חדשה.",
+    "draftCandidate": "טיוטה שלא נשמרה",
     "types": {
       "expense": "הוצאה",
       "income": "הכנסה",

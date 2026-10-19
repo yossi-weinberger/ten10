@@ -348,6 +348,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                         <p key={row.id}>
                           {row.date} · {row.amount}
                           {row.description ? ` · ${row.description}` : ""}
+                          {row.kind === "draft" ? ` · ${t("aiIntake.draftCandidate")}` : ""}
                         </p>
                       ))}
                     </div>
