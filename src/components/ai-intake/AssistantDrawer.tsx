@@ -39,6 +39,13 @@ import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 import { readReceiptImage } from "@/lib/ai/read-receipt";
 import { isIsoDate, receiptAsDraft, receiptRuledDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
+import { isOnOrAfterMinTransactionDate, MIN_TRANSACTION_DATE } from "@/lib/utils/transaction-date";
+
+function draftDateProblem(date: string): "invalid" | "min" | null {
+  if (!isIsoDate(date)) return "invalid";
+  if (!isOnOrAfterMinTransactionDate(date)) return "min";
+  return null;
+}
 
 interface AssistantDrawerProps {
   open: boolean;
@@ -48,6 +55,7 @@ interface AssistantDrawerProps {
 export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const { t } = useTranslation([
     "navigation",
+    "transactions",
     "halacha-expenses",
     "halacha-income",
     "halacha-chomesh",
@@ -92,6 +100,25 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       return;
     }
     discardRecording.current = true;
+    setText("");
+    setIntent(null);
+    setDraft(null);
+    originalDraft.current = null;
+    setAmountInput("");
+    setDuplicates([]);
+    setDuplicatesRanked(false);
+    setClarification(null);
+    setPendingText("");
+    setChosenType(null);
+    setReceiptFields(null);
+    setAmountReply("");
+    setParsedRule(null);
+    setRuleChoice(null);
+    setAppliedRuleName(null);
+    setHalachaNamespace(null);
+    setChecking(false);
+    setSaveMessage(null);
+    setSavedItemId(null);
     if (recordTimer.current) {
       clearTimeout(recordTimer.current);
       recordTimer.current = null;
@@ -363,6 +390,10 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       setSaveMessage(t("aiIntake.editDateInvalid"));
       return;
     }
+    if (!isOnOrAfterMinTransactionDate(draft.date)) {
+      setSaveMessage(t("transactionForm.validation.date.min", { ns: "transactions" }));
+      return;
+    }
     const amount = Number(amountInput.replace(",", "."));
     if (!Number.isFinite(amount) || amount === 0) {
       setSaveMessage(t("aiIntake.editAmountInvalid"));
@@ -537,6 +568,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                   </p>
                   <Input
                     type="date"
+                    min={MIN_TRANSACTION_DATE}
                     value={draft.date}
                     aria-label={t("aiIntake.editDate")}
                     onChange={(event) => {
@@ -545,6 +577,10 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                       refreshDuplicates(next, amountInput);
                     }}
                   />
+                  {draftDateProblem(draft.date) === "invalid" ? <p>{t("aiIntake.editDateInvalid")}</p> : null}
+                  {draftDateProblem(draft.date) === "min" ? (
+                    <p>{t("transactionForm.validation.date.min", { ns: "transactions" })}</p>
+                  ) : null}
                   <Input
                     value={draft.description}
                     aria-label={t("aiIntake.editDescription")}
@@ -579,7 +615,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                   ) : null}
                   <Button
                     type="button"
-                    disabled={saving}
+                    disabled={saving || draftDateProblem(draft.date) !== null}
                     onClick={() => void handleSave(duplicates.length > 0 ? "saved_anyway" : undefined)}
                   >
                     {t(duplicates.length > 0 ? "aiIntake.saveAnyway" : "aiIntake.save")}
@@ -588,7 +624,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                     <Button
                       type="button"
                       variant="outline"
-                      disabled={saving}
+                      disabled={saving || draftDateProblem(draft.date) !== null}
                       onClick={() => void handleSave("same_event")}
                     >
                       {t("aiIntake.sameEvent")}

@@ -15,6 +15,7 @@ const CASES: ReadonlyArray<readonly [string, IntakeIntent]> = [
   ["כמה אני מוציא בממוצע על משכנתא", "ask_data"],
   ["how much did I spend on rent this year", "ask_data"],
   ["how much did I spend in 2025", "ask_data"],
+  ["כמה תרמתי ב-2025?", "ask_data"],
   ["יש כפילויות בחשבון שלי?", "find_duplicates"],
   ["are there duplicates?", "find_duplicates"],
   ["מה אפשר לעשות כאן?", "help"],
