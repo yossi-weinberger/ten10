@@ -39,6 +39,8 @@
     "dataUnsupported": "אפשר לשאול כמה תרמתי או כמה תרומות בשנה, השנה, החודש, או ב-N חודשים אחרונים. למשל: כמה תרמתי ב-2025?",
     "dataMixed": "יש יותר ממטבע אחד בשנה הזו. לא חיברתי אותם.",
     "dataFailed": "לא הצלחתי לחשב. לא נשמר.",
+    "duplicateScanPending": "מחפש…",
+    "duplicateScanCountOne": "נמצא זוג אחד דומה בתנועות שנשמרו. לא נמחק כלום.",
     "duplicateScanCount": "נמצאו {{count}} זוגות דומים בתנועות שנשמרו. לא נמחק כלום.",
     "duplicateScanEmpty": "לא נמצאו תנועות שמורות דומות.",
     "duplicateScanFailed": "לא הצלחתי לחפש. לא נמחק כלום.",
@@ -80,6 +82,11 @@
       "exempt-income": "הכנסה פטורה",
       "recognized-expense": "הוצאה מוכרת",
       "non_tithe_donation": "תרומה שאינה ממעשר"
+    },
+    "intentChoices": {
+      "add_transaction": "תנועה",
+      "ask_data": "שאלה",
+      "create_rule": "כלל"
     },
     "intents": {
       "add_transaction": "זו נראית כמו תנועה.",

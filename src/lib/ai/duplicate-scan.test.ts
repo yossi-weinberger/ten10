@@ -33,4 +33,14 @@ describe("findDuplicatePairs", () => {
     ]);
     expect(pairs).toHaveLength(0);
   });
+
+  it("lists the newest pair first", () => {
+    const pairs = findDuplicatePairs([
+      row({ id: "old-a", date: "2026-01-01", amount: 100 }),
+      row({ id: "old-b", date: "2026-01-02", amount: 100 }),
+      row({ id: "new-a", date: "2026-10-18", amount: 50 }),
+      row({ id: "new-b", date: "2026-10-19", amount: 50 }),
+    ]);
+    expect(pairs.map((pair) => pair.left.id)).toEqual(["new-a", "old-a"]);
+  });
 });
