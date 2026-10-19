@@ -40,6 +40,8 @@ import { recordShadowType } from "@/lib/ai/shadow-type";
 import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 import { readReceiptImage } from "@/lib/ai/read-receipt";
 import { isIsoDate, receiptAsDraft, receiptRuledDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
+import { loadDuplicateScan } from "@/lib/ai/load-duplicate-scan";
+import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import { sumYearType } from "@/lib/ai/sum-year-type";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
 import { isOnOrAfterMinTransactionDate, MIN_TRANSACTION_DATE } from "@/lib/utils/transaction-date";
@@ -93,6 +95,11 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     | { status: "mixed" | "unsupported" | "failed" }
     | null
   >(null);
+  const [duplicateScan, setDuplicateScan] = useState<
+    | { status: "ready"; pairs: DuplicatePair[] }
+    | { status: "failed" }
+    | null
+  >(null);
 
   function todayIso(): string {
     return new Intl.DateTimeFormat("en-CA").format(new Date());
@@ -134,6 +141,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setSavedItemId(null);
     setAskIntent(false);
     setDataReply(null);
+    setDuplicateScan(null);
   }
 
   function handleOpenChange(next: boolean) {
@@ -340,6 +348,17 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setSavedItemId(null);
     if (nextIntent === "ask_data") void loadDataAnswer(source);
     else setDataReply(null);
+    if (nextIntent === "find_duplicates") void loadScan();
+    else setDuplicateScan(null);
+  }
+
+  async function loadScan() {
+    const result = await loadDuplicateScan();
+    if (!result.ok) {
+      setDuplicateScan({ status: "failed" });
+      return;
+    }
+    setDuplicateScan({ status: "ready", pairs: result.pairs });
   }
 
   async function loadDataAnswer(source: string) {
@@ -574,6 +593,24 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               {intent === "ask_data" && dataReply?.status === "unsupported" ? <p>{t("aiIntake.dataUnsupported")}</p> : null}
               {intent === "ask_data" && dataReply?.status === "mixed" ? <p>{t("aiIntake.dataMixed")}</p> : null}
               {intent === "ask_data" && dataReply?.status === "failed" ? <p>{t("aiIntake.dataFailed")}</p> : null}
+              {intent === "find_duplicates" && duplicateScan?.status === "failed" ? <p>{t("aiIntake.duplicateScanFailed")}</p> : null}
+              {intent === "find_duplicates" && duplicateScan?.status === "ready" && duplicateScan.pairs.length === 0 ? (
+                <p>{t("aiIntake.duplicateScanEmpty")}</p>
+              ) : null}
+              {intent === "find_duplicates" && duplicateScan?.status === "ready" && duplicateScan.pairs.length > 0 ? (
+                <div className="flex flex-col gap-1">
+                  <p>{t("aiIntake.duplicateScanCount", { count: duplicateScan.pairs.length })}</p>
+                  {duplicateScan.pairs.slice(0, 5).map((pair) => (
+                    <p key={`${pair.left.id}-${pair.right.id}`}>
+                      {pair.left.date} · {pair.left.amount} {pair.left.currency}
+                      {pair.left.description ? ` · ${pair.left.description}` : ""}
+                      {" · "}
+                      {pair.right.date} · {pair.right.amount}
+                      {pair.right.description ? ` · ${pair.right.description}` : ""}
+                    </p>
+                  ))}
+                </div>
+              ) : null}
               {halachaNamespace ? (
                 <div className="flex flex-col gap-2">
                   <p>{t("introduction.body", { ns: halachaNamespace })}</p>
