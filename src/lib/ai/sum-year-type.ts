@@ -10,8 +10,8 @@ export async function sumYearType(question: YearTypeSum): Promise<YearTypeSumRes
     .from("transactions")
     .select("amount, currency")
     .in("type", [...typesForFamily(question.type)])
-    .gte("date", `${question.year}-01-01`)
-    .lte("date", `${question.year}-12-31`);
+    .gte("date", question.from)
+    .lte("date", question.to);
   if (error || !data) return { ok: false, reason: "FAILED" };
 
   const currencies = new Set(

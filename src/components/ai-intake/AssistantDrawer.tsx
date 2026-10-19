@@ -89,7 +89,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [askIntent, setAskIntent] = useState(false);
   const [dataReply, setDataReply] = useState<
-    | { status: "ready"; year: number; type: "donation" | "expense" | "income"; total: number; count: number; currency: string | null }
+    | { status: "ready"; year: number; month: number | null; type: "donation" | "expense" | "income"; total: number; count: number; currency: string | null }
     | { status: "mixed" | "unsupported" | "failed" }
     | null
   >(null);
@@ -343,7 +343,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   }
 
   async function loadDataAnswer(source: string) {
-    const question = parseYearTypeSum(source);
+    const question = parseYearTypeSum(source, todayIso());
     if (!question) {
       setDataReply({ status: "unsupported" });
       return;
@@ -356,6 +356,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setDataReply({
       status: "ready",
       year: question.year,
+      month: question.month,
       type: question.type,
       total: result.total,
       count: result.count,
@@ -562,7 +563,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               {intent === "ask_data" && dataReply?.status === "ready" ? (
                 <p>
                   {t("aiIntake.dataAnswer", {
-                    year: dataReply.year,
+                    year: dataReply.month ? `${dataReply.month}/${dataReply.year}` : String(dataReply.year),
                     type: t(`aiIntake.types.${dataReply.type}`),
                     total: dataReply.total,
                     count: dataReply.count,
