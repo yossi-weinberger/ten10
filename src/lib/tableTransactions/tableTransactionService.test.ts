@@ -177,7 +177,8 @@ describe("TableTransactionsService payment method compatibility", () => {
       platform: "web",
     });
 
-    const params = mockRpc.mock.calls.at(-1)?.[1] as Record<string, unknown>;
+    const calls = mockRpc.mock.calls;
+    const params = calls[calls.length - 1]?.[1] as Record<string, unknown>;
     expect(params).not.toHaveProperty("p_origin");
   });
 
