@@ -43,7 +43,7 @@ function markPromptAsShown(userId: string): void {
   }
 }
 
-async function isNewUser(userId: string): Promise<boolean> {
+async function isNewUser(_userId: string): Promise<boolean> {
   try {
     const { data: userData, error } = await supabase.auth.getUser();
     if (error || !userData?.user?.created_at) return false;

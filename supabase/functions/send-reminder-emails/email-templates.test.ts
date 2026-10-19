@@ -21,6 +21,7 @@ const baseData = {
   israelMonth: 1,
   unsubscribeUrls: {
     reminderUrl: "https://ten10-app.com/unsubscribe?type=reminder",
+    marketingUrl: "https://ten10-app.com/unsubscribe?type=marketing",
     allUrl: "https://ten10-app.com/unsubscribe?type=all",
   },
 };
