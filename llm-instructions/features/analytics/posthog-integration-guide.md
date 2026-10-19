@@ -6,7 +6,7 @@ This document records the PostHog (PH) product analytics work on Ten10. Use it w
 
 - In-app financial analytics (`/analytics` page) — see `analytics-page-guide.md`
 - Dashboard / PostHog AI brief — see `posthog-dashboard-brief.md` (paste into PostHog AI)
-- Campaign short links (`/machon` and first-touch `arrival_code`) — see `growth-attribution-short-links.md`
+- Campaign short links (`/machon` → `/landing` with PostHog first-touch `ref` / UTM) — see `growth-attribution-short-links.md`
 
 **PostHog project:** `posthog-ten10` on `eu.posthog.com` (project id 169449)
 
