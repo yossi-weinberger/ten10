@@ -48,7 +48,7 @@ Desktop לא מקבל את העמודה ב-SQLite.
 
 ה-schema `ai` עדיין לא חשוף ב-Data API. הלקוח קורא לעטיפות `public.create_ai_text_intake` ו-`public.commit_ai_intake_items`.
 
-כשהפריט עובר ל-`committed`, נרשם `quality_signals.outcome = approved`. בביטול נרשם `reverted`. עריכה אחרי השמירה לא נרשמת שם: היא נראית ב-`transactions.updated_at`.
+לפני השמירה אפשר לתקן את התיאור ואת הסכום. השרת משווה אותם למה שחולץ, ורושם `user_edited`. כשהפריט עובר ל-`committed`, נרשם `quality_signals.outcome = approved`. בביטול נרשם `reverted`. עריכה אחרי השמירה לא נרשמת שם: היא נראית ב-`transactions.updated_at`.
 
 ## מה לא לגעת בו
 

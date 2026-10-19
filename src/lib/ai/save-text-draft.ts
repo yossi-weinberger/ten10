@@ -8,7 +8,10 @@ export type SaveTextDraftResult =
   | { ok: true; transactionId: string; itemId: string }
   | { ok: false; reason: "NO_RATE" | "AUTH" | "SAVE_FAILED" };
 
-export async function saveTextDraft(draft: TextTransactionDraft): Promise<SaveTextDraftResult> {
+export async function saveTextDraft(
+  draft: TextTransactionDraft,
+  original: { description: string; amount: number } = draft,
+): Promise<SaveTextDraftResult> {
   const { data: authData, error: authError } = await supabase.auth.getUser();
   const user = authData.user;
   if (authError || !user) return { ok: false, reason: "AUTH" };
@@ -39,7 +42,11 @@ export async function saveTextDraft(draft: TextTransactionDraft): Promise<SaveTe
   if (!built.ok) return built;
 
   const { data: createdRaw, error: createError } = await supabase.rpc("create_ai_text_intake", {
-    p_payload: built.payload,
+    p_payload: {
+      ...built.payload,
+      original_description: original.description,
+      original_amount: original.amount,
+    },
   });
   const created = createdRaw as { item_id?: string; version?: number } | null;
   if (createError || !created?.item_id || created.version === undefined) {

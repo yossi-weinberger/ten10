@@ -41,6 +41,10 @@
     "noRateAvailable": "No exchange rate. Nothing was saved.",
     "saveFailed": "Save failed. Nothing was saved.",
     "draftLine": "{{description}} · {{date}} · {{amount}} {{currency}} · {{type}} · rate {{rate}}",
+    "draftMeta": "{{date}} · {{currency}} · {{type}} · rate {{rate}}",
+    "editDescription": "Description",
+    "editAmount": "Amount",
+    "editAmountInvalid": "The amount is not valid. Nothing was saved.",
     "types": {
       "expense": "expense",
       "income": "income",
