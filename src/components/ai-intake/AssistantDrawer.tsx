@@ -28,6 +28,10 @@ import { refreshAfterIntakeSave } from "@/lib/ai/refresh-after-intake";
 import { saveTextDraft } from "@/lib/ai/save-text-draft";
 import { undoTextIntake } from "@/lib/ai/undo-text-intake";
 import { approveUserRule, listActiveUserRules } from "@/lib/ai/user-rules";
+import {
+  listDuplicateCandidates,
+  type DuplicateCandidate,
+} from "@/lib/ai/duplicate-candidates";
 
 interface AssistantDrawerProps {
   open: boolean;
@@ -47,6 +51,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
   const originalDraft = useRef<{ description: string; amount: number } | null>(null);
   const [amountInput, setAmountInput] = useState("");
+  const [duplicates, setDuplicates] = useState<DuplicateCandidate[]>([]);
   const [clarification, setClarification] = useState<ClarificationField | null>(null);
   const [pendingText, setPendingText] = useState("");
   const [chosenType, setChosenType] = useState<TextTransactionDraft["type"] | null>(null);
@@ -69,6 +74,30 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     if (!open) return;
     void listActiveUserRules().then(setRules);
   }, [open]);
+
+  useEffect(() => {
+    if (!draft) {
+      setDuplicates([]);
+      return;
+    }
+    const amount = Number(amountInput.replace(",", "."));
+    if (!Number.isFinite(amount) || amount === 0) {
+      setDuplicates([]);
+      return;
+    }
+    let cancelled = false;
+    void listDuplicateCandidates({
+      type: draft.type,
+      date: draft.date,
+      amount,
+      currency: draft.currency,
+    }).then((rows) => {
+      if (!cancelled) setDuplicates(rows);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [amountInput, draft]);
 
   function showDraft(next: TextTransactionDraft | null, source: string) {
     if (!next) {
@@ -303,6 +332,17 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                   />
                   {appliedRuleName ? (
                     <p>{t("aiIntake.ruleApplied", { name: appliedRuleName })}</p>
+                  ) : null}
+                  {duplicates.length > 0 ? (
+                    <div className="flex flex-col gap-1">
+                      <p>{t("aiIntake.duplicateWarning", { count: duplicates.length })}</p>
+                      {duplicates.slice(0, 3).map((row) => (
+                        <p key={`${row.date}:${row.amount}:${row.description}`}>
+                          {row.date} · {row.amount}
+                          {row.description ? ` · ${row.description}` : ""}
+                        </p>
+                      ))}
+                    </div>
                   ) : null}
                   <Button type="button" disabled={saving} onClick={() => void handleSave()}>
                     {t("aiIntake.save")}
