@@ -22,6 +22,8 @@ import { formatPaymentMethod } from "@/lib/payment-methods";
 import { formatCategory } from "@/lib/category-registry";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { usePlatform } from "@/contexts/PlatformContext";
+import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
+import { isAiIntakeEnabled } from "@/lib/ai/flags";
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
@@ -67,6 +69,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
         <span className="inline-flex items-center gap-1">
           {transaction.description || "-"}
           {platform === "web" &&
+          isAiIntakeEnabled() &&
           (transaction.origin === "ai" || transaction.origin === "ai_auto") ? (
             <Sparkles
               className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
@@ -177,7 +180,9 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
               </DropdownMenuItem>
             )}
             {platform === "web" &&
+            isAiIntakeEnabled() &&
             onUndoAi &&
+            canUndoAiTransaction(transaction) &&
             (transaction.origin === "ai" || transaction.origin === "ai_auto") ? (
               <DropdownMenuItem onClick={() => onUndoAi(transaction)}>
                 <Undo2 className="me-2 h-4 w-4" />

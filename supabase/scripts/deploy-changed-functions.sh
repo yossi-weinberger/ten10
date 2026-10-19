@@ -37,6 +37,9 @@ ALL_FUNCTIONS=(
   get-monitoring-data
   get-posthog-analytics
   send-cron-alerts
+  ai-rank-duplicates
+  ai-shadow-type
+  ai-classify-intent
 )
 
 # Redeploy when supabase/functions/_shared changes
@@ -51,6 +54,9 @@ SHARED_DEPENDENT=(
   get-monitoring-data
   get-posthog-analytics
   send-cron-alerts
+  ai-rank-duplicates
+  ai-shadow-type
+  ai-classify-intent
 )
 
 is_managed_function() {

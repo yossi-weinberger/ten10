@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { TransactionType } from "@/types/transaction";
 import { usePlatform } from "@/contexts/PlatformContext";
+import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import type { DateRange } from "react-day-picker";
 import {
   DropdownMenu,
@@ -441,7 +442,7 @@ export function TransactionsFilters() {
               </Select>
             </div>
 
-            {platform === "web" ? (
+            {platform === "web" && isAiIntakeEnabled() ? (
               <div className="flex-grow sm:flex-grow-0 sm:w-auto">
                 <Label className="mb-2 block text-sm font-medium">
                   {tTables("filters.origin")}

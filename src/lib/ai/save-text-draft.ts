@@ -3,6 +3,7 @@ import { ExchangeRateService } from "@/lib/services/exchange-rate.service";
 import type { CurrencyCode } from "@/lib/currencies";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
 import { buildCommitPayload } from "./build-commit-payload";
+import { textIntakePayload } from "./text-intake-payload";
 
 export type SaveTextDraftResult =
   | { ok: true; transactionId: string; itemId: string; sameEvent?: false }
@@ -44,17 +45,7 @@ export async function saveTextDraft(
   if (!built.ok) return built;
 
   const { data: createdRaw, error: createError } = await supabase.rpc("create_ai_text_intake", {
-    p_payload: {
-      ...built.payload,
-      original_description: original.description,
-      original_amount: original.amount,
-      ...(duplicate
-        ? {
-            duplicate_choice: duplicate.choice,
-            duplicate_candidate_ids: duplicate.candidateIds,
-          }
-        : {}),
-    },
+    p_payload: textIntakePayload(built.payload, original, duplicate),
   });
   const created = createdRaw as { item_id?: string; version?: number; skip_commit?: boolean } | null;
   if (createError || !created?.item_id || created.version === undefined) {
@@ -69,7 +60,10 @@ export async function saveTextDraft(
   });
   const committed = committedRaw as { transaction_ids?: string[]; already_committed?: string[] } | null;
   const transactionId = committed?.transaction_ids?.[0] ?? committed?.already_committed?.[0];
-  if (commitError || !transactionId) return { ok: false, reason: "SAVE_FAILED" };
+  if (commitError || !transactionId) {
+    await supabase.rpc("reject_uncommitted_ai_item", { p_item_id: created.item_id });
+    return { ok: false, reason: "SAVE_FAILED" };
+  }
 
   return { ok: true, transactionId, itemId: created.item_id };
 }

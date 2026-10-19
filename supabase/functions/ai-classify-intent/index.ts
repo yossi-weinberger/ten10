@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { JEV_SYSTEMONE_URL } from "../_shared/ai/jev-duplicate-rank.ts";
 import { buildIntentBody, readIntentChoice } from "../_shared/ai/jev-intent.ts";
+import { isTrialUser } from "../_shared/ai/trial-users.ts";
 
 function corsHeaders(origin: string | null): Record<string, string> {
   const headers = getCorsHeaders(origin);
@@ -40,6 +41,7 @@ Deno.serve(async (req: Request) => {
     authHeader.replace("Bearer ", ""),
   );
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
+  if (!isTrialUser(userData.user.id)) return json(origin, { intent: null }, 200);
 
   const body = await req.json().catch(() => null) as { text?: unknown } | null;
   const text = typeof body?.text === "string" ? body.text.trim() : "";
