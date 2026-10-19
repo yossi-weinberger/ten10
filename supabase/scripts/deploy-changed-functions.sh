@@ -41,6 +41,7 @@ ALL_FUNCTIONS=(
   ai-shadow-type
   ai-classify-intent
   ai-read-receipt
+  ai-transcribe-speech
 )
 
 # Redeploy when supabase/functions/_shared changes
@@ -59,6 +60,7 @@ SHARED_DEPENDENT=(
   ai-shadow-type
   ai-classify-intent
   ai-read-receipt
+  ai-transcribe-speech
 )
 
 is_managed_function() {
