@@ -37,6 +37,7 @@ import { rankDuplicateCandidates } from "@/lib/ai/rank-duplicates";
 import { recordShadowType } from "@/lib/ai/shadow-type";
 import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 import { readReceiptImage } from "@/lib/ai/read-receipt";
+import { isIsoDate, receiptAsDraft, receiptRuledDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
 
 interface AssistantDrawerProps {
@@ -62,6 +63,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [clarification, setClarification] = useState<ClarificationField | null>(null);
   const [pendingText, setPendingText] = useState("");
   const [chosenType, setChosenType] = useState<TextTransactionDraft["type"] | null>(null);
+  const [receiptFields, setReceiptFields] = useState<ReceiptFields | null>(null);
   const [amountReply, setAmountReply] = useState("");
   const [rules, setRules] = useState<ActiveUserRule[]>([]);
   const [parsedRule, setParsedRule] = useState<ParsedUserRule | null>(null);
@@ -154,19 +156,28 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     if (receiptInput.current) receiptInput.current.value = "";
     if (!result.ok) {
       setIntent(null);
+      setReceiptFields(null);
       showDraft(null, "");
       setSaveMessage(t(result.reason === "TOO_LARGE" ? "aiIntake.receiptTooLarge" : "aiIntake.receiptUnreadable"));
       return;
     }
     setIntent("add_transaction");
-    setClarification(null);
     setPendingText("");
     setChosenType(null);
     setAmountReply("");
     setParsedRule(null);
     setRuleChoice(null);
     setHalachaNamespace(null);
-    showDraft(result.draft, result.draft.description);
+    const ruled = receiptRuledDraft(result.fields, rules);
+    if (ruled) {
+      setReceiptFields(null);
+      setClarification(null);
+      showDraft(ruled.draft, result.fields.description);
+      return;
+    }
+    setReceiptFields(result.fields);
+    setClarification("type");
+    showDraft(null, "");
   }
 
   async function finishVoice(blob: Blob) {
@@ -241,6 +252,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     const today = todayIso();
     const field = nextIntent === "add_transaction" ? clarificationField(source, today) : null;
     setIntent(nextIntent);
+    setReceiptFields(null);
     setClarification(field);
     setPendingText(source);
     setChosenType(null);
@@ -259,6 +271,13 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   }
 
   function handleChooseType(type: TextTransactionDraft["type"]) {
+    if (receiptFields) {
+      setChosenType(type);
+      showDraft(receiptAsDraft(receiptFields, type), receiptFields.description);
+      setReceiptFields(null);
+      setClarification(null);
+      return;
+    }
     const next = draftFromText(pendingText, todayIso());
     setChosenType(type);
     if (next) {
@@ -297,6 +316,10 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
 
   async function handleSave(choice?: "saved_anyway" | "same_event") {
     if (!draft || saving) return;
+    if (!isIsoDate(draft.date)) {
+      setSaveMessage(t("aiIntake.editDateInvalid"));
+      return;
+    }
     const amount = Number(amountInput.replace(",", "."));
     if (!Number.isFinite(amount) || amount === 0) {
       setSaveMessage(t("aiIntake.editAmountInvalid"));
@@ -427,6 +450,16 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               {clarification === "type" ? (
                 <div className="flex flex-col gap-2">
                   <p>{t("aiIntake.askType")}</p>
+                  {receiptFields ? (
+                    <p>
+                      {t("aiIntake.receiptPreview", {
+                        description: receiptFields.description,
+                        date: receiptFields.date,
+                        amount: receiptFields.amount,
+                        currency: receiptFields.currency,
+                      })}
+                    </p>
+                  ) : null}
                   <div className="flex flex-wrap gap-2">
                     {(["expense", "income", "donation"] as const).map((type) => (
                       <Button key={type} type="button" onClick={() => handleChooseType(type)}>
@@ -454,12 +487,21 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                 <>
                   <p>
                     {t("aiIntake.draftMeta", {
-                      date: draft.date,
                       currency: draft.currency,
                       type: t(`aiIntake.types.${draft.type}`),
                       rate: draft.requestedRate ?? t("aiIntake.noRate"),
                     })}
                   </p>
+                  <Input
+                    type="date"
+                    value={draft.date}
+                    aria-label={t("aiIntake.editDate")}
+                    onChange={(event) => {
+                      const next = { ...draft, date: event.target.value };
+                      setDraft(next);
+                      refreshDuplicates(next, amountInput);
+                    }}
+                  />
                   <Input
                     value={draft.description}
                     aria-label={t("aiIntake.editDescription")}

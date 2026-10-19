@@ -1,12 +1,12 @@
 import { supabase } from "@/lib/supabaseClient";
-import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
+import type { ReceiptFields } from "@/lib/ai/receipt-card";
 import { readReceiptDraft } from "../../../supabase/functions/_shared/ai/receipt-draft.ts";
 
 const MAX_BYTES = 4 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 
 export type ReadReceiptResult =
-  | { ok: true; draft: TextTransactionDraft }
+  | { ok: true; fields: ReceiptFields }
   | { ok: false; reason: "TOO_LARGE" | "UNREADABLE" };
 
 function fileToBase64(file: File): Promise<string> {
@@ -34,17 +34,5 @@ export async function readReceiptImage(file: File): Promise<ReadReceiptResult> {
   if (error || !payload || typeof payload !== "object") return { ok: false, reason: "UNREADABLE" };
   const draft = readReceiptDraft((payload as { draft?: unknown }).draft);
   if (!draft) return { ok: false, reason: "UNREADABLE" };
-  return {
-    ok: true,
-    draft: {
-      date: draft.date,
-      amount: draft.amount,
-      currency: draft.currency,
-      type: "expense",
-      requestedRate: null,
-      description: draft.description,
-      category: null,
-      paymentMethod: null,
-    },
-  };
+  return { ok: true, fields: draft };
 }
