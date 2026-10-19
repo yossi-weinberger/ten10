@@ -1,11 +1,12 @@
 ---
 description: "Ten10 AI multichannel intake: non-negotiable rules for AI intake, the ai schema, channel adapters and the shared transaction-domain code."
-globs: supabase/functions/_shared/intake/**,supabase/functions/_shared/ai/**,supabase/functions/_shared/transaction-domain/**,supabase/migrations/**,src/lib/intake/**,src/lib/import/**,src/components/ai-intake/**,infrastructure/cloudflare/**,docs/superpowers/plans/*ai-*.md
+globs: supabase/functions/_shared/intake/**,supabase/functions/_shared/ai/**,supabase/functions/_shared/transaction-domain/**,supabase/migrations/**,src/lib/intake/**,src/lib/import/**,src/components/ai-intake/**,infrastructure/cloudflare/**,docs/superpowers/plans/*ai-*.md,llm-instructions/features/ai/**
 alwaysApply: false
 ---
 
 # Ten10 AI Multichannel — חוקי עבודה
 
+- **איך זה עובד היום:** `llm-instructions/features/ai/ai-intake-how-it-works.md`. זה המקום לתיעוד פיצ'ר. עדכן אותו כשההתנהגות הקיימת משתנה.
 - **המסמך המלא:** `docs/superpowers/specs/2026-10-18-ai-multichannel-design.md` (v2.6). אל תקרא אותו כולו. פתח רק סעיפים לפי הפניה (§).
 - **התקדמות והחלטות:** `docs/superpowers/plans/ai-progress.md`. קרא בתחילת כל סשן, ועדכן בסוף.
 - **תוכנית לכל PR:** `docs/superpowers/plans/2026-10-18-ai-pr*.md`. עבוד רק על המשימה שהוגדרה לסשן.
