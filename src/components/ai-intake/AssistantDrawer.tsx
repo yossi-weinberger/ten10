@@ -101,7 +101,6 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   >(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [duplicateNote, setDuplicateNote] = useState<string | null>(null);
-  const confirmArmedAt = useRef(0);
   const [duplicateScan, setDuplicateScan] = useState<
     | { status: "pending" }
     | { status: "ready"; count: number; pairs: DuplicatePair[] }
@@ -372,7 +371,6 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   }
 
   function askDelete(id: string) {
-    confirmArmedAt.current = Date.now();
     setConfirmDeleteId(id);
     setDuplicateNote(null);
   }
@@ -387,7 +385,6 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   }
 
   async function confirmDelete(id: string) {
-    if (Date.now() - confirmArmedAt.current < 500) return;
     try {
       await useTableTransactionsStore.getState().deleteTransaction(id, getPlatform());
     } catch {
