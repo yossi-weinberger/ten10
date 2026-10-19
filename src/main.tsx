@@ -15,8 +15,6 @@ import {
   initPostHog,
   isPostHogSupported,
 } from "./lib/analytics/posthogClient";
-import { registerAttributionWithPostHog } from "./lib/attribution/analytics";
-import { captureAttributionFromLocation } from "./lib/attribution/capture";
 import { registerSW } from "virtual:pwa-register";
 import "./index.css";
 import "./lib/i18n";
@@ -39,19 +37,8 @@ registerSW({
   },
 });
 
-function syncGrowthAttribution() {
-  captureAttributionFromLocation();
-  registerAttributionWithPostHog();
-}
-
 if (isPostHogSupported()) {
   initPostHog();
-}
-
-syncGrowthAttribution();
-router.subscribe("onResolved", syncGrowthAttribution);
-
-if (isPostHogSupported()) {
   capturePostHogPageview();
   router.subscribe("onResolved", capturePostHogPageview);
 }

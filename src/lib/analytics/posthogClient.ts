@@ -1,10 +1,6 @@
 import posthog from "posthog-js";
 import type { CaptureResult } from "posthog-js";
 import type { User } from "@supabase/supabase-js";
-import {
-  attributionEventProperties,
-  attributionPersonSetOnceProperties,
-} from "@/lib/attribution/capture";
 import { scrubSensitiveUrl } from "./urlScrubbing";
 
 type PostHogEventProperties = Record<
@@ -94,25 +90,6 @@ export function isPostHogSupported(): boolean {
   );
 }
 
-/**
- * Re-applies first-touch `ref` / UTM after PostHog is ready.
- * Needed when init finishes after the short-link redirect has already landed
- * (or after the user navigated away from `/landing?...`).
- */
-export function applyStoredAttributionToPostHog(): void {
-  if (!isPostHogSupported()) return;
-
-  const eventProperties = attributionEventProperties();
-  if (Object.keys(eventProperties).length > 0) {
-    posthog.register(eventProperties);
-  }
-
-  const setOnce = attributionPersonSetOnceProperties();
-  if (Object.keys(setOnce).length > 0) {
-    posthog.setPersonProperties({}, setOnce);
-  }
-}
-
 export function initPostHog(): void {
   if (!isPostHogSupported()) return;
 
@@ -122,7 +99,6 @@ export function initPostHog(): void {
     capture_pageview: false,
     capture_pageleave: true,
     capture_exceptions: true,
-    custom_campaign_params: ["ref"],
     before_send: (event) => dropBenignExceptions(scrubUrlProperties(event)),
     session_recording: {
       maskAllInputs: true,
@@ -133,9 +109,6 @@ export function initPostHog(): void {
         }
         return request;
       },
-    },
-    loaded: () => {
-      applyStoredAttributionToPostHog();
     },
   });
 }
@@ -176,11 +149,11 @@ export function identifyPostHogUser(
   if (person.name) setProps.name = person.name;
   if (person.email) setProps.email = person.email;
 
-  applyStoredAttributionToPostHog();
-  posthog.identify(user.id, setProps, {
-    first_login_at: new Date().toISOString(),
-    ...attributionPersonSetOnceProperties(),
-  });
+  posthog.identify(
+    user.id,
+    setProps,
+    { first_login_at: new Date().toISOString() }
+  );
 }
 
 export function resetPostHogUser(): void {
