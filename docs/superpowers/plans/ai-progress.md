@@ -46,7 +46,7 @@
 | 29 | Jev כששכבת המילים לא מזהה כוונה | Edge על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#486](https://github.com/yossi-weinberger/ten10/pull/486) |
 | 30 | תאריך של יום בשבוע שעבר | parser, בלי מודל | §9.9 | מוזג ל־`feat/ai-intake` | [#488](https://github.com/yossi-weinberger/ten10/pull/488) |
 | 31 | תיקון שמירה, allowlist, ודגל על הממשק | DB על testing + Edge + UI | §10.5 | מוזג ל־`feat/ai-intake` | [#490](https://github.com/yossi-weinberger/ten10/pull/490) |
-| 32 | Jev דרך Vercel AI Gateway | Edge על testing | §9.4 | נפתח | |
+| 32 | Jev דרך Vercel AI Gateway | Edge על testing | §9.4 | מוזג ל־`feat/ai-intake` | [#493](https://github.com/yossi-weinberger/ten10/pull/493) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -138,4 +138,4 @@
 - **2026-10-19:** #488 מוזג ל־`feat/ai-intake`. "ביום ראשון שעבר" ו-"last monday" מחושבים בפרסר. אם היום הוא אותו יום, נלקח לפני שבוע.
 - **2026-10-19:** נפתח [#490](https://github.com/yossi-weinberger/ten10/pull/490). שמירת שקלים נשברה כי הסכום שחולץ נכתב ל-`original_amount`. `extracted_amount` מפריד את ההשוואה, ומפתחות ההמרה נמחקים כשאין מטבע מקור. קריאות Jev חסומות ל-allowlist. רישום צל רק מ-`service_role`. האייקון, המסנן, הביטול והרענון בחזרה ללשונית מאחורי הדגל.
 - **2026-10-19:** #490 מוזג ל־`feat/ai-intake`. על testing, טיוטת 50 שקלים עם `original_amount` מספרי נרשמה בלי מפתח ההמרה וה-commit הצליח. הבדיקה בוטלה בטרנזקציה.
-- **2026-10-19:** שלוש קריאות Jev עוברות דרך Vercel AI Gateway. המודל נעול על `typesafe-ai/jev`, בלי מודל חלופי. המפתח הוא secret של Edge על testing.
+- **2026-10-19:** [#493](https://github.com/yossi-weinberger/ten10/pull/493) מוזג ל־`feat/ai-intake`. שלוש קריאות Jev עוברות דרך Vercel AI Gateway. המודל נעול על `typesafe-ai/jev`, בלי מודל חלופי. המפתח הוא secret של Edge על testing, והפונקציות נפרסו לשם.
