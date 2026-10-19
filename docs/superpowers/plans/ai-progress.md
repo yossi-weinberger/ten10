@@ -42,7 +42,7 @@
 | 25 | דירוג כפילות עם Jev | Edge על testing + UI | §10.5 | מוזג ל־`feat/ai-intake` | [#478](https://github.com/yossi-weinberger/ten10/pull/478) |
 | 26 | סכום בקריאת Jev לכפילות | Edge על testing | §10.5 | מוזג ל־`feat/ai-intake` | [#480](https://github.com/yossi-weinberger/ten10/pull/480) |
 | 27 | מדידת צל לבחירת סוג | Edge על testing, בלי לשנות את השאלה | §9.3 | מוזג ל־`feat/ai-intake` | [#482](https://github.com/yossi-weinberger/ten10/pull/482) |
-| 28 | מדידת צל לבחירת קטגוריה | Edge על testing, בלי לשנות את השמירה | §9.3 | נפתח מול `feat/ai-intake` | |
+| 28 | מדידת צל לבחירת קטגוריה | Edge על testing, בלי לשנות את השמירה | §9.3 | נפתח מול `feat/ai-intake` | [#484](https://github.com/yossi-weinberger/ten10/pull/484) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
