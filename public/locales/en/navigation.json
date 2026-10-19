@@ -33,6 +33,7 @@
     "noRate": "none",
     "save": "Approve and save",
     "askType": "What kind of transaction is this?",
+    "askIntent": "Not sure what you meant. What is this message?",
     "askAmount": "How much?",
     "continue": "Continue",
     "askRule": "Which meaning?",

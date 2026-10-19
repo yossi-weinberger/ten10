@@ -14,6 +14,7 @@ import {
   applyForwardRule,
   clarificationField,
   fallbackIntent,
+  intentIsConfident,
   draftFromText,
   parseUserRule,
   selectHalachaPage,
@@ -84,6 +85,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [undoing, setUndoing] = useState(false);
   const [savedItemId, setSavedItemId] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [askIntent, setAskIntent] = useState(false);
 
   function todayIso(): string {
     return new Intl.DateTimeFormat("en-CA").format(new Date());
@@ -123,6 +125,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setChecking(false);
     setSaveMessage(null);
     setSavedItemId(null);
+    setAskIntent(false);
   }
 
   function handleOpenChange(next: boolean) {
@@ -307,25 +310,9 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     }, 60_000);
   }
 
-  async function handleSubmit(spoken?: string) {
-    const source = spoken ?? text;
-    const today = todayIso();
-    let nextIntent: IntakeIntent = "out_of_scope";
-    if (source.trim()) {
-      setChecking(true);
-      const decided = await classifyIntentFallback(source);
-      setChecking(false);
-      if (decided.ok && decided.intent) {
-        const page = decided.intent === "domain_adjacent" ? selectHalachaPage(source) : null;
-        const rule = decided.intent === "create_rule" ? parseUserRule(source) : null;
-        if (decided.intent === "domain_adjacent" && !page) nextIntent = "out_of_scope";
-        else if (decided.intent === "create_rule" && !rule) nextIntent = "out_of_scope";
-        else nextIntent = decided.intent;
-      } else {
-        nextIntent = fallbackIntent(source, today);
-      }
-    }
+  function showIntent(source: string, today: string, nextIntent: IntakeIntent) {
     const field = nextIntent === "add_transaction" ? clarificationField(source, today) : null;
+    setAskIntent(false);
     setIntent(nextIntent);
     setReceiptFields(null);
     setClarification(field);
@@ -343,6 +330,46 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     );
     setSaveMessage(null);
     setSavedItemId(null);
+  }
+
+  async function handleSubmit(spoken?: string) {
+    const source = spoken ?? text;
+    const today = todayIso();
+    if (!source.trim()) {
+      showIntent(source, today, "out_of_scope");
+      return;
+    }
+    setChecking(true);
+    const decided = await classifyIntentFallback(source);
+    setChecking(false);
+    if (decided.ok && decided.intent && !intentIsConfident(decided.confidence)) {
+      setAskIntent(true);
+      setIntent(null);
+      setReceiptFields(null);
+      setClarification(null);
+      setPendingText(source);
+      setChosenType(null);
+      setParsedRule(null);
+      setRuleChoice(null);
+      setHalachaNamespace(null);
+      showDraft(null, "");
+      setSaveMessage(null);
+      setSavedItemId(null);
+      return;
+    }
+    let nextIntent: IntakeIntent = fallbackIntent(source, today);
+    if (decided.ok && decided.intent) {
+      const page = decided.intent === "domain_adjacent" ? selectHalachaPage(source) : null;
+      const rule = decided.intent === "create_rule" ? parseUserRule(source) : null;
+      if (decided.intent === "domain_adjacent" && !page) nextIntent = "out_of_scope";
+      else if (decided.intent === "create_rule" && !rule) nextIntent = "out_of_scope";
+      else nextIntent = decided.intent;
+    }
+    showIntent(source, today, nextIntent);
+  }
+
+  function handleChooseIntent(nextIntent: IntakeIntent) {
+    showIntent(pendingText, todayIso(), nextIntent);
   }
 
   function handleChooseType(type: TextTransactionDraft["type"]) {
@@ -484,6 +511,18 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
             {t(recording ? "aiIntake.voiceStop" : "aiIntake.voice")}
           </Button>
           {checking ? <p>{t("aiIntake.checking")}</p> : null}
+          {askIntent ? (
+            <div className="flex flex-col gap-2 text-sm">
+              <p>{t("aiIntake.askIntent")}</p>
+              <div className="flex flex-wrap gap-2">
+                {(["add_transaction", "ask_data", "create_rule"] as const).map((intentChoice) => (
+                  <Button key={intentChoice} type="button" onClick={() => handleChooseIntent(intentChoice)}>
+                    {t(`aiIntake.intents.${intentChoice}`)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          ) : null}
           {intent ? (
             <div className="flex flex-col gap-1 text-sm">
               <p>

@@ -5,6 +5,16 @@ export { JEV_SYSTEMONE_URL };
 
 const MAX_TEXT = 500;
 
+/**
+ * The weakest correct label in the 2026-10-19 sample was 0.71,
+ * a Hebrew rule. Below this, ask the user instead of guessing.
+ */
+export const INTENT_CONFIDENCE_MIN = 0.7;
+
+export function intentIsConfident(confidence: number | null): boolean {
+  return confidence !== null && confidence >= INTENT_CONFIDENCE_MIN;
+}
+
 const INTENT_CRITERIA: Record<IntakeIntent, string> = {
   add_transaction: "Reporting a purchase, income, donation, or other money movement to record.",
   create_rule: "Asking for a standing rule for future transactions.",
