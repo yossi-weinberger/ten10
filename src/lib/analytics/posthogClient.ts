@@ -1,6 +1,7 @@
 import posthog from "posthog-js";
 import type { CaptureResult } from "posthog-js";
 import type { User } from "@supabase/supabase-js";
+import { attributionProperties } from "@/lib/attribution/capture";
 import { scrubSensitiveUrl } from "./urlScrubbing";
 
 type PostHogEventProperties = Record<
@@ -149,11 +150,10 @@ export function identifyPostHogUser(
   if (person.name) setProps.name = person.name;
   if (person.email) setProps.email = person.email;
 
-  posthog.identify(
-    user.id,
-    setProps,
-    { first_login_at: new Date().toISOString() }
-  );
+  posthog.identify(user.id, setProps, {
+    first_login_at: new Date().toISOString(),
+    ...attributionProperties(),
+  });
 }
 
 export function resetPostHogUser(): void {

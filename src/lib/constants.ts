@@ -9,6 +9,7 @@ export const PUBLIC_ROUTES = [
   "/privacy",
   "/terms",
   "/accessibility",
+  "/machon",
 ];
 
 // Routes that should ALWAYS be full screen (no sidebar), regardless of auth state
@@ -18,4 +19,5 @@ export const FULL_SCREEN_ROUTES = [
   "/forgot-password",
   "/reset-password",
   "/landing",
+  "/machon",
 ];

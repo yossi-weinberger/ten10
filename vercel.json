@@ -1,4 +1,26 @@
 {
+  "redirects": [
+    {
+      "source": "/machon",
+      "destination": "/landing?ref=MACHON&utm_source=institute&utm_medium=email&utm_campaign=update_2026",
+      "permanent": false
+    },
+    {
+      "source": "/machon/",
+      "destination": "/landing?ref=MACHON&utm_source=institute&utm_medium=email&utm_campaign=update_2026",
+      "permanent": false
+    },
+    {
+      "source": "/MACHON",
+      "destination": "/landing?ref=MACHON&utm_source=institute&utm_medium=email&utm_campaign=update_2026",
+      "permanent": false
+    },
+    {
+      "source": "/MACHON/",
+      "destination": "/landing?ref=MACHON&utm_source=institute&utm_medium=email&utm_campaign=update_2026",
+      "permanent": false
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

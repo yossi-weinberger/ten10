@@ -11,6 +11,10 @@ import App from "./App";
 import { getCachedSession } from "./lib/supabaseClient";
 import { checkIsAdmin } from "./lib/data-layer/admin.service";
 import { PUBLIC_ROUTES } from "./lib/constants";
+import {
+  buildRedirectHref,
+  findShortLinkByPath,
+} from "./lib/attribution/short-links";
 
 // Critical pages loaded synchronously (needed immediately)
 import { HomePage } from "./pages/HomePage";
@@ -96,6 +100,14 @@ const rootRoute = createRootRoute({
   component: App,
   notFoundComponent: NotFoundPage,
   beforeLoad: async ({ location }) => {
+    const shortLink = findShortLinkByPath(location.pathname);
+    if (shortLink) {
+      throw redirect({
+        href: buildRedirectHref(shortLink),
+        replace: true,
+      });
+    }
+
     // --- Platform Check ---
     // A simple, synchronous check for the Tauri-injected global.
     // This runs before React components, so we can't use the context/manager here.
@@ -247,6 +259,24 @@ const landingRoute = createRoute({
   component: LandingPage,
 });
 
+function ShortLinkRedirectPlaceholder() {
+  return null;
+}
+
+const machonRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/machon",
+  beforeLoad: () => {
+    const shortLink = findShortLinkByPath("/machon");
+    if (!shortLink) return;
+    throw redirect({
+      href: buildRedirectHref(shortLink),
+      replace: true,
+    });
+  },
+  component: ShortLinkRedirectPlaceholder,
+});
+
 const privacyRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/privacy",
@@ -307,6 +337,7 @@ const routeTree = rootRoute.addChildren([
   resetPasswordRoute,
   unsubscribeRoute,
   landingRoute,
+  machonRoute,
   privacyRoute,
   termsRoute,
   accessibilityRoute,
