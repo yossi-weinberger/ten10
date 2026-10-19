@@ -2,7 +2,12 @@
 
 ## סקירה כללית
 
-מסמך זה מתאר את המערכת המלאה לביטול הרשמה מתזכורות מייל באפליקציית Ten10. המערכת מספקת שתי אפשרויות: הפסקת תזכורות חודשיות בלבד, או ביטול הרשמה מוחלט מכל המיילים.
+מסמך זה מתאר את המערכת המלאה לביטול הרשמה ממיילים באפליקציית Ten10. המערכת מספקת שלוש אפשרויות עצמאיות:
+1. **הפסקת תזכורות חודשיות בלבד** (`type: "reminder"`) - מייל שירות עצמאי
+2. **ביטול עדכונים ושיווק בלבד** (`type: "marketing"`) - מיילים שיווקיים
+3. **ביטול הרשמה מוחלט** (`type: "all"`) - כל סוגי המיילים
+
+**עקרון מרכזי**: תזכורות חודשיות הן מייל שירות ועצמאיות משיווק. משתמש יכול לקבל רק תזכורות, רק שיווק, או שניהם.
 
 ## ארכיטקטורה כללית
 
@@ -73,7 +78,7 @@ unsubscribeUrls?: {
 interface UnsubscribeTokenPayload {
   userId: string;
   email: string;
-  type: "reminder" | "all";
+  type: "reminder" | "marketing" | "all";
   exp: number;
 }
 ```
@@ -167,33 +172,45 @@ mailing_list_consent BOOLEAN DEFAULT false  -- ביטול הרשמה מוחלט
 ### 1. זרימת הפסקת תזכורות חודשיות
 
 ```
-משתמש לוחץ כפתור כתום →
-JWT token מאומת →
+משתמש לוחץ קישור תזכורות →
+JWT token מאומת (type: "reminder") →
 reminder_enabled = false →
 דף הצלחה בעברית →
 "לא תקבל יותר תזכורות חודשיות"
 ```
 
-### 2. זרימת ביטול הרשמה מוחלט
+### 2. זרימת ביטול עדכונים ושיווק
+
+```
+משתמש לוחץ קישור שיווק →
+JWT token מאומת (type: "marketing") →
+mailing_list_consent = false →
+דף הצלחה בעברית →
+"לא תקבל יותר עדכונים ושיווק"
+```
+
+### 3. זרימת ביטול הרשמה מוחלט
 
 ```
 משתמש לוחץ כפתור אפור →
-JWT token מאומת →
-mailing_list_consent = false →
+JWT token מאומת (type: "all") →
+reminder_enabled = false + mailing_list_consent = false →
 דף הצלחה בעברית →
 "הוסרת מרשימת התפוצה שלנו"
 ```
 
-### 2.1 סנכרון טוגל ההגדרות אחרי unsubscribe
+### 4. סנכרון טוגל ההגדרות אחרי unsubscribe
 
 Unsubscribe מעדכן רק עמודות ייעודיות ב־`profiles` (`reminder_enabled` / `mailing_list_consent`), לא את `client_preferences.notifications`.
 
-כדי שהטוגל בהגדרות ישקף את מצב המייל האמיתי:
+**שינוי מרכזי מאז PR #510**: תזכורות ושיווק הם עצמאיים לחלוטין:
 
-- **תצוגה (web)**: `NotificationSettingsCard` מציג ON רק כש־`reminderEnabled && mailingListConsent`
-- **תצוגה (desktop)**: הטוגל מבוסס על `reminderEnabled` בלבד (תזכורות מקומיות לא תלויות ב־mailing consent)
-- **סנכרון**: `PreferencesSyncService` גוזר `notifications` מאותו AND אחרי טעינת העמודות מה־DB
-- **כתיבה**: הפעלת הטוגל כותבת גם `reminder_enabled` וגם `mailing_list_consent` (רק השדות שהשתנו)
+- **Settings UI (web)**: שני toggles נפרדים
+  - תזכורות חודשיות → `reminder_enabled`
+  - עדכונים וחדשות → `mailing_list_consent`
+- **Settings UI (desktop)**: toggle תזכורות בלבד (local reminders)
+- **Signup (web)**: opt-out checkbox לשיווק (unchecked = consent); תזכורות ברירת מחדל off
+- **סנכרון**: `PreferencesSyncService` קורא שני השדות באופן עצמאי
 
 ### 3. One-Click Unsubscribe (עתידי)
 
