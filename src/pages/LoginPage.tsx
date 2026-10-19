@@ -149,7 +149,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <AuthLayout title={t("login.title")} subtitle={t("login.subtitle")}>
-      <div className="space-y-6">
+      <div className="space-y-6 [@media(min-width:1024px)_and_(max-height:799px)]:space-y-4">
         {/* Sign in with Google Button */}
         <Button
           type="button"
@@ -259,7 +259,7 @@ const LoginPage: React.FC = () => {
         </form>
 
         {/* Link to Signup page */}
-        <div className="text-center text-sm text-muted-foreground mt-8">
+        <div className="text-center text-sm text-muted-foreground mt-8 [@media(min-width:1024px)_and_(max-height:799px)]:mt-4">
           {t("login.noAccount")}{" "}
           <Link
             to="/signup"
