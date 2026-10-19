@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { EXPENSE_CATEGORY_KEYS, INCOME_CATEGORY_KEYS } from "@/lib/category-registry";
 import { typesForFamily, type YearTypeSum } from "@/lib/ai/classify-intake";
 import { matchUserCategory } from "./match-category";
 
@@ -21,7 +22,12 @@ async function categoriesForFamily(type: YearTypeSum["type"]): Promise<string[]>
       return typeof category === "string" && category.trim() ? [category] : [];
     });
   }));
-  return [...new Set(lists.flat())];
+  const predefined = type === "income"
+    ? INCOME_CATEGORY_KEYS
+    : type === "expense"
+      ? EXPENSE_CATEGORY_KEYS
+      : [];
+  return [...new Set([...predefined, ...lists.flat()])];
 }
 
 function readTotals(data: unknown): { total: number; count: number; maxAmount: number; currencies: string[] } | null {

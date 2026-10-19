@@ -71,6 +71,13 @@ Deno.test("tithe wording and last year do not change the window", () => {
 Deno.test("על names a category topic and a plain question does not", () => {
   const food = parseYearTypeSum("כמה הוצאתי על אוכל השנה", TODAY);
   assert(food?.topic === "אוכל" && food.type === "expense", "food");
+  assert(parseYearTypeSum("כמה הוצאתי על אוכל השנה?", TODAY)?.topic === "אוכל", "question mark");
+  assert(parseYearTypeSum("כמה הוצאתי על אוכל ב-2025", TODAY)?.topic === "אוכל", "year");
+  assert(parseYearTypeSum("כמה הוצאתי על אוכל בשנה שעברה", TODAY)?.topic === "אוכל", "last year");
+  assert(parseYearTypeSum("כמה הוצאתי על אוכל בחודש האחרון", TODAY)?.topic === "אוכל", "last month");
+  const credit = parseYearTypeSum("כמה הוצאתי על אוכל באשראי השנה", TODAY);
+  assert(credit?.topic === "אוכל" && credit.paymentMethod === "credit_card", "credit");
+  assert(parseYearTypeSum("how much did I spend on food in 2025", TODAY)?.topic === "food", "english in");
   assert(parseYearTypeSum("כמה תרמתי השנה", TODAY)?.topic === null, "no topic");
 });
 
