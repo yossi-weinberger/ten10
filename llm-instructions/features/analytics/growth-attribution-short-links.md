@@ -4,6 +4,7 @@
 
 ```json
 { "source": "/:path([Mm][Aa][Cc][Hh][Oo][Nn]/?)", "destination": "/landing?utm_source=institute&utm_medium=email&utm_campaign=update_2026", "permanent": false }
+{ "source": "/:path([Ss][Tt][Aa][Tt][Uu][Ss]/?)", "destination": "/landing?utm_source=whatsapp&utm_medium=status&utm_campaign=status_2026", "permanent": false }
 ```
 
 `/machon` is Vercel-only — there is no in-app or desktop route.
