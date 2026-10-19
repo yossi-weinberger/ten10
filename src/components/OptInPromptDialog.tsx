@@ -43,7 +43,7 @@ function markPromptAsShown(userId: string): void {
   }
 }
 
-async function isNewUser(_userId: string): Promise<boolean> {
+async function isNewUser(): Promise<boolean> {
   try {
     const { data: userData, error } = await supabase.auth.getUser();
     if (error || !userData?.user?.created_at) return false;
@@ -69,24 +69,16 @@ export function OptInPromptDialog() {
   // Check if user is brand new
   useEffect(() => {
     if (user) {
-      isNewUser(user.id).then(setIsNewUserState);
+      isNewUser().then(setIsNewUserState);
     }
   }, [user]);
 
-  // Derive initial checkbox state from loaded server settings only
-  const initialReminderState = settings.reminderEnabled === true;
-  const initialMarketingState = settings.mailingListConsent === true;
+  // Derive checkbox state from loaded server settings (no sync needed)
+  const enableRemindersInitial = _hasHydrated ? settings.reminderEnabled === true : false;
+  const enableMarketingInitial = _hasHydrated ? settings.mailingListConsent === true : false;
 
-  const [enableReminders, setEnableReminders] = useState(initialReminderState);
-  const [enableMarketing, setEnableMarketing] = useState(initialMarketingState);
-
-  // Update checkboxes when settings load from server
-  useEffect(() => {
-    if (_hasHydrated) {
-      setEnableReminders(settings.reminderEnabled === true);
-      setEnableMarketing(settings.mailingListConsent === true);
-    }
-  }, [_hasHydrated, settings.reminderEnabled, settings.mailingListConsent]);
+  const [enableReminders, setEnableReminders] = useState(enableRemindersInitial);
+  const [enableMarketing, setEnableMarketing] = useState(enableMarketingInitial);
 
   // Compute whether dialog should be shown
   const shouldShow = useMemo(() => {
