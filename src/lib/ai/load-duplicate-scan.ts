@@ -26,6 +26,14 @@ function readSide(value: unknown): SavedTransactionRow | null {
   };
 }
 
+export async function dismissDuplicatePair(leftId: string, rightId: string): Promise<boolean> {
+  const { error } = await supabase.rpc("dismiss_ai_duplicate_pair", {
+    p_a: leftId,
+    p_b: rightId,
+  });
+  return !error;
+}
+
 export async function loadDuplicateScan(): Promise<DuplicateScanResult> {
   const { data, error } = await supabase.rpc("list_ai_saved_duplicate_pairs");
   if (error || !data || typeof data !== "object") return { ok: false, reason: "FAILED" };
