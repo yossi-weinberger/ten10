@@ -16,6 +16,7 @@ import {
   fallbackIntent,
   intentIsConfident,
   draftFromText,
+  parseYearTypeSum,
   parseUserRule,
   selectHalachaPage,
   type ActiveUserRule,
@@ -39,6 +40,7 @@ import { recordShadowType } from "@/lib/ai/shadow-type";
 import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 import { readReceiptImage } from "@/lib/ai/read-receipt";
 import { isIsoDate, receiptAsDraft, receiptRuledDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
+import { sumYearType } from "@/lib/ai/sum-year-type";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
 import { isOnOrAfterMinTransactionDate, MIN_TRANSACTION_DATE } from "@/lib/utils/transaction-date";
 
@@ -86,6 +88,11 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [savedItemId, setSavedItemId] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [askIntent, setAskIntent] = useState(false);
+  const [dataReply, setDataReply] = useState<
+    | { status: "ready"; year: number; type: "donation" | "expense" | "income"; total: number; count: number; currency: string | null }
+    | { status: "mixed" | "unsupported" | "failed" }
+    | null
+  >(null);
 
   function todayIso(): string {
     return new Intl.DateTimeFormat("en-CA").format(new Date());
@@ -126,6 +133,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setSaveMessage(null);
     setSavedItemId(null);
     setAskIntent(false);
+    setDataReply(null);
   }
 
   function handleOpenChange(next: boolean) {
@@ -330,6 +338,29 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     );
     setSaveMessage(null);
     setSavedItemId(null);
+    if (nextIntent === "ask_data") void loadDataAnswer(source);
+    else setDataReply(null);
+  }
+
+  async function loadDataAnswer(source: string) {
+    const question = parseYearTypeSum(source);
+    if (!question) {
+      setDataReply({ status: "unsupported" });
+      return;
+    }
+    const result = await sumYearType(question);
+    if (!result.ok) {
+      setDataReply({ status: result.reason === "MIXED" ? "mixed" : "failed" });
+      return;
+    }
+    setDataReply({
+      status: "ready",
+      year: question.year,
+      type: question.type,
+      total: result.total,
+      count: result.count,
+      currency: result.currency,
+    });
   }
 
   async function handleSubmit(spoken?: string) {
@@ -526,8 +557,22 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
           {intent ? (
             <div className="flex flex-col gap-1 text-sm">
               <p>
-                {t(`aiIntake.intents.${intent}`)} {saveMessage ? "" : t("aiIntake.notSaved")}
+                {t(`aiIntake.intents.${intent}`)} {saveMessage || intent === "ask_data" ? "" : t("aiIntake.notSaved")}
               </p>
+              {intent === "ask_data" && dataReply?.status === "ready" ? (
+                <p>
+                  {t("aiIntake.dataAnswer", {
+                    year: dataReply.year,
+                    type: t(`aiIntake.types.${dataReply.type}`),
+                    total: dataReply.total,
+                    count: dataReply.count,
+                    currency: dataReply.currency ?? "",
+                  })}
+                </p>
+              ) : null}
+              {intent === "ask_data" && dataReply?.status === "unsupported" ? <p>{t("aiIntake.dataUnsupported")}</p> : null}
+              {intent === "ask_data" && dataReply?.status === "mixed" ? <p>{t("aiIntake.dataMixed")}</p> : null}
+              {intent === "ask_data" && dataReply?.status === "failed" ? <p>{t("aiIntake.dataFailed")}</p> : null}
               {halachaNamespace ? (
                 <div className="flex flex-col gap-2">
                   <p>{t("introduction.body", { ns: halachaNamespace })}</p>
