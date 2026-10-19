@@ -1,6 +1,6 @@
 # Ten10 AI — יומן התקדמות
 
-- **המסמך:** `docs/superpowers/specs/2026-10-18-ai-multichannel-design.md` (v2.6)
+- **המסמך:** `docs/superpowers/specs/2026-10-18-ai-multichannel-design.md` (v2.7)
 - **הכלל לסוכנים:** `.cursor/rules/ai-multichannel/RULE.md`
 
 **איך משתמשים בקובץ:**
@@ -24,8 +24,9 @@
 | 7 | מעטפת צ'אט מאחורי `ai_intake_web` | UI + רישום טקסט | PR 6 | מוזג ל־`feat/ai-intake` | [#458](https://github.com/yossi-weinberger/ten10/pull/458) |
 | 8 | אייקון ומסנן מקור בטבלת התנועות | UI, Web בלבד | PR 4 + PR 7 | מוזג ל־`feat/ai-intake` | [#459](https://github.com/yossi-weinberger/ten10/pull/459) |
 | 9 | רענון אחרי שמירת טקסט | UI | PR 7–8 | מוזג ל־`feat/ai-intake` | [#460](https://github.com/yossi-weinberger/ten10/pull/460) |
-| 10 | `ai.undo_intake_commit` וכפתור בטל בצ'אט | DB על testing + UI | PR 5 + PR 9 | נפתח מול `feat/ai-intake` | |
-| 11–12 | נכתבות כשהגל הקודם נסגר | | §24.1 במסמך | | |
+| 10 | `ai.undo_intake_commit` וכפתור בטל בצ'אט | DB על testing + UI | PR 5 + PR 9 | מוזג ל־`feat/ai-intake` | [#462](https://github.com/yossi-weinberger/ten10/pull/462) |
+| 11 | ביטול מתפריט השורה בטבלה | DB על testing + UI | PR 10 | נפתח מול `feat/ai-intake` | |
+| 12 | נכתב כשהגל הקודם נסגר | | §24.1 במסמך | | |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -95,3 +96,4 @@
 - **2026-10-19:** #459 מוזג ל־`feat/ai-intake`. אחרי שמירת טקסט מוצלחת מתעדכן `lastDbFetchTimestamp` וטבלת התנועות נטענת מחדש.
 - **2026-10-19:** #460 מוזג ל־`feat/ai-intake`. המסמך עודכן ל־v2.7: `domain_adjacent` מציג סעיף הלכה שפורסם בלי ניסוח מודל, בדיקת grounding למספרים לפני טקסט חופשי, ושמירת שאילתה מובנית אחת להמשך. סדר הבנייה לא השתנה.
 - **2026-10-19:** נוסף `ai.undo_intake_commit` על testing, וכפתור "בטל" בצ'אט אחרי שמירה. ביטול מותר 7 ימים ורק אם התנועה לא נערכה. כפתור בטבלה עדיין לא קיים.
+- **2026-10-19:** #462 מוזג ל־`feat/ai-intake`. בתפריט השורה ב-Web נוסף "בטל שמירת AI", דרך `undo_ai_transaction`. אותם תנאים כמו בצ'אט. Desktop בלי הפריט.

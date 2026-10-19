@@ -31,6 +31,8 @@ import {
 import { DeleteConfirmationDialog } from "../ui/DeleteConfirmationDialog";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { TableTransactionsService } from "@/lib/tableTransactions/tableTransactionService";
+import { refreshAfterIntakeSave } from "@/lib/ai/refresh-after-intake";
+import { undoAiTransaction } from "@/lib/ai/undo-text-intake";
 import { BulkActionsToolbar } from "./BulkActionsToolbar";
 import { BulkEditDialog } from "./BulkEditDialog";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
@@ -252,6 +254,21 @@ export function TransactionsTableDisplay() {
     setTransactionToDelete(transaction);
     setIsDeleteDialogOpen(true);
   }, []);
+
+  const handleUndoAi = useCallback(
+    async (transaction: Transaction) => {
+      const result = await undoAiTransaction(transaction.id);
+      if (result.ok) {
+        refreshAfterIntakeSave();
+        toast.success(t("actions.undoAiDone"));
+        return;
+      }
+      toast.error(
+        t(result.reason === "NOT_ALLOWED" ? "actions.undoAiNotAllowed" : "actions.undoAiFailed"),
+      );
+    },
+    [t],
+  );
 
   const handleDeleteConfirm = useCallback(async () => {
     if (transactionToDelete) {
@@ -673,6 +690,7 @@ export function TransactionsTableDisplay() {
                       onEdit={handleEditInitiate}
                       onDelete={handleDeleteInitiate}
                       onEditRecurring={handleEditRecurringInitiate}
+                      onUndoAi={platform === "web" ? handleUndoAi : undefined}
                       isFetchingRec={isFetchingRec}
                       selected={selection.selectedIds.has(item.transaction.id)}
                       onToggleSelected={selection.toggle}

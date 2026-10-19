@@ -1,10 +1,30 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const rpc = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/supabaseClient", () => ({
-  supabase: { rpc: vi.fn() },
+  supabase: { rpc },
 }));
 
-import { readUndoPayload } from "./undo-text-intake";
+import { readUndoPayload, undoAiTransaction } from "./undo-text-intake";
+
+describe("undoAiTransaction", () => {
+  beforeEach(() => {
+    rpc.mockReset();
+  });
+
+  it("undoes by the transaction id", async () => {
+    rpc.mockResolvedValue({ data: { reverted: true }, error: null });
+
+    await expect(undoAiTransaction("tx-1")).resolves.toEqual({
+      ok: true,
+      alreadyReverted: false,
+    });
+    expect(rpc).toHaveBeenCalledWith("undo_ai_transaction", {
+      p_transaction_id: "tx-1",
+    });
+  });
+});
 
 describe("readUndoPayload", () => {
   it("accepts a fresh revert", () => {

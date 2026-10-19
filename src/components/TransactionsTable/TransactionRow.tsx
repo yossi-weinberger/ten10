@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { MoreHorizontal, Trash2, Edit3, Repeat, Sparkles } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit3, Repeat, Sparkles, Undo2 } from "lucide-react";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
@@ -28,6 +28,7 @@ interface TransactionRowProps {
   onEdit: (transaction: Transaction) => void;
   onDelete: (transaction: Transaction) => void;
   onEditRecurring: (recurringId: string) => void;
+  onUndoAi?: (transaction: Transaction) => void;
   isFetchingRec: boolean;
   selected: boolean;
   onToggleSelected: (id: string) => void;
@@ -40,6 +41,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   onEdit,
   onDelete,
   onEditRecurring,
+  onUndoAi,
   isFetchingRec,
   selected,
   onToggleSelected,
@@ -174,6 +176,14 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
                 </span>
               </DropdownMenuItem>
             )}
+            {platform === "web" &&
+            onUndoAi &&
+            (transaction.origin === "ai" || transaction.origin === "ai_auto") ? (
+              <DropdownMenuItem onClick={() => onUndoAi(transaction)}>
+                <Undo2 className="me-2 h-4 w-4" />
+                {t("actions.undoAi")}
+              </DropdownMenuItem>
+            ) : null}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => onDelete(transaction)}

@@ -78,6 +78,10 @@
     "edit": "Edit",
     "editRecurring": "Edit Recurring",
     "delete": "Delete",
+    "undoAi": "Undo AI save",
+    "undoAiDone": "The save was undone and the transaction was deleted.",
+    "undoAiNotAllowed": "This cannot be undone. If it was edited or 7 days have passed, delete it normally.",
+    "undoAiFailed": "Undo failed. The transaction is still saved.",
     "duplicate": "Duplicate",
     "export": "Export",
     "cancel": "Cancel"
