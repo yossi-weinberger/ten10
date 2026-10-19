@@ -49,3 +49,16 @@ Deno.test("an amount without a verb asks for the type first", () => {
 Deno.test("a verb without an amount asks for the amount", () => {
   assert(clarificationField("קניתי מאפים", TODAY) === "amount", "amount");
 });
+
+Deno.test("an English grocery purchase uses the same alias lists", () => {
+  const draft = draftFromText("day before yesterday I bought groceries for 15 dollars", TODAY);
+  assert(draft !== null, "expected a draft");
+  assert(draft.amount === 15, "amount");
+  assert(draft.currency === "USD", "dollars");
+  assert(draft.type === "expense", "bought");
+  assert(draft.category === "food", "groceries");
+  assert(draft.date === "2026-10-17", "day before yesterday");
+  assert(draft.description.includes("groceries"), "keeps the item");
+  assert(!draft.description.includes("bought"), "drops the verb");
+  assert(!draft.description.includes("15"), "drops the amount");
+});

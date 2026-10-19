@@ -101,6 +101,43 @@ export const RULE_NAME_STOP_WORDS = [
   "to",
 ] as const;
 
+export const DATE_MINUS_TWO = ["שלשום", "day before yesterday"] as const;
+export const DATE_MINUS_ONE = ["אתמול", "yesterday"] as const;
+export const DATE_WORDS = ["שלשום", "אתמול", "היום", "day before yesterday", "yesterday", "today"] as const;
+
+export const USD_MARKERS = ["דולר", "dollar", "usd", "$"] as const;
+export const EUR_MARKERS = ["אירו", "euro", "eur", "€"] as const;
+export const AMOUNT_CURRENCY_WORDS = [
+  "ש\"ח",
+  "שח",
+  "שקלים",
+  "שקל",
+  "דולר",
+  "dollars",
+  "dollar",
+  "usd",
+  "eur",
+  "אירו",
+  "euro",
+  "₪",
+  "$",
+] as const;
+
+export const RATE_MARKERS = ["שער", "rate"] as const;
+
+export const FOOD_MARKERS = ["מאפ", "אוכל", "סופר", "מסעד", "food", "grocery", "groceries", "bakery"] as const;
+export const TRANSPORT_MARKERS = ["מונית", "דלק", "רכבת", "אוטובוס", "taxi", "fuel", "train", "bus"] as const;
+
+export const DONATION_TYPE_MARKERS = ["תרמתי", "צדקה", "donation", "tzedaka", "tzedakah"] as const;
+export const INCOME_TYPE_MARKERS = ["קיבלתי", "משכורת", "salary", "received"] as const;
+export const EXPENSE_TYPE_MARKERS = ["קניתי", "שילמתי", "bought", "paid", "spent"] as const;
+
+export const CREDIT_MARKERS = ["באשראי", "אשראי", "credit"] as const;
+export const CASH_MARKERS = ["במזומן", "מזומן", "cash"] as const;
+export const TRANSFER_MARKERS = ["העברה בנקאית", "בהעברה", "העברה", "transfer"] as const;
+export const BIT_MARKERS = ["בביט", "ביט", "פייבוקס", "paybox", " bit"] as const;
+export const CHECK_MARKERS = ["צ'ק", "צ׳ק", "צק", "check", "cheque"] as const;
+
 export function includesAlias(text: string, aliases: readonly string[]): boolean {
   return aliases.some((alias) => text.includes(alias));
 }
