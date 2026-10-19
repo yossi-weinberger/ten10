@@ -17,6 +17,21 @@ Deno.test("explicit income, expense, and donation rules are not questions", () =
   assert(parseUserRule("מהיום תרומות לחברה אינן ממעשר")?.action === "non_tithe_donation", "donation");
 });
 
+Deno.test("the same rule phrases work in English", () => {
+  const ambiguous = parseUserRule("from now on expenses to acme are exempt from tithe");
+  assert(ambiguous?.name === "acme", "english name");
+  assert(ambiguous?.action === "ambiguous", "english question");
+  assert(
+    parseUserRule("from now on income from acme is tithe exempt")?.action === "exempt-income",
+    "english income",
+  );
+  assert(
+    parseUserRule("from now on payments to acme are a recognized expense")?.action ===
+      "recognized-expense",
+    "english expense",
+  );
+});
+
 Deno.test("an active rule changes only a later draft that names it", () => {
   const rules = [{ name: "חברה", type: "recognized-expense" as const }];
   const hit = applyForwardRule(
