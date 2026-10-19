@@ -49,6 +49,7 @@
     "saveAnyway": "Save anyway",
     "sameEvent": "This is the same transaction",
     "duplicateKept": "No new transaction was saved.",
+    "draftCandidate": "Unsaved draft",
     "types": {
       "expense": "expense",
       "income": "income",
