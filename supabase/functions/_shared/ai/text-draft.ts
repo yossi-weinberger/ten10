@@ -1,7 +1,28 @@
 /**
  * Pulls a transaction draft out of text with rules only.
- * Amount and currency stay as written. Nothing is saved.
+ * Phrases live in phrase-aliases.ts. Amount and currency stay as written.
  */
+
+import {
+  AMOUNT_CURRENCY_WORDS,
+  BIT_MARKERS,
+  CASH_MARKERS,
+  CHECK_MARKERS,
+  CREDIT_MARKERS,
+  DATE_MINUS_ONE,
+  DATE_MINUS_TWO,
+  DATE_WORDS,
+  DONATION_TYPE_MARKERS,
+  EUR_MARKERS,
+  EXPENSE_TYPE_MARKERS,
+  FOOD_MARKERS,
+  INCOME_TYPE_MARKERS,
+  RATE_MARKERS,
+  TRANSFER_MARKERS,
+  TRANSPORT_MARKERS,
+  USD_MARKERS,
+  includesAlias,
+} from "./phrase-aliases.ts";
 
 export interface TextTransactionDraft {
   date: string;
@@ -42,60 +63,73 @@ function parseNumber(raw: string): number | null {
   return Number.isFinite(value) ? value : null;
 }
 
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function wordsPattern(aliases: readonly string[]): string {
+  return aliases.map(escapeRegExp).join("|");
+}
+
 function resolveDate(text: string, today: string): string {
-  if (text.includes("שלשום")) return addIsoDays(today, -2);
-  if (text.includes("אתמול") || text.includes("yesterday")) return addIsoDays(today, -1);
+  if (includesAlias(text, DATE_MINUS_TWO)) return addIsoDays(today, -2);
+  if (includesAlias(text, DATE_MINUS_ONE)) return addIsoDays(today, -1);
   return today;
 }
 
 function resolveCurrency(text: string): TextTransactionDraft["currency"] {
-  if (/דולר|dollar|usd|\$/.test(text)) return "USD";
-  if (/אירו|euro|eur|€/.test(text)) return "EUR";
+  if (includesAlias(text, USD_MARKERS)) return "USD";
+  if (includesAlias(text, EUR_MARKERS)) return "EUR";
   return "ILS";
 }
 
 function resolveCategory(text: string): TextTransactionDraft["category"] {
-  if (/מאפ|אוכל|סופר|מסעד|food|grocery/.test(text)) return "food";
-  if (/מונית|דלק|רכבת|אוטובוס|taxi|fuel/.test(text)) return "transportation";
+  if (includesAlias(text, FOOD_MARKERS)) return "food";
+  if (includesAlias(text, TRANSPORT_MARKERS)) return "transportation";
   return null;
 }
 
 function resolvePaymentMethod(text: string): TextTransactionDraft["paymentMethod"] {
-  if (/אשראי|credit/.test(text)) return "credit_card";
-  if (/מזומן|cash/.test(text)) return "cash";
-  if (/העברה|transfer/.test(text)) return "bank_transfer";
-  if (/ביט|פייבוקס|paybox|\bbit\b/.test(text)) return "bit_paybox";
-  if (/צ['׳]ק|check/.test(text)) return "check";
+  if (includesAlias(text, CREDIT_MARKERS)) return "credit_card";
+  if (includesAlias(text, CASH_MARKERS)) return "cash";
+  if (includesAlias(text, TRANSFER_MARKERS)) return "bank_transfer";
+  if (includesAlias(text, BIT_MARKERS)) return "bit_paybox";
+  if (includesAlias(text, CHECK_MARKERS)) return "check";
   return null;
 }
 
 function cleanDescription(original: string): string {
   let text = original.replace(/־/g, " ");
+  const rateWords = wordsPattern(RATE_MARKERS);
+  const currencyWords = wordsPattern(AMOUNT_CURRENCY_WORDS);
+  const verbs = wordsPattern([...DONATION_TYPE_MARKERS, ...INCOME_TYPE_MARKERS, ...EXPENSE_TYPE_MARKERS]);
+  const dates = wordsPattern(DATE_WORDS);
+  const payments = wordsPattern([
+    ...CREDIT_MARKERS,
+    ...CASH_MARKERS,
+    ...TRANSFER_MARKERS,
+    ...BIT_MARKERS,
+    ...CHECK_MARKERS,
+  ]);
   const noise = [
-    /לפי\s+שער\s*\d+(?:[.,]\d+)?/gi,
-    /(?:שער|rate)\s*\d+(?:[.,]\d+)?/gi,
-    /(?:₪|\$)\s*\d+(?:[.,]\d+)?/gi,
-    /ב\s*[-–]?\s*\d+(?:[.,]\d+)?(?:\s*(?:ש"?ח|שקלים|שקל|דולר|dollars?|usd|eur|אירו|₪|\$))?/gi,
-    /\d+(?:[.,]\d+)?\s*(?:ש"?ח|שקלים|שקל|דולר|dollars?|usd|eur|אירו|₪|\$)/gi,
-    /קניתי|שילמתי|קיבלתי|תרמתי|bought|paid|spent|received/gi,
-    /שלשום|אתמול|היום|yesterday|today/gi,
-    /באשראי|במזומן|בביט|בהעברה|אשראי|מזומן|ביט|פייבוקס|העברה בנקאית/gi,
+    new RegExp(`לפי\\s+(?:${rateWords})\\s*\\d+(?:[.,]\\d+)?`, "gi"),
+    new RegExp(`(?:${rateWords})\\s*\\d+(?:[.,]\\d+)?`, "gi"),
+    new RegExp(`(?:${currencyWords})\\s*\\d+(?:[.,]\\d+)?`, "gi"),
+    new RegExp(`ב\\s*[-–]?\\s*\\d+(?:[.,]\\d+)?(?:\\s*(?:${currencyWords}))?`, "gi"),
+    new RegExp(`\\d+(?:[.,]\\d+)?\\s*(?:${currencyWords})`, "gi"),
+    new RegExp(verbs, "gi"),
+    new RegExp(dates, "gi"),
+    new RegExp(payments, "gi"),
   ];
   for (const pattern of noise) text = text.replace(pattern, " ");
   const cleaned = text.replace(/\s+/g, " ").replace(/^[\s,.\-–]+|[\s,.\-–]+$/g, "").trim();
   return cleaned || original.trim();
 }
 
-const TYPE_PATTERNS: ReadonlyArray<[RegExp, TextTransactionDraft["type"]]> = [
-  [/תרמתי|צדקה|donation|tzedak/, "donation"],
-  [/קיבלתי|משכורת|salary|received/, "income"],
-  [/קניתי|שילמתי|bought|paid|spent/, "expense"],
-];
-
 function explicitType(normalized: string): TextTransactionDraft["type"] | null {
-  for (const [pattern, type] of TYPE_PATTERNS) {
-    if (pattern.test(normalized)) return type;
-  }
+  if (includesAlias(normalized, DONATION_TYPE_MARKERS)) return "donation";
+  if (includesAlias(normalized, INCOME_TYPE_MARKERS)) return "income";
+  if (includesAlias(normalized, EXPENSE_TYPE_MARKERS)) return "expense";
   return null;
 }
 
@@ -118,7 +152,8 @@ export function draftFromText(text: string, today: string): TextTransactionDraft
   const normalized = text.trim().toLowerCase().replace(/־/g, " ").replace(/\s+/g, " ");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(today)) return null;
 
-  const rateMatch = normalized.match(/(?:שער|rate)\s*(\d+(?:,\d+)?(?:\.\d+)?)/);
+  const rateWords = wordsPattern(RATE_MARKERS);
+  const rateMatch = normalized.match(new RegExp(`(?:${rateWords})\\s*(\\d+(?:,\\d+)?(?:\\.\\d+)?)`));
   const requestedRate = rateMatch ? parseNumber(rateMatch[1]) : null;
   const withoutRate = rateMatch ? normalized.replace(rateMatch[0], " ") : normalized;
   const amountMatch = withoutRate.match(/(\d+(?:,\d{3})+(?:\.\d+)?|\d+(?:[.,]\d+)?)/);
