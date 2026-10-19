@@ -164,6 +164,15 @@
     "confirmNewPassword": "אימות סיסמה חדשה",
     "updatePassword": "עדכן סיסמה"
   },
+  "aiRules": {
+    "cardTitle": "כללי העוזר",
+    "cardDescription": "כללים פעילים חלים רק על תנועות חדשות. כיבוי לא משנה תנועות שכבר נשמרו.",
+    "loading": "טוען כללים...",
+    "empty": "אין כללים פעילים.",
+    "disable": "כבה",
+    "disabled": "הכלל כבוי.",
+    "disableFailed": "לא ניתן היה לכבות את הכלל."
+  },
   "versionInfo": {
     "title": "מידע גרסה",
     "description": "בדוק עדכונים והצג פרטי גרסה",

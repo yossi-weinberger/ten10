@@ -22,6 +22,7 @@ import { ClearDataSection } from "@/components/settings/ClearDataSection";
 import { ImportExportDataSection } from "@/components/settings/ImportExportDataSection";
 import { VersionInfoCard } from "@/components/settings/VersionInfoCard";
 import { AppLockSettingsCard } from "@/components/settings/AppLockSettingsCard";
+import { AiRulesSettingsCard } from "@/components/settings/AiRulesSettingsCard";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { ImportConfirmModal } from "@/components/settings/ImportConfirmModal";
 import { ImportDuplicatesModal } from "@/components/settings/ImportDuplicatesModal";
@@ -212,6 +213,8 @@ export function SettingsPage() {
     />
   );
 
+  const aiRulesSection = <AiRulesSettingsCard />;
+
   const calendarSection = (
     <CalendarSettingsCard
       calendarSettings={{
@@ -314,6 +317,7 @@ export function SettingsPage() {
             <div className="flex flex-col gap-6">
               {financialSection}
               {notificationSection}
+              {aiRulesSection}
               {clearDataSection}
             </div>
           </div>
@@ -325,6 +329,7 @@ export function SettingsPage() {
           {appLockSection}
           {financialSection}
           {notificationSection}
+          {aiRulesSection}
           {calendarSection}
           {importExportSection}
           {clearDataSection}

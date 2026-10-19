@@ -31,3 +31,12 @@ export async function approveUserRule(
   });
   return !error;
 }
+
+export async function disableUserRule(name: string, type: RuleActionType): Promise<boolean> {
+  const { data, error } = await supabase.rpc("disable_ai_user_rule", {
+    p_name: name,
+    p_type: type,
+  });
+  if (error || !data || typeof data !== "object") return false;
+  return (data as { disabled?: boolean }).disabled === true;
+}
