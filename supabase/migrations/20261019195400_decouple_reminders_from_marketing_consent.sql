@@ -1,5 +1,12 @@
 begin;
 
+-- Backward-safety: legacy 'unsubscribe all' left reminder_enabled=true but set mailing_list_consent=false.
+-- Cannot distinguish intent, so disable reminders for ambiguous profiles. Users can re-enable in Settings.
+update public.profiles 
+set reminder_enabled = false 
+where reminder_enabled = true 
+  and coalesce(mailing_list_consent, false) = false;
+
 -- (A) Decouple reminders from marketing consent
 -- Remove mailing_list_consent filter from get_reminder_users_with_emails(integer)
 -- to allow reminder emails regardless of marketing consent status.
