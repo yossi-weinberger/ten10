@@ -18,6 +18,7 @@ import { PreferencesSyncService } from "@/lib/services/preferences-sync.service"
 import { resetPostHogUser } from "@/lib/analytics/posthogClient";
 import { syncPostHogUserIdentity } from "@/lib/analytics/posthogIdentity.service";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { applyPersistedAttributionToProfile } from "@/lib/attribution/profile";
 import { useCalendarPreview } from "@/lib/calendar/calendar-preview";
 
 export type { SupabaseUser as User };
@@ -64,6 +65,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         initialSessionResolvedRef.current = true;
         if (initialUser) {
           void syncPostHogUserIdentity(initialUser, i18n.language);
+          void applyPersistedAttributionToProfile(initialUser);
         }
         setLoading(false);
       })
@@ -108,6 +110,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
           if (lastAuthedUserIdRef.current !== newCurrentUser.id) {
             void syncPostHogUserIdentity(newCurrentUser, i18n.language);
+            void applyPersistedAttributionToProfile(newCurrentUser);
           }
           lastAuthedUserIdRef.current = newCurrentUser.id;
         }
