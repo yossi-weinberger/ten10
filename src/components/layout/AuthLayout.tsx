@@ -35,7 +35,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
         <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
       </div>
 
-      <div className="w-full max-w-[1400px] bg-card rounded-[32px] shadow-2xl grid lg:grid-cols-2 relative z-10 my-auto lg:max-h-[85vh] lg:min-h-[600px] overflow-hidden">
+      <div className="w-full max-w-[1400px] bg-card rounded-[32px] shadow-2xl grid lg:grid-cols-2 relative z-10 my-auto [@media(min-width:1024px)_and_(min-height:800px)]:max-h-[85vh] lg:min-h-[600px] overflow-hidden">
         {/* Form Side */}
         <div className="relative flex flex-col justify-start lg:justify-center p-8 md:p-12 lg:p-16 order-1 overflow-y-auto">
           {/* Mobile Logo */}
