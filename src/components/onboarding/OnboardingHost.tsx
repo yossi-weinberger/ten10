@@ -512,6 +512,7 @@ export function OnboardingHost({ children }: { children: ReactNode }) {
       <WelcomeDialog
         open={welcomeOpen}
         pending={false}
+        showArrivalCode={platform === "desktop"}
         onStart={handleStart}
         onSkip={handleSkip}
       />

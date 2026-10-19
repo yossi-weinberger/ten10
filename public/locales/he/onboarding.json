@@ -1,4 +1,8 @@
 {
+  "arrivalCode": {
+    "label": "קוד הגעה (לא חובה)",
+    "placeholder": "MACHON"
+  },
   "welcome": {
     "title": "ברוכים הבאים ל-Ten10",
     "description": "אם תרצו להכיר את המערכת תוכלו לצאת עכשיו לסיור.",

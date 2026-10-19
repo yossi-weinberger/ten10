@@ -6,6 +6,8 @@
 
 **הערה על מבנה הקוד בפועל:** הקובץ `src/pages/LandingPage.tsx` הוא _רק_ `re-export` ל־`src/pages/landing/index.tsx` (שם נמצא המימוש של הדף). הראוטינג מוגדר ב־`src/routes.ts` על הנתיב `/landing`.
 
+קיצורי קמפיין (למשל `/machon` → `/landing?ref=MACHON&utm_...`) מוגדרים ב־`src/lib/attribution/short-links.ts`. הוספת ערוץ חדש: ראו `features/analytics/growth-attribution-short-links.md`.
+
 ## עדכון מצב נוכחי (מאי 2026)
 
 דף הנחיתה עבר רענון מקיף סביב שפה עיצובית קיימת של הפרויקט, ולא סביב מערכת עיצוב חדשה. בעת עריכת הדף יש להעדיף את ה־tokens הגלובליים מ־`src/index.css` ו־`tailwind.config.js`: `bg-background`, `bg-card`, `text-foreground`, `text-muted-foreground`, `border-border`, `primary`, `accent`, ו־`Button`/`Card`/`Popover`/`Dialog` הקיימים.

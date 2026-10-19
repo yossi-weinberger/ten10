@@ -21,6 +21,7 @@ import {
   unpackImportTransactionItem,
   filterDuplicateImportTransactions,
 } from "./importPrepare";
+import { readDesktopArrivalCodeRecord } from "@/lib/attribution/desktop";
 
 async function fetchAllTransactionsForExportDesktop(): Promise<Transaction[]> {
   const { invoke } = await import("@tauri-apps/api/core");
@@ -79,10 +80,14 @@ export const exportDataDesktop = async ({
       return;
     }
 
+    const arrivalCodeRecord = await readDesktopArrivalCodeRecord();
     const exportPayload = {
       version: 2,
       transactions: transactions || [],
       recurring_transactions: recurring || [],
+      ...(arrivalCodeRecord
+        ? { arrival_code: arrivalCodeRecord.arrival_code }
+        : {}),
     };
     const jsonData = JSON.stringify(exportPayload, null, 2);
     const suggestedFilename = `ten10_backup_desktop_${
