@@ -164,6 +164,15 @@
     "confirmNewPassword": "Confirm new password",
     "updatePassword": "Update password"
   },
+  "aiRules": {
+    "cardTitle": "Assistant rules",
+    "cardDescription": "Active rules apply only to new transactions. Turning one off does not change transactions already saved.",
+    "loading": "Loading rules...",
+    "empty": "No active rules.",
+    "disable": "Turn off",
+    "disabled": "The rule is off.",
+    "disableFailed": "The rule could not be turned off."
+  },
   "versionInfo": {
     "title": "Version Information",
     "description": "Check for updates and view version details",
