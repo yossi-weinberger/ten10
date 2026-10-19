@@ -41,7 +41,8 @@ import { recordShadowType } from "@/lib/ai/shadow-type";
 import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 import { readReceiptImage } from "@/lib/ai/read-receipt";
 import { isIsoDate, receiptAsDraft, receiptRuledDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
-import { loadDuplicateScan } from "@/lib/ai/load-duplicate-scan";
+import { dismissDuplicatePair, loadDuplicateScan } from "@/lib/ai/load-duplicate-scan";
+import { deleteTransaction } from "@/lib/data-layer";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import { resolveQuestionFilter, sumYearType } from "@/lib/ai/sum-year-type";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
@@ -97,6 +98,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     | { status: "mixed" | "unsupported" | "failed" }
     | null
   >(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [duplicateScan, setDuplicateScan] = useState<
     | { status: "pending" }
     | { status: "ready"; count: number; pairs: DuplicatePair[] }
@@ -362,7 +364,24 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       setDuplicateScan({ status: "failed" });
       return;
     }
+    setConfirmDeleteId(null);
     setDuplicateScan({ status: "ready", count: result.count, pairs: result.pairs });
+  }
+
+  async function dismissPair(pair: DuplicatePair) {
+    const saved = await dismissDuplicatePair(pair.left.id, pair.right.id);
+    if (!saved) return;
+    await loadScan();
+  }
+
+  async function confirmDelete(id: string) {
+    try {
+      await deleteTransaction(id);
+    } catch {
+      return;
+    }
+    setConfirmDeleteId(null);
+    await loadScan();
   }
 
   async function loadDataAnswer(source: string, searchDescriptions = false) {
@@ -640,13 +659,28 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                 <div className="flex flex-col gap-1">
                   <p>{t(duplicateScan.count === 1 ? "aiIntake.duplicateScanCountOne" : "aiIntake.duplicateScanCount", { count: duplicateScan.count })}</p>
                   {duplicateScan.pairs.map((pair) => (
-                    <p key={`${pair.left.id}-${pair.right.id}`}>
-                      {pair.left.date} · {pair.left.amount} {pair.left.currency}
-                      {pair.left.description ? ` · ${pair.left.description}` : ""}
-                      {" · "}
-                      {pair.right.date} · {pair.right.amount} {pair.right.currency}
-                      {pair.right.description ? ` · ${pair.right.description}` : ""}
-                    </p>
+                    <div key={`${pair.left.id}-${pair.right.id}`} className="flex flex-col gap-1">
+                      {[pair.left, pair.right].map((side) => (
+                        <div key={side.id} className="flex flex-wrap items-center gap-2">
+                          <span>
+                            {side.date} · {side.amount} {side.currency}
+                            {side.description ? ` · ${side.description}` : ""}
+                          </span>
+                          {confirmDeleteId === side.id ? (
+                            <Button type="button" onClick={() => void confirmDelete(side.id)}>
+                              {t("aiIntake.duplicateConfirm")}
+                            </Button>
+                          ) : (
+                            <Button type="button" onClick={() => setConfirmDeleteId(side.id)}>
+                              {t("aiIntake.duplicateDelete")}
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      <Button type="button" onClick={() => void dismissPair(pair)}>
+                        {t("aiIntake.duplicateNot")}
+                      </Button>
+                    </div>
                   ))}
                 </div>
               ) : null}
