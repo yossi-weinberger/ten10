@@ -4,6 +4,7 @@ import { AI_DRAFT_ALLOWED_TYPES } from "../_shared/transaction-domain/transactio
 import {
   buildDuplicateRankBody,
   dayGap,
+  gatewaySystemOneBody,
   JEV_SYSTEMONE_URL,
   readDuplicateRanks,
 } from "../_shared/ai/jev-duplicate-rank.ts";
@@ -112,7 +113,7 @@ Deno.serve(async (req: Request) => {
     return json(origin, { ranked: false, scores: [] }, 200);
   }
 
-  const apiKey = (Deno.env.get("JEV_API_KEY") ?? "").trim();
+  const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
   if (!apiKey) return json(origin, { ranked: false, scores: [] }, 200);
 
   const { body, idsByKey } = buildDuplicateRankBody({
@@ -130,7 +131,7 @@ Deno.serve(async (req: Request) => {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(gatewaySystemOneBody(body)),
       signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) {

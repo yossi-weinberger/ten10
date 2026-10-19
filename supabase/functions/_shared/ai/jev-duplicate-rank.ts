@@ -1,7 +1,19 @@
 /** Jev Noul request for "same event". User ids stay out of the body. Amounts are included. */
 
-export const JEV_DUPLICATE_MODEL = "jev-1.13.0";
-export const JEV_SYSTEMONE_URL = "https://api.typesafe.ai/v1/systemone";
+export const JEV_DUPLICATE_MODEL = "typesafe-ai/jev";
+export const JEV_SYSTEMONE_URL = "https://ai-gateway.vercel.sh/typesafe/v1/systemone";
+
+/** Gateway key on the testing Edge secrets. No fallback models. */
+export function gatewaySystemOneBody<T extends object>(body: T): T & {
+  providerOptions: { gateway: { zeroDataRetention: true } };
+} {
+  return {
+    ...body,
+    providerOptions: {
+      gateway: { zeroDataRetention: true },
+    },
+  };
+}
 const MAX_CANDIDATES = 20;
 const MAX_DESCRIPTION = 200;
 
