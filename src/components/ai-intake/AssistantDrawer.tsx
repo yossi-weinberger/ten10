@@ -91,7 +91,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [askIntent, setAskIntent] = useState(false);
   const [dataReply, setDataReply] = useState<
-    | { status: "ready"; year: number; month: number | null; type: "donation" | "expense" | "income"; total: number; count: number; currency: string | null }
+    | { status: "ready"; year: number; month: number | null; measure: "sum" | "count"; type: "donation" | "expense" | "income"; total: number; count: number; currency: string | null }
     | { status: "mixed" | "unsupported" | "failed" }
     | null
   >(null);
@@ -376,6 +376,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       status: "ready",
       year: question.year,
       month: question.month,
+      measure: question.measure,
       type: question.type,
       total: result.total,
       count: result.count,
@@ -581,7 +582,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               </p>
               {intent === "ask_data" && dataReply?.status === "ready" ? (
                 <p>
-                  {t("aiIntake.dataAnswer", {
+                  {t(dataReply.measure === "count" ? "aiIntake.dataCount" : "aiIntake.dataAnswer", {
                     year: dataReply.month ? `${dataReply.month}/${dataReply.year}` : String(dataReply.year),
                     type: t(`aiIntake.types.${dataReply.type}`),
                     total: dataReply.total,
