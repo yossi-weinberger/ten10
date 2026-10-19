@@ -26,6 +26,14 @@ Deno.test("yesterday and a manual dollar rate stay on the draft", () => {
   assert(draft.requestedRate === 3.5, "manual rate");
 });
 
+Deno.test("the description keeps the purchase, not the command or the amount", () => {
+  const draft = draftFromText("קניתי מאפים באליס ב-15 שח", TODAY);
+  assert(draft !== null, "expected a draft");
+  assert(draft.description === "מאפים באליס", "description");
+  assert(draft.amount === 15, "amount");
+  assert(draft.category === "food", "bakery is food");
+});
+
 Deno.test("text without an amount is not a draft", () => {
   assert(draftFromText("מה אפשר לעשות", TODAY) === null, "help has no amount");
 });

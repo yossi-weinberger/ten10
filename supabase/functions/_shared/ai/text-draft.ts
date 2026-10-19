@@ -10,6 +10,8 @@ export interface TextTransactionDraft {
   type: "expense" | "income" | "donation";
   requestedRate: number | null;
   description: string;
+  category: "food" | "transportation" | null;
+  paymentMethod: "credit_card" | "cash" | "bank_transfer" | "bit_paybox" | "check" | null;
 }
 
 function addIsoDays(isoDate: string, days: number): string {
@@ -46,6 +48,38 @@ function resolveCurrency(text: string): TextTransactionDraft["currency"] {
   return "ILS";
 }
 
+function resolveCategory(text: string): TextTransactionDraft["category"] {
+  if (/מאפ|אוכל|סופר|מסעד|food|grocery/.test(text)) return "food";
+  if (/מונית|דלק|רכבת|אוטובוס|taxi|fuel/.test(text)) return "transportation";
+  return null;
+}
+
+function resolvePaymentMethod(text: string): TextTransactionDraft["paymentMethod"] {
+  if (/אשראי|credit/.test(text)) return "credit_card";
+  if (/מזומן|cash/.test(text)) return "cash";
+  if (/העברה|transfer/.test(text)) return "bank_transfer";
+  if (/ביט|פייבוקס|paybox|\bbit\b/.test(text)) return "bit_paybox";
+  if (/צ['׳]ק|check/.test(text)) return "check";
+  return null;
+}
+
+function cleanDescription(original: string): string {
+  let text = original.replace(/־/g, " ");
+  const noise = [
+    /לפי\s+שער\s*\d+(?:[.,]\d+)?/gi,
+    /(?:שער|rate)\s*\d+(?:[.,]\d+)?/gi,
+    /(?:₪|\$)\s*\d+(?:[.,]\d+)?/gi,
+    /ב\s*[-–]?\s*\d+(?:[.,]\d+)?(?:\s*(?:ש"?ח|שקלים|שקל|דולר|dollars?|usd|eur|אירו|₪|\$))?/gi,
+    /\d+(?:[.,]\d+)?\s*(?:ש"?ח|שקלים|שקל|דולר|dollars?|usd|eur|אירו|₪|\$)/gi,
+    /קניתי|שילמתי|קיבלתי|תרמתי|bought|paid|spent|received/gi,
+    /שלשום|אתמול|היום|yesterday|today/gi,
+    /באשראי|במזומן|בביט|בהעברה|אשראי|מזומן|ביט|פייבוקס|העברה בנקאית/gi,
+  ];
+  for (const pattern of noise) text = text.replace(pattern, " ");
+  const cleaned = text.replace(/\s+/g, " ").replace(/^[\s,.\-–]+|[\s,.\-–]+$/g, "").trim();
+  return cleaned || original.trim();
+}
+
 function resolveType(text: string): TextTransactionDraft["type"] {
   if (/תרמתי|צדקה|donation|tzedak/.test(text)) return "donation";
   if (/קיבלתי|משכורת|salary|received/.test(text)) return "income";
@@ -72,6 +106,8 @@ export function draftFromText(text: string, today: string): TextTransactionDraft
     currency: resolveCurrency(normalized),
     type: resolveType(normalized),
     requestedRate,
-    description: text.trim(),
+    description: cleanDescription(text),
+    category: resolveCategory(normalized),
+    paymentMethod: resolvePaymentMethod(normalized),
   };
 }

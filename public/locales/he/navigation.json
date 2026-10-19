@@ -25,7 +25,7 @@
     "saved": "נשמר.",
     "noRateAvailable": "אין שער. לא נשמר.",
     "saveFailed": "השמירה נכשלה. לא נשמר.",
-    "draftLine": "{{date}} · {{amount}} {{currency}} · {{type}} · שער {{rate}}",
+    "draftLine": "{{description}} · {{date}} · {{amount}} {{currency}} · {{type}} · שער {{rate}}",
     "types": {
       "expense": "הוצאה",
       "income": "הכנסה",

@@ -25,7 +25,7 @@
     "saved": "Saved.",
     "noRateAvailable": "No exchange rate. Nothing was saved.",
     "saveFailed": "Save failed. Nothing was saved.",
-    "draftLine": "{{date}} · {{amount}} {{currency}} · {{type}} · rate {{rate}}",
+    "draftLine": "{{description}} · {{date}} · {{amount}} {{currency}} · {{type}} · rate {{rate}}",
     "types": {
       "expense": "expense",
       "income": "income",

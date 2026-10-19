@@ -9,9 +9,9 @@ export interface CommitPayload {
   currency: string;
   description: string;
   type: TextTransactionDraft["type"];
-  category: null;
+  category: string | null;
   recipient: null;
-  payment_method: null;
+  payment_method: string | null;
   is_chomesh: false;
   original_amount?: number | null;
   original_currency?: string | null;
@@ -55,9 +55,9 @@ export function buildCommitPayload(input: {
       currency: converted.currency,
       description: input.draft.description,
       type: input.draft.type,
-      category: null,
+      category: input.draft.category,
       recipient: null,
-      payment_method: null,
+      payment_method: input.draft.paymentMethod,
       is_chomesh: false,
       original_amount: converted.original_amount,
       original_currency: converted.original_currency,

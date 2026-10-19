@@ -82,6 +82,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                 <>
                   <p>
                     {t("aiIntake.draftLine", {
+                      description: draft.description,
                       date: draft.date,
                       amount: draft.amount,
                       currency: draft.currency,
