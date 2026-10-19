@@ -59,7 +59,7 @@
 | 42 | סף ודאות 0.7 לכוונה | UI | §9.9 | מוזג ל־`feat/ai-intake` | [#511](https://github.com/yossi-weinberger/ten10/pull/511) |
 | 43 | סכום שנשמר לשאלת שנה וסוג | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#512](https://github.com/yossi-weinberger/ten10/pull/512) |
 | 44 | שאלה על השנה ועל החודש | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#513](https://github.com/yossi-weinberger/ten10/pull/513) |
-| 45 | סריקת כפילויות בתנועות שנשמרו | UI, קריאה בלבד | §9.9 | נפתח | |
+| 45 | סריקת כפילויות בתנועות שנשמרו | UI, קריאה בלבד | §9.9 | נפתח | [#514](https://github.com/yossi-weinberger/ten10/pull/514) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
