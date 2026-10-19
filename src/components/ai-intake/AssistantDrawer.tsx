@@ -36,6 +36,7 @@ import { orderCandidatesByRank } from "@/lib/ai/duplicate-rank";
 import { rankDuplicateCandidates } from "@/lib/ai/rank-duplicates";
 import { recordShadowType } from "@/lib/ai/shadow-type";
 import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
+import { readReceiptImage } from "@/lib/ai/read-receipt";
 
 interface AssistantDrawerProps {
   open: boolean;
@@ -82,6 +83,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   }, [open]);
 
   const duplicateRequest = useRef(0);
+  const receiptInput = useRef<HTMLInputElement | null>(null);
   const duplicateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function refreshDuplicates(next: TextTransactionDraft | null, amountText: string) {
@@ -137,6 +139,30 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     };
     setAppliedRuleName(applied.ruleName);
     refreshDuplicates(applied.draft, String(applied.draft.amount));
+  }
+
+  async function handleReceipt(file: File | undefined) {
+    if (!file || checking) return;
+    setChecking(true);
+    setSaveMessage(null);
+    const result = await readReceiptImage(file);
+    setChecking(false);
+    if (receiptInput.current) receiptInput.current.value = "";
+    if (!result.ok) {
+      setIntent(null);
+      showDraft(null, "");
+      setSaveMessage(t(result.reason === "TOO_LARGE" ? "aiIntake.receiptTooLarge" : "aiIntake.receiptUnreadable"));
+      return;
+    }
+    setIntent("add_transaction");
+    setClarification(null);
+    setPendingText("");
+    setChosenType(null);
+    setAmountReply("");
+    setParsedRule(null);
+    setRuleChoice(null);
+    setHalachaNamespace(null);
+    showDraft(result.draft, result.draft.description);
   }
 
   async function handleSubmit() {
@@ -281,6 +307,18 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
             aria-label={t("aiIntake.placeholder")}
           />
           <Button type="submit" disabled={checking}>{t("aiIntake.send")}</Button>
+          <input
+            ref={receiptInput}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(event) => {
+              void handleReceipt(event.target.files?.[0]);
+            }}
+          />
+          <Button type="button" disabled={checking} onClick={() => receiptInput.current?.click()}>
+            {t("aiIntake.receipt")}
+          </Button>
           {checking ? <p>{t("aiIntake.checking")}</p> : null}
           {intent ? (
             <div className="flex flex-col gap-1 text-sm">
