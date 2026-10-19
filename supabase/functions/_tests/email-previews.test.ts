@@ -193,6 +193,8 @@ const reminderBaseData: EmailTemplateData = {
     allUrl: "https://ten10-app.com/unsubscribe?type=all&token=synthetic",
     reminderUrl:
       "https://ten10-app.com/unsubscribe?type=reminder&token=synthetic",
+    marketingUrl:
+      "https://ten10-app.com/unsubscribe?type=marketing&token=synthetic",
   },
 };
 

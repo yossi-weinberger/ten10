@@ -171,6 +171,7 @@ describe("reminder email templates", () => {
       ...baseData,
       unsubscribeUrls: {
         reminderUrl: 'https://ten10-app.com/unsubscribe?type=reminder&next="x"',
+        marketingUrl: 'https://ten10-app.com/unsubscribe?type=marketing&next="y"',
         allUrl: "https://ten10-app.com/unsubscribe?type=all&next=<script>",
       },
     });

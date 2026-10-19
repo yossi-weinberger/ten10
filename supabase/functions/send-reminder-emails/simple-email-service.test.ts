@@ -3,6 +3,8 @@ import { SimpleEmailService } from "./simple-email-service.ts";
 
 const reminderUrl =
   "https://ten10-app.com/unsubscribe?token=reminder-token&type=reminder";
+const marketingUrl =
+  "https://ten10-app.com/unsubscribe?token=marketing-token&type=marketing";
 const allUrl =
   "https://ten10-app.com/unsubscribe?token=all-token&type=all";
 
@@ -10,6 +12,8 @@ vi.mock("./jwt-utils.ts", () => ({
   generateUnsubscribeUrls: vi.fn().mockResolvedValue({
     reminderUrl:
       "https://ten10-app.com/unsubscribe?token=reminder-token&type=reminder",
+    marketingUrl:
+      "https://ten10-app.com/unsubscribe?token=marketing-token&type=marketing",
     allUrl: "https://ten10-app.com/unsubscribe?token=all-token&type=all",
   }),
 }));
