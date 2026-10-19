@@ -48,7 +48,7 @@
 | 31 | תיקון שמירה, allowlist, ודגל על הממשק | DB על testing + Edge + UI | §10.5 | מוזג ל־`feat/ai-intake` | [#490](https://github.com/yossi-weinberger/ten10/pull/490) |
 | 32 | Jev דרך Vercel AI Gateway | Edge על testing | §9.4 | מוזג ל־`feat/ai-intake` | [#493](https://github.com/yossi-weinberger/ten10/pull/493) |
 | 33 | קריאת תמונת קבלה | Edge על testing + UI | §4.2 | מוזג ל־`feat/ai-intake` | [#495](https://github.com/yossi-weinberger/ten10/pull/495) |
-| 34 | PDF וקריאה בעברית ובאנגלית | Edge על testing + UI | §4.2 | נפתח | |
+| 34 | PDF וקריאה בעברית ובאנגלית | Edge על testing + UI | §4.2 | מוזג ל־`feat/ai-intake` | [#497](https://github.com/yossi-weinberger/ten10/pull/497) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -142,4 +142,4 @@
 - **2026-10-19:** #490 מוזג ל־`feat/ai-intake`. על testing, טיוטת 50 שקלים עם `original_amount` מספרי נרשמה בלי מפתח ההמרה וה-commit הצליח. הבדיקה בוטלה בטרנזקציה.
 - **2026-10-19:** [#493](https://github.com/yossi-weinberger/ten10/pull/493) מוזג ל־`feat/ai-intake`. שלוש קריאות Jev עוברות דרך Vercel AI Gateway. המודל נעול על `typesafe-ai/jev`, בלי מודל חלופי. המפתח הוא secret של Edge על testing, והפונקציות נפרסו לשם.
 - **2026-10-19:** [#495](https://github.com/yossi-weinberger/ten10/pull/495) מוזג ל־`feat/ai-intake`. כפתור קבלה שולח תמונה ל-`anthropic/claude-haiku-4.5` דרך Gateway. הטיוטה היא הוצאה, והשמירה נשארת בלחיצה. הקובץ לא נשמר. PDF והקלטה עדיין לא.
-- **2026-10-19:** קריאת הקבלה עברה ל-`anthropic/claude-sonnet-5`, שנעול ובלי מודל חלופי, כדי לקרוא עברית ואנגלית. נוסף PDF. השם נשאר בשפה שכתובה על הקבלה. הקלטה עדיין לא.
+- **2026-10-19:** [#497](https://github.com/yossi-weinberger/ten10/pull/497) מוזג ל־`feat/ai-intake`. קריאת הקבלה עברה ל-`anthropic/claude-sonnet-5`, שנעול ובלי מודל חלופי, כדי לקרוא עברית ואנגלית. נוסף PDF. השם נשאר בשפה שכתובה על הקבלה. הקלטה עדיין לא.
