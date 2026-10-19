@@ -21,7 +21,8 @@
 | 4 | `20261019020000_ai_schema_foundation.sql` | schema `ai`, עמודת `origin`, `p_origin` | PR 2–3 | מוזג ל־`feat/ai-intake`, ורץ על testing | [#449](https://github.com/yossi-weinberger/ten10/pull/449) |
 | 5 | `20261019033000_ai_commit_intake_items.sql` | RPC רישום, בלי שמירה אוטומטית ובלי UI | PR 4 | מוזג ל־`feat/ai-intake`, ורץ על testing | [#450](https://github.com/yossi-weinberger/ten10/pull/450) |
 | 6 | `supabase/functions/_shared/ai/intent.ts` | סיווג כוונות, בלי רשת ובלי DB | PR 3 | מוזג ל־`feat/ai-intake` | [#451](https://github.com/yossi-weinberger/ten10/pull/451) |
-| 7–12 | נכתבות כשהגל הקודם נסגר | | §24.1 במסמך | | |
+| 7 | מעטפת צ'אט מאחורי `ai_intake_web` | UI, בלי רישום | PR 6 | PR פתוח מול `feat/ai-intake`, לא מוזג | [#458](https://github.com/yossi-weinberger/ten10/pull/458) |
+| 8–12 | נכתבות כשהגל הקודם נסגר | | §24.1 במסמך | | |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -83,3 +84,7 @@
 - **2026-10-19:** #449 מוזג ל־`feat/ai-intake` אחרי CI ירוק. Supabase Preview דילג, כך שהמיגרציה לא רצה על testing ולא על הייצור. נפתח PR של `ai.commit_intake_items`: רישום רק למשתמש המחובר, בלי שמירה אוטומטית. כשל אחד מבטל את כל הקריאה.
 - **2026-10-19:** #450 מוזג ל־`feat/ai-intake`. נוסף סיווג כוונות דטרמיניסטי (`classifyIntent`) עם בדיקות Deno. הוא מחזיר תווית בלבד, בלי רשת ובלי כתיבה.
 - **2026-10-19:** #451 מוזג ל־`feat/ai-intake`. שתי המיגרציות רצו על testing בלבד. Vercel Preview הועבר ל־testing, `unsubscribe` נמחקה, וה־webhook של יצירת הקשר ב־testing מצביע על testing. נוסף `llm-instructions/features/ai/ai-intake-how-it-works.md` כתיעוד איך הפיצ'ר עובד היום.
+- **2026-10-19:** על testing, `get_user_transactions` עם 13 ארגומנטים ועם `p_origin` ריק החזיר אותו מספר שורות למשתמש ניסוי, ואפס שורות עם `origin`. נוספה מעטפת צ'אט מאחורי הדגל `ai_intake_web`. היא מסווגת טקסט ולא שומרת.
+- **2026-10-19:** תוקן `replaceAll` ששבר את ה-typecheck. לתנועה שזוהתה נוסף חילוץ דטרמיניסטי של סכום, מטבע, סוג, אתמול/שלשום ושער שנכתב בטקסט. עדיין בלי שמירה.
+- **2026-10-19:** על testing נוספו `create_ai_text_intake` ו-`commit_ai_intake_items`. בכפתור "אשר ושמור" הטיוטה נרשמת אחרי המרה. בלי שער אין שמירה. הייצור לא נגע.
+- **2026-10-19:** התיאור נוקה מפקודה, סכום ומטבע. "קניתי מאפים באליס ב-15 שח" נשמר כ"מאפים באליס". קטגוריה ואמצעי תשלום רק ממילים ברורות.
