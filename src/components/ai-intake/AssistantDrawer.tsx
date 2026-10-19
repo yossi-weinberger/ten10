@@ -214,7 +214,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       return;
     }
     if (result.ok) {
-      if (chosenType) void recordShadowType(result.itemId);
+      void recordShadowType(result.itemId, chosenType !== null);
       setSavedItemId(result.itemId);
       refreshAfterIntakeSave();
       setSaveMessage(t("aiIntake.saved"));

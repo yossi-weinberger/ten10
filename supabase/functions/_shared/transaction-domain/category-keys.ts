@@ -144,3 +144,13 @@ export function normalizeCategoryAlias(
 
   return value;
 }
+
+/** Hebrew and English labels for a predefined key. Custom text is returned as itself. */
+export function categoryCriterion(base: CategoryBaseType, key: string): string {
+  const labels = CATEGORY_LABELS.he[base];
+  const english = CATEGORY_LABELS.en[base];
+  const he = labels[key as keyof typeof labels];
+  const en = english[key as keyof typeof english];
+  if (he && en) return `${he} (${en})`;
+  return key.slice(0, 120);
+}

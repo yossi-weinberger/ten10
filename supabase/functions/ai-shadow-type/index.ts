@@ -1,7 +1,13 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { JEV_SYSTEMONE_URL } from "../_shared/ai/jev-duplicate-rank.ts";
-import { buildTypeChoiceBody, readTypeChoice } from "../_shared/ai/jev-type-choice.ts";
+import { CATEGORY_KEYS_BY_TYPE } from "../_shared/transaction-domain/category-keys.ts";
+import {
+  buildShadowBody,
+  categoryBase,
+  readShadowChoice,
+  readTypeChoice,
+} from "../_shared/ai/jev-type-choice.ts";
 
 function corsHeaders(origin: string | null): Record<string, string> {
   const headers = getCorsHeaders(origin);
@@ -41,7 +47,7 @@ Deno.serve(async (req: Request) => {
   );
   if (userError || !userData.user) return json(origin, { error: "Invalid token" }, 401);
 
-  const body = await req.json().catch(() => null) as { item_id?: unknown } | null;
+  const body = await req.json().catch(() => null) as { item_id?: unknown; shadow_type?: unknown } | null;
   const itemId = typeof body?.item_id === "string" ? body.item_id : "";
   if (!itemId) return json(origin, { recorded: false }, 400);
 
@@ -51,18 +57,54 @@ Deno.serve(async (req: Request) => {
   if (contextError || !context || typeof context !== "object") {
     return json(origin, { recorded: false }, 200);
   }
-  const record = context as { description?: unknown; amount?: unknown; currency?: unknown; date?: unknown };
+  const record = context as {
+    description?: unknown;
+    amount?: unknown;
+    currency?: unknown;
+    date?: unknown;
+    type?: unknown;
+    category?: unknown;
+  };
   const amount = typeof record.amount === "number" ? record.amount : Number(record.amount);
   if (
     typeof record.description !== "string"
     || typeof record.currency !== "string"
     || typeof record.date !== "string"
+    || typeof record.type !== "string"
     || !/^\d{4}-\d{2}-\d{2}$/.test(record.date)
     || !Number.isFinite(amount)
     || amount === 0
   ) {
     return json(origin, { recorded: false }, 200);
   }
+
+  const base = categoryBase(record.type);
+  const categoryMissing = typeof record.category !== "string" || record.category.trim().length === 0;
+  let categories: string[] = [];
+  if (base && categoryMissing) {
+    const { data } = await userClient.rpc("get_user_categories", { p_type: base });
+    const custom = Array.isArray(data)
+      ? data.flatMap((row) => {
+        if (typeof row === "string") return [row];
+        if (row && typeof row === "object" && typeof (row as { category?: unknown }).category === "string") {
+          return [(row as { category: string }).category];
+        }
+        return [];
+      })
+      : [];
+    categories = [...CATEGORY_KEYS_BY_TYPE[base], ...custom];
+  }
+
+  const request = buildShadowBody({
+    description: record.description,
+    amount,
+    currency: record.currency,
+    date: record.date,
+    includeType: body?.shadow_type === true,
+    categoryBase: base && categoryMissing ? base : null,
+    categories,
+  });
+  if (!request) return json(origin, { recorded: false }, 200);
 
   const apiKey = (Deno.env.get("JEV_API_KEY") ?? "").trim();
   if (!apiKey) return json(origin, { recorded: false }, 200);
@@ -74,29 +116,40 @@ Deno.serve(async (req: Request) => {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(buildTypeChoiceBody({
-        description: record.description,
-        amount,
-        currency: record.currency,
-        date: record.date,
-      })),
+      body: JSON.stringify(request),
       signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) {
-      console.error(`jev type shadow failed: ${response.status}`);
+      console.error(`jev shadow failed: ${response.status}`);
       return json(origin, { recorded: false }, 200);
     }
-    const choice = readTypeChoice(await response.json());
-    if (!choice) return json(origin, { recorded: false }, 200);
-    const { error: recordError } = await userClient.rpc("record_ai_shadow_type", {
-      p_item_id: itemId,
-      p_choice: choice.choice,
-      p_confidence: choice.confidence,
-    });
-    if (recordError) return json(origin, { recorded: false }, 200);
-    return json(origin, { recorded: true }, 200);
+    const payload = await response.json();
+    let recorded = false;
+    if (request.questions.transaction_type) {
+      const choice = readTypeChoice(payload);
+      if (choice) {
+        const { error } = await userClient.rpc("record_ai_shadow_type", {
+          p_item_id: itemId,
+          p_choice: choice.choice,
+          p_confidence: choice.confidence,
+        });
+        recorded = !error;
+      }
+    }
+    if (request.questions.category) {
+      const choice = readShadowChoice(payload, "category", Object.keys(request.questions.category.criteria));
+      if (choice) {
+        const { error } = await userClient.rpc("record_ai_shadow_category", {
+          p_item_id: itemId,
+          p_choice: choice.choice,
+          p_confidence: choice.confidence,
+        });
+        recorded = recorded || !error;
+      }
+    }
+    return json(origin, { recorded }, 200);
   } catch {
-    console.error("jev type shadow failed");
+    console.error("jev shadow failed");
     return json(origin, { recorded: false }, 200);
   }
 });
