@@ -6,6 +6,7 @@ export const TRIAL_USER_IDS = [
   "5403d7d1-3f44-4243-a84a-f905c4aad30c",
   "f336e5d1-4dc2-40c6-b176-c0b199ee836d",
   "a3f81dec-f634-4784-9cc0-9921838a6037",
+  "c4e7d297-9ed3-421a-af9c-92ccccf95ba0",
 ] as const;
 
 const ALLOWED = new Set<string>(TRIAL_USER_IDS);

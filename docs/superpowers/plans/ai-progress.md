@@ -50,6 +50,7 @@
 | 33 | קריאת תמונת קבלה | Edge על testing + UI | §4.2 | מוזג ל־`feat/ai-intake` | [#495](https://github.com/yossi-weinberger/ten10/pull/495) |
 | 34 | PDF וקריאה בעברית ובאנגלית | Edge על testing + UI | §4.2 | מוזג ל־`feat/ai-intake` | [#497](https://github.com/yossi-weinberger/ten10/pull/497) |
 | 35 | תמלול דיבור | Edge על testing + UI | §4.3 | מוזג ל־`feat/ai-intake` | [#499](https://github.com/yossi-weinberger/ten10/pull/499) |
+| 36 | משתמש בדיקות ב-allowlist | Edge על testing | §22.1 | נפתח | |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -79,6 +80,7 @@
   - `5403d7d1-3f44-4243-a84a-f905c4aad30c`
   - `f336e5d1-4dc2-40c6-b176-c0b199ee836d`
   - `a3f81dec-f634-4784-9cc0-9921838a6037`
+  - `c4e7d297-9ed3-421a-af9c-92ccccf95ba0`
 
 ## החלטות פתוחות
 
@@ -145,3 +147,4 @@
 - **2026-10-19:** [#495](https://github.com/yossi-weinberger/ten10/pull/495) מוזג ל־`feat/ai-intake`. כפתור קבלה שולח תמונה ל-`anthropic/claude-haiku-4.5` דרך Gateway. הטיוטה היא הוצאה, והשמירה נשארת בלחיצה. הקובץ לא נשמר. PDF והקלטה עדיין לא.
 - **2026-10-19:** [#497](https://github.com/yossi-weinberger/ten10/pull/497) מוזג ל־`feat/ai-intake`. קריאת הקבלה עברה ל-`anthropic/claude-sonnet-5`, שנעול ובלי מודל חלופי, כדי לקרוא עברית ואנגלית. נוסף PDF. השם נשאר בשפה שכתובה על הקבלה. הקלטה עדיין לא.
 - **2026-10-19:** [#499](https://github.com/yossi-weinberger/ten10/pull/499) מוזג ל־`feat/ai-intake`. כפתור "דבר" מתמלל עד דקה עם `microsoft/mai-transcribe-2`. המשפט נכנס למסלול הטקסט. ההקלטה לא נשמרת, והשמירה נשארת בלחיצה. המיקום מאפשר מיקרופון לאתר עצמו.
+- **2026-10-19:** נוסף משתמש בדיקות ל-allowlist של קריאות ה-AI על testing, ונוסף לדגל `ai_intake_web`. המזהה בקוד, בלי כתובת מייל.
