@@ -164,7 +164,7 @@ const SignupPage: React.FC = () => {
 
   return (
     <AuthLayout title={t("signup.title")} subtitle={t("signup.subtitle")}>
-      <div className="space-y-6">
+      <div className="space-y-6 short:space-y-4">
         {/* Sign up with Google */}
         <Button
           type="button"
@@ -183,7 +183,7 @@ const SignupPage: React.FC = () => {
 
         <Separator className="opacity-60" />
 
-        <form onSubmit={handleSignup} className="space-y-5">
+        <form onSubmit={handleSignup} className="space-y-5 short:space-y-3">
           <div className="space-y-2">
             <Label htmlFor="full-name">{t("signup.fullNameLabel")}</Label>
             <Input
@@ -276,7 +276,7 @@ const SignupPage: React.FC = () => {
               : t("signup.signUpButton")}
           </Button>
 
-          <div className="text-center text-sm text-muted-foreground mt-6">
+          <div className="text-center text-sm text-muted-foreground mt-6 short:mt-3">
             {t("signup.hasAccount")}{" "}
             <Link
               to="/login"
