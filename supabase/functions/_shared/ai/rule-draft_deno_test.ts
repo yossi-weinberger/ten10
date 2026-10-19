@@ -32,6 +32,12 @@ Deno.test("the same rule phrases work in English", () => {
   );
 });
 
+Deno.test("a recognized expense on a place keeps that place as the name", () => {
+  const rule = parseUserRule("מהיום כל הוצאה על גן היא הוצאה מוכרת");
+  assert(rule?.name === "גן", "name");
+  assert(rule?.action === "recognized-expense", "recognized");
+});
+
 Deno.test("an active rule changes only a later draft that names it", () => {
   const rules = [{ name: "חברה", type: "recognized-expense" as const }];
   const hit = applyForwardRule(

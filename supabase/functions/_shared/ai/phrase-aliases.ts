@@ -35,6 +35,7 @@ export const TRANSACTION_VERBS = [
   "paid",
   "spent",
   "received",
+  "donated",
 ] as const;
 
 export const CURRENCY_MARKERS = ["שקל", "שקלים", "דולר", "shekel", "dollar", "₪", "$"] as const;
@@ -130,6 +131,8 @@ export const AMOUNT_CURRENCY_WORDS = [
   "שח",
   "שקלים",
   "שקל",
+  "shekels",
+  "shekel",
   "דולר",
   "dollars",
   "dollar",
@@ -146,7 +149,7 @@ export const RATE_MARKERS = ["שער", "rate"] as const;
 export const FOOD_MARKERS = ["מאפ", "אוכל", "סופר", "מסעד", "food", "grocery", "groceries", "bakery"] as const;
 export const TRANSPORT_MARKERS = ["מונית", "דלק", "רכבת", "אוטובוס", "taxi", "fuel", "train", "bus"] as const;
 
-export const DONATION_TYPE_MARKERS = ["תרמתי", "צדקה", "donation", "tzedaka", "tzedakah"] as const;
+export const DONATION_TYPE_MARKERS = ["תרמתי", "צדקה", "donated", "donation", "tzedaka", "tzedakah"] as const;
 export const INCOME_TYPE_MARKERS = ["קיבלתי", "משכורת", "salary", "received"] as const;
 export const EXPENSE_TYPE_MARKERS = ["קניתי", "שילמתי", "bought", "paid", "spent"] as const;
 

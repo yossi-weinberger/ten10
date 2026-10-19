@@ -60,7 +60,7 @@ export function classifyIntent(text: string): IntakeIntent {
 
   const asksAboutData = includesAlias(normalized, QUESTION_MARKERS);
   const statesATransaction = includesAlias(normalized, TRANSACTION_VERBS);
-  if (asksAboutData && !hasMoneyAmount(normalized)) {
+  if (asksAboutData && (!statesATransaction || !hasMoneyAmount(normalized))) {
     return "ask_data";
   }
 

@@ -1,4 +1,4 @@
-import { readModelText, readReceiptDraft, receiptFilePart } from "./receipt-draft.ts";
+import { readModelText, readReceiptDraft, receiptFilePart, RECEIPT_MAX_BASE64_CHARS, RECEIPT_MAX_BYTES } from "./receipt-draft.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -16,6 +16,12 @@ Deno.test("receipt draft keeps a total and rejects a missing one", () => {
   assert(draft?.currency === "ILS", "currency");
   assert(readReceiptDraft('{"description":null}') === null, "unreadable");
   assert(readReceiptDraft({ description: "x", date: "2026-02-31", amount: 10, currency: "ILS" }) === null, "bad date");
+});
+
+Deno.test("the client byte ceiling fits in the server base64 ceiling", () => {
+  const encoded = Math.ceil(RECEIPT_MAX_BYTES / 3) * 4;
+  assert(encoded <= RECEIPT_MAX_BASE64_CHARS, "base64 of the max file fits");
+  assert(Math.ceil((RECEIPT_MAX_BYTES + 1) / 3) * 4 > RECEIPT_MAX_BASE64_CHARS, "one more byte does not");
 });
 
 Deno.test("a pdf is sent as a file and a photo as an image", () => {

@@ -63,6 +63,27 @@ Deno.test("an English grocery purchase uses the same alias lists", () => {
   assert(!draft.description.includes("15"), "drops the amount");
 });
 
+Deno.test("an English sentence keeps the purchase, not the command", () => {
+  const draft = draftFromText("I bought pastries at Alice for 15 shekels", TODAY);
+  assert(draft !== null && draft.description === "pastries at Alice", "description");
+  assert(draft?.currency === "ILS", "shekels");
+});
+
+Deno.test("a bare amount is not stored as the description", () => {
+  assert(draftFromText("שילמתי 5000", TODAY)?.description === "", "bare number");
+  assert(draftFromText("קניתי 100 ל", TODAY)?.description === "", "stray letter");
+});
+
+Deno.test("donated is a donation and does not ask for the type", () => {
+  const text = "last friday I donated 50 dollars";
+  assert(clarificationField(text, TODAY) === null, "type is known");
+  const draft = draftFromText(text, TODAY);
+  assert(draft?.type === "donation", "donation");
+  assert(draft?.amount === 50, "amount");
+  assert(draft?.currency === "USD", "dollars");
+  assert(draft?.date === "2026-10-16", "last friday");
+});
+
 Deno.test("last weekday is the previous one, and today rolls back a week", () => {
   const sunday = draftFromText("ביום ראשון שעבר קניתי לחם ב-10", TODAY);
   const monday = draftFromText("last monday I bought bread for 10", TODAY);

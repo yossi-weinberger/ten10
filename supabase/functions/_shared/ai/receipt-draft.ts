@@ -1,6 +1,10 @@
 /** Fields read from a receipt image. The model does not choose the transaction type. */
 
 const CURRENCIES = ["ILS", "USD", "EUR"] as const;
+
+/** Base64 of a larger file is rejected. The client uses the same byte ceiling. */
+export const RECEIPT_MAX_BASE64_CHARS = 5_500_000;
+export const RECEIPT_MAX_BYTES = Math.floor(RECEIPT_MAX_BASE64_CHARS / 4) * 3;
 type ReceiptCurrency = (typeof CURRENCIES)[number];
 
 export interface ReceiptDraft {

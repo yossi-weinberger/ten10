@@ -131,14 +131,17 @@ function cleanDescription(original: string): string {
     new RegExp(`(?:${rateWords})\\s*\\d+(?:[.,]\\d+)?`, "gi"),
     new RegExp(`(?:${currencyWords})\\s*\\d+(?:[.,]\\d+)?`, "gi"),
     new RegExp(`ב\\s*[-–]?\\s*\\d+(?:[.,]\\d+)?(?:\\s*(?:${currencyWords}))?`, "gi"),
-    new RegExp(`\\d+(?:[.,]\\d+)?\\s*(?:${currencyWords})`, "gi"),
+    new RegExp(`\\d+(?:[.,]\\d+)?\\s*ל?\\s*(?:${currencyWords})`, "gi"),
+    new RegExp(`for\\s+\\d+(?:[.,]\\d+)?(?:\\s*(?:${currencyWords}))?`, "gi"),
     new RegExp(verbs, "gi"),
     new RegExp(dates, "gi"),
     new RegExp(payments, "gi"),
   ];
   for (const pattern of noise) text = text.replace(pattern, " ");
+  text = text.replace(/\bi\b/gi, " ").replace(/\bfor\b/gi, " ");
   const cleaned = text.replace(/\s+/g, " ").replace(/^[\s,.\-–]+|[\s,.\-–]+$/g, "").trim();
-  return cleaned || original.trim();
+  if (/^\d+(?:[.,]\d+)?(?:\s+[למב])?$/.test(cleaned)) return "";
+  return cleaned;
 }
 
 function explicitType(normalized: string): TextTransactionDraft["type"] | null {

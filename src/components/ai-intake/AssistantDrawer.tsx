@@ -81,15 +81,36 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     return new Intl.DateTimeFormat("en-CA").format(new Date());
   }
 
+  const recorder = useRef<MediaRecorder | null>(null);
+  const discardRecording = useRef(false);
+  const recordTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
-    if (!open) return;
-    void listActiveUserRules().then(setRules);
+    if (open) {
+      discardRecording.current = false;
+      void listActiveUserRules().then(setRules);
+      return;
+    }
+    discardRecording.current = true;
+    if (recordTimer.current) {
+      clearTimeout(recordTimer.current);
+      recordTimer.current = null;
+    }
+    const active = recorder.current;
+    if (active && active.state !== "inactive") active.stop();
   }, [open]);
+
+  useEffect(() => {
+    return () => {
+      discardRecording.current = true;
+      if (recordTimer.current) clearTimeout(recordTimer.current);
+      const active = recorder.current;
+      if (active && active.state !== "inactive") active.stop();
+    };
+  }, []);
 
   const duplicateRequest = useRef(0);
   const receiptInput = useRef<HTMLInputElement | null>(null);
-  const recorder = useRef<MediaRecorder | null>(null);
-  const recordTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const duplicateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function refreshDuplicates(next: TextTransactionDraft | null, amountText: string) {
@@ -158,7 +179,13 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       setIntent(null);
       setReceiptFields(null);
       showDraft(null, "");
-      setSaveMessage(t(result.reason === "TOO_LARGE" ? "aiIntake.receiptTooLarge" : "aiIntake.receiptUnreadable"));
+      setSaveMessage(t(
+        result.reason === "TOO_LARGE"
+          ? "aiIntake.receiptTooLarge"
+          : result.reason === "UNAVAILABLE"
+            ? "aiIntake.providerFailed"
+            : "aiIntake.receiptUnreadable",
+      ));
       return;
     }
     setIntent("add_transaction");
@@ -185,7 +212,13 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     const heard = await transcribeSpeech(blob);
     setChecking(false);
     if (!heard.ok) {
-      setSaveMessage(t(heard.reason === "TOO_LONG" ? "aiIntake.voiceTooLong" : "aiIntake.voiceUnheard"));
+      setSaveMessage(t(
+        heard.reason === "TOO_LONG"
+          ? "aiIntake.voiceTooLong"
+          : heard.reason === "UNAVAILABLE"
+            ? "aiIntake.providerFailed"
+            : "aiIntake.voiceUnheard",
+      ));
       return;
     }
     setText(heard.text);
@@ -224,6 +257,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       if (recordTimer.current) clearTimeout(recordTimer.current);
       recorder.current = null;
       setRecording(false);
+      if (discardRecording.current) return;
       void finishVoice(new Blob(chunks, { type: media.mimeType || "audio/webm" }));
     };
     media.start();
@@ -241,12 +275,21 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       setChecking(true);
       const decided = await classifyIntentFallback(source);
       setChecking(false);
-      if (decided && decided !== "out_of_scope") {
-        const page = decided === "domain_adjacent" ? selectHalachaPage(source) : null;
-        const rule = decided === "create_rule" ? parseUserRule(source) : null;
-        if (decided === "domain_adjacent" && !page) nextIntent = "out_of_scope";
-        else if (decided === "create_rule" && !rule) nextIntent = "out_of_scope";
-        else nextIntent = decided;
+      if (!decided.ok) {
+        setIntent(null);
+        setReceiptFields(null);
+        setClarification(null);
+        showDraft(null, "");
+        setSaveMessage(t("aiIntake.providerFailed"));
+        setSavedItemId(null);
+        return;
+      }
+      if (decided.intent && decided.intent !== "out_of_scope") {
+        const page = decided.intent === "domain_adjacent" ? selectHalachaPage(source) : null;
+        const rule = decided.intent === "create_rule" ? parseUserRule(source) : null;
+        if (decided.intent === "domain_adjacent" && !page) nextIntent = "out_of_scope";
+        else if (decided.intent === "create_rule" && !rule) nextIntent = "out_of_scope";
+        else nextIntent = decided.intent;
       }
     }
     const today = todayIso();
