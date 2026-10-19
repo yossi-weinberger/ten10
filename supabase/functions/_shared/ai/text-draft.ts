@@ -7,7 +7,13 @@ export interface TextTransactionDraft {
   date: string;
   amount: number;
   currency: "ILS" | "USD" | "EUR";
-  type: "expense" | "income" | "donation";
+  type:
+    | "expense"
+    | "income"
+    | "donation"
+    | "exempt-income"
+    | "recognized-expense"
+    | "non_tithe_donation";
   requestedRate: number | null;
   description: string;
   category: "food" | "transportation" | null;

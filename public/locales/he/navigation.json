@@ -25,6 +25,12 @@
     "askType": "איזו תנועה זו?",
     "askAmount": "כמה?",
     "continue": "המשך",
+    "askRule": "למה הכוונה?",
+    "ruleApprove": "אשר את הכלל",
+    "ruleSaved": "הכלל נשמר. הוא יחול על תנועות חדשות בלבד.",
+    "ruleFailed": "הכלל לא נשמר.",
+    "ruleSentence": "{{name}} · {{type}}. הכלל יחול רק על תנועות חדשות.",
+    "ruleApplied": "לפי הכלל שהגדרת: {{name}}",
     "saved": "נשמר.",
     "undo": "בטל",
     "undone": "בוטל. התנועה נמחקה.",
@@ -36,7 +42,10 @@
     "types": {
       "expense": "הוצאה",
       "income": "הכנסה",
-      "donation": "תרומה"
+      "donation": "תרומה",
+      "exempt-income": "הכנסה פטורה",
+      "recognized-expense": "הוצאה מוכרת",
+      "non_tithe_donation": "תרומה שאינה ממעשר"
     },
     "intents": {
       "add_transaction": "זו נראית כמו תנועה.",

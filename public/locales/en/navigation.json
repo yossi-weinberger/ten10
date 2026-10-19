@@ -25,6 +25,12 @@
     "askType": "What kind of transaction is this?",
     "askAmount": "How much?",
     "continue": "Continue",
+    "askRule": "Which meaning?",
+    "ruleApprove": "Approve the rule",
+    "ruleSaved": "The rule was saved. It applies only to new transactions.",
+    "ruleFailed": "The rule was not saved.",
+    "ruleSentence": "{{name}} · {{type}}. The rule applies only to new transactions.",
+    "ruleApplied": "According to your rule: {{name}}",
     "saved": "Saved.",
     "undo": "Undo",
     "undone": "Undone. The transaction was deleted.",
@@ -36,7 +42,10 @@
     "types": {
       "expense": "expense",
       "income": "income",
-      "donation": "donation"
+      "donation": "donation",
+      "exempt-income": "exempt income",
+      "recognized-expense": "recognized expense",
+      "non_tithe_donation": "donation that is not tithe"
     },
     "intents": {
       "add_transaction": "This looks like a transaction.",
