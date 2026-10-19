@@ -92,7 +92,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [askIntent, setAskIntent] = useState(false);
   const [dataReply, setDataReply] = useState<
-    | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; from: string; to: string; total: number; count: number; currency: string | null }
+    | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; paymentMethod: string | null; from: string; to: string; total: number; count: number; currency: string | null }
     | { status: "mixed" | "unsupported" | "failed" }
     | null
   >(null);
@@ -381,6 +381,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       month: question.month,
       measure: question.measure,
       type: question.type,
+      paymentMethod: question.paymentMethod,
       from: question.from,
       to: question.to,
       total: result.total,
@@ -606,6 +607,9 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                     count: dataReply.count,
                     currency: dataReply.currency ?? "",
                   })}
+                  {dataReply.paymentMethod
+                    ? ` (${t(`transactionForm.paymentMethod.options.${dataReply.paymentMethod}`, { ns: "transactions" })})`
+                    : ""}
                 </p>
               ) : null}
               {intent === "ask_data" && dataReply?.status === "unsupported" ? <p>{t("aiIntake.dataUnsupported")}</p> : null}
