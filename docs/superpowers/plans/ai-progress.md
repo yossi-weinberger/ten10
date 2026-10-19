@@ -70,7 +70,7 @@
 | 54 | התאמת קטגוריה בעברית | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#524](https://github.com/yossi-weinberger/ten10/pull/524) |
 | 55 | נמען, שנת מעשר וטווח | DB על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#525](https://github.com/yossi-weinberger/ten10/pull/525) |
 | 56 | תיקון נמען וטווח | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#526](https://github.com/yossi-weinberger/ten10/pull/526) |
-| 57 | לא כפול ומחיקה באישור | DB על testing + UI | §9.9 | נפתח | |
+| 57 | לא כפול ומחיקה באישור | DB על testing + UI | §9.9 | נפתח | [#527](https://github.com/yossi-weinberger/ten10/pull/527) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
