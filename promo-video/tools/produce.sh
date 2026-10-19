@@ -37,7 +37,6 @@ node tools/render.mjs --lang "$LANG_ID" --format "$FORMAT" --workers "${WORKERS:
 DURATION="$(python3 -c "import json;print(json.load(open('$OUT/times.json'))['duration'])")"
 
 echo "== 3. sound design"
-[[ -f audio/sfx/tap.wav ]] || python3 tools/audio/synth_sfx.py --out audio/sfx/
 MUSIC_FILE="${MUSIC:-audio/music_bed.$LANG_ID.wav}"
 if [[ -z "${MUSIC:-}" ]]; then
   # MUSIC_GEN=synth_music.py for the calm bed; synth_drive.py (default) is the energetic score

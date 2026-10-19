@@ -10,8 +10,8 @@ Buses (levels before the master stage, referenced to narration at -16 LUFS)
   music      static gain so the *unducked* bed sits at --music-lufs (default
              -15.5), i.e. about -24.5 LUFS while ducked by 9 dB under speech;
              fade-in 0.4 s, fade-out over the last 2.5 s
-  sfx        each cue: <sfx-dir>/<type>.wav * gain * --sfx-db (default -20 dB),
-             further ducked --sfx-duck-db (default 6 dB) while the voice speaks
+  sfx        each cue: <sfx-dir>/<type>.wav * gain * --sfx-db (default +2 dB, so the effects are heard
+             over the score), optionally ducked --sfx-duck-db (default 0 dB) while the voice speaks
 
 Ducking (music under voice), attack 80 ms / release 450 ms / depth 9 dB,
 60 ms look-ahead:
@@ -206,7 +206,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--duration", type=float, help="film duration (s); default: sfx-cues 'duration'")
     ap.add_argument("--music", required=True, help="music bed (any format ffmpeg reads)")
     ap.add_argument("--sfx-cues", help="sfx-cues.json from the film (optional)")
-    ap.add_argument("--sfx-dir", default="audio/sfx", help="folder with <type>.wav (default audio/sfx)")
+    ap.add_argument("--sfx-dir", default="sfx", help="folder with <type>.wav (default sfx/, see sfx/README.md)")
     ap.add_argument("--narration", help="narration recording; omit for a music+sfx preview")
     ap.add_argument("--timing", help="timing JSON (default narration/timing.<lang>.json)")
     ap.add_argument("--out", required=True, help="output mix WAV (48 kHz stereo 24-bit)")
@@ -222,8 +222,8 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--attack", type=float, default=0.08, help="duck attack (s)")
     g.add_argument("--release", type=float, default=0.45, help="duck release (s)")
     g.add_argument("--lookahead", type=float, default=0.06, help="duck look-ahead (s)")
-    g.add_argument("--sfx-db", type=float, default=-20.0, help="SFX bus gain (dB) on the -6 dBFS files")
-    g.add_argument("--sfx-duck-db", type=float, default=6.0,
+    g.add_argument("--sfx-db", type=float, default=2.0, help="SFX bus gain (dB) on the -6 dBFS files")
+    g.add_argument("--sfx-duck-db", type=float, default=0.0,
                    help="extra SFX attenuation while the voice speaks (dB; same key as the music duck, "
                         "faster 30 ms / 200 ms envelope) so no effect competes with a consonant")
     g.add_argument("--music-fade-in", type=float, default=0.4)

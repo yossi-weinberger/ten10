@@ -9,7 +9,6 @@ everything from the phrase ids in it (`hook1` … `tagline`).
 | `tools/estimate_timing.py` | Estimated timing from the script, used until a recording exists (`source: "estimated"`) |
 | `tools/sync_narration.py` | Aligns a real recording to the script (`source: "audio"`) |
 | `tools/audio/synth_music.py` | Procedural product-film score that follows the phrase ids (§4) |
-| `tools/audio/synth_sfx.py` | UI sound library → `audio/sfx/*.wav` |
 | `tools/audio/mix.py` | Narration + ducked music + SFX → master WAV, plus an optional mux into the MP4 |
 
 All tools use Python 3 with numpy and scipy, plus ffmpeg. ffmpeg is found through
@@ -21,7 +20,6 @@ Every tool has a `--help`.
 python3 tools/estimate_timing.py --lang all                 # provisional timing (he + en)
 python3 tools/sync_narration.py --selftest                  # alignment self-test
 python3 tools/audio/synth_music.py --timing narration/timing.he.json --out audio/music_bed.he.wav   # length = timing + 4 s
-python3 tools/audio/synth_sfx.py --out audio/sfx/
 python3 tools/audio/mix.py --lang he --duration 56.4 --music audio/music_bed.he.wav \
     --sfx-cues renders/he/sfx-cues.json --out renders/he/mix.wav \
     --video renders/he/video.mp4 --final renders/he/TEN10_promo_he_1080p.mp4
@@ -249,11 +247,11 @@ python3 tools/audio/mix.py ... --music audio/licensed/track.wav
 | Stage | Target |
 |---|---|
 | Music bed as rendered (`synth_music.py`) | −20 LUFS integrated, sample peak ≤ −3 dBFS |
-| SFX files (`synth_sfx.py`) | sample peak −6 dBFS each |
+| SFX files (`sfx/*.wav`) | sample peak −6 dBFS each |
 | Narration bus in the mix | −16 LUFS (static gain) |
 | Music bus, unducked | −15.5 LUFS (`--music-lufs`), which is about −24.5 LUFS under speech |
-| SFX bus | cue `gain` × −20 dB (`--sfx-db`) on the −6 dBFS files, so SFX peaks sit at about −26 dBFS or lower |
-| SFX under speech | a further −6 dB (`--sfx-duck-db`, 30 ms / 200 ms) keyed like the music duck |
+| SFX bus | cue `gain` × +2 dB (`--sfx-db`) on the −6 dBFS files, so SFX peaks sit at about −10 dBFS: clearly heard over the score |
+| SFX under speech | not ducked (`--sfx-duck-db 0`); each cue's own `gain` keeps the busy ones (rows, stamps) soft |
 | **Master (with narration)** | **−16 LUFS integrated, true peak ≤ −1.5 dBTP**, 48 kHz stereo 24-bit WAV |
 | Master (preview, no narration) | levels as they would sit under a real voice; only the true-peak ceiling is applied (`--normalize always` forces −16 LUFS) |
 | Final MP4 | H.264 video copied as is, AAC-LC 256 kb/s 48 kHz, `+faststart`, audio padded to the full film length (never `-shortest`) |

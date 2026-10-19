@@ -1,9 +1,6 @@
 node_modules/
 renders/
 frames/
-# generated audio (reproducible from tools/audio/*.py; seeds are fixed)
-audio/*.wav
-audio/*.spans.json
-audio/sfx/
+# generated audio: narration takes (audio/tts/), assembled reads, spans, music beds
+audio/
 __pycache__/
-audio/tts/

@@ -145,8 +145,11 @@ narration with a subset of the phrase ids and guard the missing scenes with `A.h
   - Pass `MUSIC=path.wav` to `produce.sh` to use a licensed track.
 - **Ducking:** a real sidechain from the narration (−9 dB, 80 ms attack / 450 ms release). Without narration (preview), the
   key comes from the timing's phrase spans and the dip is only 3 dB, so the preview still lets you judge the score.
-- **UI sounds:** tap, tick, arrive, whoosh, sweep, calendar, notify, resolve, pop and type (`tools/audio/synth_sfx.py`).
-  `geo.js` places them itself (`cue(t, type, gain)`), and the render exports them to `renders/<lang>/sfx-cues.json`.
+- **Sound effects:** one sound per on-screen action, matched to the object: a file landing, a rubber stamp on each month,
+  the reminder bell, coins, a printer, a book opening, a message sent, windows opening, and so on (`sfx/`, mostly ElevenLabs
+  generations; sources and prompts in `sfx/README.md`). `geo.js` places them itself (`cue(t, type, gain)`), and the render
+  exports them to `renders/<lang>/sfx-cues.json`. They sit at the level of the score and are not ducked under the voice.
+  There are no decorative swooshes, and no effect on the logo reveals, where the score's own impact carries the moment.
 - Details and loudness targets: `tools/AUDIO.md`.
 
 ## Files
@@ -162,6 +165,7 @@ promo-video/
   narration/           script.<lang>.json (phrases) · spoken.<lang>.json (what the voice reads)
                        timing.<lang>.json (synced to the recording) · VO_SCRIPT.md
   tools/               serve · stills · render · produce.sh · estimate_timing · sync_narration · audio/*
+  sfx/                 the sound effects (one <type>.wav per cue type; sources in sfx/README.md)
   audio/, renders/     generated (git-ignored)
 ```
 
