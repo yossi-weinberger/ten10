@@ -1,4 +1,11 @@
 {
+  "redirects": [
+    {
+      "source": "/:path([Mm][Aa][Cc][Hh][Oo][Nn]/?)",
+      "destination": "/landing?utm_source=institute&utm_medium=email&utm_campaign=update_2026",
+      "permanent": false
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
