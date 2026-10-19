@@ -1,41 +1,44 @@
 import { supabase } from "@/lib/supabaseClient";
-import { findDuplicatePairs, type DuplicatePair, type SavedTransactionRow } from "./duplicate-scan";
+import { type DuplicatePair, type SavedTransactionRow } from "./duplicate-scan";
 
 export type DuplicateScanResult =
-  | { ok: true; pairs: DuplicatePair[] }
+  | { ok: true; count: number; pairs: DuplicatePair[] }
   | { ok: false; reason: "FAILED" };
 
-const PAGE_SIZE = 1000;
-const MAX_PAGES = 20;
-
-function readRows(data: readonly Record<string, unknown>[]): SavedTransactionRow[] {
-  return data.flatMap((row) => {
-    const amount = typeof row.amount === "number" ? row.amount : Number(row.amount);
-    if (typeof row.id !== "string" || typeof row.date !== "string" || typeof row.type !== "string") return [];
-    if (!Number.isFinite(amount)) return [];
-    return [{
-      id: row.id,
-      date: row.date,
-      amount,
-      currency: typeof row.currency === "string" ? row.currency : "",
-      type: row.type,
-      description: typeof row.description === "string" ? row.description : "",
-    }];
-  });
+function readSide(value: unknown): SavedTransactionRow | null {
+  if (!value || typeof value !== "object") return null;
+  const row = value as {
+    id?: unknown;
+    date?: unknown;
+    amount?: unknown;
+    currency?: unknown;
+    description?: unknown;
+  };
+  const amount = typeof row.amount === "number" ? row.amount : Number(row.amount);
+  if (typeof row.id !== "string" || typeof row.date !== "string" || !Number.isFinite(amount)) return null;
+  return {
+    id: row.id,
+    date: row.date,
+    amount,
+    currency: typeof row.currency === "string" ? row.currency : "",
+    type: "",
+    description: typeof row.description === "string" ? row.description : "",
+  };
 }
 
 export async function loadDuplicateScan(): Promise<DuplicateScanResult> {
-  const rows: SavedTransactionRow[] = [];
-  for (let page = 0; page < MAX_PAGES; page++) {
-    const from = page * PAGE_SIZE;
-    const { data, error } = await supabase
-      .from("transactions")
-      .select("id, date, amount, currency, type, description")
-      .order("id", { ascending: true })
-      .range(from, from + PAGE_SIZE - 1);
-    if (error || !data) return { ok: false, reason: "FAILED" };
-    rows.push(...readRows(data));
-    if (data.length < PAGE_SIZE) return { ok: true, pairs: findDuplicatePairs(rows) };
-  }
-  return { ok: false, reason: "FAILED" };
+  const { data, error } = await supabase.rpc("list_ai_saved_duplicate_pairs");
+  if (error || !data || typeof data !== "object") return { ok: false, reason: "FAILED" };
+  const body = data as { count?: unknown; pairs?: unknown };
+  const count = typeof body.count === "number" ? body.count : Number(body.count);
+  if (!Number.isFinite(count) || !Array.isArray(body.pairs)) return { ok: false, reason: "FAILED" };
+  const pairs = body.pairs.flatMap((pair) => {
+    if (!pair || typeof pair !== "object") return [];
+    const record = pair as { left?: unknown; right?: unknown };
+    const left = readSide(record.left);
+    const right = readSide(record.right);
+    if (!left || !right) return [];
+    return [{ left, right }];
+  });
+  return { ok: true, count, pairs };
 }

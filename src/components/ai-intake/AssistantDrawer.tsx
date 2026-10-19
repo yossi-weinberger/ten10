@@ -43,7 +43,7 @@ import { readReceiptImage } from "@/lib/ai/read-receipt";
 import { isIsoDate, receiptAsDraft, receiptRuledDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
 import { loadDuplicateScan } from "@/lib/ai/load-duplicate-scan";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
-import { sumYearType } from "@/lib/ai/sum-year-type";
+import { resolveQuestionFilter, sumYearType } from "@/lib/ai/sum-year-type";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
 import { isOnOrAfterMinTransactionDate, MIN_TRANSACTION_DATE } from "@/lib/utils/transaction-date";
 
@@ -92,13 +92,14 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [askIntent, setAskIntent] = useState(false);
   const [dataReply, setDataReply] = useState<
-    | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; paymentMethod: string | null; from: string; to: string; total: number; count: number; currency: string | null }
+    | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; paymentMethod: string | null; topic: string | null; from: string; to: string; total: number; count: number; currency: string | null }
+    | { status: "category_missing"; topic: string; source: string }
     | { status: "mixed" | "unsupported" | "failed" }
     | null
   >(null);
   const [duplicateScan, setDuplicateScan] = useState<
     | { status: "pending" }
-    | { status: "ready"; pairs: DuplicatePair[] }
+    | { status: "ready"; count: number; pairs: DuplicatePair[] }
     | { status: "failed" }
     | null
   >(null);
@@ -361,16 +362,21 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       setDuplicateScan({ status: "failed" });
       return;
     }
-    setDuplicateScan({ status: "ready", pairs: result.pairs });
+    setDuplicateScan({ status: "ready", count: result.count, pairs: result.pairs });
   }
 
-  async function loadDataAnswer(source: string) {
+  async function loadDataAnswer(source: string, searchDescriptions = false) {
     const question = parseYearTypeSum(source, todayIso());
     if (!question) {
       setDataReply({ status: "unsupported" });
       return;
     }
-    const result = await sumYearType(question);
+    const filter = await resolveQuestionFilter(question, searchDescriptions);
+    if (filter === "MISSING") {
+      setDataReply({ status: "category_missing", topic: question.topic ?? "", source });
+      return;
+    }
+    const result = await sumYearType(question, filter);
     if (!result.ok) {
       setDataReply({ status: result.reason === "MIXED" ? "mixed" : "failed" });
       return;
@@ -382,6 +388,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       measure: question.measure,
       type: question.type,
       paymentMethod: question.paymentMethod,
+      topic: question.topic,
       from: question.from,
       to: question.to,
       total: result.total,
@@ -610,20 +617,29 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                   {dataReply.paymentMethod
                     ? ` (${t(`transactionForm.paymentMethod.options.${dataReply.paymentMethod}`, { ns: "transactions" })})`
                     : ""}
+                  {dataReply.topic ? ` (${dataReply.topic})` : ""}
                 </p>
+              ) : null}
+              {intent === "ask_data" && dataReply?.status === "category_missing" ? (
+                <div className="flex flex-col gap-2">
+                  <p>{t("aiIntake.categoryMissing", { topic: dataReply.topic })}</p>
+                  <Button type="button" onClick={() => void loadDataAnswer(dataReply.source, true)}>
+                    {t("aiIntake.categorySearch")}
+                  </Button>
+                </div>
               ) : null}
               {intent === "ask_data" && dataReply?.status === "unsupported" ? <p>{t("aiIntake.dataUnsupported")}</p> : null}
               {intent === "ask_data" && dataReply?.status === "mixed" ? <p>{t("aiIntake.dataMixed")}</p> : null}
               {intent === "ask_data" && dataReply?.status === "failed" ? <p>{t("aiIntake.dataFailed")}</p> : null}
               {intent === "find_duplicates" && duplicateScan?.status === "pending" ? <p>{t("aiIntake.duplicateScanPending")}</p> : null}
               {intent === "find_duplicates" && duplicateScan?.status === "failed" ? <p>{t("aiIntake.duplicateScanFailed")}</p> : null}
-              {intent === "find_duplicates" && duplicateScan?.status === "ready" && duplicateScan.pairs.length === 0 ? (
+              {intent === "find_duplicates" && duplicateScan?.status === "ready" && duplicateScan.count === 0 ? (
                 <p>{t("aiIntake.duplicateScanEmpty")}</p>
               ) : null}
-              {intent === "find_duplicates" && duplicateScan?.status === "ready" && duplicateScan.pairs.length > 0 ? (
+              {intent === "find_duplicates" && duplicateScan?.status === "ready" && duplicateScan.count > 0 ? (
                 <div className="flex flex-col gap-1">
-                  <p>{t(duplicateScan.pairs.length === 1 ? "aiIntake.duplicateScanCountOne" : "aiIntake.duplicateScanCount", { count: duplicateScan.pairs.length })}</p>
-                  {duplicateScan.pairs.slice(0, 5).map((pair) => (
+                  <p>{t(duplicateScan.count === 1 ? "aiIntake.duplicateScanCountOne" : "aiIntake.duplicateScanCount", { count: duplicateScan.count })}</p>
+                  {duplicateScan.pairs.map((pair) => (
                     <p key={`${pair.left.id}-${pair.right.id}`}>
                       {pair.left.date} · {pair.left.amount} {pair.left.currency}
                       {pair.left.description ? ` · ${pair.left.description}` : ""}
