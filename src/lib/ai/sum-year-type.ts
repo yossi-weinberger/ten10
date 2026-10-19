@@ -38,7 +38,12 @@ export async function sumYearType(question: YearTypeSum): Promise<YearTypeSumRes
 
   const summed = rows.reduce((sum, row) => sum + row.amount, 0);
   const months = question.months < 1 ? 1 : question.months;
-  const total = question.measure === "average" ? summed / months : summed;
+  const peak = rows.reduce((max, row) => Math.max(max, row.amount), 0);
+  const total = question.measure === "average"
+    ? summed / months
+    : question.measure === "max"
+      ? peak
+      : summed;
   const currency = currencies.values().next().value;
   return {
     ok: true,

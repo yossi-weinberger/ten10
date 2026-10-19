@@ -24,7 +24,20 @@ export const RULE_START_MARKERS = [
   "every time",
 ] as const;
 
-export const QUESTION_MARKERS = ["כמה", "ממוצע", "how much", "how many", "average"] as const;
+export const MAX_MARKERS = [
+  "הכי גדול",
+  "הכי גבוה",
+  "גדולה ביותר",
+  "גדול ביותר",
+  "גבוהה ביותר",
+  "גבוה ביותר",
+  "מקסימום",
+  "maximum",
+  "largest",
+  "highest",
+] as const;
+
+export const QUESTION_MARKERS = ["כמה", "ממוצע", "how much", "how many", "average", ...MAX_MARKERS] as const;
 
 export const TRANSACTION_VERBS = [
   "קניתי",

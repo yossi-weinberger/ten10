@@ -55,6 +55,14 @@ Deno.test("a giving verb stays a sum, and החודש is not החודשים", () 
   assert(parseYearTypeSum("כמה תרמתי החודש", TODAY)?.month === 10, "this month");
 });
 
+Deno.test("the largest saved transaction is a max, and a plain total stays a sum", () => {
+  const hebrew = parseYearTypeSum("מה התרומה הכי גדולה השנה", TODAY);
+  assert(hebrew?.measure === "max" && hebrew.type === "donation" && hebrew.year === 2026, "hebrew max");
+  const english = parseYearTypeSum("largest expense this year", TODAY);
+  assert(english?.measure === "max" && english.type === "expense", "english max");
+  assert(parseYearTypeSum("כמה תרמתי השנה", TODAY)?.measure === "sum", "sum stays a sum");
+});
+
 Deno.test("a monthly average divides the saved total by the months in the window", () => {
   const year = parseYearTypeSum("ממוצע תרומות השנה", TODAY);
   assert(year?.measure === "average" && year.months === 12, "hebrew average");
