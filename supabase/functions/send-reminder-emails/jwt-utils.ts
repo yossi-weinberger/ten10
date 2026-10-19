@@ -9,7 +9,7 @@ import { maskEmail } from "../_shared/email-guard.ts";
 export interface UnsubscribeTokenPayload {
   userId: string;
   email: string;
-  type: "reminder" | "all";
+  type: "reminder" | "marketing" | "all";
   exp: number;
 }
 
@@ -17,14 +17,14 @@ export interface UnsubscribeTokenPayload {
  * Creates a secure JWT token for unsubscribe links
  * @param userId - The user's UUID
  * @param email - The user's email address
- * @param type - Type of unsubscribe ('reminder' or 'all')
+ * @param type - Type of unsubscribe ('reminder', 'marketing', or 'all')
  * @param expirationHours - Token expiration in hours (default: 720 = 30 days)
  * @returns Promise<string> - The signed JWT token
  */
 export async function createUnsubscribeToken(
   userId: string,
   email: string,
-  type: "reminder" | "all" = "all",
+  type: "reminder" | "marketing" | "all" = "all",
   expirationHours: number = 720, // 30 days
 ): Promise<string> {
   try {
@@ -63,21 +63,23 @@ export async function createUnsubscribeToken(
  * Generates unsubscribe URLs for email templates
  * @param userId - The user's UUID
  * @param email - The user's email address
- * @returns Promise<{reminderUrl: string, allUrl: string}> - Both unsubscribe URLs
+ * @returns Promise<{reminderUrl: string, marketingUrl: string, allUrl: string}> - All unsubscribe URLs
  */
 export async function generateUnsubscribeUrls(
   userId: string,
   email: string,
-): Promise<{ reminderUrl: string; allUrl: string }> {
+): Promise<{ reminderUrl: string; marketingUrl: string; allUrl: string }> {
   const baseUrl = "https://ten10-app.com/unsubscribe";
 
-  const [reminderToken, allToken] = await Promise.all([
+  const [reminderToken, marketingToken, allToken] = await Promise.all([
     createUnsubscribeToken(userId, email, "reminder"),
+    createUnsubscribeToken(userId, email, "marketing"),
     createUnsubscribeToken(userId, email, "all"),
   ]);
 
   return {
     reminderUrl: `${baseUrl}?token=${reminderToken}&type=reminder`,
+    marketingUrl: `${baseUrl}?token=${marketingToken}&type=marketing`,
     allUrl: `${baseUrl}?token=${allToken}&type=all`,
   };
 }
