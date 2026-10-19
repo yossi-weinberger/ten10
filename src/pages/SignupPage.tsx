@@ -31,7 +31,7 @@ const SignupPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [mailingListConsent, setMailingListConsent] = useState(false);
+  const [optOutMarketing, setOptOutMarketing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
 
@@ -77,6 +77,7 @@ const SignupPage: React.FC = () => {
 
     try {
       const trimmedFullName = fullName.trim();
+      const mailingListConsent = !optOutMarketing;
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -123,7 +124,7 @@ const SignupPage: React.FC = () => {
         setPassword("");
         setConfirmPassword("");
         setFullName("");
-        setMailingListConsent(false);
+        setOptOutMarketing(false);
       } else {
         toast.error(t("signup.toasts.unexpectedError"));
       }
@@ -251,18 +252,18 @@ const SignupPage: React.FC = () => {
 
           <div className="flex items-center space-x-2 rtl:space-x-reverse py-2">
             <Checkbox
-              id="mailing-list-consent"
-              checked={mailingListConsent}
+              id="opt-out-marketing"
+              checked={optOutMarketing}
               onCheckedChange={(checked) =>
-                setMailingListConsent(checked as boolean)
+                setOptOutMarketing(checked as boolean)
               }
               disabled={isAnyLoading}
             />
             <Label
-              htmlFor="mailing-list-consent"
+              htmlFor="opt-out-marketing"
               className="text-sm font-normal cursor-pointer text-muted-foreground"
             >
-              {t("signup.mailingListLabel")}
+              {t("signup.optOutMarketingLabel")}
             </Label>
           </div>
 
