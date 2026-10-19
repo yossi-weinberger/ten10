@@ -4,6 +4,7 @@
  */
 
 import { selectHalachaPage } from "./halacha-page.ts";
+import { clarificationField } from "./text-draft.ts";
 import {
   CURRENCY_MARKERS,
   DUPLICATE_MARKERS,
@@ -71,4 +72,16 @@ export function classifyIntent(text: string): IntakeIntent {
   }
 
   return "out_of_scope";
+}
+
+/**
+ * Used only when Jev does not answer. A transaction needs an explicit verb.
+ * A bare amount is not enough, because the rules cannot tell a year from money.
+ */
+export function fallbackIntent(text: string, today: string): IntakeIntent {
+  const ruled = classifyIntent(text);
+  if (ruled === "add_transaction" && clarificationField(text, today) === "type") {
+    return "out_of_scope";
+  }
+  return ruled;
 }

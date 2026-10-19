@@ -1,6 +1,7 @@
 export {
   INTAKE_INTENTS,
   classifyIntent,
+  fallbackIntent,
 } from "../../../supabase/functions/_shared/ai/intent.ts";
 export type { IntakeIntent } from "../../../supabase/functions/_shared/ai/intent.ts";
 export { applyForwardRule, parseUserRule } from "../../../supabase/functions/_shared/ai/rule-draft.ts";

@@ -12,10 +12,15 @@ Deno.test("intent body treats the sentence as data", () => {
   assert(body.questions.intent.criteria.out_of_scope.length > 0, "out of scope is a choice");
 });
 
-Deno.test("intent reader drops an unknown choice", () => {
+Deno.test("intent reader keeps a closed choice and a confidence inside 0 to 1", () => {
+  const read = readIntentChoice({
+    answers: { intent: { choice: "ask_data", confidence: 0.82 } },
+  });
+  assert(read?.intent === "ask_data", "question");
+  assert(read?.confidence === 0.82, "confidence");
   assert(readIntentChoice({
-    answers: { intent: { choice: "add_transaction" } },
-  }) === "add_transaction", "transaction");
+    answers: { intent: { choice: "add_transaction", confidence: 2 } },
+  })?.confidence === null, "confidence out of range");
   assert(readIntentChoice({
     answers: { intent: { choice: "delete_everything" } },
   }) === null, "unknown");

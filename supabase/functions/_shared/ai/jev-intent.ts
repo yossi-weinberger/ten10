@@ -35,7 +35,10 @@ export function buildIntentBody(text: string): {
   };
 }
 
-export function readIntentChoice(payload: unknown): IntakeIntent | null {
+export function readIntentChoice(payload: unknown): {
+  intent: IntakeIntent;
+  confidence: number | null;
+} | null {
   if (!payload || typeof payload !== "object") return null;
   const answers = (payload as { answers?: unknown }).answers;
   if (!answers || typeof answers !== "object") return null;
@@ -43,5 +46,9 @@ export function readIntentChoice(payload: unknown): IntakeIntent | null {
   if (!answer || typeof answer !== "object") return null;
   const choice = (answer as { choice?: unknown }).choice;
   if (typeof choice !== "string" || !INTAKE_INTENTS.includes(choice as IntakeIntent)) return null;
-  return choice as IntakeIntent;
+  const confidence = (answer as { confidence?: unknown }).confidence;
+  return {
+    intent: choice as IntakeIntent,
+    confidence: typeof confidence === "number" && confidence >= 0 && confidence <= 1 ? confidence : null,
+  };
 }
