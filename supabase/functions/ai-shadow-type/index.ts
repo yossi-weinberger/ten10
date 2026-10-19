@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
-import { JEV_SYSTEMONE_URL } from "../_shared/ai/jev-duplicate-rank.ts";
+import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "../_shared/ai/jev-duplicate-rank.ts";
 import { CATEGORY_KEYS_BY_TYPE } from "../_shared/transaction-domain/category-keys.ts";
 import {
   buildShadowBody,
@@ -107,7 +107,7 @@ Deno.serve(async (req: Request) => {
   });
   if (!request) return json(origin, { recorded: false }, 200);
 
-  const apiKey = (Deno.env.get("JEV_API_KEY") ?? "").trim();
+  const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
   if (!apiKey) return json(origin, { recorded: false }, 200);
 
   try {
@@ -117,7 +117,7 @@ Deno.serve(async (req: Request) => {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(request),
+      body: JSON.stringify(gatewaySystemOneBody(request)),
       signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) {

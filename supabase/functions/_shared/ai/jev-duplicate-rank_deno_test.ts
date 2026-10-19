@@ -1,4 +1,4 @@
-import { buildDuplicateRankBody, dayGap, readDuplicateRanks } from "./jev-duplicate-rank.ts";
+import { buildDuplicateRankBody, dayGap, gatewaySystemOneBody, readDuplicateRanks } from "./jev-duplicate-rank.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -21,7 +21,10 @@ Deno.test("duplicate rank body sends amounts and keeps ids out of the model text
   });
 
   const serialized = JSON.stringify(body);
-  assert(body.model === "jev-1.13.0", "model pin");
+  assert(body.model === "typesafe-ai/jev", "model pin");
+  const sent = gatewaySystemOneBody(body);
+  assert(sent.providerOptions.gateway.zeroDataRetention === true, "zero data retention");
+  assert(!("models" in sent.providerOptions.gateway), "no fallback models");
   assert(!serialized.includes("11111111"), "candidate id leaked into the body");
   assert(body.state.amount === 15 && body.state.currency === "ILS", "draft amount");
   assert(body.questions.q0.instructions.candidate.amount === 15, "candidate amount");
