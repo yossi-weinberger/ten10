@@ -118,6 +118,11 @@ The running application uses `profiles.reminder_enabled`,
 `profiles.reminder_day_of_month`, `profiles.mailing_list_consent`,
 `profiles.full_name`, and `profiles.client_preferences`.
 
+**Since PR #528 (October 2026)**: `reminder_enabled` and `mailing_list_consent`
+are fully independent. Reminders are service emails; marketing is opt-out at
+signup. The Settings UI shows two separate toggles (web). Unsubscribe links are
+type-specific (reminder/marketing/all).
+
 The frontend and Edge Function currently support reminder days
 `1, 5, 10, 15, 20, 25`. The localized-reminder feature migration in this
 repository versions the recipient RPC only; it does not add or alter a
@@ -166,7 +171,6 @@ BEGIN
   JOIN auth.users u ON p.id = u.id
   WHERE p.reminder_enabled = true
     AND p.reminder_day_of_month = reminder_day
-    AND coalesce(p.mailing_list_consent, false) = true
     AND u.email IS NOT NULL;
 END;
 $function$;
@@ -192,13 +196,13 @@ The reminder settings are integrated into the existing settings page:
 **File**: `src/components/settings/NotificationSettingsCard.tsx`
 
 ```typescript
-// Key behavior:
-// - Web: toggle ON only when reminderEnabled && mailingListConsent
-//   (unsubscribe may clear either column without updating client_preferences.notifications)
-// - Desktop: toggle follows reminderEnabled only (local reminders ignore mailing consent)
-// - Turning the toggle on/off writes both reminder_enabled and mailing_list_consent (web DB)
-// - Day selector uses the same platform-specific ON state
-// - Platform-specific messaging (web email vs desktop notifications)
+// Key behavior (updated PR #528, October 2026):
+// - Web: two independent toggles — reminders and marketing/news
+// - Desktop: reminder toggle only (local notifications)
+// - Reminders are service emails, independent of marketing consent
+// - Marketing is opt-out at signup (default enabled)
+// - Separate unsubscribe links: reminder-only, marketing-only, or both
+// - Day/calendar selectors depend only on reminder toggle state
 ```
 
 **Related files**:

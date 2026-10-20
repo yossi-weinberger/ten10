@@ -1,60 +1,76 @@
 {
   "title": "Privacy Policy",
-  "lastUpdated": "Last updated: January 2026",
+  "lastUpdated": "Last updated: October 2026",
   "serviceOwner": {
     "title": "Service Provider",
-    "description": "Ten10 is an open-source software for managing tithes and personal budgets. The service is operated as a non-profit community project.",
+    "description": "Ten10 is an open-source software for managing tithes and personal budgets. The service is operated by the operator of the Ten10 service.",
     "contact": "Contact us: contact@ten10-app.com"
   },
   "dataCollection": {
     "title": "Data Collection",
     "description": "Ten10 collects and uses the following information:",
-    "item1": "Account details: Email address, full name (optional), profile picture (optional)",
-    "item2": "Financial data: Income, expenses, donations, and any other data you record in the system",
-    "item3": "Usage settings: Language preferences, currency, reminders, and other settings",
-    "item4": "Usage data: Application activity for service improvement purposes",
-    "item5": "Contact content: Messages you send through the contact form"
+    "required": "Required data:",
+    "item1": "Email address (required for web account - without it there is no account)",
+    "optional": "Optional data:",
+    "item2": "Full name and profile picture (your choice)",
+    "item3": "Financial data: Income, expenses, donations, and any other data you choose to record in the system",
+    "item4": "Technical usage data: Application activity for service improvement purposes",
+    "item5": "Contact content: Messages you choose to send through the contact form"
   },
   "dataStorage": {
-    "title": "Data Storage",
+    "title": "Data Storage and Security",
     "description": "Your data is stored securely:",
     "web": {
       "title": "Website Version",
-      "description": "Data is stored on Supabase, a secure cloud service. All data is encrypted and protected using Row Level Security (RLS). Your data is only accessible to you."
+      "location": "Cloud infrastructure providers, some located outside Israel, using reasonable technical and organizational measures to protect your data.",
+      "access": "Admin access: Limited to operations, security, and support. Infrastructure providers may have access according to their role."
     },
     "desktop": {
       "title": "Desktop Application",
-      "description": "Data is stored locally on your computer in a SQLite file. Data is never sent to external servers. Only you can access your data."
+      "description": "Desktop version: data is stored locally and not uploaded automatically."
     }
   },
   "internationalTransfer": {
     "title": "International Data Transfer",
     "description": "Our cloud services operate on servers outside of Israel:",
-    "item1": "Supabase: Data storage and user authentication (servers in Europe/US)",
-    "item2": "AWS SES: Email delivery service (servers in Europe)",
-    "item3": "Cloudflare: Bot protection and CAPTCHA verification",
-    "note": "These providers are committed to strict security and privacy standards and comply with GDPR requirements."
+    "item1": "Supabase: Database and authentication",
+    "item2": "AWS: Email delivery",
+    "item3": "Cloudflare: Security and verification",
+    "item4": "Google: Account authentication",
+    "item5": "PostHog: Usage analytics (web only)",
+    "item6": "Vercel: Hosting",
+    "note": "These providers operate outside of Israel. We make no claims regarding GDPR compliance.",
+    "financialDataNote": "Ten10 does not use your financial data for profiling, targeting, or marketing segmentation."
   },
   "dataRetention": {
-    "title": "Data Retention",
+    "title": "Data Retention and Deletion",
     "description": "We retain your data as follows:",
-    "item1": "Account data: Retained as long as your account is active",
-    "item2": "Financial data: Retained as long as your account is active or until you delete it",
-    "item3": "Data deletion: You can delete all your data at any time through the settings. Deletion is immediate",
-    "item4": "Contact messages: Retained for support purposes"
+    "item1": "Account data and financial data: Retained as long as your account is active, or until you choose to delete them",
+    "item2": "Data deletion: You can delete individual data or your entire account through Settings. Data is deleted from active systems, and copies may remain for a limited time in backups and logs until removed",
+    "item3": "Contact messages: Retained for support purposes"
   },
   "dataUsage": {
     "title": "Data Usage",
     "description": "We use your data for the following purposes:",
-    "item1": "Providing system services: Tithe calculations, budget management, and reports",
-    "item2": "Service improvement: Understanding user needs and improving functionality",
-    "item3": "Reminders: Sending monthly reminders (only if you have opted in)",
-    "item4": "Technical support: Helping resolve issues and questions"
+    "item1": "Operating the service: Providing access, authentication, and security",
+    "item2": "Calculations and reports: Tithe calculations, generating financial reports and summaries",
+    "item3": "Support: Responding to inquiries and technical support",
+    "item4": "Maintenance and improvement: Service maintenance and improvement",
+    "item5": "Service reminders: Sending monthly reminders that the user enabled (can be disabled in Settings)",
+    "item6": "Ten10 news: Marketing updates about the project according to mailing preferences and law (can be unsubscribed)"
   },
   "communications": {
-    "title": "Communications",
-    "description": "If you have chosen to receive email reminders, we will send you monthly messages about your tithe status. You can unsubscribe at any time.",
-    "unsubscribe": "To unsubscribe, click the link in any reminder email, or contact us at: contact@ten10-app.com"
+    "title": "Communications and Email",
+    "description": "We send two types of emails:",
+    "reminder": {
+      "title": "Service Messages and Reminders",
+      "description": "Account-related messages and tithe reminders that the user enabled. Reminders can be disabled in Settings, independent of marketing preferences."
+    },
+    "marketing": {
+      "title": "Marketing Updates (Ten10 News)",
+      "description": "The option to receive marketing updates is provided in the signup screen. When providing your email address, a notice is displayed that the address may also be used to send marketing updates, and you are given the option to decline. These terms alone do not serve as a substitute for this notice."
+    },
+    "unsubscribe": "To unsubscribe from reminders, marketing, or both, click the appropriate link in any email, or change your preferences in Settings, or contact us: contact@ten10-app.com"
   },
   "analytics": {
     "title": "Analytics",
@@ -63,10 +79,11 @@
   },
   "cookies": {
     "title": "Cookies",
-    "description": "We use essential cookies required for the service to function:",
-    "item1": "Authentication cookies: To keep you signed in to your account",
-    "item2": "Preference cookies: To save your language and display settings",
-    "item3": "Google Analytics (landing page only): For anonymous traffic tracking",
+    "description": "Ten10 uses cookies and local storage required for the service to function, and may also use measurement and analytics technologies that are not essential.",
+    "item1": "Authentication cookies — Maintaining login and account security",
+    "item2": "Preferences — Saving language and settings",
+    "item3": "Google Analytics — Measurement and statistics on the landing page, if enabled",
+    "item4": "PostHog — Usage analysis in the web version, according to service settings",
     "note": "You can block cookies in your browser settings, but this may affect service functionality."
   },
   "ageRequirement": {
@@ -76,11 +93,13 @@
   "userRights": {
     "title": "User Rights",
     "description": "You have the following rights regarding your data:",
-    "item1": "Access: You can view all your data at any time through the application",
-    "item2": "Edit: You can edit or delete any of your data",
-    "item3": "Export: You can export your data to various formats (CSV, Excel, PDF)",
-    "item4": "Deletion: You can delete your account and all associated data at any time",
-    "item5": "Complaint: You have the right to file a complaint with your local data protection authority if you believe your rights have been violated"
+    "item1": "Access and review: Your right to review all your personal data through the application",
+    "item2": "Correction: Your right to request correction of inaccurate data",
+    "item3": "View, edit, and delete: In-app options for viewing, editing, deleting, and exporting data are available",
+    "item4": "Export: Export data to various formats (CSV, Excel, PDF)",
+    "item5": "Account deletion: Delete account and associated data through Settings",
+    "item6": "Preference changes: Change communication preferences in Settings",
+    "item7": "Complaint: Your right to file a complaint with the Israeli Privacy Protection Authority if you believe your rights have been violated"
   },
   "contact": {
     "title": "Contact",

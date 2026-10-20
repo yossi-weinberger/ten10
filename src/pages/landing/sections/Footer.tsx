@@ -23,7 +23,7 @@ export const Footer: React.FC = () => {
               }
             />
             <p className="text-muted-foreground">
-              &copy; 2025 Ten10. {t("footer.copyright")}.
+              &copy; {new Date().getFullYear()} Ten10. {t("footer.copyright")}.
             </p>
           </div>
 

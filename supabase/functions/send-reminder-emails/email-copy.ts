@@ -46,6 +46,7 @@ interface ReminderLocaleJson {
   encouragementLabel: string;
   footerPreferenceNote: string;
   unsubscribeReminder: string;
+  unsubscribeMarketing: string;
   unsubscribeAll: string;
   subject: {
     outstanding: string;
@@ -75,6 +76,7 @@ export interface ReminderLocaleCopy {
   encouragementLabel: string;
   footerPreferenceNote: string;
   unsubscribeReminder: string;
+  unsubscribeMarketing: string;
   unsubscribeAll: string;
   subject: SubjectCopy;
   maaserYear: {
@@ -111,6 +113,7 @@ function hydrateLocale(raw: ReminderLocaleJson): ReminderLocaleCopy {
     encouragementLabel: raw.encouragementLabel,
     footerPreferenceNote: raw.footerPreferenceNote,
     unsubscribeReminder: raw.unsubscribeReminder,
+    unsubscribeMarketing: raw.unsubscribeMarketing,
     unsubscribeAll: raw.unsubscribeAll,
     subject: {
       outstanding: (amount) =>

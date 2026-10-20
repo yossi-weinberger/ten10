@@ -6,21 +6,21 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 interface UnsubscribePayload {
   userId: string;
   email: string;
-  type: "reminder" | "all";
+  type: "reminder" | "marketing" | "all";
   exp: number;
 }
 
-type UnsubscribeType = "reminder" | "all";
+type UnsubscribeType = "reminder" | "marketing" | "all";
 
 function resolveUnsubscribeType(
   payloadType: unknown,
   bodyType: unknown,
 ): UnsubscribeType {
   // Prefer the signed token type; body type is only a fallback for older clients.
-  if (payloadType === "reminder" || payloadType === "all") {
+  if (payloadType === "reminder" || payloadType === "marketing" || payloadType === "all") {
     return payloadType;
   }
-  if (bodyType === "reminder" || bodyType === "all") {
+  if (bodyType === "reminder" || bodyType === "marketing" || bodyType === "all") {
     return bodyType;
   }
   return "all";
@@ -100,7 +100,7 @@ serve(async (req) => {
       {
         p_user_id: payload.userId,
         p_reminder_enabled: unsubscribeType === "all" || unsubscribeType === "reminder" ? false : null,
-        p_mailing_list_consent: unsubscribeType === "all" ? false : null,
+        p_mailing_list_consent: unsubscribeType === "all" || unsubscribeType === "marketing" ? false : null,
       },
     );
 

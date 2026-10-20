@@ -66,6 +66,12 @@
   "notifications": {
     "cardTitle": "התראות",
     "cardDescription": "הגדרות התראות ותזכורות",
+    "reminderEmailsLabel": "תזכורות במייל",
+    "reminderEmailsDescription": "תזכורות חודשיות למעשר",
+    "reminderNotificationsLabel": "תזכורות במחשב",
+    "reminderNotificationsDescription": "תזכורות חודשיות למעשר",
+    "marketingEmailsLabel": "עדכונים וחדשות במייל",
+    "marketingEmailsDescription": "קבל עדכונים על תכונות חדשות וחדשות מהפרויקט",
     "emailNotificationsLabel": "התראות במייל",
     "emailNotificationsDescription": "קבל עדכונים, התראות, סיכומים ותזכורות במייל",
     "desktopNotificationsLabel": "התראות במחשב",

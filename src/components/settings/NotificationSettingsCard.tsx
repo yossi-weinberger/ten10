@@ -71,6 +71,7 @@ export function NotificationSettingsCard({
 
   // Display state based on reminderEnabled only (decoupled from marketing consent).
   const emailNotificationsOn = Boolean(notificationSettings.reminderEnabled);
+  const marketingNotificationsOn = Boolean(notificationSettings.mailingListConsent);
 
   return (
     <Card className={disabled ? "opacity-50 pointer-events-none" : ""}>
@@ -103,7 +104,7 @@ export function NotificationSettingsCard({
             <div>
               <Label>
                 {isWeb
-                  ? t("notifications.emailNotificationsLabel")
+                  ? t("notifications.reminderEmailsLabel")
                   : t("notifications.desktopNotificationsLabel")}
               </Label>
               <p className="text-sm text-muted-foreground">
@@ -185,6 +186,32 @@ export function NotificationSettingsCard({
             ))}
           </div>
         </div>
+
+        {/* Marketing and News Emails - Web only */}
+        {isWeb && (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-md border">
+                <Mail className="h-5 w-5" />
+              </div>
+              <div>
+                <Label>{t("notifications.marketingEmailsLabel")}</Label>
+                <p className="text-sm text-muted-foreground">
+                  {t("notifications.marketingEmailsDescription")}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={marketingNotificationsOn}
+              onCheckedChange={(checked) =>
+                updateSettings({
+                  mailingListConsent: checked,
+                })
+              }
+              disabled={disabled}
+            />
+          </div>
+        )}
 
         {/* Autostart Toggle - Desktop only */}
         {isDesktop && (
