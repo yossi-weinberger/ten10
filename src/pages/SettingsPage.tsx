@@ -175,7 +175,6 @@ export function SettingsPage() {
         mailingListConsent: settings.mailingListConsent,
       }}
       updateSettings={async (newNotificationSettings) => {
-        // Update local settings immediately
         updateSettings(newNotificationSettings);
 
         if (typeof newNotificationSettings.reminderEnabled === "boolean") {
@@ -183,17 +182,7 @@ export function SettingsPage() {
             enabled: newNotificationSettings.reminderEnabled,
           });
         }
-        
-        // Mark opt-in prompt as shown if user manually changed marketing preference
-        if (typeof newNotificationSettings.mailingListConsent === "boolean" && user) {
-          try {
-            localStorage.setItem(`ten10_opt_in_prompt_shown_${user.id}`, "true");
-          } catch (error) {
-            logger.error("Failed to mark opt-in prompt as shown:", error);
-          }
-        }
 
-        // Update Supabase for web users — only fields present in this change
         if (platform === "web" && user) {
           try {
             const profileUpdate = buildReminderProfileUpdate(
@@ -206,10 +195,6 @@ export function SettingsPage() {
                 .eq("id", user.id);
               if (error) {
                 throw error;
-              }
-              // Show success toast for marketing consent changes
-              if (typeof newNotificationSettings.mailingListConsent === "boolean") {
-                toast.success(tCommon("toast.settings.updateSuccess"));
               }
             }
           } catch (error) {
