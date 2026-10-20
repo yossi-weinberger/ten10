@@ -55,6 +55,7 @@
     "reminderDescription": "Get a reminder email every month on your chosen date",
     "marketingLabel": "Turn on updates and news",
     "marketingDescription": "Occasional Ten10 updates, features and tips",
+    "enable": "Enable",
     "updatePreferences": "Update Preferences",
     "updating": "Updating...",
     "notNow": "Not Now"

@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -59,33 +60,25 @@ export function OptInPromptDialog() {
     return null;
   }
 
+  const isSingleOption = (needsReminder && !needsMarketing) || (!needsReminder && needsMarketing);
   const markShown = () => markOptInPromptAsShown(user.id);
 
-  const handleUpdate = async () => {
+  const handleEnable = async () => {
     setIsUpdating(true);
     try {
-      const updates: Partial<typeof settings> = {};
-      const profileUpdates: Record<string, boolean | number> = {};
+      const storeUpdates: Partial<typeof settings> = {};
+      const profileUpdates: Record<string, boolean> = {};
       
       if (needsReminder) {
-        updates.reminderEnabled = enableReminders;
-        updates.notifications = enableReminders;
-        profileUpdates.reminder_enabled = enableReminders;
-        profileUpdates.notifications = enableReminders;
+        storeUpdates.reminderEnabled = true;
+        storeUpdates.notifications = true;
+        profileUpdates.reminder_enabled = true;
       }
       
       if (needsMarketing) {
-        updates.mailingListConsent = enableMarketing;
-        profileUpdates.mailing_list_consent = enableMarketing;
+        storeUpdates.mailingListConsent = true;
+        profileUpdates.mailing_list_consent = true;
       }
-
-      if (Object.keys(updates).length === 0) {
-        markShown();
-        setDismissed(true);
-        return;
-      }
-
-      updateSettings(updates);
 
       const { error } = await supabase
         .from("profiles")
@@ -94,10 +87,53 @@ export function OptInPromptDialog() {
 
       if (error) throw error;
 
+      updateSettings(storeUpdates);
+      markShown();
+      setDismissed(true);
+    } catch (error) {
+      logger.error("Failed to enable opt-in preference:", error);
+      toast.error(t("toast.settings.updateError"));
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleUpdate = async () => {
+    setIsUpdating(true);
+    try {
+      const storeUpdates: Partial<typeof settings> = {};
+      const profileUpdates: Record<string, boolean> = {};
+      
+      if (needsReminder) {
+        storeUpdates.reminderEnabled = enableReminders;
+        storeUpdates.notifications = enableReminders;
+        profileUpdates.reminder_enabled = enableReminders;
+      }
+      
+      if (needsMarketing) {
+        storeUpdates.mailingListConsent = enableMarketing;
+        profileUpdates.mailing_list_consent = enableMarketing;
+      }
+
+      if (Object.keys(profileUpdates).length === 0) {
+        markShown();
+        setDismissed(true);
+        return;
+      }
+
+      const { error } = await supabase
+        .from("profiles")
+        .update(profileUpdates)
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      updateSettings(storeUpdates);
       markShown();
       setDismissed(true);
     } catch (error) {
       logger.error("Failed to update opt-in preferences:", error);
+      toast.error(t("toast.settings.updateError"));
     } finally {
       setIsUpdating(false);
     }
@@ -125,47 +161,49 @@ export function OptInPromptDialog() {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          {needsReminder && (
-            <div className="flex items-start space-x-3 rtl:space-x-reverse">
-              <Checkbox
-                id="enable-reminders"
-                checked={enableReminders}
-                onCheckedChange={(checked) => setEnableReminders(!!checked)}
-                disabled={isUpdating}
-                className="mt-1"
-              />
-              <div className="grid gap-1.5 leading-none">
-                <Label htmlFor="enable-reminders" className="text-sm font-medium cursor-pointer">
-                  {t("optInPrompt.reminderLabel")}
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  {t("optInPrompt.reminderDescription")}
-                </p>
+        {!isSingleOption && (
+          <div className="grid gap-4 py-4">
+            {needsReminder && (
+              <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                <Checkbox
+                  id="enable-reminders"
+                  checked={enableReminders}
+                  onCheckedChange={(checked) => setEnableReminders(!!checked)}
+                  disabled={isUpdating}
+                  className="mt-1"
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <Label htmlFor="enable-reminders" className="text-sm font-medium cursor-pointer">
+                    {t("optInPrompt.reminderLabel")}
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    {t("optInPrompt.reminderDescription")}
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {needsMarketing && (
-            <div className="flex items-start space-x-3 rtl:space-x-reverse">
-              <Checkbox
-                id="enable-marketing"
-                checked={enableMarketing}
-                onCheckedChange={(checked) => setEnableMarketing(!!checked)}
-                disabled={isUpdating}
-                className="mt-1"
-              />
-              <div className="grid gap-1.5 leading-none">
-                <Label htmlFor="enable-marketing" className="text-sm font-medium cursor-pointer">
-                  {t("optInPrompt.marketingLabel")}
-                </Label>
-                <p className="text-sm text-muted-foreground">
-                  {t("optInPrompt.marketingDescription")}
-                </p>
+            {needsMarketing && (
+              <div className="flex items-start space-x-3 rtl:space-x-reverse">
+                <Checkbox
+                  id="enable-marketing"
+                  checked={enableMarketing}
+                  onCheckedChange={(checked) => setEnableMarketing(!!checked)}
+                  disabled={isUpdating}
+                  className="mt-1"
+                />
+                <div className="grid gap-1.5 leading-none">
+                  <Label htmlFor="enable-marketing" className="text-sm font-medium cursor-pointer">
+                    {t("optInPrompt.marketingLabel")}
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    {t("optInPrompt.marketingDescription")}
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
           <Button
@@ -176,13 +214,23 @@ export function OptInPromptDialog() {
           >
             {t("optInPrompt.notNow")}
           </Button>
-          <Button
-            onClick={handleUpdate}
-            disabled={isUpdating}
-            className="w-full sm:w-auto"
-          >
-            {isUpdating ? t("optInPrompt.updating") : t("optInPrompt.updatePreferences")}
-          </Button>
+          {isSingleOption ? (
+            <Button
+              onClick={handleEnable}
+              disabled={isUpdating}
+              className="w-full sm:w-auto"
+            >
+              {isUpdating ? t("optInPrompt.updating") : t("optInPrompt.enable")}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleUpdate}
+              disabled={isUpdating}
+              className="w-full sm:w-auto"
+            >
+              {isUpdating ? t("optInPrompt.updating") : t("optInPrompt.updatePreferences")}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
