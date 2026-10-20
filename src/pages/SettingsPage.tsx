@@ -27,6 +27,7 @@ import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { ImportConfirmModal } from "@/components/settings/ImportConfirmModal";
 import { ImportDuplicatesModal } from "@/components/settings/ImportDuplicatesModal";
 import { logger } from "@/lib/logger";
+import { markOptInPromptAsShown } from "@/lib/optInPrompt";
 import { Transaction } from "@/types/transaction";
 import { CurrencyCode } from "@/lib/currencies";
 
@@ -183,6 +184,14 @@ export function SettingsPage() {
           trackProductEvent("reminder_preference_changed", {
             enabled: newNotificationSettings.reminderEnabled,
           });
+        }
+
+        // Mark opt-in prompt as shown when either toggle changes
+        if (user && (
+          typeof newNotificationSettings.reminderEnabled === "boolean" || 
+          typeof newNotificationSettings.mailingListConsent === "boolean"
+        )) {
+          markOptInPromptAsShown(user.id);
         }
 
         // Update Supabase for web users — only fields present in this change

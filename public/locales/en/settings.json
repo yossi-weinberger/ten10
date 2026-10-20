@@ -66,6 +66,12 @@
   "notifications": {
     "cardTitle": "Notifications",
     "cardDescription": "Notification and reminder settings",
+    "reminderEmailsLabel": "Monthly Reminder Emails",
+    "reminderEmailsDescription": "Receive monthly Ma'aser reminders via email",
+    "reminderNotificationsLabel": "Monthly Reminder Notifications",
+    "reminderNotificationsDescription": "Receive monthly Ma'aser reminders on your computer",
+    "marketingEmailsLabel": "Updates and News Emails",
+    "marketingEmailsDescription": "Receive updates about new features and project news",
     "emailNotificationsLabel": "Email Notifications",
     "emailNotificationsDescription": "Receive updates, notifications, summaries and reminders via email",
     "desktopNotificationsLabel": "Desktop Notifications",

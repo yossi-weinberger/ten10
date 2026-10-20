@@ -22,7 +22,8 @@
   "encouragementLabel": "פינת החיזוק",
   "footerPreferenceNote": "נשלח אליך לפי העדפות התזכורת שבחרת",
   "unsubscribeReminder": "הפסקת תזכורות חודשיות",
-  "unsubscribeAll": "ביטול הרשמה",
+  "unsubscribeMarketing": "ביטול עדכונים ושיווק",
+  "unsubscribeAll": "הסרה מכל המיילים",
   "subject": {
     "outstanding": "תזכורת מעשר - נותרו {{amount}} לתרומה",
     "credit": "תזכורת מעשר - הינך בזכות של {{amount}}",

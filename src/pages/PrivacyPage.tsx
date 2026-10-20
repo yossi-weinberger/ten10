@@ -82,8 +82,16 @@ export function PrivacyPage() {
                   <p className="text-gray-600 dark:text-gray-300 mb-4">
                     {t("dataCollection.description")}
                   </p>
-                  <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4">
+                  <p className="font-semibold text-gray-900 dark:text-white mb-2">
+                    {t("dataCollection.required")}
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4 mb-3">
                     <li>{t("dataCollection.item1")}</li>
+                  </ul>
+                  <p className="font-semibold text-gray-900 dark:text-white mb-2">
+                    {t("dataCollection.optional")}
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4">
                     <li>{t("dataCollection.item2")}</li>
                     <li>{t("dataCollection.item3")}</li>
                     <li>{t("dataCollection.item4")}</li>
@@ -105,12 +113,15 @@ export function PrivacyPage() {
                   <p className="text-gray-600 dark:text-gray-300 mb-4">
                     {t("dataStorage.description")}
                   </p>
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3">
                     <p className="font-semibold text-gray-900 dark:text-white">
                       {t("dataStorage.web.title")}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {t("dataStorage.web.description")}
+                      {t("dataStorage.web.location")}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {t("dataStorage.web.access")}
                     </p>
                     <p className="font-semibold text-gray-900 dark:text-white mt-4">
                       {t("dataStorage.desktop.title")}
@@ -140,9 +151,15 @@ export function PrivacyPage() {
                     <li>{t("internationalTransfer.item1")}</li>
                     <li>{t("internationalTransfer.item2")}</li>
                     <li>{t("internationalTransfer.item3")}</li>
+                    <li>{t("internationalTransfer.item4")}</li>
+                    <li>{t("internationalTransfer.item5")}</li>
+                    <li>{t("internationalTransfer.item6")}</li>
                   </ul>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
                     {t("internationalTransfer.note")}
+                  </p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-3">
+                    {t("internationalTransfer.financialDataNote")}
                   </p>
                 </div>
               </div>
@@ -165,7 +182,6 @@ export function PrivacyPage() {
                     <li>{t("dataRetention.item1")}</li>
                     <li>{t("dataRetention.item2")}</li>
                     <li>{t("dataRetention.item3")}</li>
-                    <li>{t("dataRetention.item4")}</li>
                   </ul>
                 </div>
               </div>
@@ -189,6 +205,8 @@ export function PrivacyPage() {
                     <li>{t("dataUsage.item2")}</li>
                     <li>{t("dataUsage.item3")}</li>
                     <li>{t("dataUsage.item4")}</li>
+                    <li>{t("dataUsage.item5")}</li>
+                    <li>{t("dataUsage.item6")}</li>
                   </ul>
                 </div>
               </div>
@@ -199,14 +217,35 @@ export function PrivacyPage() {
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-start gap-3">
                 <Mail className="h-6 w-6 text-orange-600 flex-shrink-0 mt-1" />
-                <div>
+                <div className="space-y-4">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                     {t("communications.title")}
                   </h2>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4">
+                  <p className="text-gray-600 dark:text-gray-300">
                     {t("communications.description")}
                   </p>
-                  <p className="text-gray-600 dark:text-gray-300">
+                  
+                  {/* Reminders Section */}
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 space-y-2">
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {t("communications.reminder.title")}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {t("communications.reminder.description")}
+                    </p>
+                  </div>
+
+                  {/* Marketing Section */}
+                  <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 space-y-2">
+                    <p className="font-semibold text-gray-900 dark:text-white">
+                      {t("communications.marketing.title")}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {t("communications.marketing.description")}
+                    </p>
+                  </div>
+
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
                     {t("communications.unsubscribe")}
                   </p>
                 </div>
@@ -249,6 +288,7 @@ export function PrivacyPage() {
                     <li>{t("cookies.item1")}</li>
                     <li>{t("cookies.item2")}</li>
                     <li>{t("cookies.item3")}</li>
+                    <li>{t("cookies.item4")}</li>
                   </ul>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
                     {t("cookies.note")}
@@ -290,6 +330,8 @@ export function PrivacyPage() {
                 <li>{t("userRights.item3")}</li>
                 <li>{t("userRights.item4")}</li>
                 <li>{t("userRights.item5")}</li>
+                <li>{t("userRights.item6")}</li>
+                <li>{t("userRights.item7")}</li>
               </ul>
             </CardContent>
           </Card>

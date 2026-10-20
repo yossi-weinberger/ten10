@@ -265,6 +265,9 @@ export function OpeningBalanceModal({
         finalAmount = values.balanceType === "debt" ? convertedMagnitude : -convertedMagnitude;
 
         transactionPayload.amount = finalAmount;
+        transactionPayload.currency = normalizeCurrencyCode(
+          settings.defaultCurrency
+        );
         transactionPayload.original_amount = originalSignedAmount;
         transactionPayload.original_currency = values.currency;
         transactionPayload.conversion_rate = converted.conversion_rate;

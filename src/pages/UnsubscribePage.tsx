@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSearch } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/lib/supabaseClient";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 
-type UnsubscribeType = "reminder" | "all";
+type UnsubscribeType = "reminder" | "marketing" | "all";
 
 export default function UnsubscribePage() {
   const { t } = useTranslation("auth");
@@ -18,22 +18,7 @@ export default function UnsubscribePage() {
   const [message, setMessage] = useState("");
   const [title, setTitle] = useState("");
 
-  useEffect(() => {
-    const searchParams = search as { token?: string; type?: string };
-    const token = searchParams.token;
-    const type = (searchParams.type || "all") as UnsubscribeType;
-
-    if (!token) {
-      setStatus("error");
-      setTitle(t("unsubscribe.error.invalidToken.title"));
-      setMessage(t("unsubscribe.error.invalidToken.message"));
-      return;
-    }
-
-    handleUnsubscribe(token, type);
-  }, [search, t]);
-
-  const handleUnsubscribe = async (
+  const handleUnsubscribe = useCallback(async (
     token: string,
     type: UnsubscribeType
   ) => {
@@ -50,12 +35,33 @@ export default function UnsubscribePage() {
       if (error || data?.error || !data?.success) {
         logger.error("Unsubscribe failed:", error ?? data?.error);
         setStatus("error");
-        const looksExpired =
-          typeof data?.error === "string" &&
-          data.error.toLowerCase().includes("expired");
-        if (looksExpired || error?.message?.toLowerCase().includes("401")) {
+        
+        let statusCode: number | undefined;
+        if (error && typeof error === "object" && "context" in error) {
+          const ctx = error.context as Response;
+          statusCode = ctx.status;
+        }
+        
+        const errorMsg = (
+          (typeof data?.error === "string" ? data.error : "") || 
+          (error?.message || "")
+        ).toLowerCase();
+        
+        const looksExpired = errorMsg.includes("expired");
+        const looksInvalid = 
+          errorMsg.includes("invalid") || 
+          statusCode === 401 || 
+          statusCode === 400;
+        
+        if (looksExpired && looksInvalid) {
+          setTitle(t("unsubscribe.error.invalidToken.title"));
+          setMessage(t("unsubscribe.error.invalidToken.message"));
+        } else if (looksExpired) {
           setTitle(t("unsubscribe.error.expiredToken.title"));
           setMessage(t("unsubscribe.error.expiredToken.message"));
+        } else if (looksInvalid) {
+          setTitle(t("unsubscribe.error.invalidToken.title"));
+          setMessage(t("unsubscribe.error.invalidToken.message"));
         } else {
           setTitle(t("unsubscribe.error.updateFailed.title"));
           setMessage(t("unsubscribe.error.updateFailed.message"));
@@ -64,12 +70,17 @@ export default function UnsubscribePage() {
       }
 
       const resolvedType: UnsubscribeType =
-        data.type === "reminder" || data.type === "all" ? data.type : type;
+        data.type === "reminder" || data.type === "marketing" || data.type === "all" 
+          ? data.type 
+          : type;
 
       setStatus("success");
       if (resolvedType === "reminder") {
         setTitle(t("unsubscribe.success.reminder.title"));
         setMessage(t("unsubscribe.success.reminder.message"));
+      } else if (resolvedType === "marketing") {
+        setTitle(t("unsubscribe.success.marketing.title"));
+        setMessage(t("unsubscribe.success.marketing.message"));
       } else {
         setTitle(t("unsubscribe.success.all.title"));
         setMessage(t("unsubscribe.success.all.message"));
@@ -80,7 +91,22 @@ export default function UnsubscribePage() {
       setTitle(t("unsubscribe.error.general.title"));
       setMessage(t("unsubscribe.error.general.message"));
     }
-  };
+  }, [t]);
+
+  useEffect(() => {
+    const searchParams = search as { token?: string; type?: string };
+    const token = searchParams.token;
+    const type = (searchParams.type || "all") as UnsubscribeType;
+
+    if (!token) {
+      setStatus("error");
+      setTitle(t("unsubscribe.error.invalidToken.title"));
+      setMessage(t("unsubscribe.error.invalidToken.message"));
+      return;
+    }
+
+    handleUnsubscribe(token, type);
+  }, [search, t, handleUnsubscribe]);
 
   return (
     <div className="grid gap-6">
