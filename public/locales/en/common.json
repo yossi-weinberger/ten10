@@ -49,12 +49,12 @@
     "info": "Info"
   },
   "optInPrompt": {
-    "title": "Email Preferences",
-    "descriptionReminder": "Would you like to receive monthly reminder emails?",
-    "descriptionMarketing": "Would you like to receive updates and news from Ten10?",
-    "reminderLabel": "Monthly Reminder Emails",
+    "title": "Would you like to turn on updates?",
+    "descriptionReminder": "We'd love to send you monthly reminders to help you stay on track.",
+    "descriptionMarketing": "We'd love to keep you updated on new features and improvements.",
+    "reminderLabel": "Turn on monthly reminders",
     "reminderDescription": "Get a reminder email every month on your chosen date",
-    "marketingLabel": "Updates and News",
+    "marketingLabel": "Turn on updates and news",
     "marketingDescription": "Occasional Ten10 updates, features and tips",
     "updatePreferences": "Update Preferences",
     "updating": "Updating...",

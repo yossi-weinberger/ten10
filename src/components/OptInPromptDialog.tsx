@@ -19,17 +19,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Mail } from "lucide-react";
 import { buildReminderProfileUpdate } from "@/lib/services/preferences-sync.service";
+import { markOptInPromptAsShown, hasOptInPromptBeenShown } from "@/lib/optInPrompt";
 
-const STORAGE_KEY_PREFIX = "ten10_opt_in_prompt_shown_";
 const NEW_USER_GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
-
-export function markOptInPromptAsShown(userId: string): void {
-  try {
-    localStorage.setItem(`${STORAGE_KEY_PREFIX}${userId}`, "true");
-  } catch (error) {
-    logger.error("Failed to mark opt-in prompt as shown:", error);
-  }
-}
 
 async function isNewUser(): Promise<boolean> {
   try {
@@ -72,7 +64,7 @@ export function OptInPromptDialog() {
     user && 
     !dismissed && 
     !isNewUserState &&
-    !localStorage.getItem(`${STORAGE_KEY_PREFIX}${user.id}`) &&
+    !hasOptInPromptBeenShown(user.id) &&
     (initialReminder || initialMarketing) &&
     (!initialReminder || !initialMarketing);
 

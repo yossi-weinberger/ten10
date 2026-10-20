@@ -22,7 +22,7 @@ import { ClearDataSection } from "@/components/settings/ClearDataSection";
 import { ImportExportDataSection } from "@/components/settings/ImportExportDataSection";
 import { VersionInfoCard } from "@/components/settings/VersionInfoCard";
 import { AppLockSettingsCard } from "@/components/settings/AppLockSettingsCard";
-import { markOptInPromptAsShown } from "@/components/OptInPromptDialog";
+import { markOptInPromptAsShown } from "@/lib/optInPrompt";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { ImportConfirmModal } from "@/components/settings/ImportConfirmModal";
 import { ImportDuplicatesModal } from "@/components/settings/ImportDuplicatesModal";

@@ -11,8 +11,7 @@
         "no-shadow-restricted-names": 1,
         "no-unsafe-finally": 1,
         "no-useless-escape": 8,
-        "react-hooks/exhaustive-deps": 11,
-        "react-hooks/immutability": 1,
+        "react-hooks/exhaustive-deps": 10,
         "react-hooks/incompatible-library": 4,
         "react-hooks/refs": 23,
         "react-hooks/rules-of-hooks": 1,
@@ -877,24 +876,10 @@
           "count": 2
         },
         {
-          "code": "react-hooks/immutability",
-          "file": "src/pages/UnsubscribePage.tsx",
-          "message": "Error: Cannot access variable before it is declared `handleUnsubscribe` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.",
-          "severity": "error",
-          "count": 1
-        },
-        {
           "code": "react-hooks/set-state-in-effect",
           "file": "src/pages/UnsubscribePage.tsx",
           "message": "Error: Calling setState synchronously within an effect can trigger cascading renders Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes. Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).",
           "severity": "error",
-          "count": 1
-        },
-        {
-          "code": "react-hooks/exhaustive-deps",
-          "file": "src/pages/UnsubscribePage.tsx",
-          "message": "React Hook useEffect has a missing dependency: 'handleUnsubscribe'. Either include it or remove the dependency array.",
-          "severity": "warning",
           "count": 1
         },
         {
@@ -976,10 +961,10 @@
         }
       ],
       "severities": {
-        "error": 163,
-        "warning": 25
+        "error": 162,
+        "warning": 24
       },
-      "total": 188
+      "total": 186
     },
     "typecheck:app": {
       "command": "tsc -p tsconfig.app.json --noEmit --pretty false",
