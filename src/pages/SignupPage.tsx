@@ -25,7 +25,7 @@ const SignupPage: React.FC = () => {
   const { platform } = usePlatform();
   const { loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { t } = useTranslation("auth");
+  const { t, i18n } = useTranslation("auth");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
