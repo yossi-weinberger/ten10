@@ -203,7 +203,7 @@ reminder_enabled = false + mailing_list_consent = false →
 
 Unsubscribe מעדכן רק עמודות ייעודיות ב־`profiles` (`reminder_enabled` / `mailing_list_consent`), לא את `client_preferences.notifications`.
 
-**שינוי מרכזי מאז PR #510**: תזכורות ושיווק הם עצמאיים לחלוטין:
+**שינוי מרכזי מאז PR #528**: תזכורות ושיווק הם עצמאיים לחלוטין:
 
 - **Settings UI (web)**: שני toggles נפרדים
   - תזכורות חודשיות → `reminder_enabled`

@@ -11,7 +11,7 @@
         "no-shadow-restricted-names": 1,
         "no-unsafe-finally": 1,
         "no-useless-escape": 8,
-        "react-hooks/exhaustive-deps": 10,
+        "react-hooks/exhaustive-deps": 11,
         "react-hooks/incompatible-library": 4,
         "react-hooks/refs": 23,
         "react-hooks/rules-of-hooks": 1,
@@ -883,6 +883,13 @@
           "count": 1
         },
         {
+          "code": "react-hooks/exhaustive-deps",
+          "file": "src/pages/UnsubscribePage.tsx",
+          "message": "The 'handleUnsubscribe' function makes the dependencies of useEffect Hook (at line 88) change on every render. Move it inside the useEffect callback. Alternatively, wrap the definition of 'handleUnsubscribe' in its own useCallback() Hook.",
+          "severity": "warning",
+          "count": 1
+        },
+        {
           "code": "@typescript-eslint/no-explicit-any",
           "file": "supabase/functions/_shared/simple-email-service.ts",
           "message": "Unexpected any. Specify a different type.",
@@ -962,9 +969,9 @@
       ],
       "severities": {
         "error": 162,
-        "warning": 24
+        "warning": 25
       },
-      "total": 186
+      "total": 187
     },
     "typecheck:app": {
       "command": "tsc -p tsconfig.app.json --noEmit --pretty false",

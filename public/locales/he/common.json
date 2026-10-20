@@ -13,8 +13,7 @@
       "clearDataSuccess": "הנתונים נמחקו בהצלחה",
       "clearDataError": "שגיאה במחיקת הנתונים",
       "clearDataConfirm": "האם אתה בטוח שברצונך למחוק את כל הנתונים?",
-      "updateError": "שגיאה בעדכון ההגדרות",
-      "updateSuccess": "ההגדרות עודכנו בהצלחה"
+      "updateError": "שגיאה בעדכון ההגדרות"
     },
     "transaction": {
       "addSuccess": "התנועה נוספה בהצלחה",

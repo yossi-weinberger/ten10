@@ -82,9 +82,9 @@
     "description": "By using Ten10, you agree that we may send you service-related messages.",
     "signupNotice": "Consent to receive marketing updates is provided at the signup screen, where you are presented with an opt-out option, and not by these Terms.",
     "item1": "Service emails (monthly reminders): Independent service emails that can be disabled in Settings. Separate from marketing preferences",
-    "item2": "Marketing emails (updates and news): At signup, when you provide your email, you are notified it may be used for Ten10 updates and you can opt out right there. Can be changed at any time in Settings or via link in any email",
+    "item2": "Marketing emails (updates and news): The option to receive marketing updates is provided in the signup screen. When providing your email address, a notice is displayed that the address may also be used to send marketing updates, and you are given the option to decline. These terms alone do not serve as a substitute for this notice",
     "item3": "Separate unsubscribe links: for reminders only, marketing only, or both. Do not reply to no-reply addresses; contact us via the support email instead",
-    "materialChanges": "Material changes to the privacy policy or marketing preferences will require explicit consent and will not be deemed approved by silence or continued use alone."
+    "materialChanges": "A change that requires new consent under applicable law will not take effect without obtaining the required consent. For other material changes, we will provide appropriate notice in accordance with the law."
   },
   "openSource": {
     "title": "Open Source & Intellectual Property",
@@ -95,7 +95,7 @@
     "description": "Some terms apply to the extent permitted by law and may vary by jurisdiction.",
     "item1": "Nothing in these Terms limits rights that cannot be limited under applicable law",
     "item2": "If any part of these Terms is unenforceable, the rest remains in effect",
-    "item3": "We may update these Terms from time to time. Material changes will require explicit consent where mandated by law or policy, and will not be deemed approved by silence or continued use alone"
+    "item3": "We may update these Terms from time to time. A change that requires new consent under applicable law will not take effect without obtaining the required consent. For other material changes, we will provide appropriate notice in accordance with the law"
   },
   "jurisdiction": {
     "title": "Governing Law & Jurisdiction",
@@ -105,12 +105,10 @@
   },
   "changes": {
     "title": "Changes to Terms",
-    "description": "We reserve the right to update these terms of service at any time. Material changes will be published here. Continued use of the service does not automatically constitute acceptance of material changes; we will request explicit consent where required by law or policy."
+    "description": "We reserve the right to update these terms of service at any time. A change that requires new consent under applicable law will not take effect without obtaining the required consent. For other material changes, we will provide appropriate notice in accordance with the law."
   },
   "contact": {
     "title": "Contact",
     "description": "For questions or clarifications regarding the terms of service, please contact us:"
   }
-,
-  "footer": "© Ten10. All rights reserved."
 }

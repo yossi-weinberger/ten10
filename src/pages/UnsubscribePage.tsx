@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useSearch } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/lib/supabaseClient";
@@ -9,33 +9,22 @@ import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 
 type UnsubscribeType = "reminder" | "marketing" | "all";
 
-type ErrorType = 
-  | "invalidToken"
-  | "expiredToken" 
-  | "updateFailed"
-  | "general";
-
-type ResultState = {
-  status: "loading" | "success" | "error";
-  type?: UnsubscribeType;
-  errorType?: ErrorType;
-};
-
 export default function UnsubscribePage() {
-  const { t, i18n } = useTranslation("auth");
+  const { t } = useTranslation("auth");
   const search = useSearch({ from: "/unsubscribe" });
-  const [result, setResult] = useState<ResultState>({ status: "loading" });
+  const [status, setStatus] = useState<"loading" | "success" | "error">(
+    "loading"
+  );
+  const [message, setMessage] = useState("");
+  const [title, setTitle] = useState("");
 
-  useEffect(() => {
-    document.documentElement.dir = i18n.dir();
-    document.documentElement.lang = i18n.language;
-  }, [i18n, i18n.language]);
-
-  const handleUnsubscribe = useCallback(async (
+  const handleUnsubscribe = async (
     token: string,
     type: UnsubscribeType
   ) => {
     try {
+      // Single call: Edge Function verifies the JWT and updates preferences
+      // with service_role. Browser never sends p_user_id to a public RPC.
       const { data, error } = await supabase.functions.invoke(
         "verify-unsubscribe-token",
         {
@@ -45,19 +34,17 @@ export default function UnsubscribePage() {
 
       if (error || data?.error || !data?.success) {
         logger.error("Unsubscribe failed:", error ?? data?.error);
-        
-        let statusCode: number | undefined;
-        if (error && typeof error === "object" && "context" in error) {
-          statusCode = (error.context as Response).status;
+        setStatus("error");
+        const looksExpired =
+          typeof data?.error === "string" &&
+          data.error.toLowerCase().includes("expired");
+        if (looksExpired || error?.message?.toLowerCase().includes("401")) {
+          setTitle(t("unsubscribe.error.expiredToken.title"));
+          setMessage(t("unsubscribe.error.expiredToken.message"));
+        } else {
+          setTitle(t("unsubscribe.error.updateFailed.title"));
+          setMessage(t("unsubscribe.error.updateFailed.message"));
         }
-        
-        const errorType: ErrorType = 
-          statusCode === 401 || statusCode === 400 ? "invalidToken" :
-          statusCode === 410 ? "expiredToken" :
-          statusCode ? "updateFailed" :
-          "general";
-        
-        setResult({ status: "error", errorType });
         return;
       }
 
@@ -66,12 +53,24 @@ export default function UnsubscribePage() {
           ? data.type 
           : type;
 
-      setResult({ status: "success", type: resolvedType });
+      setStatus("success");
+      if (resolvedType === "reminder") {
+        setTitle(t("unsubscribe.success.reminder.title"));
+        setMessage(t("unsubscribe.success.reminder.message"));
+      } else if (resolvedType === "marketing") {
+        setTitle(t("unsubscribe.success.marketing.title"));
+        setMessage(t("unsubscribe.success.marketing.message"));
+      } else {
+        setTitle(t("unsubscribe.success.all.title"));
+        setMessage(t("unsubscribe.success.all.message"));
+      }
     } catch (error) {
       logger.error("Unsubscribe error:", error);
-      setResult({ status: "error", errorType: "general" });
+      setStatus("error");
+      setTitle(t("unsubscribe.error.general.title"));
+      setMessage(t("unsubscribe.error.general.message"));
     }
-  }, []);
+  };
 
   useEffect(() => {
     const searchParams = search as { token?: string; type?: string };
@@ -79,33 +78,23 @@ export default function UnsubscribePage() {
     const type = (searchParams.type || "all") as UnsubscribeType;
 
     if (!token) {
-      setResult({ status: "error", errorType: "invalidToken" });
+      setStatus("error");
+      setTitle(t("unsubscribe.error.invalidToken.title"));
+      setMessage(t("unsubscribe.error.invalidToken.message"));
       return;
     }
 
     handleUnsubscribe(token, type);
-  }, [search, handleUnsubscribe]);
-
-  const getKey = (suffix: "title" | "message") => {
-    if (result.status === "loading") {
-      return suffix === "title" ? "unsubscribe.processing" : "unsubscribe.processingMessage";
-    }
-    const base = result.status === "success" && result.type
-      ? `unsubscribe.success.${result.type}`
-      : result.status === "error" && result.errorType
-      ? `unsubscribe.error.${result.errorType}`
-      : "unsubscribe.processing";
-    return `${base}.${suffix}`;
-  };
+  }, [search, t, handleUnsubscribe]);
 
   return (
     <div className="grid gap-6">
       <div className="grid gap-2">
         <h2 className="text-2xl font-bold text-foreground">
-          {t(getKey("title"))}
+          {title || t("unsubscribe.processing")}
         </h2>
         <p className="text-muted-foreground">
-          {result.status === "loading"
+          {status === "loading"
             ? t("unsubscribe.processingMessage")
             : t("unsubscribe.pageSubtitle")}
         </p>
@@ -115,23 +104,23 @@ export default function UnsubscribePage() {
         <CardContent className="pt-6">
           <div className="flex flex-col items-center justify-center text-center space-y-6 min-h-[300px]">
             <div>
-              {result.status === "loading" && (
+              {status === "loading" && (
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />
               )}
-              {result.status === "success" && (
+              {status === "success" && (
                 <CheckCircle className="h-16 w-16 text-green-600 dark:text-green-400" />
               )}
-              {result.status === "error" && (
+              {status === "error" && (
                 <XCircle className="h-16 w-16 text-destructive" />
               )}
             </div>
 
             <div className="space-y-6 flex flex-col items-center">
               <p className="text-lg leading-relaxed text-foreground text-center max-w-md">
-                {t(getKey("message"))}
+                {message || t("unsubscribe.processingMessage")}
               </p>
 
-              {result.status !== "loading" && (
+              {status !== "loading" && (
                 <Button
                   onClick={() =>
                     (window.location.href = "https://ten10-app.com")

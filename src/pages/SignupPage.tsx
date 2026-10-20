@@ -250,28 +250,26 @@ const SignupPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-start space-x-2 rtl:space-x-reverse">
-              <Checkbox
-                id="opt-out-marketing"
-                checked={optOutMarketing}
-                onCheckedChange={(checked) =>
-                  setOptOutMarketing(checked as boolean)
-                }
-                disabled={isAnyLoading}
-                className="mt-0.5"
-              />
-              <div className="flex-1 space-y-1.5">
-                <Label
-                  htmlFor="opt-out-marketing"
-                  className="text-sm font-normal cursor-pointer text-muted-foreground leading-snug"
-                >
-                  {t("signup.optOutMarketingLabel")}
-                </Label>
-                <p className="text-xs text-muted-foreground leading-snug">
-                  {t("signup.emailUsageNotice")}
-                </p>
-              </div>
+          <div className="flex items-start space-x-2 rtl:space-x-reverse">
+            <Checkbox
+              id="opt-out-marketing"
+              checked={optOutMarketing}
+              onCheckedChange={(checked) =>
+                setOptOutMarketing(checked as boolean)
+              }
+              disabled={isAnyLoading}
+              className="mt-0.5"
+            />
+            <div className="flex-1 space-y-1.5">
+              <Label
+                htmlFor="opt-out-marketing"
+                className="text-sm font-normal cursor-pointer text-muted-foreground leading-snug"
+              >
+                {t("signup.optOutMarketingLabel")}
+              </Label>
+              <p className="text-xs text-muted-foreground leading-snug">
+                {t("signup.emailUsageNotice")}
+              </p>
             </div>
           </div>
 

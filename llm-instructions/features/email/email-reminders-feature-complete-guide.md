@@ -171,7 +171,6 @@ BEGIN
   JOIN auth.users u ON p.id = u.id
   WHERE p.reminder_enabled = true
     AND p.reminder_day_of_month = reminder_day
-    AND coalesce(p.mailing_list_consent, false) = true  -- Historical: kept for backward compat; PR #528 decoupled
     AND u.email IS NOT NULL;
 END;
 $function$;

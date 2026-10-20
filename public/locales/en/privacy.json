@@ -29,7 +29,7 @@
     },
     "desktop": {
       "title": "Desktop Application",
-      "description": "Data is stored locally on your computer in a SQLite file and is not uploaded. Only you can access your data."
+      "description": "Application data is stored locally on the computer in a SQLite file. Ten10 does not automatically upload the local database to its servers unless you choose an action that includes exporting or sharing information."
     }
   },
   "internationalTransfer": {
@@ -70,7 +70,7 @@
     },
     "marketing": {
       "title": "Marketing Updates (Ten10 News)",
-      "description": "At signup, when you provide your email address, you are notified that it may be used for marketing and can opt out right there. You can change this preference at any time in Settings or via the unsubscribe link in any email. Opting out does not affect use of the service. Reminders and marketing are separate subscriptions."
+      "description": "The option to receive marketing updates is provided in the signup screen. When providing your email address, a notice is displayed that the address may also be used to send marketing updates, and you are given the option to decline. These terms alone do not serve as a substitute for this notice."
     },
     "unsubscribe": "To unsubscribe from reminders, marketing, or both, click the appropriate link in any email, or change your preferences in Settings, or contact us: contact@ten10-app.com"
   },
@@ -81,10 +81,11 @@
   },
   "cookies": {
     "title": "Cookies",
-    "description": "We use essential cookies required for the service to function:",
-    "item1": "Authentication cookies: To keep you signed in to your account",
-    "item2": "Preference cookies: To save your language and display settings",
-    "item3": "Google Analytics (landing page only): For anonymous traffic tracking",
+    "description": "Ten10 uses cookies and local storage required for the service to function, and may also use measurement and analytics technologies that are not essential.",
+    "item1": "Authentication cookies — Maintaining login and account security",
+    "item2": "Preferences — Saving language and settings",
+    "item3": "Google Analytics — Measurement and statistics on the landing page, if enabled",
+    "item4": "PostHog — Usage analysis in the web version, according to service settings",
     "note": "You can block cookies in your browser settings, but this may affect service functionality."
   },
   "ageRequirement": {
@@ -106,6 +107,4 @@
     "title": "Contact",
     "description": "If you have questions or concerns about the privacy policy, please contact us:"
   }
-,
-  "footer": "© Ten10. All rights reserved."
 }

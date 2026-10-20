@@ -176,6 +176,7 @@ export function SettingsPage() {
         mailingListConsent: settings.mailingListConsent,
       }}
       updateSettings={async (newNotificationSettings) => {
+        // Update local settings immediately
         updateSettings(newNotificationSettings);
 
         if (typeof newNotificationSettings.reminderEnabled === "boolean") {
@@ -184,10 +185,15 @@ export function SettingsPage() {
           });
         }
 
-        if (typeof newNotificationSettings.mailingListConsent === "boolean" && user) {
+        // Mark opt-in prompt as shown when either toggle changes
+        if (user && (
+          typeof newNotificationSettings.reminderEnabled === "boolean" || 
+          typeof newNotificationSettings.mailingListConsent === "boolean"
+        )) {
           markOptInPromptAsShown(user.id);
         }
 
+        // Update Supabase for web users — only fields present in this change
         if (platform === "web" && user) {
           try {
             const profileUpdate = buildReminderProfileUpdate(

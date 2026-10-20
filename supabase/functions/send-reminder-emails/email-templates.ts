@@ -25,7 +25,7 @@ export interface EmailTemplateData {
   kind?: "monthly" | "maaser-year";
   unsubscribeUrls?: {
     reminderUrl: string;
-    marketingUrl?: string;
+    marketingUrl: string;
     allUrl: string;
   };
 }
@@ -261,22 +261,15 @@ function renderUnsubscribeFooter(
   data: EmailTemplateData,
   copy: (typeof REMINDER_COPY)[ReminderLanguage],
 ): string {
-  if (!data.unsubscribeUrls) {
-    return `<div style="color: ${colors.bodyLight}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px;">${escapeHtml(copy.footerPreferenceNote)}</div>`;
-  }
-
-  const { reminderUrl, marketingUrl, allUrl } = data.unsubscribeUrls;
-  const marketingLink = marketingUrl
-    ? `<span style="color: ${colors.bodyLight}; padding: 0 8px;">·</span>
-        <a href="${escapeHtml(marketingUrl)}" style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; text-decoration: underline;">${escapeHtml(copy.unsubscribeMarketing)}</a>`
-    : "";
-
-  const links = `<div style="margin-top: 12px;">
-        <a href="${escapeHtml(reminderUrl)}" style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; text-decoration: underline;">${escapeHtml(copy.unsubscribeReminder)}</a>
-        ${marketingLink}
+  const links = data.unsubscribeUrls
+    ? `<div style="margin-top: 12px;">
+        <a href="${escapeHtml(data.unsubscribeUrls.reminderUrl)}" style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; text-decoration: underline;">${escapeHtml(copy.unsubscribeReminder)}</a>
         <span style="color: ${colors.bodyLight}; padding: 0 8px;">·</span>
-        <a href="${escapeHtml(allUrl)}" style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; text-decoration: underline;">${escapeHtml(copy.unsubscribeAll)}</a>
-      </div>`;
+        <a href="${escapeHtml(data.unsubscribeUrls.marketingUrl)}" style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; text-decoration: underline;">${escapeHtml(copy.unsubscribeMarketing)}</a>
+        <span style="color: ${colors.bodyLight}; padding: 0 8px;">·</span>
+        <a href="${escapeHtml(data.unsubscribeUrls.allUrl)}" style="color: ${colors.teal}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px; text-decoration: underline;">${escapeHtml(copy.unsubscribeAll)}</a>
+      </div>`
+    : "";
 
   return `<div style="color: ${colors.bodyLight}; font-family: ${fontFamily}; font-size: 13px; line-height: 20px;">${escapeHtml(copy.footerPreferenceNote)}</div>${links}`;
 }
@@ -356,9 +349,7 @@ export function generateReminderEmailText(data: EmailTemplateData): string {
     ? [
         "",
         `${copy.unsubscribeReminder}: ${data.unsubscribeUrls.reminderUrl}`,
-        ...(data.unsubscribeUrls.marketingUrl
-          ? [`${copy.unsubscribeMarketing}: ${data.unsubscribeUrls.marketingUrl}`]
-          : []),
+        `${copy.unsubscribeMarketing}: ${data.unsubscribeUrls.marketingUrl}`,
         `${copy.unsubscribeAll}: ${data.unsubscribeUrls.allUrl}`,
       ].join("\n")
     : "";

@@ -20,6 +20,7 @@ import {
 } from "@/lib/data-layer/reminders";
 import type { CalendarType } from "@/lib/calendar";
 
+// Define the specific settings properties needed by this component
 interface NotificationSettings {
   notifications: boolean;
   recurringDonations: boolean;
@@ -68,7 +69,8 @@ export function NotificationSettingsCard({
     setAutostartStatus(enabled);
   };
 
-  const reminderNotificationsOn = Boolean(notificationSettings.reminderEnabled);
+  // Display state based on reminderEnabled only (decoupled from marketing consent).
+  const emailNotificationsOn = Boolean(notificationSettings.reminderEnabled);
   const marketingNotificationsOn = Boolean(notificationSettings.mailingListConsent);
 
   return (
@@ -102,18 +104,18 @@ export function NotificationSettingsCard({
             <div>
               <Label>
                 {isWeb
-                  ? t("notifications.reminderEmailsLabel")
-                  : t("notifications.reminderNotificationsLabel")}
+                  ? t("notifications.emailNotificationsLabel")
+                  : t("notifications.desktopNotificationsLabel")}
               </Label>
               <p className="text-sm text-muted-foreground">
                 {isWeb
-                  ? t("notifications.reminderEmailsDescription")
-                  : t("notifications.reminderNotificationsDescription")}
+                  ? t("notifications.emailNotificationsDescription")
+                  : t("notifications.desktopNotificationsDescription")}
               </p>
             </div>
           </div>
           <Switch
-            checked={reminderNotificationsOn}
+            checked={emailNotificationsOn}
             onCheckedChange={(checked) =>
               updateSettings({
                 notifications: checked,
@@ -130,7 +132,7 @@ export function NotificationSettingsCard({
             ariaLabel={t("notifications.reminderCalendarLabel")}
             className="w-44"
             value={notificationSettings.reminderCalendarType}
-            disabled={disabled || !reminderNotificationsOn}
+            disabled={disabled || !emailNotificationsOn}
             onValueChange={(value) =>
               updateSettings({ reminderCalendarType: value })
             }
@@ -157,7 +159,7 @@ export function NotificationSettingsCard({
               <button
                 key={day}
                 onClick={() => handleDayChange(day)}
-                disabled={disabled || !reminderNotificationsOn}
+                disabled={disabled || !emailNotificationsOn}
                 className={`
                   px-2 py-2 text-xs sm:text-sm font-medium rounded-md border transition-colors
                   ${
@@ -166,7 +168,7 @@ export function NotificationSettingsCard({
                       : "bg-background text-foreground border-border hover:bg-accent hover:text-accent-foreground"
                   }
                   ${
-                    disabled || !reminderNotificationsOn
+                    disabled || !emailNotificationsOn
                       ? "opacity-50 cursor-not-allowed"
                       : "cursor-pointer"
                   }

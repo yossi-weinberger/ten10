@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDonationStore } from "@/lib/store";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
-import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -18,22 +17,14 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Mail } from "lucide-react";
-import { buildReminderProfileUpdate } from "@/lib/services/preferences-sync.service";
 import { markOptInPromptAsShown, hasOptInPromptBeenShown } from "@/lib/optInPrompt";
 
 const NEW_USER_GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
 
-async function isNewUser(): Promise<boolean> {
-  try {
-    const { data: userData, error } = await supabase.auth.getUser();
-    if (error || !userData?.user?.created_at) return false;
-    
-    const createdAt = new Date(userData.user.created_at).getTime();
-    const now = Date.now();
-    return (now - createdAt) < NEW_USER_GRACE_PERIOD_MS;
-  } catch {
-    return false;
-  }
+function isNewUser(createdAt: string): boolean {
+  const createdAtTime = new Date(createdAt).getTime();
+  const now = Date.now();
+  return (now - createdAtTime) < NEW_USER_GRACE_PERIOD_MS;
 }
 
 export function OptInPromptDialog() {
@@ -42,31 +33,21 @@ export function OptInPromptDialog() {
   const { platform } = usePlatform();
   const { settings, updateSettings, _hasHydrated } = useDonationStore();
   const [dismissed, setDismissed] = useState(false);
-  const [isNewUserState, setIsNewUserState] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
-  
-  const initialReminder = settings.reminderEnabled === true;
-  const initialMarketing = settings.mailingListConsent === true;
-  const [enableReminders, setEnableReminders] = useState(initialReminder);
-  const [enableMarketing, setEnableMarketing] = useState(initialMarketing);
+  const [enableReminders, setEnableReminders] = useState(false);
+  const [enableMarketing, setEnableMarketing] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      isNewUser().then(setIsNewUserState);
-    }
-  }, [user]);
-
-  const needsReminder = !initialReminder;
-  const needsMarketing = !initialMarketing;
+  const needsReminder = !settings.reminderEnabled;
+  const needsMarketing = !settings.mailingListConsent;
+  const isNewUserCheck = user?.created_at ? isNewUser(user.created_at) : true;
 
   const shouldShow = _hasHydrated && 
     platform === "web" && 
     user && 
     !dismissed && 
-    !isNewUserState &&
+    !isNewUserCheck &&
     !hasOptInPromptBeenShown(user.id) &&
-    (initialReminder || initialMarketing) &&
-    (!initialReminder || !initialMarketing);
+    (needsReminder || needsMarketing);
 
   if (!_hasHydrated || !user) {
     return null;
@@ -78,14 +59,18 @@ export function OptInPromptDialog() {
     setIsUpdating(true);
     try {
       const updates: Partial<typeof settings> = {};
+      const profileUpdates: Record<string, boolean | number> = {};
       
-      if (enableReminders !== initialReminder) {
+      if (needsReminder) {
         updates.reminderEnabled = enableReminders;
         updates.notifications = enableReminders;
+        profileUpdates.reminder_enabled = enableReminders;
+        profileUpdates.notifications = enableReminders;
       }
       
-      if (enableMarketing !== initialMarketing) {
+      if (needsMarketing) {
         updates.mailingListConsent = enableMarketing;
+        profileUpdates.mailing_list_consent = enableMarketing;
       }
 
       if (Object.keys(updates).length === 0) {
@@ -96,23 +81,17 @@ export function OptInPromptDialog() {
 
       updateSettings(updates);
 
-      const profileUpdate = buildReminderProfileUpdate({
-        ...settings,
-        ...updates,
-      });
       const { error } = await supabase
         .from("profiles")
-        .update(profileUpdate)
+        .update(profileUpdates)
         .eq("id", user.id);
 
       if (error) throw error;
 
       markShown();
       setDismissed(true);
-      toast.success(t("toast.settings.updateSuccess"));
     } catch (error) {
       logger.error("Failed to update opt-in preferences:", error);
-      toast.error(t("toast.settings.updateError"));
     } finally {
       setIsUpdating(false);
     }
@@ -122,34 +101,6 @@ export function OptInPromptDialog() {
     markShown();
     setDismissed(true);
   };
-
-  const checkboxes: Array<{
-    id: string;
-    checked: boolean;
-    onChange: (value: boolean) => void;
-    label: string;
-    description: string;
-  }> = [];
-  
-  if (needsReminder) {
-    checkboxes.push({
-      id: "enable-reminders",
-      checked: enableReminders,
-      onChange: setEnableReminders,
-      label: t("optInPrompt.reminderLabel"),
-      description: t("optInPrompt.reminderDescription"),
-    });
-  }
-  
-  if (needsMarketing) {
-    checkboxes.push({
-      id: "enable-marketing",
-      checked: enableMarketing,
-      onChange: setEnableMarketing,
-      label: t("optInPrompt.marketingLabel"),
-      description: t("optInPrompt.marketingDescription"),
-    });
-  }
 
   return (
     <Dialog open={!!shouldShow} onOpenChange={(open) => !open && handleDismiss()}>
@@ -169,25 +120,45 @@ export function OptInPromptDialog() {
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
-          {checkboxes.map((checkbox) => (
-            <div key={checkbox.id} className="flex items-start space-x-3 rtl:space-x-reverse">
+          {needsReminder && (
+            <div className="flex items-start space-x-3 rtl:space-x-reverse">
               <Checkbox
-                id={checkbox.id}
-                checked={checkbox.checked}
-                onCheckedChange={(checked) => checkbox.onChange(!!checked)}
+                id="enable-reminders"
+                checked={enableReminders}
+                onCheckedChange={(checked) => setEnableReminders(!!checked)}
                 disabled={isUpdating}
                 className="mt-1"
               />
               <div className="grid gap-1.5 leading-none">
-                <Label htmlFor={checkbox.id} className="text-sm font-medium cursor-pointer">
-                  {checkbox.label}
+                <Label htmlFor="enable-reminders" className="text-sm font-medium cursor-pointer">
+                  {t("optInPrompt.reminderLabel")}
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  {checkbox.description}
+                  {t("optInPrompt.reminderDescription")}
                 </p>
               </div>
             </div>
-          ))}
+          )}
+
+          {needsMarketing && (
+            <div className="flex items-start space-x-3 rtl:space-x-reverse">
+              <Checkbox
+                id="enable-marketing"
+                checked={enableMarketing}
+                onCheckedChange={(checked) => setEnableMarketing(!!checked)}
+                disabled={isUpdating}
+                className="mt-1"
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label htmlFor="enable-marketing" className="text-sm font-medium cursor-pointer">
+                  {t("optInPrompt.marketingLabel")}
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  {t("optInPrompt.marketingDescription")}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter className="flex-col sm:flex-row gap-2">

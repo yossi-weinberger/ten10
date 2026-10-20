@@ -13,8 +13,7 @@
       "clearDataSuccess": "Data cleared successfully",
       "clearDataError": "Error clearing data",
       "clearDataConfirm": "Are you sure you want to clear all data?",
-      "updateError": "Error updating settings",
-      "updateSuccess": "Settings updated successfully"
+      "updateError": "Error updating settings"
     },
     "transaction": {
       "addSuccess": "Transaction added successfully",
