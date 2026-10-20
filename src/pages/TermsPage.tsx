@@ -282,11 +282,17 @@ export function TermsPage() {
                   <p className="text-gray-600 dark:text-gray-300 mb-4">
                     {t("communications.description")}
                   </p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    {t("communications.signupNotice")}
+                  </p>
                   <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4">
                     <li>{t("communications.item1")}</li>
                     <li>{t("communications.item2")}</li>
                     <li>{t("communications.item3")}</li>
                   </ul>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-4">
+                    {t("communications.materialChanges")}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -395,7 +401,7 @@ export function TermsPage() {
 
         {/* Footer */}
         <div className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>{t("footer", { year: new Date().getFullYear() })}</p>
+          <p>{t("footer")}</p>
         </div>
       </div>
     </div>

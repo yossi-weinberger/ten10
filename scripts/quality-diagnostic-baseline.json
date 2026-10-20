@@ -969,6 +969,7 @@
     "typecheck:app": {
       "command": "tsc -p tsconfig.app.json --noEmit --pretty false",
       "categories": {
+        "TS2304": 2,
         "TS2305": 7,
         "TS2307": 3,
         "TS2322": 18,
@@ -1585,6 +1586,13 @@
           "count": 1
         },
         {
+          "code": "TS2304",
+          "file": "src/pages/SignupPage.tsx",
+          "message": "Cannot find name 'i18n'.",
+          "severity": "error",
+          "count": 2
+        },
+        {
           "code": "TS6133",
           "file": "src/pages/TransactionsTable.tsx",
           "message": "'React' is declared but its value is never read.",
@@ -1614,9 +1622,9 @@
         }
       ],
       "severities": {
-        "error": 105
+        "error": 107
       },
-      "total": 105
+      "total": 107
     }
   },
   "version": 1

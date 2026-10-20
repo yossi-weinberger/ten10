@@ -82,8 +82,16 @@ export function PrivacyPage() {
                   <p className="text-gray-600 dark:text-gray-300 mb-4">
                     {t("dataCollection.description")}
                   </p>
-                  <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4">
+                  <p className="font-semibold text-gray-900 dark:text-white mb-2">
+                    {t("dataCollection.required")}
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4 mb-3">
                     <li>{t("dataCollection.item1")}</li>
+                  </ul>
+                  <p className="font-semibold text-gray-900 dark:text-white mb-2">
+                    {t("dataCollection.optional")}
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4">
                     <li>{t("dataCollection.item2")}</li>
                     <li>{t("dataCollection.item3")}</li>
                     <li>{t("dataCollection.item4")}</li>
@@ -105,13 +113,18 @@ export function PrivacyPage() {
                   <p className="text-gray-600 dark:text-gray-300 mb-4">
                     {t("dataStorage.description")}
                   </p>
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-3">
                     <p className="font-semibold text-gray-900 dark:text-white">
                       {t("dataStorage.web.title")}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {t("dataStorage.web.description")}
+                      {t("dataStorage.web.location")}
                     </p>
+                    <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 dark:text-gray-300 ms-2">
+                      <li>{t("dataStorage.web.encryption")}</li>
+                      <li>{t("dataStorage.web.rls")}</li>
+                      <li>{t("dataStorage.web.access")}</li>
+                    </ul>
                     <p className="font-semibold text-gray-900 dark:text-white mt-4">
                       {t("dataStorage.desktop.title")}
                     </p>
@@ -140,9 +153,15 @@ export function PrivacyPage() {
                     <li>{t("internationalTransfer.item1")}</li>
                     <li>{t("internationalTransfer.item2")}</li>
                     <li>{t("internationalTransfer.item3")}</li>
+                    <li>{t("internationalTransfer.item4")}</li>
+                    <li>{t("internationalTransfer.item5")}</li>
+                    <li>{t("internationalTransfer.item6")}</li>
                   </ul>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
                     {t("internationalTransfer.note")}
+                  </p>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-3">
+                    {t("internationalTransfer.financialDataNote")}
                   </p>
                 </div>
               </div>
@@ -165,7 +184,6 @@ export function PrivacyPage() {
                     <li>{t("dataRetention.item1")}</li>
                     <li>{t("dataRetention.item2")}</li>
                     <li>{t("dataRetention.item3")}</li>
-                    <li>{t("dataRetention.item4")}</li>
                   </ul>
                 </div>
               </div>
@@ -189,6 +207,8 @@ export function PrivacyPage() {
                     <li>{t("dataUsage.item2")}</li>
                     <li>{t("dataUsage.item3")}</li>
                     <li>{t("dataUsage.item4")}</li>
+                    <li>{t("dataUsage.item5")}</li>
+                    <li>{t("dataUsage.item6")}</li>
                   </ul>
                 </div>
               </div>
@@ -311,6 +331,8 @@ export function PrivacyPage() {
                 <li>{t("userRights.item3")}</li>
                 <li>{t("userRights.item4")}</li>
                 <li>{t("userRights.item5")}</li>
+                <li>{t("userRights.item6")}</li>
+                <li>{t("userRights.item7")}</li>
               </ul>
             </CardContent>
           </Card>
@@ -338,7 +360,7 @@ export function PrivacyPage() {
 
         {/* Footer */}
         <div className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>{t("footer", { year: new Date().getFullYear() })}</p>
+          <p>{t("footer")}</p>
         </div>
       </div>
     </div>
