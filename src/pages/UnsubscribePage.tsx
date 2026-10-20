@@ -51,9 +51,32 @@ export default function UnsubscribePage() {
         logger.error("Unsubscribe failed:", error ?? data?.error);
         setStatus("error");
         
-        const errorMsg = (typeof data?.error === "string" ? data.error : error?.message || "").toLowerCase();
+        // For FunctionsHttpError, read status and body from error.context (a Response)
+        let statusCode: number | undefined;
+        let errorBody: { error?: string } | null = null;
+        
+        if (error && typeof error === "object" && "context" in error) {
+          const ctx = error.context as Response;
+          statusCode = ctx.status;
+          try {
+            errorBody = await ctx.json();
+          } catch {
+            // body might not be JSON
+          }
+        }
+        
+        const errorMsg = (
+          errorBody?.error || 
+          (typeof data?.error === "string" ? data.error : "") || 
+          (error?.message || "")
+        ).toLowerCase();
+        
         const looksExpired = errorMsg.includes("expired");
-        const looksInvalid = errorMsg.includes("invalid") || errorMsg.includes("token") || error?.status === 401 || error?.status === 400;
+        const looksInvalid = 
+          errorMsg.includes("invalid") || 
+          errorMsg.includes("token") || 
+          statusCode === 401 || 
+          statusCode === 400;
         
         if (looksExpired && looksInvalid) {
           // "Invalid or expired token" from edge function

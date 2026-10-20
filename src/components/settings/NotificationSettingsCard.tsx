@@ -127,7 +127,7 @@ export function NotificationSettingsCard({
 
         {/* Calendar Type and Reminder Day - shown only when reminders are enabled */}
         {reminderNotificationsOn && (
-          <div className="space-y-4 mt-2 pl-11 border-l-2 border-muted">
+          <div className="space-y-4 mt-2 ps-11 border-s-2 border-muted">
             {/* Calendar Type Selection */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <Label>{t("notifications.reminderCalendarLabel")}</Label>

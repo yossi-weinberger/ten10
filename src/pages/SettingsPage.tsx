@@ -183,6 +183,15 @@ export function SettingsPage() {
             enabled: newNotificationSettings.reminderEnabled,
           });
         }
+        
+        // Mark opt-in prompt as shown if user manually changed marketing preference
+        if (typeof newNotificationSettings.mailingListConsent === "boolean" && user) {
+          try {
+            localStorage.setItem(`ten10_opt_in_prompt_shown_${user.id}`, "true");
+          } catch (error) {
+            logger.error("Failed to mark opt-in prompt as shown:", error);
+          }
+        }
 
         // Update Supabase for web users — only fields present in this change
         if (platform === "web" && user) {

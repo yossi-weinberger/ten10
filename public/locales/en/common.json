@@ -50,7 +50,9 @@
   },
   "optInPrompt": {
     "title": "Would you like to enable updates?",
-    "description": "We'd love to keep you updated on new features and send you monthly reminders.",
+    "descriptionBoth": "We'd love to keep you updated on new features and send you monthly reminders.",
+    "descriptionReminder": "We'd love to send you monthly reminders to help you stay on track.",
+    "descriptionMarketing": "We'd love to keep you updated on new features and improvements.",
     "reminderLabel": "Enable monthly reminders",
     "reminderDescription": "Receive an email reminder at the start of each month to check your Ma'aser balance",
     "marketingLabel": "Enable updates and news",

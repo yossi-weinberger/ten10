@@ -134,7 +134,11 @@ function OptInForm({ userId, initialReminder, initialMarketing, needsReminder, n
           <DialogTitle>{t("optInPrompt.title")}</DialogTitle>
         </div>
         <DialogDescription className="text-base">
-          {t("optInPrompt.description")}
+          {needsReminder && needsMarketing
+            ? t("optInPrompt.descriptionBoth")
+            : needsReminder
+            ? t("optInPrompt.descriptionReminder")
+            : t("optInPrompt.descriptionMarketing")}
         </DialogDescription>
       </DialogHeader>
 
