@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSearch } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/lib/supabaseClient";
@@ -18,7 +18,7 @@ export default function UnsubscribePage() {
   const [message, setMessage] = useState("");
   const [title, setTitle] = useState("");
 
-  const handleUnsubscribe = async (
+  const handleUnsubscribe = useCallback(async (
     token: string,
     type: UnsubscribeType
   ) => {
@@ -70,7 +70,7 @@ export default function UnsubscribePage() {
       setTitle(t("unsubscribe.error.general.title"));
       setMessage(t("unsubscribe.error.general.message"));
     }
-  };
+  }, [t]);
 
   useEffect(() => {
     const searchParams = search as { token?: string; type?: string };
