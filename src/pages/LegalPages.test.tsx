@@ -143,16 +143,4 @@ describe("Legal Pages - i18n keys validation", () => {
     expect(heTerms.communications).toHaveProperty("signupNotice");
     expect(heTerms.communications).toHaveProperty("materialChanges");
   });
-
-  it("Footer should not interpolate year (uses static text)", () => {
-    const { container } = render(<PrivacyPage />);
-    const text = container.textContent || "";
-
-    // Should NOT contain interpolation
-    expect(text).not.toContain("{{");
-    expect(text).not.toContain("}}");
-    
-    // Should render the footer key
-    expect(text).toContain("footer");
-  });
 });

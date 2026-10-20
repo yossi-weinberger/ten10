@@ -357,11 +357,6 @@ export function PrivacyPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Footer */}
-        <div className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>{t("footer")}</p>
-        </div>
       </div>
     </div>
   );
