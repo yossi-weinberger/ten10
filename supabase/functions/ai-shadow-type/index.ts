@@ -9,6 +9,7 @@ import {
   readShadowChoice,
   readTypeChoice,
 } from "../_shared/ai/jev-type-choice.ts";
+import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
 
 function json(origin: string | null, body: unknown, status: number): Response {
@@ -22,6 +23,7 @@ Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin");
   if (req.method === "OPTIONS") return new Response("ok", { headers: getCorsHeaders(origin) });
   if (req.method !== "POST") return json(origin, { recorded: false }, 405);
+  if (!isAiIntakeEnabled()) return json(origin, { reason: "unavailable" }, 200);
 
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) return json(origin, { error: "Missing authorization" }, 401);
