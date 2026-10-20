@@ -49,15 +49,16 @@
     "info": "מידע"
   },
   "optInPrompt": {
-    "title": "העדפות אימייל",
-    "descriptionReminder": "תרצה לקבל גם תזכורות חודשיות באימייל?",
-    "descriptionMarketing": "תרצה לקבל גם עדכונים וחדשות מ-Ten10?",
-    "reminderLabel": "תזכורות חודשיות באימייל",
-    "reminderDescription": "קבל תזכורת באימייל כל חודש בתאריך שבחרת",
-    "marketingLabel": "עדכונים וחדשות",
-    "marketingDescription": "עדכונים מדי פעם מ-Ten10, תכונות וטיפים",
+    "title": "האם תרצה להפעיל עדכונים?",
+    "descriptionReminder": "נשמח לשלוח לך תזכורות חודשיות שיעזרו לך להישאר מעודכן.",
+    "descriptionMarketing": "נשמח לעדכן אותך על תכונות חדשות ושיפורים.",
+    "reminderLabel": "הפעל תזכורות חודשיות",
+    "reminderDescription": "קבל תזכורת במייל בתחילת כל חודש לבדיקת יתרת המעשר",
+    "marketingLabel": "הפעל עדכונים וחדשות",
+    "marketingDescription": "קבל עדכונים על תכונות חדשות ושיפורים",
+    "notNow": "לא עכשיו",
     "updatePreferences": "עדכן העדפות",
-    "notNow": "לא עכשיו"
+    "updating": "מעדכן..."
   },
   "dataLoadError": "שגיאה בטעינת נתונים.",
   "export": {

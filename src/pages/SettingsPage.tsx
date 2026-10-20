@@ -22,6 +22,7 @@ import { ClearDataSection } from "@/components/settings/ClearDataSection";
 import { ImportExportDataSection } from "@/components/settings/ImportExportDataSection";
 import { VersionInfoCard } from "@/components/settings/VersionInfoCard";
 import { AppLockSettingsCard } from "@/components/settings/AppLockSettingsCard";
+import { markOptInPromptAsShown } from "@/components/OptInPromptDialog";
 import { OpeningBalanceModal } from "@/components/settings/OpeningBalanceModal";
 import { ImportConfirmModal } from "@/components/settings/ImportConfirmModal";
 import { ImportDuplicatesModal } from "@/components/settings/ImportDuplicatesModal";
@@ -181,6 +182,10 @@ export function SettingsPage() {
           trackProductEvent("reminder_preference_changed", {
             enabled: newNotificationSettings.reminderEnabled,
           });
+        }
+
+        if (typeof newNotificationSettings.mailingListConsent === "boolean" && user) {
+          markOptInPromptAsShown(user.id);
         }
 
         if (platform === "web" && user) {

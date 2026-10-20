@@ -22,9 +22,14 @@ type ResultState = {
 };
 
 export default function UnsubscribePage() {
-  const { t } = useTranslation("auth");
+  const { t, i18n } = useTranslation("auth");
   const search = useSearch({ from: "/unsubscribe" });
   const [result, setResult] = useState<ResultState>({ status: "loading" });
+
+  useEffect(() => {
+    document.documentElement.dir = i18n.dir();
+    document.documentElement.lang = i18n.language;
+  }, [i18n, i18n.language]);
 
   const handleUnsubscribe = useCallback(async (
     token: string,
@@ -49,7 +54,8 @@ export default function UnsubscribePage() {
         const errorType: ErrorType = 
           statusCode === 401 || statusCode === 400 ? "invalidToken" :
           statusCode === 410 ? "expiredToken" :
-          "updateFailed";
+          statusCode ? "updateFailed" :
+          "general";
         
         setResult({ status: "error", errorType });
         return;

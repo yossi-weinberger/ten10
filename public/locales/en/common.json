@@ -49,17 +49,16 @@
     "info": "Info"
   },
   "optInPrompt": {
-    "title": "Would you like to enable updates?",
-    "descriptionBoth": "We'd love to keep you updated on new features and send you monthly reminders.",
-    "descriptionReminder": "We'd love to send you monthly reminders to help you stay on track.",
-    "descriptionMarketing": "We'd love to keep you updated on new features and improvements.",
-    "reminderLabel": "Enable monthly reminders",
-    "reminderDescription": "Receive an email reminder at the start of each month to check your Ma'aser balance",
-    "marketingLabel": "Enable updates and news",
-    "marketingDescription": "Receive updates about new features and improvements",
-    "notNow": "Not now",
-    "updatePreferences": "Update preferences",
-    "updating": "Updating..."
+    "title": "Email Preferences",
+    "descriptionReminder": "Would you like to receive monthly reminder emails?",
+    "descriptionMarketing": "Would you like to receive updates and news from Ten10?",
+    "reminderLabel": "Monthly Reminder Emails",
+    "reminderDescription": "Get a reminder email every month on your chosen date",
+    "marketingLabel": "Updates and News",
+    "marketingDescription": "Occasional Ten10 updates, features and tips",
+    "updatePreferences": "Update Preferences",
+    "updating": "Updating...",
+    "notNow": "Not Now"
   },
   "dataLoadError": "Error loading data.",
   "export": {

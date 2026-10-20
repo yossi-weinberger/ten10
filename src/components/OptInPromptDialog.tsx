@@ -23,6 +23,14 @@ import { buildReminderProfileUpdate } from "@/lib/services/preferences-sync.serv
 const STORAGE_KEY_PREFIX = "ten10_opt_in_prompt_shown_";
 const NEW_USER_GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
 
+export function markOptInPromptAsShown(userId: string): void {
+  try {
+    localStorage.setItem(`${STORAGE_KEY_PREFIX}${userId}`, "true");
+  } catch (error) {
+    logger.error("Failed to mark opt-in prompt as shown:", error);
+  }
+}
+
 async function isNewUser(): Promise<boolean> {
   try {
     const { data: userData, error } = await supabase.auth.getUser();
@@ -72,13 +80,7 @@ export function OptInPromptDialog() {
     return null;
   }
 
-  const markShown = () => {
-    try {
-      localStorage.setItem(`${STORAGE_KEY_PREFIX}${user.id}`, "true");
-    } catch (error) {
-      logger.error("Failed to mark opt-in prompt as shown:", error);
-    }
-  };
+  const markShown = () => markOptInPromptAsShown(user.id);
 
   const handleUpdate = async () => {
     setIsUpdating(true);
@@ -210,7 +212,7 @@ export function OptInPromptDialog() {
             disabled={isUpdating}
             className="w-full sm:w-auto"
           >
-            {isUpdating ? t("common.updating") : t("optInPrompt.updatePreferences")}
+            {isUpdating ? t("optInPrompt.updating") : t("optInPrompt.updatePreferences")}
           </Button>
         </DialogFooter>
       </DialogContent>
