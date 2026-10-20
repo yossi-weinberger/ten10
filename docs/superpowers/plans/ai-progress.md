@@ -73,7 +73,7 @@
 | 57 | לא כפול ומחיקה באישור | DB על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#527](https://github.com/yossi-weinberger/ten10/pull/527) |
 | 58 | קצוות נמען וטווח | DB על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#529](https://github.com/yossi-weinberger/ten10/pull/529) |
 | 59 | כולל, חודש בודד, ומחיקה | UI | §9.9 | נפתח | [#530](https://github.com/yossi-weinberger/ten10/pull/530) |
-| 60 | כיבוי AI בפרודקשן | Edge על testing | §22 | נפתח | |
+| 60 | כיבוי AI בפרודקשן | Edge על testing | §22 | נפתח | [#531](https://github.com/yossi-weinberger/ten10/pull/531) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
