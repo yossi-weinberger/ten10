@@ -9,6 +9,7 @@ import {
   JEV_SYSTEMONE_URL,
   readDuplicateRanks,
 } from "../_shared/ai/jev-duplicate-rank.ts";
+import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
 
 const ALLOWED_TYPES = new Set<string>(AI_DRAFT_ALLOWED_TYPES);
@@ -52,6 +53,7 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { headers: getCorsHeaders(origin) });
   }
   if (req.method !== "POST") return json(origin, { ranked: false, scores: [] }, 405);
+  if (!isAiIntakeEnabled()) return json(origin, { reason: "unavailable" }, 200);
 
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) return json(origin, { error: "Missing authorization" }, 401);

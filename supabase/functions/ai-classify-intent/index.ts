@@ -3,6 +3,7 @@ import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "../_shared/ai/jev-duplicate-rank.ts";
 import { buildIntentBody, readIntentChoice } from "../_shared/ai/jev-intent.ts";
+import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
 
 function json(origin: string | null, body: unknown, status: number): Response {
@@ -16,6 +17,7 @@ Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin");
   if (req.method === "OPTIONS") return new Response("ok", { headers: getCorsHeaders(origin) });
   if (req.method !== "POST") return json(origin, { intent: null }, 405);
+  if (!isAiIntakeEnabled()) return json(origin, { reason: "unavailable" }, 200);
 
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) return json(origin, { error: "Missing authorization" }, 401);

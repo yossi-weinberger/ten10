@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
+import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { readTranscript, SPEECH_MODEL } from "../_shared/ai/speech-transcript.ts";
 
@@ -19,6 +20,7 @@ Deno.serve(async (req: Request) => {
   const origin = req.headers.get("origin");
   if (req.method === "OPTIONS") return new Response("ok", { headers: getCorsHeaders(origin) });
   if (req.method !== "POST") return json(origin, { text: null }, 405);
+  if (!isAiIntakeEnabled()) return json(origin, { reason: "unavailable" }, 200);
 
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) return json(origin, { error: "Missing authorization" }, 401);

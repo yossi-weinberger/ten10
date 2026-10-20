@@ -126,7 +126,7 @@ jobs:
             exit 1
           fi
           printf 'Deno test: %s\n' "${deno_tests[@]}"
-          deno test --config supabase/functions/deno.json "${deno_tests[@]}"
+          deno test --allow-env=AI_INTAKE_ENABLED --config supabase/functions/deno.json "${deno_tests[@]}"
 
   rust-tests:
     name: Rust tests
