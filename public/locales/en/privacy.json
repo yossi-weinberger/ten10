@@ -46,8 +46,8 @@
   "dataUsage": {
     "title": "Data Usage",
     "description": "We use your data for the following purposes:",
-    "item1": "Providing system services: Tithe calculations, budget management, and reports",
-    "item2": "Service improvement: Understanding user needs and improving functionality",
+    "item1": "Providing the application service and its features",
+    "item2": "Maintaining and improving the application",
     "item3": "Sending monthly reminders (independent service email, can be disabled in Settings)",
     "item4": "Sending updates and project news (marketing, can be unsubscribed)"
   },
@@ -60,7 +60,7 @@
     },
     "marketing": {
       "title": "Updates and News (Marketing)",
-      "description": "Updates about new features and project news. Default: enabled (opt-out). ⚠️ PENDING LAWYER APPROVAL"
+      "description": "Updates about new features and project news. You can opt out during signup or in Settings."
     },
     "unsubscribe": "To unsubscribe from reminders, marketing, or both, click the appropriate links in any email, or change your preferences in Settings, or contact us: contact@ten10-app.com"
   },
@@ -95,5 +95,5 @@
     "description": "If you have questions or concerns about the privacy policy, please contact us:"
   }
 ,
-  "footer": "© {year} Ten10. All rights reserved."
+  "footer": "© {{year}} Ten10. All rights reserved."
 }

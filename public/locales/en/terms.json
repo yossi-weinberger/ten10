@@ -110,5 +110,5 @@
     "description": "For questions or clarifications regarding the terms of service, please contact us:"
   }
 ,
-  "footer": "© {year} Ten10. All rights reserved."
+  "footer": "© {{year}} Ten10. All rights reserved."
 }

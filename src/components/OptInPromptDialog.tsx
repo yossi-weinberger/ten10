@@ -262,8 +262,15 @@ export function OptInPromptDialog() {
     return null;
   }
 
+  const handleDismiss = () => {
+    if (user) {
+      markPromptAsShown(user.id);
+    }
+    setDismissed(true);
+  };
+
   return (
-    <Dialog open={shouldShow} onOpenChange={(open) => !open && setDismissed(true)}>
+    <Dialog open={shouldShow} onOpenChange={(open) => !open && handleDismiss()}>
       <DialogContent className="sm:max-w-[440px]">
         <OptInForm
           userId={user.id}

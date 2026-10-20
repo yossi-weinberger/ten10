@@ -53,9 +53,13 @@ export default function UnsubscribePage() {
         
         const errorMsg = (typeof data?.error === "string" ? data.error : error?.message || "").toLowerCase();
         const looksExpired = errorMsg.includes("expired");
-        const looksInvalid = errorMsg.includes("invalid") || errorMsg.includes("malformed") || error?.message?.toLowerCase().includes("401");
+        const looksInvalid = errorMsg.includes("invalid") || errorMsg.includes("token") || error?.status === 401 || error?.status === 400;
         
-        if (looksExpired) {
+        if (looksExpired && looksInvalid) {
+          // "Invalid or expired token" from edge function
+          setTitle(t("unsubscribe.error.invalidToken.title"));
+          setMessage(t("unsubscribe.error.invalidToken.message"));
+        } else if (looksExpired) {
           setTitle(t("unsubscribe.error.expiredToken.title"));
           setMessage(t("unsubscribe.error.expiredToken.message"));
         } else if (looksInvalid) {
