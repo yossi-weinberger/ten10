@@ -5,7 +5,7 @@
   "backToSettings": "Back to Settings",
   "releases": {
     "v080": {
-      "title": "Hebrew calendar and separate email controls",
+      "title": "Hebrew calendar",
       "items": {
         "hebrewCalendar": {
           "title": "Hebrew display and periods",
@@ -18,18 +18,6 @@
         "maaserYear": {
           "title": "Maaser year summary",
           "description": "Analytics now includes a yearly report from 1 Tishrei through 29 Elul. The lifetime tithe balance on the home page is unchanged."
-        },
-        "separateEmailConsent": {
-          "title": "Separate email controls",
-          "description": "Settings now has two independent toggles: monthly reminders (service email) and updates/marketing. Unsubscribe can be reminder-only, marketing-only, or both."
-        },
-        "marketingOptOut": {
-          "title": "Opt-out at signup",
-          "description": "New signups default to receiving updates and marketing (can opt out)."
-        },
-        "optInPrompt": {
-          "title": "One-time prompt for existing users",
-          "description": "A dialog shown once to users who disabled reminders or marketing, with an option to re-enable or skip."
         }
       }
     },

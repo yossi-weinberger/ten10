@@ -250,8 +250,8 @@ const SignupPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+          <div className="space-y-2">
+            <div className="flex items-start space-x-2 rtl:space-x-reverse">
               <Checkbox
                 id="opt-out-marketing"
                 checked={optOutMarketing}
@@ -259,17 +259,20 @@ const SignupPage: React.FC = () => {
                   setOptOutMarketing(checked as boolean)
                 }
                 disabled={isAnyLoading}
+                className="mt-0.5"
               />
-              <Label
-                htmlFor="opt-out-marketing"
-                className="text-sm font-normal cursor-pointer text-muted-foreground"
-              >
-                {t("signup.optOutMarketingLabel")}
-              </Label>
+              <div className="flex-1 space-y-1.5">
+                <Label
+                  htmlFor="opt-out-marketing"
+                  className="text-sm font-normal cursor-pointer text-muted-foreground leading-snug"
+                >
+                  {t("signup.optOutMarketingLabel")}
+                </Label>
+                <p className="text-xs text-muted-foreground leading-snug">
+                  {t("signup.emailUsageNotice")}
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground ps-6">
-              {t("signup.emailUsageNotice")}
-            </p>
           </div>
 
           <Button
@@ -282,21 +285,15 @@ const SignupPage: React.FC = () => {
               : t("signup.signUpButton")}
           </Button>
 
-          <p className="text-xs text-center text-muted-foreground mt-3">
+          <p className="text-xs text-center text-muted-foreground mt-3 max-w-sm mx-auto leading-relaxed">
             {t("signup.termsNotice")}{" "}
-            <Link
-              to="/terms"
-              className="text-primary hover:underline"
-            >
+            <Link to="/terms" className="text-primary hover:underline whitespace-nowrap">
               {t("signup.termsNoticePrivacy")}
             </Link>
             {i18n.dir() === "rtl" ? "" : " "}
             {t("signup.termsNoticeAnd")}
             {i18n.dir() === "rtl" ? "" : " "}
-            <Link
-              to="/privacy"
-              className="text-primary hover:underline"
-            >
+            <Link to="/privacy" className="text-primary hover:underline whitespace-nowrap">
               {t("signup.termsNoticePrivacyLink")}
             </Link>
             {t("signup.termsNoticeSuffix")}
