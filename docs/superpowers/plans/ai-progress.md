@@ -74,7 +74,7 @@
 | 58 | קצוות נמען וטווח | DB על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#529](https://github.com/yossi-weinberger/ten10/pull/529) |
 | 59 | כולל, חודש בודד, ומחיקה | UI | §9.9 | נפתח | [#530](https://github.com/yossi-weinberger/ten10/pull/530) |
 | 60 | כיבוי AI בפרודקשן | Edge על testing | §22 | מוזג ל־`feat/ai-intake` | [#531](https://github.com/yossi-weinberger/ten10/pull/531) |
-| 61 | צ'קליסט מיזוג ל־main | תיעוד | — | נפתח | |
+| 61 | צ'קליסט מיזוג ל־main | תיעוד | — | נפתח | [#532](https://github.com/yossi-weinberger/ten10/pull/532) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
