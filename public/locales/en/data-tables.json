@@ -226,7 +226,9 @@
   },
   "dialog": {
     "deleteTitle": "Confirm Transaction Deletion",
-    "deleteDescription": "Are you sure you want to delete the transaction \"{{description}}\" from {{date}}? This action cannot be undone."
+    "deleteDescription": "Are you sure you want to delete the transaction \"{{description}}\" from {{date}}? This action cannot be undone.",
+    "undoAiTitle": "Confirm undoing the AI save",
+    "undoAiDescription": "Undo the save of \"{{description}}\" from {{date}}? The transaction will be deleted."
   },
   "modal": {
     "editTitle": "Edit Transaction",
