@@ -226,7 +226,7 @@ describe("reminder email templates", () => {
     expect(html).toContain(baseData.unsubscribeUrls.reminderUrl);
     expect(html).toContain(baseData.unsubscribeUrls.allUrl);
     expect(html).toContain("הפסקת תזכורות חודשיות");
-    expect(html).toContain("ביטול הרשמה");
+    expect(html).toContain("הסרה מכל המיילים");
   });
 
   it("localizes subject lines", () => {

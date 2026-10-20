@@ -401,7 +401,7 @@ function buildPreviewDefinitions(): PreviewDefinition[] {
       expectedContent: [
         "זכות",
         "384.70",
-        "ביטול הרשמה",
+        "הסרה מכל המיילים",
       ],
       filename: "reminder-he-credit.html",
       html: generateReminderEmailHTML(reminderHebrewCredit),
