@@ -149,5 +149,12 @@ export default {
       },
     },
   },
-  plugins: [require("@tailwindcss/forms"), require("tailwindcss-animate")],
+  plugins: [
+    require("@tailwindcss/forms"),
+    require("tailwindcss-animate"),
+    function ({ addVariant }) {
+      // Tailwind v4: migrate to @custom-variant short (...) in CSS
+      addVariant('short', '@media (min-width: 1024px) and (max-height: 799px) { &:is(&) }');
+    },
+  ],
 };
