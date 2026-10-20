@@ -38,4 +38,17 @@ describe("TransactionForm conversion formula (characterization)", () => {
   it("can round a tiny product to 0", () => {
     expect(transactionFormConvertedAmount(1, 0.004)).toBe(0);
   });
+
+  it("rounds a manual rate to 4 decimals before multiplying", () => {
+    const converted = applyConversion({
+      originalAmount: 1000,
+      originalCurrency: "USD",
+      defaultCurrency: "ILS",
+      rate: 3.71236,
+      rateSource: "manual",
+    });
+    expect(converted.conversion_rate).toBe(3.7124);
+    expect(converted.amount).toBe(3712.4);
+    expect(converted.amount.toFixed(2)).toBe("3712.40");
+  });
 });
