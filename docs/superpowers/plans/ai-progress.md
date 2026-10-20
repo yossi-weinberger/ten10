@@ -74,7 +74,8 @@
 | 58 | קצוות נמען וטווח | DB על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#529](https://github.com/yossi-weinberger/ten10/pull/529) |
 | 59 | כולל, חודש בודד, ומחיקה | UI | §9.9 | נפתח | [#530](https://github.com/yossi-weinberger/ten10/pull/530) |
 | 60 | כיבוי AI בפרודקשן | Edge על testing | §22 | מוזג ל־`feat/ai-intake` | [#531](https://github.com/yossi-weinberger/ten10/pull/531) |
-| 61 | צ'קליסט מיזוג ל־main | תיעוד | — | נפתח | [#532](https://github.com/yossi-weinberger/ten10/pull/532) |
+| 61 | צ'קליסט מיזוג ל־main | תיעוד | — | מוזג ל־`feat/ai-intake` | [#532](https://github.com/yossi-weinberger/ten10/pull/532) |
+| 62 | אישור לפני ביטול AI | UI | §9.9 | נפתח | |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -209,3 +210,4 @@
 - **2026-10-20:** «לכולל» חוזר להיות נמען. «ב־3» לא נדבק לשם. «במרץ 2025» הוא מרץ. «5786» היא שנת המעשר הזו. אישור מחיקה לא יושב על אותו כפתור, והטבלה מתרעננת.
 - **2026-10-20:** קריאות AI ב-Edge דולקות רק כש־`AI_INTAKE_ENABLED` הוא `true`. בלי זה, או עם כל ערך אחר, חמש הפונקציות מחזירות unavailable לפני allowlist ולפני ספק. הערך מוגדר רק ב-secrets של testing.
 - **2026-10-20:** צ'קליסט ל־PR ל־main: חותמות זמן חדשות לכל מיגרציות ה־AI, אחרי המיגרציה האחרונה ב־main, כולל rollback ו־repair על testing. בלי `--include-all`.
+- **2026-10-20:** «בטל שמירת AI» בטבלת התנועות פותח את דיאלוג האישור הקיים לפני המחיקה.
