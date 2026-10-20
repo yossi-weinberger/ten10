@@ -138,13 +138,17 @@ export class SimpleEmailService {
       try {
         unsubscribeUrls = await generateUnsubscribeUrls(userId, userEmail);
         console.log(`[EMAIL] Generated unsubscribe URLs for ${maskedEmail}`);
-      } catch (error) {
+      } catch {
         console.error(
-          `[EMAIL] Failed to generate unsubscribe URLs for ${maskedEmail}:`,
-          error,
+          `[EMAIL] Failed to generate unsubscribe token for ${maskedEmail}, skipping recipient`,
         );
-        // Continue without unsubscribe URLs - email can still be sent
-        unsubscribeUrls = { reminderUrl: "", marketingUrl: "", allUrl: "" };
+        return {
+          userId,
+          email: userEmail,
+          titheBalance,
+          status: "failed",
+          error: "Failed to generate unsubscribe token",
+        };
       }
       templateData.unsubscribeUrls = unsubscribeUrls;
       const htmlBody = generateReminderEmailHTML(templateData);
@@ -156,7 +160,7 @@ export class SimpleEmailService {
         subject,
         textBody,
         htmlBody,
-        unsubscribeUrl: unsubscribeUrls.allUrl,
+        unsubscribeUrl: unsubscribeUrls.reminderUrl,
       });
 
       // 3) Prepare SES v2 JSON payload with Raw content
