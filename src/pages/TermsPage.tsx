@@ -267,9 +267,6 @@ export function TermsPage() {
                     <li>{t("communications.item2")}</li>
                     <li>{t("communications.item3")}</li>
                   </ul>
-                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mt-4">
-                    {t("communications.materialChanges")}
-                  </p>
                 </div>
               </div>
             </CardContent>

@@ -282,10 +282,8 @@ const SignupPage: React.FC = () => {
             {t("signup.termsNoticePrefix")}{" "}
             <Link to="/terms" className="text-primary hover:underline whitespace-nowrap">
               {t("signup.termsNoticeTermsLink")}
-            </Link>
-            {" "}
-            {t("signup.termsNoticeAnd")}
-            {" "}
+            </Link>{" "}
+            {t("signup.termsNoticeAnd")}{" "}
             <Link to="/privacy" className="text-primary hover:underline whitespace-nowrap">
               {t("signup.termsNoticePrivacyLink")}
             </Link>
