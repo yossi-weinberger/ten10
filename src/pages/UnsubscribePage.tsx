@@ -10,13 +10,19 @@ import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 type UnsubscribeType = "reminder" | "marketing" | "all";
 
 export default function UnsubscribePage() {
-  const { t } = useTranslation("auth");
+  const { t, i18n } = useTranslation("auth");
   const search = useSearch({ from: "/unsubscribe" });
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading"
   );
   const [message, setMessage] = useState("");
   const [title, setTitle] = useState("");
+
+  // Set page direction based on language (same as App.tsx)
+  useEffect(() => {
+    document.documentElement.dir = i18n.dir();
+    document.documentElement.lang = i18n.language;
+  }, [i18n, i18n.language]);
 
   useEffect(() => {
     const searchParams = search as { token?: string; type?: string };
