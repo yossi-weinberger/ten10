@@ -104,7 +104,7 @@ export function NotificationSettingsCard({
             <div>
               <Label>
                 {isWeb
-                  ? t("notifications.emailNotificationsLabel")
+                  ? t("notifications.reminderEmailsLabel")
                   : t("notifications.desktopNotificationsLabel")}
               </Label>
               <p className="text-sm text-muted-foreground">

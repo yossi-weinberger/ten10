@@ -41,13 +41,19 @@ export function OptInPromptDialog() {
   const needsMarketing = !settings.mailingListConsent;
   const isNewUserCheck = user?.created_at ? isNewUser(user.created_at) : true;
 
+  const hasReminderEnabled = settings.reminderEnabled === true;
+  const hasMarketingEnabled = settings.mailingListConsent === true;
+  const hasAtLeastOneEnabled = hasReminderEnabled || hasMarketingEnabled;
+  const hasAtLeastOneDisabled = !hasReminderEnabled || !hasMarketingEnabled;
+
   const shouldShow = _hasHydrated && 
     platform === "web" && 
     user && 
     !dismissed && 
     !isNewUserCheck &&
     !hasOptInPromptBeenShown(user.id) &&
-    (needsReminder || needsMarketing);
+    hasAtLeastOneEnabled &&
+    hasAtLeastOneDisabled;
 
   if (!_hasHydrated || !user) {
     return null;

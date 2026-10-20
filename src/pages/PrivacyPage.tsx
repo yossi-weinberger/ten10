@@ -290,6 +290,7 @@ export function PrivacyPage() {
                     <li>{t("cookies.item1")}</li>
                     <li>{t("cookies.item2")}</li>
                     <li>{t("cookies.item3")}</li>
+                    <li>{t("cookies.item4")}</li>
                   </ul>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
                     {t("cookies.note")}
