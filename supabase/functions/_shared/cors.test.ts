@@ -4,30 +4,39 @@
 
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 
+// Define types for our test environment
+interface TestGlobal extends NodeJS.Global {
+  __TEST_SUPABASE_URL?: string;
+  Deno: {
+    env: {
+      get: (key: string) => string | undefined;
+    };
+  };
+}
+
 // Mock Deno.env for testing
-const originalEnv = global.Deno;
-global.Deno = {
+(global as TestGlobal).Deno = {
   env: {
     get: (key: string): string | undefined => {
       if (key === "SUPABASE_URL") {
-        return (global as any).__TEST_SUPABASE_URL;
+        return (global as TestGlobal).__TEST_SUPABASE_URL;
       }
       return undefined;
     },
   },
-} as any;
+};
 
 // Import after Deno mock is set up
 const { getCorsHeaders } = await import("./cors.ts");
 
 describe("getCorsHeaders", () => {
   afterEach(() => {
-    delete (global as any).__TEST_SUPABASE_URL;
+    delete (global as TestGlobal).__TEST_SUPABASE_URL;
   });
 
   describe("production environment (flpzqbvbymoluoeeeofg)", () => {
     beforeEach(() => {
-      (global as any).__TEST_SUPABASE_URL =
+      (global as TestGlobal).__TEST_SUPABASE_URL =
         "https://flpzqbvbymoluoeeeofg.supabase.co";
     });
 
@@ -64,7 +73,7 @@ describe("getCorsHeaders", () => {
 
   describe("testing environment (bbcllewcotypedqsnwmi)", () => {
     beforeEach(() => {
-      (global as any).__TEST_SUPABASE_URL =
+      (global as TestGlobal).__TEST_SUPABASE_URL =
         "https://bbcllewcotypedqsnwmi.supabase.co";
     });
 
@@ -116,7 +125,7 @@ describe("getCorsHeaders", () => {
 
   describe("no origin (server-to-server)", () => {
     beforeEach(() => {
-      (global as any).__TEST_SUPABASE_URL =
+      (global as TestGlobal).__TEST_SUPABASE_URL =
         "https://flpzqbvbymoluoeeeofg.supabase.co";
     });
 
