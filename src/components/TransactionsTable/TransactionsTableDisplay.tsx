@@ -122,6 +122,9 @@ export function TransactionsTableDisplay() {
   const [transactionToDelete, setTransactionToDelete] =
     useState<Transaction | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [transactionToUndo, setTransactionToUndo] =
+    useState<Transaction | null>(null);
+  const [isUndoDialogOpen, setIsUndoDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] =
     useState<Transaction | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -256,20 +259,26 @@ export function TransactionsTableDisplay() {
     setIsDeleteDialogOpen(true);
   }, []);
 
-  const handleUndoAi = useCallback(
-    async (transaction: Transaction) => {
-      const result = await undoAiTransaction(transaction.id);
+  const handleUndoAiInitiate = useCallback((transaction: Transaction) => {
+    setTransactionToUndo(transaction);
+    setIsUndoDialogOpen(true);
+  }, []);
+
+  const handleUndoAiConfirm = useCallback(async () => {
+    if (transactionToUndo) {
+      const result = await undoAiTransaction(transactionToUndo.id);
       if (result.ok) {
         refreshAfterIntakeSave();
         toast.success(t("actions.undoAiDone"));
-        return;
+      } else {
+        toast.error(
+          t(result.reason === "NOT_ALLOWED" ? "actions.undoAiNotAllowed" : "actions.undoAiFailed"),
+        );
       }
-      toast.error(
-        t(result.reason === "NOT_ALLOWED" ? "actions.undoAiNotAllowed" : "actions.undoAiFailed"),
-      );
-    },
-    [t],
-  );
+    }
+    setIsUndoDialogOpen(false);
+    setTransactionToUndo(null);
+  }, [t, transactionToUndo]);
 
   const handleDeleteConfirm = useCallback(async () => {
     if (transactionToDelete) {
@@ -691,7 +700,7 @@ export function TransactionsTableDisplay() {
                       onEdit={handleEditInitiate}
                       onDelete={handleDeleteInitiate}
                       onEditRecurring={handleEditRecurringInitiate}
-                      onUndoAi={platform === "web" && isAiIntakeEnabled() ? handleUndoAi : undefined}
+                      onUndoAi={platform === "web" && isAiIntakeEnabled() ? handleUndoAiInitiate : undefined}
                       isFetchingRec={isFetchingRec}
                       selected={selection.selectedIds.has(item.transaction.id)}
                       onToggleSelected={selection.toggle}
@@ -777,6 +786,29 @@ export function TransactionsTableDisplay() {
               })()
             : "",
         })}
+      />
+      <DeleteConfirmationDialog
+        isOpen={isUndoDialogOpen}
+        onOpenChange={setIsUndoDialogOpen}
+        onConfirm={handleUndoAiConfirm}
+        title={t("dialog.undoAiTitle")}
+        description={t("dialog.undoAiDescription", {
+          description:
+            transactionToUndo?.description ||
+            t("messages.defaultTransactionName"),
+          date: transactionToUndo?.date
+            ? (() => {
+                const displayDate = formatDisplayDate(
+                  transactionToUndo.date,
+                  "numeric",
+                );
+                return displayDate.secondary
+                  ? `${displayDate.primary} (${displayDate.secondary})`
+                  : displayDate.primary;
+              })()
+            : "",
+        })}
+        confirmLabel={t("actions.undoAi")}
       />
       {/* Edit Transaction Modal */}
       {isEditModalOpen && editingTransaction && (

@@ -206,7 +206,9 @@
   },
   "dialog": {
     "deleteTitle": "אישור מחיקת תנועה",
-    "deleteDescription": "האם אתה בטוח שברצונך למחוק את התנועה \"{{description}}\" מתאריך {{date}}? לא ניתן לשחזר פעולה זו."
+    "deleteDescription": "האם אתה בטוח שברצונך למחוק את התנועה \"{{description}}\" מתאריך {{date}}? לא ניתן לשחזר פעולה זו.",
+    "undoAiTitle": "אישור ביטול שמירת AI",
+    "undoAiDescription": "האם לבטל את השמירה של \"{{description}}\" מתאריך {{date}}? התנועה תימחק."
   },
   "modal": {
     "editTitle": "עריכת תנועה",
