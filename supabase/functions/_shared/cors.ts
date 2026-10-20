@@ -10,8 +10,15 @@ export const getCorsHeaders = (
     "http://127.0.0.1:54321",
   ];
 
+  // TESTING only: allow Vercel preview origins
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+  const isTestingProject = supabaseUrl.includes("bbcllewcotypedqsnwmi");
+  
+  // Strict regex: https://*.vercel.app (https only, no http)
+  const isVercelPreview = origin && /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
+
   // If origin is allowed, return it.
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+  if (origin && (ALLOWED_ORIGINS.includes(origin) || (isTestingProject && isVercelPreview))) {
     return {
       "Access-Control-Allow-Origin": origin,
       "Access-Control-Allow-Headers":
