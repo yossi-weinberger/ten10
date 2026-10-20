@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSearch } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/lib/supabaseClient";
@@ -9,37 +9,31 @@ import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 
 type UnsubscribeType = "reminder" | "marketing" | "all";
 
+type ErrorType = 
+  | "invalidToken"
+  | "expiredToken" 
+  | "updateFailed"
+  | "general";
+
+type ResultState = {
+  status: "loading" | "success" | "error";
+  type?: UnsubscribeType;
+  errorType?: ErrorType;
+};
+
 export default function UnsubscribePage() {
   const { t, i18n } = useTranslation("auth");
   const search = useSearch({ from: "/unsubscribe" });
-  const [status, setStatus] = useState<"loading" | "success" | "error">(
-    "loading"
-  );
-  const [message, setMessage] = useState("");
-  const [title, setTitle] = useState("");
+  const [result, setResult] = useState<ResultState>({ status: "loading" });
 
-  // Set page direction based on language (same as App.tsx)
+  // Set page direction based on language (matches App.tsx)
+  // This will update whenever i18n.language changes (including profile sync)
   useEffect(() => {
     document.documentElement.dir = i18n.dir();
     document.documentElement.lang = i18n.language;
   }, [i18n, i18n.language]);
 
-  useEffect(() => {
-    const searchParams = search as { token?: string; type?: string };
-    const token = searchParams.token;
-    const type = (searchParams.type || "all") as UnsubscribeType;
-
-    if (!token) {
-      setStatus("error");
-      setTitle(t("unsubscribe.error.invalidToken.title"));
-      setMessage(t("unsubscribe.error.invalidToken.message"));
-      return;
-    }
-
-    handleUnsubscribe(token, type);
-  }, [search, t]);
-
-  const handleUnsubscribe = async (
+  const handleUnsubscribe = useCallback(async (
     token: string,
     type: UnsubscribeType
   ) => {
@@ -55,7 +49,6 @@ export default function UnsubscribePage() {
 
       if (error || data?.error || !data?.success) {
         logger.error("Unsubscribe failed:", error ?? data?.error);
-        setStatus("error");
         
         // For FunctionsHttpError, read status and body from error.context (a Response)
         let statusCode: number | undefined;
@@ -84,20 +77,18 @@ export default function UnsubscribePage() {
           statusCode === 401 || 
           statusCode === 400;
         
+        let errorType: ErrorType = "general";
         if (looksExpired && looksInvalid) {
-          // "Invalid or expired token" from edge function
-          setTitle(t("unsubscribe.error.invalidToken.title"));
-          setMessage(t("unsubscribe.error.invalidToken.message"));
+          errorType = "invalidToken";
         } else if (looksExpired) {
-          setTitle(t("unsubscribe.error.expiredToken.title"));
-          setMessage(t("unsubscribe.error.expiredToken.message"));
+          errorType = "expiredToken";
         } else if (looksInvalid) {
-          setTitle(t("unsubscribe.error.invalidToken.title"));
-          setMessage(t("unsubscribe.error.invalidToken.message"));
+          errorType = "invalidToken";
         } else {
-          setTitle(t("unsubscribe.error.updateFailed.title"));
-          setMessage(t("unsubscribe.error.updateFailed.message"));
+          errorType = "updateFailed";
         }
+        
+        setResult({ status: "error", errorType });
         return;
       }
 
@@ -106,33 +97,62 @@ export default function UnsubscribePage() {
           ? data.type 
           : type;
 
-      setStatus("success");
-      if (resolvedType === "reminder") {
-        setTitle(t("unsubscribe.success.reminder.title"));
-        setMessage(t("unsubscribe.success.reminder.message"));
-      } else if (resolvedType === "marketing") {
-        setTitle(t("unsubscribe.success.marketing.title"));
-        setMessage(t("unsubscribe.success.marketing.message"));
-      } else {
-        setTitle(t("unsubscribe.success.all.title"));
-        setMessage(t("unsubscribe.success.all.message"));
-      }
+      setResult({ status: "success", type: resolvedType });
     } catch (error) {
       logger.error("Unsubscribe error:", error);
-      setStatus("error");
-      setTitle(t("unsubscribe.error.general.title"));
-      setMessage(t("unsubscribe.error.general.message"));
+      setResult({ status: "error", errorType: "general" });
     }
+  }, []);
+
+  useEffect(() => {
+    const searchParams = search as { token?: string; type?: string };
+    const token = searchParams.token;
+    const type = (searchParams.type || "all") as UnsubscribeType;
+
+    if (!token) {
+      setResult({ status: "error", errorType: "invalidToken" });
+      return;
+    }
+
+    handleUnsubscribe(token, type);
+  }, [search, handleUnsubscribe]);
+
+  // Derive title and message from result state and current i18n language
+  // This ensures translations update when language changes (e.g. profile sync)
+  const getTitle = () => {
+    if (result.status === "loading") {
+      return t("unsubscribe.processing");
+    }
+    if (result.status === "success" && result.type) {
+      return t(`unsubscribe.success.${result.type}.title`);
+    }
+    if (result.status === "error" && result.errorType) {
+      return t(`unsubscribe.error.${result.errorType}.title`);
+    }
+    return t("unsubscribe.processing");
+  };
+
+  const getMessage = () => {
+    if (result.status === "loading") {
+      return t("unsubscribe.processingMessage");
+    }
+    if (result.status === "success" && result.type) {
+      return t(`unsubscribe.success.${result.type}.message`);
+    }
+    if (result.status === "error" && result.errorType) {
+      return t(`unsubscribe.error.${result.errorType}.message`);
+    }
+    return t("unsubscribe.processingMessage");
   };
 
   return (
     <div className="grid gap-6">
       <div className="grid gap-2">
         <h2 className="text-2xl font-bold text-foreground">
-          {title || t("unsubscribe.processing")}
+          {getTitle()}
         </h2>
         <p className="text-muted-foreground">
-          {status === "loading"
+          {result.status === "loading"
             ? t("unsubscribe.processingMessage")
             : t("unsubscribe.pageSubtitle")}
         </p>
@@ -142,23 +162,23 @@ export default function UnsubscribePage() {
         <CardContent className="pt-6">
           <div className="flex flex-col items-center justify-center text-center space-y-6 min-h-[300px]">
             <div>
-              {status === "loading" && (
+              {result.status === "loading" && (
                 <Loader2 className="h-16 w-16 animate-spin text-primary" />
               )}
-              {status === "success" && (
+              {result.status === "success" && (
                 <CheckCircle className="h-16 w-16 text-green-600 dark:text-green-400" />
               )}
-              {status === "error" && (
+              {result.status === "error" && (
                 <XCircle className="h-16 w-16 text-destructive" />
               )}
             </div>
 
             <div className="space-y-6 flex flex-col items-center">
               <p className="text-lg leading-relaxed text-foreground text-center max-w-md">
-                {message || t("unsubscribe.processingMessage")}
+                {getMessage()}
               </p>
 
-              {status !== "loading" && (
+              {result.status !== "loading" && (
                 <Button
                   onClick={() =>
                     (window.location.href = "https://ten10-app.com")
