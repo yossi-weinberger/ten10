@@ -207,6 +207,10 @@ export function SettingsPage() {
               if (error) {
                 throw error;
               }
+              // Show success toast for marketing consent changes
+              if (typeof newNotificationSettings.mailingListConsent === "boolean") {
+                toast.success(tCommon("toast.settings.updateSuccess"));
+              }
             }
           } catch (error) {
             logger.error(

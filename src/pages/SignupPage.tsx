@@ -250,32 +250,55 @@ const SignupPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 rtl:space-x-reverse py-2">
-            <Checkbox
-              id="opt-out-marketing"
-              checked={optOutMarketing}
-              onCheckedChange={(checked) =>
-                setOptOutMarketing(checked as boolean)
-              }
-              disabled={isAnyLoading}
-            />
-            <Label
-              htmlFor="opt-out-marketing"
-              className="text-sm font-normal cursor-pointer text-muted-foreground"
-            >
-              {t("signup.optOutMarketingLabel")}
-            </Label>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+              <Checkbox
+                id="opt-out-marketing"
+                checked={optOutMarketing}
+                onCheckedChange={(checked) =>
+                  setOptOutMarketing(checked as boolean)
+                }
+                disabled={isAnyLoading}
+              />
+              <Label
+                htmlFor="opt-out-marketing"
+                className="text-sm font-normal cursor-pointer text-muted-foreground"
+              >
+                {t("signup.optOutMarketingLabel")}
+              </Label>
+            </div>
+            <p className="text-xs text-muted-foreground ps-6">
+              {t("signup.emailUsageNotice")}
+            </p>
           </div>
 
           <Button
             type="submit"
             disabled={isAnyLoading}
-            className="w-full h-11 text-base mt-2"
+            className="w-full h-11 text-base mt-4"
           >
             {isAnyLoading
               ? t("signup.signUpButtonLoading")
               : t("signup.signUpButton")}
           </Button>
+
+          <p className="text-xs text-center text-muted-foreground mt-3">
+            {t("signup.termsNotice")}{" "}
+            <Link
+              to="/terms"
+              className="text-primary hover:underline"
+            >
+              {t("signup.termsNoticePrivacy")}
+            </Link>{" "}
+            {t("signup.termsNoticeAnd")}{" "}
+            <Link
+              to="/privacy"
+              className="text-primary hover:underline"
+            >
+              {t("signup.termsNoticePrivacyLink")}
+            </Link>
+            {t("signup.termsNoticeSuffix")}
+          </p>
 
           <div className="text-center text-sm text-muted-foreground mt-6">
             {t("signup.hasAccount")}{" "}
