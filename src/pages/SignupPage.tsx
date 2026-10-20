@@ -290,7 +290,7 @@ const SignupPage: React.FC = () => {
             <Link to="/terms" className="text-primary hover:underline whitespace-nowrap">
               {t("signup.termsNoticePrivacy")}
             </Link>
-            {i18n.dir() === "rtl" ? "" : " "}
+            {" "}
             {t("signup.termsNoticeAnd")}
             {i18n.dir() === "rtl" ? "" : " "}
             <Link to="/privacy" className="text-primary hover:underline whitespace-nowrap">
