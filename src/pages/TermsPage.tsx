@@ -9,7 +9,6 @@ import {
   Scale,
   CheckCircle,
   Shield,
-  User,
   Lock,
   Mail,
   Globe,
@@ -70,7 +69,7 @@ export function TermsPage() {
             </CardContent>
           </Card>
 
-          {/* Eligibility */}
+          {/* Eligibility & Account */}
           <Card>
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-start gap-3">
@@ -86,28 +85,6 @@ export function TermsPage() {
                     <li>{t("eligibility.item1")}</li>
                     <li>{t("eligibility.item2")}</li>
                     <li>{t("eligibility.item3")}</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Account */}
-          <Card>
-            <CardContent className="pt-6 space-y-4">
-              <div className="flex items-start gap-3">
-                <User className="h-6 w-6 text-slate-600 flex-shrink-0 mt-1" />
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
-                    {t("account.title")}
-                  </h2>
-                  <p className="text-gray-600 dark:text-gray-300 mb-4">
-                    {t("account.description")}
-                  </p>
-                  <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4">
-                    <li>{t("account.item1")}</li>
-                    <li>{t("account.item2")}</li>
-                    <li>{t("account.item3")}</li>
                   </ul>
                 </div>
               </div>
@@ -339,7 +316,6 @@ export function TermsPage() {
                   <ul className="list-disc list-inside space-y-2 text-gray-600 dark:text-gray-300 ms-4">
                     <li>{t("legal.item1")}</li>
                     <li>{t("legal.item2")}</li>
-                    <li>{t("legal.item3")}</li>
                   </ul>
                 </div>
               </div>

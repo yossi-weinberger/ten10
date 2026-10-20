@@ -120,11 +120,9 @@ export function PrivacyPage() {
                     <p className="text-sm text-gray-600 dark:text-gray-300">
                       {t("dataStorage.web.location")}
                     </p>
-                    <ul className="list-disc list-inside space-y-1 text-sm text-gray-600 dark:text-gray-300 ms-2">
-                      <li>{t("dataStorage.web.encryption")}</li>
-                      <li>{t("dataStorage.web.rls")}</li>
-                      <li>{t("dataStorage.web.access")}</li>
-                    </ul>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {t("dataStorage.web.access")}
+                    </p>
                     <p className="font-semibold text-gray-900 dark:text-white mt-4">
                       {t("dataStorage.desktop.title")}
                     </p>

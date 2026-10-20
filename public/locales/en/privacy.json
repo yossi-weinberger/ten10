@@ -22,25 +22,23 @@
     "description": "Your data is stored securely:",
     "web": {
       "title": "Website Version",
-      "location": "The main database, authentication system and storage are hosted via Supabase in Frankfurt, Germany (eu-central-1). Some technical data may be processed in other regions by Supabase sub-processors.",
-      "encryption": "Encryption: Data is encrypted in transit and at rest by the service provider.",
-      "rls": "Row Level Security (RLS) protection: Limits access between users.",
+      "location": "Cloud infrastructure providers, some located outside Israel, using reasonable technical and organizational measures to protect your data.",
       "access": "Admin access: Limited to operations, security, and support. Infrastructure providers may have access according to their role."
     },
     "desktop": {
       "title": "Desktop Application",
-      "description": "Application data is stored locally on the computer in a SQLite file. Ten10 does not automatically upload the local database to its servers unless you choose an action that includes exporting or sharing information."
+      "description": "Desktop version: data is stored locally and not uploaded automatically."
     }
   },
   "internationalTransfer": {
     "title": "International Data Transfer",
     "description": "Our cloud services operate on servers outside of Israel:",
-    "item1": "Supabase: Storage, authentication and database (Frankfurt, Germany and additional regions via sub-processors)",
-    "item2": "AWS SES: Email delivery service (servers in Europe)",
-    "item3": "Cloudflare: Turnstile for human verification and bot protection",
-    "item4": "Google OAuth: Google account authentication",
-    "item5": "PostHog: Analytics for usage tracking (web version only)",
-    "item6": "Vercel: Website hosting",
+    "item1": "Supabase: Database and authentication",
+    "item2": "AWS: Email delivery",
+    "item3": "Cloudflare: Security and verification",
+    "item4": "Google: Account authentication",
+    "item5": "PostHog: Usage analytics (web only)",
+    "item6": "Vercel: Hosting",
     "note": "These providers operate outside of Israel. We make no claims regarding GDPR compliance.",
     "financialDataNote": "Ten10 does not use your financial data for profiling, targeting, or marketing segmentation."
   },

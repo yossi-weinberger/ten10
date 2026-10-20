@@ -6,18 +6,11 @@
     "description": "By accessing or using Ten10 (web app or desktop app), you agree to these Terms. If you do not agree, do not use the service."
   },
   "eligibility": {
-    "title": "Eligibility",
-    "description": "Use of Ten10 is subject to the following conditions:",
-    "item1": "You represent that you are 18 years of age or older, or have parental/legal guardian consent",
-    "item2": "You represent that you are legally capable of entering into this agreement",
-    "item3": "You agree to provide accurate and truthful information during registration"
-  },
-  "account": {
     "title": "Eligibility & Account",
-    "description": "You are responsible for your account and for all activity under it.",
-    "item1": "Provide accurate information and keep it updated",
-    "item2": "Keep your login credentials secure and do not share them",
-    "item3": "Notify us if you suspect unauthorized access"
+    "description": "Use of Ten10 is subject to the following conditions:",
+    "item1": "You must be 18 years or older, or have parental/legal guardian consent",
+    "item2": "You must provide accurate information and keep it updated",
+    "item3": "Keep your login credentials secure and notify us of unauthorized access"
   },
   "service": {
     "title": "Service Description",
@@ -65,14 +58,6 @@
     "item2": "Do not upload malicious content or attempt to bypass security controls",
     "item3": "We may suspend access to protect the service or other users"
   },
-  "userResponsibilities": {
-    "title": "User Responsibilities",
-    "description": "By using the service, you agree:",
-    "item1": "To provide accurate and reliable information",
-    "item2": "To maintain the confidentiality of your account details",
-    "item3": "Not to use the service for illegal purposes",
-    "item4": "To be responsible for all actions performed in your account"
-  },
   "limitations": {
     "title": "Limitation of Liability",
     "description": "Ten10 is not responsible for any direct, indirect, or consequential damages arising from the use or non-use of the service. The service is provided 'as is' without any warranty."
@@ -83,8 +68,7 @@
     "signupNotice": "Consent to receive marketing updates is provided at the signup screen, where you are presented with an opt-out option, and not by these Terms.",
     "item1": "Service emails (monthly reminders): Independent service emails that can be disabled in Settings. Separate from marketing preferences",
     "item2": "Marketing emails (updates and news): The option to receive marketing updates is provided in the signup screen. When providing your email address, a notice is displayed that the address may also be used to send marketing updates, and you are given the option to decline. These terms alone do not serve as a substitute for this notice",
-    "item3": "Separate unsubscribe links: for reminders only, marketing only, or both. Do not reply to no-reply addresses; contact us via the support email instead",
-    "materialChanges": "A change that requires new consent under applicable law will not take effect without obtaining the required consent. For other material changes, we will provide appropriate notice in accordance with the law."
+    "item3": "Separate unsubscribe links: for reminders only, marketing only, or both. Do not reply to no-reply addresses; contact us via the support email instead"
   },
   "openSource": {
     "title": "Open Source & Intellectual Property",
@@ -94,8 +78,7 @@
     "title": "Legal Terms",
     "description": "Some terms apply to the extent permitted by law and may vary by jurisdiction.",
     "item1": "Nothing in these Terms limits rights that cannot be limited under applicable law",
-    "item2": "If any part of these Terms is unenforceable, the rest remains in effect",
-    "item3": "We may update these Terms from time to time. A change that requires new consent under applicable law will not take effect without obtaining the required consent. For other material changes, we will provide appropriate notice in accordance with the law"
+    "item2": "If any part of these Terms is unenforceable, the rest remains in effect"
   },
   "jurisdiction": {
     "title": "Governing Law & Jurisdiction",
@@ -105,7 +88,7 @@
   },
   "changes": {
     "title": "Changes to Terms",
-    "description": "We reserve the right to update these terms of service at any time. A change that requires new consent under applicable law will not take effect without obtaining the required consent. For other material changes, we will provide appropriate notice in accordance with the law."
+    "description": "We may update these Terms from time to time. Changes requiring new consent under applicable law will not take effect without obtaining that consent. For other material changes, we will provide appropriate notice."
   },
   "contact": {
     "title": "Contact",
