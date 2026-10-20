@@ -25,7 +25,7 @@ const SignupPage: React.FC = () => {
   const { platform } = usePlatform();
   const { loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation("auth");
+  const { t } = useTranslation("auth");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -260,17 +260,12 @@ const SignupPage: React.FC = () => {
               disabled={isAnyLoading}
               className="mt-0.5"
             />
-            <div className="flex-1 space-y-1.5">
-              <Label
-                htmlFor="opt-out-marketing"
-                className="text-sm font-normal cursor-pointer text-muted-foreground leading-snug"
-              >
-                {t("signup.optOutMarketingLabel")}
-              </Label>
-              <p className="text-xs text-muted-foreground leading-snug">
-                {t("signup.emailUsageNotice")}
-              </p>
-            </div>
+            <Label
+              htmlFor="opt-out-marketing"
+              className="text-sm font-normal cursor-pointer text-muted-foreground leading-snug"
+            >
+              {t("signup.optOutMarketingLabel")}
+            </Label>
           </div>
 
           <Button
@@ -284,13 +279,13 @@ const SignupPage: React.FC = () => {
           </Button>
 
           <p className="text-xs text-center text-muted-foreground mt-3 max-w-sm mx-auto leading-relaxed">
-            {t("signup.termsNotice")}{" "}
+            {t("signup.termsNoticePrefix")}{" "}
             <Link to="/terms" className="text-primary hover:underline whitespace-nowrap">
-              {t("signup.termsNoticePrivacy")}
+              {t("signup.termsNoticeTermsLink")}
             </Link>
             {" "}
             {t("signup.termsNoticeAnd")}
-            {i18n.dir() === "rtl" ? "" : " "}
+            {" "}
             <Link to="/privacy" className="text-primary hover:underline whitespace-nowrap">
               {t("signup.termsNoticePrivacyLink")}
             </Link>
