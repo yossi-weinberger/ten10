@@ -73,7 +73,8 @@
 | 57 | לא כפול ומחיקה באישור | DB על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#527](https://github.com/yossi-weinberger/ten10/pull/527) |
 | 58 | קצוות נמען וטווח | DB על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#529](https://github.com/yossi-weinberger/ten10/pull/529) |
 | 59 | כולל, חודש בודד, ומחיקה | UI | §9.9 | נפתח | [#530](https://github.com/yossi-weinberger/ten10/pull/530) |
-| 60 | כיבוי AI בפרודקשן | Edge על testing | §22 | נפתח | [#531](https://github.com/yossi-weinberger/ten10/pull/531) |
+| 60 | כיבוי AI בפרודקשן | Edge על testing | §22 | מוזג ל־`feat/ai-intake` | [#531](https://github.com/yossi-weinberger/ten10/pull/531) |
+| 61 | צ'קליסט מיזוג ל־main | תיעוד | — | נפתח | |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -81,6 +82,18 @@
 1. PR 2a ואחריו PR 2b, מול `feat/ai-intake`. במקביל: המשימות שאינן קוד, וה־eval harness (PR 3) offline על הקבלות.
 2. מסלול DB, אחד אחד כי ענף ה־testing משותף: PR 1c (או בתוך PR 4), ו־PR 1b כשמדיניות המחיקה הוחלטה. לבדוק אם אינטגרציית ה־Preview של Supabase מריצה migrations גם ל־PRs שמכוונים ל־`feat/ai-intake`.
 3. כשממזגים את `feat/ai-intake` ל־`main` עם שינוי ב־`_shared`: בשעה רחוקה מה־crons, כי כל פונקציות ה־Edge נפרסות.
+
+## צ'קליסט: PR ל־main
+
+`20261019195400_decouple_reminders_from_marketing_consent.sql` כבר רץ בפרודקשן ב־19/10 21:02. 15 מיגרציות AI, מ־`20261019020000` עד `20261019190000`, מתוארכות לפניו. `supabase db push --linked --yes` בלי `--include-all` ייכשל עליהן. לא משנים את ה־workflow ל־`--include-all`.
+
+רק בתוך ה־PR ש־base שלו הוא `main`:
+
+- [ ] לשנות את חותמת הזמן של **כל** מיגרציות ה־AI (`supabase/migrations/*_ai_*.sql`, 21 קבצים) לתאריכים אחרי המיגרציה האחרונה ב־`main` באותו רגע, באותו סדר.
+- [ ] לעדכן את קבצי ה־rollback המקבילים: `20261019020000_ai_schema_foundation_down.sql`, `20261020140000_ai_question_recipient_down.sql`, `20261020150000_ai_duplicate_actions_down.sql`.
+- [ ] על testing בלבד: `supabase migration list`, ואז `supabase migration repair` כך שההיסטוריה תתאים לשמות החדשים.
+- [ ] Supabase Preview על ה־PR ל־`main` עובר.
+- [ ] למזג בשעה רחוקה מה־crons: לא ב־00:00, 07:00, 18:00 או 19:00 UTC.
 
 ## משימות בלי קוד (להתחיל עכשיו, לוקחות זמן קלנדרי)
 
@@ -195,3 +208,4 @@
 - **2026-10-20:** "food from" לא בולע את from. «מינואר עד מרץ» הוא טווח. שני נמענים לא נענים. «פינת חי» הוא נמען. חב"ד וחבד נספרים יחד. «בשנת המעשר 2025» לא נענית.
 - **2026-10-20:** «לכולל» חוזר להיות נמען. «ב־3» לא נדבק לשם. «במרץ 2025» הוא מרץ. «5786» היא שנת המעשר הזו. אישור מחיקה לא יושב על אותו כפתור, והטבלה מתרעננת.
 - **2026-10-20:** קריאות AI ב-Edge דולקות רק כש־`AI_INTAKE_ENABLED` הוא `true`. בלי זה, או עם כל ערך אחר, חמש הפונקציות מחזירות unavailable לפני allowlist ולפני ספק. הערך מוגדר רק ב-secrets של testing.
+- **2026-10-20:** צ'קליסט ל־PR ל־main: חותמות זמן חדשות לכל מיגרציות ה־AI, אחרי המיגרציה האחרונה ב־main, כולל rollback ו־repair על testing. בלי `--include-all`.
