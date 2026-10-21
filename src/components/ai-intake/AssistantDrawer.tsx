@@ -15,6 +15,7 @@ import {
   clarificationField,
   fallbackIntent,
   intentIsConfident,
+  isCapabilityQuestion,
   draftFromText,
   parseYearTypeSum,
   periodLabel,
@@ -452,6 +453,10 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     const decided = await classifyIntentFallback(source);
     setIntentConfidence(decided.ok ? decided.confidence : null);
     setChecking(false);
+    if (isCapabilityQuestion(source)) {
+      showIntent(source, today, "help");
+      return;
+    }
     if (decided.ok && decided.intent && !intentIsConfident(decided.confidence)) {
       setAskIntent(true);
       setIntent(null);
@@ -611,6 +616,18 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
             placeholder={t("aiIntake.placeholder")}
             aria-label={t("aiIntake.placeholder")}
           />
+          {askIntent ? (
+            <div className="flex flex-col gap-2 text-sm">
+              <p>{t("aiIntake.askIntent")}</p>
+              <div className="flex flex-wrap gap-2">
+                {(["add_transaction", "ask_data", "create_rule"] as const).map((intentChoice) => (
+                  <Button key={intentChoice} type="button" onClick={() => handleChooseIntent(intentChoice)}>
+                    {t(`aiIntake.intentChoices.${intentChoice}`)}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          ) : null}
           <Button type="submit" disabled={checking || recording}>{t("aiIntake.send")}</Button>
           <input
             ref={receiptInput}
@@ -628,18 +645,6 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
             {t(recording ? "aiIntake.voiceStop" : "aiIntake.voice")}
           </Button>
           {checking ? <p>{t("aiIntake.checking")}</p> : null}
-          {askIntent ? (
-            <div className="flex flex-col gap-2 text-sm">
-              <p>{t("aiIntake.askIntent")}</p>
-              <div className="flex flex-wrap gap-2">
-                {(["add_transaction", "ask_data", "create_rule"] as const).map((intentChoice) => (
-                  <Button key={intentChoice} type="button" onClick={() => handleChooseIntent(intentChoice)}>
-                    {t(`aiIntake.intentChoices.${intentChoice}`)}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          ) : null}
           {intent ? (
             <div className="flex flex-col gap-1 text-sm">
               <p>
