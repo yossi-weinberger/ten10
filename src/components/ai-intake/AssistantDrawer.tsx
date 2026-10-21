@@ -93,6 +93,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [savedItemId, setSavedItemId] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [askIntent, setAskIntent] = useState(false);
+  const [intentConfidence, setIntentConfidence] = useState<number | null>(null);
   const [dataReply, setDataReply] = useState<
     | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; paymentMethod: string | null; topic: string | null; from: string; to: string; total: number; count: number; currency: string | null }
     | { status: "category_missing"; topic: string; source: string; kind: "category" | "recipient" }
@@ -147,6 +148,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setSaveMessage(null);
     setSavedItemId(null);
     setAskIntent(false);
+    setIntentConfidence(null);
     setDataReply(null);
     setDuplicateScan(null);
   }
@@ -436,6 +438,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     }
     setChecking(true);
     const decided = await classifyIntentFallback(source);
+    setIntentConfidence(decided.ok ? decided.confidence : null);
     setChecking(false);
     if (decided.ok && decided.intent && !intentIsConfident(decided.confidence)) {
       setAskIntent(true);
@@ -540,6 +543,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       duplicates.length > 0 && choice
         ? { choice, candidateIds: duplicates.map((row) => row.id) }
         : undefined,
+      intentConfidence,
     );
     setSaving(false);
     if (result.ok && result.sameEvent) {

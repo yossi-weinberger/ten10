@@ -28,4 +28,22 @@ describe("textIntakePayload", () => {
     expect(payload.original_amount).toBe(50);
     expect(payload.extracted_amount).toBe(40);
   });
+
+  it("keeps an intent confidence and skips a missing one", () => {
+    const withConfidence = textIntakePayload(
+      { amount: 50, currency: "ILS", description: "לחם" },
+      { description: "לחם", amount: 50 },
+      undefined,
+      0.82,
+    );
+    const withoutConfidence = textIntakePayload(
+      { amount: 50, currency: "ILS", description: "לחם" },
+      { description: "לחם", amount: 50 },
+      undefined,
+      null,
+    );
+
+    expect(withConfidence.intent_confidence).toBe(0.82);
+    expect(withoutConfidence).not.toHaveProperty("intent_confidence");
+  });
 });

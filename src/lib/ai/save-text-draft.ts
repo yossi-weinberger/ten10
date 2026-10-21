@@ -14,6 +14,7 @@ export async function saveTextDraft(
   draft: TextTransactionDraft,
   original: { description: string; amount: number } = draft,
   duplicate?: { choice: "saved_anyway" | "same_event"; candidateIds: string[] },
+  intentConfidence?: number | null,
 ): Promise<SaveTextDraftResult> {
   const { data: authData, error: authError } = await supabase.auth.getUser();
   const user = authData.user;
@@ -45,7 +46,7 @@ export async function saveTextDraft(
   if (!built.ok) return built;
 
   const { data: createdRaw, error: createError } = await supabase.rpc("create_ai_text_intake", {
-    p_payload: textIntakePayload(built.payload, original, duplicate),
+    p_payload: textIntakePayload(built.payload, original, duplicate, intentConfidence),
   });
   const created = createdRaw as { item_id?: string; version?: number; skip_commit?: boolean } | null;
   if (createError || !created?.item_id || created.version === undefined) {

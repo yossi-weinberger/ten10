@@ -2,11 +2,13 @@ export function textIntakePayload<T extends object>(
   payload: T,
   original: { description: string; amount: number },
   duplicate?: { choice: "saved_anyway" | "same_event"; candidateIds: string[] },
+  intentConfidence?: number | null,
 ): T & {
   original_description: string;
   extracted_amount: number;
   duplicate_choice?: "saved_anyway" | "same_event";
   duplicate_candidate_ids?: string[];
+  intent_confidence?: number;
 } {
   return {
     ...payload,
@@ -18,5 +20,6 @@ export function textIntakePayload<T extends object>(
           duplicate_candidate_ids: duplicate.candidateIds,
         }
       : {}),
+    ...(typeof intentConfidence === "number" ? { intent_confidence: intentConfidence } : {}),
   };
 }
