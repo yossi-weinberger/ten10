@@ -91,7 +91,8 @@
 | 75 | שמירת קבלה בבאקט פרטי | DB על testing + Edge | §4.2, §7 | מוזג ל־`feat/ai-intake` | [#546](https://github.com/yossi-weinberger/ten10/pull/546) |
 | 76 | קישור קבלה לתנועה שנשמרה | DB על testing + Edge + UI | §4.2 | מוזג ל־`feat/ai-intake` | [#547](https://github.com/yossi-weinberger/ten10/pull/547) |
 | 77 | קישור קצר לקבלה מהטבלה | DB על testing + Edge + UI | §4.6 | מוזג ל־`feat/ai-intake` | [#548](https://github.com/yossi-weinberger/ten10/pull/548) |
-| 78 | Share Target לקובץ קבלה | UI, Web בלבד | §8.1 | נפתח | [#549](https://github.com/yossi-weinberger/ten10/pull/549) |
+| 78 | Share Target לקובץ קבלה | UI, Web בלבד | §8.1 | מוזג ל־`feat/ai-intake` | [#549](https://github.com/yossi-weinberger/ten10/pull/549) |
+| 79 | Share Target לטקסט | UI, Web בלבד | §8.1 | נפתח | |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -254,3 +255,4 @@
 - **2026-10-21:** מזהה קובץ הקבלה נשמר ב-state, כדי שלא ייקרא ref בזמן הרינדור. לא ל־`main`.
 - **2026-10-21:** #548 מוזג ל־`feat/ai-intake`. שיתוף קובץ קבלה נשמר ב-IndexedDB ורק אז נפתחת המגירה ב-Web למשתמש מחובר. דסקטופ בלי Service Worker. לא ל־`main`.
 - **2026-10-21:** קובץ משותף נמסר למגירה בלי setState מתוך useEffect. לא ל־`main`.
+- **2026-10-21:** #549 מוזג ל־`feat/ai-intake`. שיתוף טקסט, כותרת או כתובת נפתח במגירה כהודעה. קובץ נשאר קבלה. לא ל־`main`.

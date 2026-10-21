@@ -6,8 +6,24 @@ export interface SharedReceiptRecord {
   id: string;
   name: string;
   type: string;
-  buffer: ArrayBuffer;
+  buffer?: ArrayBuffer;
+  title?: string;
+  text?: string;
+  url?: string;
   savedAt: number;
+}
+
+export type SharedIntake =
+  | { kind: "file"; file: File }
+  | { kind: "text"; text: string };
+
+/** Joins the text fields of one share. A file share does not use this. */
+export function sharedTextMessage(parts: Array<string | null | undefined>): string {
+  return parts
+    .map((part) => (typeof part === "string" ? part.trim() : ""))
+    .filter((part) => part.length > 0)
+    .join("\n")
+    .slice(0, 2000);
 }
 
 export function isExpiredShare(savedAt: number, now: number): boolean {
@@ -28,8 +44,8 @@ function openShareDb(): Promise<IDBDatabase> {
   });
 }
 
-/** Takes the newest shared file and drops anything older than 24 hours. */
-export async function takeSharedReceipt(now = Date.now()): Promise<File | null> {
+/** Takes the newest share and drops anything older than 24 hours. */
+export async function takeSharedIntake(now = Date.now()): Promise<SharedIntake | null> {
   if (typeof indexedDB === "undefined") return null;
   const db = await openShareDb();
   try {
@@ -51,7 +67,11 @@ export async function takeSharedReceipt(now = Date.now()): Promise<File | null> 
     });
     const record = records[0];
     if (!record) return null;
-    return new File([record.buffer], record.name, { type: record.type });
+    if (record.buffer && record.buffer.byteLength > 0) {
+      return { kind: "file", file: new File([record.buffer], record.name, { type: record.type }) };
+    }
+    const text = sharedTextMessage([record.title, record.text, record.url]);
+    return text ? { kind: "text", text } : null;
   } finally {
     db.close();
   }
