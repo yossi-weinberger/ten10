@@ -4,6 +4,7 @@
 
 import { getCalendarAdapter } from "../calendar/index.ts";
 import { formatHebrewYear } from "../calendar/hebrew-numeral.ts";
+import { hebrewMonthName } from "../calendar/hebrew-calendar.ts";
 import { clampMaaserYearReportEnd, getCurrentMaaserYear, getMaaserYearRange } from "../calendar/maaser-year.ts";
 import {
   DONATION_TYPE_MARKERS,
@@ -606,12 +607,29 @@ export function periodLabel(
   language?: string,
 ): string {
   if (isCivilYear(question)) return String(question.year);
+  const spoken = labelLanguage(language);
   if (calendar === "hebrew") {
     const hebrew = getCalendarAdapter("hebrew");
-    const spoken = labelLanguage(language);
     const start = hebrew.fromIsoDate(question.from);
     const end = hebrew.fromIsoDate(question.to);
-    if (question.month) return hebrew.monthLabel(hebrew.monthKey(question.from), spoken);
+    if (spoken === "en") {
+      if (question.month) return `${hebrewMonthName(start.year, start.month, "en")} ${start.year}`;
+      if (
+        start.month === 1
+        && start.day === 1
+        && end.year === start.year
+        && end.month === end.monthsInYear
+        && end.day === hebrew.daysInMonth(end.year, end.month)
+      ) {
+        return String(start.year);
+      }
+      const label = (iso: string) => {
+        const date = hebrew.fromIsoDate(iso);
+        return `${date.day} ${hebrewMonthName(date.year, date.month, "en")} ${date.year}`;
+      };
+      return `${label(question.from)}–${label(question.to)}`;
+    }
+    if (question.month) return hebrew.monthLabel(hebrew.monthKey(question.from), "he");
     if (
       start.month === 1
       && start.day === 1
@@ -627,7 +645,10 @@ export function periodLabel(
     };
     return `${label(question.from)}–${label(question.to)}`;
   }
-  if (question.month) return `${question.month}/${question.year}`;
+  if (question.month) {
+    const gregorian = getCalendarAdapter("gregorian");
+    return gregorian.monthLabel(gregorian.monthKey(question.from), spoken);
+  }
   if (question.from.endsWith("-01-01") && question.to.endsWith("-12-31")) return String(question.year);
   const day = (iso: string) => {
     const [year, month, date] = iso.split("-");

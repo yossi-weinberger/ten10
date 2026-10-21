@@ -189,6 +189,8 @@ Deno.test("the primary calendar chooses this year and this month", () => {
   assert(year?.from === hebrew.startOfYear(today), "hebrew year starts on 1 tishrei");
   assert(year?.year === hebrew.fromIsoDate(today).year, "hebrew year number");
   assert(periodLabel(year!, "hebrew", "he") === formatHebrewYear(year!.year), "hebrew year label");
+  assert(periodLabel(year!, "hebrew", "en") === String(year!.year), "english hebrew year is digits");
+  assert(!periodLabel(year!, "hebrew", "en").includes("ת"), "english label has no hebrew letters");
   const civil = parseYearTypeSum("כמה הוצאתי ב-2025", today, "hebrew");
   assert(civil?.from === "2025-01-01" && civil.to === "2025-12-31", "an explicit year stays gregorian");
   assert(periodLabel(civil!, "hebrew", "he") === "2025", "an explicit year is labeled 2025");
@@ -196,6 +198,9 @@ Deno.test("the primary calendar chooses this year and this month", () => {
   assert(maaser?.from === getMaaserYearRange(getCurrentMaaserYear(today)).startDate, "maaser stays the tithe year");
   const gregorian = parseYearTypeSum("כמה הוצאתי החודש", today);
   assert(gregorian?.from === "2026-09-01" && gregorian.to === "2026-09-30", "gregorian month");
+  const gregorianLabel = periodLabel(gregorian!, "gregorian", "he");
+  assert(gregorianLabel.includes("ספטמבר"), "gregorian month name");
+  assert(!gregorianLabel.includes("9/2026"), "not a numeric month");
   const leapDay = hebrew.toIsoDate({ year: 5784, month: 7, day: 10 }, "reject");
   const leap = hebrew.fromIsoDate(leapDay);
   assert(leap.inLeapYear && leap.monthCode === "M06", "adar ii fixture");

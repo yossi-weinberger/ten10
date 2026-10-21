@@ -49,6 +49,13 @@ import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import { resolveQuestionFilter, sumYearType } from "@/lib/ai/sum-year-type";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
 import { isOnOrAfterMinTransactionDate, MIN_TRANSACTION_DATE } from "@/lib/utils/transaction-date";
+import { formatCurrency } from "@/lib/utils/currency";
+import type { CurrencyCode } from "@/lib/currencies";
+
+function hebrewPeriodPhrase(label: string, language: string): string {
+  if (language.toLowerCase().startsWith("en")) return label;
+  return /^\d/.test(label) ? `ב-${label}` : `ב${label}`;
+}
 
 function draftDateProblem(date: string): "invalid" | "min" | null {
   if (!isIsoDate(date)) return "invalid";
@@ -71,6 +78,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     "halacha-tithes",
   ]);
   const calendarType = useDonationStore((state) => state.settings.calendarType);
+  const defaultCurrency = useDonationStore((state) => state.settings.defaultCurrency);
   const questionCalendar = calendarType === "hebrew" ? "hebrew" : "gregorian";
   const [text, setText] = useState("");
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
@@ -401,6 +409,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   }
 
   async function loadDataAnswer(source: string, searchDescriptions = false) {
+    setDataReply(null);
     const question = parseYearTypeSum(source, todayIso(), questionCalendar);
     if (!question) {
       setDataReply({ status: "unsupported" });
@@ -645,12 +654,15 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                       : dataReply.measure === "max"
                         ? (dataReply.count === 0 ? "aiIntake.dataMaxEmpty" : "aiIntake.dataMax")
                         : "aiIntake.dataAnswer", {
-                    year: periodLabel(dataReply, questionCalendar, i18n.language),
+                    year: hebrewPeriodPhrase(periodLabel(dataReply, questionCalendar, i18n.language), i18n.language),
                     type: t(`aiIntake.types.${dataReply.type}`),
                     typePlural: t(`aiIntake.typesPlural.${dataReply.type}`),
-                    total: dataReply.total,
+                    amount: formatCurrency(
+                      dataReply.total,
+                      (dataReply.currency ?? defaultCurrency) as CurrencyCode,
+                      i18n.language.toLowerCase().startsWith("en") ? "en" : "he",
+                    ),
                     count: dataReply.count,
-                    currency: dataReply.currency ? ` ${dataReply.currency}` : "",
                   })}
                   {dataReply.paymentMethod
                     ? ` (${t(`transactionForm.paymentMethod.options.${dataReply.paymentMethod}`, { ns: "transactions" })})`
