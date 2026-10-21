@@ -75,6 +75,29 @@ Deno.test("a date question without a confident family asks instead of guessing",
     paymentMethod: null,
   };
   assert(questionFromSlots("כמה תרמתי ב-2025?", TODAY, "gregorian", slots) === "ask_family", "ask");
+  const unnamed: QuestionSlots = {
+    family: "donation",
+    measure: "sum",
+    recipient: null,
+    category: "gift",
+    paymentMethod: null,
+  };
+  const yeshiva = questionFromSlots("כמה תרמתי לישיבה השנה?", TODAY, "gregorian", unnamed);
+  assert(yeshiva !== "ask_family" && yeshiva?.recipient === "ישיבה" && yeshiva.topic === null, "unsaved recipient");
+  const chabad = questionFromSlots("how much did I donate to Chabad this year?", TODAY, "gregorian", unnamed);
+  assert(chabad !== "ask_family" && chabad?.recipient === "chabad" && chabad.topic === null, "chabad is not a category");
+  const saved: QuestionSlots = { ...unnamed, recipient: "חב״ד", category: null };
+  const kept = questionFromSlots("כמה תרמתי לישיבה השנה?", TODAY, "gregorian", saved);
+  assert(kept !== "ask_family" && kept?.recipient === "חב״ד", "a chosen recipient stays");
+  const mortgage = questionFromSlots("כמה הוצאתי על משכנתא השנה?", TODAY, "gregorian", {
+    family: "expense",
+    measure: "sum",
+    recipient: null,
+    category: null,
+    paymentMethod: null,
+  });
+  assert(mortgage !== "ask_family" && mortgage?.topic === "משכנתא", "unsaved category");
+  assert(questionFromSlots("כמה תרמתי לישיבה ולבית חבד השנה", TODAY, "gregorian", unnamed) === null, "two names");
   assert(questionFromSlots("כמה זה מעשר?", TODAY, "gregorian", slots) === null, "no date");
   const hebrew = getCalendarAdapter("hebrew");
   const leap = hebrew.toIsoDate({ year: 5784, month: 7, day: 10 }, "reject");

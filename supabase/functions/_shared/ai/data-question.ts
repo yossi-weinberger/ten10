@@ -646,15 +646,29 @@ export function questionFromSlots(
   slots: QuestionSlots | null,
 ): YearTypeSum | "ask_family" | null {
   if (!slots) return parseYearTypeSum(text, today, calendar);
-  const period = parseQuestionPeriod(normalize(text), today, calendar);
+  const normalized = normalize(text);
+  const period = parseQuestionPeriod(normalized, today, calendar);
   if (!period) return null;
   if (!slots.family) return "ask_family";
+  let recipient: string | null = null;
+  if (slots.family === "donation") {
+    if (slots.recipient) recipient = slots.recipient;
+    else {
+      const spoken = recipientPhrase(normalized);
+      if (spoken === "ambiguous") return null;
+      recipient = spoken;
+    }
+  }
+  let topic: string | null = null;
+  if (slots.family !== "donation") {
+    topic = slots.category ?? topicPhrase(normalized);
+  }
   return {
     type: slots.family,
     measure: slots.measure ?? "sum",
     paymentMethod: slots.paymentMethod,
-    topic: slots.category,
-    recipient: slots.family === "donation" ? slots.recipient : null,
+    topic,
+    recipient,
     ...period,
   };
 }
