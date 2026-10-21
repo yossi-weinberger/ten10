@@ -1,0 +1,1350 @@
+[
+  {
+    "id": "slot-001",
+    "text": "כמה תרמתי ב-2025?",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 12,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    }
+  },
+  {
+    "id": "slot-002",
+    "text": "how much did I spend in 2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 12,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    }
+  },
+  {
+    "id": "slot-003",
+    "text": "כמה קיבלתי ב-2024",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "income",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 12,
+      "year": 2024,
+      "month": null,
+      "from": "2024-01-01",
+      "to": "2024-12-31"
+    }
+  },
+  {
+    "id": "slot-004",
+    "text": "קניתי מאפים ב-15 שח",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": null
+  },
+  {
+    "id": "slot-005",
+    "text": "כמה זה מעשר?",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": null
+  },
+  {
+    "id": "slot-006",
+    "text": "כמה תרמתי השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-007",
+    "text": "how much did I donate this month",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 1,
+      "year": 2026,
+      "month": 10,
+      "from": "2026-10-01",
+      "to": "2026-10-31"
+    }
+  },
+  {
+    "id": "slot-008",
+    "text": "כמה תרומות ב-2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "count",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 12,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    }
+  },
+  {
+    "id": "slot-009",
+    "text": "how many donations this year",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "count",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-010",
+    "text": "כמה תרמתי ב-2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 12,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    }
+  },
+  {
+    "id": "slot-011",
+    "text": "כמה תרמתי ב-3 חודשים אחרונים",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 3,
+      "year": 2026,
+      "month": null,
+      "from": "2026-07-20",
+      "to": "2026-10-19"
+    }
+  },
+  {
+    "id": "slot-012",
+    "text": "how many expenses in the last 2 months",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "count",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 2,
+      "year": 2026,
+      "month": null,
+      "from": "2026-08-20",
+      "to": "2026-10-19"
+    }
+  },
+  {
+    "id": "slot-013",
+    "text": "כמה תרמתי ב-0 חודשים אחרונים",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": null
+  },
+  {
+    "id": "slot-014",
+    "text": "כמה נתתי לצדקה השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-015",
+    "text": "כמה נתתי צדקה ב-2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 12,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    }
+  },
+  {
+    "id": "slot-016",
+    "text": "כמה הכנסתי השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "income",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-017",
+    "text": "כמה יצא לי על הוצאות השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": "הוצאות",
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-018",
+    "text": "כמה תרמתי ב-3 החודשים האחרונים",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 3,
+      "year": 2026,
+      "month": null,
+      "from": "2026-07-20",
+      "to": "2026-10-19"
+    }
+  },
+  {
+    "id": "slot-019",
+    "text": "כמה תרמתי בשלושת החודשים האחרונים",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 3,
+      "year": 2026,
+      "month": null,
+      "from": "2026-07-20",
+      "to": "2026-10-19"
+    }
+  },
+  {
+    "id": "slot-020",
+    "text": "כמה תרמתי החודש",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 1,
+      "year": 2026,
+      "month": 10,
+      "from": "2026-10-01",
+      "to": "2026-10-31"
+    }
+  },
+  {
+    "id": "slot-021",
+    "text": "כמה תרמתי למעשר בשלושת החודשים האחרונים",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 3,
+      "year": 2026,
+      "month": null,
+      "from": "2026-07-20",
+      "to": "2026-10-19"
+    }
+  },
+  {
+    "id": "slot-022",
+    "text": "כמה תרמתי בשנים עשר החודשים האחרונים",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 12,
+      "year": 2026,
+      "month": null,
+      "from": "2025-10-20",
+      "to": "2026-10-19"
+    }
+  },
+  {
+    "id": "slot-023",
+    "text": "כמה תרמתי השנה שעברה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 12,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    }
+  },
+  {
+    "id": "slot-024",
+    "text": "כמה תרמתי בחצי השנה האחרונה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 6,
+      "year": 2026,
+      "month": null,
+      "from": "2026-04-20",
+      "to": "2026-10-19"
+    }
+  },
+  {
+    "id": "slot-025",
+    "text": "כמה תרמתי בחודש האחרון",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 1,
+      "year": 2026,
+      "month": null,
+      "from": "2026-09-20",
+      "to": "2026-10-19"
+    }
+  },
+  {
+    "id": "slot-026",
+    "text": "how much did I spend on food from 1.1.2025 to 31.3.2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": "food",
+      "recipient": null,
+      "months": 3,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-03-31"
+    }
+  },
+  {
+    "id": "slot-027",
+    "text": "כמה הוצאתי מינואר עד מרץ 2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 3,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-03-31"
+    }
+  },
+  {
+    "id": "slot-028",
+    "text": "כמה תרמתי לישיבה ולבית חבד השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": null
+  },
+  {
+    "id": "slot-029",
+    "text": "כמה תרמתי לפינת חי השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": "פינת חי",
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-030",
+    "text": "כמה תרמתי לכולל השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": "כולל",
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-031",
+    "text": "כמה תרמתי לישיבה ב-3 החודשים האחרונים",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": "ישיבה",
+      "months": 3,
+      "year": 2026,
+      "month": null,
+      "from": "2026-07-20",
+      "to": "2026-10-19"
+    }
+  },
+  {
+    "id": "slot-032",
+    "text": "כמה הוצאתי במרץ 2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 1,
+      "year": 2025,
+      "month": null,
+      "from": "2025-03-01",
+      "to": "2025-03-31"
+    }
+  },
+  {
+    "id": "slot-033",
+    "text": "כמה הוצאתי על אוכל מינואר עד מרץ 2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": "אוכל",
+      "recipient": null,
+      "months": 3,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-03-31"
+    }
+  },
+  {
+    "id": "slot-034",
+    "text": "כמה תרמתי בשנת המעשר 5786",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 12,
+      "year": 5786,
+      "month": null,
+      "from": "2025-09-23",
+      "to": "2026-09-11"
+    }
+  },
+  {
+    "id": "slot-035",
+    "text": "how much did I donate to Chabad and to Mir this year",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": null
+  },
+  {
+    "id": "slot-036",
+    "text": "כמה תרמתי מינואר 2024 עד מרץ 2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 15,
+      "year": 2024,
+      "month": null,
+      "from": "2024-01-01",
+      "to": "2025-03-31"
+    }
+  },
+  {
+    "id": "slot-037",
+    "text": "כמה תרמתי לישיבה בשנת המעשר",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": "ישיבה",
+      "months": 2,
+      "year": 5787,
+      "month": null,
+      "from": "2026-09-12",
+      "to": "2026-10-19"
+    }
+  },
+  {
+    "id": "slot-038",
+    "text": "כמה תרמתי בשנת המעשר 2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": null
+  },
+  {
+    "id": "slot-039",
+    "text": "כמה הוצאתי ב-31.2.2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": null
+  },
+  {
+    "id": "slot-040",
+    "text": "כמה הוצאתי מ-31.3.2025 עד 1.1.2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": null
+  },
+  {
+    "id": "slot-041",
+    "text": "how much did I spend from 1/1/2025 to 3/31/2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": null
+  },
+  {
+    "id": "slot-042",
+    "text": "כמה תרמתי בשנת המעשר הקודמת",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 12,
+      "year": 5786,
+      "month": null,
+      "from": "2025-09-23",
+      "to": "2026-09-11"
+    }
+  },
+  {
+    "id": "slot-043",
+    "text": "how much did I donate last maaser year",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 12,
+      "year": 5786,
+      "month": null,
+      "from": "2025-09-23",
+      "to": "2026-09-11"
+    }
+  },
+  {
+    "id": "slot-044",
+    "text": "כמה תרמתי ל-ישיבה השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": "ישיבה",
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-045",
+    "text": "how much did I donate to the yeshiva this year",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": "yeshiva",
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-046",
+    "text": "כמה תרמתי לישיבת מיר השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": "ישיבת מיר",
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-047",
+    "text": "כמה תרמתי לעניים השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-048",
+    "text": "כמה תרמתי למעשר השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-049",
+    "text": "כמה תרמתי לפי שנת המעשר",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 2,
+      "year": 5787,
+      "month": null,
+      "from": "2026-09-12",
+      "to": "2026-10-19"
+    }
+  },
+  {
+    "id": "slot-050",
+    "text": "כמה הוצאתי על אוכל מ-1.1.2025 עד 31.3.2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": "אוכל",
+      "recipient": null,
+      "months": 3,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-03-31"
+    }
+  },
+  {
+    "id": "slot-051",
+    "text": "כמה תרמתי לישיבה השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": "ישיבה",
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-052",
+    "text": "כמה תרמתי לצדקה השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-053",
+    "text": "כמה תרמתי בשנת המעשר",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 2,
+      "year": 5787,
+      "month": null,
+      "from": "2026-09-12",
+      "to": "2026-10-19"
+    }
+  },
+  {
+    "id": "slot-054",
+    "text": "כמה הוצאתי מ-1.1.2025 עד 31.3.2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 3,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-03-31"
+    }
+  },
+  {
+    "id": "slot-055",
+    "text": "כמה הוצאתי על אוכל השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": "אוכל",
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-056",
+    "text": "כמה הוצאתי על אוכל השנה?",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": "אוכל",
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-057",
+    "text": "כמה הוצאתי על אוכל ב-2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": "אוכל",
+      "recipient": null,
+      "months": 12,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    }
+  },
+  {
+    "id": "slot-058",
+    "text": "כמה הוצאתי על אוכל בשנה שעברה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": "אוכל",
+      "recipient": null,
+      "months": 12,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    }
+  },
+  {
+    "id": "slot-059",
+    "text": "כמה הוצאתי על אוכל בחודש האחרון",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": "אוכל",
+      "recipient": null,
+      "months": 1,
+      "year": 2026,
+      "month": null,
+      "from": "2026-09-20",
+      "to": "2026-10-19"
+    }
+  },
+  {
+    "id": "slot-060",
+    "text": "כמה הוצאתי על אוכל באשראי השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": "credit_card",
+      "topic": "אוכל",
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-061",
+    "text": "how much did I spend on food in 2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": "food",
+      "recipient": null,
+      "months": 12,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    }
+  },
+  {
+    "id": "slot-062",
+    "text": "כמה הוצאתי על ביטוח השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": "ביטוח",
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-063",
+    "text": "כמה הוצאתי על ביטול השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": "ביטול",
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-064",
+    "text": "כמה הוצאתי בכרטיס דביט השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": "debit_card",
+      "topic": null,
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-065",
+    "text": "check how much I donated this year",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-066",
+    "text": "כמה הוצאתי על בצק השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": "בצק",
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-067",
+    "text": "כמה הוצאתי באשראי השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": "credit_card",
+      "topic": null,
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-068",
+    "text": "how much cash did I donate this year",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": "cash",
+      "topic": null,
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-069",
+    "text": "כמה הוצאתי במזומן ובאשראי השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": null
+  },
+  {
+    "id": "slot-070",
+    "text": "מה התרומה הכי גדולה השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "max",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-071",
+    "text": "largest expense this year",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "max",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-072",
+    "text": "ממוצע תרומות השנה",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "average",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-073",
+    "text": "average donations this year",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "average",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 10,
+      "year": 2026,
+      "month": null,
+      "from": "2026-01-01",
+      "to": "2026-12-31"
+    }
+  },
+  {
+    "id": "slot-074",
+    "text": "ממוצע תרומות ב-2025",
+    "today": "2026-10-19",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "average",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 12,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    }
+  },
+  {
+    "id": "slot-075",
+    "text": "כמה תרמתי ב-1 חודשים אחרונים",
+    "today": "2026-03-31",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 1,
+      "year": 2026,
+      "month": null,
+      "from": "2026-03-01",
+      "to": "2026-03-31"
+    }
+  },
+  {
+    "id": "slot-076",
+    "text": "כמה הוצאתי החודש",
+    "today": "2026-09-20",
+    "calendar": "hebrew",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 1,
+      "year": 5787,
+      "month": 1,
+      "from": "2026-09-12",
+      "to": "2026-10-11"
+    }
+  },
+  {
+    "id": "slot-077",
+    "text": "כמה הוצאתי השנה",
+    "today": "2026-09-20",
+    "calendar": "hebrew",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 1,
+      "year": 5787,
+      "month": null,
+      "from": "2026-09-12",
+      "to": "2027-10-01"
+    }
+  },
+  {
+    "id": "slot-078",
+    "text": "כמה הוצאתי ב-2025",
+    "today": "2026-09-20",
+    "calendar": "hebrew",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 12,
+      "year": 2025,
+      "month": null,
+      "from": "2025-01-01",
+      "to": "2025-12-31"
+    }
+  },
+  {
+    "id": "slot-079",
+    "text": "כמה תרמתי בשנת המעשר",
+    "today": "2026-09-20",
+    "calendar": "hebrew",
+    "expected": {
+      "type": "donation",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 1,
+      "year": 5787,
+      "month": null,
+      "from": "2026-09-12",
+      "to": "2026-09-20"
+    }
+  },
+  {
+    "id": "slot-080",
+    "text": "כמה הוצאתי החודש",
+    "today": "2026-09-20",
+    "calendar": "gregorian",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 1,
+      "year": 2026,
+      "month": 9,
+      "from": "2026-09-01",
+      "to": "2026-09-30"
+    }
+  },
+  {
+    "id": "slot-081",
+    "text": "כמה הוצאתי החודש",
+    "today": "2024-03-20",
+    "calendar": "hebrew",
+    "expected": {
+      "type": "expense",
+      "measure": "sum",
+      "paymentMethod": null,
+      "topic": null,
+      "recipient": null,
+      "months": 1,
+      "year": 5784,
+      "month": 7,
+      "from": "2024-03-11",
+      "to": "2024-04-08"
+    }
+  }
+]
