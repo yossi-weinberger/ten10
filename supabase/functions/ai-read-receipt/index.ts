@@ -1,18 +1,68 @@
-import { createClient } from "npm:@supabase/supabase-js@2.116.0";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import {
+  decodeReceiptBase64,
   readModelText,
   readReceiptDraft,
+  readStoredReceiptPath,
   receiptFilePart,
+  receiptMagicMatches,
+  receiptSha256,
+  receiptStoragePath,
   RECEIPT_MAX_BASE64_CHARS,
   RECEIPT_VISION_MODEL,
 } from "../_shared/ai/receipt-draft.ts";
 
 const RESPONSES_URL = "https://ai-gateway.vercel.sh/v1/responses";
+const RECEIPT_BUCKET = "intake-artifacts";
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
+
+async function storeCheckedReceipt(
+  userClient: SupabaseClient,
+  userId: string,
+  mediaType: string,
+  bytes: Uint8Array,
+): Promise<boolean> {
+  const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+  if (!serviceKey || !supabaseUrl) return false;
+  const path = receiptStoragePath(userId, crypto.randomUUID(), new Date());
+  if (!path) return false;
+  const admin = createClient(supabaseUrl, serviceKey);
+  const body = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(body).set(bytes);
+  const uploaded = await admin.storage.from(RECEIPT_BUCKET).upload(
+    path,
+    new Blob([body], { type: mediaType }),
+    { contentType: mediaType, upsert: false },
+  );
+  if (uploaded.error) {
+    logger.error("receipt artifact upload failed");
+    return false;
+  }
+  const hash = await receiptSha256(bytes);
+  const { data, error } = await userClient.rpc("record_ai_receipt_artifact", {
+    p_sha256: hash,
+    p_mime: mediaType,
+    p_size: bytes.length,
+    p_storage_path: path,
+  });
+  const recorded = readStoredReceiptPath(data);
+  if (error || !recorded) {
+    const removed = await admin.storage.from(RECEIPT_BUCKET).remove([path]);
+    if (removed.error) logger.error("receipt artifact cleanup failed");
+    logger.error("receipt artifact record failed");
+    return false;
+  }
+  if (recorded.storagePath !== path) {
+    const removed = await admin.storage.from(RECEIPT_BUCKET).remove([path]);
+    if (removed.error) logger.error("receipt artifact cleanup failed");
+  }
+  return true;
+}
 
 const PROMPT = [
   "Read this receipt. It may be written in Hebrew, English, or both.",
@@ -55,11 +105,16 @@ Deno.serve(async (req: Request) => {
   const body = await req.json().catch(() => null) as { media_type?: unknown; data?: unknown } | null;
   const mediaType = typeof body?.media_type === "string" ? body.media_type : "";
   const data = typeof body?.data === "string" ? body.data : "";
-  const filePart = receiptFilePart(mediaType, data);
   if (data.length > RECEIPT_MAX_BASE64_CHARS) return json(origin, { draft: null, reason: "too_large" }, 200);
-  if (!ALLOWED_TYPES.has(mediaType) || !filePart || data.length === 0) {
+  if (!ALLOWED_TYPES.has(mediaType) || data.length === 0) {
     return json(origin, { draft: null }, 400);
   }
+  const bytes = decodeReceiptBase64(data);
+  if (!bytes || !receiptMagicMatches(mediaType, bytes)) return json(origin, { draft: null }, 200);
+  const filePart = receiptFilePart(mediaType, data);
+  if (!filePart) return json(origin, { draft: null }, 400);
+  const stored = await storeCheckedReceipt(userClient, userData.user.id, mediaType, bytes);
+  if (!stored) return json(origin, { draft: null, reason: "unavailable" }, 200);
 
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
   if (!apiKey) return json(origin, { draft: null, reason: "unavailable" }, 200);

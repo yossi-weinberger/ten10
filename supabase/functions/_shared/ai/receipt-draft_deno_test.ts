@@ -1,4 +1,15 @@
-import { readModelText, readReceiptDraft, receiptFilePart, RECEIPT_MAX_BASE64_CHARS, RECEIPT_MAX_BYTES } from "./receipt-draft.ts";
+import {
+  decodeReceiptBase64,
+  readModelText,
+  readReceiptDraft,
+  readStoredReceiptPath,
+  receiptFilePart,
+  receiptMagicMatches,
+  receiptSha256,
+  receiptStoragePath,
+  RECEIPT_MAX_BASE64_CHARS,
+  RECEIPT_MAX_BYTES,
+} from "./receipt-draft.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -30,6 +41,39 @@ Deno.test("a pdf is sent as a file and a photo as an image", () => {
   assert(pdf?.type === "input_file" && pdf.file_data.startsWith("data:application/pdf;base64,"), "pdf");
   assert(photo?.type === "input_image" && photo.image_url.startsWith("data:image/jpeg;base64,"), "photo");
   assert(receiptFilePart("text/plain", "QQ==") === null, "other files");
+});
+
+Deno.test("a receipt is stored only when the header matches the declared type", () => {
+  const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0x00]);
+  const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  const webp = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50]);
+  const pdf = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d]);
+  assert(receiptMagicMatches("image/jpeg", jpeg), "jpeg");
+  assert(!receiptMagicMatches("image/jpeg", png), "png is not jpeg");
+  assert(receiptMagicMatches("image/png", png), "png");
+  assert(receiptMagicMatches("image/webp", webp), "webp");
+  assert(receiptMagicMatches("application/pdf", pdf), "pdf");
+  assert(!receiptMagicMatches("text/plain", pdf), "other type");
+  assert(decodeReceiptBase64("QQ==")?.length === 1, "decoded byte");
+  assert(decodeReceiptBase64("!!!!") === null, "bad base64");
+});
+
+Deno.test("the storage path stays under the user and has no filename", () => {
+  const path = receiptStoragePath(
+    "11111111-1111-4111-8111-111111111111",
+    "22222222-2222-4222-8222-222222222222",
+    new Date("2026-10-21T22:30:00Z"),
+  );
+  assert(path === "11111111-1111-4111-8111-111111111111/2026/10/22222222-2222-4222-8222-222222222222", "path");
+  assert(receiptStoragePath("not-a-user", "22222222-2222-4222-8222-222222222222", new Date()) === null, "user");
+  const recorded = readStoredReceiptPath({ storage_path: path, already_stored: true });
+  assert(recorded?.alreadyStored === true && recorded.storagePath === path, "recorded");
+  assert(readStoredReceiptPath({}) === null, "missing path");
+});
+
+Deno.test("the receipt hash is 64 hex characters", async () => {
+  const hash = await receiptSha256(new Uint8Array([1, 2, 3]));
+  assert(/^[0-9a-f]{64}$/.test(hash), "hex");
 });
 
 Deno.test("model text is read from the responses payload", () => {

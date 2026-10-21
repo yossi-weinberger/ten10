@@ -17,6 +17,71 @@ export interface ReceiptDraft {
 /** Locked vision model. Reads Hebrew and English receipts, including PDFs. */
 export const RECEIPT_VISION_MODEL = "anthropic/claude-sonnet-5";
 
+const ARTIFACT_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+/** Private bucket path: user id, UTC year, UTC month, artifact id. No original filename. */
+export function receiptStoragePath(userId: string, artifactId: string, receivedAt: Date): string | null {
+  const user = userId.toLowerCase();
+  const artifact = artifactId.toLowerCase();
+  if (!ARTIFACT_ID.test(user) || !ARTIFACT_ID.test(artifact)) return null;
+  const year = String(receivedAt.getUTCFullYear());
+  const month = String(receivedAt.getUTCMonth() + 1).padStart(2, "0");
+  return `${user}/${year}/${month}/${artifact}`;
+}
+
+export function decodeReceiptBase64(data: string): Uint8Array | null {
+  if (data.length === 0 || data.length % 4 !== 0) return null;
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(data)) return null;
+  try {
+    const binary = atob(data);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  } catch {
+    return null;
+  }
+}
+
+/** Declared type must match the file header. A renamed file is not stored or sent. */
+export function receiptMagicMatches(mediaType: string, bytes: Uint8Array): boolean {
+  if (mediaType === "image/jpeg") {
+    return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  }
+  if (mediaType === "image/png") {
+    return bytes.length >= 8
+      && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47
+      && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
+  }
+  if (mediaType === "image/webp") {
+    return bytes.length >= 12
+      && bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46
+      && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50;
+  }
+  if (mediaType === "application/pdf") {
+    return bytes.length >= 5
+      && bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46
+      && bytes[4] === 0x2d;
+  }
+  return false;
+}
+
+export async function receiptSha256(bytes: Uint8Array): Promise<string> {
+  const copy = new ArrayBuffer(bytes.byteLength);
+  new Uint8Array(copy).set(bytes);
+  const digest = await crypto.subtle.digest("SHA-256", copy);
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+export function readStoredReceiptPath(value: unknown): { storagePath: string; alreadyStored: boolean } | null {
+  if (!value || typeof value !== "object") return null;
+  const storagePath = (value as { storage_path?: unknown }).storage_path;
+  if (typeof storagePath !== "string" || storagePath.length === 0) return null;
+  return {
+    storagePath,
+    alreadyStored: (value as { already_stored?: unknown }).already_stored === true,
+  };
+}
+
 export function receiptFilePart(
   mediaType: string,
   data: string,
