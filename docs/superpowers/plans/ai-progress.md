@@ -88,7 +88,7 @@
 | 72 | חילוץ פרטי שאלה דרך Jev | Edge על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#543](https://github.com/yossi-weinberger/ten10/pull/543) |
 | 73 | נמען שלא שמור לא נבלע בסיכום | UI | §9.9 | מוזג ל־`feat/ai-intake` | [#544](https://github.com/yossi-weinberger/ten10/pull/544) |
 | 74 | כיול חריצי השאלה | Edge על testing | §9.9 | מוזג ל־`feat/ai-intake` | [#545](https://github.com/yossi-weinberger/ten10/pull/545) |
-| 75 | שמירת קבלה בבאקט פרטי | DB על testing + Edge | §4.2, §7 | נפתח | |
+| 75 | שמירת קבלה בבאקט פרטי | DB על testing + Edge | §4.2, §7 | נפתח | [#546](https://github.com/yossi-weinberger/ten10/pull/546) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
