@@ -85,7 +85,7 @@
 | 69 | כיול כוונה על 150 משפטים | Edge | §9.9 | מוזג ל־`feat/ai-intake` | [#540](https://github.com/yossi-weinberger/ten10/pull/540) |
 | 70 | שאלת יכולת היא עזרה | UI | §9.9 | מוזג ל־`feat/ai-intake` | [#541](https://github.com/yossi-weinberger/ten10/pull/541) |
 | 71 | Jev בטוח גובר על «אתה יכול» | UI | §9.9 | מוזג ל־`feat/ai-intake` | [#542](https://github.com/yossi-weinberger/ten10/pull/542) |
-| 72 | חילוץ פרטי שאלה דרך Jev | Edge על testing + UI | §9.9 | נפתח | |
+| 72 | חילוץ פרטי שאלה דרך Jev | Edge על testing + UI | §9.9 | נפתח | [#543](https://github.com/yossi-weinberger/ten10/pull/543) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
