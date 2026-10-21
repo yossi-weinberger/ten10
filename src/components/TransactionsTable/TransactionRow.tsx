@@ -59,7 +59,7 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
 
   async function openReceipt() {
     setReceiptNote(null);
-    const result = await openAiReceipt(transaction.id);
+    const result = await openAiReceipt({ transactionId: transaction.id });
     if (result === "opened") return;
     setReceiptNote(t(result === "none" ? "filters.receiptNone" : "filters.receiptFailed"));
   }

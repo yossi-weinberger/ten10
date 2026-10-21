@@ -4,10 +4,15 @@ import { isReceiptUrl } from "@/lib/ai/receipt-url";
 
 export type OpenReceiptResult = "opened" | "none" | "unavailable";
 
-export async function openAiReceipt(transactionId: string): Promise<OpenReceiptResult> {
+export async function openAiReceipt(
+  target: { transactionId: string } | { artifactId: string },
+): Promise<OpenReceiptResult> {
   if (!aiCallsAllowed()) return "unavailable";
+  const body = "transactionId" in target
+    ? { transaction_id: target.transactionId }
+    : { artifact_id: target.artifactId };
   const { data, error } = await supabase.functions.invoke("ai-receipt-url", {
-    body: { transaction_id: transactionId },
+    body,
   });
   if (error || !data || typeof data !== "object") return "unavailable";
   const url = (data as { url?: unknown }).url;

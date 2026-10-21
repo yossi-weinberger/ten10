@@ -38,17 +38,27 @@ Deno.serve(async (req: Request) => {
     return json(origin, { url: null, reason: "unavailable" }, 200);
   }
 
-  const body = await req.json().catch(() => null) as { transaction_id?: unknown } | null;
+  const body = await req.json().catch(() => null) as {
+    transaction_id?: unknown;
+    artifact_id?: unknown;
+  } | null;
   const transactionId = typeof body?.transaction_id === "string" ? body.transaction_id : "";
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(transactionId)) {
+  const artifactId = typeof body?.artifact_id === "string" ? body.artifact_id : "";
+  const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if ((transactionId && artifactId) || (!uuid.test(transactionId) && !uuid.test(artifactId))) {
     return json(origin, { url: null, reason: "none" }, 200);
   }
 
   const admin = createClient(supabaseUrl, serviceKey);
-  const found = await admin.rpc("receipt_storage_path", {
-    p_user_id: userData.user.id,
-    p_transaction_id: transactionId,
-  });
+  const found = transactionId
+    ? await admin.rpc("receipt_storage_path", {
+      p_user_id: userData.user.id,
+      p_transaction_id: transactionId,
+    })
+    : await admin.rpc("receipt_artifact_path", {
+      p_user_id: userData.user.id,
+      p_artifact_id: artifactId,
+    });
   const path = typeof found.data === "string" ? found.data : "";
   const prefix = `${userData.user.id.toLowerCase()}/`;
   if (found.error || !path.startsWith(prefix) || path.includes("..")) {

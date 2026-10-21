@@ -45,6 +45,7 @@ import { rankDuplicateCandidates } from "@/lib/ai/rank-duplicates";
 import { recordShadowType } from "@/lib/ai/shadow-type";
 import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 import { readReceiptImage } from "@/lib/ai/read-receipt";
+import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { isIsoDate, receiptAsDraft, receiptRuledDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
 import { dismissDuplicatePair, loadDuplicateScan } from "@/lib/ai/load-duplicate-scan";
 import { getPlatform } from "@/lib/platformManager";
@@ -256,6 +257,14 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     };
     setAppliedRuleName(applied.ruleName);
     refreshDuplicates(applied.draft, String(applied.draft.amount));
+  }
+
+  async function openReceiptFile() {
+    const artifactId = receiptArtifactId.current;
+    if (!artifactId) return;
+    const result = await openAiReceipt({ artifactId });
+    if (result === "opened") return;
+    setSaveMessage(t(result === "none" ? "aiIntake.receiptMissing" : "aiIntake.receiptUnavailable"));
   }
 
   async function handleReceipt(file: File | undefined) {
@@ -823,6 +832,11 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                       })}
                     </p>
                   ) : null}
+                  {receiptArtifactId.current ? (
+                    <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
+                      {t("aiIntake.viewReceipt")}
+                    </Button>
+                  ) : null}
                   <div className="flex flex-wrap gap-2">
                     {(["expense", "income", "donation"] as const).map((type) => (
                       <Button key={type} type="button" onClick={() => handleChooseType(type)}>
@@ -848,6 +862,11 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               ) : null}
               {draft ? (
                 <>
+                  {receiptArtifactId.current ? (
+                    <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
+                      {t("aiIntake.viewReceipt")}
+                    </Button>
+                  ) : null}
                   <p>
                     {t("aiIntake.draftMeta", {
                       currency: draft.currency,
