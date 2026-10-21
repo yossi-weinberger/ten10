@@ -1,4 +1,5 @@
 import { getCalendarAdapter } from "../calendar/index.ts";
+import { formatHebrewYear } from "../calendar/hebrew-numeral.ts";
 import { clampMaaserYearReportEnd, getCurrentMaaserYear, getMaaserYearRange } from "../calendar/maaser-year.ts";
 import { parseYearTypeSum, periodLabel } from "./data-question.ts";
 
@@ -180,13 +181,17 @@ Deno.test("the primary calendar chooses this year and this month", () => {
   assert(month?.from === hebrew.startOfMonth(today), "hebrew month starts on its first day");
   assert(month?.to === hebrew.endOfMonth(today), "hebrew month ends on its last day");
   assert(month?.from !== "2026-09-01", "tishrei is not september");
-  assert(periodLabel(month!, "hebrew") === `${month?.month}/${month?.year}`, "hebrew month label");
+  assert(
+    periodLabel(month!, "hebrew", "he") === hebrew.monthLabel(hebrew.monthKey(month!.from), "he"),
+    "hebrew month name",
+  );
   const year = parseYearTypeSum("כמה הוצאתי השנה", today, "hebrew");
   assert(year?.from === hebrew.startOfYear(today), "hebrew year starts on 1 tishrei");
   assert(year?.year === hebrew.fromIsoDate(today).year, "hebrew year number");
-  assert(periodLabel(year!, "hebrew") === String(year?.year), "hebrew year label");
+  assert(periodLabel(year!, "hebrew", "he") === formatHebrewYear(year!.year), "hebrew year label");
   const civil = parseYearTypeSum("כמה הוצאתי ב-2025", today, "hebrew");
   assert(civil?.from === "2025-01-01" && civil.to === "2025-12-31", "an explicit year stays gregorian");
+  assert(periodLabel(civil!, "hebrew", "he") === "2025", "an explicit year is labeled 2025");
   const maaser = parseYearTypeSum("כמה תרמתי בשנת המעשר", today, "hebrew");
   assert(maaser?.from === getMaaserYearRange(getCurrentMaaserYear(today)).startDate, "maaser stays the tithe year");
   const gregorian = parseYearTypeSum("כמה הוצאתי החודש", today);

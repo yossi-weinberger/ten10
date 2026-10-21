@@ -3,6 +3,7 @@
  */
 
 import { getCalendarAdapter } from "../calendar/index.ts";
+import { formatHebrewYear } from "../calendar/hebrew-numeral.ts";
 import { clampMaaserYearReportEnd, getCurrentMaaserYear, getMaaserYearRange } from "../calendar/maaser-year.ts";
 import {
   DONATION_TYPE_MARKERS,
@@ -588,15 +589,29 @@ export function parseYearTypeSum(
   return { type, measure, months, paymentMethod, topic, recipient, year, month: null, from, to };
 }
 
+function labelLanguage(language?: string): "he" | "en" {
+  return language?.toLowerCase().startsWith("en") ? "en" : "he";
+}
+
+function isCivilYear(question: Pick<YearTypeSum, "year" | "from" | "to">): boolean {
+  return question.year >= 2000
+    && question.year <= 2099
+    && question.from === `${question.year}-01-01`
+    && question.to === `${question.year}-12-31`;
+}
+
 export function periodLabel(
   question: Pick<YearTypeSum, "year" | "month" | "from" | "to">,
   calendar: QuestionCalendar = "gregorian",
+  language?: string,
 ): string {
+  if (isCivilYear(question)) return String(question.year);
   if (calendar === "hebrew") {
     const hebrew = getCalendarAdapter("hebrew");
+    const spoken = labelLanguage(language);
     const start = hebrew.fromIsoDate(question.from);
     const end = hebrew.fromIsoDate(question.to);
-    if (question.month) return `${start.month}/${start.year}`;
+    if (question.month) return hebrew.monthLabel(hebrew.monthKey(question.from), spoken);
     if (
       start.month === 1
       && start.day === 1
@@ -604,11 +619,11 @@ export function periodLabel(
       && end.month === end.monthsInYear
       && end.day === hebrew.daysInMonth(end.year, end.month)
     ) {
-      return String(start.year);
+      return formatHebrewYear(start.year);
     }
     const label = (iso: string) => {
       const date = hebrew.fromIsoDate(iso);
-      return `${date.day}.${date.month}.${date.year}`;
+      return `${date.day}.${date.month}.${formatHebrewYear(date.year)}`;
     };
     return `${label(question.from)}–${label(question.to)}`;
   }

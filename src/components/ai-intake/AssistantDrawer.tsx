@@ -62,7 +62,7 @@ interface AssistantDrawerProps {
 }
 
 export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
-  const { t } = useTranslation([
+  const { t, i18n } = useTranslation([
     "navigation",
     "transactions",
     "halacha-expenses",
@@ -645,11 +645,12 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                       : dataReply.measure === "max"
                         ? (dataReply.count === 0 ? "aiIntake.dataMaxEmpty" : "aiIntake.dataMax")
                         : "aiIntake.dataAnswer", {
-                    year: periodLabel(dataReply, questionCalendar),
+                    year: periodLabel(dataReply, questionCalendar, i18n.language),
                     type: t(`aiIntake.types.${dataReply.type}`),
+                    typePlural: t(`aiIntake.typesPlural.${dataReply.type}`),
                     total: dataReply.total,
                     count: dataReply.count,
-                    currency: dataReply.currency ?? "",
+                    currency: dataReply.currency ? ` ${dataReply.currency}` : "",
                   })}
                   {dataReply.paymentMethod
                     ? ` (${t(`transactionForm.paymentMethod.options.${dataReply.paymentMethod}`, { ns: "transactions" })})`
