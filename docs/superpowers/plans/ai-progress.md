@@ -92,7 +92,7 @@
 | 76 | קישור קבלה לתנועה שנשמרה | DB על testing + Edge + UI | §4.2 | מוזג ל־`feat/ai-intake` | [#547](https://github.com/yossi-weinberger/ten10/pull/547) |
 | 77 | קישור קצר לקבלה מהטבלה | DB על testing + Edge + UI | §4.6 | מוזג ל־`feat/ai-intake` | [#548](https://github.com/yossi-weinberger/ten10/pull/548) |
 | 78 | Share Target לקובץ קבלה | UI, Web בלבד | §8.1 | מוזג ל־`feat/ai-intake` | [#549](https://github.com/yossi-weinberger/ten10/pull/549) |
-| 79 | Share Target לטקסט | UI, Web בלבד | §8.1 | נפתח | |
+| 79 | Share Target לטקסט | UI, Web בלבד | §8.1 | נפתח | [#550](https://github.com/yossi-weinberger/ten10/pull/550) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
