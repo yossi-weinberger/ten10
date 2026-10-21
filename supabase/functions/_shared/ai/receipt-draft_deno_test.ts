@@ -2,6 +2,7 @@ import {
   decodeReceiptBase64,
   readModelText,
   readReceiptDraft,
+  readReceiptArtifactId,
   readStoredReceiptPath,
   receiptFilePart,
   receiptMagicMatches,
@@ -66,9 +67,15 @@ Deno.test("the storage path stays under the user and has no filename", () => {
   );
   assert(path === "11111111-1111-4111-8111-111111111111/2026/10/22222222-2222-4222-8222-222222222222", "path");
   assert(receiptStoragePath("not-a-user", "22222222-2222-4222-8222-222222222222", new Date()) === null, "user");
-  const recorded = readStoredReceiptPath({ storage_path: path, already_stored: true });
+  const recorded = readStoredReceiptPath({
+    storage_path: path,
+    already_stored: true,
+    artifact_id: "22222222-2222-4222-8222-222222222222",
+  });
   assert(recorded?.alreadyStored === true && recorded.storagePath === path, "recorded");
+  assert(recorded?.artifactId === "22222222-2222-4222-8222-222222222222", "artifact");
   assert(readStoredReceiptPath({}) === null, "missing path");
+  assert(readReceiptArtifactId("not-an-id") === null, "bad artifact");
 });
 
 Deno.test("the receipt hash is 64 hex characters", async () => {

@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
 import type { ReceiptFields } from "@/lib/ai/receipt-card";
 import {
+  readReceiptArtifactId,
   readReceiptDraft,
   RECEIPT_MAX_BASE64_CHARS,
   RECEIPT_MAX_BYTES,
@@ -11,7 +12,7 @@ const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const RECEIPT_LONG_SIDE = 2000;
 
 export type ReadReceiptResult =
-  | { ok: true; fields: ReceiptFields }
+  | { ok: true; fields: ReceiptFields; artifactId: string | null }
   | { ok: false; reason: "TOO_LARGE" | "UNREADABLE" | "UNAVAILABLE" };
 
 function fileToBase64(file: File): Promise<string> {
@@ -82,5 +83,9 @@ export async function readReceiptImage(file: File): Promise<ReadReceiptResult> {
   if (reason === "unreadable") return { ok: false, reason: "UNREADABLE" };
   const draft = readReceiptDraft((payload as { draft?: unknown }).draft);
   if (!draft) return { ok: false, reason: "UNREADABLE" };
-  return { ok: true, fields: draft };
+  return {
+    ok: true,
+    fields: draft,
+    artifactId: readReceiptArtifactId((payload as { artifact_id?: unknown }).artifact_id),
+  };
 }
