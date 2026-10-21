@@ -24,6 +24,7 @@ import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
+import { openAiReceipt } from "@/lib/ai/open-receipt";
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
@@ -54,6 +55,14 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   const { platform } = usePlatform();
   const formatDisplayDate = useDisplayDate();
   const displayDate = formatDisplayDate(transaction.date, "numeric");
+  const [receiptNote, setReceiptNote] = React.useState<string | null>(null);
+
+  async function openReceipt() {
+    setReceiptNote(null);
+    const result = await openAiReceipt(transaction.id);
+    if (result === "opened") return;
+    setReceiptNote(t(result === "none" ? "filters.receiptNone" : "filters.receiptFailed"));
+  }
 
   return (
     <TableRow key={transaction.id} data-state={selected ? "selected" : undefined}>
@@ -71,16 +80,24 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
           {platform === "web" &&
           isAiIntakeEnabled() &&
           (transaction.origin === "ai" || transaction.origin === "ai_auto") ? (
-            <Sparkles
-              className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
+            <button
+              type="button"
+              className="inline-flex"
               aria-label={t(
                 transaction.origin === "ai_auto"
                   ? "filters.originAuto"
                   : "filters.originAi",
               )}
-            />
+              onClick={(event) => {
+                event.stopPropagation();
+                void openReceipt();
+              }}
+            >
+              <Sparkles className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            </button>
           ) : null}
         </span>
+        {receiptNote ? <span className="block text-xs text-muted-foreground">{receiptNote}</span> : null}
       </TableCell>
       <TableCell className="text-center font-medium whitespace-nowrap">
         <CurrencyConversionInfo

@@ -89,7 +89,8 @@
 | 73 | נמען שלא שמור לא נבלע בסיכום | UI | §9.9 | מוזג ל־`feat/ai-intake` | [#544](https://github.com/yossi-weinberger/ten10/pull/544) |
 | 74 | כיול חריצי השאלה | Edge על testing | §9.9 | מוזג ל־`feat/ai-intake` | [#545](https://github.com/yossi-weinberger/ten10/pull/545) |
 | 75 | שמירת קבלה בבאקט פרטי | DB על testing + Edge | §4.2, §7 | מוזג ל־`feat/ai-intake` | [#546](https://github.com/yossi-weinberger/ten10/pull/546) |
-| 76 | קישור קבלה לתנועה שנשמרה | DB על testing + Edge + UI | §4.2 | נפתח | [#547](https://github.com/yossi-weinberger/ten10/pull/547) |
+| 76 | קישור קבלה לתנועה שנשמרה | DB על testing + Edge + UI | §4.2 | מוזג ל־`feat/ai-intake` | [#547](https://github.com/yossi-weinberger/ten10/pull/547) |
+| 77 | קישור קצר לקבלה מהטבלה | DB על testing + Edge + UI | §4.6 | נפתח | |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -104,7 +105,7 @@
 
 רק בתוך ה־PR ש־base שלו הוא `main`:
 
-- [ ] לשנות את חותמת הזמן של **כל** מיגרציות ה־AI (`supabase/migrations/*_ai_*.sql`, 26 קבצים) לתאריכים אחרי המיגרציה האחרונה ב־`main` באותו רגע, באותו סדר.
+- [ ] לשנות את חותמת הזמן של **כל** מיגרציות ה־AI (`supabase/migrations/*_ai_*.sql`, 27 קבצים) לתאריכים אחרי המיגרציה האחרונה ב־`main` באותו רגע, באותו סדר.
 - [ ] לעדכן את קבצי ה־rollback המקבילים: `20261019020000_ai_schema_foundation_down.sql`, `20261020140000_ai_question_recipient_down.sql`, `20261020150000_ai_duplicate_actions_down.sql`.
 - [ ] על testing בלבד: `supabase migration list`, ואז `supabase migration repair` כך שההיסטוריה תתאים לשמות החדשים.
 - [ ] Supabase Preview על ה־PR ל־`main` עובר.
@@ -243,3 +244,4 @@
 - **2026-10-21:** על testing בלבד הוחלו `20261021120000` ו־`20261021133000`, והחותמות יושרו לשמות הקבצים. `ai-read-receipt` ו־`ai-purge-receipts` הועלו ב-CLI לפרויקט `bbcllewcotypedqsnwmi`. ארבעת ה-cron הישנים נשארו כבויים. נוסף cron אחד, `ai-purge-expired-receipts`, ב-04:30 UTC, וה-Vault מצביע על testing. לא לייצור.
 - **2026-10-21:** #546 מוזג ל־`feat/ai-intake`. שמירת קבלה מקשרת את התנועה ל־`source_artifact_id`. המשתמש לא רואה את הקובץ. לא ל־`main`.
 - **2026-10-21:** [#547](https://github.com/yossi-weinberger/ten10/pull/547) נפתח מול `feat/ai-intake`. על testing הוחלה `20261021170000` והחותמת יושרה. `ai-read-receipt` הועלתה שוב ב-CLI. לא ל־`main`.
+- **2026-10-21:** #547 מוזג ל־`feat/ai-intake`. לחיצה על אייקון ה-AI פותחת קישור חתום ל-5 דקות, רק לבעל התנועה. תנועה בלי קובץ אומרת שאין מקור. לא ל־`main`.
