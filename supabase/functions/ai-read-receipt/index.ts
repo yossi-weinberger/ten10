@@ -7,6 +7,7 @@ import {
   decodeReceiptBase64,
   readModelText,
   readReceiptDraft,
+  readReceiptArtifactId,
   readStoredReceiptPath,
   receiptFilePart,
   receiptMagicMatches,
@@ -31,12 +32,12 @@ async function storeCheckedReceipt(
   userId: string,
   mediaType: string,
   bytes: Uint8Array,
-): Promise<"stored" | "skipped" | "failed"> {
+): Promise<{ status: "stored" | "skipped" | "failed"; artifactId: string | null }> {
   const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-  if (!serviceKey || !supabaseUrl) return "skipped";
+  if (!serviceKey || !supabaseUrl) return { status: "skipped", artifactId: null };
   const path = receiptStoragePath(userId, crypto.randomUUID(), new Date());
-  if (!path) return "failed";
+  if (!path) return { status: "failed", artifactId: null };
   const admin = createClient(supabaseUrl, serviceKey);
   const body = new ArrayBuffer(bytes.byteLength);
   new Uint8Array(body).set(bytes);
@@ -46,9 +47,9 @@ async function storeCheckedReceipt(
     { contentType: mediaType, upsert: false },
   );
   if (uploaded.error) {
-    if (storageNotReady(uploaded.error.message)) return "skipped";
+    if (storageNotReady(uploaded.error.message)) return { status: "skipped", artifactId: null };
     logger.error("receipt artifact upload failed");
-    return "failed";
+    return { status: "failed", artifactId: null };
   }
   const hash = await receiptSha256(bytes);
   const { data, error } = await admin.rpc("record_ai_receipt_artifact", {
@@ -62,15 +63,20 @@ async function storeCheckedReceipt(
   if (error || !recorded) {
     const removed = await admin.storage.from(RECEIPT_BUCKET).remove([path]);
     if (removed.error) logger.error("receipt artifact cleanup failed");
-    if (error && storageNotReady(error.message)) return "skipped";
+    if (error && storageNotReady(error.message)) return { status: "skipped", artifactId: null };
     logger.error("receipt artifact record failed");
-    return "failed";
+    return { status: "failed", artifactId: null };
   }
   if (recorded.storagePath !== path) {
     const removed = await admin.storage.from(RECEIPT_BUCKET).remove([path]);
     if (removed.error) logger.error("receipt artifact cleanup failed");
   }
-  return "stored";
+  const found = await admin.rpc("receipt_artifact_id_for_path", {
+    p_user_id: userId,
+    p_storage_path: recorded.storagePath,
+  });
+  const artifactId = readReceiptArtifactId(found.data);
+  return { status: "stored", artifactId };
 }
 
 const PROMPT = [
@@ -125,7 +131,7 @@ Deno.serve(async (req: Request) => {
   const filePart = receiptFilePart(mediaType, data);
   if (!filePart) return json(origin, { draft: null }, 400);
   const stored = await storeCheckedReceipt(userData.user.id, mediaType, bytes);
-  if (stored === "failed") return json(origin, { draft: null, reason: "unavailable" }, 200);
+  if (stored.status === "failed") return json(origin, { draft: null, reason: "unavailable" }, 200);
 
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
   if (!apiKey) return json(origin, { draft: null, reason: "unavailable" }, 200);
@@ -161,7 +167,8 @@ Deno.serve(async (req: Request) => {
       return json(origin, { draft: null, reason: "unavailable" }, 200);
     }
     const draft = readReceiptDraft(readModelText(await response.json()));
-    return json(origin, { draft }, 200);
+    const artifactId = readReceiptArtifactId(stored.artifactId);
+    return json(origin, artifactId ? { draft, artifact_id: artifactId } : { draft }, 200);
   } catch {
     logger.error("receipt read failed");
     return json(origin, { draft: null, reason: "unavailable" }, 200);

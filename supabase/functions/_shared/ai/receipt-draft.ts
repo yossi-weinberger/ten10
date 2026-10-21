@@ -72,13 +72,23 @@ export async function receiptSha256(bytes: Uint8Array): Promise<string> {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-export function readStoredReceiptPath(value: unknown): { storagePath: string; alreadyStored: boolean } | null {
+export function readReceiptArtifactId(value: unknown): string | null {
+  if (typeof value !== "string" || !ARTIFACT_ID.test(value.toLowerCase())) return null;
+  return value.toLowerCase();
+}
+
+export function readStoredReceiptPath(value: unknown): {
+  storagePath: string;
+  alreadyStored: boolean;
+  artifactId: string | null;
+} | null {
   if (!value || typeof value !== "object") return null;
   const storagePath = (value as { storage_path?: unknown }).storage_path;
   if (typeof storagePath !== "string" || storagePath.length === 0) return null;
   return {
     storagePath,
     alreadyStored: (value as { already_stored?: unknown }).already_stored === true,
+    artifactId: readReceiptArtifactId((value as { artifact_id?: unknown }).artifact_id),
   };
 }
 

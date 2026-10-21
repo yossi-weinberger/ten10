@@ -15,6 +15,7 @@ export async function saveTextDraft(
   original: { description: string; amount: number } = draft,
   duplicate?: { choice: "saved_anyway" | "same_event"; candidateIds: string[] },
   intentConfidence?: number | null,
+  artifactId?: string | null,
 ): Promise<SaveTextDraftResult> {
   const { data: authData, error: authError } = await supabase.auth.getUser();
   const user = authData.user;
@@ -66,5 +67,11 @@ export async function saveTextDraft(
     return { ok: false, reason: "SAVE_FAILED" };
   }
 
+  if (artifactId) {
+    await supabase.rpc("attach_ai_receipt_artifact", {
+      p_item_id: created.item_id,
+      p_artifact_id: artifactId,
+    });
+  }
   return { ok: true, transactionId, itemId: created.item_id };
 }
