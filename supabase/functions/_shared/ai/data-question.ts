@@ -6,6 +6,7 @@ import { getCalendarAdapter } from "../calendar/index.ts";
 import { formatHebrewYear } from "../calendar/hebrew-numeral.ts";
 import { hebrewMonthName } from "../calendar/hebrew-calendar.ts";
 import { clampMaaserYearReportEnd, getCurrentMaaserYear, getMaaserYearRange } from "../calendar/maaser-year.ts";
+import { type QuestionSlots } from "./question-slots.ts";
 import {
   DONATION_TYPE_MARKERS,
   EXPENSE_TYPE_MARKERS,
@@ -29,6 +30,7 @@ export type YearTypeSum = {
   to: string;
 };
 
+// These words run only when Jev does not answer. New phrasings go to the question-slot eval set.
 const DONATION_QUESTION = [...DONATION_TYPE_MARKERS, "donate", "תרומ"] as const;
 const EXPENSE_QUESTION = [...EXPENSE_TYPE_MARKERS, "spend", "הוצא", "expense"] as const;
 const INCOME_QUESTION = [...INCOME_TYPE_MARKERS, "הכנס", "income"] as const;
@@ -441,6 +443,20 @@ export function parseYearTypeSum(
   const topic = topicPhrase(normalized);
   const recipient = type === "donation" ? recipientPhrase(normalized) : null;
   if (recipient === "ambiguous") return null;
+  const period = parseQuestionPeriod(normalized, today, calendar);
+  if (!period) return null;
+  return { type, measure, paymentMethod, topic, recipient, ...period };
+}
+
+type QuestionPeriod = Pick<YearTypeSum, "year" | "month" | "months" | "from" | "to">;
+
+/** Dates and counts only. Family, measure, and names stay with the caller. */
+function parseQuestionPeriod(
+  normalized: string,
+  today: string,
+  calendar: QuestionCalendar,
+): QuestionPeriod | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(today)) return null;
   const todayYear = Number(today.slice(0, 4));
   const todayMonth = Number(today.slice(5, 7));
   const namedMonths = monthNameRange(normalized);
@@ -449,12 +465,7 @@ export function parseYearTypeSum(
   if (!span && hasDateAttempt(normalized)) return null;
   if (span) {
     return {
-      type,
-      measure,
       months: monthsBetween(span.from, span.to),
-      paymentMethod,
-      topic,
-      recipient,
       year: Number(span.from.slice(0, 4)),
       month: null,
       from: span.from,
@@ -469,12 +480,7 @@ export function parseYearTypeSum(
       const range = getMaaserYearRange(named);
       const to = clampMaaserYearReportEnd(range, today);
       return {
-        type,
-        measure,
         months: hebrewMonthsBetween(range.startDate, to),
-        paymentMethod,
-        topic,
-        recipient,
         year: named,
         month: null,
         from: range.startDate,
@@ -493,12 +499,7 @@ export function parseYearTypeSum(
     const range = getMaaserYearRange(hebrewYear);
     const to = clampMaaserYearReportEnd(range, today);
     return {
-      type,
-      measure,
       months: hebrewMonthsBetween(range.startDate, to),
-      paymentMethod,
-      topic,
-      recipient,
       year: hebrewYear,
       month: null,
       from: range.startDate,
@@ -509,12 +510,7 @@ export function parseYearTypeSum(
   if (recentMonths !== null) {
     const hebrew = calendar === "hebrew" ? getCalendarAdapter("hebrew") : null;
     return {
-      type,
-      measure,
       months: recentMonths,
-      paymentMethod,
-      topic,
-      recipient,
       year: hebrew ? hebrew.fromIsoDate(today).year : todayYear,
       month: null,
       from: addDays(
@@ -529,12 +525,7 @@ export function parseYearTypeSum(
       const hebrew = getCalendarAdapter("hebrew");
       const current = hebrew.fromIsoDate(today);
       return {
-        type,
-        measure,
         months: 1,
-        paymentMethod,
-        topic,
-        recipient,
         year: current.year,
         month: current.month,
         from: hebrew.startOfMonth(today),
@@ -543,12 +534,7 @@ export function parseYearTypeSum(
     }
     const month = String(todayMonth).padStart(2, "0");
     return {
-      type,
-      measure,
       months: 1,
-      paymentMethod,
-      topic,
-      recipient,
       year: todayYear,
       month: todayMonth,
       from: `${todayYear}-${month}-01`,
@@ -564,12 +550,7 @@ export function parseYearTypeSum(
     const probe = lastYear ? addDays(hebrew.startOfYear(today), -1) : today;
     const current = hebrew.fromIsoDate(probe);
     return {
-      type,
-      measure,
       months: lastYear ? current.monthsInYear : hebrew.fromIsoDate(today).month,
-      paymentMethod,
-      topic,
-      recipient,
       year: current.year,
       month: null,
       from: hebrew.startOfYear(probe),
@@ -587,7 +568,7 @@ export function parseYearTypeSum(
   const from = `${year}-01-01`;
   const to = `${year}-12-31`;
   const months = year === todayYear ? todayMonth : 12;
-  return { type, measure, months, paymentMethod, topic, recipient, year, month: null, from, to };
+  return { months, year, month: null, from, to };
 }
 
 function labelLanguage(language?: string): "he" | "en" {
@@ -655,6 +636,27 @@ export function periodLabel(
     return `${Number(date)}.${Number(month)}.${year}`;
   };
   return `${day(question.from)}–${day(question.to)}`;
+}
+
+/** Jev slots plus the date window. A missing answer uses the word parser unchanged. */
+export function questionFromSlots(
+  text: string,
+  today: string,
+  calendar: QuestionCalendar,
+  slots: QuestionSlots | null,
+): YearTypeSum | "ask_family" | null {
+  if (!slots) return parseYearTypeSum(text, today, calendar);
+  const period = parseQuestionPeriod(normalize(text), today, calendar);
+  if (!period) return null;
+  if (!slots.family) return "ask_family";
+  return {
+    type: slots.family,
+    measure: slots.measure ?? "sum",
+    paymentMethod: slots.paymentMethod,
+    topic: slots.category,
+    recipient: slots.family === "donation" ? slots.recipient : null,
+    ...period,
+  };
 }
 
 export function typesForFamily(type: YearTypeSum["type"]): readonly string[] {

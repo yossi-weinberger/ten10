@@ -40,6 +40,7 @@ ALL_FUNCTIONS=(
   ai-rank-duplicates
   ai-shadow-type
   ai-classify-intent
+  ai-read-question
   ai-read-receipt
   ai-transcribe-speech
 )
@@ -59,6 +60,7 @@ SHARED_DEPENDENT=(
   ai-rank-duplicates
   ai-shadow-type
   ai-classify-intent
+  ai-read-question
   ai-read-receipt
   ai-transcribe-speech
 )

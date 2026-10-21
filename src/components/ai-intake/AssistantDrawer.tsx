@@ -17,7 +17,9 @@ import {
   intentIsConfident,
   isBareCapabilityQuestion,
   draftFromText,
-  parseYearTypeSum,
+  questionFromSlots,
+  type QuestionSlots,
+  type YearTypeSum,
   periodLabel,
   parseUserRule,
   selectHalachaPage,
@@ -47,6 +49,7 @@ import { getPlatform } from "@/lib/platformManager";
 import { useDonationStore } from "@/lib/store";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
+import { readQuestionSlots } from "@/lib/ai/read-question";
 import { resolveQuestionFilter, sumYearType } from "@/lib/ai/sum-year-type";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
 import { isOnOrAfterMinTransactionDate, MIN_TRANSACTION_DATE } from "@/lib/utils/transaction-date";
@@ -109,9 +112,12 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [dataReply, setDataReply] = useState<
     | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; paymentMethod: string | null; topic: string | null; from: string; to: string; total: number; count: number; currency: string | null }
     | { status: "category_missing"; topic: string; source: string; kind: "category" | "recipient" }
+    | { status: "family_missing"; source: string }
     | { status: "mixed" | "unsupported" | "failed" }
     | null
   >(null);
+  const [slotHold, setSlotHold] = useState<QuestionSlots | null>(null);
+  const [askedQuestion, setAskedQuestion] = useState<YearTypeSum | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [duplicateNote, setDuplicateNote] = useState<string | null>(null);
   const [duplicateScan, setDuplicateScan] = useState<
@@ -409,13 +415,30 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     await loadScan();
   }
 
-  async function loadDataAnswer(source: string, searchDescriptions = false) {
+  async function loadDataAnswer(
+    source: string,
+    searchDescriptions = false,
+    family?: NonNullable<QuestionSlots["family"]>,
+  ) {
     setDataReply(null);
-    const question = parseYearTypeSum(source, todayIso(), questionCalendar);
+    let question = searchDescriptions ? askedQuestion : null;
+    if (!question) {
+      const slots = family && slotHold
+        ? { ...slotHold, family }
+        : await readQuestionSlots(source);
+      const composed = questionFromSlots(source, todayIso(), questionCalendar, slots);
+      if (composed === "ask_family") {
+        if (slots) setSlotHold(slots);
+        setDataReply({ status: "family_missing", source });
+        return;
+      }
+      question = composed;
+    }
     if (!question) {
       setDataReply({ status: "unsupported" });
       return;
     }
+    setAskedQuestion(question);
     const filter = await resolveQuestionFilter(question, searchDescriptions);
     if ("missing" in filter) {
       setDataReply({ status: "category_missing", topic: filter.name, source, kind: filter.missing });
@@ -675,6 +698,18 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                     : ""}
                   {dataReply.topic ? ` (${dataReply.topic})` : ""}
                 </p>
+              ) : null}
+              {intent === "ask_data" && dataReply?.status === "family_missing" ? (
+                <div className="flex flex-col gap-2">
+                  <p>{t("aiIntake.askFamily")}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {(["donation", "expense", "income"] as const).map((family) => (
+                      <Button key={family} type="button" onClick={() => void loadDataAnswer(dataReply.source, false, family)}>
+                        {t(`aiIntake.types.${family}`)}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
               ) : null}
               {intent === "ask_data" && dataReply?.status === "category_missing" ? (
                 <div className="flex flex-col gap-2">
