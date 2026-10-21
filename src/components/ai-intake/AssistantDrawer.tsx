@@ -73,9 +73,16 @@ function draftDateProblem(date: string): "invalid" | "min" | null {
 interface AssistantDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  sharedFile?: File | null;
+  onSharedFileConsumed?: () => void;
 }
 
-export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
+export function AssistantDrawer({
+  open,
+  onOpenChange,
+  sharedFile = null,
+  onSharedFileConsumed,
+}: AssistantDrawerProps) {
   const { platform } = usePlatform();
   const { t, i18n } = useTranslation([
     "navigation",
@@ -634,6 +641,14 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       t(result.reason === "NOT_ALLOWED" ? "aiIntake.undoNotAllowed" : "aiIntake.undoFailed"),
     );
   }
+
+  useEffect(() => {
+    if (!sharedFile) return;
+    void handleReceipt(sharedFile);
+    onSharedFileConsumed?.();
+    // The handler identity changes every render. The shared file is the trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sharedFile]);
 
   if (platform !== "web" || !isAiIntakeEnabled()) return null;
 

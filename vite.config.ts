@@ -68,6 +68,8 @@ export default defineConfig(() => {
           // Ensure new SW takes control immediately on next load (no waiting).
           skipWaiting: true,
           clientsClaim: true,
+          // Loaded before the generated worker. It answers only POST /share-target.
+          importScripts: ["share-target-sw.js"],
         },
       }),
     ],

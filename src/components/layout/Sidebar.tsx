@@ -1,5 +1,5 @@
 // Version 3 of the sidebar
-import { useState, useLayoutEffect, useRef, useEffect } from "react";
+import { useState, useLayoutEffect, useRef, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Home,
@@ -29,6 +29,7 @@ import { logger } from "@/lib/logger";
 import { HomeFeedbackCard } from "@/components/feedback/HomeFeedbackCard";
 import { AssistantDrawer } from "@/components/ai-intake/AssistantDrawer";
 import { showAiIntakeUi } from "@/lib/ai/flags";
+import { takeSharedReceipt } from "@/lib/ai/share-target";
 
 interface SidebarProps {
   expanded?: boolean;
@@ -52,7 +53,22 @@ export function Sidebar({
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState<boolean>(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
+  const [sharedFile, setSharedFile] = useState<File | null>(null);
   const showAssistant = showAiIntakeUi(platform, Boolean(session?.user));
+  const clearSharedFile = useCallback(() => setSharedFile(null), []);
+
+  useEffect(() => {
+    if (!showAssistant) return;
+    let cancelled = false;
+    void takeSharedReceipt().then((file) => {
+      if (cancelled || !file) return;
+      setSharedFile(file);
+      setAssistantOpen(true);
+    }).catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [showAssistant]);
 
   // Parent wrapper (non-scroll) that contains: scrollable nav + bottom profile card
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -546,7 +562,12 @@ export function Sidebar({
         <PlatformIndicator expanded={expanded} />
       </div>
       {showAssistant ? (
-        <AssistantDrawer open={assistantOpen} onOpenChange={setAssistantOpen} />
+        <AssistantDrawer
+          open={assistantOpen}
+          onOpenChange={setAssistantOpen}
+          sharedFile={sharedFile}
+          onSharedFileConsumed={clearSharedFile}
+        />
       ) : null}
     </div>
   );
