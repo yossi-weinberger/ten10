@@ -92,7 +92,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
   const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
   const originalDraft = useRef<{ description: string; amount: number } | null>(null);
-  const receiptArtifactId = useRef<string | null>(null);
+  const [receiptArtifactId, setReceiptArtifactId] = useState<string | null>(null);
   const [amountInput, setAmountInput] = useState("");
   const [duplicates, setDuplicates] = useState<DuplicateCandidate[]>([]);
   const [duplicatesRanked, setDuplicatesRanked] = useState(false);
@@ -174,7 +174,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setIntentConfidence(null);
     setDataReply(null);
     setDuplicateScan(null);
-    receiptArtifactId.current = null;
+    setReceiptArtifactId(null);
   }
 
   function handleOpenChange(next: boolean) {
@@ -260,7 +260,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   }
 
   async function openReceiptFile() {
-    const artifactId = receiptArtifactId.current;
+    const artifactId = receiptArtifactId;
     if (!artifactId) return;
     const result = await openAiReceipt({ artifactId });
     if (result === "opened") return;
@@ -275,7 +275,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setChecking(false);
     if (receiptInput.current) receiptInput.current.value = "";
     if (!result.ok) {
-      receiptArtifactId.current = null;
+      setReceiptArtifactId(null);
       setIntent(null);
       setReceiptFields(null);
       showDraft(null, "");
@@ -295,7 +295,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setParsedRule(null);
     setRuleChoice(null);
     setHalachaNamespace(null);
-    receiptArtifactId.current = result.artifactId;
+    setReceiptArtifactId(result.artifactId);
     const ruled = receiptRuledDraft(result.fields, rules);
     if (ruled) {
       setReceiptFields(null);
@@ -389,7 +389,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     );
     setSaveMessage(null);
     setSavedItemId(null);
-    receiptArtifactId.current = null;
+    setReceiptArtifactId(null);
     if (nextIntent === "ask_data") void loadDataAnswer(source);
     else setDataReply(null);
     if (nextIntent === "find_duplicates") void loadScan();
@@ -602,7 +602,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
         ? { choice, candidateIds: duplicates.map((row) => row.id) }
         : undefined,
       intentConfidence,
-      receiptArtifactId.current,
+      receiptArtifactId,
     );
     setSaving(false);
     if (result.ok && result.sameEvent) {
@@ -832,7 +832,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                       })}
                     </p>
                   ) : null}
-                  {receiptArtifactId.current ? (
+                  {receiptArtifactId ? (
                     <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
                       {t("aiIntake.viewReceipt")}
                     </Button>
@@ -862,7 +862,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               ) : null}
               {draft ? (
                 <>
-                  {receiptArtifactId.current ? (
+                  {receiptArtifactId ? (
                     <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
                       {t("aiIntake.viewReceipt")}
                     </Button>
