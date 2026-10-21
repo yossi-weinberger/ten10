@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isReceiptUrl } from "./open-receipt";
+import { isReceiptUrl } from "./receipt-url";
 
 const project = "https://bbcllewcotypedqsnwmi.supabase.co";
 

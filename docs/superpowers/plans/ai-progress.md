@@ -246,3 +246,4 @@
 - **2026-10-21:** [#547](https://github.com/yossi-weinberger/ten10/pull/547) נפתח מול `feat/ai-intake`. על testing הוחלה `20261021170000` והחותמת יושרה. `ai-read-receipt` הועלתה שוב ב-CLI. לא ל־`main`.
 - **2026-10-21:** #547 מוזג ל־`feat/ai-intake`. לחיצה על אייקון ה-AI פותחת קישור חתום ל-5 דקות, רק לבעל התנועה. תנועה בלי קובץ אומרת שאין מקור. לא ל־`main`.
 - **2026-10-21:** [#548](https://github.com/yossi-weinberger/ten10/pull/548) נפתח מול `feat/ai-intake`. על testing הוחלה `20261021180000` והחותמת יושרה. `ai-receipt-url` הועלתה ב-CLI. לא ל־`main`.
+- **2026-10-21:** בדיקת כתובת הקבלה לא טוענת את לקוח Supabase, כדי שה-Vitest לא ייפול בלי `VITE_SUPABASE_URL`. לא ל־`main`.

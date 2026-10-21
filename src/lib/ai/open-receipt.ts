@@ -1,13 +1,7 @@
 import { supabase } from "@/lib/supabaseClient";
+import { isReceiptUrl } from "@/lib/ai/receipt-url";
 
 export type OpenReceiptResult = "opened" | "none" | "unavailable";
-
-/** A receipt link is accepted only when it is a signed object URL on this project. */
-export function isReceiptUrl(url: string, supabaseUrl: string): boolean {
-  const base = supabaseUrl.replace(/\/$/, "");
-  return base.startsWith("https://")
-    && url.startsWith(`${base}/storage/v1/object/sign/intake-artifacts/`);
-}
 
 export async function openAiReceipt(transactionId: string): Promise<OpenReceiptResult> {
   const { data, error } = await supabase.functions.invoke("ai-receipt-url", {
