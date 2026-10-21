@@ -83,7 +83,7 @@
 | 67 | כותרת שנה וניסוח ספירה | UI | §9.9 | מוזג ל־`feat/ai-intake` | [#538](https://github.com/yossi-weinberger/ten10/pull/538) |
 | 68 | זוגי, שנה באנגלית, ושקל | UI | §9.9 | מוזג ל־`feat/ai-intake` | [#539](https://github.com/yossi-weinberger/ten10/pull/539) |
 | 69 | כיול כוונה על 150 משפטים | Edge | §9.9 | מוזג ל־`feat/ai-intake` | [#540](https://github.com/yossi-weinberger/ten10/pull/540) |
-| 70 | שאלת יכולת היא עזרה | UI | §9.9 | נפתח | |
+| 70 | שאלת יכולת היא עזרה | UI | §9.9 | נפתח | [#541](https://github.com/yossi-weinberger/ten10/pull/541) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
