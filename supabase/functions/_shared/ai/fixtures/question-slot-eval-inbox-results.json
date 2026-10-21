@@ -1,0 +1,3198 @@
+{
+  "summary": {
+    "total": 120,
+    "correct": 95,
+    "missed": 25,
+    "confidentWrong": 6,
+    "recipients": [
+      "כולל",
+      "כולל ערב",
+      "ישיבה",
+      "ישיבת אור התורה",
+      "חב״ד",
+      "גמ״ח הלוואות",
+      "גמ״ח כלים",
+      "יד שרה",
+      "הכנסת כלה",
+      "קופת העיר",
+      "בית הכנסת",
+      "Shalva"
+    ]
+  },
+  "rows": [
+    {
+      "id": "slot-gen-he-001",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.88
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.86
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-002",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.97
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.95
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.81
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-003",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.77
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-004",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.95
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 0.81
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-005",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.86
+        },
+        "measure": {
+          "choice": "average",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.88
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-006",
+      "wrong": [
+        "family:income@0.25=>none!=expense"
+      ],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 0.25
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 0.99
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.97
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-007",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 0.8
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 0.97
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 0.99
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.98
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-008",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.75
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-009",
+      "wrong": [
+        "measure:sum@0.64=>none!=sum"
+      ],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.76
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 0.64
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.87
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-010",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 0.48
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 0.99
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-011",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.48
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.95
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-012",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 0.23
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.68
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.99
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-013",
+      "wrong": [
+        "family:expense@0.35=>none!=donation"
+      ],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.35
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "כולל",
+          "confidence": 0.99
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.98
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-014",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.98
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.8
+        },
+        "recipient": {
+          "choice": "כולל ערב",
+          "confidence": 0.89
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.8
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-015",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.91
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 0.91
+        },
+        "recipient": {
+          "choice": "ישיבה",
+          "confidence": 0.75
+        },
+        "category": {
+          "choice": "שכר לימוד",
+          "confidence": 0.54
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 0.73
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-016",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.98
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "ישיבת אור התורה",
+          "confidence": 0.9
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.5
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-017",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "חב״ד",
+          "confidence": 0.98
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.79
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-018",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.99
+        },
+        "recipient": {
+          "choice": "חב״ד",
+          "confidence": 0.97
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.71
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-019",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.91
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 0.73
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.78
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-020",
+      "wrong": [
+        "family:donation@0.27=>none!=donation"
+      ],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.27
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 0.89
+        },
+        "recipient": {
+          "choice": "גמ״ח הלוואות",
+          "confidence": 0.88
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.86
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-021",
+      "wrong": [
+        "measure:count@0.33=>none!=sum"
+      ],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.91
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.33
+        },
+        "recipient": {
+          "choice": "גמ״ח כלים",
+          "confidence": 0.95
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.73
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-022",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.88
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 0.99
+        },
+        "recipient": {
+          "choice": "יד שרה",
+          "confidence": 0.98
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.84
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-023",
+      "wrong": [
+        "family:expense@0.14=>none!=donation"
+      ],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.14
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "הכנסת כלה",
+          "confidence": 0.99
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.93
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-024",
+      "wrong": [
+        "family:donation@0.51=>none!=donation"
+      ],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.51
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "קופת העיר",
+          "confidence": 0.96
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.9
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-025",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.99
+        },
+        "recipient": {
+          "choice": "בית הכנסת",
+          "confidence": 0.83
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.67
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-026",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "Shalva",
+          "confidence": 0.93
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.73
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-027",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.97
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 0.99
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.46
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-028",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 0.99
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.65
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-029",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "food",
+          "confidence": 0.99
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-030",
+      "wrong": [
+        "measure:max@0.65=>none!=max"
+      ],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 0.65
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "transportation",
+          "confidence": 1
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-031",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "housing",
+          "confidence": 0.9
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-032",
+      "wrong": [
+        "category:none@0.48=>none!=utilities"
+      ],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "average",
+          "confidence": 0.96
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.48
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-033",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.98
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 0.97
+        },
+        "category": {
+          "choice": "healthcare",
+          "confidence": 0.92
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-034",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "education",
+          "confidence": 0.95
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-035",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 0.99
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "leisure",
+          "confidence": 0.91
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-036",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "shopping",
+          "confidence": 0.81
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-037",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "food",
+          "confidence": 0.36
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-038",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.98
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "גן",
+          "confidence": 0.77
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-039",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.96
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-040",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 0.99
+        },
+        "category": {
+          "choice": "שכר לימוד",
+          "confidence": 0.94
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-041",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 0.92
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "ביטוח",
+          "confidence": 0.95
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-042",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.89
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.67
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "ספרים",
+          "confidence": 1
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-043",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.94
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 0.99
+        },
+        "category": {
+          "choice": "מתנות לחתונות",
+          "confidence": 0.95
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-044",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "salary",
+          "confidence": 0.97
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-045",
+      "wrong": [
+        "measure:count@0.61=>none!=count"
+      ],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.61
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "business",
+          "confidence": 0.83
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-046",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 0.99
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "freelance",
+          "confidence": 0.85
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-047",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "investment",
+          "confidence": 0.97
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-048",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 0.98
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.75
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "allowance",
+          "confidence": 0.75
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-049",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "allowance",
+          "confidence": 0.95
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-050",
+      "wrong": [
+        "family:expense@0.41=>none!=income",
+        "measure:count@0.48=>none!=sum"
+      ],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.41
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.48
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "gift",
+          "confidence": 0.84
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-051",
+      "wrong": [
+        "measure:count@0.57=>none!=count"
+      ],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.57
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "other",
+          "confidence": 0.92
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-052",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.56
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 0.96
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.99
+        },
+        "payment_method": {
+          "choice": "cash",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-053",
+      "wrong": [
+        "family:expense@0.86=>expense!=none"
+      ],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.86
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "payment_method": {
+          "choice": "credit_card",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-054",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.23
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 0.96
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.99
+        },
+        "payment_method": {
+          "choice": "debit_card",
+          "confidence": 0.99
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-055",
+      "wrong": [
+        "measure:sum@0.68=>none!=sum"
+      ],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.48
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 0.68
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.98
+        },
+        "payment_method": {
+          "choice": "bank_transfer",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-056",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.64
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.99
+        },
+        "payment_method": {
+          "choice": "check",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-057",
+      "wrong": [
+        "family:expense@0.74=>expense!=none",
+        "measure:sum@0.52=>none!=sum"
+      ],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.74
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 0.52
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 0.98
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.51
+        },
+        "payment_method": {
+          "choice": "bit_paybox",
+          "confidence": 0.81
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-058",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 0.98
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.92
+        },
+        "payment_method": {
+          "choice": "paypal",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-059",
+      "wrong": [
+        "measure:count@0.51=>none!=count",
+        "payment_method:none@0.57=>none!=other"
+      ],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.51
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.97
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 0.57
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-060",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.98
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.95
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 0.67
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-061",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "ביטוח",
+          "confidence": 0.97
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-062",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.95
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-063",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.98
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-064",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.95
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "כולל ערב",
+          "confidence": 0.92
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.77
+        },
+        "payment_method": {
+          "choice": "bank_transfer",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-065",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.97
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.97
+        },
+        "recipient": {
+          "choice": "ישיבת אור התורה",
+          "confidence": 0.91
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.59
+        },
+        "payment_method": {
+          "choice": "check",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-066",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 0.83
+        },
+        "recipient": {
+          "choice": "חב״ד",
+          "confidence": 0.96
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.7
+        },
+        "payment_method": {
+          "choice": "bit_paybox",
+          "confidence": 0.99
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-067",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "שכר לימוד",
+          "confidence": 0.95
+        },
+        "payment_method": {
+          "choice": "credit_card",
+          "confidence": 0.99
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-068",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 0.96
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "food",
+          "confidence": 0.96
+        },
+        "payment_method": {
+          "choice": "cash",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-069",
+      "wrong": [
+        "measure:sum@0.95=>sum!=count"
+      ],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 0.95
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "salary",
+          "confidence": 0.97
+        },
+        "payment_method": {
+          "choice": "bank_transfer",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-070",
+      "wrong": [
+        "family:donation@0.62=>none!=donation"
+      ],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.62
+        },
+        "measure": {
+          "choice": "average",
+          "confidence": 0.99
+        },
+        "recipient": {
+          "choice": "כולל ערב",
+          "confidence": 0.92
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.84
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-071",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.95
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.99
+        },
+        "recipient": {
+          "choice": "ישיבה",
+          "confidence": 0.71
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.44
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-072",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 0.96
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.91
+        },
+        "payment_method": {
+          "choice": "cash",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-001",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.59
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-002",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.65
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-003",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.51
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-004",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "average",
+          "confidence": 0.77
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.45
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-005",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "salary",
+          "confidence": 0.98
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-006",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.92
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-007",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.94
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.8
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-008",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.66
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-009",
+      "wrong": [
+        "family:expense@0.92=>expense!=none",
+        "measure:count@0.89=>count!=none"
+      ],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.92
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.89
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-010",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 0.2
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "payment_method": {
+          "choice": "bit_paybox",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-011",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.83
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "Shalva",
+          "confidence": 0.85
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.72
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-012",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "כולל ערב",
+          "confidence": 0.91
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.52
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-013",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 0.99
+        },
+        "recipient": {
+          "choice": "יד שרה",
+          "confidence": 0.9
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.53
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-014",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "חב״ד",
+          "confidence": 0.9
+        },
+        "category": {
+          "choice": "gift",
+          "confidence": 0.48
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-015",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.98
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 0.84
+        },
+        "category": {
+          "choice": "gift",
+          "confidence": 0.48
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-016",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.98
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 0.98
+        },
+        "category": {
+          "choice": "gift",
+          "confidence": 0.46
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-017",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "food",
+          "confidence": 1
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-018",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 0.96
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "transportation",
+          "confidence": 0.98
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-019",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "education",
+          "confidence": 0.98
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-020",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "שכר לימוד",
+          "confidence": 0.98
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-021",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "ביטוח",
+          "confidence": 0.97
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-022",
+      "wrong": [
+        "measure:sum@0.73=>sum!=none"
+      ],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 0.73
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "salary",
+          "confidence": 0.94
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-023",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "freelance",
+          "confidence": 0.95
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-024",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 0.95
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "gift",
+          "confidence": 0.96
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-025",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.25
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "payment_method": {
+          "choice": "cash",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-026",
+      "wrong": [
+        "family:expense@0.91=>expense!=none"
+      ],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.91
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "payment_method": {
+          "choice": "debit_card",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-027",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.98
+        },
+        "payment_method": {
+          "choice": "bank_transfer",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-028",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 0.9
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-029",
+      "wrong": [
+        "recipient:קופת העיר@0.6=>none!=קופת העיר"
+      ],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "קופת העיר",
+          "confidence": 0.6
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.68
+        },
+        "payment_method": {
+          "choice": "bank_transfer",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-030",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 0.83
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "healthcare",
+          "confidence": 0.95
+        },
+        "payment_method": {
+          "choice": "cash",
+          "confidence": 0.98
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-031",
+      "wrong": [
+        "recipient:בית הכנסת@0.67=>none!=בית הכנסת"
+      ],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "בית הכנסת",
+          "confidence": 0.67
+        },
+        "category": {
+          "choice": "gift",
+          "confidence": 0.54
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-032",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "business",
+          "confidence": 0.95
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-033",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "shopping",
+          "confidence": 0.96
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-034",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "שכר לימוד",
+          "confidence": 0.8
+        },
+        "payment_method": {
+          "choice": "check",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-035",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "ישיבה",
+          "confidence": 0.81
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.4
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 0.99
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-036",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "income",
+          "confidence": 0.48
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.99
+        },
+        "payment_method": {
+          "choice": "paypal",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-073",
+      "wrong": [
+        "family:donation@0.66=>none!=donation"
+      ],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.66
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 0.99
+        },
+        "recipient": {
+          "choice": "כולל ערב",
+          "confidence": 0.96
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.62
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-074",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 0.99
+        },
+        "category": {
+          "choice": "שכר לימוד",
+          "confidence": 0.85
+        },
+        "payment_method": {
+          "choice": "cash",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-075",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 0.91
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "food",
+          "confidence": 0.94
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-076",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 0.98
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.58
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-077",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "ספרים",
+          "confidence": 0.96
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 0.92
+        }
+      }
+    },
+    {
+      "id": "slot-gen-he-078",
+      "wrong": [
+        "measure:count@0.45=>none!=sum"
+      ],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.41
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.45
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.64
+        },
+        "payment_method": {
+          "choice": "bit_paybox",
+          "confidence": 0.84
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-037",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.98
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "ישיבת אור התורה",
+          "confidence": 0.96
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.51
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-038",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "count",
+          "confidence": 0.96
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "גן",
+          "confidence": 0.94
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-039",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.85
+        },
+        "measure": {
+          "choice": "max",
+          "confidence": 0.93
+        },
+        "recipient": {
+          "choice": "הכנסת כלה",
+          "confidence": 0.95
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.53
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-040",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 1
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "ביטוח",
+          "confidence": 1
+        },
+        "payment_method": {
+          "choice": "bank_transfer",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-041",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "donation",
+          "confidence": 0.95
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "כולל",
+          "confidence": 0.95
+        },
+        "category": {
+          "choice": "none",
+          "confidence": 0.77
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    },
+    {
+      "id": "slot-gen-en-042",
+      "wrong": [],
+      "slots": {
+        "family": {
+          "choice": "expense",
+          "confidence": 0.97
+        },
+        "measure": {
+          "choice": "sum",
+          "confidence": 1
+        },
+        "recipient": {
+          "choice": "none",
+          "confidence": 1
+        },
+        "category": {
+          "choice": "education",
+          "confidence": 0.71
+        },
+        "payment_method": {
+          "choice": "none",
+          "confidence": 1
+        }
+      }
+    }
+  ]
+}
