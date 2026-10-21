@@ -2,13 +2,17 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { isAiIntakeEnabled } from "@/lib/ai/flags";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePlatform } from "@/contexts/PlatformContext";
+import { showAiIntakeUi } from "@/lib/ai/flags";
 import { disableUserRule, listActiveUserRules } from "@/lib/ai/user-rules";
 import type { ActiveUserRule } from "@/lib/ai/classify-intake";
 
 export function AiRulesSettingsCard() {
   const { t } = useTranslation(["settings", "navigation"]);
-  const enabled = isAiIntakeEnabled();
+  const { platform } = usePlatform();
+  const { session } = useAuth();
+  const enabled = showAiIntakeUi(platform, Boolean(session?.user));
   const [rules, setRules] = useState<ActiveUserRule[]>([]);
   const [loading, setLoading] = useState(enabled);
   const [busyName, setBusyName] = useState<string | null>(null);

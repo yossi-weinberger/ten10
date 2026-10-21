@@ -1,9 +1,11 @@
 import { supabase } from "@/lib/supabaseClient";
+import { aiCallsAllowed } from "@/lib/ai/flags";
 import { isReceiptUrl } from "@/lib/ai/receipt-url";
 
 export type OpenReceiptResult = "opened" | "none" | "unavailable";
 
 export async function openAiReceipt(transactionId: string): Promise<OpenReceiptResult> {
+  if (!aiCallsAllowed()) return "unavailable";
   const { data, error } = await supabase.functions.invoke("ai-receipt-url", {
     body: { transaction_id: transactionId },
   });

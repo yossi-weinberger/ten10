@@ -28,7 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
 import { HomeFeedbackCard } from "@/components/feedback/HomeFeedbackCard";
 import { AssistantDrawer } from "@/components/ai-intake/AssistantDrawer";
-import { isAiIntakeEnabled } from "@/lib/ai/flags";
+import { showAiIntakeUi } from "@/lib/ai/flags";
 
 interface SidebarProps {
   expanded?: boolean;
@@ -52,7 +52,7 @@ export function Sidebar({
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState<boolean>(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
-  const showAssistant = isAiIntakeEnabled();
+  const showAssistant = showAiIntakeUi(platform, Boolean(session?.user));
 
   // Parent wrapper (non-scroll) that contains: scrollable nav + bottom profile card
   const listRef = useRef<HTMLDivElement | null>(null);

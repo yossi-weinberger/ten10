@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { aiCallsAllowed } from "@/lib/ai/flags";
 import { PAYMENT_METHOD_KEYS } from "@/lib/payment-methods";
 import type { QuestionFamily, QuestionMeasure, QuestionSlots } from "../../../supabase/functions/_shared/ai/question-slots.ts";
 
@@ -21,6 +22,7 @@ function asName(value: unknown): string | null {
 
 /** Null when Jev did not answer. The caller then uses the word parser. */
 export async function readQuestionSlots(text: string): Promise<QuestionSlots | null> {
+  if (!aiCallsAllowed()) return null;
   const { data, error } = await supabase.functions.invoke("ai-read-question", {
     body: { text },
   });

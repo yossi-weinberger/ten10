@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { aiCallsAllowed } from "@/lib/ai/flags";
 
 export interface DuplicateCandidate {
   id: string;
@@ -44,6 +45,7 @@ export async function listDuplicateCandidates(input: {
   amount: number;
   currency: string;
 }): Promise<DuplicateCandidate[]> {
+  if (!aiCallsAllowed()) return [];
   const { data, error } = await supabase.rpc("list_ai_duplicate_candidates", {
     p_type: input.type,
     p_date: input.date,

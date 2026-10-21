@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { aiCallsAllowed } from "@/lib/ai/flags";
 import { ExchangeRateService } from "@/lib/services/exchange-rate.service";
 import type { CurrencyCode } from "@/lib/currencies";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
@@ -17,6 +18,7 @@ export async function saveTextDraft(
   intentConfidence?: number | null,
   artifactId?: string | null,
 ): Promise<SaveTextDraftResult> {
+  if (!aiCallsAllowed()) return { ok: false, reason: "SAVE_FAILED" };
   const { data: authData, error: authError } = await supabase.auth.getUser();
   const user = authData.user;
   if (authError || !user) return { ok: false, reason: "AUTH" };

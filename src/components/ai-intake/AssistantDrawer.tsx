@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { usePlatform } from "@/contexts/PlatformContext";
+import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -73,6 +75,7 @@ interface AssistantDrawerProps {
 }
 
 export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
+  const { platform } = usePlatform();
   const { t, i18n } = useTranslation([
     "navigation",
     "transactions",
@@ -622,6 +625,8 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       t(result.reason === "NOT_ALLOWED" ? "aiIntake.undoNotAllowed" : "aiIntake.undoFailed"),
     );
   }
+
+  if (platform !== "web" || !isAiIntakeEnabled()) return null;
 
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>

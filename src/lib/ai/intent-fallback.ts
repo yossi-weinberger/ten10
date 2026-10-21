@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { aiCallsAllowed } from "@/lib/ai/flags";
 import { INTAKE_INTENTS, type IntakeIntent } from "@/lib/ai/classify-intake";
 
 export type IntentFallbackResult =
@@ -6,6 +7,7 @@ export type IntentFallbackResult =
   | { ok: false; reason: "UNAVAILABLE" };
 
 export async function classifyIntentFallback(text: string): Promise<IntentFallbackResult> {
+  if (!aiCallsAllowed()) return { ok: false, reason: "UNAVAILABLE" };
   const { data, error } = await supabase.functions.invoke("ai-classify-intent", {
     body: { text },
   });

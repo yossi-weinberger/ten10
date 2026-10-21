@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { aiCallsAllowed } from "@/lib/ai/flags";
 
 export interface DuplicateRankScore {
   id: string;
@@ -12,6 +13,7 @@ export async function rankDuplicateCandidates(input: {
   currency: string;
   description: string;
 }): Promise<DuplicateRankScore[] | null> {
+  if (!aiCallsAllowed()) return null;
   const { data, error } = await supabase.functions.invoke("ai-rank-duplicates", {
     body: input,
   });

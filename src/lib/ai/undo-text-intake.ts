@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { aiCallsAllowed } from "@/lib/ai/flags";
 
 export type UndoTextIntakeResult =
   | { ok: true; alreadyReverted: boolean }
@@ -17,6 +18,7 @@ export function readUndoPayload(payload: UndoPayload | null): UndoTextIntakeResu
 }
 
 export async function undoTextIntake(itemId: string): Promise<UndoTextIntakeResult> {
+  if (!aiCallsAllowed()) return { ok: false, reason: "FAILED" };
   const { data, error } = await supabase.rpc("undo_ai_intake_commit", {
     p_item_id: itemId,
   });
@@ -25,6 +27,7 @@ export async function undoTextIntake(itemId: string): Promise<UndoTextIntakeResu
 }
 
 export async function undoAiTransaction(transactionId: string): Promise<UndoTextIntakeResult> {
+  if (!aiCallsAllowed()) return { ok: false, reason: "FAILED" };
   const { data, error } = await supabase.rpc("undo_ai_transaction", {
     p_transaction_id: transactionId,
   });
