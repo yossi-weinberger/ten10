@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { aiCallsAllowed } from "@/lib/ai/flags";
 import type { ReceiptFields } from "@/lib/ai/receipt-card";
 import {
   readReceiptArtifactId,
@@ -53,6 +54,7 @@ async function shrinkReceiptImage(file: File): Promise<File | null> {
 }
 
 export async function readReceiptImage(file: File): Promise<ReadReceiptResult> {
+  if (!aiCallsAllowed()) return { ok: false, reason: "UNAVAILABLE" };
   if (!ALLOWED_TYPES.has(file.type)) return { ok: false, reason: "UNREADABLE" };
   const image = IMAGE_TYPES.has(file.type);
   let prepared = file;

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { usePlatform } from "@/contexts/PlatformContext";
+import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -43,6 +45,7 @@ import { rankDuplicateCandidates } from "@/lib/ai/rank-duplicates";
 import { recordShadowType } from "@/lib/ai/shadow-type";
 import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
 import { readReceiptImage } from "@/lib/ai/read-receipt";
+import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { isIsoDate, receiptAsDraft, receiptRuledDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
 import { dismissDuplicatePair, loadDuplicateScan } from "@/lib/ai/load-duplicate-scan";
 import { getPlatform } from "@/lib/platformManager";
@@ -73,6 +76,7 @@ interface AssistantDrawerProps {
 }
 
 export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
+  const { platform } = usePlatform();
   const { t, i18n } = useTranslation([
     "navigation",
     "transactions",
@@ -88,7 +92,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
   const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
   const originalDraft = useRef<{ description: string; amount: number } | null>(null);
-  const receiptArtifactId = useRef<string | null>(null);
+  const [receiptArtifactId, setReceiptArtifactId] = useState<string | null>(null);
   const [amountInput, setAmountInput] = useState("");
   const [duplicates, setDuplicates] = useState<DuplicateCandidate[]>([]);
   const [duplicatesRanked, setDuplicatesRanked] = useState(false);
@@ -170,7 +174,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setIntentConfidence(null);
     setDataReply(null);
     setDuplicateScan(null);
-    receiptArtifactId.current = null;
+    setReceiptArtifactId(null);
   }
 
   function handleOpenChange(next: boolean) {
@@ -255,6 +259,14 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     refreshDuplicates(applied.draft, String(applied.draft.amount));
   }
 
+  async function openReceiptFile() {
+    const artifactId = receiptArtifactId;
+    if (!artifactId) return;
+    const result = await openAiReceipt({ artifactId });
+    if (result === "opened") return;
+    setSaveMessage(t(result === "none" ? "aiIntake.receiptMissing" : "aiIntake.receiptUnavailable"));
+  }
+
   async function handleReceipt(file: File | undefined) {
     if (!file || checking) return;
     setChecking(true);
@@ -263,7 +275,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setChecking(false);
     if (receiptInput.current) receiptInput.current.value = "";
     if (!result.ok) {
-      receiptArtifactId.current = null;
+      setReceiptArtifactId(null);
       setIntent(null);
       setReceiptFields(null);
       showDraft(null, "");
@@ -283,7 +295,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     setParsedRule(null);
     setRuleChoice(null);
     setHalachaNamespace(null);
-    receiptArtifactId.current = result.artifactId;
+    setReceiptArtifactId(result.artifactId);
     const ruled = receiptRuledDraft(result.fields, rules);
     if (ruled) {
       setReceiptFields(null);
@@ -377,7 +389,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     );
     setSaveMessage(null);
     setSavedItemId(null);
-    receiptArtifactId.current = null;
+    setReceiptArtifactId(null);
     if (nextIntent === "ask_data") void loadDataAnswer(source);
     else setDataReply(null);
     if (nextIntent === "find_duplicates") void loadScan();
@@ -590,7 +602,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
         ? { choice, candidateIds: duplicates.map((row) => row.id) }
         : undefined,
       intentConfidence,
-      receiptArtifactId.current,
+      receiptArtifactId,
     );
     setSaving(false);
     if (result.ok && result.sameEvent) {
@@ -622,6 +634,8 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       t(result.reason === "NOT_ALLOWED" ? "aiIntake.undoNotAllowed" : "aiIntake.undoFailed"),
     );
   }
+
+  if (platform !== "web" || !isAiIntakeEnabled()) return null;
 
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>
@@ -818,6 +832,11 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                       })}
                     </p>
                   ) : null}
+                  {receiptArtifactId ? (
+                    <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
+                      {t("aiIntake.viewReceipt")}
+                    </Button>
+                  ) : null}
                   <div className="flex flex-wrap gap-2">
                     {(["expense", "income", "donation"] as const).map((type) => (
                       <Button key={type} type="button" onClick={() => handleChooseType(type)}>
@@ -843,6 +862,11 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
               ) : null}
               {draft ? (
                 <>
+                  {receiptArtifactId ? (
+                    <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
+                      {t("aiIntake.viewReceipt")}
+                    </Button>
+                  ) : null}
                   <p>
                     {t("aiIntake.draftMeta", {
                       currency: draft.currency,

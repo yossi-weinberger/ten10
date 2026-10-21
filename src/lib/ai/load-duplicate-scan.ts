@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { aiCallsAllowed } from "@/lib/ai/flags";
 import { type DuplicatePair, type SavedTransactionRow } from "./duplicate-scan";
 
 export type DuplicateScanResult =
@@ -27,6 +28,7 @@ function readSide(value: unknown): SavedTransactionRow | null {
 }
 
 export async function dismissDuplicatePair(leftId: string, rightId: string): Promise<boolean> {
+  if (!aiCallsAllowed()) return false;
   const { error } = await supabase.rpc("dismiss_ai_duplicate_pair", {
     p_a: leftId,
     p_b: rightId,
@@ -35,6 +37,7 @@ export async function dismissDuplicatePair(leftId: string, rightId: string): Pro
 }
 
 export async function loadDuplicateScan(): Promise<DuplicateScanResult> {
+  if (!aiCallsAllowed()) return { ok: false, reason: "FAILED" };
   const { data, error } = await supabase.rpc("list_ai_saved_duplicate_pairs");
   if (error || !data || typeof data !== "object") return { ok: false, reason: "FAILED" };
   const body = data as { count?: unknown; pairs?: unknown };

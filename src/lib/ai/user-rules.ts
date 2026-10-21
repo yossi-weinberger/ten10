@@ -1,7 +1,9 @@
 import { supabase } from "@/lib/supabaseClient";
+import { aiCallsAllowed } from "@/lib/ai/flags";
 import type { ActiveUserRule, RuleActionType } from "@/lib/ai/classify-intake";
 
 export async function listActiveUserRules(): Promise<ActiveUserRule[]> {
+  if (!aiCallsAllowed()) return [];
   const { data, error } = await supabase.rpc("list_ai_user_rules");
   if (error || !Array.isArray(data)) return [];
   return data.flatMap((row) => {
@@ -24,6 +26,7 @@ export async function approveUserRule(
   type: RuleActionType,
   effectiveFrom: string,
 ): Promise<boolean> {
+  if (!aiCallsAllowed()) return false;
   const { error } = await supabase.rpc("approve_ai_user_rule", {
     p_name: name,
     p_type: type,
@@ -33,6 +36,7 @@ export async function approveUserRule(
 }
 
 export async function disableUserRule(name: string, type: RuleActionType): Promise<boolean> {
+  if (!aiCallsAllowed()) return false;
   const { data, error } = await supabase.rpc("disable_ai_user_rule", {
     p_name: name,
     p_type: type,

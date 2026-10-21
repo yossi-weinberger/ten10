@@ -31,6 +31,8 @@
     "origin": "Source",
     "originAi": "Created by AI",
     "originAuto": "Saved automatically",
+    "receiptNone": "This transaction has no source file.",
+    "receiptFailed": "The file is not available right now.",
     "recurringStatus": "Recurring Status",
     "allStatuses": "All Statuses",
     "statusesSelected": "{{count}} selected",

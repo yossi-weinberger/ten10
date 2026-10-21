@@ -261,6 +261,8 @@
     "origin": "מקור",
     "originAi": "נוצר מ-AI",
     "originAuto": "נשמר אוטומטית",
+    "receiptNone": "אין קובץ מקור לתנועה הזו.",
+    "receiptFailed": "הקובץ לא זמין כרגע.",
     "recurringStatus": "סטטוס קבע",
     "allStatuses": "כל הסטטוסים",
     "statusesSelected": "{{count}} נבחרו",

@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { aiCallsAllowed } from "@/lib/ai/flags";
 import { EXPENSE_CATEGORY_KEYS, INCOME_CATEGORY_KEYS } from "@/lib/category-registry";
 import { typesForFamily, type YearTypeSum } from "@/lib/ai/classify-intake";
 import { matchUserCategory } from "./match-category";
@@ -19,6 +20,7 @@ export type MissingName = {
 };
 
 async function categoriesForFamily(type: YearTypeSum["type"]): Promise<string[]> {
+  if (!aiCallsAllowed()) return [];
   const lists = await Promise.all(typesForFamily(type).map(async (transactionType) => {
     const { data, error } = await supabase.rpc("get_user_categories", { p_type: transactionType });
     if (error || !Array.isArray(data)) return [];
@@ -50,6 +52,7 @@ function readTotals(data: unknown): { total: number; count: number; maxAmount: n
 }
 
 async function recipientsForUser(): Promise<string[]> {
+  if (!aiCallsAllowed()) return [];
   const { data, error } = await supabase.rpc("list_ai_recipients");
   if (error || !Array.isArray(data)) return [];
   return data.flatMap((name) => typeof name === "string" && name.trim() ? [name] : []);
@@ -90,6 +93,7 @@ export async function sumYearType(
   question: YearTypeSum,
   filter: QuestionFilter,
 ): Promise<YearTypeSumResult> {
+  if (!aiCallsAllowed()) return { ok: false, reason: "FAILED" };
   const { data, error } = await supabase.rpc("ai_question_totals", {
     p_types: [...typesForFamily(question.type)],
     p_from: question.from,

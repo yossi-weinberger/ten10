@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabaseClient";
+import { aiCallsAllowed } from "@/lib/ai/flags";
 import { readTranscript } from "../../../supabase/functions/_shared/ai/speech-transcript.ts";
 
 const MAX_BYTES = 2 * 1024 * 1024;
@@ -21,6 +22,7 @@ function blobToBase64(blob: Blob): Promise<string> {
 }
 
 export async function transcribeSpeech(blob: Blob): Promise<TranscribeSpeechResult> {
+  if (!aiCallsAllowed()) return { ok: false, reason: "UNAVAILABLE" };
   if (blob.size > MAX_BYTES) return { ok: false, reason: "TOO_LONG" };
   const data = await blobToBase64(blob);
   if (!data) return { ok: false, reason: "UNHEARD" };

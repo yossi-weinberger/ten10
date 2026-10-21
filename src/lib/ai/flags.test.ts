@@ -19,7 +19,7 @@ vi.mock("posthog-js", () => ({
   },
 }));
 
-import { isAiIntakeEnabled } from "./flags";
+import { aiCallsAllowed, isAiIntakeEnabled, showAiIntakeUi } from "./flags";
 
 beforeEach(() => {
   isPostHogSupported.mockReset();
@@ -49,5 +49,24 @@ describe("isAiIntakeEnabled", () => {
     isPostHogSupported.mockReturnValue(true);
     isFeatureEnabled.mockReturnValue(true);
     expect(isAiIntakeEnabled()).toBe(true);
+  });
+
+  it("hides the shell on desktop, while loading, and when signed out", () => {
+    getPlatform.mockReturnValue("desktop");
+    isPostHogSupported.mockReturnValue(true);
+    isFeatureEnabled.mockReturnValue(true);
+    expect(showAiIntakeUi("desktop", true)).toBe(false);
+    expect(showAiIntakeUi("loading", true)).toBe(false);
+    expect(showAiIntakeUi("web", false)).toBe(false);
+    expect(isFeatureEnabled).not.toHaveBeenCalled();
+  });
+
+  it("does not call the network on desktop", () => {
+    getPlatform.mockReturnValue("desktop");
+    expect(aiCallsAllowed()).toBe(false);
+    getPlatform.mockReturnValue("loading");
+    expect(aiCallsAllowed()).toBe(false);
+    getPlatform.mockReturnValue("web");
+    expect(aiCallsAllowed()).toBe(true);
   });
 });
