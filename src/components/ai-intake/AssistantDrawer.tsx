@@ -43,6 +43,7 @@ import { readReceiptImage } from "@/lib/ai/read-receipt";
 import { isIsoDate, receiptAsDraft, receiptRuledDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
 import { dismissDuplicatePair, loadDuplicateScan } from "@/lib/ai/load-duplicate-scan";
 import { getPlatform } from "@/lib/platformManager";
+import { useDonationStore } from "@/lib/store";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import { resolveQuestionFilter, sumYearType } from "@/lib/ai/sum-year-type";
@@ -69,6 +70,8 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     "halacha-chomesh",
     "halacha-tithes",
   ]);
+  const calendarType = useDonationStore((state) => state.settings.calendarType);
+  const questionCalendar = calendarType === "hebrew" ? "hebrew" : "gregorian";
   const [text, setText] = useState("");
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
   const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
@@ -398,7 +401,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
   }
 
   async function loadDataAnswer(source: string, searchDescriptions = false) {
-    const question = parseYearTypeSum(source, todayIso());
+    const question = parseYearTypeSum(source, todayIso(), questionCalendar);
     if (!question) {
       setDataReply({ status: "unsupported" });
       return;
@@ -642,7 +645,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                       : dataReply.measure === "max"
                         ? (dataReply.count === 0 ? "aiIntake.dataMaxEmpty" : "aiIntake.dataMax")
                         : "aiIntake.dataAnswer", {
-                    year: periodLabel(dataReply),
+                    year: periodLabel(dataReply, questionCalendar),
                     type: t(`aiIntake.types.${dataReply.type}`),
                     total: dataReply.total,
                     count: dataReply.count,

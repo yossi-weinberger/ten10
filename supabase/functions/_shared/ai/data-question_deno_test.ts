@@ -1,3 +1,4 @@
+import { getCalendarAdapter } from "../calendar/index.ts";
 import { clampMaaserYearReportEnd, getCurrentMaaserYear, getMaaserYearRange } from "../calendar/maaser-year.ts";
 import { parseYearTypeSum, periodLabel } from "./data-question.ts";
 
@@ -170,4 +171,29 @@ Deno.test("a monthly average divides the saved total by the months in the window
   assert(parseYearTypeSum("ממוצע תרומות ב-2025", TODAY)?.months === 12, "a past year stays twelve");
   const end = parseYearTypeSum("כמה תרמתי ב-1 חודשים אחרונים", "2026-03-31");
   assert(end?.from === "2026-03-01" && end.to === "2026-03-31", "month end does not overflow");
+});
+
+Deno.test("the primary calendar chooses this year and this month", () => {
+  const hebrew = getCalendarAdapter("hebrew");
+  const today = "2026-09-20";
+  const month = parseYearTypeSum("כמה הוצאתי החודש", today, "hebrew");
+  assert(month?.from === hebrew.startOfMonth(today), "hebrew month starts on its first day");
+  assert(month?.to === hebrew.endOfMonth(today), "hebrew month ends on its last day");
+  assert(month?.from !== "2026-09-01", "tishrei is not september");
+  assert(periodLabel(month!, "hebrew") === `${month?.month}/${month?.year}`, "hebrew month label");
+  const year = parseYearTypeSum("כמה הוצאתי השנה", today, "hebrew");
+  assert(year?.from === hebrew.startOfYear(today), "hebrew year starts on 1 tishrei");
+  assert(year?.year === hebrew.fromIsoDate(today).year, "hebrew year number");
+  assert(periodLabel(year!, "hebrew") === String(year?.year), "hebrew year label");
+  const civil = parseYearTypeSum("כמה הוצאתי ב-2025", today, "hebrew");
+  assert(civil?.from === "2025-01-01" && civil.to === "2025-12-31", "an explicit year stays gregorian");
+  const maaser = parseYearTypeSum("כמה תרמתי בשנת המעשר", today, "hebrew");
+  assert(maaser?.from === getMaaserYearRange(getCurrentMaaserYear(today)).startDate, "maaser stays the tithe year");
+  const gregorian = parseYearTypeSum("כמה הוצאתי החודש", today);
+  assert(gregorian?.from === "2026-09-01" && gregorian.to === "2026-09-30", "gregorian month");
+  const leapDay = hebrew.toIsoDate({ year: 5784, month: 7, day: 10 }, "reject");
+  const leap = hebrew.fromIsoDate(leapDay);
+  assert(leap.inLeapYear && leap.monthCode === "M06", "adar ii fixture");
+  const adar = parseYearTypeSum("כמה הוצאתי החודש", leapDay, "hebrew");
+  assert(adar?.month === leap.month && adar.from === hebrew.startOfMonth(leapDay), "adar ii");
 });

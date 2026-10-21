@@ -411,8 +411,23 @@ function family(text: string): YearTypeSum["type"] | null {
   return null;
 }
 
+export type QuestionCalendar = "gregorian" | "hebrew";
+
+function hebrewYearEnd(year: number, monthsInYear: number): string {
+  const hebrew = getCalendarAdapter("hebrew");
+  return hebrew.toIsoDate({
+    year,
+    month: monthsInYear,
+    day: hebrew.daysInMonth(year, monthsInYear),
+  }, "reject");
+}
+
 /** Sum of one family in a year or in the current month. Null when the question is not that shape. */
-export function parseYearTypeSum(text: string, today: string): YearTypeSum | null {
+export function parseYearTypeSum(
+  text: string,
+  today: string,
+  calendar: QuestionCalendar = "gregorian",
+): YearTypeSum | null {
   const normalized = normalize(text);
   if (!includesAlias(normalized, QUESTION_MARKERS)) return null;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(today)) return null;
@@ -490,6 +505,7 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
   }
   const recentMonths = recentMonthCount(normalized);
   if (recentMonths !== null) {
+    const hebrew = calendar === "hebrew" ? getCalendarAdapter("hebrew") : null;
     return {
       type,
       measure,
@@ -497,13 +513,32 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
       paymentMethod,
       topic,
       recipient,
-      year: todayYear,
+      year: hebrew ? hebrew.fromIsoDate(today).year : todayYear,
       month: null,
-      from: addDays(shiftMonths(today, -recentMonths), 1),
+      from: addDays(
+        hebrew ? hebrew.addMonths(today, -recentMonths) : shiftMonths(today, -recentMonths),
+        1,
+      ),
       to: today,
     };
   }
   if (isThisMonth(normalized)) {
+    if (calendar === "hebrew") {
+      const hebrew = getCalendarAdapter("hebrew");
+      const current = hebrew.fromIsoDate(today);
+      return {
+        type,
+        measure,
+        months: 1,
+        paymentMethod,
+        topic,
+        recipient,
+        year: current.year,
+        month: current.month,
+        from: hebrew.startOfMonth(today),
+        to: hebrew.endOfMonth(today),
+      };
+    }
     const month = String(todayMonth).padStart(2, "0");
     return {
       type,
@@ -522,6 +557,23 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
     || normalized.includes("שנה שעברה")
     || normalized.includes("last year");
   const yearMatch = normalized.match(/\b(20\d{2})\b/);
+  if (calendar === "hebrew" && !yearMatch && (lastYear || includesAlias(normalized, THIS_YEAR))) {
+    const hebrew = getCalendarAdapter("hebrew");
+    const probe = lastYear ? addDays(hebrew.startOfYear(today), -1) : today;
+    const current = hebrew.fromIsoDate(probe);
+    return {
+      type,
+      measure,
+      months: lastYear ? current.monthsInYear : hebrew.fromIsoDate(today).month,
+      paymentMethod,
+      topic,
+      recipient,
+      year: current.year,
+      month: null,
+      from: hebrew.startOfYear(probe),
+      to: hebrewYearEnd(current.year, current.monthsInYear),
+    };
+  }
   const year = lastYear
     ? todayYear - 1
     : yearMatch
@@ -536,7 +588,30 @@ export function parseYearTypeSum(text: string, today: string): YearTypeSum | nul
   return { type, measure, months, paymentMethod, topic, recipient, year, month: null, from, to };
 }
 
-export function periodLabel(question: Pick<YearTypeSum, "year" | "month" | "from" | "to">): string {
+export function periodLabel(
+  question: Pick<YearTypeSum, "year" | "month" | "from" | "to">,
+  calendar: QuestionCalendar = "gregorian",
+): string {
+  if (calendar === "hebrew") {
+    const hebrew = getCalendarAdapter("hebrew");
+    const start = hebrew.fromIsoDate(question.from);
+    const end = hebrew.fromIsoDate(question.to);
+    if (question.month) return `${start.month}/${start.year}`;
+    if (
+      start.month === 1
+      && start.day === 1
+      && end.year === start.year
+      && end.month === end.monthsInYear
+      && end.day === hebrew.daysInMonth(end.year, end.month)
+    ) {
+      return String(start.year);
+    }
+    const label = (iso: string) => {
+      const date = hebrew.fromIsoDate(iso);
+      return `${date.day}.${date.month}.${date.year}`;
+    };
+    return `${label(question.from)}–${label(question.to)}`;
+  }
   if (question.month) return `${question.month}/${question.year}`;
   if (question.from.endsWith("-01-01") && question.to.endsWith("-12-31")) return String(question.year);
   const day = (iso: string) => {
