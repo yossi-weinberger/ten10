@@ -80,7 +80,7 @@
 | 64 | כיול סף כוונה | Edge על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#535](https://github.com/yossi-weinberger/ten10/pull/535) |
 | 65 | טווח כפילויות והקטנת קבלה | DB על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#536](https://github.com/yossi-weinberger/ten10/pull/536) |
 | 66 | תקופות לפי הלוח הראשי | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#537](https://github.com/yossi-weinberger/ten10/pull/537) |
-| 67 | כותרת שנה וניסוח ספירה | UI | §9.9 | נפתח | |
+| 67 | כותרת שנה וניסוח ספירה | UI | §9.9 | נפתח | [#538](https://github.com/yossi-weinberger/ten10/pull/538) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
