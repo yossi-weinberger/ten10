@@ -15,7 +15,7 @@ import {
   clarificationField,
   fallbackIntent,
   intentIsConfident,
-  isCapabilityQuestion,
+  isBareCapabilityQuestion,
   draftFromText,
   parseYearTypeSum,
   periodLabel,
@@ -453,7 +453,8 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
     const decided = await classifyIntentFallback(source);
     setIntentConfidence(decided.ok ? decided.confidence : null);
     setChecking(false);
-    if (isCapabilityQuestion(source)) {
+    const jevIsConfident = decided.ok && decided.intent !== null && intentIsConfident(decided.confidence);
+    if (!jevIsConfident && isBareCapabilityQuestion(source)) {
       showIntent(source, today, "help");
       return;
     }

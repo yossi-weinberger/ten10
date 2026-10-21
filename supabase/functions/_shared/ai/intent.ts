@@ -39,26 +39,40 @@ function hasMoneyAmount(text: string): boolean {
   return /\d/.test(text) || includesAlias(text, CURRENCY_MARKERS);
 }
 
+const CAPABILITY_END = "(?:\\s|$|[?.!])";
 const CAPABILITY_PATTERNS = [
-  /^can you\b/,
-  /^could you\b/,
-  /^are you able\b/,
-  /^do you know\b/,
-  /^אתה יכול(?:\s|$)/,
-  /^את יכולה(?:\s|$)/,
-  /^אתם יכולים(?:\s|$)/,
-  /^אתה יודע(?:\s|$)/,
-  /^את יודעת(?:\s|$)/,
-  /^האם אפשר(?:\s|$)/,
+  new RegExp(`^can you${CAPABILITY_END}`),
+  new RegExp(`^could you${CAPABILITY_END}`),
+  new RegExp(`^are you able${CAPABILITY_END}`),
+  new RegExp(`^do you know${CAPABILITY_END}`),
+  new RegExp(`^אתה יכול${CAPABILITY_END}`),
+  new RegExp(`^את יכולה${CAPABILITY_END}`),
+  new RegExp(`^אתם יכולים${CAPABILITY_END}`),
+  new RegExp(`^תוכל${CAPABILITY_END}`),
+  new RegExp(`^תוכלי${CAPABILITY_END}`),
+  new RegExp(`^תוכלו${CAPABILITY_END}`),
+  new RegExp(`^אתה יודע${CAPABILITY_END}`),
+  new RegExp(`^את יודעת${CAPABILITY_END}`),
+  new RegExp(`^האם אפשר${CAPABILITY_END}`),
   /^אפשר ל/,
-  /^האם אתה(?:\s|$)/,
-  /^האם את(?:\s|$)/,
+  new RegExp(`^האם אתה${CAPABILITY_END}`),
+  new RegExp(`^האם את${CAPABILITY_END}`),
 ];
 
 /** A question about whether the assistant can do something, not a request to do it now. */
 export function isCapabilityQuestion(text: string): boolean {
   const normalized = normalize(text);
   return CAPABILITY_PATTERNS.some((pattern) => pattern.test(normalized));
+}
+
+function hasConcreteDetails(text: string): boolean {
+  const normalized = normalize(text);
+  return hasMoneyAmount(normalized) || /\b20\d{2}\b/.test(normalized);
+}
+
+/** Capability wording with no amount and no year. A confident Jev answer still wins. */
+export function isBareCapabilityQuestion(text: string): boolean {
+  return isCapabilityQuestion(text) && !hasConcreteDetails(text);
 }
 
 /** First matching rule wins. Unrecognized text is out of scope, not a guess. */
@@ -69,7 +83,7 @@ export function classifyIntent(text: string): IntakeIntent {
     return "out_of_scope";
   }
 
-  if (isCapabilityQuestion(normalized)) {
+  if (isBareCapabilityQuestion(normalized)) {
     return "help";
   }
 
