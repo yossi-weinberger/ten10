@@ -79,6 +79,7 @@ export async function readReceiptImage(file: File): Promise<ReadReceiptResult> {
   const reason = (payload as { reason?: unknown }).reason;
   if (reason === "too_large") return { ok: false, reason: "TOO_LARGE" };
   if (reason === "unavailable") return { ok: false, reason: "UNAVAILABLE" };
+  if (reason === "unreadable") return { ok: false, reason: "UNREADABLE" };
   const draft = readReceiptDraft((payload as { draft?: unknown }).draft);
   if (!draft) return { ok: false, reason: "UNREADABLE" };
   return { ok: true, fields: draft };

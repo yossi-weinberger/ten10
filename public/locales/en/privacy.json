@@ -47,7 +47,8 @@
     "description": "We retain your data as follows:",
     "item1": "Account data and financial data: Retained as long as your account is active, or until you choose to delete them",
     "item2": "Data deletion: You can delete individual data or your entire account through Settings. Data is deleted from active systems, and copies may remain for a limited time in backups and logs until removed",
-    "item3": "Contact messages: Retained for support purposes"
+    "item3": "Contact messages: Retained for support purposes",
+    "item4": "Receipts uploaded to the assistant: the image or PDF is stored privately for up to 30 days and then deleted. Deleting the file does not delete a transaction you already approved"
   },
   "dataUsage": {
     "title": "Data Usage",

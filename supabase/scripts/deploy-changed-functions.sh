@@ -42,6 +42,7 @@ ALL_FUNCTIONS=(
   ai-classify-intent
   ai-read-question
   ai-read-receipt
+  ai-purge-receipts
   ai-transcribe-speech
 )
 
@@ -62,6 +63,7 @@ SHARED_DEPENDENT=(
   ai-classify-intent
   ai-read-question
   ai-read-receipt
+  ai-purge-receipts
   ai-transcribe-speech
 )
 

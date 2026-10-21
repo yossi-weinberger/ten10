@@ -182,6 +182,7 @@ export function PrivacyPage() {
                     <li>{t("dataRetention.item1")}</li>
                     <li>{t("dataRetention.item2")}</li>
                     <li>{t("dataRetention.item3")}</li>
+                    <li>{t("dataRetention.item4")}</li>
                   </ul>
                 </div>
               </div>
