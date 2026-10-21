@@ -1,4 +1,4 @@
-import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.116.0";
+import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
@@ -20,17 +20,23 @@ const RESPONSES_URL = "https://ai-gateway.vercel.sh/v1/responses";
 const RECEIPT_BUCKET = "intake-artifacts";
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 
+function storageNotReady(message: string): boolean {
+  const text = message.toLowerCase();
+  return text.includes("could not find the function")
+    || text.includes("bucket not found")
+    || text.includes("schema cache");
+}
+
 async function storeCheckedReceipt(
-  userClient: SupabaseClient,
   userId: string,
   mediaType: string,
   bytes: Uint8Array,
-): Promise<boolean> {
+): Promise<"stored" | "skipped" | "failed"> {
   const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-  if (!serviceKey || !supabaseUrl) return false;
+  if (!serviceKey || !supabaseUrl) return "skipped";
   const path = receiptStoragePath(userId, crypto.randomUUID(), new Date());
-  if (!path) return false;
+  if (!path) return "failed";
   const admin = createClient(supabaseUrl, serviceKey);
   const body = new ArrayBuffer(bytes.byteLength);
   new Uint8Array(body).set(bytes);
@@ -40,11 +46,13 @@ async function storeCheckedReceipt(
     { contentType: mediaType, upsert: false },
   );
   if (uploaded.error) {
+    if (storageNotReady(uploaded.error.message)) return "skipped";
     logger.error("receipt artifact upload failed");
-    return false;
+    return "failed";
   }
   const hash = await receiptSha256(bytes);
-  const { data, error } = await userClient.rpc("record_ai_receipt_artifact", {
+  const { data, error } = await admin.rpc("record_ai_receipt_artifact", {
+    p_user_id: userId,
     p_sha256: hash,
     p_mime: mediaType,
     p_size: bytes.length,
@@ -54,14 +62,15 @@ async function storeCheckedReceipt(
   if (error || !recorded) {
     const removed = await admin.storage.from(RECEIPT_BUCKET).remove([path]);
     if (removed.error) logger.error("receipt artifact cleanup failed");
+    if (error && storageNotReady(error.message)) return "skipped";
     logger.error("receipt artifact record failed");
-    return false;
+    return "failed";
   }
   if (recorded.storagePath !== path) {
     const removed = await admin.storage.from(RECEIPT_BUCKET).remove([path]);
     if (removed.error) logger.error("receipt artifact cleanup failed");
   }
-  return true;
+  return "stored";
 }
 
 const PROMPT = [
@@ -110,11 +119,13 @@ Deno.serve(async (req: Request) => {
     return json(origin, { draft: null }, 400);
   }
   const bytes = decodeReceiptBase64(data);
-  if (!bytes || !receiptMagicMatches(mediaType, bytes)) return json(origin, { draft: null }, 200);
+  if (!bytes || !receiptMagicMatches(mediaType, bytes)) {
+    return json(origin, { draft: null, reason: "unreadable" }, 200);
+  }
   const filePart = receiptFilePart(mediaType, data);
   if (!filePart) return json(origin, { draft: null }, 400);
-  const stored = await storeCheckedReceipt(userClient, userData.user.id, mediaType, bytes);
-  if (!stored) return json(origin, { draft: null, reason: "unavailable" }, 200);
+  const stored = await storeCheckedReceipt(userData.user.id, mediaType, bytes);
+  if (stored === "failed") return json(origin, { draft: null, reason: "unavailable" }, 200);
 
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
   if (!apiKey) return json(origin, { draft: null, reason: "unavailable" }, 200);

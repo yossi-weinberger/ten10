@@ -669,6 +669,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
             {t(recording ? "aiIntake.voiceStop" : "aiIntake.voice")}
           </Button>
           {checking ? <p>{t("aiIntake.checking")}</p> : null}
+          {!intent && saveMessage ? <p>{saveMessage}</p> : null}
           {intent ? (
             <div className="flex flex-col gap-1 text-sm">
               <p>
