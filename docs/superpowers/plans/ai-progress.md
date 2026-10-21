@@ -72,12 +72,13 @@
 | 56 | תיקון נמען וטווח | UI, קריאה בלבד | §9.9 | מוזג ל־`feat/ai-intake` | [#526](https://github.com/yossi-weinberger/ten10/pull/526) |
 | 57 | לא כפול ומחיקה באישור | DB על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#527](https://github.com/yossi-weinberger/ten10/pull/527) |
 | 58 | קצוות נמען וטווח | DB על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#529](https://github.com/yossi-weinberger/ten10/pull/529) |
-| 59 | כולל, חודש בודד, ומחיקה | UI | §9.9 | נפתח | [#530](https://github.com/yossi-weinberger/ten10/pull/530) |
+| 59 | כולל, חודש בודד, ומחיקה | UI | §9.9 | מוזג ל־`feat/ai-intake` | [#530](https://github.com/yossi-weinberger/ten10/pull/530) |
 | 60 | כיבוי AI בפרודקשן | Edge על testing | §22 | מוזג ל־`feat/ai-intake` | [#531](https://github.com/yossi-weinberger/ten10/pull/531) |
 | 61 | צ'קליסט מיזוג ל־main | תיעוד | — | מוזג ל־`feat/ai-intake` | [#532](https://github.com/yossi-weinberger/ten10/pull/532) |
 | 62 | אישור לפני ביטול AI | UI | §9.9 | מוזג ל־`feat/ai-intake` | [#533](https://github.com/yossi-weinberger/ten10/pull/533) |
 | 63 | עיגול שער וסדר Jev | תיעוד + בדיקה | §9.9 | מוזג ל־`feat/ai-intake` | [#534](https://github.com/yossi-weinberger/ten10/pull/534) |
-| 64 | כיול סף כוונה | Edge על testing + UI | §9.9 | נפתח | [#535](https://github.com/yossi-weinberger/ten10/pull/535) |
+| 64 | כיול סף כוונה | Edge על testing + UI | §9.9 | מוזג ל־`feat/ai-intake` | [#535](https://github.com/yossi-weinberger/ten10/pull/535) |
+| 65 | טווח כפילויות והקטנת קבלה | DB על testing + UI | §9.9 | נפתח | [#536](https://github.com/yossi-weinberger/ten10/pull/536) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -215,3 +216,4 @@
 - **2026-10-20:** «בטל שמירת AI» בטבלת התנועות פותח את דיאלוג האישור הקיים לפני המחיקה.
 - **2026-10-20:** הוחלט שעיגול השער ל־4 ספרות ב־`applyConversion` נשאר, גם בהקלדה ידנית. 1000 × 3.71236 הוא שער 3.7124 וסכום 3712.40. זה שינוי מכוון מול הטופס הקודם. סיווג הכוונה נשאר Jev ראשון, ושכבת המילים רק גיבוי כשאין תשובה.
 - **2026-10-20:** סט של 68 משפטים מול Jev: 64 תוויות נכונות. מ־0.7 ומעלה, 57 מתוך 57 היו נכונות. ארבע הטעויות היו 0.39 ומטה. שבע תשובות נכונות ישבו בין 0.43 ל־0.63, קרוב מדי לטעויות, ולכן הסף נשאר 0.7. הוודאות נשמרת ב־`quality_signals.intent_confidence`.
+- **2026-10-21:** זוגות שנשמרו משתמשים באותו טווח 2% מסודר כמו אזהרת השמירה. תמונת קבלה מעל התקרה מוקטנת ל־2000 פיקסלים. PDF לא מוקטן.
