@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useRef, useState, type RefObject } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -70,12 +70,21 @@ function draftDateProblem(date: string): "invalid" | "min" | null {
   return null;
 }
 
+export interface AssistantDrawerHandle {
+  receive(file: File): void;
+}
+
 interface AssistantDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  receiveRef: RefObject<AssistantDrawerHandle | null>;
 }
 
-export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
+export function AssistantDrawer({
+  open,
+  onOpenChange,
+  receiveRef,
+}: AssistantDrawerProps) {
   const { platform } = usePlatform();
   const { t, i18n } = useTranslation([
     "navigation",
@@ -634,6 +643,16 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
       t(result.reason === "NOT_ALLOWED" ? "aiIntake.undoNotAllowed" : "aiIntake.undoFailed"),
     );
   }
+
+  const handleReceiptRef = useRef(handleReceipt);
+  useEffect(() => {
+    handleReceiptRef.current = handleReceipt;
+  });
+  useImperativeHandle(receiveRef, () => ({
+    receive(file: File) {
+      void handleReceiptRef.current(file);
+    },
+  }), []);
 
   if (platform !== "web" || !isAiIntakeEnabled()) return null;
 

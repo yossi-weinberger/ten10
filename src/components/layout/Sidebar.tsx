@@ -27,8 +27,9 @@ import { supabase } from "@/lib/supabaseClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
 import { HomeFeedbackCard } from "@/components/feedback/HomeFeedbackCard";
-import { AssistantDrawer } from "@/components/ai-intake/AssistantDrawer";
+import { AssistantDrawer, type AssistantDrawerHandle } from "@/components/ai-intake/AssistantDrawer";
 import { showAiIntakeUi } from "@/lib/ai/flags";
+import { takeSharedReceipt } from "@/lib/ai/share-target";
 
 interface SidebarProps {
   expanded?: boolean;
@@ -52,7 +53,21 @@ export function Sidebar({
   const [profileAvatarUrl, setProfileAvatarUrl] = useState<string | null>(null);
   const [profileLoading, setProfileLoading] = useState<boolean>(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
+  const assistantRef = useRef<AssistantDrawerHandle | null>(null);
   const showAssistant = showAiIntakeUi(platform, Boolean(session?.user));
+
+  useEffect(() => {
+    if (!showAssistant) return;
+    let cancelled = false;
+    void takeSharedReceipt().then((file) => {
+      if (cancelled || !file) return;
+      setAssistantOpen(true);
+      assistantRef.current?.receive(file);
+    }).catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [showAssistant]);
 
   // Parent wrapper (non-scroll) that contains: scrollable nav + bottom profile card
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -546,7 +561,11 @@ export function Sidebar({
         <PlatformIndicator expanded={expanded} />
       </div>
       {showAssistant ? (
-        <AssistantDrawer open={assistantOpen} onOpenChange={setAssistantOpen} />
+        <AssistantDrawer
+          open={assistantOpen}
+          onOpenChange={setAssistantOpen}
+          receiveRef={assistantRef}
+        />
       ) : null}
     </div>
   );
