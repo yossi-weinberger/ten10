@@ -704,7 +704,7 @@ export function AssistantDrawer({ open, onOpenChange }: AssistantDrawerProps) {
                   <p>{t("aiIntake.askFamily")}</p>
                   <div className="flex flex-wrap gap-2">
                     {(["donation", "expense", "income"] as const).map((family) => (
-                      <Button key={family} type="button" onClick={() => void loadDataAnswer(dataReply.source, false, family)}>
+                      <Button key={family} type="button" className="capitalize" onClick={() => void loadDataAnswer(dataReply.source, false, family)}>
                         {t(`aiIntake.types.${family}`)}
                       </Button>
                     ))}
