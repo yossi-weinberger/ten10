@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useRef, useState, type RefObject } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { usePlatform } from "@/contexts/PlatformContext";
@@ -70,18 +70,20 @@ function draftDateProblem(date: string): "invalid" | "min" | null {
   return null;
 }
 
+export interface AssistantDrawerHandle {
+  receive(file: File): void;
+}
+
 interface AssistantDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  sharedFile?: File | null;
-  onSharedFileConsumed?: () => void;
+  receiveRef: RefObject<AssistantDrawerHandle | null>;
 }
 
 export function AssistantDrawer({
   open,
   onOpenChange,
-  sharedFile = null,
-  onSharedFileConsumed,
+  receiveRef,
 }: AssistantDrawerProps) {
   const { platform } = usePlatform();
   const { t, i18n } = useTranslation([
@@ -642,13 +644,15 @@ export function AssistantDrawer({
     );
   }
 
+  const handleReceiptRef = useRef(handleReceipt);
   useEffect(() => {
-    if (!sharedFile) return;
-    void handleReceipt(sharedFile);
-    onSharedFileConsumed?.();
-    // The handler identity changes every render. The shared file is the trigger.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sharedFile]);
+    handleReceiptRef.current = handleReceipt;
+  });
+  useImperativeHandle(receiveRef, () => ({
+    receive(file: File) {
+      void handleReceiptRef.current(file);
+    },
+  }), []);
 
   if (platform !== "web" || !isAiIntakeEnabled()) return null;
 
