@@ -39,12 +39,38 @@ function hasMoneyAmount(text: string): boolean {
   return /\d/.test(text) || includesAlias(text, CURRENCY_MARKERS);
 }
 
+const CAPABILITY_PATTERNS = [
+  /^can you\b/,
+  /^could you\b/,
+  /^are you able\b/,
+  /^do you know\b/,
+  /^אתה יכול(?:\s|$)/,
+  /^את יכולה(?:\s|$)/,
+  /^אתם יכולים(?:\s|$)/,
+  /^אתה יודע(?:\s|$)/,
+  /^את יודעת(?:\s|$)/,
+  /^האם אפשר(?:\s|$)/,
+  /^אפשר ל/,
+  /^האם אתה(?:\s|$)/,
+  /^האם את(?:\s|$)/,
+];
+
+/** A question about whether the assistant can do something, not a request to do it now. */
+export function isCapabilityQuestion(text: string): boolean {
+  const normalized = normalize(text);
+  return CAPABILITY_PATTERNS.some((pattern) => pattern.test(normalized));
+}
+
 /** First matching rule wins. Unrecognized text is out of scope, not a guess. */
 export function classifyIntent(text: string): IntakeIntent {
   const normalized = normalize(text);
 
   if (normalized.length === 0) {
     return "out_of_scope";
+  }
+
+  if (isCapabilityQuestion(normalized)) {
+    return "help";
   }
 
   if (HELP_PHRASES.some((phrase) => normalized === phrase || normalized.startsWith(`${phrase} `))) {
