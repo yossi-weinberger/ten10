@@ -95,6 +95,7 @@
 | 79 | Share Target לטקסט | UI, Web בלבד | §8.1 | מוזג ל־`feat/ai-intake` | [#550](https://github.com/yossi-weinberger/ten10/pull/550) |
 | 80 | Share Target ב־TWA | Android | §8.1 | נפתח | [#555](https://github.com/yossi-weinberger/ten10/pull/555) |
 | 81 | תווית עברית לקטגוריה ב־Jev | Edge | §9.9 | נפתח | [#551](https://github.com/yossi-weinberger/ten10/pull/551) |
+| 82 | תשובה שמציגה את מה שהובן | UI | §9.9 | נפתח | [#552](https://github.com/yossi-weinberger/ten10/pull/552) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -262,3 +263,4 @@
 - **2026-10-22:** [#551](https://github.com/yossi-weinberger/ten10/pull/551) נפתח מול `feat/ai-intake`. קטגוריה מוגדרת מראש נשלחת ל־Jev עם התווית בעברית ובאנגלית. קטגוריה שהמשתמש יצר נשארת כמו שהיא. «other» נשאר קטגוריה, לא אמצעי תשלום. לא ל־`main`.
 - **2026-10-22:** הקריטריון של קטגוריית «אחר» כולל את המילה בעברית, ונשאר נפרד מאמצעי התשלום. לא ל־`main`.
 - **2026-10-22:** `ai-read-question` הועלתה ב-CLI לפרויקט testing `bbcllewcotypedqsnwmi`. לא לייצור.
+- **2026-10-22:** [#552](https://github.com/yossi-weinberger/ten10/pull/552) נפתח מול `feat/ai-intake`. תשובת השאלה מציגה נמען בתוך המשפט, קטגוריה לפי התווית שלה, ואמצעי תשלום כמו קודם. גם בזוגי וגם כשאין תנועות. לא ל־`main`.
