@@ -1,13 +1,9 @@
-import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import source from "../../../public/manifest.json";
 import {
   manifestForShareTarget,
   shareTargetBuildEnabled,
 } from "./share-target-manifest";
-
-const source = JSON.parse(
-  readFileSync(new URL("../../../public/manifest.json", import.meta.url), "utf8"),
-) as { share_target?: unknown; name: string };
 
 describe("share target manifest", () => {
   it("builds a manifest without share_target unless the variable is exactly true", () => {

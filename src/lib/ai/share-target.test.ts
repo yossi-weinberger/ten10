@@ -26,7 +26,7 @@ function installMemoryDb(rows: Map<string, Row>): void {
     queueMicrotask(() => result.onsuccess?.());
     return result;
   };
-  (globalThis as { indexedDB?: { open: () => typeof request } }).indexedDB = {
+  (globalThis as unknown as { indexedDB?: { open: () => typeof request } }).indexedDB = {
     open: () => {
       queueMicrotask(() => request.onsuccess?.());
       return request;
@@ -36,7 +36,7 @@ function installMemoryDb(rows: Map<string, Row>): void {
 
 describe("shared receipt age", () => {
   afterEach(() => {
-    delete (globalThis as { indexedDB?: unknown }).indexedDB;
+    delete (globalThis as unknown as { indexedDB?: unknown }).indexedDB;
   });
 
   it("keeps a file inside 24 hours and drops an older one", () => {

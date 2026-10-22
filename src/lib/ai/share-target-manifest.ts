@@ -21,11 +21,13 @@ export function shareTargetBuildEnabled(value: string | undefined): boolean {
 }
 
 /** Drops a static share_target, then adds one only when the build flag is on. */
-export function manifestForShareTarget<T extends { share_target?: unknown }>(
+export function manifestForShareTarget<T extends Record<string, unknown>>(
   manifest: T,
   enabled: boolean,
 ): Omit<T, "share_target"> & { share_target?: typeof AI_SHARE_TARGET } {
-  const { share_target: _dropped, ...rest } = manifest;
+  const rest = Object.fromEntries(
+    Object.entries(manifest).filter(([key]) => key !== "share_target"),
+  ) as Omit<T, "share_target">;
   if (!enabled) return rest;
   return { ...rest, share_target: AI_SHARE_TARGET };
 }
