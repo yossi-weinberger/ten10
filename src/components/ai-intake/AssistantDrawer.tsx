@@ -54,6 +54,7 @@ import { AssistantThread } from "./AssistantThread";
 import {
   buildReplyBlocks,
   emptyReplyState,
+  nextConversation,
   type AssistantTurn,
   type ReplyState,
   type StatusKey,
@@ -140,6 +141,12 @@ export function AssistantDrawer({
   const [activeUser, setActiveUser] = useState<UserTurn | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const recorder = useRef<MediaRecorder | null>(null);
+  const requestRef = useRef(0);
+  const conversationRef = useRef<{
+    history: AssistantTurn[];
+    active: UserTurn | null;
+    reply: ReplyState;
+  }>({ history: [], active: null, reply: emptyReplyState() });
   const discardRecording = useRef(false);
   const recordTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -154,6 +161,8 @@ export function AssistantDrawer({
   }
 
   function clearConversation() {
+    requestRef.current += 1;
+    conversationRef.current = { history: [], active: null, reply: emptyReplyState() };
     setText("");
     setIntent(null);
     setDraft(null);
@@ -281,11 +290,13 @@ export function AssistantDrawer({
   }
 
   async function handleReceipt(file: File | undefined) {
-    if (!file || checking) return;
+    if (!file) return;
+    const request = ++requestRef.current;
     beginTurn({ kind: "receipt", fileName: file.name, mimeType: file.type });
     setChecking(true);
     setStatus(null);
     const result = await readReceiptImage(file);
+    if (requestRef.current !== request) return;
     setChecking(false);
     if (receiptInput.current) receiptInput.current.value = "";
     if (!result.ok) {
@@ -323,8 +334,10 @@ export function AssistantDrawer({
   }
 
   async function finishVoice(blob: Blob) {
+    const request = ++requestRef.current;
     setChecking(true);
     const heard = await transcribeSpeech(blob);
+    if (requestRef.current !== request) return;
     setChecking(false);
     if (!heard.ok) {
       setStatus(
@@ -411,8 +424,10 @@ export function AssistantDrawer({
   }
 
   async function loadScan() {
+    const request = requestRef.current;
     setDuplicateScan({ status: "pending" });
     const result = await loadDuplicateScan();
+    if (requestRef.current !== request) return;
     if (!result.ok) {
       setDuplicateScan({ status: "failed" });
       return;
@@ -451,12 +466,14 @@ export function AssistantDrawer({
     searchDescriptions = false,
     family?: NonNullable<QuestionSlots["family"]>,
   ) {
+    const request = requestRef.current;
     setDataReply(null);
     let question = searchDescriptions ? askedQuestion : null;
     if (!question) {
       const slots = family && slotHold
         ? { ...slotHold, family }
         : await readQuestionSlots(source);
+      if (requestRef.current !== request) return;
       const composed = questionFromSlots(source, todayIso(), questionCalendar, slots);
       if (composed === "ask_family") {
         if (slots) setSlotHold(slots);
@@ -471,11 +488,13 @@ export function AssistantDrawer({
     }
     setAskedQuestion(question);
     const filter = await resolveQuestionFilter(question, searchDescriptions);
+    if (requestRef.current !== request) return;
     if ("missing" in filter) {
       setDataReply({ status: "category_missing", topic: filter.name, source, kind: filter.missing });
       return;
     }
     const result = await sumYearType(question, filter);
+    if (requestRef.current !== request) return;
     if (!result.ok) {
       setDataReply({ status: result.reason === "MIXED" ? "mixed" : "failed" });
       return;
@@ -522,26 +541,65 @@ export function AssistantDrawer({
     };
   }
 
+  conversationRef.current = {
+    history,
+    active: activeUser,
+    reply: replyState(),
+  };
+
   function beginTurn(user: UserTurn) {
-    if (activeUser) {
-      const frozen: AssistantTurn = {
-        id: crypto.randomUUID(),
-        user: activeUser,
-        blocks: buildReplyBlocks(replyState()),
-      };
-      setHistory((current) => [...current, frozen]);
-    }
-    setActiveUser(user);
+    const current = conversationRef.current;
+    const next = nextConversation(
+      current.history,
+      current.active,
+      buildReplyBlocks(current.reply),
+      user,
+      crypto.randomUUID(),
+    );
+    conversationRef.current = {
+      history: next.history,
+      active: next.active,
+      reply: emptyReplyState(),
+    };
+    setHistory(next.history);
+    setActiveUser(next.active);
+    setIntent(null);
+    setDraft(null);
+    originalDraft.current = null;
+    setAmountInput("");
+    setDuplicates([]);
+    setDuplicatesRanked(false);
+    setClarification(null);
+    setPendingText("");
+    setChosenType(null);
+    setReceiptFields(null);
+    setAmountReply("");
+    setParsedRule(null);
+    setRuleChoice(null);
+    setAppliedRuleName(null);
+    setHalachaNamespace(null);
+    setAskIntent(false);
+    setDataReply(null);
+    setDuplicateScan(null);
+    setConfirmDeleteId(null);
+    setDuplicateActionFailed(false);
+    setStatus(null);
+    setSavedItemId(null);
+    setReceiptArtifactId(null);
+    setReceiptLink(null);
+    setSlotHold(null);
   }
 
   async function handleSubmit(spoken?: string, kind: "text" | "voice" = "text") {
     const source = spoken ?? text;
     const today = todayIso();
     if (!source.trim()) return;
+    const request = ++requestRef.current;
     beginTurn(kind === "voice" ? { kind: "voice", text: source } : { kind: "text", text: source });
     setText("");
     setChecking(true);
     const decided = await classifyIntentFallback(source);
+    if (requestRef.current !== request) return;
     setIntentConfidence(decided.ok ? decided.confidence : null);
     setChecking(false);
     const jevIsConfident = decided.ok && decided.intent !== null && intentIsConfident(decided.confidence);
@@ -607,7 +665,9 @@ export function AssistantDrawer({
   function handleAmountReply(reply = amountReply) {
     const trimmed = reply.trim();
     if (!trimmed) return;
+    requestRef.current += 1;
     beginTurn({ kind: "text", text: trimmed });
+    setIntent("add_transaction");
     setText("");
     const source = `${pendingText} ${trimmed}`;
     const next = draftFromText(source, todayIso());
@@ -741,7 +801,11 @@ export function AssistantDrawer({
           value={text}
           onChange={setText}
           textareaRef={textareaRef}
-          busy={checking}
+          busy={
+            checking
+            || (intent === "ask_data" && dataReply === null && !askIntent)
+            || duplicateScan?.status === "pending"
+          }
           recording={recording}
           mode={clarification === "amount" ? "amount" : "message"}
           onReceipt={(file) => {

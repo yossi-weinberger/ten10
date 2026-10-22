@@ -59,6 +59,7 @@ function Frame({
   children: ReactNode;
   footer: ReactNode;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
       <div className="flex items-center gap-2 px-4 py-3">
@@ -68,7 +69,7 @@ function Frame({
         <div className="ms-auto flex items-center gap-1">
           {headerActions}
           {onClose ? (
-            <Button type="button" variant="ghost" size="icon-sm" aria-label={title} onClick={onClose}>
+            <Button type="button" variant="ghost" size="icon-sm" aria-label={t("actions.close")} onClick={onClose}>
               <X aria-hidden />
             </Button>
           ) : null}

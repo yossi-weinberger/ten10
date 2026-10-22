@@ -99,11 +99,16 @@ export function DraftCard({
           ) : null}
         </div>
         <CardDescription>
-          {t("aiIntake.draftMeta", {
-            currency: draft.currency,
-            type: t(`aiIntake.types.${draft.type}`),
-            rate: draft.requestedRate ?? t("aiIntake.noRate"),
-          })}
+            {draft.requestedRate === null
+              ? t("aiIntake.draftSummary", {
+                currency: draft.currency,
+                type: t(`aiIntake.types.${draft.type}`),
+              })
+              : t("aiIntake.draftMeta", {
+                currency: draft.currency,
+                type: t(`aiIntake.types.${draft.type}`),
+                rate: draft.requestedRate,
+              })}
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-3 sm:grid-cols-2">

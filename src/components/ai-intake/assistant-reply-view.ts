@@ -78,7 +78,7 @@ export interface DraftView {
 }
 
 export type ReplyBlock =
-  | { kind: "thinking" }
+  | { kind: "thinking"; phase: "intent" | "data" }
   | { kind: "askIntent" }
   | { kind: "intent"; intent: IntakeIntent; showNotSaved: boolean }
   | { kind: "dataAnswer"; reply: ReadyDataReply }
@@ -145,7 +145,7 @@ export function emptyReplyState(): ReplyState {
 
 export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
   const blocks: ReplyBlock[] = [];
-  if (state.checking) blocks.push({ kind: "thinking" });
+  if (state.checking) blocks.push({ kind: "thinking", phase: "intent" });
   if (state.askIntent) blocks.push({ kind: "askIntent" });
   if (state.intent) {
     blocks.push({
@@ -153,6 +153,9 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
       intent: state.intent,
       showNotSaved: state.status === null && state.intent !== "ask_data",
     });
+    if (state.intent === "ask_data" && !state.dataReply && !state.checking) {
+      blocks.push({ kind: "thinking", phase: "data" });
+    }
     if (state.intent === "ask_data" && state.dataReply) {
       const reply = state.dataReply;
       if (reply.status === "ready") blocks.push({ kind: "dataAnswer", reply });
@@ -189,4 +192,23 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
   if (state.status) blocks.push({ kind: "status", status: state.status });
   if (state.savedItemId) blocks.push({ kind: "undo" });
   return blocks;
+}
+
+export function nextConversation(
+  history: AssistantTurn[],
+  active: UserTurn | null,
+  activeBlocks: ReplyBlock[],
+  next: UserTurn,
+  id: string,
+): { history: AssistantTurn[]; active: UserTurn } {
+  if (!active) return { history, active: next };
+  const blocks = activeBlocks.filter((block) => {
+    if (block.kind === "thinking") return false;
+    if (block.kind === "duplicateScan" && block.scan.status === "pending") return false;
+    return true;
+  });
+  return {
+    history: [...history, { id, user: active, blocks }],
+    active: next,
+  };
 }

@@ -298,3 +298,4 @@
 - **2026-10-22:** [#565](https://github.com/yossi-weinberger/ten10/pull/565) נפתח מול `feat/ai-intake`. רכיבי AI Elements ל־Tailwind 3, עדיין לא בשימוש במגירה. לא ל־`main`. הצעד הבא: UI-3 אחרי המיזוג.
 - **2026-10-22:** #565 מוזג ל־`feat/ai-intake`. לא ל־`main`. העוזר נבנה מחדש כשיחה על רכיבי ה־AI, עם היסטוריה, נעילה אחרי שמירה, וגלריית `/dev/assistant`. בחירת Dialog מול Sheet נשארת ל־Preview.
 - **2026-10-22:** [#566](https://github.com/yossi-weinberger/ten10/pull/566) נפתח מול `feat/ai-intake`. השיחה עצמה. לא ל־`main`. הצעד הבא: לבחור Dialog או Sheet על ה־Preview, ואז UI-4.
+- **2026-10-22:** תיקון QA ב־[#566](https://github.com/yossi-weinberger/ten10/pull/566): סבב מהיר לא דורס הודעה קודמת, שאלת נתונים מראה «מחשב…» וחוסמת שליחה עד התשובה, טיוטה בלי שער לא כותבת «שער אין», כפתור הסגירה מתורגם, וכפתור «בטל» לא נמתח. לא ל־`main`. הצעד הבא: מיזוג כשה־CI ירוק, ואז UI-4.

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildReplyBlocks,
   emptyReplyState,
+  nextConversation,
   type ReplyState,
 } from "./assistant-reply-view";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
@@ -27,7 +28,15 @@ describe("buildReplyBlocks", () => {
   });
 
   it("shows thinking while a sentence is being checked", () => {
-    expect(buildReplyBlocks(state({ checking: true }))).toEqual([{ kind: "thinking" }]);
+    expect(buildReplyBlocks(state({ checking: true }))).toEqual([{ kind: "thinking", phase: "intent" }]);
+  });
+
+  it("shows calculating while a data answer is still loading", () => {
+    const blocks = buildReplyBlocks(state({ intent: "ask_data" }));
+    expect(blocks).toEqual([
+      { kind: "intent", intent: "ask_data", showNotSaved: false },
+      { kind: "thinking", phase: "data" },
+    ]);
   });
 
   it("locks a saved draft and keeps undo last", () => {
@@ -76,5 +85,23 @@ describe("buildReplyBlocks", () => {
     expect(buildReplyBlocks(state({ status: "providerFailed" }))).toEqual([
       { kind: "status", status: "providerFailed" },
     ]);
+  });
+
+  it("keeps every message when two turns are sent before a repaint", () => {
+    const first = nextConversation([], null, [], { kind: "text", text: "ראשונה" }, "1");
+    const second = nextConversation(first.history, first.active, [], { kind: "text", text: "שנייה" }, "2");
+    expect(second.history.map((turn) => turn.user)).toEqual([{ kind: "text", text: "ראשונה" }]);
+    expect(second.active).toEqual({ kind: "text", text: "שנייה" });
+  });
+
+  it("does not freeze a spinner onto a turn that was replaced mid-check", () => {
+    const next = nextConversation(
+      [],
+      { kind: "text", text: "ראשונה" },
+      [{ kind: "thinking", phase: "intent" }],
+      { kind: "text", text: "שנייה" },
+      "2",
+    );
+    expect(next.history[0]?.blocks).toEqual([]);
   });
 });

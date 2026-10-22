@@ -67,7 +67,7 @@ export function ReplyBlockView({
       return (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <Spinner />
-          {t("aiIntake.checking")}
+          {t(block.phase === "data" ? "aiIntake.calculating" : "aiIntake.checking")}
         </p>
       );
     case "askIntent":
@@ -266,7 +266,14 @@ export function ReplyBlockView({
     case "undo":
       if (!interactive) return null;
       return (
-        <Button type="button" variant="ghost" size="sm" disabled={handlers.undoing} onClick={handlers.onUndo}>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="w-fit self-start"
+          disabled={handlers.undoing}
+          onClick={handlers.onUndo}
+        >
           {t("aiIntake.undo")}
         </Button>
       );
