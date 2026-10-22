@@ -101,7 +101,7 @@
 | 85 | Share Target רק ב־Preview | UI, Web בלבד | §8.1 | מוזג ל־`feat/ai-intake` | [#560](https://github.com/yossi-weinberger/ten10/pull/560) |
 | 86 | פתיחת קבלה ב־Safari | UI, Web בלבד | §4.6 | מוזג ל־`feat/ai-intake` | [#561](https://github.com/yossi-weinberger/ten10/pull/561) |
 | 87 | קבלה בתפריט רק כשהיא זמינה | DB על testing + UI | §4.6 | מוזג ל־`feat/ai-intake` | [#562](https://github.com/yossi-weinberger/ten10/pull/562) |
-| 88 | מדידת holdout לחריצי השאלה | Edge | §9.9 | נפתח | `feat/ai-pr93-slot-holdout` |
+| 88 | מדידת holdout לחריצי השאלה | Edge | §9.9 | נפתח | [#569](https://github.com/yossi-weinberger/ten10/pull/569) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
@@ -308,7 +308,7 @@
 - **2026-10-22:** [#568](https://github.com/yossi-weinberger/ten10/pull/568) נפתח מול `feat/ai-intake`. תנועה. לא ל־`main`. הצעד הבא: UI-6 אחרי המיזוג.
 - **2026-10-22:** «תרמתי לצדקה 100» נשמר כתיאור «ל», כי `cleanDescription` ב־`text-draft.ts` מחק את «צדקה» מתוך «לצדקה». עכשיו אות היחס שלפני מילת הסוג נמחקת איתה, ואות יחס לבדה לא נשארת תיאור. במצב בלי תנועה המספר וה־₪ מופרדים ברווח. לא ל־`main`.
 - **2026-10-23:** «קניתי, לחם 20» השאיר את «קניתי,» ואת «20» בתיאור. פסיק אחרי מילת סוג לא מונע את המחיקה, ומספר שעומד לבד יוצא מהתיאור. «קניתי לחם 20» נשמר כ«לחם». לא ל־`main`.
-- **2026-10-23:** מדידת holdout לחריצי השאלה, ריצה אחת, בלי שינוי בהנחיות. הגרסה של `question-slots.ts` היא `9339a3cd`. לא היו תשובות ריקות, ולא הייתה ריצה שנייה. לא ל־`main`.
+- **2026-10-23:** [#569](https://github.com/yossi-weinberger/ten10/pull/569) נפתח מול `feat/ai-intake`. מדידת holdout לחריצי השאלה, ריצה אחת, בלי שינוי בהנחיות. הגרסה של `question-slots.ts` היא `9339a3cd`. לא היו תשובות ריקות, ולא הייתה ריצה שנייה. לא ל־`main`.
 
 | | inbox (#545) | holdout |
 |---|---|---|
