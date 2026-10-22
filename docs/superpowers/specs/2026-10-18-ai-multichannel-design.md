@@ -635,6 +635,7 @@ Cron יומי מסמן candidates, מוחק Storage ורק אז מעדכן `dele
 - אין לשנות את מדיניות ה־cache הגלובלית; כל request אחר נשאר `NetworkOnly`.
 - החלופה היא endpoint same-origin בצד השרת, אך היא מחייבת פתרון auth שאינו נשען על Supabase session ב־localStorage.
 - `twa-manifest.json` ו־`public/manifest.json` אינם כוללים כרגע Share Target. לאחר השינוי נדרשים Bubblewrap build, בדיקת Digital Asset Links ושחרור חדש ב־Play Store.
+- ב־22/10/2026 שני הקבצים כבר מצהירים על Share Target, ו־`minSdkVersion` של ה־TWA הוא 24. שיתוף טקסט וקובץ אושר ב־PWA מותקן על טלפון אמיתי, וההגנה ב־Vercel הודלקה מחדש. בניית Bubblewrap והשחרור ב־Play נדחו; האפליקציה בחנות תטופל בנפרד, אחרי מיזוג ל־`main`.
 - `<input type="file" capture>` נשאר fallback פשוט שאינו תלוי ב־Share Target.
 
 כך משתמש Android/ChromeOS יכול לשתף קבלה מהגלריה ישירות ל־Ten10 בלי לעבור דרך WhatsApp. זו אינה חלופה אוניברסלית: התמיכה תלויה בהתקנת ה־PWA/‏TWA ובמערכת ההפעלה, ולכן Web, מייל ו־WhatsApp נשארים ערוצים מלאים.
