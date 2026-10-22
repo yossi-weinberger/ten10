@@ -1145,6 +1145,7 @@ export function levelFromSamples(samples: Uint8Array): number {
 - [ ] `llm-instructions/features/ai/ai-intake-how-it-works.md`: פסקת UI קצרה. שיחה עם היסטוריה שנמחקת בסגירה, Drawer בנייד, המיכל שנבחר במחשב, ושמירה חוזרת חסומה אחרי שמירה.
 - [ ] `llm-instructions/ui/ui-component-guidelines.md`: סעיף 12, «AI Elements ב־Tailwind 3». מה הועתק, טבלת ההמרה (סעיף 6), ואיך מוסיפים רכיב AI חדש.
 - [ ] `docs/superpowers/plans/ai-progress.md`: שורות UI-1 עד UI-6 בטבלה, ויומן.
+- [ ] הוצאת הלוגיקה מהמגירה אינה חלק מ־UI-6. התוכנית: `docs/superpowers/plans/2026-10-23-ai-intake-core.md`. הביצוע PR נפרד, לפני WhatsApp.
 - [ ] commit: `docs(ai): document the assistant chat UI`.
 
 ---
