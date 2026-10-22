@@ -97,6 +97,7 @@
 | 81 | תווית עברית לקטגוריה ב־Jev | Edge | §9.9 | מוזג ל־`feat/ai-intake` | [#551](https://github.com/yossi-weinberger/ten10/pull/551) |
 | 82 | תשובה שמציגה את מה שהובן | UI | §9.9 | מוזג ל־`feat/ai-intake` | [#552](https://github.com/yossi-weinberger/ten10/pull/552) |
 | 83 | רשימות חריצים בתוך קובץ ה־eval | Edge | §9.9 | מוזג ל־`feat/ai-intake` | [#554](https://github.com/yossi-weinberger/ten10/pull/554) |
+| 84 | minSdk 24 ל־TWA | Android | §8.1 | מוזג ל־`feat/ai-intake` | [#558](https://github.com/yossi-weinberger/ten10/pull/558) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -147,6 +148,7 @@
 ## החלטות פתוחות
 
 - **הוחלט, 22/10/2026.** קו WhatsApp אחד: `055-289-3733`, שנרכש ב־019, ו־WhatsApp Business פתוח עליו. הוא להעלאת סטטוסים עכשיו, ואותו מספר יהיה בוט ה־AI בשלב 7. אימות העסק מול Meta והרישום ב־Cloud API עדיין פתוחים.
+- **הוחלט, 22/10/2026.** שיתוף טקסט וקובץ ב־PWA מותקן על טלפון אמיתי מספיק לסגירת שלב 5 בצד ה־Web. ההגנה ב־Vercel הודלקה מחדש. בניית ה־TWA והשחרור ב־Play נדחים; האפליקציה בחנות תטופל בנפרד.
 
 - **`handle_contact_form`:** קובע `verified_captcha = true` בלי בדיקה בשרת; ה־CAPTCHA נאכף רק בלקוח. חומרה נמוכה–בינונית (ספאם למייל התמיכה, בלי חשיפת נתונים). לתקן ב־PR נפרד.
 
@@ -275,3 +277,4 @@
 - **2026-10-22:** [#554](https://github.com/yossi-weinberger/ten10/pull/554) נפתח מול `feat/ai-intake`. רשימות הנמענים והקטגוריות של סט ה־inbox עברו לתוך הקובץ. הריצה קוראת אותן משם. סט ה־holdout מחכה למשפטים, וההנחיות לא כוונו לפיו. לא ל־`main`.
 - **2026-10-22:** #555 מוזג ל־`feat/ai-intake`. בניית Bubblewrap לא הורצה: אין `android.keystore` ואין את ה־CLI במדריך. לא ל־`main`.
 - **2026-10-22:** נבחר מספר WhatsApp: `055-289-3733`, קו 019, ו־WhatsApp Business פתוח עליו. להעלאת סטטוסים, ובהמשך לבוט ה־AI. הערוץ לא נבנה. לא ל־`main`.
+- **2026-10-22:** [#558](https://github.com/yossi-weinberger/ten10/pull/558) מוזג ל־`feat/ai-intake`. `minSdkVersion` של ה־TWA הוא 24. שיתוף טקסט וקובץ אושר ב־PWA מותקן על טלפון אמיתי. ההגנה ב־Vercel הודלקה מחדש. בניית ה־TWA והשחרור ב־Play נדחים. לא ל־`main`.
