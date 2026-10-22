@@ -91,8 +91,11 @@
 | 75 | שמירת קבלה בבאקט פרטי | DB על testing + Edge | §4.2, §7 | מוזג ל־`feat/ai-intake` | [#546](https://github.com/yossi-weinberger/ten10/pull/546) |
 | 76 | קישור קבלה לתנועה שנשמרה | DB על testing + Edge + UI | §4.2 | מוזג ל־`feat/ai-intake` | [#547](https://github.com/yossi-weinberger/ten10/pull/547) |
 | 77 | קישור קצר לקבלה מהטבלה | DB על testing + Edge + UI | §4.6 | מוזג ל־`feat/ai-intake` | [#548](https://github.com/yossi-weinberger/ten10/pull/548) |
-| 78 | Share Target לקובץ קבלה | UI, Web בלבד | §8.1 | נפתח | [#549](https://github.com/yossi-weinberger/ten10/pull/549) |
-| 80 | תשובה שמציגה את מה שהובן | UI | §9.9 | נפתח | [#552](https://github.com/yossi-weinberger/ten10/pull/552) |
+| 78 | Share Target לקובץ קבלה | UI, Web בלבד | §8.1 | מוזג ל־`feat/ai-intake` | [#549](https://github.com/yossi-weinberger/ten10/pull/549) |
+| 79 | Share Target לטקסט | UI, Web בלבד | §8.1 | מוזג ל־`feat/ai-intake` | [#550](https://github.com/yossi-weinberger/ten10/pull/550) |
+| 80 | Share Target ב־TWA | Android | §8.1 | נפתח | [#555](https://github.com/yossi-weinberger/ten10/pull/555) |
+| 81 | תווית עברית לקטגוריה ב־Jev | Edge | §9.9 | נפתח | [#551](https://github.com/yossi-weinberger/ten10/pull/551) |
+| 82 | תשובה שמציגה את מה שהובן | UI | §9.9 | נפתח | [#552](https://github.com/yossi-weinberger/ten10/pull/552) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -245,8 +248,7 @@
 - **2026-10-21:** בדיקת יישור ה-allowlist עברה ל־`scripts`, כי `src` לא כולל טיפוסי Node. לא ל־`main`.
 - **2026-10-21:** על testing בלבד הוחלו `20261021120000` ו־`20261021133000`, והחותמות יושרו לשמות הקבצים. `ai-read-receipt` ו־`ai-purge-receipts` הועלו ב-CLI לפרויקט `bbcllewcotypedqsnwmi`. ארבעת ה-cron הישנים נשארו כבויים. נוסף cron אחד, `ai-purge-expired-receipts`, ב-04:30 UTC, וה-Vault מצביע על testing. לא לייצור.
 - **2026-10-21:** #546 מוזג ל־`feat/ai-intake`. שמירת קבלה מקשרת את התנועה ל־`source_artifact_id`. המשתמש לא רואה את הקובץ. לא ל־`main`.
-- **2026-10-21:** [#547](https://github.com/yossi-weinberger/ten10/pull/547) נפתח מול `feat/ai-intake`. על testing הוחלה `20261021170000` והחותמת יושרה. `ai-read-receipt` הועלתה שוב ב-CLI. לא ל־`main`.
-- **2026-10-21:** #547 מוזג ל־`feat/ai-intake`. לחיצה על אייקון ה-AI פותחת קישור חתום ל-5 דקות, רק לבעל התנועה. תנועה בלי קובץ אומרת שאין מקור. לא ל־`main`.
+- **2026-10-21:** [#547](https://github.com/yossi-weinberger/ten10/pull/547) מוזג ל־`feat/ai-intake`. על testing הוחלה `20261021170000` והחותמת יושרה. `ai-read-receipt` הועלתה שוב ב-CLI. שמירת התנועה מקשרת את הקבלה. לא ל־`main`.
 - **2026-10-21:** [#548](https://github.com/yossi-weinberger/ten10/pull/548) נפתח מול `feat/ai-intake`. על testing הוחלה `20261021180000` והחותמת יושרה. `ai-receipt-url` הועלתה ב-CLI. לא ל־`main`.
 - **2026-10-21:** בדיקת כתובת הקבלה לא טוענת את לקוח Supabase, כדי שה-Vitest לא ייפול בלי `VITE_SUPABASE_URL`. לא ל־`main`.
 - **2026-10-21:** עוזר, מגירה וכללים נפתחים רק ב-Web למשתמש מחובר. קריאות AI לא יוצאות כשהפלטפורמה אינה web. סעיף הקבלות במדיניות הפרטיות מסומן «ווב». לא ל־`main`.
@@ -255,4 +257,10 @@
 - **2026-10-21:** מזהה קובץ הקבלה נשמר ב-state, כדי שלא ייקרא ref בזמן הרינדור. לא ל־`main`.
 - **2026-10-21:** #548 מוזג ל־`feat/ai-intake`. שיתוף קובץ קבלה נשמר ב-IndexedDB ורק אז נפתחת המגירה ב-Web למשתמש מחובר. דסקטופ בלי Service Worker. לא ל־`main`.
 - **2026-10-21:** קובץ משותף נמסר למגירה בלי setState מתוך useEffect. לא ל־`main`.
+- **2026-10-21:** #549 מוזג ל־`feat/ai-intake`. שיתוף טקסט, כותרת או כתובת נפתח במגירה כהודעה. קובץ נשאר קבלה. לא ל־`main`.
+- **2026-10-22:** קישור שכבר נמצא בטקסט המשותף לא מתווסף שוב מהשדה url. לא ל־`main`.
+- **2026-10-22:** #550 מוזג ל־`feat/ai-intake`. [#555](https://github.com/yossi-weinberger/ten10/pull/555) נפתח מול `feat/ai-intake`. שני קבצי ה־TWA מצהירים על יעד השיתוף של האתר. לא ל־`main`. בניית Bubblewrap והשחרור ב־Play עדיין לפי המדריך.
+- **2026-10-22:** [#551](https://github.com/yossi-weinberger/ten10/pull/551) נפתח מול `feat/ai-intake`. קטגוריה מוגדרת מראש נשלחת ל־Jev עם התווית בעברית ובאנגלית. קטגוריה שהמשתמש יצר נשארת כמו שהיא. «other» נשאר קטגוריה, לא אמצעי תשלום. לא ל־`main`.
+- **2026-10-22:** הקריטריון של קטגוריית «אחר» כולל את המילה בעברית, ונשאר נפרד מאמצעי התשלום. לא ל־`main`.
+- **2026-10-22:** `ai-read-question` הועלתה ב-CLI לפרויקט testing `bbcllewcotypedqsnwmi`. לא לייצור.
 - **2026-10-22:** [#552](https://github.com/yossi-weinberger/ten10/pull/552) נפתח מול `feat/ai-intake`. תשובת השאלה מציגה נמען בתוך המשפט, קטגוריה לפי התווית שלה, ואמצעי תשלום כמו קודם. גם בזוגי וגם כשאין תנועות. לא ל־`main`.
