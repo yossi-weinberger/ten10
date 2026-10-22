@@ -47,6 +47,22 @@ function openShareDb(): Promise<IDBDatabase> {
   });
 }
 
+/** Drops every stored share. Used when intake is off or nobody is signed in. */
+export async function clearSharedIntake(): Promise<void> {
+  if (typeof indexedDB === "undefined") return;
+  const db = await openShareDb();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(SHARE_STORE, "readwrite");
+      const request = tx.objectStore(SHARE_STORE).clear();
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  } finally {
+    db.close();
+  }
+}
+
 /** Takes the newest share and drops anything older than 24 hours. */
 export async function takeSharedIntake(now = Date.now()): Promise<SharedIntake | null> {
   if (typeof indexedDB === "undefined") return null;

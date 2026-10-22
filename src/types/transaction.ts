@@ -76,6 +76,7 @@ export interface Transaction {
   recurring_frequency?: string | null;
   occurrence_number?: number | null;
   origin?: "ai" | "ai_auto" | null;
+  receipt_expires_at?: string | null;
 }
 
 export interface TransactionForTable extends Transaction {

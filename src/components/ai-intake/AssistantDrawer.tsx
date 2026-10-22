@@ -104,6 +104,7 @@ export function AssistantDrawer({
   const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
   const originalDraft = useRef<{ description: string; amount: number } | null>(null);
   const [receiptArtifactId, setReceiptArtifactId] = useState<string | null>(null);
+  const [receiptLink, setReceiptLink] = useState<string | null>(null);
   const [amountInput, setAmountInput] = useState("");
   const [duplicates, setDuplicates] = useState<DuplicateCandidate[]>([]);
   const [duplicatesRanked, setDuplicatesRanked] = useState(false);
@@ -186,6 +187,7 @@ export function AssistantDrawer({
     setDataReply(null);
     setDuplicateScan(null);
     setReceiptArtifactId(null);
+    setReceiptLink(null);
   }
 
   function handleOpenChange(next: boolean) {
@@ -273,9 +275,14 @@ export function AssistantDrawer({
   async function openReceiptFile() {
     const artifactId = receiptArtifactId;
     if (!artifactId) return;
+    setReceiptLink(null);
     const result = await openAiReceipt({ artifactId });
-    if (result === "opened") return;
-    setSaveMessage(t(result === "none" ? "aiIntake.receiptMissing" : "aiIntake.receiptUnavailable"));
+    if (result.status === "opened") return;
+    if (result.status === "blocked") {
+      setReceiptLink(result.url);
+      return;
+    }
+    setSaveMessage(t(result.status === "none" ? "aiIntake.receiptMissing" : "aiIntake.receiptUnavailable"));
   }
 
   async function handleReceipt(file: File | undefined) {
@@ -855,9 +862,17 @@ export function AssistantDrawer({
                     </p>
                   ) : null}
                   {receiptArtifactId ? (
-                    <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
+                        {t("aiIntake.viewReceipt")}
+                      </Button>
+                      <span>{t("aiIntake.receiptKept")}</span>
+                    </div>
+                  ) : null}
+                  {receiptLink ? (
+                    <a href={receiptLink} target="_blank" rel="noopener noreferrer">
                       {t("aiIntake.viewReceipt")}
-                    </Button>
+                    </a>
                   ) : null}
                   <div className="flex flex-wrap gap-2">
                     {(["expense", "income", "donation"] as const).map((type) => (
@@ -885,9 +900,17 @@ export function AssistantDrawer({
               {draft ? (
                 <>
                   {receiptArtifactId ? (
-                    <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
+                        {t("aiIntake.viewReceipt")}
+                      </Button>
+                      <span>{t("aiIntake.receiptKept")}</span>
+                    </div>
+                  ) : null}
+                  {receiptLink ? (
+                    <a href={receiptLink} target="_blank" rel="noopener noreferrer">
                       {t("aiIntake.viewReceipt")}
-                    </Button>
+                    </a>
                   ) : null}
                   <p>
                     {t("aiIntake.draftMeta", {

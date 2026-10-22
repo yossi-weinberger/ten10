@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { MoreHorizontal, Trash2, Edit3, Repeat, Sparkles, Undo2 } from "lucide-react";
+import { MoreHorizontal, Trash2, Edit3, Repeat, Sparkles, Undo2, Receipt } from "lucide-react";
 import { typeBadgeColors } from "@/types/transactionLabels";
 import { formatBoolean, cn } from "@/lib/utils/formatting";
 import { RecurringProgressBadge } from "./RecurringProgressBadge";
@@ -25,6 +25,7 @@ import { usePlatform } from "@/contexts/PlatformContext";
 import { canUndoAiTransaction } from "@/lib/ai/ai-undo-eligibility";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { openAiReceipt } from "@/lib/ai/open-receipt";
+import { receiptExpiryDate, showReceiptAction } from "@/lib/ai/receipt-action";
 
 interface TransactionRowProps {
   transaction: TransactionForTable;
@@ -55,13 +56,27 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
   const { platform } = usePlatform();
   const formatDisplayDate = useDisplayDate();
   const displayDate = formatDisplayDate(transaction.date, "numeric");
+  const receiptVisible = showReceiptAction({
+    platform,
+    enabled: isAiIntakeEnabled(),
+    expiresAt: transaction.receipt_expires_at,
+  });
+  const receiptUntil = transaction.receipt_expires_at
+    ? formatDisplayDate(receiptExpiryDate(transaction.receipt_expires_at), "numeric").primary
+    : "";
   const [receiptNote, setReceiptNote] = React.useState<string | null>(null);
+  const [receiptLink, setReceiptLink] = React.useState<string | null>(null);
 
   async function openReceipt() {
     setReceiptNote(null);
+    setReceiptLink(null);
     const result = await openAiReceipt({ transactionId: transaction.id });
-    if (result === "opened") return;
-    setReceiptNote(t(result === "none" ? "filters.receiptNone" : "filters.receiptFailed"));
+    if (result.status === "opened") return;
+    if (result.status === "blocked") {
+      setReceiptLink(result.url);
+      return;
+    }
+    setReceiptNote(t(result.status === "none" ? "filters.receiptNone" : "filters.receiptFailed"));
   }
 
   return (
@@ -80,23 +95,23 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
           {platform === "web" &&
           isAiIntakeEnabled() &&
           (transaction.origin === "ai" || transaction.origin === "ai_auto") ? (
-            <button
-              type="button"
+            <span
               className="inline-flex"
               aria-label={t(
                 transaction.origin === "ai_auto"
                   ? "filters.originAuto"
                   : "filters.originAi",
               )}
-              onClick={(event) => {
-                event.stopPropagation();
-                void openReceipt();
-              }}
             >
               <Sparkles className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            </button>
+            </span>
           ) : null}
         </span>
+        {receiptLink ? (
+          <a className="block text-xs underline" href={receiptLink} target="_blank" rel="noopener noreferrer">
+            {t("filters.receiptOpen")}
+          </a>
+        ) : null}
         {receiptNote ? <span className="block text-xs text-muted-foreground">{receiptNote}</span> : null}
       </TableCell>
       <TableCell className="text-center font-medium whitespace-nowrap">
@@ -196,6 +211,20 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
                 </span>
               </DropdownMenuItem>
             )}
+            {receiptVisible ? (
+              <DropdownMenuItem
+                aria-label={receiptUntil
+                  ? `${t("actions.viewReceipt")}, ${t("actions.receiptUntil", { date: receiptUntil })}`
+                  : t("actions.viewReceipt")}
+                onClick={() => void openReceipt()}
+              >
+                <Receipt className="me-2 h-4 w-4" />
+                <span>
+                  {t("actions.viewReceipt")}
+                  {receiptUntil ? ` · ${t("actions.receiptUntil", { date: receiptUntil })}` : ""}
+                </span>
+              </DropdownMenuItem>
+            ) : null}
             {platform === "web" &&
             isAiIntakeEnabled() &&
             onUndoAi &&

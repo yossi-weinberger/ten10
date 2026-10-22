@@ -92,6 +92,7 @@
     "draftMeta": "{{currency}} · {{type}} · שער {{rate}}",
     "receiptPreview": "{{description}} · {{date}} · {{amount}} {{currency}}",
     "viewReceipt": "הצג את הקבלה",
+    "receiptKept": "הקבלה נשמרת 30 יום",
     "receiptMissing": "אין קובץ לקבלה הזו.",
     "receiptUnavailable": "הקובץ לא זמין כרגע.",
     "editDescription": "תיאור",
