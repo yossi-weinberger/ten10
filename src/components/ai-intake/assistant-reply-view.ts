@@ -72,7 +72,7 @@ export type DuplicateScanState =
 export type UserTurn =
   | { kind: "text"; text: string }
   | { kind: "voice"; text: string }
-  | { kind: "receipt"; fileName: string; mimeType: string };
+  | { kind: "receipt"; fileName: string; mimeType: string; previewUrl?: string | null };
 
 export interface DraftView {
   draft: TextTransactionDraft;
@@ -80,11 +80,12 @@ export interface DraftView {
   appliedRuleName: string | null;
   duplicates: DuplicateCandidate[];
   duplicatesRanked: boolean;
+  inferred?: { amount: boolean; date: boolean; description: boolean };
   locked: boolean;
 }
 
 export type ReplyBlock =
-  | { kind: "thinking"; phase: "intent" | "data" }
+  | { kind: "thinking"; phase: "reading" | "receipt" | "voice" | "data" | "duplicates" }
   | { kind: "askIntent" }
   | { kind: "intent"; intent: IntakeIntent; showNotSaved: boolean }
   | { kind: "dataAnswer"; reply: ReadyDataReply }
@@ -109,6 +110,7 @@ export interface AssistantTurn {
 
 export interface ReplyState {
   checking: boolean;
+  pendingPhase: "reading" | "receipt" | "voice" | null;
   askIntent: boolean;
   intent: IntakeIntent | null;
   dataReply: DataReply | null;
@@ -130,6 +132,7 @@ export interface ReplyState {
 export function emptyReplyState(): ReplyState {
   return {
     checking: false,
+    pendingPhase: null,
     askIntent: false,
     intent: null,
     dataReply: null,
@@ -151,7 +154,7 @@ export function emptyReplyState(): ReplyState {
 
 export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
   const blocks: ReplyBlock[] = [];
-  if (state.checking) blocks.push({ kind: "thinking", phase: "intent" });
+  if (state.checking) blocks.push({ kind: "thinking", phase: state.pendingPhase ?? "reading" });
   if (state.askIntent) blocks.push({ kind: "askIntent" });
   if (state.intent) {
     blocks.push({
@@ -170,7 +173,10 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
         blocks.push({ kind: "nameMissing", nameKind: reply.kind, topic: reply.topic, source: reply.source });
       } else blocks.push({ kind: "dataNotice", status: reply.status });
     }
-    if (state.intent === "find_duplicates" && state.duplicateScan) {
+    if (state.intent === "find_duplicates" && state.duplicateScan?.status === "pending" && !state.checking) {
+      blocks.push({ kind: "thinking", phase: "duplicates" });
+    }
+    if (state.intent === "find_duplicates" && state.duplicateScan && state.duplicateScan.status !== "pending") {
       blocks.push({
         kind: "duplicateScan",
         scan: state.duplicateScan,

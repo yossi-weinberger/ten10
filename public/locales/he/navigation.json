@@ -21,6 +21,23 @@
     "newChat": "שיחה חדשה",
     "emptyTitle": "במה לעזור?",
     "emptyDescription": "אפשר לכתוב, לצלם קבלה או לדבר. שום דבר לא נשמר בלי אישור שלך.",
+    "scrollToLatest": "חזרה להודעה האחרונה",
+    "dropReceipt": "שחרר כאן קבלה",
+    "recording": "מקליט",
+    "inferred": "מולא אוטומטית",
+    "greeting": {
+      "morning": "בוקר טוב",
+      "afternoon": "צהריים טובים",
+      "evening": "ערב טוב",
+      "night": "לילה טוב"
+    },
+    "thinking": {
+      "reading": "קורא את ההודעה…",
+      "receipt": "קורא את הקבלה…",
+      "voice": "מתמלל…",
+      "data": "מחשב מהתנועות שלך…",
+      "duplicates": "מחפש תנועות דומות…"
+    },
     "suggestions": {
       "transaction": "קניתי קפה ב־12 ש״ח",
       "question": "כמה תרמתי השנה?",

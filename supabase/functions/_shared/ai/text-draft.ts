@@ -113,10 +113,78 @@ function resolvePaymentMethod(text: string): TextTransactionDraft["paymentMethod
   return null;
 }
 
-function cleanDescription(original: string): string {
-  let text = original.replace(/־/g, " ").replace(/ש(?:["״]|'')ח/g, "ש\"ח");
+const NUMBER_SRC = String.raw`\d+(?:,\d{3})+(?:\.\d+)?|\d+(?:[.,]\d+)?`;
+
+function prepareText(text: string): string {
+  return text.replace(/־/g, " ").replace(/ש(?:["״]|'')ח/g, "ש\"ח").replace(/\s+/g, " ").trim();
+}
+
+function maskRate(text: string): string {
   const rateWords = wordsPattern(RATE_MARKERS);
-  const currencyWords = wordsPattern(AMOUNT_CURRENCY_WORDS);
+  const pattern = new RegExp(`(?:לפי\\s+)?(?:${rateWords})\\s*(?:${NUMBER_SRC})`, "ig");
+  return text.replace(pattern, (part) => " ".repeat(part.length));
+}
+
+function gluedToLetters(text: string, start: number, end: number): boolean {
+  const before = start > 0 ? text.charAt(start - 1) : "";
+  const after = end < text.length ? text.charAt(end) : "";
+  const letter = /[\p{L}]/u;
+  return letter.test(before) || letter.test(after);
+}
+
+interface AmountHit {
+  amount: number;
+  stripStart: number;
+  stripEnd: number;
+  marked: boolean;
+}
+
+function currencyAlternation(): string {
+  const words = [...AMOUNT_CURRENCY_WORDS, "nis", "ils"]
+    .slice()
+    .sort((left, right) => right.length - left.length);
+  return wordsPattern(words);
+}
+
+/** A price marker or a currency word wins. Otherwise the last standalone number. */
+function findAmount(text: string): AmountHit | null {
+  const currency = currencyAlternation();
+  const hits: AmountHit[] = [];
+  for (const match of text.matchAll(new RegExp(NUMBER_SRC, "g"))) {
+    const raw = match[0];
+    const start = match.index ?? 0;
+    const end = start + raw.length;
+    if (gluedToLetters(text, start, end)) continue;
+    const amount = parseNumber(raw);
+    if (amount === null || amount === 0) continue;
+    const before = text.slice(0, start);
+    const marker = before.match(/(?:^|\s)(?:בסך|עלה|for|at|ב)\s*[-–]?\s*$/i);
+    const currencyBefore = before.match(new RegExp(`(?:^|\\s)(?:${currency})\\s*$`, "i"));
+    const currencyAfter = text.slice(end).match(new RegExp(`^\\s*ל?\\s*(?:${currency})`, "i"));
+    const markerStart = marker?.index === undefined
+      ? null
+      : marker.index + (marker[0].length - marker[0].trimStart().length);
+    const currencyStart = currencyBefore?.index === undefined
+      ? null
+      : currencyBefore.index + (currencyBefore[0].length - currencyBefore[0].trimStart().length);
+    const starts = [markerStart, currencyStart].filter((value): value is number => value !== null);
+    hits.push({
+      amount,
+      stripStart: starts.length > 0 ? Math.min(...starts) : start,
+      stripEnd: end + (currencyAfter?.[0].length ?? 0),
+      marked: marker !== null || currencyBefore !== null || currencyAfter !== null,
+    });
+  }
+  const marked = hits.filter((hit) => hit.marked);
+  const pool = marked.length > 0 ? marked : hits;
+  return pool[pool.length - 1] ?? null;
+}
+
+function cleanDescription(original: string): string {
+  let text = prepareText(original);
+  const amount = findAmount(maskRate(text));
+  if (amount) text = `${text.slice(0, amount.stripStart)} ${text.slice(amount.stripEnd)}`;
+  const rateWords = wordsPattern(RATE_MARKERS);
   const verbs = wordsPattern([...DONATION_TYPE_MARKERS, ...INCOME_TYPE_MARKERS, ...EXPENSE_TYPE_MARKERS]);
   const dates = wordsPattern(DATE_WORDS);
   const payments = wordsPattern([
@@ -127,13 +195,9 @@ function cleanDescription(original: string): string {
     ...CHECK_MARKERS,
   ]);
   const noise = [
-    new RegExp(`לפי\\s+(?:${rateWords})\\s*\\d+(?:[.,]\\d+)?`, "gi"),
-    new RegExp(`(?:${rateWords})\\s*\\d+(?:[.,]\\d+)?`, "gi"),
-    new RegExp(`(?:${currencyWords})\\s*\\d+(?:[.,]\\d+)?`, "gi"),
-    new RegExp(`ב\\s*[-–]?\\s*\\d+(?:[.,]\\d+)?(?:\\s*(?:${currencyWords}))?`, "gi"),
-    new RegExp(`\\d+(?:[.,]\\d+)?\\s*ל?\\s*(?:${currencyWords})`, "gi"),
-    new RegExp(`for\\s+\\d+(?:[.,]\\d+)?(?:\\s*(?:${currencyWords}))?`, "gi"),
-    new RegExp(verbs, "gi"),
+    new RegExp(`לפי\\s+(?:${rateWords})\\s*(?:${NUMBER_SRC})`, "gi"),
+    new RegExp(`(?:${rateWords})\\s*(?:${NUMBER_SRC})`, "gi"),
+    new RegExp(`(?:^|\\s)[למבוהכ]?(?:${verbs})(?=[\\s,.]|$)`, "gi"),
     new RegExp(dates, "gi"),
     new RegExp(payments, "gi"),
   ];
@@ -141,6 +205,7 @@ function cleanDescription(original: string): string {
   text = text.replace(/\bi\b/gi, " ").replace(/\bfor\b/gi, " ");
   const cleaned = text.replace(/\s+/g, " ").replace(/^[\s,.\-–]+|[\s,.\-–]+$/g, "").trim();
   if (/^\d+(?:[.,]\d+)?(?:\s+[למב])?$/.test(cleaned)) return "";
+  if (/^[למבוהכ]+$/.test(cleaned)) return "";
   return cleaned;
 }
 
@@ -173,12 +238,9 @@ export function draftFromText(text: string, today: string): TextTransactionDraft
   const rateWords = wordsPattern(RATE_MARKERS);
   const rateMatch = normalized.match(new RegExp(`(?:${rateWords})\\s*(\\d+(?:,\\d+)?(?:\\.\\d+)?)`));
   const requestedRate = rateMatch ? parseNumber(rateMatch[1]) : null;
-  const withoutRate = rateMatch ? normalized.replace(rateMatch[0], " ") : normalized;
-  const amountMatch = withoutRate.match(/(\d+(?:,\d{3})+(?:\.\d+)?|\d+(?:[.,]\d+)?)/);
-  if (!amountMatch) return null;
-
-  const amount = parseNumber(amountMatch[1]);
-  if (amount === null || amount === 0) return null;
+  const amountHit = findAmount(maskRate(prepareText(normalized)));
+  if (!amountHit) return null;
+  const amount = amountHit.amount;
 
   return {
     date: resolveDate(normalized, today),

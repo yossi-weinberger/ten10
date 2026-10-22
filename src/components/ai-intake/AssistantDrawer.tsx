@@ -58,6 +58,7 @@ import {
   type UserTurn,
 } from "./assistant-reply-view";
 import { shownIntent } from "./assistant-shown-intent";
+import { levelFromSamples } from "./assistant-audio-level";
 
 export interface AssistantDrawerHandle {
   receive(file: File): void;
@@ -89,7 +90,8 @@ export function AssistantDrawer({
   const [text, setText] = useState("");
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
   const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
-  const originalDraft = useRef<{ description: string; amount: number } | null>(null);
+  const originalDraft = useRef<{ description: string; amount: number; date: string } | null>(null);
+  const previewUrls = useRef<string[]>([]);
   const [receiptArtifactId, setReceiptArtifactId] = useState<string | null>(null);
   const [receiptLink, setReceiptLink] = useState<string | null>(null);
   const [amountInput, setAmountInput] = useState("");
@@ -107,6 +109,9 @@ export function AssistantDrawer({
   const [halachaNamespace, setHalachaNamespace] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [pendingPhase, setPendingPhase] = useState<"reading" | "receipt" | "voice" | null>(null);
+  const [level, setLevel] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
   const [recording, setRecording] = useState(false);
   const [undoing, setUndoing] = useState(false);
   const [savedItemId, setSavedItemId] = useState<string | null>(null);
@@ -147,9 +152,21 @@ export function AssistantDrawer({
   }>({ history: [], active: null, reply: emptyReplyState() });
   const discardRecording = useRef(false);
   const recordTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const audioFrame = useRef(0);
+  const audioContext = useRef<AudioContext | null>(null);
+  const levelTick = useRef(0);
+
+  function stopMeter() {
+    if (audioFrame.current) cancelAnimationFrame(audioFrame.current);
+    audioFrame.current = 0;
+    void audioContext.current?.close();
+    audioContext.current = null;
+    setLevel(0);
+  }
 
   function stopRecording() {
     discardRecording.current = true;
+    stopMeter();
     if (recordTimer.current) {
       clearTimeout(recordTimer.current);
       recordTimer.current = null;
@@ -178,11 +195,16 @@ export function AssistantDrawer({
     setAppliedRuleName(null);
     setHalachaNamespace(null);
     setChecking(false);
+    setPendingPhase(null);
+    setLevel(0);
+    setElapsed(0);
     setStatus(null);
     setSavedItemId(null);
     setAskIntent(false);
     setIntentConfidence(null);
     setDataReply(null);
+    for (const url of previewUrls.current) URL.revokeObjectURL(url);
+    previewUrls.current = [];
     setDuplicateScan(null);
     setReceiptArtifactId(null);
     setReceiptLink(null);
@@ -212,6 +234,7 @@ export function AssistantDrawer({
       if (recordTimer.current) clearTimeout(recordTimer.current);
       const active = recorder.current;
       if (active && active.state !== "inactive") active.stop();
+      for (const url of previewUrls.current) URL.revokeObjectURL(url);
     };
   }, []);
 
@@ -269,6 +292,7 @@ export function AssistantDrawer({
     originalDraft.current = {
       description: applied.draft.description,
       amount: applied.draft.amount,
+      date: applied.draft.date,
     };
     setAppliedRuleName(applied.ruleName);
     refreshDuplicates(applied.draft, String(applied.draft.amount));
@@ -290,7 +314,10 @@ export function AssistantDrawer({
   async function handleReceipt(file: File | undefined) {
     if (!file) return;
     const request = ++requestRef.current;
-    beginTurn({ kind: "receipt", fileName: file.name, mimeType: file.type });
+    const previewUrl = file.type.startsWith("image/") ? URL.createObjectURL(file) : null;
+    if (previewUrl) previewUrls.current.push(previewUrl);
+    beginTurn({ kind: "receipt", fileName: file.name, mimeType: file.type, previewUrl });
+    setPendingPhase("receipt");
     setChecking(true);
     setStatus(null);
     const result = await readReceiptImage(file);
@@ -333,6 +360,7 @@ export function AssistantDrawer({
 
   async function finishVoice(blob: Blob) {
     const request = ++requestRef.current;
+    setPendingPhase("voice");
     setChecking(true);
     const heard = await transcribeSpeech(blob);
     if (requestRef.current !== request) return;
@@ -380,6 +408,7 @@ export function AssistantDrawer({
     };
     media.onstop = () => {
       stream.getTracks().forEach((track) => track.stop());
+      stopMeter();
       if (recordTimer.current) clearTimeout(recordTimer.current);
       recorder.current = null;
       setRecording(false);
@@ -389,6 +418,26 @@ export function AssistantDrawer({
     media.start();
     setRecording(true);
     setStatus(null);
+    const started = Date.now();
+    if (typeof AudioContext !== "undefined") {
+      const context = new AudioContext();
+      audioContext.current = context;
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 256;
+      context.createMediaStreamSource(stream).connect(analyser);
+      const samples = new Uint8Array(analyser.fftSize);
+      const tick = () => {
+        const now = Date.now();
+        if (now - levelTick.current >= 66) {
+          levelTick.current = now;
+          analyser.getByteTimeDomainData(samples);
+          setLevel(levelFromSamples(samples));
+          setElapsed(Math.min(60, Math.floor((now - started) / 1000)));
+        }
+        audioFrame.current = requestAnimationFrame(tick);
+      };
+      audioFrame.current = requestAnimationFrame(tick);
+    }
     recordTimer.current = setTimeout(() => {
       if (media.state !== "inactive") media.stop();
     }, 60_000);
@@ -518,6 +567,7 @@ export function AssistantDrawer({
     return {
       ...emptyReplyState(),
       checking,
+      pendingPhase,
       askIntent,
       intent,
       dataReply,
@@ -532,7 +582,20 @@ export function AssistantDrawer({
       receiptArtifactId,
       receiptLink,
       draft: draft
-        ? { draft, amountInput, appliedRuleName, duplicates, duplicatesRanked }
+        ? {
+          draft,
+          amountInput,
+          appliedRuleName,
+          duplicates,
+          duplicatesRanked,
+          inferred: originalDraft.current
+            ? {
+              amount: amountInput === String(originalDraft.current.amount),
+              date: draft.date === originalDraft.current.date,
+              description: draft.description === originalDraft.current.description,
+            }
+            : undefined,
+        }
         : null,
       status,
       savedItemId,
@@ -595,6 +658,7 @@ export function AssistantDrawer({
     const request = ++requestRef.current;
     beginTurn(kind === "voice" ? { kind: "voice", text: source } : { kind: "text", text: source });
     setText("");
+    setPendingPhase(kind === "voice" ? "voice" : "reading");
     setChecking(true);
     const decided = await classifyIntentFallback(source);
     if (requestRef.current !== request) return;
@@ -715,6 +779,7 @@ export function AssistantDrawer({
       setSavedItemId(result.itemId);
       refreshAfterIntakeSave();
       setStatus("saved");
+      navigator.vibrate?.(12);
       return;
     }
     setStatus(result.reason === "NO_RATE" ? "noRateAvailable" : "saveFailed");
@@ -782,6 +847,10 @@ export function AssistantDrawer({
           <TooltipContent>{t("aiIntake.newChat")}</TooltipContent>
         </Tooltip>
       )}
+      thinking={checking || (intent === "ask_data" && dataReply === null && !askIntent) || duplicateScan?.status === "pending"}
+      onReceipt={(file) => {
+        void handleReceipt(file);
+      }}
       footer={(
         <AssistantComposer
           value={text}
@@ -789,14 +858,16 @@ export function AssistantDrawer({
           textareaRef={textareaRef}
           busyLabel={
             checking
-              ? t("aiIntake.checking")
+              ? t(`aiIntake.thinking.${pendingPhase ?? "reading"}`)
               : duplicateScan?.status === "pending"
-                ? t("aiIntake.duplicateScanPending")
+                ? t("aiIntake.thinking.duplicates")
                 : intent === "ask_data" && dataReply === null && !askIntent
-                  ? t("aiIntake.calculating")
+                  ? t("aiIntake.thinking.data")
                   : undefined
           }
           recording={recording}
+          level={level}
+          elapsed={elapsed}
           mode={clarification === "amount" ? "amount" : "message"}
           onReceipt={(file) => {
             void handleReceipt(file);

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-const PORTED = ["message", "bubble", "attachment", "message-scroller", "input-group", "empty", "spinner", "item"];
+const PORTED = ["message", "bubble", "attachment", "message-scroller", "input-group", "empty", "spinner", "item", "shimmer"];
 const FORBIDDEN = /(?<![\w:-])(?:ml|mr|pl|pr|left|right)-[\w[\]./-]+|text-(?:left|right)\b|oklch\(|color-mix\(|wrap-break-word|inset-s-|ring-3\b/;
 
 describe("ported AI primitives", () => {

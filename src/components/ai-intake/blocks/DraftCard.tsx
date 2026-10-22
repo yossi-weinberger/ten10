@@ -1,5 +1,7 @@
-import { AlertTriangle, Undo2 } from "lucide-react";
+import { AlertTriangle, CircleCheck, Sparkles, Undo2 } from "lucide-react";
+import { useReducedMotion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { GoldenBubbles } from "@/components/ui/golden-bubbles";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,12 +20,12 @@ import { formatCurrency } from "@/lib/utils/currency";
 import { formatLocalDate, parseLocalDate } from "@/lib/utils/local-date";
 import { isOnOrAfterMinTransactionDate, minTransactionDateLocal } from "@/lib/utils/transaction-date";
 import { BASE_TYPE_ICON, BASE_TYPE_TINT, type BaseTransactionType } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
+import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
+import type { DraftView } from "../assistant-reply-view";
 
 function currencySymbol(code: string): string {
   return CURRENCIES.find((item) => item.code === code)?.symbol ?? code;
 }
-import type { DraftView } from "../assistant-reply-view";
-import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
 
 function draftDateProblem(date: string): "invalid" | "min" | null {
   if (!isIsoDate(date)) return "invalid";
@@ -67,11 +69,18 @@ export function DraftCard({
   const locale = i18n.language.toLowerCase().startsWith("en") ? "en" : "he";
   const dateProblem = draftDateProblem(draft.date);
   const readOnly = !interactive || view.locked;
+  const reduce = useReducedMotion();
+  const inferred = view.inferred;
+  const donation = draft.type === "donation" || draft.type === "non_tithe_donation";
 
   if (readOnly) {
     return (
-      <Item>
-        <TypeIcon className={`size-4 ${BASE_TYPE_TINT[typeKey]} rounded-full p-0.5`} aria-hidden />
+      <div className="relative">
+        {view.locked && donation && !reduce ? <GoldenBubbles active /> : null}
+        <Item>
+          {view.locked ? <CircleCheck className="size-4 text-success" aria-hidden /> : (
+            <TypeIcon className={`size-4 ${BASE_TYPE_TINT[typeKey]} rounded-full p-0.5`} aria-hidden />
+          )}
         <ItemContent>
           <ItemTitle>{draft.description || t(`aiIntake.types.${draft.type}`)}</ItemTitle>
           <ItemDescription>
@@ -87,6 +96,7 @@ export function DraftCard({
           </Button>
         ) : null}
       </Item>
+      </div>
     );
   }
 
@@ -117,8 +127,13 @@ export function DraftCard({
       </CardHeader>
       <CardContent className="grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <Label>{t("aiIntake.editAmount")}</Label>
-          <InputGroup>
+          <Label className="flex items-center gap-1">
+            {t("aiIntake.editAmount")}
+            {inferred?.amount ? <Sparkles className="size-3 text-primary" aria-hidden /> : null}
+            {inferred?.amount ? <span className="sr-only">{t("aiIntake.inferred")}</span> : null}
+          </Label>
+          <div className="relative">
+            <InputGroup>
             <InputGroupInput
               value={view.amountInput}
               inputMode="decimal"
@@ -131,6 +146,7 @@ export function DraftCard({
               <InputGroupText>{currencySymbol(draft.currency)}</InputGroupText>
             </InputGroupAddon>
           </InputGroup>
+          </div>
         </div>
         <div className="flex flex-col gap-1.5">
           <Label>{t("aiIntake.editDate")}</Label>

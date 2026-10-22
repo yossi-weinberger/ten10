@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { act, createRef, useState, type ReactNode } from "react";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -129,6 +129,16 @@ describe("AssistantDrawer characterization", () => {
     await send(user, "האם מעשרות משכורת הן מהברוטו או מהנטו?");
     expect(await screen.findByText("introduction.body")).toBeInTheDocument();
     expect(screen.queryByText("aiIntake.intents.out_of_scope")).not.toBeInTheDocument();
+  });
+
+  it("reads a receipt pasted into the composer", async () => {
+    ai.readReceiptImage.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
+    setup();
+    const file = new File(["png"], "snap.png", { type: "image/png" });
+    fireEvent.paste(screen.getByRole("textbox", { name: "aiIntake.placeholder" }), {
+      clipboardData: { files: [file] },
+    });
+    await waitFor(() => expect(ai.readReceiptImage).toHaveBeenCalledWith(file));
   });
 
   it("renders nothing outside web", () => {
