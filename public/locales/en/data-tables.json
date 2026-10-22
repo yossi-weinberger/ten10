@@ -80,6 +80,8 @@
     "edit": "Edit",
     "editRecurring": "Edit Recurring",
     "delete": "Delete",
+    "viewReceipt": "Show receipt",
+    "receiptUntil": "Available until {{date}}",
     "undoAi": "Undo AI save",
     "undoAiDone": "The save was undone and the transaction was deleted.",
     "undoAiNotAllowed": "This cannot be undone. If it was edited or 7 days have passed, delete it normally.",

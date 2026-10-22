@@ -855,9 +855,12 @@ export function AssistantDrawer({
                     </p>
                   ) : null}
                   {receiptArtifactId ? (
-                    <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
-                      {t("aiIntake.viewReceipt")}
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
+                        {t("aiIntake.viewReceipt")}
+                      </Button>
+                      <span>{t("aiIntake.receiptKept")}</span>
+                    </div>
                   ) : null}
                   <div className="flex flex-wrap gap-2">
                     {(["expense", "income", "donation"] as const).map((type) => (
@@ -885,9 +888,12 @@ export function AssistantDrawer({
               {draft ? (
                 <>
                   {receiptArtifactId ? (
-                    <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
-                      {t("aiIntake.viewReceipt")}
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
+                        {t("aiIntake.viewReceipt")}
+                      </Button>
+                      <span>{t("aiIntake.receiptKept")}</span>
+                    </div>
                   ) : null}
                   <p>
                     {t("aiIntake.draftMeta", {
