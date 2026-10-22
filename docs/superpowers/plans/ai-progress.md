@@ -98,6 +98,7 @@
 | 82 | תשובה שמציגה את מה שהובן | UI | §9.9 | מוזג ל־`feat/ai-intake` | [#552](https://github.com/yossi-weinberger/ten10/pull/552) |
 | 83 | רשימות חריצים בתוך קובץ ה־eval | Edge | §9.9 | מוזג ל־`feat/ai-intake` | [#554](https://github.com/yossi-weinberger/ten10/pull/554) |
 | 84 | minSdk 24 ל־TWA | Android | §8.1 | מוזג ל־`feat/ai-intake` | [#558](https://github.com/yossi-weinberger/ten10/pull/558) |
+| 85 | Share Target רק ב־Preview | UI, Web בלבד | §8.1 | נפתח | [#560](https://github.com/yossi-weinberger/ten10/pull/560) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -279,4 +280,4 @@
 - **2026-10-22:** #555 מוזג ל־`feat/ai-intake`. בניית Bubblewrap לא הורצה: אין `android.keystore` ואין את ה־CLI במדריך. לא ל־`main`.
 - **2026-10-22:** נבחר מספר WhatsApp: `055-289-3733`, קו 019, ו־WhatsApp Business פתוח עליו. להעלאת סטטוסים, ובהמשך לבוט ה־AI. הערוץ לא נבנה. לא ל־`main`.
 - **2026-10-22:** [#558](https://github.com/yossi-weinberger/ten10/pull/558) מוזג ל־`feat/ai-intake`. `minSdkVersion` של ה־TWA הוא 24. שיתוף טקסט וקובץ אושר ב־PWA מותקן על טלפון אמיתי. ההגנה ב־Vercel הודלקה מחדש. בניית ה־TWA והשחרור ב־Play נדחים. לא ל־`main`.
-- **2026-10-22:** Share Target נכנס למניפסט רק כש־`VITE_AI_SHARE_TARGET` הוא `true`. בלי הדגל, או בלי משתמש מחובר, הרשומות נמחקות בטעינה. לא ל־`main`.
+- **2026-10-22:** [#560](https://github.com/yossi-weinberger/ten10/pull/560) נפתח מול `feat/ai-intake`. Share Target נכנס למניפסט רק כש־`VITE_AI_SHARE_TARGET` הוא `true`. המשתנה הוגדר ל־Preview בלבד. בלי הדגל, או בלי משתמש מחובר, הרשומות נמחקות בטעינה. לא ל־`main`.
