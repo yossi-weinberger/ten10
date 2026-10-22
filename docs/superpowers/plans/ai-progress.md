@@ -120,6 +120,7 @@
 - [ ] על testing בלבד: `supabase migration list`, ואז `supabase migration repair` כך שההיסטוריה תתאים לשמות החדשים.
 - [ ] Supabase Preview על ה־PR ל־`main` עובר.
 - [ ] למזג בשעה רחוקה מה־crons: לא ב־00:00, 07:00, 18:00 או 19:00 UTC.
+- [ ] בהשקה: להגדיר `VITE_AI_SHARE_TARGET=true` ב־Production של Vercel. עד אז רק Preview.
 
 ## משימות בלי קוד (להתחיל עכשיו, לוקחות זמן קלנדרי)
 
@@ -278,3 +279,4 @@
 - **2026-10-22:** #555 מוזג ל־`feat/ai-intake`. בניית Bubblewrap לא הורצה: אין `android.keystore` ואין את ה־CLI במדריך. לא ל־`main`.
 - **2026-10-22:** נבחר מספר WhatsApp: `055-289-3733`, קו 019, ו־WhatsApp Business פתוח עליו. להעלאת סטטוסים, ובהמשך לבוט ה־AI. הערוץ לא נבנה. לא ל־`main`.
 - **2026-10-22:** [#558](https://github.com/yossi-weinberger/ten10/pull/558) מוזג ל־`feat/ai-intake`. `minSdkVersion` של ה־TWA הוא 24. שיתוף טקסט וקובץ אושר ב־PWA מותקן על טלפון אמיתי. ההגנה ב־Vercel הודלקה מחדש. בניית ה־TWA והשחרור ב־Play נדחים. לא ל־`main`.
+- **2026-10-22:** Share Target נכנס למניפסט רק כש־`VITE_AI_SHARE_TARGET` הוא `true`. בלי הדגל, או בלי משתמש מחובר, הרשומות נמחקות בטעינה. לא ל־`main`.
