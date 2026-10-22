@@ -11,8 +11,33 @@ export type SaveTextDraftResult =
   | { ok: true; transactionId: null; itemId: string; sameEvent: true }
   | { ok: false; reason: "NO_RATE" | "AUTH" | "SAVE_FAILED" };
 
+export type DraftIdempotency = {
+  key: string;
+  description: string;
+  amount: string;
+  type: string;
+  date: string;
+};
+
+/** A new key when the draft changes or the previous save was rejected. */
+export function nextDraftIdempotency(
+  current: DraftIdempotency | null,
+  next: Omit<DraftIdempotency, "key">,
+  options: { saveFailed?: boolean; createKey?: () => string } = {},
+): DraftIdempotency {
+  const same = current !== null
+    && current.description === next.description
+    && current.amount === next.amount
+    && current.type === next.type
+    && current.date === next.date;
+  if (current && same && !options.saveFailed) return current;
+  const createKey = options.createKey ?? (() => crypto.randomUUID());
+  return { key: createKey(), ...next };
+}
+
 export async function saveTextDraft(
   draft: TextTransactionDraft,
+  idempotencyKey: string,
   original: { description: string; amount: number } = draft,
   duplicate?: { choice: "saved_anyway" | "same_event"; candidateIds: string[] },
   intentConfidence?: number | null,
@@ -43,7 +68,7 @@ export async function saveTextDraft(
     draft,
     defaultCurrency,
     autoRate,
-    idempotencyKey: crypto.randomUUID(),
+    idempotencyKey,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Jerusalem",
   });
   if (!built.ok) return built;
