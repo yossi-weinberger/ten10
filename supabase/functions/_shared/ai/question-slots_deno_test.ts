@@ -31,7 +31,8 @@ Deno.test("a predefined category criterion includes its Hebrew label", () => {
   });
   assert(body.questions.category.criteria.food.includes("מזון"), "food hebrew");
   assert(body.questions.category.criteria["גן"] === "גן", "custom category");
-  assert(body.questions.category.criteria.other === 'The saved category "other".', "category other");
+  assert(body.questions.category.criteria.other.includes("אחר"), "category other hebrew");
+  assert(body.questions.category.criteria.other !== body.questions.payment_method.criteria.other, "category other is not the payment line");
   assert(body.questions.payment_method.criteria.other.includes("payment method"), "payment other");
 });
 

@@ -96,7 +96,7 @@ function categoryCriteria(options: readonly string[]): Record<string, string> {
       continue;
     }
     if (option === "other") {
-      criteria[option] = 'The saved category "other".';
+      criteria[option] = "אחר (Other). The saved category, not the payment method.";
       continue;
     }
     const base = categoryBaseForKey(option);
