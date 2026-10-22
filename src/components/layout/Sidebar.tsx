@@ -29,7 +29,7 @@ import { logger } from "@/lib/logger";
 import { HomeFeedbackCard } from "@/components/feedback/HomeFeedbackCard";
 import { AssistantDrawer, type AssistantDrawerHandle } from "@/components/ai-intake/AssistantDrawer";
 import { showAiIntakeUi } from "@/lib/ai/flags";
-import { takeSharedIntake } from "@/lib/ai/share-target";
+import { clearSharedIntake, takeSharedIntake } from "@/lib/ai/share-target";
 
 interface SidebarProps {
   expanded?: boolean;
@@ -57,7 +57,11 @@ export function Sidebar({
   const showAssistant = showAiIntakeUi(platform, Boolean(session?.user));
 
   useEffect(() => {
-    if (!showAssistant) return;
+    if (authLoading || platform === "loading") return;
+    if (!showAssistant) {
+      void clearSharedIntake().catch(() => undefined);
+      return;
+    }
     let cancelled = false;
     void takeSharedIntake().then((shared) => {
       if (cancelled || !shared) return;
@@ -68,7 +72,7 @@ export function Sidebar({
     return () => {
       cancelled = true;
     };
-  }, [showAssistant]);
+  }, [authLoading, platform, showAssistant]);
 
   // Parent wrapper (non-scroll) that contains: scrollable nav + bottom profile card
   const listRef = useRef<HTMLDivElement | null>(null);
