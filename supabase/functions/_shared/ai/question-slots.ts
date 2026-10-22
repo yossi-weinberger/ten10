@@ -1,4 +1,8 @@
-import { EXPENSE_CATEGORY_KEYS, INCOME_CATEGORY_KEYS } from "../transaction-domain/category-keys.ts";
+import {
+  categoryCriterion,
+  EXPENSE_CATEGORY_KEYS,
+  INCOME_CATEGORY_KEYS,
+} from "../transaction-domain/category-keys.ts";
 import {
   PAYMENT_METHOD_KEYS,
   PAYMENT_METHOD_OFFICIAL_LABELS,
@@ -77,6 +81,30 @@ function namedCriteria(options: readonly string[], kind: string): Record<string,
   return criteria;
 }
 
+function categoryBaseForKey(key: string): "income" | "expense" | null {
+  if ((EXPENSE_CATEGORY_KEYS as readonly string[]).includes(key)) return "expense";
+  if ((INCOME_CATEGORY_KEYS as readonly string[]).includes(key)) return "income";
+  return null;
+}
+
+/** Predefined keys use Hebrew and English labels. A user category stays as written. */
+function categoryCriteria(options: readonly string[]): Record<string, string> {
+  const criteria: Record<string, string> = {};
+  for (const option of options) {
+    if (option === NONE) {
+      criteria[option] = "The question does not name a saved category.";
+      continue;
+    }
+    if (option === "other") {
+      criteria[option] = "אחר (Other). The saved category, not the payment method.";
+      continue;
+    }
+    const base = categoryBaseForKey(option);
+    criteria[option] = base ? categoryCriterion(base, option) : option.slice(0, 120);
+  }
+  return criteria;
+}
+
 export function buildQuestionSlotBody(text: string, lists: QuestionSlotLists): {
   model: string;
   state: string;
@@ -122,7 +150,7 @@ export function buildQuestionSlotBody(text: string, lists: QuestionSlotLists): {
       category: {
         type: "choice",
         instructions: "Which saved category does the question name? Choose none when it names no category. A different word that only shares letters is not a match: הגינה is not גן, and ביטוח לאומי is allowance income, not the expense category ביטוח. Ordering online is not shopping. The category אחר or other is not a payment method.",
-        criteria: namedCriteria(categories, "saved category"),
+        criteria: categoryCriteria(categories),
       },
       payment_method: {
         type: "choice",

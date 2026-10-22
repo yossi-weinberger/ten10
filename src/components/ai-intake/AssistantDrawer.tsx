@@ -53,6 +53,7 @@ import { useDonationStore } from "@/lib/store";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import { readQuestionSlots } from "@/lib/ai/read-question";
+import { formatDataAnswer } from "@/lib/ai/format-data-answer";
 import { resolveQuestionFilter, sumYearType } from "@/lib/ai/sum-year-type";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
 import { isOnOrAfterMinTransactionDate, MIN_TRANSACTION_DATE } from "@/lib/utils/transaction-date";
@@ -72,6 +73,7 @@ function draftDateProblem(date: string): "invalid" | "min" | null {
 
 export interface AssistantDrawerHandle {
   receive(file: File): void;
+  receiveText(text: string): void;
 }
 
 interface AssistantDrawerProps {
@@ -124,7 +126,7 @@ export function AssistantDrawer({
   const [askIntent, setAskIntent] = useState(false);
   const [intentConfidence, setIntentConfidence] = useState<number | null>(null);
   const [dataReply, setDataReply] = useState<
-    | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; paymentMethod: string | null; topic: string | null; from: string; to: string; total: number; count: number; currency: string | null }
+    | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; paymentMethod: string | null; recipient: string | null; category: string | null; from: string; to: string; total: number; count: number; currency: string | null }
     | { status: "category_missing"; topic: string; source: string; kind: "category" | "recipient" }
     | { status: "family_missing"; source: string }
     | { status: "mixed" | "unsupported" | "failed" }
@@ -482,7 +484,8 @@ export function AssistantDrawer({
       measure: question.measure,
       type: question.type,
       paymentMethod: question.paymentMethod,
-      topic: question.recipient ?? question.topic,
+      recipient: filter.recipient ?? (question.recipient ? filter.description : null),
+      category: filter.category ?? (!question.recipient && filter.description ? filter.description : null),
       from: question.from,
       to: question.to,
       total: result.total,
@@ -645,12 +648,18 @@ export function AssistantDrawer({
   }
 
   const handleReceiptRef = useRef(handleReceipt);
+  const handleSubmitRef = useRef(handleSubmit);
   useEffect(() => {
     handleReceiptRef.current = handleReceipt;
+    handleSubmitRef.current = handleSubmit;
   });
   useImperativeHandle(receiveRef, () => ({
     receive(file: File) {
       void handleReceiptRef.current(file);
+    },
+    receiveText(text: string) {
+      setText(text);
+      void handleSubmitRef.current(text);
     },
   }), []);
 
@@ -716,27 +725,21 @@ export function AssistantDrawer({
               </p>
               {intent === "ask_data" && dataReply?.status === "ready" ? (
                 <p>
-                  {t(dataReply.measure === "count"
-                    ? "aiIntake.dataCount"
-                    : dataReply.measure === "average"
-                      ? "aiIntake.dataAverage"
-                      : dataReply.measure === "max"
-                        ? (dataReply.count === 0 ? "aiIntake.dataMaxEmpty" : "aiIntake.dataMax")
-                        : "aiIntake.dataAnswer", {
+                  {formatDataAnswer({
+                    measure: dataReply.measure,
+                    count: dataReply.count,
                     year: hebrewPeriodPhrase(periodLabel(dataReply, questionCalendar, i18n.language), i18n.language),
-                    type: t(`aiIntake.types.${dataReply.type}`),
-                    typePlural: t(`aiIntake.typesPlural.${dataReply.type}`),
+                    type: dataReply.type,
                     amount: formatCurrency(
                       dataReply.total,
                       (dataReply.currency ?? defaultCurrency) as CurrencyCode,
                       i18n.language.toLowerCase().startsWith("en") ? "en" : "he",
                     ),
-                    count: dataReply.count,
+                    paymentMethod: dataReply.paymentMethod,
+                    recipient: dataReply.recipient,
+                    category: dataReply.category,
+                    language: i18n.language,
                   })}
-                  {dataReply.paymentMethod
-                    ? ` (${t(`transactionForm.paymentMethod.options.${dataReply.paymentMethod}`, { ns: "transactions" })})`
-                    : ""}
-                  {dataReply.topic ? ` (${dataReply.topic})` : ""}
                 </p>
               ) : null}
               {intent === "ask_data" && dataReply?.status === "family_missing" ? (
