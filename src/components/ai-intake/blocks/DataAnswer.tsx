@@ -48,17 +48,17 @@ export function DataAnswer({
           reduce ? reply.count : <CountUp end={reply.count} duration={0.6} preserveValue />
         ) : (
           <>
-            {reduce ? amountLabel : (
-              <>
-                <CountUp
-                  end={reply.total}
-                  duration={0.6}
-                  preserveValue
-                  decimals={Number.isInteger(reply.total) ? 0 : 2}
-                />
-                {symbol ? ` ${symbol}` : ""}
-              </>
+            {reduce ? new Intl.NumberFormat("en", {
+              maximumFractionDigits: Number.isInteger(reply.total) ? 0 : 2,
+            }).format(reply.total) : (
+              <CountUp
+                end={reply.total}
+                duration={0.6}
+                preserveValue
+                decimals={Number.isInteger(reply.total) ? 0 : 2}
+              />
             )}
+            {symbol ? ` ${symbol}` : ""}
           </>
         )}
       </p>

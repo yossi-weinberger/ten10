@@ -133,7 +133,7 @@ function cleanDescription(original: string): string {
     new RegExp(`ב\\s*[-–]?\\s*\\d+(?:[.,]\\d+)?(?:\\s*(?:${currencyWords}))?`, "gi"),
     new RegExp(`\\d+(?:[.,]\\d+)?\\s*ל?\\s*(?:${currencyWords})`, "gi"),
     new RegExp(`for\\s+\\d+(?:[.,]\\d+)?(?:\\s*(?:${currencyWords}))?`, "gi"),
-    new RegExp(verbs, "gi"),
+    new RegExp(`(?:^|\\s)[למבוהכ]?(?:${verbs})(?=\\s|$)`, "gi"),
     new RegExp(dates, "gi"),
     new RegExp(payments, "gi"),
   ];
@@ -141,6 +141,7 @@ function cleanDescription(original: string): string {
   text = text.replace(/\bi\b/gi, " ").replace(/\bfor\b/gi, " ");
   const cleaned = text.replace(/\s+/g, " ").replace(/^[\s,.\-–]+|[\s,.\-–]+$/g, "").trim();
   if (/^\d+(?:[.,]\d+)?(?:\s+[למב])?$/.test(cleaned)) return "";
+  if (/^[למבוהכ]+$/.test(cleaned)) return "";
   return cleaned;
 }
 

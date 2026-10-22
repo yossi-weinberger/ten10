@@ -78,6 +78,13 @@ Deno.test("an English sentence keeps the purchase, not the command", () => {
   assert(draft?.currency === "ILS", "shekels");
 });
 
+Deno.test("a donation to charity does not keep the prefix letter", () => {
+  const draft = draftFromText("תרמתי לצדקה 100", TODAY);
+  assert(draft?.type === "donation", "donation");
+  assert(draft?.amount === 100, "amount");
+  assert(draft?.description === "", "ל from לצדקה is not a description");
+});
+
 Deno.test("a bare amount is not stored as the description", () => {
   assert(draftFromText("שילמתי 5000", TODAY)?.description === "", "bare number");
   assert(draftFromText("קניתי 100 ל", TODAY)?.description === "", "stray letter");
