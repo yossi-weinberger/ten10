@@ -5,6 +5,7 @@ import {
   buildQuestionSlotBody,
   closedSlotOptions,
   readQuestionSlots,
+  slotConfidence,
   type QuestionSlots,
 } from "./question-slots.ts";
 import cases from "./fixtures/question-slot-eval-cases.json" with { type: "json" };
@@ -40,6 +41,8 @@ Deno.test("a slot choice below 0.7 is not chosen", () => {
   const body = buildQuestionSlotBody("כמה תרמתי לישיבה השנה", LISTS);
   assert(Object.keys(body.questions).length === 5, "five choices");
   assert(body.questions.payment_method.criteria.cash.includes("מזומן"), "payment label");
+  assert(body.questions.payment_method.instructions.includes("הוראת קבע"), "standing order");
+  assert(body.questions.payment_method.instructions.includes("is none"), "standing order is none");
   const slots = readQuestionSlots({
     answers: {
       family: { choice: "donation", confidence: 0.69 },
@@ -54,6 +57,17 @@ Deno.test("a slot choice below 0.7 is not chosen", () => {
   assert(slots?.recipient === "ישיבה", "recipient");
   assert(slots?.category === null, "none");
   assert(slots?.paymentMethod === null, "payment below the floor");
+  const confidence = slotConfidence({
+    answers: {
+      family: { choice: "donation", confidence: 0.69 },
+      payment_method: { choice: "cash", confidence: 0.4 },
+      category: { choice: "food", confidence: 1.2 },
+    },
+  });
+  assert(confidence?.family === 0.69, "family confidence");
+  assert(confidence?.payment_method === 0.4, "payment confidence");
+  assert(confidence?.category === undefined, "confidence above 1 dropped");
+  assert(slotConfidence({}) === null, "no confidence");
   assert(readQuestionSlots({ answers: { recipient: { choice: "missing", confidence: 1 } } }, LISTS)?.recipient === null, "unknown name");
   assert(readQuestionSlots({}, LISTS) === null, "no answer");
 });

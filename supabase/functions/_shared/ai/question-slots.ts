@@ -154,7 +154,7 @@ export function buildQuestionSlotBody(text: string, lists: QuestionSlotLists): {
       },
       payment_method: {
         type: "choice",
-        instructions: "Which payment method does the question name? Choose none when it names none. A bare card, כרטיס, or 'by card' is not credit and not debit. The category אחר or other is not the payment method other.",
+        instructions: "Which payment method does the question name? Choose none when it names none. A bare card, כרטיס, or 'by card' is not credit and not debit. The category אחר or other is not the payment method other. A standing order named by itself, including הוראת קבע, is none: it can be a bank charge or a card, so do not pick a method unless that method is named.",
         criteria: paymentCriteria,
       },
     },
@@ -176,6 +176,25 @@ function asFamily(value: string | null): QuestionFamily | null {
 
 function asMeasure(value: string | null): QuestionMeasure | null {
   return MEASURES.find((measure) => measure === value) ?? null;
+}
+
+const SLOT_CONFIDENCE_FIELDS = ["family", "measure", "recipient", "category", "payment_method"] as const;
+
+/** Per-field confidence from a Jev payload. The question text is not included. */
+export function slotConfidence(payload: unknown): Record<string, number> | null {
+  if (!payload || typeof payload !== "object") return null;
+  const answers = (payload as { answers?: unknown }).answers;
+  if (!answers || typeof answers !== "object") return null;
+  const record = answers as Record<string, unknown>;
+  const signals: Record<string, number> = {};
+  for (const field of SLOT_CONFIDENCE_FIELDS) {
+    const answer = record[field];
+    if (!answer || typeof answer !== "object") continue;
+    const confidence = (answer as { confidence?: unknown }).confidence;
+    if (typeof confidence !== "number" || !Number.isFinite(confidence) || confidence < 0 || confidence > 1) continue;
+    signals[field] = confidence;
+  }
+  return Object.keys(signals).length > 0 ? signals : null;
 }
 
 /** Null when Jev did not answer. A choice below 0.7 is not chosen. */
