@@ -103,7 +103,8 @@
 | 87 | קבלה בתפריט רק כשהיא זמינה | DB על testing + UI | §4.6 | מוזג ל־`feat/ai-intake` | [#562](https://github.com/yossi-weinberger/ten10/pull/562) |
 | 88 | מדידת holdout לחריצי השאלה | Edge | §9.9 | מוזג ל־`feat/ai-intake` | [#569](https://github.com/yossi-weinberger/ten10/pull/569) |
 | 89 | הוראת קבע וודאות החריצים | DB על testing + Edge | §9.9 | מוזג ל־`feat/ai-intake` | [#570](https://github.com/yossi-weinberger/ten10/pull/570) |
-| 90 | מפתח שמירה יציב לטיוטה | UI, Web בלבד | §4.1 | נפתח | [#571](https://github.com/yossi-weinberger/ten10/pull/571) |
+| 90 | מפתח שמירה יציב לטיוטה | UI, Web בלבד | §4.1 | מוזג ל־`feat/ai-intake` | [#571](https://github.com/yossi-weinberger/ten10/pull/571) |
+| 91 | תוצאת שאלת נתונים | DB על testing + Edge + UI | §9.9 | נפתח | [#572](https://github.com/yossi-weinberger/ten10/pull/572) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
@@ -359,3 +360,4 @@
 נשארו שתי שגיאות בוודאות. `he-009`: הקטגוריה «תרופות» נבחרה מתוך שם הנמען. אין השפעה על התשובה, כי שאלה על תרומה מתעלמת מקטגוריה. `he-033`: «הוראת קבע» נבחרה כהעברה בנקאית. זה התיקון היחיד בהנחיות: «הוראת קבע» לבד היא `none`. לא מתקנים «קטגוריה בתוך שם הנמען», ולא «בלי מילה מפורשת המשפחה ריקה», ולא «מילה קרובה אינה בחירה». אין סט סינתטי חדש. המדידה הבאה היא שימוש אמיתי של משתמשי הבדיקה, עם `quality_signals.slot_confidence` לכל שדה.
 - **2026-10-23:** [#570](https://github.com/yossi-weinberger/ten10/pull/570) נפתח מול `feat/ai-intake`. #569 מוזג ל־`feat/ai-intake`. «הוראת קבע» לבד בהנחיות היא `none`. ודאות החריצים של שאלת נתונים נשמרת ב־`quality_signals.slot_confidence`, בלי המשפט, רק למשתמשי הניסוי. על testing הוחלה `20261023010000` והחותמת יושרה. לא ל־`main`.
 - **2026-10-23:** #570 ו־UI-5 (#568) מוזגו ל־`feat/ai-intake`. מפתח השמירה נוצר כשהטיוטה מוצגת, ונשאר לאותה טיוטה גם בלחיצה כפולה. מפתח חדש כשהתיאור, הסכום, הסוג או התאריך משתנים, וגם אחרי כשל שמירה. לא ל־`main`.
+- **2026-10-23:** ודאות החריצים נרשמת עם `service_role` ומחזירה `measurement_id`. המשתמש מסמן רק את מה שעשה אחרי התשובה: משפחה, חיפוש בתיאור, שאלה נוספת תוך 60 שניות, או שנשאר עם המספר. על testing הוחלה `20261023020000` והחותמת יושרה. לא ל־`main`.
