@@ -15,6 +15,7 @@ This document provides comprehensive guidelines for creating floating UI compone
 9. [Internationalization (i18n) and Theming Guidelines](#9-internationalization-i18n-and-theming-guidelines)
 10. [Layout and Navigation Components](#10-layout-and-navigation-components)
 11. [Responsive Modals: Dialog/Drawer Pattern](#11-responsive-modals-dialogdrawer-pattern)
+12. [AI Elements on Tailwind 3](#12-ai-elements-on-tailwind-3)
 
 ---
 
@@ -839,3 +840,32 @@ If users report DOM errors on mobile, use **Chrome Remote Debugging**:
 **Status:** Active
 **Maintained By:** Development Team
 **Related Files:** `App.tsx`, `Sidebar.tsx`, `PlatformIndicator.tsx`, `tooltip.tsx`, `i18n.ts`, `index.css`, `use-media-query.ts`
+
+---
+
+## 12. AI Elements on Tailwind 3
+
+_(Added October 2026)_
+
+The assistant UI uses shadcn AI Elements, copied by hand onto Tailwind 3.4. The project is not on Tailwind 4. Do not run `npx shadcn add` for these files: the CLI targets `new-york-v4` and would overwrite `input.tsx`, `textarea.tsx`, and `separator.tsx`.
+
+Copied components live in `src/components/ui/`: `message`, `bubble`, `attachment`, `message-scroller`, `input-group`, `empty`, `spinner`, `item`, `shimmer`. `scripts/ai-primitives-rtl.test.ts` rejects physical `left`/`right`/`ml`/`mr` classes, `oklch`, and `color-mix` in those files.
+
+When porting another AI Element:
+
+1. Copy the `new-york-v4` source. Do not overwrite an existing primitive.
+2. Convert imports to `@/components/ui` and `@/lib/utils`.
+3. Replace physical direction with logical properties (`ms`/`me`, `ps`/`pe`, `start`/`end`, `text-start`).
+4. Keep the HSL tokens in `src/index.css`. Do not introduce oklch brand colors.
+5. Add the file name to `PORTED` in `scripts/ai-primitives-rtl.test.ts`.
+
+| Tailwind 4 registry | Tailwind 3 in this repo |
+|---|---|
+| `import { cn } from "cn"` | `import { cn } from "@/lib/utils"` |
+| `import { Slot } from "radix-ui"` | `import { Slot } from "@radix-ui/react-slot"` |
+| `*:data-[slot=x]:…` | `[&>[data-slot=x]]:…` |
+| `left-*` / `right-*` | `start-*` / `end-*` |
+| `text-left` / `text-right` | `text-start` / `text-end` |
+| `oklch` / `color-mix` | `bg-primary/10`, `bg-muted/80`, and the other HSL tokens |
+
+The full conversion list is section 6 of `docs/superpowers/plans/2026-10-22-ai-ui-redesign.md`. A Tailwind 4 upgrade, if it happens, is a separate change on `main` after `feat/ai-intake` merges, with screenshots taken before and after.

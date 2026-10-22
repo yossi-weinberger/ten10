@@ -105,8 +105,8 @@
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
 | UI-4 | אותו קובץ | כרטיסי נתונים, כפילויות, כלל, הלכה | UI-3 | מוזג ל־`feat/ai-intake` | [#567](https://github.com/yossi-weinberger/ten10/pull/567) |
-| UI-5 | אותו קובץ | תנועה ורגעי wow | UI-4 | PR פתוח | [#568](https://github.com/yossi-weinberger/ten10/pull/568) |
-| UI-6 | אותו קובץ | QA, Playwright ותיעוד | UI-5 | לא התחיל | `feat/ai-ui6-qa-docs` |
+| UI-5 | אותו קובץ | תנועה ורגעי wow | UI-4 | PR פתוח, CI תוקן אחרי `Array.at` | [#568](https://github.com/yossi-weinberger/ten10/pull/568) |
+| UI-6 | אותו קובץ | QA, Playwright ותיעוד | UI-5 | בעבודה: תיעוד. צילומים וטלפון עדיין לא | `feat/ai-ui6-qa-docs` |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -307,3 +307,4 @@
 - **2026-10-22:** [#568](https://github.com/yossi-weinberger/ten10/pull/568) נפתח מול `feat/ai-intake`. תנועה. לא ל־`main`. הצעד הבא: UI-6 אחרי המיזוג.
 - **2026-10-22:** «תרמתי לצדקה 100» נשמר כתיאור «ל», כי `cleanDescription` ב־`text-draft.ts` מחק את «צדקה» מתוך «לצדקה». עכשיו אות היחס שלפני מילת הסוג נמחקת איתה, ואות יחס לבדה לא נשארת תיאור. במצב בלי תנועה המספר וה־₪ מופרדים ברווח. לא ל־`main`.
 - **2026-10-23:** «קניתי, לחם 20» השאיר את «קניתי,» ואת «20» בתיאור. פסיק אחרי מילת סוג לא מונע את המחיקה, ומספר שעומד לבד יוצא מהתיאור. «קניתי לחם 20» נשמר כ«לחם». לא ל־`main`.
+- **2026-10-23:** מחלץ הסכום ב־`text-draft.ts` מעדיף מחיר מסומן, ואחרת את המספר העצמאי האחרון. ספרות דבוקות לאות אינן סכום. TypeScript ב־CI נכשל על `Array.at` בקונפיג של ה־Edge; הוחלף בגישה לפי אינדקס. [#568](https://github.com/yossi-weinberger/ten10/pull/568) עדיין פתוח. לא ל־`main`.
