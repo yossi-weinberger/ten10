@@ -131,8 +131,9 @@ export function AssistantShell({
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
+          hideClose
           side={i18n.dir() === "rtl" ? "left" : "right"}
-          className="flex w-full flex-col gap-0 p-0 sm:max-w-md [&>button:last-child]:hidden"
+          className="flex w-full flex-col gap-0 p-0 sm:max-w-md"
         >
           <SheetTitle className="sr-only">{title}</SheetTitle>
           <SheetDescription className="sr-only">{description}</SheetDescription>
@@ -145,6 +146,7 @@ export function AssistantShell({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
+        hideClose
         className="flex h-[min(85dvh,48rem)] max-w-2xl flex-col gap-0 p-0"
         onOpenAutoFocus={(event) => {
           event.preventDefault();
@@ -153,7 +155,7 @@ export function AssistantShell({
       >
         <DialogTitle className="sr-only">{title}</DialogTitle>
         <DialogDescription className="sr-only">{description}</DialogDescription>
-        {frame()}
+        {frame(() => onOpenChange(false))}
       </DialogContent>
     </Dialog>
   );

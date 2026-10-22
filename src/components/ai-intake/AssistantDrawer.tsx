@@ -801,10 +801,14 @@ export function AssistantDrawer({
           value={text}
           onChange={setText}
           textareaRef={textareaRef}
-          busy={
+          busyLabel={
             checking
-            || (intent === "ask_data" && dataReply === null && !askIntent)
-            || duplicateScan?.status === "pending"
+              ? t("aiIntake.checking")
+              : duplicateScan?.status === "pending"
+                ? t("aiIntake.duplicateScanPending")
+                : intent === "ask_data" && dataReply === null && !askIntent
+                  ? t("aiIntake.calculating")
+                  : undefined
           }
           recording={recording}
           mode={clarification === "amount" ? "amount" : "message"}

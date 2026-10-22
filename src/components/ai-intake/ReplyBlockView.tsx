@@ -1,3 +1,4 @@
+import { RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
@@ -176,12 +177,12 @@ export function ReplyBlockView({
       return (
         <Button
           type="button"
-          variant="ghost"
-          size="sm"
+          variant="outline"
           className="w-fit self-start"
           disabled={handlers.undoing}
           onClick={handlers.onUndo}
         >
+          <RotateCcw aria-hidden />
           {t("aiIntake.undo")}
         </Button>
       );

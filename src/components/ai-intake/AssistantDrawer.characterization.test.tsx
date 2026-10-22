@@ -117,6 +117,12 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 describe("AssistantDrawer characterization", () => {
+  it("keeps new chat beside a single close button", () => {
+    setup();
+    expect(screen.getByRole("button", { name: "aiIntake.newChat" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "actions.close" })).toHaveLength(1);
+  });
+
   it("renders nothing outside web", () => {
     ai.platform.value = "desktop";
     render(<AssistantDrawer open onOpenChange={vi.fn()} receiveRef={receiveRef} />);
