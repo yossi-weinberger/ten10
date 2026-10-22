@@ -98,6 +98,7 @@
 | 82 | תשובה שמציגה את מה שהובן | UI | §9.9 | מוזג ל־`feat/ai-intake` | [#552](https://github.com/yossi-weinberger/ten10/pull/552) |
 | 83 | רשימות חריצים בתוך קובץ ה־eval | Edge | §9.9 | מוזג ל־`feat/ai-intake` | [#554](https://github.com/yossi-weinberger/ten10/pull/554) |
 | 84 | minSdk 24 ל־TWA | Android | §8.1 | מוזג ל־`feat/ai-intake` | [#558](https://github.com/yossi-weinberger/ten10/pull/558) |
+| 86 | פתיחת קבלה ב־Safari | UI, Web בלבד | §4.6 | נפתח | [#561](https://github.com/yossi-weinberger/ten10/pull/561) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -277,5 +278,5 @@
 - **2026-10-22:** [#554](https://github.com/yossi-weinberger/ten10/pull/554) נפתח מול `feat/ai-intake`. רשימות הנמענים והקטגוריות של סט ה־inbox עברו לתוך הקובץ. הריצה קוראת אותן משם. סט ה־holdout מחכה למשפטים, וההנחיות לא כוונו לפיו. לא ל־`main`.
 - **2026-10-22:** #555 מוזג ל־`feat/ai-intake`. בניית Bubblewrap לא הורצה: אין `android.keystore` ואין את ה־CLI במדריך. לא ל־`main`.
 - **2026-10-22:** נבחר מספר WhatsApp: `055-289-3733`, קו 019, ו־WhatsApp Business פתוח עליו. להעלאת סטטוסים, ובהמשך לבוט ה־AI. הערוץ לא נבנה. לא ל־`main`.
-- **2026-10-22:** פתיחת קבלה פותחת חלון ריק בלחיצה, ואז עוברת לקישור. אם הדפדפן חוסם, מוצג קישור ללחיצה. לא ל־`main`.
+- **2026-10-22:** [#561](https://github.com/yossi-weinberger/ten10/pull/561) נפתח מול `feat/ai-intake`. פתיחת קבלה פותחת חלון ריק בלחיצה, ואז עוברת לקישור. אם הדפדפן חוסם, מוצג קישור ללחיצה. לא ל־`main`.
 - **2026-10-22:** [#558](https://github.com/yossi-weinberger/ten10/pull/558) מוזג ל־`feat/ai-intake`. `minSdkVersion` של ה־TWA הוא 24. שיתוף טקסט וקובץ אושר ב־PWA מותקן על טלפון אמיתי. ההגנה ב־Vercel הודלקה מחדש. בניית ה־TWA והשחרור ב־Play נדחים. לא ל־`main`.
