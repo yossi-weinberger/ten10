@@ -29,7 +29,7 @@ import { logger } from "@/lib/logger";
 import { HomeFeedbackCard } from "@/components/feedback/HomeFeedbackCard";
 import { AssistantDrawer, type AssistantDrawerHandle } from "@/components/ai-intake/AssistantDrawer";
 import { showAiIntakeUi } from "@/lib/ai/flags";
-import { takeSharedReceipt } from "@/lib/ai/share-target";
+import { takeSharedIntake } from "@/lib/ai/share-target";
 
 interface SidebarProps {
   expanded?: boolean;
@@ -59,10 +59,11 @@ export function Sidebar({
   useEffect(() => {
     if (!showAssistant) return;
     let cancelled = false;
-    void takeSharedReceipt().then((file) => {
-      if (cancelled || !file) return;
+    void takeSharedIntake().then((shared) => {
+      if (cancelled || !shared) return;
       setAssistantOpen(true);
-      assistantRef.current?.receive(file);
+      if (shared.kind === "file") assistantRef.current?.receive(shared.file);
+      else assistantRef.current?.receiveText(shared.text);
     }).catch(() => undefined);
     return () => {
       cancelled = true;

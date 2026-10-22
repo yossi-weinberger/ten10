@@ -72,6 +72,7 @@ function draftDateProblem(date: string): "invalid" | "min" | null {
 
 export interface AssistantDrawerHandle {
   receive(file: File): void;
+  receiveText(text: string): void;
 }
 
 interface AssistantDrawerProps {
@@ -645,12 +646,18 @@ export function AssistantDrawer({
   }
 
   const handleReceiptRef = useRef(handleReceipt);
+  const handleSubmitRef = useRef(handleSubmit);
   useEffect(() => {
     handleReceiptRef.current = handleReceipt;
+    handleSubmitRef.current = handleSubmit;
   });
   useImperativeHandle(receiveRef, () => ({
     receive(file: File) {
       void handleReceiptRef.current(file);
+    },
+    receiveText(text: string) {
+      setText(text);
+      void handleSubmitRef.current(text);
     },
   }), []);
 
