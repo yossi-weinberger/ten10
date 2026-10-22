@@ -24,6 +24,17 @@ Deno.test("a closed slot list keeps none and stops at 255", () => {
   assert(!closedSlotOptions(["", " none ", "ישיבה"]).includes(" none "), "blank dropped");
 });
 
+Deno.test("a predefined category criterion includes its Hebrew label", () => {
+  const body = buildQuestionSlotBody("כמה הוצאתי על אוכל", {
+    recipients: [],
+    categories: ["food", "גן", "other"],
+  });
+  assert(body.questions.category.criteria.food.includes("מזון"), "food hebrew");
+  assert(body.questions.category.criteria["גן"] === "גן", "custom category");
+  assert(body.questions.category.criteria.other === 'The saved category "other".', "category other");
+  assert(body.questions.payment_method.criteria.other.includes("payment method"), "payment other");
+});
+
 Deno.test("a slot choice below 0.7 is not chosen", () => {
   const body = buildQuestionSlotBody("כמה תרמתי לישיבה השנה", LISTS);
   assert(Object.keys(body.questions).length === 5, "five choices");
