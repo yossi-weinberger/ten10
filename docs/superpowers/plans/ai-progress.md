@@ -103,7 +103,7 @@
 | 87 | קבלה בתפריט רק כשהיא זמינה | DB על testing + UI | §4.6 | מוזג ל־`feat/ai-intake` | [#562](https://github.com/yossi-weinberger/ten10/pull/562) |
 | 88 | מדידת holdout לחריצי השאלה | Edge | §9.9 | מוזג ל־`feat/ai-intake` | [#569](https://github.com/yossi-weinberger/ten10/pull/569) |
 | 89 | הוראת קבע וודאות החריצים | DB על testing + Edge | §9.9 | מוזג ל־`feat/ai-intake` | [#570](https://github.com/yossi-weinberger/ten10/pull/570) |
-| 90 | מפתח שמירה יציב לטיוטה | UI, Web בלבד | §4.1 | נפתח | `feat/ai-pr95-draft-idempotency` |
+| 90 | מפתח שמירה יציב לטיוטה | UI, Web בלבד | §4.1 | נפתח | [#571](https://github.com/yossi-weinberger/ten10/pull/571) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
