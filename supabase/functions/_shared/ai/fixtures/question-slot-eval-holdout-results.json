@@ -1,0 +1,5197 @@
+{
+  "summary": {
+    "total": 60,
+    "correct": 49,
+    "missed": 11,
+    "confidentWrong": 6,
+    "byField": {
+      "family": {
+        "correct": 55,
+        "missed": 3,
+        "confidentWrong": 2
+      },
+      "measure": {
+        "correct": 58,
+        "missed": 2,
+        "confidentWrong": 0
+      },
+      "recipient": {
+        "correct": 60,
+        "missed": 0,
+        "confidentWrong": 0
+      },
+      "category": {
+        "correct": 56,
+        "missed": 0,
+        "confidentWrong": 4
+      },
+      "payment_method": {
+        "correct": 59,
+        "missed": 0,
+        "confidentWrong": 1
+      }
+    }
+  },
+  "answers": {
+    "slot-hold-he-001": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.88,
+        "probabilities": {
+          "donation": 0.92,
+          "income": 0,
+          "expense": 0.08
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 0.99,
+        "probabilities": {
+          "sum": 0.99,
+          "count": 0.01,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "כולל בוקר",
+        "confidence": 0.98,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0.98,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.02
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "education",
+        "confidence": 0.42,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0.01,
+          "gift": 0.01,
+          "other": 0.02,
+          "food": 0.01,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0.45,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0.08,
+          "חוגים": 0.02,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.4
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-002": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 1,
+          "income": 0,
+          "expense": 0
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "count",
+        "confidence": 0.99,
+        "probabilities": {
+          "sum": 0.01,
+          "count": 0.99,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "כולל אברכים",
+        "confidence": 0.98,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0.98,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.02
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.48,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.33,
+          "other": 0.12,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0.05,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.5
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-003": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.67,
+        "probabilities": {
+          "donation": 0.78,
+          "income": 0.01,
+          "expense": 0.21
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 0.99,
+        "probabilities": {
+          "sum": 0.99,
+          "count": 0.01,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.92,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0.03,
+          "כולל אברכים": 0.04,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.93
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.77,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0.06999999999999999,
+          "gift": 0.01,
+          "other": 0.02,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0.01,
+          "utilities": 0.01,
+          "healthcare": 0,
+          "education": 0.01,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0.02,
+          "חוגים": 0.06999999999999999,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.78
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.99,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0.01,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 0.99
+        }
+      }
+    },
+    "slot-hold-he-004": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.89,
+        "probabilities": {
+          "donation": 0.93,
+          "income": 0.03,
+          "expense": 0.04
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "max",
+        "confidence": 0.91,
+        "probabilities": {
+          "sum": 0.07,
+          "count": 0,
+          "average": 0,
+          "max": 0.93
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "ישיבה קטנה",
+        "confidence": 0.87,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0.88,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.12
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.86,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.01,
+          "other": 0.01,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0.11,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.87
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-005": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.89,
+        "probabilities": {
+          "donation": 0.93,
+          "income": 0.01,
+          "expense": 0.06
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 0.87,
+        "probabilities": {
+          "sum": 0.9,
+          "count": 0.1,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "ישיבת נחלת",
+        "confidence": 0.89,
+        "probabilities": {
+          "ישיבת נחלת": 0.9,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.45,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0.01,
+          "gift": 0.01,
+          "other": 0.05,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0.45,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.48
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-006": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.95,
+        "probabilities": {
+          "donation": 0.97,
+          "income": 0,
+          "expense": 0.03
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.99,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0.01,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.99
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "education",
+        "confidence": 0.55,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.09,
+          "other": 0.07,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0.5700000000000001,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.26
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-007": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 1,
+          "income": 0,
+          "expense": 0
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "Ohr Somayach",
+        "confidence": 0.93,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0.94,
+          "none": 0.06
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.79,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.1,
+          "other": 0.08,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0.01,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.8
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-008": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.98,
+        "probabilities": {
+          "donation": 0.99,
+          "income": 0,
+          "expense": 0.01
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.91,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0.08,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.92
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.51,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.27,
+          "other": 0.2,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.53
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-009": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.82,
+        "probabilities": {
+          "donation": 0.88,
+          "income": 0.01,
+          "expense": 0.11
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "count",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 0,
+          "count": 1,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "גמ״ח תרופות",
+        "confidence": 0.87,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0.88,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.12
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "תרופות",
+        "confidence": 0.77,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.02,
+          "other": 0.02,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0.02,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0.78,
+          "מנוי לבריכה": 0,
+          "none": 0.16
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-010": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.46,
+        "probabilities": {
+          "donation": 0.64,
+          "income": 0.01,
+          "expense": 0.35
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.95,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0.02,
+          "גמ״ח תרופות": 0.02,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0.01,
+          "Ohr Somayach": 0,
+          "none": 0.95
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.8,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.08,
+          "other": 0.11,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.81
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-011": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.97,
+        "probabilities": {
+          "donation": 0.98,
+          "income": 0,
+          "expense": 0.02
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 0.99,
+        "probabilities": {
+          "sum": 0.99,
+          "count": 0.01,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.99,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0.01,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.99
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.59,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.2,
+          "other": 0.19,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.61
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-012": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.98,
+        "probabilities": {
+          "donation": 0.99,
+          "income": 0.01,
+          "expense": 0
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "count",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 0,
+          "count": 1,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "עזר מציון",
+        "confidence": 0.99,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0.99,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.01
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.79,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0.01,
+          "allowance": 0,
+          "gift": 0.08,
+          "other": 0.1,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.8
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-013": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 1,
+          "income": 0,
+          "expense": 0
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.61,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.09,
+          "other": 0.28,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.63
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-014": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 1,
+          "income": 0,
+          "expense": 0
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 0.49,
+        "probabilities": {
+          "sum": 0.62,
+          "count": 0.36,
+          "average": 0.01,
+          "max": 0.01
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.77,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.14,
+          "other": 0.08,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.78
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-015": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 0.2,
+        "probabilities": {
+          "donation": 0.47,
+          "income": 0.06,
+          "expense": 0.47
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "average",
+        "confidence": 0.99,
+        "probabilities": {
+          "sum": 0.01,
+          "count": 0,
+          "average": 0.99,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.95,
+        "probabilities": {
+          "salary": 0.01,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0.03,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0.01,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.95
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-016": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "max",
+        "confidence": 0.96,
+        "probabilities": {
+          "sum": 0.03,
+          "count": 0,
+          "average": 0,
+          "max": 0.97
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 1
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-017": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 0.97,
+        "probabilities": {
+          "donation": 0.01,
+          "income": 0.01,
+          "expense": 0.98
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "max",
+        "confidence": 0.99,
+        "probabilities": {
+          "sum": 0.01,
+          "count": 0,
+          "average": 0,
+          "max": 0.99
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.98,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0.01,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0.01,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.98
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-018": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 0.56,
+        "probabilities": {
+          "donation": 0.05,
+          "income": 0.24,
+          "expense": 0.71
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "count",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 0,
+          "count": 1,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.99,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0.01,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.99
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.97,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0.01,
+          "gift": 0,
+          "other": 0.02,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.97
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "check",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 1,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 0
+        }
+      }
+    },
+    "slot-hold-he-019": {
+      "family": {
+        "type": "choice",
+        "choice": "income",
+        "confidence": 0.28,
+        "probabilities": {
+          "donation": 0.05,
+          "income": 0.52,
+          "expense": 0.43
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.99,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0.01,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.99
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "cash",
+        "confidence": 0.99,
+        "probabilities": {
+          "cash": 0.99,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 0.01
+        }
+      }
+    },
+    "slot-hold-he-020": {
+      "family": {
+        "type": "choice",
+        "choice": "income",
+        "confidence": 0.2,
+        "probabilities": {
+          "donation": 0.15,
+          "income": 0.47,
+          "expense": 0.38
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "average",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 0,
+          "count": 0,
+          "average": 1,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.98,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0.01,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0.01,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.98
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "paypal",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 1,
+          "other": 0,
+          "none": 0
+        }
+      }
+    },
+    "slot-hold-he-021": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "צהרון",
+        "confidence": 0.98,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0.01,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0.98,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.01
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-022": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "food",
+        "confidence": 0.96,
+        "probabilities": {
+          "salary": 0,
+          "business": 0.01,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0.96,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0.01,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.02
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-023": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "חוגים",
+        "confidence": 0.96,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0.96,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.04
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-024": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 0.45,
+        "probabilities": {
+          "sum": 0.59,
+          "count": 0,
+          "average": 0.41,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "חוגים",
+        "confidence": 0.98,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0.01,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0.98,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.01
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-025": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.73,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0.05,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0.03,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0.18000000000000002,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.74
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-026": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "max",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 0,
+          "count": 0,
+          "average": 0,
+          "max": 1
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "ביטוח רכב",
+        "confidence": 0.99,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0.01,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0.99,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-027": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.97,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0.03,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.97
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "תרופות",
+        "confidence": 0.99,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0.01,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0.99,
+          "מנוי לבריכה": 0,
+          "none": 0
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-028": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 0.92,
+        "probabilities": {
+          "donation": 0.05,
+          "income": 0,
+          "expense": 0.95
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "count",
+        "confidence": 0.96,
+        "probabilities": {
+          "sum": 0.03,
+          "count": 0.97,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.98,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0.01,
+          "עזר מציון": 0.01,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.98
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "healthcare",
+        "confidence": 0.92,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0.01,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0.92,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.07
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-029": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "מנוי לבריכה",
+        "confidence": 0.98,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0.01,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0.98,
+          "none": 0.01
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-030": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 0.98,
+        "probabilities": {
+          "donation": 0,
+          "income": 0.01,
+          "expense": 0.99
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 0.99,
+        "probabilities": {
+          "sum": 0.99,
+          "count": 0.01,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "מנוי לבריכה",
+        "confidence": 0.56,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0.01,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0.18,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0.58,
+          "none": 0.23
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-031": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "food",
+        "confidence": 0.97,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0.97,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.03
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.84,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0.06,
+          "debit_card": 0.07,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0.01,
+          "none": 0.86
+        }
+      }
+    },
+    "slot-hold-he-032": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.98,
+        "probabilities": {
+          "donation": 0.99,
+          "income": 0,
+          "expense": 0.01
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 0.99,
+        "probabilities": {
+          "sum": 0.99,
+          "count": 0.01,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "גמ״ח חתונות",
+        "confidence": 0.99,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0.99,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.01
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.61,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.29,
+          "other": 0.07,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0.01,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.63
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "check",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 1,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 0
+        }
+      }
+    },
+    "slot-hold-he-033": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.74,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0.02,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0.23,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.75
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "bank_transfer",
+        "confidence": 0.95,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0.01,
+          "bank_transfer": 0.96,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0.01,
+          "none": 0.02
+        }
+      }
+    },
+    "slot-hold-he-034": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.99,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0.01,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.99
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "shopping",
+        "confidence": 0.91,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0.91,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.09
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "bit_paybox",
+        "confidence": 0.99,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0.99,
+          "paypal": 0,
+          "other": 0,
+          "none": 0.01
+        }
+      }
+    },
+    "slot-hold-he-035": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "count",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 0,
+          "count": 1,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "transportation",
+        "confidence": 0.98,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0.98,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.02
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "cash",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 1,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 0
+        }
+      }
+    },
+    "slot-hold-he-036": {
+      "family": {
+        "type": "choice",
+        "choice": "income",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 1,
+          "expense": 0
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "max",
+        "confidence": 0.99,
+        "probabilities": {
+          "sum": 0.01,
+          "count": 0,
+          "average": 0,
+          "max": 0.99
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "salary",
+        "confidence": 1,
+        "probabilities": {
+          "salary": 1,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "bank_transfer",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 1,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 0
+        }
+      }
+    },
+    "slot-hold-en-037": {
+      "family": {
+        "type": "choice",
+        "choice": "income",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 1,
+          "expense": 0
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "freelance",
+        "confidence": 0.97,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0.97,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.03
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-en-038": {
+      "family": {
+        "type": "choice",
+        "choice": "income",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 1,
+          "expense": 0
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "count",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 0,
+          "count": 1,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "salary",
+        "confidence": 0.97,
+        "probabilities": {
+          "salary": 0.97,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.03
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-en-039": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "max",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 0,
+          "count": 0,
+          "average": 0,
+          "max": 1
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "business",
+        "confidence": 0.78,
+        "probabilities": {
+          "salary": 0,
+          "business": 0.79,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.21
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-en-040": {
+      "family": {
+        "type": "choice",
+        "choice": "income",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 1,
+          "expense": 0
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "average",
+        "confidence": 0.99,
+        "probabilities": {
+          "sum": 0.01,
+          "count": 0,
+          "average": 0.99,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "investment",
+        "confidence": 0.98,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0.98,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0.01,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.01
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-en-041": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 0.36,
+        "probabilities": {
+          "donation": 0.02,
+          "income": 0.41,
+          "expense": 0.5700000000000001
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "max",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 0,
+          "count": 0,
+          "average": 0,
+          "max": 1
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.99,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0.01,
+          "מנוי לבריכה": 0,
+          "none": 0.99
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-en-042": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 0.61,
+        "probabilities": {
+          "donation": 0.08,
+          "income": 0.18,
+          "expense": 0.74
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "count",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 0,
+          "count": 1,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 1
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "paypal",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 1,
+          "other": 0,
+          "none": 0
+        }
+      }
+    },
+    "slot-hold-en-043": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 1,
+          "income": 0,
+          "expense": 0
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "Ohr Somayach",
+        "confidence": 0.86,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0.87,
+          "none": 0.13
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "gift",
+        "confidence": 0.51,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.53,
+          "other": 0.07,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0.01,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.39
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-en-044": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.98,
+        "probabilities": {
+          "donation": 0.99,
+          "income": 0,
+          "expense": 0.01
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "count",
+        "confidence": 0.99,
+        "probabilities": {
+          "sum": 0.01,
+          "count": 0.99,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "בית חב״ד רעננה",
+        "confidence": 0.98,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0.98,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.02
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.57,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.35,
+          "other": 0.06,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.59
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-en-045": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.98,
+        "probabilities": {
+          "donation": 0.99,
+          "income": 0,
+          "expense": 0.01
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.83,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0.03,
+          "כולל אברכים": 0.13,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.84
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "gift",
+        "confidence": 0.49,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.51,
+          "other": 0.1,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0.07,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.32
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-en-046": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 1,
+          "income": 0,
+          "expense": 0
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "max",
+        "confidence": 0.99,
+        "probabilities": {
+          "sum": 0.01,
+          "count": 0,
+          "average": 0,
+          "max": 0.99
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "קרן הלוואות",
+        "confidence": 0.71,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0.73,
+          "Ohr Somayach": 0,
+          "none": 0.27
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.62,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.18000000000000002,
+          "other": 0.05,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0.13,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.64
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-en-047": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "education",
+        "confidence": 1,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 1,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-en-048": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 0.97,
+        "probabilities": {
+          "donation": 0.01,
+          "income": 0.01,
+          "expense": 0.98
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "count",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 0,
+          "count": 1,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.99,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0.01,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.99
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "צהרון",
+        "confidence": 0.99,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0.99,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.01
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-en-049": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "מנוי לבריכה",
+        "confidence": 0.78,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0.01,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0.01,
+          "utilities": 0.01,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0.07,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0.79,
+          "none": 0.11
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-en-050": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.99,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0.01,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.99
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "healthcare",
+        "confidence": 1,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 1,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "paypal",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 1,
+          "other": 0,
+          "none": 0
+        }
+      }
+    },
+    "slot-hold-en-051": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "housing",
+        "confidence": 0.99,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0.99,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.01
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "bank_transfer",
+        "confidence": 0.54,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0.25,
+          "bank_transfer": 0.59,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0.01,
+          "none": 0.15
+        }
+      }
+    },
+    "slot-hold-en-052": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 1,
+          "income": 0,
+          "expense": 0
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "עזר מציון",
+        "confidence": 0.86,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0.87,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.13
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.4,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.41000000000000003,
+          "other": 0.16,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.43
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "bank_transfer",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 1,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 0
+        }
+      }
+    },
+    "slot-hold-en-053": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 0.97,
+        "probabilities": {
+          "donation": 0.01,
+          "income": 0.01,
+          "expense": 0.98
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "count",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 0,
+          "count": 1,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.99,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0.01,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.99
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "תרופות",
+        "confidence": 0.94,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0.03,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0.94,
+          "מנוי לבריכה": 0,
+          "none": 0.03
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "cash",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 1,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 0
+        }
+      }
+    },
+    "slot-hold-en-054": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.98,
+        "probabilities": {
+          "donation": 0.99,
+          "income": 0,
+          "expense": 0.01
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "תלמוד תורה",
+        "confidence": 0.97,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0.97,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.03
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "gift",
+        "confidence": 0.37,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.4,
+          "other": 0.05,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0.26,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.28
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "check",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 1,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 0
+        }
+      }
+    },
+    "slot-hold-he-055": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.77,
+        "probabilities": {
+          "donation": 0.85,
+          "income": 0.01,
+          "expense": 0.14
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 0.99,
+        "probabilities": {
+          "sum": 0.99,
+          "count": 0.01,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "כולל אברכים",
+        "confidence": 0.98,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0.98,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.02
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.71,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0.02,
+          "gift": 0.15000000000000002,
+          "other": 0.1,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0.01,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.72
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "bit_paybox",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 1,
+          "paypal": 0,
+          "other": 0,
+          "none": 0
+        }
+      }
+    },
+    "slot-hold-en-056": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 0.98,
+        "probabilities": {
+          "donation": 0.99,
+          "income": 0,
+          "expense": 0.01
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "sum",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 1,
+          "count": 0,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "ישיבת נחלת",
+        "confidence": 0.99,
+        "probabilities": {
+          "ישיבת נחלת": 0.99,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.01
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "gift",
+        "confidence": 0.38,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.41000000000000003,
+          "other": 0.04,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0.19,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.36
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-057": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 0.97,
+        "probabilities": {
+          "donation": 0.01,
+          "income": 0.01,
+          "expense": 0.98
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "count",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 0,
+          "count": 1,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "מנוי לבריכה",
+        "confidence": 0.92,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0.02,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0.92,
+          "none": 0.06
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "debit_card",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 1,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 0
+        }
+      }
+    },
+    "slot-hold-en-058": {
+      "family": {
+        "type": "choice",
+        "choice": "donation",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 1,
+          "income": 0,
+          "expense": 0
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "max",
+        "confidence": 0.97,
+        "probabilities": {
+          "sum": 0.02,
+          "count": 0,
+          "average": 0,
+          "max": 0.98
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "גמ״ח חתונות",
+        "confidence": 0.93,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0.9400000000000001,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.06
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.75,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0.18000000000000002,
+          "other": 0.05,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0.01,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.76
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-he-059": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 1,
+        "probabilities": {
+          "donation": 0,
+          "income": 0,
+          "expense": 1
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "average",
+        "confidence": 0.68,
+        "probabilities": {
+          "sum": 0.24,
+          "count": 0,
+          "average": 0.76,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "ישיבת נחלת": 0,
+          "ישיבה קטנה": 0,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 1
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "חוגים",
+        "confidence": 0.98,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0.01,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0.98,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.01
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 0,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 1
+        }
+      }
+    },
+    "slot-hold-en-060": {
+      "family": {
+        "type": "choice",
+        "choice": "expense",
+        "confidence": 0.51,
+        "probabilities": {
+          "donation": 0.14,
+          "income": 0.19,
+          "expense": 0.67
+        }
+      },
+      "measure": {
+        "type": "choice",
+        "choice": "count",
+        "confidence": 1,
+        "probabilities": {
+          "sum": 0,
+          "count": 1,
+          "average": 0,
+          "max": 0
+        }
+      },
+      "recipient": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.95,
+        "probabilities": {
+          "ישיבת נחלת": 0.01,
+          "ישיבה קטנה": 0.01,
+          "כולל בוקר": 0,
+          "כולל אברכים": 0,
+          "גמ״ח חתונות": 0,
+          "גמ״ח תרופות": 0,
+          "עזר מציון": 0.03,
+          "בית חב״ד רעננה": 0,
+          "תלמוד תורה": 0,
+          "קרן הלוואות": 0,
+          "Ohr Somayach": 0,
+          "none": 0.95
+        }
+      },
+      "category": {
+        "type": "choice",
+        "choice": "none",
+        "confidence": 0.99,
+        "probabilities": {
+          "salary": 0,
+          "business": 0,
+          "freelance": 0,
+          "investment": 0,
+          "allowance": 0,
+          "gift": 0,
+          "other": 0.01,
+          "food": 0,
+          "transportation": 0,
+          "housing": 0,
+          "utilities": 0,
+          "healthcare": 0,
+          "education": 0,
+          "leisure": 0,
+          "shopping": 0,
+          "צהרון": 0,
+          "חוגים": 0,
+          "ביטוח רכב": 0,
+          "תרופות": 0,
+          "מנוי לבריכה": 0,
+          "none": 0.99
+        }
+      },
+      "payment_method": {
+        "type": "choice",
+        "choice": "credit_card",
+        "confidence": 1,
+        "probabilities": {
+          "cash": 0,
+          "credit_card": 1,
+          "debit_card": 0,
+          "bank_transfer": 0,
+          "check": 0,
+          "bit_paybox": 0,
+          "paypal": 0,
+          "other": 0,
+          "none": 0
+        }
+      }
+    }
+  }
+}
