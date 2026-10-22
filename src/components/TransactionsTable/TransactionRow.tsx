@@ -65,12 +65,18 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
     ? formatDisplayDate(receiptExpiryDate(transaction.receipt_expires_at), "numeric").primary
     : "";
   const [receiptNote, setReceiptNote] = React.useState<string | null>(null);
+  const [receiptLink, setReceiptLink] = React.useState<string | null>(null);
 
   async function openReceipt() {
     setReceiptNote(null);
+    setReceiptLink(null);
     const result = await openAiReceipt({ transactionId: transaction.id });
-    if (result === "opened") return;
-    setReceiptNote(t(result === "none" ? "filters.receiptNone" : "filters.receiptFailed"));
+    if (result.status === "opened") return;
+    if (result.status === "blocked") {
+      setReceiptLink(result.url);
+      return;
+    }
+    setReceiptNote(t(result.status === "none" ? "filters.receiptNone" : "filters.receiptFailed"));
   }
 
   return (
@@ -101,6 +107,11 @@ const TransactionRowComponent: React.FC<TransactionRowProps> = ({
             </span>
           ) : null}
         </span>
+        {receiptLink ? (
+          <a className="block text-xs underline" href={receiptLink} target="_blank" rel="noopener noreferrer">
+            {t("filters.receiptOpen")}
+          </a>
+        ) : null}
         {receiptNote ? <span className="block text-xs text-muted-foreground">{receiptNote}</span> : null}
       </TableCell>
       <TableCell className="text-center font-medium whitespace-nowrap">
