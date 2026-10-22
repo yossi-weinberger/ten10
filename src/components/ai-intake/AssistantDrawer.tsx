@@ -1,17 +1,10 @@
 import { useEffect, useImperativeHandle, useRef, useState, type RefObject } from "react";
-import { Link } from "@tanstack/react-router";
+import { RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { isAiIntakeEnabled } from "@/lib/ai/flags";
 import { Button } from "@/components/ui/button";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   applyForwardRule,
   clarificationField,
@@ -22,7 +15,6 @@ import {
   questionFromSlots,
   type QuestionSlots,
   type YearTypeSum,
-  periodLabel,
   parseUserRule,
   selectHalachaPage,
   type ActiveUserRule,
@@ -53,23 +45,21 @@ import { useDonationStore } from "@/lib/store";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import { readQuestionSlots } from "@/lib/ai/read-question";
-import { formatDataAnswer } from "@/lib/ai/format-data-answer";
 import { resolveQuestionFilter, sumYearType } from "@/lib/ai/sum-year-type";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
-import { isOnOrAfterMinTransactionDate, MIN_TRANSACTION_DATE } from "@/lib/utils/transaction-date";
-import { formatCurrency } from "@/lib/utils/currency";
-import type { CurrencyCode } from "@/lib/currencies";
-
-function hebrewPeriodPhrase(label: string, language: string): string {
-  if (language.toLowerCase().startsWith("en")) return label;
-  return /^\d/.test(label) ? `ב-${label}` : `ב${label}`;
-}
-
-function draftDateProblem(date: string): "invalid" | "min" | null {
-  if (!isIsoDate(date)) return "invalid";
-  if (!isOnOrAfterMinTransactionDate(date)) return "min";
-  return null;
-}
+import { isOnOrAfterMinTransactionDate } from "@/lib/utils/transaction-date";
+import { AssistantComposer } from "./AssistantComposer";
+import { AssistantShell } from "./AssistantShell";
+import { AssistantThread } from "./AssistantThread";
+import {
+  buildReplyBlocks,
+  emptyReplyState,
+  nextConversation,
+  type AssistantTurn,
+  type ReplyState,
+  type StatusKey,
+  type UserTurn,
+} from "./assistant-reply-view";
 
 export interface AssistantDrawerHandle {
   receive(file: File): void;
@@ -88,7 +78,7 @@ export function AssistantDrawer({
   receiveRef,
 }: AssistantDrawerProps) {
   const { platform } = usePlatform();
-  const { t, i18n } = useTranslation([
+  const { t } = useTranslation([
     "navigation",
     "transactions",
     "halacha-expenses",
@@ -97,7 +87,6 @@ export function AssistantDrawer({
     "halacha-tithes",
   ]);
   const calendarType = useDonationStore((state) => state.settings.calendarType);
-  const defaultCurrency = useDonationStore((state) => state.settings.defaultCurrency);
   const questionCalendar = calendarType === "hebrew" ? "hebrew" : "gregorian";
   const [text, setText] = useState("");
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
@@ -123,7 +112,7 @@ export function AssistantDrawer({
   const [recording, setRecording] = useState(false);
   const [undoing, setUndoing] = useState(false);
   const [savedItemId, setSavedItemId] = useState<string | null>(null);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [status, setStatus] = useState<StatusKey | null>(null);
   const [askIntent, setAskIntent] = useState(false);
   const [intentConfidence, setIntentConfidence] = useState<number | null>(null);
   const [dataReply, setDataReply] = useState<
@@ -136,7 +125,7 @@ export function AssistantDrawer({
   const [slotHold, setSlotHold] = useState<QuestionSlots | null>(null);
   const [askedQuestion, setAskedQuestion] = useState<YearTypeSum | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [duplicateNote, setDuplicateNote] = useState<string | null>(null);
+  const [duplicateActionFailed, setDuplicateActionFailed] = useState(false);
   const [duplicateScan, setDuplicateScan] = useState<
     | { status: "pending" }
     | { status: "ready"; count: number; pairs: DuplicatePair[] }
@@ -148,7 +137,16 @@ export function AssistantDrawer({
     return new Intl.DateTimeFormat("en-CA").format(new Date());
   }
 
+  const [history, setHistory] = useState<AssistantTurn[]>([]);
+  const [activeUser, setActiveUser] = useState<UserTurn | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const recorder = useRef<MediaRecorder | null>(null);
+  const requestRef = useRef(0);
+  const conversationRef = useRef<{
+    history: AssistantTurn[];
+    active: UserTurn | null;
+    reply: ReplyState;
+  }>({ history: [], active: null, reply: emptyReplyState() });
   const discardRecording = useRef(false);
   const recordTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -163,6 +161,8 @@ export function AssistantDrawer({
   }
 
   function clearConversation() {
+    requestRef.current += 1;
+    conversationRef.current = { history: [], active: null, reply: emptyReplyState() };
     setText("");
     setIntent(null);
     setDraft(null);
@@ -180,7 +180,7 @@ export function AssistantDrawer({
     setAppliedRuleName(null);
     setHalachaNamespace(null);
     setChecking(false);
-    setSaveMessage(null);
+    setStatus(null);
     setSavedItemId(null);
     setAskIntent(false);
     setIntentConfidence(null);
@@ -188,6 +188,10 @@ export function AssistantDrawer({
     setDuplicateScan(null);
     setReceiptArtifactId(null);
     setReceiptLink(null);
+    setHistory([]);
+    setActiveUser(null);
+    setDuplicateActionFailed(false);
+    setConfirmDeleteId(null);
   }
 
   function handleOpenChange(next: boolean) {
@@ -282,14 +286,17 @@ export function AssistantDrawer({
       setReceiptLink(result.url);
       return;
     }
-    setSaveMessage(t(result.status === "none" ? "aiIntake.receiptMissing" : "aiIntake.receiptUnavailable"));
+    setStatus(result.status === "none" ? "receiptMissing" : "receiptUnavailable");
   }
 
   async function handleReceipt(file: File | undefined) {
-    if (!file || checking) return;
+    if (!file) return;
+    const request = ++requestRef.current;
+    beginTurn({ kind: "receipt", fileName: file.name, mimeType: file.type });
     setChecking(true);
-    setSaveMessage(null);
+    setStatus(null);
     const result = await readReceiptImage(file);
+    if (requestRef.current !== request) return;
     setChecking(false);
     if (receiptInput.current) receiptInput.current.value = "";
     if (!result.ok) {
@@ -297,13 +304,13 @@ export function AssistantDrawer({
       setIntent(null);
       setReceiptFields(null);
       showDraft(null, "");
-      setSaveMessage(t(
+      setStatus(
         result.reason === "TOO_LARGE"
-          ? "aiIntake.receiptTooLarge"
+          ? "receiptTooLarge"
           : result.reason === "UNAVAILABLE"
-            ? "aiIntake.providerFailed"
-            : "aiIntake.receiptUnreadable",
-      ));
+            ? "providerFailed"
+            : "receiptUnreadable",
+      );
       return;
     }
     setIntent("add_transaction");
@@ -327,21 +334,23 @@ export function AssistantDrawer({
   }
 
   async function finishVoice(blob: Blob) {
+    const request = ++requestRef.current;
     setChecking(true);
     const heard = await transcribeSpeech(blob);
+    if (requestRef.current !== request) return;
     setChecking(false);
     if (!heard.ok) {
-      setSaveMessage(t(
+      setStatus(
         heard.reason === "TOO_LONG"
-          ? "aiIntake.voiceTooLong"
+          ? "voiceTooLong"
           : heard.reason === "UNAVAILABLE"
-            ? "aiIntake.providerFailed"
-            : "aiIntake.voiceUnheard",
-      ));
+            ? "providerFailed"
+            : "voiceUnheard",
+      );
       return;
     }
-    setText(heard.text);
-    await handleSubmit(heard.text);
+    setText("");
+    await handleSubmit(heard.text, "voice");
   }
 
   async function toggleRecording() {
@@ -352,14 +361,14 @@ export function AssistantDrawer({
       return;
     }
     if (!navigator.mediaDevices?.getUserMedia) {
-      setSaveMessage(t("aiIntake.voiceDenied"));
+      setStatus("voiceDenied");
       return;
     }
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     } catch {
-      setSaveMessage(t("aiIntake.voiceDenied"));
+      setStatus("voiceDenied");
       return;
     }
     const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
@@ -381,7 +390,7 @@ export function AssistantDrawer({
     };
     media.start();
     setRecording(true);
-    setSaveMessage(null);
+    setStatus(null);
     recordTimer.current = setTimeout(() => {
       if (media.state !== "inactive") media.stop();
     }, 60_000);
@@ -405,7 +414,7 @@ export function AssistantDrawer({
       field === null && nextIntent === "add_transaction" ? draftFromText(source, today) : null,
       source,
     );
-    setSaveMessage(null);
+    setStatus(null);
     setSavedItemId(null);
     setReceiptArtifactId(null);
     if (nextIntent === "ask_data") void loadDataAnswer(source);
@@ -415,8 +424,10 @@ export function AssistantDrawer({
   }
 
   async function loadScan() {
+    const request = requestRef.current;
     setDuplicateScan({ status: "pending" });
     const result = await loadDuplicateScan();
+    if (requestRef.current !== request) return;
     if (!result.ok) {
       setDuplicateScan({ status: "failed" });
       return;
@@ -427,13 +438,13 @@ export function AssistantDrawer({
 
   function askDelete(id: string) {
     setConfirmDeleteId(id);
-    setDuplicateNote(null);
+    setDuplicateActionFailed(false);
   }
 
   async function dismissPair(pair: DuplicatePair) {
     const saved = await dismissDuplicatePair(pair.left.id, pair.right.id);
     if (!saved) {
-      setDuplicateNote(t("aiIntake.duplicateActionFailed"));
+      setDuplicateActionFailed(true);
       return;
     }
     await loadScan();
@@ -443,7 +454,7 @@ export function AssistantDrawer({
     try {
       await useTableTransactionsStore.getState().deleteTransaction(id, getPlatform());
     } catch {
-      setDuplicateNote(t("aiIntake.duplicateActionFailed"));
+      setDuplicateActionFailed(true);
       return;
     }
     setConfirmDeleteId(null);
@@ -455,12 +466,14 @@ export function AssistantDrawer({
     searchDescriptions = false,
     family?: NonNullable<QuestionSlots["family"]>,
   ) {
+    const request = requestRef.current;
     setDataReply(null);
     let question = searchDescriptions ? askedQuestion : null;
     if (!question) {
       const slots = family && slotHold
         ? { ...slotHold, family }
         : await readQuestionSlots(source);
+      if (requestRef.current !== request) return;
       const composed = questionFromSlots(source, todayIso(), questionCalendar, slots);
       if (composed === "ask_family") {
         if (slots) setSlotHold(slots);
@@ -475,11 +488,13 @@ export function AssistantDrawer({
     }
     setAskedQuestion(question);
     const filter = await resolveQuestionFilter(question, searchDescriptions);
+    if (requestRef.current !== request) return;
     if ("missing" in filter) {
       setDataReply({ status: "category_missing", topic: filter.name, source, kind: filter.missing });
       return;
     }
     const result = await sumYearType(question, filter);
+    if (requestRef.current !== request) return;
     if (!result.ok) {
       setDataReply({ status: result.reason === "MIXED" ? "mixed" : "failed" });
       return;
@@ -501,15 +516,90 @@ export function AssistantDrawer({
     });
   }
 
-  async function handleSubmit(spoken?: string) {
+  function replyState(): ReplyState {
+    return {
+      ...emptyReplyState(),
+      checking,
+      askIntent,
+      intent,
+      dataReply,
+      duplicateScan,
+      confirmDeleteId,
+      duplicateActionFailed,
+      halachaNamespace,
+      parsedRule,
+      ruleChoice,
+      clarification,
+      receiptFields,
+      receiptArtifactId,
+      receiptLink,
+      draft: draft
+        ? { draft, amountInput, appliedRuleName, duplicates, duplicatesRanked }
+        : null,
+      status,
+      savedItemId,
+    };
+  }
+
+  conversationRef.current = {
+    history,
+    active: activeUser,
+    reply: replyState(),
+  };
+
+  function beginTurn(user: UserTurn) {
+    const current = conversationRef.current;
+    const next = nextConversation(
+      current.history,
+      current.active,
+      buildReplyBlocks(current.reply),
+      user,
+      crypto.randomUUID(),
+    );
+    conversationRef.current = {
+      history: next.history,
+      active: next.active,
+      reply: emptyReplyState(),
+    };
+    setHistory(next.history);
+    setActiveUser(next.active);
+    setIntent(null);
+    setDraft(null);
+    originalDraft.current = null;
+    setAmountInput("");
+    setDuplicates([]);
+    setDuplicatesRanked(false);
+    setClarification(null);
+    setPendingText("");
+    setChosenType(null);
+    setReceiptFields(null);
+    setAmountReply("");
+    setParsedRule(null);
+    setRuleChoice(null);
+    setAppliedRuleName(null);
+    setHalachaNamespace(null);
+    setAskIntent(false);
+    setDataReply(null);
+    setDuplicateScan(null);
+    setConfirmDeleteId(null);
+    setDuplicateActionFailed(false);
+    setStatus(null);
+    setSavedItemId(null);
+    setReceiptArtifactId(null);
+    setReceiptLink(null);
+    setSlotHold(null);
+  }
+
+  async function handleSubmit(spoken?: string, kind: "text" | "voice" = "text") {
     const source = spoken ?? text;
     const today = todayIso();
-    if (!source.trim()) {
-      showIntent(source, today, "out_of_scope");
-      return;
-    }
+    if (!source.trim()) return;
+    const request = ++requestRef.current;
+    beginTurn(kind === "voice" ? { kind: "voice", text: source } : { kind: "text", text: source });
+    setText("");
     setChecking(true);
     const decided = await classifyIntentFallback(source);
+    if (requestRef.current !== request) return;
     setIntentConfidence(decided.ok ? decided.confidence : null);
     setChecking(false);
     const jevIsConfident = decided.ok && decided.intent !== null && intentIsConfident(decided.confidence);
@@ -528,7 +618,7 @@ export function AssistantDrawer({
       setRuleChoice(null);
       setHalachaNamespace(null);
       showDraft(null, "");
-      setSaveMessage(null);
+      setStatus(null);
       setSavedItemId(null);
       return;
     }
@@ -572,8 +662,14 @@ export function AssistantDrawer({
     setClarification("amount");
   }
 
-  function handleAmountReply() {
-    const source = `${pendingText} ${amountReply}`;
+  function handleAmountReply(reply = amountReply) {
+    const trimmed = reply.trim();
+    if (!trimmed) return;
+    requestRef.current += 1;
+    beginTurn({ kind: "text", text: trimmed });
+    setIntent("add_transaction");
+    setText("");
+    const source = `${pendingText} ${trimmed}`;
     const next = draftFromText(source, todayIso());
     if (!next) return;
     showDraft(chosenType ? { ...next, type: chosenType } : next, source);
@@ -588,32 +684,32 @@ export function AssistantDrawer({
     const saved = await approveUserRule(parsedRule.name, type, todayIso());
     setSaving(false);
     if (!saved) {
-      setSaveMessage(t("aiIntake.ruleFailed"));
+      setStatus("ruleFailed");
       return;
     }
     setRules((current) => [...current, { name: parsedRule.name, type }]);
     setParsedRule(null);
     setRuleChoice(null);
-    setSaveMessage(t("aiIntake.ruleSaved"));
+    setStatus("ruleSaved");
   }
 
   async function handleSave(choice?: "saved_anyway" | "same_event") {
-    if (!draft || saving) return;
+    if (!draft || saving || savedItemId) return;
     if (!isIsoDate(draft.date)) {
-      setSaveMessage(t("aiIntake.editDateInvalid"));
+      setStatus("editDateInvalid");
       return;
     }
     if (!isOnOrAfterMinTransactionDate(draft.date)) {
-      setSaveMessage(t("transactionForm.validation.date.min", { ns: "transactions" }));
+      setStatus("dateMin");
       return;
     }
     const amount = Number(amountInput.replace(",", "."));
     if (!Number.isFinite(amount) || amount === 0) {
-      setSaveMessage(t("aiIntake.editAmountInvalid"));
+      setStatus("editAmountInvalid");
       return;
     }
     setSaving(true);
-    setSaveMessage(null);
+    setStatus(null);
     const result = await saveTextDraft(
       { ...draft, amount },
       originalDraft.current ?? { description: draft.description, amount },
@@ -625,17 +721,17 @@ export function AssistantDrawer({
     );
     setSaving(false);
     if (result.ok && result.sameEvent) {
-      setSaveMessage(t("aiIntake.duplicateKept"));
+      setStatus("duplicateKept");
       return;
     }
     if (result.ok) {
       void recordShadowType(result.itemId, chosenType !== null);
       setSavedItemId(result.itemId);
       refreshAfterIntakeSave();
-      setSaveMessage(t("aiIntake.saved"));
+      setStatus("saved");
       return;
     }
-    setSaveMessage(t(result.reason === "NO_RATE" ? "aiIntake.noRateAvailable" : "aiIntake.saveFailed"));
+    setStatus(result.reason === "NO_RATE" ? "noRateAvailable" : "saveFailed");
   }
 
   async function handleUndo() {
@@ -646,12 +742,10 @@ export function AssistantDrawer({
     if (result.ok) {
       setSavedItemId(null);
       refreshAfterIntakeSave();
-      setSaveMessage(t("aiIntake.undone"));
+      setStatus("undone");
       return;
     }
-    setSaveMessage(
-      t(result.reason === "NOT_ALLOWED" ? "aiIntake.undoNotAllowed" : "aiIntake.undoFailed"),
-    );
+    setStatus(result.reason === "NOT_ALLOWED" ? "undoNotAllowed" : "undoFailed");
   }
 
   const handleReceiptRef = useRef(handleReceipt);
@@ -672,329 +766,118 @@ export function AssistantDrawer({
 
   if (platform !== "web" || !isAiIntakeEnabled()) return null;
 
+  const blocks = buildReplyBlocks(replyState());
+  const hasConversation = history.length > 0 || activeUser !== null;
+
   return (
-    <Drawer open={open} onOpenChange={handleOpenChange}>
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>{t("aiIntake.title")}</DrawerTitle>
-        </DrawerHeader>
-        <form
-          className="flex flex-col gap-3 p-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            if (clarification === "amount") {
-              handleAmountReply();
-              return;
-            }
-            void handleSubmit();
+    <AssistantShell
+      open={open}
+      onOpenChange={handleOpenChange}
+      title={t("aiIntake.title")}
+      description={t("aiIntake.emptyDescription")}
+      initialFocusRef={textareaRef}
+      headerActions={(
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t("aiIntake.newChat")}
+              disabled={!hasConversation}
+              onClick={() => {
+                stopRecording();
+                clearConversation();
+              }}
+            >
+              <RotateCcw aria-hidden />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{t("aiIntake.newChat")}</TooltipContent>
+        </Tooltip>
+      )}
+      footer={(
+        <AssistantComposer
+          value={text}
+          onChange={setText}
+          textareaRef={textareaRef}
+          busy={
+            checking
+            || (intent === "ask_data" && dataReply === null && !askIntent)
+            || duplicateScan?.status === "pending"
+          }
+          recording={recording}
+          mode={clarification === "amount" ? "amount" : "message"}
+          onReceipt={(file) => {
+            void handleReceipt(file);
           }}
-        >
-          <Textarea
-            value={text}
-            onChange={(event) => setText(event.target.value)}
-            placeholder={t("aiIntake.placeholder")}
-            aria-label={t("aiIntake.placeholder")}
-          />
-          {askIntent ? (
-            <div className="flex flex-col gap-2 text-sm">
-              <p>{t("aiIntake.askIntent")}</p>
-              <div className="flex flex-wrap gap-2">
-                {(["add_transaction", "ask_data", "create_rule"] as const).map((intentChoice) => (
-                  <Button key={intentChoice} type="button" onClick={() => handleChooseIntent(intentChoice)}>
-                    {t(`aiIntake.intentChoices.${intentChoice}`)}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-          <Button type="submit" disabled={checking || recording}>{t("aiIntake.send")}</Button>
-          <input
-            ref={receiptInput}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,application/pdf"
-            className="hidden"
-            onChange={(event) => {
-              void handleReceipt(event.target.files?.[0]);
-            }}
-          />
-          <Button type="button" disabled={checking || recording} onClick={() => receiptInput.current?.click()}>
-            {t("aiIntake.receipt")}
-          </Button>
-          <Button type="button" disabled={checking} onClick={() => void toggleRecording()}>
-            {t(recording ? "aiIntake.voiceStop" : "aiIntake.voice")}
-          </Button>
-          {checking ? <p>{t("aiIntake.checking")}</p> : null}
-          {!intent && saveMessage ? <p>{saveMessage}</p> : null}
-          {intent ? (
-            <div className="flex flex-col gap-1 text-sm">
-              <p>
-                {t(`aiIntake.intents.${intent}`)} {saveMessage || intent === "ask_data" ? "" : t("aiIntake.notSaved")}
-              </p>
-              {intent === "ask_data" && dataReply?.status === "ready" ? (
-                <p>
-                  {formatDataAnswer({
-                    measure: dataReply.measure,
-                    count: dataReply.count,
-                    year: hebrewPeriodPhrase(periodLabel(dataReply, questionCalendar, i18n.language), i18n.language),
-                    type: dataReply.type,
-                    amount: formatCurrency(
-                      dataReply.total,
-                      (dataReply.currency ?? defaultCurrency) as CurrencyCode,
-                      i18n.language.toLowerCase().startsWith("en") ? "en" : "he",
-                    ),
-                    paymentMethod: dataReply.paymentMethod,
-                    recipient: dataReply.recipient,
-                    category: dataReply.category,
-                    language: i18n.language,
-                  })}
-                </p>
-              ) : null}
-              {intent === "ask_data" && dataReply?.status === "family_missing" ? (
-                <div className="flex flex-col gap-2">
-                  <p>{t("aiIntake.askFamily")}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {(["donation", "expense", "income"] as const).map((family) => (
-                      <Button key={family} type="button" className="capitalize" onClick={() => void loadDataAnswer(dataReply.source, false, family)}>
-                        {t(`aiIntake.types.${family}`)}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-              {intent === "ask_data" && dataReply?.status === "category_missing" ? (
-                <div className="flex flex-col gap-2">
-                  <p>{t(dataReply.kind === "recipient" ? "aiIntake.recipientMissing" : "aiIntake.categoryMissing", { topic: dataReply.topic })}</p>
-                  <Button type="button" onClick={() => void loadDataAnswer(dataReply.source, true)}>
-                    {t("aiIntake.categorySearch")}
-                  </Button>
-                </div>
-              ) : null}
-              {intent === "ask_data" && dataReply?.status === "unsupported" ? <p>{t("aiIntake.dataUnsupported")}</p> : null}
-              {intent === "ask_data" && dataReply?.status === "mixed" ? <p>{t("aiIntake.dataMixed")}</p> : null}
-              {intent === "ask_data" && dataReply?.status === "failed" ? <p>{t("aiIntake.dataFailed")}</p> : null}
-              {intent === "find_duplicates" && duplicateScan?.status === "pending" ? <p>{t("aiIntake.duplicateScanPending")}</p> : null}
-              {intent === "find_duplicates" && duplicateScan?.status === "failed" ? <p>{t("aiIntake.duplicateScanFailed")}</p> : null}
-              {intent === "find_duplicates" && duplicateScan?.status === "ready" && duplicateScan.count === 0 ? (
-                <p>{t("aiIntake.duplicateScanEmpty")}</p>
-              ) : null}
-              {intent === "find_duplicates" && duplicateScan?.status === "ready" && duplicateScan.count > 0 ? (
-                <div className="flex flex-col gap-1">
-                  <p>{t(duplicateScan.count === 1 ? "aiIntake.duplicateScanCountOne" : "aiIntake.duplicateScanCount", { count: duplicateScan.count })}</p>
-                  {duplicateScan.pairs.map((pair) => (
-                    <div key={`${pair.left.id}-${pair.right.id}`} className="flex flex-col gap-1">
-                      {[pair.left, pair.right].map((side) => (
-                        <div key={side.id} className="flex flex-wrap items-center gap-2">
-                          <span>
-                            {side.date} · {side.amount} {side.currency}
-                            {side.description ? ` · ${side.description}` : ""}
-                          </span>
-                          <Button type="button" onClick={() => askDelete(side.id)}>
-                            {t("aiIntake.duplicateDelete")}
-                          </Button>
-                          {confirmDeleteId === side.id ? (
-                            <>
-                              <Button type="button" onClick={() => void confirmDelete(side.id)}>
-                                {t("aiIntake.duplicateConfirm")}
-                              </Button>
-                              <Button type="button" onClick={() => setConfirmDeleteId(null)}>
-                                {t("aiIntake.duplicateCancel")}
-                              </Button>
-                            </>
-                          ) : null}
-                        </div>
-                      ))}
-                      <Button type="button" onClick={() => void dismissPair(pair)}>
-                        {t("aiIntake.duplicateNot")}
-                      </Button>
-                    </div>
-                  ))}
-                  {duplicateNote ? <p>{duplicateNote}</p> : null}
-                </div>
-              ) : null}
-              {halachaNamespace ? (
-                <div className="flex flex-col gap-2">
-                  <p>{t("introduction.body", { ns: halachaNamespace })}</p>
-                  <p>{t("aiIntake.halachaDisclaimer")}</p>
-                  <Link to="/halacha" className="text-sm underline">
-                    {t("aiIntake.halachaLink")}
-                  </Link>
-                </div>
-              ) : null}
-              {parsedRule ? (
-                <div className="flex flex-col gap-2">
-                  {parsedRule.action === "ambiguous" && !ruleChoice ? (
-                    <>
-                      <p>{t("aiIntake.askRule")}</p>
-                      <div className="flex flex-wrap gap-2">
-                        {(["exempt-income", "recognized-expense", "non_tithe_donation"] as const).map((type) => (
-                          <Button key={type} type="button" onClick={() => setRuleChoice(type)}>
-                            {t(`aiIntake.types.${type}`)}
-                          </Button>
-                        ))}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <p>
-                        {t("aiIntake.ruleSentence", {
-                          name: parsedRule.name,
-                          type: t(`aiIntake.types.${ruleChoice ?? parsedRule.action}`),
-                        })}
-                      </p>
-                      <Button type="button" disabled={saving} onClick={() => void handleApproveRule()}>
-                        {t("aiIntake.ruleApprove")}
-                      </Button>
-                    </>
-                  )}
-                </div>
-              ) : null}
-              {clarification === "type" ? (
-                <div className="flex flex-col gap-2">
-                  <p>{t("aiIntake.askType")}</p>
-                  {receiptFields ? (
-                    <p>
-                      {t("aiIntake.receiptPreview", {
-                        description: receiptFields.description,
-                        date: receiptFields.date,
-                        amount: receiptFields.amount,
-                        currency: receiptFields.currency,
-                      })}
-                    </p>
-                  ) : null}
-                  {receiptArtifactId ? (
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
-                        {t("aiIntake.viewReceipt")}
-                      </Button>
-                      <span>{t("aiIntake.receiptKept")}</span>
-                    </div>
-                  ) : null}
-                  {receiptLink ? (
-                    <a href={receiptLink} target="_blank" rel="noopener noreferrer">
-                      {t("aiIntake.viewReceipt")}
-                    </a>
-                  ) : null}
-                  <div className="flex flex-wrap gap-2">
-                    {(["expense", "income", "donation"] as const).map((type) => (
-                      <Button key={type} type="button" onClick={() => handleChooseType(type)}>
-                        {t(`aiIntake.types.${type}`)}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-              {clarification === "amount" ? (
-                <div className="flex flex-col gap-2">
-                  <p>{t("aiIntake.askAmount")}</p>
-                  <Input
-                    value={amountReply}
-                    onChange={(event) => setAmountReply(event.target.value)}
-                    inputMode="decimal"
-                    aria-label={t("aiIntake.askAmount")}
-                  />
-                  <Button type="button" onClick={handleAmountReply}>
-                    {t("aiIntake.continue")}
-                  </Button>
-                </div>
-              ) : null}
-              {draft ? (
-                <>
-                  {receiptArtifactId ? (
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
-                        {t("aiIntake.viewReceipt")}
-                      </Button>
-                      <span>{t("aiIntake.receiptKept")}</span>
-                    </div>
-                  ) : null}
-                  {receiptLink ? (
-                    <a href={receiptLink} target="_blank" rel="noopener noreferrer">
-                      {t("aiIntake.viewReceipt")}
-                    </a>
-                  ) : null}
-                  <p>
-                    {t("aiIntake.draftMeta", {
-                      currency: draft.currency,
-                      type: t(`aiIntake.types.${draft.type}`),
-                      rate: draft.requestedRate ?? t("aiIntake.noRate"),
-                    })}
-                  </p>
-                  <Input
-                    type="date"
-                    min={MIN_TRANSACTION_DATE}
-                    value={draft.date}
-                    aria-label={t("aiIntake.editDate")}
-                    onChange={(event) => {
-                      const next = { ...draft, date: event.target.value };
-                      setDraft(next);
-                      refreshDuplicates(next, amountInput);
-                    }}
-                  />
-                  {draftDateProblem(draft.date) === "invalid" ? <p>{t("aiIntake.editDateInvalid")}</p> : null}
-                  {draftDateProblem(draft.date) === "min" ? (
-                    <p>{t("transactionForm.validation.date.min", { ns: "transactions" })}</p>
-                  ) : null}
-                  <Input
-                    value={draft.description}
-                    aria-label={t("aiIntake.editDescription")}
-                    onChange={(event) =>
-                      setDraft({ ...draft, description: event.target.value })
-                    }
-                  />
-                  <Input
-                    value={amountInput}
-                    inputMode="decimal"
-                    aria-label={t("aiIntake.editAmount")}
-                    onChange={(event) => {
-                      setAmountInput(event.target.value);
-                      refreshDuplicates(draft, event.target.value);
-                    }}
-                  />
-                  {appliedRuleName ? (
-                    <p>{t("aiIntake.ruleApplied", { name: appliedRuleName })}</p>
-                  ) : null}
-                  {duplicates.length > 0 ? (
-                    <div className="flex flex-col gap-1">
-                      <p>{t("aiIntake.duplicateWarning", { count: duplicates.length })}</p>
-                      {duplicatesRanked ? <p>{t("aiIntake.duplicateRanked")}</p> : null}
-                      {duplicates.slice(0, 3).map((row) => (
-                        <p key={row.id}>
-                          {row.date} · {row.amount}
-                          {row.description ? ` · ${row.description}` : ""}
-                          {row.kind === "draft" ? ` · ${t("aiIntake.draftCandidate")}` : ""}
-                        </p>
-                      ))}
-                    </div>
-                  ) : null}
-                  <Button
-                    type="button"
-                    disabled={saving || draftDateProblem(draft.date) !== null}
-                    onClick={() => void handleSave(duplicates.length > 0 ? "saved_anyway" : undefined)}
-                  >
-                    {t(duplicates.length > 0 ? "aiIntake.saveAnyway" : "aiIntake.save")}
-                  </Button>
-                  {duplicates.length > 0 ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled={saving || draftDateProblem(draft.date) !== null}
-                      onClick={() => void handleSave("same_event")}
-                    >
-                      {t("aiIntake.sameEvent")}
-                    </Button>
-                  ) : null}
-                </>
-              ) : null}
-              {saveMessage ? <p>{saveMessage}</p> : null}
-              {savedItemId ? (
-                <Button type="button" disabled={undoing} onClick={() => void handleUndo()}>
-                  {t("aiIntake.undo")}
-                </Button>
-              ) : null}
-            </div>
-          ) : null}
-        </form>
-      </DrawerContent>
-    </Drawer>
+          onToggleVoice={() => {
+            void toggleRecording();
+          }}
+          onSubmit={() => {
+            if (clarification === "amount") handleAmountReply(text);
+            else void handleSubmit();
+          }}
+        />
+      )}
+    >
+      <AssistantThread
+        history={history}
+        active={activeUser}
+        activeBlocks={blocks}
+        interactiveActive
+        onSuggestion={(suggestion) => {
+          void handleSubmit(suggestion);
+        }}
+        handlers={{
+          onChooseIntent: handleChooseIntent,
+          onChooseType: handleChooseType,
+          onChooseFamily: (family, source) => {
+            void loadDataAnswer(source, false, family);
+          },
+          onSearchDescriptions: (source) => {
+            void loadDataAnswer(source, true);
+          },
+          onChooseRule: setRuleChoice,
+          onApproveRule: () => {
+            void handleApproveRule();
+          },
+          onOpenReceipt: () => {
+            void openReceiptFile();
+          },
+          onDateChange: (date) => {
+            if (!draft) return;
+            const next = { ...draft, date };
+            setDraft(next);
+            refreshDuplicates(next, amountInput);
+          },
+          onDescriptionChange: (description) => {
+            if (!draft) return;
+            setDraft({ ...draft, description });
+          },
+          onAmountChange: (amount) => {
+            setAmountInput(amount);
+            if (draft) refreshDuplicates(draft, amount);
+          },
+          onSave: (choice) => {
+            void handleSave(choice);
+          },
+          onUndo: () => {
+            void handleUndo();
+          },
+          onAskDelete: askDelete,
+          onConfirmDelete: (id) => {
+            void confirmDelete(id);
+          },
+          onCancelDelete: () => setConfirmDeleteId(null),
+          onDismissPair: (pair) => {
+            void dismissPair(pair);
+          },
+          saving,
+          undoing,
+          questionCalendar,
+        }}
+      />
+    </AssistantShell>
   );
 }

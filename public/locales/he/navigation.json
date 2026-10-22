@@ -18,6 +18,15 @@
   "aiIntake": {
     "title": "עוזר Ten10",
     "placeholder": "מה תרצה לרשום?",
+    "newChat": "שיחה חדשה",
+    "emptyTitle": "במה לעזור?",
+    "emptyDescription": "אפשר לכתוב, לצלם קבלה או לדבר. שום דבר לא נשמר בלי אישור שלך.",
+    "suggestions": {
+      "transaction": "קניתי קפה ב־12 ש״ח",
+      "question": "כמה תרמתי השנה?",
+      "duplicates": "יש כפילויות?",
+      "rule": "מהיום כל הוצאה על גן היא הוצאה מוכרת"
+    },
     "send": "שלח",
     "receipt": "קבלה",
     "receiptTooLarge": "הקובץ גדול מדי. לא נשמר.",
@@ -29,6 +38,7 @@
     "voiceUnheard": "לא הצלחתי לשמוע. לא נשמר.",
     "providerFailed": "השירות לא זמין. לא נשמר.",
     "checking": "בודק את המשפט.",
+    "calculating": "מחשב מהתנועות שלך…",
     "notSaved": "שום דבר לא נשמר.",
     "noRate": "אין",
     "save": "אשר ושמור",
@@ -90,6 +100,7 @@
     "saveFailed": "השמירה נכשלה. לא נשמר.",
     "draftLine": "{{description}} · {{date}} · {{amount}} {{currency}} · {{type}} · שער {{rate}}",
     "draftMeta": "{{currency}} · {{type}} · שער {{rate}}",
+    "draftSummary": "{{currency}} · {{type}}",
     "receiptPreview": "{{description}} · {{date}} · {{amount}} {{currency}}",
     "viewReceipt": "הצג את הקבלה",
     "receiptKept": "הקבלה נשמרת 30 יום",

@@ -18,6 +18,15 @@
   "aiIntake": {
     "title": "Ten10 assistant",
     "placeholder": "What should I record?",
+    "newChat": "New chat",
+    "emptyTitle": "How can I help?",
+    "emptyDescription": "Type, snap a receipt, or talk. Nothing is saved without your OK.",
+    "suggestions": {
+      "transaction": "I bought coffee for 12 ILS",
+      "question": "How much did I donate this year?",
+      "duplicates": "Any duplicates?",
+      "rule": "From now on, daycare is a recognized expense"
+    },
     "send": "Send",
     "receipt": "Receipt",
     "receiptTooLarge": "The file is too large. Nothing was saved.",
@@ -29,6 +38,7 @@
     "voiceUnheard": "Nothing was heard. Nothing was saved.",
     "providerFailed": "The service is unavailable. Nothing was saved.",
     "checking": "Checking the sentence.",
+    "calculating": "Calculating from your transactions…",
     "notSaved": "Nothing was saved.",
     "noRate": "none",
     "save": "Approve and save",
@@ -80,6 +90,7 @@
     "saveFailed": "Save failed. Nothing was saved.",
     "draftLine": "{{description}} · {{date}} · {{amount}} {{currency}} · {{type}} · rate {{rate}}",
     "draftMeta": "{{currency}} · {{type}} · rate {{rate}}",
+    "draftSummary": "{{currency}} · {{type}}",
     "receiptPreview": "{{description}} · {{date}} · {{amount}} {{currency}}",
     "viewReceipt": "Show the receipt",
     "receiptKept": "The receipt is kept for 30 days",
