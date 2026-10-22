@@ -176,7 +176,8 @@ function findAmount(text: string): AmountHit | null {
     });
   }
   const marked = hits.filter((hit) => hit.marked);
-  return (marked.length > 0 ? marked : hits).at(-1) ?? null;
+  const pool = marked.length > 0 ? marked : hits;
+  return pool[pool.length - 1] ?? null;
 }
 
 function cleanDescription(original: string): string {
