@@ -1,8 +1,8 @@
 import { RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
-import { BASE_TYPE_ICON } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
+import { Shimmer } from "@/components/ui/shimmer";
+import { TypeChoice } from "./blocks/TypeChoice";
 import type { IntakeIntent, RuleActionType, TextTransactionDraft } from "@/lib/ai/classify-intake";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import type { ReplyBlock } from "./assistant-reply-view";
@@ -51,9 +51,8 @@ export function ReplyBlockView({
   switch (block.kind) {
     case "thinking":
       return (
-        <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Spinner />
-          {t(block.phase === "data" ? "aiIntake.calculating" : "aiIntake.checking")}
+        <p role="status" className="text-sm">
+          <Shimmer>{t(`aiIntake.thinking.${block.phase}`)}</Shimmer>
         </p>
       );
     case "askIntent":
@@ -128,28 +127,11 @@ export function ReplyBlockView({
       );
     case "askType":
       return (
-        <div className="flex flex-col gap-2">
-          {block.receipt ? (
-            <p className="text-sm text-muted-foreground">
-              {t("aiIntake.receiptPreview", {
-                description: block.receipt.description,
-                date: block.receipt.date,
-                amount: block.receipt.amount,
-                currency: block.receipt.currency,
-              })}
-            </p>
-          ) : null}
-          <ChoiceRow
-            prompt={t("aiIntake.askType")}
-            disabled={!interactive}
-            onChoose={handlers.onChooseType}
-            options={(["expense", "income", "donation"] as const).map((type) => ({
-              value: type,
-              label: t(`aiIntake.types.${type}`),
-              icon: BASE_TYPE_ICON[type],
-            }))}
-          />
-        </div>
+        <TypeChoice
+          receipt={block.receipt}
+          disabled={!interactive}
+          onChoose={handlers.onChooseType}
+        />
       );
     case "askAmount":
       return <p className="text-sm font-medium">{t("aiIntake.askAmount")}</p>;

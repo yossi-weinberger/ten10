@@ -21,6 +21,23 @@
     "newChat": "New chat",
     "emptyTitle": "How can I help?",
     "emptyDescription": "Type, snap a receipt, or talk. Nothing is saved without your OK.",
+    "scrollToLatest": "Back to the latest message",
+    "dropReceipt": "Drop the receipt here",
+    "recording": "Recording",
+    "inferred": "Filled in automatically",
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening",
+      "night": "Good night"
+    },
+    "thinking": {
+      "reading": "Reading your message…",
+      "receipt": "Reading the receipt…",
+      "voice": "Transcribing…",
+      "data": "Calculating from your transactions…",
+      "duplicates": "Looking for similar transactions…"
+    },
     "suggestions": {
       "transaction": "I bought coffee for 12 ILS",
       "question": "How much did I donate this year?",

@@ -1,5 +1,7 @@
 import { Search } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import CountUp from "react-countup";
+import { useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { formatDataAnswer } from "@/lib/ai/format-data-answer";
@@ -35,15 +37,38 @@ export function DataAnswer({
   const from = formatDisplayDate(reply.from).primary;
   const to = formatDisplayDate(reply.to).primary;
 
+  const reduce = useReducedMotion();
+  const amountLabel = formatCurrency(reply.total, (reply.currency ?? defaultCurrency) as CurrencyCode, language);
+  const symbol = amountLabel.replace(/[0-9.,\s]/g, "");
+
   return (
     <div className="flex flex-col gap-1">
+      <p className="text-2xl font-semibold tabular-nums" dir="ltr">
+        {reply.measure === "count" ? (
+          reduce ? reply.count : <CountUp end={reply.count} duration={0.6} preserveValue />
+        ) : (
+          <>
+            {reduce ? amountLabel : (
+              <>
+                <CountUp
+                  end={reply.total}
+                  duration={0.6}
+                  preserveValue
+                  decimals={Number.isInteger(reply.total) ? 0 : 2}
+                />
+                {symbol ? ` ${symbol}` : ""}
+              </>
+            )}
+          </>
+        )}
+      </p>
       <p className="text-sm leading-relaxed">
         {formatDataAnswer({
           measure: reply.measure,
           count: reply.count,
           year: hebrewPeriodPhrase(periodLabel(reply, questionCalendar, i18n.language), i18n.language),
           type: reply.type,
-          amount: formatCurrency(reply.total, (reply.currency ?? defaultCurrency) as CurrencyCode, language),
+          amount: amountLabel,
           paymentMethod: reply.paymentMethod,
           recipient: reply.recipient,
           category: reply.category,

@@ -1,7 +1,9 @@
-import type { ReactNode, RefObject } from "react";
-import { Sparkles } from "lucide-react";
+import type { HTMLAttributes, ReactNode, RefObject } from "react";
+import { useDropzone } from "react-dropzone";
+import { Receipt } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
+import { AssistantMark } from "./AssistantMark";
 import {
   Dialog,
   DialogContent,
@@ -34,6 +36,8 @@ interface AssistantShellProps {
   headerActions?: ReactNode;
   children: ReactNode;
   footer: ReactNode;
+  thinking?: boolean;
+  onReceipt?: (file: File) => void;
   initialFocusRef: RefObject<HTMLTextAreaElement | null>;
 }
 
@@ -49,6 +53,10 @@ function Frame({
   description,
   headerActions,
   reserveClose,
+  thinking,
+  dropProps,
+  dragging,
+  dropLabel,
   children,
   footer,
 }: {
@@ -56,13 +64,23 @@ function Frame({
   description: string;
   headerActions?: ReactNode;
   reserveClose: boolean;
+  thinking: boolean;
+  dropProps: HTMLAttributes<HTMLDivElement>;
+  dragging: boolean;
+  dropLabel: string;
   children: ReactNode;
   footer: ReactNode;
 }) {
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col">
+    <div {...dropProps} className={cn("relative flex h-full min-h-0 flex-1 flex-col", dropProps.className)}>
+      {dragging ? (
+        <div className="absolute inset-2 z-10 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-primary/50 bg-background/90 text-sm">
+          <Receipt className="size-5 text-primary" aria-hidden />
+          {dropLabel}
+        </div>
+      ) : null}
       <div className={cn("flex items-center gap-2 py-3 ps-4", reserveClose ? "pe-12" : "pe-4")}>
-        <Sparkles className="size-4 shrink-0 text-primary" aria-hidden />
+        <AssistantMark size="md" thinking={thinking} />
         <p className="min-w-0 flex-1 truncate text-base font-semibold">{title}</p>
         <p className="sr-only">{description}</p>
         <div className="flex shrink-0 items-center gap-1">{headerActions}</div>
@@ -82,9 +100,27 @@ export function AssistantShell({
   headerActions,
   children,
   footer,
+  thinking = false,
+  onReceipt,
   initialFocusRef,
 }: AssistantShellProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { getRootProps, isDragActive } = useDropzone({
+    noClick: true,
+    noKeyboard: true,
+    multiple: false,
+    disabled: !onReceipt,
+    accept: {
+      "image/jpeg": [],
+      "image/png": [],
+      "image/webp": [],
+      "application/pdf": [],
+    },
+    onDropAccepted: (files) => {
+      const file = files[0];
+      if (file) onReceipt?.(file);
+    },
+  });
   const isSmallNow = useMediaQuery("(max-width: 767px)");
   const [useDrawer, setUseDrawer] = useState(isSmallNow);
   const shell = desktopShell();
@@ -101,6 +137,10 @@ export function AssistantShell({
       description={description}
       headerActions={headerActions}
       reserveClose={reserveClose}
+      thinking={thinking}
+      dropProps={getRootProps({ className: "relative flex h-full min-h-0 flex-1 flex-col" })}
+      dragging={isDragActive}
+      dropLabel={t("aiIntake.dropReceipt", { ns: "navigation" })}
       footer={footer}
     >
       {children}

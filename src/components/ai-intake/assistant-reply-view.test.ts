@@ -28,7 +28,21 @@ describe("buildReplyBlocks", () => {
   });
 
   it("shows thinking while a sentence is being checked", () => {
-    expect(buildReplyBlocks(state({ checking: true }))).toEqual([{ kind: "thinking", phase: "intent" }]);
+    expect(buildReplyBlocks(state({ checking: true }))).toEqual([{ kind: "thinking", phase: "reading" }]);
+  });
+
+  it("names the kind of work while a receipt or a duplicate scan is in flight", () => {
+    expect(buildReplyBlocks(state({ checking: true, pendingPhase: "receipt" }))).toEqual([
+      { kind: "thinking", phase: "receipt" },
+    ]);
+    const scanning = buildReplyBlocks(state({
+      intent: "find_duplicates",
+      duplicateScan: { status: "pending" },
+    }));
+    expect(scanning.map((block) => block.kind === "thinking" ? block : block.kind)).toContainEqual({
+      kind: "thinking",
+      phase: "duplicates",
+    });
   });
 
   it("shows calculating while a data answer is still loading", () => {
@@ -98,7 +112,7 @@ describe("buildReplyBlocks", () => {
     const next = nextConversation(
       [],
       { kind: "text", text: "ראשונה" },
-      [{ kind: "thinking", phase: "intent" }],
+      [{ kind: "thinking", phase: "reading" }],
       { kind: "text", text: "שנייה" },
       "2",
     );

@@ -1,4 +1,4 @@
-import { type FormEvent, type KeyboardEvent, type RefObject, useRef } from "react";
+import { type ClipboardEvent, type FormEvent, type KeyboardEvent, type RefObject, useRef } from "react";
 import { ArrowUp, Mic, Paperclip, Square } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Spinner } from "@/components/ui/spinner";
@@ -17,6 +17,8 @@ interface AssistantComposerProps {
   onToggleVoice: () => void;
   busyLabel?: string;
   recording: boolean;
+  level?: number;
+  elapsed?: number;
   mode: "message" | "amount";
   textareaRef: RefObject<HTMLTextAreaElement | null>;
 }
@@ -29,6 +31,8 @@ export function AssistantComposer({
   onToggleVoice,
   busyLabel,
   recording,
+  level = 0,
+  elapsed = 0,
   mode,
   textareaRef,
 }: AssistantComposerProps) {
@@ -50,6 +54,19 @@ export function AssistantComposer({
     event.preventDefault();
     submit();
   }
+
+  function onPaste(event: ClipboardEvent<HTMLTextAreaElement>) {
+    const file = event.clipboardData.files[0];
+    if (!file) return;
+    const allowed = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+    if (!allowed.includes(file.type)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    onReceipt(file);
+  }
+
+  const weights = [0.45, 0.7, 1, 0.7, 0.45];
+  const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
 
   return (
     <form onSubmit={submit}>
@@ -79,10 +96,24 @@ export function AssistantComposer({
           inputMode={mode === "amount" ? "decimal" : undefined}
           placeholder={label}
           aria-label={label}
-          className="max-h-40 min-h-12 [field-sizing:content]"
+          className={recording ? "sr-only" : "max-h-40 min-h-12 [field-sizing:content]"}
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={onKeyDown}
+          onPaste={onPaste}
         />
+        {recording ? (
+          <div className="flex min-h-12 items-center gap-2 px-3" role="status" aria-label={t("aiIntake.recording")}>
+            <span className="size-2 rounded-full bg-destructive animate-pulse motion-reduce:animate-none" />
+            {weights.map((weight, index) => (
+              <span
+                key={index}
+                className="h-6 w-1 origin-bottom rounded-full bg-primary"
+                style={{ transform: `scaleY(${0.25 + level * weight})` }}
+              />
+            ))}
+            <span className="text-sm tabular-nums text-muted-foreground">{clock} / 1:00</span>
+          </div>
+        ) : null}
         <InputGroupAddon align="block-end">
           <InputGroupButton
             size="icon-sm"

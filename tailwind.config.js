@@ -129,12 +129,16 @@ export default {
           },
         },
         shimmer: {
-          from: {
-            backgroundPosition: "0 0",
-          },
-          to: {
-            backgroundPosition: "-200% 0",
-          },
+          from: { backgroundPosition: "0 0" },
+          to: { backgroundPosition: "-200% 0" },
+        },
+        "text-shimmer": {
+          from: { backgroundPosition: "100% 0" },
+          to: { backgroundPosition: "0% 0" },
+        },
+        "receipt-scan": {
+          "0%": { transform: "translateY(-100%)" },
+          "100%": { transform: "translateY(400%)" },
         },
       },
       animation: {
@@ -146,6 +150,8 @@ export default {
         aurora: "aurora 60s linear infinite",
         spotlight: "spotlight 2s ease .75s 1 forwards",
         shimmer: "shimmer 2s linear infinite",
+        "text-shimmer": "text-shimmer 1.8s linear infinite",
+        "receipt-scan": "receipt-scan 1.4s cubic-bezier(0.25,1,0.5,1) infinite",
       },
     },
   },
