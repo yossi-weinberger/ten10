@@ -101,7 +101,7 @@
 | 85 | Share Target רק ב־Preview | UI, Web בלבד | §8.1 | מוזג ל־`feat/ai-intake` | [#560](https://github.com/yossi-weinberger/ten10/pull/560) |
 | 86 | פתיחת קבלה ב־Safari | UI, Web בלבד | §4.6 | מוזג ל־`feat/ai-intake` | [#561](https://github.com/yossi-weinberger/ten10/pull/561) |
 | 87 | קבלה בתפריט רק כשהיא זמינה | DB על testing + UI | §4.6 | מוזג ל־`feat/ai-intake` | [#562](https://github.com/yossi-weinberger/ten10/pull/562) |
-| UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | לא התחיל | `feat/ai-ui1-characterization` |
+| UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | 14 בדיקות ירוקות, ממתין ל־PR | `feat/ai-ui1-characterization` |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | לא התחיל | `feat/ai-ui2-primitives` |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | לא התחיל | `feat/ai-ui3-chat-shell` |
 | UI-4 | אותו קובץ | כרטיסי נתונים, כפילויות, כלל, הלכה | UI-3 | לא התחיל | `feat/ai-ui4-reply-cards` |
