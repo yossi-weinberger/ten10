@@ -78,6 +78,28 @@ Deno.test("an English sentence keeps the purchase, not the command", () => {
   assert(draft?.currency === "ILS", "shekels");
 });
 
+Deno.test("a model number is not the price", () => {
+  const phone = draftFromText("קניתי אייפון 15 ב 3000", TODAY);
+  assert(phone?.amount === 3000, "price, not the model");
+  assert(phone?.description === "אייפון 15", "model number stays");
+
+  const loaves = draftFromText("קניתי 3 לחמים ב 20", TODAY);
+  assert(loaves?.amount === 20, "price, not the count");
+  assert(loaves?.description === "3 לחמים", "count stays in the name");
+
+  const paper = draftFromText("מחברת A4 ב 12", TODAY);
+  assert(paper?.amount === 12, "price, not the size");
+  assert(paper?.description === "מחברת A4", "glued digits stay");
+
+  const english = draftFromText("bought bread 20", TODAY);
+  assert(english?.amount === 20, "last number");
+  assert(english?.description === "bread", "item stays");
+
+  const tax = draftFromText("ארנונה 1,250", TODAY);
+  assert(tax?.amount === 1250, "thousands separators");
+  assert(tax?.description === "ארנונה", "name stays");
+});
+
 Deno.test("a comma after the verb and a bare amount leave the description", () => {
   const comma = draftFromText("קניתי, לחם 20", TODAY);
   assert(comma?.type === "expense", "bought");
