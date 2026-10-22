@@ -12,4 +12,9 @@ describe("shared receipt age", () => {
     expect(sharedTextMessage(["  Title ", "", "https://example.com"])).toBe("Title\nhttps://example.com");
     expect(sharedTextMessage(["", "  "])).toBe("");
   });
+
+  it("does not repeat a url that is already in the shared text", () => {
+    const sentence = "קניה על פיצה https://example.com/r/1";
+    expect(sharedTextMessage([sentence, sentence, "https://example.com/r/1"])).toBe(sentence);
+  });
 });

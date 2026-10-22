@@ -17,13 +17,16 @@ export type SharedIntake =
   | { kind: "file"; file: File }
   | { kind: "text"; text: string };
 
-/** Joins the text fields of one share. A file share does not use this. */
+/** Joins the text fields of one share. A later field already inside an earlier one is dropped. */
 export function sharedTextMessage(parts: Array<string | null | undefined>): string {
-  return parts
-    .map((part) => (typeof part === "string" ? part.trim() : ""))
-    .filter((part) => part.length > 0)
-    .join("\n")
-    .slice(0, 2000);
+  const kept: string[] = [];
+  for (const part of parts) {
+    const value = typeof part === "string" ? part.trim() : "";
+    if (!value) continue;
+    if (kept.some((previous) => previous.includes(value))) continue;
+    kept.push(value);
+  }
+  return kept.join("\n").slice(0, 2000);
 }
 
 export function isExpiredShare(savedAt: number, now: number): boolean {
