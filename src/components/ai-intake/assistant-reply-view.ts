@@ -196,7 +196,7 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
         kind: "draft",
         view: {
           ...state.draft,
-          locked: state.savedItemId !== null || state.status === "duplicateKept",
+          locked: state.savedItemId !== null,
         },
       });
     }

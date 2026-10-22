@@ -22,6 +22,7 @@ const ai = vi.hoisted(() => ({
   loadDuplicateScan: vi.fn(),
   dismissDuplicatePair: vi.fn(),
   readQuestionSlots: vi.fn(),
+  markQuestionOutcome: vi.fn(),
   resolveQuestionFilter: vi.fn(),
   sumYearType: vi.fn(),
   transcribeSpeech: vi.fn(),
@@ -69,6 +70,10 @@ vi.mock("@/lib/ai/sum-year-type", () => ({
 }));
 vi.mock("@/lib/ai/transcribe-speech", () => ({ transcribeSpeech: ai.transcribeSpeech }));
 vi.mock("@/lib/ai/refresh-after-intake", () => ({ refreshAfterIntakeSave: ai.refreshAfterIntakeSave }));
+vi.mock("@/lib/ai/question-outcome", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/ai/question-outcome")>();
+  return { ...actual, markQuestionOutcome: ai.markQuestionOutcome };
+});
 vi.mock("@/lib/ai/format-data-answer", () => ({
   formatDataAnswer: (input: { measure: string; count: number }) => `answer:${input.measure}:${input.count}`,
 }));
@@ -210,6 +215,25 @@ describe("AssistantDrawer characterization", () => {
     expect(await screen.findByText("aiIntake.duplicateKept")).toBeInTheDocument();
   });
 
+  it("saves anyway in one click after keeping the same event", async () => {
+    confident("add_transaction");
+    ai.listDuplicateCandidates.mockResolvedValue([
+      { id: "d1", date: "2026-10-20", amount: 15, description: "מאפים", kind: "transaction" },
+    ]);
+    ai.saveTextDraft
+      .mockResolvedValueOnce({ ok: true, transactionId: null, itemId: "i1", sameEvent: true })
+      .mockResolvedValueOnce({ ok: true, transactionId: "t2", itemId: "i2" });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await user.click(await screen.findByRole("button", { name: "aiIntake.sameEvent" }));
+    await screen.findByText("aiIntake.duplicateKept");
+    await user.click(screen.getByRole("button", { name: "aiIntake.saveAnyway" }));
+    await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(2));
+    expect(ai.saveTextDraft.mock.calls[1][1]).not.toBe(ai.saveTextDraft.mock.calls[0][1]);
+    expect(ai.saveTextDraft.mock.calls[1][3]).toEqual({ choice: "saved_anyway", candidateIds: ["d1"] });
+    expect(await screen.findByText("aiIntake.saved")).toBeInTheDocument();
+  });
+
   it("asks what the message is when Jev is unsure", async () => {
     ai.classifyIntentFallback.mockResolvedValue({ ok: true, intent: "ask_data", confidence: 0.5 });
     const user = setup();
@@ -228,6 +252,26 @@ describe("AssistantDrawer characterization", () => {
     const user = setup();
     await send(user, "כמה תרמתי ב-2025?");
     expect(await screen.findByText("answer:sum:2")).toBeInTheDocument();
+  });
+
+  it("records answered once when a numeric answer is closed before the window ends", async () => {
+    confident("ask_data");
+    ai.readQuestionSlots.mockResolvedValue({
+      family: "donation",
+      measure: "sum",
+      recipient: null,
+      category: null,
+      paymentMethod: null,
+      measurementId: "m-1",
+    });
+    ai.resolveQuestionFilter.mockResolvedValue({ category: null, description: null, recipient: null });
+    ai.sumYearType.mockResolvedValue({ ok: true, total: 100, count: 2, currency: "ILS" });
+    const user = setup();
+    await send(user, "כמה תרמתי ב-2025?");
+    expect(await screen.findByText("answer:sum:2")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "actions.close" }));
+    expect(ai.markQuestionOutcome).toHaveBeenCalledTimes(1);
+    expect(ai.markQuestionOutcome).toHaveBeenCalledWith("m-1", "answered");
   });
 
   it("deletes a duplicate only after a second confirmation", async () => {
