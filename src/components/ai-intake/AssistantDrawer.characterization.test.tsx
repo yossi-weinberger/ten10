@@ -44,7 +44,10 @@ vi.mock("@/contexts/PlatformContext", () => ({ usePlatform: () => ({ platform: a
 vi.mock("@/lib/platformManager", () => ({ getPlatform: () => ai.platform.value }));
 vi.mock("@/lib/ai/flags", () => ({ isAiIntakeEnabled: () => true, aiCallsAllowed: () => true }));
 vi.mock("@/lib/ai/intent-fallback", () => ({ classifyIntentFallback: ai.classifyIntentFallback }));
-vi.mock("@/lib/ai/save-text-draft", () => ({ saveTextDraft: ai.saveTextDraft }));
+vi.mock("@/lib/ai/save-text-draft", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/ai/save-text-draft")>();
+  return { ...actual, saveTextDraft: ai.saveTextDraft };
+});
 vi.mock("@/lib/ai/undo-text-intake", () => ({ undoTextIntake: ai.undoTextIntake }));
 vi.mock("@/lib/ai/user-rules", () => ({
   listActiveUserRules: ai.listActiveUserRules,
@@ -203,7 +206,7 @@ describe("AssistantDrawer characterization", () => {
     expect(await screen.findByText(/aiIntake\.duplicateWarning/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "aiIntake.sameEvent" }));
     await waitFor(() => expect(ai.saveTextDraft).toHaveBeenCalledTimes(1));
-    expect(ai.saveTextDraft.mock.calls[0][2]).toEqual({ choice: "same_event", candidateIds: ["d1"] });
+    expect(ai.saveTextDraft.mock.calls[0][3]).toEqual({ choice: "same_event", candidateIds: ["d1"] });
     expect(await screen.findByText("aiIntake.duplicateKept")).toBeInTheDocument();
   });
 

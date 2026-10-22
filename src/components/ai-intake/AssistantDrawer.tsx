@@ -22,7 +22,7 @@ import {
   type TextTransactionDraft,
 } from "@/lib/ai/classify-intake";
 import { refreshAfterIntakeSave } from "@/lib/ai/refresh-after-intake";
-import { saveTextDraft } from "@/lib/ai/save-text-draft";
+import { nextDraftIdempotency, saveTextDraft, type DraftIdempotency } from "@/lib/ai/save-text-draft";
 import { undoTextIntake } from "@/lib/ai/undo-text-intake";
 import { approveUserRule, listActiveUserRules } from "@/lib/ai/user-rules";
 import {
@@ -90,6 +90,7 @@ export function AssistantDrawer({
   const [text, setText] = useState("");
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
   const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
+  const idempotency = useRef<DraftIdempotency | null>(null);
   const originalDraft = useRef<{ description: string; amount: number; date: string } | null>(null);
   const previewUrls = useRef<string[]>([]);
   const [receiptArtifactId, setReceiptArtifactId] = useState<string | null>(null);
@@ -208,6 +209,7 @@ export function AssistantDrawer({
     setDuplicateScan(null);
     setReceiptArtifactId(null);
     setReceiptLink(null);
+    idempotency.current = null;
     setHistory([]);
     setActiveUser(null);
     setDuplicateActionFailed(false);
@@ -281,6 +283,7 @@ export function AssistantDrawer({
     if (!next) {
       setDraft(null);
       originalDraft.current = null;
+      idempotency.current = null;
       setAmountInput("");
       setAppliedRuleName(null);
       refreshDuplicates(null, "");
@@ -289,6 +292,12 @@ export function AssistantDrawer({
     const applied = applyForwardRule(next, rules, source);
     setDraft(applied.draft);
     setAmountInput(String(applied.draft.amount));
+    idempotency.current = nextDraftIdempotency(idempotency.current, {
+      description: applied.draft.description,
+      amount: String(applied.draft.amount),
+      type: applied.draft.type,
+      date: applied.draft.date,
+    });
     originalDraft.current = {
       description: applied.draft.description,
       amount: applied.draft.amount,
@@ -648,6 +657,7 @@ export function AssistantDrawer({
     setSavedItemId(null);
     setReceiptArtifactId(null);
     setReceiptLink(null);
+    idempotency.current = null;
     setSlotHold(null);
   }
 
@@ -760,8 +770,16 @@ export function AssistantDrawer({
     }
     setSaving(true);
     setStatus(null);
+    const savingDraft = { ...draft, amount };
+    idempotency.current = nextDraftIdempotency(idempotency.current, {
+      description: savingDraft.description,
+      amount: amountInput,
+      type: savingDraft.type,
+      date: savingDraft.date,
+    });
     const result = await saveTextDraft(
-      { ...draft, amount },
+      savingDraft,
+      idempotency.current.key,
       originalDraft.current ?? { description: draft.description, amount },
       duplicates.length > 0 && choice
         ? { choice, candidateIds: duplicates.map((row) => row.id) }
@@ -781,6 +799,14 @@ export function AssistantDrawer({
       setStatus("saved");
       navigator.vibrate?.(12);
       return;
+    }
+    if (result.reason === "SAVE_FAILED") {
+      idempotency.current = nextDraftIdempotency(idempotency.current, {
+        description: savingDraft.description,
+        amount: amountInput,
+        type: savingDraft.type,
+        date: savingDraft.date,
+      }, { saveFailed: true });
     }
     setStatus(result.reason === "NO_RATE" ? "noRateAvailable" : "saveFailed");
   }
@@ -910,15 +936,34 @@ export function AssistantDrawer({
             if (!draft) return;
             const next = { ...draft, date };
             setDraft(next);
+            idempotency.current = nextDraftIdempotency(idempotency.current, {
+              description: next.description,
+              amount: amountInput,
+              type: next.type,
+              date,
+            });
             refreshDuplicates(next, amountInput);
           },
           onDescriptionChange: (description) => {
             if (!draft) return;
             setDraft({ ...draft, description });
+            idempotency.current = nextDraftIdempotency(idempotency.current, {
+              description,
+              amount: amountInput,
+              type: draft.type,
+              date: draft.date,
+            });
           },
           onAmountChange: (amount) => {
             setAmountInput(amount);
-            if (draft) refreshDuplicates(draft, amount);
+            if (!draft) return;
+            idempotency.current = nextDraftIdempotency(idempotency.current, {
+              description: draft.description,
+              amount,
+              type: draft.type,
+              date: draft.date,
+            });
+            refreshDuplicates(draft, amount);
           },
           onSave: (choice) => {
             void handleSave(choice);
