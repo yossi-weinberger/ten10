@@ -84,14 +84,21 @@ Deno.serve(async (req: Request) => {
       return json(origin, { reason: "unavailable" }, 200);
     }
     const payload = await response.json();
-    const confidence = slotConfidence(payload);
-    if (confidence) {
-      const saved = await userClient.rpc("record_ai_slot_confidence", { p_signals: confidence });
-      if (saved.error) logger.error("slot confidence was not saved");
-    }
     const slots = readQuestionSlots(payload, lists);
     if (!slots) return json(origin, { reason: "unavailable" }, 200);
-    return json(origin, slots, 200);
+    const confidence = slotConfidence(payload);
+    const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+    let measurementId: string | null = null;
+    if (confidence && serviceKey) {
+      const admin = createClient(Deno.env.get("SUPABASE_URL") ?? "", serviceKey);
+      const saved = await admin.rpc("record_ai_slot_confidence", {
+        p_user_id: userData.user.id,
+        p_signals: confidence,
+      });
+      if (saved.error) logger.error("slot confidence was not saved");
+      measurementId = typeof saved.data === "string" ? saved.data : null;
+    }
+    return json(origin, { ...slots, measurement_id: measurementId }, 200);
   } catch {
     logger.error("jev question slots failed");
     return json(origin, { reason: "unavailable" }, 200);
