@@ -24,12 +24,20 @@ async function storeSharedFile(request) {
   try {
     const form = await request.formData();
     const file = form.get("file");
-    if (file && typeof file.arrayBuffer === "function" && file.size > 0) {
+    const title = form.get("title");
+    const text = form.get("text");
+    const sharedUrl = form.get("url");
+    const hasFile = file && typeof file.arrayBuffer === "function" && file.size > 0;
+    const hasText = [title, text, sharedUrl].some((part) => typeof part === "string" && part.trim());
+    if (hasFile || hasText) {
       const record = {
         id: crypto.randomUUID(),
-        name: typeof file.name === "string" && file.name ? file.name : "receipt",
-        type: typeof file.type === "string" && file.type ? file.type : "application/octet-stream",
-        buffer: await file.arrayBuffer(),
+        name: hasFile && typeof file.name === "string" && file.name ? file.name : "share",
+        type: hasFile && typeof file.type === "string" && file.type ? file.type : "text/plain",
+        buffer: hasFile ? await file.arrayBuffer() : undefined,
+        title: typeof title === "string" ? title : "",
+        text: typeof text === "string" ? text : "",
+        url: typeof sharedUrl === "string" ? sharedUrl : "",
         savedAt: Date.now(),
       };
       const db = await openShareDb();

@@ -25,6 +25,22 @@
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://ten10-app.com/manifest.json",
+  "shareTarget": {
+    "action": "https://ten10-app.com/share-target",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "file",
+          "accept": ["image/jpeg", "image/png", "image/webp", "application/pdf"]
+        }
+      ]
+    }
+  },
   "fallbackType": "customtabs",
   "features": {
     "playBilling": {
