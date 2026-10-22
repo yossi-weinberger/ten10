@@ -57,6 +57,8 @@
     "edit": "עריכה",
     "editRecurring": "ערוך הו\"ק",
     "delete": "מחיקה",
+    "viewReceipt": "הצג קבלה",
+    "receiptUntil": "זמינה עד {{date}}",
     "undoAi": "בטל שמירת AI",
     "undoAiDone": "השמירה בוטלה והתנועה נמחקה.",
     "undoAiNotAllowed": "אי אפשר לבטל. אם התנועה נערכה או עברו 7 ימים, מחקים אותה כרגיל.",

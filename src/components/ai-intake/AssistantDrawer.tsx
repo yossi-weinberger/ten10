@@ -862,9 +862,12 @@ export function AssistantDrawer({
                     </p>
                   ) : null}
                   {receiptArtifactId ? (
-                    <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
-                      {t("aiIntake.viewReceipt")}
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
+                        {t("aiIntake.viewReceipt")}
+                      </Button>
+                      <span>{t("aiIntake.receiptKept")}</span>
+                    </div>
                   ) : null}
                   {receiptLink ? (
                     <a href={receiptLink} target="_blank" rel="noopener noreferrer">
@@ -897,9 +900,12 @@ export function AssistantDrawer({
               {draft ? (
                 <>
                   {receiptArtifactId ? (
-                    <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
-                      {t("aiIntake.viewReceipt")}
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button type="button" variant="outline" onClick={() => void openReceiptFile()}>
+                        {t("aiIntake.viewReceipt")}
+                      </Button>
+                      <span>{t("aiIntake.receiptKept")}</span>
+                    </div>
                   ) : null}
                   {receiptLink ? (
                     <a href={receiptLink} target="_blank" rel="noopener noreferrer">

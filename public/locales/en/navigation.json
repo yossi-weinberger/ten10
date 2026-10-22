@@ -82,6 +82,7 @@
     "draftMeta": "{{currency}} · {{type}} · rate {{rate}}",
     "receiptPreview": "{{description}} · {{date}} · {{amount}} {{currency}}",
     "viewReceipt": "Show the receipt",
+    "receiptKept": "The receipt is kept for 30 days",
     "receiptMissing": "This receipt has no file.",
     "receiptUnavailable": "The file is not available right now.",
     "editDescription": "Description",
