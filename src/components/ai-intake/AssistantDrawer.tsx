@@ -42,6 +42,13 @@ import { useDonationStore } from "@/lib/store";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import type { DuplicatePair } from "@/lib/ai/duplicate-scan";
 import { readQuestionSlots } from "@/lib/ai/read-question";
+import {
+  QUESTION_OUTCOME_WINDOW_MS,
+  markQuestionOutcome,
+  nextQuestionOutcome,
+  type MeasurementHold,
+  type QuestionOutcomeEvent,
+} from "@/lib/ai/question-outcome";
 import { resolveQuestionFilter, sumYearType } from "@/lib/ai/sum-year-type";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
 import { isOnOrAfterMinTransactionDate } from "@/lib/utils/transaction-date";
@@ -145,6 +152,8 @@ export function AssistantDrawer({
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const recorder = useRef<MediaRecorder | null>(null);
   const requestRef = useRef(0);
+  const measurement = useRef<MeasurementHold | null>(null);
+  const answerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const conversationRef = useRef<{
     history: AssistantTurn[];
     active: UserTurn | null;
@@ -212,6 +221,9 @@ export function AssistantDrawer({
     setActiveUser(null);
     setDuplicateActionFailed(false);
     setConfirmDeleteId(null);
+    if (answerTimer.current) clearTimeout(answerTimer.current);
+    answerTimer.current = null;
+    measurement.current = null;
   }
 
   function handleOpenChange(next: boolean) {
@@ -232,6 +244,7 @@ export function AssistantDrawer({
     return () => {
       discardRecording.current = true;
       if (recordTimer.current) clearTimeout(recordTimer.current);
+      if (answerTimer.current) clearTimeout(answerTimer.current);
       const active = recorder.current;
       if (active && active.state !== "inactive") active.stop();
       for (const url of previewUrls.current) URL.revokeObjectURL(url);
@@ -508,18 +521,44 @@ export function AssistantDrawer({
     await loadScan();
   }
 
+  function followQuestion(event: QuestionOutcomeEvent) {
+    if (answerTimer.current) clearTimeout(answerTimer.current);
+    answerTimer.current = null;
+    const decision = nextQuestionOutcome({ hold: measurement.current, now: Date.now(), event });
+    measurement.current = decision.hold;
+    if (decision.mark) void markQuestionOutcome(decision.mark.id, decision.mark.outcome);
+  }
+
+  function holdMeasurement(id: string | null) {
+    measurement.current = id ? { id, at: Date.now() } : measurement.current;
+  }
+
+  function armAnswered() {
+    if (answerTimer.current) clearTimeout(answerTimer.current);
+    const hold = measurement.current;
+    if (!hold) return;
+    answerTimer.current = setTimeout(() => {
+      const decision = nextQuestionOutcome({ hold, now: Date.now(), event: "timeout" });
+      if (measurement.current?.id === hold.id) measurement.current = decision.hold;
+      if (decision.mark) void markQuestionOutcome(decision.mark.id, decision.mark.outcome);
+    }, QUESTION_OUTCOME_WINDOW_MS);
+  }
+
   async function loadDataAnswer(
     source: string,
     searchDescriptions = false,
     family?: NonNullable<QuestionSlots["family"]>,
   ) {
     const request = requestRef.current;
+    followQuestion(family ? "family" : searchDescriptions ? "search" : "ask");
     setDataReply(null);
     let question = searchDescriptions ? askedQuestion : null;
     if (!question) {
+      const read = family && slotHold ? null : await readQuestionSlots(source);
       const slots = family && slotHold
         ? { ...slotHold, family }
-        : await readQuestionSlots(source);
+        : read;
+      if (read?.measurementId) holdMeasurement(read.measurementId);
       if (requestRef.current !== request) return;
       const composed = questionFromSlots(source, todayIso(), questionCalendar, slots);
       if (composed === "ask_family") {
@@ -561,6 +600,7 @@ export function AssistantDrawer({
       count: result.count,
       currency: result.currency,
     });
+    armAnswered();
   }
 
   function replyState(): ReplyState {
