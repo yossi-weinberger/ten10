@@ -1,3 +1,4 @@
+import holdout from "./fixtures/question-slot-eval-holdout.json" with { type: "json" };
 import inbox from "./fixtures/question-slot-eval-inbox.json" with { type: "json" };
 import { readSlotEvalFixture, scoreSlotEval, type SlotEvalCase } from "./question-slot-eval.ts";
 
@@ -23,6 +24,49 @@ Deno.test("slot eval lists are read from the fixture", () => {
     if (category && category !== "none") {
       assert(fixture.lists.categories.includes(category), item.id);
     }
+  }
+});
+
+const FAMILIES = new Set(["donation", "income", "expense", null]);
+const MEASURES = new Set(["sum", "count", "average", "max", null]);
+const PAYMENTS = new Set([
+  "cash",
+  "credit_card",
+  "debit_card",
+  "bank_transfer",
+  "check",
+  "bit_paybox",
+  "paypal",
+  "other",
+  "none",
+]);
+
+Deno.test("holdout slot eval fixture is a fresh set", () => {
+  const fixture = readSlotEvalFixture(holdout);
+  assert(fixture !== null, "holdout shape");
+  assert(fixture.cases.length >= 50 && fixture.cases.length <= 70, `size ${fixture.cases.length}`);
+  const inboxFixture = readSlotEvalFixture(inbox);
+  assert(inboxFixture !== null, "inbox");
+  const inboxTexts = new Set(inboxFixture.cases.map((item) => item.text.trim().toLowerCase()));
+  const ids = new Set<string>();
+  for (const item of fixture.cases) {
+    assert(item.id.startsWith("slot-hold-") && !ids.has(item.id), item.id);
+    ids.add(item.id);
+    assert(FAMILIES.has(item.expected.family), `${item.id} family ${item.expected.family}`);
+    assert(MEASURES.has(item.expected.measure), `${item.id} measure ${item.expected.measure}`);
+    const recipient = item.expected.recipient;
+    assert(
+      recipient === "none" || (recipient !== null && fixture.lists.recipients.includes(recipient)),
+      `${item.id} recipient ${recipient}`,
+    );
+    const category = item.expected.category;
+    assert(
+      category === "none" || (category !== null && fixture.lists.categories.includes(category)),
+      `${item.id} category ${category}`,
+    );
+    const payment = item.expected.payment_method;
+    assert(payment !== null && PAYMENTS.has(payment), `${item.id} payment_method ${payment}`);
+    assert(!inboxTexts.has(item.text.trim().toLowerCase()), `${item.id} duplicates inbox`);
   }
 });
 
