@@ -186,8 +186,13 @@ export function AssistantDrawer({
   }
 
   function settleOpenMeasurement() {
-    if (answerTimer.current) clearTimeout(answerTimer.current);
+    const timer = answerTimer.current;
     answerTimer.current = null;
+    if (!timer) {
+      measurement.current = null;
+      return;
+    }
+    clearTimeout(timer);
     const decision = nextQuestionOutcome({
       hold: measurement.current,
       now: Date.now(),

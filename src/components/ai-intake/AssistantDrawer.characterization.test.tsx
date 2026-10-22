@@ -254,6 +254,23 @@ describe("AssistantDrawer characterization", () => {
     expect(await screen.findByText("answer:sum:2")).toBeInTheDocument();
   });
 
+  it("does not record an outcome when a family prompt is closed", async () => {
+    confident("ask_data");
+    ai.readQuestionSlots.mockResolvedValue({
+      family: null,
+      measure: "sum",
+      recipient: null,
+      category: null,
+      paymentMethod: null,
+      measurementId: "m-1",
+    });
+    const user = setup();
+    await send(user, "כמה ב-2025?");
+    expect(await screen.findByText("aiIntake.askFamily")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "actions.close" }));
+    expect(ai.markQuestionOutcome).not.toHaveBeenCalled();
+  });
+
   it("records answered once when a numeric answer is closed before the window ends", async () => {
     confident("ask_data");
     ai.readQuestionSlots.mockResolvedValue({
