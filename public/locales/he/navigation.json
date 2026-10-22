@@ -18,6 +18,15 @@
   "aiIntake": {
     "title": "עוזר Ten10",
     "placeholder": "מה תרצה לרשום?",
+    "newChat": "שיחה חדשה",
+    "emptyTitle": "במה לעזור?",
+    "emptyDescription": "אפשר לכתוב, לצלם קבלה או לדבר. שום דבר לא נשמר בלי אישור שלך.",
+    "suggestions": {
+      "transaction": "קניתי קפה ב־12 ש״ח",
+      "question": "כמה תרמתי השנה?",
+      "duplicates": "יש כפילויות?",
+      "rule": "מהיום כל הוצאה על גן היא הוצאה מוכרת"
+    },
     "send": "שלח",
     "receipt": "קבלה",
     "receiptTooLarge": "הקובץ גדול מדי. לא נשמר.",

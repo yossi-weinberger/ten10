@@ -4,6 +4,7 @@ import { act, createRef, useState, type ReactNode } from "react";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { installDomPolyfills } from "./assistant-test-setup";
 
 const ai = vi.hoisted(() => ({
@@ -30,6 +31,7 @@ const ai = vi.hoisted(() => ({
 
 vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
 vi.mock("react-i18next", () => ({
+  initReactI18next: { type: "3rdParty", init: () => {} },
   useTranslation: () => ({
     t: (key: string) => key,
     i18n: { language: "he", dir: () => "rtl" },
@@ -78,10 +80,10 @@ const receiveRef = createRef<AssistantDrawerHandle>();
 function Harness() {
   const [open, setOpen] = useState(true);
   return (
-    <>
+    <TooltipProvider>
       <button type="button" onClick={() => setOpen(true)}>reopen</button>
       <AssistantDrawer open={open} onOpenChange={setOpen} receiveRef={receiveRef} />
-    </>
+    </TooltipProvider>
   );
 }
 
@@ -162,7 +164,7 @@ describe("AssistantDrawer characterization", () => {
     await send(user, "קניתי מאפים באליס");
     expect(await screen.findByText("aiIntake.askAmount")).toBeInTheDocument();
     await user.type(screen.getByRole("textbox", { name: "aiIntake.askAmount" }), "15");
-    await user.click(screen.getByRole("button", { name: "aiIntake.continue" }));
+    await user.click(screen.getByRole("button", { name: "aiIntake.send" }));
     expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
   });
 
@@ -274,5 +276,36 @@ describe("AssistantDrawer characterization", () => {
     await user.keyboard("{Escape}");
     await user.click(screen.getByRole("button", { name: "reopen" }));
     expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
+  });
+
+  it("keeps the previous message visible and locks a saved draft", async () => {
+    confident("add_transaction");
+    ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await user.click(await screen.findByRole("button", { name: "aiIntake.save" }));
+    expect(await screen.findByText("aiIntake.saved")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "aiIntake.save" })).not.toBeInTheDocument();
+    await send(user, "עוד משפט");
+    expect(screen.getByText("קניתי מאפים באליס ב-15 שח")).toBeInTheDocument();
+  });
+
+  it("disables send when the field is empty and clears the chat", async () => {
+    confident("add_transaction");
+    const user = setup();
+    expect(screen.getByRole("button", { name: "aiIntake.send" })).toBeDisabled();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    await screen.findByRole("textbox", { name: "aiIntake.editAmount" });
+    await user.click(screen.getByRole("button", { name: "aiIntake.newChat" }));
+    expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
+    expect(screen.queryByText("קניתי מאפים באליס ב-15 שח")).not.toBeInTheDocument();
+  });
+
+  it("opens the same draft inside the mobile drawer", async () => {
+    installDomPolyfills("mobile");
+    confident("add_transaction");
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
   });
 });
