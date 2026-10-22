@@ -185,7 +185,25 @@ export function AssistantDrawer({
     if (active && active.state !== "inactive") active.stop();
   }
 
+  function settleOpenMeasurement() {
+    const timer = answerTimer.current;
+    answerTimer.current = null;
+    if (!timer) {
+      measurement.current = null;
+      return;
+    }
+    clearTimeout(timer);
+    const decision = nextQuestionOutcome({
+      hold: measurement.current,
+      now: Date.now(),
+      event: "timeout",
+    });
+    measurement.current = decision.hold;
+    if (decision.mark) void markQuestionOutcome(decision.mark.id, decision.mark.outcome);
+  }
+
   function clearConversation() {
+    settleOpenMeasurement();
     requestRef.current += 1;
     conversationRef.current = { history: [], active: null, reply: emptyReplyState() };
     setText("");
@@ -223,9 +241,6 @@ export function AssistantDrawer({
     setActiveUser(null);
     setDuplicateActionFailed(false);
     setConfirmDeleteId(null);
-    if (answerTimer.current) clearTimeout(answerTimer.current);
-    answerTimer.current = null;
-    measurement.current = null;
   }
 
   function handleOpenChange(next: boolean) {
@@ -246,7 +261,7 @@ export function AssistantDrawer({
     return () => {
       discardRecording.current = true;
       if (recordTimer.current) clearTimeout(recordTimer.current);
-      if (answerTimer.current) clearTimeout(answerTimer.current);
+      settleOpenMeasurement();
       const active = recorder.current;
       if (active && active.state !== "inactive") active.stop();
       for (const url of previewUrls.current) URL.revokeObjectURL(url);
@@ -829,6 +844,12 @@ export function AssistantDrawer({
     );
     setSaving(false);
     if (result.ok && result.sameEvent) {
+      idempotency.current = nextDraftIdempotency(idempotency.current, {
+        description: savingDraft.description,
+        amount: amountInput,
+        type: savingDraft.type,
+        date: savingDraft.date,
+      }, { saveFailed: true });
       setStatus("duplicateKept");
       return;
     }
