@@ -101,8 +101,8 @@
 | 85 | Share Target רק ב־Preview | UI, Web בלבד | §8.1 | מוזג ל־`feat/ai-intake` | [#560](https://github.com/yossi-weinberger/ten10/pull/560) |
 | 86 | פתיחת קבלה ב־Safari | UI, Web בלבד | §4.6 | מוזג ל־`feat/ai-intake` | [#561](https://github.com/yossi-weinberger/ten10/pull/561) |
 | 87 | קבלה בתפריט רק כשהיא זמינה | DB על testing + UI | §4.6 | מוזג ל־`feat/ai-intake` | [#562](https://github.com/yossi-weinberger/ten10/pull/562) |
-| UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | PR פתוח, 14 בדיקות ירוקות | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
-| UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | לא התחיל | `feat/ai-ui2-primitives` |
+| UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
+| UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | PR פתוח | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | לא התחיל | `feat/ai-ui3-chat-shell` |
 | UI-4 | אותו קובץ | כרטיסי נתונים, כפילויות, כלל, הלכה | UI-3 | לא התחיל | `feat/ai-ui4-reply-cards` |
 | UI-5 | אותו קובץ | תנועה ורגעי wow | UI-4 | לא התחיל | `feat/ai-ui5-motion` |
@@ -294,3 +294,5 @@
 - **2026-10-22:** `minSdkVersion` עלה מ־21 ל־24. בבנייה הבאה ל־Play, Android 5 ו־6 לא ייתמכו. לא ל־`main`.
 - **2026-10-22:** נכתבה תוכנית לעיצוב מחדש של העוזר: `docs/superpowers/plans/2026-10-22-ai-ui-redesign.md`. שישה PRs, UI-1 עד UI-6, מול `feat/ai-intake`. רק שכבת התצוגה משתנה: הלוגיקה, ה־Edge וה־DB לא זזים. נשארים על Tailwind 3, ורכיבי AI Elements של v4 מועתקים ומומרים. שדרוג ל־Tailwind 4 יהיה PR נפרד על `main` אחרי המיזוג. נמצא באג: אחרי «אשר ושמור» אפשר לשמור שוב. הצעד הבא: UI-1.
 - **2026-10-22:** [#564](https://github.com/yossi-weinberger/ten10/pull/564) נפתח מול `feat/ai-intake`. 14 בדיקות אפיון למגירת העוזר, בלי שינוי בקוד המוצר. `npm test`: 948 עברו. לא ל־`main`. הצעד הבא: UI-2 אחרי המיזוג.
+- **2026-10-22:** #564 מוזג ל־`feat/ai-intake`. לא ל־`main`. UI-2 מוסיף את רכיבי ה־AI של shadcn, מותאמים ל־Tailwind 3, בלי לדרוס רכיבים קיימים.
+- **2026-10-22:** [#565](https://github.com/yossi-weinberger/ten10/pull/565) נפתח מול `feat/ai-intake`. רכיבי AI Elements ל־Tailwind 3, עדיין לא בשימוש במגירה. לא ל־`main`. הצעד הבא: UI-3 אחרי המיזוג.
