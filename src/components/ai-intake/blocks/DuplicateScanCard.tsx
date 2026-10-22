@@ -130,14 +130,19 @@ function ScanSide({
       {interactive && confirming ? (
         <ItemFooter>
           <Alert variant="destructive">
-            <CircleAlert className="size-4" aria-hidden />
-            <AlertDescription className="flex flex-wrap gap-2">
-              <Button type="button" variant="destructive" size="sm" className="w-fit" onClick={() => onConfirmDelete(side.id)}>
-                {t("aiIntake.duplicateConfirm")}
-              </Button>
-              <Button type="button" variant="outline" size="sm" className="w-fit" onClick={onCancelDelete}>
-                {t("aiIntake.duplicateCancel")}
-              </Button>
+            <AlertDescription className="flex flex-col items-start gap-2">
+              <span className="flex items-center gap-2">
+                <CircleAlert className="size-4 shrink-0" aria-hidden />
+                {t("aiIntake.duplicateConfirmBody")}
+              </span>
+              <span className="flex flex-wrap gap-2">
+                <Button type="button" variant="destructive" size="sm" className="w-fit" onClick={() => onConfirmDelete(side.id)}>
+                  {t("aiIntake.duplicateConfirm")}
+                </Button>
+                <Button type="button" variant="outline" size="sm" className="w-fit" onClick={onCancelDelete}>
+                  {t("aiIntake.duplicateCancel")}
+                </Button>
+              </span>
             </AlertDescription>
           </Alert>
         </ItemFooter>

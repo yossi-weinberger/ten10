@@ -81,6 +81,7 @@
     "duplicateNot": "לא כפול",
     "duplicateDelete": "מחק את זו",
     "duplicateConfirm": "לאשר מחיקה",
+    "duplicateConfirmBody": "למחוק את התנועה הזו?",
     "askAmount": "כמה?",
     "continue": "המשך",
     "askRule": "למה הכוונה?",

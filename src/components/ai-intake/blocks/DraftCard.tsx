@@ -13,11 +13,15 @@ import { Spinner } from "@/components/ui/spinner";
 import { isIsoDate } from "@/lib/ai/receipt-card";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import { normalizeToBaseType } from "@/lib/data-layer/transactionForm.service";
-import type { CurrencyCode } from "@/lib/currencies";
+import { CURRENCIES, type CurrencyCode } from "@/lib/currencies";
 import { formatCurrency } from "@/lib/utils/currency";
 import { formatLocalDate, parseLocalDate } from "@/lib/utils/local-date";
 import { isOnOrAfterMinTransactionDate, minTransactionDateLocal } from "@/lib/utils/transaction-date";
 import { BASE_TYPE_ICON, BASE_TYPE_TINT, type BaseTransactionType } from "@/components/forms/transaction-form-parts/transaction-type-visuals";
+
+function currencySymbol(code: string): string {
+  return CURRENCIES.find((item) => item.code === code)?.symbol ?? code;
+}
 import type { DraftView } from "../assistant-reply-view";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
 
@@ -101,11 +105,11 @@ export function DraftCard({
         <CardDescription>
             {draft.requestedRate === null
               ? t("aiIntake.draftSummary", {
-                currency: draft.currency,
+                currency: currencySymbol(draft.currency),
                 type: t(`aiIntake.types.${draft.type}`),
               })
               : t("aiIntake.draftMeta", {
-                currency: draft.currency,
+                currency: currencySymbol(draft.currency),
                 type: t(`aiIntake.types.${draft.type}`),
                 rate: draft.requestedRate,
               })}
@@ -124,7 +128,7 @@ export function DraftCard({
               onChange={(event) => onAmountChange(event.target.value)}
             />
             <InputGroupAddon align="inline-end">
-              <InputGroupText>{draft.currency}</InputGroupText>
+              <InputGroupText>{currencySymbol(draft.currency)}</InputGroupText>
             </InputGroupAddon>
           </InputGroup>
         </div>

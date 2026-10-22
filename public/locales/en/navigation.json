@@ -71,6 +71,7 @@
     "duplicateNot": "Not a duplicate",
     "duplicateDelete": "Delete this one",
     "duplicateConfirm": "Confirm delete",
+    "duplicateConfirmBody": "Delete this transaction?",
     "askAmount": "How much?",
     "continue": "Continue",
     "askRule": "Which meaning?",

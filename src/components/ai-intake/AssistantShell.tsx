@@ -1,7 +1,7 @@
 import type { ReactNode, RefObject } from "react";
-import { Sparkles, X } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -48,32 +48,24 @@ function Frame({
   title,
   description,
   headerActions,
-  onClose,
+  reserveClose,
   children,
   footer,
 }: {
   title: string;
   description: string;
   headerActions?: ReactNode;
-  onClose?: () => void;
+  reserveClose: boolean;
   children: ReactNode;
   footer: ReactNode;
 }) {
-  const { t } = useTranslation();
   return (
     <div className="flex h-full min-h-0 flex-1 flex-col">
-      <div className="flex items-center gap-2 px-4 py-3">
-        <Sparkles className="size-4 text-primary" aria-hidden />
-        <p className="text-base font-semibold">{title}</p>
+      <div className={cn("flex items-center gap-2 py-3 ps-4", reserveClose ? "pe-12" : "pe-4")}>
+        <Sparkles className="size-4 shrink-0 text-primary" aria-hidden />
+        <p className="min-w-0 flex-1 truncate text-base font-semibold">{title}</p>
         <p className="sr-only">{description}</p>
-        <div className="ms-auto flex items-center gap-1">
-          {headerActions}
-          {onClose ? (
-            <Button type="button" variant="ghost" size="icon-sm" aria-label={t("actions.close")} onClick={onClose}>
-              <X aria-hidden />
-            </Button>
-          ) : null}
-        </div>
+        <div className="flex shrink-0 items-center gap-1">{headerActions}</div>
       </div>
       <Separator />
       <div className="min-h-0 flex-1">{children}</div>
@@ -103,12 +95,12 @@ export function AssistantShell({
     return () => window.clearTimeout(timeoutId);
   }, [isSmallNow, open]);
 
-  const frame = (onClose?: () => void) => (
+  const frame = (reserveClose: boolean) => (
     <Frame
       title={title}
       description={description}
       headerActions={headerActions}
-      onClose={onClose}
+      reserveClose={reserveClose}
       footer={footer}
     >
       {children}
@@ -118,10 +110,10 @@ export function AssistantShell({
   if (useDrawer) {
     return (
       <Drawer open={open} onOpenChange={onOpenChange}>
-        <DrawerContent className="flex h-[92dvh] max-h-[92dvh] flex-col p-0">
+        <DrawerContent dir={i18n.dir()} className="flex h-[92dvh] max-h-[92dvh] flex-col p-0">
           <DrawerTitle className="sr-only">{title}</DrawerTitle>
           <DrawerDescription className="sr-only">{description}</DrawerDescription>
-          {frame()}
+          {frame(false)}
         </DrawerContent>
       </Drawer>
     );
@@ -131,13 +123,13 @@ export function AssistantShell({
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent
-          hideClose
+          dir={i18n.dir()}
           side={i18n.dir() === "rtl" ? "left" : "right"}
           className="flex w-full flex-col gap-0 p-0 sm:max-w-md"
         >
           <SheetTitle className="sr-only">{title}</SheetTitle>
           <SheetDescription className="sr-only">{description}</SheetDescription>
-          {frame(() => onOpenChange(false))}
+          {frame(true)}
         </SheetContent>
       </Sheet>
     );
@@ -146,7 +138,7 @@ export function AssistantShell({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        hideClose
+        dir={i18n.dir()}
         className="flex h-[min(85dvh,48rem)] max-w-2xl flex-col gap-0 p-0"
         onOpenAutoFocus={(event) => {
           event.preventDefault();
@@ -155,7 +147,7 @@ export function AssistantShell({
       >
         <DialogTitle className="sr-only">{title}</DialogTitle>
         <DialogDescription className="sr-only">{description}</DialogDescription>
-        {frame(() => onOpenChange(false))}
+        {frame(true)}
       </DialogContent>
     </Dialog>
   );
