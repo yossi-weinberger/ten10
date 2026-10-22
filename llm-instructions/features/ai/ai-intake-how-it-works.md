@@ -1,6 +1,6 @@
 # איך עובד קליטת AI ב-Ten10 (מה שקיים עכשיו)
 
-מסמך זה מתאר את מה שכבר בנוי על הענף `feat/ai-intake`. הוא לא מתאר צ'אט, מייל או WhatsApp, כי הם עדיין לא קיימים. התכנית המלאה לעתיד נמצאת ב-`docs/superpowers/specs/2026-10-18-ai-multichannel-design.md`. יומן העבודה נמצא ב-`docs/superpowers/plans/ai-progress.md`.
+מסמך זה מתאר את מה שכבר בנוי על הענף `feat/ai-intake`. הוא לא מתאר צ'אט, מייל או WhatsApp, כי הם עדיין לא קיימים. התכנית המלאה לעתיד נמצאת ב-`docs/superpowers/specs/2026-10-18-ai-multichannel-design.md`. יומן העבודה נמצא ב-`docs/superpowers/plans/ai-progress.md`. מספר ה־WhatsApp שנבחר, `055-289-3733`, רשום בסעיף 8.3 של התכנית וביומן. WhatsApp Business פתוח עליו. הערוץ עצמו לא נבנה.
 
 הייצור עדיין לא מכיל את הסכמה ואת פונקציית הרישום. הן רצות על מסד ה-testing בלבד.
 
