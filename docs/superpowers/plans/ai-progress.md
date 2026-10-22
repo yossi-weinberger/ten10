@@ -103,8 +103,8 @@
 | 87 | קבלה בתפריט רק כשהיא זמינה | DB על testing + UI | §4.6 | מוזג ל־`feat/ai-intake` | [#562](https://github.com/yossi-weinberger/ten10/pull/562) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
-| UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | PR פתוח | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
-| UI-4 | אותו קובץ | כרטיסי נתונים, כפילויות, כלל, הלכה | UI-3 | לא התחיל | `feat/ai-ui4-reply-cards` |
+| UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
+| UI-4 | אותו קובץ | כרטיסי נתונים, כפילויות, כלל, הלכה | UI-3 | בעבודה | `feat/ai-ui4-reply-cards` |
 | UI-5 | אותו קובץ | תנועה ורגעי wow | UI-4 | לא התחיל | `feat/ai-ui5-motion` |
 | UI-6 | אותו קובץ | QA, Playwright ותיעוד | UI-5 | לא התחיל | `feat/ai-ui6-qa-docs` |
 
@@ -299,3 +299,4 @@
 - **2026-10-22:** #565 מוזג ל־`feat/ai-intake`. לא ל־`main`. העוזר נבנה מחדש כשיחה על רכיבי ה־AI, עם היסטוריה, נעילה אחרי שמירה, וגלריית `/dev/assistant`. בחירת Dialog מול Sheet נשארת ל־Preview.
 - **2026-10-22:** [#566](https://github.com/yossi-weinberger/ten10/pull/566) נפתח מול `feat/ai-intake`. השיחה עצמה. לא ל־`main`. הצעד הבא: לבחור Dialog או Sheet על ה־Preview, ואז UI-4.
 - **2026-10-22:** תיקון QA ב־[#566](https://github.com/yossi-weinberger/ten10/pull/566): סבב מהיר לא דורס הודעה קודמת, שאלת נתונים מראה «מחשב…» וחוסמת שליחה עד התשובה, טיוטה בלי שער לא כותבת «שער אין», כפתור הסגירה מתורגם, וכפתור «בטל» לא נמתח. לא ל־`main`. הצעד הבא: מיזוג כשה־CI ירוק, ואז UI-4.
+- **2026-10-22:** #566 מוזג ל־`feat/ai-intake`. לא ל־`main`. UI-4 מעצב את תשובת הנתונים, סריקת הכפילויות, כרטיס הכלל וציטוט ההלכה, בלי שינוי ב־handlers.

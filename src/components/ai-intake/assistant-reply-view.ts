@@ -32,6 +32,12 @@ export const STATUS_MESSAGES = {
   voiceDenied: { key: "aiIntake.voiceDenied", tone: "error" },
   voiceTooLong: { key: "aiIntake.voiceTooLong", tone: "error" },
   voiceUnheard: { key: "aiIntake.voiceUnheard", tone: "error" },
+  dataUnsupported: { key: "aiIntake.dataUnsupported", tone: "info" },
+  dataMixed: { key: "aiIntake.dataMixed", tone: "info" },
+  dataFailed: { key: "aiIntake.dataFailed", tone: "error" },
+  duplicateScanFailed: { key: "aiIntake.duplicateScanFailed", tone: "error" },
+  duplicateScanEmpty: { key: "aiIntake.duplicateScanEmpty", tone: "success" },
+  duplicateActionFailed: { key: "aiIntake.duplicateActionFailed", tone: "error" },
 } as const satisfies Record<string, { key: string; ns?: string; tone: StatusTone }>;
 
 export type StatusKey = keyof typeof STATUS_MESSAGES;
