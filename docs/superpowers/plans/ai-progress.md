@@ -103,6 +103,7 @@
 | 87 | קבלה בתפריט רק כשהיא זמינה | DB על testing + UI | §4.6 | מוזג ל־`feat/ai-intake` | [#562](https://github.com/yossi-weinberger/ten10/pull/562) |
 | 88 | מדידת holdout לחריצי השאלה | Edge | §9.9 | מוזג ל־`feat/ai-intake` | [#569](https://github.com/yossi-weinberger/ten10/pull/569) |
 | 89 | הוראת קבע וודאות החריצים | DB על testing + Edge | §9.9 | נפתח | [#570](https://github.com/yossi-weinberger/ten10/pull/570) |
+| 92 | allowlist אחד ב־SQL | DB על testing | §22.1 | נפתח | `feat/ai-pr97-trial-user` |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
@@ -125,7 +126,7 @@
 
 - [ ] לשנות את חותמת הזמן של **כל** מיגרציות ה־AI (`supabase/migrations/*_ai_*.sql`) לתאריכים אחרי המיגרציה האחרונה ב־`main` באותו רגע, באותו סדר.
 - [ ] לפני המיזוג: אישור לניסוח הפרטיות והתנאים. הם עולים לפרודקשן גם כשה־AI כבוי.
-- [ ] לפני ההשקה: להחליף את ה־allowlist הקשיח ב־`20261021133000_ai_receipt_artifact_guards.sql`. היום הוא מסונכרן עם `trial-users.ts`.
+- [ ] לפני ההשקה: להחליף את גוף `ai.is_trial_user` ואת `trial-users.ts`.
 - [ ] לפני ההשקה: לפרט במדיניות הפרטיות את ספקי ה־AI.
 - [ ] לעדכן את קבצי ה־rollback המקבילים: `20261019020000_ai_schema_foundation_down.sql`, `20261020140000_ai_question_recipient_down.sql`, `20261020150000_ai_duplicate_actions_down.sql`.
 - [ ] על testing בלבד: `supabase migration list`, ואז `supabase migration repair` כך שההיסטוריה תתאים לשמות החדשים.
@@ -357,3 +358,4 @@
 
 נשארו שתי שגיאות בוודאות. `he-009`: הקטגוריה «תרופות» נבחרה מתוך שם הנמען. אין השפעה על התשובה, כי שאלה על תרומה מתעלמת מקטגוריה. `he-033`: «הוראת קבע» נבחרה כהעברה בנקאית. זה התיקון היחיד בהנחיות: «הוראת קבע» לבד היא `none`. לא מתקנים «קטגוריה בתוך שם הנמען», ולא «בלי מילה מפורשת המשפחה ריקה», ולא «מילה קרובה אינה בחירה». אין סט סינתטי חדש. המדידה הבאה היא שימוש אמיתי של משתמשי הבדיקה, עם `quality_signals.slot_confidence` לכל שדה.
 - **2026-10-23:** [#570](https://github.com/yossi-weinberger/ten10/pull/570) נפתח מול `feat/ai-intake`. #569 מוזג ל־`feat/ai-intake`. «הוראת קבע» לבד בהנחיות היא `none`. ודאות החריצים של שאלת נתונים נשמרת ב־`quality_signals.slot_confidence`, בלי המשפט, רק למשתמשי הניסוי. על testing הוחלה `20261023010000` והחותמת יושרה. לא ל־`main`.
+- **2026-10-23:** רשימת משתמשי הניסוי ב־SQL יושבת ב־`ai.is_trial_user`. רישום קבלה וודאות חריצים קוראים לה. `trial-users.ts` נשאר ל־Edge, והבדיקה ב־`scripts` משווה אותו לגוף הפונקציה. על testing הוחלה `20261023030000` והחותמת יושרה. לא ל־`main`.
