@@ -133,7 +133,8 @@ function cleanDescription(original: string): string {
     new RegExp(`ב\\s*[-–]?\\s*\\d+(?:[.,]\\d+)?(?:\\s*(?:${currencyWords}))?`, "gi"),
     new RegExp(`\\d+(?:[.,]\\d+)?\\s*ל?\\s*(?:${currencyWords})`, "gi"),
     new RegExp(`for\\s+\\d+(?:[.,]\\d+)?(?:\\s*(?:${currencyWords}))?`, "gi"),
-    new RegExp(`(?:^|\\s)[למבוהכ]?(?:${verbs})(?=\\s|$)`, "gi"),
+    new RegExp(`(?:^|\\s)[למבוהכ]?(?:${verbs})(?=[\\s,.]|$)`, "gi"),
+    new RegExp(`(?:^|\\s)(?:\\d+(?:,\\d{3})+(?:\\.\\d+)?|\\d+(?:[.,]\\d+)?)(?=[\\s,.]|$)`, "gi"),
     new RegExp(dates, "gi"),
     new RegExp(payments, "gi"),
   ];

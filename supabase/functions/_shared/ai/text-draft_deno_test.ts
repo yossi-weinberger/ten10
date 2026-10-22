@@ -78,6 +78,14 @@ Deno.test("an English sentence keeps the purchase, not the command", () => {
   assert(draft?.currency === "ILS", "shekels");
 });
 
+Deno.test("a comma after the verb and a bare amount leave the description", () => {
+  const comma = draftFromText("קניתי, לחם 20", TODAY);
+  assert(comma?.type === "expense", "bought");
+  assert(comma?.amount === 20, "amount");
+  assert(comma?.description === "לחם", "verb and comma leave");
+  assert(draftFromText("קניתי לחם 20", TODAY)?.description === "לחם", "bare amount leaves");
+});
+
 Deno.test("a donation to charity does not keep the prefix letter", () => {
   const draft = draftFromText("תרמתי לצדקה 100", TODAY);
   assert(draft?.type === "donation", "donation");
