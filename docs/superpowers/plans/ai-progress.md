@@ -93,10 +93,10 @@
 | 77 | קישור קצר לקבלה מהטבלה | DB על testing + Edge + UI | §4.6 | מוזג ל־`feat/ai-intake` | [#548](https://github.com/yossi-weinberger/ten10/pull/548) |
 | 78 | Share Target לקובץ קבלה | UI, Web בלבד | §8.1 | מוזג ל־`feat/ai-intake` | [#549](https://github.com/yossi-weinberger/ten10/pull/549) |
 | 79 | Share Target לטקסט | UI, Web בלבד | §8.1 | מוזג ל־`feat/ai-intake` | [#550](https://github.com/yossi-weinberger/ten10/pull/550) |
-| 80 | Share Target ב־TWA | Android | §8.1 | נפתח | [#555](https://github.com/yossi-weinberger/ten10/pull/555) |
+| 80 | Share Target ב־TWA | Android | §8.1 | מוזג ל־`feat/ai-intake` | [#555](https://github.com/yossi-weinberger/ten10/pull/555) |
 | 81 | תווית עברית לקטגוריה ב־Jev | Edge | §9.9 | מוזג ל־`feat/ai-intake` | [#551](https://github.com/yossi-weinberger/ten10/pull/551) |
 | 82 | תשובה שמציגה את מה שהובן | UI | §9.9 | מוזג ל־`feat/ai-intake` | [#552](https://github.com/yossi-weinberger/ten10/pull/552) |
-| 83 | רשימות חריצים בתוך קובץ ה־eval | Edge | §9.9 | נפתח | [#554](https://github.com/yossi-weinberger/ten10/pull/554) |
+| 83 | רשימות חריצים בתוך קובץ ה־eval | Edge | §9.9 | מוזג ל־`feat/ai-intake` | [#554](https://github.com/yossi-weinberger/ten10/pull/554) |
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -270,3 +270,4 @@
 - **2026-10-22:** [#552](https://github.com/yossi-weinberger/ten10/pull/552) נפתח מול `feat/ai-intake`. תשובת השאלה מציגה נמען בתוך המשפט, קטגוריה לפי התווית שלה, ואמצעי תשלום כמו קודם. גם בזוגי וגם כשאין תנועות. לא ל־`main`.
 - **2026-10-22:** [#553](https://github.com/yossi-weinberger/ten10/pull/553) נפתח מול `feat/ai-intake`. צ'קליסט המיזוג ל־`main` בלי מספר קבצים. לפני המיזוג נדרש אישור לניסוח הפרטיות והתנאים. לפני ההשקה: allowlist במקום הרשימה הקשיחה, ופירוט ספקי ה־AI במדיניות. לא ל־`main`.
 - **2026-10-22:** [#554](https://github.com/yossi-weinberger/ten10/pull/554) נפתח מול `feat/ai-intake`. רשימות הנמענים והקטגוריות של סט ה־inbox עברו לתוך הקובץ. הריצה קוראת אותן משם. סט ה־holdout מחכה למשפטים, וההנחיות לא כוונו לפיו. לא ל־`main`.
+- **2026-10-22:** #555 מוזג ל־`feat/ai-intake`. בניית Bubblewrap לא הורצה: אין `android.keystore` ואין את ה־CLI במדריך. לא ל־`main`.
