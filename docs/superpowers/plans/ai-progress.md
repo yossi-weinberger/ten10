@@ -101,7 +101,8 @@
 | 85 | Share Target רק ב־Preview | UI, Web בלבד | §8.1 | מוזג ל־`feat/ai-intake` | [#560](https://github.com/yossi-weinberger/ten10/pull/560) |
 | 86 | פתיחת קבלה ב־Safari | UI, Web בלבד | §4.6 | מוזג ל־`feat/ai-intake` | [#561](https://github.com/yossi-weinberger/ten10/pull/561) |
 | 87 | קבלה בתפריט רק כשהיא זמינה | DB על testing + UI | §4.6 | מוזג ל־`feat/ai-intake` | [#562](https://github.com/yossi-weinberger/ten10/pull/562) |
-| 88 | מדידת holdout לחריצי השאלה | Edge | §9.9 | נפתח | [#569](https://github.com/yossi-weinberger/ten10/pull/569) |
+| 88 | מדידת holdout לחריצי השאלה | Edge | §9.9 | מוזג ל־`feat/ai-intake` | [#569](https://github.com/yossi-weinberger/ten10/pull/569) |
+| 89 | הוראת קבע וודאות החריצים | DB על testing + Edge | §9.9 | נפתח | `feat/ai-pr94-slot-confidence` |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
@@ -355,3 +356,4 @@
 | payment_method | 59 | 0 | 1 |
 
 נשארו שתי שגיאות בוודאות. `he-009`: הקטגוריה «תרופות» נבחרה מתוך שם הנמען. אין השפעה על התשובה, כי שאלה על תרומה מתעלמת מקטגוריה. `he-033`: «הוראת קבע» נבחרה כהעברה בנקאית. זה התיקון היחיד בהנחיות: «הוראת קבע» לבד היא `none`. לא מתקנים «קטגוריה בתוך שם הנמען», ולא «בלי מילה מפורשת המשפחה ריקה», ולא «מילה קרובה אינה בחירה». אין סט סינתטי חדש. המדידה הבאה היא שימוש אמיתי של משתמשי הבדיקה, עם `quality_signals.slot_confidence` לכל שדה.
+- **2026-10-23:** #569 מוזג ל־`feat/ai-intake`. «הוראת קבע» לבד בהנחיות היא `none`. ודאות החריצים של שאלת נתונים נשמרת ב־`quality_signals.slot_confidence`, בלי המשפט, רק למשתמשי הניסוי. על testing הוחלה `20261023010000` והחותמת יושרה. לא ל־`main`.

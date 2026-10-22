@@ -8,6 +8,7 @@ import {
   buildQuestionSlotBody,
   predefinedQuestionCategories,
   readQuestionSlots,
+  slotConfidence,
 } from "../_shared/ai/question-slots.ts";
 
 const CATEGORY_TYPES = ["income", "exempt-income", "expense", "recognized-expense"] as const;
@@ -82,7 +83,13 @@ Deno.serve(async (req: Request) => {
       logger.error(`jev question slots failed: ${response.status}`);
       return json(origin, { reason: "unavailable" }, 200);
     }
-    const slots = readQuestionSlots(await response.json(), lists);
+    const payload = await response.json();
+    const confidence = slotConfidence(payload);
+    if (confidence) {
+      const saved = await userClient.rpc("record_ai_slot_confidence", { p_signals: confidence });
+      if (saved.error) logger.error("slot confidence was not saved");
+    }
+    const slots = readQuestionSlots(payload, lists);
     if (!slots) return json(origin, { reason: "unavailable" }, 200);
     return json(origin, slots, 200);
   } catch {
