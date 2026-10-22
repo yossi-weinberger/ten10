@@ -117,6 +117,20 @@ beforeEach(() => {
 afterEach(() => cleanup());
 
 describe("AssistantDrawer characterization", () => {
+  it("keeps new chat beside a single close button", () => {
+    setup();
+    expect(screen.getByRole("button", { name: "aiIntake.newChat" })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "actions.close" })).toHaveLength(1);
+  });
+
+  it("shows a published halacha page when the classifier says out of scope", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({ ok: true, intent: "out_of_scope", confidence: 0.95 });
+    const user = setup();
+    await send(user, "האם מעשרות משכורת הן מהברוטו או מהנטו?");
+    expect(await screen.findByText("introduction.body")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.intents.out_of_scope")).not.toBeInTheDocument();
+  });
+
   it("renders nothing outside web", () => {
     ai.platform.value = "desktop";
     render(<AssistantDrawer open onOpenChange={vi.fn()} receiveRef={receiveRef} />);

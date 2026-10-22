@@ -8,9 +8,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   applyForwardRule,
   clarificationField,
-  fallbackIntent,
-  intentIsConfident,
-  isBareCapabilityQuestion,
   draftFromText,
   questionFromSlots,
   type QuestionSlots,
@@ -60,6 +57,7 @@ import {
   type StatusKey,
   type UserTurn,
 } from "./assistant-reply-view";
+import { shownIntent } from "./assistant-shown-intent";
 
 export interface AssistantDrawerHandle {
   receive(file: File): void;
@@ -602,12 +600,8 @@ export function AssistantDrawer({
     if (requestRef.current !== request) return;
     setIntentConfidence(decided.ok ? decided.confidence : null);
     setChecking(false);
-    const jevIsConfident = decided.ok && decided.intent !== null && intentIsConfident(decided.confidence);
-    if (!jevIsConfident && isBareCapabilityQuestion(source)) {
-      showIntent(source, today, "help");
-      return;
-    }
-    if (decided.ok && decided.intent && !intentIsConfident(decided.confidence)) {
+    const next = shownIntent(source, today, decided);
+    if (next === "ask") {
       setAskIntent(true);
       setIntent(null);
       setReceiptFields(null);
@@ -622,15 +616,7 @@ export function AssistantDrawer({
       setSavedItemId(null);
       return;
     }
-    let nextIntent: IntakeIntent = fallbackIntent(source, today);
-    if (decided.ok && decided.intent) {
-      const page = decided.intent === "domain_adjacent" ? selectHalachaPage(source) : null;
-      const rule = decided.intent === "create_rule" ? parseUserRule(source) : null;
-      if (decided.intent === "domain_adjacent" && !page) nextIntent = "out_of_scope";
-      else if (decided.intent === "create_rule" && !rule) nextIntent = "out_of_scope";
-      else nextIntent = decided.intent;
-    }
-    showIntent(source, today, nextIntent);
+    showIntent(source, today, next);
   }
 
   function handleChooseIntent(nextIntent: IntakeIntent) {
@@ -801,10 +787,14 @@ export function AssistantDrawer({
           value={text}
           onChange={setText}
           textareaRef={textareaRef}
-          busy={
+          busyLabel={
             checking
-            || (intent === "ask_data" && dataReply === null && !askIntent)
-            || duplicateScan?.status === "pending"
+              ? t("aiIntake.checking")
+              : duplicateScan?.status === "pending"
+                ? t("aiIntake.duplicateScanPending")
+                : intent === "ask_data" && dataReply === null && !askIntent
+                  ? t("aiIntake.calculating")
+                  : undefined
           }
           recording={recording}
           mode={clarification === "amount" ? "amount" : "message"}

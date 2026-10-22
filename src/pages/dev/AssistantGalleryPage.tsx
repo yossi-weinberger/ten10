@@ -80,7 +80,6 @@ export function AssistantGalleryPage() {
                   onSubmit={noop}
                   onReceipt={noop}
                   onToggleVoice={noop}
-                  busy={false}
                   recording={false}
                   mode={scenario.id === "amount" ? "amount" : "message"}
                   textareaRef={{ current: null }}

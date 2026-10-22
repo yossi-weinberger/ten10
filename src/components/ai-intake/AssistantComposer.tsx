@@ -1,6 +1,7 @@
 import { type FormEvent, type KeyboardEvent, type RefObject, useRef } from "react";
 import { ArrowUp, Mic, Paperclip, Square } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { Spinner } from "@/components/ui/spinner";
 import {
   InputGroup,
   InputGroupAddon,
@@ -14,7 +15,7 @@ interface AssistantComposerProps {
   onSubmit: () => void;
   onReceipt: (file: File | undefined) => void;
   onToggleVoice: () => void;
-  busy: boolean;
+  busyLabel?: string;
   recording: boolean;
   mode: "message" | "amount";
   textareaRef: RefObject<HTMLTextAreaElement | null>;
@@ -26,7 +27,7 @@ export function AssistantComposer({
   onSubmit,
   onReceipt,
   onToggleVoice,
-  busy,
+  busyLabel,
   recording,
   mode,
   textareaRef,
@@ -34,6 +35,7 @@ export function AssistantComposer({
   const { t } = useTranslation("navigation");
   const fileRef = useRef<HTMLInputElement | null>(null);
   const label = t(mode === "amount" ? "aiIntake.askAmount" : "aiIntake.placeholder");
+  const busy = Boolean(busyLabel);
   const canSend = value.trim().length > 0 && !busy && !recording;
 
   function submit(event?: FormEvent) {
@@ -51,6 +53,12 @@ export function AssistantComposer({
 
   return (
     <form onSubmit={submit}>
+      {busyLabel ? (
+        <p role="status" className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
+          <Spinner />
+          {busyLabel}
+        </p>
+      ) : null}
       <input
         ref={fileRef}
         type="file"
@@ -105,7 +113,7 @@ export function AssistantComposer({
             aria-label={t("aiIntake.send")}
             disabled={!canSend}
           >
-            <ArrowUp aria-hidden />
+            {busy ? <Spinner /> : <ArrowUp aria-hidden />}
           </InputGroupButton>
         </InputGroupAddon>
       </InputGroup>
