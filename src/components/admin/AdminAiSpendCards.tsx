@@ -15,7 +15,7 @@ function modelTitle(model: string): string {
   if (model.startsWith("typesafe-ai/jev")) return "Jev";
   if (model.startsWith("microsoft/")) return "Microsoft";
   const name = model.split("/")[1] ?? model;
-  return name.replaceAll("-", " ");
+  return name.split("-").join(" ");
 }
 
 function ModelMark({ model }: { model: string }) {
