@@ -613,7 +613,7 @@ Potential future additions:
 
 ## AI tab
 
-`get_admin_ai_stats(p_from, p_to)` returns seven-day counts from schema `ai`: draft statuses, message kinds, `origin`, linked receipts, artifacts, active rules, question outcomes, and per-user counts with email. No message text and no transaction amounts. `get-ai-admin-spend` checks `admin_emails`, then reads the Vercel AI Gateway spend report. The gateway key stays in the Edge secret. The card says the total still mixes product use and measurement runs. A failed spend request leaves the counts on screen, and a failed counts request leaves the spend card on screen.
+`get_admin_ai_stats(p_from, p_to)` returns counts for the selected UTC range from schema `ai`: draft statuses, message kinds, `origin`, linked receipts, artifacts, active rules, question outcomes, time buckets, and per-user counts with email. `first_on` is the earliest row in schema `ai` and is what the All control uses. Bucket grain is day through 62 days, week through 366, then month. Week buckets start on Monday UTC. No message text and no transaction amounts. `get-ai-admin-spend` calls `is_admin_user()` with the user JWT, then reads the Vercel AI Gateway spend report for the same `from` and `to`. The gateway `day` field is a UTC date; a live report for 2026-10-21 returned `day: "2026-10-21"`. The gateway key stays in the Edge secret. `mixed` is true only when the range starts before 2026-10-23, the first day calls send `source:app` or `source:eval`. A failed spend request leaves the counts on screen, and a failed counts request leaves the spend card on screen. Cost per saved transaction stays hidden until the range is tagged and `source:app` has spend.
 
 ## Related Documentation
 

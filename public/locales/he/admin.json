@@ -30,10 +30,29 @@
     "originAuto": "תנועות AI אוטומטיות",
     "drafts": "טיוטות",
     "user": "משתמש",
-    "spendTitle": "עלות השער, 7 ימים",
-    "spendMixed": "הסכום מערבב משתמשים וריצות מדידה. אין עדיין פיצול לפי משתמש.",
+    "spendTitle": "עלות השער",
+    "spendMixed": "הטווח כולל ימים שלפני התיוג, ולכן שימוש ומדידה עדיין מעורבבים.",
+    "spendSplit": "אפליקציה {{app}}. ריצות מדידה {{eval}}.",
     "spendUnavailable": "דוח העלות לא זמין.",
-    "loadFailed": "טעינת נתוני ה-AI נכשלה"
+    "loadFailed": "טעינת נתוני ה-AI נכשלה",
+    "utc": "ימים לפי UTC",
+    "noData": "אין נתונים בטווח הזה.",
+    "chartActivity": "פעילות לאורך זמן",
+    "chartInput": "סוג קלט לאורך זמן",
+    "chartCost": "עלות לאורך זמן לפי מודל",
+    "chartPerSave": "עלות לתנועה שנשמרה",
+    "chartOutcomes": "תוצאות שאלות הנתונים",
+    "requests": "בקשות",
+    "inputText": "טקסט",
+    "inputReceipt": "קבלה",
+    "inputSpeech": "קול",
+    "outcomes": {
+      "asked_family": "שאלה על המשפחה",
+      "searched_description": "חיפוש בתיאור",
+      "asked_again": "שאלה נוספת",
+      "answered": "נשאר עם המספר",
+      "none": "בלי תוצאה"
+    }
   },
   "posthog": {
     "title": "אנליטיקת מוצר (PostHog)",

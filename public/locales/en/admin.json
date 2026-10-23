@@ -30,10 +30,29 @@
     "originAuto": "Automatic AI transactions",
     "drafts": "Drafts",
     "user": "User",
-    "spendTitle": "Gateway cost, 7 days",
-    "spendMixed": "The total mixes users and measurement runs. It is not split by user yet.",
+    "spendTitle": "Gateway cost",
+    "spendMixed": "This range includes days before calls were tagged, so app use and measurement runs are still mixed.",
+    "spendSplit": "App {{app}}. Measurement runs {{eval}}.",
     "spendUnavailable": "The cost report is unavailable.",
-    "loadFailed": "AI stats failed to load"
+    "loadFailed": "AI stats failed to load",
+    "utc": "Days are UTC",
+    "noData": "No data in this range.",
+    "chartActivity": "Activity over time",
+    "chartInput": "Input type over time",
+    "chartCost": "Cost over time by model",
+    "chartPerSave": "Cost per saved transaction",
+    "chartOutcomes": "Data question outcomes",
+    "requests": "Requests",
+    "inputText": "Text",
+    "inputReceipt": "Receipt",
+    "inputSpeech": "Speech",
+    "outcomes": {
+      "asked_family": "Asked which family",
+      "searched_description": "Searched the description",
+      "asked_again": "Asked again",
+      "answered": "Kept the number",
+      "none": "No outcome"
+    }
   },
   "posthog": {
     "title": "Product analytics (PostHog)",

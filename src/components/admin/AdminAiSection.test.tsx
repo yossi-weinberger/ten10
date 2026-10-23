@@ -15,6 +15,21 @@ vi.mock("@/lib/data-layer/aiAdmin.service", () => ({
   fetchAdminAiSpend: () => fetchAdminAiSpend(),
 }));
 
+vi.mock("@/hooks/useDateControls", () => ({
+  useDateControls: () => ({
+    dateRangeSelection: "month",
+    setDateRangeSelection: () => undefined,
+    activeDateRangeObject: { startDate: "2026-10-01", endDate: "2026-10-23", label: "month" },
+    dateRangeLabels: { month: "month", year: "year", all: "all", custom: "custom" },
+    customDateRange: undefined,
+    setCustomDateRange: () => undefined,
+  }),
+}));
+
+vi.mock("@/components/ui/date-range-picker", () => ({
+  DatePickerWithRange: () => <button type="button">custom</button>,
+}));
+
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
@@ -25,6 +40,8 @@ vi.mock("react-i18next", () => ({
 const counts: AdminAiCounts = {
   from: "2026-10-17",
   to: "2026-10-23",
+  grain: "day",
+  first_on: "2026-10-16",
   drafts: { ready: 0, needs_review: 0, approved: 0, rejected: 1, committed: 7, reverted: 0 },
   messages_by_kind: {},
   origins: { ai: 2, ai_auto: 0 },
@@ -33,16 +50,21 @@ const counts: AdminAiCounts = {
   rules_active: 0,
   questions: 3,
   question_outcomes: {},
+  buckets: [],
   users: [],
 };
 
 const spend: AdminAiSpend = {
   available: true,
   mixed: true,
+  grain: "day",
   models: [
     { label: "anthropic/claude-sonnet-5", totalCost: 0.123, requestCount: 4, inputTokens: 1, outputTokens: 1 },
   ],
   days: [],
+  modelBuckets: [],
+  appBuckets: null,
+  sources: { app: 0, eval: 0 },
 };
 
 describe("AdminAiSection", () => {
