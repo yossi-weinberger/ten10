@@ -611,6 +611,10 @@ Potential future additions:
 - Check `beforeLoad` logic in routes.ts
 - Ensure `__TAURI_INTERNALS__` detection works
 
+## AI tab
+
+`get_admin_ai_stats(p_from, p_to)` returns seven-day counts from schema `ai`: draft statuses, message kinds, `origin`, linked receipts, artifacts, active rules, question outcomes, and per-user counts with email. No message text and no transaction amounts. `get-ai-admin-spend` checks `admin_emails`, then reads the Vercel AI Gateway spend report. The gateway key stays in the Edge secret. The card says the total still mixes product use and measurement runs.
+
 ## Related Documentation
 
 - [Supabase Integration Status](../backend/supabase-integration-status.md)

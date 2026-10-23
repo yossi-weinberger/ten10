@@ -13,7 +13,27 @@
     "monitoring": "ניטור",
     "monitoringShort": "ניטור",
     "posthog": "PostHog",
-    "posthogShort": "PH"
+    "posthogShort": "PH",
+    "ai": "AI",
+    "aiShort": "AI"
+  },
+  "ai": {
+    "title": "שימוש ב-AI",
+    "range": "{{from}} עד {{to}}. כמויות בלבד, בלי משפטים ובלי סכומי תנועות.",
+    "committed": "נשמרו",
+    "rejected": "נדחו",
+    "reverted": "בוטלו",
+    "questions": "שאלות",
+    "receipts": "קבלות מקושרות",
+    "rules": "כללים פעילים",
+    "originAi": "תנועות AI",
+    "originAuto": "תנועות AI אוטומטיות",
+    "drafts": "טיוטות",
+    "user": "משתמש",
+    "spendTitle": "עלות השער, 7 ימים",
+    "spendMixed": "הסכום מערבב משתמשים וריצות מדידה. אין עדיין פיצול לפי משתמש.",
+    "spendUnavailable": "דוח העלות לא זמין.",
+    "loadFailed": "טעינת נתוני ה-AI נכשלה"
   },
   "posthog": {
     "title": "אנליטיקת מוצר (PostHog)",

@@ -13,7 +13,27 @@
     "monitoring": "Monitoring",
     "monitoringShort": "Monitor",
     "posthog": "PostHog",
-    "posthogShort": "PH"
+    "posthogShort": "PH",
+    "ai": "AI",
+    "aiShort": "AI"
+  },
+  "ai": {
+    "title": "AI usage",
+    "range": "{{from}} to {{to}}. Counts only, with no sentences and no transaction amounts.",
+    "committed": "Saved",
+    "rejected": "Rejected",
+    "reverted": "Undone",
+    "questions": "Questions",
+    "receipts": "Linked receipts",
+    "rules": "Active rules",
+    "originAi": "AI transactions",
+    "originAuto": "Automatic AI transactions",
+    "drafts": "Drafts",
+    "user": "User",
+    "spendTitle": "Gateway cost, 7 days",
+    "spendMixed": "The total mixes users and measurement runs. It is not split by user yet.",
+    "spendUnavailable": "The cost report is unavailable.",
+    "loadFailed": "AI stats failed to load"
   },
   "posthog": {
     "title": "Product analytics (PostHog)",
