@@ -1,12 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Calendar as CalendarIcon, Sparkles } from "lucide-react";
+import { Calendar as CalendarIcon, Check, FileText, Image, MessageSquare, MessagesSquare, Mic, Sparkles, Undo2, Wallet, X, Zap } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminAiCharts } from "@/components/admin/AdminAiCharts";
+import { AdminAiSourceSplit, AdminAiSpendCards } from "@/components/admin/AdminAiSpendCards";
 import { AdminMetricCard } from "@/components/admin/AdminMetricCard";
+import { MetricWithTooltip } from "@/components/admin/monitoring/AdminMonitoringComponents";
 import { useDateControls, type DateRangeSelectionType } from "@/hooks/useDateControls";
 import {
   fetchAdminAiCounts,
@@ -15,8 +17,20 @@ import {
   type AdminAiSpend,
 } from "@/lib/data-layer/aiAdmin.service";
 
-function money(value: number): string {
-  return `$${value.toFixed(3)}`;
+function kindCount(counts: AdminAiCounts, kind: string): number {
+  return Number(counts.messages_by_kind[kind] ?? 0);
+}
+
+function CountGroup({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
+  return (
+    <section className="space-y-3">
+      <div>
+        <h3 className="text-lg font-medium">{title}</h3>
+        <p className="text-sm text-muted-foreground">{hint}</p>
+      </div>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{children}</div>
+    </section>
+  );
 }
 
 export function AdminAiSection() {
@@ -127,15 +141,31 @@ export function AdminAiSection() {
         </div>
       </div>
       {countsCurrent && counts ? (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <AdminMetricCard title={t("ai.committed")} value={counts.drafts.committed} icon={Sparkles} />
-          <AdminMetricCard title={t("ai.rejected")} value={counts.drafts.rejected} icon={Sparkles} />
-          <AdminMetricCard title={t("ai.reverted")} value={counts.drafts.reverted} icon={Sparkles} />
-          <AdminMetricCard title={t("ai.questions")} value={counts.questions} icon={Sparkles} />
-          <AdminMetricCard title={t("ai.receipts")} value={counts.receipt_links} icon={Sparkles} />
-          <AdminMetricCard title={t("ai.rules")} value={counts.rules_active} icon={Sparkles} />
-          <AdminMetricCard title={t("ai.originAi")} value={counts.origins.ai} icon={Sparkles} />
-          <AdminMetricCard title={t("ai.originAuto")} value={counts.origins.ai_auto} icon={Sparkles} />
+        <div className="space-y-8">
+          <CountGroup title={t("ai.transactionsTitle")} hint={t("ai.transactionsHint")}>
+            <AdminMetricCard title={t("ai.originAi")} value={counts.origins.ai} icon={Wallet} tooltip={t("ai.tips.originAi")} />
+            <AdminMetricCard title={t("ai.originAuto")} value={counts.origins.ai_auto} icon={Zap} tooltip={t("ai.tips.originAuto")} />
+            <AdminMetricCard title={t("ai.committed")} value={counts.drafts.committed} icon={Check} tooltip={t("ai.tips.committed")} />
+            <AdminMetricCard title={t("ai.reverted")} value={counts.drafts.reverted} icon={Undo2} tooltip={t("ai.tips.reverted")} />
+            <AdminMetricCard title={t("ai.rejected")} value={counts.drafts.rejected} icon={X} tooltip={t("ai.tips.rejected")} />
+          </CountGroup>
+          <CountGroup title={t("ai.messagesTitle")} hint={t("ai.messagesHint")}>
+            <AdminMetricCard
+              title={t("ai.messagesTotal")}
+              value={Object.values(counts.messages_by_kind).reduce((sum, count) => sum + Number(count), 0)}
+              icon={MessagesSquare}
+              tooltip={t("ai.tips.messagesTotal")}
+            />
+            <AdminMetricCard title={t("ai.inputText")} value={kindCount(counts, "text")} icon={MessageSquare} tooltip={t("ai.tips.inputText")} />
+            <AdminMetricCard title={t("ai.inputImage")} value={kindCount(counts, "image")} icon={Image} tooltip={t("ai.tips.inputImage")} />
+            <AdminMetricCard title={t("ai.inputPdf")} value={kindCount(counts, "pdf")} icon={FileText} tooltip={t("ai.tips.inputPdf")} />
+            <AdminMetricCard title={t("ai.inputSpeech")} value={kindCount(counts, "audio")} icon={Mic} tooltip={t("ai.tips.inputSpeech")} />
+          </CountGroup>
+          <CountGroup title={t("ai.otherTitle")} hint={t("ai.range", { from: counts.from, to: counts.to })}>
+            <AdminMetricCard title={t("ai.questions")} value={counts.questions} icon={Sparkles} tooltip={t("ai.tips.questions")} />
+            <AdminMetricCard title={t("ai.receipts")} value={counts.receipt_links} icon={FileText} tooltip={t("ai.tips.receipts")} />
+            <AdminMetricCard title={t("ai.rules")} value={counts.rules_active} icon={Check} tooltip={t("ai.tips.rules")} />
+          </CountGroup>
         </div>
       ) : countsCurrent && countsFailed ? (
         <Alert variant="destructive">
@@ -144,30 +174,30 @@ export function AdminAiSection() {
       ) : (
         <Skeleton className="h-40" />
       )}
-      <div>
+      <section className="space-y-3">
         <h3 className="text-lg font-medium">{t("ai.spendTitle")}</h3>
         {spendCurrent && spend?.available ? (
-          <p className="text-sm text-muted-foreground">
-            {spend.mixed ? t("ai.spendMixed") : t("ai.spendSplit", {
-              app: money(spend.sources.app),
-              eval: money(spend.sources.eval),
-            })}
-          </p>
-        ) : null}
-        {spendCurrent && spend?.available ? (
-          <ul className="mt-2 space-y-1 text-sm">
-            {spend.models.map((row) => (
-              <li key={row.label}>
-                {row.label}: {money(row.totalCost)} · {row.requestCount}
-              </li>
-            ))}
-          </ul>
+          <div className="space-y-3">
+            {spend.mixed ? (
+              <p className="text-sm text-muted-foreground">{t("ai.spendMixed")}</p>
+            ) : (
+              <AdminAiSourceSplit
+                app={spend.sources.app}
+                evalCost={spend.sources.eval}
+                appLabel={t("ai.spendApp")}
+                evalLabel={t("ai.spendEval")}
+                appTooltip={t("ai.tips.app")}
+                evalTooltip={t("ai.tips.eval")}
+              />
+            )}
+            <AdminAiSpendCards models={spend.models} requestsLabel={t("ai.requests")} />
+          </div>
         ) : spendCurrent ? (
-          <p className="mt-2 text-sm text-muted-foreground">{t("ai.spendUnavailable")}</p>
+          <p className="text-sm text-muted-foreground">{t("ai.spendUnavailable")}</p>
         ) : (
-          <Skeleton className="mt-2 h-8" />
+          <Skeleton className="h-24" />
         )}
-      </div>
+      </section>
       <AdminAiCharts counts={countsCurrent ? counts : null} spend={spendCurrent ? spend : null} />
       {countsCurrent && counts ? (
         <div className="overflow-x-auto">
@@ -175,9 +205,9 @@ export function AdminAiSection() {
             <thead>
               <tr className="text-start">
                 <th className="py-2">{t("ai.user")}</th>
-                <th>{t("ai.drafts")}</th>
-                <th>{t("ai.committed")}</th>
-                <th>{t("ai.questions")}</th>
+                <th><MetricWithTooltip label={t("ai.drafts")} tooltip={t("ai.tips.drafts")} /></th>
+                <th><MetricWithTooltip label={t("ai.committed")} tooltip={t("ai.tips.committed")} /></th>
+                <th><MetricWithTooltip label={t("ai.questions")} tooltip={t("ai.tips.questions")} /></th>
               </tr>
             </thead>
             <tbody>

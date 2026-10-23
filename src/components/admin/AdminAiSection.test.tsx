@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AdminAiCounts, AdminAiSpend } from "@/lib/data-layer/aiAdmin.service";
 import { AdminAiSection } from "@/components/admin/AdminAiSection";
 
@@ -68,6 +69,19 @@ const spend: AdminAiSpend = {
 };
 
 describe("AdminAiSection", () => {
+  beforeEach(() => {
+    window.matchMedia = (query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+      dispatchEvent: () => false,
+    });
+  });
+
   afterEach(() => {
     cleanup();
     fetchAdminAiCounts.mockReset();
@@ -78,7 +92,7 @@ describe("AdminAiSection", () => {
     fetchAdminAiCounts.mockResolvedValue(counts);
     fetchAdminAiSpend.mockRejectedValue(new Error("Failed to fetch"));
 
-    render(<AdminAiSection />);
+    render(<TooltipProvider><AdminAiSection /></TooltipProvider>);
 
     expect(await screen.findByText("7")).toBeTruthy();
     expect(screen.getByText("ai.spendUnavailable")).toBeTruthy();
@@ -89,9 +103,10 @@ describe("AdminAiSection", () => {
     fetchAdminAiCounts.mockRejectedValue(new Error("counts down"));
     fetchAdminAiSpend.mockResolvedValue(spend);
 
-    render(<AdminAiSection />);
+    render(<TooltipProvider><AdminAiSection /></TooltipProvider>);
 
-    expect(await screen.findByText("anthropic/claude-sonnet-5: $0.123 · 4")).toBeTruthy();
+    expect(await screen.findByText("Claude")).toBeTruthy();
+    expect(screen.getByText("$0.123")).toBeTruthy();
     expect(screen.getByText("ai.loadFailed")).toBeTruthy();
   });
 });
