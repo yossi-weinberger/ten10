@@ -27,7 +27,10 @@ for (const item of fixture.cases) {
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(gatewaySystemOneBody(buildQuestionSlotBody(item.text, fixture.lists))),
+    body: JSON.stringify(gatewaySystemOneBody(buildQuestionSlotBody(item.text, fixture.lists), {
+      source: "eval",
+      feature: "question_slots",
+    })),
     signal: AbortSignal.timeout(20000),
   });
   const payload = response.ok ? await response.json() : null;

@@ -1,16 +1,19 @@
+import { gatewayProviderOptions, type GatewayProviderOptions, type GatewayTagInput } from "./gateway-tags.ts";
+
 /** Jev Noul request for "same event". User ids stay out of the body. Amounts are included. */
 
 export const JEV_DUPLICATE_MODEL = "typesafe-ai/jev";
 export const JEV_SYSTEMONE_URL = "https://ai-gateway.vercel.sh/typesafe/v1/systemone";
 
-/** Gateway key on the testing Edge secrets. No fallback models. */
-export function gatewaySystemOneBody<T extends object>(body: T): T & {
-  providerOptions: { gateway: { zeroDataRetention: true } };
-} {
+/** Gateway key on the testing Edge secrets. No fallback models. Tags come from gateway-tags. */
+export function gatewaySystemOneBody<T extends object>(
+  body: T,
+  tags: GatewayTagInput,
+): T & { providerOptions: { gateway: GatewayProviderOptions } } {
   return {
     ...body,
     providerOptions: {
-      gateway: { zeroDataRetention: true },
+      gateway: gatewayProviderOptions(tags),
     },
   };
 }
