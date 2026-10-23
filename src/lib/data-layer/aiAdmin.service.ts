@@ -51,17 +51,22 @@ export async function fetchAdminAiCounts(): Promise<AdminAiCounts | null> {
 }
 
 export async function fetchAdminAiSpend(): Promise<AdminAiSpend | null> {
-  const { data: sessionData } = await supabase.auth.getSession();
-  const accessToken = sessionData?.session?.access_token;
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  if (!accessToken || !supabaseUrl) return null;
-  const response = await fetch(`${supabaseUrl}/functions/v1/get-ai-admin-spend`, {
-    method: "GET",
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  if (!response.ok) {
-    logger.error("Admin AI spend failed", response.status);
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!accessToken || !supabaseUrl) return null;
+    const response = await fetch(`${supabaseUrl}/functions/v1/get-ai-admin-spend`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!response.ok) {
+      logger.error("Admin AI spend failed", response.status);
+      return null;
+    }
+    return (await response.json()) as AdminAiSpend;
+  } catch (error) {
+    logger.error("Admin AI spend failed", error);
     return null;
   }
-  return (await response.json()) as AdminAiSpend;
 }

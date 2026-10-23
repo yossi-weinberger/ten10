@@ -18,38 +18,36 @@ function money(value: number): string {
 export function AdminAiSection() {
   const { t, i18n } = useTranslation("admin");
   const [counts, setCounts] = useState<AdminAiCounts | null>(null);
+  const [countsFailed, setCountsFailed] = useState(false);
   const [spend, setSpend] = useState<AdminAiSpend | null>(null);
-  const [failed, setFailed] = useState(false);
+  const [spendReady, setSpendReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([fetchAdminAiCounts(), fetchAdminAiSpend()])
-      .then(([nextCounts, nextSpend]) => {
+    void fetchAdminAiCounts()
+      .then((next) => {
         if (cancelled) return;
-        setCounts(nextCounts);
-        setSpend(nextSpend);
-        setFailed(nextCounts === null && nextSpend === null);
+        if (next) setCounts(next);
+        else setCountsFailed(true);
       })
       .catch(() => {
-        if (!cancelled) setFailed(true);
+        if (!cancelled) setCountsFailed(true);
+      });
+    void fetchAdminAiSpend()
+      .then((next) => {
+        if (!cancelled) setSpend(next);
+      })
+      .catch(() => {
+        if (!cancelled) setSpend(null);
+      })
+      .finally(() => {
+        if (!cancelled) setSpendReady(true);
       });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  if (!counts && !spend && !failed) {
-    return <Skeleton className="h-64" />;
-  }
-  if (failed || !counts) {
-    return (
-      <Alert variant="destructive">
-        <AlertDescription>{t("ai.loadFailed")}</AlertDescription>
-      </Alert>
-    );
-  }
-
-  const drafts = counts.drafts;
   return (
     <div className="space-y-6" dir={i18n.dir()}>
       <div>
@@ -57,22 +55,32 @@ export function AdminAiSection() {
           <Sparkles className="h-6 w-6 text-primary" />
           {t("ai.title")}
         </h2>
-        <p className="text-sm text-muted-foreground">{t("ai.range", { from: counts.from, to: counts.to })}</p>
+        {counts ? (
+          <p className="text-sm text-muted-foreground">{t("ai.range", { from: counts.from, to: counts.to })}</p>
+        ) : null}
       </div>
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <AdminMetricCard title={t("ai.committed")} value={drafts.committed} icon={Sparkles} />
-        <AdminMetricCard title={t("ai.rejected")} value={drafts.rejected} icon={Sparkles} />
-        <AdminMetricCard title={t("ai.reverted")} value={drafts.reverted} icon={Sparkles} />
-        <AdminMetricCard title={t("ai.questions")} value={counts.questions} icon={Sparkles} />
-        <AdminMetricCard title={t("ai.receipts")} value={counts.receipt_links} icon={Sparkles} />
-        <AdminMetricCard title={t("ai.rules")} value={counts.rules_active} icon={Sparkles} />
-        <AdminMetricCard title={t("ai.originAi")} value={counts.origins.ai} icon={Sparkles} />
-        <AdminMetricCard title={t("ai.originAuto")} value={counts.origins.ai_auto} icon={Sparkles} />
-      </div>
+      {counts ? (
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <AdminMetricCard title={t("ai.committed")} value={counts.drafts.committed} icon={Sparkles} />
+          <AdminMetricCard title={t("ai.rejected")} value={counts.drafts.rejected} icon={Sparkles} />
+          <AdminMetricCard title={t("ai.reverted")} value={counts.drafts.reverted} icon={Sparkles} />
+          <AdminMetricCard title={t("ai.questions")} value={counts.questions} icon={Sparkles} />
+          <AdminMetricCard title={t("ai.receipts")} value={counts.receipt_links} icon={Sparkles} />
+          <AdminMetricCard title={t("ai.rules")} value={counts.rules_active} icon={Sparkles} />
+          <AdminMetricCard title={t("ai.originAi")} value={counts.origins.ai} icon={Sparkles} />
+          <AdminMetricCard title={t("ai.originAuto")} value={counts.origins.ai_auto} icon={Sparkles} />
+        </div>
+      ) : countsFailed ? (
+        <Alert variant="destructive">
+          <AlertDescription>{t("ai.loadFailed")}</AlertDescription>
+        </Alert>
+      ) : (
+        <Skeleton className="h-40" />
+      )}
       <div>
         <h3 className="text-lg font-medium">{t("ai.spendTitle")}</h3>
         <p className="text-sm text-muted-foreground">{t("ai.spendMixed")}</p>
-        {spend?.available ? (
+        {spendReady && spend?.available ? (
           <ul className="mt-2 space-y-1 text-sm">
             {spend.models.map((row) => (
               <li key={row.label}>
@@ -80,32 +88,36 @@ export function AdminAiSection() {
               </li>
             ))}
           </ul>
-        ) : (
+        ) : spendReady ? (
           <p className="mt-2 text-sm text-muted-foreground">{t("ai.spendUnavailable")}</p>
+        ) : (
+          <Skeleton className="mt-2 h-8" />
         )}
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="text-start">
-              <th className="py-2">{t("ai.user")}</th>
-              <th>{t("ai.drafts")}</th>
-              <th>{t("ai.committed")}</th>
-              <th>{t("ai.questions")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {counts.users.map((row) => (
-              <tr key={row.email} className="border-t">
-                <td className="py-2">{row.email}</td>
-                <td>{row.drafts}</td>
-                <td>{row.committed}</td>
-                <td>{row.questions}</td>
+      {counts ? (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-start">
+                <th className="py-2">{t("ai.user")}</th>
+                <th>{t("ai.drafts")}</th>
+                <th>{t("ai.committed")}</th>
+                <th>{t("ai.questions")}</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {counts.users.map((row) => (
+                <tr key={row.email} className="border-t">
+                  <td className="py-2">{row.email}</td>
+                  <td>{row.drafts}</td>
+                  <td>{row.committed}</td>
+                  <td>{row.questions}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
     </div>
   );
 }

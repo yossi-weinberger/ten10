@@ -613,7 +613,7 @@ Potential future additions:
 
 ## AI tab
 
-`get_admin_ai_stats(p_from, p_to)` returns seven-day counts from schema `ai`: draft statuses, message kinds, `origin`, linked receipts, artifacts, active rules, question outcomes, and per-user counts with email. No message text and no transaction amounts. `get-ai-admin-spend` checks `admin_emails`, then reads the Vercel AI Gateway spend report. The gateway key stays in the Edge secret. The card says the total still mixes product use and measurement runs.
+`get_admin_ai_stats(p_from, p_to)` returns seven-day counts from schema `ai`: draft statuses, message kinds, `origin`, linked receipts, artifacts, active rules, question outcomes, and per-user counts with email. No message text and no transaction amounts. `get-ai-admin-spend` checks `admin_emails`, then reads the Vercel AI Gateway spend report. The gateway key stays in the Edge secret. The card says the total still mixes product use and measurement runs. A failed spend request leaves the counts on screen, and a failed counts request leaves the spend card on screen.
 
 ## Related Documentation
 
