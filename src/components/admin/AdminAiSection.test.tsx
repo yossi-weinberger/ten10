@@ -94,7 +94,8 @@ describe("AdminAiSection", () => {
 
     render(<TooltipProvider><AdminAiSection /></TooltipProvider>);
 
-    expect(await screen.findByText("7")).toBeTruthy();
+    expect(await screen.findByText("ai.funnelCreated")).toBeTruthy();
+    expect(screen.getAllByText("7").length).toBeGreaterThan(0);
     expect(screen.getByText("ai.spendUnavailable")).toBeTruthy();
     expect(screen.queryByText("ai.loadFailed")).toBeNull();
   });

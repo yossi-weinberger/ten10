@@ -10,6 +10,7 @@ import { AdminAiSourceSplit, AdminAiSpendCards } from "@/components/admin/AdminA
 import { AdminMetricCard } from "@/components/admin/AdminMetricCard";
 import { MetricWithTooltip } from "@/components/admin/monitoring/AdminMonitoringComponents";
 import { useDateControls, type DateRangeSelectionType } from "@/hooks/useDateControls";
+import { intakeFunnel, shareOfCreated } from "@/lib/admin/ai-intake-funnel";
 import {
   fetchAdminAiCounts,
   fetchAdminAiSpend,
@@ -21,14 +22,26 @@ function kindCount(counts: AdminAiCounts, kind: string): number {
   return Number(counts.messages_by_kind[kind] ?? 0);
 }
 
-function CountGroup({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
+function CountGroup({
+  title,
+  hint,
+  children,
+  stacked = false,
+}: {
+  title: string;
+  hint: string;
+  children: ReactNode;
+  stacked?: boolean;
+}) {
   return (
     <section className="space-y-3">
       <div>
         <h3 className="text-lg font-medium">{title}</h3>
         <p className="text-sm text-muted-foreground">{hint}</p>
       </div>
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{children}</div>
+      <div className={stacked ? "grid max-w-xl grid-cols-1 gap-3" : "grid grid-cols-2 gap-4 lg:grid-cols-4"}>
+        {children}
+      </div>
     </section>
   );
 }
@@ -55,6 +68,7 @@ export function AdminAiSection() {
   const rangeKey = startDate ? `${startDate}|${endDate}` : "";
   const countsCurrent = countsKey === rangeKey;
   const spendCurrent = spendKey === rangeKey;
+  const funnel = countsCurrent && counts ? intakeFunnel(counts.drafts, counts.origins) : null;
 
   useEffect(() => {
     if (!startDate) return;
@@ -142,13 +156,18 @@ export function AdminAiSection() {
       </div>
       {countsCurrent && counts ? (
         <div className="space-y-8">
-          <CountGroup title={t("ai.transactionsTitle")} hint={t("ai.transactionsHint")}>
-            <AdminMetricCard title={t("ai.originAi")} value={counts.origins.ai} icon={Wallet} tooltip={t("ai.tips.originAi")} />
-            <AdminMetricCard title={t("ai.originAuto")} value={counts.origins.ai_auto} icon={Zap} tooltip={t("ai.tips.originAuto")} />
-            <AdminMetricCard title={t("ai.committed")} value={counts.drafts.committed} icon={Check} tooltip={t("ai.tips.committed")} />
-            <AdminMetricCard title={t("ai.reverted")} value={counts.drafts.reverted} icon={Undo2} tooltip={t("ai.tips.reverted")} />
-            <AdminMetricCard title={t("ai.rejected")} value={counts.drafts.rejected} icon={X} tooltip={t("ai.tips.rejected")} />
-          </CountGroup>
+          {funnel ? (
+            <CountGroup title={t("ai.transactionsTitle")} hint={t("ai.transactionsHint")} stacked>
+              <AdminMetricCard title={t("ai.funnelCreated")} value={funnel.created} icon={Sparkles} subtitle={t("ai.share", { percent: shareOfCreated(funnel.created, funnel.created) })} />
+              <AdminMetricCard title={t("ai.funnelOpen")} value={funnel.open} icon={FileText} subtitle={t("ai.share", { percent: shareOfCreated(funnel.open, funnel.created) })} tooltip={t("ai.tips.funnelOpen")} />
+              <AdminMetricCard title={t("ai.funnelRejected")} value={funnel.rejected} icon={X} subtitle={t("ai.share", { percent: shareOfCreated(funnel.rejected, funnel.created) })} tooltip={t("ai.tips.rejected")} />
+              <AdminMetricCard title={t("ai.funnelSaved")} value={funnel.saved} icon={Check} subtitle={t("ai.share", { percent: shareOfCreated(funnel.saved, funnel.created) })} tooltip={t("ai.tips.funnelSaved")} />
+              <AdminMetricCard title={t("ai.funnelUndone")} value={funnel.undone} icon={Undo2} subtitle={t("ai.share", { percent: shareOfCreated(funnel.undone, funnel.created) })} tooltip={t("ai.tips.reverted")} />
+              <AdminMetricCard title={t("ai.funnelKept")} value={funnel.kept} icon={Wallet} subtitle={t("ai.share", { percent: shareOfCreated(funnel.kept, funnel.created) })} />
+              <AdminMetricCard title={t("ai.funnelExisting")} value={funnel.existing} icon={Wallet} subtitle={t("ai.share", { percent: shareOfCreated(funnel.existing, funnel.created) })} tooltip={t("ai.tips.funnelExisting")} />
+              <AdminMetricCard title={t("ai.funnelAuto")} value={funnel.auto} icon={Zap} subtitle={t("ai.share", { percent: shareOfCreated(funnel.auto, funnel.created) })} tooltip={t("ai.tips.originAuto")} />
+            </CountGroup>
+          ) : null}
           <CountGroup title={t("ai.messagesTitle")} hint={t("ai.messagesHint")}>
             <AdminMetricCard
               title={t("ai.messagesTotal")}
@@ -190,7 +209,10 @@ export function AdminAiSection() {
                 evalTooltip={t("ai.tips.eval")}
               />
             )}
-            <AdminAiSpendCards models={spend.models} requestsLabel={t("ai.requests")} />
+            <AdminAiSpendCards
+              models={spend.models}
+              requestsLabel={(count) => count === 1 ? t("ai.requestOne") : t("ai.requestMany", { count })}
+            />
           </div>
         ) : spendCurrent ? (
           <p className="text-sm text-muted-foreground">{t("ai.spendUnavailable")}</p>

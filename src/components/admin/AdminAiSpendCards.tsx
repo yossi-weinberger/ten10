@@ -59,7 +59,7 @@ export function AdminAiSpendCards({
   requestsLabel,
 }: {
   models: Array<{ label: string; totalCost: number; requestCount: number }>;
-  requestsLabel: string;
+  requestsLabel: (count: number) => string;
 }) {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -75,7 +75,7 @@ export function AdminAiSpendCards({
           <CardContent>
             <p className="text-2xl font-bold tabular-nums">{money(row.totalCost)}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {row.requestCount.toLocaleString()} {requestsLabel}
+              {requestsLabel(row.requestCount)}
             </p>
           </CardContent>
         </Card>
