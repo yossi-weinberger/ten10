@@ -14,6 +14,10 @@ verify_jwt = false
 # Admin monitoring endpoint - requires valid JWT for admin access verification
 verify_jwt = true
 
+[functions.send-new-user-email]
+# Daily summary email - requires service_role JWT (pg_cron uses service_role from Vault)
+verify_jwt = true
+
 # Shared calendar no longer uses a bare npm specifier. These maps keep the
 # standard `supabase functions deploy <name>` path working if one is added later.
 [functions.send-reminder-emails]

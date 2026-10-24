@@ -10,6 +10,7 @@ import {
 } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { SimpleEmailService } from "../_shared/simple-email-service.ts";
+import { validateServiceRoleAuth } from "./auth-helpers.ts";
 import {
   buildEmailBodies,
   generateDailySummarySubject,
@@ -29,7 +30,6 @@ type ProfileRecord = {
 };
 
 const DEFAULT_TO = "dev@ten10-app.com";
-const DEFAULT_WINDOW_HOURS = 24;
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -78,53 +78,8 @@ serve(async (req) => {
     );
   }
 
-  // Validate service_role authorization (pg_cron jobs use service_role JWT from Vault)
-  const authorization = req.headers.get("Authorization");
-  if (!authorization || !authorization.includes("Bearer")) {
-    return jsonResponse({ error: "Unauthorized - Missing Bearer token" }, 401);
-  }
-
-  const token = authorization.replace("Bearer ", "");
-  
-  // Decode JWT to check role claim (do NOT trust this alone)
-  let tokenData: { role?: string; exp?: number } = {};
-  try {
-    const tokenParts = token.split(".");
-    if (tokenParts.length === 3) {
-      tokenData = JSON.parse(atob(tokenParts[1]));
-    }
-  } catch {
-    return jsonResponse({ error: "Invalid token format" }, 401);
-  }
-
-  // Only accept service_role
-  if (tokenData.role !== "service_role") {
-    return jsonResponse({ error: "Forbidden - service_role required" }, 403);
-  }
-
-  // Check expiration
-  if (tokenData.exp && tokenData.exp < Date.now() / 1000) {
-    return jsonResponse({ error: "Token expired" }, 401);
-  }
-
-  // Verify token is actually valid by making a test query with it
-  const testClient = createClient(supabaseUrl, supabaseServiceKey, {
-    global: { headers: { Authorization: authorization } },
-  });
-  const { error: testError } = await testClient
-    .from("profiles")
-    .select("id")
-    .limit(1);
-
-  if (
-    testError &&
-    (testError.message.includes("JWT") ||
-      testError.message.includes("Invalid token"))
-  ) {
-    console.error("[AUTH] JWT validation failed:", testError.message);
-    return jsonResponse({ error: "Invalid token" }, 403);
-  }
-
+  // Validate service_role authorization
+  // (verify_jwt=true in config.toml: gateway already validated JWT signature)
   let body: { hours?: number; to?: string } = {};
   if (req.method === "POST") {
     try {
@@ -134,15 +89,16 @@ serve(async (req) => {
     }
   }
 
-  // Validate and cap hours to 1-168 (1 week max)
-  let hours = DEFAULT_WINDOW_HOURS;
-  if (body?.hours !== undefined) {
-    const requestedHours = Number(body.hours);
-    if (Number.isInteger(requestedHours) && requestedHours >= 1 && requestedHours <= 168) {
-      hours = requestedHours;
-    }
+  const authResult = validateServiceRoleAuth(
+    req.headers.get("Authorization"),
+    body?.hours,
+  );
+
+  if (!authResult.authorized) {
+    return jsonResponse({ error: authResult.error }, authResult.status);
   }
 
+  const hours = authResult.hours;
   // Recipient comes ONLY from env or default - ignore body.to completely
   const toEmail = Deno.env.get("NEW_USERS_SUMMARY_TO") || DEFAULT_TO;
 
