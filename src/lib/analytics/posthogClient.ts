@@ -126,34 +126,56 @@ export function isPostHogSupported(): boolean {
 
 export function initPostHog(): void {
   if (!isPostHogSupported()) return;
-  if (!isProductionHost()) return;
+
+  const env = getEnvironmentType();
+
+  // Only init on prod or preview hosts
+  if (env === "dev") return;
+
+  const isProd = env === "prod";
+  const isPreview = env === "preview";
 
   posthog.init(import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN!, {
     api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST,
     person_profiles: "identified_only",
     capture_pageview: false,
-    capture_pageleave: true,
-    capture_exceptions: true,
-    before_send: (event) => dropBenignExceptions(scrubUrlProperties(event)),
-    session_recording: {
-      maskAllInputs: true,
-      maskTextSelector: "[data-ph-mask], .ph-mask",
-      maskCapturedNetworkRequestFn: (request) => {
-        if (typeof request.name === "string") {
-          request.name = scrubSensitiveUrl(request.name);
-        }
-        return request;
-      },
+    // Preview: disable all auto-capture so no events leave the browser
+    capture_pageleave: isProd,
+    capture_exceptions: isProd,
+    autocapture: isProd,
+    disable_session_recording: !isProd,
+    disable_surveys: isPreview,
+    // Preview: disable remote-config-driven extensions that lazy-load scripts
+    ...(isPreview ? { capture_dead_clicks: false, capture_performance: false, capture_heatmaps: false } : {}),
+    // Preview: belt-and-braces – drop all events so they never reach PostHog
+    before_send: (event) => {
+      if (isPreview) return null;
+      return dropBenignExceptions(scrubUrlProperties(event));
     },
+    session_recording: isProd
+      ? {
+          maskAllInputs: true,
+          maskTextSelector: "[data-ph-mask], .ph-mask",
+          maskCapturedNetworkRequestFn: (request) => {
+            if (typeof request.name === "string") {
+              request.name = scrubSensitiveUrl(request.name);
+            }
+            return request;
+          },
+        }
+      : undefined,
   });
 
   // Register environment as a super property so all events include it
-  posthog.register({ env: getEnvironmentType() });
+  posthog.register({ env });
 }
 
 export function capturePostHogPageview(): void {
   if (!isPostHogSupported()) return;
-  if (!isProductionHost()) return;
+
+  const env = getEnvironmentType();
+  // Only capture events on prod
+  if (env !== "prod") return;
 
   posthog.capture("$pageview", {
     $current_url: scrubSensitiveUrl(window.location.href),
@@ -165,7 +187,10 @@ export function capturePostHogEvent(
   properties: PostHogEventProperties = {}
 ): void {
   if (!isPostHogSupported()) return;
-  if (!isProductionHost()) return;
+
+  const env = getEnvironmentType();
+  // Only capture events on prod
+  if (env !== "prod") return;
 
   posthog.capture(event, {
     platform: "web",
@@ -184,12 +209,17 @@ export function identifyPostHogUser(
   person: PostHogPersonTraits = {}
 ): void {
   if (!isPostHogSupported()) return;
-  if (!isProductionHost()) return;
+
+  const env = getEnvironmentType();
+  // Only init on prod or preview hosts
+  if (env === "dev") return;
 
   const setProps: Record<string, string> = { language };
   if (person.name) setProps.name = person.name;
   if (person.email) setProps.email = person.email;
 
+  // On preview, identify() sets person properties for flag evaluation;
+  // the $identify event is dropped by before_send
   posthog.identify(
     user.id,
     setProps,
@@ -199,7 +229,10 @@ export function identifyPostHogUser(
 
 export function resetPostHogUser(): void {
   if (!isPostHogSupported()) return;
-  if (!isProductionHost()) return;
+
+  const env = getEnvironmentType();
+  // Only init on prod or preview hosts
+  if (env === "dev") return;
 
   posthog.reset();
 }
