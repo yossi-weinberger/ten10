@@ -251,6 +251,9 @@ describe("initPostHog", () => {
   it("initializes on prod with full capture enabled", () => {
     mockWindow("ten10-app.com");
     initPostHog();
+    const initCall = (posthog.init as any).mock.calls[0]; // eslint-disable-line @typescript-eslint/no-explicit-any
+    const config = initCall[1];
+    
     expect(posthog.init).toHaveBeenCalledWith("test-token", expect.objectContaining({
       capture_pageleave: true,
       capture_exceptions: true,
@@ -258,6 +261,11 @@ describe("initPostHog", () => {
       disable_session_recording: false,
       disable_surveys: false,
     }));
+    
+    // Prod must NOT set these keys (so remote config controls them)
+    expect(config).not.toHaveProperty("capture_dead_clicks");
+    expect(config).not.toHaveProperty("capture_performance");
+    
     expect(posthog.register).toHaveBeenCalledWith({ env: "prod" });
   });
 
@@ -270,6 +278,8 @@ describe("initPostHog", () => {
       autocapture: false,
       disable_session_recording: true,
       disable_surveys: true,
+      capture_dead_clicks: false,
+      capture_performance: false,
     }));
     expect(posthog.register).toHaveBeenCalledWith({ env: "preview" });
   });
