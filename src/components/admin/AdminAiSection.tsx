@@ -1,16 +1,17 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Calendar as CalendarIcon, Check, FileText, Image, MessageSquare, MessagesSquare, Mic, Sparkles, Undo2, Wallet, X, Zap } from "lucide-react";
+import { Calendar as CalendarIcon, Check, FileText, Image, MessageSquare, MessagesSquare, Mic, Sparkles } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminAiCharts } from "@/components/admin/AdminAiCharts";
+import { AdminAiFunnel } from "@/components/admin/AdminAiFunnel";
 import { AdminAiSourceSplit, AdminAiSpendCards } from "@/components/admin/AdminAiSpendCards";
 import { AdminMetricCard } from "@/components/admin/AdminMetricCard";
 import { MetricWithTooltip } from "@/components/admin/monitoring/AdminMonitoringComponents";
 import { useDateControls, type DateRangeSelectionType } from "@/hooks/useDateControls";
-import { intakeFunnel, shareOfCreated } from "@/lib/admin/ai-intake-funnel";
+import { intakeFunnel } from "@/lib/admin/ai-intake-funnel";
 import {
   fetchAdminAiCounts,
   fetchAdminAiSpend,
@@ -22,26 +23,14 @@ function kindCount(counts: AdminAiCounts, kind: string): number {
   return Number(counts.messages_by_kind[kind] ?? 0);
 }
 
-function CountGroup({
-  title,
-  hint,
-  children,
-  stacked = false,
-}: {
-  title: string;
-  hint: string;
-  children: ReactNode;
-  stacked?: boolean;
-}) {
+function CountGroup({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
   return (
     <section className="space-y-3">
       <div>
         <h3 className="text-lg font-medium">{title}</h3>
         <p className="text-sm text-muted-foreground">{hint}</p>
       </div>
-      <div className={stacked ? "grid max-w-xl grid-cols-1 gap-3" : "grid grid-cols-2 gap-4 lg:grid-cols-4"}>
-        {children}
-      </div>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{children}</div>
     </section>
   );
 }
@@ -157,16 +146,24 @@ export function AdminAiSection() {
       {countsCurrent && counts ? (
         <div className="space-y-8">
           {funnel ? (
-            <CountGroup title={t("ai.transactionsTitle")} hint={t("ai.transactionsHint")} stacked>
-              <AdminMetricCard title={t("ai.funnelCreated")} value={funnel.created} icon={Sparkles} subtitle={t("ai.share", { percent: shareOfCreated(funnel.created, funnel.created) })} />
-              <AdminMetricCard title={t("ai.funnelOpen")} value={funnel.open} icon={FileText} subtitle={t("ai.share", { percent: shareOfCreated(funnel.open, funnel.created) })} tooltip={t("ai.tips.funnelOpen")} />
-              <AdminMetricCard title={t("ai.funnelRejected")} value={funnel.rejected} icon={X} subtitle={t("ai.share", { percent: shareOfCreated(funnel.rejected, funnel.created) })} tooltip={t("ai.tips.rejected")} />
-              <AdminMetricCard title={t("ai.funnelSaved")} value={funnel.saved} icon={Check} subtitle={t("ai.share", { percent: shareOfCreated(funnel.saved, funnel.created) })} tooltip={t("ai.tips.funnelSaved")} />
-              <AdminMetricCard title={t("ai.funnelUndone")} value={funnel.undone} icon={Undo2} subtitle={t("ai.share", { percent: shareOfCreated(funnel.undone, funnel.created) })} tooltip={t("ai.tips.reverted")} />
-              <AdminMetricCard title={t("ai.funnelKept")} value={funnel.kept} icon={Wallet} subtitle={t("ai.share", { percent: shareOfCreated(funnel.kept, funnel.created) })} />
-              <AdminMetricCard title={t("ai.funnelExisting")} value={funnel.existing} icon={Wallet} subtitle={t("ai.share", { percent: shareOfCreated(funnel.existing, funnel.created) })} tooltip={t("ai.tips.funnelExisting")} />
-              <AdminMetricCard title={t("ai.funnelAuto")} value={funnel.auto} icon={Zap} subtitle={t("ai.share", { percent: shareOfCreated(funnel.auto, funnel.created) })} tooltip={t("ai.tips.originAuto")} />
-            </CountGroup>
+            <AdminAiFunnel
+              title={t("ai.transactionsTitle")}
+              hint={t("ai.transactionsHint")}
+              funnel={funnel}
+              copy={{
+                created: t("ai.funnelCreated"),
+                open: t("ai.funnelOpen"),
+                rejected: t("ai.funnelRejected"),
+                saved: t("ai.funnelSaved"),
+                undone: t("ai.funnelUndone"),
+                kept: t("ai.funnelKept"),
+                existing: t("ai.funnelExisting"),
+                existingTip: t("ai.tips.funnelExisting"),
+                auto: t("ai.funnelAuto"),
+                ofPrevious: (percent) => t("ai.ofPrevious", { percent }),
+                ofTotal: (percent) => t("ai.ofTotal", { percent }),
+              }}
+            />
           ) : null}
           <CountGroup title={t("ai.messagesTitle")} hint={t("ai.messagesHint")}>
             <AdminMetricCard
