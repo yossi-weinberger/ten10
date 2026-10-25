@@ -265,6 +265,7 @@ describe("initPostHog", () => {
     // Prod must NOT set these keys (so remote config controls them)
     expect(config).not.toHaveProperty("capture_dead_clicks");
     expect(config).not.toHaveProperty("capture_performance");
+    expect(config).not.toHaveProperty("capture_heatmaps");
     
     expect(posthog.register).toHaveBeenCalledWith({ env: "prod" });
   });
@@ -280,6 +281,7 @@ describe("initPostHog", () => {
       disable_surveys: true,
       capture_dead_clicks: false,
       capture_performance: false,
+      capture_heatmaps: false,
     }));
     expect(posthog.register).toHaveBeenCalledWith({ env: "preview" });
   });

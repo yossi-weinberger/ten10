@@ -146,7 +146,7 @@ export function initPostHog(): void {
     disable_session_recording: !isProd,
     disable_surveys: isPreview,
     // Preview: disable remote-config-driven extensions that lazy-load scripts
-    ...(isPreview ? { capture_dead_clicks: false, capture_performance: false } : {}),
+    ...(isPreview ? { capture_dead_clicks: false, capture_performance: false, capture_heatmaps: false } : {}),
     // Preview: belt-and-braces – drop all events so they never reach PostHog
     before_send: (event) => {
       if (isPreview) return null;
