@@ -13,7 +13,7 @@ export const REMINDER_CALENDAR_POLICY = {
 } as const;
 
 type SkipReason = "shabbat" | "yom-tov" | "yom-tov-and-shabbat";
-type MakeupReason = SkipReason | "friday-advance";
+type MakeupReason = SkipReason | "friday-advance" | "erev-yom-tov-advance";
 
 export type ReminderScheduleResolution =
   | { kind: "send-today"; reminderDay: number }
@@ -73,11 +73,19 @@ function dayOfMonth(
   return getCalendarAdapter(calendarType).fromIsoDate(isoDate).day;
 }
 
+function getErevYomTovLabel(isoDate: string): string | null {
+  const yomTov = getIsraelYomTov(addDays(isoDate, 1));
+  return yomTov === null ? null : `Erev ${yomTov.label}`;
+}
+
+// The cron runs after sunset in Israel, so erev Yom Tov is blocked for the
+// same reason as Friday.
 function getBlockedDate(isoDate: string): BlockedDate {
   const dayOfWeek = toUtcDate(isoDate).getUTCDay();
   return {
     isShabbat: dayOfWeek === 5 || dayOfWeek === 6,
-    holidayLabel: getIsraelYomTov(isoDate)?.label ?? null,
+    holidayLabel:
+      getIsraelYomTov(isoDate)?.label ?? getErevYomTovLabel(isoDate),
   };
 }
 
@@ -96,10 +104,18 @@ function getSkipReason(blocked: BlockedDate): SkipReason {
   return "shabbat";
 }
 
+function getLastEligibleDateBefore(isoDate: string): string {
+  let date = addDays(isoDate, -1);
+  while (!isEligibleDate(date)) {
+    date = addDays(date, -1);
+  }
+  return date;
+}
+
 function getMakeupReason(
   reminderDate: string,
   currentDate: string,
-): Exclude<MakeupReason, "friday-advance"> {
+): SkipReason {
   let sawShabbat = false;
   let sawYomTov = false;
 
@@ -120,11 +136,7 @@ function getMakeupReason(
 }
 
 function fridayWasSentInAdvance(fridayDate: string): boolean {
-  const thursdayDate = addDays(fridayDate, -1);
-  return (
-    getIsraelYomTov(fridayDate) === null &&
-    isEligibleDate(thursdayDate)
-  );
+  return isEligibleDate(addDays(fridayDate, -1));
 }
 
 export function resolveReminderSchedule(
@@ -152,10 +164,7 @@ export function resolveReminderSchedule(
   if (currentDayOfWeek === 4) {
     const fridayDate = addDays(currentIsraelDate, 1);
     const fridayDay = dayOfMonth(fridayDate, calendarType);
-    if (
-      reminderDays.includes(fridayDay) &&
-      getIsraelYomTov(fridayDate) === null
-    ) {
+    if (reminderDays.includes(fridayDay)) {
       return {
         kind: "makeup",
         reason: "friday-advance",
@@ -225,12 +234,24 @@ export function resolveSpecificReminderDate(
   const currentDayOfWeek = toUtcDate(currentIsraelDate).getUTCDay();
   if (
     currentDayOfWeek === 4 &&
-    addDays(currentIsraelDate, 1) === reminderDate &&
-    getIsraelYomTov(reminderDate) === null
+    addDays(currentIsraelDate, 1) === reminderDate
   ) {
     return {
       kind: "makeup",
       reason: "friday-advance",
+      reminderDate,
+      reminderDay,
+    };
+  }
+
+  const isErevYomTov = getErevYomTovLabel(reminderDate) !== null;
+  if (
+    isErevYomTov &&
+    getLastEligibleDateBefore(reminderDate) === currentIsraelDate
+  ) {
+    return {
+      kind: "makeup",
+      reason: "erev-yom-tov-advance",
       reminderDate,
       reminderDay,
     };
@@ -242,7 +263,10 @@ export function resolveSpecificReminderDate(
       currentIsraelDate
   ) {
     const reminderDayOfWeek = toUtcDate(reminderDate).getUTCDay();
-    if (reminderDayOfWeek === 5 && fridayWasSentInAdvance(reminderDate)) {
+    if (
+      isErevYomTov ||
+      (reminderDayOfWeek === 5 && fridayWasSentInAdvance(reminderDate))
+    ) {
       return { kind: "no-op" };
     }
 
