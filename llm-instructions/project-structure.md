@@ -275,6 +275,7 @@ This section details how the different parts of the project interact with each o
 │   │   └── PlatformContext.tsx
 │   ├── hooks/
 │   │   ├── useAnimatedCounter.ts
+│   │   ├── useReadingProgress.ts   # Reading progress of a block, for the scroll container it lives in (+ .test.ts)
 │   │   ├── useDateControls.ts      # Manages date range selection (month/year/all/custom) for dashboard stats
 │   │   ├── useInsights.ts          # Fetches analytics data (6 streams: categories, recurring, payments, heatmap, etc.)
 │   │   ├── usePeriodComparison.ts  # Fetches prior-period stats (same duration, immediately before current range)

@@ -29,6 +29,7 @@ Do not put keyframes in component files, inline `<style>` tags or new CSS files.
 | 7 | `BrandDone` | One-shot success: the last half-turn settles, the slice clicks in, a ripple leaves the ring and a check is drawn inside the 0. | `ImportResultStep` when rows were inserted |
 | 12ב | `Brand404` | "404" where the 0 is the symbol; it shakes "no", the slice falls to the floor and rocks to rest. Plays once. | `NotFoundPage` |
 | 38ב | `BrandSidebarLogo` | Sidebar logo that morphs letter by letter between the wide logo (expanded) and the square logo (collapsed); the 0 turns once. Positions come from `sidebarLogoLayout.utils.ts`. | `Sidebar` |
+| 15 | `HalachaReadingProgress` + `useReadingProgress` | Reading progress: the ring fills as the reader scrolls and the slice drops in at the end, with the percentage. A `role="progressbar"`; hidden in print. The hook works whether the content scrolls itself (desktop) or inside the app's main area (mobile), and follows height changes (accordions). | Halacha page: a card above the tabs on desktop, the start of the tab bar on mobile |
 | 20 | `BrandHandoffSymbol` (via `AppLoader exiting`) | First-load handoff: when the app shell appears, the loader's symbol flies into the 0 of the sidebar logo while the loader fades away. Constants and the flight maths are in `brandHandoff.utils.ts`. | `App.tsx` |
 
 All components are decorative (`aria-hidden="true"`). The surrounding UI must carry the meaning in text (`role="status"` messages, headings, counts).
@@ -85,18 +86,14 @@ Israeli accessibility regulations follow WCAG at level AA. Success criterion 2.2
 5. Use semantic colour classes and check light mode, dark mode, RTL and LTR.
 6. Update the tables in this guide.
 
-## 8. Planned (Chosen in the Motion Lab, Not Built Yet)
+## 8. Still Open
 
-Letters refer to places in the app; numbers to the motion-lab ideas.
+Ideas from the motion lab that are not built. Numbers refer to the motion-lab ideas.
 
-| # | Idea | Intended place |
+| # | Idea | Status |
 | --- | --- | --- |
-| 38 | Letters reel into the 0 as the page scrolls | Landing page floating navigation |
-| 19 | Favicon fills with import/export progress | Web version, import/export |
-| 10א / 10ב | Slice morphs into a coin or a check mark | Transaction saved, confirmations |
-| 18 | Burst of mini slices | Yearly tithe goal reached |
-| 12 | Slice falls off and returns | Sync error / offline |
-| 15 | The 0 fills with reading progress | Halacha page |
-| 21 / 22 | Wordmark roll-in / typewriter | Landing hero (`AnimatedLogo`) |
-| 27 | Letters unfold from the 0 (alternative to #20, not chosen for now) | — |
-| 5, 13, 14, 34 | Write-on, cursor compass, pull to refresh, app-icon launch | Not placed yet |
+| 38 | Letters reel into the 0 as the page scrolls | Wanted for the landing page; placement not decided. The landing has no horizontal header: on `2xl` screens a side glass nav shows the wide logo, below that only a round menu button. |
+| 14 | Pull to refresh with the symbol | Under consideration. Touch devices only (mobile web, installed PWA, Android TWA). |
+| 34 | App-icon launch | Under consideration. Installed app only (`display-mode: standalone`); the OS splash itself cannot be animated. |
+
+Not chosen: 19 (favicon progress), 10א / 10ב (coin / check morph), 18 (celebration), 12 (sync-error state), 21 / 22 (hero wordmark), 27, 5, 13.
