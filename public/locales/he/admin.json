@@ -33,6 +33,17 @@
     "funnelExisting": "תנועות AI קיימות בטבלה",
     "funnelAuto": "מתוכן אוטומטיות",
     "share": "{{percent}}%",
+    "usage": {
+      "transactions": "תנועות דרך AI",
+      "automatic": "{{count}} אוטומטיות",
+      "users": "משתמשים שהשתמשו ב-AI",
+      "createdTransactions": "{{count}} יצרו תנועות",
+      "share": "חלק ה-AI מהתנועות",
+      "shareOf": "{{ai}} מתוך {{all}} תנועות בטווח",
+      "messages": "הודעות שנשלחו",
+      "fromUsers": "מ-{{count}} משתמשים",
+      "hint": "ספירת התנועות לפי תאריך התנועה. ההודעות לפי הזמן שנשלחו."
+    },
     "messagesTitle": "הודעות שנשלחו",
     "messagesHint": "כל שליחה למגירה נספרת לחוד. אין כאן ספירת שיחות.",
     "otherTitle": "שאלות וכללים",
@@ -202,6 +213,8 @@
     "avgTransactions": "ממוצע טרנזקציות למשתמש",
     "totalTransactions": "סך כל הטרנזקציות",
     "usersWithTransactions": "משתמשים עם טרנזקציות",
+    "aiTransactions": "{{count}} דרך AI ({{percent}}%)",
+    "aiUsers": "{{count}} השתמשו ב-AI",
     "tooltips": {
       "avgTransactions": "ממוצע מספר התנועות למשתמש שיש לו לפחות תנועה אחת (כל הזמנים).",
       "totalTransactions": "סך כל התנועות במערכת.",

@@ -115,7 +115,7 @@ export function AdminAiFunnel({
         <StepRow
           label={copy.saved}
           value={funnel.saved}
-          previous={funnel.open}
+          previous={total}
           total={total}
           ofPrevious={copy.ofPrevious}
           ofTotal={copy.ofTotal}

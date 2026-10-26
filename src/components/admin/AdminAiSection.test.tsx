@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AdminAiCounts, AdminAiSpend } from "@/lib/data-layer/aiAdmin.service";
@@ -52,6 +52,14 @@ const counts: AdminAiCounts = {
   questions: 3,
   question_outcomes: {},
   buckets: [],
+  usage: {
+    ai_transactions: 14,
+    ai_auto_transactions: 0,
+    all_transactions: 16,
+    ai_transaction_users: 2,
+    ai_users: 2,
+    message_senders: 2,
+  },
   users: [],
 };
 
@@ -94,8 +102,10 @@ describe("AdminAiSection", () => {
 
     render(<TooltipProvider><AdminAiSection /></TooltipProvider>);
 
-    expect(await screen.findByText("ai.funnelCreated")).toBeTruthy();
-    expect(screen.getAllByText("7").length).toBeGreaterThan(0);
+    expect(await screen.findByText("ai.usage.transactions")).toBeTruthy();
+    expect(screen.getByText("ai.usage.users")).toBeTruthy();
+    expect(screen.getByText("ai.usage.share")).toBeTruthy();
+    expect(screen.getByText("ai.usage.messages")).toBeTruthy();
     expect(screen.getByText("ai.spendUnavailable")).toBeTruthy();
     expect(screen.queryByText("ai.loadFailed")).toBeNull();
   });
@@ -109,5 +119,19 @@ describe("AdminAiSection", () => {
     expect(await screen.findByText("Claude")).toBeTruthy();
     expect(screen.getByText("$0.123")).toBeTruthy();
     expect(screen.getByText("ai.loadFailed")).toBeTruthy();
+  });
+
+  it("keeps the draft funnel collapsed until it is opened", async () => {
+    fetchAdminAiCounts.mockResolvedValue(counts);
+    fetchAdminAiSpend.mockResolvedValue(null);
+
+    render(<TooltipProvider><AdminAiSection /></TooltipProvider>);
+
+    const trigger = await screen.findByRole("button", { name: /ai.transactionsTitle/ });
+    expect(trigger.getAttribute("data-state")).toBe("closed");
+    expect(screen.queryByText("ai.funnelCreated")).toBeNull();
+    fireEvent.click(trigger);
+    expect(trigger.getAttribute("data-state")).toBe("open");
+    expect(screen.getByText("ai.funnelCreated")).toBeTruthy();
   });
 });

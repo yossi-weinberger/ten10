@@ -1,8 +1,9 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Calendar as CalendarIcon, Check, FileText, Image, MessageSquare, MessagesSquare, Mic, Sparkles } from "lucide-react";
+import { Calendar as CalendarIcon, Check, FileText, Image, MessageSquare, MessagesSquare, Mic, Sparkles, Users, Wallet } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminAiCharts } from "@/components/admin/AdminAiCharts";
@@ -12,6 +13,7 @@ import { AdminMetricCard } from "@/components/admin/AdminMetricCard";
 import { MetricWithTooltip } from "@/components/admin/monitoring/AdminMonitoringComponents";
 import { useDateControls, type DateRangeSelectionType } from "@/hooks/useDateControls";
 import { intakeFunnel } from "@/lib/admin/ai-intake-funnel";
+import { aiShare } from "@/lib/admin/ai-usage";
 import {
   fetchAdminAiCounts,
   fetchAdminAiSpend,
@@ -144,44 +146,37 @@ export function AdminAiSection() {
         </div>
       </div>
       {countsCurrent && counts ? (
-        <div className="space-y-8">
-          {funnel ? (
-            <AdminAiFunnel
-              title={t("ai.transactionsTitle")}
-              hint={t("ai.transactionsHint")}
-              funnel={funnel}
-              copy={{
-                created: t("ai.funnelCreated"),
-                open: t("ai.funnelOpen"),
-                rejected: t("ai.funnelRejected"),
-                saved: t("ai.funnelSaved"),
-                undone: t("ai.funnelUndone"),
-                kept: t("ai.funnelKept"),
-                existing: t("ai.funnelExisting"),
-                existingTip: t("ai.tips.funnelExisting"),
-                auto: t("ai.funnelAuto"),
-                ofPrevious: (percent) => t("ai.ofPrevious", { percent }),
-                ofTotal: (percent) => t("ai.ofTotal", { percent }),
-              }}
-            />
-          ) : null}
-          <CountGroup title={t("ai.messagesTitle")} hint={t("ai.messagesHint")}>
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <AdminMetricCard
-              title={t("ai.messagesTotal")}
+              title={t("ai.usage.transactions")}
+              value={counts.usage.ai_transactions}
+              icon={Wallet}
+              subtitle={t("ai.usage.automatic", { count: counts.usage.ai_auto_transactions })}
+            />
+            <AdminMetricCard
+              title={t("ai.usage.users")}
+              value={counts.usage.ai_users}
+              icon={Users}
+              subtitle={t("ai.usage.createdTransactions", { count: counts.usage.ai_transaction_users })}
+            />
+            <AdminMetricCard
+              title={t("ai.usage.share")}
+              value={`${aiShare(counts.usage.ai_transactions, counts.usage.all_transactions)}%`}
+              icon={Sparkles}
+              subtitle={t("ai.usage.shareOf", {
+                ai: counts.usage.ai_transactions,
+                all: counts.usage.all_transactions,
+              })}
+            />
+            <AdminMetricCard
+              title={t("ai.usage.messages")}
               value={Object.values(counts.messages_by_kind).reduce((sum, count) => sum + Number(count), 0)}
               icon={MessagesSquare}
-              tooltip={t("ai.tips.messagesTotal")}
+              subtitle={t("ai.usage.fromUsers", { count: counts.usage.message_senders })}
             />
-            <AdminMetricCard title={t("ai.inputText")} value={kindCount(counts, "text")} icon={MessageSquare} tooltip={t("ai.tips.inputText")} />
-            <AdminMetricCard title={t("ai.inputImage")} value={kindCount(counts, "image")} icon={Image} tooltip={t("ai.tips.inputImage")} />
-            <AdminMetricCard title={t("ai.inputPdf")} value={kindCount(counts, "pdf")} icon={FileText} tooltip={t("ai.tips.inputPdf")} />
-            <AdminMetricCard title={t("ai.inputSpeech")} value={kindCount(counts, "audio")} icon={Mic} tooltip={t("ai.tips.inputSpeech")} />
-          </CountGroup>
-          <CountGroup title={t("ai.otherTitle")} hint={t("ai.range", { from: counts.from, to: counts.to })}>
-            <AdminMetricCard title={t("ai.questions")} value={counts.questions} icon={Sparkles} tooltip={t("ai.tips.questions")} />
-            <AdminMetricCard title={t("ai.receipts")} value={counts.receipt_links} icon={FileText} tooltip={t("ai.tips.receipts")} />
-            <AdminMetricCard title={t("ai.rules")} value={counts.rules_active} icon={Check} tooltip={t("ai.tips.rules")} />
-          </CountGroup>
+          </div>
+          <p className="text-sm text-muted-foreground">{t("ai.usage.hint")}</p>
         </div>
       ) : countsCurrent && countsFailed ? (
         <Alert variant="destructive">
@@ -218,6 +213,48 @@ export function AdminAiSection() {
         )}
       </section>
       <AdminAiCharts counts={countsCurrent ? counts : null} spend={spendCurrent ? spend : null} />
+      {countsCurrent && counts ? (
+        <div className="space-y-8">
+          <CountGroup title={t("ai.messagesTitle")} hint={t("ai.messagesHint")}>
+            <AdminMetricCard title={t("ai.inputText")} value={kindCount(counts, "text")} icon={MessageSquare} tooltip={t("ai.tips.inputText")} />
+            <AdminMetricCard title={t("ai.inputImage")} value={kindCount(counts, "image")} icon={Image} tooltip={t("ai.tips.inputImage")} />
+            <AdminMetricCard title={t("ai.inputPdf")} value={kindCount(counts, "pdf")} icon={FileText} tooltip={t("ai.tips.inputPdf")} />
+            <AdminMetricCard title={t("ai.inputSpeech")} value={kindCount(counts, "audio")} icon={Mic} tooltip={t("ai.tips.inputSpeech")} />
+          </CountGroup>
+          <CountGroup title={t("ai.otherTitle")} hint={t("ai.range", { from: counts.from, to: counts.to })}>
+            <AdminMetricCard title={t("ai.questions")} value={counts.questions} icon={Sparkles} tooltip={t("ai.tips.questions")} />
+            <AdminMetricCard title={t("ai.receipts")} value={counts.receipt_links} icon={FileText} tooltip={t("ai.tips.receipts")} />
+            <AdminMetricCard title={t("ai.rules")} value={counts.rules_active} icon={Check} tooltip={t("ai.tips.rules")} />
+          </CountGroup>
+          {funnel ? (
+            <Collapsible>
+              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border bg-card px-4 py-3 text-start text-lg font-medium">
+                {t("ai.transactionsTitle")} · {funnel.created}
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-3">
+                <AdminAiFunnel
+                  title={t("ai.transactionsTitle")}
+                  hint={t("ai.transactionsHint")}
+                  funnel={funnel}
+                  copy={{
+                    created: t("ai.funnelCreated"),
+                    open: t("ai.funnelOpen"),
+                    rejected: t("ai.funnelRejected"),
+                    saved: t("ai.funnelSaved"),
+                    undone: t("ai.funnelUndone"),
+                    kept: t("ai.funnelKept"),
+                    existing: t("ai.funnelExisting"),
+                    existingTip: t("ai.tips.funnelExisting"),
+                    auto: t("ai.funnelAuto"),
+                    ofPrevious: (percent) => t("ai.ofPrevious", { percent }),
+                    ofTotal: (percent) => t("ai.ofTotal", { percent }),
+                  }}
+                />
+              </CollapsibleContent>
+            </Collapsible>
+          ) : null}
+        </div>
+      ) : null}
       {countsCurrent && counts ? (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">

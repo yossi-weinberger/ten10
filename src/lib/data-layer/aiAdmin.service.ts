@@ -12,6 +12,15 @@ export type AdminAiBucket = {
   speech: number;
 };
 
+export type AdminAiUsage = {
+  ai_transactions: number;
+  ai_auto_transactions: number;
+  all_transactions: number;
+  ai_transaction_users: number;
+  ai_users: number;
+  message_senders: number;
+};
+
 export type AdminAiCounts = {
   from: string;
   to: string;
@@ -33,6 +42,7 @@ export type AdminAiCounts = {
   questions: number;
   question_outcomes: Record<string, number>;
   buckets: AdminAiBucket[];
+  usage: AdminAiUsage;
   users: Array<{ email: string; drafts: number; committed: number; questions: number }>;
 };
 

@@ -33,6 +33,17 @@
     "funnelExisting": "AI transactions still in the table",
     "funnelAuto": "Of which automatic",
     "share": "{{percent}}%",
+    "usage": {
+      "transactions": "Transactions via AI",
+      "automatic": "{{count}} automatic",
+      "users": "Users using AI",
+      "createdTransactions": "{{count}} created transactions",
+      "share": "AI share of transactions",
+      "shareOf": "{{ai}} of {{all}} transactions in this range",
+      "messages": "Messages sent",
+      "fromUsers": "from {{count}} users",
+      "hint": "Transaction counts use the transaction date. Messages use the time they were sent."
+    },
     "messagesTitle": "Messages sent",
     "messagesHint": "Each send to the drawer is counted. Conversations are not a separate count.",
     "otherTitle": "Questions and rules",
@@ -202,6 +213,8 @@
     "avgTransactions": "Average Transactions per User",
     "totalTransactions": "Total Transactions",
     "usersWithTransactions": "Users with Transactions",
+    "aiTransactions": "{{count}} via AI ({{percent}}%)",
+    "aiUsers": "{{count}} used AI",
     "tooltips": {
       "avgTransactions": "Average transaction count per user who has at least one transaction (all time).",
       "totalTransactions": "Total transactions in the system.",

@@ -5,6 +5,7 @@ import {
   AdminSystemStats,
 } from "@/lib/data-layer/admin.service";
 import { AdminMetricCard } from "@/components/admin/AdminMetricCard";
+import { aiShare } from "@/lib/admin/ai-usage";
 import { Separator } from "@/components/ui/separator";
 
 interface AdminEngagementSectionProps {
@@ -40,12 +41,25 @@ export function AdminEngagementSection({
             tooltip={t("engagement.tooltips.totalTransactions")}
             value={engagement.total_transactions}
             icon={Activity}
+            subtitle={
+              engagement.ai_transactions == null
+                ? undefined
+                : t("engagement.aiTransactions", {
+                    count: engagement.ai_transactions,
+                    percent: aiShare(engagement.ai_transactions, engagement.total_transactions),
+                  })
+            }
           />
           <AdminMetricCard
             title={t("engagement.usersWithTransactions")}
             tooltip={t("engagement.tooltips.usersWithTransactions")}
             value={engagement.users_with_transactions}
             icon={Users}
+            subtitle={
+              engagement.ai_users == null
+                ? undefined
+                : t("engagement.aiUsers", { count: engagement.ai_users })
+            }
           />
         </div>
       </div>
