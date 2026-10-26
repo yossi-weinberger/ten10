@@ -40,8 +40,7 @@ function findScroller(el: HTMLElement): Element {
   return document.scrollingElement ?? document.documentElement;
 }
 
-function measure(el: HTMLElement): number {
-  const scroller = findScroller(el);
+function measure(el: HTMLElement, scroller: Element): number {
   if (scroller === el) {
     const rect = el.getBoundingClientRect();
     return getReadingProgress({
@@ -65,6 +64,9 @@ function measure(el: HTMLElement): number {
  * Reading progress (0–100, whole numbers) of the element in `ref`. Works whether the
  * element scrolls itself or sits inside a scrolling ancestor (the app's main area),
  * and follows changes in its height, e.g. accordions opening.
+ *
+ * The component that calls this re-renders on every percent, so call it from a small
+ * component (the progress indicator), not from the page that holds the content.
  */
 export function useReadingProgress(ref: RefObject<HTMLElement | null>): number {
   const [percent, setPercent] = useState(0);
@@ -73,23 +75,43 @@ export function useReadingProgress(ref: RefObject<HTMLElement | null>): number {
     const el = ref.current;
     if (!el) return;
 
+    // Looked up when sizes change, not on every scroll frame (it reads computed styles).
+    let scroller = findScroller(el);
     let frame = 0;
-    const update = () => {
+    let last = -1;
+    const schedule = () => {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => setPercent(Math.round(measure(el) * 100)));
+      frame = requestAnimationFrame(() => {
+        const next = Math.round(measure(el, scroller) * 100);
+        // Most scroll frames don't change the whole-number percent; skip those renders.
+        if (next === last) return;
+        last = next;
+        setPercent(next);
+      });
+    };
+    const onResize = () => {
+      scroller = findScroller(el);
+      schedule();
+    };
+    // Scroll events don't bubble, but they do reach a capturing listener on the document.
+    // Only scrolls that move the content count, and the element that scrolled is the scroller.
+    const onScroll = (event: Event) => {
+      const target = event.target === document ? document.scrollingElement : event.target;
+      if (!(target instanceof Element) || !target.contains(el)) return;
+      scroller = target;
+      schedule();
     };
 
-    update();
-    // Scroll events don't bubble, but they do reach a capturing listener on the document.
-    document.addEventListener("scroll", update, { capture: true, passive: true });
-    window.addEventListener("resize", update);
-    const resizeObserver = new ResizeObserver(update);
+    schedule();
+    document.addEventListener("scroll", onScroll, { capture: true, passive: true });
+    window.addEventListener("resize", onResize);
+    const resizeObserver = new ResizeObserver(onResize);
     resizeObserver.observe(el);
 
     return () => {
       cancelAnimationFrame(frame);
-      document.removeEventListener("scroll", update, { capture: true });
-      window.removeEventListener("resize", update);
+      document.removeEventListener("scroll", onScroll, { capture: true });
+      window.removeEventListener("resize", onResize);
       resizeObserver.disconnect();
     };
   }, [ref]);

@@ -4,6 +4,7 @@ import {
   LOGO_LETTERS,
   LOGO_ZERO_CENTER,
   SYMBOL_RING_PATH,
+  SYMBOL_RING_RADIUS,
   SYMBOL_SLICE_PATH,
 } from "./logoPaths";
 import {
@@ -60,7 +61,7 @@ export const BrandSidebarLogo = ({ expanded, dir }: BrandSidebarLogoProps) => {
             <path d={SYMBOL_RING_PATH} className="fill-primary" />
             <path d={SYMBOL_SLICE_PATH} className="fill-accent" />
           </g>
-          <circle r={38} className="fill-none" data-brand-zero="" />
+          <circle r={SYMBOL_RING_RADIUS} className="fill-none" data-brand-zero="" />
         </g>
       </g>
     </svg>

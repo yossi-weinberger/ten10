@@ -14,6 +14,13 @@ interface BrandProgressProps {
   value: number;
   /** Size and spacing classes, e.g. `h-14 w-14`. */
   className?: string;
+  /**
+   * Ease between values (default), for progress that jumps, like an import. Turn it off
+   * when the value already moves continuously, like reading progress driven by scroll:
+   * the fill can't be eased off the main thread, so easing every small step repaints the
+   * symbol on every frame.
+   */
+  smooth?: boolean;
 }
 
 /** How far (in symbol units) the slice starts from its place before it drops in. */
@@ -25,7 +32,7 @@ const SLICE_DROP_DISTANCE = 11;
  *
  * Decorative: pair it with visible text that states the progress (e.g. "12 / 40").
  */
-export const BrandProgress = ({ value, className }: BrandProgressProps) => {
+export const BrandProgress = ({ value, className, smooth = true }: BrandProgressProps) => {
   const maskId = `brand-progress-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const reduceMotion = useReducedMotion();
   const { ring, slice } = getBrandProgressParts(value);
@@ -50,7 +57,10 @@ export const BrandProgress = ({ value, className }: BrandProgressProps) => {
             pathLength={100}
             strokeDasharray="100 100"
             style={{ strokeDashoffset: 100 - ring * 100 }}
-            className="motion-safe:transition-[stroke-dashoffset] motion-safe:duration-300 motion-safe:ease-out"
+            className={cn(
+              smooth &&
+                "motion-safe:transition-[stroke-dashoffset] motion-safe:duration-300 motion-safe:ease-out"
+            )}
           />
         </mask>
       </defs>
@@ -59,7 +69,11 @@ export const BrandProgress = ({ value, className }: BrandProgressProps) => {
       <path d={SYMBOL_RING_PATH} className="fill-primary" mask={`url(#${maskId})`} />
       <path
         d={SYMBOL_SLICE_PATH}
-        className="fill-accent motion-safe:transition-[transform,opacity] motion-safe:duration-300 motion-safe:ease-out"
+        className={cn(
+          "fill-accent",
+          smooth &&
+            "motion-safe:transition-[transform,opacity] motion-safe:duration-300 motion-safe:ease-out"
+        )}
         style={{ opacity: sliceIn, transform: `translate(${drop}px, ${-drop}px)` }}
       />
     </svg>

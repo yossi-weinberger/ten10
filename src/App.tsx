@@ -29,6 +29,7 @@ import { OptInPromptDialog } from "./components/OptInPromptDialog";
 import { OnboardingHost } from "./components/onboarding/OnboardingHost";
 import { Footer } from "@/pages/landing/sections/Footer";
 import AppLoader from "./components/layout/AppLoader";
+import { FirstLoadHandoff } from "./components/layout/FirstLoadHandoff";
 
 import { RecurringTransactionsService } from "./lib/services/recurring-transactions.service";
 import { restoreDesktopSettings } from "./lib/services/desktop-settings.service";
@@ -62,7 +63,7 @@ function App() {
   const [desktopInitComplete, setDesktopInitComplete] = useState(false);
   // First-load handoff (#20, see llm-instructions/ui/brand-motion-guide.md): decided once,
   // the first time the app shell renders.
-  const [loaderHandoff, setLoaderHandoff] = useState<"pending" | "active" | "done">("pending");
+  const [loaderHandoff, setLoaderHandoff] = useState<"pending" | "play" | "skip">("pending");
   // Prevent re-running desktop init when language changes (t function reference changes)
   const desktopInitDone = useRef(false);
 
@@ -324,7 +325,7 @@ function App() {
       !isFullScreenPage &&
       isDesktopSidebarVisible &&
       !(platform === "desktop" && desktopLockStatus?.enabled);
-    setLoaderHandoff(canLand ? "active" : "done");
+    setLoaderHandoff(canLand ? "play" : "skip");
   }
 
   if (!isAppReady) {
@@ -445,9 +446,7 @@ function App() {
       <TermsAcceptanceModal />
       <WhatsNewModal />
       <OptInPromptDialog />
-      {loaderHandoff === "active" && (
-        <AppLoader exiting onExited={() => setLoaderHandoff("done")} />
-      )}
+      {loaderHandoff === "play" && <FirstLoadHandoff />}
     </TooltipProvider>
     </OnboardingHost>
   );

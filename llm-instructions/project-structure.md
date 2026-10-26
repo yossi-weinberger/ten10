@@ -186,6 +186,7 @@ This section details how the different parts of the project interact with each o
 │   │   │   └── TransactionForm.tsx
 │   │   ├── layout/
 │   │   │   ├── AppLoader.tsx
+│   │   │   ├── FirstLoadHandoff.tsx   # Plays the first-load handoff (#20), then removes itself
 │   │   │   ├── PlatformIndicator.tsx
 │   │   │   └── Sidebar.tsx
 │   │   ├── settings/

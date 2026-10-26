@@ -35,6 +35,21 @@ export interface HandoffFlight {
   scale: number;
 }
 
+/**
+ * The ring's box on screen, from the symbol box's turned bounding box and its untransformed
+ * layout width. A turned box measures larger than what it holds, so only its centre is
+ * used (the symbol turns about its centre); the size comes from the layout width.
+ */
+export function getRingRect(turnedBox: RectLike, layoutWidth: number, ringShare: number): RectLike {
+  const size = layoutWidth * ringShare;
+  return {
+    left: turnedBox.left + turnedBox.width / 2 - size / 2,
+    top: turnedBox.top + turnedBox.height / 2 - size / 2,
+    width: size,
+    height: size,
+  };
+}
+
 /** Translation and scale that move the `source` ring onto the `target` ring. */
 export function getHandoffFlight(source: RectLike, target: RectLike): HandoffFlight {
   return {

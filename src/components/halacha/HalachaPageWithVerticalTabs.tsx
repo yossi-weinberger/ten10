@@ -16,7 +16,6 @@ import {
 import { FormattedText } from "./FormattedText";
 import { HalachaPrintButton } from "./HalachaPrintButton";
 import { HalachaReadingProgress } from "./HalachaReadingProgress";
-import { useReadingProgress } from "@/hooks/useReadingProgress";
 
 const LoadingFallback = () => (
   <div className="flex gap-8">
@@ -182,8 +181,6 @@ function HalachaPageContent() {
 
   // Scroll container ref for intersection observer
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  // Scrolls itself on desktop; on mobile the app's main area scrolls it. The hook handles both.
-  const readingProgress = useReadingProgress(scrollContainerRef);
 
   // Effect for scroll-based tab activation using Intersection Observer
   useEffect(() => {
@@ -245,7 +242,7 @@ function HalachaPageContent() {
           <div className="md:sticky md:top-6">
             {!isMobile && (
               <HalachaReadingProgress
-                value={readingProgress}
+                contentRef={scrollContainerRef}
                 className="mb-3 rounded-lg border bg-card px-3 py-2"
               />
             )}
@@ -256,7 +253,7 @@ function HalachaPageContent() {
                          md:flex-col md:space-y-1 md:gap-0"
             >
               {isMobile && (
-                <HalachaReadingProgress compact value={readingProgress} className="px-2" />
+                <HalachaReadingProgress compact contentRef={scrollContainerRef} className="px-2" />
               )}
 
               {/* Active tab slider - DESKTOP ONLY */}

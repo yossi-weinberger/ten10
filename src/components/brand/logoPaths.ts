@@ -29,6 +29,12 @@ export const SYMBOL_RING_TRACK_PATH = "M12.93 -26.51 A29.5 29.5 0 1 0 26.51 -12.
 /** Tight viewBox around the symbol at rest. Motion past it relies on `overflow-visible`. */
 export const SYMBOL_VIEWBOX = "-40 -40 80 80";
 
+/** Width (and height) of `SYMBOL_VIEWBOX`, in symbol units. */
+export const SYMBOL_VIEWBOX_SIZE = 80;
+
+/** Outer radius of the ring, in symbol units. */
+export const SYMBOL_RING_RADIUS = 38;
+
 /** A box in an SVG's own units: `[minX, minY, width, height]`. */
 export type ViewBoxRect = readonly [number, number, number, number];
 

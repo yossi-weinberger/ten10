@@ -29,8 +29,8 @@ Do not put keyframes in component files, inline `<style>` tags or new CSS files.
 | 7 | `BrandDone` | One-shot success: the last half-turn settles, the slice clicks in, a ripple leaves the ring and a check is drawn inside the 0. | `ImportResultStep` when rows were inserted |
 | 12ב | `Brand404` | "404" where the 0 is the symbol; it shakes "no", the slice falls to the floor and rocks to rest. Plays once. | `NotFoundPage` |
 | 38ב | `BrandSidebarLogo` | Sidebar logo that morphs letter by letter between the wide logo (expanded) and the square logo (collapsed); the 0 turns once. Positions come from `sidebarLogoLayout.utils.ts`. | `Sidebar` |
-| 15 | `HalachaReadingProgress` + `useReadingProgress` | Reading progress: the ring fills as the reader scrolls and the slice drops in at the end, with the percentage. A `role="progressbar"`; hidden in print. The hook works whether the content scrolls itself (desktop) or inside the app's main area (mobile), and follows height changes (accordions). | Halacha page: a card above the tabs on desktop, the start of the tab bar on mobile |
-| 20 | `BrandHandoffSymbol` (via `AppLoader exiting`) | First-load handoff: when the app shell appears, the loader's symbol flies into the 0 of the sidebar logo while the loader fades away. Constants and the flight maths are in `brandHandoff.utils.ts`. | `App.tsx` |
+| 15 | `HalachaReadingProgress` + `useReadingProgress` | Reading progress: the ring fills as the reader scrolls and the slice drops in at the end, with the percentage. A `role="progressbar"`; hidden in print. The indicator tracks the scroll itself, so only it re-renders while the reader scrolls. The hook works whether the content scrolls itself (desktop) or inside the app's main area (mobile), and follows height changes (accordions). | Halacha page: a card above the tabs on desktop, the start of the tab bar on mobile |
+| 20 | `FirstLoadHandoff` → `AppLoader exiting` → `BrandHandoffSymbol` | First-load handoff: when the app shell appears, the loader's symbol flies into the 0 of the sidebar logo while the loader fades away. Constants and the flight maths are in `brandHandoff.utils.ts`. | `App.tsx` |
 
 All components are decorative (`aria-hidden="true"`). The surrounding UI must carry the meaning in text (`role="status"` messages, headings, counts).
 
@@ -42,11 +42,11 @@ All components are decorative (`aria-hidden="true"`). The surrounding UI must ca
 - The SVG is as wide as the expanded sidebar and pinned to the inline-start edge of a `relative`, `overflow-hidden` row, so the collapsing rail clips it.
 - If the sidebar's measurements change, update `SIDEBAR_LOGO_ROW` and its tests.
 
-**First-load handoff (20).** `App.tsx` decides once, the first time the app shell renders, whether the handoff can run: only when the desktop sidebar is visible (`md` and up, not a full-screen page) and not after the desktop lock screen. It then renders `<AppLoader exiting onExited={…} />` on top of the shell. That overlay ignores pointer events, fades its background and text, and `BrandHandoffSymbol` flies to the element marked `data-brand-zero` (a ring-sized circle in `BrandSidebarLogo`). While it runs, `<html>` carries `data-brand-handoff`, which hides the sidebar's own 0 (`[[data-brand-handoff]_&]:opacity-0`) so the two never overlap. With reduced motion, or without a target, the loader fades out instead.
+**First-load handoff (20).** `App.tsx` decides once, the first time the app shell renders, whether the handoff can run: only when the desktop sidebar is visible (`md` and up, not a full-screen page) and not after the desktop lock screen. It then renders `<FirstLoadHandoff />` on top of the shell, which shows `<AppLoader exiting />` and removes itself when the flight ends (its own state, so `App` doesn't re-render). That overlay ignores pointer events, fades its background and text, and `BrandHandoffSymbol` flies to the element marked `data-brand-zero` (a ring-sized circle in `BrandSidebarLogo`). While it runs, `<html>` carries `data-brand-handoff`, which hides the sidebar's own 0 (`[[data-brand-handoff]_&]:opacity-0`) so the two never overlap. With reduced motion, or without a target, the loader fades out instead.
 
 ## 4. Geometry and Colours
 
-- Paths in `logoPaths.ts` put the ring's centre at `(0, 0)`. Rotations and scales about the symbol use `origin-[0_0]` (SVG's default `transform-box: view-box`).
+- Paths in `logoPaths.ts` put the ring's centre at `(0, 0)`. Rotations and scales of parts inside the symbol use `origin-[0_0]` (SVG's default `transform-box: view-box`). Turning the whole symbol is done on the `<svg>` element instead (see section 6).
 - A part that rotates around its own centre (e.g. the falling slice) uses `[transform-box:fill-box] origin-center`.
 - `SYMBOL_VIEWBOX` is tight around the symbol at rest. Components set `overflow-visible` so motion can leave the box without changing the component's size. Existing size classes (`h-14 w-14`, …) keep the same visual size as the old `<img src="/logo/symbol.svg">`.
 - Colours come from theme tokens: ring `fill-primary`, slice `fill-accent`, strokes `stroke-primary`. In dark mode the ring automatically uses the lighter teal. Do not hardcode `#11676a` / `#f0c000` in components.
@@ -70,23 +70,34 @@ Rules:
 
 This matches the rest of the app, which already uses `motion-safe:` utilities and `useReducedMotion` (landing page, `PrepareStep`).
 
-## 6. Accessibility Timing (WCAG 2.2.2)
+## 6. Performance
+
+These animations run while the app is busy (loading, rendering the first page, scrolling), so they must not add main-thread work. Measured in Chromium on this branch:
+
+1. **Loops turn the `<svg>` box, not shapes inside it.** Transform and opacity animations on an HTML-level box (the `<svg>` element, like the old `<img>`) run off the main thread, so a loader keeps turning while JavaScript loads. Smaller movements inside the drawing (the slice's fling) may run on the main thread; if they pause, the loader still turns. `BrandSpinner` and the static pre-loader both work this way.
+2. **framer-motion: animate `transform` as one string** when the animation runs while the app is busy (the first-load flight). `x` / `y` / `scale` / `rotate` are animated on the main thread and froze when it was blocked; a full `transform` string runs through the Web Animations API and kept moving.
+3. **No CSS transitions on values that already move continuously.** `stroke-dashoffset` (the `BrandProgress` fill) can't be animated off the main thread. With a 300 ms transition on every 1% of scroll, the halacha indicator repainted on every frame. Use `smooth={false}` when the value follows the scroll; keep the default for progress that jumps (imports).
+4. **Keep scroll-driven state in the smallest component.** `useReadingProgress` re-renders its caller on every percent, so it is called from the indicator, not the page that holds the content. It also skips frames where the whole-number percent didn't change and finds the scroller from the scroll event instead of reading computed styles every frame.
+5. **One-shot state that ends an animation lives with the animation** (`FirstLoadHandoff`), not in `App`, so finishing it doesn't re-render the whole app.
+
+## 7. Accessibility Timing (WCAG 2.2.2)
 
 Israeli accessibility regulations follow WCAG at level AA. Success criterion 2.2.2 (Pause, Stop, Hide) requires a way to stop anything that moves on its own for more than 5 seconds next to other content. Loading indicators are exempt.
 
 - Loaders may loop while the thing they represent is loading.
 - Everything else plays once (`1` iteration) or only in response to the user (hover, scroll, drag). Do not add ambient loops.
 
-## 7. Adding a Brand Animation
+## 8. Adding a Brand Animation
 
 1. Add keyframes and an `animate-brand-*` utility to the `brand-*` group in `tailwind.config.js`. Keep durations, delays and fill modes in the utility so components only reference class names.
 2. Build the component in `src/components/brand/` from `logoPaths.ts`. Use a named export and an optional `className` for size.
 3. Decide the reduced-motion behaviour (section 5) and implement it in the same component.
-4. Keep any math in a `*.utils.ts` file with a Vitest test next to it.
-5. Use semantic colour classes and check light mode, dark mode, RTL and LTR.
-6. Update the tables in this guide.
+4. Check it against the performance rules (section 6): loops on the `<svg>` box, no transitions on continuously changing values.
+5. Keep any math in a `*.utils.ts` file with a Vitest test next to it.
+6. Use semantic colour classes and check light mode, dark mode, RTL and LTR.
+7. Update the tables in this guide.
 
-## 8. Still Open
+## 9. Still Open
 
 Ideas from the motion lab that are not built. Numbers refer to the motion-lab ideas.
 

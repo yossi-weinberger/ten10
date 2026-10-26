@@ -6,9 +6,16 @@ import {
   BRAND_HANDOFF_TIMING,
   BRAND_ZERO_ATTRIBUTE,
   getHandoffFlight,
+  getRingRect,
   type HandoffFlight,
 } from "./brandHandoff.utils";
-import { SYMBOL_RING_PATH, SYMBOL_SLICE_PATH, SYMBOL_VIEWBOX } from "./logoPaths";
+import {
+  SYMBOL_RING_PATH,
+  SYMBOL_RING_RADIUS,
+  SYMBOL_SLICE_PATH,
+  SYMBOL_VIEWBOX,
+  SYMBOL_VIEWBOX_SIZE,
+} from "./logoPaths";
 
 interface BrandHandoffSymbolProps {
   /** Size classes; match the loader's spinner (`h-14 w-14`). */
@@ -24,7 +31,7 @@ interface BrandHandoffSymbolProps {
  */
 export const BrandHandoffSymbol = ({ className, onDone }: BrandHandoffSymbolProps) => {
   const reduceMotion = useReducedMotion();
-  const sourceRef = useRef<SVGCircleElement>(null);
+  const symbolRef = useRef<HTMLDivElement>(null);
   const finishedRef = useRef(false);
   // undefined while measuring, null when there is nowhere to fly.
   const [flight, setFlight] = useState<HandoffFlight | null | undefined>(undefined);
@@ -35,7 +42,15 @@ export const BrandHandoffSymbol = ({ className, onDone }: BrandHandoffSymbolProp
 
     const target = document.querySelector(`[${BRAND_ZERO_ATTRIBUTE}]`);
     const targetRect = target?.getBoundingClientRect();
-    const sourceRect = sourceRef.current?.getBoundingClientRect();
+    // The symbol is already mid-turn here, so measure its ring from the layout size.
+    const symbol = symbolRef.current;
+    const sourceRect = symbol
+      ? getRingRect(
+          symbol.getBoundingClientRect(),
+          symbol.offsetWidth,
+          (2 * SYMBOL_RING_RADIUS) / SYMBOL_VIEWBOX_SIZE
+        )
+      : undefined;
     setFlight(
       !reduceMotion && targetRect && sourceRect && targetRect.width > 0
         ? getHandoffFlight(sourceRect, targetRect)
@@ -53,14 +68,24 @@ export const BrandHandoffSymbol = ({ className, onDone }: BrandHandoffSymbolProp
   };
 
   const timing = BRAND_HANDOFF_TIMING;
+  // A full transform string (not x / y / scale / rotate) lets framer-motion run the flight
+  // with the Web Animations API, off the main thread, so it stays smooth while the app
+  // renders its first page.
+  const startRotation = reduceMotion ? 0 : timing.startRotation;
 
   return (
     <motion.div
+      ref={symbolRef}
       className={cn("h-14 w-14", className)}
-      initial={{ x: 0, y: 0, scale: 1, opacity: 1, rotate: reduceMotion ? 0 : timing.startRotation }}
+      initial={{
+        opacity: 1,
+        transform: `translateX(0px) translateY(0px) scale(1) rotate(${startRotation}deg)`,
+      }}
       animate={
         flight
-          ? { x: flight.x, y: flight.y, scale: flight.scale, rotate: 0 }
+          ? {
+              transform: `translateX(${flight.x}px) translateY(${flight.y}px) scale(${flight.scale}) rotate(0deg)`,
+            }
           : flight === null
             ? { opacity: 0 }
             : undefined
@@ -77,7 +102,6 @@ export const BrandHandoffSymbol = ({ className, onDone }: BrandHandoffSymbolProp
       <svg viewBox={SYMBOL_VIEWBOX} className="h-full w-full overflow-visible" aria-hidden="true" focusable="false">
         <path d={SYMBOL_RING_PATH} className="fill-primary" />
         <path d={SYMBOL_SLICE_PATH} className="fill-accent" />
-        <circle ref={sourceRef} r={38} className="fill-none" />
       </svg>
     </motion.div>
   );

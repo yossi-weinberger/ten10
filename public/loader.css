@@ -50,7 +50,8 @@
   overflow: visible;
 }
 
-#pre-loader .pl-spin,
+/* The spin is on the <svg> box (centred on the ring), so browsers run it off the main
+   thread while the app's JavaScript loads; the fling turns around the ring's centre. */
 #pre-loader .pl-fling {
   transform-origin: 0 0;
 }
