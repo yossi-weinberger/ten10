@@ -11,7 +11,7 @@ export function NotFoundPage() {
       className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] text-center p-6 bg-background"
       dir={i18n.dir()}
     >
-      <Brand404 className="mb-8 w-64 md:w-80" />
+      <Brand404 className="mb-8 md:w-80" />
       <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">
         {t("notFound.title")}
       </h1>

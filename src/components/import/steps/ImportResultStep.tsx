@@ -46,7 +46,7 @@ export function ImportResultStep({
       {/* Success / failure header */}
       <div className="flex flex-col items-center gap-3 text-center">
         {result.inserted > 0 ? (
-          <BrandDone className="h-12 w-12" />
+          <BrandDone />
         ) : (
           <AlertTriangle className="h-12 w-12 text-amber-500" />
         )}

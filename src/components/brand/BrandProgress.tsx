@@ -2,12 +2,8 @@ import { useId } from "react";
 import { useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getBrandProgressParts } from "./brandProgress.utils";
-import {
-  SYMBOL_RING_PATH,
-  SYMBOL_RING_TRACK_PATH,
-  SYMBOL_SLICE_PATH,
-  SYMBOL_VIEWBOX,
-} from "./logoPaths";
+import { SYMBOL_RING_PATH, SYMBOL_RING_TRACK_PATH, SYMBOL_SLICE_PATH } from "./logoPaths";
+import { SymbolSvg } from "./SymbolSvg";
 
 interface BrandProgressProps {
   /** Progress from 0 to 100. */
@@ -40,12 +36,7 @@ export const BrandProgress = ({ value, className, smooth = true }: BrandProgress
   const drop = reduceMotion ? 0 : (1 - sliceIn) * SLICE_DROP_DISTANCE;
 
   return (
-    <svg
-      viewBox={SYMBOL_VIEWBOX}
-      className={cn("h-14 w-14 overflow-visible", className)}
-      aria-hidden="true"
-      focusable="false"
-    >
+    <SymbolSvg className={cn("h-14 w-14", className)}>
       <defs>
         <mask id={maskId} maskUnits="userSpaceOnUse" x={-55} y={-55} width={110} height={110}>
           {/* Mask luminance rather than a theme colour: white reveals the ring below. */}
@@ -76,6 +67,6 @@ export const BrandProgress = ({ value, className, smooth = true }: BrandProgress
         )}
         style={{ opacity: sliceIn, transform: `translate(${drop}px, ${-drop}px)` }}
       />
-    </svg>
+    </SymbolSvg>
   );
 };

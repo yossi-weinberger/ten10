@@ -139,9 +139,6 @@ export default {
         },
         // Brand motion: the animated Ten10 symbol (src/components/brand).
         // See llm-instructions/ui/brand-motion-guide.md before adding to this group.
-        "brand-spin": {
-          to: { transform: "rotate(360deg)" },
-        },
         "brand-fling": {
           "50%": { transform: "rotate(-5deg) translate(4px, -4px)" },
         },
@@ -173,9 +170,11 @@ export default {
           "17%": { transform: "translateX(2px)" },
           "21%": { transform: "translateX(-1px)" },
         },
+        // The 404 keyframes leave out 100%: they end on the component's resting pose
+        // (its base classes), so that pose is written in one place.
         "brand-404-look": {
           "0%, 62%": { transform: "rotate(0deg)", animationTimingFunction: "ease-in-out" },
-          "85%, 100%": { transform: "rotate(12deg)" },
+          "85%": { transform: "rotate(12deg)" },
         },
         "brand-404-fall": {
           "0%, 22%": { transform: "translate(0, 0) rotate(0deg)", animationTimingFunction: "ease-out" },
@@ -189,7 +188,6 @@ export default {
           "72%": { transform: "translate(-9px, 81px) rotate(107deg)", animationTimingFunction: "ease-in-out" },
           "80%": { transform: "translate(-9px, 81px) rotate(95deg)", animationTimingFunction: "ease-in-out" },
           "88%": { transform: "translate(-9px, 81px) rotate(103deg)", animationTimingFunction: "ease-in-out" },
-          "100%": { transform: "translate(-9px, 81px) rotate(100deg)" },
         },
       },
       animation: {
@@ -203,7 +201,7 @@ export default {
         shimmer: "shimmer 2s linear infinite",
         // Brand motion. Apply these with `motion-safe:` and give every component a
         // `motion-reduce:` fallback (see llm-instructions/ui/brand-motion-guide.md).
-        "brand-spin": "brand-spin 1.5s cubic-bezier(0.6, 0, 0.4, 1) infinite",
+        "brand-spin": "spin 1.5s cubic-bezier(0.6, 0, 0.4, 1) infinite",
         "brand-fling": "brand-fling 1.5s ease-in-out infinite",
         "brand-pulse": "brand-pulse 2s ease-in-out infinite",
         "brand-done-settle": "brand-done-settle 0.8s cubic-bezier(0.2, 0.6, 0.35, 1) both",

@@ -61,8 +61,9 @@
     <link rel="stylesheet" href="/loader.css" />
   </head>
   <body>
-    <!-- The static pre-loader sits outside #root so React's first render doesn't remove it;
-         the app removes it when it has something to show (src/lib/staticPreloader.ts). -->
+    <!-- Static pre-loader, outside #root so React's first render keeps it; the app removes it
+         (src/lib/staticPreloader.ts). Its symbol and colours are copies, checked by
+         scripts/preloader-sync-contract.test.ts. -->
     <div
       id="pre-loader"
       dir="rtl"
@@ -70,10 +71,8 @@
       aria-live="polite"
       aria-busy="true"
     >
-      <!-- The Ten10 symbol, inline so public/loader.css can colour it per theme. The spin is
-           on the <svg> box, which keeps turning while the app's JavaScript loads. -->
       <svg
-        class="brand-spinner pl-spin"
+        class="pl-spin"
         viewBox="-40 -40 80 80"
         aria-hidden="true"
         focusable="false"

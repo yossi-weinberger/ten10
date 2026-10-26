@@ -12,7 +12,7 @@ export const BRAND_ZERO_ATTRIBUTE = "data-brand-zero";
 /** Timing in seconds, as framer-motion expects. */
 export const BRAND_HANDOFF_TIMING = {
   flightDuration: 0.7,
-  flightEase: [0.65, 0, 0.25, 1] as [number, number, number, number],
+  flightEase: [0.65, 0, 0.25, 1],
   /** The symbol starts mid-turn and unwinds to rest as it lands. */
   startRotation: -300,
   backdropDelay: 0.15,

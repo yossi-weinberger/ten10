@@ -1,17 +1,14 @@
 /*
   Static pre-loader (index.html), shown before any JavaScript or app CSS loads.
-  Colours mirror the app's theme tokens in src/index.css, so the hand-over to
-  AppLoader and the app doesn't flash: light by default, dark when the system
-  prefers dark, and the inline script in index.html applies a theme the user
-  chose in the app (data-theme="light" | "dark").
-  The spinner is the same motion as src/components/brand/BrandSpinner.tsx;
-  keep the two in sync.
+  Colours repeat the app's theme tokens in src/index.css: light by default, dark when
+  the system prefers dark, and the inline script in index.html applies a theme the user
+  chose in the app (data-theme="light" | "dark"). The spinner is the same motion as
+  src/components/brand/BrandSpinner.tsx. scripts/preloader-sync-contract.test.ts checks both copies.
 */
 #pre-loader {
   --pl-bg: hsl(48 79% 98%); /* --background */
-  --pl-title: hsl(182 73% 24%); /* --primary */
+  --pl-primary: hsl(182 73% 24%); /* --primary */
   --pl-text: hsl(48 8% 43%); /* --muted-foreground */
-  --pl-ring: hsl(182 73% 24%); /* --primary */
   --pl-slice: hsl(48 100% 47%); /* --accent */
 
   position: fixed;
@@ -30,42 +27,35 @@
 @media (prefers-color-scheme: dark) {
   #pre-loader:not([data-theme="light"]) {
     --pl-bg: hsl(45 63% 3%);
-    --pl-title: hsl(182 35% 56%);
+    --pl-primary: hsl(182 35% 56%);
     --pl-text: hsl(48 13% 72%);
-    --pl-ring: hsl(182 35% 56%);
   }
 }
 
 #pre-loader[data-theme="dark"] {
   --pl-bg: hsl(45 63% 3%);
-  --pl-title: hsl(182 35% 56%);
+  --pl-primary: hsl(182 35% 56%);
   --pl-text: hsl(48 13% 72%);
-  --pl-ring: hsl(182 35% 56%);
 }
 
-#pre-loader .brand-spinner {
+/* The spin is on the <svg> box itself, which browsers run off the main thread (see
+   llm-instructions/ui/brand-motion-guide.md, section 6). */
+#pre-loader .pl-spin {
   width: 56px;
   height: 56px;
   margin-bottom: 16px;
   overflow: visible;
-}
-
-/* The spin is on the <svg> box (centred on the ring), so browsers run it off the main
-   thread while the app's JavaScript loads; the fling turns around the ring's centre. */
-#pre-loader .pl-fling {
-  transform-origin: 0 0;
-}
-
-#pre-loader .pl-spin {
   animation: pl-spin 1.5s cubic-bezier(0.6, 0, 0.4, 1) infinite;
 }
 
+/* The fling turns around the ring's centre, the SVG's (0, 0). */
 #pre-loader .pl-fling {
+  transform-origin: 0 0;
   animation: pl-fling 1.5s ease-in-out infinite;
 }
 
 #pre-loader .pl-ring {
-  fill: var(--pl-ring);
+  fill: var(--pl-primary);
 }
 
 #pre-loader .pl-slice {
@@ -103,7 +93,7 @@
 #pre-loader .text {
   font-size: 1.5rem;
   font-weight: bold;
-  color: var(--pl-title);
+  color: var(--pl-primary);
 }
 
 #pre-loader p {

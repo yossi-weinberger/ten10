@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
-import { SYMBOL_RING_PATH, SYMBOL_SLICE_PATH, SYMBOL_VIEWBOX } from "./logoPaths";
+import { SYMBOL_RING_PATH, SYMBOL_RING_RADIUS, SYMBOL_SLICE_PATH } from "./logoPaths";
+import { SymbolSvg } from "./SymbolSvg";
 
 interface BrandDoneProps {
   /** Size and spacing classes, e.g. `h-12 w-12`. */
@@ -17,14 +18,9 @@ const CHECK_PATH = "M-9.5 1 L-3 7.5 L9.5 -6.5";
  * Decorative: pair it with visible text that says what finished.
  */
 export const BrandDone = ({ className }: BrandDoneProps) => (
-  <svg
-    viewBox={SYMBOL_VIEWBOX}
-    className={cn("h-12 w-12 overflow-visible", className)}
-    aria-hidden="true"
-    focusable="false"
-  >
+  <SymbolSvg className={cn("h-12 w-12", className)}>
     <circle
-      r={38}
+      r={SYMBOL_RING_RADIUS}
       strokeWidth={2.4}
       className="fill-none stroke-primary opacity-0 origin-[0_0] motion-safe:animate-brand-done-ripple"
     />
@@ -43,5 +39,5 @@ export const BrandDone = ({ className }: BrandDoneProps) => (
       strokeLinejoin="round"
       className="fill-none stroke-primary motion-safe:animate-brand-done-check"
     />
-  </svg>
+  </SymbolSvg>
 );

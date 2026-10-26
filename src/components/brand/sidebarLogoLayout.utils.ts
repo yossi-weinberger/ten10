@@ -1,3 +1,4 @@
+import { SIDEBAR_SIZE } from "@/components/layout/sidebarSize";
 import {
   LOGO_LETTERS,
   LOGO_ZERO_CENTER,
@@ -7,15 +8,15 @@ import {
 } from "./logoPaths";
 
 /**
- * Pixel geometry of the sidebar's logo row (see `Sidebar.tsx` and `App.tsx`):
- * the sidebar is `w-44` expanded and `w-16` collapsed, the row is 36px tall,
- * the wide logo is `h-7` behind `px-4`, and the square logo is an `h-9 w-9`
- * `object-contain` box centred in the collapsed rail.
+ * Pixel geometry of the sidebar's logo row. The row and the sidebar's widths come from
+ * `SIDEBAR_SIZE`; the rest are the logos' own sizes in it: the wide logo is 28px tall
+ * with 16px inline padding, and the square logo fits a 36px box centred in the
+ * collapsed rail.
  */
 export const SIDEBAR_LOGO_ROW = {
-  width: 176,
-  height: 36,
-  collapsedWidth: 64,
+  width: SIDEBAR_SIZE.expandedWidth.px,
+  height: SIDEBAR_SIZE.logoRowHeight.px,
+  collapsedWidth: SIDEBAR_SIZE.collapsedWidth.px,
   paddingInline: 16,
   wideLogoHeight: 28,
   squareLogoBox: 36,
@@ -74,20 +75,17 @@ export function getSidebarLogoLayout(dir: "rtl" | "ltr"): SidebarLogoLayout {
     scale: glyphScale * squareScale,
   });
 
-  const layout: SidebarLogoLayout = {
+  const square = Object.fromEntries(
+    LOGO_LETTERS.map((letter) => [
+      letter.key,
+      toSquare(letter.wideAnchor, letter.squareAnchor, letter.squareScale),
+    ])
+  ) as Record<Exclude<LogoGlyphKey, "0">, GlyphTransform>;
+
+  return {
     wide: { T: wide, E: wide, N: wide, "1": wide, "0": wide },
-    square: {
-      T: wide,
-      E: wide,
-      N: wide,
-      "1": wide,
-      "0": toSquare(LOGO_ZERO_CENTER.wide, LOGO_ZERO_CENTER.square, 1),
-    },
+    square: { ...square, "0": toSquare(LOGO_ZERO_CENTER.wide, LOGO_ZERO_CENTER.square, 1) },
   };
-  for (const letter of LOGO_LETTERS) {
-    layout.square[letter.key] = toSquare(letter.wideAnchor, letter.squareAnchor, letter.squareScale);
-  }
-  return layout;
 }
 
 export function toCssTransform({ x, y, scale }: GlyphTransform): string {

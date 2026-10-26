@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { BrandHandoffSymbol } from "@/components/brand/BrandHandoffSymbol";
 import { BrandProgress } from "@/components/brand/BrandProgress";
 import { BrandSpinner } from "@/components/brand/BrandSpinner";
 import { BRAND_HANDOFF_TIMING } from "@/components/brand/brandHandoff.utils";
+import { cn } from "@/lib/utils";
 
 interface AppLoaderProps {
   /** Optional custom message; defaults to the global app startup message. */
@@ -37,56 +38,64 @@ const AppLoader: React.FC<AppLoaderProps> = ({
     ? Math.round((progress.current / progress.total) * 100)
     : 0;
 
-  if (exiting) {
-    const timing = BRAND_HANDOFF_TIMING;
-    const fadeText = { initial: { opacity: 1 }, animate: { opacity: 0 }, transition: { duration: timing.textFadeDuration } };
-    return (
-      <div
-        className="fixed inset-0 flex flex-col items-center justify-center z-50 pointer-events-none"
-        dir={i18n.dir()}
-        aria-hidden="true"
-      >
+  // The handoff is over when both the symbol and the fading background are done.
+  const pendingParts = useRef(new Set(["symbol", "backdrop"]));
+  const partDone = (part: "symbol" | "backdrop") => {
+    if (!pendingParts.current.delete(part)) return;
+    if (pendingParts.current.size === 0) onExited?.();
+  };
+
+  const timing = BRAND_HANDOFF_TIMING;
+
+  // One layout for loading and for the handoff, so the symbol and text don't move when
+  // the loader turns into the handoff overlay.
+  return (
+    <div
+      className={cn(
+        "fixed inset-0 z-50 flex flex-col items-center justify-center",
+        exiting ? "pointer-events-none" : "bg-background"
+      )}
+      dir={i18n.dir()}
+      {...(exiting
+        ? { "aria-hidden": true }
+        : { role: "status", "aria-live": "polite" as const, "aria-busy": true })}
+    >
+      {exiting && (
         <motion.div
           className="absolute inset-0 -z-10 bg-background"
           initial={{ opacity: 1 }}
           animate={{ opacity: 0 }}
           transition={{ delay: timing.backdropDelay, duration: timing.backdropDuration }}
+          onAnimationComplete={() => partDone("backdrop")}
         />
-        <BrandHandoffSymbol className="h-14 w-14" onDone={onExited} />
-        <motion.h1 className="mt-4 text-2xl font-bold text-primary" {...fadeText}>
-          Ten10
-        </motion.h1>
-        <motion.p className="mt-4 text-muted-foreground" {...fadeText}>
-          {displayMessage}
-        </motion.p>
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="fixed inset-0 flex flex-col items-center justify-center bg-background z-50"
-      dir={i18n.dir()}
-      role="status"
-      aria-live="polite"
-      aria-busy="true"
-    >
+      )}
       {/* With known progress the symbol itself fills up: ring to 90%, slice for the rest. */}
-      {hasProgress ? (
-        <BrandProgress value={progressPercent} className="h-14 w-14" />
+      {exiting ? (
+        <BrandHandoffSymbol onDone={() => partDone("symbol")} />
+      ) : hasProgress ? (
+        <BrandProgress value={progressPercent} />
       ) : (
-        <BrandSpinner className="h-14 w-14" />
+        <BrandSpinner />
       )}
-      <h1 className="mt-4 text-2xl font-bold text-primary">Ten10</h1>
-      <p className="mt-4 text-muted-foreground">{displayMessage}</p>
-      {details && (
-        <p className="mt-2 text-sm text-muted-foreground">{details}</p>
-      )}
-      {hasProgress && (
-        <p className="mt-2 text-center text-sm text-muted-foreground tabular-nums" dir="ltr">
-          {progress.current} / {progress.total}
-        </p>
-      )}
+      <motion.div
+        className="flex flex-col items-center"
+        {...(exiting && {
+          initial: { opacity: 1 },
+          animate: { opacity: 0 },
+          transition: { duration: timing.textFadeDuration },
+        })}
+      >
+        <h1 className="mt-4 text-2xl font-bold text-primary">Ten10</h1>
+        <p className="mt-4 text-muted-foreground">{displayMessage}</p>
+        {details && (
+          <p className="mt-2 text-sm text-muted-foreground">{details}</p>
+        )}
+        {hasProgress && (
+          <p className="mt-2 text-center text-sm text-muted-foreground tabular-nums" dir="ltr">
+            {progress.current} / {progress.total}
+          </p>
+        )}
+      </motion.div>
     </div>
   );
 };

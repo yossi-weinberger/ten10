@@ -13,9 +13,9 @@ import {
   SYMBOL_RING_PATH,
   SYMBOL_RING_RADIUS,
   SYMBOL_SLICE_PATH,
-  SYMBOL_VIEWBOX,
   SYMBOL_VIEWBOX_SIZE,
 } from "./logoPaths";
+import { SymbolSvg } from "./SymbolSvg";
 
 interface BrandHandoffSymbolProps {
   /** Size classes; match the loader's spinner (`h-14 w-14`). */
@@ -32,7 +32,6 @@ interface BrandHandoffSymbolProps {
 export const BrandHandoffSymbol = ({ className, onDone }: BrandHandoffSymbolProps) => {
   const reduceMotion = useReducedMotion();
   const symbolRef = useRef<HTMLDivElement>(null);
-  const finishedRef = useRef(false);
   // undefined while measuring, null when there is nowhere to fly.
   const [flight, setFlight] = useState<HandoffFlight | null | undefined>(undefined);
 
@@ -60,26 +59,18 @@ export const BrandHandoffSymbol = ({ className, onDone }: BrandHandoffSymbolProp
     return () => root.removeAttribute(BRAND_HANDOFF_ATTRIBUTE);
   }, [reduceMotion]);
 
-  const finish = () => {
-    if (finishedRef.current) return;
-    finishedRef.current = true;
-    document.documentElement.removeAttribute(BRAND_HANDOFF_ATTRIBUTE);
-    onDone?.();
-  };
+  const { flightDuration, flightEase, startRotation, fadeDuration } = BRAND_HANDOFF_TIMING;
 
-  const timing = BRAND_HANDOFF_TIMING;
   // A full transform string (not x / y / scale / rotate) lets framer-motion run the flight
   // with the Web Animations API, off the main thread, so it stays smooth while the app
   // renders its first page.
-  const startRotation = reduceMotion ? 0 : timing.startRotation;
-
   return (
     <motion.div
       ref={symbolRef}
       className={cn("h-14 w-14", className)}
       initial={{
         opacity: 1,
-        transform: `translateX(0px) translateY(0px) scale(1) rotate(${startRotation}deg)`,
+        transform: `translateX(0px) translateY(0px) scale(1) rotate(${reduceMotion ? 0 : startRotation}deg)`,
       }}
       animate={
         flight
@@ -90,19 +81,18 @@ export const BrandHandoffSymbol = ({ className, onDone }: BrandHandoffSymbolProp
             ? { opacity: 0 }
             : undefined
       }
-      transition={
-        flight
-          ? { duration: timing.flightDuration, ease: timing.flightEase }
-          : { duration: timing.fadeDuration }
-      }
+      transition={flight ? { duration: flightDuration, ease: flightEase } : { duration: fadeDuration }}
       onAnimationComplete={() => {
-        if (flight !== undefined) finish();
+        if (flight === undefined) return;
+        // Landed (or faded out): the sidebar shows its own 0 again.
+        document.documentElement.removeAttribute(BRAND_HANDOFF_ATTRIBUTE);
+        onDone?.();
       }}
     >
-      <svg viewBox={SYMBOL_VIEWBOX} className="h-full w-full overflow-visible" aria-hidden="true" focusable="false">
+      <SymbolSvg className="h-full w-full">
         <path d={SYMBOL_RING_PATH} className="fill-primary" />
         <path d={SYMBOL_SLICE_PATH} className="fill-accent" />
-      </svg>
+      </SymbolSvg>
     </motion.div>
   );
 };

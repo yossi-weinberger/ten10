@@ -26,11 +26,11 @@ export const SYMBOL_SLICE_PATH =
  */
 export const SYMBOL_RING_TRACK_PATH = "M12.93 -26.51 A29.5 29.5 0 1 0 26.51 -12.93";
 
-/** Tight viewBox around the symbol at rest. Motion past it relies on `overflow-visible`. */
-export const SYMBOL_VIEWBOX = "-40 -40 80 80";
-
 /** Width (and height) of `SYMBOL_VIEWBOX`, in symbol units. */
 export const SYMBOL_VIEWBOX_SIZE = 80;
+
+/** Tight viewBox around the symbol at rest. Motion past it relies on `overflow-visible`. */
+export const SYMBOL_VIEWBOX = `${-SYMBOL_VIEWBOX_SIZE / 2} ${-SYMBOL_VIEWBOX_SIZE / 2} ${SYMBOL_VIEWBOX_SIZE} ${SYMBOL_VIEWBOX_SIZE}`;
 
 /** Outer radius of the ring, in symbol units. */
 export const SYMBOL_RING_RADIUS = 38;

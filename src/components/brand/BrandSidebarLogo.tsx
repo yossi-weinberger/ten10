@@ -1,5 +1,7 @@
 import { useMemo } from "react";
+import { SIDEBAR_SIZE } from "@/components/layout/sidebarSize";
 import { cn } from "@/lib/utils";
+import { BRAND_ZERO_ATTRIBUTE } from "./brandHandoff.utils";
 import {
   LOGO_LETTERS,
   LOGO_ZERO_CENTER,
@@ -25,9 +27,9 @@ interface BrandSidebarLogoProps {
  * Transitions use the sidebar's own `duration-300` so they stay in sync with its width.
  * With reduced motion the logos swap instantly.
  *
- * Render it inside a `relative` box that is 36px tall and clips overflow: the SVG is
- * as wide as the expanded sidebar and is pinned to the inline-start edge.
- * The ring carries `data-brand-zero` so the first-load handoff can find its position.
+ * It renders the whole logo row: the SVG is as wide as the expanded sidebar, pinned to
+ * the inline-start edge, and the row clips it as the sidebar narrows. The ring carries
+ * `data-brand-zero` so the first-load handoff can find its position.
  */
 export const BrandSidebarLogo = ({ expanded, dir }: BrandSidebarLogoProps) => {
   const layout = useMemo(() => getSidebarLogoLayout(dir), [dir]);
@@ -35,35 +37,40 @@ export const BrandSidebarLogo = ({ expanded, dir }: BrandSidebarLogoProps) => {
   const glyphMotion = "transition-transform duration-300 ease-in-out motion-reduce:transition-none";
 
   return (
-    <svg
-      width={SIDEBAR_LOGO_ROW.width}
-      height={SIDEBAR_LOGO_ROW.height}
-      viewBox={`0 0 ${SIDEBAR_LOGO_ROW.width} ${SIDEBAR_LOGO_ROW.height}`}
-      className="absolute top-0 start-0 overflow-visible"
-      aria-hidden="true"
-      focusable="false"
-    >
-      {LOGO_LETTERS.map((letter) => (
-        <path
-          key={letter.key}
-          d={letter.path}
-          className={cn("fill-primary", glyphMotion)}
-          style={{ transform: toCssTransform(state[letter.key]) }}
-        />
-      ))}
-      <g className={glyphMotion} style={{ transform: toCssTransform(state["0"]) }}>
-        <g transform={`translate(${LOGO_ZERO_CENTER.wide[0]} ${LOGO_ZERO_CENTER.wide[1]})`}>
-          {/* Hidden while the first-load handoff flies its own copy of the symbol here. */}
-          <g
-            className={cn(glyphMotion, "[[data-brand-handoff]_&]:opacity-0")}
-            style={{ transform: expanded ? "rotate(0deg)" : "rotate(-360deg)" }}
-          >
-            <path d={SYMBOL_RING_PATH} className="fill-primary" />
-            <path d={SYMBOL_SLICE_PATH} className="fill-accent" />
+    <span className={cn("relative block overflow-hidden", SIDEBAR_SIZE.logoRowHeight.className)}>
+      <svg
+        viewBox={`0 0 ${SIDEBAR_LOGO_ROW.width} ${SIDEBAR_LOGO_ROW.height}`}
+        className={cn(
+          "absolute top-0 start-0 overflow-visible",
+          SIDEBAR_SIZE.expandedWidth.className,
+          SIDEBAR_SIZE.logoRowHeight.className
+        )}
+        aria-hidden="true"
+        focusable="false"
+      >
+        {LOGO_LETTERS.map((letter) => (
+          <path
+            key={letter.key}
+            d={letter.path}
+            className={cn("fill-primary", glyphMotion)}
+            style={{ transform: toCssTransform(state[letter.key]) }}
+          />
+        ))}
+        <g className={glyphMotion} style={{ transform: toCssTransform(state["0"]) }}>
+          <g transform={`translate(${LOGO_ZERO_CENTER.wide[0]} ${LOGO_ZERO_CENTER.wide[1]})`}>
+            {/* Hidden while the first-load handoff flies its own copy of the symbol here
+                (BRAND_HANDOFF_ATTRIBUTE; a Tailwind variant needs the literal name). */}
+            <g
+              className={cn(glyphMotion, "[[data-brand-handoff]_&]:opacity-0")}
+              style={{ transform: expanded ? "rotate(0deg)" : "rotate(-360deg)" }}
+            >
+              <path d={SYMBOL_RING_PATH} className="fill-primary" />
+              <path d={SYMBOL_SLICE_PATH} className="fill-accent" />
+            </g>
+            <circle r={SYMBOL_RING_RADIUS} className="fill-none" {...{ [BRAND_ZERO_ATTRIBUTE]: "" }} />
           </g>
-          <circle r={SYMBOL_RING_RADIUS} className="fill-none" data-brand-zero="" />
         </g>
-      </g>
-    </svg>
+      </svg>
+    </span>
   );
 };

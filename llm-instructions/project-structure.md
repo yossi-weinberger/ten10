@@ -155,6 +155,7 @@ This section details how the different parts of the project interact with each o
 │   ├── components/        # Reusable UI components
 │   │   ├── brand/         # Animated Ten10 symbol (see ui/brand-motion-guide.md)
 │   │   │   ├── logoPaths.ts              # Symbol paths re-anchored to the ring's centre; wordmark letters
+│   │   │   ├── SymbolSvg.tsx             # The decorative <svg> the symbol components draw in
 │   │   │   ├── BrandSpinner.tsx          # Loader
 │   │   │   ├── BrandProgress.tsx         # Ring fills to 90%, slice completes it
 │   │   │   ├── brandProgress.utils.ts    # (+ .test.ts)
@@ -188,7 +189,8 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── AppLoader.tsx
 │   │   │   ├── FirstLoadHandoff.tsx   # Plays the first-load handoff (#20), then removes itself
 │   │   │   ├── PlatformIndicator.tsx
-│   │   │   └── Sidebar.tsx
+│   │   │   ├── Sidebar.tsx
+│   │   │   └── sidebarSize.ts         # Sidebar widths and logo row: Tailwind classes + px (+ .test.ts)
 │   │   ├── settings/
 │   │   │   ├── ClearDataSection.tsx
 │   │   │   ├── FinancialSettingsCard.tsx
@@ -315,6 +317,7 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── export-excel.ts
 │   │   │   ├── export-pdf.ts
 │   │   │   ├── save-export-file.ts            # Tauri save dialog vs web download for exports
+│   │   │   ├── scroll.ts                      # Nearest scrolling ancestor (landing page, reading progress)
 │   │   │   ├── formatting.tsx
 │   │   │   ├── index.ts
 │   │   │   └── pdf-helpers.ts               # Shared PDF utilities: drawRtlText, splitTextSegments

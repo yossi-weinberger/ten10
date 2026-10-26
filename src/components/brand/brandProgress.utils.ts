@@ -1,5 +1,5 @@
 /** Share of the progress that fills the ring; the slice covers the rest. */
-export const BRAND_PROGRESS_RING_SHARE = 0.9;
+const BRAND_PROGRESS_RING_SHARE = 0.9;
 
 export interface BrandProgressParts {
   /** How much of the ring is revealed, 0–1. */

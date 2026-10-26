@@ -632,7 +632,7 @@ The main `Sidebar` component requires careful synchronization between the parent
 2.  **Synchronized Transitions:** All transitions (width, opacity, transform) must use the same duration (e.g., `duration-300`).
 3.  **No Dynamic Alignment:** To prevent icon jumping, navigation buttons should **always** be `justify-start` with fixed padding (e.g., `px-4`). Do not switch between `justify-center` (collapsed) and `justify-start` (expanded). The content should be perfectly centered in the collapsed state simply by virtue of the padding and container width.
 4.  **Text Fading:** Text labels must fade out (`opacity-0`) and collapse (`w-0`) **before** the sidebar finishes closing, or fade in **after** it starts opening, to prevent the text from being "cut off" by the shrinking container.
-5.  **Logo:** The logo row renders `BrandSidebarLogo`, which morphs the wide logo into the square one glyph by glyph with the same `duration-300`. Its geometry is derived from the widths and sizes above (`sidebarLogoLayout.utils.ts`), so update it together with them. See `brand-motion-guide.md`.
+5.  **Logo:** The logo row renders `BrandSidebarLogo`, which morphs the wide logo into the square one glyph by glyph with the same `duration-300`. The sidebar widths and the logo row height come from `SIDEBAR_SIZE` (`src/components/layout/sidebarSize.ts`), which `App`, `Sidebar` and the logo geometry share. See `brand-motion-guide.md`.
 
 ### 10.2 Sidebar Visibility by Platform
 

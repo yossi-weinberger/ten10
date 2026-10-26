@@ -20,7 +20,7 @@ import {
   getScrollableParent,
   getScrollTop,
   isWindowScrollTarget,
-} from "./utils/scroll";
+} from "@/lib/utils/scroll";
 
 const smoothScrollToElement = (
   element: HTMLElement,

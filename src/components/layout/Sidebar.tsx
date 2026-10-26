@@ -27,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
 import { HomeFeedbackCard } from "@/components/feedback/HomeFeedbackCard";
 import { BrandSidebarLogo } from "@/components/brand/BrandSidebarLogo";
+import { SIDEBAR_SIZE } from "./sidebarSize";
 
 interface SidebarProps {
   expanded?: boolean;
@@ -60,8 +61,8 @@ export function Sidebar({
     height: 0,
   });
 
-  const expandedWidth = inSheet ? "w-44" : "w-44";
-  const collapsedWidth = "w-16";
+  const expandedWidth = SIDEBAR_SIZE.expandedWidth.className;
+  const collapsedWidth = SIDEBAR_SIZE.collapsedWidth.className;
 
   // --- Slider measurement (active item background) ---
   useLayoutEffect(() => {
@@ -276,8 +277,7 @@ export function Sidebar({
         to="/"
         onClick={onLinkClick}
         aria-label={t("appName")}
-        className="relative block w-full mb-6 overflow-hidden shrink-0"
-        style={{ height: "36px" }}
+        className="block w-full mb-6 shrink-0"
       >
         <span className="sr-only">{t("appName")}</span>
         {/* Morphs between the wide logo (expanded) and the square logo (collapsed). */}

@@ -30,6 +30,7 @@ import { OnboardingHost } from "./components/onboarding/OnboardingHost";
 import { Footer } from "@/pages/landing/sections/Footer";
 import AppLoader from "./components/layout/AppLoader";
 import { FirstLoadHandoff } from "./components/layout/FirstLoadHandoff";
+import { SIDEBAR_SIZE } from "./components/layout/sidebarSize";
 import { removeStaticPreloader } from "./lib/staticPreloader";
 
 import { RecurringTransactionsService } from "./lib/services/recurring-transactions.service";
@@ -311,33 +312,14 @@ function App() {
     autoLockTimeoutMinutes,
   ]);
 
+  if (!isAppReady) {
+    return <AppLoader />;
+  }
+
   const desktopLocked =
     platform === "desktop" &&
     desktopLockStatus?.enabled &&
     !desktopLockStatus.unlocked;
-
-  const desktopInitPending =
-    platform === "desktop" &&
-    (!desktopLockStatus?.enabled || desktopLockStatus?.unlocked) &&
-    !desktopInitComplete;
-
-  const shellVisible = isAppReady && !desktopLocked && !desktopInitPending;
-
-  // When the shell first appears, the loader's symbol flies into the sidebar logo.
-  // Skip it where there is no sidebar to land in, and after the desktop lock screen,
-  // which is not a loader. Updated during render (React re-renders before committing),
-  // so the shell never paints without it.
-  if (loaderHandoff === "pending" && shellVisible) {
-    const canLand =
-      !isFullScreenPage &&
-      isDesktopSidebarVisible &&
-      !(platform === "desktop" && desktopLockStatus?.enabled);
-    setLoaderHandoff(canLand ? "play" : "skip");
-  }
-
-  if (!isAppReady) {
-    return <AppLoader />;
-  }
 
   if (desktopLocked) {
     return (
@@ -352,8 +334,25 @@ function App() {
     );
   }
 
+  const desktopInitPending =
+    platform === "desktop" &&
+    (!desktopLockStatus?.enabled || desktopLockStatus?.unlocked) &&
+    !desktopInitComplete;
+
   if (desktopInitPending) {
     return <AppLoader />;
+  }
+
+  // The shell is about to show for the first time: the loader's symbol flies into the
+  // sidebar logo. Skip it where there is no sidebar to land in, and after the desktop lock
+  // screen, which is not a loader. Updated during render (React re-renders before
+  // committing), so the shell never paints without it.
+  if (loaderHandoff === "pending") {
+    const canLand =
+      !isFullScreenPage &&
+      isDesktopSidebarVisible &&
+      !(platform === "desktop" && desktopLockStatus?.enabled);
+    setLoaderHandoff(canLand ? "play" : "skip");
   }
 
   return (
@@ -364,7 +363,9 @@ function App() {
           <div
             className={cn(
               "hidden md:block transition-all duration-300 bg-card overflow-hidden h-full shadow-lg",
-              isSidebarExpanded ? "w-44" : "w-16"
+              isSidebarExpanded
+                ? SIDEBAR_SIZE.expandedWidth.className
+                : SIDEBAR_SIZE.collapsedWidth.className
             )}
             onMouseEnter={() => setIsSidebarExpanded(true)}
             onMouseLeave={() => setIsSidebarExpanded(false)}
@@ -389,7 +390,7 @@ function App() {
             </SheetTrigger>
             <SheetContent
               side={i18n.dir() === "rtl" ? "right" : "left"}
-              className="p-0 flex flex-col w-44 overflow-x-hidden"
+              className={cn("p-0 flex flex-col overflow-x-hidden", SIDEBAR_SIZE.expandedWidth.className)}
             >
               {/* Accessibility: Provide a DialogTitle for the Sheet to satisfy Radix requirements */}
               <SheetHeader>

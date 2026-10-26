@@ -1,4 +1,5 @@
 import { useEffect, useState, type RefObject } from "react";
+import { getScrollableParent, isWindowScrollTarget, type ScrollTarget } from "@/lib/utils/scroll";
 
 export interface ReadingProgressMetrics {
   /** Top of the content, in viewport pixels (above the scroller's top once scrolled). */
@@ -27,46 +28,24 @@ export function getReadingProgress({
   return Math.min(Math.max((viewportTop - contentTop) / scrollable, 0), 1);
 }
 
-function isScrollable(el: Element): boolean {
-  const { overflowY } = getComputedStyle(el);
-  return /(auto|scroll)/.test(overflowY) && el.scrollHeight > el.clientHeight;
-}
-
 /** The element itself if it scrolls, else its nearest scrolling ancestor, else the page. */
-function findScroller(el: HTMLElement): Element {
-  for (let node: HTMLElement | null = el; node; node = node.parentElement) {
-    if (isScrollable(node)) return node;
-  }
-  return document.scrollingElement ?? document.documentElement;
+function findScroller(el: HTMLElement): ScrollTarget {
+  return getScrollableParent(el, { includeSelf: true });
 }
 
-/**
- * The box to measure against after `target` scrolled, or null when that scroll didn't
- * move the content. Progress is measured against the nearest scrolling box: an outer area
- * scrolling (e.g. the page around a content box that scrolls itself) never replaces it,
- * but a box nearer the content that starts scrolling (it grew past its max height) does.
- */
-export function scrollerAfterScroll(
-  current: Element,
-  target: Element,
-  content: Element
-): Element | null {
-  if (!target.contains(content)) return null;
-  return current.contains(target) ? target : current;
-}
-
-function measure(el: HTMLElement, scroller: Element): number {
+function measure(el: HTMLElement, scroller: ScrollTarget): number {
+  // Content that scrolls itself: how far its own scroll has gone.
   if (scroller === el) {
-    const rect = el.getBoundingClientRect();
     return getReadingProgress({
-      contentTop: rect.top - el.scrollTop,
+      contentTop: -el.scrollTop,
       contentHeight: el.scrollHeight,
-      viewportTop: rect.top,
+      viewportTop: 0,
       viewportHeight: el.clientHeight,
     });
   }
+  // Content inside a scrolling area or the page: where it sits in the visible part.
   const rect = el.getBoundingClientRect();
-  const isPage = scroller === document.scrollingElement || scroller === document.documentElement;
+  const isPage = isWindowScrollTarget(scroller);
   return getReadingProgress({
     contentTop: rect.top,
     contentHeight: rect.height,
@@ -91,6 +70,7 @@ export function useReadingProgress(ref: RefObject<HTMLElement | null>): number {
     if (!el) return;
 
     // Looked up when sizes change, not on every scroll frame (it reads computed styles).
+    // A box that starts scrolling because its content grew shows up as a size change too.
     let scroller = findScroller(el);
     let frame = 0;
     let last = -1;
@@ -109,13 +89,11 @@ export function useReadingProgress(ref: RefObject<HTMLElement | null>): number {
       schedule();
     };
     // Scroll events don't bubble, but they do reach a capturing listener on the document.
+    // Only the scroller's own scroll moves the content past the reader: an outer area
+    // scrolling (e.g. the page around content that scrolls itself) changes nothing.
     const onScroll = (event: Event) => {
-      const target = event.target === document ? document.scrollingElement : event.target;
-      if (!(target instanceof Element)) return;
-      const next = scrollerAfterScroll(scroller, target, el);
-      if (!next) return;
-      scroller = next;
-      schedule();
+      const target = event.target === document ? window : event.target;
+      if (target === scroller) schedule();
     };
 
     schedule();
