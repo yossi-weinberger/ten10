@@ -103,7 +103,8 @@
 
 - כותרת דינמית לפי שפה
 - 2 כפתורי CTA עם tracking
-- לוגו מונפש ורספונסיבי (`AnimatedLogo`)
+- לוגו מונפש ורספונסיבי (`AnimatedLogo`, נתיבים מ-`src/components/brand/logoPaths.ts`)
+- בגלילה האותיות נאספות לתוך ה-0 והסמל נוחת בלוגו של תפריט הצד (מסכי `2xl`) או ככפתור עגול "חזרה לראש הדף" בפינה הפנויה (`LandingLogoDock`, ראו `ui/brand-motion-guide.md`)
 - רקע ממותג ועדין בגווני `primary`/`accent`, ללא blue blobs כבדים
 
 ### 3. Stats Section
@@ -384,6 +385,7 @@ src/pages/landing/
 │   ├── FloatingNavigation.tsx  # ניווט צף
 │   ├── LanguageToggleFixed.tsx # החלפת שפה/Theme (דרך PageControls)
 │   ├── AnimatedLogo.tsx        # לוגו מונפש
+│   ├── LandingLogoDock.tsx     # הלוגו נאסף לתוך ה-0 ונוחת בתפריט/בפינה בגלילה (#38)
 │   └── LandingButtons.tsx      # כפתורים/CTA (אם בשימוש)
 └── constants/
     ├── navigationItems.ts      # פריטי ניווט

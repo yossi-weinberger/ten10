@@ -1,10 +1,13 @@
 import { useTranslation } from "react-i18next";
 import { useEffect, useState, useRef } from "react";
+import { useReducedMotion } from "framer-motion";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { logger } from "@/lib/logger";
 import { capturePostHogEvent } from "@/lib/analytics/posthogClient";
 import { LanguageToggleFixed } from "./components/LanguageToggleFixed";
 import { FloatingNavigation } from "./components/FloatingNavigation";
 import { BackToTopButton } from "./components/BackToTopButton";
+import { LandingLogoDock } from "./components/LandingLogoDock";
 import { ScreenshotCarousel } from "./components/ScreenshotCarousel";
 import { HeroSection } from "./sections/HeroSection";
 import { StatsSection } from "./sections/StatsSection";
@@ -20,7 +23,7 @@ import {
   getScrollableParent,
   getScrollTop,
   isWindowScrollTarget,
-} from "./utils/scroll";
+} from "@/lib/utils/scroll";
 
 const smoothScrollToElement = (
   element: HTMLElement,
@@ -63,6 +66,14 @@ const LandingPage: React.FC = () => {
   const [showNavigation, setShowNavigation] = useState(false);
   const pageRef = useRef<HTMLDivElement>(null);
   const isProgrammaticScrolling = useRef(false);
+  // Logo dock (#38): the hero logo docks in the side navigation on 2xl screens, where the
+  // navigation is shown, and in the free top corner below that.
+  const heroLogoCardRef = useRef<HTMLDivElement>(null);
+  const heroLogoSvgRef = useRef<SVGSVGElement>(null);
+  const navLogoRef = useRef<HTMLImageElement>(null);
+  const controlsRef = useRef<HTMLDivElement>(null);
+  const hasSideNavigation = useMediaQuery("(min-width: 1536px)");
+  const reduceMotion = useReducedMotion();
   const programmaticScrollTimeout = useRef<number | null>(null);
 
   // Section refs for intersection observer
@@ -290,13 +301,25 @@ const LandingPage: React.FC = () => {
       dir={i18n.dir()}
     >
       {/* Language Toggle - Fixed Position */}
-      <LanguageToggleFixed />
+      <LanguageToggleFixed controlsRef={controlsRef} />
 
       {/* Floating Navigation */}
       <FloatingNavigation
         showNavigation={showNavigation}
         activeSection={activeSection}
         onNavigate={scrollToSection}
+        logoRef={navLogoRef}
+        hideLogo={hasSideNavigation && !reduceMotion}
+      />
+
+      <LandingLogoDock
+        pageRef={pageRef}
+        heroCardRef={heroLogoCardRef}
+        heroSvgRef={heroLogoSvgRef}
+        navLogoRef={navLogoRef}
+        controlsRef={controlsRef}
+        target={hasSideNavigation ? "nav" : "corner"}
+        onBackToTop={() => scrollToSection("hero")}
       />
 
       <BackToTopButton
@@ -307,6 +330,8 @@ const LandingPage: React.FC = () => {
       {/* Hero Section */}
       <HeroSection
         sectionRef={sectionRefs.hero}
+        logoCardRef={heroLogoCardRef}
+        logoSvgRef={heroLogoSvgRef}
         onDownloadClick={trackDownloadClick}
         onWebAppClick={trackWebAppClick}
       />

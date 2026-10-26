@@ -30,6 +30,8 @@ import { HomeFeedbackCard } from "@/components/feedback/HomeFeedbackCard";
 import { AssistantDrawer, type AssistantDrawerHandle } from "@/components/ai-intake/AssistantDrawer";
 import { showAiIntakeUi } from "@/lib/ai/flags";
 import { clearSharedIntake, takeSharedIntake } from "@/lib/ai/share-target";
+import { BrandSidebarLogo } from "@/components/brand/BrandSidebarLogo";
+import { SIDEBAR_SIZE } from "./sidebarSize";
 
 interface SidebarProps {
   expanded?: boolean;
@@ -84,8 +86,8 @@ export function Sidebar({
     height: 0,
   });
 
-  const expandedWidth = inSheet ? "w-44" : "w-44";
-  const collapsedWidth = "w-16";
+  const expandedWidth = SIDEBAR_SIZE.expandedWidth.className;
+  const collapsedWidth = SIDEBAR_SIZE.collapsedWidth.className;
 
   // --- Slider measurement (active item background) ---
   useLayoutEffect(() => {
@@ -300,61 +302,11 @@ export function Sidebar({
         to="/"
         onClick={onLinkClick}
         aria-label={t("appName")}
-        className={cn(
-          "flex items-center mb-6 overflow-hidden shrink-0 transition-all duration-300",
-          expanded ? "px-4 justify-start" : "px-0 justify-center w-full"
-        )}
-        style={{ height: "36px" }}
+        className="block w-full mb-6 shrink-0"
       >
         <span className="sr-only">{t("appName")}</span>
-
-        <div className="relative w-full h-full flex items-center">
-          {/* Square Logo (Collapsed) */}
-          <div
-            className={cn(
-              "absolute inset-0 flex items-center justify-center transition-opacity duration-300",
-              expanded ? "opacity-0 pointer-events-none" : "opacity-100"
-            )}
-          >
-            <img
-              src="/logo/logo.svg"
-              alt="Ten10"
-              loading="eager"
-              decoding="async"
-              className="block dark:hidden h-9 w-9 object-contain"
-            />
-            <img
-              src="/logo/logo.svg"
-              alt="Ten10"
-              loading="eager"
-              decoding="async"
-              className="hidden dark:block h-9 w-9 object-contain"
-            />
-          </div>
-
-          {/* Wide Logo (Expanded) */}
-          <div
-            className={cn(
-              "absolute inset-0 flex items-center justify-start transition-opacity duration-300",
-              expanded ? "opacity-100" : "opacity-0 pointer-events-none"
-            )}
-          >
-            <img
-              src="/logo/logo-wide.svg"
-              alt="Ten10"
-              loading="eager"
-              decoding="async"
-              className="block dark:hidden h-7 w-auto object-contain"
-            />
-            <img
-              src="/logo/logo-wide.svg"
-              alt="Ten10"
-              loading="eager"
-              decoding="async"
-              className="hidden dark:block h-7 w-auto object-contain"
-            />
-          </div>
-        </div>
+        {/* Morphs between the wide logo (expanded) and the square logo (collapsed). */}
+        <BrandSidebarLogo expanded={expanded} dir={i18n.dir()} />
       </Link>
 
       {/* Parent wrapper (non-scroll) */}

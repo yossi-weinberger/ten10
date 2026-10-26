@@ -992,7 +992,7 @@
         {
           "code": "TS2741",
           "file": "src/components/admin/AdminTrendsChart.tsx",
-          "message": "Property 'payload' is missing in type '{}' but required in type 'Omit<ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & Pick<Props, \"payload\" | \"verticalAlign\"> & { ...; }, \"ref\">'.",
+          "message": "Property 'payload' is missing in type '{}' but required in type 'Omit<ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & Pick<Props, \"verticalAlign\" | \"payload\"> & { ...; }, \"ref\">'.",
           "severity": "error",
           "count": 3
         },
@@ -1006,7 +1006,7 @@
         {
           "code": "TS2741",
           "file": "src/components/charts/area-chart-interactive.tsx",
-          "message": "Property 'payload' is missing in type '{}' but required in type 'Omit<ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & Pick<Props, \"payload\" | \"verticalAlign\"> & { ...; }, \"ref\">'.",
+          "message": "Property 'payload' is missing in type '{}' but required in type 'Omit<ClassAttributes<HTMLDivElement> & HTMLAttributes<HTMLDivElement> & Pick<Props, \"verticalAlign\" | \"payload\"> & { ...; }, \"ref\">'.",
           "severity": "error",
           "count": 1
         },
@@ -1174,7 +1174,7 @@
         {
           "code": "TS2344",
           "file": "src/components/ui/chart.tsx",
-          "message": "Type '\"payload\" | \"verticalAlign\"' does not satisfy the constraint '\"content\" | \"children\" | \"dangerouslySetInnerHTML\" | \"onCopy\" | \"onCopyCapture\" | \"onCut\" | \"onCutCapture\" | \"onPaste\" | \"onPasteCapture\" | \"onCompositionEnd\" | \"onCompositionEndCapture\" | ... 169 more ... | \"onBBoxUpdate\"'. Type '\"payload\"' is not assignable to type '\"content\" | \"children\" | \"dangerouslySetInnerHTML\" | \"onCopy\" | \"onCopyCapture\" | \"onCut\" | \"onCutCapture\" | \"onPaste\" | \"onPasteCapture\" | \"onCompositionEnd\" | \"onCompositionEndCapture\" | ... 169 more ... | \"onBBoxUpdate\"'.",
+          "message": "Type '\"verticalAlign\" | \"payload\"' does not satisfy the constraint '\"content\" | \"children\" | \"dangerouslySetInnerHTML\" | \"onCopy\" | \"onCopyCapture\" | \"onCut\" | \"onCutCapture\" | \"onPaste\" | \"onPasteCapture\" | \"onCompositionEnd\" | \"onCompositionEndCapture\" | ... 169 more ... | \"onBBoxUpdate\"'. Type '\"payload\"' is not assignable to type '\"content\" | \"children\" | \"dangerouslySetInnerHTML\" | \"onCopy\" | \"onCopyCapture\" | \"onCut\" | \"onCutCapture\" | \"onPaste\" | \"onPasteCapture\" | \"onCompositionEnd\" | \"onCompositionEndCapture\" | ... 169 more ... | \"onBBoxUpdate\"'.",
           "severity": "error",
           "count": 1
         },

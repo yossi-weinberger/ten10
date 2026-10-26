@@ -4,6 +4,7 @@ import { AlertTriangle, ArrowLeft, ArrowRight, X, FileSpreadsheet, Check } from 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BrandSpinner } from "@/components/brand/BrandSpinner";
 import { cn } from "@/lib/utils/index";
 import { withTimeout } from "@/lib/utils/with-timeout";
 import {
@@ -250,12 +251,7 @@ function ImportLoadingState({ title, description, showSkeleton = true }: ImportL
       aria-live="polite"
       aria-busy="true"
     >
-      <img
-        src="/logo/symbol.svg"
-        alt=""
-        aria-hidden="true"
-        className="h-12 w-12 animate-spin"
-      />
+      <BrandSpinner className="h-12 w-12" />
       <div className="text-center space-y-1">
         <p className="text-sm font-medium">{title}</p>
         <p className="text-xs text-muted-foreground">{description}</p>
@@ -343,12 +339,6 @@ export function ImportWizard() {
   const [state, dispatch] = useReducer(wizardReducer, initialState);
 
   const isRtl = i18n.dir() === "rtl";
-
-  // Preload the spinner logo so it is already cached when the loading state appears.
-  useEffect(() => {
-    const img = new Image();
-    img.src = "/logo/symbol.svg";
-  }, []);
 
   // Emit analytics on start
   useEffect(() => {

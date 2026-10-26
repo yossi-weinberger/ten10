@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Menu } from "lucide-react";
-import { useState } from "react";
+import { useState, type Ref } from "react";
 import { useTranslation } from "react-i18next";
 import { buttonHover, buttonTap } from "@/hooks/useScrollAnimation";
 import {
@@ -15,12 +15,18 @@ interface FloatingNavigationProps {
   showNavigation: boolean;
   activeSection: string;
   onNavigate: (sectionId: string) => void;
+  /** The side navigation's logo, where the hero logo docks on 2xl screens (`LandingLogoDock`). */
+  logoRef?: Ref<HTMLImageElement>;
+  /** Hide the logo while the dock draws it in its place. */
+  hideLogo?: boolean;
 }
 
 export const FloatingNavigation: React.FC<FloatingNavigationProps> = ({
   showNavigation,
   activeSection,
   onNavigate,
+  logoRef,
+  hideLogo = false,
 }) => {
   const { t, i18n } = useTranslation("landing");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -52,10 +58,11 @@ export const FloatingNavigation: React.FC<FloatingNavigationProps> = ({
           aria-label={t("nav.home")}
         >
           <img
+            ref={logoRef}
             src="/logo/logo-wide.svg"
             alt=""
             aria-hidden="true"
-            className="h-7 w-auto max-w-[4.75rem]"
+            className={`h-7 w-auto max-w-[4.75rem] ${hideLogo ? "invisible" : ""}`}
           />
         </motion.button>
 

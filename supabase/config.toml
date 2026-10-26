@@ -18,6 +18,10 @@ verify_jwt = true
 # Admin AI spend. Requires a valid JWT, then checks admin_emails.
 verify_jwt = true
 
+[functions.send-new-user-email]
+# Daily summary email - requires service_role JWT (pg_cron uses service_role from Vault)
+verify_jwt = true
+
 # Shared calendar no longer uses a bare npm specifier. These maps keep the
 # standard `supabase functions deploy <name>` path working if one is added later.
 [functions.send-reminder-emails]

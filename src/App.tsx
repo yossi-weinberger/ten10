@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Menu } from "lucide-react";
 import { Outlet, useRouterState } from "@tanstack/react-router";
@@ -29,6 +29,9 @@ import { OptInPromptDialog } from "./components/OptInPromptDialog";
 import { OnboardingHost } from "./components/onboarding/OnboardingHost";
 import { Footer } from "@/pages/landing/sections/Footer";
 import AppLoader from "./components/layout/AppLoader";
+import { FirstLoadHandoff } from "./components/layout/FirstLoadHandoff";
+import { SIDEBAR_SIZE } from "./components/layout/sidebarSize";
+import { removeStaticPreloader } from "./lib/staticPreloader";
 
 import { RecurringTransactionsService } from "./lib/services/recurring-transactions.service";
 import { restoreDesktopSettings } from "./lib/services/desktop-settings.service";
@@ -60,8 +63,17 @@ function App() {
   const [desktopLockStatus, setDesktopLockStatus] =
     useState<DesktopLockStatus>(null);
   const [desktopInitComplete, setDesktopInitComplete] = useState(false);
+  // First-load handoff (#20, see llm-instructions/ui/brand-motion-guide.md): decided once,
+  // the first time the app shell renders.
+  const [loaderHandoff, setLoaderHandoff] = useState<"pending" | "play" | "skip">("pending");
   // Prevent re-running desktop init when language changes (t function reference changes)
   const desktopInitDone = useRef(false);
+
+  // The app's first frame replaces the static pre-loader in the same paint, so there is no
+  // blank page between them (see src/lib/staticPreloader.ts).
+  useLayoutEffect(() => {
+    removeStaticPreloader();
+  }, []);
 
   const { platform } = usePlatform();
   const { theme, setTheme } = useTheme();
@@ -331,6 +343,18 @@ function App() {
     return <AppLoader />;
   }
 
+  // The shell is about to show for the first time: the loader's symbol flies into the
+  // sidebar logo. Skip it where there is no sidebar to land in, and after the desktop lock
+  // screen, which is not a loader. Updated during render (React re-renders before
+  // committing), so the shell never paints without it.
+  if (loaderHandoff === "pending") {
+    const canLand =
+      !isFullScreenPage &&
+      isDesktopSidebarVisible &&
+      !(platform === "desktop" && desktopLockStatus?.enabled);
+    setLoaderHandoff(canLand ? "play" : "skip");
+  }
+
   return (
     <OnboardingHost>
     <TooltipProvider>
@@ -339,7 +363,9 @@ function App() {
           <div
             className={cn(
               "hidden md:block transition-all duration-300 bg-card overflow-hidden h-full shadow-lg",
-              isSidebarExpanded ? "w-44" : "w-16"
+              isSidebarExpanded
+                ? SIDEBAR_SIZE.expandedWidth.className
+                : SIDEBAR_SIZE.collapsedWidth.className
             )}
             onMouseEnter={() => setIsSidebarExpanded(true)}
             onMouseLeave={() => setIsSidebarExpanded(false)}
@@ -364,7 +390,7 @@ function App() {
             </SheetTrigger>
             <SheetContent
               side={i18n.dir() === "rtl" ? "right" : "left"}
-              className="p-0 flex flex-col w-44 overflow-x-hidden"
+              className={cn("p-0 flex flex-col overflow-x-hidden", SIDEBAR_SIZE.expandedWidth.className)}
             >
               {/* Accessibility: Provide a DialogTitle for the Sheet to satisfy Radix requirements */}
               <SheetHeader>
@@ -428,6 +454,7 @@ function App() {
       <TermsAcceptanceModal />
       <WhatsNewModal />
       <OptInPromptDialog />
+      {loaderHandoff === "play" && <FirstLoadHandoff />}
     </TooltipProvider>
     </OnboardingHost>
   );
