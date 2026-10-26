@@ -154,12 +154,16 @@ This section details how the different parts of the project interact with each o
 ├── src/                   # Frontend source code (React + TypeScript)
 │   ├── components/        # Reusable UI components
 │   │   ├── brand/         # Animated Ten10 symbol (see ui/brand-motion-guide.md)
-│   │   │   ├── logoPaths.ts              # Symbol paths re-anchored to the ring's centre
+│   │   │   ├── logoPaths.ts              # Symbol paths re-anchored to the ring's centre; wordmark letters
 │   │   │   ├── BrandSpinner.tsx          # Loader
 │   │   │   ├── BrandProgress.tsx         # Ring fills to 90%, slice completes it
 │   │   │   ├── brandProgress.utils.ts    # (+ .test.ts)
 │   │   │   ├── BrandDone.tsx             # One-shot success with a check inside the 0
-│   │   │   └── Brand404.tsx              # "404" with the symbol as the 0
+│   │   │   ├── Brand404.tsx              # "404" with the symbol as the 0
+│   │   │   ├── BrandSidebarLogo.tsx      # Sidebar logo morph: wide ↔ square, per glyph
+│   │   │   ├── sidebarLogoLayout.utils.ts  # Glyph positions in the sidebar (+ .test.ts)
+│   │   │   ├── BrandHandoffSymbol.tsx    # First-load flight from the loader into the sidebar logo
+│   │   │   └── brandHandoff.utils.ts     # Handoff timing and flight maths (+ .test.ts)
 │   │   ├── charts/
 │   │   │   └── area-chart-interactive.tsx
 │   │   ├── dashboard/

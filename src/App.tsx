@@ -60,6 +60,9 @@ function App() {
   const [desktopLockStatus, setDesktopLockStatus] =
     useState<DesktopLockStatus>(null);
   const [desktopInitComplete, setDesktopInitComplete] = useState(false);
+  // First-load handoff (#20, see llm-instructions/ui/brand-motion-guide.md): decided once,
+  // the first time the app shell renders.
+  const [loaderHandoff, setLoaderHandoff] = useState<"pending" | "active" | "done">("pending");
   // Prevent re-running desktop init when language changes (t function reference changes)
   const desktopInitDone = useRef(false);
 
@@ -300,14 +303,33 @@ function App() {
     autoLockTimeoutMinutes,
   ]);
 
-  if (!isAppReady) {
-    return <AppLoader />;
-  }
-
   const desktopLocked =
     platform === "desktop" &&
     desktopLockStatus?.enabled &&
     !desktopLockStatus.unlocked;
+
+  const desktopInitPending =
+    platform === "desktop" &&
+    (!desktopLockStatus?.enabled || desktopLockStatus?.unlocked) &&
+    !desktopInitComplete;
+
+  const shellVisible = isAppReady && !desktopLocked && !desktopInitPending;
+
+  // When the shell first appears, the loader's symbol flies into the sidebar logo.
+  // Skip it where there is no sidebar to land in, and after the desktop lock screen,
+  // which is not a loader. Updated during render (React re-renders before committing),
+  // so the shell never paints without it.
+  if (loaderHandoff === "pending" && shellVisible) {
+    const canLand =
+      !isFullScreenPage &&
+      isDesktopSidebarVisible &&
+      !(platform === "desktop" && desktopLockStatus?.enabled);
+    setLoaderHandoff(canLand ? "active" : "done");
+  }
+
+  if (!isAppReady) {
+    return <AppLoader />;
+  }
 
   if (desktopLocked) {
     return (
@@ -321,11 +343,6 @@ function App() {
       />
     );
   }
-
-  const desktopInitPending =
-    platform === "desktop" &&
-    (!desktopLockStatus?.enabled || desktopLockStatus?.unlocked) &&
-    !desktopInitComplete;
 
   if (desktopInitPending) {
     return <AppLoader />;
@@ -428,6 +445,9 @@ function App() {
       <TermsAcceptanceModal />
       <WhatsNewModal />
       <OptInPromptDialog />
+      {loaderHandoff === "active" && (
+        <AppLoader exiting onExited={() => setLoaderHandoff("done")} />
+      )}
     </TooltipProvider>
     </OnboardingHost>
   );

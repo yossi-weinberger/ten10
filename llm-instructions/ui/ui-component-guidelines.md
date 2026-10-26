@@ -632,6 +632,7 @@ The main `Sidebar` component requires careful synchronization between the parent
 2.  **Synchronized Transitions:** All transitions (width, opacity, transform) must use the same duration (e.g., `duration-300`).
 3.  **No Dynamic Alignment:** To prevent icon jumping, navigation buttons should **always** be `justify-start` with fixed padding (e.g., `px-4`). Do not switch between `justify-center` (collapsed) and `justify-start` (expanded). The content should be perfectly centered in the collapsed state simply by virtue of the padding and container width.
 4.  **Text Fading:** Text labels must fade out (`opacity-0`) and collapse (`w-0`) **before** the sidebar finishes closing, or fade in **after** it starts opening, to prevent the text from being "cut off" by the shrinking container.
+5.  **Logo:** The logo row renders `BrandSidebarLogo`, which morphs the wide logo into the square one glyph by glyph with the same `duration-300`. Its geometry is derived from the widths and sizes above (`sidebarLogoLayout.utils.ts`), so update it together with them. See `brand-motion-guide.md`.
 
 ### 10.2 Sidebar Visibility by Platform
 
@@ -840,7 +841,7 @@ If users report DOM errors on mobile, use **Chrome Remote Debugging**:
 
 _(Added October 2026)_
 
-Loaders, progress and success states that show the Ten10 symbol use the components in `src/components/brand/` (`BrandSpinner`, `BrandProgress`, `BrandDone`, `Brand404`) instead of `<img src="/logo/symbol.svg" className="animate-spin">` or generic icons. Their keyframes live in the `brand-*` group of `tailwind.config.js`, and each one has a reduced-motion fallback. Full rules, geometry and the list of planned animations: `llm-instructions/ui/brand-motion-guide.md`.
+Loaders, progress and success states that show the Ten10 symbol use the components in `src/components/brand/` (`BrandSpinner`, `BrandProgress`, `BrandDone`, `Brand404`, `BrandSidebarLogo`, `BrandHandoffSymbol`) instead of `<img src="/logo/symbol.svg" className="animate-spin">` or generic icons. Their keyframes live in the `brand-*` group of `tailwind.config.js`, and each one has a reduced-motion fallback. Full rules, geometry and the list of planned animations: `llm-instructions/ui/brand-motion-guide.md`.
 
 ---
 
