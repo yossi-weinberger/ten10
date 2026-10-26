@@ -714,7 +714,7 @@ Guidelines:
 2. **Desktop navigation:** Use a vertical, side-mounted glass navigation with full text labels. It should sit near the top of the viewport rather than centered over the content.
 3. **Mobile navigation:** Do not use a wide bottom navigation with horizontal scrolling. Use a compact floating trigger that opens a small `Popover` with section links.
 4. **Language direction:** For Hebrew/RTL, floating controls belong on the right. For English/LTR, they belong on the left.
-5. **Logo behavior:** The desktop floating nav uses `logo-wide.svg`; the mobile trigger can use a menu icon, while the popover content uses the wide logo for brand consistency.
+5. **Logo behavior:** As the page scrolls, the hero logo docks (`LandingLogoDock`, see `brand-motion-guide.md`): into the side nav's logo on `2xl` screens, otherwise as a round "back to top" button in the free top corner. The desktop floating nav uses `logo-wide.svg`; the mobile trigger can use a menu icon, while the popover content uses the wide logo for brand consistency.
 6. **Active section state:** When a nav item is clicked, set the active section immediately and temporarily ignore observer updates during smooth scroll. Otherwise the active item can jump to an intermediate section near the bottom of the page.
 7. **Accessibility:** Every section item needs a translated visible label and/or `aria-label`. Dots-only navigation is not appropriate for landing page section navigation.
 

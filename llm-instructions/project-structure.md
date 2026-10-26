@@ -164,7 +164,8 @@ This section details how the different parts of the project interact with each o
 │   │   │   ├── BrandSidebarLogo.tsx      # Sidebar logo morph: wide ↔ square, per glyph
 │   │   │   ├── sidebarLogoLayout.utils.ts  # Glyph positions in the sidebar (+ .test.ts)
 │   │   │   ├── BrandHandoffSymbol.tsx    # First-load flight from the loader into the sidebar logo
-│   │   │   └── brandHandoff.utils.ts     # Handoff timing and flight maths (+ .test.ts)
+│   │   │   ├── brandHandoff.utils.ts     # Handoff timing and flight maths (+ .test.ts)
+│   │   │   └── logoDock.utils.ts         # Landing logo dock (#38): scroll phases and badge pose (+ .test.ts)
 │   │   ├── charts/
 │   │   │   └── area-chart-interactive.tsx
 │   │   ├── dashboard/

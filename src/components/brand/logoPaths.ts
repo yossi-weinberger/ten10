@@ -102,3 +102,9 @@ export const LOGO_ZERO_CENTER = {
   wide: [289.16715, -120.19178],
   square: [98.58607, 108.92937],
 } as const;
+
+/**
+ * The colours in the logo files (`public/logo/*.svg`). The landing page draws its hero logo
+ * in them; components inside the app use the theme tokens instead.
+ */
+export const LOGO_FILE_COLORS = { teal: "#11676a", gold: "#f0c000" } as const;

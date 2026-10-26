@@ -32,10 +32,11 @@ Do not put keyframes in component files, inline `<style>` tags or new CSS files.
 | 38ב | `BrandSidebarLogo` | Sidebar logo row that morphs letter by letter between the wide logo (expanded) and the square logo (collapsed); the 0 turns once. Positions come from `sidebarLogoLayout.utils.ts`. | `Sidebar` |
 | 15 | `HalachaReadingProgress` + `useReadingProgress` | Reading progress: the ring fills as the reader scrolls and the slice drops in at the end, with the percentage. A `role="progressbar"`; hidden in print. The indicator tracks the scroll itself, so only it re-renders while the reader scrolls. The hook works whether the content scrolls itself (desktop) or inside the app's main area (mobile), and follows height changes (accordions). | Halacha page: a card above the tabs on desktop, the start of the tab bar on mobile |
 | 20 | `FirstLoadHandoff` → `AppLoader exiting` → `BrandHandoffSymbol` | First-load handoff: when the app shell appears, the loader's symbol flies into the 0 of the sidebar logo while the loader fades away. `AppLoader` uses one layout for loading and for the handoff, so nothing moves when it switches. Constants and the flight maths are in `brandHandoff.utils.ts`. | `App.tsx` |
+| 38 | `LandingLogoDock` (`src/pages/landing/components/`) | Landing logo dock: as the page scrolls, the hero logo's letters reel into the 0 and its card collapses around it; the badge then flies to the side navigation's logo on `2xl` screens (where the letters reel back out) or docks as a round "back to top" button in the free top corner. Scrolling up reverses it. Maths in `logoDock.utils.ts`. | Landing page |
 
 All components are decorative (`aria-hidden="true"`). The surrounding UI must carry the meaning in text (`role="status"` messages, headings, counts).
 
-## 3. Sidebar Logo and First-Load Handoff
+## 3. Sidebar Logo, First-Load Handoff and Landing Logo Dock
 
 **Sidebar morph (38ב).** Both logo files draw the same letters (`logo.svg` draws "TEN" at 56% and "10" at full size), so `BrandSidebarLogo` draws every glyph once from its `logo-wide.svg` path and moves it with a CSS `transform` per state. `getSidebarLogoLayout(dir)` turns the row's geometry (`SIDEBAR_LOGO_ROW`: the sidebar's widths and the row height from `SIDEBAR_SIZE`, plus the logos' own sizes in the row) into those transforms for RTL and LTR. Rules:
 
@@ -44,6 +45,14 @@ All components are decorative (`aria-hidden="true"`). The surrounding UI must ca
 - The sidebar's widths and the row height live in `SIDEBAR_SIZE` (`src/components/layout/sidebarSize.ts`) as Tailwind classes plus px; `App`, `Sidebar` and the logo all use it, and a test checks the px against the classes. The SVG is sized with the classes, so it scales with the sidebar if the root font size changes.
 
 **First-load handoff (20).** `App.tsx` decides once, the first time the app shell renders, whether the handoff can run: only when the desktop sidebar is visible (`md` and up, not a full-screen page) and not after the desktop lock screen. It then renders `<FirstLoadHandoff />` on top of the shell, which shows `<AppLoader exiting />` and removes itself once both the symbol and the fading background are done (its own state, so `App` doesn't re-render). That overlay ignores pointer events, fades its background and text, and `BrandHandoffSymbol` flies to the element marked `data-brand-zero` (a ring-sized circle in `BrandSidebarLogo`). While it runs, `<html>` carries `data-brand-handoff`, which hides the sidebar's own 0 (`[[data-brand-handoff]_&]:opacity-0`) so the two never overlap. With reduced motion, or without a target, the loader fades out instead.
+
+**Landing logo dock (38).** `LandingPage` gives `LandingLogoDock` refs to the hero logo (`AnimatedLogo`'s card and SVG), the side navigation's logo and the page controls, and picks the target: the navigation on `2xl` (where it is shown), the corner below that. Rules:
+
+- The badge is a fixed overlay that copies the hero logo exactly (same glass classes, same paths and colours), so the hero hides as soon as the page leaves the top and shows again at the top, with hover intact.
+- `getDockPose` is a pure function of the scroll, the hero's live box and the dock; it is drawn straight to the DOM once per frame (no React re-renders). The overlay keeps updating while the hero or the navigation still move (their entrance animations), then stops.
+- Wide screens reel over 0–200px and fly over 150–400px; phones are shorter (`DOCK_TIMING`) and wait below the page controls, so the badge leaves the hero title quickly and never sits under the controls.
+- While the dock owns the navigation's logo slot, `FloatingNavigation` hides its own logo (`hideLogo`). The corner button scrolls to the hero like the navigation's home link, and its size and position match `DOCK_CORNER` (`top-4`, inline end, `h-10 w-10`).
+- `logo-wide.svg`'s colours (`LOGO_FILE_COLORS`) are used here, as in `AnimatedLogo`, not theme tokens, because the badge must match the hero logo pixel for pixel.
 
 ## 4. Geometry and Colours
 
@@ -67,6 +76,7 @@ Rules:
    - **One-shot animations** (`BrandDone`, `Brand404`) show their final state immediately. Put the final pose in the base classes and let the `motion-safe:` animation start from the initial pose (`animation-fill-mode: both`). Leave the end keyframe out, so the animation ends on the base classes and the final pose is written once (see `brand-404-*`).
    - **Values driven by data** (`BrandProgress`) still update, but without travel: the slice fades in place instead of dropping (`useReducedMotion` from `framer-motion`).
    - **State changes** (`BrandSidebarLogo`) switch instantly (`motion-reduce:transition-none`), and the first-load handoff becomes a short fade.
+   - **Scroll-linked motion** (`LandingLogoDock`): the hero logo stays whole and scrolls away with the page, the corner button fades in once the page has scrolled, and the side navigation keeps its own logo.
 3. The pre-loader handles this with `@media (prefers-reduced-motion: reduce)` in `public/loader.css`.
 
 This matches the rest of the app, which already uses `motion-safe:` utilities and `useReducedMotion` (landing page, `PrepareStep`).
@@ -104,7 +114,6 @@ Ideas from the motion lab that are not built. Numbers refer to the motion-lab id
 
 | # | Idea | Status |
 | --- | --- | --- |
-| 38 | Letters reel into the 0 as the page scrolls | Wanted for the landing page; placement not decided. The landing has no horizontal header: on `2xl` screens a side glass nav shows the wide logo, below that only a round menu button. |
 | 14 | Pull to refresh with the symbol | Under consideration. Touch devices only (mobile web, installed PWA, Android TWA). |
 | 34 | App-icon launch | Only the colour fix is built (see the pre-loader row). The animated version is not planned: installed app only, and the OS splash itself cannot be animated. |
 
