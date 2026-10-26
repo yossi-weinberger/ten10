@@ -54,6 +54,7 @@ import { CurrencyConversionSection } from "@/components/forms/transaction-form-p
 import { OpeningBalanceHomeStyleStatCard } from "@/components/settings/OpeningBalanceHomeStyleStatCard";
 import { ToggleChoiceCard } from "@/components/ui/toggle-choice-card";
 import { getCurrentLocalDate } from "@/lib/utils/local-date";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 // Derive currency codes tuple from CURRENCIES for type-safe Zod enum
 const CURRENCY_CODES = CURRENCIES.map((c) => c.code) as [CurrencyCode, ...CurrencyCode[]];
@@ -523,6 +524,7 @@ export function OpeningBalanceModal({
         {t("balanceManagement.cancelButton")}
       </Button>
       <Button onClick={form.handleSubmit(handleSubmit)} disabled={isSubmitting} type="submit">
+        {isSubmitting && <BrandInlineSpinner tone="current" />}
         {isSubmitting ? t("balanceManagement.saveButton") + "..." : t("balanceManagement.saveButton")}
       </Button>
     </div>

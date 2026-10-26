@@ -11,7 +11,7 @@
 
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Check, ChevronsUpDown, Plus, Loader2 } from "lucide-react";
+import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ import {
   formatCategory,
   normalizeCategoryValue,
 } from "@/lib/category-registry";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 interface CategoryComboboxProps {
   id?: string;
@@ -259,7 +260,7 @@ export function CategoryCombobox({
             </CommandGroup>
             {isLoading && (
               <div className="flex items-center justify-center py-2">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <BrandInlineSpinner />
                 <span className="ml-2 rtl:ml-0 rtl:mr-2 text-sm text-muted-foreground">
                   {t("transactionForm.category.loading")}
                 </span>

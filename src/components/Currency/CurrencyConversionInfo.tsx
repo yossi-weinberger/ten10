@@ -14,6 +14,7 @@ import { CurrencyCode } from "@/lib/currencies";
 import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 import { useDisplayDate } from "@/lib/calendar/use-display-date";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 interface CurrencyConversionInfoProps {
   amount: number;
@@ -182,7 +183,7 @@ export function CurrencyConversionInfo({
     return (
       <div className="ph-mask flex items-center justify-center gap-1" data-ph-mask>
         {isLoading ? (
-            <RefreshCw className="h-3 w-3 animate-spin text-muted-foreground" />
+            <BrandInlineSpinner className="h-3 w-3" />
         ) : (
             <span className={cn(liveConverted ? "underline decoration-dotted decoration-muted-foreground/50 underline-offset-4" : "")}>
                 {liveConverted ? formatCurrency(liveConverted, defaultCurrency as CurrencyCode, i18n.language) : "..."}

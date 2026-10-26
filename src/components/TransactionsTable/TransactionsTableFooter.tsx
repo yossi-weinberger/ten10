@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 interface TransactionsTableFooterProps {
   loading: boolean;
@@ -23,7 +23,7 @@ export const TransactionsTableFooter: React.FC<
       {loading && transactionsLength > 0 && (
         <div className="text-center mt-4">
           <Button variant="outline" disabled>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <BrandInlineSpinner />
             {t("pagination.loadingMore")}
           </Button>
         </div>

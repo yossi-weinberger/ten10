@@ -24,8 +24,10 @@ Do not put keyframes in component files, inline `<style>` tags or new CSS files.
 
 | # | Component | What it does | Used in |
 | --- | --- | --- | --- |
-| 1 | `BrandSpinner` | Indeterminate loader: the symbol spins with an ease-in-out rhythm and the slice is flung outward at peak speed. | `AppLoader`, `ImportWizard` loading state, `FileUploadStep` (dropzone and sheet confirm button) |
+| 1 | `BrandSpinner` | Indeterminate loader: the symbol spins with an ease-in-out rhythm and the slice is flung outward at peak speed. | `AppLoader`, `ImportWizard` loading state, `FileUploadStep` (dropzone and sheet confirm button), `UnsubscribePage` |
 | 1 | Pre-loader (`index.html` + `public/loader.css`) | Same motion as `BrandSpinner`, before any JavaScript, in the app's theme colours: a light/dark theme chosen in the app (`Ten10-ui-theme`, applied by the inline script), otherwise `prefers-color-scheme` (#34, colour fix only). It stays on screen until the app's first frame replaces it (see `src/lib/staticPreloader.ts`). | `index.html` (`#pre-loader`) |
+| 39 | `BrandInlineSpinner` | Small inline loader next to text or inside a busy button: the symbol turns at a steady pace like `animate-spin`, without `BrandSpinner`'s rhythm and fling, which don't read at icon size. `tone="current"` draws the ring in the text colour for filled buttons. | Loading toasts (`sonner.tsx`), "Loading more" in the transactions table, the category and payment-method lists, the live currency rate, the desktop update checks (`VersionInfoCard`), the landing download button, `PlatformIndicator`, `LazyImage`, and busy submit buttons (login, signup, forgot / reset password, profile, opening balance, contact, bulk edit) |
+| 40 | `BrandSaveIcon` | Save state inside a submit button: it turns while saving; on success it settles upright, the slice clicks in and the whole symbol morphs into a check (the ring becomes the long arm, the slice the short one). Check geometry and morph maths in `brandCheck.utils.ts`. | `FormActionButtons` (add and edit transaction, edit recurring transaction) |
 | 6 | `BrandProgress` | Determinate progress: the ring fills to 90% and the slice drops in for the last 10%. Split logic in `brandProgress.utils.ts`. | `AppLoader` when it receives `progress` (Settings data import) |
 | 7 | `BrandDone` | One-shot success: the last half-turn settles, the slice clicks in, a ripple leaves the ring and a check is drawn inside the 0. | `ImportResultStep` when rows were inserted |
 | 12ב | `Brand404` | "404" where the 0 is the symbol; it shakes "no", the slice falls to the floor and rocks to rest. Plays once. | `NotFoundPage` |
@@ -60,6 +62,7 @@ All components are decorative (`aria-hidden="true"`). The surrounding UI must ca
 - A part that rotates around its own centre (e.g. the falling slice) uses `[transform-box:fill-box] origin-center`.
 - `SYMBOL_VIEWBOX` is tight around the symbol at rest. Components set `overflow-visible` so motion can leave the box without changing the component's size. Existing size classes (`h-14 w-14`, …) keep the same visual size as the old `<img src="/logo/symbol.svg">`.
 - Colours come from theme tokens: ring `fill-primary`, slice `fill-accent`, strokes `stroke-primary`. In dark mode the ring automatically uses the lighter teal. Do not hardcode `#11676a` / `#f0c000` in components.
+- Inside filled buttons the ring uses the text colour (`fill-current`: `BrandInlineSpinner tone="current"`, `BrandSaveIcon`), because teal would vanish into a teal button. The slice stays gold.
 - Exception: `public/loader.css` repeats the HSL values of the theme tokens (`--background`, `--primary`, `--muted-foreground`, `--accent`), and `index.html` the symbol paths, because they render before the app's code and CSS. `scripts/preloader-sync-contract.test.ts` fails if they drift from `src/index.css`, `logoPaths.ts` or the `brand-*` animations.
 - A `<mask>` that reveals a shape uses `stroke="white"`. That is mask luminance, not a theme colour.
 - Mask/clip ids must be unique per instance: build them from `useId()` with non-alphanumeric characters stripped (see `BrandProgress`).
@@ -73,7 +76,7 @@ Rules:
 1. Apply brand animations with `motion-safe:` only, e.g. `motion-safe:animate-brand-spin`.
 2. Every component defines what reduced-motion users see:
    - **Loaders** switch to a gentle pulse (`motion-reduce:animate-brand-pulse`), so it is still obvious that something is loading.
-   - **One-shot animations** (`BrandDone`, `Brand404`) show their final state immediately. Put the final pose in the base classes and let the `motion-safe:` animation start from the initial pose (`animation-fill-mode: both`). Leave the end keyframe out, so the animation ends on the base classes and the final pose is written once (see `brand-404-*`).
+   - **One-shot animations** (`BrandDone`, `Brand404`) show their final state immediately. `BrandSaveIcon` pulses while saving and shows the check without the morph. Put the final pose in the base classes and let the `motion-safe:` animation start from the initial pose (`animation-fill-mode: both`). Leave the end keyframe out, so the animation ends on the base classes and the final pose is written once (see `brand-404-*`).
    - **Values driven by data** (`BrandProgress`) still update, but without travel: the slice fades in place instead of dropping (`useReducedMotion` from `framer-motion`).
    - **State changes** (`BrandSidebarLogo`) switch instantly (`motion-reduce:transition-none`), and the first-load handoff becomes a short fade.
    - **Scroll-linked motion** (`LandingLogoDock`): the hero logo stays whole and scrolls away with the page, the corner button fades in once the page has scrolled, and the side navigation keeps its own logo.
@@ -90,6 +93,7 @@ These animations run while the app is busy (loading, rendering the first page, s
 3. **No CSS transitions on values that already move continuously.** `stroke-dashoffset` (the `BrandProgress` fill) can't be animated off the main thread. With a 300 ms transition on every 1% of scroll, the halacha indicator repainted on every frame. Use `smooth={false}` when the value follows the scroll; keep the default for progress that jumps (imports).
 4. **Keep scroll-driven state in the smallest component.** `useReadingProgress` re-renders its caller on every percent, so it is called from the indicator, not the page that holds the content. It skips frames where the whole-number percent didn't change, looks up the nearest scrolling box only when sizes change (it reads computed styles), and only reacts to that box's own scroll: on desktop the content scrolls itself inside a page that also scrolls, and the page's scroll doesn't change the progress.
 5. **One-shot state that ends an animation lives with the animation** (`FirstLoadHandoff`), not in `App`, so finishing it doesn't re-render the whole app.
+6. **`BrandSaveIcon` turns with the Web Animations API on the `<svg>`**, which still runs off the main thread like a CSS loop, so it can read the angle when the save finishes and settle upright from there. The check morph interpolates two path outlines on the main thread for 300 ms, after the save, when nothing else is running. The outlines are sampled once per page with `getPointAtLength`; where SVG geometry is missing (tests) the check shows without the morph.
 
 ## 7. Accessibility Timing (WCAG 2.2.2)
 
@@ -117,4 +121,4 @@ Ideas from the motion lab that are not built. Numbers refer to the motion-lab id
 | 14 | Pull to refresh with the symbol | Under consideration. Touch devices only (mobile web, installed PWA, Android TWA). |
 | 34 | App-icon launch | Only the colour fix is built (see the pre-loader row). The animated version is not planned: installed app only, and the OS splash itself cannot be animated. |
 
-Not chosen: 19 (favicon progress), 10א / 10ב (coin / check morph), 18 (celebration), 12 (sync-error state), 21 / 22 (hero wordmark), 27, 5, 13.
+Not chosen: 19 (favicon progress), 10א / 10ב (coin / check morph), 18 (celebration), 12 (sync-error state), 21 / 22 (hero wordmark), 27, 5, 13, 41 (the slice leaves the ring on income and returns on a donation), 42 (a symbol ring on the dashboard's tithe balance card).

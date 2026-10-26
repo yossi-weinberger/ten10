@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/tooltip";
 import { TransactionType } from "@/types/transaction";
 import { cn } from "@/lib/utils";
+import { BrandSaveIcon } from "@/components/brand/BrandSaveIcon";
 
 interface FormActionButtonsProps {
   isSubmitting: boolean;
@@ -32,11 +33,6 @@ export function FormActionButtons({
 
   return (
     <div className="flex justify-end items-center gap-4">
-      {/* Success Icon Animation */}
-      {isSuccess && (
-        <CheckCircle className="h-5 w-5 text-green-500 animate-pulse" />
-      )}
-
       {/* Support Institute Button - Only show when donation type is selected */}
       {isDonation && (
         <Tooltip>
@@ -77,11 +73,19 @@ export function FormActionButtons({
           {t("transactionForm.actions.cancel")}
         </Button>
       )}
-      <Button type="submit" disabled={isSubmitting || isSuccess}>
-        {isSubmitting
-          ? t("transactionForm.actions.submitting")
-          : isSuccess
+      {/* Disabled while saving and after success, but not dimmed: the symbol shows the progress. */}
+      <Button
+        type="submit"
+        disabled={isSubmitting || isSuccess}
+        className={cn((isSubmitting || isSuccess) && "disabled:opacity-100")}
+      >
+        {(isSubmitting || isSuccess) && (
+          <BrandSaveIcon status={isSuccess ? "saved" : "saving"} />
+        )}
+        {isSuccess
           ? t("transactionForm.messages.success")
+          : isSubmitting
+          ? t("transactionForm.actions.submitting")
           : isEditMode
           ? t("transactionForm.actions.save")
           : t("transactionForm.actions.submit")}

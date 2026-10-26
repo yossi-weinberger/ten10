@@ -27,6 +27,7 @@ import type {
   ContactRabbiFormValues,
 } from "@/lib/schemas";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -145,6 +146,7 @@ export const ContactModal = ({ isOpen, onOpenChange }: ContactModalProps) => {
           form={`contact-form-${activeTab}`}
           disabled={isSubmitting || !captchaToken}
         >
+          {isSubmitting && <BrandInlineSpinner tone="current" />}
           {isSubmitting ? t("forms.submitting") : t("forms.submit")}
         </Button>
       </div>

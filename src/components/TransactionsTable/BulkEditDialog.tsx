@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 export interface BulkEditDialogProps {
   open: boolean;
@@ -103,6 +104,7 @@ export function BulkEditDialog({
           disabled={pending || submitDisabled}
           className={buttonClassName}
         >
+          {pending && <BrandInlineSpinner tone="current" />}
           {pending ? pendingLabel : submitLabel}
         </Button>
       </>

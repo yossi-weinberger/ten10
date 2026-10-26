@@ -1,6 +1,7 @@
 import { useTheme } from '@/lib/theme';
 import { Toaster as Sonner } from 'sonner';
-import { CheckCircle2, AlertCircle, AlertTriangle, Info, Loader2 } from 'lucide-react';
+import { CheckCircle2, AlertCircle, AlertTriangle, Info } from 'lucide-react';
+import { BrandInlineSpinner } from '@/components/brand/BrandInlineSpinner';
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
 
@@ -21,7 +22,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         error: <AlertCircle className="h-4 w-4 text-destructive" />,
         warning: <AlertTriangle className="h-4 w-4 text-warning" />,
         info: <Info className="h-4 w-4 text-info" />,
-        loading: <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />,
+        loading: <BrandInlineSpinner />,
       }}
       toastOptions={{
         classNames: {
