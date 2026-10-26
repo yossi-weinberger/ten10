@@ -401,9 +401,7 @@ This section details how the different parts of the project interact with each o
 │   │   └── Rubik-SemiBold.ttf
 │   ├── icon-192.png
 │   ├── icon-512.png
-│   ├── loader.css
-│   ├── logo/
-│   │   └── symbol-loader.svg  # Self-animating symbol for the static pre-loader
+│   ├── loader.css         # Static pre-loader: theme colours and the spinning symbol (inline SVG in index.html)
 │   └── manifest.json
 ├── README.md              # Project README file
 ├── realistic_data_2023-06_to_2025-05.json

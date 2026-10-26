@@ -14,17 +14,17 @@ The ideas were chosen from a numbered "motion lab" of prototypes. The numbers ar
 | Brand components | `src/components/brand/*.tsx` (named exports) |
 | Keyframes and `animate-brand-*` utilities | `tailwind.config.js` → the `brand-*` entries in `keyframes` and `animation` |
 | Pure helpers (with Vitest tests) | `src/components/brand/*.utils.ts` |
-| Static pre-loader symbol (runs before JavaScript) | `public/logo/symbol-loader.svg`, sized in `public/loader.css` |
+| Static pre-loader symbol (runs before JavaScript) | Inline SVG in `index.html` (`#pre-loader`), coloured and animated by `public/loader.css` |
 | Plain, non-animated logo files | `public/logo/*.svg` (unchanged) |
 
-Do not put keyframes in component files, inline `<style>` tags or new CSS files. Add them to the `brand-*` group in `tailwind.config.js` and apply them with Tailwind classes. The only exception is `public/logo/symbol-loader.svg`, which has to animate inside an `<img>` before the app's CSS exists.
+Do not put keyframes in component files, inline `<style>` tags or new CSS files. Add them to the `brand-*` group in `tailwind.config.js` and apply them with Tailwind classes. The only exception is the static pre-loader, whose keyframes live in `public/loader.css` because it renders before the app's CSS exists.
 
 ## 2. Components
 
 | # | Component | What it does | Used in |
 | --- | --- | --- | --- |
 | 1 | `BrandSpinner` | Indeterminate loader: the symbol spins with an ease-in-out rhythm and the slice is flung outward at peak speed. | `AppLoader`, `ImportWizard` loading state, `FileUploadStep` (dropzone and sheet confirm button) |
-| 1 | `public/logo/symbol-loader.svg` | Same motion as `BrandSpinner`, self-contained for the static pre-loader. | `index.html` (`#pre-loader`) |
+| 1 | Pre-loader (`index.html` + `public/loader.css`) | Same motion as `BrandSpinner`, before any JavaScript. It uses the app's theme colours: the inline script in `index.html` applies a light/dark theme chosen in the app (`Ten10-ui-theme`), otherwise it follows `prefers-color-scheme`. This removes the old dark-navy flash for light-theme users and after the installed app's white splash screen (#34, colour fix only). | `index.html` (`#pre-loader`) |
 | 6 | `BrandProgress` | Determinate progress: the ring fills to 90% and the slice drops in for the last 10%. Split logic in `brandProgress.utils.ts`. | `AppLoader` when it receives `progress` (Settings data import) |
 | 7 | `BrandDone` | One-shot success: the last half-turn settles, the slice clicks in, a ripple leaves the ring and a check is drawn inside the 0. | `ImportResultStep` when rows were inserted |
 | 12ב | `Brand404` | "404" where the 0 is the symbol; it shakes "no", the slice falls to the floor and rocks to rest. Plays once. | `NotFoundPage` |
@@ -50,7 +50,7 @@ All components are decorative (`aria-hidden="true"`). The surrounding UI must ca
 - A part that rotates around its own centre (e.g. the falling slice) uses `[transform-box:fill-box] origin-center`.
 - `SYMBOL_VIEWBOX` is tight around the symbol at rest. Components set `overflow-visible` so motion can leave the box without changing the component's size. Existing size classes (`h-14 w-14`, …) keep the same visual size as the old `<img src="/logo/symbol.svg">`.
 - Colours come from theme tokens: ring `fill-primary`, slice `fill-accent`, strokes `stroke-primary`. In dark mode the ring automatically uses the lighter teal. Do not hardcode `#11676a` / `#f0c000` in components.
-- Exception: `symbol-loader.svg` uses the hex brand colours because it renders before the theme exists.
+- Exception: `public/loader.css` repeats the HSL values of the theme tokens (`--background`, `--primary`, `--muted-foreground`, `--accent`) because it renders before `src/index.css`. Keep them in sync when the theme changes.
 - A `<mask>` that reveals a shape uses `stroke="white"`. That is mask luminance, not a theme colour.
 - Mask/clip ids must be unique per instance: build them from `useId()` with non-alphanumeric characters stripped (see `BrandProgress`).
 
@@ -66,7 +66,7 @@ Rules:
    - **One-shot animations** (`BrandDone`, `Brand404`) show their final state immediately. Put the final pose in the base classes and let the `motion-safe:` animation start from the initial pose (`animation-fill-mode: both`).
    - **Values driven by data** (`BrandProgress`) still update, but without travel: the slice fades in place instead of dropping (`useReducedMotion` from `framer-motion`).
    - **State changes** (`BrandSidebarLogo`) switch instantly (`motion-reduce:transition-none`), and the first-load handoff becomes a short fade.
-3. `symbol-loader.svg` handles this with `@media (prefers-reduced-motion: reduce)` inside the file.
+3. The pre-loader handles this with `@media (prefers-reduced-motion: reduce)` in `public/loader.css`.
 
 This matches the rest of the app, which already uses `motion-safe:` utilities and `useReducedMotion` (landing page, `PrepareStep`).
 
@@ -94,6 +94,6 @@ Ideas from the motion lab that are not built. Numbers refer to the motion-lab id
 | --- | --- | --- |
 | 38 | Letters reel into the 0 as the page scrolls | Wanted for the landing page; placement not decided. The landing has no horizontal header: on `2xl` screens a side glass nav shows the wide logo, below that only a round menu button. |
 | 14 | Pull to refresh with the symbol | Under consideration. Touch devices only (mobile web, installed PWA, Android TWA). |
-| 34 | App-icon launch | Under consideration. Installed app only (`display-mode: standalone`); the OS splash itself cannot be animated. |
+| 34 | App-icon launch | Only the colour fix is built (see the pre-loader row). The animated version is not planned: installed app only, and the OS splash itself cannot be animated. |
 
 Not chosen: 19 (favicon progress), 10א / 10ב (coin / check morph), 18 (celebration), 12 (sync-error state), 21 / 22 (hero wordmark), 27, 5, 13.
