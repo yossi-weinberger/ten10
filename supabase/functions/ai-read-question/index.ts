@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
+import { hashGatewayUser } from "../_shared/ai/gateway-tags.ts";
 import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "../_shared/ai/jev-duplicate-rank.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
@@ -10,6 +11,7 @@ import {
   readQuestionSlots,
   slotConfidence,
 } from "../_shared/ai/question-slots.ts";
+import { saveQuestionMeasurement } from "./measurement.ts";
 
 const CATEGORY_TYPES = ["income", "exempt-income", "expense", "recognized-expense"] as const;
 
@@ -69,6 +71,8 @@ Deno.serve(async (req: Request) => {
     ],
   };
 
+  let slots: ReturnType<typeof readQuestionSlots> = null;
+  let signals: Record<string, number> = {};
   try {
     const response = await fetch(JEV_SYSTEMONE_URL, {
       method: "POST",
@@ -76,31 +80,35 @@ Deno.serve(async (req: Request) => {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(gatewaySystemOneBody(buildQuestionSlotBody(text, lists))),
+      body: JSON.stringify(gatewaySystemOneBody(buildQuestionSlotBody(text, lists), {
+        source: "app",
+        feature: "question_slots",
+        user: await hashGatewayUser(userData.user.id),
+      })),
       signal: AbortSignal.timeout(12000),
     });
     if (!response.ok) {
       logger.error(`jev question slots failed: ${response.status}`);
-      return json(origin, { reason: "unavailable" }, 200);
+    } else {
+      const payload = await response.json();
+      slots = readQuestionSlots(payload, lists);
+      signals = slotConfidence(payload) ?? {};
     }
-    const payload = await response.json();
-    const slots = readQuestionSlots(payload, lists);
-    if (!slots) return json(origin, { reason: "unavailable" }, 200);
-    const confidence = slotConfidence(payload);
-    const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
-    let measurementId: string | null = null;
-    if (confidence && serviceKey) {
-      const admin = createClient(Deno.env.get("SUPABASE_URL") ?? "", serviceKey);
-      const saved = await admin.rpc("record_ai_slot_confidence", {
-        p_user_id: userData.user.id,
-        p_signals: confidence,
-      });
-      if (saved.error) logger.error("slot confidence was not saved");
-      measurementId = typeof saved.data === "string" ? saved.data : null;
-    }
-    return json(origin, { ...slots, measurement_id: measurementId }, 200);
   } catch {
     logger.error("jev question slots failed");
-    return json(origin, { reason: "unavailable" }, 200);
   }
+
+  const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+  let measurementId: string | null = null;
+  if (serviceKey) {
+    const admin = createClient(Deno.env.get("SUPABASE_URL") ?? "", serviceKey);
+    measurementId = await saveQuestionMeasurement(
+      (args) => admin.rpc("record_ai_slot_confidence", args),
+      userData.user.id,
+      signals,
+    );
+    if (!measurementId) logger.error("slot confidence was not saved");
+  }
+  if (!slots) return json(origin, { reason: "unavailable", measurement_id: measurementId }, 200);
+  return json(origin, { ...slots, measurement_id: measurementId }, 200);
 });

@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
+import { hashGatewayUser } from "../_shared/ai/gateway-tags.ts";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import { AI_DRAFT_ALLOWED_TYPES } from "../_shared/transaction-domain/transaction-types.ts";
@@ -121,7 +122,11 @@ Deno.serve(async (req: Request) => {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(gatewaySystemOneBody(body)),
+      body: JSON.stringify(gatewaySystemOneBody(body, {
+        source: "app",
+        feature: "duplicates",
+        user: await hashGatewayUser(userData.user.id),
+      })),
       signal: AbortSignal.timeout(8000),
     });
     if (!response.ok) {

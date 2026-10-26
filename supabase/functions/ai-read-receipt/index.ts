@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
+import { gatewayProviderOptions, hashGatewayUser } from "../_shared/ai/gateway-tags.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import {
@@ -154,10 +155,12 @@ Deno.serve(async (req: Request) => {
           ],
         }],
         providerOptions: {
-          gateway: {
-            zeroDataRetention: true,
+          gateway: gatewayProviderOptions({
+            source: "app",
+            feature: "receipt",
+            user: await hashGatewayUser(userData.user.id),
             only: ["anthropic"],
-          },
+          }),
         },
       }),
       signal: AbortSignal.timeout(20000),

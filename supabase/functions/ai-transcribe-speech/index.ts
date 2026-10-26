@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
+import { gatewayProviderOptions, hashGatewayUser } from "../_shared/ai/gateway-tags.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { readTranscript, SPEECH_MODEL } from "../_shared/ai/speech-transcript.ts";
@@ -56,7 +57,17 @@ Deno.serve(async (req: Request) => {
         "ai-transcription-model-specification-version": "4",
         "ai-model-id": SPEECH_MODEL,
       },
-      body: JSON.stringify({ audio: data, mediaType }),
+      body: JSON.stringify({
+        audio: data,
+        mediaType,
+        providerOptions: {
+          gateway: gatewayProviderOptions({
+            source: "app",
+            feature: "speech",
+            user: await hashGatewayUser(userData.user.id),
+          }),
+        },
+      }),
       signal: AbortSignal.timeout(20000),
     });
     if (!response.ok) {
