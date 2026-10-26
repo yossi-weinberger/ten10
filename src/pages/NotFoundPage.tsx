@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
-import { FileSearch2 } from "lucide-react";
+import { Brand404 } from "@/components/brand/Brand404";
 import { useTranslation } from "react-i18next";
 
 export function NotFoundPage() {
@@ -11,9 +11,7 @@ export function NotFoundPage() {
       className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] text-center p-6 bg-background"
       dir={i18n.dir()}
     >
-      <div className="bg-muted p-6 rounded-full mb-6">
-        <FileSearch2 className="w-20 h-20 text-primary" />
-      </div>
+      <Brand404 className="mb-8 w-64 md:w-80" />
       <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">
         {t("notFound.title")}
       </h1>

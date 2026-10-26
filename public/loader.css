@@ -12,18 +12,12 @@
     "Helvetica Neue", Arial, sans-serif;
 }
 
+/* symbol-loader.svg animates itself and leaves room for its slice to swing out,
+   so it is drawn larger, with negative margins keeping the old 56px layout. */
 #pre-loader .brand-spinner {
-  width: 56px;
-  height: 56px;
-  margin-bottom: 16px;
-  animation: rotate 1.2s linear infinite;
-  will-change: transform;
-}
-
-@keyframes rotate {
-  100% {
-    transform: rotate(360deg);
-  }
+  width: 74px;
+  height: 74px;
+  margin: -9px 0 7px;
 }
 
 #pre-loader .text {

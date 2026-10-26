@@ -1,7 +1,8 @@
 import { useTranslation } from "react-i18next";
-import { CheckCircle, AlertTriangle, Download } from "lucide-react";
+import { AlertTriangle, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { BrandDone } from "@/components/brand/BrandDone";
 import type { ImportResult } from "@/lib/import/import-session.types";
 import { useNavigate } from "@tanstack/react-router";
 
@@ -45,7 +46,7 @@ export function ImportResultStep({
       {/* Success / failure header */}
       <div className="flex flex-col items-center gap-3 text-center">
         {result.inserted > 0 ? (
-          <CheckCircle className="h-12 w-12 text-green-500" />
+          <BrandDone className="h-12 w-12" />
         ) : (
           <AlertTriangle className="h-12 w-12 text-amber-500" />
         )}

@@ -6,6 +6,7 @@ import { logger } from "@/lib/logger";
 import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { BrandSpinner } from "@/components/brand/BrandSpinner";
 import {
   Select,
   SelectContent,
@@ -280,12 +281,7 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
         <div className="flex flex-col items-center gap-4">
           {isLoading ? (
             <>
-              <img
-                src="/logo/symbol.svg"
-                alt=""
-                aria-hidden="true"
-                className="h-10 w-10 animate-spin"
-              />
+              <BrandSpinner className="h-10 w-10" />
               <p className="text-sm text-muted-foreground">{t("review.processing")}</p>
             </>
           ) : isDragActive ? (
@@ -380,7 +376,7 @@ export function FileUploadStep({ onFileParsed }: FileUploadStepProps) {
                 className="shrink-0"
               >
                 {isLoading ? (
-                  <img src="/logo/symbol.svg" alt="" aria-hidden="true" className="h-4 w-4 animate-spin" />
+                  <BrandSpinner className="h-4 w-4" />
                 ) : null}
                 {t("upload.sheetSelect.confirm")}
               </Button>

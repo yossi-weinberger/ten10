@@ -15,6 +15,7 @@ This document provides comprehensive guidelines for creating floating UI compone
 9. [Internationalization (i18n) and Theming Guidelines](#9-internationalization-i18n-and-theming-guidelines)
 10. [Layout and Navigation Components](#10-layout-and-navigation-components)
 11. [Responsive Modals: Dialog/Drawer Pattern](#11-responsive-modals-dialogdrawer-pattern)
+12. [Brand Motion (Animated Logo)](#12-brand-motion-animated-logo)
 
 ---
 
@@ -832,6 +833,14 @@ If users report DOM errors on mobile, use **Chrome Remote Debugging**:
 3. Check "Discover USB devices"
 4. Click "inspect" next to the phone's tab
 5. View Console errors in real-time
+
+---
+
+## 12. Brand Motion (Animated Logo)
+
+_(Added October 2026)_
+
+Loaders, progress and success states that show the Ten10 symbol use the components in `src/components/brand/` (`BrandSpinner`, `BrandProgress`, `BrandDone`, `Brand404`) instead of `<img src="/logo/symbol.svg" className="animate-spin">` or generic icons. Their keyframes live in the `brand-*` group of `tailwind.config.js`, and each one has a reduced-motion fallback. Full rules, geometry and the list of planned animations: `llm-instructions/ui/brand-motion-guide.md`.
 
 ---
 

@@ -1,6 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Progress } from "@/components/ui/progress";
+import { BrandProgress } from "@/components/brand/BrandProgress";
+import { BrandSpinner } from "@/components/brand/BrandSpinner";
 
 interface AppLoaderProps {
   /** Optional custom message; defaults to the global app startup message. */
@@ -19,10 +20,10 @@ const AppLoader: React.FC<AppLoaderProps> = ({
   const { i18n, t } = useTranslation("common");
   const displayMessage =
     message ?? t("labels.appLoading", { defaultValue: t("labels.loading") });
-  const progressPercent =
-    progress && progress.total > 0
-      ? Math.round((progress.current / progress.total) * 100)
-      : 0;
+  const hasProgress = !!progress && progress.total > 0;
+  const progressPercent = hasProgress
+    ? Math.round((progress.current / progress.total) * 100)
+    : 0;
 
   return (
     <div
@@ -32,24 +33,21 @@ const AppLoader: React.FC<AppLoaderProps> = ({
       aria-live="polite"
       aria-busy="true"
     >
-      <img
-        src="/logo/symbol.svg"
-        alt=""
-        aria-hidden="true"
-        className="h-14 w-14 animate-spin"
-      />
+      {/* With known progress the symbol itself fills up: ring to 90%, slice for the rest. */}
+      {hasProgress ? (
+        <BrandProgress value={progressPercent} className="h-14 w-14" />
+      ) : (
+        <BrandSpinner className="h-14 w-14" />
+      )}
       <h1 className="mt-4 text-2xl font-bold text-primary">Ten10</h1>
       <p className="mt-4 text-muted-foreground">{displayMessage}</p>
       {details && (
         <p className="mt-2 text-sm text-muted-foreground">{details}</p>
       )}
-      {progress && progress.total > 0 && (
-        <div className="mt-4 w-64 max-w-[80vw]">
-          <Progress value={progressPercent} className="h-2" />
-          <p className="mt-2 text-center text-sm text-muted-foreground">
-            {progress.current} / {progress.total}
-          </p>
-        </div>
+      {hasProgress && (
+        <p className="mt-2 text-center text-sm text-muted-foreground tabular-nums" dir="ltr">
+          {progress.current} / {progress.total}
+        </p>
       )}
     </div>
   );
