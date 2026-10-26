@@ -5,7 +5,7 @@ import {
   AdminSystemStats,
 } from "@/lib/data-layer/admin.service";
 import { AdminMetricCard } from "@/components/admin/AdminMetricCard";
-import { aiShare } from "@/lib/admin/ai-usage";
+import { formatAiShare } from "@/lib/admin/ai-usage";
 import { Separator } from "@/components/ui/separator";
 
 interface AdminEngagementSectionProps {
@@ -46,7 +46,7 @@ export function AdminEngagementSection({
                 ? undefined
                 : t("engagement.aiTransactions", {
                     count: engagement.ai_transactions,
-                    percent: aiShare(engagement.ai_transactions, engagement.total_transactions),
+                    percent: formatAiShare(engagement.ai_transactions, engagement.total_transactions),
                   })
             }
           />

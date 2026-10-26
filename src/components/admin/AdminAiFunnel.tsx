@@ -72,17 +72,19 @@ export function AdminAiFunnel({
   hint,
   funnel,
   copy,
+  showTitle = true,
 }: {
   title: string;
   hint: string;
   funnel: IntakeFunnel;
   copy: FunnelCopy;
+  showTitle?: boolean;
 }) {
   const total = funnel.created;
   return (
     <Card className="w-full">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg">{title}</CardTitle>
+        {showTitle ? <CardTitle className="text-lg">{title}</CardTitle> : null}
         <p className="text-sm font-normal text-muted-foreground">{hint}</p>
       </CardHeader>
       <CardContent className="space-y-4">

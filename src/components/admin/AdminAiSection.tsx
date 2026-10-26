@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Calendar as CalendarIcon, Check, FileText, Image, MessageSquare, MessagesSquare, Mic, Sparkles, Users, Wallet } from "lucide-react";
+import { Calendar as CalendarIcon, Check, ChevronDown, FileText, Image, MessageSquare, MessagesSquare, Mic, Sparkles, Users, Wallet } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -228,11 +228,15 @@ export function AdminAiSection() {
           </CountGroup>
           {funnel ? (
             <Collapsible>
-              <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border bg-card px-4 py-3 text-start text-lg font-medium">
-                {t("ai.transactionsTitle")} · {funnel.created}
+              <CollapsibleTrigger asChild>
+                <Button variant="outline" className="group flex h-auto w-full items-center justify-between px-4 py-3 text-start text-lg font-medium">
+                  <span>{t("ai.transactionsTitle")} · {funnel.created}</span>
+                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform group-data-[state=open]:rotate-180" />
+                </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="pt-3">
                 <AdminAiFunnel
+                  showTitle={false}
                   title={t("ai.transactionsTitle")}
                   hint={t("ai.transactionsHint")}
                   funnel={funnel}
