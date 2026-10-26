@@ -300,6 +300,7 @@ This section details how the different parts of the project interact with each o
 │   │   │   └── transactions.service.ts
 │   │   ├── platformManager.ts
 │   │   ├── schemas.ts
+│   │   ├── staticPreloader.ts                 # Removes the static pre-loader (#pre-loader) when the app first renders
 │   │   ├── calendar/                          # App re-exports of the shared Temporal adapter
 │   │   ├── store.ts
 │   │   ├── supabaseClient.ts

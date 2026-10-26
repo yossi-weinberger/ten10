@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Menu } from "lucide-react";
 import { Outlet, useRouterState } from "@tanstack/react-router";
@@ -30,6 +30,7 @@ import { OnboardingHost } from "./components/onboarding/OnboardingHost";
 import { Footer } from "@/pages/landing/sections/Footer";
 import AppLoader from "./components/layout/AppLoader";
 import { FirstLoadHandoff } from "./components/layout/FirstLoadHandoff";
+import { removeStaticPreloader } from "./lib/staticPreloader";
 
 import { RecurringTransactionsService } from "./lib/services/recurring-transactions.service";
 import { restoreDesktopSettings } from "./lib/services/desktop-settings.service";
@@ -66,6 +67,12 @@ function App() {
   const [loaderHandoff, setLoaderHandoff] = useState<"pending" | "play" | "skip">("pending");
   // Prevent re-running desktop init when language changes (t function reference changes)
   const desktopInitDone = useRef(false);
+
+  // The app's first frame replaces the static pre-loader in the same paint, so there is no
+  // blank page between them (see src/lib/staticPreloader.ts).
+  useLayoutEffect(() => {
+    removeStaticPreloader();
+  }, []);
 
   const { platform } = usePlatform();
   const { theme, setTheme } = useTheme();
