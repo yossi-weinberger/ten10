@@ -123,6 +123,9 @@ export function useReadingProgress(ref: RefObject<HTMLElement | null>): number {
     window.addEventListener("resize", onResize);
     const resizeObserver = new ResizeObserver(onResize);
     resizeObserver.observe(el);
+    // When the element scrolls itself its box keeps its size as the content grows (an
+    // answer opening), so watch its direct children too.
+    for (const child of Array.from(el.children)) resizeObserver.observe(child);
 
     return () => {
       cancelAnimationFrame(frame);
