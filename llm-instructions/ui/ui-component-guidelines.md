@@ -15,6 +15,7 @@ This document provides comprehensive guidelines for creating floating UI compone
 9. [Internationalization (i18n) and Theming Guidelines](#9-internationalization-i18n-and-theming-guidelines)
 10. [Layout and Navigation Components](#10-layout-and-navigation-components)
 11. [Responsive Modals: Dialog/Drawer Pattern](#11-responsive-modals-dialogdrawer-pattern)
+12. [Brand Motion (Animated Logo)](#12-brand-motion-animated-logo)
 
 ---
 
@@ -631,6 +632,7 @@ The main `Sidebar` component requires careful synchronization between the parent
 2.  **Synchronized Transitions:** All transitions (width, opacity, transform) must use the same duration (e.g., `duration-300`).
 3.  **No Dynamic Alignment:** To prevent icon jumping, navigation buttons should **always** be `justify-start` with fixed padding (e.g., `px-4`). Do not switch between `justify-center` (collapsed) and `justify-start` (expanded). The content should be perfectly centered in the collapsed state simply by virtue of the padding and container width.
 4.  **Text Fading:** Text labels must fade out (`opacity-0`) and collapse (`w-0`) **before** the sidebar finishes closing, or fade in **after** it starts opening, to prevent the text from being "cut off" by the shrinking container.
+5.  **Logo:** The logo row renders `BrandSidebarLogo`, which morphs the wide logo into the square one glyph by glyph with the same `duration-300`. The sidebar widths and the logo row height come from `SIDEBAR_SIZE` (`src/components/layout/sidebarSize.ts`), which `App`, `Sidebar` and the logo geometry share. See `brand-motion-guide.md`.
 
 ### 10.2 Sidebar Visibility by Platform
 
@@ -712,7 +714,7 @@ Guidelines:
 2. **Desktop navigation:** Use a vertical, side-mounted glass navigation with full text labels. It should sit near the top of the viewport rather than centered over the content.
 3. **Mobile navigation:** Do not use a wide bottom navigation with horizontal scrolling. Use a compact floating trigger that opens a small `Popover` with section links.
 4. **Language direction:** For Hebrew/RTL, floating controls belong on the right. For English/LTR, they belong on the left.
-5. **Logo behavior:** The desktop floating nav uses `logo-wide.svg`; the mobile trigger can use a menu icon, while the popover content uses the wide logo for brand consistency.
+5. **Logo behavior:** As the page scrolls, the hero logo docks (`LandingLogoDock`, see `brand-motion-guide.md`): into the side nav's logo on `2xl` screens, otherwise as a round "back to top" button in the free top corner. The desktop floating nav uses `logo-wide.svg`; the mobile trigger can use a menu icon, while the popover content uses the wide logo for brand consistency.
 6. **Active section state:** When a nav item is clicked, set the active section immediately and temporarily ignore observer updates during smooth scroll. Otherwise the active item can jump to an intermediate section near the bottom of the page.
 7. **Accessibility:** Every section item needs a translated visible label and/or `aria-label`. Dots-only navigation is not appropriate for landing page section navigation.
 
@@ -832,6 +834,14 @@ If users report DOM errors on mobile, use **Chrome Remote Debugging**:
 3. Check "Discover USB devices"
 4. Click "inspect" next to the phone's tab
 5. View Console errors in real-time
+
+---
+
+## 12. Brand Motion (Animated Logo)
+
+_(Added October 2026)_
+
+Loaders, progress and success states that show the Ten10 symbol use the components in `src/components/brand/` (`BrandSpinner`, `BrandProgress`, `BrandDone`, `Brand404`, `BrandSidebarLogo`, `BrandHandoffSymbol`) instead of `<img src="/logo/symbol.svg" className="animate-spin">` or generic icons. Their keyframes live in the `brand-*` group of `tailwind.config.js`, and each one has a reduced-motion fallback. Full rules, geometry and the list of planned animations: `llm-instructions/ui/brand-motion-guide.md`.
 
 ---
 

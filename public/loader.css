@@ -1,4 +1,16 @@
+/*
+  Static pre-loader (index.html), shown before any JavaScript or app CSS loads.
+  Colours repeat the app's theme tokens in src/index.css: light by default, dark when
+  the system prefers dark, and the inline script in index.html applies a theme the user
+  chose in the app (data-theme="light" | "dark"). The spinner is the same motion as
+  src/components/brand/BrandSpinner.tsx. scripts/preloader-sync-contract.test.ts checks both copies.
+*/
 #pre-loader {
+  --pl-bg: hsl(48 79% 98%); /* --background */
+  --pl-primary: hsl(182 73% 24%); /* --primary */
+  --pl-text: hsl(48 8% 43%); /* --muted-foreground */
+  --pl-slice: hsl(48 100% 47%); /* --accent */
+
   position: fixed;
   inset: 0;
   z-index: 9999;
@@ -6,30 +18,82 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: #020817; /* Matches Tailwind dark bg-background */
-  color: #94a3b8; /* Matches muted-foreground */
+  background-color: var(--pl-bg);
+  color: var(--pl-text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
 }
 
-#pre-loader .brand-spinner {
+@media (prefers-color-scheme: dark) {
+  #pre-loader:not([data-theme="light"]) {
+    --pl-bg: hsl(45 63% 3%);
+    --pl-primary: hsl(182 35% 56%);
+    --pl-text: hsl(48 13% 72%);
+  }
+}
+
+#pre-loader[data-theme="dark"] {
+  --pl-bg: hsl(45 63% 3%);
+  --pl-primary: hsl(182 35% 56%);
+  --pl-text: hsl(48 13% 72%);
+}
+
+/* The spin is on the <svg> box itself, which browsers run off the main thread (see
+   llm-instructions/ui/brand-motion-guide.md, section 6). */
+#pre-loader .pl-spin {
   width: 56px;
   height: 56px;
   margin-bottom: 16px;
-  animation: rotate 1.2s linear infinite;
-  will-change: transform;
+  overflow: visible;
+  animation: pl-spin 1.5s cubic-bezier(0.6, 0, 0.4, 1) infinite;
 }
 
-@keyframes rotate {
-  100% {
+/* The fling turns around the ring's centre, the SVG's (0, 0). */
+#pre-loader .pl-fling {
+  transform-origin: 0 0;
+  animation: pl-fling 1.5s ease-in-out infinite;
+}
+
+#pre-loader .pl-ring {
+  fill: var(--pl-primary);
+}
+
+#pre-loader .pl-slice {
+  fill: var(--pl-slice);
+}
+
+@keyframes pl-spin {
+  to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes pl-fling {
+  50% {
+    transform: rotate(-5deg) translate(4px, -4px);
+  }
+}
+
+@keyframes pl-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #pre-loader .pl-fling {
+    animation: none;
+  }
+
+  #pre-loader .pl-spin {
+    animation: pl-pulse 2s ease-in-out infinite;
   }
 }
 
 #pre-loader .text {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #f8fafc; /* Lighter text for the brand name */
+  color: var(--pl-primary);
 }
 
 #pre-loader p {

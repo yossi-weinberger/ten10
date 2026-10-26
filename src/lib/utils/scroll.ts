@@ -4,10 +4,15 @@ export const isWindowScrollTarget = (
   scrollTarget: ScrollTarget
 ): scrollTarget is Window => scrollTarget === window;
 
+/**
+ * The nearest ancestor that scrolls vertically, or `window` when only the page scrolls.
+ * With `includeSelf`, the element itself counts too (content that scrolls itself).
+ */
 export const getScrollableParent = (
-  element: HTMLElement | null
+  element: HTMLElement | null,
+  { includeSelf = false }: { includeSelf?: boolean } = {}
 ): ScrollTarget => {
-  let parent = element?.parentElement ?? null;
+  let parent = (includeSelf ? element : element?.parentElement) ?? null;
 
   while (parent) {
     const { overflowY } = window.getComputedStyle(parent);

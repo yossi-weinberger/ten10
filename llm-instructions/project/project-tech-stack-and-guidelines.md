@@ -73,6 +73,7 @@ The application follows a clear strategy for handling text directionality:
 - **Animations**:
   - **`framer-motion`**: Used for entrance animations, tab content transitions (`AnimatePresence mode="wait"`), and animated counters support.
   - **`react-countup`**: For animated number counting in KPI cards.
+  - **Brand motion**: The animated Ten10 symbol (loaders, progress, success, 404) lives in `src/components/brand/` with its keyframes in the `brand-*` group of `tailwind.config.js`. Every brand animation is `motion-safe:` with a reduced-motion fallback. See `llm-instructions/ui/brand-motion-guide.md`.
 - **Charts**:
   - **`recharts`**: Main charting library. Wrapped by shadcn/ui's `ChartContainer`/`ChartTooltipContent` in `src/components/ui/chart.tsx`. Supports area, bar, line, and pie charts.
 - **Unique IDs**:

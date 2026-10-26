@@ -18,12 +18,17 @@ import { TextRoll } from "../components/TextRoll";
 
 interface HeroSectionProps {
   sectionRef: React.RefObject<HTMLElement | null>;
+  /** The hero logo's card and SVG, for the scroll-linked logo dock. */
+  logoCardRef?: React.Ref<HTMLDivElement>;
+  logoSvgRef?: React.Ref<SVGSVGElement>;
   onDownloadClick: (platform: string) => void;
   onWebAppClick: () => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
   sectionRef,
+  logoCardRef,
+  logoSvgRef,
   onDownloadClick,
   onWebAppClick,
 }) => {
@@ -46,7 +51,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         className="relative z-20 flex justify-center px-4 pt-20 md:pt-24"
         variants={scaleIn}
       >
-        <AnimatedLogo />
+        <AnimatedLogo cardRef={logoCardRef} svgRef={logoSvgRef} />
       </motion.div>
 
       {/* Tagline + subtitle + buttons — centred in the remaining space */}
