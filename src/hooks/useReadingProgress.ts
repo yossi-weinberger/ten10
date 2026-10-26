@@ -40,6 +40,21 @@ function findScroller(el: HTMLElement): Element {
   return document.scrollingElement ?? document.documentElement;
 }
 
+/**
+ * The box to measure against after `target` scrolled, or null when that scroll didn't
+ * move the content. Progress is measured against the nearest scrolling box: an outer area
+ * scrolling (e.g. the page around a content box that scrolls itself) never replaces it,
+ * but a box nearer the content that starts scrolling (it grew past its max height) does.
+ */
+export function scrollerAfterScroll(
+  current: Element,
+  target: Element,
+  content: Element
+): Element | null {
+  if (!target.contains(content)) return null;
+  return current.contains(target) ? target : current;
+}
+
 function measure(el: HTMLElement, scroller: Element): number {
   if (scroller === el) {
     const rect = el.getBoundingClientRect();
@@ -94,11 +109,12 @@ export function useReadingProgress(ref: RefObject<HTMLElement | null>): number {
       schedule();
     };
     // Scroll events don't bubble, but they do reach a capturing listener on the document.
-    // Only scrolls that move the content count, and the element that scrolled is the scroller.
     const onScroll = (event: Event) => {
       const target = event.target === document ? document.scrollingElement : event.target;
-      if (!(target instanceof Element) || !target.contains(el)) return;
-      scroller = target;
+      if (!(target instanceof Element)) return;
+      const next = scrollerAfterScroll(scroller, target, el);
+      if (!next) return;
+      scroller = next;
       schedule();
     };
 

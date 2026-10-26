@@ -1,5 +1,7 @@
+// @vitest-environment jsdom
+
 import { describe, expect, it } from "vitest";
-import { getReadingProgress } from "./useReadingProgress";
+import { getReadingProgress, scrollerAfterScroll } from "./useReadingProgress";
 
 describe("getReadingProgress", () => {
   it("is 0 while the content's top is at the top of the visible area", () => {
@@ -33,5 +35,37 @@ describe("getReadingProgress", () => {
     expect(
       getReadingProgress({ contentTop: 0, contentHeight: 300, viewportTop: 0, viewportHeight: 600 })
     ).toBe(1);
+  });
+});
+
+describe("scrollerAfterScroll", () => {
+  // page > outer area (page + footer) > content box that can scroll itself
+  const build = () => {
+    const page = document.createElement("div");
+    const outer = document.createElement("div");
+    const content = document.createElement("div");
+    const sibling = document.createElement("div");
+    const inner = document.createElement("div");
+    page.append(outer, sibling);
+    outer.append(content);
+    content.append(inner);
+    return { page, outer, content, sibling, inner };
+  };
+
+  it("keeps the content box when the outer area scrolls", () => {
+    const { outer, content } = build();
+    expect(scrollerAfterScroll(content, outer, content)).toBe(content);
+  });
+
+  it("switches to a box nearer the content once it scrolls", () => {
+    const { page, outer, content } = build();
+    expect(scrollerAfterScroll(outer, content, content)).toBe(content);
+    expect(scrollerAfterScroll(page, outer, content)).toBe(outer);
+  });
+
+  it("ignores scrolls that don't move the content", () => {
+    const { content, sibling, inner } = build();
+    expect(scrollerAfterScroll(content, sibling, content)).toBeNull();
+    expect(scrollerAfterScroll(content, inner, content)).toBeNull();
   });
 });
