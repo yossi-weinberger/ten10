@@ -252,8 +252,11 @@ function HalachaPageContent() {
                          flex flex-row flex-wrap gap-2
                          md:flex-col md:space-y-1 md:gap-0"
             >
+              {/* When this bar sticks to the top, the app's fixed mobile menu button (top-4,
+                  inline-start-4, 36px) covers the start of its first row. ms-9 leaves that
+                  slot free in the first row only, so the other rows keep their full width. */}
               {isMobile && (
-                <HalachaReadingProgress compact contentRef={scrollContainerRef} className="px-2" />
+                <HalachaReadingProgress compact contentRef={scrollContainerRef} className="ms-9 px-2" />
               )}
 
               {/* Active tab slider - DESKTOP ONLY */}
