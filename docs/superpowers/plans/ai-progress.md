@@ -115,6 +115,7 @@
 | R2 | `2026-10-28-ai-recurring.md` | מודול טהור, בלי UI | — | מוזג ל־`feat/ai-intake` | [#595](https://github.com/yossi-weinberger/ten10/pull/595) |
 | U1 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing | — | נפתח | [#594](https://github.com/yossi-weinberger/ten10/pull/594) |
 | RCP | נמען בתרומה | מודול טהור, בלי חיבור | — | נפתח | [#597](https://github.com/yossi-weinberger/ten10/pull/597) |
+| VOICE | תיקון הקלטת קול | UI, Web בלבד | — | נפתח | `feat/ai-voice-wav` |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
@@ -432,3 +433,13 @@
   - "to Ezer Mizion": «Ezer Mizion».
   - "for matanot la'evyonim": אין נמען. "for" לא נחשב, ואין מילת תרומה.
   - "to the kollel": «kollel», בלי the, כמו בשאלת נתונים.
+- **2026-10-29:** קול. הקלטה מהדפדפן (`audio/webm;codecs=opus`) נדחתה ב־400 על ידי `microsoft/mai-transcribe-2`, כנראה מאז 19/10. עכשיו ההקלטה מומרת בדפדפן ל־WAV ב־16kHz מונו (`src/lib/ai/speech-wav.ts`, דרך `OfflineAudioContext`), ואם הפענוח נכשל נשלח המקור.
+  - **זמן ההמרה:** במשפט של 2–3 שניות, 10–30 מ״ש, ועם מעבד מואט פי 6 עד 95 מ״ש. ב־30 שניות, 80 מ״ש, ובמעבד מואט 800 מ״ש. WAV גדול בערך פי 2 מ־webm.
+  - **בדיקה עם הקוד האמיתי:** חמישה משפטים מסונתזים, דרך webm, ההמרה ו־`mai-transcribe-2` עם ZDR. כל החמישה יצאו נכון.
+  - **השוואת מודלים** על אותם חמישה משפטים:
+    - **בלי תמיכה ב־ZDR:** מתוך 11 מודלי תמלול בשער, רק 4 מקבלים ZDR: מיקרוסופט, שני מודלי Mistral ו־`grok-stt`.
+    - **Voxtral:** לא שמיש בעברית.
+    - **grok:** טעה ב«לחב״ד».
+    - **בלי ZDR, שנבדק בנפרד:** את «לחב״ד» תמללו נכון רק Scribe ו־`gpt-transcribe`. ‏gpt-4o, Gemini ו־Whisper טעו. Scribe כותב סכומים במילים. ‏`gpt-transcribe` יקר פי 2.7.
+    - **הוחלט:** נשארים עם מיקרוסופט ועם ZDR.
+  - **פתוח:** ‏`mai-transcribe-2` כותב לפעמים סכום במילים («מאה שמונים»). ה־parser לא קורא את זה, וזה PR נפרד.
