@@ -177,7 +177,7 @@ This component is responsible for displaying the bottom part of the transactions
 - **"Load More" Button:** Displays a "Load More" button when more data is available to load (`pagination.hasMore` from the store) and loading is not currently in progress. Clicking the button calls the `handleLoadMore` function passed as a prop from the parent component (`TransactionsTableDisplay`).
 - **Data Count Information:** Displays text indicating how many transactions are currently displayed out of the total number of transactions meeting the criteria (information taken from `transactionsLength` and `pagination.totalCount` fields).
 - **Layout:** Uses `gap-6` (24px spacing) between the "Load More" button and the data count text for improved visual separation and readability.
-- **Loading Indication:** Displays a loading indicator ("Loading more data..." with a spinning `Loader2` icon) when the `loading` flag from the store is `true` and transactions are already displayed (i.e., this is loading "more" data, not an initial table load).
+- **Loading Indication:** Displays a loading indicator ("Loading more data..." with `BrandInlineSpinner`) when the `loading` flag from the store is `true` and transactions are already displayed (i.e., this is loading "more" data, not an initial table load).
 
 ## 3. Central State Management (`src/lib/tableTransactions.store.ts`)
 

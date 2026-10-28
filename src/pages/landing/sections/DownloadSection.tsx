@@ -9,7 +9,6 @@ import {
   ChevronDown,
   Download,
   Globe,
-  Loader2,
   Mail,
   Monitor,
 } from "lucide-react";
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useLatestRelease, getVersionFromTag } from "@/hooks/useLatestRelease";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 interface DownloadSectionProps {
   sectionRef: React.RefObject<HTMLElement | null>;
@@ -104,7 +104,7 @@ export const DownloadSection: React.FC<DownloadSectionProps> = ({
             <div className="mt-5 space-y-2">
               {loading ? (
                 <Button className="w-full" disabled>
-                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                  <BrandInlineSpinner tone="current" />
                   {t("download.loading")}
                 </Button>
               ) : downloads.windowsExe ? (

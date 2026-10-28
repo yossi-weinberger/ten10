@@ -10,6 +10,7 @@ import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 const ResetPasswordPage: React.FC = () => {
   const { platform } = usePlatform();
@@ -232,6 +233,7 @@ const ResetPasswordPage: React.FC = () => {
           disabled={loading}
           className="w-full h-11 text-base"
         >
+          {loading && <BrandInlineSpinner tone="current" />}
           {loading
             ? t("resetPassword.updateButtonLoading")
             : t("resetPassword.updateButton")}

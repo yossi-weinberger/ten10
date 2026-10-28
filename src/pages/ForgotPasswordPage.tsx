@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 const ForgotPasswordPage: React.FC = () => {
   const { platform } = usePlatform();
@@ -99,6 +100,7 @@ const ForgotPasswordPage: React.FC = () => {
           disabled={loading}
           className="w-full h-11 text-base"
         >
+          {loading && <BrandInlineSpinner tone="current" />}
           {loading
             ? t("forgotPassword.sendButtonLoading")
             : t("forgotPassword.sendButton")}

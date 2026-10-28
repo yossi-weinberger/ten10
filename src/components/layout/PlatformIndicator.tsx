@@ -3,6 +3,7 @@ import { Globe, Monitor } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePlatform } from "@/contexts/PlatformContext";
 import { useTranslation } from "react-i18next";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 interface PlatformIndicatorProps {
   expanded?: boolean;
@@ -23,7 +24,7 @@ export function PlatformIndicator({
       )}
     >
       {platform === "loading" && (
-        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent flex-shrink-0"></div>
+        <BrandInlineSpinner className="h-6 w-6" />
       )}
       {platform === "web" && (
         <div className="flex items-center w-full">

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/card";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 const SignupPage: React.FC = () => {
   const { platform } = usePlatform();
@@ -174,7 +175,7 @@ const SignupPage: React.FC = () => {
           disabled={isAnyLoading}
           className="w-full h-11 flex items-center justify-center gap-2 bg-background hover:bg-muted/50 hover:text-foreground"
         >
-          <GoogleIcon />
+          {loadingGoogle ? <BrandInlineSpinner /> : <GoogleIcon />}
           <span>
             {loadingGoogle
               ? t("login.googleSignInLoading")
@@ -273,6 +274,7 @@ const SignupPage: React.FC = () => {
             disabled={isAnyLoading}
             className="w-full h-11 text-base mt-4"
           >
+            {loading && <BrandInlineSpinner tone="current" />}
             {isAnyLoading
               ? t("signup.signUpButtonLoading")
               : t("signup.signUpButton")}

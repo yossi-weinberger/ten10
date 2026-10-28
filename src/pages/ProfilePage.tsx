@@ -20,6 +20,7 @@ import {
   fetchProfileFullName,
   updateProfileFullName,
 } from "@/lib/data-layer/profile.service";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 export function ProfilePage() {
   const { t, i18n } = useTranslation(["auth", "common"]);
@@ -221,6 +222,7 @@ export function ProfilePage() {
                   type="submit"
                   disabled={!isWebPlatform || profileLoading || profileSaving}
                 >
+                  {profileSaving && <BrandInlineSpinner tone="current" />}
                   {profileSaving
                     ? t("common:labels.loading")
                     : t("profile.personalDetails.saveButton")}
