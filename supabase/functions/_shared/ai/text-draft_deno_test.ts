@@ -1,4 +1,4 @@
-import { clarificationField, draftFromText } from "./text-draft.ts";
+import { amountsFromText, clarificationField, draftFromText } from "./text-draft.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -136,4 +136,30 @@ Deno.test("last weekday is the previous one, and today rolls back a week", () =>
   assert(sunday !== null && sunday.date === "2026-10-18", "last Sunday before Monday");
   assert(monday !== null && monday.date === "2026-10-12", "last Monday is a week ago");
   assert(sunday !== null && !sunday.description.includes("ראשון"), "date phrase leaves the description");
+});
+
+function sameAmounts(text: string, expected: number[]): void {
+  const found = amountsFromText(text);
+  assert(JSON.stringify(found) === JSON.stringify(expected), `${text}: ${JSON.stringify(found)}`);
+}
+
+Deno.test("amounts are listed with the same rules as the draft amount", () => {
+  sameAmounts("50 במכולת ו־120 לישיבה", [50, 120]);
+  sameAmounts("50 לכולל", [50]);
+  sameAmounts("1,234.56 בסופר", [1234.56]);
+  sameAmounts("אתמול קיבלתי 200 דולר לפי שער 3.5", [200]);
+  sameAmounts("קניתי 2 חולצות ב־100", [100]);
+  sameAmounts("50 ש\"ח במכולת ו־120 לישיבה", [50]);
+  sameAmounts("spent 50 on groceries and 120 on the yeshiva", [50, 120]);
+  sameAmounts("$50 groceries and $120 yeshiva", [50, 120]);
+  sameAmounts("Donated 100 ILS to the kollel", [100]);
+});
+
+Deno.test("a day after ב is read as a price, as the draft reads it today", () => {
+  const rule = "מעכשיו כל חודש ב־10 תרשום 1,500 שכר דירה";
+  sameAmounts(rule, [10]);
+  assert(draftFromText(rule, TODAY)?.amount === 10, "the draft takes the day, not 1,500");
+  sameAmounts("ב־15 לחודש קניתי 200 שקל", [15, 200]);
+  sameAmounts("קניתי חלב ב־10:30 ב־12 שקל", [10, 12]);
+  sameAmounts("בשנת 2025 תרמתי 300", [2025, 300]);
 });

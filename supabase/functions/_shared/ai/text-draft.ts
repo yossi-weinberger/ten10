@@ -146,8 +146,8 @@ function currencyAlternation(): string {
   return wordsPattern(words);
 }
 
-/** A price marker or a currency word wins. Otherwise the last standalone number. */
-function findAmount(text: string): AmountHit | null {
+/** Numbers with a price marker or a currency word. Without any, every standalone number. */
+function amountCandidates(text: string): AmountHit[] {
   const currency = currencyAlternation();
   const hits: AmountHit[] = [];
   for (const match of text.matchAll(new RegExp(NUMBER_SRC, "g"))) {
@@ -176,8 +176,22 @@ function findAmount(text: string): AmountHit | null {
     });
   }
   const marked = hits.filter((hit) => hit.marked);
-  const pool = marked.length > 0 ? marked : hits;
+  return marked.length > 0 ? marked : hits;
+}
+
+/** A price marker or a currency word wins. Otherwise the last standalone number. */
+function findAmount(text: string): AmountHit | null {
+  const pool = amountCandidates(text);
   return pool[pool.length - 1] ?? null;
+}
+
+function normalizeInput(text: string): string {
+  return text.trim().toLowerCase().replace(/־/g, " ").replace(/\s+/g, " ");
+}
+
+/** Every amount `draftFromText` chooses from, in text order. */
+export function amountsFromText(text: string): number[] {
+  return amountCandidates(maskRate(prepareText(normalizeInput(text)))).map((hit) => hit.amount);
 }
 
 function cleanDescription(original: string): string {
@@ -232,7 +246,7 @@ export function clarificationField(text: string, today: string): ClarificationFi
 
 /** Returns null when the text has no amount. `today` is YYYY-MM-DD in the user's zone. */
 export function draftFromText(text: string, today: string): TextTransactionDraft | null {
-  const normalized = text.trim().toLowerCase().replace(/־/g, " ").replace(/\s+/g, " ");
+  const normalized = normalizeInput(text);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(today)) return null;
 
   const rateWords = wordsPattern(RATE_MARKERS);
