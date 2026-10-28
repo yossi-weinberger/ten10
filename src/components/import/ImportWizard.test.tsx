@@ -4,6 +4,7 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ImportPreviewRow, ParsedFile } from "@/lib/import/import-session.types";
+import type { TransactionDraftV1 } from "@/lib/intake/contracts";
 import { parseCSVText } from "@/lib/import/parsers";
 
 const io = vi.hoisted(() => ({
@@ -146,5 +147,98 @@ describe("ImportWizard without props", () => {
     expect(platform).toBe("web");
     expect(currency).toBe("ILS");
     expect((rows as ImportPreviewRow[]).filter((r) => r.approved)).toHaveLength(3);
+  });
+});
+
+const DRAFTS: TransactionDraftV1[] = [
+  {
+    schema_version: 1,
+    date: "2026-10-01",
+    amount: 350,
+    currency: "ILS",
+    type: "expense",
+    description: "Groceries",
+    category: "food",
+    recipient: null,
+    payment_method: null,
+    is_chomesh: false,
+    requested_rate: null,
+  },
+  {
+    schema_version: 1,
+    date: "2026-10-02",
+    amount: 700,
+    currency: "ILS",
+    type: "exempt-income",
+    description: "Gift",
+    category: null,
+    recipient: null,
+    payment_method: null,
+    is_chomesh: false,
+    requested_rate: null,
+  },
+  {
+    schema_version: 1,
+    date: "2026-10-03",
+    amount: 20,
+    currency: "USD",
+    type: "expense",
+    description: "Books",
+    category: null,
+    recipient: null,
+    payment_method: null,
+    is_chomesh: false,
+    requested_rate: 3.7,
+  },
+];
+
+describe("ImportWizard with initialRows", () => {
+  it("lands on review without prepare, upload or mapping", async () => {
+    render(<ImportWizard initialRows={DRAFTS} />);
+
+    expect(screen.queryByRole("button", { name: "prepare-next" })).not.toBeInTheDocument();
+    await screen.findByRole("list", { name: "review-step" });
+
+    expect(io.fetchExistingForDedup).toHaveBeenCalledWith("web", null);
+    expect(io.fetchRecurringForImport).toHaveBeenCalledWith("web");
+    expect(io.trackProductEvent).not.toHaveBeenCalledWith(
+      "transaction_import_mapping_completed",
+      expect.anything(),
+    );
+    expect(reviewLines()).toEqual([
+      "1|ready|expense|",
+      "2|ready|exempt-income|",
+      "3|invalid|-|foreign_currency_not_supported",
+    ]);
+    expect(screen.getByRole("button", { name: "navigation.back" })).toBeDisabled();
+    expect(screen.queryByText("mapping-step")).not.toBeInTheDocument();
+  });
+
+  it("saves through the regular import save without origin", async () => {
+    io.persistApprovedImport.mockResolvedValue({ inserted: 2, failed: 0, skipped: 1, errors: [] });
+    const user = userEvent.setup();
+    render(<ImportWizard initialRows={DRAFTS} />);
+    await screen.findByRole("list", { name: "review-step" });
+
+    await user.click(screen.getByRole("button", { name: /confirm\.proceed \(2\)/ }));
+    await user.click(await screen.findByRole("button", { name: "confirm.proceed" }));
+
+    await waitFor(() => expect(io.persistApprovedImport).toHaveBeenCalledTimes(1));
+    const [rows, platform, currency] = io.persistApprovedImport.mock.calls[0];
+    expect(platform).toBe("web");
+    expect(currency).toBe("ILS");
+    const approved = (rows as ImportPreviewRow[]).filter((r) => r.approved);
+    expect(approved.map((r) => r.normalized?.type)).toEqual(["expense", "exempt-income"]);
+    for (const row of approved) expect(row.normalized).not.toHaveProperty("origin");
+  });
+
+  it("retries loading the drafts after a failed context fetch", async () => {
+    io.fetchExistingForDedup.mockRejectedValueOnce(new Error("offline"));
+    const user = userEvent.setup();
+    render(<ImportWizard initialRows={DRAFTS} />);
+
+    await user.click(await screen.findByRole("button", { name: "review.processingError.retry" }));
+    await screen.findByRole("list", { name: "review-step" });
+    expect(reviewLines()).toHaveLength(3);
   });
 });

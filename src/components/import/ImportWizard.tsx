@@ -1,4 +1,4 @@
-import { useReducer, useCallback, useMemo, useEffect, useRef } from "react";
+import { useReducer, useCallback, useMemo, useEffect, useLayoutEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle, ArrowLeft, ArrowRight, X, FileSpreadsheet, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,12 +36,15 @@ import type {
   MappingValidationError,
 } from "@/lib/import/import-session.types";
 import type { Transaction, RecurringTransaction } from "@/types/transaction";
+import type { TransactionDraftV1 } from "@/lib/intake/contracts";
+import { draftToNormalizedRow } from "@/lib/intake/draft-to-import";
 import {
   suggestMappings,
   validateMappings,
   detectTen10Template,
   analyzeParsedFile,
   buildPreviewRows,
+  previewRowsFromNormalized,
   computeImportSummary,
   persistApprovedImport,
 } from "@/lib/import/index";
@@ -326,11 +329,65 @@ function ImportProcessingErrorState({
   );
 }
 
+type ProcessingParams =
+  | {
+      source: "file";
+      parsedFile: ParsedFile;
+      columnMappings: ColumnMapping[];
+      isTen10Template: boolean;
+      defaultCurrency: string;
+      platform: "web" | "desktop" | "loading";
+    }
+  | {
+      source: "drafts";
+      drafts: TransactionDraftV1[];
+      defaultCurrency: string;
+      platform: "web" | "desktop" | "loading";
+    };
+
+async function buildRowsFor(
+  p: ProcessingParams,
+  existingTransactions: Transaction[],
+  recurringTransactions: RecurringTransaction[]
+): Promise<ImportPreviewRow[]> {
+  switch (p.source) {
+    case "file": {
+      logger.info("Import preview: building rows", {
+        rowCount: p.parsedFile.rowCount,
+        mappedColumns: p.columnMappings.filter((mapping) => mapping.targetField).length,
+      });
+      const { rows } = await buildPreviewRows(
+        p.parsedFile,
+        p.columnMappings,
+        p.defaultCurrency as Parameters<typeof buildPreviewRows>[2],
+        existingTransactions,
+        recurringTransactions
+      );
+      return rows;
+    }
+    case "drafts":
+      return previewRowsFromNormalized(
+        p.drafts.map((draft) => draftToNormalizedRow(draft, { defaultCurrency: p.defaultCurrency })),
+        existingTransactions,
+        recurringTransactions
+      );
+    default: {
+      const _exhaustive: never = p;
+      return _exhaustive;
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export function ImportWizard() {
+interface ImportWizardProps {
+  /** AI drafts that open on the review step, without a file or column mapping. */
+  initialRows?: TransactionDraftV1[];
+}
+
+export function ImportWizard({ initialRows }: ImportWizardProps) {
   const { t, i18n } = useTranslation("import");
   const navigate = useNavigate();
   const { platform } = usePlatform();
@@ -406,13 +463,7 @@ export function ImportWizard() {
   // Snapshot of params captured just before switching to the "processing" step.
   // Using a ref avoids adding these to the useEffect dependency array since
   // they don't change while the wizard is in the "processing" step.
-  const processingParamsRef = useRef<{
-    parsedFile: ParsedFile;
-    columnMappings: ColumnMapping[];
-    isTen10Template: boolean;
-    defaultCurrency: string;
-    platform: "web" | "desktop" | "loading";
-  } | null>(null);
+  const processingParamsRef = useRef<ProcessingParams | null>(null);
 
   const handleMappingNext = useCallback(() => {
     const validation = validateMappings(state.columnMappings);
@@ -423,6 +474,7 @@ export function ImportWizard() {
 
     // Snapshot before the state change so the useEffect can read them safely.
     processingParamsRef.current = {
+      source: "file",
       parsedFile: state.parsedFile!,
       columnMappings: state.columnMappings,
       isTen10Template: state.isTen10Template,
@@ -437,6 +489,25 @@ export function ImportWizard() {
     // AFTER the browser has painted the loading state.
     dispatch({ type: "SET_PREVIEW_ROWS", rows: [], processing: true });
   }, [state.columnMappings, state.parsedFile, state.isTen10Template, defaultCurrency, platform]);
+
+  const draftsStartedRef = useRef(false);
+
+  // Layout effect: the prepare step must not paint before the drafts load.
+  useLayoutEffect(() => {
+    if (!initialRows || platform === "loading" || draftsStartedRef.current) return;
+    draftsStartedRef.current = true;
+    processingParamsRef.current = {
+      source: "drafts",
+      drafts: initialRows,
+      defaultCurrency,
+      platform,
+    };
+    dispatch({ type: "SET_PREVIEW_ROWS", rows: [], processing: true });
+  }, [initialRows, platform, defaultCurrency]);
+
+  const handleRetryDrafts = useCallback(() => {
+    dispatch({ type: "SET_PREVIEW_ROWS", rows: [], processing: true });
+  }, []);
 
   useEffect(() => {
     return subscribeOnboardingImportMappingNext(() => {
@@ -471,10 +542,12 @@ export function ImportWizard() {
       if (cancelled) return;
 
       try {
-        trackProductEvent("transaction_import_mapping_completed", {
-          platform: p.platform,
-          isTen10Template: p.isTen10Template,
-        });
+        if (p.source === "file") {
+          trackProductEvent("transaction_import_mapping_completed", {
+            platform: p.platform,
+            isTen10Template: p.isTen10Template,
+          });
+        }
 
         logger.info("Import preview: fetching context", { platform: p.platform });
         const [existingTransactions, recurringTransactions] = await withTimeout(
@@ -490,17 +563,7 @@ export function ImportWizard() {
         dispatch({ type: "SET_EXISTING_TRANSACTIONS", transactions: existingTransactions });
         dispatch({ type: "SET_RECURRING_TRANSACTIONS", transactions: recurringTransactions });
 
-        logger.info("Import preview: building rows", {
-          rowCount: p.parsedFile.rowCount,
-          mappedColumns: p.columnMappings.filter((mapping) => mapping.targetField).length,
-        });
-        const { rows } = await buildPreviewRows(
-          p.parsedFile,
-          p.columnMappings,
-          p.defaultCurrency as Parameters<typeof buildPreviewRows>[2],
-          existingTransactions,
-          recurringTransactions
-        );
+        const rows = await buildRowsFor(p, existingTransactions, recurringTransactions);
 
         if (cancelled) return;
         processingParamsRef.current = null;
@@ -662,6 +725,8 @@ export function ImportWizard() {
         : state.step;
 
   function canGoBack() {
+    // Drafts reach review without a file, so there is no mapping to return to.
+    if (state.step === "review") return state.parsedFile !== null;
     return state.step !== "prepare" && state.step !== "result";
   }
 
@@ -793,7 +858,7 @@ export function ImportWizard() {
               {animationKey === "__processing_error__" && state.processingError && (
                 <ImportProcessingErrorState
                   error={state.processingError}
-                  onRetry={handleMappingNext}
+                  onRetry={state.parsedFile ? handleMappingNext : handleRetryDrafts}
                   onBackToMapping={handleBackToMapping}
                   onStartOver={handleReset}
                 />
