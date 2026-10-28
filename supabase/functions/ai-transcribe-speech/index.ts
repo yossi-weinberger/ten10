@@ -5,6 +5,8 @@ import { gatewayProviderOptions, hashGatewayUser } from "../_shared/ai/gateway-t
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { readTranscript, SPEECH_MODEL } from "../_shared/ai/speech-transcript.ts";
+import { callModel } from "../_shared/ai/model-call.ts";
+import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 
 const TRANSCRIBE_URL = "https://ai-gateway.vercel.sh/v4/ai/transcription-model";
 const ALLOWED_TYPES = new Set(["audio/webm", "audio/mp4", "audio/mpeg", "audio/wav", "audio/ogg"]);
@@ -48,33 +50,40 @@ Deno.serve(async (req: Request) => {
   if (!apiKey) return json(origin, { text: null, reason: "unavailable" }, 200);
 
   try {
-    const response = await fetch(TRANSCRIBE_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "ai-gateway-protocol-version": "0.0.1",
-        "ai-transcription-model-specification-version": "4",
-        "ai-model-id": SPEECH_MODEL,
-      },
-      body: JSON.stringify({
-        audio: data,
-        mediaType,
-        providerOptions: {
-          gateway: gatewayProviderOptions({
-            source: "app",
-            feature: "speech",
-            user: await hashGatewayUser(userData.user.id),
-          }),
+    const result = await callModel({
+      userId: userData.user.id,
+      operation: "speech",
+      model: SPEECH_MODEL,
+      url: TRANSCRIBE_URL,
+      init: {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "ai-gateway-protocol-version": "0.0.1",
+          "ai-transcription-model-specification-version": "4",
+          "ai-model-id": SPEECH_MODEL,
         },
-      }),
-      signal: AbortSignal.timeout(20000),
+        body: JSON.stringify({
+          audio: data,
+          mediaType,
+          providerOptions: {
+            gateway: gatewayProviderOptions({
+              source: "app",
+              feature: "speech",
+              user: await hashGatewayUser(userData.user.id),
+            }),
+          },
+        }),
+      },
+      timeoutMs: 20000,
+      record: serviceModelCallRecorder(),
     });
-    if (!response.ok) {
-      logger.error(`speech transcribe failed: ${response.status}`);
+    if (!result.ok) {
+      logger.error(`speech transcribe failed: ${result.status ?? result.errorCode}`);
       return json(origin, { text: null, reason: "unavailable" }, 200);
     }
-    const text = readTranscript(await response.json());
+    const text = readTranscript(result.payload);
     return json(origin, { text }, 200);
   } catch {
     logger.error("speech transcribe failed");

@@ -12,6 +12,8 @@ import {
 } from "../_shared/ai/jev-duplicate-rank.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
+import { callModel } from "../_shared/ai/model-call.ts";
+import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 
 const ALLOWED_TYPES = new Set<string>(AI_DRAFT_ALLOWED_TYPES);
 
@@ -116,24 +118,31 @@ Deno.serve(async (req: Request) => {
   });
 
   try {
-    const response = await fetch(JEV_SYSTEMONE_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
+    const result = await callModel({
+      userId: userData.user.id,
+      operation: "duplicates",
+      model: body.model,
+      url: JEV_SYSTEMONE_URL,
+      init: {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(gatewaySystemOneBody(body, {
+          source: "app",
+          feature: "duplicates",
+          user: await hashGatewayUser(userData.user.id),
+        })),
       },
-      body: JSON.stringify(gatewaySystemOneBody(body, {
-        source: "app",
-        feature: "duplicates",
-        user: await hashGatewayUser(userData.user.id),
-      })),
-      signal: AbortSignal.timeout(8000),
+      timeoutMs: 8000,
+      record: serviceModelCallRecorder(),
     });
-    if (!response.ok) {
-      logger.error(`jev rank failed: ${response.status}`);
+    if (!result.ok) {
+      logger.error(`jev rank failed: ${result.status ?? result.errorCode}`);
       return json(origin, { ranked: false, scores: [] }, 200);
     }
-    const scores = readDuplicateRanks(await response.json(), idsByKey);
+    const scores = readDuplicateRanks(result.payload, idsByKey);
     return json(origin, { ranked: scores.length > 0, scores }, 200);
   } catch {
     logger.error("jev rank failed");
