@@ -18,7 +18,7 @@ The ideas were chosen from a numbered "motion lab" of prototypes. The numbers ar
 | Static pre-loader symbol (runs before JavaScript) | Inline SVG in `index.html` (`#pre-loader`), coloured and animated by `public/loader.css`; removed by `src/lib/staticPreloader.ts` |
 | Plain, non-animated logo files | `public/logo/*.svg` (unchanged) |
 
-Do not put keyframes in component files, inline `<style>` tags or new CSS files. Add them to the `brand-*` group in `tailwind.config.js` and apply them with Tailwind classes. The only exception is the static pre-loader, whose keyframes live in `public/loader.css` because it renders before the app's CSS exists.
+Do not put keyframes in component files, inline `<style>` tags or new CSS files. Add them to the `brand-*` group in `tailwind.config.js` and apply them with Tailwind classes. There are two exceptions. The static pre-loader keeps its keyframes in `public/loader.css`, because it renders before the app's CSS exists. `BrandSaveIcon` uses the Web Animations API and one `requestAnimationFrame` loop, because its motion starts from a measured angle and at computed times, and its morph changes path shapes, which CSS can't animate. Its numbers live in `brandCheck.utils.ts` (`getSettle`, `CHECK_TIMING`).
 
 ## 2. Components
 
@@ -62,7 +62,7 @@ All components are decorative (`aria-hidden="true"`). The surrounding UI must ca
 - A part that rotates around its own centre (e.g. the falling slice) uses `[transform-box:fill-box] origin-center`.
 - `SYMBOL_VIEWBOX` is tight around the symbol at rest. Components set `overflow-visible` so motion can leave the box without changing the component's size. Existing size classes (`h-14 w-14`, …) keep the same visual size as the old `<img src="/logo/symbol.svg">`.
 - Colours come from theme tokens: ring `fill-primary`, slice `fill-accent`, strokes `stroke-primary`. In dark mode the ring automatically uses the lighter teal. Do not hardcode `#11676a` / `#f0c000` in components.
-- Inside filled buttons the ring uses the text colour (`fill-current`: `BrandInlineSpinner tone="current"`, `BrandSaveIcon`), because teal would vanish into a teal button. The slice stays gold.
+- Inside filled buttons the ring uses the text colour (`fill-current`: `BrandInlineSpinner tone="current"`, `BrandSaveIcon`), because teal would vanish into a teal button. The slice stays gold while the symbol turns; `BrandSaveIcon`'s check ends all in the text colour.
 - Exception: `public/loader.css` repeats the HSL values of the theme tokens (`--background`, `--primary`, `--muted-foreground`, `--accent`), and `index.html` the symbol paths, because they render before the app's code and CSS. `scripts/preloader-sync-contract.test.ts` fails if they drift from `src/index.css`, `logoPaths.ts` or the `brand-*` animations.
 - A `<mask>` that reveals a shape uses `stroke="white"`. That is mask luminance, not a theme colour.
 - Mask/clip ids must be unique per instance: build them from `useId()` with non-alphanumeric characters stripped (see `BrandProgress`).
@@ -76,7 +76,8 @@ Rules:
 1. Apply brand animations with `motion-safe:` only, e.g. `motion-safe:animate-brand-spin`.
 2. Every component defines what reduced-motion users see:
    - **Loaders** switch to a gentle pulse (`motion-reduce:animate-brand-pulse`), so it is still obvious that something is loading.
-   - **One-shot animations** (`BrandDone`, `Brand404`) show their final state immediately. `BrandSaveIcon` pulses while saving and shows the check without the morph. Put the final pose in the base classes and let the `motion-safe:` animation start from the initial pose (`animation-fill-mode: both`). Leave the end keyframe out, so the animation ends on the base classes and the final pose is written once (see `brand-404-*`).
+   - **One-shot animations** (`BrandDone`, `Brand404`) show their final state immediately. Put the final pose in the base classes and let the `motion-safe:` animation start from the initial pose (`animation-fill-mode: both`). Leave the end keyframe out, so the animation ends on the base classes and the final pose is written once (see `brand-404-*`).
+   - **Save states** (`BrandSaveIcon`) pulse while saving and show the check without the morph.
    - **Values driven by data** (`BrandProgress`) still update, but without travel: the slice fades in place instead of dropping (`useReducedMotion` from `framer-motion`).
    - **State changes** (`BrandSidebarLogo`) switch instantly (`motion-reduce:transition-none`), and the first-load handoff becomes a short fade.
    - **Scroll-linked motion** (`LandingLogoDock`): the hero logo stays whole and scrolls away with the page, the corner button fades in once the page has scrolled, and the side navigation keeps its own logo.
@@ -93,7 +94,7 @@ These animations run while the app is busy (loading, rendering the first page, s
 3. **No CSS transitions on values that already move continuously.** `stroke-dashoffset` (the `BrandProgress` fill) can't be animated off the main thread. With a 300 ms transition on every 1% of scroll, the halacha indicator repainted on every frame. Use `smooth={false}` when the value follows the scroll; keep the default for progress that jumps (imports).
 4. **Keep scroll-driven state in the smallest component.** `useReadingProgress` re-renders its caller on every percent, so it is called from the indicator, not the page that holds the content. It skips frames where the whole-number percent didn't change, looks up the nearest scrolling box only when sizes change (it reads computed styles), and only reacts to that box's own scroll: on desktop the content scrolls itself inside a page that also scrolls, and the page's scroll doesn't change the progress.
 5. **One-shot state that ends an animation lives with the animation** (`FirstLoadHandoff`), not in `App`, so finishing it doesn't re-render the whole app.
-6. **`BrandSaveIcon` turns with the Web Animations API on the `<svg>`**, which still runs off the main thread like a CSS loop, so it can read the angle when the save finishes and settle upright from there. The check morph interpolates two path outlines on the main thread for 300 ms, after the save, when nothing else is running. The outlines are sampled once per page with `getPointAtLength`; where SVG geometry is missing (tests) the check shows without the morph.
+6. **`BrandSaveIcon` turns with the Web Animations API on the `<svg>`**, which still runs off the main thread like a CSS loop, so it can read the angle when the save finishes and settle upright from there. The check morph interpolates two path outlines in a `requestAnimationFrame` loop for 300 ms, after the save. The outlines come from `flattenPath` in plain JavaScript (about 1 ms, once per page). Don't sample them with the DOM's `getPointAtLength`: it walks the whole path on every call, and for the symbol's two paths that took about 100 ms, a stutter right as the save succeeded. Framer-motion isn't used here either, so the form's chunk doesn't pull in its animation engine.
 
 ## 7. Accessibility Timing (WCAG 2.2.2)
 
@@ -121,4 +122,4 @@ Ideas from the motion lab that are not built. Numbers refer to the motion-lab id
 | 14 | Pull to refresh with the symbol | Under consideration. Touch devices only (mobile web, installed PWA, Android TWA). |
 | 34 | App-icon launch | Only the colour fix is built (see the pre-loader row). The animated version is not planned: installed app only, and the OS splash itself cannot be animated. |
 
-Not chosen: 19 (favicon progress), 10א / 10ב (coin / check morph), 18 (celebration), 12 (sync-error state), 21 / 22 (hero wordmark), 27, 5, 13, 41 (the slice leaves the ring on income and returns on a donation), 42 (a symbol ring on the dashboard's tithe balance card).
+Not chosen: 19 (favicon progress), 10א / 10ב (coin / the slice turning into a check; #40's check is a different morph), 18 (celebration), 12 (sync-error state), 21 / 22 (hero wordmark), 27, 5, 13, 41 (the slice leaves the ring on income and returns on a donation), 42 (a symbol ring on the dashboard's tithe balance card).

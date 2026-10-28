@@ -1,3 +1,5 @@
+import { SYMBOL_RING_PATH, SYMBOL_SLICE_PATH } from "./logoPaths";
+
 /** A point in symbol units (the viewBox is centred on the ring, see `logoPaths.ts`). */
 export type Point = readonly [number, number];
 
@@ -114,4 +116,142 @@ export function mixOutlines(from: readonly Point[], to: readonly Point[], t: num
   return outlinePath(
     from.map(([x, y], i) => [x + (to[i][0] - x) * t, y + (to[i][1] - y) * t] as const)
   );
+}
+
+/**
+ * The corners of a path made of one closed outline, drawn with `M`, `L`, `H`, `V`, `C`
+ * (absolute or relative) and `Z`, each cubic curve split into `curveSteps` straight
+ * pieces. That covers the symbol's paths in `logoPaths.ts`; any other command throws, so
+ * a new path shape fails loudly. (The browser's `getPointAtLength` would do this from the
+ * DOM, but it walks the whole path on every call: about 100 ms for the symbol.)
+ */
+export function flattenPath(d: string, curveSteps = 12): Point[] {
+  const points: Point[] = [];
+  let x = 0;
+  let y = 0;
+  let start: Point = [0, 0];
+  for (const command of d.match(/[a-zA-Z][^a-zA-Z]*/g) ?? []) {
+    const type = command[0];
+    const values = (command.slice(1).match(/-?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?/gi) ?? []).map(Number);
+    const relative = type !== type.toUpperCase();
+    const at = (dx: number, dy: number): Point => (relative ? [x + dx, y + dy] : [dx, dy]);
+    switch (type.toUpperCase()) {
+      case "M":
+      case "L":
+        for (let i = 0; i < values.length; i += 2) {
+          [x, y] = at(values[i], values[i + 1]);
+          if (type.toUpperCase() === "M" && i === 0) start = [x, y];
+          points.push([x, y]);
+        }
+        break;
+      case "H":
+        for (const value of values) {
+          x = relative ? x + value : value;
+          points.push([x, y]);
+        }
+        break;
+      case "V":
+        for (const value of values) {
+          y = relative ? y + value : value;
+          points.push([x, y]);
+        }
+        break;
+      case "C":
+        for (let i = 0; i < values.length; i += 6) {
+          const from: Point = [x, y];
+          const c1 = at(values[i], values[i + 1]);
+          const c2 = at(values[i + 2], values[i + 3]);
+          const end = at(values[i + 4], values[i + 5]);
+          for (let step = 1; step <= curveSteps; step++) {
+            const t = step / curveSteps;
+            const u = 1 - t;
+            const a = u * u * u;
+            const b = 3 * u * u * t;
+            const c = 3 * u * t * t;
+            const e = t * t * t;
+            points.push([
+              a * from[0] + b * c1[0] + c * c2[0] + e * end[0],
+              a * from[1] + b * c1[1] + c * c2[1] + e * end[1],
+            ]);
+          }
+          [x, y] = end;
+        }
+        break;
+      case "Z":
+        [x, y] = start;
+        break;
+      default:
+        throw new Error(`flattenPath: unsupported path command "${type}"`);
+    }
+  }
+  // A closed outline usually ends where it started; drop the repeated corner.
+  const first = points[0];
+  const last = points[points.length - 1];
+  if (points.length > 1 && Math.hypot(last[0] - first[0], last[1] - first[1]) < 1e-6) points.pop();
+  return points;
+}
+
+export type CheckPart = "ring" | "slice";
+
+/** Points per outline in the check morph. */
+const MORPH_POINTS = 72;
+
+const SYMBOL_PATHS: Record<CheckPart, string> = { ring: SYMBOL_RING_PATH, slice: SYMBOL_SLICE_PATH };
+const ARM_OUTLINES: Record<CheckPart, Point[]> = { ring: CHECK_LONG_ARM, slice: CHECK_SHORT_ARM };
+const ARM_PATHS: Record<CheckPart, string> = {
+  ring: outlinePath(CHECK_LONG_ARM),
+  slice: outlinePath(CHECK_SHORT_ARM),
+};
+
+let checkMorph: Record<CheckPart, [from: Point[], to: Point[]]> | undefined;
+
+/** The ring and slice outlines, each paired with the arm it becomes. Built on first use. */
+function getCheckMorph() {
+  if (!checkMorph) {
+    const pair = (part: CheckPart): [Point[], Point[]] => {
+      const outline = resamplePolygon(flattenPath(SYMBOL_PATHS[part]), MORPH_POINTS);
+      return [outline, alignOutline(outline, resamplePolygon(ARM_OUTLINES[part], MORPH_POINTS))];
+    };
+    checkMorph = { ring: pair("ring"), slice: pair("slice") };
+  }
+  return checkMorph;
+}
+
+/**
+ * The path of the ring or the slice `t` of the way (0 to 1) into its arm of the check:
+ * the symbol's own path at 0, the arm at 1.
+ */
+export function checkShapeAt(part: CheckPart, t: number): string {
+  if (t <= 0) return SYMBOL_PATHS[part];
+  if (t >= 1) return ARM_PATHS[part];
+  const [from, to] = getCheckMorph()[part];
+  return mixOutlines(from, to, t);
+}
+
+/**
+ * How the turning symbol settles upright when the save succeeds, from the angle (0 to
+ * 360) where its spin stopped: it finishes the turn it is on, plus one more if less than
+ * 60° are left, so it never stops abruptly. The time grows with the distance, about
+ * 1.6 ms per degree, within 250 to 450 ms.
+ */
+export function getSettle(angle: number): { turn: number; ms: number } {
+  const turn = (angle > 300 ? 720 : 360) - angle;
+  return { turn, ms: Math.min(450, Math.max(250, turn * 1.6)) };
+}
+
+/**
+ * When the click, the morph and the pop happen, in ms from the end of the settle (the
+ * click starts just before it ends), and how long each lasts.
+ */
+export const CHECK_TIMING = {
+  clickAt: -60,
+  clickMs: 240,
+  morphMs: 300,
+  popAt: 280,
+  popMs: 240,
+} as const;
+
+/** Ease-in-out for the morph (cubic). */
+export function easeInOutCubic(t: number): number {
+  return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 }

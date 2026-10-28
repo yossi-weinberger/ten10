@@ -275,7 +275,7 @@ export function VersionInfoCard() {
                   </>
                 ) : (
                   <>
-                    <RefreshCw className="mr-2 h-4 w-4" />
+                    <RefreshCw className="h-4 w-4" />
                     {t("versionInfo.checkButton")}
                   </>
                 )}
@@ -332,7 +332,7 @@ export function VersionInfoCard() {
                     </>
                   ) : (
                     <>
-                      <Download className="mr-2 h-4 w-4" />
+                      <Download className="h-4 w-4" />
                       {t("versionInfo.installButton")}
                     </>
                   )}

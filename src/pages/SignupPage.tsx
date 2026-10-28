@@ -274,7 +274,7 @@ const SignupPage: React.FC = () => {
             disabled={isAnyLoading}
             className="w-full h-11 text-base mt-4"
           >
-            {isAnyLoading && <BrandInlineSpinner tone="current" />}
+            {loading && <BrandInlineSpinner tone="current" />}
             {isAnyLoading
               ? t("signup.signUpButtonLoading")
               : t("signup.signUpButton")}

@@ -18,6 +18,20 @@ interface FormActionButtonsProps {
   selectedType?: TransactionType;
 }
 
+/** The submit button's text for each save state, when adding and when editing. */
+const SUBMIT_LABELS = {
+  add: {
+    idle: "transactionForm.actions.submit",
+    saving: "transactionForm.actions.submitting",
+    saved: "transactionForm.messages.success",
+  },
+  edit: {
+    idle: "transactionForm.actions.save",
+    saving: "transactionForm.actions.saving",
+    saved: "transactionForm.messages.updateSuccess",
+  },
+} as const;
+
 const DONATION_URL =
   "https://www.matara.pro/nedarimplus/online/?mosad=7007125&Avour=%D7%A2%D7%91%D7%95%D7%A8%20Ten10";
 
@@ -30,6 +44,8 @@ export function FormActionButtons({
 }: FormActionButtonsProps) {
   const { t, i18n } = useTranslation("transactions");
   const isDonation = selectedType === "donation";
+  // Success first: the form reports it while react-hook-form still says it is submitting.
+  const saveState = isSuccess ? "saved" : isSubmitting ? "saving" : "idle";
 
   return (
     <div className="flex justify-end items-center gap-4">
@@ -74,21 +90,9 @@ export function FormActionButtons({
         </Button>
       )}
       {/* Disabled while saving and after success, but not dimmed: the symbol shows the progress. */}
-      <Button
-        type="submit"
-        disabled={isSubmitting || isSuccess}
-        className={cn((isSubmitting || isSuccess) && "disabled:opacity-100")}
-      >
-        {(isSubmitting || isSuccess) && (
-          <BrandSaveIcon status={isSuccess ? "saved" : "saving"} />
-        )}
-        {isSuccess
-          ? t(isEditMode ? "transactionForm.messages.updateSuccess" : "transactionForm.messages.success")
-          : isSubmitting
-          ? t(isEditMode ? "transactionForm.actions.saving" : "transactionForm.actions.submitting")
-          : isEditMode
-          ? t("transactionForm.actions.save")
-          : t("transactionForm.actions.submit")}
+      <Button type="submit" disabled={saveState !== "idle"} className="disabled:opacity-100">
+        {saveState !== "idle" && <BrandSaveIcon status={saveState} />}
+        {t(SUBMIT_LABELS[isEditMode ? "edit" : "add"][saveState])}
       </Button>
     </div>
   );

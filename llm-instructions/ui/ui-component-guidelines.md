@@ -841,7 +841,7 @@ If users report DOM errors on mobile, use **Chrome Remote Debugging**:
 
 _(Added October 2026)_
 
-Loaders, progress and success states that show the Ten10 symbol use the components in `src/components/brand/` (`BrandSpinner`, `BrandInlineSpinner`, `BrandSaveIcon`, `BrandProgress`, `BrandDone`, `Brand404`, `BrandSidebarLogo`, `BrandHandoffSymbol`) instead of `<img src="/logo/symbol.svg" className="animate-spin">` or generic icons. For a small spinner next to text or inside a busy button, use `BrandInlineSpinner` (`tone="current"` on filled buttons) rather than `Loader2` with `animate-spin`; a submit button that shows its own success state uses `BrandSaveIcon`. Their keyframes live in the `brand-*` group of `tailwind.config.js`, and each one has a reduced-motion fallback. Full rules, geometry and the list of planned animations: `llm-instructions/ui/brand-motion-guide.md`.
+Loaders, progress and success states that show the Ten10 symbol use the components in `src/components/brand/` (`BrandSpinner`, `BrandInlineSpinner`, `BrandSaveIcon`, `BrandProgress`, `BrandDone`, `Brand404`, `BrandSidebarLogo`, `BrandHandoffSymbol`) instead of `<img src="/logo/symbol.svg" className="animate-spin">` or generic icons. For a small spinner next to text or inside a busy button, use `BrandInlineSpinner` (`tone="current"` on filled buttons) rather than `Loader2` with `animate-spin`; a submit button that shows its own success state uses `BrandSaveIcon`. Their keyframes live in the `brand-*` group of `tailwind.config.js` (except `BrandSaveIcon`, which drives its motion from code; see the guide), and each one has a reduced-motion fallback. Full rules, geometry and the list of planned animations: `llm-instructions/ui/brand-motion-guide.md`.
 
 ---
 

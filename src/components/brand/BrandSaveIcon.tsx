@@ -1,15 +1,7 @@
 import { useLayoutEffect, useRef } from "react";
-import { animate, motion, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
+import { useReducedMotion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import {
-  CHECK_LONG_ARM,
-  CHECK_SHORT_ARM,
-  alignOutline,
-  mixOutlines,
-  outlinePath,
-  resamplePolygon,
-  type Point,
-} from "./brandCheck.utils";
+import { CHECK_TIMING, checkShapeAt, easeInOutCubic, getSettle } from "./brandCheck.utils";
 import { SYMBOL_RING_PATH, SYMBOL_SLICE_PATH } from "./logoPaths";
 import { SymbolSvg } from "./SymbolSvg";
 
@@ -20,70 +12,8 @@ interface BrandSaveIconProps {
   className?: string;
 }
 
-type Part = "ring" | "slice";
-
-const OUTLINE_POINTS = 72;
-const SYMBOL_PATHS: Record<Part, string> = { ring: SYMBOL_RING_PATH, slice: SYMBOL_SLICE_PATH };
-const ARM_PATHS: Record<Part, string> = {
-  ring: outlinePath(CHECK_LONG_ARM),
-  slice: outlinePath(CHECK_SHORT_ARM),
-};
-
 /** One turn while saving, the same pace as `animate-spin` (and `BrandInlineSpinner`). */
 const SPIN_MS = 1000;
-
-/** Milliseconds after the settle ends. */
-const CHECK_TIMING = { click: -60, morph: 0, morphDuration: 300, pop: 280 };
-
-type CheckMorph = Record<Part, [from: Point[], to: Point[]]>;
-
-// The ring and slice outlines, sampled once per page, each paired with the arm it becomes.
-// null where SVG geometry isn't available (tests): the check then shows without the morph.
-let checkMorph: CheckMorph | null | undefined;
-
-function sampleOutline(d: string): Point[] {
-  const ns = "http://www.w3.org/2000/svg";
-  const svg = document.createElementNS(ns, "svg");
-  const path = document.createElementNS(ns, "path");
-  path.setAttribute("d", d);
-  svg.setAttribute("style", "position:absolute;width:0;height:0;visibility:hidden");
-  svg.appendChild(path);
-  document.body.appendChild(svg);
-  try {
-    const length = path.getTotalLength();
-    return Array.from({ length: OUTLINE_POINTS }, (_, i) => {
-      const point = path.getPointAtLength((length * i) / OUTLINE_POINTS);
-      return [point.x, point.y] as const;
-    });
-  } finally {
-    svg.remove();
-  }
-}
-
-function getCheckMorph(): CheckMorph | null {
-  if (checkMorph === undefined) {
-    try {
-      const pair = (d: string, arm: Point[]): [Point[], Point[]] => {
-        const outline = sampleOutline(d);
-        return [outline, alignOutline(outline, resamplePolygon(arm, OUTLINE_POINTS))];
-      };
-      checkMorph = {
-        ring: pair(SYMBOL_RING_PATH, CHECK_LONG_ARM),
-        slice: pair(SYMBOL_SLICE_PATH, CHECK_SHORT_ARM),
-      };
-    } catch {
-      checkMorph = null;
-    }
-  }
-  return checkMorph;
-}
-
-function shapeAt(part: Part, t: number): string {
-  if (t <= 0) return SYMBOL_PATHS[part];
-  if (t >= 1) return ARM_PATHS[part];
-  const morph = getCheckMorph();
-  return morph ? mixOutlines(morph[part][0], morph[part][1], t) : ARM_PATHS[part];
-}
 
 /**
  * The Ten10 symbol inside a submit button (#40). While saving it turns like
@@ -95,28 +25,42 @@ function shapeAt(part: Part, t: number): string {
  *
  * The ring (and the check) take the text colour, so they show on filled buttons.
  * Decorative: the button text says what is happening ("Saving...", "Saved").
+ *
+ * The motion starts from a measured angle and at computed times, so it uses the Web
+ * Animations API and one `requestAnimationFrame` loop for the morph instead of the
+ * `brand-*` Tailwind utilities (brand-motion-guide.md, section 1).
  */
 export const BrandSaveIcon = ({ status, className }: BrandSaveIconProps) => {
   const reduceMotion = useReducedMotion();
   const svgRef = useRef<SVGSVGElement>(null);
-  const sliceRef = useRef<SVGGElement>(null);
   const popRef = useRef<SVGGElement>(null);
-  const progress = useMotionValue(0);
-  const ringPath = useTransform(progress, (t) => shapeAt("ring", t));
-  const slicePath = useTransform(progress, (t) => shapeAt("slice", t));
-  // The slice turns from gold to the text colour as it becomes the short arm: a
-  // text-coloured copy fades in over it, and the gold one goes once it is covered.
-  const sliceGoldOpacity = useTransform(progress, (t) => (t >= 1 ? 0 : 1));
-  const sliceCheckOpacity = useTransform(progress, (t) => Math.min(1, Math.max(0, t)));
+  const sliceRef = useRef<SVGGElement>(null);
+  const ringPathRef = useRef<SVGPathElement>(null);
+  const goldSlicePathRef = useRef<SVGPathElement>(null);
+  const checkSlicePathRef = useRef<SVGPathElement>(null);
   // The spin's angle when the save succeeded; null when it wasn't spinning.
   const stoppedAt = useRef<number | null>(null);
 
+  // A layout effect, so the spin hands over to the settle before the next paint and the
+  // symbol never jumps.
   useLayoutEffect(() => {
+    // `t` from 0 (the symbol) to 1 (the check). The slice turns from gold to the text
+    // colour on the way: a text-coloured copy fades in over it, and the gold one goes
+    // once it is covered.
+    const drawCheck = (t: number) => {
+      ringPathRef.current?.setAttribute("d", checkShapeAt("ring", t));
+      const slice = checkShapeAt("slice", t);
+      goldSlicePathRef.current?.setAttribute("d", slice);
+      goldSlicePathRef.current?.setAttribute("opacity", t >= 1 ? "0" : "1");
+      checkSlicePathRef.current?.setAttribute("d", slice);
+      checkSlicePathRef.current?.setAttribute("opacity", String(Math.min(1, Math.max(0, t))));
+    };
+
     const svg = svgRef.current;
     const canAnimate = !reduceMotion && !!svg && typeof svg.animate === "function";
 
     if (status === "saving") {
-      progress.set(0);
+      drawCheck(0);
       if (!canAnimate) return;
       // Web Animations rather than a CSS class, so the angle can be read when it stops.
       // A transform animation on the <svg> still runs off the main thread.
@@ -132,21 +76,23 @@ export const BrandSaveIcon = ({ status, className }: BrandSaveIconProps) => {
 
     const angle = stoppedAt.current;
     stoppedAt.current = null;
-    if (!canAnimate || !getCheckMorph()) {
-      progress.set(1);
+    if (!canAnimate) {
+      drawCheck(1);
       return;
     }
 
-    // Settle upright from where the spin stopped. Shown already saved, it goes straight
-    // to the check.
-    const turn = angle === null ? 0 : (angle > 300 ? 720 : 360) - angle;
-    const settleMs = angle === null ? 0 : Math.min(450, Math.max(250, turn * 1.6));
-    const from = angle ?? 0;
-
-    const settle = svg.animate(
-      [{ transform: `rotate(${from}deg)` }, { transform: `rotate(${from + turn}deg)` }],
-      { duration: settleMs, easing: "cubic-bezier(0.3, 0.45, 0.35, 1)", fill: "forwards" }
-    );
+    // Settle upright from where the spin stopped (shown already saved, there is no settle).
+    const animations: Animation[] = [];
+    const settle = angle === null ? null : getSettle(angle);
+    const settleMs = settle?.ms ?? 0;
+    if (settle && angle !== null) {
+      animations.push(
+        svg.animate(
+          [{ transform: `rotate(${angle}deg)` }, { transform: `rotate(${angle + settle.turn}deg)` }],
+          { duration: settle.ms, easing: "cubic-bezier(0.3, 0.45, 0.35, 1)", fill: "forwards" }
+        )
+      );
+    }
     const click = sliceRef.current?.animate(
       [
         { transform: "translate(0, 0)" },
@@ -154,25 +100,29 @@ export const BrandSaveIcon = ({ status, className }: BrandSaveIconProps) => {
         { transform: "translate(1.5px, -1.5px)" },
         { transform: "translate(0, 0)" },
       ],
-      { duration: 240, delay: settleMs + CHECK_TIMING.click, easing: "ease-out" }
+      { duration: CHECK_TIMING.clickMs, delay: settleMs + CHECK_TIMING.clickAt, easing: "ease-out" }
     );
-    const morph = animate(progress, 1, {
-      duration: CHECK_TIMING.morphDuration / 1000,
-      delay: (settleMs + CHECK_TIMING.morph) / 1000,
-      ease: [0.65, 0, 0.35, 1],
-    });
     const pop = popRef.current?.animate(
       [{ transform: "scale(1)" }, { transform: "scale(1.18)" }, { transform: "scale(1)" }],
-      { duration: 240, delay: settleMs + CHECK_TIMING.pop, easing: "ease-out" }
+      { duration: CHECK_TIMING.popMs, delay: settleMs + CHECK_TIMING.popAt, easing: "ease-out" }
     );
+    if (click) animations.push(click);
+    if (pop) animations.push(pop);
+
+    // The morph changes path shapes, which CSS can't animate, so it runs in a short
+    // frame loop once the settle ends.
+    const morphStart = performance.now() + settleMs;
+    let frame = requestAnimationFrame(function tick(now) {
+      const t = Math.min(1, Math.max(0, (now - morphStart) / CHECK_TIMING.morphMs));
+      drawCheck(easeInOutCubic(t));
+      if (t < 1) frame = requestAnimationFrame(tick);
+    });
 
     return () => {
-      settle.cancel();
-      click?.cancel();
-      morph.stop();
-      pop?.cancel();
+      cancelAnimationFrame(frame);
+      animations.forEach((animation) => animation.cancel());
     };
-  }, [status, reduceMotion, progress]);
+  }, [status, reduceMotion]);
 
   return (
     <SymbolSvg
@@ -184,10 +134,10 @@ export const BrandSaveIcon = ({ status, className }: BrandSaveIconProps) => {
       )}
     >
       <g ref={popRef}>
-        <motion.path d={ringPath} className="fill-current" />
+        <path ref={ringPathRef} d={SYMBOL_RING_PATH} className="fill-current" />
         <g ref={sliceRef}>
-          <motion.path d={slicePath} className="fill-accent" style={{ opacity: sliceGoldOpacity }} />
-          <motion.path d={slicePath} className="fill-current" style={{ opacity: sliceCheckOpacity }} />
+          <path ref={goldSlicePathRef} d={SYMBOL_SLICE_PATH} className="fill-accent" />
+          <path ref={checkSlicePathRef} d={SYMBOL_SLICE_PATH} className="fill-current" opacity={0} />
         </g>
       </g>
     </SymbolSvg>
