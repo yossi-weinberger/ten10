@@ -132,7 +132,7 @@
       },
       "tips": {
         "failed": "Share of calls without a valid answer, and the most common error code.",
-        "compare": "Gateway spend per day minus measurement runs (source:eval), against the cost recorded for each call. Days before the first recorded call are not shown."
+        "compare": "Gateway spend per day minus measurement runs (source:eval), against the cost recorded for each call. Days before the first recorded call are not shown, and the first day is partial."
       }
     }
   },
