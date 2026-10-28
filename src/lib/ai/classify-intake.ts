@@ -8,7 +8,9 @@ export type { IntakeIntent } from "../../../supabase/functions/_shared/ai/intent
 export { applyForwardRule, parseUserRule } from "../../../supabase/functions/_shared/ai/rule-draft.ts";
 export type { ActiveUserRule, ParsedUserRule, RuleActionType } from "../../../supabase/functions/_shared/ai/rule-draft.ts";
 export { selectHalachaPage } from "../../../supabase/functions/_shared/ai/halacha-page.ts";
-export { intentIsConfident } from "../../../supabase/functions/_shared/ai/jev-intent.ts";
+export { INTAKE_COUNTS, intentIsConfident } from "../../../supabase/functions/_shared/ai/jev-intent.ts";
+export type { IntakeCount } from "../../../supabase/functions/_shared/ai/jev-intent.ts";
+export { recordsOneAtATime } from "../../../supabase/functions/_shared/ai/intake-count.ts";
 export type { HalachaPage } from "../../../supabase/functions/_shared/ai/halacha-page.ts";
 export { clarificationField, draftFromText } from "../../../supabase/functions/_shared/ai/text-draft.ts";
 export { parseYearTypeSum, periodLabel, questionFromSlots, typesForFamily } from "../../../supabase/functions/_shared/ai/data-question.ts";

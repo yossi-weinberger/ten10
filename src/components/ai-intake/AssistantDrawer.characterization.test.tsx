@@ -169,6 +169,35 @@ describe("AssistantDrawer characterization", () => {
     expect(ai.refreshAfterIntakeSave).toHaveBeenCalledTimes(1);
   });
 
+  it("asks for one transaction at a time when the sentence has two amounts", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: true,
+      intent: "add_transaction",
+      confidence: 0.95,
+      count: "one",
+      countConfidence: 0.9,
+    });
+    const user = setup();
+    await send(user, "50 במכולת ו־120 לישיבה");
+    expect(await screen.findByText("aiIntake.oneAtATime")).toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.askType")).not.toBeInTheDocument();
+  });
+
+  it("still drafts a sentence with one amount when Jev says one", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: true,
+      intent: "add_transaction",
+      confidence: 0.95,
+      count: "one",
+      countConfidence: 0.9,
+    });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
+    expect(screen.queryByText("aiIntake.oneAtATime")).not.toBeInTheDocument();
+  });
+
   it("undoes a saved draft", async () => {
     confident("add_transaction");
     ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });

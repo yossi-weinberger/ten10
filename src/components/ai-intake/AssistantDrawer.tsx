@@ -13,9 +13,11 @@ import {
   type QuestionSlots,
   type YearTypeSum,
   parseUserRule,
+  recordsOneAtATime,
   selectHalachaPage,
   type ActiveUserRule,
   type ClarificationField,
+  type IntakeCount,
   type IntakeIntent,
   type ParsedUserRule,
   type RuleActionType,
@@ -72,6 +74,10 @@ export interface AssistantDrawerHandle {
   receiveText(text: string): void;
 }
 
+type CountAnswer = { count: IntakeCount | null; confidence: number | null };
+
+const NO_COUNT: CountAnswer = { count: null, confidence: null };
+
 interface AssistantDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -126,6 +132,7 @@ export function AssistantDrawer({
   const [status, setStatus] = useState<StatusKey | null>(null);
   const [askIntent, setAskIntent] = useState(false);
   const [intentConfidence, setIntentConfidence] = useState<number | null>(null);
+  const [countAnswer, setCountAnswer] = useState<CountAnswer>(NO_COUNT);
   const [dataReply, setDataReply] = useState<
     | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; paymentMethod: string | null; recipient: string | null; category: string | null; from: string; to: string; total: number; count: number; currency: string | null }
     | { status: "category_missing"; topic: string; source: string; kind: "category" | "recipient" }
@@ -230,6 +237,7 @@ export function AssistantDrawer({
     setSavedItemId(null);
     setAskIntent(false);
     setIntentConfidence(null);
+    setCountAnswer(NO_COUNT);
     setDataReply(null);
     for (const url of previewUrls.current) URL.revokeObjectURL(url);
     previewUrls.current = [];
@@ -480,8 +488,10 @@ export function AssistantDrawer({
     }, 60_000);
   }
 
-  function showIntent(source: string, today: string, nextIntent: IntakeIntent) {
-    const field = nextIntent === "add_transaction" ? clarificationField(source, today) : null;
+  function showIntent(source: string, today: string, nextIntent: IntakeIntent, counted: CountAnswer) {
+    const oneAtATime = recordsOneAtATime(nextIntent, source, counted.count, counted.confidence);
+    const single = nextIntent === "add_transaction" && !oneAtATime;
+    const field = single ? clarificationField(source, today) : null;
     setAskIntent(false);
     setIntent(nextIntent);
     setReceiptFields(null);
@@ -494,11 +504,8 @@ export function AssistantDrawer({
     setHalachaNamespace(
       nextIntent === "domain_adjacent" ? selectHalachaPage(source)?.namespace ?? null : null,
     );
-    showDraft(
-      field === null && nextIntent === "add_transaction" ? draftFromText(source, today) : null,
-      source,
-    );
-    setStatus(null);
+    showDraft(field === null && single ? draftFromText(source, today) : null, source);
+    setStatus(oneAtATime ? "oneAtATime" : null);
     setSavedItemId(null);
     setReceiptArtifactId(null);
     if (nextIntent === "ask_data") void loadDataAnswer(source);
@@ -728,6 +735,8 @@ export function AssistantDrawer({
     const decided = await classifyIntentFallback(source);
     if (requestRef.current !== request) return;
     setIntentConfidence(decided.ok ? decided.confidence : null);
+    const counted = decided.ok ? { count: decided.count, confidence: decided.countConfidence } : NO_COUNT;
+    setCountAnswer(counted);
     setChecking(false);
     const next = shownIntent(source, today, decided);
     if (next === "ask") {
@@ -745,17 +754,17 @@ export function AssistantDrawer({
       setSavedItemId(null);
       return;
     }
-    showIntent(source, today, next);
+    showIntent(source, today, next, counted);
   }
 
   function handleChooseIntent(nextIntent: IntakeIntent) {
     const source = pendingText;
     const today = todayIso();
     if (nextIntent === "create_rule" && !parseUserRule(source)) {
-      showIntent(source, today, "out_of_scope");
+      showIntent(source, today, "out_of_scope", countAnswer);
       return;
     }
-    showIntent(source, today, nextIntent);
+    showIntent(source, today, nextIntent, countAnswer);
   }
 
   function handleChooseType(type: TextTransactionDraft["type"]) {
@@ -785,6 +794,11 @@ export function AssistantDrawer({
     setIntent("add_transaction");
     setText("");
     const source = `${pendingText} ${trimmed}`;
+    if (recordsOneAtATime("add_transaction", source, null, null)) {
+      setClarification(null);
+      setStatus("oneAtATime");
+      return;
+    }
     const next = draftFromText(source, todayIso());
     if (!next) return;
     showDraft(chosenType ? { ...next, type: chosenType } : next, source);
