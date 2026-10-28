@@ -19,10 +19,10 @@ const MAX_RECIPIENT_LENGTH = 200;
 const BIDI_CONTROL_CHARS = /[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g;
 
 /** Same earliest date as src/lib/utils/transaction-date.ts. */
-const MIN_TRANSACTION_DATE = "2000-01-01";
+export const MIN_TRANSACTION_DATE = "2000-01-01";
 const CANONICAL_ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-const CURRENCIES = [
+export const CURRENCIES = [
   { code: "ILS", symbol: "₪" },
   { code: "USD", symbol: "$" },
   { code: "EUR", symbol: "€" },
