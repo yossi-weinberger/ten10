@@ -2,10 +2,16 @@ import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
 import { hashGatewayUser } from "../_shared/ai/gateway-tags.ts";
-import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "../_shared/ai/jev-duplicate-rank.ts";
+import {
+  gatewaySystemOneBody,
+  JEV_DUPLICATE_MODEL,
+  JEV_SYSTEMONE_URL,
+} from "../_shared/ai/jev-duplicate-rank.ts";
 import { buildIntentBody, readIntentChoice } from "../_shared/ai/jev-intent.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
+import { callModel } from "../_shared/ai/model-call.ts";
+import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 
 function json(origin: string | null, body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -42,24 +48,31 @@ Deno.serve(async (req: Request) => {
   if (!apiKey) return json(origin, { intent: null, reason: "unavailable" }, 200);
 
   try {
-    const response = await fetch(JEV_SYSTEMONE_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
+    const result = await callModel({
+      userId: userData.user.id,
+      operation: "intent",
+      model: JEV_DUPLICATE_MODEL,
+      url: JEV_SYSTEMONE_URL,
+      init: {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(gatewaySystemOneBody(buildIntentBody(text), {
+          source: "app",
+          feature: "intent",
+          user: await hashGatewayUser(userData.user.id),
+        })),
       },
-      body: JSON.stringify(gatewaySystemOneBody(buildIntentBody(text), {
-        source: "app",
-        feature: "intent",
-        user: await hashGatewayUser(userData.user.id),
-      })),
-      signal: AbortSignal.timeout(8000),
+      timeoutMs: 8000,
+      record: serviceModelCallRecorder(),
     });
-    if (!response.ok) {
-      logger.error(`jev intent failed: ${response.status}`);
+    if (!result.ok) {
+      logger.error(`jev intent failed: ${result.status ?? result.errorCode}`);
       return json(origin, { intent: null, reason: "unavailable" }, 200);
     }
-    const choice = readIntentChoice(await response.json());
+    const choice = readIntentChoice(result.payload);
     if (!choice) return json(origin, { intent: null }, 200);
     return json(origin, { intent: choice.intent, confidence: choice.confidence }, 200);
   } catch {

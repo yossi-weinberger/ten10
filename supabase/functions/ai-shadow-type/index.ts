@@ -12,6 +12,8 @@ import {
 } from "../_shared/ai/jev-type-choice.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
+import { callModel } from "../_shared/ai/model-call.ts";
+import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 
 function json(origin: string | null, body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -102,24 +104,31 @@ Deno.serve(async (req: Request) => {
   if (!apiKey) return json(origin, { recorded: false }, 200);
 
   try {
-    const response = await fetch(JEV_SYSTEMONE_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
+    const result = await callModel({
+      userId: userData.user.id,
+      operation: "shadow",
+      model: request.model,
+      url: JEV_SYSTEMONE_URL,
+      init: {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(gatewaySystemOneBody(request, {
+          source: "app",
+          feature: "shadow",
+          user: await hashGatewayUser(userData.user.id),
+        })),
       },
-      body: JSON.stringify(gatewaySystemOneBody(request, {
-        source: "app",
-        feature: "shadow",
-        user: await hashGatewayUser(userData.user.id),
-      })),
-      signal: AbortSignal.timeout(8000),
+      timeoutMs: 8000,
+      record: serviceModelCallRecorder(),
     });
-    if (!response.ok) {
-      logger.error(`jev shadow failed: ${response.status}`);
+    if (!result.ok) {
+      logger.error(`jev shadow failed: ${result.status ?? result.errorCode}`);
       return json(origin, { recorded: false }, 200);
     }
-    const payload = await response.json();
+    const payload = result.payload;
     const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
     if (!serviceKey) return json(origin, { recorded: false }, 200);
     const adminClient = createClient(Deno.env.get("SUPABASE_URL") ?? "", serviceKey);

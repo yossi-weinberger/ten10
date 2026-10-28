@@ -5,6 +5,8 @@ import { hashGatewayUser } from "../_shared/ai/gateway-tags.ts";
 import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "../_shared/ai/jev-duplicate-rank.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
+import { callModel } from "../_shared/ai/model-call.ts";
+import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import {
   buildQuestionSlotBody,
   predefinedQuestionCategories,
@@ -74,25 +76,32 @@ Deno.serve(async (req: Request) => {
   let slots: ReturnType<typeof readQuestionSlots> = null;
   let signals: Record<string, number> = {};
   try {
-    const response = await fetch(JEV_SYSTEMONE_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
+    const request = buildQuestionSlotBody(text, lists);
+    const result = await callModel({
+      userId: userData.user.id,
+      operation: "question_slots",
+      model: request.model,
+      url: JEV_SYSTEMONE_URL,
+      init: {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(gatewaySystemOneBody(request, {
+          source: "app",
+          feature: "question_slots",
+          user: await hashGatewayUser(userData.user.id),
+        })),
       },
-      body: JSON.stringify(gatewaySystemOneBody(buildQuestionSlotBody(text, lists), {
-        source: "app",
-        feature: "question_slots",
-        user: await hashGatewayUser(userData.user.id),
-      })),
-      signal: AbortSignal.timeout(12000),
+      timeoutMs: 12000,
+      record: serviceModelCallRecorder(),
     });
-    if (!response.ok) {
-      logger.error(`jev question slots failed: ${response.status}`);
+    if (!result.ok) {
+      logger.error(`jev question slots failed: ${result.status ?? result.errorCode}`);
     } else {
-      const payload = await response.json();
-      slots = readQuestionSlots(payload, lists);
-      signals = slotConfidence(payload) ?? {};
+      slots = readQuestionSlots(result.payload, lists);
+      signals = slotConfidence(result.payload) ?? {};
     }
   } catch {
     logger.error("jev question slots failed");
