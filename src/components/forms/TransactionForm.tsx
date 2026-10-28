@@ -407,11 +407,11 @@ export function TransactionForm({
           await updateTransaction(initialData.id, updatePayload, platform);
           onMutationSuccess?.();
           setIsSuccess(true);
-          toast.success(t("transactionForm.messages.success"));
+          toast.success(t("transactionForm.messages.updateSuccess"));
           scheduleSubmitSuccess();
         } catch (error) {
           logger.error("Error updating transaction:", error);
-          toast.error(t("transactionForm.messages.error"));
+          toast.error(t("transactionForm.messages.updateError"));
         }
       } else {
         logger.log("No changes detected, skipping update.");

@@ -44,4 +44,11 @@ describe("FormActionButtons", () => {
       expect(paths).toContain(outlinePath(CHECK_LONG_ARM));
     });
   });
+
+  it("says saving and saved, not adding and added, when editing", () => {
+    const { rerender } = render(<FormActionButtons isSubmitting isSuccess={false} isEditMode />);
+    expect(submitButton().textContent).toContain("transactionForm.actions.saving");
+    rerender(<FormActionButtons isSubmitting={false} isSuccess isEditMode />);
+    expect(submitButton().textContent).toContain("transactionForm.messages.updateSuccess");
+  });
 });

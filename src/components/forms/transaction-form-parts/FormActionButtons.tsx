@@ -83,9 +83,9 @@ export function FormActionButtons({
           <BrandSaveIcon status={isSuccess ? "saved" : "saving"} />
         )}
         {isSuccess
-          ? t("transactionForm.messages.success")
+          ? t(isEditMode ? "transactionForm.messages.updateSuccess" : "transactionForm.messages.success")
           : isSubmitting
-          ? t("transactionForm.actions.submitting")
+          ? t(isEditMode ? "transactionForm.actions.saving" : "transactionForm.actions.submitting")
           : isEditMode
           ? t("transactionForm.actions.save")
           : t("transactionForm.actions.submit")}
