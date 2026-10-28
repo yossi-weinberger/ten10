@@ -143,23 +143,44 @@ function sameAmounts(text: string, expected: number[]): void {
   assert(JSON.stringify(found) === JSON.stringify(expected), `${text}: ${JSON.stringify(found)}`);
 }
 
-Deno.test("amounts are listed with the same rules as the draft amount", () => {
+Deno.test("every amount is listed, marked or bare", () => {
   sameAmounts("50 במכולת ו־120 לישיבה", [50, 120]);
+  sameAmounts("50 ש\"ח במכולת ו־120 לישיבה", [50, 120]);
+  sameAmounts("spent 40 on lunch and 25 on coffee", [40, 25]);
+  sameAmounts("20 לקפה, 35 לאוטובוס", [20, 35]);
+  sameAmounts("$50 groceries and $120 yeshiva", [50, 120]);
   sameAmounts("50 לכולל", [50]);
   sameAmounts("1,234.56 בסופר", [1234.56]);
+  sameAmounts("תרמתי 2000 לישיבה", [2000]);
   sameAmounts("אתמול קיבלתי 200 דולר לפי שער 3.5", [200]);
-  sameAmounts("קניתי 2 חולצות ב־100", [100]);
-  sameAmounts("50 ש\"ח במכולת ו־120 לישיבה", [50]);
-  sameAmounts("spent 50 on groceries and 120 on the yeshiva", [50, 120]);
-  sameAmounts("$50 groceries and $120 yeshiva", [50, 120]);
   sameAmounts("Donated 100 ILS to the kollel", [100]);
 });
 
-Deno.test("a day after ב is read as a price, as the draft reads it today", () => {
-  const rule = "מעכשיו כל חודש ב־10 תרשום 1,500 שכר דירה";
-  sameAmounts(rule, [10]);
-  assert(draftFromText(rule, TODAY)?.amount === 10, "the draft takes the day, not 1,500");
-  sameAmounts("ב־15 לחודש קניתי 200 שקל", [15, 200]);
-  sameAmounts("קניתי חלב ב־10:30 ב־12 שקל", [10, 12]);
-  sameAmounts("בשנת 2025 תרמתי 300", [2025, 300]);
+Deno.test("a quantity or a model number next to a price is not an amount", () => {
+  sameAmounts("קניתי 2 חולצות ב־100", [100]);
+  sameAmounts("קניתי 3 לחמים ב 20", [20]);
+  sameAmounts("קניתי אייפון 15 ב 3000", [3000]);
+});
+
+Deno.test("times, years and days of the month are not amounts", () => {
+  const cases: [string, number][] = [
+    ["ב־15 לחודש קניתי 200 שקל", 200],
+    ["קניתי חלב ב־10:30 ב־12 שקל", 12],
+    ["בשנת 2025 תרמתי 300", 300],
+    ["in 2024 I donated 500", 500],
+    ["ב־15 באוקטובר 2025 קניתי ב־80", 80],
+    ["קניתי ב־15.10.2025 מחשב ב־3,000", 3000],
+    ["on the 15th I paid 200 for rent", 200],
+    ["October 15 I paid 90", 90],
+    ["מעכשיו כל חודש ב־10 תרשום 1,500 שכר דירה", 1500],
+  ];
+  for (const [text, amount] of cases) {
+    sameAmounts(text, [amount]);
+    assert(draftFromText(text, TODAY)?.amount === amount, `${text}: draft amount`);
+  }
+});
+
+Deno.test("an amount right after a monthly phrase stays an amount", () => {
+  sameAmounts("כל חודש ב־100 ש\"ח לישיבה", [100]);
+  sameAmounts("כל חודש ב־50 לישיבה", [50]);
 });

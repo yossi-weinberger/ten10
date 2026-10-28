@@ -18,7 +18,12 @@ import {
   EXPENSE_TYPE_MARKERS,
   FOOD_MARKERS,
   INCOME_TYPE_MARKERS,
+  ITEM_SEPARATORS,
+  DAY_OF_MONTH_SUFFIXES,
+  MONTH_NAMES,
+  MONTHLY_MARKERS,
   RATE_MARKERS,
+  YEAR_MARKERS,
   TRANSFER_MARKERS,
   TRANSPORT_MARKERS,
   USD_MARKERS,
@@ -146,10 +151,52 @@ function currencyAlternation(): string {
   return wordsPattern(words);
 }
 
-/** Numbers with a price marker or a currency word. Without any, every standalone number. */
-function amountCandidates(text: string): AmountHit[] {
+const DAY_SRC = String.raw`(?:3[01]|[12]\d|0?[1-9])`;
+const YEAR_SRC = String.raw`(?:19|20)\d{2}`;
+const NUMBER_END = String.raw`(?![\d.,:]*\d)`;
+
+/** The last group of each pattern is a date or time part, and it always ends the match. */
+const NOT_AMOUNT_PATTERNS: readonly RegExp[] = (() => {
+  const months = wordsPattern(MONTH_NAMES);
+  return [
+    new RegExp(String.raw`(?<![\d.,:])(\d{1,2}:\d{2})(?![\d:])`, "g"),
+    new RegExp(String.raw`(?<![\d.,])(\d{1,2}[./]\d{1,2}[./]${YEAR_SRC})(?!\d)`, "g"),
+    new RegExp(`(?:^|\\s)(?:${wordsPattern(YEAR_MARKERS)})\\s+(${YEAR_SRC})${NUMBER_END}`, "giu"),
+    new RegExp(`(?:^|\\s)[בל]?(?:${months})\\s*,?\\s+(?:${DAY_SRC}\\s*,?\\s+)?(${YEAR_SRC})${NUMBER_END}`, "giu"),
+    new RegExp(`(?:^|\\s)(?:${months})\\s+(${DAY_SRC})${NUMBER_END}`, "giu"),
+    new RegExp(`(?:^|\\s)[בהמל]?\\s?(${DAY_SRC})(?=\\s+(?:of\\s+)?ב?(?:${months})(?!\\p{L}))`, "giu"),
+    new RegExp(`(?:^|\\s)ב\\s?(${DAY_SRC})${NUMBER_END}(?=\\s*(?:${wordsPattern(DAY_OF_MONTH_SUFFIXES)}))`, "giu"),
+    new RegExp(
+      `(?:${wordsPattern(MONTHLY_MARKERS)})\\s+(?:ב\\s?|on\\s+(?:the\\s+)?)(${DAY_SRC})${NUMBER_END}(?!\\s*(?:${currencyAlternation()}))`,
+      "giu",
+    ),
+    new RegExp(`(?:^|\\s)on\\s+the\\s+(${DAY_SRC})${NUMBER_END}`, "giu"),
+  ];
+})();
+
+/** Blanks times, years in a date, and days of the month. Keeps every index. */
+function maskNotAmounts(text: string): string {
+  let masked = text;
+  for (const pattern of NOT_AMOUNT_PATTERNS) {
+    for (const match of text.matchAll(pattern)) {
+      const number = match[match.length - 1];
+      const end = (match.index ?? 0) + match[0].length;
+      masked = `${masked.slice(0, end - number.length)}${" ".repeat(number.length)}${masked.slice(end)}`;
+    }
+  }
+  return masked;
+}
+
+/**
+ * Every number that can be an amount, in text order. Next to a marked amount,
+ * a bare number counts only when it starts another item: a quantity or a model
+ * number ("2 חולצות ב 100", "אייפון 15 ב 3000") is not an amount.
+ */
+function amountCandidates(original: string): AmountHit[] {
+  const text = maskNotAmounts(original);
   const currency = currencyAlternation();
-  const hits: AmountHit[] = [];
+  const separators = new RegExp(`(?:(?:^|\\s)(?:${wordsPattern(ITEM_SEPARATORS)})|[,;])\\s*$`, "i");
+  const hits: (AmountHit & { startsItem: boolean })[] = [];
   for (const match of text.matchAll(new RegExp(NUMBER_SRC, "g"))) {
     const raw = match[0];
     const start = match.index ?? 0;
@@ -173,15 +220,18 @@ function amountCandidates(text: string): AmountHit[] {
       stripStart: starts.length > 0 ? Math.min(...starts) : start,
       stripEnd: end + (currencyAfter?.[0].length ?? 0),
       marked: marker !== null || currencyBefore !== null || currencyAfter !== null,
+      startsItem: separators.test(before),
     });
   }
-  const marked = hits.filter((hit) => hit.marked);
-  return marked.length > 0 ? marked : hits;
+  if (!hits.some((hit) => hit.marked)) return hits;
+  return hits.filter((hit) => hit.marked || hit.startsItem);
 }
 
 /** A price marker or a currency word wins. Otherwise the last standalone number. */
 function findAmount(text: string): AmountHit | null {
-  const pool = amountCandidates(text);
+  const candidates = amountCandidates(text);
+  const marked = candidates.filter((hit) => hit.marked);
+  const pool = marked.length > 0 ? marked : candidates;
   return pool[pool.length - 1] ?? null;
 }
 
@@ -189,7 +239,7 @@ function normalizeInput(text: string): string {
   return text.trim().toLowerCase().replace(/־/g, " ").replace(/\s+/g, " ");
 }
 
-/** Every amount `draftFromText` chooses from, in text order. */
+/** Every amount in the text, in order. `draftFromText` picks one of them. */
 export function amountsFromText(text: string): number[] {
   return amountCandidates(maskRate(prepareText(normalizeInput(text)))).map((hit) => hit.amount);
 }

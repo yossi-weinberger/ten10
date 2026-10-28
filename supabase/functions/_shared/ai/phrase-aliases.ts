@@ -159,6 +159,18 @@ export const AMOUNT_CURRENCY_WORDS = [
 
 export const RATE_MARKERS = ["שער", "rate"] as const;
 
+/** Context that makes a number a date part, not an amount. */
+export const YEAR_MARKERS = ["בשנת", "שנת", "in", "year"] as const;
+export const DAY_OF_MONTH_SUFFIXES = ["לחודש", "בחודש"] as const;
+export const MONTHLY_MARKERS = ["כל חודש", "every month", "monthly"] as const;
+/** Before a bare number, these start another item. */
+export const ITEM_SEPARATORS = ["וגם", "ו", "and", "plus"] as const;
+export const MONTH_NAMES = [
+  "ינואר", "פברואר", "מרץ", "מרס", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר",
+  "january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november",
+  "december",
+] as const;
+
 export const FOOD_MARKERS = ["מאפ", "אוכל", "סופר", "מסעד", "food", "grocery", "groceries", "bakery"] as const;
 export const TRANSPORT_MARKERS = ["מונית", "דלק", "רכבת", "אוטובוס", "taxi", "fuel", "train", "bus"] as const;
 
