@@ -148,6 +148,7 @@
     "actions": {
       "submit": "Save Transaction",
       "submitting": "Adding...",
+      "saving": "Saving...",
       "save": "Save Changes",
       "reset": "Reset",
       "cancel": "Cancel",
@@ -157,6 +158,8 @@
     "messages": {
       "success": "Transaction added successfully",
       "error": "Error adding transaction",
+      "updateSuccess": "Changes saved",
+      "updateError": "Error saving changes",
       "invalidAmount": "Invalid amount",
       "invalidDate": "Invalid date",
       "requiredField": "Required field",

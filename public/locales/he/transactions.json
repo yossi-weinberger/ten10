@@ -151,6 +151,7 @@
     "actions": {
       "submit": "שמור תנועה",
       "submitting": "מוסיף...",
+      "saving": "שומר...",
       "save": "שמור שינויים",
       "reset": "איפוס",
       "cancel": "ביטול",
@@ -160,6 +161,8 @@
     "messages": {
       "success": "התנועה נוספה בהצלחה",
       "error": "שגיאה בהוספת התנועה",
+      "updateSuccess": "השינויים נשמרו",
+      "updateError": "שגיאה בשמירת השינויים",
       "invalidAmount": "סכום לא חוקי",
       "invalidDate": "תאריך לא חוקי",
       "requiredField": "שדה חובה",

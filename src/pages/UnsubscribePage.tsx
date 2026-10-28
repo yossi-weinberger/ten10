@@ -5,7 +5,8 @@ import { supabase } from "@/lib/supabaseClient";
 import { logger } from "@/lib/logger";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle, XCircle } from "lucide-react";
+import { BrandSpinner } from "@/components/brand/BrandSpinner";
 
 type UnsubscribeType = "reminder" | "marketing" | "all";
 
@@ -126,7 +127,7 @@ export default function UnsubscribePage() {
           <div className="flex flex-col items-center justify-center text-center space-y-6 min-h-[300px]">
             <div>
               {status === "loading" && (
-                <Loader2 className="h-16 w-16 animate-spin text-primary" />
+                <BrandSpinner className="h-16 w-16" />
               )}
               {status === "success" && (
                 <CheckCircle className="h-16 w-16 text-green-600 dark:text-green-400" />

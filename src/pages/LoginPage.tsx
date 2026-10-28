@@ -18,6 +18,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { AuthLayout } from "@/components/layout/AuthLayout";
+import { BrandInlineSpinner } from "@/components/brand/BrandInlineSpinner";
 
 const LoginPage: React.FC = () => {
   const { platform } = usePlatform();
@@ -158,7 +159,7 @@ const LoginPage: React.FC = () => {
           disabled={isAnyLoading}
           className="w-full h-11 flex items-center justify-center gap-2 bg-background hover:bg-muted/50 hover:text-foreground"
         >
-          <GoogleIcon />
+          {loadingGoogle ? <BrandInlineSpinner /> : <GoogleIcon />}
           <span>
             {loadingGoogle
               ? t("login.googleSignInLoading")
@@ -219,6 +220,7 @@ const LoginPage: React.FC = () => {
             disabled={isAnyLoading}
             className="w-full h-11 text-base"
           >
+            {loadingPassword && <BrandInlineSpinner tone="current" />}
             {loadingPassword
               ? t("login.signInButtonLoading")
               : t("login.signInButton")}
@@ -250,6 +252,7 @@ const LoginPage: React.FC = () => {
                 disabled={isAnyLoading}
                 className="shrink-0 h-11"
               >
+                {loadingMagicLink && <BrandInlineSpinner tone="current" />}
                 {loadingMagicLink
                   ? t("login.sendLinkButtonLoading")
                   : t("login.sendLinkButton")}
