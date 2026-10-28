@@ -158,11 +158,13 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
   if (state.checking) blocks.push({ kind: "thinking", phase: state.pendingPhase ?? "reading" });
   if (state.askIntent) blocks.push({ kind: "askIntent" });
   if (state.intent) {
-    blocks.push({
-      kind: "intent",
-      intent: state.intent,
-      showNotSaved: state.status === null && state.intent !== "ask_data",
-    });
+    if (state.status !== "oneAtATime") {
+      blocks.push({
+        kind: "intent",
+        intent: state.intent,
+        showNotSaved: state.status === null && state.intent !== "ask_data",
+      });
+    }
     if (state.intent === "ask_data" && !state.dataReply && !state.checking) {
       blocks.push({ kind: "thinking", phase: "data" });
     }

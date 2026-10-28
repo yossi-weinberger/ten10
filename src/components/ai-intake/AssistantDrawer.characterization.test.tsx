@@ -367,6 +367,36 @@ describe("AssistantDrawer characterization", () => {
     expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("42.5");
   });
 
+  it("shows a provider failure for a voice message instead of returning to the start", async () => {
+    class FakeRecorder {
+      static isTypeSupported() {
+        return true;
+      }
+      mimeType = "audio/webm;codecs=opus";
+      state: "inactive" | "recording" = "inactive";
+      ondataavailable: ((event: { data: Blob }) => void) | null = null;
+      onstop: (() => void) | null = null;
+      start() {
+        this.state = "recording";
+      }
+      stop() {
+        this.state = "inactive";
+        this.ondataavailable?.({ data: new Blob(["voice"], { type: this.mimeType }) });
+        this.onstop?.();
+      }
+    }
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: () => Promise.resolve({ getTracks: () => [] }) },
+    });
+    ai.transcribeSpeech.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
+    const user = setup();
+    await user.click(screen.getByRole("button", { name: "aiIntake.voice" }));
+    await user.click(await screen.findByRole("button", { name: "aiIntake.voiceStop" }));
+    expect(await screen.findByText("aiIntake.providerFailed")).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
   it("shows a provider failure for a receipt", async () => {
     ai.readReceiptImage.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
     setup();

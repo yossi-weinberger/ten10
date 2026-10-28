@@ -411,6 +411,7 @@ export function AssistantDrawer({
     if (requestRef.current !== request) return;
     setChecking(false);
     if (!heard.ok) {
+      beginTurn({ kind: "voice", text: "" });
       setStatus(
         heard.reason === "TOO_LONG"
           ? "voiceTooLong"
