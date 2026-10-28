@@ -4,6 +4,8 @@ import { logger } from "../_shared/logger.ts";
 import { gatewayProviderOptions, hashGatewayUser } from "../_shared/ai/gateway-tags.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
+import { callModel } from "../_shared/ai/model-call.ts";
+import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
 import {
   decodeReceiptBase64,
   readModelText,
@@ -138,38 +140,45 @@ Deno.serve(async (req: Request) => {
   if (!apiKey) return json(origin, { draft: null, reason: "unavailable" }, 200);
 
   try {
-    const response = await fetch(RESPONSES_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: RECEIPT_VISION_MODEL,
-        max_output_tokens: 300,
-        input: [{
-          role: "user",
-          content: [
-            { type: "input_text", text: PROMPT },
-            filePart,
-          ],
-        }],
-        providerOptions: {
-          gateway: gatewayProviderOptions({
-            source: "app",
-            feature: "receipt",
-            user: await hashGatewayUser(userData.user.id),
-            only: ["anthropic"],
-          }),
+    const result = await callModel({
+      userId: userData.user.id,
+      operation: "receipt",
+      model: RECEIPT_VISION_MODEL,
+      url: RESPONSES_URL,
+      init: {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
         },
-      }),
-      signal: AbortSignal.timeout(20000),
+        body: JSON.stringify({
+          model: RECEIPT_VISION_MODEL,
+          max_output_tokens: 300,
+          input: [{
+            role: "user",
+            content: [
+              { type: "input_text", text: PROMPT },
+              filePart,
+            ],
+          }],
+          providerOptions: {
+            gateway: gatewayProviderOptions({
+              source: "app",
+              feature: "receipt",
+              user: await hashGatewayUser(userData.user.id),
+              only: ["anthropic"],
+            }),
+          },
+        }),
+      },
+      timeoutMs: 20000,
+      record: serviceModelCallRecorder(),
     });
-    if (!response.ok) {
-      logger.error(`receipt read failed: ${response.status}`);
+    if (!result.ok) {
+      logger.error(`receipt read failed: ${result.status ?? result.errorCode}`);
       return json(origin, { draft: null, reason: "unavailable" }, 200);
     }
-    const draft = readReceiptDraft(readModelText(await response.json()));
+    const draft = readReceiptDraft(readModelText(result.payload));
     const artifactId = readReceiptArtifactId(stored.artifactId);
     return json(origin, artifactId ? { draft, artifact_id: artifactId } : { draft }, 200);
   } catch {

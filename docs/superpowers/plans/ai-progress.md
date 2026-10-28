@@ -112,7 +112,8 @@
 | 96 | ניקוי ייבוא, קבועים משותפים, קבלה רק לעמוד | DB + בדיקה, בלי שינוי התנהגות | — | מוזג ל־`feat/ai-intake`, ורץ על testing | [#590](https://github.com/yossi-weinberger/ten10/pull/590) |
 | 97 | תוכניות: הוראת קבע, מדידה ומכסות, כמה תנועות | תיעוד, לאישור | — | מוזג ל־`feat/ai-intake` | [#591](https://github.com/yossi-weinberger/ten10/pull/591) |
 | 98 | החלטות על שלוש התוכניות | תיעוד | #591 | מוזג ל־`feat/ai-intake` | [#593](https://github.com/yossi-weinberger/ten10/pull/593) |
-| R2 | `2026-10-28-ai-recurring.md` | מודול טהור, בלי UI | — | נפתח | [#595](https://github.com/yossi-weinberger/ten10/pull/595) |
+| R2 | `2026-10-28-ai-recurring.md` | מודול טהור, בלי UI | — | מוזג ל־`feat/ai-intake` | [#595](https://github.com/yossi-weinberger/ten10/pull/595) |
+| U1 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing | — | נפתח | [#594](https://github.com/yossi-weinberger/ten10/pull/594) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
@@ -414,3 +415,12 @@
   - `en-recurring-02`: שנתי, 180. חסר: תאריך (פורים לא מחושב) וסוג.
   - `en-recurring-03`: חודשי, יום 28, מהיום, 3 חיובים עד 31/12. חסר: סכום («fifty» במילים) וסוג.
   - נמען לא מחולץ, כי `draftFromText` לא מחזיר נמען. התיאור יוצא לא נקי («של לכולל», «a of to Ezer Mizion»).
+- **2026-10-28:** U1. קריאה בודקת אחת לכל endpoint, עם תג `source:eval`:
+  - **Jev (`/typesafe/v1/systemone`) ו־Responses:** `usage.input_tokens` ו־`output_tokens`, ועלות ב־`provider_metadata.gateway`.
+  - **תמלול:** בלי טוקנים, רק `durationInSeconds`, ועלות ב־`providerMetadata.gateway`.
+  - **בכולם:** `generationId`.
+  - **ממצא:** ב־Jev ובקבלה יש `reportingTagWriteCost` של $0.00015 לכל בקשה. ב־Jev זה פי 6 מעלות ההסקה ($0.000025). בתמלול אין תוספת.
+  - `ai.model_calls` נכתבת דרך `_shared/ai/model-call.ts` משש הפונקציות, גם בכשל. `cost_usd` הוא `gatewayCost`, כולל התוספת.
+  - `usage_id` נדחה ל־U3, כשתהיה טבלת צריכה.
+  - על testing הוחלה `20261028190000` והחותמת יושרה. job מחיקה אחרי 13 חודשים ב־04:45 UTC. מחיקת משתמש מוחקת את השורות שלו (נבדק בבלוק שהתבטל).
+  - שש הפונקציות נפרסו על testing ונטענות. שורה מקריאה אמיתית מחכה לבדיקה של משתמש ניסוי. לא ל־`main`.
