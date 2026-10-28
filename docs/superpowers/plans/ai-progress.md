@@ -109,8 +109,9 @@
 | 93 | תוכנית: לוגיקה מחוץ למגירה | תיעוד | §9 | מוזג ל־`feat/ai-intake` | [#574](https://github.com/yossi-weinberger/ten10/pull/574) |
 | 94 | מפתח אחרי אותו אירוע, ותשובה בסגירה | UI, Web בלבד | §4.1, §9.9 | מוזג | [#575](https://github.com/yossi-weinberger/ten10/pull/575) |
 | 95 | טאב AI באדמין | DB על testing + Edge + UI | §16 | מוזג ל־`feat/ai-intake`; 4 בדיקות ידניות ב־Preview פתוחות | [#576](https://github.com/yossi-weinberger/ten10/pull/576) |
-| 96 | ניקוי ייבוא, קבועים משותפים, קבלה רק לעמוד | DB + בדיקה, בלי שינוי התנהגות | — | נפתח | [#590](https://github.com/yossi-weinberger/ten10/pull/590) |
-| 97 | תוכניות: הוראת קבע, מדידה ומכסות, כמה תנועות | תיעוד, לאישור | — | נפתח | [#591](https://github.com/yossi-weinberger/ten10/pull/591) |
+| 96 | ניקוי ייבוא, קבועים משותפים, קבלה רק לעמוד | DB + בדיקה, בלי שינוי התנהגות | — | מוזג ל־`feat/ai-intake`, ורץ על testing | [#590](https://github.com/yossi-weinberger/ten10/pull/590) |
+| 97 | תוכניות: הוראת קבע, מדידה ומכסות, כמה תנועות | תיעוד, לאישור | — | מוזג ל־`feat/ai-intake` | [#591](https://github.com/yossi-weinberger/ten10/pull/591) |
+| 98 | החלטות על שלוש התוכניות | תיעוד | #591 | מוזג ל־`feat/ai-intake` | [#593](https://github.com/yossi-weinberger/ten10/pull/593) |
 | R2 | `2026-10-28-ai-recurring.md` | מודול טהור, בלי UI | — | נפתח | [#595](https://github.com/yossi-weinberger/ten10/pull/595) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
@@ -118,6 +119,23 @@
 | UI-4 | אותו קובץ | כרטיסי נתונים, כפילויות, כלל, הלכה | UI-3 | מוזג ל־`feat/ai-intake` | [#567](https://github.com/yossi-weinberger/ten10/pull/567) |
 | UI-5 | אותו קובץ | תנועה ורגעי wow | UI-4 | מוזג ל־`feat/ai-intake` | [#568](https://github.com/yossi-weinberger/ten10/pull/568) |
 | UI-6 | אותו קובץ | QA, Playwright ותיעוד | UI-5 | לא התחיל | `feat/ai-ui6-qa-docs` |
+
+**צורת העבודה (מ־28/10/2026):**
+- **שלב הוא PR קטן.** ענף `feat/ai-<קוד>-<תיאור>` מהגרסה העדכנית של `feat/ai-intake`, ו־base תמיד `feat/ai-intake`. לא ממזגים ל־`main` עד הודעה. ממזגים מ־`main` לענף מדי פעם.
+- **גוף ה־PR:** מה השתנה, תוכנית בדיקה עם תיבות, ו־«Applied on testing» כשיש DB או Edge.
+- **היומן:** מתעדכן באותו PR של הקוד. «מוזג» נכתב ב־PR הבא, או ב־commit קטן מיד אחרי המיזוג.
+- **מיזוג רק כש־CI ירוק.** אחרי כל מיזוג, PRs פתוחים מתעדכנים מ־`feat/ai-intake`.
+- **migration אחד פתוח בכל רגע.** מוחל ידנית על testing (`bbcllewcotypedqsnwmi`), החותמת מיושרת לשם הקובץ, ויש rollback. ה־PR הבא עם migration נפתח רק אחרי שהקודם מוזג.
+- **PR אחד בכל רגע במגירה:** `AssistantDrawer.tsx`, `assistant-reply-view.ts`, `ReplyBlockView.tsx`, `blocks/*`.
+- **PR אחד בכל רגע בכוונה ובכיול:** `intent.ts`, `jev-intent.ts`, `phrase-aliases.ts`, וסטי ה־eval.
+- **מודולים טהורים** רצים במקביל לכל השאר. לוגיקה חדשה נכתבת ב־`supabase/functions/_shared/ai/`, והמגירה רק קוראת לה.
+- **מסלולים:** א (כוונה ומגירה, בטור): M1, R1, R3, M4. ב (טהור, במקביל): R2, והחלקים הטהורים של M2. ג (DB ו־Edge, בטור): U1, U2, U3, R4, M3, M2. M5 ו־M6 נכנסים כשהמסלול שלהם פנוי.
+- **כללים קבועים:**
+  - אין שמירה אוטומטית של הוראת קבע או של כמה פריטים.
+  - את משפטי ה־eval יוסי מספק. כשחסר סט, עוצרים ומבקשים.
+  - **כיול:** אף תווית לא יורדת, וכל תשובה בוודאות 0.7 ומעלה נכונה. אם ודאות גבוהה טועה, מתקנים את הקריטריון ולא את הסף.
+  - **Edge חדש:** קודם `isAiIntakeEnabled()`, אחר כך JWT, ואחר כך `isTrialUser`, ורק אז ספק.
+  - **לוגים:** בלי תוכן, סכומים או נתיבים, ורק דרך `_shared/logger.ts`.
 
 **ענף אינטגרציה:** כל ה־PRs של ה־AI מכוונים ל־`feat/ai-intake` (CI רץ גם עליו). הוא ממוזג ל־`main` רק כשיכולת שלמה עובדת. תיקונים שאינם AI הולכים ישר ל־`main`.
 
@@ -383,6 +401,11 @@
 - **2026-10-28:** [#590](https://github.com/yossi-weinberger/ten10/pull/590) נפתח מול `feat/ai-intake`. נמחקו `isImportableType`, `isSpecialType` ושלוש הפניות ש־`src` לא משתמש בהן. בדיקת Vitest נועלת את `CURRENCIES` ו־`MIN_TRANSACTION_DATE` של `normalize-core.ts` מול `src`. `receipt_expires_at` נשלף רק לשורות העמוד (`20261028120000`). על testing הגוף החדש רץ כפונקציה זמנית ב־`pg_temp`: 10 מקרים זהים לפונקציה המותקנת. על testing הוחלה `20261028120000` והחותמת יושרה. אחרי ההחלה: אותם 10 מקרים זהים לגרסה הקודמת, ההרשאות לא השתנו, וכ־`authenticated` הקבלות חוזרות. לא ל־`main`.
 - **2026-10-28:** אימות `get_admin_dashboard_stats` מ־`20261026090000` על testing. הגרסה של `main` (`20260902120000`) רצה כ־`pg_temp` לצד המותקנת, בהתחברות כמנהל לטרנזקציה בלבד. כל השדות הקיימים זהים (`users`, `finance` כולל `by_currency` בחמישה מטבעות, `downloads`, `engagement`, `system`), אף שדה לא נעלם, ונוספו רק `engagement.ai_transactions` (13) ו־`engagement.ai_users` (2). שניהם שווים לספירה ישירה של `origin IN ('ai', 'ai_auto')`. `origin IS NOT NULL` שקול לזה בגלל `transactions_origin_check`. גם הגרסה עם פרמטר `integer` מחזירה אותו JSON. אין מה לתקן. נוסף סעיף לצ'קליסט של `main`.
 - **2026-10-28:** [#591](https://github.com/yossi-weinberger/ten10/pull/591): שלוש תוכניות לאישור, בלי קוד. `2026-10-28-ai-recurring.md`, `2026-10-28-ai-usage-and-plans.md`, `2026-10-28-ai-multi-item.md`. כל אחת עם החלטות פתוחות בסוף. סדר הביצוע המוצע אחרי אישור: הוראת קבע, שכבות 1–2 של המדידה, כמה תנועות.
+- **2026-10-28:** #590 ו־#591 מוזגו ל־`feat/ai-intake`, ו־#592 (המשתמש מה־session השמור בטבלאות) הגיע מ־`main`. שלוש התוכניות עודכנו לפי ההחלטות:
+  - **הוראת קבע:** `origin` רק על ההוראה. «גם החודש» דרך ה־cron, עם בדיקת כפילות לפני שמירה. 6 משפטי eval. חג שלא מחושב נשאל ולא מנוחש.
+  - **מדידה:** שחרור בכשל. טקסט עם ה־parser המקומי. `model_calls` נשמר 13 חודשים ונמחק עם החשבון. איפוס קלנדרי ל־free. תקרה יומית לכל הקריאות. תשלום רק באתר.
+  - **כמה תנועות:** קבלות נפרדות. דף בנק לייבוא הרגיל. ייבוא בלי `origin`. רשת ביטחון של שני סכומים. עיגון לפי מספר הופעות.
+  צורת העבודה נרשמה למעלה. לא ל־`main`.
 - **2026-10-28:** R2 ([#595](https://github.com/yossi-weinberger/ten10/pull/595)) נפתח מול `feat/ai-intake`. `recurringFromText` ב־`recurring-draft.ts`, והביטויים ב־`recurring-aliases.ts`. סכום, מטבע, סוג ותיאור מ־`draftFromText` בלי שינוי. `buildRecurringDefinition` עבר מהטופס ל־`_shared/transaction-domain`, אחרי בדיקת אפיון שעברה על הקוד הישן. בלי UI, DB או Edge. איך יצאו 6 המשפטים (היום 28/10/2026, לוח לועזי):
   - `he-recurring-01`: חודשי, יום 1, מ־1/11, בלי סוף. בלוח עברי: א׳ בכסלו (11/11). חסר: סוג.
   - `he-recurring-02`: חודשי, יום 10, מ־10/11, בלי סוף, 1,500. חסר: סוג.
