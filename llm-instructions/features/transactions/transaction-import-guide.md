@@ -129,10 +129,10 @@ Headerless files: when the first row looks like data (dates or amounts) rather t
 - **Date**: parses ISO, DD/MM/YYYY, DD.MM.YYYY, Excel serial numbers
 - **Amount**: handles `1,234.56`, `1.234,56`, `₪1,234`, `(123.45)` = negative, debit/credit columns, strips Bidi control characters
 - **Amount stored**: always positive; `type` carries direction (income/expense/donation)
-- **Type inference**: positive → income, negative → expense. Explicit type values from file are resolved via `TYPE_LOCALE_ALIASES` in `import-locale-aliases.ts`; unrecognized values fall through to sign inference
+- **Type inference**: positive → income, negative → expense. Explicit type values from file are resolved via `TYPE_LOCALE_ALIASES` in `supabase/functions/_shared/transaction-domain/parsing-aliases.ts`; unrecognized values fall through to sign inference
 - **Income keyword rescue**: strong locale-configured income terms in text fields can classify debit-looking rows as `income` and add an `income_keyword_match` review warning so the user sees why the type changed before approving.
 - **Recognized expenses**: explicit `recognized-expense` aliases are accepted from source type values, but the importer does not infer them silently from arbitrary text.
-- **is_chomesh**: parsed from the `חומש?` / `is_chomesh` column using `BOOLEAN_TRUTHY_VALUES` from `import-locale-aliases.ts`
+- **is_chomesh**: parsed from the `חומש?` / `is_chomesh` column using `BOOLEAN_TRUTHY_VALUES` from `parsing-aliases.ts`
 - **Foreign currency**: rows with a currency different from the user's default are marked `invalid` (not imported). No conversion, no auto-rates
 - **Category**: normalized through `normalizeCategoryValue()` (maps Hebrew/English labels to stable keys). Donations: `category = null`
 - **Donation recipient**: optional (matches existing form behavior)
@@ -145,7 +145,7 @@ The import pipeline has its **own** locale-string registry, separate from i18n (
 - Import parsing goes **the other direction**: string-from-file → internal value
 - These two concerns must stay separate
 
-All locale-specific strings used during parsing are centralized in **`import-locale-aliases.ts`**:
+All locale-specific strings used during parsing are centralized in **`supabase/functions/_shared/transaction-domain/parsing-aliases.ts`**, shared by the web importer and Edge Functions. `src/lib/import/import-locale-aliases.ts` re-exports only what `src` uses (`FIELD_ALIASES`, `SAMPLE_ROWS_BY_LANG`, `TEMPLATE_COLUMN_LABELS`):
 
 ```typescript
 // TYPE_LOCALE_ALIASES — maps any recognized string to a TransactionType
@@ -158,7 +158,7 @@ TYPE_LOCALE_ALIASES["הוצאה"] → "expense"
 ["yes", "true", "1", "כן"]
 ```
 
-**When adding a new language:** add the locale's parsing strings to `public/locales/<lang>/import.json` under the `parsing` section. The `import-locale-aliases.ts` file builds `TYPE_LOCALE_ALIASES`, `BOOLEAN_TRUTHY_VALUES`, and `FIELD_ALIASES` (column header aliases) automatically from those locale files — `type-resolver.ts`, `normalize.ts`, and the mapping flow then consume them without any other code changes.
+**When adding a new language:** add the locale's parsing strings to `parsing-aliases.ts` (`TYPE_LOCALE_ALIASES`, `BOOLEAN_TRUTHY_VALUES`, `FIELD_ALIASES` column header aliases). `transaction-types.ts`, `normalize-core.ts`, and the mapping flow then consume them without any other code changes.
 
 ## Template Columns
 
