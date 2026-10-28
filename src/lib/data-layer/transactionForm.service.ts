@@ -16,10 +16,8 @@ import { clearPaymentMethodCache } from "./paymentMethods.service";
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { notifyOnboardingTransactionCreated } from "@/lib/onboarding/transactionBridge";
-import { firstDueDate } from "@/lib/recurring/recurring-date.utils";
-import { getCalendarAdapter } from "@/lib/calendar";
 import { normalizePaymentMethodValue } from "@/lib/payment-methods";
-import { parseLocalDate } from "@/lib/utils/local-date";
+import { buildRecurringDefinition } from "../../../supabase/functions/_shared/transaction-domain/recurring-definition.ts";
 
 /**
  * Normalizes a transaction type to its base type.
@@ -84,45 +82,29 @@ export async function handleTransactionSubmit(
     values.payment_method
   );
 
-  // For recurring transactions, the day of the month is derived from the start date,
-  // unless explicitly provided by the user (e.g. they want charge on 15th but start on 10th).
-  // We prioritize the user input recurring_day_of_month when provided (non-null/undefined).
-  const derivedDayOfMonth = parseLocalDate(values.date).getDate();
-  const dayOfMonth = values.recurring_day_of_month ?? derivedDayOfMonth;
-
   // Logic for recurring transactions
   if (values.is_recurring) {
-    const calendarType = values.recurring_calendar_type ?? "gregorian";
-    const anchorMonthCode =
-      values.frequency === "yearly"
-        ? getCalendarAdapter(calendarType).fromIsoDate(values.date).monthCode
-        : null;
-    const definition: NewRecurringTransaction = {
+    const definition: NewRecurringTransaction = buildRecurringDefinition({
       start_date: values.date,
-      next_due_date: firstDueDate(values.date, dayOfMonth, calendarType),
-      frequency: values.frequency || "monthly",
-      calendar_type: calendarType,
-      anchor_month_code: anchorMonthCode,
-      day_of_month: dayOfMonth,
+      frequency: values.frequency,
+      calendar_type: values.recurring_calendar_type,
+      day_of_month: values.recurring_day_of_month,
       total_occurrences: values.recurringTotalCount,
       amount: values.amount,
       currency: values.currency as RecurringTransaction["currency"],
-      description: values.description ?? undefined,
+      description: values.description,
       type: finalType,
-      category: values.category ?? undefined,
-      is_chomesh: values.is_chomesh ?? undefined,
-      recipient: values.recipient ?? undefined,
-      payment_method: normalizedPaymentMethod ?? undefined,
-      // Pass conversion details if present (only for manual rate usually, but can pass auto too if we want to snapshot it)
-      // The backend/DB now supports these fields.
-      original_amount: values.original_amount ?? undefined,
+      category: values.category,
+      is_chomesh: values.is_chomesh,
+      recipient: values.recipient,
+      payment_method: normalizedPaymentMethod,
+      original_amount: values.original_amount,
       original_currency:
-        (values.original_currency as RecurringTransaction["original_currency"]) ??
-        undefined,
-      conversion_rate: values.conversion_rate ?? undefined,
-      conversion_date: values.conversion_date ?? undefined,
-      rate_source: values.rate_source ?? undefined,
-    };
+        values.original_currency as RecurringTransaction["original_currency"],
+      conversion_rate: values.conversion_rate,
+      conversion_date: values.conversion_date,
+      rate_source: values.rate_source,
+    });
     // The createRecurringTransaction function is platform-aware
     await createRecurringTransaction(definition);
     trackProductEvent("recurring_obligation_created", {

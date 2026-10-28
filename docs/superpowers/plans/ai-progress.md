@@ -110,8 +110,9 @@
 | 94 | מפתח אחרי אותו אירוע, ותשובה בסגירה | UI, Web בלבד | §4.1, §9.9 | מוזג | [#575](https://github.com/yossi-weinberger/ten10/pull/575) |
 | 95 | טאב AI באדמין | DB על testing + Edge + UI | §16 | מוזג ל־`feat/ai-intake`; 4 בדיקות ידניות ב־Preview פתוחות | [#576](https://github.com/yossi-weinberger/ten10/pull/576) |
 | 96 | ניקוי ייבוא, קבועים משותפים, קבלה רק לעמוד | DB + בדיקה, בלי שינוי התנהגות | — | מוזג ל־`feat/ai-intake`, ורץ על testing | [#590](https://github.com/yossi-weinberger/ten10/pull/590) |
-| 97 | תוכניות: הוראת קבע, מדידה ומכסות, כמה תנועות | תיעוד, לאישור | — | מוזג ל־`feat/ai-intake` |
-| 98 | החלטות על שלוש התוכניות | תיעוד | #591 | נפתח | `docs/ai-plan-decisions` | [#591](https://github.com/yossi-weinberger/ten10/pull/591) |
+| 97 | תוכניות: הוראת קבע, מדידה ומכסות, כמה תנועות | תיעוד, לאישור | — | מוזג ל־`feat/ai-intake` | [#591](https://github.com/yossi-weinberger/ten10/pull/591) |
+| 98 | החלטות על שלוש התוכניות | תיעוד | #591 | מוזג ל־`feat/ai-intake` | [#593](https://github.com/yossi-weinberger/ten10/pull/593) |
+| R2 | `2026-10-28-ai-recurring.md` | מודול טהור, בלי UI | — | נפתח | [#595](https://github.com/yossi-weinberger/ten10/pull/595) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
@@ -405,3 +406,11 @@
   - **מדידה:** שחרור בכשל. טקסט עם ה־parser המקומי. `model_calls` נשמר 13 חודשים ונמחק עם החשבון. איפוס קלנדרי ל־free. תקרה יומית לכל הקריאות. תשלום רק באתר.
   - **כמה תנועות:** קבלות נפרדות. דף בנק לייבוא הרגיל. ייבוא בלי `origin`. רשת ביטחון של שני סכומים. עיגון לפי מספר הופעות.
   צורת העבודה נרשמה למעלה. לא ל־`main`.
+- **2026-10-28:** R2 ([#595](https://github.com/yossi-weinberger/ten10/pull/595)) נפתח מול `feat/ai-intake`. `recurringFromText` ב־`recurring-draft.ts`, והביטויים ב־`recurring-aliases.ts`. סכום, מטבע, סוג ותיאור מ־`draftFromText` בלי שינוי. `buildRecurringDefinition` עבר מהטופס ל־`_shared/transaction-domain`, אחרי בדיקת אפיון שעברה על הקוד הישן. בלי UI, DB או Edge. איך יצאו 6 המשפטים (היום 28/10/2026, לוח לועזי):
+  - `he-recurring-01`: חודשי, יום 1, מ־1/11, בלי סוף. בלוח עברי: א׳ בכסלו (11/11). חסר: סוג.
+  - `he-recurring-02`: חודשי, יום 10, מ־10/11, בלי סוף, 1,500. חסר: סוג.
+  - `he-recurring-03`: שבועי, מהיום (28/10), 12 פעמים, 36. חסר: סוג, כי «תרומה» לא ברשימת הסוגים של `phrase-aliases.ts`.
+  - `en-recurring-01`: חודשי, יום 1, מ־1/11, בלי סוף, 100, תרומה. לא חסר כלום.
+  - `en-recurring-02`: שנתי, 180. חסר: תאריך (פורים לא מחושב) וסוג.
+  - `en-recurring-03`: חודשי, יום 28, מהיום, 3 חיובים עד 31/12. חסר: סכום («fifty» במילים) וסוג.
+  - נמען לא מחולץ, כי `draftFromText` לא מחזיר נמען. התיאור יוצא לא נקי («של לכולל», «a of to Ezer Mizion»).
