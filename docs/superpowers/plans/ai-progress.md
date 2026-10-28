@@ -113,7 +113,8 @@
 | 97 | תוכניות: הוראת קבע, מדידה ומכסות, כמה תנועות | תיעוד, לאישור | — | מוזג ל־`feat/ai-intake` | [#591](https://github.com/yossi-weinberger/ten10/pull/591) |
 | 98 | החלטות על שלוש התוכניות | תיעוד | #591 | מוזג ל־`feat/ai-intake` | [#593](https://github.com/yossi-weinberger/ten10/pull/593) |
 | R2 | `2026-10-28-ai-recurring.md` | מודול טהור, בלי UI | — | מוזג ל־`feat/ai-intake` | [#595](https://github.com/yossi-weinberger/ten10/pull/595) |
-| U1 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing | — | נפתח | [#594](https://github.com/yossi-weinberger/ten10/pull/594) |
+| U1 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing | — | מוזג ל־`feat/ai-intake` | [#594](https://github.com/yossi-weinberger/ten10/pull/594) |
+| RCP | נמען בתרומה | מודול טהור, בלי חיבור | — | מוזג ל־`feat/ai-intake` | [#597](https://github.com/yossi-weinberger/ten10/pull/597) |
 | U2 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing + UI | U1 | נפתח | [#599](https://github.com/yossi-weinberger/ten10/pull/599) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
@@ -379,10 +380,6 @@
 
 | שדה | נכונים | חסרים | שגויים בוודאות |
 |---|---|---|---|
-| family | 57 | 3 | 0 |
-| measure | 58 | 2 | 0 |
-| recipient | 60 | 0 | 0 |
-| category | 59 | 0 | 1 |
 | payment_method | 59 | 0 | 1 |
 
 נשארו שתי שגיאות בוודאות. `he-009`: הקטגוריה «תרופות» נבחרה מתוך שם הנמען. אין השפעה על התשובה, כי שאלה על תרומה מתעלמת מקטגוריה. `he-033`: «הוראת קבע» נבחרה כהעברה בנקאית. זה התיקון היחיד בהנחיות: «הוראת קבע» לבד היא `none`. לא מתקנים «קטגוריה בתוך שם הנמען», ולא «בלי מילה מפורשת המשפחה ריקה», ולא «מילה קרובה אינה בחירה». אין סט סינתטי חדש. המדידה הבאה היא שימוש אמיתי של משתמשי הבדיקה, עם `quality_signals.slot_confidence` לכל שדה.
@@ -425,6 +422,13 @@
   - `usage_id` נדחה ל־U3, כשתהיה טבלת צריכה.
   - על testing הוחלה `20261028190000` והחותמת יושרה. job מחיקה אחרי 13 חודשים ב־04:45 UTC. מחיקת משתמש מוחקת את השורות שלו (נבדק בבלוק שהתבטל).
   - שש הפונקציות נפרסו על testing ונטענות. שורה מקריאה אמיתית מחכה לבדיקה של משתמש ניסוי. לא ל־`main`.
+- **2026-10-28:** RCP ([#597](https://github.com/yossi-weinberger/ten10/pull/597)) נפתח מול `feat/ai-intake`. `recipientFromText` ב־`recipient-draft.ts`, והמילים ב־`recipient-aliases.ts`. נמען אחרי «ל» או "to", ורק אחרי מילת תרומה. נמען שמור מתקבל גם בלי מילת תרומה, ונשמר בכתיב השמור. ההשוואה לשמות השמורים עברה מ־`sum-year-type.ts` למודול, בלי שינוי. עוד לא מחובר ל־`draftFromText`. בלי UI, DB או Edge. איך יצאו 6 המשפטים:
+  - «לכולל» בהוראת קבע: אין נמען, כי אין מילת תרומה. כש־«כולל» שמור: «כולל».
+  - «שכר דירה»: אין נמען.
+  - «לחב״ד»: «חב״ד». כש־«חבד» שמור: «חבד».
+  - "to Ezer Mizion": «Ezer Mizion».
+  - "for matanot la'evyonim": אין נמען. "for" לא נחשב, ואין מילת תרומה.
+  - "to the kollel": «kollel», בלי the, כמו בשאלת נתונים.
 - **2026-10-28:** U2.
   - **תגים:** קריאות האפליקציה יוצאות בלי `tags` ובלי `user`. רק סקריפטי המדידה מתייגים `source:eval`. נבדק בקריאה אחת: `surchargeCost` הוא 0. החיסכון לבקשה הוא $0.00015 ב־Jev ובקבלה, כלומר קריאת כוונה ירדה מ־$0.000175 ל־$0.0000255 (85%). בתמלול לא הייתה תוספת.
   - **`get_admin_ai_calls`** (`20261028233000`, הוחל על testing והחותמת יושרה): פעולות עם קריאות, כשל, p50 ו־p95, טוקנים ועלות. ימים להשוואה, מודלים לפי תקופה, ומשתמשים. מנהל מקבל תשובה, ומי שאינו מנהל נחסם.
