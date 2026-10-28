@@ -1,7 +1,11 @@
-import { aggregateDayReport, isAdminFlag, parseGatewayReport, sourceTotals } from "./report.ts";
+import { appDailyCosts, dailyCosts, isAdminFlag, parseGatewayReport, sumCost } from "./report.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
+}
+
+function close(left: number, right: number): boolean {
+  return Math.abs(left - right) < 1e-12;
 }
 
 Deno.test("a gateway report keeps model cost and drops an empty user", () => {
@@ -17,30 +21,38 @@ Deno.test("a gateway report keeps model cost and drops an empty user", () => {
   assert(rows[1].label === "2026-10-22" && rows[1].requestCount === 3, "day");
 });
 
-Deno.test("tag totals keep source:app and source:eval and ignore feature tags", () => {
-  const totals = sourceTotals({
+Deno.test("daily costs are one sorted row per day", () => {
+  const days = dailyCosts({
     results: [
-      { tag: "source:app", total_cost: 1.5, request_count: 4, input_tokens: 0, output_tokens: 0 },
-      { tag: "intent", total_cost: 1.5, request_count: 4, input_tokens: 0, output_tokens: 0 },
-      { tag: "source:eval", total_cost: 0.25, request_count: 1, input_tokens: 0, output_tokens: 0 },
-      { tag: "", total_cost: 9, request_count: 9, input_tokens: 0, output_tokens: 0 },
+      { day: "2026-10-29", total_cost: 0.2, request_count: 2 },
+      { day: "2026-10-28", total_cost: 0.1, request_count: 1 },
+      { day: "2026-10-28", total_cost: 0.05, request_count: 1 },
+      { model: "typesafe-ai/jev", total_cost: 9, request_count: 9 },
     ],
   });
-  assert(totals.app === 1.5, "app");
-  assert(totals.evalCost === 0.25, "eval");
+  assert(days.length === 2, "two days");
+  assert(days[0].day === "2026-10-28" && close(days[0].totalCost, 0.15) && days[0].requestCount === 2, "merged day");
+  assert(days[1].day === "2026-10-29", "sorted");
 });
 
-Deno.test("day rows roll into a Monday UTC week", () => {
-  const rolled = aggregateDayReport({
-    results: [
-      { day: "2026-10-19", total_cost: 0.1, request_count: 1 },
-      { day: "2026-10-23", total_cost: 0.2, request_count: 2 },
-    ],
-  }, "2026-01-01", "2026-12-01");
-  assert(rolled.grain === "week", "week grain");
-  assert(rolled.buckets.length === 1, "one week");
-  assert(rolled.buckets[0].bucket === "2026-10-19", "monday");
-  assert(rolled.buckets[0].requestCount === 3, "requests");
+Deno.test("app spend is the day total minus source:eval", () => {
+  const total = [
+    { day: "2026-10-28", totalCost: 0.5, requestCount: 10 },
+    { day: "2026-10-29", totalCost: 0.2, requestCount: 4 },
+  ];
+  const evalDays = [{ day: "2026-10-28", totalCost: 0.3, requestCount: 6 }];
+  const app = appDailyCosts(total, evalDays);
+  assert(close(app[0].totalCost, 0.2) && app[0].requestCount === 4, "eval removed");
+  assert(close(app[1].totalCost, 0.2) && app[1].requestCount === 4, "no eval that day");
+  assert(close(sumCost(app), 0.4), "sum");
+});
+
+Deno.test("app spend never goes below zero", () => {
+  const app = appDailyCosts(
+    [{ day: "2026-10-28", totalCost: 0.1, requestCount: 1 }],
+    [{ day: "2026-10-28", totalCost: 0.2, requestCount: 2 }],
+  );
+  assert(app[0].totalCost === 0 && app[0].requestCount === 0, "clamped");
 });
 
 Deno.test("a non-admin flag is not treated as admin", () => {
