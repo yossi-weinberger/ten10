@@ -114,6 +114,7 @@
 | 98 | החלטות על שלוש התוכניות | תיעוד | #591 | מוזג ל־`feat/ai-intake` | [#593](https://github.com/yossi-weinberger/ten10/pull/593) |
 | R2 | `2026-10-28-ai-recurring.md` | מודול טהור, בלי UI | — | מוזג ל־`feat/ai-intake` | [#595](https://github.com/yossi-weinberger/ten10/pull/595) |
 | U1 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing | — | נפתח | [#594](https://github.com/yossi-weinberger/ten10/pull/594) |
+| M5 | `2026-10-28-ai-multi-item.md` | UI, ייבוא בלבד | — | נפתח | [#598](https://github.com/yossi-weinberger/ten10/pull/598) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
@@ -424,3 +425,4 @@
   - `usage_id` נדחה ל־U3, כשתהיה טבלת צריכה.
   - על testing הוחלה `20261028190000` והחותמת יושרה. job מחיקה אחרי 13 חודשים ב־04:45 UTC. מחיקת משתמש מוחקת את השורות שלו (נבדק בבלוק שהתבטל).
   - שש הפונקציות נפרסו על testing ונטענות. שורה מקריאה אמיתית מחכה לבדיקה של משתמש ניסוי. לא ל־`main`.
+- **2026-10-28:** M5 ([#598](https://github.com/yossi-weinberger/ten10/pull/598)) נפתח מול `feat/ai-intake`. `ImportWizard` מקבל `initialRows` של טיוטות AI ונפתח ישר בסקירה, בלי קובץ ובלי מיפוי. כל טיוטה עוברת `draftToNormalizedRow` ואז `previewRowsFromNormalized`, שחולקת עם `buildPreviewRows` את הנרמול, הכפילות וההוראות הקבועות, בפרופיל `AI_DRAFT`. השמירה היא הייבוא הרגיל, בלי `origin`. שורה במטבע זר, גם עם שער, נחסמת, כי שמירת הייבוא לא שומרת המרה. `exempt-income` ו־`non_tithe_donation` עוברים. עוד אין מי שקורא לזה מהעוזר. לא ל־`main`.
