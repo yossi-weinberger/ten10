@@ -169,13 +169,13 @@ describe("AssistantDrawer characterization", () => {
     expect(ai.refreshAfterIntakeSave).toHaveBeenCalledTimes(1);
   });
 
-  it("asks for one transaction at a time when the sentence has two amounts", async () => {
+  it("asks for one transaction at a time when the sentence has two amounts and Jev is unsure", async () => {
     ai.classifyIntentFallback.mockResolvedValue({
       ok: true,
       intent: "add_transaction",
       confidence: 0.95,
       count: "one",
-      countConfidence: 0.9,
+      countConfidence: 0.5,
     });
     const user = setup();
     await send(user, "50 במכולת ו־120 לישיבה");

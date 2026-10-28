@@ -8,12 +8,22 @@ function assert(condition: boolean, message: string): asserts condition {
 const TODAY = "2026-10-28";
 const TWO = "50 במכולת ו־120 לישיבה";
 
-Deno.test("two amounts are several whatever Jev answered", () => {
-  assert(effectiveIntakeCount(TWO, "one", 0.95) === "several", "confident one");
+Deno.test("two amounts are several unless Jev is confident", () => {
   assert(effectiveIntakeCount(TWO, "one", 0.5) === "several", "unsure one");
   assert(effectiveIntakeCount(TWO, null, null) === "several", "no answer");
   assert(effectiveIntakeCount(TWO, "list", 0.9) === "list", "a confident list stays a list");
-  assert(recordsOneAtATime("add_transaction", TWO, "one", 0.95), "never a single draft");
+  assert(recordsOneAtATime("add_transaction", TWO, "one", 0.5), "never a single draft when unsure");
+});
+
+Deno.test("a confident one wins over numbers that are not amounts", () => {
+  for (const text of [
+    "קניתי מקרר ב־3 תשלומים של 900 שקל",
+    "קיבלתי משכורת 12,500 והפרשתי ממנה 10 אחוז במחשבה, עדיין לא תרמתי",
+    "שילמתי 180 על ארוחת ערב ל־5 אנשים",
+    "Paid 320 euros for a family room for 4 nights",
+  ]) {
+    assert(effectiveIntakeCount(text, "one", 0.9) === "one", text);
+  }
 });
 
 Deno.test("the parser alone finds several transactions", () => {
@@ -45,9 +55,11 @@ Deno.test("the parser alone keeps one transaction with its amount", () => {
   }
 });
 
-Deno.test("one amount follows Jev only when confident", () => {
+Deno.test("an unsure several or list is kept", () => {
   assert(effectiveIntakeCount("50 לכולל", "one", 0.9) === "one", "one");
-  assert(effectiveIntakeCount("1,234.56 בסופר", "several", 0.69) === "one", "below the floor is one");
+  assert(effectiveIntakeCount("1,234.56 בסופר", "several", 0.69) === "several", "unsure several");
+  assert(effectiveIntakeCount("חלב 8 לחם 12 סה״כ 20 שקל", "list", 0.3) === "list", "unsure list");
+  assert(effectiveIntakeCount("50 לכולל", "one", 0.4) === "one", "unsure one with one amount");
   assert(effectiveIntakeCount("Donated 100 ILS to the kollel", "several", 0.7) === "several", "at the floor");
 });
 
