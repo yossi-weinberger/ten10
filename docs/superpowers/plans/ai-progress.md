@@ -108,7 +108,8 @@
 | 92 | allowlist אחד ב־SQL | DB על testing | §22.1 | מוזג ל־`feat/ai-intake` | [#573](https://github.com/yossi-weinberger/ten10/pull/573) |
 | 93 | תוכנית: לוגיקה מחוץ למגירה | תיעוד | §9 | מוזג ל־`feat/ai-intake` | [#574](https://github.com/yossi-weinberger/ten10/pull/574) |
 | 94 | מפתח אחרי אותו אירוע, ותשובה בסגירה | UI, Web בלבד | §4.1, §9.9 | מוזג | [#575](https://github.com/yossi-weinberger/ten10/pull/575) |
-| 95 | טאב AI באדמין | DB על testing + Edge + UI | §16 | נפתח | `feat/ai-pr100-admin-tab` |
+| 95 | טאב AI באדמין | DB על testing + Edge + UI | §16 | מוזג ל־`feat/ai-intake`; 4 בדיקות ידניות ב־Preview פתוחות | [#576](https://github.com/yossi-weinberger/ten10/pull/576) |
+| 96 | ניקוי ייבוא, קבועים משותפים, קבלה רק לעמוד | DB + בדיקה, בלי שינוי התנהגות | — | נפתח | [#590](https://github.com/yossi-weinberger/ten10/pull/590) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
@@ -133,6 +134,7 @@
 - [ ] לפני המיזוג: אישור לניסוח הפרטיות והתנאים. הם עולים לפרודקשן גם כשה־AI כבוי.
 - [ ] לפני ההשקה: להחליף את גוף `ai.is_trial_user` ואת `trial-users.ts`.
 - [ ] לפני ההשקה: לפרט במדיניות הפרטיות את ספקי ה־AI.
+- [ ] `get_admin_dashboard_stats`: אם `main` שינה אותה אחרי `20260902120000_admin_dashboard_stats_one_scan.sql`, למזג את השינוי לתוך `*_ai_admin_usage.sql` (ואת הגרסה של `main` ל־rollback שלו), ולא לדרוס. ה־migration של ה־AI מקבל timestamp מאוחר יותר ורץ אחרי.
 - [ ] לעדכן את קבצי ה־rollback המקבילים: `20261019020000_ai_schema_foundation_down.sql`, `20261020140000_ai_question_recipient_down.sql`, `20261020150000_ai_duplicate_actions_down.sql`.
 - [ ] על testing בלבד: `supabase migration list`, ואז `supabase migration repair` כך שההיסטוריה תתאים לשמות החדשים.
 - [ ] Supabase Preview על ה־PR ל־`main` עובר.
@@ -375,3 +377,6 @@
 - **2026-10-23:** משפך הטיוטות יורד משלב לשלב. שאלה על הנתונים כותבת שורת מדידה גם כשאין ודאות חריצים. הקריאה הקודמת רצה בלי `service_role` ולכן לא נשמרה. לא ל־`main`.
 - **2026-10-25:** משפך הטיוטות הוא פסים לרוחב המסך. הענפים (נדחו, בוטלו) יושבים מתחת לשלב שממנו יצאו. המספרים לא השתנו. לא ל־`main`.
 - **2026-10-26:** טאב AI מציג ספירות שימוש בלי סכומי כסף: תנועות לפי תאריך התנועה, משתמשים, חלק מהתנועות, והודעות. המשפך מקופל. על testing הוחלה `20261026090000`. לא לייצור.
+- **2026-10-28:** [#576](https://github.com/yossi-weinberger/ten10/pull/576) מוזג ל־`feat/ai-intake`. ארבע הבדיקות הידניות ב־Preview מתוכנית הבדיקה שלו עדיין פתוחות, ויוסי מריץ אותן. בדיקות Rust רצות רק כש־`src-tauri` משתנה (`19776f58`, `dc1a62ac` ב־`main`, ומוזגו לענף).
+- **2026-10-28:** [#590](https://github.com/yossi-weinberger/ten10/pull/590) נפתח מול `feat/ai-intake`. נמחקו `isImportableType`, `isSpecialType` ושלוש הפניות ש־`src` לא משתמש בהן. בדיקת Vitest נועלת את `CURRENCIES` ו־`MIN_TRANSACTION_DATE` של `normalize-core.ts` מול `src`. `receipt_expires_at` נשלף רק לשורות העמוד (`20261028120000`). על testing הגוף החדש רץ כפונקציה זמנית ב־`pg_temp`: 10 מקרים זהים לפונקציה המותקנת. ה־migration עוד לא הוחל על testing. לא ל־`main`.
+- **2026-10-28:** אימות `get_admin_dashboard_stats` מ־`20261026090000` על testing. הגרסה של `main` (`20260902120000`) רצה כ־`pg_temp` לצד המותקנת, בהתחברות כמנהל לטרנזקציה בלבד. כל השדות הקיימים זהים (`users`, `finance` כולל `by_currency` בחמישה מטבעות, `downloads`, `engagement`, `system`), אף שדה לא נעלם, ונוספו רק `engagement.ai_transactions` (13) ו־`engagement.ai_users` (2). שניהם שווים לספירה ישירה של `origin IN ('ai', 'ai_auto')`. `origin IS NOT NULL` שקול לזה בגלל `transactions_origin_check`. גם הגרסה עם פרמטר `integer` מחזירה אותו JSON. אין מה לתקן. נוסף סעיף לצ'קליסט של `main`.
