@@ -111,6 +111,7 @@
 | 95 | טאב AI באדמין | DB על testing + Edge + UI | §16 | מוזג ל־`feat/ai-intake`; 4 בדיקות ידניות ב־Preview פתוחות | [#576](https://github.com/yossi-weinberger/ten10/pull/576) |
 | 96 | ניקוי ייבוא, קבועים משותפים, קבלה רק לעמוד | DB + בדיקה, בלי שינוי התנהגות | — | נפתח | [#590](https://github.com/yossi-weinberger/ten10/pull/590) |
 | 97 | תוכניות: הוראת קבע, מדידה ומכסות, כמה תנועות | תיעוד, לאישור | — | נפתח | [#591](https://github.com/yossi-weinberger/ten10/pull/591) |
+| U1 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing | — | נפתח | `feat/ai-u1-model-calls` |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
@@ -382,3 +383,12 @@
 - **2026-10-28:** [#590](https://github.com/yossi-weinberger/ten10/pull/590) נפתח מול `feat/ai-intake`. נמחקו `isImportableType`, `isSpecialType` ושלוש הפניות ש־`src` לא משתמש בהן. בדיקת Vitest נועלת את `CURRENCIES` ו־`MIN_TRANSACTION_DATE` של `normalize-core.ts` מול `src`. `receipt_expires_at` נשלף רק לשורות העמוד (`20261028120000`). על testing הגוף החדש רץ כפונקציה זמנית ב־`pg_temp`: 10 מקרים זהים לפונקציה המותקנת. על testing הוחלה `20261028120000` והחותמת יושרה. אחרי ההחלה: אותם 10 מקרים זהים לגרסה הקודמת, ההרשאות לא השתנו, וכ־`authenticated` הקבלות חוזרות. לא ל־`main`.
 - **2026-10-28:** אימות `get_admin_dashboard_stats` מ־`20261026090000` על testing. הגרסה של `main` (`20260902120000`) רצה כ־`pg_temp` לצד המותקנת, בהתחברות כמנהל לטרנזקציה בלבד. כל השדות הקיימים זהים (`users`, `finance` כולל `by_currency` בחמישה מטבעות, `downloads`, `engagement`, `system`), אף שדה לא נעלם, ונוספו רק `engagement.ai_transactions` (13) ו־`engagement.ai_users` (2). שניהם שווים לספירה ישירה של `origin IN ('ai', 'ai_auto')`. `origin IS NOT NULL` שקול לזה בגלל `transactions_origin_check`. גם הגרסה עם פרמטר `integer` מחזירה אותו JSON. אין מה לתקן. נוסף סעיף לצ'קליסט של `main`.
 - **2026-10-28:** [#591](https://github.com/yossi-weinberger/ten10/pull/591): שלוש תוכניות לאישור, בלי קוד. `2026-10-28-ai-recurring.md`, `2026-10-28-ai-usage-and-plans.md`, `2026-10-28-ai-multi-item.md`. כל אחת עם החלטות פתוחות בסוף. סדר הביצוע המוצע אחרי אישור: הוראת קבע, שכבות 1–2 של המדידה, כמה תנועות.
+- **2026-10-28:** U1. קריאה בודקת אחת לכל endpoint, עם תג `source:eval`:
+  - **Jev (`/typesafe/v1/systemone`) ו־Responses:** `usage.input_tokens` ו־`output_tokens`, ועלות ב־`provider_metadata.gateway`.
+  - **תמלול:** בלי טוקנים, רק `durationInSeconds`, ועלות ב־`providerMetadata.gateway`.
+  - **בכולם:** `generationId`.
+  - **ממצא:** ב־Jev ובקבלה יש `reportingTagWriteCost` של .00015 לכל בקשה. ב־Jev זה פי 6 מעלות ההסקה (.000025). בתמלול אין תוספת.
+  - `ai.model_calls` נכתבת דרך `_shared/ai/model-call.ts` משש הפונקציות, גם בכשל. `cost_usd` הוא `gatewayCost`, כולל התוספת.
+  - `usage_id` נדחה ל־U3, כשתהיה טבלת צריכה.
+  - על testing הוחלה `20261028190000` והחותמת יושרה. job מחיקה אחרי 13 חודשים ב־04:45 UTC. מחיקת משתמש מוחקת את השורות שלו (נבדק בבלוק שהתבטל).
+  - שש הפונקציות נפרסו על testing ונטענות. שורה מקריאה אמיתית מחכה לבדיקה של משתמש ניסוי. לא ל־`main`.
