@@ -3,6 +3,7 @@ import { aiCallsAllowed } from "@/lib/ai/flags";
 import { EXPENSE_CATEGORY_KEYS, INCOME_CATEGORY_KEYS } from "@/lib/category-registry";
 import { typesForFamily, type YearTypeSum } from "@/lib/ai/classify-intake";
 import { matchUserCategory } from "./match-category";
+import { matchSavedName } from "../../../supabase/functions/_shared/ai/recipient-draft.ts";
 
 export type YearTypeSumResult =
   | { ok: true; total: number; count: number; currency: string | null }
@@ -56,20 +57,6 @@ async function recipientsForUser(): Promise<string[]> {
   const { data, error } = await supabase.rpc("list_ai_recipients");
   if (error || !Array.isArray(data)) return [];
   return data.flatMap((name) => typeof name === "string" && name.trim() ? [name] : []);
-}
-
-function foldName(value: string): string {
-  return value.trim().toLowerCase().replace(/["״׳']/g, "").replace(/[-־]/g, " ").replace(/\s+/g, " ").trim();
-}
-
-function matchSavedName(topic: string, names: readonly string[]): string | null {
-  const needle = foldName(topic);
-  const hits = names
-    .map((name) => ({ raw: name.trim(), key: foldName(name) }))
-    .filter((name) => name.key.length > 1 && name.key === needle)
-    .sort((left, right) => right.key.length - left.key.length);
-  if (hits.length === 0) return null;
-  return hits[0]?.raw ?? null;
 }
 
 export async function resolveQuestionFilter(
