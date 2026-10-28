@@ -138,7 +138,7 @@ export const DATE_WORDS = [
 ] as const;
 
 export const USD_MARKERS = ["דולר", "dollar", "usd", "$"] as const;
-export const EUR_MARKERS = ["אירו", "euro", "eur", "€"] as const;
+export const EUR_MARKERS = ["אירו", "יורו", "euros", "euro", "eur", "€"] as const;
 export const AMOUNT_CURRENCY_WORDS = [
   "ש\"ח",
   "שח",
@@ -152,6 +152,8 @@ export const AMOUNT_CURRENCY_WORDS = [
   "usd",
   "eur",
   "אירו",
+  "יורו",
+  "euros",
   "euro",
   "₪",
   "$",
@@ -163,6 +165,15 @@ export const RATE_MARKERS = ["שער", "rate"] as const;
 export const YEAR_MARKERS = ["בשנת", "שנת", "in", "year"] as const;
 export const DAY_OF_MONTH_SUFFIXES = ["לחודש", "בחודש"] as const;
 export const MONTHLY_MARKERS = ["כל חודש", "every month", "monthly"] as const;
+/** After a number, these make it a count, a share, or a quantity, not an amount. */
+export const AMOUNT_UNIT_WORDS = [
+  "תשלומים", "תשלום", "אחוזים", "אחוז", "אנשים", "איש", "פעמים", "חודשים", "ימים", "שנים", "יחידות", "לילות", "שעות",
+  "installments", "installment", "payments", "percent", "people", "persons", "times", "months", "days", "years",
+  "units", "nights", "hours",
+] as const;
+export const PERCENT_WORDS = ["אחוזים", "אחוז", "percent"] as const;
+/** "10 אחוז מ־500": the share is taken of the number that follows. */
+export const PERCENT_OF_WORDS = ["מתוך", "of"] as const;
 /** Before a bare number, these start another item. */
 export const ITEM_SEPARATORS = ["וגם", "ו", "and", "plus"] as const;
 export const MONTH_NAMES = [

@@ -5,6 +5,7 @@
 
 import {
   AMOUNT_CURRENCY_WORDS,
+  AMOUNT_UNIT_WORDS,
   BIT_MARKERS,
   CASH_MARKERS,
   CHECK_MARKERS,
@@ -22,6 +23,8 @@ import {
   DAY_OF_MONTH_SUFFIXES,
   MONTH_NAMES,
   MONTHLY_MARKERS,
+  PERCENT_OF_WORDS,
+  PERCENT_WORDS,
   RATE_MARKERS,
   YEAR_MARKERS,
   TRANSFER_MARKERS,
@@ -137,11 +140,14 @@ function gluedToLetters(text: string, start: number, end: number): boolean {
   return letter.test(before) || letter.test(after);
 }
 
+/** 2: a currency word or sign beside it. 1: a price word before it ("ב", "for"). 0: bare. */
+type AmountStrength = 0 | 1 | 2;
+
 interface AmountHit {
   amount: number;
   stripStart: number;
   stripEnd: number;
-  marked: boolean;
+  strength: AmountStrength;
 }
 
 function currencyAlternation(): string {
@@ -196,15 +202,24 @@ function amountCandidates(original: string): AmountHit[] {
   const text = maskNotAmounts(original);
   const currency = currencyAlternation();
   const separators = new RegExp(`(?:(?:^|\\s)(?:${wordsPattern(ITEM_SEPARATORS)})|[,;])\\s*$`, "i");
+  const unit = new RegExp(`^\\s*(?:%|(?:${wordsPattern(AMOUNT_UNIT_WORDS)})(?!\\p{L}))`, "iu");
+  const percentOf = new RegExp(
+    `(?:^|\\s)(${NUMBER_SRC})\\s*(?:%|(?:${wordsPattern(PERCENT_WORDS)})(?!\\p{L}))\\s*(?:(?:${wordsPattern(PERCENT_OF_WORDS)})\\s+|מ\\s*[-–]?\\s*)$`,
+    "iu",
+  );
   const hits: (AmountHit & { startsItem: boolean })[] = [];
   for (const match of text.matchAll(new RegExp(NUMBER_SRC, "g"))) {
     const raw = match[0];
     const start = match.index ?? 0;
     const end = start + raw.length;
     if (gluedToLetters(text, start, end)) continue;
-    const amount = parseNumber(raw);
-    if (amount === null || amount === 0) continue;
+    const parsed = parseNumber(raw);
+    if (parsed === null || parsed === 0) continue;
+    if (unit.test(text.slice(end))) continue;
     const before = text.slice(0, start);
+    const share = before.match(percentOf);
+    const percent = share ? parseNumber(share[1]) : null;
+    const amount = percent === null ? parsed : Math.round(parsed * percent) / 100;
     const marker = before.match(/(?:^|\s)(?:בסך|עלה|for|at|ב)\s*[-–]?\s*$/i);
     const currencyBefore = before.match(new RegExp(`(?:^|\\s)(?:${currency})\\s*$`, "i"));
     const currencyAfter = text.slice(end).match(new RegExp(`^\\s*ל?\\s*(?:${currency})`, "i"));
@@ -214,24 +229,38 @@ function amountCandidates(original: string): AmountHit[] {
     const currencyStart = currencyBefore?.index === undefined
       ? null
       : currencyBefore.index + (currencyBefore[0].length - currencyBefore[0].trimStart().length);
-    const starts = [markerStart, currencyStart].filter((value): value is number => value !== null);
+    const shareStart = share?.index === undefined
+      ? null
+      : share.index + (share[0].length - share[0].trimStart().length);
+    const starts = [markerStart, currencyStart, shareStart].filter((value): value is number => value !== null);
+    const strength: AmountStrength = currencyBefore !== null || currencyAfter !== null ? 2 : marker !== null ? 1 : 0;
     hits.push({
       amount,
       stripStart: starts.length > 0 ? Math.min(...starts) : start,
       stripEnd: end + (currencyAfter?.[0].length ?? 0),
-      marked: marker !== null || currencyBefore !== null || currencyAfter !== null,
+      strength,
       startsItem: separators.test(before),
     });
   }
-  if (!hits.some((hit) => hit.marked)) return hits;
-  return hits.filter((hit) => hit.marked || hit.startsItem);
+  const kept = hits.some((hit) => hit.strength > 0)
+    ? hits.filter((hit) => hit.strength > 0 || hit.startsItem)
+    : hits;
+  return splitTotal(kept) ?? kept;
 }
 
-/** A price marker or a currency word wins. Otherwise the last standalone number. */
+/** "250, 100 במזומן ו־150 באשראי": one amount that is the sum of the others is one payment split in parts. */
+function splitTotal(hits: AmountHit[]): AmountHit[] | null {
+  if (hits.length < 3) return null;
+  const sum = hits.reduce((total, hit) => total + hit.amount, 0);
+  const total = hits.find((hit) => Math.abs(hit.amount * 2 - sum) < 0.005);
+  return total ? [total] : null;
+}
+
+/** The strongest hit wins: a currency beside it, then a price word, then a bare number. Ties take the last. */
 function findAmount(text: string): AmountHit | null {
   const candidates = amountCandidates(text);
-  const marked = candidates.filter((hit) => hit.marked);
-  const pool = marked.length > 0 ? marked : candidates;
+  const strongest = Math.max(-1, ...candidates.map((hit) => hit.strength));
+  const pool = candidates.filter((hit) => hit.strength === strongest);
   return pool[pool.length - 1] ?? null;
 }
 
@@ -242,6 +271,13 @@ function normalizeInput(text: string): string {
 /** Every amount in the text, in order. `draftFromText` picks one of them. */
 export function amountsFromText(text: string): number[] {
   return amountCandidates(maskRate(prepareText(normalizeInput(text)))).map((hit) => hit.amount);
+}
+
+/** Only the amounts with a currency word or sign beside them. */
+export function currencyAmountsFromText(text: string): number[] {
+  return amountCandidates(maskRate(prepareText(normalizeInput(text))))
+    .filter((hit) => hit.strength === 2)
+    .map((hit) => hit.amount);
 }
 
 function cleanDescription(original: string): string {

@@ -68,3 +68,10 @@ Deno.test("count is ignored outside a transaction", () => {
   assert(!recordsOneAtATime("create_rule", TWO, "list", 0.95), "rule");
   assert(!recordsOneAtATime("add_transaction", "50 לכולל", "one", 0.95), "single transaction");
 });
+
+Deno.test("two currency amounts are several even when Jev is sure it is one", () => {
+  assert(effectiveIntakeCount("50 שקל במכולת ו־120 שקל לישיבה", "one", 0.95) === "several", "two currencies");
+  assert(effectiveIntakeCount("קניתי מקרר ב-3000 שקל ב-3 תשלומים", "one", 1) === "one", "installments");
+  assert(effectiveIntakeCount("Paid $250 for the hotel, $100 cash and $150 by credit card", "one", 0.91) === "one", "split payment");
+  assert(effectiveIntakeCount("ארוחה ל-5 אנשים ב-400 שקל", "one", 0.9) === "one", "head count");
+});
