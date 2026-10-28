@@ -29,7 +29,6 @@ for (const item of fixture.cases) {
     },
     body: JSON.stringify(gatewaySystemOneBody(buildQuestionSlotBody(item.text, fixture.lists), {
       source: "eval",
-      feature: "question_slots",
     })),
     signal: AbortSignal.timeout(20000),
   });
