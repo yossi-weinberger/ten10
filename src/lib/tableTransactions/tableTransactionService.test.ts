@@ -2,13 +2,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { initialTableTransactionFilters } from "./tableTransactions.types";
 
 const mockGetUser = vi.fn();
+const mockGetSession = vi.fn();
 const mockRpc = vi.fn();
 const mockInvokeDesktopFilteredTransactions = vi.fn();
 const mockGetUserPaymentMethods = vi.fn();
 
 vi.mock("../supabaseClient", () => ({
   supabase: {
-    auth: { getUser: (...args: unknown[]) => mockGetUser(...args) },
+    auth: {
+      getUser: (...args: unknown[]) => mockGetUser(...args),
+      getSession: (...args: unknown[]) => mockGetSession(...args),
+    },
     rpc: (...args: unknown[]) => mockRpc(...args),
   },
 }));
@@ -46,6 +50,10 @@ beforeEach(() => {
   mockGetUser.mockResolvedValue({
     data: { user: { id: "user-1" } },
   });
+  mockGetSession.mockResolvedValue({
+    data: { session: { user: { id: "user-1" } } },
+    error: null,
+  });
   mockRpc.mockResolvedValue({
     data: { transactions: [], total_count: 0 },
     error: null,
@@ -59,6 +67,43 @@ beforeEach(() => {
     " CrEdIt CaRd ",
     "Cash",
   ]);
+});
+
+describe("TableTransactionsService web user", () => {
+  it("loads with the stored session when the auth server request fails", async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: null },
+      error: new Error("Failed to fetch"),
+    });
+
+    await TableTransactionsService.fetchTransactions({
+      offset: 0,
+      limit: 20,
+      filters: { ...filters, paymentMethods: [] },
+      sorting: { field: "date", direction: "desc" },
+      platform: "web",
+    });
+
+    expect(mockRpc).toHaveBeenCalledWith(
+      "get_user_transactions",
+      expect.objectContaining({ p_user_id: "user-1" }),
+    );
+  });
+
+  it("still reports a signed-out user without calling the RPC", async () => {
+    mockGetSession.mockResolvedValue({ data: { session: null }, error: null });
+
+    await expect(
+      TableTransactionsService.fetchTransactions({
+        offset: 0,
+        limit: 20,
+        filters: { ...filters, paymentMethods: [] },
+        sorting: { field: "date", direction: "desc" },
+        platform: "web",
+      }),
+    ).rejects.toThrow("User not authenticated for fetching transactions.");
+    expect(mockRpc).not.toHaveBeenCalled();
+  });
 });
 
 describe("TableTransactionsService payment method compatibility", () => {
