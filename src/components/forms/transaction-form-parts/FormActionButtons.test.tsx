@@ -43,6 +43,13 @@ describe("FormActionButtons", () => {
       const paths = Array.from(button.querySelectorAll("path")).map((p) => p.getAttribute("d"));
       expect(paths).toContain(outlinePath(CHECK_LONG_ARM));
     });
+    // One colour: the gold slice is gone, its text-coloured copy is the short arm.
+    await waitFor(() => {
+      const gold = button.querySelector<SVGPathElement>("path.fill-accent");
+      const shortArm = button.querySelectorAll<SVGPathElement>("path.fill-current")[1];
+      expect(gold?.style.opacity).toBe("0");
+      expect(shortArm?.style.opacity).toBe("1");
+    });
   });
 
   it("says saving and saved, not adding and added, when editing", () => {

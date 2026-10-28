@@ -89,11 +89,12 @@ function shapeAt(part: Part, t: number): string {
  * The Ten10 symbol inside a submit button (#40). While saving it turns like
  * `BrandInlineSpinner`; when the save succeeds it settles upright, the slice clicks in
  * and the whole symbol becomes a check mark: the ring stretches into the long arm and
- * the gold slice into the short one. With reduced motion it pulses while saving and the
- * check appears without the morph.
+ * the slice into the short one, fading from gold to the ring's colour on the way, so the
+ * check is one colour. With reduced motion it pulses while saving and the check appears
+ * without the morph.
  *
- * The ring takes the text colour, so it shows on filled buttons. Decorative: the button
- * text says what is happening ("Saving...", "Saved").
+ * The ring (and the check) take the text colour, so they show on filled buttons.
+ * Decorative: the button text says what is happening ("Saving...", "Saved").
  */
 export const BrandSaveIcon = ({ status, className }: BrandSaveIconProps) => {
   const reduceMotion = useReducedMotion();
@@ -103,6 +104,10 @@ export const BrandSaveIcon = ({ status, className }: BrandSaveIconProps) => {
   const progress = useMotionValue(0);
   const ringPath = useTransform(progress, (t) => shapeAt("ring", t));
   const slicePath = useTransform(progress, (t) => shapeAt("slice", t));
+  // The slice turns from gold to the text colour as it becomes the short arm: a
+  // text-coloured copy fades in over it, and the gold one goes once it is covered.
+  const sliceGoldOpacity = useTransform(progress, (t) => (t >= 1 ? 0 : 1));
+  const sliceCheckOpacity = useTransform(progress, (t) => Math.min(1, Math.max(0, t)));
   // The spin's angle when the save succeeded; null when it wasn't spinning.
   const stoppedAt = useRef<number | null>(null);
 
@@ -181,7 +186,8 @@ export const BrandSaveIcon = ({ status, className }: BrandSaveIconProps) => {
       <g ref={popRef}>
         <motion.path d={ringPath} className="fill-current" />
         <g ref={sliceRef}>
-          <motion.path d={slicePath} className="fill-accent" />
+          <motion.path d={slicePath} className="fill-accent" style={{ opacity: sliceGoldOpacity }} />
+          <motion.path d={slicePath} className="fill-current" style={{ opacity: sliceCheckOpacity }} />
         </g>
       </g>
     </SymbolSvg>
