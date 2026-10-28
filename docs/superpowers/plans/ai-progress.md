@@ -114,7 +114,7 @@
 | 98 | החלטות על שלוש התוכניות | תיעוד | #591 | מוזג ל־`feat/ai-intake` | [#593](https://github.com/yossi-weinberger/ten10/pull/593) |
 | R2 | `2026-10-28-ai-recurring.md` | מודול טהור, בלי UI | — | מוזג ל־`feat/ai-intake` | [#595](https://github.com/yossi-weinberger/ten10/pull/595) |
 | U1 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing | — | נפתח | [#594](https://github.com/yossi-weinberger/ten10/pull/594) |
-| U2 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing + UI | U1 | נפתח | `feat/ai-u2-admin-calls` |
+| U2 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing + UI | U1 | נפתח | [#599](https://github.com/yossi-weinberger/ten10/pull/599) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
