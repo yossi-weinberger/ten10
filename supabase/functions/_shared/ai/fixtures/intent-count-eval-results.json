@@ -1,0 +1,752 @@
+{
+  "summary": {
+    "count": {
+      "total": 120,
+      "answered": 120,
+      "correct": 116,
+      "accuracy": 0.9666666666666667,
+      "byLabel": {
+        "one": {
+          "total": 50,
+          "correct": 50
+        },
+        "several": {
+          "total": 45,
+          "correct": 41
+        },
+        "list": {
+          "total": 25,
+          "correct": 25
+        }
+      },
+      "correctConfidence": {
+        "min": 0.74,
+        "max": 1
+      },
+      "wrongConfidence": {
+        "min": 0.3,
+        "max": 0.62
+      },
+      "confidentWrong": 0,
+      "wrongs": [
+        {
+          "id": "count-he-033",
+          "expected": "several",
+          "choice": "one",
+          "confidence": 0.62
+        },
+        {
+          "id": "count-he-034",
+          "expected": "several",
+          "choice": "one",
+          "confidence": 0.51
+        },
+        {
+          "id": "count-he-056",
+          "expected": "several",
+          "choice": "one",
+          "confidence": 0.4
+        },
+        {
+          "id": "count-he-076",
+          "expected": "several",
+          "choice": "one",
+          "confidence": 0.3
+        }
+      ]
+    },
+    "effectiveCount": {
+      "total": 120,
+      "answered": 120,
+      "correct": 110,
+      "accuracy": 0.9166666666666666,
+      "byLabel": {
+        "one": {
+          "total": 50,
+          "correct": 41
+        },
+        "several": {
+          "total": 45,
+          "correct": 44
+        },
+        "list": {
+          "total": 25,
+          "correct": 25
+        }
+      },
+      "correctConfidence": {
+        "min": null,
+        "max": null
+      },
+      "wrongConfidence": {
+        "min": null,
+        "max": null
+      },
+      "confidentWrong": 0,
+      "wrongs": [
+        {
+          "id": "count-he-006",
+          "expected": "one",
+          "choice": "several",
+          "confidence": null
+        },
+        {
+          "id": "count-he-007",
+          "expected": "one",
+          "choice": "several",
+          "confidence": null
+        },
+        {
+          "id": "count-he-008",
+          "expected": "one",
+          "choice": "several",
+          "confidence": null
+        },
+        {
+          "id": "count-he-014",
+          "expected": "one",
+          "choice": "several",
+          "confidence": null
+        },
+        {
+          "id": "count-he-019",
+          "expected": "one",
+          "choice": "several",
+          "confidence": null
+        },
+        {
+          "id": "count-he-028",
+          "expected": "one",
+          "choice": "several",
+          "confidence": null
+        },
+        {
+          "id": "count-he-030",
+          "expected": "one",
+          "choice": "several",
+          "confidence": null
+        },
+        {
+          "id": "count-he-056",
+          "expected": "several",
+          "choice": "one",
+          "confidence": null
+        },
+        {
+          "id": "count-en-005",
+          "expected": "one",
+          "choice": "several",
+          "confidence": null
+        },
+        {
+          "id": "count-en-015",
+          "expected": "one",
+          "choice": "several",
+          "confidence": null
+        }
+      ]
+    },
+    "intent": {
+      "intent-eval-cases.json": {
+        "total": 68,
+        "answered": 68,
+        "correct": 67,
+        "accuracy": 0.9852941176470589,
+        "byLabel": {
+          "add_transaction": {
+            "total": 16,
+            "correct": 16
+          },
+          "create_rule": {
+            "total": 6,
+            "correct": 6
+          },
+          "ask_data": {
+            "total": 12,
+            "correct": 12
+          },
+          "find_duplicates": {
+            "total": 6,
+            "correct": 6
+          },
+          "help": {
+            "total": 6,
+            "correct": 6
+          },
+          "domain_adjacent": {
+            "total": 6,
+            "correct": 5
+          },
+          "out_of_scope": {
+            "total": 16,
+            "correct": 16
+          }
+        },
+        "correctConfidence": {
+          "min": 0.6,
+          "max": 1
+        },
+        "wrongConfidence": {
+          "min": 0.52,
+          "max": 0.52
+        },
+        "confidentWrong": 0,
+        "wrongs": [
+          {
+            "id": "en-hal-02",
+            "expected": "domain_adjacent",
+            "choice": "out_of_scope",
+            "confidence": 0.52
+          }
+        ]
+      },
+      "intent-eval-inbox.json": {
+        "total": 150,
+        "answered": 150,
+        "correct": 147,
+        "accuracy": 0.98,
+        "byLabel": {
+          "add_transaction": {
+            "total": 30,
+            "correct": 30
+          },
+          "create_rule": {
+            "total": 15,
+            "correct": 15
+          },
+          "ask_data": {
+            "total": 30,
+            "correct": 29
+          },
+          "find_duplicates": {
+            "total": 15,
+            "correct": 14
+          },
+          "help": {
+            "total": 15,
+            "correct": 14
+          },
+          "domain_adjacent": {
+            "total": 15,
+            "correct": 15
+          },
+          "out_of_scope": {
+            "total": 30,
+            "correct": 30
+          }
+        },
+        "correctConfidence": {
+          "min": 0.57,
+          "max": 1
+        },
+        "wrongConfidence": {
+          "min": 0.31,
+          "max": 0.5
+        },
+        "confidentWrong": 0,
+        "wrongs": [
+          {
+            "id": "gen-he-data-09",
+            "expected": "ask_data",
+            "choice": "out_of_scope",
+            "confidence": 0.5
+          },
+          {
+            "id": "gen-he-dup-09",
+            "expected": "find_duplicates",
+            "choice": "out_of_scope",
+            "confidence": 0.31
+          },
+          {
+            "id": "gen-he-help-05",
+            "expected": "help",
+            "choice": "find_duplicates",
+            "confidence": 0.49
+          }
+        ]
+      }
+    }
+  },
+  "countAnswers": {
+    "count-he-001": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-002": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-003": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-004": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-005": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-006": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-007": {
+      "choice": "one",
+      "confidence": 0.77
+    },
+    "count-he-008": {
+      "choice": "one",
+      "confidence": 0.92
+    },
+    "count-he-009": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-010": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-011": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-012": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-013": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-014": {
+      "choice": "one",
+      "confidence": 0.98
+    },
+    "count-he-015": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-016": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-017": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-018": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-019": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-020": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-021": {
+      "choice": "one",
+      "confidence": 0.98
+    },
+    "count-he-022": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-023": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-024": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-025": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-026": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-027": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-028": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-029": {
+      "choice": "one",
+      "confidence": 0.82
+    },
+    "count-he-030": {
+      "choice": "one",
+      "confidence": 0.97
+    },
+    "count-he-031": {
+      "choice": "several",
+      "confidence": 0.92
+    },
+    "count-he-032": {
+      "choice": "several",
+      "confidence": 0.74
+    },
+    "count-he-033": {
+      "choice": "one",
+      "confidence": 0.62
+    },
+    "count-he-034": {
+      "choice": "one",
+      "confidence": 0.51
+    },
+    "count-he-035": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-he-036": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-he-037": {
+      "choice": "several",
+      "confidence": 0.98
+    },
+    "count-he-038": {
+      "choice": "several",
+      "confidence": 0.94
+    },
+    "count-he-039": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-he-040": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-he-041": {
+      "choice": "several",
+      "confidence": 0.91
+    },
+    "count-he-042": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-he-043": {
+      "choice": "several",
+      "confidence": 0.97
+    },
+    "count-he-044": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-he-045": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-he-046": {
+      "choice": "several",
+      "confidence": 0.98
+    },
+    "count-he-047": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-he-048": {
+      "choice": "several",
+      "confidence": 0.97
+    },
+    "count-he-049": {
+      "choice": "several",
+      "confidence": 0.74
+    },
+    "count-he-050": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-he-051": {
+      "choice": "several",
+      "confidence": 0.92
+    },
+    "count-he-052": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-he-053": {
+      "choice": "several",
+      "confidence": 0.97
+    },
+    "count-he-054": {
+      "choice": "several",
+      "confidence": 0.95
+    },
+    "count-he-055": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-he-056": {
+      "choice": "one",
+      "confidence": 0.4
+    },
+    "count-he-057": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-he-058": {
+      "choice": "list",
+      "confidence": 0.98
+    },
+    "count-he-059": {
+      "choice": "list",
+      "confidence": 0.98
+    },
+    "count-he-060": {
+      "choice": "list",
+      "confidence": 0.98
+    },
+    "count-he-061": {
+      "choice": "list",
+      "confidence": 1
+    },
+    "count-he-062": {
+      "choice": "list",
+      "confidence": 0.98
+    },
+    "count-he-063": {
+      "choice": "list",
+      "confidence": 1
+    },
+    "count-he-064": {
+      "choice": "list",
+      "confidence": 0.97
+    },
+    "count-he-065": {
+      "choice": "list",
+      "confidence": 0.97
+    },
+    "count-he-066": {
+      "choice": "list",
+      "confidence": 1
+    },
+    "count-he-067": {
+      "choice": "list",
+      "confidence": 0.97
+    },
+    "count-he-068": {
+      "choice": "list",
+      "confidence": 0.98
+    },
+    "count-he-069": {
+      "choice": "list",
+      "confidence": 0.98
+    },
+    "count-he-070": {
+      "choice": "list",
+      "confidence": 0.98
+    },
+    "count-he-071": {
+      "choice": "list",
+      "confidence": 0.98
+    },
+    "count-he-072": {
+      "choice": "list",
+      "confidence": 0.98
+    },
+    "count-he-073": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-074": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-075": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-he-076": {
+      "choice": "one",
+      "confidence": 0.3
+    },
+    "count-he-077": {
+      "choice": "several",
+      "confidence": 0.95
+    },
+    "count-he-078": {
+      "choice": "list",
+      "confidence": 1
+    },
+    "count-he-079": {
+      "choice": "list",
+      "confidence": 0.98
+    },
+    "count-en-001": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-en-002": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-en-003": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-en-004": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-en-005": {
+      "choice": "one",
+      "confidence": 0.94
+    },
+    "count-en-006": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-en-007": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-en-008": {
+      "choice": "one",
+      "confidence": 0.92
+    },
+    "count-en-009": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-en-010": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-en-011": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-en-012": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-en-013": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-en-014": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-en-015": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-en-016": {
+      "choice": "several",
+      "confidence": 0.79
+    },
+    "count-en-017": {
+      "choice": "several",
+      "confidence": 0.91
+    },
+    "count-en-018": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-en-019": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-en-020": {
+      "choice": "several",
+      "confidence": 0.97
+    },
+    "count-en-021": {
+      "choice": "several",
+      "confidence": 0.97
+    },
+    "count-en-022": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-en-023": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-en-024": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-en-025": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-en-026": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-en-027": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-en-028": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-en-029": {
+      "choice": "several",
+      "confidence": 0.98
+    },
+    "count-en-030": {
+      "choice": "list",
+      "confidence": 0.98
+    },
+    "count-en-031": {
+      "choice": "list",
+      "confidence": 1
+    },
+    "count-en-032": {
+      "choice": "list",
+      "confidence": 0.98
+    },
+    "count-en-033": {
+      "choice": "list",
+      "confidence": 1
+    },
+    "count-en-034": {
+      "choice": "list",
+      "confidence": 0.98
+    },
+    "count-en-035": {
+      "choice": "list",
+      "confidence": 0.98
+    },
+    "count-en-036": {
+      "choice": "list",
+      "confidence": 0.97
+    },
+    "count-en-037": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-en-038": {
+      "choice": "one",
+      "confidence": 1
+    },
+    "count-en-039": {
+      "choice": "several",
+      "confidence": 1
+    },
+    "count-en-040": {
+      "choice": "several",
+      "confidence": 0.89
+    },
+    "count-en-041": {
+      "choice": "list",
+      "confidence": 0.98
+    }
+  }
+}
