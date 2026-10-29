@@ -19,6 +19,7 @@ export type AdminAiUsage = {
   ai_transaction_users: number;
   ai_users: number;
   message_senders: number;
+  ai_recurring: number;
 };
 
 export type AdminAiCounts = {

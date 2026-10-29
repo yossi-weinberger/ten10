@@ -42,7 +42,8 @@
       "shareOf": "{{ai}} of {{all}} transactions in this range",
       "messages": "Messages sent",
       "fromUsers": "from {{count}} users",
-      "hint": "Transaction counts use the transaction date. Messages use the time they were sent."
+      "hint": "Transaction counts use the transaction date. Messages use the time they were sent.",
+      "recurring": "{{count}} standing orders via AI"
     },
     "messagesTitle": "Messages sent",
     "messagesHint": "Each send to the drawer is counted. Conversations are not a separate count.",

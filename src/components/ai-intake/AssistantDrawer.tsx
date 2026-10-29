@@ -56,7 +56,9 @@ import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
 import { isOnOrAfterMinTransactionDate } from "@/lib/utils/transaction-date";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { createRecurringTransaction } from "@/lib/data-layer/recurringTransactions.service";
-import { cardFromRecurringDraft, saveStartDate, type RecurringCard } from "@/lib/ai/recurring-card";
+import { updateRecurringTransaction } from "@/lib/tableTransactions/recurringTable.service";
+import { cardFromRecurringDraft, recurringCancelOpen, saveStartDate, type RecurringCard } from "@/lib/ai/recurring-card";
+import type { RecurringTransaction } from "@/types/transaction";
 import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.store";
 import { recurringFromText } from "../../../supabase/functions/_shared/ai/recurring-draft.ts";
 import { buildRecurringDefinition } from "../../../supabase/functions/_shared/transaction-domain/recurring-definition.ts";
@@ -112,6 +114,7 @@ export function AssistantDrawer({
   const [recurring, setRecurring] = useState<RecurringCard | null>(null);
   const idempotency = useRef<DraftIdempotency | null>(null);
   const originalDraft = useRef<{ description: string; amount: number; date: string } | null>(null);
+  const savedRecurring = useRef<RecurringTransaction | null>(null);
   const previewUrls = useRef<string[]>([]);
   const [receiptArtifactId, setReceiptArtifactId] = useState<string | null>(null);
   const [receiptLink, setReceiptLink] = useState<string | null>(null);
@@ -224,6 +227,7 @@ export function AssistantDrawer({
     setIntent(null);
     setDraft(null);
     setRecurring(null);
+    savedRecurring.current = null;
     originalDraft.current = null;
     setAmountInput("");
     setDuplicates([]);
@@ -517,6 +521,7 @@ export function AssistantDrawer({
     const recurringDraft = nextIntent === "create_recurring"
       ? recurringFromText(source, today, questionCalendar)
       : null;
+    savedRecurring.current = null;
     setRecurring(recurringDraft ? cardFromRecurringDraft(recurringDraft.draft) : null);
     setStatus(oneAtATime ? "oneAtATime" : null);
     setSavedItemId(null);
@@ -566,7 +571,8 @@ export function AssistantDrawer({
         recipient: recurring.recipient || null,
         payment_method: recurring.paymentMethod,
       });
-      await createRecurringTransaction(definition);
+      const saved = await createRecurringTransaction({ ...definition, origin: "ai" });
+      savedRecurring.current = saved;
       trackProductEvent("recurring_obligation_created", {
         type: recurring.type,
         frequency: definition.frequency,
@@ -574,11 +580,36 @@ export function AssistantDrawer({
         has_category: recurring.category !== null,
         source: "ai",
       });
-      setRecurring({ ...recurring, saved: true, monthDuplicate: false });
+      setRecurring({
+        ...recurring,
+        saved: true,
+        monthDuplicate: false,
+        savedId: saved.id,
+        savedCreatedAt: saved.created_at ?? null,
+        executionCount: saved.execution_count,
+      });
       setStatus("recurringSaved");
       void useRecurringTableStore.getState().fetchRecurring();
     } catch {
       setStatus("recurringSaveFailed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleCancelRecurring() {
+    const row = savedRecurring.current;
+    if (!row || !recurring || saving || recurring.cancelled || row.created_at === undefined) return;
+    if (!recurringCancelOpen(row.created_at, row.execution_count, new Date())) return;
+    setSaving(true);
+    try {
+      await updateRecurringTransaction(row.id, { ...row, status: "cancelled" }, row);
+      savedRecurring.current = { ...row, status: "cancelled" };
+      setRecurring({ ...recurring, cancelled: true });
+      setStatus("recurringCancelled");
+      void useRecurringTableStore.getState().fetchRecurring();
+    } catch {
+      setStatus("recurringCancelFailed");
     } finally {
       setSaving(false);
     }
@@ -769,6 +800,7 @@ export function AssistantDrawer({
     setIntent(null);
     setDraft(null);
     setRecurring(null);
+    savedRecurring.current = null;
     originalDraft.current = null;
     setAmountInput("");
     setDuplicates([]);
@@ -823,6 +855,7 @@ export function AssistantDrawer({
       setHalachaNamespace(null);
       showDraft(null, "");
       setRecurring(null);
+      savedRecurring.current = null;
       setStatus(null);
       setSavedItemId(null);
       return;
@@ -1120,7 +1153,13 @@ export function AssistantDrawer({
           onSaveRecurring: () => {
             void handleSaveRecurring();
           },
-          onDismissRecurring: () => setRecurring(null),
+          onDismissRecurring: () => {
+            savedRecurring.current = null;
+            setRecurring(null);
+          },
+          onCancelRecurring: () => {
+            void handleCancelRecurring();
+          },
           onUndo: () => {
             void handleUndo();
           },

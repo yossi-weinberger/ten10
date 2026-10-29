@@ -61,6 +61,7 @@ const counts: AdminAiCounts = {
     ai_transaction_users: 2,
     ai_users: 2,
     message_senders: 2,
+    ai_recurring: 1,
   },
   users: [],
 };

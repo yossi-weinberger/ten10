@@ -43,6 +43,10 @@ export function cardFromRecurringDraft(draft: {
     includeThisMonth: null,
     monthDuplicate: false,
     saved: false,
+    savedId: null,
+    savedCreatedAt: null,
+    executionCount: 0,
+    cancelled: false,
   };
 }
 
@@ -64,6 +68,20 @@ export interface RecurringCard {
   includeThisMonth: "yes" | "no" | null;
   monthDuplicate: boolean;
   saved: boolean;
+  savedId: string | null;
+  savedCreatedAt: string | null;
+  executionCount: number;
+  cancelled: boolean;
+}
+
+const CANCEL_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** The assistant cancel button stays up for 7 days, and only before the first charge. */
+export function recurringCancelOpen(createdAt: string, executionCount: number, now: Date): boolean {
+  if (executionCount !== 0) return false;
+  const created = new Date(createdAt).getTime();
+  if (Number.isNaN(created)) return false;
+  return now.getTime() >= created && now.getTime() - created < CANCEL_WINDOW_MS;
 }
 
 function dayOf(card: RecurringCard): number | null {

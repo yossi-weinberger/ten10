@@ -7,6 +7,7 @@ import { useDisplayDate } from "@/lib/calendar/use-display-date";
 import type { RecurrenceFrequency } from "@/lib/calendar";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
 import {
+  recurringCancelOpen,
   recurringCardReady,
   upcomingRecurringDates,
   withRecurringDay,
@@ -33,6 +34,7 @@ export function RecurringDraftCard({
   onChange,
   onSave,
   onDismiss,
+  onCancel,
 }: {
   card: RecurringCard;
   saving: boolean;
@@ -40,6 +42,7 @@ export function RecurringDraftCard({
   onChange: (card: RecurringCard) => void;
   onSave: () => void;
   onDismiss: () => void;
+  onCancel: () => void;
 }) {
   const { t } = useTranslation("navigation");
   const formatDisplayDate = useDisplayDate();
@@ -47,6 +50,10 @@ export function RecurringDraftCard({
   const locked = !interactive || card.saved || saving;
   const dates = upcomingRecurringDates(card);
   const ready = recurringCardReady(card, today);
+  const cancelOpen = card.saved
+    && !card.cancelled
+    && card.savedCreatedAt !== null
+    && recurringCancelOpen(card.savedCreatedAt, card.executionCount, new Date());
   const end = card.totalOccurrences === null
     ? t("aiIntake.recurring.openEnded")
     : t("aiIntake.recurring.occurrences", { count: card.totalOccurrences });
@@ -71,9 +78,16 @@ export function RecurringDraftCard({
         </ul>
       ) : null}
       {card.saved ? (
-        <Button asChild variant="outline" size="sm" className="w-fit">
-          <Link to="/transactions-table/recurring-transactions">{t("aiIntake.recurring.openTable")}</Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline" size="sm" className="w-fit">
+            <Link to="/transactions-table/recurring-transactions">{t("aiIntake.recurring.openTable")}</Link>
+          </Button>
+          {cancelOpen ? (
+            <Button type="button" variant="outline" size="sm" disabled={!interactive || saving} onClick={onCancel}>
+              {t("aiIntake.recurring.cancel")}
+            </Button>
+          ) : null}
+        </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="grid gap-1">

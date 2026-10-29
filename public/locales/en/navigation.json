@@ -172,6 +172,9 @@
       "nextMonthOnly": "Start next month only",
       "saved": "Standing order saved",
       "saveFailed": "The standing order could not be saved",
+      "cancel": "Cancel",
+      "cancelled": "Standing order cancelled",
+      "cancelFailed": "The standing order could not be cancelled",
       "frequencies": {
         "daily": "every day",
         "weekly": "every week",

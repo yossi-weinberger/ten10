@@ -29,6 +29,7 @@ const ai = vi.hoisted(() => ({
   refreshAfterIntakeSave: vi.fn(),
   deleteTransaction: vi.fn(),
   createRecurringTransaction: vi.fn(),
+  updateRecurringTransaction: vi.fn(),
 }));
 
 vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
@@ -73,6 +74,9 @@ vi.mock("@/lib/ai/transcribe-speech", () => ({ transcribeSpeech: ai.transcribeSp
 vi.mock("@/lib/ai/refresh-after-intake", () => ({ refreshAfterIntakeSave: ai.refreshAfterIntakeSave }));
 vi.mock("@/lib/data-layer/recurringTransactions.service", () => ({
   createRecurringTransaction: ai.createRecurringTransaction,
+}));
+vi.mock("@/lib/tableTransactions/recurringTable.service", () => ({
+  updateRecurringTransaction: ai.updateRecurringTransaction,
 }));
 vi.mock("@/lib/analytics/productAnalytics", () => ({ trackProductEvent: vi.fn() }));
 vi.mock("@/lib/tableTransactions/recurringTable.store", () => ({
@@ -447,7 +451,12 @@ describe("AssistantDrawer characterization", () => {
 
   it("shows a standing order and saves it only after the click", async () => {
     confident("create_recurring");
-    ai.createRecurringTransaction.mockResolvedValue({ id: "r1" });
+    ai.createRecurringTransaction.mockResolvedValue({
+      id: "r1",
+      created_at: new Date().toISOString(),
+      execution_count: 0,
+    });
+    ai.updateRecurringTransaction.mockResolvedValue({ id: "r1", status: "cancelled" });
     const user = setup();
     await send(user, "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש");
     expect(await screen.findByRole("button", { name: "aiIntake.recurring.save" })).toBeEnabled();
@@ -455,7 +464,28 @@ describe("AssistantDrawer characterization", () => {
     await user.selectOptions(screen.getByRole("combobox", { name: "aiIntake.recurring.type" }), "donation");
     await user.click(screen.getByRole("button", { name: "aiIntake.recurring.save" }));
     await waitFor(() => expect(ai.createRecurringTransaction).toHaveBeenCalledTimes(1));
+    expect(ai.createRecurringTransaction.mock.calls[0][0].origin).toBe("ai");
     expect(await screen.findByText("aiIntake.recurring.saved")).toBeInTheDocument();
+    await user.click(await screen.findByRole("button", { name: "aiIntake.recurring.cancel" }));
+    await waitFor(() => expect(ai.updateRecurringTransaction).toHaveBeenCalledTimes(1));
+    expect(ai.updateRecurringTransaction.mock.calls[0][1].status).toBe("cancelled");
+    expect(await screen.findByText("aiIntake.recurring.cancelled")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "aiIntake.recurring.cancel" })).not.toBeInTheDocument();
+  });
+
+  it("hides cancel after the standing order has already charged", async () => {
+    confident("create_recurring");
+    ai.createRecurringTransaction.mockResolvedValue({
+      id: "r1",
+      created_at: new Date().toISOString(),
+      execution_count: 1,
+    });
+    const user = setup();
+    await send(user, "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש");
+    await user.selectOptions(await screen.findByRole("combobox", { name: "aiIntake.recurring.type" }), "donation");
+    await user.click(screen.getByRole("button", { name: "aiIntake.recurring.save" }));
+    expect(await screen.findByText("aiIntake.recurring.saved")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "aiIntake.recurring.cancel" })).not.toBeInTheDocument();
   });
 
   it("disables send when the field is empty and clears the chat", async () => {

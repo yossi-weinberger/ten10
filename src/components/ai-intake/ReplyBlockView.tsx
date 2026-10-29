@@ -33,6 +33,7 @@ export interface ReplyHandlers {
   onRecurringChange: (card: RecurringCard) => void;
   onSaveRecurring: () => void;
   onDismissRecurring: () => void;
+  onCancelRecurring: () => void;
   onUndo: () => void;
   onAskDelete: (id: string) => void;
   onConfirmDelete: (id: string) => void;
@@ -161,6 +162,7 @@ export function ReplyBlockView({
           onChange={handlers.onRecurringChange}
           onSave={handlers.onSaveRecurring}
           onDismiss={handlers.onDismissRecurring}
+          onCancel={handlers.onCancelRecurring}
         />
       );
     case "draft":
