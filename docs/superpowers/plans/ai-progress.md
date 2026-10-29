@@ -118,6 +118,7 @@
 | U2 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing + UI | U1 | מוזג ל־`feat/ai-intake` | [#599](https://github.com/yossi-weinberger/ten10/pull/599) |
 | NW | מספרים במילים | מודול טהור, בלי חיבור | — | מוזג ל־`feat/ai-intake` | [#601](https://github.com/yossi-weinberger/ten10/pull/601) |
 | U3 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing, בלי הודעות בממשק | U2 | מוזג ל־`feat/ai-intake` | [#602](https://github.com/yossi-weinberger/ten10/pull/602) |
+| M5 | `2026-10-28-ai-multi-item.md` | UI, ייבוא בלבד | — | מוזג ל־`feat/ai-intake` | [#598](https://github.com/yossi-weinberger/ten10/pull/598) |
 | M1 | 2026-10-28-ai-multi-item.md | Edge + UI, בלי חילוץ | — | נפתח, מחכה לסט | [#596](https://github.com/yossi-weinberger/ten10/pull/596) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
@@ -455,6 +456,7 @@
   - **פריסה:** חמש פונקציות נפרסו על testing ונטענות. `ai-classify-intent` לא נפרס מכאן, כדי לא לדרוס את M1.
   - **עוד לא בפנים:** ההודעות בממשק («נגמרה המכסה», «יותר מדי בקשות»). הן ב־PR המשך אחרי M1, כי הן נוגעות במגירה. עד אז קול חסום יקבל «לא שמעתי». לא ל־`main`.
   - **QA (29/10) עבר** על `b55ea0b3`: קבלה רשמה 5 יחידות, קול רשם 3 ושוחרר כשהספק נכשל, טקסט פתח טיוטה בלי שורת שימוש כי `ai-classify-intent` לא נפרס מהענף. לפני כל פריסה של הפונקציות: המיגרציה קודם.
+- **2026-10-28:** M5 ([#598](https://github.com/yossi-weinberger/ten10/pull/598)) נפתח מול `feat/ai-intake`. `ImportWizard` מקבל `initialRows` של טיוטות AI ונפתח ישר בסקירה, בלי קובץ ובלי מיפוי. כל טיוטה עוברת `draftToNormalizedRow` ואז `previewRowsFromNormalized`, שחולקת עם `buildPreviewRows` את הנרמול, הכפילות וההוראות הקבועות, בפרופיל `AI_DRAFT`. השמירה היא הייבוא הרגיל, בלי `origin`. שורה במטבע זר, גם עם שער, נחסמת, כי שמירת הייבוא לא שומרת המרה. `exempt-income` ו־`non_tithe_donation` עוברים. עוד אין מי שקורא לזה מהעוזר. לא ל־`main`.
 - **2026-10-28:** [#596](https://github.com/yossi-weinberger/ten10/pull/596) נפתח מול `feat/ai-intake` (M1). קריאת הכוונה שואלת גם כמה תנועות יש (`one`, `several`, `list`), ו־`ai-classify-intent` מחזיר `count` ו־`count_confidence`. רשת ביטחון: שני סכומים או יותר ב־parser הם `several`. כשהכוונה היא תנועה וזה לא `one`, אין טיוטה, והתשובה היא «אני רושם תנועה אחת בכל פעם. שלח אותן אחת אחת.» גם בקול. שעה, שנה בהקשר של תאריך, ויום בחודש («ב־15 לחודש», «כל חודש ב־10») לא נספרים כסכום, וגם לא כמות ליד מחיר («2 חולצות ב־100»). לכן «כל חודש ב־10 תרשום 1,500» נותן עכשיו 1,500. הכיול מחכה ל־`intent-count-eval-cases.json` מיוסי. לא נפרס ל־testing. לא ל־`main`.
 - **2026-10-29:** כיול M1 על `intent-count-eval-cases.json` (120 משפטים: 50 `one`, 45 `several`, 25 `list`). שלוש ריצות:
   - **ריצה 1, עם הקריטריונים המקוריים:** ספירה 86.7% עם טעות אחת בוודאות גבוהה (`en-016`). בכוונה, «אתה יכול לבדוק לי כמה תרמתי או רק לרשום תנועות?» הפך ל־`ask_data` בוודאות 0.8.
