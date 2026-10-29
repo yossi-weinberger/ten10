@@ -3,6 +3,7 @@
  * Phrases live in phrase-aliases.ts. Amount and currency stay as written.
  */
 
+import { numberWordsToDigits } from "./number-words.ts";
 import {
   AMOUNT_CURRENCY_WORDS,
   AMOUNT_UNIT_WORDS,
@@ -280,20 +281,24 @@ function normalizeInput(text: string): string {
     .replace(/\s+/g, " ");
 }
 
+function textForAmounts(text: string): string {
+  return prepareText(normalizeInput(numberWordsToDigits(text)));
+}
+
 /** Every amount in the text, in order. `draftFromText` picks one of them. */
 export function amountsFromText(text: string): number[] {
-  return amountCandidates(maskRate(prepareText(normalizeInput(text)))).map((hit) => hit.amount);
+  return amountCandidates(maskRate(textForAmounts(text))).map((hit) => hit.amount);
 }
 
 /** Only the amounts with a currency word or sign beside them. */
 export function currencyAmountsFromText(text: string): number[] {
-  return amountCandidates(maskRate(prepareText(normalizeInput(text))))
+  return amountCandidates(maskRate(textForAmounts(text)))
     .filter((hit) => hit.strength === 2)
     .map((hit) => hit.amount);
 }
 
 function cleanDescription(original: string): string {
-  let text = prepareText(original);
+  let text = prepareText(numberWordsToDigits(original));
   const amount = findAmount(maskRate(text));
   if (amount) text = `${text.slice(0, amount.stripStart)} ${text.slice(amount.stripEnd)}`;
   const rateWords = wordsPattern(RATE_MARKERS);
@@ -350,7 +355,7 @@ export function draftFromText(text: string, today: string): TextTransactionDraft
   const rateWords = wordsPattern(RATE_MARKERS);
   const rateMatch = normalized.match(new RegExp(`(?:${rateWords})\\s*(\\d+(?:,\\d+)?(?:\\.\\d+)?)`));
   const requestedRate = rateMatch ? parseNumber(rateMatch[1]) : null;
-  const amountHit = findAmount(maskRate(prepareText(normalized)));
+  const amountHit = findAmount(maskRate(textForAmounts(text)));
   if (!amountHit) return null;
   const amount = amountHit.amount;
 

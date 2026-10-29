@@ -150,6 +150,8 @@ Deno.test("every amount is listed, marked or bare", () => {
   sameAmounts("20 לקפה, 35 לאוטובוס", [20, 35]);
   sameAmounts("$50 groceries and $120 yeshiva", [50, 120]);
   sameAmounts("50 לכולל", [50]);
+  sameAmounts("תרמתי מאה שמונים לישיבה ושילמתי חמישים במכולת", [180, 50]);
+  sameAmounts("במאה שערים", []);
   sameAmounts("1,234.56 בסופר", [1234.56]);
   sameAmounts("תרמתי 2000 לישיבה", [2000]);
   sameAmounts("אתמול קיבלתי 200 דולר לפי שער 3.5", [200]);

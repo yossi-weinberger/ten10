@@ -12,6 +12,7 @@ export const HEBREW_UNITS: Readonly<Record<string, number>> = {
   שתי: 2,
   שני: 2,
   שלוש: 3,
+  שלש: 3,
   שלושה: 3,
   ארבע: 4,
   ארבעה: 4,
@@ -36,6 +37,7 @@ export const HEBREW_TEN: Readonly<Record<string, number>> = { עשר: 10, עשר
 export const HEBREW_TENS: Readonly<Record<string, number>> = {
   עשרים: 20,
   שלושים: 30,
+  שלשים: 30,
   ארבעים: 40,
   חמישים: 50,
   שישים: 60,
@@ -45,7 +47,7 @@ export const HEBREW_TENS: Readonly<Record<string, number>> = {
   תשעים: 90,
 };
 
-export const HEBREW_HUNDREDS: Readonly<Record<string, number>> = { מאה: 100, מאתיים: 200 };
+export const HEBREW_HUNDREDS: Readonly<Record<string, number>> = { מאה: 100, מאתיים: 200, מאתים: 200 };
 
 /** After a unit: «שלוש מאות». */
 export const HEBREW_HUNDREDS_PLURAL = "מאות";
