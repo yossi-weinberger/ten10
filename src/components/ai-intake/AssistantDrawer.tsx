@@ -35,7 +35,7 @@ import { orderCandidatesByRank } from "@/lib/ai/duplicate-rank";
 import { rankDuplicateCandidates } from "@/lib/ai/rank-duplicates";
 import { recordShadowType } from "@/lib/ai/shadow-type";
 import { classifyIntentFallback } from "@/lib/ai/intent-fallback";
-import { readReceiptImage } from "@/lib/ai/read-receipt";
+import { readReceiptImage, type ReadReceiptResult } from "@/lib/ai/read-receipt";
 import { openAiReceipt } from "@/lib/ai/open-receipt";
 import { isIsoDate, receiptAsDraft, receiptRuledDraft, type ReceiptFields } from "@/lib/ai/receipt-card";
 import { dismissDuplicatePair, loadDuplicateScan } from "@/lib/ai/load-duplicate-scan";
@@ -85,6 +85,12 @@ export interface AssistantDrawerHandle {
 type CountAnswer = { count: IntakeCount | null; confidence: number | null };
 
 const NO_COUNT: CountAnswer = { count: null, confidence: null };
+
+function isSingleReceipt(
+  result: ReadReceiptResult,
+): result is Extract<ReadReceiptResult, { route: "receipt" }> {
+  return result.ok && result.route === "receipt";
+}
 
 interface AssistantDrawerProps {
   open: boolean;
@@ -393,6 +399,25 @@ export function AssistantDrawer({
             ? "providerFailed"
             : "receiptUnreadable",
       );
+      return;
+    }
+    if (!isSingleReceipt(result)) {
+      setReceiptArtifactId(null);
+      setIntent(null);
+      setReceiptFields(null);
+      showDraft(null, "");
+      switch (result.route) {
+        case "several_receipts":
+          setStatus("severalReceipts");
+          break;
+        case "statement":
+          setStatus("bankStatement");
+          break;
+        default: {
+          const unreachable: never = result;
+          return unreachable;
+        }
+      }
       return;
     }
     setIntent("add_transaction");

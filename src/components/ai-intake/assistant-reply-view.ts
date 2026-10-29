@@ -35,6 +35,8 @@ export const STATUS_MESSAGES = {
   receiptUnavailable: { key: "aiIntake.receiptUnavailable", tone: "error" },
   providerFailed: { key: "aiIntake.providerFailed", tone: "error" },
   oneAtATime: { key: "aiIntake.oneAtATime", tone: "info" },
+  severalReceipts: { key: "aiIntake.severalReceipts", tone: "info" },
+  bankStatement: { key: "aiIntake.bankStatement", tone: "info" },
   voiceDenied: { key: "aiIntake.voiceDenied", tone: "error" },
   voiceTooLong: { key: "aiIntake.voiceTooLong", tone: "error" },
   voiceUnheard: { key: "aiIntake.voiceUnheard", tone: "error" },

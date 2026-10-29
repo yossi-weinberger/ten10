@@ -7,11 +7,14 @@ export const RECEIPT_MAX_BASE64_CHARS = 5_500_000;
 export const RECEIPT_MAX_BYTES = Math.floor(RECEIPT_MAX_BASE64_CHARS / 4) * 3;
 type ReceiptCurrency = (typeof CURRENCIES)[number];
 
+export type ReceiptKind = "receipt" | "several_receipts" | "statement";
+
 export interface ReceiptDraft {
   description: string;
   date: string;
   amount: number;
   currency: ReceiptCurrency;
+  kind: "receipt";
 }
 
 /** Locked vision model. Reads Hebrew and English receipts, including PDFs. */
@@ -142,7 +145,13 @@ export function isIsoDate(value: string): boolean {
     && date.getUTCDate() === day;
 }
 
-export function readReceiptDraft(value: unknown): ReceiptDraft | null {
+function receiptRecord(value: unknown): {
+  kind?: unknown;
+  description?: unknown;
+  date?: unknown;
+  amount?: unknown;
+  currency?: unknown;
+} | null {
   let record = value;
   if (typeof value === "string") {
     const trimmed = value.trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
@@ -153,12 +162,26 @@ export function readReceiptDraft(value: unknown): ReceiptDraft | null {
     }
   }
   if (!record || typeof record !== "object") return null;
-  const source = record as {
+  return record as {
+    kind?: unknown;
     description?: unknown;
     date?: unknown;
     amount?: unknown;
     currency?: unknown;
   };
+}
+
+/** A missing or unknown kind is one receipt. Several receipts and a statement are not. */
+export function readReceiptKind(value: unknown): ReceiptKind {
+  const kind = receiptRecord(value)?.kind;
+  if (kind === "several_receipts" || kind === "statement") return kind;
+  return "receipt";
+}
+
+export function readReceiptDraft(value: unknown): ReceiptDraft | null {
+  if (readReceiptKind(value) !== "receipt") return null;
+  const source = receiptRecord(value);
+  if (!source) return null;
   if (typeof source.description !== "string") return null;
   const description = source.description.trim().slice(0, 200);
   if (description.length < 2) return null;
@@ -172,5 +195,6 @@ export function readReceiptDraft(value: unknown): ReceiptDraft | null {
     date: source.date,
     amount,
     currency: currency as ReceiptCurrency,
+    kind: "receipt",
   };
 }

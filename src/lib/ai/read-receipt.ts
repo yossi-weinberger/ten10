@@ -4,6 +4,7 @@ import type { ReceiptFields } from "@/lib/ai/receipt-card";
 import {
   readReceiptArtifactId,
   readReceiptDraft,
+  readReceiptKind,
   RECEIPT_MAX_BASE64_CHARS,
   RECEIPT_MAX_BYTES,
 } from "../../../supabase/functions/_shared/ai/receipt-draft.ts";
@@ -13,7 +14,8 @@ const IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const RECEIPT_LONG_SIDE = 2000;
 
 export type ReadReceiptResult =
-  | { ok: true; fields: ReceiptFields; artifactId: string | null }
+  | { ok: true; route: "receipt"; fields: ReceiptFields; artifactId: string | null }
+  | { ok: true; route: "several_receipts" | "statement" }
   | { ok: false; reason: "TOO_LARGE" | "UNREADABLE" | "UNAVAILABLE" };
 
 function fileToBase64(file: File): Promise<string> {
@@ -83,10 +85,14 @@ export async function readReceiptImage(file: File): Promise<ReadReceiptResult> {
   if (reason === "too_large") return { ok: false, reason: "TOO_LARGE" };
   if (reason === "unavailable") return { ok: false, reason: "UNAVAILABLE" };
   if (reason === "unreadable") return { ok: false, reason: "UNREADABLE" };
-  const draft = readReceiptDraft((payload as { draft?: unknown }).draft);
+  const raw = (payload as { draft?: unknown }).draft;
+  const kind = readReceiptKind(raw);
+  if (kind === "several_receipts" || kind === "statement") return { ok: true, route: kind };
+  const draft = readReceiptDraft(raw);
   if (!draft) return { ok: false, reason: "UNREADABLE" };
   return {
     ok: true,
+    route: "receipt",
     fields: draft,
     artifactId: readReceiptArtifactId((payload as { artifact_id?: unknown }).artifact_id),
   };

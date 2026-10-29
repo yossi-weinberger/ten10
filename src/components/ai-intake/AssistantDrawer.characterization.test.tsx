@@ -366,6 +366,7 @@ describe("AssistantDrawer characterization", () => {
   it("reads a shared receipt and asks for the type before the draft", async () => {
     ai.readReceiptImage.mockResolvedValue({
       ok: true,
+      route: "receipt",
       fields: { description: "סופר", date: "2026-10-20", amount: 42.5, currency: "ILS" },
       artifactId: "art1",
     });
@@ -377,6 +378,24 @@ describe("AssistantDrawer characterization", () => {
     expect(screen.getAllByRole("button", { name: "aiIntake.viewReceipt" }).length).toBeGreaterThan(0);
     await user.click(screen.getByRole("button", { name: "aiIntake.types.expense" }));
     expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("42.5");
+  });
+
+  it("does not draft several receipts or a bank statement", async () => {
+    ai.readReceiptImage.mockResolvedValue({ ok: true, route: "several_receipts" });
+    setup();
+    await act(async () => {
+      receiveRef.current?.receive(new File(["x"], "r.jpg", { type: "image/jpeg" }));
+    });
+    expect(await screen.findByText("aiIntake.severalReceipts")).toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.askType")).not.toBeInTheDocument();
+
+    ai.readReceiptImage.mockResolvedValue({ ok: true, route: "statement" });
+    await act(async () => {
+      receiveRef.current?.receive(new File(["x"], "s.pdf", { type: "application/pdf" }));
+    });
+    expect(await screen.findByText("aiIntake.bankStatement")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "aiIntake.openImport" })).toHaveAttribute("href", "/transactions-table/import");
+    expect(screen.queryByRole("button", { name: "aiIntake.types.expense" })).not.toBeInTheDocument();
   });
 
   it("shows a provider failure for a voice message instead of returning to the start", async () => {
