@@ -15,6 +15,34 @@ export const HELP_PHRASES = [
 
 export const DUPLICATE_MARKERS = ["כפילות", "כפילויות", "duplicate", "duplicates"] as const;
 
+/** A request to define a repeating transaction. A repeat word alone is not enough. */
+export const RECURRING_REQUEST_MARKERS = [
+  "תגדיר",
+  "תקבע",
+  "set up",
+  "make it recurring",
+] as const;
+
+/** The repetition. Without a request marker, the sentence stays a normal transaction or a rule. */
+export const RECURRING_REPEAT_MARKERS = [
+  "הוראת קבע",
+  "הוראת הקבע",
+  "כל חודש",
+  "כל שבוע",
+  "כל שנה",
+  "כל יום",
+  "every month",
+  "every week",
+  "every year",
+  "every day",
+  "monthly",
+  "weekly",
+  "yearly",
+  "daily",
+  "standing order",
+  "recurring",
+] as const;
+
 export const RULE_START_MARKERS = [
   "מהיום",
   "מעכשיו",

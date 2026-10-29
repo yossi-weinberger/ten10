@@ -18,7 +18,8 @@ export function intentIsConfident(confidence: number | null): boolean {
 
 const INTENT_CRITERIA: Record<IntakeIntent, string> = {
   add_transaction: "The user reports a real purchase, income, donation, or other money movement to record now. Asking whether recording is possible is not this.",
-  create_rule: "The user states a standing rule to save for future transactions. Asking whether a rule can be created is not this.",
+  create_rule: "The user states a standing rule to save for future transactions. Asking whether a rule can be created is not this. A standing rule changes how future transactions are classified. Setting up a transaction that repeats is not this.",
+  create_recurring: "The user asks to set up a transaction that repeats from now on, such as a standing order or a fixed monthly payment to record automatically. Reporting one charge that already happened, even from a standing order, is not this.",
   ask_data: "The user wants a saved total, count, or history now, including a total from income or donations they say are already recorded. Asking whether such questions can be answered is not this.",
   find_duplicates: "The user wants duplicate transactions found now. Asking whether that can be requested is not this.",
   help: "The user asks what this assistant can do, or whether it can do something, without asking for that action now. A question that offers a choice between abilities, such as can you check X or only record, is this.",

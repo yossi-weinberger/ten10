@@ -155,11 +155,14 @@
     "intentChoices": {
       "add_transaction": "תנועה",
       "ask_data": "שאלה",
-      "create_rule": "כלל"
+      "create_rule": "כלל",
+      "create_recurring": "הוראת קבע"
     },
+    "openRecurringForm": "פתח את הטופס",
     "intents": {
       "add_transaction": "זו נראית כמו תנועה.",
       "create_rule": "זו נראית כמו בקשה לכלל.",
+      "create_recurring": "אפשר להגדיר הוראת קבע בטופס.",
       "ask_data": "זו נראית כמו שאלה על הנתונים.",
       "find_duplicates": "זו נראית כמו בקשה לחפש כפילויות.",
       "help": "אפשר לשלוח תנועה, כלל, שאלה על הנתונים, או חיפוש כפילויות.",

@@ -25,7 +25,10 @@ import { CURRENCIES } from "@/lib/currencies";
 import { Transaction } from "@/types/transaction";
 import { useTableTransactionsStore } from "@/lib/tableTransactions/tableTransactions.store";
 import { usePlatform } from "@/contexts/PlatformContext";
-import { useTransactionFormInitialization } from "@/hooks/useTransactionFormInitialization";
+import {
+  recurringFromSearch,
+  useTransactionFormInitialization,
+} from "@/hooks/useTransactionFormInitialization";
 import { logger } from "@/lib/logger";
 import { trackProductEvent } from "@/lib/analytics/productAnalytics";
 import { toast } from "sonner";
@@ -124,7 +127,7 @@ export function TransactionForm({
       isExempt: false,
       isRecognized: false,
       isFromPersonalFunds: false,
-      is_recurring: false,
+      is_recurring: recurringFromSearch(search),
       frequency: "monthly",
       recurring_calendar_type: defaultRecurringCalendar,
       recurring_day_of_month: undefined,

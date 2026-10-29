@@ -145,11 +145,14 @@
     "intentChoices": {
       "add_transaction": "Transaction",
       "ask_data": "Question",
-      "create_rule": "Rule"
+      "create_rule": "Rule",
+      "create_recurring": "Standing order"
     },
+    "openRecurringForm": "Open the form",
     "intents": {
       "add_transaction": "This looks like a transaction.",
       "create_rule": "This looks like a rule.",
+      "create_recurring": "You can set up a standing order in the form.",
       "ask_data": "This looks like a question about your data.",
       "find_duplicates": "This looks like a duplicate search.",
       "help": "You can send a transaction, a rule, a data question, or a duplicate search.",
