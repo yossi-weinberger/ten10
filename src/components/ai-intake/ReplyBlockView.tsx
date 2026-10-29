@@ -77,7 +77,7 @@ export function ReplyBlockView({
           </p>
           {block.intent === "create_recurring" ? (
             <Button asChild variant="outline" size="sm" className="w-fit">
-              <Link to="/add-transaction" search={{ recurring: "1" }}>
+              <Link to="/add-transaction" search={{ recurring: 1 }}>
                 {t("aiIntake.openRecurringForm")}
               </Link>
             </Button>
