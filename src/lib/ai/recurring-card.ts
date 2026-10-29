@@ -198,15 +198,16 @@ export function recurrenceRule(card: RecurringCard): RecurrenceRule | null {
   };
 }
 
-/** The next charges, at most three, and fewer when the order ends sooner. */
-export function upcomingRecurringDates(card: RecurringCard, limit = 3): string[] {
-  if (!card.startDate) return [];
+/** The next charges from the date a save would write, at most three, and fewer when the order ends sooner. */
+export function upcomingRecurringDates(card: RecurringCard, today: string, limit = 3): string[] {
+  const start = saveStartDate(card, today);
+  if (!start) return [];
   const rule = recurrenceRule(card);
   if (!rule) return [];
   const count = card.totalOccurrences === null ? limit : Math.min(limit, card.totalOccurrences);
   if (count <= 0) return [];
   const dates: string[] = [];
-  let due = firstRecurringDueDate(card.startDate, card.calendarType, rule.dayOfMonth);
+  let due = start;
   while (dates.length < count) {
     dates.push(due);
     due = advanceRecurringDate(due, rule);

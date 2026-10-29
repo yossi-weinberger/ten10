@@ -45,16 +45,16 @@ function card(overrides: Partial<RecurringCard> = {}): RecurringCard {
 
 describe("recurring card dates", () => {
   it("lists the next three monthly charges", () => {
-    expect(upcomingRecurringDates(card())).toEqual(["2026-11-10", "2026-12-10", "2027-01-10"]);
+    expect(upcomingRecurringDates(card(), "2026-10-29")).toEqual(["2026-11-10", "2026-12-10", "2027-01-10"]);
   });
 
   it("stops when the order has fewer than three charges", () => {
-    expect(upcomingRecurringDates(card({ totalOccurrences: 1 }))).toEqual(["2026-11-10"]);
+    expect(upcomingRecurringDates(card({ totalOccurrences: 1 }), "2026-10-29")).toEqual(["2026-11-10"]);
   });
 
   it("recomputes the charges when the day changes", () => {
     const next = withRecurringDay(card(), 1, "2026-10-29");
-    expect(upcomingRecurringDates(next)).toEqual(["2026-11-01", "2026-12-01", "2027-01-01"]);
+    expect(upcomingRecurringDates(next, "2026-10-29")).toEqual(["2026-11-01", "2026-12-01", "2027-01-01"]);
   });
 
   it("uses this month's due date when the charge already happened", () => {
@@ -70,6 +70,32 @@ describe("recurring card dates", () => {
     expect(includedMonthDueDate(charged, "2026-10-03")).toBe("2026-10-10");
     expect(saveStartDate(charged, "2026-10-03")).toBe("2026-10-10");
     expect(saveStartDate({ ...charged, includeThisMonth: "no" }, "2026-10-03")).toBe("2026-11-10");
+  });
+
+  it("shows the same first charge the save writes", () => {
+    const today = "2026-10-29";
+    const day30 = card({
+      alreadyCharged: true,
+      dayOfMonth: 30,
+      startDate: "2026-10-30",
+      includeThisMonth: "no",
+    });
+    expect(saveStartDate(day30, today)).toBe("2026-11-30");
+    expect(upcomingRecurringDates(day30, today).slice(0, 1)).toEqual(["2026-11-30"]);
+    expect(recurringShortDate("2026-11-30", "gregorian")).toBe("30/11");
+
+    const day10 = card({ alreadyCharged: true, includeThisMonth: "yes" });
+    expect(saveStartDate(day10, today)).toBe("2026-10-10");
+    expect(upcomingRecurringDates(day10, today).slice(0, 1)).toEqual(["2026-10-10"]);
+
+    const day30Yes = card({
+      alreadyCharged: true,
+      dayOfMonth: 30,
+      startDate: "2026-10-30",
+      includeThisMonth: "yes",
+    });
+    expect(saveStartDate(day30Yes, today)).toBe("2026-10-30");
+    expect(upcomingRecurringDates(day30Yes, today).slice(0, 1)).toEqual(["2026-10-30"]);
   });
 
   it("reads a real standing-order sentence into a card that can be saved", () => {
@@ -141,11 +167,11 @@ describe("recurring card dates", () => {
     expect(upcomingRecurringDates(card({
       startDate: "2026-01-31",
       dayOfMonth: 31,
-    }))).toEqual(["2026-01-31", "2026-02-28", "2026-03-31"]);
+    }), "2026-01-31")).toEqual(["2026-01-31", "2026-02-28", "2026-03-31"]);
     expect(upcomingRecurringDates(card({
       startDate: "2026-03-31",
       dayOfMonth: 31,
-    }))).toEqual(["2026-03-31", "2026-04-30", "2026-05-31"]);
+    }), "2026-03-31")).toEqual(["2026-03-31", "2026-04-30", "2026-05-31"]);
   });
 
   it("offers cancel for 7 days and hides it after the first charge", () => {
