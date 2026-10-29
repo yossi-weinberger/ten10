@@ -68,6 +68,14 @@ interface Span {
   end: number;
 }
 
+/** «כולל» is a payee only after ל. «לשכר דירה כולל ארנונה» is not a donation. */
+const KOLLEL_PAYEE = /(?:^|[^\p{L}])ל[\s־\-–]*כולל(?![\p{L}])/u;
+
+function donationRecipient(text: string): boolean {
+  if (KOLLEL_PAYEE.test(text)) return true;
+  return includesAlias(text, DONATION_RECIPIENT_MARKERS.filter((marker) => marker !== "כולל"));
+}
+
 const BEFORE = String.raw`(?<![\p{L}\d])`;
 const AFTER = String.raw`(?![\p{L}\d])`;
 const HEBREW_CLITICS = "[ובלמשהכ]{0,2}";
@@ -346,7 +354,7 @@ export function recurringFromText(
   const rest = blank(prepared, spans);
   const textDraft = draftFromText(rest, today);
   let type = textDraft && clarificationField(rest, today) !== "type" ? textDraft.type : null;
-  if (type === null && includesAlias(prepared.toLowerCase(), DONATION_RECIPIENT_MARKERS)) {
+  if (type === null && donationRecipient(prepared.toLowerCase())) {
     type = "donation";
   }
 

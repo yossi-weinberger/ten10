@@ -359,6 +359,13 @@ Deno.test("missing amount, type and frequency are listed", () => {
   assertEquals([complete.draft.type, complete.missing], ["donation", []], "complete");
 });
 
+Deno.test("כולל is a donation only as the payee after ל", () => {
+  const rent = parse("תגדיר לי הוראת קבע של 2000 ש״ח לשכר דירה כולל ארנונה כל חודש");
+  assertEquals(rent.draft.type === "donation", false, "including rent is not a donation");
+  const kollel = parse("תגדיר לי הוראת קבע של 200 ש״ח לכולל כל חודש");
+  assertEquals(kollel.draft.type, "donation", "payee");
+});
+
 Deno.test("a standing order to a Torah recipient keeps the payee and is a donation", () => {
   const cases: [string, string, number, string | null][] = [
     ["תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש", "כולל", 200, "monthly"],

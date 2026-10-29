@@ -231,6 +231,22 @@ function lookbackDays(frequency: RecurrenceFrequency): number {
   }
 }
 
+/**
+ * The charge "גם החודש" writes. When this month's day is still ahead, that day,
+ * even though it is after today. When it has passed, the latest due on or before today.
+ * The form's catch-up math stays on `currentPeriodDueDate`.
+ */
+export function includedMonthDueDate(card: RecurringCard, today: string): string | null {
+  const rule = recurrenceRule(card);
+  if (!rule) return null;
+  const upcoming = firstRecurringDueDate(today, card.calendarType, rule.dayOfMonth);
+  const adapter = getCalendarAdapter(card.calendarType);
+  const upcomingMonth = adapter.fromIsoDate(upcoming);
+  const todayMonth = adapter.fromIsoDate(today);
+  if (upcomingMonth.year === todayMonth.year && upcomingMonth.month === todayMonth.month) return upcoming;
+  return currentPeriodDueDate(card, today);
+}
+
 /** Latest due date on or before today. Null when the schedule cannot be read. */
 export function currentPeriodDueDate(card: RecurringCard, today: string): string | null {
   const rule = recurrenceRule(card);
@@ -246,10 +262,10 @@ export function currentPeriodDueDate(card: RecurringCard, today: string): string
 
 /** Start date written on save. Including this month uses the current period. */
 export function saveStartDate(card: RecurringCard, today: string): string | null {
-  if (card.includeThisMonth === "yes") return currentPeriodDueDate(card, today);
+  if (card.includeThisMonth === "yes") return includedMonthDueDate(card, today);
   if (card.includeThisMonth === "no" && card.alreadyCharged) {
     const rule = recurrenceRule(card);
-    const current = currentPeriodDueDate(card, today);
+    const current = includedMonthDueDate(card, today);
     if (!rule || !current) return card.startDate;
     if (card.startDate && card.startDate > current) return card.startDate;
     return advanceRecurringDate(current, rule);

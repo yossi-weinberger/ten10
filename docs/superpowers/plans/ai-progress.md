@@ -131,6 +131,7 @@
 | M2b | `2026-10-28-ai-multi-item.md` | קריאת תשובת הפיצול, בלי מודל | M2a | מוזג | [#610](https://github.com/yossi-weinberger/ten10/pull/610) |
 | WISH | `2026-10-29-ai-review-wish.md` | סקירת #596–#607, לא מיושם | — | מוזג | [#611](https://github.com/yossi-weinberger/ten10/pull/611) |
 | A1 | `2026-10-29-ai-review-wish.md` | מקף ASCII ו־en-dash לפני ספרה | WISH | מוזג | [#612](https://github.com/yossi-weinberger/ten10/pull/612) |
+| B1 | `2026-10-29-ai-review-wish.md` | גם החודש, וכולל רק אחרי ל | A1 | נפתח | |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
@@ -512,3 +513,4 @@
 - **2026-10-29:** #611 מוזג ל־`feat/ai-intake`. הרשימה ביומן, בלי מימוש. לא ל־`main`.
 - **2026-10-29:** A1. מקף ASCII ו־en-dash אחרי אות שימוש לפני ספרה נהיים רווח, כמו המקף העברי. «ב-15 לחודש ירדו 450» נותן 450. סט הפיצול לא רץ. לא ל־`main`.
 - **2026-10-29:** #612 מוזג ל־`feat/ai-intake`. מקף ASCII ו־en-dash לפני ספרה. לא ל־`main`.
+- **2026-10-29:** B1. «גם החודש» ביום שעוד לא הגיע הוא החיוב של החודש הזה, לא של החודש שעבר. «מהחודש הבא» מתחיל מהחיוב שאחריו. «כולל» הוא תרומה רק אחרי ל. «לשכר דירה כולל ארנונה» אינו תרומה. לא ל־`main`.

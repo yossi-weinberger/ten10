@@ -3,6 +3,7 @@ import { recurringFromText } from "../../../supabase/functions/_shared/ai/recurr
 import {
   cardFromRecurringDraft,
   currentPeriodDueDate,
+  includedMonthDueDate,
   nextRecurringQuestion,
   recurringCancelOpen,
   recurringCardReady,
@@ -61,6 +62,14 @@ describe("recurring card dates", () => {
     expect(currentPeriodDueDate(charged, "2026-10-29")).toBe("2026-10-10");
     expect(saveStartDate(charged, "2026-10-29")).toBe("2026-10-10");
     expect(saveStartDate({ ...charged, includeThisMonth: "no" }, "2026-10-29")).toBe("2026-11-10");
+  });
+
+  it("includes this month's later day instead of last month", () => {
+    const charged = card({ alreadyCharged: true, includeThisMonth: "yes", startDate: "2026-10-10" });
+    expect(currentPeriodDueDate(charged, "2026-10-03")).toBe("2026-09-10");
+    expect(includedMonthDueDate(charged, "2026-10-03")).toBe("2026-10-10");
+    expect(saveStartDate(charged, "2026-10-03")).toBe("2026-10-10");
+    expect(saveStartDate({ ...charged, includeThisMonth: "no" }, "2026-10-03")).toBe("2026-11-10");
   });
 
   it("reads a real standing-order sentence into a card that can be saved", () => {
