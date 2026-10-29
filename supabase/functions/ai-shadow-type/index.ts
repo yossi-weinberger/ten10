@@ -13,6 +13,7 @@ import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
+import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
 
 function json(origin: string | null, body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -101,6 +102,9 @@ Deno.serve(async (req: Request) => {
 
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
   if (!apiKey) return json(origin, { recorded: false }, 200);
+
+  const allowed = await serviceUsageGate().consumeCall(userData.user.id);
+  if (!allowed.allowed) return json(origin, { recorded: false, reason: allowed.reason }, 200);
 
   try {
     const result = await callModel({
