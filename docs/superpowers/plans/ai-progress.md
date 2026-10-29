@@ -115,7 +115,8 @@
 | R2 | `2026-10-28-ai-recurring.md` | מודול טהור, בלי UI | — | מוזג ל־`feat/ai-intake` | [#595](https://github.com/yossi-weinberger/ten10/pull/595) |
 | U1 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing | — | מוזג ל־`feat/ai-intake` | [#594](https://github.com/yossi-weinberger/ten10/pull/594) |
 | RCP | נמען בתרומה | מודול טהור, בלי חיבור | — | מוזג ל־`feat/ai-intake` | [#597](https://github.com/yossi-weinberger/ten10/pull/597) |
-| U2 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing + UI | U1 | נפתח | [#599](https://github.com/yossi-weinberger/ten10/pull/599) |
+| U2 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing + UI | U1 | מוזג ל־`feat/ai-intake` | [#599](https://github.com/yossi-weinberger/ten10/pull/599) |
+| NW | מספרים במילים | מודול טהור, בלי חיבור | — | מוזג ל־`feat/ai-intake` | [#601](https://github.com/yossi-weinberger/ten10/pull/601) |
 | U3 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing, בלי הודעות בממשק | U2 | נפתח | [#602](https://github.com/yossi-weinberger/ten10/pull/602) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
@@ -437,6 +438,7 @@
   - **השוואה ראשונה (28/10, יום חלקי):** השער $0.01337 ו־33 בקשות, מול $0.00736 ו־23 קריאות אצלנו. ההפרש הוא קריאות מלפני פריסת U1 ושתי קריאות בדיקה שלי בלי תג. ההשוואה האמיתית מתחילה ב־29/10.
   - **ממצא:** שלוש הקלטות של ה־QA נכשלו ב־400. הקלטה מהדפדפן (`audio/webm;codecs=opus`) נדחית על ידי `microsoft/mai-transcribe-2`, ו־WAV עובר. זה לא מ־U1, והקול כנראה לא עבד מאז 19/10. התיקון, המרה ל־WAV בדפדפן, הוא PR נפרד.
   - `ai-classify-intent` לא נפרס מכאן, כדי לא לדרוס את הגרסה של M1 על testing. לא ל־`main`.
+- **2026-10-29:** NW ([#601](https://github.com/yossi-weinberger/ten10/pull/601)) נפתח מול `feat/ai-intake`. `numberWordsToDigits` ב־`number-words.ts`, והמילים ב־`number-word-aliases.ts`. «מאה שמונים שקל» הופך ל־«180 שקל», ו־"twenty-five dollars" ל־"25 dollars". אות ב/ל/מ/ו/ה לפני המספר נשארת, עם מקף: «ב־300». מספר מתחת ל־20 נשאר במילים, אלא אם בא אחריו מטבע. «יום שני» לא משתנה. ב־`intent-eval-inbox.json` משתנים 11 משפטים מתוך 150, כולם סכומים אמיתיים. «בחמש עשרה» לחודש נשאר במילים. עוד לא מחובר ל־`draftFromText`, זה אחרי #596. בלי UI, DB או Edge. לא ל־`main`.
 - **2026-10-29:** U3, צד השרת.
   - **טבלאות:** `ai.usage_counters` (יחידות לחודש קלנדרי UTC), `ai.usage_rate` (דלי דקה ודלי יום), ו־`ai.usage_events` (שורה לכל צריכה, כדי שהשחרור יהיה בטוח גם אם הוא נקרא פעמיים).
   - **משקלות:** קבלה 5, קול 3, טקסט 1. שאלת נתונים, כפילויות ומדידת צל בלי משקל, רק בדלי הדקה והיום.
