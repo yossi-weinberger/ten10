@@ -1,6 +1,7 @@
 import { RotateCcw } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
 import { Shimmer } from "@/components/ui/shimmer";
 import { TypeChoice } from "./blocks/TypeChoice";
 import type { IntakeIntent, RuleActionType, TextTransactionDraft } from "@/lib/ai/classify-intake";
@@ -61,7 +62,7 @@ export function ReplyBlockView({
           prompt={t("aiIntake.askIntent")}
           disabled={!interactive}
           onChoose={handlers.onChooseIntent}
-          options={(["add_transaction", "ask_data", "create_rule"] as const).map((intent) => ({
+          options={(["add_transaction", "ask_data", "create_rule", "create_recurring"] as const).map((intent) => ({
             value: intent,
             label: t(`aiIntake.intentChoices.${intent}`),
           }))}
@@ -69,10 +70,19 @@ export function ReplyBlockView({
       );
     case "intent":
       return (
-        <p className="text-sm">
-          {t(`aiIntake.intents.${block.intent}`)}{" "}
-          {block.showNotSaved ? <span className="text-muted-foreground">{t("aiIntake.notSaved")}</span> : null}
-        </p>
+        <div className="grid gap-2">
+          <p className="text-sm">
+            {t(`aiIntake.intents.${block.intent}`)}{" "}
+            {block.showNotSaved ? <span className="text-muted-foreground">{t("aiIntake.notSaved")}</span> : null}
+          </p>
+          {block.intent === "create_recurring" ? (
+            <Button asChild variant="outline" size="sm" className="w-fit">
+              <Link to="/add-transaction" search={{ recurring: 1 }}>
+                {t("aiIntake.openRecurringForm")}
+              </Link>
+            </Button>
+          ) : null}
+        </div>
       );
     case "dataAnswer":
       return <DataAnswer reply={block.reply} questionCalendar={handlers.questionCalendar} />;

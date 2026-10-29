@@ -10,6 +10,8 @@ import {
   DUPLICATE_MARKERS,
   HELP_PHRASES,
   QUESTION_MARKERS,
+  RECURRING_REPEAT_MARKERS,
+  RECURRING_REQUEST_MARKERS,
   RULE_START_MARKERS,
   TRANSACTION_VERBS,
   includesAlias,
@@ -18,6 +20,7 @@ import {
 export const INTAKE_INTENTS = [
   "add_transaction",
   "create_rule",
+  "create_recurring",
   "ask_data",
   "find_duplicates",
   "help",
@@ -93,6 +96,13 @@ export function classifyIntent(text: string): IntakeIntent {
 
   if (includesAlias(normalized, DUPLICATE_MARKERS)) {
     return "find_duplicates";
+  }
+
+  if (
+    includesAlias(normalized, RECURRING_REQUEST_MARKERS) &&
+    includesAlias(normalized, RECURRING_REPEAT_MARKERS)
+  ) {
+    return "create_recurring";
   }
 
   if (includesAlias(normalized, RULE_START_MARKERS)) {
