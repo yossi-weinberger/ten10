@@ -91,13 +91,20 @@ function previousWeekday(today: string, weekday: number): string {
   return addIsoDays(today, -delta);
 }
 
-function resolveDate(text: string, today: string): string {
+/** Empty phrase is today. A phrase these lists do not know is null, not today. */
+export function resolveDatePhrase(phrase: string, today: string): string | null {
+  const text = phrase.trim().toLowerCase().replace(/־/g, " ").replace(/\s+/g, " ");
+  if (text.length === 0) return today;
   for (const entry of LAST_WEEKDAYS) {
     if (includesAlias(text, entry.phrases)) return previousWeekday(today, entry.weekday);
   }
   if (includesAlias(text, DATE_MINUS_TWO)) return addIsoDays(today, -2);
   if (includesAlias(text, DATE_MINUS_ONE)) return addIsoDays(today, -1);
-  return today;
+  return null;
+}
+
+function resolveDate(text: string, today: string): string {
+  return resolveDatePhrase(text, today) ?? today;
 }
 
 function resolveCurrency(text: string): TextTransactionDraft["currency"] {
@@ -123,7 +130,7 @@ function resolvePaymentMethod(text: string): TextTransactionDraft["paymentMethod
 
 const NUMBER_SRC = String.raw`\d+(?:,\d{3})+(?:\.\d+)?|\d+(?:[.,]\d+)?`;
 
-function prepareText(text: string): string {
+export function prepareText(text: string): string {
   return text.replace(/־/g, " ").replace(/ש(?:["״]|'')ח/g, "ש\"ח").replace(/\s+/g, " ").trim();
 }
 
