@@ -117,7 +117,8 @@
 | RCP | נמען בתרומה | מודול טהור, בלי חיבור | — | מוזג ל־`feat/ai-intake` | [#597](https://github.com/yossi-weinberger/ten10/pull/597) |
 | U2 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing + UI | U1 | מוזג ל־`feat/ai-intake` | [#599](https://github.com/yossi-weinberger/ten10/pull/599) |
 | NW | מספרים במילים | מודול טהור, בלי חיבור | — | מוזג ל־`feat/ai-intake` | [#601](https://github.com/yossi-weinberger/ten10/pull/601) |
-| U3 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing, בלי הודעות בממשק | U2 | נפתח | [#602](https://github.com/yossi-weinberger/ten10/pull/602) |
+| U3 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing, בלי הודעות בממשק | U2 | מוזג ל־`feat/ai-intake` | [#602](https://github.com/yossi-weinberger/ten10/pull/602) |
+| M5 | `2026-10-28-ai-multi-item.md` | UI, ייבוא בלבד | — | נפתח | [#598](https://github.com/yossi-weinberger/ten10/pull/598) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
@@ -454,3 +455,4 @@
   - **פריסה:** חמש פונקציות נפרסו על testing ונטענות. `ai-classify-intent` לא נפרס מכאן, כדי לא לדרוס את M1.
   - **עוד לא בפנים:** ההודעות בממשק («נגמרה המכסה», «יותר מדי בקשות»). הן ב־PR המשך אחרי M1, כי הן נוגעות במגירה. עד אז קול חסום יקבל «לא שמעתי». לא ל־`main`.
   - **QA (29/10) עבר** על `b55ea0b3`: קבלה רשמה 5 יחידות, קול רשם 3 ושוחרר כשהספק נכשל, טקסט פתח טיוטה בלי שורת שימוש כי `ai-classify-intent` לא נפרס מהענף. לפני כל פריסה של הפונקציות: המיגרציה קודם.
+- **2026-10-28:** M5 ([#598](https://github.com/yossi-weinberger/ten10/pull/598)) נפתח מול `feat/ai-intake`. `ImportWizard` מקבל `initialRows` של טיוטות AI ונפתח ישר בסקירה, בלי קובץ ובלי מיפוי. כל טיוטה עוברת `draftToNormalizedRow` ואז `previewRowsFromNormalized`, שחולקת עם `buildPreviewRows` את הנרמול, הכפילות וההוראות הקבועות, בפרופיל `AI_DRAFT`. השמירה היא הייבוא הרגיל, בלי `origin`. שורה במטבע זר, גם עם שער, נחסמת, כי שמירת הייבוא לא שומרת המרה. `exempt-income` ו־`non_tithe_donation` עוברים. עוד אין מי שקורא לזה מהעוזר. לא ל־`main`.
