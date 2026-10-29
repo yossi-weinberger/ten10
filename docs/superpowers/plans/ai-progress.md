@@ -116,7 +116,7 @@
 | U1 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing | — | מוזג ל־`feat/ai-intake` | [#594](https://github.com/yossi-weinberger/ten10/pull/594) |
 | RCP | נמען בתרומה | מודול טהור, בלי חיבור | — | מוזג ל־`feat/ai-intake` | [#597](https://github.com/yossi-weinberger/ten10/pull/597) |
 | U2 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing + UI | U1 | נפתח | [#599](https://github.com/yossi-weinberger/ten10/pull/599) |
-| U3 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing, בלי הודעות בממשק | U2 | נפתח | `feat/ai-u3-usage-limits` |
+| U3 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing, בלי הודעות בממשק | U2 | נפתח | [#602](https://github.com/yossi-weinberger/ten10/pull/602) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
