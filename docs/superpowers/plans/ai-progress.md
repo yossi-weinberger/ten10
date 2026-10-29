@@ -124,7 +124,7 @@
 | R1 | `2026-10-28-ai-recurring.md` | כוונה + מגירה, בלי כרטיס | M1 | מוזג | [#603](https://github.com/yossi-weinberger/ten10/pull/603) |
 | R3 | `2026-10-28-ai-recurring.md` | כרטיס, עריכה, שמירה בלחיצה | R1 | מוזג | [#604](https://github.com/yossi-weinberger/ten10/pull/604) |
 | R4 | `2026-10-28-ai-recurring.md` | ביטול אחרי שמירה, ועמודת origin | R3 | מוזג | [#605](https://github.com/yossi-weinberger/ten10/pull/605) |
-| R3b | `2026-10-28-ai-recurring.md` | כרטיס סיכום, חודשי בלבד | R4 | נפתח | |
+| R3b | `2026-10-28-ai-recurring.md` | כרטיס סיכום, חודשי בלבד | R4 | נפתח | [#606](https://github.com/yossi-weinberger/ten10/pull/606) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
