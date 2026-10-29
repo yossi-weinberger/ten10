@@ -11,6 +11,7 @@ import {
   decodeReceiptBase64,
   readModelText,
   readReceiptDraft,
+  readReceiptKind,
   readReceiptArtifactId,
   readStoredReceiptPath,
   receiptFilePart,
@@ -86,7 +87,10 @@ async function storeCheckedReceipt(
 const PROMPT = [
   "Read this receipt. It may be written in Hebrew, English, or both.",
   "Reply with JSON only, no markdown.",
-  '{"description":"merchant name","date":"YYYY-MM-DD","amount":12.34,"currency":"ILS"}',
+  "kind is receipt, several_receipts, or statement.",
+  "Use several_receipts when the image shows more than one receipt. Use statement when it is a bank or credit-card statement. Otherwise use receipt.",
+  "For several_receipts or statement, reply only {\"kind\":\"several_receipts\"} or {\"kind\":\"statement\"}. Do not list transactions.",
+  '{"kind":"receipt","description":"merchant name","date":"YYYY-MM-DD","amount":12.34,"currency":"ILS"}',
   "currency is ILS, USD, or EUR.",
   "amount is the total paid, as a positive number.",
   "description is the merchant name exactly as printed. Keep Hebrew in Hebrew and English in English. Do not translate.",
@@ -186,7 +190,10 @@ Deno.serve(async (req: Request) => {
       await usage.release(allowed.usageId);
       return json(origin, { draft: null, reason: "unavailable" }, 200);
     }
-    const draft = readReceiptDraft(readModelText(result.payload));
+    const text = readModelText(result.payload);
+    const kind = readReceiptKind(text);
+    if (kind !== "receipt") return json(origin, { draft: { kind } }, 200);
+    const draft = readReceiptDraft(text);
     const artifactId = readReceiptArtifactId(stored.artifactId);
     return json(origin, artifactId ? { draft, artifact_id: artifactId } : { draft }, 200);
   } catch {

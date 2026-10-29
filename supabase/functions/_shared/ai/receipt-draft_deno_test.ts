@@ -2,6 +2,7 @@ import {
   decodeReceiptBase64,
   readModelText,
   readReceiptDraft,
+  readReceiptKind,
   readReceiptArtifactId,
   readStoredReceiptPath,
   receiptFilePart,
@@ -26,6 +27,19 @@ Deno.test("receipt draft keeps a total and rejects a missing one", () => {
   assert(draft?.description === "שופרסל", "merchant");
   assert(draft?.amount === 247.8, "amount");
   assert(draft?.currency === "ILS", "currency");
+  assert(draft?.kind === "receipt", "missing kind");
+  assert(readReceiptDraft({
+    kind: "invoice",
+    description: "שופרסל",
+    date: "2026-10-18",
+    amount: 10,
+    currency: "ILS",
+  })?.kind === "receipt", "unknown kind");
+  assert(readReceiptDraft({ kind: "several_receipts" }) === null, "several is not one draft");
+  assert(readReceiptDraft({ kind: "statement", description: "bank", date: "2026-10-18", amount: 10, currency: "ILS" }) === null, "statement is not one draft");
+  assert(readReceiptKind({ kind: "several_receipts" }) === "several_receipts", "several");
+  assert(readReceiptKind({ kind: "statement" }) === "statement", "statement");
+  assert(readReceiptKind({ kind: "invoice" }) === "receipt", "unknown stays one receipt");
   assert(readReceiptDraft('{"description":null}') === null, "unreadable");
   assert(readReceiptDraft({ description: "x", date: "2026-02-31", amount: 10, currency: "ILS" }) === null, "bad date");
 });

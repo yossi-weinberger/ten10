@@ -181,7 +181,16 @@ export function ReplyBlockView({
         />
       );
     case "status":
-      return <StatusNote status={block.status} />;
+      return (
+        <div className="grid gap-2">
+          <StatusNote status={block.status} />
+          {block.status === "bankStatement" ? (
+            <Button asChild variant="outline" size="sm" className="w-fit">
+              <Link to="/transactions-table/import">{t("aiIntake.openImport")}</Link>
+            </Button>
+          ) : null}
+        </div>
+      );
     case "undo":
       if (!interactive) return null;
       return (
