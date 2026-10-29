@@ -76,6 +76,103 @@ export interface RecurringCard {
 
 const CANCEL_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 
+export type RecurringQuestion = "amount" | "currency" | "type" | "frequency" | "day" | "includeThisMonth";
+
+export const RECURRING_EDIT_FIELDS = [
+  "amount",
+  "currency",
+  "type",
+  "description",
+  "recipient",
+  "category",
+  "day",
+  "start",
+  "count",
+] as const;
+
+export type RecurringEditField = (typeof RECURRING_EDIT_FIELDS)[number];
+
+export type RecurringSummaryPiece = {
+  field: "type" | "amount" | "description" | "day" | "start" | null;
+  text: string;
+};
+
+/**
+ * Daily, weekly, and yearly are recognized and refused.
+ * They are not turned into a monthly order.
+ *
+ * TODO(recurring-frequencies): when weekly/yearly are enabled in the form, also enable them in the AI recurring flow (recurring-card.ts + intent/extraction prompt) and update tests.
+ */
+export function unsupportedRecurringFrequency(
+  frequency: RecurrenceFrequency | null,
+): frequency is "daily" | "weekly" | "yearly" {
+  return frequency === "daily" || frequency === "weekly" || frequency === "yearly";
+}
+
+/** The one missing answer, in order. Null when the card can show the summary. */
+export function nextRecurringQuestion(card: RecurringCard): RecurringQuestion | null {
+  if (card.saved || unsupportedRecurringFrequency(card.frequency)) return null;
+  if (card.amount === null || !(card.amount > 0)) return "amount";
+  if (card.currency === null) return "currency";
+  if (card.type === null) return "type";
+  if (card.frequency === null) return "frequency";
+  if (card.startDate === null) return "day";
+  if (card.alreadyCharged && card.includeThisMonth === null) return "includeThisMonth";
+  return null;
+}
+
+/** Day and month in the card's calendar, without a year. Gregorian 2026-11-10 is "10/11". */
+export function recurringShortDate(iso: string, calendarType: CalendarType): string {
+  const representation = getCalendarAdapter(calendarType).fromIsoDate(iso);
+  return `${representation.day}/${representation.month}`;
+}
+
+export function recurringSummaryPieces(
+  card: RecurringCard,
+  labels: {
+    type: string;
+    currency: string;
+    start: string;
+    lead: string;
+    payeePrefix: string;
+    monthly: string;
+    from: string;
+  },
+): RecurringSummaryPiece[] {
+  const pieces: RecurringSummaryPiece[] = [
+    { field: null, text: labels.lead },
+    { field: "type", text: labels.type },
+    { field: null, text: " " },
+    { field: "amount", text: `${card.amount ?? ""} ${labels.currency}` },
+  ];
+  const payee = card.description.trim();
+  if (payee) {
+    pieces.push({ field: null, text: labels.payeePrefix }, { field: "description", text: payee });
+  }
+  pieces.push(
+    { field: null, text: labels.monthly },
+    { field: "day", text: String(card.dayOfMonth ?? "") },
+    { field: null, text: labels.from },
+    { field: "start", text: labels.start },
+  );
+  return pieces;
+}
+
+export function recurringSummarySentence(
+  card: RecurringCard,
+  labels: {
+    type: string;
+    currency: string;
+    start: string;
+    lead: string;
+    payeePrefix: string;
+    monthly: string;
+    from: string;
+  },
+): string {
+  return recurringSummaryPieces(card, labels).map((piece) => piece.text).join("");
+}
+
 /** The assistant cancel button stays up for 7 days, and only before the first charge. */
 export function recurringCancelOpen(createdAt: string, executionCount: number, now: Date): boolean {
   if (executionCount !== 0) return false;
@@ -162,13 +259,13 @@ export function saveStartDate(card: RecurringCard, today: string): string | null
 
 export function recurringCardReady(card: RecurringCard, today: string): boolean {
   if (card.saved || card.monthDuplicate) return false;
+  if (card.frequency !== "monthly") return false;
   if (card.alreadyCharged && card.includeThisMonth === null) return false;
   return (
     card.amount !== null &&
     card.amount > 0 &&
     card.currency !== null &&
     card.type !== null &&
-    card.frequency !== null &&
     saveStartDate(card, today) !== null
   );
 }

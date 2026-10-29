@@ -3,9 +3,13 @@ import { recurringFromText } from "../../../supabase/functions/_shared/ai/recurr
 import {
   cardFromRecurringDraft,
   currentPeriodDueDate,
+  nextRecurringQuestion,
   recurringCancelOpen,
   recurringCardReady,
+  recurringShortDate,
+  recurringSummarySentence,
   saveStartDate,
+  unsupportedRecurringFrequency,
   upcomingRecurringDates,
   withRecurringDay,
   type RecurringCard,
@@ -84,6 +88,55 @@ describe("recurring card dates", () => {
     expect(recurringCardReady({ ...charged, includeThisMonth: "no" }, "2026-10-29")).toBe(true);
     expect(recurringCardReady(card({ amount: null }), "2026-10-29")).toBe(false);
     expect(recurringCardReady(card({ startDate: null, dayOfMonth: null }), "2026-10-29")).toBe(false);
+  });
+
+  const hebrewSummary = {
+    type: "תרומה",
+    currency: "₪",
+    start: "10/11",
+    lead: "הוראת קבע: ",
+    payeePrefix: " ל",
+    monthly: ", כל חודש ב-",
+    from: ", החל מ-",
+  };
+
+  it("writes one Hebrew summary when the monthly order is complete", () => {
+    const complete = card({ amount: 100, dayOfMonth: 10, startDate: "2026-11-10" });
+    expect(nextRecurringQuestion(complete)).toBeNull();
+    expect(recurringShortDate("2026-11-10", "gregorian")).toBe("10/11");
+    expect(recurringSummarySentence(complete, hebrewSummary)).toBe(
+      "הוראת קבע: תרומה 100 ₪ לכולל, כל חודש ב-10, החל מ-10/11",
+    );
+  });
+
+  it("asks one missing field at a time, amount first", () => {
+    expect(nextRecurringQuestion(card({ amount: null, type: null }))).toBe("amount");
+    expect(nextRecurringQuestion(card({ type: null }))).toBe("type");
+    expect(nextRecurringQuestion(card({ frequency: null }))).toBe("frequency");
+    expect(nextRecurringQuestion(card({ startDate: null, dayOfMonth: null }))).toBe("day");
+    expect(nextRecurringQuestion(card({ alreadyCharged: true }))).toBe("includeThisMonth");
+  });
+
+  it("refuses a weekly or yearly order instead of saving it as monthly", () => {
+    expect(unsupportedRecurringFrequency("weekly")).toBe(true);
+    expect(unsupportedRecurringFrequency("yearly")).toBe(true);
+    expect(unsupportedRecurringFrequency("daily")).toBe(true);
+    expect(unsupportedRecurringFrequency("monthly")).toBe(false);
+    expect(unsupportedRecurringFrequency(null)).toBe(false);
+    expect(nextRecurringQuestion(card({ frequency: "weekly" }))).toBeNull();
+    expect(recurringCardReady(card({ frequency: "weekly" }), "2026-10-29")).toBe(false);
+    expect(recurringCardReady(card({ frequency: "yearly" }), "2026-10-29")).toBe(false);
+  });
+
+  it("clamps day 31 in February and in a 30-day month", () => {
+    expect(upcomingRecurringDates(card({
+      startDate: "2026-01-31",
+      dayOfMonth: 31,
+    }))).toEqual(["2026-01-31", "2026-02-28", "2026-03-31"]);
+    expect(upcomingRecurringDates(card({
+      startDate: "2026-03-31",
+      dayOfMonth: 31,
+    }))).toEqual(["2026-03-31", "2026-04-30", "2026-05-31"]);
   });
 
   it("offers cancel for 7 days and hides it after the first charge", () => {
