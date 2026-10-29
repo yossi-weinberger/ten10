@@ -20,7 +20,7 @@ const CURRENCIES = ["ILS", "USD", "EUR"] as const;
 const TYPES = ["expense", "income", "donation", "exempt-income", "recognized-expense", "non_tithe_donation"] as const;
 const CATEGORIES = ["food", "transportation"] as const;
 
-const fieldClass = "border-input bg-background h-9 w-full rounded-md border ps-3 pe-10 text-sm rtl:ps-10 rtl:pe-3";
+const selectClass = "border-input bg-background h-9 w-full rounded-md border ps-3 pe-10 text-sm";
 
 function todayIso(): string {
   return new Intl.DateTimeFormat("en-CA").format(new Date());
@@ -93,7 +93,7 @@ export function RecurringDraftCard({
             <Label>{t("aiIntake.recurring.currency")}</Label>
             <select
               aria-label={t("aiIntake.recurring.currency")}
-              className={fieldClass}
+              className={selectClass}
               disabled={locked}
               value={card.currency ?? ""}
               onChange={(event) => onChange({
@@ -109,7 +109,7 @@ export function RecurringDraftCard({
             <Label>{t("aiIntake.recurring.type")}</Label>
             <select
               aria-label={t("aiIntake.recurring.type")}
-              className={fieldClass}
+              className={selectClass}
               disabled={locked}
               value={card.type ?? ""}
               onChange={(event) => onChange({
@@ -127,7 +127,7 @@ export function RecurringDraftCard({
             <Label>{t("aiIntake.recurring.frequency")}</Label>
             <select
               aria-label={t("aiIntake.recurring.frequency")}
-              className={fieldClass}
+              className={selectClass}
               disabled={locked}
               value={card.frequency ?? ""}
               onChange={(event) => {
@@ -166,7 +166,7 @@ export function RecurringDraftCard({
             <Label>{t("aiIntake.recurring.category")}</Label>
             <select
               aria-label={t("aiIntake.recurring.category")}
-              className={fieldClass}
+              className={selectClass}
               disabled={locked}
               value={card.category ?? ""}
               onChange={(event) => onChange({
