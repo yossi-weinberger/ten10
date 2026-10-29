@@ -194,6 +194,7 @@ export function AdminAiSection() {
             />
           </div>
           <p className="text-sm text-muted-foreground">{t("ai.usage.hint")}</p>
+          <p className="text-sm text-muted-foreground">{t("ai.usage.recurring", { count: counts.usage.ai_recurring })}</p>
         </div>
       ) : countsCurrent && countsFailed ? (
         <Alert variant="destructive">

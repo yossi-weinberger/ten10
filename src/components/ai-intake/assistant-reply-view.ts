@@ -19,6 +19,8 @@ export const STATUS_MESSAGES = {
   duplicateKept: { key: "aiIntake.duplicateKept", tone: "success" },
   recurringSaved: { key: "aiIntake.recurring.saved", tone: "success" },
   recurringSaveFailed: { key: "aiIntake.recurring.saveFailed", tone: "error" },
+  recurringCancelled: { key: "aiIntake.recurring.cancelled", tone: "success" },
+  recurringCancelFailed: { key: "aiIntake.recurring.cancelFailed", tone: "error" },
   ruleFailed: { key: "aiIntake.ruleFailed", tone: "error" },
   saveFailed: { key: "aiIntake.saveFailed", tone: "error" },
   noRateAvailable: { key: "aiIntake.noRateAvailable", tone: "error" },

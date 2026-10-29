@@ -182,6 +182,9 @@
       "nextMonthOnly": "רשום מהחודש הבא בלבד",
       "saved": "נשמרה הוראת קבע",
       "saveFailed": "שמירת הוראת הקבע נכשלה",
+      "cancel": "בטל",
+      "cancelled": "הוראת הקבע בוטלה",
+      "cancelFailed": "ביטול הוראת הקבע נכשל",
       "frequencies": {
         "daily": "כל יום",
         "weekly": "כל שבוע",

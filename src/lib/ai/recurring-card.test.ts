@@ -3,6 +3,7 @@ import { recurringFromText } from "../../../supabase/functions/_shared/ai/recurr
 import {
   cardFromRecurringDraft,
   currentPeriodDueDate,
+  recurringCancelOpen,
   recurringCardReady,
   saveStartDate,
   upcomingRecurringDates,
@@ -29,6 +30,10 @@ function card(overrides: Partial<RecurringCard> = {}): RecurringCard {
     includeThisMonth: null,
     monthDuplicate: false,
     saved: false,
+    savedId: null,
+    savedCreatedAt: null,
+    executionCount: 0,
+    cancelled: false,
     ...overrides,
   };
 }
@@ -79,5 +84,14 @@ describe("recurring card dates", () => {
     expect(recurringCardReady({ ...charged, includeThisMonth: "no" }, "2026-10-29")).toBe(true);
     expect(recurringCardReady(card({ amount: null }), "2026-10-29")).toBe(false);
     expect(recurringCardReady(card({ startDate: null, dayOfMonth: null }), "2026-10-29")).toBe(false);
+  });
+
+  it("offers cancel for 7 days and hides it after the first charge", () => {
+    const created = "2026-10-29T09:00:00.000Z";
+    const createdAt = new Date(created);
+    expect(recurringCancelOpen(created, 0, createdAt)).toBe(true);
+    expect(recurringCancelOpen(created, 0, new Date(createdAt.getTime() + 6 * 24 * 60 * 60 * 1000))).toBe(true);
+    expect(recurringCancelOpen(created, 0, new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000))).toBe(false);
+    expect(recurringCancelOpen(created, 1, createdAt)).toBe(false);
   });
 });

@@ -24,6 +24,7 @@ const HANDLERS: ReplyHandlers = {
   onRecurringChange: noop,
   onSaveRecurring: noop,
   onDismissRecurring: noop,
+  onCancelRecurring: noop,
   onUndo: noop,
   onAskDelete: noop,
   onConfirmDelete: noop,

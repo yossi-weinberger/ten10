@@ -28,8 +28,9 @@ export async function createRecurringTransaction(
   definition: NewRecurringTransaction
 ): Promise<RecurringTransaction> {
   const platform = getPlatform();
+  const { origin, ...definitionWithoutOrigin } = definition;
   const normalizedDefinition = {
-    ...definition,
+    ...definitionWithoutOrigin,
     payment_method:
       normalizePaymentMethodValue(definition.payment_method) ?? undefined,
   };
@@ -51,6 +52,7 @@ export async function createRecurringTransaction(
       .insert([
         {
           ...normalizedDefinition,
+          ...(origin === "ai" ? { origin } : {}),
           user_id: user.id,
         },
       ])
