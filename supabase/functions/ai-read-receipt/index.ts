@@ -6,6 +6,7 @@ import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
+import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
 import {
   decodeReceiptBase64,
   readModelText,
@@ -133,11 +134,19 @@ Deno.serve(async (req: Request) => {
   }
   const filePart = receiptFilePart(mediaType, data);
   if (!filePart) return json(origin, { draft: null }, 400);
-  const stored = await storeCheckedReceipt(userData.user.id, mediaType, bytes);
-  if (stored.status === "failed") return json(origin, { draft: null, reason: "unavailable" }, 200);
 
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
   if (!apiKey) return json(origin, { draft: null, reason: "unavailable" }, 200);
+
+  const usage = serviceUsageGate();
+  const allowed = await usage.consume(userData.user.id, "receipt");
+  if (!allowed.allowed) return json(origin, { draft: null, reason: allowed.reason }, 200);
+
+  const stored = await storeCheckedReceipt(userData.user.id, mediaType, bytes);
+  if (stored.status === "failed") {
+    await usage.release(allowed.usageId);
+    return json(origin, { draft: null, reason: "unavailable" }, 200);
+  }
 
   try {
     const result = await callModel({
@@ -174,6 +183,7 @@ Deno.serve(async (req: Request) => {
     });
     if (!result.ok) {
       logger.error(`receipt read failed: ${result.status ?? result.errorCode}`);
+      await usage.release(allowed.usageId);
       return json(origin, { draft: null, reason: "unavailable" }, 200);
     }
     const draft = readReceiptDraft(readModelText(result.payload));
