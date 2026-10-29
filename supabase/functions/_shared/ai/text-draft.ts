@@ -272,7 +272,12 @@ function findAmount(text: string): AmountHit | null {
 }
 
 function normalizeInput(text: string): string {
-  return text.trim().toLowerCase().replace(/־/g, " ").replace(/\s+/g, " ");
+  return text
+    .trim()
+    .toLowerCase()
+    .replace(/־/g, " ")
+    .replace(/(^|\s)([בהולמ])\s*[-–]\s*(?=\d)/g, "$1$2 ")
+    .replace(/\s+/g, " ");
 }
 
 /** Every amount in the text, in order. `draftFromText` picks one of them. */
@@ -331,7 +336,7 @@ export type ClarificationField = "type" | "amount";
 
 /** One question, type before amount. Null means the draft can be shown. */
 export function clarificationField(text: string, today: string): ClarificationField | null {
-  const normalized = text.trim().toLowerCase().replace(/־/g, " ").replace(/\s+/g, " ");
+  const normalized = normalizeInput(text);
   if (explicitType(normalized) === null) return "type";
   if (draftFromText(text, today) === null) return "amount";
   return null;

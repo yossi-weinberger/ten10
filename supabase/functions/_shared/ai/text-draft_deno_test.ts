@@ -165,6 +165,8 @@ Deno.test("a quantity or a model number next to a price is not an amount", () =>
 Deno.test("times, years and days of the month are not amounts", () => {
   const cases: [string, number][] = [
     ["ב־15 לחודש קניתי 200 שקל", 200],
+    ["ב-15 לחודש ירדו 450", 450],
+    ["ב–15 לחודש ירדו 450", 450],
     ["קניתי חלב ב־10:30 ב־12 שקל", 12],
     ["בשנת 2025 תרמתי 300", 300],
     ["in 2024 I donated 500", 500],
