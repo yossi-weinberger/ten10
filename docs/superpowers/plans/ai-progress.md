@@ -129,7 +129,7 @@
 | M6 | `2026-10-28-ai-multi-item.md` | kind בקבלה, בלי חילוץ מערך | — | מוזג | [#608](https://github.com/yossi-weinberger/ten10/pull/608) |
 | M2a | `2026-10-28-ai-multi-item.md` | עיגון ותאריך, בלי Edge ובלי סט | M3 | מוזג | [#609](https://github.com/yossi-weinberger/ten10/pull/609) |
 | M2b | `2026-10-28-ai-multi-item.md` | קריאת תשובת הפיצול, בלי מודל | M2a | מוזג | [#610](https://github.com/yossi-weinberger/ten10/pull/610) |
-| WISH | `2026-10-29-ai-review-wish.md` | סקירת #596–#607, לא מיושם | — | נפתח | [#611](https://github.com/yossi-weinberger/ten10/pull/611) |
+| WISH | `2026-10-29-ai-review-wish.md` | סקירת #596–#607, לא מיושם | — | מוזג | [#611](https://github.com/yossi-weinberger/ten10/pull/611) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
 | UI-3 | אותו קובץ | צ'אט: מיכל, שורת כתיבה, היסטוריה, טיוטה, גלריה | UI-2 | מוזג ל־`feat/ai-intake` | [#566](https://github.com/yossi-weinberger/ten10/pull/566) |
@@ -508,3 +508,4 @@
 - **2026-10-29:** [#610](https://github.com/yossi-weinberger/ten10/pull/610) נפתח מול `feat/ai-intake`. תשובת פיצול נקראת בלי מודל. יותר מחמישה פריטים הוא רשימה, בלי שמירה. תשובה בלי פריט שנשאר אינה נקראת. פריט שנזרק נספר. לא ל־`main`.
 - **2026-10-29:** #610 מוזג ל־`feat/ai-intake`. קריאת תשובת הפיצול בלי מודל. ה־Edge וסט החילוץ עדיין פתוחים. לא ל־`main`.
 - **2026-10-29:** WISH. סקירת #596–#607 נשמרה ב־`2026-10-29-ai-review-wish.md`. לא מיושם. חוזרים לתוכניות. לא ל־`main`.
+- **2026-10-29:** #611 מוזג ל־`feat/ai-intake`. הרשימה ביומן, בלי מימוש. לא ל־`main`.
