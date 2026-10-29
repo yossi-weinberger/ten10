@@ -27,6 +27,12 @@ describe("buildReplyBlocks", () => {
     expect(buildReplyBlocks(emptyReplyState())).toEqual([]);
   });
 
+  it("shows only the one-at-a-time message, without the transaction label", () => {
+    const blocks = buildReplyBlocks(state({ intent: "add_transaction", status: "oneAtATime" }));
+    expect(blocks.some((block) => block.kind === "intent")).toBe(false);
+    expect(blocks).toContainEqual({ kind: "status", status: "oneAtATime" });
+  });
+
   it("shows thinking while a sentence is being checked", () => {
     expect(buildReplyBlocks(state({ checking: true }))).toEqual([{ kind: "thinking", phase: "reading" }]);
   });

@@ -1,4 +1,4 @@
-import { clarificationField, draftFromText } from "./text-draft.ts";
+import { amountsFromText, clarificationField, currencyAmountsFromText, draftFromText } from "./text-draft.ts";
 
 function assert(condition: boolean, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -136,4 +136,85 @@ Deno.test("last weekday is the previous one, and today rolls back a week", () =>
   assert(sunday !== null && sunday.date === "2026-10-18", "last Sunday before Monday");
   assert(monday !== null && monday.date === "2026-10-12", "last Monday is a week ago");
   assert(sunday !== null && !sunday.description.includes("ראשון"), "date phrase leaves the description");
+});
+
+function sameAmounts(text: string, expected: number[]): void {
+  const found = amountsFromText(text);
+  assert(JSON.stringify(found) === JSON.stringify(expected), `${text}: ${JSON.stringify(found)}`);
+}
+
+Deno.test("every amount is listed, marked or bare", () => {
+  sameAmounts("50 במכולת ו־120 לישיבה", [50, 120]);
+  sameAmounts("50 ש\"ח במכולת ו־120 לישיבה", [50, 120]);
+  sameAmounts("spent 40 on lunch and 25 on coffee", [40, 25]);
+  sameAmounts("20 לקפה, 35 לאוטובוס", [20, 35]);
+  sameAmounts("$50 groceries and $120 yeshiva", [50, 120]);
+  sameAmounts("50 לכולל", [50]);
+  sameAmounts("1,234.56 בסופר", [1234.56]);
+  sameAmounts("תרמתי 2000 לישיבה", [2000]);
+  sameAmounts("אתמול קיבלתי 200 דולר לפי שער 3.5", [200]);
+  sameAmounts("Donated 100 ILS to the kollel", [100]);
+});
+
+Deno.test("a quantity or a model number next to a price is not an amount", () => {
+  sameAmounts("קניתי 2 חולצות ב־100", [100]);
+  sameAmounts("קניתי 3 לחמים ב 20", [20]);
+  sameAmounts("קניתי אייפון 15 ב 3000", [3000]);
+});
+
+Deno.test("times, years and days of the month are not amounts", () => {
+  const cases: [string, number][] = [
+    ["ב־15 לחודש קניתי 200 שקל", 200],
+    ["קניתי חלב ב־10:30 ב־12 שקל", 12],
+    ["בשנת 2025 תרמתי 300", 300],
+    ["in 2024 I donated 500", 500],
+    ["ב־15 באוקטובר 2025 קניתי ב־80", 80],
+    ["קניתי ב־15.10.2025 מחשב ב־3,000", 3000],
+    ["on the 15th I paid 200 for rent", 200],
+    ["October 15 I paid 90", 90],
+    ["מעכשיו כל חודש ב־10 תרשום 1,500 שכר דירה", 1500],
+  ];
+  for (const [text, amount] of cases) {
+    sameAmounts(text, [amount]);
+    assert(draftFromText(text, TODAY)?.amount === amount, `${text}: draft amount`);
+  }
+});
+
+Deno.test("an amount right after a monthly phrase stays an amount", () => {
+  sameAmounts("כל חודש ב־100 ש\"ח לישיבה", [100]);
+  sameAmounts("כל חודש ב־50 לישיבה", [50]);
+});
+
+Deno.test("the amount beside a currency wins over counts, shares and head counts", () => {
+  const cases: [string, number, string][] = [
+    ["קניתי מקרר ב-3000 שקל ב-3 תשלומים", 3000, "ILS"],
+    ["קניתי מקרר ב־3 תשלומים של 900 שקל", 900, "ILS"],
+    ["ארוחה ל-5 אנשים ב-400 שקל", 400, "ILS"],
+    ["קניתי כרטיס טיסה ב־420 יורו ב־3.5", 420, "EUR"],
+    ["Paid 320 euros for a family room for 4 nights", 320, "EUR"],
+    ["קניתי במכולת ב-50 שקל", 50, "ILS"],
+    ["ב־15 לחודש קניתי 200 שקל", 200, "ILS"],
+  ];
+  for (const [text, amount, currency] of cases) {
+    const draft = draftFromText(text, TODAY);
+    assert(draft?.amount === amount, `${text}: amount ${draft?.amount}`);
+    assert(draft?.currency === currency, `${text}: currency ${draft?.currency}`);
+  }
+});
+
+Deno.test("a share of an amount is computed: 10 אחוז מ־500 is 50", () => {
+  assert(draftFromText("תרמתי 10 אחוז מ-500 שקל", TODAY)?.amount === 50, "hebrew");
+  assert(draftFromText("donated 10% of 500 shekels", TODAY)?.amount === 50, "english");
+});
+
+Deno.test("a total split in parts is one payment of the total", () => {
+  assert(draftFromText("Paid $250 for the hotel, $100 cash and $150 by credit card", TODAY)?.amount === 250, "english");
+  assert(draftFromText("שילמתי 300 על קניות, 100 במזומן ו־200 באשראי", TODAY)?.amount === 300, "hebrew");
+  assert(amountsFromText("שילמתי 300 על קניות, 100 במזומן ו־200 באשראי").length === 1, "one amount");
+});
+
+Deno.test("only amounts beside a currency are currency amounts", () => {
+  assert(currencyAmountsFromText("50 שקל במכולת ו־120 שקל לישיבה").length === 2, "two");
+  assert(currencyAmountsFromText("קניתי מקרר ב-3000 שקל ב-3 תשלומים").length === 1, "one");
+  assert(currencyAmountsFromText("50 במכולת ו-120 לישיבה").length === 0, "bare");
 });

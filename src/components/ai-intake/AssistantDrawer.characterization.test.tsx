@@ -169,6 +169,35 @@ describe("AssistantDrawer characterization", () => {
     expect(ai.refreshAfterIntakeSave).toHaveBeenCalledTimes(1);
   });
 
+  it("asks for one transaction at a time when the sentence has two amounts and Jev is unsure", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: true,
+      intent: "add_transaction",
+      confidence: 0.95,
+      count: "one",
+      countConfidence: 0.5,
+    });
+    const user = setup();
+    await send(user, "50 במכולת ו־120 לישיבה");
+    expect(await screen.findByText("aiIntake.oneAtATime")).toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
+    expect(screen.queryByText("aiIntake.askType")).not.toBeInTheDocument();
+  });
+
+  it("still drafts a sentence with one amount when Jev says one", async () => {
+    ai.classifyIntentFallback.mockResolvedValue({
+      ok: true,
+      intent: "add_transaction",
+      confidence: 0.95,
+      count: "one",
+      countConfidence: 0.9,
+    });
+    const user = setup();
+    await send(user, "קניתי מאפים באליס ב-15 שח");
+    expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("15");
+    expect(screen.queryByText("aiIntake.oneAtATime")).not.toBeInTheDocument();
+  });
+
   it("undoes a saved draft", async () => {
     confident("add_transaction");
     ai.saveTextDraft.mockResolvedValue({ ok: true, transactionId: "t1", itemId: "i1" });
@@ -338,6 +367,36 @@ describe("AssistantDrawer characterization", () => {
     expect(await screen.findByRole("textbox", { name: "aiIntake.editAmount" })).toHaveValue("42.5");
   });
 
+  it("shows a provider failure for a voice message instead of returning to the start", async () => {
+    class FakeRecorder {
+      static isTypeSupported() {
+        return true;
+      }
+      mimeType = "audio/webm;codecs=opus";
+      state: "inactive" | "recording" = "inactive";
+      ondataavailable: ((event: { data: Blob }) => void) | null = null;
+      onstop: (() => void) | null = null;
+      start() {
+        this.state = "recording";
+      }
+      stop() {
+        this.state = "inactive";
+        this.ondataavailable?.({ data: new Blob(["voice"], { type: this.mimeType }) });
+        this.onstop?.();
+      }
+    }
+    vi.stubGlobal("MediaRecorder", FakeRecorder);
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: () => Promise.resolve({ getTracks: () => [] }) },
+    });
+    ai.transcribeSpeech.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
+    const user = setup();
+    await user.click(screen.getByRole("button", { name: "aiIntake.voice" }));
+    await user.click(await screen.findByRole("button", { name: "aiIntake.voiceStop" }));
+    expect(await screen.findByText("aiIntake.providerFailed")).toBeInTheDocument();
+    vi.unstubAllGlobals();
+  });
   it("shows a provider failure for a receipt", async () => {
     ai.readReceiptImage.mockResolvedValue({ ok: false, reason: "UNAVAILABLE" });
     setup();
