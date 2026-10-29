@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { recurringFromText } from "../../../supabase/functions/_shared/ai/recurring-draft.ts";
 import {
+  cardFromRecurringDraft,
   currentPeriodDueDate,
   recurringCardReady,
   saveStartDate,
@@ -50,6 +52,25 @@ describe("recurring card dates", () => {
     expect(currentPeriodDueDate(charged, "2026-10-29")).toBe("2026-10-10");
     expect(saveStartDate(charged, "2026-10-29")).toBe("2026-10-10");
     expect(saveStartDate({ ...charged, includeThisMonth: "no" }, "2026-10-29")).toBe("2026-11-10");
+  });
+
+  it("reads a real standing-order sentence into a card that can be saved", () => {
+    const today = "2026-10-29";
+    const cases: [string, string, number, string | null, boolean][] = [
+      ["תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש", "כולל", 200, "monthly", true],
+      ["תגדיר לי הוראת קבע של 150 שקל לישיבה כל חודש", "ישיבה", 150, "monthly", true],
+      ["הוראת קבע של 100 ש״ח לבית כנסת", "בית כנסת", 100, null, false],
+    ];
+    for (const [text, description, amount, frequency, ready] of cases) {
+      const parsed = recurringFromText(text, today, "gregorian");
+      expect(parsed, text).not.toBeNull();
+      if (!parsed) continue;
+      expect(parsed.draft.description, text).toBe(description);
+      expect(parsed.draft.type, text).toBe("donation");
+      expect(parsed.draft.amount, text).toBe(amount);
+      expect(parsed.draft.frequency, text).toBe(frequency);
+      expect(recurringCardReady(cardFromRecurringDraft(parsed.draft), today), text).toBe(ready);
+    }
   });
 
   it("waits for the this-month answer before a save", () => {

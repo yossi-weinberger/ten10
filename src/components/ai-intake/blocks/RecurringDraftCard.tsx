@@ -20,7 +20,7 @@ const CURRENCIES = ["ILS", "USD", "EUR"] as const;
 const TYPES = ["expense", "income", "donation", "exempt-income", "recognized-expense", "non_tithe_donation"] as const;
 const CATEGORIES = ["food", "transportation"] as const;
 
-const fieldClass = "border-input bg-background h-9 w-full rounded-md border px-3 text-sm";
+const fieldClass = "border-input bg-background h-9 w-full rounded-md border ps-3 pe-10 text-sm rtl:ps-10 rtl:pe-3";
 
 function todayIso(): string {
   return new Intl.DateTimeFormat("en-CA").format(new Date());

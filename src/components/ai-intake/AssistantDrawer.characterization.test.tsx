@@ -450,7 +450,7 @@ describe("AssistantDrawer characterization", () => {
     ai.createRecurringTransaction.mockResolvedValue({ id: "r1" });
     const user = setup();
     await send(user, "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש");
-    expect(await screen.findByRole("button", { name: "aiIntake.recurring.save" })).toBeDisabled();
+    expect(await screen.findByRole("button", { name: "aiIntake.recurring.save" })).toBeEnabled();
     expect(ai.createRecurringTransaction).not.toHaveBeenCalled();
     await user.selectOptions(screen.getByRole("combobox", { name: "aiIntake.recurring.type" }), "donation");
     await user.click(screen.getByRole("button", { name: "aiIntake.recurring.save" }));
