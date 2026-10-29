@@ -11,6 +11,7 @@ import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
 import { callModel } from "../_shared/ai/model-call.ts";
 import { serviceModelCallRecorder } from "../_shared/ai/model-call-recorder.ts";
+import { serviceUsageGate } from "../_shared/ai/usage-gate-client.ts";
 
 function json(origin: string | null, body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -46,6 +47,10 @@ Deno.serve(async (req: Request) => {
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
   if (!apiKey) return json(origin, { intent: null, reason: "unavailable" }, 200);
 
+  const usage = serviceUsageGate();
+  const allowed = await usage.consume(userData.user.id, "text");
+  if (!allowed.allowed) return json(origin, { intent: null, reason: allowed.reason }, 200);
+
   try {
     const result = await callModel({
       userId: userData.user.id,
@@ -67,6 +72,7 @@ Deno.serve(async (req: Request) => {
     });
     if (!result.ok) {
       logger.error(`jev intent failed: ${result.status ?? result.errorCode}`);
+      await usage.release(allowed.usageId);
       return json(origin, { intent: null, reason: "unavailable" }, 200);
     }
     const payload = result.payload;
