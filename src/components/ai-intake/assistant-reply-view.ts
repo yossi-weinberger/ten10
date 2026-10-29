@@ -8,6 +8,7 @@ import type {
   RuleActionType,
   TextTransactionDraft,
 } from "@/lib/ai/classify-intake";
+import type { RecurringCard } from "@/lib/ai/recurring-card";
 
 export type StatusTone = "success" | "error" | "info";
 
@@ -16,6 +17,8 @@ export const STATUS_MESSAGES = {
   undone: { key: "aiIntake.undone", tone: "success" },
   ruleSaved: { key: "aiIntake.ruleSaved", tone: "success" },
   duplicateKept: { key: "aiIntake.duplicateKept", tone: "success" },
+  recurringSaved: { key: "aiIntake.recurring.saved", tone: "success" },
+  recurringSaveFailed: { key: "aiIntake.recurring.saveFailed", tone: "error" },
   ruleFailed: { key: "aiIntake.ruleFailed", tone: "error" },
   saveFailed: { key: "aiIntake.saveFailed", tone: "error" },
   noRateAvailable: { key: "aiIntake.noRateAvailable", tone: "error" },
@@ -88,7 +91,8 @@ export interface DraftView {
 export type ReplyBlock =
   | { kind: "thinking"; phase: "reading" | "receipt" | "voice" | "data" | "duplicates" }
   | { kind: "askIntent" }
-  | { kind: "intent"; intent: IntakeIntent; showNotSaved: boolean }
+  | { kind: "intent"; intent: IntakeIntent; showNotSaved: boolean; formLink: boolean }
+  | { kind: "recurring"; card: RecurringCard }
   | { kind: "dataAnswer"; reply: ReadyDataReply }
   | { kind: "askFamily"; source: string }
   | { kind: "nameMissing"; nameKind: "category" | "recipient"; topic: string; source: string }
@@ -126,6 +130,7 @@ export interface ReplyState {
   receiptArtifactId: string | null;
   receiptLink: string | null;
   draft: Omit<DraftView, "locked"> | null;
+  recurring: RecurringCard | null;
   status: StatusKey | null;
   savedItemId: string | null;
 }
@@ -148,6 +153,7 @@ export function emptyReplyState(): ReplyState {
     receiptArtifactId: null,
     receiptLink: null,
     draft: null,
+    recurring: null,
     status: null,
     savedItemId: null,
   };
@@ -163,6 +169,7 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
         kind: "intent",
         intent: state.intent,
         showNotSaved: state.status === null && state.intent !== "ask_data",
+        formLink: state.intent === "create_recurring" && state.recurring === null,
       });
     }
     if (state.intent === "ask_data" && !state.dataReply && !state.checking) {
@@ -193,6 +200,9 @@ export function buildReplyBlocks(state: ReplyState): ReplyBlock[] {
     if (state.clarification === "amount") blocks.push({ kind: "askAmount" });
     if (state.receiptArtifactId && (state.clarification === "type" || state.draft)) {
       blocks.push({ kind: "receipt", artifactId: state.receiptArtifactId, link: state.receiptLink });
+    }
+    if (state.intent === "create_recurring" && state.recurring) {
+      blocks.push({ kind: "recurring", card: state.recurring });
     }
     if (state.draft) {
       blocks.push({

@@ -54,7 +54,7 @@ describe("buildReplyBlocks", () => {
   it("shows calculating while a data answer is still loading", () => {
     const blocks = buildReplyBlocks(state({ intent: "ask_data" }));
     expect(blocks).toEqual([
-      { kind: "intent", intent: "ask_data", showNotSaved: false },
+      { kind: "intent", intent: "ask_data", showNotSaved: false, formLink: false },
       { kind: "thinking", phase: "data" },
     ]);
   });

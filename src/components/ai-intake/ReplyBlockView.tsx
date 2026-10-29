@@ -14,7 +14,9 @@ import { DuplicateScanCard } from "./blocks/DuplicateScanCard";
 import { HalachaCard } from "./blocks/HalachaCard";
 import { ReceiptAttachment } from "./blocks/ReceiptAttachment";
 import { RuleCard } from "./blocks/RuleCard";
+import { RecurringDraftCard } from "./blocks/RecurringDraftCard";
 import { StatusNote } from "./blocks/StatusNote";
+import type { RecurringCard } from "@/lib/ai/recurring-card";
 
 export interface ReplyHandlers {
   onChooseIntent: (intent: IntakeIntent) => void;
@@ -28,6 +30,9 @@ export interface ReplyHandlers {
   onDescriptionChange: (description: string) => void;
   onAmountChange: (amount: string) => void;
   onSave: (choice?: "saved_anyway" | "same_event") => void;
+  onRecurringChange: (card: RecurringCard) => void;
+  onSaveRecurring: () => void;
+  onDismissRecurring: () => void;
   onUndo: () => void;
   onAskDelete: (id: string) => void;
   onConfirmDelete: (id: string) => void;
@@ -75,7 +80,7 @@ export function ReplyBlockView({
             {t(`aiIntake.intents.${block.intent}`)}{" "}
             {block.showNotSaved ? <span className="text-muted-foreground">{t("aiIntake.notSaved")}</span> : null}
           </p>
-          {block.intent === "create_recurring" ? (
+          {block.intent === "create_recurring" && block.formLink ? (
             <Button asChild variant="outline" size="sm" className="w-fit">
               <Link to="/add-transaction" search={{ recurring: 1 }}>
                 {t("aiIntake.openRecurringForm")}
@@ -147,6 +152,17 @@ export function ReplyBlockView({
       return <p className="text-sm font-medium">{t("aiIntake.askAmount")}</p>;
     case "receipt":
       return <ReceiptAttachment link={block.link} onOpen={handlers.onOpenReceipt} />;
+    case "recurring":
+      return (
+        <RecurringDraftCard
+          card={block.card}
+          interactive={interactive}
+          saving={handlers.saving}
+          onChange={handlers.onRecurringChange}
+          onSave={handlers.onSaveRecurring}
+          onDismiss={handlers.onDismissRecurring}
+        />
+      );
     case "draft":
       return (
         <DraftCard

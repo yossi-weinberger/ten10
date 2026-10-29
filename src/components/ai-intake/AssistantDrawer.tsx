@@ -54,6 +54,12 @@ import {
 import { resolveQuestionFilter, sumYearType } from "@/lib/ai/sum-year-type";
 import { transcribeSpeech } from "@/lib/ai/transcribe-speech";
 import { isOnOrAfterMinTransactionDate } from "@/lib/utils/transaction-date";
+import { trackProductEvent } from "@/lib/analytics/productAnalytics";
+import { createRecurringTransaction } from "@/lib/data-layer/recurringTransactions.service";
+import { cardFromRecurringDraft, saveStartDate, type RecurringCard } from "@/lib/ai/recurring-card";
+import { useRecurringTableStore } from "@/lib/tableTransactions/recurringTable.store";
+import { recurringFromText } from "../../../supabase/functions/_shared/ai/recurring-draft.ts";
+import { buildRecurringDefinition } from "../../../supabase/functions/_shared/transaction-domain/recurring-definition.ts";
 import { AssistantComposer } from "./AssistantComposer";
 import { AssistantShell } from "./AssistantShell";
 import { AssistantThread } from "./AssistantThread";
@@ -103,6 +109,7 @@ export function AssistantDrawer({
   const [text, setText] = useState("");
   const [intent, setIntent] = useState<IntakeIntent | null>(null);
   const [draft, setDraft] = useState<TextTransactionDraft | null>(null);
+  const [recurring, setRecurring] = useState<RecurringCard | null>(null);
   const idempotency = useRef<DraftIdempotency | null>(null);
   const originalDraft = useRef<{ description: string; amount: number; date: string } | null>(null);
   const previewUrls = useRef<string[]>([]);
@@ -216,6 +223,7 @@ export function AssistantDrawer({
     setText("");
     setIntent(null);
     setDraft(null);
+    setRecurring(null);
     originalDraft.current = null;
     setAmountInput("");
     setDuplicates([]);
@@ -506,6 +514,10 @@ export function AssistantDrawer({
       nextIntent === "domain_adjacent" ? selectHalachaPage(source)?.namespace ?? null : null,
     );
     showDraft(field === null && single ? draftFromText(source, today) : null, source);
+    const recurringDraft = nextIntent === "create_recurring"
+      ? recurringFromText(source, today, questionCalendar)
+      : null;
+    setRecurring(recurringDraft ? cardFromRecurringDraft(recurringDraft.draft) : null);
     setStatus(oneAtATime ? "oneAtATime" : null);
     setSavedItemId(null);
     setReceiptArtifactId(null);
@@ -513,6 +525,63 @@ export function AssistantDrawer({
     else setDataReply(null);
     if (nextIntent === "find_duplicates") void loadScan();
     else setDuplicateScan(null);
+  }
+
+  async function handleSaveRecurring() {
+    if (!recurring || saving) return;
+    const today = todayIso();
+    const start = saveStartDate(recurring, today);
+    if (
+      start === null
+      || recurring.amount === null
+      || recurring.currency === null
+      || recurring.type === null
+      || recurring.frequency === null
+    ) return;
+    setSaving(true);
+    try {
+      if (recurring.includeThisMonth === "yes") {
+        const candidates = await listDuplicateCandidates({
+          type: recurring.type,
+          date: start,
+          amount: recurring.amount,
+          currency: recurring.currency,
+        });
+        if (candidates.length > 0) {
+          setRecurring({ ...recurring, monthDuplicate: true });
+          return;
+        }
+      }
+      const definition = buildRecurringDefinition({
+        start_date: start,
+        frequency: recurring.frequency,
+        calendar_type: recurring.calendarType,
+        day_of_month: recurring.dayOfMonth,
+        total_occurrences: recurring.totalOccurrences ?? undefined,
+        amount: recurring.amount,
+        currency: recurring.currency,
+        description: recurring.description || null,
+        type: recurring.type,
+        category: recurring.category,
+        recipient: recurring.recipient || null,
+        payment_method: recurring.paymentMethod,
+      });
+      await createRecurringTransaction(definition);
+      trackProductEvent("recurring_obligation_created", {
+        type: recurring.type,
+        frequency: definition.frequency,
+        currency: definition.currency,
+        has_category: recurring.category !== null,
+        source: "ai",
+      });
+      setRecurring({ ...recurring, saved: true, monthDuplicate: false });
+      setStatus("recurringSaved");
+      void useRecurringTableStore.getState().fetchRecurring();
+    } catch {
+      setStatus("recurringSaveFailed");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function loadScan() {
@@ -653,6 +722,7 @@ export function AssistantDrawer({
       receiptFields,
       receiptArtifactId,
       receiptLink,
+      recurring,
       draft: draft
         ? {
           draft,
@@ -698,6 +768,7 @@ export function AssistantDrawer({
     setActiveUser(next.active);
     setIntent(null);
     setDraft(null);
+    setRecurring(null);
     originalDraft.current = null;
     setAmountInput("");
     setDuplicates([]);
@@ -751,6 +822,7 @@ export function AssistantDrawer({
       setRuleChoice(null);
       setHalachaNamespace(null);
       showDraft(null, "");
+      setRecurring(null);
       setStatus(null);
       setSavedItemId(null);
       return;
@@ -1044,6 +1116,11 @@ export function AssistantDrawer({
           onSave: (choice) => {
             void handleSave(choice);
           },
+          onRecurringChange: setRecurring,
+          onSaveRecurring: () => {
+            void handleSaveRecurring();
+          },
+          onDismissRecurring: () => setRecurring(null),
           onUndo: () => {
             void handleUndo();
           },

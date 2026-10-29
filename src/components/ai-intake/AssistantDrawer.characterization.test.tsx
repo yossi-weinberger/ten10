@@ -28,6 +28,7 @@ const ai = vi.hoisted(() => ({
   transcribeSpeech: vi.fn(),
   refreshAfterIntakeSave: vi.fn(),
   deleteTransaction: vi.fn(),
+  createRecurringTransaction: vi.fn(),
 }));
 
 vi.mock("@/lib/supabaseClient", () => ({ supabase: {} }));
@@ -70,6 +71,13 @@ vi.mock("@/lib/ai/sum-year-type", () => ({
 }));
 vi.mock("@/lib/ai/transcribe-speech", () => ({ transcribeSpeech: ai.transcribeSpeech }));
 vi.mock("@/lib/ai/refresh-after-intake", () => ({ refreshAfterIntakeSave: ai.refreshAfterIntakeSave }));
+vi.mock("@/lib/data-layer/recurringTransactions.service", () => ({
+  createRecurringTransaction: ai.createRecurringTransaction,
+}));
+vi.mock("@/lib/analytics/productAnalytics", () => ({ trackProductEvent: vi.fn() }));
+vi.mock("@/lib/tableTransactions/recurringTable.store", () => ({
+  useRecurringTableStore: { getState: () => ({ fetchRecurring: vi.fn() }) },
+}));
 vi.mock("@/lib/ai/question-outcome", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/ai/question-outcome")>();
   return { ...actual, markQuestionOutcome: ai.markQuestionOutcome };
@@ -435,6 +443,19 @@ describe("AssistantDrawer characterization", () => {
     expect(screen.queryByRole("button", { name: "aiIntake.save" })).not.toBeInTheDocument();
     await send(user, "עוד משפט");
     expect(screen.getByText("קניתי מאפים באליס ב-15 שח")).toBeInTheDocument();
+  });
+
+  it("shows a standing order and saves it only after the click", async () => {
+    confident("create_recurring");
+    ai.createRecurringTransaction.mockResolvedValue({ id: "r1" });
+    const user = setup();
+    await send(user, "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש");
+    expect(await screen.findByRole("button", { name: "aiIntake.recurring.save" })).toBeDisabled();
+    expect(ai.createRecurringTransaction).not.toHaveBeenCalled();
+    await user.selectOptions(screen.getByRole("combobox", { name: "aiIntake.recurring.type" }), "donation");
+    await user.click(screen.getByRole("button", { name: "aiIntake.recurring.save" }));
+    await waitFor(() => expect(ai.createRecurringTransaction).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText("aiIntake.recurring.saved")).toBeInTheDocument();
   });
 
   it("disables send when the field is empty and clears the chat", async () => {

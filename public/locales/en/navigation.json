@@ -149,10 +149,44 @@
       "create_recurring": "Standing order"
     },
     "openRecurringForm": "Open the form",
+    "recurring": {
+      "save": "Save standing order",
+      "notNow": "Not now",
+      "openTable": "Standing orders",
+      "openEnded": "no end",
+      "occurrences": "{{count}} times",
+      "onDay": "on the {{day}}",
+      "currency": "Currency",
+      "type": "Type",
+      "frequency": "Frequency",
+      "recipient": "Recipient",
+      "category": "Category",
+      "day": "Day",
+      "start": "Start",
+      "count": "Repetitions",
+      "includeThisMonth": "Record this month's charge too?",
+      "includeYes": "Yes",
+      "includeNo": "From next month",
+      "appearsTomorrow": "This month's charge will show up by tomorrow",
+      "alreadyRecorded": "It looks like this month's charge is already recorded",
+      "nextMonthOnly": "Start next month only",
+      "saved": "Standing order saved",
+      "saveFailed": "The standing order could not be saved",
+      "frequencies": {
+        "daily": "every day",
+        "weekly": "every week",
+        "monthly": "every month",
+        "yearly": "every year"
+      },
+      "categories": {
+        "food": "Food",
+        "transportation": "Transportation"
+      }
+    },
     "intents": {
       "add_transaction": "This looks like a transaction.",
       "create_rule": "This looks like a rule.",
-      "create_recurring": "You can set up a standing order in the form.",
+      "create_recurring": "This is a standing order.",
       "ask_data": "This looks like a question about your data.",
       "find_duplicates": "This looks like a duplicate search.",
       "help": "You can send a transaction, a rule, a data question, or a duplicate search.",
