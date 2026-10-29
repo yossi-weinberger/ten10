@@ -159,10 +159,44 @@
       "create_recurring": "הוראת קבע"
     },
     "openRecurringForm": "פתח את הטופס",
+    "recurring": {
+      "save": "שמור הוראת קבע",
+      "notNow": "לא עכשיו",
+      "openTable": "לטבלת הוראות הקבע",
+      "openEnded": "בלי סוף",
+      "occurrences": "{{count}} פעמים",
+      "onDay": "ב־{{day}}",
+      "currency": "מטבע",
+      "type": "סוג",
+      "frequency": "תדירות",
+      "recipient": "נמען",
+      "category": "קטגוריה",
+      "day": "יום",
+      "start": "התחלה",
+      "count": "מספר חזרות",
+      "includeThisMonth": "לרשום גם את החיוב של החודש?",
+      "includeYes": "כן",
+      "includeNo": "מהחודש הבא",
+      "appearsTomorrow": "החיוב של החודש יופיע עד מחר",
+      "alreadyRecorded": "נראה שכבר רשמת את החיוב של החודש",
+      "nextMonthOnly": "רשום מהחודש הבא בלבד",
+      "saved": "נשמרה הוראת קבע",
+      "saveFailed": "שמירת הוראת הקבע נכשלה",
+      "frequencies": {
+        "daily": "כל יום",
+        "weekly": "כל שבוע",
+        "monthly": "כל חודש",
+        "yearly": "כל שנה"
+      },
+      "categories": {
+        "food": "אוכל",
+        "transportation": "תחבורה"
+      }
+    },
     "intents": {
       "add_transaction": "זו נראית כמו תנועה.",
       "create_rule": "זו נראית כמו בקשה לכלל.",
-      "create_recurring": "אפשר להגדיר הוראת קבע בטופס.",
+      "create_recurring": "זו הוראת קבע.",
       "ask_data": "זו נראית כמו שאלה על הנתונים.",
       "find_duplicates": "זו נראית כמו בקשה לחפש כפילויות.",
       "help": "אפשר לשלוח תנועה, כלל, שאלה על הנתונים, או חיפוש כפילויות.",

@@ -214,6 +214,20 @@ export const FOOD_MARKERS = ["מאפ", "אוכל", "סופר", "מסעד", "food
 export const TRANSPORT_MARKERS = ["מונית", "דלק", "רכבת", "אוטובוס", "taxi", "fuel", "train", "bus"] as const;
 
 export const DONATION_TYPE_MARKERS = ["תרמתי", "צדקה", "donated", "donation", "tzedaka", "tzedakah"] as const;
+/** A standing order paid to one of these is a donation, even without תרמתי. */
+export const DONATION_RECIPIENT_MARKERS = [
+  "כולל",
+  "ישיבה",
+  "בית הכנסת",
+  "בית כנסת",
+  "גמ״ח",
+  "גמ\"ח",
+  "גמח",
+  "צדקה",
+  "kollel",
+  "yeshiva",
+  "synagogue",
+] as const;
 export const INCOME_TYPE_MARKERS = ["קיבלתי", "משכורת", "salary", "received"] as const;
 export const EXPENSE_TYPE_MARKERS = ["קניתי", "שילמתי", "bought", "paid", "spent"] as const;
 

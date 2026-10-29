@@ -12,7 +12,7 @@ import {
   type CalendarType,
   type RecurrenceFrequency,
 } from "../calendar/index.ts";
-import { AMOUNT_CURRENCY_WORDS } from "./phrase-aliases.ts";
+import { AMOUNT_CURRENCY_WORDS, DONATION_RECIPIENT_MARKERS, includesAlias } from "./phrase-aliases.ts";
 import {
   ALREADY_CHARGED_PHRASES,
   COUNT_PREFIXES,
@@ -100,6 +100,14 @@ function blank(text: string, spans: readonly Span[]): string {
     result = result.slice(0, span.start) + " ".repeat(span.end - span.start) + result.slice(span.end);
   }
   return result;
+}
+
+/** Drops "של" left in front of a removed amount, and the ל prefix on the payee. */
+function tidyPayee(description: string | null): string | null {
+  if (description === null) return null;
+  const withoutOf = description.replace(/(^|\s)של(?=\s|$)/g, " ").replace(/\s+/g, " ").trim();
+  const cleaned = withoutOf.replace(/^ל[־-]?(\p{L})/u, "$1");
+  return cleaned === "" ? null : cleaned;
 }
 
 function weekdayOf(isoDate: string): number {
@@ -337,7 +345,10 @@ export function recurringFromText(
   }
   const rest = blank(prepared, spans);
   const textDraft = draftFromText(rest, today);
-  const type = textDraft && clarificationField(rest, today) !== "type" ? textDraft.type : null;
+  let type = textDraft && clarificationField(rest, today) !== "type" ? textDraft.type : null;
+  if (type === null && includesAlias(prepared.toLowerCase(), DONATION_RECIPIENT_MARKERS)) {
+    type = "donation";
+  }
 
   const missing: RecurringMissingField[] = [];
   if (!textDraft) missing.push("amount");
@@ -351,7 +362,7 @@ export function recurringFromText(
       amount: textDraft?.amount ?? null,
       currency: textDraft?.currency ?? null,
       type,
-      description: textDraft?.description ?? null,
+      description: tidyPayee(textDraft?.description ?? null),
       category: textDraft?.category ?? null,
       paymentMethod: textDraft?.paymentMethod ?? null,
       requestedRate: textDraft?.requestedRate ?? null,

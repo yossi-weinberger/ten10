@@ -1,5 +1,6 @@
 import { buildReplyBlocks, emptyReplyState, type AssistantTurn, type ReplyBlock, type ReplyState, type UserTurn } from "./assistant-reply-view";
 import type { TextTransactionDraft } from "@/lib/ai/classify-intake";
+import { cardFromRecurringDraft } from "@/lib/ai/recurring-card";
 
 const draft: TextTransactionDraft = {
   date: "2026-10-21",
@@ -190,6 +191,30 @@ export const ASSISTANT_GALLERY: GalleryScenario[] = [
     history: [],
     active: { kind: "text", text: "מה זה הוצאה מוכרת?" },
     activeBlocks: blocks({ intent: "domain_adjacent", halachaNamespace: "halacha-expenses" }),
+  },
+  {
+    id: "recurring",
+    title: "הוראת קבע",
+    history: [],
+    active: { kind: "text", text: "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש" },
+    activeBlocks: blocks({
+      intent: "create_recurring",
+      recurring: cardFromRecurringDraft({
+        amount: 200,
+        currency: "ILS",
+        type: "donation",
+        description: "כולל",
+        category: null,
+        paymentMethod: null,
+        frequency: "monthly",
+        calendarType: "gregorian",
+        startDate: "2026-11-01",
+        dayOfMonth: 1,
+        anchorMonthCode: null,
+        totalOccurrences: null,
+        alreadyCharged: false,
+      }),
+    }),
   },
   {
     id: "saved",

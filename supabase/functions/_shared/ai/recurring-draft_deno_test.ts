@@ -98,7 +98,7 @@ Deno.test("hebrew calendar: numbers are Hebrew days and 31 is out of range", () 
   assertEquals(schedule("כל חודש ב־10 50 לישיבה", "hebrew").startDate, "2026-11-20", "10 Kislev");
   assertEquals(schedule("כל חודש 50 לישיבה", "hebrew").dayOfMonth, 17, "17 Cheshvan, not Gregorian 28");
   const outOfRange = parse("כל חודש ב־31 50 לישיבה", "hebrew");
-  assertEquals([outOfRange.draft.startDate, outOfRange.missing], [null, ["type", "date"]], "hebrew max is 30");
+  assertEquals([outOfRange.draft.startDate, outOfRange.missing], [null, ["date"]], "hebrew max is 30");
   assertEquals(schedule("כל חודש ב־31 50 לישיבה").startDate, "2026-10-31", "gregorian allows 31");
 });
 
@@ -129,7 +129,7 @@ Deno.test("start phrases", () => {
 Deno.test("a start phrase that is not computed leaves the date missing", () => {
   const { draft, missing } = parse("monthly 50 to the yeshiva starting next week");
   assertEquals([draft.startDate, draft.dayOfMonth], [null, null], "no guess");
-  assertEquals(missing, ["type", "date"], "missing");
+  assertEquals(missing, ["date"], "missing");
 });
 
 Deno.test("count phrases", () => {
@@ -140,7 +140,7 @@ Deno.test("count phrases", () => {
   assertEquals(schedule("daily 5 shekels for 30 days").totalOccurrences, 30, "for 30 days");
   assertEquals(schedule("כל חודש 50 לישיבה").totalOccurrences, null, "open-ended");
   const mismatch = parse("כל חודש 50 לישיבה ל־12 שבועות");
-  assertEquals([mismatch.draft.totalOccurrences, mismatch.missing], [null, ["type", "count"]], "unit mismatch");
+  assertEquals([mismatch.draft.totalOccurrences, mismatch.missing], [null, ["count"]], "unit mismatch");
 });
 
 Deno.test("until the end of the year counts due dates in the user's calendar", () => {
@@ -178,8 +178,8 @@ const EVAL_CASES: { id: string; calendarType: "gregorian" | "hebrew"; text: stri
       draft: {
         amount: 200,
         currency: "ILS",
-        type: null,
-        description: "של לכולל",
+        type: "donation",
+        description: "כולל",
         category: null,
         paymentMethod: null,
         requestedRate: null,
@@ -191,7 +191,7 @@ const EVAL_CASES: { id: string; calendarType: "gregorian" | "hebrew"; text: stri
         totalOccurrences: null,
         alreadyCharged: false,
       },
-      missing: ["type"],
+      missing: [],
     },
   },
   {
@@ -202,8 +202,8 @@ const EVAL_CASES: { id: string; calendarType: "gregorian" | "hebrew"; text: stri
       draft: {
         amount: 200,
         currency: "ILS",
-        type: null,
-        description: "של לכולל",
+        type: "donation",
+        description: "כולל",
         category: null,
         paymentMethod: null,
         requestedRate: null,
@@ -215,7 +215,7 @@ const EVAL_CASES: { id: string; calendarType: "gregorian" | "hebrew"; text: stri
         totalOccurrences: null,
         alreadyCharged: false,
       },
-      missing: ["type"],
+      missing: [],
     },
   },
   {
@@ -251,7 +251,7 @@ const EVAL_CASES: { id: string; calendarType: "gregorian" | "hebrew"; text: stri
         amount: 36,
         currency: "ILS",
         type: null,
-        description: "תרומה של לחב״ד",
+        description: "תרומה לחב״ד",
         category: null,
         paymentMethod: null,
         requestedRate: null,
@@ -322,7 +322,7 @@ const EVAL_CASES: { id: string; calendarType: "gregorian" | "hebrew"; text: stri
       draft: {
         amount: null,
         currency: null,
-        type: null,
+        type: "donation",
         description: null,
         category: null,
         paymentMethod: null,
@@ -335,7 +335,7 @@ const EVAL_CASES: { id: string; calendarType: "gregorian" | "hebrew"; text: stri
         totalOccurrences: 3,
         alreadyCharged: false,
       },
-      missing: ["amount", "type"],
+      missing: ["amount"],
     },
   },
 ];
@@ -348,9 +348,29 @@ for (const evalCase of EVAL_CASES) {
 
 Deno.test("missing amount, type and frequency are listed", () => {
   const noAmount = parse("כל חודש לישיבה");
-  assertEquals([noAmount.draft.amount, noAmount.missing], [null, ["amount", "type"]], "no amount");
+  assertEquals([noAmount.draft.amount, noAmount.draft.type, noAmount.missing], [null, "donation", ["amount"]], "no amount");
   const noFrequency = parse("תגדיר הוראת קבע של 75 לישיבה");
-  assertEquals([noFrequency.draft.frequency, noFrequency.missing], [null, ["type", "frequency"]], "no frequency");
+  assertEquals(
+    [noFrequency.draft.frequency, noFrequency.draft.type, noFrequency.draft.description, noFrequency.missing],
+    [null, "donation", "ישיבה", ["frequency"]],
+    "no frequency",
+  );
   const complete = parse("monthly donation of 100 NIS to Ezer Mizion");
   assertEquals([complete.draft.type, complete.missing], ["donation", []], "complete");
+});
+
+Deno.test("a standing order to a Torah recipient keeps the payee and is a donation", () => {
+  const cases: [string, string, number, string | null][] = [
+    ["תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש", "כולל", 200, "monthly"],
+    ["תגדיר לי הוראת קבע של 150 שקל לישיבה כל חודש", "ישיבה", 150, "monthly"],
+    ["הוראת קבע של 100 ש״ח לבית כנסת", "בית כנסת", 100, null],
+  ];
+  for (const [text, description, amount, frequency] of cases) {
+    const { draft } = parse(text);
+    assertEquals(
+      [draft.description, draft.type, draft.amount, draft.frequency],
+      [description, "donation", amount, frequency],
+      text,
+    );
+  }
 });
