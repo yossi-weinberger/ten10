@@ -25,7 +25,7 @@ async function ask(key: string, text: string): Promise<{ intent: string | null; 
       Authorization: `Bearer ${key}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(gatewaySystemOneBody(buildIntentBody(text), { source: "eval", feature: "intent" })),
+    body: JSON.stringify(gatewaySystemOneBody(buildIntentBody(text), { source: "eval" })),
     signal: AbortSignal.timeout(20000),
   });
   if (!response.ok) return { intent: null, confidence: null };

@@ -77,14 +77,14 @@
       "receipts": "A saved transaction linked to its receipt file.",
       "rules": "An active rule the user approved. Not limited to this date range.",
       "drafts": "Drafts opened for the user, including ones that were not saved.",
-      "app": "Cost of calls from the app, after the source:app tag started.",
+      "app": "Gateway spend minus measurement runs. App calls are not tagged.",
       "eval": "Cost of measurement runs, tagged source:eval."
     },
     "user": "User",
     "spendTitle": "Cost by model",
     "spendApp": "App use",
     "spendEval": "Measurement runs",
-    "spendMixed": "This range includes days before calls were tagged, so app use and measurement runs are still mixed.",
+    "spendMixed": "This range includes days before measurement runs were tagged, so app spend still includes them.",
     "spendUnavailable": "The cost report is unavailable.",
     "loadFailed": "AI stats failed to load",
     "utc": "Days are UTC",
@@ -106,6 +106,34 @@
       "asked_again": "Asked again",
       "answered": "Kept the number",
       "none": "No outcome"
+    },
+    "calls": {
+      "title": "Model calls",
+      "hint": "From ai.model_calls, one row per call since {{from}}, including failures.",
+      "none": "No calls recorded yet.",
+      "operation": "Operation",
+      "count": "Calls",
+      "failed": "Failed",
+      "tokens": "Tokens",
+      "cost": "Cost",
+      "ms": "{{value}} ms",
+      "day": "Day (UTC)",
+      "gateway": "Gateway",
+      "recorded": "Recorded",
+      "diff": "Difference",
+      "compareTitle": "Compared with the gateway",
+      "operations": {
+        "intent": "Intent",
+        "question_slots": "Data question",
+        "receipt": "Receipt",
+        "speech": "Voice",
+        "duplicates": "Duplicates",
+        "shadow": "Shadow measurement"
+      },
+      "tips": {
+        "failed": "Share of calls without a valid answer, and the most common error code.",
+        "compare": "Gateway spend per day minus measurement runs (source:eval), against the cost recorded for each call. Days before the first recorded call are not shown, and the first day is partial."
+      }
     }
   },
   "posthog": {
