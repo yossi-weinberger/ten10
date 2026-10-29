@@ -13,9 +13,9 @@ Deno.test("Hebrew amounts", () => {
     "קיבלתי משכורת 9000 שקל ונתתי 900 שקל למעשר",
   );
   check("חמש מאות שקל שכר לימוד", "500 שקל שכר לימוד");
-  check("אלף ומאתיים", "1200");
-  check("אלף וחצי", "1500");
-  check("מאה וחצי", "150");
+  check("אלף ומאתיים שקל", "1200 שקל");
+  check("אלף וחצי שקל", "1500 שקל");
+  check("מאה וחצי שקל", "150 שקל");
   check("עשרים וחמישה שקל", "25 שקל");
   check("חמישה שקלים", "5 שקלים");
 });
@@ -25,26 +25,26 @@ Deno.test("Hebrew forms", () => {
   check("שתים עשרה ש״ח", "12 ש״ח");
   check("שנים עשר דולר", "12 דולר");
   check("חמישה עשר שח", "15 שח");
-  check("אחד עשר אלף", "11000");
-  check("עשרים אלף", "20000");
-  check("מאה אלף", "100000");
-  check("אלפיים", "2000");
-  check("עשרת אלפים וחמש מאות", "10500");
-  check("מאתיים חמישים ושש", "256");
-  check("שלוש מאות וחצי", "350");
-  check("לחמישים", "ל־50");
-  check("ומאה", "ו־100");
+  check("אחד עשר אלף שקל", "11000 שקל");
+  check("עשרים אלף שקל", "20000 שקל");
+  check("מאה אלף שקל", "100000 שקל");
+  check("אלפיים שקל", "2000 שקל");
+  check("עשרת אלפים וחמש מאות שקל", "10500 שקל");
+  check("מאתיים חמישים ושש שקל", "256 שקל");
+  check("שלוש מאות וחצי שקל", "350 שקל");
+  check("לחמישים שקל", "ל־50 שקל");
+  check("ומאה שקל", "ו־100 שקל");
 });
 
 Deno.test("English amounts", () => {
   check("make my fifty dollar pledge", "make my 50 dollar pledge");
   check("one hundred and twenty shekels", "120 shekels");
-  check("two thousand five hundred", "2500");
+  check("two thousand five hundred dollars", "2500 dollars");
   check("twenty-five dollars", "25 dollars");
-  check("a hundred", "100");
-  check("A thousand and one", "1001");
+  check("a hundred dollars", "100 dollars");
+  check("A thousand and one dollars", "1001 dollars");
   check("five euros", "5 euros");
-  check("ninety nine", "99");
+  check("ninety nine dollars", "99 dollars");
 });
 
 Deno.test("numbers that are not amounts stay as words", () => {
@@ -61,8 +61,19 @@ Deno.test("numbers that are not amounts stay as words", () => {
   check("twenty-something", "twenty-something");
 });
 
+Deno.test("a hyphen joins a Hebrew teen, and missing letters still count", () => {
+  check("שתים־עשרה ש״ח", "12 ש״ח");
+  check("חמש-עשרה ש״ח", "15 ש״ח");
+  check("מאתים שקל", "200 שקל");
+  check("שלש מאות שקל", "300 שקל");
+  check("שלשים שקל", "30 שקל");
+  check("שילמתי מאה", "שילמתי 100");
+  check("במאה שערים", "במאה שערים");
+});
+
 Deno.test("digits and other text stay byte-identical", () => {
   check("שילמתי 120 שקל", "שילמתי 120 שקל");
-  check("  מאה,  שמונים  ", "  100,  80  ");
+  check("  מאה,  שמונים  ", "  מאה,  שמונים  ");
+  check("מאה שקל, שמונים דולר", "100 שקל, 80 דולר");
   check("קניתי היום חמישים שקל", "קניתי היום 50 שקל");
 });
