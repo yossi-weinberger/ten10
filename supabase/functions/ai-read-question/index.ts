@@ -1,7 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
-import { hashGatewayUser } from "../_shared/ai/gateway-tags.ts";
 import { gatewaySystemOneBody, JEV_SYSTEMONE_URL } from "../_shared/ai/jev-duplicate-rank.ts";
 import { isAiIntakeEnabled } from "../_shared/ai/enabled.ts";
 import { isTrialUser } from "../_shared/ai/trial-users.ts";
@@ -90,8 +89,6 @@ Deno.serve(async (req: Request) => {
         },
         body: JSON.stringify(gatewaySystemOneBody(request, {
           source: "app",
-          feature: "question_slots",
-          user: await hashGatewayUser(userData.user.id),
         })),
       },
       timeoutMs: 12000,

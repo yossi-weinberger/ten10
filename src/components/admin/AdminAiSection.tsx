@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DatePickerWithRange } from "@/components/ui/date-range-picker";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AdminAiCallsSection } from "@/components/admin/AdminAiCallsSection";
 import { AdminAiCharts } from "@/components/admin/AdminAiCharts";
 import { AdminAiFunnel } from "@/components/admin/AdminAiFunnel";
 import { AdminAiSourceSplit, AdminAiSpendCards } from "@/components/admin/AdminAiSpendCards";
@@ -15,8 +16,10 @@ import { useDateControls, type DateRangeSelectionType } from "@/hooks/useDateCon
 import { intakeFunnel } from "@/lib/admin/ai-intake-funnel";
 import { aiShare } from "@/lib/admin/ai-usage";
 import {
+  fetchAdminAiCalls,
   fetchAdminAiCounts,
   fetchAdminAiSpend,
+  type AdminAiCalls,
   type AdminAiCounts,
   type AdminAiSpend,
 } from "@/lib/data-layer/aiAdmin.service";
@@ -53,12 +56,15 @@ export function AdminAiSection() {
   const [countsKey, setCountsKey] = useState("");
   const [spend, setSpend] = useState<AdminAiSpend | null>(null);
   const [spendKey, setSpendKey] = useState("");
+  const [calls, setCalls] = useState<AdminAiCalls | null>(null);
+  const [callsKey, setCallsKey] = useState("");
 
   const startDate = dateRangeSelection === "all" ? firstOn : activeDateRangeObject.startDate;
   const endDate = activeDateRangeObject.endDate;
   const rangeKey = startDate ? `${startDate}|${endDate}` : "";
   const countsCurrent = countsKey === rangeKey;
   const spendCurrent = spendKey === rangeKey;
+  const callsCurrent = callsKey === rangeKey;
   const funnel = countsCurrent && counts ? intakeFunnel(counts.drafts, counts.origins) : null;
 
   useEffect(() => {
@@ -83,6 +89,17 @@ export function AdminAiSection() {
         setCountsKey(key);
         setCounts(null);
         setCountsFailed(true);
+      });
+    void fetchAdminAiCalls(startDate, endDate)
+      .then((next) => {
+        if (cancelled) return;
+        setCalls(next);
+        setCallsKey(key);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setCalls(null);
+        setCallsKey(key);
       });
     void fetchAdminAiSpend(startDate, endDate)
       .then((next) => {
@@ -212,7 +229,10 @@ export function AdminAiSection() {
           <Skeleton className="h-24" />
         )}
       </section>
-      <AdminAiCharts counts={countsCurrent ? counts : null} spend={spendCurrent ? spend : null} />
+      {callsCurrent && calls ? (
+        <AdminAiCallsSection calls={calls} spend={spendCurrent ? spend : null} />
+      ) : null}
+      <AdminAiCharts counts={countsCurrent ? counts : null} calls={callsCurrent ? calls : null} />
       {countsCurrent && counts ? (
         <div className="space-y-8">
           <CountGroup title={t("ai.messagesTitle")} hint={t("ai.messagesHint")}>
