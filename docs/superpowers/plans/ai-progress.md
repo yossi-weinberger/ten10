@@ -128,6 +128,7 @@
 | M3 | `2026-10-28-ai-multi-item.md` | כמה פריטים בהודעה אחת, בלי UI | R4 | מוזג | [#607](https://github.com/yossi-weinberger/ten10/pull/607) |
 | M6 | `2026-10-28-ai-multi-item.md` | kind בקבלה, בלי חילוץ מערך | — | מוזג | [#608](https://github.com/yossi-weinberger/ten10/pull/608) |
 | M2a | `2026-10-28-ai-multi-item.md` | עיגון ותאריך, בלי Edge ובלי סט | M3 | מוזג | [#609](https://github.com/yossi-weinberger/ten10/pull/609) |
+| M2b | `2026-10-28-ai-multi-item.md` | קריאת תשובת הפיצול, בלי מודל | M2a | מוזג | [#610](https://github.com/yossi-weinberger/ten10/pull/610) |
 | WISH | `2026-10-29-ai-review-wish.md` | סקירת #596–#607, לא מיושם | — | נפתח | [#611](https://github.com/yossi-weinberger/ten10/pull/611) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
@@ -504,4 +505,6 @@
 - **2026-10-29:** #607 מוזג ל־`feat/ai-intake`. `create_ai_text_intake_items` יוצר עד 5 פריטים בהודעה אחת. אותו מפתח מחזיר את אותם פריטים. 6 נכשל. שמירה שנכשלת באמצע לא שומרת כלום. על testing הוחלה `20261029160000`. TypeScript נכשל על `node:fs` בקובץ בדיקה תחת `src`, והבדיקה עברה ל־`scripts`. לא ל־`main`.
 - **2026-10-29:** #608 מוזג ל־`feat/ai-intake`. קבלה עם `kind`. חסר או לא מוכר נקרא קבלה אחת. כמה קבלות בתמונה מבקשות לשלוח כל אחת בנפרד, בלי חילוץ. דף בנק מציע ייבוא של CSV או Excel. `ai-read-receipt` על testing. לא ל־`main`.
 - **2026-10-29:** #609 מוזג ל־`feat/ai-intake`. עיגון של פריטי פיצול: הסכום חייב להופיע בטקסט ולהיקרא בדיוק, ו«50 לכולל» לא נותן שני פריטים. תאריך ריק הוא היום, ותאריך שלא הובן נשאר ריק. ה־Edge וסט החילוץ עדיין פתוחים. לא ל־`main`.
+- **2026-10-29:** [#610](https://github.com/yossi-weinberger/ten10/pull/610) נפתח מול `feat/ai-intake`. תשובת פיצול נקראת בלי מודל. יותר מחמישה פריטים הוא רשימה, בלי שמירה. תשובה בלי פריט שנשאר אינה נקראת. פריט שנזרק נספר. לא ל־`main`.
+- **2026-10-29:** #610 מוזג ל־`feat/ai-intake`. קריאת תשובת הפיצול בלי מודל. ה־Edge וסט החילוץ עדיין פתוחים. לא ל־`main`.
 - **2026-10-29:** WISH. סקירת #596–#607 נשמרה ב־`2026-10-29-ai-review-wish.md`. לא מיושם. חוזרים לתוכניות. לא ל־`main`.
