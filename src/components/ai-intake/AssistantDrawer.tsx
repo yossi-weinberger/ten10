@@ -541,7 +541,7 @@ export function AssistantDrawer({
       || recurring.amount === null
       || recurring.currency === null
       || recurring.type === null
-      || recurring.frequency === null
+      || recurring.frequency !== "monthly"
     ) return;
     setSaving(true);
     try {

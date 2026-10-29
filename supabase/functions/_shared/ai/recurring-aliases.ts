@@ -33,6 +33,7 @@ export const WEEKDAY_FREQUENCY = [
   { weekday: 6, phrases: ["כל שבת", "every saturday"] },
 ] as const;
 
+// TODO(recurring-frequencies): when weekly/yearly are enabled in the form, also enable them in the AI recurring flow (recurring-card.ts + intent/extraction prompt) and update tests.
 export const FREQUENCY_PHRASES = [
   { frequency: "daily", phrases: ["כל יום", "יומי", "יומית", "every day", "daily"] },
   { frequency: "weekly", phrases: ["כל שבוע", "שבועי", "שבועית", "every week", "weekly"] },

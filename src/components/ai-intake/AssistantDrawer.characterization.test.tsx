@@ -460,8 +460,9 @@ describe("AssistantDrawer characterization", () => {
     const user = setup();
     await send(user, "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש");
     expect(await screen.findByRole("button", { name: "aiIntake.recurring.save" })).toBeEnabled();
+    expect(screen.queryByRole("textbox", { name: "aiIntake.editAmount" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("combobox", { name: "aiIntake.recurring.type" })).not.toBeInTheDocument();
     expect(ai.createRecurringTransaction).not.toHaveBeenCalled();
-    await user.selectOptions(screen.getByRole("combobox", { name: "aiIntake.recurring.type" }), "donation");
     await user.click(screen.getByRole("button", { name: "aiIntake.recurring.save" }));
     await waitFor(() => expect(ai.createRecurringTransaction).toHaveBeenCalledTimes(1));
     expect(ai.createRecurringTransaction.mock.calls[0][0].origin).toBe("ai");
@@ -482,8 +483,7 @@ describe("AssistantDrawer characterization", () => {
     });
     const user = setup();
     await send(user, "תגדיר לי הוראת קבע של 200 ש״ח לכולל בכל ראש חודש");
-    await user.selectOptions(await screen.findByRole("combobox", { name: "aiIntake.recurring.type" }), "donation");
-    await user.click(screen.getByRole("button", { name: "aiIntake.recurring.save" }));
+    await user.click(await screen.findByRole("button", { name: "aiIntake.recurring.save" }));
     expect(await screen.findByText("aiIntake.recurring.saved")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "aiIntake.recurring.cancel" })).not.toBeInTheDocument();
   });

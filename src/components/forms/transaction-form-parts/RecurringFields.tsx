@@ -71,6 +71,7 @@ export function RecurringFields({ form }: RecurringFieldsProps) {
                       "transactionForm.recurringTransaction.frequency.monthly"
                     )}
                   </SelectItem>
+                  {/* TODO(recurring-frequencies): when weekly/yearly are enabled in the form, also enable them in the AI recurring flow (recurring-card.ts + intent/extraction prompt) and update tests. */}
                   <SelectItem value="weekly" disabled>
                     {t("transactionForm.recurringTransaction.frequency.weekly")}{" "}
                     ({t("transactionForm.recurringTransaction.comingSoon")})
