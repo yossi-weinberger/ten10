@@ -1,5 +1,3 @@
-import { bucketGrain, bucketKey, type AiBucketGrain } from "../_shared/ai/admin-buckets.ts";
-
 export type GatewaySpendRow = {
   label: string;
   totalCost: number;
@@ -8,19 +6,23 @@ export type GatewaySpendRow = {
   outputTokens: number;
 };
 
+export type DayCost = { day: string; totalCost: number; requestCount: number };
+
 function numberField(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
+function results(payload: unknown): Record<string, unknown>[] {
+  if (!payload || typeof payload !== "object") return [];
+  const rows = (payload as { results?: unknown }).results;
+  if (!Array.isArray(rows)) return [];
+  return rows.filter((row): row is Record<string, unknown> => !!row && typeof row === "object");
+}
+
 /** Reads a gateway spend report. Drops empty user and tag buckets. */
 export function parseGatewayReport(payload: unknown): GatewaySpendRow[] {
-  if (!payload || typeof payload !== "object") return [];
-  const results = (payload as { results?: unknown }).results;
-  if (!Array.isArray(results)) return [];
   const rows: GatewaySpendRow[] = [];
-  for (const item of results) {
-    if (!item || typeof item !== "object") continue;
-    const record = item as Record<string, unknown>;
+  for (const record of results(payload)) {
     const label = [record.model, record.day, record.user, record.tag].find(
       (value) => typeof value === "string" && value.length > 0,
     );
@@ -36,44 +38,34 @@ export function parseGatewayReport(payload: unknown): GatewaySpendRow[] {
   return rows;
 }
 
-export function sourceTotals(payload: unknown): { app: number; evalCost: number } {
-  let app = 0;
-  let evalCost = 0;
-  for (const row of parseGatewayReport(payload)) {
-    if (row.label === "source:app") app += row.totalCost;
-    if (row.label === "source:eval") evalCost += row.totalCost;
+/** One row per UTC day of a `group_by=day` report, sorted by day. */
+export function dailyCosts(payload: unknown): DayCost[] {
+  const totals = new Map<string, DayCost>();
+  for (const record of results(payload)) {
+    if (typeof record.day !== "string" || record.day.length === 0) continue;
+    const current = totals.get(record.day) ?? { day: record.day, totalCost: 0, requestCount: 0 };
+    current.totalCost += numberField(record.total_cost);
+    current.requestCount += numberField(record.request_count);
+    totals.set(record.day, current);
   }
-  return { app, evalCost };
+  return [...totals.values()].sort((left, right) => left.day.localeCompare(right.day));
 }
 
-export type SpendBucket = { bucket: string; totalCost: number; requestCount: number };
+/** App calls are untagged, so app spend is the day total minus `source:eval`. */
+export function appDailyCosts(total: DayCost[], evalDays: DayCost[]): DayCost[] {
+  const evalByDay = new Map(evalDays.map((row) => [row.day, row]));
+  return total.map((row) => {
+    const evalRow = evalByDay.get(row.day);
+    return {
+      day: row.day,
+      totalCost: Math.max(0, row.totalCost - (evalRow?.totalCost ?? 0)),
+      requestCount: Math.max(0, row.requestCount - (evalRow?.requestCount ?? 0)),
+    };
+  });
+}
 
-export function aggregateDayReport(
-  payload: unknown,
-  from: string,
-  to: string,
-): { grain: AiBucketGrain; buckets: SpendBucket[] } {
-  const grain = bucketGrain(from, to);
-  const totals = new Map<string, SpendBucket>();
-  if (payload && typeof payload === "object") {
-    const results = (payload as { results?: unknown }).results;
-    if (Array.isArray(results)) {
-      for (const item of results) {
-        if (!item || typeof item !== "object") continue;
-        const record = item as Record<string, unknown>;
-        if (typeof record.day !== "string" || record.day.length === 0) continue;
-        const bucket = bucketKey(record.day, grain);
-        const current = totals.get(bucket) ?? { bucket, totalCost: 0, requestCount: 0 };
-        current.totalCost += numberField(record.total_cost);
-        current.requestCount += numberField(record.request_count);
-        totals.set(bucket, current);
-      }
-    }
-  }
-  return {
-    grain,
-    buckets: [...totals.values()].sort((left, right) => left.bucket.localeCompare(right.bucket)),
-  };
+export function sumCost(rows: DayCost[]): number {
+  return rows.reduce((sum, row) => sum + row.totalCost, 0);
 }
 
 /** True only for the boolean returned by is_admin_user(). */

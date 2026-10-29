@@ -1,18 +1,18 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
-import type { AiBucketGrain } from "../_shared/ai/admin-buckets.ts";
+import { EVAL_SOURCE_TAG } from "../_shared/ai/gateway-tags.ts";
 import {
-  aggregateDayReport,
+  appDailyCosts,
+  dailyCosts,
   isAdminFlag,
   parseGatewayReport,
-  sourceTotals,
-  type SpendBucket,
+  sumCost,
 } from "./report.ts";
 
 const REPORT_URL = "https://ai-gateway.vercel.sh/v1/report";
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
-/** First UTC day whose calls send source tags. Earlier days stay mixed. */
+/** First UTC day eval scripts tag `source:eval`. Before it, app spend still includes eval runs. */
 const TAGGING_START = "2026-10-23";
 const MAX_MODELS = 8;
 
@@ -23,19 +23,17 @@ function json(origin: string | null, body: unknown, status: number): Response {
   });
 }
 
-function empty(origin: string | null, grain: AiBucketGrain, mixed: boolean): Response {
+function empty(origin: string | null, mixed: boolean): Response {
   return json(origin, {
     available: false,
     mixed,
-    grain,
     models: [],
-    days: [],
-    modelBuckets: [],
-    appBuckets: null,
+    appDays: [],
     sources: { app: 0, eval: 0 },
   }, 200);
 }
 
+/** Each report query is billed, so the function makes exactly three. */
 async function report(
   key: string,
   from: string,
@@ -79,48 +77,27 @@ Deno.serve(async (req: Request) => {
   if (adminError || !isAdminFlag(adminFlag)) return json(origin, { error: "Forbidden" }, 403);
 
   const apiKey = (Deno.env.get("VERCEL_AI_GATEWAY_API_KEY") ?? "").trim();
-  if (!apiKey) return empty(origin, aggregateDayReport(null, from, to).grain, mixed);
+  if (!apiKey) return empty(origin, mixed);
 
   try {
-    const [models, days, tags] = await Promise.all([
+    const [models, days, evalDays] = await Promise.all([
       report(apiKey, from, to, { group_by: "model" }),
       report(apiKey, from, to, { group_by: "day" }),
-      report(apiKey, from, to, { group_by: "tag" }),
+      report(apiKey, from, to, { group_by: "day", tags: EVAL_SOURCE_TAG }),
     ]);
-    if (!models || !days || !tags) return empty(origin, aggregateDayReport(null, from, to).grain, mixed);
+    if (!models || !days || !evalDays) return empty(origin, mixed);
 
-    const modelRows = parseGatewayReport(models).slice(0, MAX_MODELS);
-    const dayReport = aggregateDayReport(days, from, to);
-    const modelBuckets: Array<SpendBucket & { model: string }> = [];
-    const perModel = await Promise.all(modelRows.map(async (row) => {
-      const payload = await report(apiKey, from, to, { group_by: "day", model: row.label });
-      return { model: row.label, buckets: payload ? aggregateDayReport(payload, from, to).buckets : [] };
-    }));
-    for (const series of perModel) {
-      for (const bucket of series.buckets) {
-        modelBuckets.push({ model: series.model, ...bucket });
-      }
-    }
-
-    const sources = sourceTotals(tags);
-    let appBuckets: SpendBucket[] | null = null;
-    if (!mixed) {
-      const appDays = await report(apiKey, from, to, { group_by: "day", tags: "source:app" });
-      appBuckets = appDays && sources.app > 0 ? aggregateDayReport(appDays, from, to).buckets : null;
-    }
-
+    const evalCosts = dailyCosts(evalDays);
+    const appDays = appDailyCosts(dailyCosts(days), evalCosts);
     return json(origin, {
       available: true,
       mixed,
-      grain: dayReport.grain,
-      models: modelRows,
-      days: dayReport.buckets,
-      modelBuckets,
-      appBuckets,
-      sources: { app: sources.app, eval: sources.evalCost },
+      models: parseGatewayReport(models).slice(0, MAX_MODELS),
+      appDays,
+      sources: { app: sumCost(appDays), eval: sumCost(evalCosts) },
     }, 200);
   } catch {
     logger.error("ai gateway report failed");
-    return empty(origin, aggregateDayReport(null, from, to).grain, mixed);
+    return empty(origin, mixed);
   }
 });

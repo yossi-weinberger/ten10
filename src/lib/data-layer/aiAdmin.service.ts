@@ -46,18 +46,38 @@ export type AdminAiCounts = {
   users: Array<{ email: string; drafts: number; committed: number; questions: number }>;
 };
 
-export type AdminAiSpendBucket = { bucket: string; totalCost: number; requestCount: number };
+export type AdminAiSpendDay = { day: string; totalCost: number; requestCount: number };
 
 export type AdminAiSpend = {
   available: boolean;
   mixed: boolean;
-  grain: "day" | "week" | "month";
   models: Array<{ label: string; totalCost: number; requestCount: number; inputTokens: number; outputTokens: number }>;
-  days: AdminAiSpendBucket[];
-  modelBuckets: Array<AdminAiSpendBucket & { model: string }>;
-  appBuckets: AdminAiSpendBucket[] | null;
+  appDays: AdminAiSpendDay[];
   sources: { app: number; eval: number };
 };
+
+export type AdminAiCallOperation = {
+  operation: string;
+  calls: number;
+  failed: number;
+  p50_ms: number;
+  p95_ms: number;
+  input_tokens: number;
+  output_tokens: number;
+  cost_usd: number;
+  top_error: string | null;
+};
+
+export type AdminAiCalls = {
+  first_on: string | null;
+  operations: AdminAiCallOperation[];
+  days: Array<{ day: string; calls: number; cost_usd: number }>;
+  model_buckets: Array<{ bucket: string; model: string; calls: number; cost_usd: number }>;
+  users: Array<{ email: string; calls: number; failed: number; cost_usd: number }>;
+};
+
+/** The gateway bills every report query, so a range is fetched once per page load. */
+const spendCache = new Map<string, AdminAiSpend>();
 
 export async function fetchAdminAiCounts(from: string, to: string): Promise<AdminAiCounts | null> {
   const { data, error } = await supabase.rpc("get_admin_ai_stats", {
@@ -71,7 +91,22 @@ export async function fetchAdminAiCounts(from: string, to: string): Promise<Admi
   return data as AdminAiCounts;
 }
 
+export async function fetchAdminAiCalls(from: string, to: string): Promise<AdminAiCalls | null> {
+  const { data, error } = await supabase.rpc("get_admin_ai_calls", {
+    p_from: from,
+    p_to: to,
+  });
+  if (error) {
+    logger.error("Admin AI calls failed", error);
+    return null;
+  }
+  return data as AdminAiCalls;
+}
+
 export async function fetchAdminAiSpend(from: string, to: string): Promise<AdminAiSpend | null> {
+  const key = `${from}|${to}`;
+  const cached = spendCache.get(key);
+  if (cached) return cached;
   try {
     const { data: sessionData } = await supabase.auth.getSession();
     const accessToken = sessionData?.session?.access_token;
@@ -88,7 +123,9 @@ export async function fetchAdminAiSpend(from: string, to: string): Promise<Admin
       logger.error("Admin AI spend failed", response.status);
       return null;
     }
-    return (await response.json()) as AdminAiSpend;
+    const spend = (await response.json()) as AdminAiSpend;
+    if (spend.available) spendCache.set(key, spend);
+    return spend;
   } catch (error) {
     logger.error("Admin AI spend failed", error);
     return null;

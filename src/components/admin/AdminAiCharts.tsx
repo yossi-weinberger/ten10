@@ -11,7 +11,7 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { formatTrendBucketLabel } from "@/lib/admin/trend-chart.utils";
-import type { AdminAiCounts, AdminAiSpend } from "@/lib/data-layer/aiAdmin.service";
+import type { AdminAiCalls, AdminAiCounts } from "@/lib/data-layer/aiAdmin.service";
 
 const MODEL_COLORS = [
   "--chart-teal",
@@ -108,15 +108,15 @@ function TimeChart({
 
 export function AdminAiCharts({
   counts,
-  spend,
+  calls,
 }: {
   counts: AdminAiCounts | null;
-  spend: AdminAiSpend | null;
+  calls: AdminAiCalls | null;
 }) {
   const { t, i18n } = useTranslation("admin");
   const locale = i18n.language === "he" ? "he-IL" : "en-US";
   const empty = t("ai.noData");
-  const daily = (counts?.grain ?? spend?.grain) !== "month";
+  const daily = counts?.grain !== "month";
 
   const activity = counts?.buckets ?? [];
   const activityData = activity.map((row) => ({
@@ -141,18 +141,28 @@ export function AdminAiCharts({
     .filter(([, count]) => count > 0)
     .map(([key, value]) => ({ bucket: outcomeLabel(key), value }));
 
-  const modelNames = [...new Set((spend?.modelBuckets ?? []).map((row) => row.model))];
+  const modelRows = calls?.model_buckets ?? [];
+  const modelNames = [...new Set(modelRows.map((row) => row.model))];
+  const modelBuckets = [...new Set(modelRows.map((row) => row.bucket))].sort();
   const modelConfig = {
     requests: { label: t("ai.requests"), color: "hsl(var(--chart-blue))" },
   } satisfies ChartConfig;
-  const modelData = (spend?.days ?? []).map((day) => {
-    const point: Record<string, string | number> = { bucket: day.bucket, requests: day.requestCount };
+  const modelData = modelBuckets.map((bucket) => {
+    const rows = modelRows.filter((row) => row.bucket === bucket);
+    const point: Record<string, string | number> = {
+      bucket,
+      requests: rows.reduce((sum, row) => sum + Number(row.calls), 0),
+    };
     modelNames.forEach((model, index) => {
-      const match = spend?.modelBuckets.find((row) => row.bucket === day.bucket && row.model === model);
-      point[`m${index}`] = match?.totalCost ?? 0;
+      point[`m${index}`] = Number(rows.find((row) => row.model === model)?.cost_usd ?? 0);
     });
     return point;
   });
+  const costByBucket = new Map<string, number>();
+  for (const row of modelRows) {
+    costByBucket.set(row.bucket, (costByBucket.get(row.bucket) ?? 0) + Number(row.cost_usd));
+  }
+  const recordedWholeRange = !!calls?.first_on && !!counts && counts.from >= calls.first_on;
   modelNames.forEach((model, index) => {
     (modelConfig as ChartConfig)[`m${index}`] = {
       label: model,
@@ -160,13 +170,10 @@ export function AdminAiCharts({
     };
   });
 
-  const perSave = spend?.appBuckets && counts
+  const perSave = recordedWholeRange && counts
     ? counts.buckets
       .filter((row) => row.committed > 0)
-      .map((row) => ({
-        bucket: row.bucket,
-        perSave: (spend.appBuckets?.find((item) => item.bucket === row.bucket)?.totalCost ?? 0) / row.committed,
-      }))
+      .map((row) => ({ bucket: row.bucket, perSave: (costByBucket.get(row.bucket) ?? 0) / row.committed }))
     : null;
 
   return (
@@ -203,7 +210,7 @@ export function AdminAiCharts({
         daily={daily}
         locale={locale}
       />
-      {spend?.available ? (
+      {modelRows.length > 0 ? (
         <TimeChart
           title={t("ai.chartCost")}
           data={hasNumber(modelData, ["requests", ...modelNames.map((_, index) => `m${index}`)]) ? modelData : []}
@@ -212,7 +219,7 @@ export function AdminAiCharts({
           line="requests"
           lineAxis="right"
           empty={empty}
-          daily={spend.grain !== "month"}
+          daily={daily}
           locale={locale}
         />
       ) : null}

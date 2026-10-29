@@ -1,4 +1,8 @@
-/** Tags and a hashed user id for Vercel AI Gateway spend reports. */
+/**
+ * Gateway provider options. App calls carry no tags and no user: each tagged request
+ * costs a reporting surcharge, and `ai.model_calls` already keeps user, operation and cost.
+ * Eval scripts tag `source:eval` so the spend report can subtract them.
+ */
 
 export type GatewayFeature =
   | "intent"
@@ -12,47 +16,21 @@ export type GatewaySource = "app" | "eval";
 
 export type GatewayTagInput = {
   source: GatewaySource;
-  feature: GatewayFeature;
-  user?: string;
   only?: readonly string[];
 };
 
 export type GatewayProviderOptions = {
   zeroDataRetention: true;
-  tags: string[];
-  user?: string;
+  tags?: string[];
   only?: string[];
 };
 
-export function gatewayTags(source: GatewaySource, feature: GatewayFeature): string[] {
-  return [`source:${source}`, feature];
-}
-
-export async function hashGatewayUserId(salt: string, userId: string): Promise<string> {
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(salt + userId),
-  );
-  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
-}
-
-function readGatewaySalt(): string {
-  const runtime = globalThis as { Deno?: { env: { get(name: string): string | undefined } } };
-  return (runtime.Deno?.env.get("AI_GATEWAY_USER_SALT") ?? "").trim();
-}
-
-/** Reads `AI_GATEWAY_USER_SALT`. Missing salt omits the user instead of sending the raw id. */
-export async function hashGatewayUser(userId: string): Promise<string | undefined> {
-  const salt = readGatewaySalt();
-  if (!salt) return undefined;
-  return hashGatewayUserId(salt, userId);
-}
+export const EVAL_SOURCE_TAG = "source:eval";
 
 export function gatewayProviderOptions(input: GatewayTagInput): GatewayProviderOptions {
   return {
     zeroDataRetention: true,
-    tags: gatewayTags(input.source, input.feature),
-    ...(input.user ? { user: input.user } : {}),
+    ...(input.source === "eval" ? { tags: [EVAL_SOURCE_TAG] } : {}),
     ...(input.only ? { only: [...input.only] } : {}),
   };
 }
