@@ -115,6 +115,7 @@
 | R2 | `2026-10-28-ai-recurring.md` | מודול טהור, בלי UI | — | מוזג ל־`feat/ai-intake` | [#595](https://github.com/yossi-weinberger/ten10/pull/595) |
 | U1 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing | — | מוזג ל־`feat/ai-intake` | [#594](https://github.com/yossi-weinberger/ten10/pull/594) |
 | RCP | נמען בתרומה | מודול טהור, בלי חיבור | — | מוזג ל־`feat/ai-intake` | [#597](https://github.com/yossi-weinberger/ten10/pull/597) |
+| U2 | `2026-10-28-ai-usage-and-plans.md` | DB על testing + Edge על testing + UI | U1 | מוזג ל־`feat/ai-intake` | [#599](https://github.com/yossi-weinberger/ten10/pull/599) |
 | M1 | 2026-10-28-ai-multi-item.md | Edge + UI, בלי חילוץ | — | נפתח, מחכה לסט | [#596](https://github.com/yossi-weinberger/ten10/pull/596) |
 | UI-1 | `2026-10-22-ai-ui-redesign.md` | בדיקות אפיון לעוזר, בלי שינוי בקוד מוצר | — | מוזג ל־`feat/ai-intake` | [#564](https://github.com/yossi-weinberger/ten10/pull/564) |
 | UI-2 | אותו קובץ | רכיבי AI Elements ל־Tailwind 3, לא בשימוש | UI-1 | מוזג ל־`feat/ai-intake` | [#565](https://github.com/yossi-weinberger/ten10/pull/565) |
@@ -429,6 +430,13 @@
   - "to Ezer Mizion": «Ezer Mizion».
   - "for matanot la'evyonim": אין נמען. "for" לא נחשב, ואין מילת תרומה.
   - "to the kollel": «kollel», בלי the, כמו בשאלת נתונים.
+- **2026-10-28:** U2.
+  - **תגים:** קריאות האפליקציה יוצאות בלי `tags` ובלי `user`. רק סקריפטי המדידה מתייגים `source:eval`. נבדק בקריאה אחת: `surchargeCost` הוא 0. החיסכון לבקשה הוא $0.00015 ב־Jev ובקבלה, כלומר קריאת כוונה ירדה מ־$0.000175 ל־$0.0000255 (85%). בתמלול לא הייתה תוספת.
+  - **`get_admin_ai_calls`** (`20261028233000`, הוחל על testing והחותמת יושרה): פעולות עם קריאות, כשל, p50 ו־p95, טוקנים ועלות. ימים להשוואה, מודלים לפי תקופה, ומשתמשים. מנהל מקבל תשובה, ומי שאינו מנהל נחסם.
+  - **`get-ai-admin-spend`:** 3 שאילתות לשער במקום עד 12, כלומר $0.015 במקום $0.06 לכל פתיחה. התשובה נשמרת ב־cache לפי טווח, עד טעינה מחדש של הדף. עלות האפליקציה היא סך היום פחות `source:eval`.
+  - **השוואה ראשונה (28/10, יום חלקי):** השער $0.01337 ו־33 בקשות, מול $0.00736 ו־23 קריאות אצלנו. ההפרש הוא קריאות מלפני פריסת U1 ושתי קריאות בדיקה שלי בלי תג. ההשוואה האמיתית מתחילה ב־29/10.
+  - **ממצא:** שלוש הקלטות של ה־QA נכשלו ב־400. הקלטה מהדפדפן (`audio/webm;codecs=opus`) נדחית על ידי `microsoft/mai-transcribe-2`, ו־WAV עובר. זה לא מ־U1, והקול כנראה לא עבד מאז 19/10. התיקון, המרה ל־WAV בדפדפן, הוא PR נפרד.
+  - `ai-classify-intent` לא נפרס מכאן, כדי לא לדרוס את הגרסה של M1 על testing. לא ל־`main`.
 - **2026-10-28:** [#596](https://github.com/yossi-weinberger/ten10/pull/596) נפתח מול `feat/ai-intake` (M1). קריאת הכוונה שואלת גם כמה תנועות יש (`one`, `several`, `list`), ו־`ai-classify-intent` מחזיר `count` ו־`count_confidence`. רשת ביטחון: שני סכומים או יותר ב־parser הם `several`. כשהכוונה היא תנועה וזה לא `one`, אין טיוטה, והתשובה היא «אני רושם תנועה אחת בכל פעם. שלח אותן אחת אחת.» גם בקול. שעה, שנה בהקשר של תאריך, ויום בחודש («ב־15 לחודש», «כל חודש ב־10») לא נספרים כסכום, וגם לא כמות ליד מחיר («2 חולצות ב־100»). לכן «כל חודש ב־10 תרשום 1,500» נותן עכשיו 1,500. הכיול מחכה ל־`intent-count-eval-cases.json` מיוסי. לא נפרס ל־testing. לא ל־`main`.
 - **2026-10-29:** כיול M1 על `intent-count-eval-cases.json` (120 משפטים: 50 `one`, 45 `several`, 25 `list`). שלוש ריצות:
   - **ריצה 1, עם הקריטריונים המקוריים:** ספירה 86.7% עם טעות אחת בוודאות גבוהה (`en-016`). בכוונה, «אתה יכול לבדוק לי כמה תרמתי או רק לרשום תנועות?» הפך ל־`ask_data` בוודאות 0.8.

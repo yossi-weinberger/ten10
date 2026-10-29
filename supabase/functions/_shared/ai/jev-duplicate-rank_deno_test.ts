@@ -22,12 +22,11 @@ Deno.test("duplicate rank body sends amounts and keeps ids out of the model text
 
   const serialized = JSON.stringify(body);
   assert(body.model === "typesafe-ai/jev", "model pin");
-  const sent = gatewaySystemOneBody(body, { source: "app", feature: "duplicates", user: "hashed" });
+  const sent = gatewaySystemOneBody(body, { source: "app" });
   assert(sent.providerOptions.gateway.zeroDataRetention === true, "zero data retention");
   assert(!("models" in sent.providerOptions.gateway), "no fallback models");
-  assert(sent.providerOptions.gateway.tags[0] === "source:app", "app tag");
-  assert(sent.providerOptions.gateway.tags[1] === "duplicates", "feature tag");
-  assert(sent.providerOptions.gateway.user === "hashed", "hashed user");
+  assert(!("tags" in sent.providerOptions.gateway), "no tags on app calls");
+  assert(!("user" in sent.providerOptions.gateway), "no user on app calls");
   assert(!serialized.includes("11111111"), "candidate id leaked into the body");
   assert(body.state.amount === 15 && body.state.currency === "ILS", "draft amount");
   assert(body.questions.q0.instructions.candidate.amount === 15, "candidate amount");

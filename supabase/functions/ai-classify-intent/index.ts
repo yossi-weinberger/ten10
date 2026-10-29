@@ -1,7 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.116.0";
 import { getCorsHeaders } from "../_shared/cors.ts";
 import { logger } from "../_shared/logger.ts";
-import { hashGatewayUser } from "../_shared/ai/gateway-tags.ts";
 import {
   gatewaySystemOneBody,
   JEV_DUPLICATE_MODEL,
@@ -61,8 +60,6 @@ Deno.serve(async (req: Request) => {
         },
         body: JSON.stringify(gatewaySystemOneBody(buildIntentBody(text), {
           source: "app",
-          feature: "intent",
-          user: await hashGatewayUser(userData.user.id),
         })),
       },
       timeoutMs: 8000,
