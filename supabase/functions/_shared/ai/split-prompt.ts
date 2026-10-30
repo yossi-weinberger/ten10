@@ -6,8 +6,8 @@ import { weekdayName } from "./split-date.ts";
 
 export const SPLIT_RESPONSES_URL = "https://ai-gateway.vercel.sh/v1/responses";
 
-/** Measured on split-eval-cases.json. Replaced if another model scores higher. */
-export const SPLIT_MODEL = "anthropic/claude-sonnet-5";
+/** Haiku 5.5 scored 87/129 against Sonnet 5 at 38/129, and it is the cheaper call. */
+export const SPLIT_MODEL = "anthropic/claude-haiku-5.5";
 
 /** A backup model is added only after it passes the same set. */
 export const SPLIT_FALLBACK_MODELS: readonly string[] = [];
