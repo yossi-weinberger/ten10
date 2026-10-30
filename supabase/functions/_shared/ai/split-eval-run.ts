@@ -41,9 +41,13 @@ let missed = 0;
 let failed = 0;
 const misses: string[] = [];
 
+const latencies: number[] = [];
+
 for (const item of cases) {
+  const started = performance.now();
   try {
     const payload = readModelText(await ask(key, item));
+    latencies.push(performance.now() - started);
     const score = scoreSplit(item.text, payload, item.today, item.expected);
     extra += score.extra;
     missed += score.missed;
@@ -55,4 +59,8 @@ for (const item of cases) {
   }
 }
 
-console.log(JSON.stringify({ model: MODEL, cases: cases.length, exact, extra, missed, failed, misses: misses.slice(0, 15) }, null, 2));
+const sorted = [...latencies].sort((left, right) => left - right);
+const p95 = sorted.length === 0 ? null : Math.round(sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))]);
+const summary = { model: MODEL, cases: cases.length, exact, extra, missed, failed, p95Ms: p95, misses: misses.slice(0, 20) };
+console.log(JSON.stringify(summary, null, 2));
+if (Deno.args[2]) await Deno.writeTextFile(Deno.args[2], JSON.stringify(summary, null, 2));

@@ -52,6 +52,31 @@ Deno.test("an anchored pair matches and an invented amount does not", () => {
   assert(invented.found === 1, "50 kept");
 });
 
+Deno.test("an asked amount matches a null amount and ignores a word amount", () => {
+  const asked = scoreSplit("קניתי לחם", {
+    items: [row(0, "", { amount: null, amount_text: null, type: "expense" })],
+  }, today, {
+    route: "several",
+    ask: "amount",
+    items: [{
+      description: "לחם",
+      amount: null,
+      amount_text: null,
+      currency: "ILS",
+      date: today,
+      type: "expense",
+    }],
+  });
+  assert(asked.exact, "null amount is the question");
+  const words = scoreSplit("שילמתי בסופר באשראי", {
+    items: [row(250, "בסופר", { type: "expense" })],
+  }, today, {
+    route: "several",
+    ask: "amount",
+    items: [],
+  });
+  assert(words.exact, "a digit-less amount is not an anchored hit");
+});
 Deno.test("more than five items is a list", () => {
   const items = [1, 2, 3, 4, 5, 6].map((amount) => row(amount, String(amount), { type: "expense" }));
   const score = scoreSplit("1 2 3 4 5 6", { items }, today, { route: "list", items: [] });
