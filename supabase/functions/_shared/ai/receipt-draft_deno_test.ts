@@ -97,9 +97,13 @@ Deno.test("the receipt hash is 64 hex characters", async () => {
   assert(/^[0-9a-f]{64}$/.test(hash), "hex");
 });
 
-Deno.test("model text is read from the responses payload", () => {
+Deno.test("model text is the message output, not the reasoning", () => {
   const text = readModelText({
-    output: [{ content: [{ type: "output_text", text: "{\"amount\":10}" }] }],
+    output: [
+      { type: "reasoning", content: [{ type: "reasoning_text", text: "not json" }] },
+      { type: "message", content: [{ type: "output_text", text: "{\"amount\":10}" }] },
+    ],
   });
-  assert(text === "{\"amount\":10}", "joined text");
+  assert(text === "{\"amount\":10}", "message only");
+  assert(readModelText({ output_text: "{\"amount\":12}" }) === "{\"amount\":12}", "direct text");
 });

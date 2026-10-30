@@ -6,7 +6,11 @@ import { weekdayName } from "./split-date.ts";
 
 export const SPLIT_RESPONSES_URL = "https://ai-gateway.vercel.sh/v1/responses";
 
-/** Haiku 5.5 scored 87/129 against Sonnet 5 at 38/129, and it is the cheaper call. */
+/**
+ * Temporary. The 2026-10-30 exact-match run did not score fields,
+ * and its route failures mixed unparsed replies with wrong reads.
+ * Haiku stays until that set is scored again.
+ */
 export const SPLIT_MODEL = "anthropic/claude-haiku-5.5";
 
 /** A backup model is added only after it passes the same set. */

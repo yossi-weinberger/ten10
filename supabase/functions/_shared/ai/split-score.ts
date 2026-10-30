@@ -1,4 +1,4 @@
-import { readSplitResponse, type SplitResponse } from "./split-response.ts";
+import { readSplitResponse, parseSplitPayload, type SplitResponse } from "./split-response.ts";
 
 export interface SplitExpectedItem {
   description: string;
@@ -101,4 +101,108 @@ export function scoreSplit(source: string, payload: unknown, today: string, expe
     missed: pending.length,
     extra,
   };
+}
+
+const SPECIAL_TYPES = new Set(["exempt-income", "recognized-expense", "non_tithe_donation"]);
+
+export interface SplitFieldScore {
+  route: SplitResponse["route"];
+  parsed: boolean;
+  clear: boolean;
+  amountChecked: number;
+  amountCorrect: number;
+  wrongAnchoredAmount: boolean;
+  typeChecked: number;
+  typeCorrect: number;
+  specialTypeUnasked: boolean;
+  dateChecked: number;
+  dateCorrect: number;
+  unnecessaryQuestion: boolean;
+  specialQuestionWrong: boolean;
+}
+
+function emptyFields(route: SplitResponse["route"], parsed: boolean, clear: boolean): SplitFieldScore {
+  return {
+    route,
+    parsed,
+    clear,
+    amountChecked: 0,
+    amountCorrect: 0,
+    wrongAnchoredAmount: false,
+    typeChecked: 0,
+    typeCorrect: 0,
+    specialTypeUnasked: false,
+    dateChecked: 0,
+    dateCorrect: 0,
+    unnecessaryQuestion: false,
+    specialQuestionWrong: false,
+  };
+}
+
+/**
+ * Field rates are only for a clear sentence (`ask` null, route several).
+ * An exact sentence is a separate report, not this score.
+ * A special type counts only when that item's expected type is the same special type.
+ * A special-type question counts only when the expected item asks it.
+ */
+export function scoreSplitFields(
+  source: string,
+  payload: unknown,
+  today: string,
+  expected: SplitExpected,
+): SplitFieldScore {
+  const parsed = parseSplitPayload(payload) !== null;
+  const actual = readSplitResponse(source, payload, today);
+  const clear = expected.route === "several" && expected.ask == null;
+  const score = emptyFields(actual.route, parsed, clear);
+  if (!clear) return score;
+  if (actual.route !== "several") {
+    for (const wanted of expected.items) {
+      if (wanted.amount !== null) score.amountChecked += 1;
+      if (wanted.type !== null) score.typeChecked += 1;
+      if (wanted.date !== null) score.dateChecked += 1;
+    }
+    return score;
+  }
+  const expectedAmounts = new Set(
+    expected.items.flatMap((item) => item.amount === null ? [] : [item.amount]),
+  );
+  for (const item of actual.items) {
+    if (!item.checkAmount && item.amount !== null && !expectedAmounts.has(item.amount)) {
+      score.wrongAnchoredAmount = true;
+    }
+  }
+  const used = new Set<number>();
+  let asked = false;
+  for (const wanted of expected.items) {
+    let match = wanted.amount === null
+      ? -1
+      : actual.items.findIndex((item, index) => !used.has(index) && item.amount === wanted.amount);
+    if (match < 0) match = actual.items.findIndex((_, index) => !used.has(index));
+    const got = match >= 0 ? actual.items[match] : null;
+    if (match >= 0) used.add(match);
+    if (wanted.amount !== null) {
+      score.amountChecked += 1;
+      if (got && got.amount === wanted.amount && !got.checkAmount) score.amountCorrect += 1;
+      else if (!got || got.amount === null) asked = true;
+    }
+    const type = got && got.typeHint !== "" ? got.typeHint : null;
+    if (wanted.type !== null) {
+      score.typeChecked += 1;
+      if (type === wanted.type) score.typeCorrect += 1;
+      else if (type === null) asked = true;
+    }
+    if (type && SPECIAL_TYPES.has(type) && type !== wanted.type) score.specialTypeUnasked = true;
+    if (wanted.date !== null) {
+      score.dateChecked += 1;
+      if (got && got.date === wanted.date && !got.checkDate) score.dateCorrect += 1;
+    }
+    const expectedQuestion = wanted.type_question ?? null;
+    if (got?.typeQuestion && got.typeQuestion !== expectedQuestion) {
+      score.specialQuestionWrong = true;
+      asked = true;
+    }
+  }
+  score.unnecessaryQuestion = asked;
+  return score;
 }
