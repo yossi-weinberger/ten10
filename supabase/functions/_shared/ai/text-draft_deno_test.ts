@@ -217,6 +217,10 @@ Deno.test("a total split in parts is one payment of the total", () => {
   assert(amountsFromText("שילמתי 300 על קניות, 100 במזומן ו־200 באשראי").length === 1, "one amount");
   assert(amountsFromText("50, 50 ו־100").length === 3, "no payment word");
   assert(amountsFromText("שילמתי 100 דולר שזה 370 שקל").length === 1, "conversion");
+  const converted = draftFromText("שילמתי 100 דולר שזה 370 שקל", TODAY);
+  assert(converted?.amount === 100, "conversion amount");
+  assert(converted?.currency === "USD", "conversion currency");
+  assert(!converted?.description.includes("370") && !converted?.description.includes("שזה"), "conversion leftover");
   assert(amountsFromText("ב-9 בבוקר שילמתי 40").length === 1, "hour");
   assert(draftFromText("ב-9 בבוקר שילמתי 40", TODAY)?.amount === 40, "hour amount");
   assert(amountsFromText("ב-2025 תרמתי 300").length === 1, "year");

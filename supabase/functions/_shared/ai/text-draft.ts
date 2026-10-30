@@ -257,10 +257,15 @@ function amountCandidates(original: string): AmountHit[] {
     const strength: AmountStrength = currencyBefore !== null || currencyAfter !== null ? 2 : marker !== null ? 1 : 0;
     if (strength === 0 && /(?:^|\s)(?:על|on)\s+[^\s,]+\s+$/i.test(before)) continue;
     const countsSeparately = !/(?:שזה|במקום|נטו|ברוטו|=|\()\s*$/.test(before);
+    const stripEnd = end + (currencyAfter?.[0].length ?? 0);
+    if (!countsSeparately) {
+      const previous = hits[hits.length - 1];
+      if (previous) previous.stripEnd = stripEnd;
+    }
     hits.push({
       amount,
       stripStart: starts.length > 0 ? Math.min(...starts) : start,
-      stripEnd: end + (currencyAfter?.[0].length ?? 0),
+      stripEnd,
       strength,
       startsItem: separators.test(before),
       countsSeparately,
@@ -297,7 +302,7 @@ function splitTotal<T extends AmountHit>(hits: T[]): T[] | null {
 
 /** The strongest hit wins: a currency beside it, then a price word, then a bare number. Ties take the last. */
 function findAmount(text: string): AmountHit | null {
-  const candidates = amountCandidates(text);
+  const candidates = amountCandidates(text).filter((hit) => hit.countsSeparately);
   const strongest = Math.max(-1, ...candidates.map((hit) => hit.strength));
   const pool = candidates.filter((hit) => hit.strength === strongest);
   return pool[pool.length - 1] ?? null;
