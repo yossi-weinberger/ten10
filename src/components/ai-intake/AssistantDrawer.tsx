@@ -15,7 +15,6 @@ import {
   selectHalachaPage,
   type ActiveUserRule,
   type ClarificationField,
-  type IntakeCount,
   type IntakeIntent,
   type ParsedUserRule,
   type RuleActionType,
@@ -80,10 +79,6 @@ export interface AssistantDrawerHandle {
   receive(file: File): void;
   receiveText(text: string): void;
 }
-
-type CountAnswer = { count: IntakeCount | null; confidence: number | null };
-
-const NO_COUNT: CountAnswer = { count: null, confidence: null };
 
 function isSingleReceipt(
   result: ReadReceiptResult,
@@ -155,7 +150,6 @@ export function AssistantDrawer({
   const [splitDropped, setSplitDropped] = useState(0);
   const [askIntent, setAskIntent] = useState(false);
   const [intentConfidence, setIntentConfidence] = useState<number | null>(null);
-  const [countAnswer, setCountAnswer] = useState<CountAnswer>(NO_COUNT);
   const [dataReply, setDataReply] = useState<
     | { status: "ready"; year: number; month: number | null; measure: "sum" | "count" | "average" | "max"; type: "donation" | "expense" | "income"; paymentMethod: string | null; recipient: string | null; category: string | null; from: string; to: string; total: number; count: number; currency: string | null }
     | { status: "category_missing"; topic: string; source: string; kind: "category" | "recipient" }
@@ -261,7 +255,6 @@ export function AssistantDrawer({
     setSavedItemId(null);
     setAskIntent(false);
     setIntentConfidence(null);
-    setCountAnswer(NO_COUNT);
     setDataReply(null);
     for (const url of previewUrls.current) URL.revokeObjectURL(url);
     previewUrls.current = [];
@@ -970,8 +963,6 @@ export function AssistantDrawer({
     const pageAnswered = decided.ok && intentIsConfident(decided.halachaPageConfidence);
     halachaRef.current = pageAnswered ? decided.halachaPage : null;
     setIntentConfidence(decided.ok ? decided.confidence : null);
-    const counted = decided.ok ? { count: decided.count, confidence: decided.countConfidence } : NO_COUNT;
-    setCountAnswer(counted);
     setChecking(false);
     const next = decided.ok
       ? shownIntent(source, today, {
